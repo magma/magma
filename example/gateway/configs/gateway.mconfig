@@ -1,0 +1,21 @@
+{
+  "configs_by_key": {
+    "control_proxy": {
+      "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
+      "logLevel": "INFO"
+    },
+    "magmad": {
+      "@type": "type.googleapis.com/magma.mconfig.MagmaD",
+      "logLevel": "INFO",
+      "checkinInterval": 60,
+      "checkinTimeout": 10,
+      "autoupgradeEnabled": false,
+      "autoupgradePollInterval": 300,
+      "package_version": "0.0.0-0"
+    },
+    "metricsd": {
+      "@type": "type.googleapis.com/magma.mconfig.MetricsD",
+      "logLevel": "INFO"
+    }
+  }
+}

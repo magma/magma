@@ -1,0 +1,13 @@
+# defaults file for CGRateS real-time charging system
+
+# start CGRateS init.d script?
+#  starts with "true"
+ENABLE=true
+
+# Start with specific user/group
+#USER=cgrates
+#GROUP=cgrates
+
+# what extra options to give cgrates binary?
+#  See cgr-engine -h for options
+#DAEMON_OPTS=''

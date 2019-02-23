@@ -1,0 +1,191 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "orc8r/protos/mconfig.proto";
+import "orc8r/protos/service303.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/cloud/go/protos";
+
+
+message PingParams {
+  string host_or_ip = 1;
+  int32 num_packets = 2;
+}
+
+message TracerouteParams {
+  string host_or_ip = 1;
+  int32 max_hops = 2;
+  int32 bytes_per_packet = 3;
+}
+
+message NetworkTestRequest {
+  repeated PingParams pings = 1;
+  repeated TracerouteParams traceroutes = 2;
+}
+
+message PingResult {
+  string host_or_ip = 1;
+  int32 num_packets = 2;
+  string error = 3;
+  int32 packets_transmitted = 4;
+  int32 packets_received = 5;
+  float avg_response_ms = 6;
+}
+
+message TracerouteProbe {
+  string hostname = 1;
+  string ip = 2;
+  float rtt_ms = 3;
+}
+
+message TracerouteHop {
+  int32 idx = 1;
+  repeated TracerouteProbe probes = 2;
+}
+
+message TracerouteResult {
+  string error = 1;
+  string host_or_ip = 2;
+  repeated TracerouteHop hops = 3;
+}
+
+message NetworkTestResponse {
+  repeated PingResult pings = 1;
+  repeated TracerouteResult traceroutes = 2;
+}
+
+message GetGatewayIdResponse {
+  string gateway_id = 1;
+}
+
+message RestartServicesRequest {
+  repeated string services = 1;
+}
+
+// --------------------------------------------------------------------------
+// Magmad service definition.
+// --------------------------------------------------------------------------
+service Magmad {
+
+  // Starts all magma services
+  rpc StartServices (Void) returns (Void) {}
+
+  // Stops all magma services
+  rpc StopServices (Void) returns (Void) {}
+
+  // Reboot the gateway device
+  rpc Reboot (Void) returns (Void) {}
+
+  // Restart specified magma services
+  rpc RestartServices (RestartServicesRequest) returns (Void) {}
+
+  // Updates AG configs and restarts affected AG services
+  rpc SetConfigs (GatewayConfigs) returns (Void) {}
+
+  // Get current AG configs
+  rpc GetConfigs (Void) returns (GatewayConfigs) {}
+
+  // Execute some network commands to check gateway network health
+  rpc RunNetworkTests (NetworkTestRequest) returns (NetworkTestResponse) {}
+
+  // Get gateway hardware ID
+  rpc GetGatewayId (Void) returns (GetGatewayIdResponse) {}
+}
+
+message SystemStatus {
+    uint64 time = 1; // GW time since the epoch in milliseconds
+
+    uint64 cpu_user = 5;
+    uint64 cpu_system = 6;
+    uint64 cpu_idle = 7;
+
+    uint64 mem_total = 10;
+    uint64 mem_available = 11;
+    uint64 mem_used = 12;
+    uint64 mem_free = 13;
+
+    uint64 uptime_secs = 14;
+}
+
+// --------------------------------------------------------------------------
+// Magma controller in the cloud
+// --------------------------------------------------------------------------
+message CheckinRequest {
+  // Gateway's hardware id
+  string gateway_id = 1;
+
+  // Magma python build version number. Ex: '0.0.0'
+  string magma_pkg_version = 2;
+
+  // Gateway status
+  ServiceStatus status = 3;
+
+  // System status
+  SystemStatus system_status = 4;
+
+  // Gateway's IP on VPN
+  string vpn_ip = 5;
+
+  // Current running kernel version
+  string kernel_version = 6;
+
+  // All kernel versions installed
+  repeated string kernel_versions_installed = 7;
+}
+
+message CheckinResponse {
+// RequestedAction is an emergency/last resort operation request for an
+// unresponsive or flaky access gateway. It's not meant to be used under normal
+// operating conditions. Not all actions may be supported by every gateway
+  enum RequestedAction {
+    NONE = 0; // Everything is OK, do nothing
+    RESTART_SERVICES = 1;  // Restart all gateway magma services
+    RESTART_SYSTEM = 2;    // Reboot the system
+    // Actions for possible future implementations
+    //
+    // STOP_SERVICES = 3;  // Stop all magma services, except for magmad
+    // START_SERVICES = 4; // Start all stopped magma services, except for magmad
+    // UPGRADE = 5;        // Notify GW to verify & upgrade its software if needed
+    // POWER_CYCLE = 6;    // External switched PDU initiated power off/on,
+  }                        // may not be available on all HW configurations
+  RequestedAction action = 1;
+  uint64 time = 2; // Server time of the checkin (since the epoch in milliseconds)
+}
+
+message GatewayStatus {
+  // Unix time (the number of milliseconds elapsed since January 1, 1970 UTC) of
+  // the last checkin
+  uint64  time = 1;
+  // Last checkin info that was received from the gateway
+  CheckinRequest checkin = 2;
+  int64 cert_expiration_time = 3;
+}
+
+message GatewayStatusRequest {
+    // Gateway's network id
+  string network_id = 1;
+    // Gateway's logical id
+  string logical_id = 2;
+}
+
+service Checkind {
+  // Gateway periodic checkin - records given GW status to the GW's network table
+  rpc Checkin(CheckinRequest) returns (CheckinResponse) {}
+  // Gateway real time status retrieval from the GW's network table
+  rpc GetStatus(GatewayStatusRequest) returns (GatewayStatus) {}
+  // Removes GW status record from the GW's network table
+  rpc DeleteGatewayStatus(GatewayStatusRequest) returns (Void) {}
+  // Deletes the network's status table (the table must be emptied prior to removal)
+  rpc DeleteNetwork(NetworkID) returns (Void) {}
+  // Returns a list of all logical gateway IDs for the given network which have
+  // status stored in the service DB
+  rpc List(NetworkID) returns (IDList) {}
+}

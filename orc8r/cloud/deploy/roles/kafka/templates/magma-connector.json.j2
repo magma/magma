@@ -1,0 +1,22 @@
+{#
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+#}
+
+{
+  "name": "magma-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "{{ db_host }}",
+    "database.port": "5432",
+    "database.user": "{{ db_user }}",
+    "database.password": "{{ db_password }}",
+    "database.dbname" : "{{ db_name }}",
+    "database.server.name": "magma",
+    "plugin.name": "{{ wal_plugin }}",
+    "slot.drop_on_stop": true
+  }
+}

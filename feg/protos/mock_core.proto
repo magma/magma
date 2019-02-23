@@ -1,0 +1,168 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "feg/protos/csfb.proto";
+import "lte/protos/policydb.proto";
+import "lte/protos/session_manager.proto";
+import "lte/protos/subscriberdb.proto";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+// grpc service held in mock core server in feg
+// for configuring the server and set the content of reply
+service MockCoreConfigurator {
+    rpc ConfigServer (ServerConfiguration) returns (magma.orc8r.Void) {}
+    rpc Reset (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+}
+
+message Reply {
+    enum ServerBehavior {
+        REPLY_INSTANTLY = 0;
+        REPLY_LATE = 1;
+        NO_REPLY = 2;
+    }
+    ServerBehavior server_behavior = 1;
+
+    // reply delaying time in sec
+    int32 reply_delay = 2;
+
+    oneof sgs_message {
+        AlertRequest alert_request = 3;
+        DownlinkUnitdata downlink_unitdata = 4;
+        EPSDetachAck eps_detach_ack = 5;
+        IMSIDetachAck imsi_detach_ack = 6;
+        LocationUpdateAccept location_update_accept = 7;
+        LocationUpdateReject location_update_reject = 8;
+        MMInformationRequest mm_information_request = 9;
+        PagingRequest paging_request = 10;
+        ReleaseRequest release_request = 11;
+        ServiceAbortRequest service_abort_request = 12;
+        ResetAck reset_ack = 13;
+        ResetIndication reset_indication = 14;
+        Status status = 15;
+    }
+
+    oneof gxgy_message {
+        magma.lte.CreateSessionResponse create_session_response = 16;
+        magma.lte.UpdateSessionResponse update_session_response = 17;
+        magma.lte.SessionTerminateResponse session_terminate_response = 18;
+    }
+}
+
+message ExpectedRequest {
+    oneof sgs_message {
+        AlertAck alert_ack = 1;
+        AlertReject alert_reject = 2;
+        EPSDetachIndication eps_detach_indication = 3;
+        IMSIDetachIndication imsi_detach_indication = 4;
+        LocationUpdateRequest location_update_request = 5;
+        PagingReject paging_reject = 6;
+        ServiceRequest service_request = 7;
+        TMSIReallocationComplete tmsi_reallocation_complete = 8;
+        UEActivityIndication ue_activity_indication = 9;
+        UEUnreachable ue_unreachable = 10;
+        UplinkUnitdata uplink_unitdata = 11;
+        ResetAck reset_ack = 12;
+        ResetIndication reset_indication = 13;
+        Status status = 14;
+    }
+
+    oneof gxgy_message {
+        magma.lte.CreateSessionRequest create_session_request = 15;
+        magma.lte.UpdateSessionRequest update_session_request = 16;
+        magma.lte.SessionTerminateRequest session_terminate_request = 17;
+    }
+}
+
+message RequestReply {
+    ExpectedRequest request = 1;
+    Reply reply = 2;
+}
+
+message ServerConfiguration {
+    repeated RequestReply request_reply = 1;
+}
+
+service MockOCS {
+    rpc SetOCSSettings(OCSConfig) returns (magma.orc8r.Void) {}
+    rpc SetCredit(CreditInfo) returns (magma.orc8r.Void) {}
+    rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc ReAuth(ReAuthTarget) returns (ReAuthAnswer) {}
+}
+
+message OCSConfig {
+    uint32 max_usage_bytes = 1;
+    uint32 max_usage_time = 2;
+    uint32 validity_time = 3;
+}
+
+message CreditInfo {
+    enum UnitType {
+        Bytes = 0;
+        Time = 1;
+    }
+    string imsi = 1;
+    uint32 charging_key = 2;
+    uint64 volume = 3;
+    UnitType unit_type = 4;
+}
+
+message ReAuthTarget {
+    string imsi = 1;
+    uint32 rating_group = 2;
+}
+
+message ReAuthAnswer {
+    string session_id = 1;
+    uint32 result_code = 2;
+}
+
+service MockPCRF {
+    rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
+    rpc SetRules(AccountRules) returns (magma.orc8r.Void) {}
+    rpc SetUsageMonitors(UsageMonitorInfo) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
+}
+
+message AccountRules {
+    string imsi = 1;
+    repeated string rule_names = 2;
+    repeated string rule_base_names = 3;
+    repeated RuleDefinition rule_definitions = 4;
+}
+
+message RuleDefinition {
+    string chargine_rule_name = 1;
+	uint32 rating_group = 2;
+	uint32 precedence = 3;
+	string monitoring_key = 4;
+	repeated string flow_descriptions = 5;
+	repeated string flow_informations = 6;
+	magma.lte.RedirectInformation redirect_information = 7;
+	magma.lte.FlowQos qos_information = 8;
+}
+
+message UsageMonitorInfo {
+    string imsi = 1;
+    repeated UsageMonitorCredit usage_monitor_credits = 2;
+}
+
+message UsageMonitorCredit {
+    enum MonitoringLevel {
+        SessionLevel = 0;
+        RuleLevel = 1;
+    }
+    string monitoring_key = 1;
+    MonitoringLevel monitoring_level = 2;
+    uint64 return_bytes = 3;
+    uint64 volume = 4;
+}

@@ -1,0 +1,42 @@
+---
+# Install Prometheus server.
+
+- name: set internal variables for convenience
+  set_fact:
+    prometheus_subdir: "{{ prometheus_subdir }}"
+    prometheus_daemon_dir: "{{ prometheus_subdir }}"
+
+- name: set download url
+  set_fact:
+    prometheus_tarball_url: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.{{ prometheus_platform_suffix }}.tar.gz"
+
+- name: download and untar prometheus tarball
+  unarchive:
+    src: "{{ prometheus_tarball_url }}"
+    dest: "{{ prometheus_install_path }}"
+    copy: no
+
+- name: set permissions, owner and group
+  file:
+    path: "{{ prometheus_install_path }}"
+    state: directory
+    owner: "{{ promo_user }}"
+    group: "{{ promo_group }}"
+    mode: "go-w"
+    recurse: yes
+
+- name: mkdir for config and data
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ promo_user }}"
+    group: "{{ promo_group }}"
+    mode: "u=rwx,g=rx,o="
+  with_items:
+    - "{{ prometheus_db_path }}"
+
+- name: copy prometheus main config file from playbook's, if any
+  template:
+    src: "magma_prometheus_conf.yml"
+    dest: "{{ prometheus_subdir }}/prometheus.yml"
+    validate: "{{ prometheus_daemon_dir }}/promtool check config %s"

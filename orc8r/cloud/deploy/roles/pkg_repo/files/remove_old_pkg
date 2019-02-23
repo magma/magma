@@ -1,0 +1,52 @@
+#!/bin/bash
+remove_old_pkg() {
+    declare -a line_number_arr
+    declare -a version_number_arr
+
+    # Parse the package index file
+    package_file=/var/cache/freight/dists/$1/main/binary-amd64/Packages
+    logger -s "Parsing $package_file to find all magma packages"
+    i=0
+    line_number=0
+    while IFS=$'\n' read -r line_data; do
+        ((++line_number))
+        if [[ $line_data = "Package: magma" ]]; then
+            line_number_arr[i]=$line_number
+            # Parse and store the version number
+            read -r version_line
+            ((++line_number))
+            version_number=${version_line#* }
+            version_number_arr[i]=$version_number
+            ((++i))
+        fi
+    done < "$package_file"
+
+    # Keep only $number_of_versions old packages
+    number_of_versions=10
+    if [[ ${#line_number_arr[@]} -gt $number_of_versions ]]; then
+        # Remove old packages
+        logger -s "Removing old magma packages"
+        i=0
+        while [ $i -lt $((${#version_number_arr[@]}-number_of_versions)) ]; do
+            pkg_name1='magma-'${version_number_arr[$i]}'.deb'
+            pkg_name2='magma_'${version_number_arr[$i]}'_amd64.deb'
+            rm /var/lib/freight/apt/"$1"/"$pkg_name1"
+            rm /var/cache/freight/pool/"$1"/main/m/magma/"$pkg_name2"
+            ((++i))
+            logger -s "magma ${version_number_arr[$i]} removed"
+        done
+        # Edit the package file
+        starting_line_number=${line_number_arr[0]}
+        ending_line_number=$((line_number_arr[$((0-number_of_versions))]-1))
+        sed -i $starting_line_number','$ending_line_number'd' "$package_file"
+        logger -s "Finished editing package index file"
+    else
+        logger -s "Not removing magma packages"
+    fi
+}
+
+remove_old_pkg stretch-test
+remove_old_pkg stretch-beta
+remove_old_pkg stretch-stable
+freight cache -p /home/ubuntu/.gnupg/signing-key
+logger -s "Finished freight cache"

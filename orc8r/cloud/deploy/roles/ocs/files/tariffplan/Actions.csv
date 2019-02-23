@@ -1,0 +1,4 @@
+#ActionsTag[0],Action[1],ActionExtraParameters[2],Filter[3],BalanceTag[4],BalanceType[5],Directions[6],Categories[7],DestinationIds[8],RatingSubject[9],SharedGroup[10],ExpiryTime[11],TimingTags[12],Units[13],BalanceWeight[14],BalanceBlocker[15],BalanceDisabled[16],Weight[17]
+PREPAID_10,*topup_reset,,,,*monetary,*out,,*any,,,*unlimited,,10,10,false,false,10
+DID,*debit,,,,*monetary,*out,,*any,,,*unlimited,*any,"{""Method"":""*incremental"",""Params"":{""Units"":1, ""Interval"":""month"",""Increment"":""day""}}",10.0,,,10.0
+DID,*cdrlog,"{""action"":""^DID"",""prev_balance"":""BalanceValue""}",,,*monetary,*out,,*any,,,*unlimited,,,10.0,,,10.0

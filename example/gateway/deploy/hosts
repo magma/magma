@@ -1,0 +1,2 @@
+[example]
+example ansible_ssh_host=192.168.30.10 ansible_ssh_port=22 ansible_user=vagrant

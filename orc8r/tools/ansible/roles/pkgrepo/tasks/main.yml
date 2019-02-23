@@ -1,0 +1,27 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Check if role variables are defined
+  fail: msg="distribution is undefined for the pkgrepo role"
+  when: distribution is undefined
+
+- name: Add apt-transport-https
+  apt: pkg=apt-transport-https state=present update_cache=yes
+#  when: preburn
+
+- name: Add JFrog key
+  apt_key:
+    data: "{{ lookup('file', 'jfrog.pub') }}"
+    state: present
+    id: EF3F24737CD69751BFF9C592B5A959C7EC708105
+
+- name: Add JFrog repo
+  apt_repository:
+    repo: 'deb https://magma.jfrog.io/magma/list/dev/ {{ distribution }} main'
+    update_cache: yes
+    mode: 0644

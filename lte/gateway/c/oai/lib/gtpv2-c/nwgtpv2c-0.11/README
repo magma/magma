@@ -1,0 +1,168 @@
+
+INTRODUCTION
+------------
+
+nwGtpv2c library is a free and open source implementation of GPRS Tunneling 
+Protocol v2, also known as eGTP-C, as per 3GPP TS-29274. 
+
+The stack library supports transaction management, message creation and parsing, 
+message validation, echo response and retransmission management. Other than 
+this, timer and memory management functions are also built into the stack.
+
+The library is published under BSD three clause license.
+
+
+DESIGN PHILOSPHY
+----------------
+
+The stack is designed for high portability not only for the hardware and OS 
+it will run on but also for the application software that uses it. The stack 
+doesn't mandate conditions on the user application architecture or design. 
+The stack relies on the user application for infrastructure utilities such 
+as I/O, timers, logs and multithreading. This realized by using callback 
+mechanisms and enables the stack library to seamlessly integrate without or 
+very little changes to the existing application framework. 
+
+The stack is fully-asynchronous in design for compatibility with event loop
+mechanisms such as select, poll, etc. and can also be used for multi-threaded 
+applications. It should compile on Linux,  BSD, Mac OS X, Solaris and Windows 
+(cygwin).
+
+The stack architecture builds upon following mentioned entities that are 
+external to it:
+
+      +-------------+      +---------+        +---------+
+      |  ULP ENTITY |      | TMR MGR |        | LOG MGR |
+      +------+------+      +----+----+        +----+----+ 
+             |                  |                  |
+      +------+------------------+------------------+----+
+      |                                                 |
+      |                 NWGTPv2 STACK                   |
+      |                                                 |
+      +-------------------------+-----------------------+
+                                |
+                         +------+------+
+                         |  UDP ENTITY |
+                         +-------------+ 
+
+
+- User Layer Protocol (ULP) Entity:
+This entity is the one which decides behaviour of the GTP user application. 
+This layer implements the intelligent logic for the GTP application and sits 
+on top of the GTP stack. This layer may also execute functions other than GTP 
+procedures for example authetication.
+
+- UDP Entity:
+This is the layer below the GTP stack and is responsible for UDP I/O between 
+the stack and network. This layer shall manage the socket interface. This entity 
+abstracts the stack library's view of the network. This may be useful in a 
+multiprocess load balancing application wherein the GTP messages are received 
+by a GTP load distribution entity and relayed to multiple GTP stacks over 
+internal messaging. It may or may not be housed with/in ULP. 
+
+- Timer Manager Entity: 
+Timer Manager Entity provides the GTP stack library with infrastructure for 
+timer CRUD operations. It may or may not be housed with/in ULP.
+
+- Log Manager Entity:
+Log Manager Entity provides the GTP stack library with callbacks for logging 
+operations. It may or may not be housed with/in ULP. 
+
+
+Optionally, there may be a user level "Stack Management Entity" which shall be 
+resposible for creating and configuring the stack library, though the stack 
+library is not aware of any such entity. 
+
+The application may implement all above entities as a single or multiple object.
+The external entities need to register callbacks with GTP stack library for 
+receiving APIs from the stack library and stack library exposes API for the same.
+
+The GTP stack library doesn't implement any execution threads of its own. It is 
+up-to user application if it want to call the library APIs via multiple threads. 
+The stack library, though, currently DOES NOT protect its critical section and 
+hence, is NOT threadsafe.
+
+
+FEATURES
+--------
+
+- TS 29.274 (Release 9) compliance target for gtp-c
+- Message Encoding
+- Reliable Message Delivery
+- Message Parser
+- Message Integrity and Error Checking
+- Support for S11, S5 and S8 SAE/EPC interfaces
+- Easy Application Integration
+
+
+APPLICATIONS
+------------
+
+In general, the GTP stack library may be used to write any GTP version 2 based 
+application.
+The GTP stack library can also be used by applications implementing LTE MME, SGW
+or PDN Gateways and simulators/emulators for either of them. Please see the test 
+applications involving basic GTP procedures.
+
+The test applications use libevent-1.4 library for I/O and timer infrastructure,
+(http://www.monkey.org/~provos/libevent-1.4.14b-stable.tar.gz).
+Following is a brief description of the test applications:
+
+- nw-helloworld 
+This is minimalistic program demostrating usage of nw-gtpv2 library. It 
+demostrates ulp, udp, tmrmgr and logmgr entities as well as stack construction 
+and destruction. The gtpv2c test application creates a transaction and sends 
+a initial request messages over it. 
+
+- nw-egpting
+egtping is a utility for pinging a GPRS Tunneling Protocol (GTP) version 2, 
+or Evolved GTP (eGTP) using Echo Request/Response.
+
+- nw-epc
+The nw-epc software package is a free and open source framework implementation 
+of SGW and PGW built upon nw-gtpv2.
+
+
+LICENSE
+-------
+
+Copyright (c) 2010-2011 Amit Chawre <http://www.amitchawre.net/contact.html>
+All rights reserved.                                                        
+                                                                            
+Redistribution and use in source and binary forms, with or without          
+modification, are permitted provided that the following conditions          
+are met:                                                                    
+                                                                            
+1. Redistributions of source code must retain the above copyright           
+   notice, this list of conditions and the following disclaimer.            
+2. Redistributions in binary form must reproduce the above copyright        
+   notice, this list of conditions and the following disclaimer in the      
+   documentation and/or other materials provided with the distribution.     
+3. The name of the author may not be used to endorse or promote products    
+   derived from this software without specific prior written permission.    
+                                                                            
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR        
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES   
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.     
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,            
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT    
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,   
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY       
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF    
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.           
+
+
+DISCLAIMER
+----------
+
+THIS INFORMATION IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR 
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, 
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT 
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY      
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT        
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF   
+THIS INFORMATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 

@@ -1,0 +1,66 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+# Gather facts now that python is present
+- name: do facts module to get latest information
+  setup:
+
+- name: Set debconf default values for non-interactive scripts
+  become: yes
+  shell: debconf-set-selections <<< "{{ item.package }} {{ item.package }}/{{ item.default }}"
+  args:
+    executable: /bin/bash
+  with_items:
+    - { package: mysql-server, default: 'root_password password {{ db_password }}' }
+    - { package: mysql-server, default: 'root_password_again password {{ db_password }}' }
+
+- name: Install cgrates dependencies
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    - git
+    - redis-server
+    - mysql-server
+
+- name: Download cgrates
+  get_url:
+    url: "{{ cgrates_url }}"
+    dest: /tmp/{{ cgrates_version }}
+
+- name: Install cgrates
+  become: yes
+  command: dpkg --force-confold -i /tmp/{{ cgrates_version }}
+
+- name: Copy custom cgrates configuration files
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - {src: 'cgrates_config.json', dest: '/etc/cgrates/cgrates.json'}
+    - {src: 'cgrates_defaults', dest: '/etc/default/cgrates'}
+    - {src: 'tariffplan/', dest: '/usr/share/cgrates/tariffplans/magma/'}
+
+- name: Setup mysql db for cgrates
+  become: yes
+  command: ./setup_cgr_db.sh root {{ db_password }} localhost
+  args:
+    chdir: /usr/share/cgrates/storage/mysql/
+
+- name: Set versions data for cgrates
+  become: yes
+  command: cgr-migrator -stordb_user="root" -stordb_passwd="{{ db_password }}" -migrate="*set_versions"
+
+- name: Run cgrates engine
+  become: yes
+  command: /etc/init.d/cgrates restart
+
+- name: Wait for server to start
+  wait_for:
+    port: "{{ cgrates_server_port }}"
+    timeout: 30 # seconds
+
+# TODO replace with custom tariff plan
+- name: Load default tariff plan
+  become: yes
+  command: cgr-loader -verbose -path=/usr/share/cgrates/tariffplans/magma

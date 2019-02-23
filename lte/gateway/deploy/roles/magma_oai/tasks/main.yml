@@ -1,0 +1,131 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+# Gather facts now that python is present
+- name: do facts module to get latest information
+  setup:
+# requires Ubuntu 16.04
+- name: Check Linux distribution version
+  fail: msg="Unsupported host OS {{ ansible_distribution }} {{ ansible_distribution_release }}. Must be Ubuntu 16.04"
+  when: ansible_distribution != 'Ubuntu' or ansible_distribution_release != 'xenial'
+- name: Set debconf default values for non-interactive scripts
+  become: yes
+  shell: debconf-set-selections <<< "{{ item.package }} {{ item.package }}/{{ item.default }}"
+  args:
+    executable: /bin/bash
+  with_items:
+    - { package: mysql-server, default: 'root_password password linux' }
+    - { package: mysql-server, default: 'root_password_again password linux' }
+    - { package: phpmyadmin, default: 'dbconfig-install boolean true' }
+    - { package: phpmyadmin, default: 'app-password-confirm password linux' }
+    - { package: phpmyadmin, default: 'mysql/admin-pass password linux' }
+    - { package: phpmyadmin, default: 'mysql/app-pass password linux' }
+    - { package: phpmyadmin, default: 'reconfigure-webserver multiselect apache2' }
+    - { package: wireshark-common, default: 'install-setuid boolean false' }
+- name: Install OpenAirInterface (OAI) dependencies
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    - subversion
+    - git
+    - libmysqlclient-dev
+    - mysql-client
+    - mysql-server
+    - libxml2
+    - magma-nghttpx
+- name: Copy nghttpx config for control proxy
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - {src: 'nghttpx.conf', dest: '/var/opt/nghttpx.conf'}
+- name: Change MySQL binding address for remote connections
+  lineinfile:
+    dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address'
+    line: ''
+- name: Grant SQL privileges to remote connections
+  become: yes
+  shell: "{{ item }}"
+  with_items:
+    - mysql -uroot -plinux -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'linux' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+    - service mysql restart
+- name: Clone OAI
+  git:
+    repo: 'https://github.com/OPENAIRINTERFACE/openair-cn.git'
+    dest: "{{ oai_repo }}"
+    version: develop
+    force: yes
+- name: set /etc/hosts
+  command: cp {{ default_configs }}/hosts /etc/hosts
+- name: Edit OAI mme_fd.conf
+  lineinfile:
+    dest: "{{ oai_repo }}/etc/mme_fd.conf"
+    regexp: '^Identity'
+    line: 'Identity = "magma-oai.openair4G.eur";'
+- name: Prefer SCTP in Freediameter
+  lineinfile:
+    dest: "{{ item }}"
+    regexp: '^Prefer_TCP'
+    line: '#Prefer_TCP;'
+  with_items:
+    - "{{ oai_repo }}/etc/mme_fd.conf"
+    - "{{ oai_repo }}/etc/hss_fd.conf"
+- name: Disable TCP in Freediameter
+  lineinfile:
+    dest: "{{ item }}"
+    regexp: '^No_SCTP'
+    line: 'No_TCP;'
+  with_items:
+    - "{{ oai_repo }}/etc/mme_fd.conf"
+    - "{{ oai_repo }}/etc/hss_fd.conf"
+- name: Use SCTP for MME
+  lineinfile:
+    dest: "{{ oai_repo }}/etc/mme_fd.conf"
+    regexp: '^ConnectPeer'
+    line: 'ConnectPeer= "hss.openair4G.eur" { ConnectTo = "127.0.0.1"; No_TCP ; No_IPv6; No_TLS; port = 3868;  realm = "openair4G.eur";};'
+- name: Add authorization values to hss.conf
+  lineinfile:
+    dest: /home/{{ ansible_user }}/openair-cn/etc/hss.conf
+    regexp: "^{{ item.key }}"
+    line: '{{ item.key }} = "{{item.value}}";'
+  with_items:
+    - { key: 'MYSQL_user',     value: 'root' }
+    - { key: 'MYSQL_pass',     value: 'linux' }
+    - { key: 'OPERATOR_key',   value: '11111111111111111111111111111111' }
+- name: Create runtime configs folder
+  command: mkdir -p {{ runtime_configs }}/freeDiameter
+- name: Copy configs to shared folder
+  become: yes
+  command: cp {{ item.src }} {{ runtime_configs }}/{{ item.dest }}
+  with_items:
+    - { src: '{{ default_configs }}/mme.conf',    dest: '' }
+    - { src: '{{ oai_repo }}/etc/hss.conf',       dest: '' }
+    - { src: '{{ default_configs }}/spgw.conf',   dest: '' }
+    - { src: '{{ oai_repo }}/etc/acl.conf',       dest: 'freeDiameter/' }
+    - { src: '{{ oai_repo }}/etc/mme_fd.conf',    dest: 'freeDiameter/' }
+    - { src: '{{ oai_repo }}/etc/hss_fd.conf',    dest: 'freeDiameter/' }
+- name: Generate and install certs
+  command: "{{ oai_repo }}/scripts/{{ item.script }} {{ runtime_configs }}/freeDiameter/ {{ item.cert }}"
+  with_items:
+    - { script: 'check_hss_s6a_certificate', cert: 'hss.openair4G.eur' }
+    - { script: 'check_mme_s6a_certificate', cert: 'magma-oai.openair4G.eur' }
+- name: Install gateway packages (this may take a while)
+  become: yes
+  shell: yes | {{ oai_repo }}/scripts/build_{{ item }} -i
+  with_items:
+    - hss
+    - mme
+    - spgw
+- name: Compile gateway
+  become: yes
+  shell: "{{ oai_repo }}/scripts/build_{{ item }}"
+  with_items:
+    - hss
+    - mme
+    - spgw
+- name: Install HSS database
+  shell: "{{ oai_repo }}/scripts/run_hss -i {{ oai_repo }}/src/oai_hss/db/oai_db.sql &"
+- name: Add default MME Identity
+  shell: mysql -u root -plinux oai_db < {{ default_configs }}/magma_identity.sql

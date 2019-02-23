@@ -1,0 +1,16 @@
+---
+#
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+s11_iface_name: "lo"  # 's11_ip' will be filled automatically
+s1ap_iface_name: "eth1"  # 's1_ip' will be filled automatically
+realm: "magma.com"
+conf_dir: "/var/opt/magma/tmp"
+cert_dir: "/usr/local/etc/oai"
+hss_ip: "127.0.0.1"
+hss_hostname: "hss"

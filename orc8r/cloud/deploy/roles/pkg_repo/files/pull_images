@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+export HOME=/home/ubuntu
+export PATH=/home/ubuntu/bin:/home/ubuntu/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+
+aws_ls=$(aws s3 ls s3://magma-images/gateway/)
+
+most_recent_build=""
+complete_file_name=""
+for line in $aws_ls
+do
+  if [[ $line = *".deps.tar.gz" ]]; then
+    most_recent_build=${line%".deps.tar.gz"}
+    complete_file_name=$line
+  fi
+done
+
+if [[ $most_recent_build = "" ]]; then
+  exit
+fi
+
+# check if the latest build is already in the stretch-test repo
+stretch_test_ls=$(ls /var/lib/freight/apt/stretch-test/magma*)
+
+for line in $stretch_test_ls
+do
+  if [[ $line = *"magma-$most_recent_build.deb" ]]; then
+    exit
+  fi
+done
+
+# create directory and download image from s3
+temp_path=/home/ubuntu/temp_ci_packages
+mkdir $temp_path
+function cleanup {
+  rm -r $temp_path
+}
+trap cleanup EXIT
+
+aws s3 cp s3://magma-images/gateway/"$complete_file_name" "$temp_path"/
+tar -xvzf "$temp_path"/"$complete_file_name" -C "$temp_path"/
+freight add "$temp_path"/*.deb apt/stretch-test
+freight cache -p /home/ubuntu/.gnupg/signing-key apt/stretch-test

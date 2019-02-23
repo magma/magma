@@ -1,0 +1,20 @@
+---
+# Copyright (c) 2017-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Check if role variables are defined
+  fail: msg="distribution is undefined for the role"
+  when: distribution is undefined
+
+- name: Delete /var/cache/apt/archives if exists
+  file: path=/var/cache/apt/archives state=absent
+
+- name: Create a local directory for apt cache if not exist
+  file: path='{{ magma_root }}/.cache/apt/{{ distribution }}' state=directory
+
+- name: Create symlink for apt cache
+  file: src='{{ magma_root }}/.cache/apt/{{ distribution }}' path=/var/cache/apt/archives state=link force=yes

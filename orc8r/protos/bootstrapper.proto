@@ -1,0 +1,67 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/certifier.proto";
+import "orc8r/protos/identity.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/cloud/go/protos";
+
+message Challenge {
+  ChallengeKey.KeyType key_type = 1;
+  bytes challenge = 2;
+}
+
+// --------------------------------------------------------------------------
+// Challenge key stores the key used for challenge-response during bootstrap.
+// --------------------------------------------------------------------------
+message ChallengeKey {
+  enum KeyType {
+    ECHO = 0;
+    SOFTWARE_RSA_SHA256 = 1;
+    SOFTWARE_ECDSA_SHA256 = 2;
+  }
+
+  KeyType key_type = 1;
+  // Public key encoded in DER format
+  bytes key = 2;
+}
+
+message Response {
+  message Echo {
+    bytes response = 1;
+  }
+  message RSA {
+    bytes signature = 1;
+  }
+  message ECDSA {
+    bytes r = 1;
+    bytes s = 2;
+  }
+
+  AccessGatewayID hw_id = 1;
+  bytes challenge = 2;
+  oneof response {
+    Echo echo_response = 3;
+    RSA rsa_response = 4;
+    ECDSA ecdsa_response = 5;
+  }
+  CSR csr = 6;
+}
+
+// Note that the security of this service is dependent on TLS to protect
+// against MITM and replay attacks
+service Bootstrapper {
+  // get the challange for gateway specified in hw_id (AccessGatewayID)
+  rpc GetChallenge (AccessGatewayID) returns (Challenge) {}
+
+  // send back response and csr for signing
+  // Returns signed certificate.
+  rpc RequestSign (Response) returns (Certificate) {}
+}

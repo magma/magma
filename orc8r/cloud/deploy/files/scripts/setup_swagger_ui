@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# This script adds the Swagger UI to the static folder served by obsidian.
+# This provides the UI for the API docs.
+
+if [ -d "/var/opt/magma/static/swagger-ui" ]; then
+  echo "Swagger UI already setup"
+  # Comment out the below line if you need to upgrade Swagger
+  exit 0
+fi
+
+VERSION='3.1.7'
+
+cd /tmp
+rm -rf "v$VERSION.zip" swagger-ui
+wget "https://github.com/swagger-api/swagger-ui/archive/v$VERSION.zip"
+unzip "v$VERSION.zip" -d swagger-ui
+rm -rf /var/opt/magma/static/swagger-ui
+mkdir -p /var/opt/magma/static/swagger-ui
+cp -r "swagger-ui/swagger-ui-$VERSION/dist" /var/opt/magma/static/swagger-ui

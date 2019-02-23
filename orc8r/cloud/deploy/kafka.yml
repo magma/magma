@@ -1,0 +1,49 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Set up production Kafka/ZK node
+  hosts: localhost
+  become: yes
+
+  vars:
+    zk_config_version: prod
+    zk_data_dir: /data1/zookeeper
+    zk_data_log_dir: /data2/zookeeper/log
+
+    kafka_config_version: prod
+    kafka_log_dir: /data1/kafka
+    connect_rest_endpoint: '127.0.0.1:8083'
+
+    wal_plugin: wal2json_rds
+
+    # Get db connection params from DATABASE_SOURCE, which for psql looks like
+    # dbname=magma user=magma password=hunter2 host=host.name.com
+    db_host: "{{ lookup('env', 'DATABASE_SOURCE').split(' ')[3].split('=')[1] }}"
+    db_name: "{{ lookup('env', 'DATABASE_SOURCE').split(' ')[0].split('=')[1] }}"
+    db_user: "{{ lookup('env', 'DATABASE_SOURCE').split(' ')[1].split('=')[1] }}"
+    # Password might have an '=' in it so use regex instead of split
+    db_password: "{{ lookup('env', 'DATABASE_SOURCE').split(' ')[2] | regex_replace('^password=(.+)$', '\\1') }}"
+    user: "{{ ansible_user }}"
+
+    start_services: true
+    start_connector: false
+    # Consider setting this to false if you're deploying a new cluster from
+    # scratch, as not enough brokers will be online for the first 2 provisioned
+    # nodes for topic creation to succeed. We ignore failures on that task
+    # so it shouldn't block provision.
+    create_topics: true
+
+    num_servers: 3
+
+    preburn: true
+    full_provision: true
+
+  roles:
+    - { role: kafka_prod }
+    - { role: zookeeper }
+    - { role: kafka }

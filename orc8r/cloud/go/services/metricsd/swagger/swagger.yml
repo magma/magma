@@ -1,0 +1,149 @@
+---
+swagger: '2.0'
+info:
+  title: Metricsd Model Definitions and Paths
+  description: Magma REST APIs
+  version: 1.0.0
+
+tags:
+- name: Metrics
+  description: Viewing collected gateway metrics
+
+paths:
+  /networks/{network_id}/prometheus/query:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query
+      tags:
+      - Metrics
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      - in: query
+        name: query
+        type: string
+        description: PromQL query to proxy to prometheus
+        required: true
+      - in: query
+        name: time
+        type: string
+        description: time for query (UnixTime or RFC3339)
+        required: false
+      responses:
+        '200':
+          description:
+            List of PromQL metrics results
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+  /networks/{network_id}/prometheus/query_range:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      tags:
+      - Metrics
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      - in: query
+        name: query
+        type: string
+        description: PromQL query to proxy to prometheus
+        required: true
+      - in: query
+        name: start
+        type: string
+        description: start time of the requested range (UnixTime or RFC3339)
+        required: true
+      - in: query
+        name: end
+        type: string
+        description: end time of the requested range (UnixTime or RFC3339)
+        required: false
+      - in: query
+        name: step
+        type: string
+        description: query range resolution step width
+        required: false
+      responses:
+        '200':
+          description:
+            List of PromQL metrics results
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
+definitions:
+  promql_return_object:
+    type: object
+    required:
+    - status
+    - data
+    properties:
+      status:
+        type: string
+        example: "success"
+      data:
+        $ref: '#/definitions/promql_data'
+  promql_data:
+    type: object
+    required:
+    - resultType
+    - result
+    properties:
+      resultType:
+        type: string
+        example: "vector"
+      result:
+        $ref: '#/definitions/promql_result'
+  promql_result:
+    type: array
+    items:
+      $ref: '#/definitions/promql_metric_value'
+  promql_metric_value:
+    description: If resultType is 'vector' value is in the result, if 'matrix', values is in the result
+    type: object
+    required:
+    - metric
+    properties:
+      metric:
+        $ref: '#/definitions/promql_metric'
+      value:
+        $ref: '#/definitions/promql_value'
+      values:
+        $ref: '#/definitions/promql_values'
+  promql_metric:
+    type: object
+    required:
+    - __name__
+    - instance
+    properties:
+      __name__:
+        type: string
+      gateway:
+        type: string
+      instance:
+        type: string
+      job:
+        type: string
+      host:
+        type: string
+    example:
+      __name__: gateway_up_time
+      gateway: "NFHDZAQU8Pyw2N91nbNdGjk5e.22ffea10-7fc4-4427-975a-b9e4ce8f6f4d"
+      instance: "NFHDZAQU8Pyw2N91nbNdGjk5e"
+      job: "sample_service"
+      host: "magma_controller_a"
+  promql_value:
+    type: array
+    items:
+      type: string
+    minItems: 2
+    maxItems: 2
+    example: [1548439790.115,"1"]
+  promql_values:
+    type: array
+    items:
+      $ref: '#/definitions/promql_value'

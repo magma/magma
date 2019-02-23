@@ -1,0 +1,4 @@
+#Tenant,Account,ActionPlanId,ActionTriggersId,AllowNegative,Disabled
+cgrates.org,1001,PREPAID_10,STANDARD_TRIGGERS,,
+cgrates.org,1002,PREPAID_10,STANDARD_TRIGGERS,,
+cgrates.org,1004,PREPAID_10,STANDARD_TRIGGERS,,

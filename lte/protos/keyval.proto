@@ -1,0 +1,48 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "lte/protos/subscriberdb.proto";
+import "lte/protos/mobilityd.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// [mobilityd] List of assigned IP blocks
+// --------------------------------------------------------------------------
+message AssignedIPBlocks {
+  repeated IPBlock ip_block_list = 1;
+}
+
+// --------------------------------------------------------------------------
+// [mobilityd] IP descriptor (IP desc) describing an assigned IP
+// --------------------------------------------------------------------------
+message IPDesc {
+
+  // IPs can be in 1 of 4 states during their lifecycle; see
+  // mobilityd.ip_allocator for full description
+  enum IPState {
+    FREE = 0;
+    ALLOCATED = 1;
+    RELEASED = 2;
+    REAPED = 3;
+  }
+
+  IPAddress ip = 1;
+  IPBlock ip_block = 2;
+  IPState state = 3;
+  SubscriberID sid = 4;
+}
+
+// --------------------------------------------------------------------------
+// [mobilityd] List of IP descriptors
+// --------------------------------------------------------------------------
+message IPDescs {
+  repeated IPDesc ip_descs = 1;
+}

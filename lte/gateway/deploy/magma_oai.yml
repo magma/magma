@@ -1,0 +1,37 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# Ansible playbook for setting up a production machine (i.e., a box running
+# Debian 8).
+
+- name: Set up a ubuntu oai EPC machine
+  hosts: oai
+  become: true
+
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: true
+    full_provision: true
+
+  # Can't gather facts without python
+  gather_facts: no
+  pre_tasks:
+    # ansible requires python2
+    - name: 'install python2'
+      raw: sudo apt-get -y install python-simplejson
+
+  roles:
+    - role: pkgrepo
+      vars:
+        distribution: "xenial"
+    - role: magma_oai
+      vars:
+        default_configs: "{{ magma_root }}/lte/gateway/deploy/roles/magma_oai/files"
+        oai_build: /home/{{ ansible_user }}/build/c/oai
+        runtime_configs: /usr/local/etc/oai
+        oai_repo: /home/{{ ansible_user }}/openair-cn

@@ -1,0 +1,323 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
+package diameter
+
+import (
+	"fmt"
+	"math/rand"
+	"net"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/diam/avp"
+	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/diam/sm"
+	"github.com/golang/glog"
+)
+
+// KeyAndAnswer wraps the information to be returned to an AnswerHandler.
+// When an answer is received, the handler should return a parsed answer
+// (struct form) and the key that maps it to a request
+type KeyAndAnswer struct{ Answer, Key interface{} }
+
+// AnswerHandler is called when an answer is received. The handler is responsible
+// for parsing a raw message into a usable message and then returning it. The return
+// value is used to untrack the request and send the answer to the given channel
+// Input: message received
+// Output: struct containing the related request key and parsed answer
+type AnswerHandler func(message *diam.Message) KeyAndAnswer
+
+// Client is a wrapper around a sm.Client that handles connection management,
+// request tracking, and configuration. Using this, the application should not
+// know anything about the underlying diameter connection
+type Client struct {
+	mux            *sm.StateMachine
+	smClient       *sm.Client
+	connMan        *ConnectionManager
+	requestTracker *RequestTracker
+	cfg            *DiameterClientConfig
+	originStateID  uint32
+}
+
+// OriginHost returns client's config Host
+func (c *Client) OriginHost() string {
+	if c != nil && c.cfg != nil {
+		return c.cfg.Host
+	}
+	return "magma"
+}
+
+// OriginStateID returns client's Origin-State-ID
+func (c *Client) OriginStateID() uint32 {
+	if c != nil {
+		return c.originStateID
+	}
+	return 0
+}
+
+// NewClient creates a new client based on the config passed.
+// Input: clientCfg containing relavent diameter settings
+func NewClient(clientCfg *DiameterClientConfig) *Client {
+	originStateID := uint32(time.Now().Unix())
+	mux := sm.New(&sm.Settings{
+		OriginHost:       datatype.DiameterIdentity(clientCfg.Host),
+		OriginRealm:      datatype.DiameterIdentity(clientCfg.Realm),
+		VendorID:         datatype.Unsigned32(Vendor3GPP),
+		ProductName:      datatype.UTF8String(clientCfg.ProductName),
+		OriginStateID:    datatype.Unsigned32(originStateID),
+		FirmwareRevision: 1,
+		HostIPAddress:    datatype.Address(net.ParseIP("127.0.0.1")),
+	})
+
+	appIdAvp := diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(clientCfg.AppID))
+
+	var authAppIdAvps []*diam.AVP
+	if clientCfg.AuthAppID != 0 {
+		authAppIdAvps = []*diam.AVP{
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(clientCfg.AuthAppID))}
+	} else {
+		authAppIdAvps = []*diam.AVP{appIdAvp}
+	}
+
+	cli := &sm.Client{
+		Dict:               dict.Default,
+		Handler:            mux,
+		MaxRetransmits:     clientCfg.Retransmits,
+		RetransmitInterval: time.Second,
+		EnableWatchdog:     clientCfg.WatchdogInterval > 0,
+		WatchdogInterval:   time.Second * time.Duration(clientCfg.WatchdogInterval),
+		SupportedVendorID: []*diam.AVP{
+			diam.NewAVP(avp.SupportedVendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
+		},
+		AuthApplicationID: authAppIdAvps,
+		VendorSpecificApplicationID: []*diam.AVP{
+			diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					appIdAvp,
+					diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
+				},
+			}),
+		},
+	}
+	go logErrors(mux.ErrorReports())
+	return &Client{
+		mux:            mux,
+		smClient:       cli,
+		connMan:        NewConnectionManager(),
+		requestTracker: NewRequestTracker(),
+		cfg:            clientCfg,
+		originStateID:  originStateID,
+	}
+}
+
+// logErrors logs errors received during transmission
+func logErrors(ec <-chan *diam.ErrorReport) {
+	for err := range ec {
+		glog.Error(err)
+	}
+}
+
+// BeginConnection attempts to begin a new connection with the server
+func (client *Client) BeginConnection(server *DiameterServerConfig) {
+	if client.connMan == nil {
+		glog.Errorf("No connection manager to initiate connection with")
+		return
+	}
+	_, err := client.connMan.GetConnection(client.smClient, server)
+	if err != nil {
+		glog.Error(err)
+	}
+}
+
+func (client *Client) Retries() uint {
+	if client != nil && client.cfg != nil {
+		return client.cfg.RetryCount
+	}
+	return 0
+}
+
+// EnableConnectionCreation enables the connection manager to create new connections
+func (client *Client) EnableConnectionCreation() {
+	if client.connMan == nil {
+		glog.Errorf("No connection manager to enable connection creation with")
+		return
+	}
+	client.connMan.Enable()
+}
+
+// DisableConnectionCreation closes all existing connections and disables the
+// connection manager to create new connections for the period of time specified
+func (client *Client) DisableConnectionCreation(period time.Duration) {
+	if client.connMan == nil {
+		glog.Errorf("No connection manager to disable connection creation with")
+		return
+	}
+	client.connMan.DisableFor(period)
+}
+
+// SendRequest sends a diameter request message to the given server and sends
+// back the answer on the given channel. A key is required to identify the
+// corresponding answer. Additionally, SendRequest will add the OriginHost/Realm
+// AVPs to the message because they are mandatory for all requests
+// Input: server - cfg containing info on what server to send to
+// 				done - channel to send the answer to when received
+//				message - request to send
+//				key - something to uniquely identify the request
+// Output: error if message sending failed, nil otherwise
+func (client *Client) SendRequest(
+	server *DiameterServerConfig,
+	done chan interface{},
+	message *diam.Message,
+	key interface{},
+) error {
+	client.requestTracker.RegisterRequest(key, done)
+	conn, err := client.connMan.GetConnection(client.smClient, server)
+	if err == nil {
+		m := client.AddOriginAVPsToMessage(message)
+		err = conn.SendRequestToServer(m, client.cfg.RetryCount, server)
+		if err != nil {
+			client.requestTracker.DeregisterRequest(key)
+		}
+	}
+	return err
+}
+
+// AddOriginAVPsToMessage adds the host/realm to the message
+func (client *Client) AddOriginAVPsToMessage(message *diam.Message) *diam.Message {
+	message.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(client.cfg.Host))
+	message.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(client.cfg.Realm))
+	// add Origin-State-ID
+	if client.originStateID != 0 {
+		originAVP, err := message.FindAVP(avp.OriginStateID, 0)
+		if err != nil {
+			message.NewAVP(avp.OriginStateID, avp.Mbit, 0, datatype.Unsigned32(client.originStateID))
+		} else if originAVP != nil {
+			// apply new originStateID
+			originAVP.Data = datatype.Unsigned32(client.originStateID)
+		}
+	}
+	return message
+}
+
+// IgnoreAnswer untracks a request if the application, say, times out
+// Input: key identifying request
+func (client *Client) IgnoreAnswer(key interface{}) {
+	client.requestTracker.DeregisterRequest(key)
+}
+
+// RegisterAnswerHandlerForAppID registers a function to be called when an answer message
+// matching the given command is received. The AnswerHandler is responsible for
+// parsing the diameter message into something usable and extracting a key to identify
+// the corresponding request
+// Input: command - the diameter code for the command (like diam.CreditControl)
+// 				handler - the function to call when a message is received
+func (client *Client) RegisterAnswerHandlerForAppID(command uint32, appID uint32, handler AnswerHandler) {
+	index := diam.CommandIndex{AppID: appID, Code: command, Request: false}
+	muxHandler := diam.HandlerFunc(func(c diam.Conn, m *diam.Message) {
+		answerKey := handler(m)
+		if answerKey.Key == nil {
+			return
+		}
+		doneChan := client.requestTracker.DeregisterRequest(answerKey.Key)
+		doneChan <- answerKey.Answer
+	})
+	client.mux.HandleIdx(index, muxHandler)
+}
+
+// RegisterAnswerHandler registers a function to be called when an answer message
+// matching the given command is received. The AnswerHandler is responsible for
+// parsing the diameter message into something usable and extracting a key to identify
+// the corresponding request
+// Input: command - the diameter code for the command (like diam.CreditControl)
+// 				handler - the function to call when a message is received
+func (client *Client) RegisterAnswerHandler(command uint32, handler AnswerHandler) {
+	client.RegisterAnswerHandlerForAppID(command, client.cfg.AppID, handler)
+}
+
+// RegisterRequestHandlerForAppID registers a function to be called when a request message
+// matching the command is received. The RequestHandler is responsible for parsing
+// the diameter message, taking any actions required, and sending a response back
+// through the responder argument of the handler. This responder is given so that
+// the response can happen asynchonously in another go routine.
+// Input: command - the diameter code for the command (like diam.CreditControl)
+//				handler - the function to call when a message is received
+func (client *Client) RegisterRequestHandlerForAppID(command uint32, appID uint32, handler diam.HandlerFunc) {
+	client.mux.HandleIdx(diam.CommandIndex{AppID: appID, Code: command, Request: true}, handler)
+}
+
+// GenSessionIDOpt generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+func GenSessionIDOpt(identity, protocol, opt string) string {
+	if len(identity) == 0 {
+		identity = "magma"
+	}
+	nano := time.Now().UnixNano()
+	nanoHigh := uint(nano << 32)
+	if len(protocol) != 0 {
+		return fmt.Sprintf("%s-%s;%d;%d;%X", identity, protocol, nanoHigh, uint(nano), opt)
+	}
+	return fmt.Sprintf("%s;%d;%d;%X", identity, nanoHigh, uint(nano), opt)
+}
+
+// GenSessionID generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// Where <optional value> is base 16 uint32 random number
+func GenSessionID(identity, protocol string) string {
+	return GenSessionIDOpt(identity, protocol, strconv.FormatUint(uint64(rand.Uint32()), 16))
+}
+
+// GenSessionIDOpt generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// Where <DiameterIdentity> is client.Host|ProductName-protocol
+func (client *DiameterClientConfig) GenSessionIDOpt(protocol, opt string) string {
+	if client != nil {
+		if len(client.Host) != 0 {
+			return GenSessionIDOpt(client.Host, protocol, opt)
+		} else {
+			return GenSessionIDOpt(client.ProductName, protocol, opt)
+		}
+	}
+	return GenSessionID("", protocol)
+}
+
+// GenSessionID generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// Where <DiameterIdentity> is client.Host|ProductName-protocol
+//     and <optional value> is base 16 uint32 random number
+func (client *DiameterClientConfig) GenSessionID(protocol string) string {
+	return client.GenSessionIDOpt(protocol, strconv.FormatUint(uint64(rand.Uint32()), 16))
+}
+
+// DecodeSessionID extracts and returns session ID if available,
+// or original diamSid string otherwise
+// Input: OriginHost;req#;rand#;IMSIxyz
+// Returns: IMSIxyz-rand#
+func DecodeSessionID(diamSid string) string {
+	split := strings.Split(diamSid, ";")
+	n1 := len(split) - 1
+	if n1 >= 3 && strings.HasPrefix(split[n1], "IMSI") {
+		return split[n1] + "-" + split[n1-1]
+	}
+	return diamSid // not magma encoded SID, return as is
+}
+
+// EncodeSessionID encodes SessionID in rfc6733 compliant form:
+// <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
+// OriginHost;req#;rand#;IMSIxyz
+func EncodeSessionID(originHost, sid string) string {
+	split := strings.Split(sid, "-")
+	if len(split) == 2 && strings.HasPrefix(split[0], "IMSI") {
+		return fmt.Sprintf("%s;%s;%s;%s", originHost, split[1], split[1], split[0])
+	}
+	return sid // not magma generated SID, return as is
+
+}

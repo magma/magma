@@ -1,0 +1,7 @@
+syntax: glob
+src/python/**/*.egg-info
+third-party/packages/*.changes
+third-party/packages/*.debian.tar.*
+c/oai/code_coverage/**
+.cache/*
+reports/**

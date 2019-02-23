@@ -1,0 +1,41 @@
+---
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Install prereqs for local dynamoDB executable
+  apt: pkg={{ item }} state=present update_cache=true
+  with_items:
+    - default-jre
+    - unzip
+  when: preburn
+
+- name: Make dynamoDB local folder
+  file: path=/home/{{ user }}/dynamodb state=directory
+  when: preburn
+
+- name: Download dynamoDB local executable
+  get_url:
+    url: https://s3-us-west-2.amazonaws.com/dynamodb-local/dynamodb_local_latest.zip
+    dest: "/home/{{ user }}/dynamodb/dynamodb_local_latest.zip"
+  when: preburn
+
+- name: Unzip dynamoDB local executable
+  unarchive:
+    remote_src: yes
+    src: "/home/{{ user }}/dynamodb/dynamodb_local_latest.zip"
+    dest: "/home/{{ user }}/dynamodb/"
+  when: preburn
+
+- name: Copy dynamodb service unit file
+  template:
+    src: dynamodb/magma_dynamodb.service.j2
+    dest: /etc/systemd/system/magma@dynamodb.service
+  when: full_provision
+
+- name: Restart the dynamodb service
+  systemd: name=magma@dynamodb state=restarted daemon_reload=yes enabled=yes
+  when: full_provision

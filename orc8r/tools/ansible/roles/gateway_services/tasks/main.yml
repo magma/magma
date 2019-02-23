@@ -1,0 +1,70 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+########################################
+# Install basic tools
+########################################
+
+- name: Install basic tools
+  apt: pkg={{ item }} state=present
+  with_items:
+    - zip
+    - unzip
+    - curl
+    - daemontools
+    - git
+    - vim
+  when: preburn
+
+########################################
+# Install python dependencies
+########################################
+
+- name: Install python dependencies
+  apt: pkg={{ item }} state=present
+  with_items:
+    - python3-pip
+    - pkg-config
+    - libsystemd-dev
+  when: preburn
+
+########################################
+# Set up control proxy
+########################################
+
+- name: Install nghttpx and its deps for Ubuntu
+  apt: pkg={{ item }} state=present
+  with_items:
+      - gcc
+      - libssl-dev
+      - libev-dev
+      - libevent-dev
+      - libjansson-dev
+      - libjemalloc-dev
+      - libc-ares-dev
+      - magma-nghttpx=1.31.1-1
+  when: preburn and ansible_distribution == 'Ubuntu'
+
+- name: Install nghttpx for Debian
+  apt: pkg={{ item }} state=present
+  with_items:
+      - nghttp2-proxy
+  when: preburn and ansible_distribution == 'Debian'
+
+#################################
+# Copy service files
+#################################
+
+- name: Copy main magma service unit file
+  copy:
+    src: "{{ item.src }}.service"
+    dest: "/etc/systemd/system/{{ item.dest }}.service"
+  with_items:
+    - {src: 'magma', dest: 'magma@'}
+    - {src: 'magma_control_proxy', dest: 'magma@control_proxy'}
+  when: full_provision

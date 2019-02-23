@@ -1,0 +1,45 @@
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+{% if dev_mode %}
+# Listening interfaces (open for development)
+frontend=0.0.0.0,{{ local_port }};no-tls
+{% else %}
+# Listening interfaces
+frontend=127.0.0.1,{{ local_port }};no-tls
+{% endif %}
+
+# Backend services (for integration tests)
+{% for backend in backends -%}
+backend={{ backend.ip }},{{ backend.port }};{{ backend.service }}.local;proto=h2;no-tls
+{% endfor -%}
+backend={{ cloud_address }},{{ cloud_port }};;proto=h2;tls;dns
+
+{% if allow_http_proxy and http_proxy %}
+backend-http-proxy-uri={{ http_proxy }}
+{% endif %}
+
+# Verify controller cert's root chain
+cacert={{ rootca_cert }}
+
+{% if use_gateway_cert %}
+# Pass on the gateway's cert when connecting to the controller
+client-cert-file={{ gateway_cert }}
+client-private-key-file={{ gateway_key }}
+{% endif %}
+
+# DNS settings
+dns-cache-timeout=60
+
+# New versions of gRPC send the http2 settings ack frame in a delayed manner
+frontend-http2-settings-timeout=1000
+
+# Proxy configs
+errorlog-syslog=yes
+accesslog-file=/dev/stderr
+accesslog-format=${time_iso8601} [${remote_addr} -> ${http_host},${server_port}] "${request}" ${status} ${body_bytes_sent}bytes ${request_time}s

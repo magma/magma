@@ -1,0 +1,10 @@
+#Tag[0],UniqueId[1],ThresholdType[2],ThresholdValue[3],Recurrent[4],MinSleep[5],ExpiryTime[6],ActivationTime[7],BalanceTag[8],BalanceType[9],BalanceDirections[10],BalanceCategories[11],BalanceDestinationIds[12],BalanceRatingSubject[13],BalanceSharedGroup[14],BalanceExpiryTime[15],BalanceTimingIds[16],BalanceWeight[17],BalanceBlocker[18],BalanceDisabled[19],StatsMinQueuedItems[20],ActionsId[21],Weight[22]
+STANDARD_TRIGGERS,,*min_balance,2,false,0,,,,*monetary,*out,,,,,,,,,,,LOG_BALANCE,10
+STANDARD_TRIGGERS,,*max_balance,20,false,0,,,,*monetary,*out,,,,,,,,,,,LOG_BALANCE,10
+STANDARD_TRIGGERS,,*max_event_counter,15,false,0,,,,*monetary,*out,,FS_USERS,,,,,,,,,LOG_BALANCE,10
+STANDARD_TRIGGERS,,*max_balance_counter,1,false,0,,,,*monetary,*out,,,,,,,,,,,LOG_BALANCE,10
+CDRST1_WARN_ASR,,*min_asr,45,true,1h,,,,,,,,,,,,,,,3,CDRST_WARN_HTTP,10
+CDRST1_WARN_ACD,,*min_acd,10,true,1h,,,,,,,,,,,,,,,5,CDRST_WARN_HTTP,10
+CDRST1_WARN_ACC,,*max_acc,10,true,10m,,,,,,,,,,,,,,,5,CDRST_WARN_HTTP,10
+CDRST2_WARN_ASR,,*min_asr,30,true,0,,,,,,,,,,,,,,,5,CDRST_WARN_HTTP,10
+CDRST2_WARN_ACD,,*min_acd,3,true,0,,,,,,,,,,,,,,,2,CDRST_LOG,10

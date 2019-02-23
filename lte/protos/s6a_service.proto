@@ -1,0 +1,23 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+syntax = "proto3";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+message DeleteSubscriberResponse {
+}
+
+message DeleteSubscriberRequest {
+    // a list of imsi of the subscriber to delete
+    repeated string imsi_list = 1;
+}
+
+service S6aService {
+    // Delete a subscriber from mme. A grpc service in mme, client req initiated from subscriberdb.
+    rpc DeleteSubscriber (DeleteSubscriberRequest) returns (DeleteSubscriberResponse) {}
+}

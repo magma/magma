@@ -1,0 +1,14 @@
+---
+- name: Set up the federated gateway production instance
+  hosts: localhost
+
+  vars:
+    preburn: true
+    full_provision: true
+
+  roles:
+    - role: pkgrepo
+      vars:
+        distribution: "xenial"
+    - role: gateway_services
+    - role: feg_services

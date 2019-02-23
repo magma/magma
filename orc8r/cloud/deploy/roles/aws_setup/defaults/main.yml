@@ -1,0 +1,11 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+_aws_creds_file: "{{ lookup('env', 'HOME') + '/.aws/credentials' }}"
+aws_access_key: "{{ lookup('ini', 'aws_access_key_id section=default file=' + _aws_creds_file) }}"
+aws_secret_key: "{{ lookup('ini', 'aws_secret_access_key section=default file=' + _aws_creds_file) }}"

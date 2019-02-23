@@ -1,0 +1,23 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Magma gateway health service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=health
+User=root
+Restart=always
+RestartSec=1s
+StartLimitInterval=0
+MemoryLimit=300M
+
+[Install]
+WantedBy=multi-user.target

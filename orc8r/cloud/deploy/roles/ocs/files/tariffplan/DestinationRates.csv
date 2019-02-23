@@ -1,0 +1,3 @@
+#Tag,DestinationsTag,RatesTag,RoundingMethod,RoundingDecimals,MaxCost,MaxCostStrategy
+DR_DATA_1,*any,RT_DATA_2c,*up,4,0,
+DR_DATA_FREE,*any,RT_ZERO,*up,4,0,

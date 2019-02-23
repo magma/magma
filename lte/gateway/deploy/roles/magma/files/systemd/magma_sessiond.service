@@ -1,0 +1,27 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Magma session manager service
+PartOf=magma@mme.service
+Before=magma@mme.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStart=/usr/local/bin/sessiond
+MemoryAccounting=yes
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=sessiond
+User=root
+Restart=always
+RestartSec=5
+LimitCORE=infinity
+MemoryLimit=300M
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+#
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+interface={{ enodeb_interface }}
+dhcp-range={{ dhcp_range.lower }},{{ dhcp_range.upper }},12h
+local-ttl={{ localTTL }}
+{% for address in addresses -%}
+host-record={{ address.domain }},{{ address.ip }}
+{% endfor -%}
+interface={{ dns_iface_name}}
+no-dhcp-interface={{ dns_iface_name }}
+bind-dynamic

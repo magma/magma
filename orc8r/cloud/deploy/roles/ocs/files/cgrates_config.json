@@ -1,0 +1,250 @@
+{
+"general": {
+	"log_level": 7
+},
+
+"cache":{
+	"destinations": {"limit": 10000, "ttl":"0s", "precache": false},
+	"reverse_destinations": {"limit": 10000, "ttl":"0s", "precache": false},
+	"rating_plans": {"limit": 10000, "ttl":"0s","precache": true},
+	"rating_profiles": {"limit": 10000, "ttl":"0s", "precache": false},
+	"lcr": {"limit": 10000, "ttl":"0s", "precache": false},
+	"cdr_stats": {"limit": 10000, "ttl":"0s", "precache": false},
+	"actions": {"limit": 10000, "ttl":"0s", "precache": false},
+	"action_plans": {"limit": 10000, "ttl":"0s", "precache": false},
+	"account_action_plans": {"limit": 10000, "ttl":"0s", "precache": false},
+	"action_triggers": {"limit": 10000, "ttl":"0s", "precache": false},
+	"shared_groups": {"limit": 10000, "ttl":"0s", "precache": false},
+	"aliases": {"limit": 10000, "ttl":"0s", "precache": false},
+	"reverse_aliases": {"limit": 10000, "ttl":"0s", "precache": false},
+	"derived_chargers": {"limit": 10000, "ttl":"0s", "precache": false},
+	"resource_limits": {"limit": 10000, "ttl":"0s", "precache": false},
+	"timings": {"limit": 10000, "ttl":"0s", "precache": false},
+ "supplier_profiles": {"limit": 10000, "ttl":"0s", "precache": true},
+ "attribute_profiles": {"limit": 10000, "ttl":"0s", "precache": true}
+},
+
+
+"listen": {
+	"rpc_json": "127.0.0.1:2012",
+	"rpc_gob": "127.0.0.1:2013",
+	"http": "127.0.0.1:2080"
+},
+
+
+"http": {
+ 	"json_rpc_url": "/jsonrpc",
+	"ws_url": "/ws",
+	"use_basic_auth": false,
+	"auth_users": {}
+},
+
+
+"data_db": {
+ 	"db_type": "redis",
+ 	"db_host": "127.0.0.1",
+ 	"db_port": 6379,
+	"db_name": "10",
+	"db_user": "cgrates",
+	"db_password": "",
+	"load_history_size": 10
+},
+
+
+"stor_db": {
+	"db_type": "mysql",
+	"db_host": "127.0.0.1",
+	"db_port": 3306,
+	"db_name": "cgrates",
+	"db_user": "root",
+	"db_password": "magma",
+	"max_open_conns": 100,
+	"max_idle_conns": 10,
+	"conn_max_lifetime": 0,
+	"cdrs_indexes": []
+ },
+
+
+ "rals": {
+ 	"enabled": true,
+ 	"cdrstats_conns": [
+ 		{"address": "*internal"}
+ 	],
+ 	"pubsubs_conns": [
+ 		{"address": "*internal"}
+ 	],
+ 	"users_conns": [
+ 		{"address": "*internal"}
+ 	],
+ 	"aliases_conns": [
+ 		{"address": "*internal"}
+ 	]
+ },
+
+
+"scheduler": {
+	"enabled": true
+},
+
+
+"cdrs": {
+	"enabled": true,
+	"cdrstats_conns": [
+		{"address": "*internal"}
+	]
+},
+
+
+ "cdrstats": {
+	"enabled": true
+ },
+
+
+ "pubsubs": {
+ 	"enabled": true
+ },
+
+ "aliases": {
+ 	"enabled": true
+ },
+
+ "users": {
+ 	"enabled": true,
+ 	"indexes": ["SubscriberId"]
+ },
+
+ "resources": {
+ 	"enabled": true
+ },
+
+ "attributes": {
+ 	"enabled": true
+ },
+
+ "suppliers": {
+ 	"enabled": true
+ },
+
+ "sessions": {
+ 	"enabled": true
+ },
+
+
+"diameter_agent": {
+  "enabled": true,
+  "listen": "0.0.0.0:3868",
+	"pubsubs_conns": [
+		{"address": "*internal"}
+	],
+  "request_processors": [
+		{
+			"id": "data_init",
+			"dry_run": false,
+			"request_filter": "Service-Context-Id(^gprs);CC-Request-Type(1)",
+			"continue_on_success": false,
+			"ccr_fields":[
+				{"tag": "TOR", "field_id": "ToR", "type": "*composed", "value": "^*data", "mandatory": true},
+				{"tag": "OriginID", "field_id": "OriginID", "type": "*composed", "value": "Session-Id", "mandatory": true},
+				{"tag": "RequestType", "field_id": "RequestType", "type": "*composed", "value": "^*prepaid", "mandatory": true},
+				{"tag": "Direction", "field_id": "Direction", "type": "*composed", "value": "^*out", "mandatory": true},
+				{"tag": "Tenant", "field_id": "Tenant", "type": "*composed", "value": "^cgrates.org", "mandatory": true},
+				{"tag": "Category", "field_id": "Category", "type": "*composed", "value": "^data", "mandatory": true},
+				{"tag": "Account", "field_id": "Account", "type": "*grouped", "value": "Subscription-Id>Subscription-Id-Data", "field_filter":"Subscription-Id>Subscription-Id-Type(0)", "mandatory": true},
+				{"tag": "Destination", "field_id": "Destination", "type": "*constant", "value": "data"},
+				{"tag": "SetupTime", "field_id": "SetupTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "AnswerTime", "field_id": "AnswerTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "Usage", "field_id": "Usage", "type": "*constant", "value": "2048"}
+			],
+			"cca_fields": [
+				{"tag": "ResultCode", "field_id": "Result-Code", "type": "*constant", "value": "^2001"},
+				{"tag": "ResultCode", "field_filter": "CGRMaxUsage(0)", "field_id": "Result-Code", "type": "*constant", "value": "4010"}
+			]
+		},
+		{
+			"id": "data_update_grp1",
+			"dry_run": false,
+			"request_filter": "Service-Context-Id(^gprs);CC-Request-Type(2);Multiple-Services-Credit-Control>Rating-Group(1)",
+			"continue_on_success": true,
+			"ccr_fields":[
+				{"tag": "TOR", "field_id": "ToR", "type": "*composed", "value": "^*data", "mandatory": true},
+				{"tag": "InitialOriginID", "field_id": "InitialOriginID", "type": "*composed", "value": "Session-Id", "mandatory": true},
+				{"tag": "OriginID", "field_id": "OriginID", "type": "*composed", "value": "Session-Id", "mandatory": true},
+				{"tag": "OriginID", "field_id": "OriginID", "type": "*composed", "value": "^_grp1", "append": true},
+				{"tag": "RequestType", "field_id": "RequestType", "type": "*composed", "value": "^*prepaid", "mandatory": true},
+				{"tag": "Direction", "field_id": "Direction", "type": "*composed", "value": "^*out", "mandatory": true},
+				{"tag": "Tenant", "field_id": "Tenant", "type": "*composed", "value": "^cgrates.org", "mandatory": true},
+				{"tag": "Category", "field_id": "Category", "type": "*composed", "value": "^data", "mandatory": true},
+				{"tag": "Account", "field_id": "Account", "type": "*grouped", "value": "Subscription-Id>Subscription-Id-Data", "field_filter":"Subscription-Id>Subscription-Id-Type(0)", "mandatory": true},
+				{"tag": "Destination", "field_id": "Destination", "type": "*constant", "value": "data"},
+				{"tag": "SetupTime", "field_id": "SetupTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "AnswerTime", "field_id": "AnswerTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "Usage", "field_id": "Usage", "type": "*constant", "value": "2048"},
+				{"tag": "LastUsed", "field_id": "LastUsed", "field_filter":"Multiple-Services-Credit-Control>Rating-Group(1)", "type": "*handler", "handler_id": "*sum",
+					"value": "Multiple-Services-Credit-Control>Used-Service-Unit>CC-Input-Octets;^|;Multiple-Services-Credit-Control>Used-Service-Unit>CC-Output-Octets"}
+			],
+			"cca_fields": [
+				{"tag": "ResultCode", "field_id": "Result-Code", "type": "*constant", "value": "^2001"},
+				{"tag": "ResultCode", "field_filter": "CGRMaxUsage(0)", "field_id": "Result-Code", "type": "*constant", "value": "4010"},
+				{"tag": "GrantedUnits", "field_filter": "CGRError(^$)",
+					"field_id": "Multiple-Services-Credit-Control>Granted-Service-Unit>CC-Total-Octets",
+					"type": "*composed", "value": "CGRMaxUsage", "mandatory": true}
+			]
+		},
+		{
+			"id": "data_update_grp2",
+			"dry_run": false,
+			"request_filter": "Service-Context-Id(^gprs);CC-Request-Type(2);Multiple-Services-Credit-Control>Rating-Group(2)",
+			"continue_on_success": true,
+			"ccr_fields":[
+				{"tag": "TOR", "field_id": "ToR", "type": "*composed", "value": "^*data", "mandatory": true},
+				{"tag": "InitialOriginID", "field_id": "InitialOriginID", "type": "*composed", "value": "Session-Id", "mandatory": true},
+				{"tag": "OriginID", "field_id": "OriginID", "type": "*composed", "value": "Session-Id", "mandatory": true},
+				{"tag": "OriginID", "field_id": "OriginID", "type": "*composed", "value": "^_grp2", "append": true},
+				{"tag": "RequestType", "field_id": "RequestType", "type": "*composed", "value": "^*prepaid", "mandatory": true},
+				{"tag": "Direction", "field_id": "Direction", "type": "*composed", "value": "^*out", "mandatory": true},
+				{"tag": "Tenant", "field_id": "Tenant", "type": "*composed", "value": "^cgrates.org", "mandatory": true},
+				{"tag": "Category", "field_id": "Category", "type": "*composed", "value": "^data_free", "mandatory": true},
+				{"tag": "Account", "field_id": "Account", "type": "*grouped", "value": "Subscription-Id>Subscription-Id-Data", "field_filter":"Subscription-Id>Subscription-Id-Type(0)", "mandatory": true},
+				{"tag": "Destination", "field_id": "Destination", "type": "*constant", "value": "data"},
+				{"tag": "SetupTime", "field_id": "SetupTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "AnswerTime", "field_id": "AnswerTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "Usage", "field_id": "Usage", "type": "*constant", "value": "2048"},
+				{"tag": "LastUsed", "field_id": "LastUsed", "field_filter":"Multiple-Services-Credit-Control>Rating-Group(2)", "type": "*handler", "handler_id": "*sum",
+					"value": "Multiple-Services-Credit-Control>Used-Service-Unit>CC-Input-Octets;^|;Multiple-Services-Credit-Control>Used-Service-Unit>CC-Output-Octets"}
+			],
+			"cca_fields": [
+				{"tag": "ResultCode", "field_id": "Result-Code", "type": "*constant", "value": "^2001"},
+				{"tag": "ResultCode", "field_filter": "CGRMaxUsage(0)", "field_id": "Result-Code", "type": "*constant", "value": "4010"},
+				{"tag": "GrantedUnits", "field_filter": "CGRError(^$)",
+					"field_id": "Multiple-Services-Credit-Control>Granted-Service-Unit>CC-Total-Octets",
+					"type": "*composed", "value": "CGRMaxUsage", "mandatory": true}
+			]
+		},
+		{
+			"id": "data_terminate",
+			"dry_run": false,
+			"request_filter": "Service-Context-Id(^gprs);CC-Request-Type(3)",
+			"continue_on_success": false,
+			"ccr_fields":[
+				{"tag": "TOR", "field_id": "ToR", "type": "*composed", "value": "^*data", "mandatory": true},
+				{"tag": "OriginID", "field_id": "OriginID", "type": "*composed", "value": "Session-Id", "mandatory": true},
+				{"tag": "OriginIDPrefix", "field_id": "OriginIDPrefix", "type": "*composed", "value": "Session-Id", "mandatory": true},
+				{"tag": "RequestType", "field_id": "RequestType", "type": "*composed", "value": "^*prepaid", "mandatory": true},
+				{"tag": "Direction", "field_id": "Direction", "type": "*composed", "value": "^*out", "mandatory": true},
+				{"tag": "Tenant", "field_id": "Tenant", "type": "*composed", "value": "^cgrates.org", "mandatory": true},
+				{"tag": "Category", "field_id": "Category", "type": "*composed", "value": "^data", "mandatory": true},
+				{"tag": "Account", "field_id": "Account", "type": "*grouped", "value": "Subscription-Id>Subscription-Id-Data", "field_filter":"Subscription-Id>Subscription-Id-Type(0)", "mandatory": true},
+				{"tag": "Destination", "field_id": "Destination", "type": "*constant", "value": "data"},
+				{"tag": "SetupTime", "field_id": "SetupTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "AnswerTime", "field_id": "AnswerTime", "type": "*composed", "value": "Event-Timestamp", "mandatory": true},
+				{"tag": "LastUsed", "field_id": "LastUsed", "type": "*handler", "handler_id": "*sum",
+					"value": "Multiple-Services-Credit-Control>Used-Service-Unit>CC-Input-Octets;^|;Multiple-Services-Credit-Control>Used-Service-Unit>CC-Output-Octets"}
+			],
+			"cca_fields": [
+				{"tag": "ResultCode", "field_id": "Result-Code", "type": "*constant", "value": "^2001"}
+			]
+		}
+	]
+}
+
+}

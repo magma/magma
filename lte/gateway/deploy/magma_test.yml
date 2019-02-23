@@ -1,0 +1,21 @@
+---
+- name: Set up Magma test environment on a local machine
+  hosts: test
+  become: yes
+
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: false
+    full_provision: true
+
+  roles:
+    - role: apt_cache
+      vars:
+        distribution: "stretch"
+    - role: python_dev
+    - role: dev_common
+      vars:
+        c_build: /home/{{ ansible_user }}/build/c/
+        oai_build: "{{ c_build }}/oai"
+    - role: magma_test
+      become: no

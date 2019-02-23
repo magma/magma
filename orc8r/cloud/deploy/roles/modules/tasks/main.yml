@@ -1,0 +1,53 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Check if FB-specific modules yml file exists
+  local_action: stat path=../../../fb/config/modules.yml
+  register: stat_fb_module_file
+  become: no
+  when: full_provision
+
+- name: Use FB-specific modules yml file if it exists
+  set_fact:
+    module_file: ../../../fb/config/modules.yml
+  when: full_provision and stat_fb_module_file.stat.exists
+
+- name: Load the modules yml file
+  include_vars:
+    file: '{{ module_file }}'
+    name: module_conf
+  when: full_provision
+
+- name: Append native modules to magma modules fact
+  set_fact:
+    # The trailing space is important!
+    magma_modules: "{{ magma_modules }}/home/{{ user }}/magma/{{ item }} "
+  loop: '{{ module_conf["native_modules"] }}'
+  when: full_provision
+
+- name: Append external modules to magma modules fact
+  set_fact:
+    # The trailing space is important!
+    magma_modules: "{{ magma_modules }}{{ item['mount_path'] }} "
+  loop: '{{ module_conf["external_modules"] }}'
+  when: full_provision
+
+- name: Trim magma modules fact
+  set_fact:
+    magma_modules: "{{ magma_modules | trim }}"
+  when: full_provision
+
+- name: Set environment vars
+  tags: modules
+  lineinfile: >
+    dest=/home/{{ user }}/.profile
+    state=present
+    line="{{ item }}"
+  with_items:
+    - export MAGMA_MODULES="{{ magma_modules }}"
+  when: full_provision

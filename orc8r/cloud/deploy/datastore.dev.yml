@@ -1,0 +1,47 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Install python
+  hosts: datastore
+  gather_facts: False
+  tasks:
+  - name: install python 2
+    raw: test -e /usr/bin/python || (sudo apt -y update && sudo apt install -y python-minimal)
+
+- name: Set up datastore
+  hosts: datastore
+  become: yes
+  vars:
+    db_name: magma_dev
+    db_user: magma_dev
+    db_password: magma_dev
+    user: "{{ ansible_user }}"
+
+    preburn: false
+    full_provision: true
+
+  environment:
+    LANG: en_US.UTF-8
+    LANGUAGE: en_US
+    LC_CTYPE: en_US.UTF-8
+    LC_NUMERIC: en_US.UTF-8
+    LC_TIME: en_US.UTF-8
+    LC_COLLATE: en_US.UTF-8
+    LC_MONETARY: en_US.UTF-8
+    LC_MESSAGES: en_US.UTF-8
+    LC_PAPER: en_US.UTF-8
+    LC_NAME: en_US.UTF-8
+    LC_ADDRESS: en_US.UTF-8
+    LC_TELEPHONE: en_US.UTF-8
+    LC_MEASUREMENT: en_US.UTF-8
+    LC_IDENTIFICATION: en_US.UTF-8
+    http_proxy: "{{ http_proxy | default('') }}"
+    https_proxy: "{{ https_proxy | default('') }}"
+  roles:
+    - { role: postgres }
+    - { role: dynamodb }

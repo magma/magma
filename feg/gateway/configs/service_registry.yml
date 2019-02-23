@@ -1,0 +1,48 @@
+---
+services:
+  # NOTE: do NOT include dash(-) in your service name. Use underscore instead.
+  # Example service name that contains dash: hello-world-blah
+  # As we use "-" in nghttpx config to connect service name and hostname,
+  # "-" is used as a delimiter in dispatcher to parse out service names.
+  magmad:
+    ip_address: 127.0.0.1
+    port: 50052
+  control_proxy:
+    ip_address: 127.0.0.1
+    port: 50053
+  metricsd:
+    ip_address: 127.0.0.1
+    port: 60054
+  # Currently the go services pull their port from magma/platform/registry/config.go
+  # In the future, these services should pull from this file instead. For now,
+  # the ports need to match the platform service registry
+  session_proxy:
+    ip_address: 127.0.0.1
+    port: 9097 # TODO remove dependency on platform service registry
+  s6a_proxy:
+    ip_address: 127.0.0.1
+    port: 9098 # TODO remove dependency on platform service registry
+  swx_proxy:
+    ip_address: 127.0.0.1
+    port: 9110
+  csfb:
+    ip_address: 127.0.0.1
+    port: 9101
+  feg_hello:
+    ip_address: 127.0.0.1
+    port: 9093
+  ocs:
+    ip_address: 127.0.0.1
+    port: 9201
+  pcrf:
+    ip_address: 127.0.0.1
+    port: 9202
+  health:
+    ip_address: 127.0.0.1
+    port: 9107
+  hss:
+    ip_address: 127.0.0.1
+    port: 9108
+  vlr:
+    ip_address: 127.0.0.1
+    port: 9203

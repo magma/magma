@@ -1,0 +1,92 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+##################################
+# Set up dev environment variables
+##################################
+#
+- name: Set Python environment variables
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - PYTHON_BUILD="{{ python_build }}"
+    - PIP_CACHE_HOME="~/.pipcache"
+  when: full_provision
+
+- name: Test for path in /etc/environment file
+  shell: grep "^PATH=" /etc/environment
+  register: test_path
+  ignore_errors: true
+  when: full_provision
+
+- name: Add PATH line if it doesn't exist
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: 'PATH=/usr/lib/ccache:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  when: full_provision and test_path.rc != 0
+
+- name: Append virtual env python3 bin if path exists
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    backrefs: yes
+    regexp: 'PATH=(["]*)((?!.*?{{ python_bin }}).*?)(["]*)$'
+    line: 'PATH=\1{{ python_bin }}:\2\3'
+  when: full_provision
+
+#################################
+# Add common convenience aliases
+#################################
+
+- name: Set a convenience function for activating the virtualenv
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias magtivate='source {{ python_build }}/bin/activate'"
+  when: full_provision
+
+- name: Set a convenience function for running things with sudo in the virtualenv
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias venvsudo='sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env'"
+  when: full_provision
+
+##############################
+# Install dependency packages
+##############################
+
+- name: Setup build requirements for python packages
+  apt: pkg={{ item }} state=present
+  with_items:
+    # Build requirements
+    - virtualenv
+    - python-babel
+    - python-dev
+    - pkg-config
+    # Packaging dependencies
+    - build-essential
+    - python3-setuptools
+    - python-setuptools
+    # Building and shipping client release
+    - autogen
+    - autoconf
+    - libtool
+    - python3-apt
+    - python3-aioeventlet
+    - python3-setuptools
+    - python3-requests
+    - python3-pip
+    # Python dev dependencies
+    - protobuf-compiler
+    - python-protobuf
+    - libsystemd-dev
+  when: preburn

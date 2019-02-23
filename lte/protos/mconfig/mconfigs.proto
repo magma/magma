@@ -1,0 +1,190 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.mconfig;
+option go_package = "magma/lte/cloud/go/protos/mconfig";
+
+//------------------------------------------------------------------------------
+// EnodebD configs
+//------------------------------------------------------------------------------
+message EnodebD {
+    enum CSFBRat {
+        CSFBRAT_2G = 0;
+        CSFBRAT_3G = 1;
+    }
+
+    message FDDConfig {
+        int32 earfcndl = 1;
+        int32 earfcnul = 2;
+    }
+    message TDDConfig {
+        int32 earfcndl = 1;
+        // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+        int32 subframe_assignment = 2;
+        // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+        int32 special_subframe_pattern = 3;
+    }
+
+    orc8r.LogLevel log_level = 1;
+
+    // Physical cell ID (0-504)
+    int32 pci = 2;
+    // Frequency channel number. See niviuk.free.fr/lte_band.php for mapping to
+    // frequency
+    int32 earfcndl = 3;
+    // Bandwidth in MHz, from set {1.4, 3, 5, 10, 15, 20}
+    int32 bandwidth_mhz = 4;
+    // Network operator identifier.
+    string plmnid_list = 5;
+    // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+    int32 subframe_assignment = 6;
+    // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
+    int32 special_subframe_pattern = 7;
+    // Enable eNodeB
+    bool allow_enodeb_transmit = 8;
+    // Tracking area code. 16-bit
+    int32 tac = 9;
+    // RAT type (2G/3G), used by eNB
+    CSFBRat csfb_rat = 10;
+    // 2G RAT frequencies /ARFCNs for redirection, used by eNB
+    repeated int32 arfcn_2g = 11;
+    TDDConfig tdd_config = 12;
+    FDDConfig fdd_config = 13;
+}
+
+//------------------------------------------------------------------------------
+// PipelineD configs
+//------------------------------------------------------------------------------
+message PipelineD {
+    enum NetworkServices {
+        METERING = 0;
+        DPI = 1;
+        ENFORCEMENT = 2;
+    }
+    orc8r.LogLevel log_level = 1;
+    // Range of IPs allocated to UEs
+    string ue_ip_block = 2;
+    // Whether NAT is enabled
+    bool nat_enabled = 3;
+    // repeated PolicyRule policy_rules = 5; // Policies have moved to policydb.proto
+    string default_rule_id = 6; // This should match a rule id in policy_rules
+    // Enable forwarding S6a related requests to Federated GW
+    bool relay_enabled = 7;
+    repeated NetworkServices services = 8;
+
+    // DEPRECATED
+    // repeated string apps = 4;
+}
+
+//------------------------------------------------------------------------------
+// SessionD configs
+//------------------------------------------------------------------------------
+message SessionD {
+    orc8r.LogLevel log_level = 1;
+    // Enable forwarding S6a related requests to Federated GW
+    bool relay_enabled = 2;
+}
+
+//------------------------------------------------------------------------------
+// PolicyDB configs
+//------------------------------------------------------------------------------
+message PolicyDB {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// RedirectD configs
+//------------------------------------------------------------------------------
+message RedirectD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// MobilityD configs
+//------------------------------------------------------------------------------
+message MobilityD {
+    orc8r.LogLevel log_level = 1;
+    // An IP block is a range of IP addresses specified by a network address and
+    // a prefix-length of the netmask. For example,
+    //    IPv4 IP block:      "192.168.0.0/24"
+    //    IPv6 IP block:      "2401:db00:1116:301b::/64"
+    string ip_block = 2;
+}
+
+//------------------------------------------------------------------------------
+// MME configs
+//------------------------------------------------------------------------------
+message MME {
+    // (0)Turning off NonEPS service, (1)Both CSFB and SMS, (2)only SMS
+    enum NonEPSServiceControl {
+        NON_EPS_SERVICE_CONTROL_OFF = 0;
+        NON_EPS_SERVICE_CONTROL_CSFB_SMS = 1;
+        NON_EPS_SERVICE_CONTROL_SMS = 2;
+    }
+
+    orc8r.LogLevel log_level = 1;
+    // Mobile country code
+    string mcc = 2;
+    // Mobile network code
+    string mnc = 3;
+    // Tracking area code. 16-bit
+    int32 tac = 4;
+    // MME group identifier - unique within a PLMN. 16-bit
+    int32 mme_gid = 5;
+    // MME code - unique within an MME group. 8-bit
+    int32 mme_code = 6;
+    // Enable DNS Caching. Will be filled by DnsD
+    bool enable_dns_caching = 7;
+    // Enable credit control tracking with OCS and forwarding S6a related
+    // requests to Federated GW
+    bool relay_enabled = 8;
+    // For indicating one of the three modes
+    NonEPSServiceControl non_eps_service_control = 9;
+    // Mobile country code for CSFB
+    string csfb_mcc = 10;
+    // Mobile network code for CSFB
+    string csfb_mnc = 11;
+    // Location area code. 16-bit
+    int32 lac = 12;
+
+    // DEPRECATED
+    // Use relay_enabled instead
+    // bool s6a_relay_enabled = 13;
+}
+
+
+//------------------------------------------------------------------------------
+// SubscriberDB configs
+//------------------------------------------------------------------------------
+message SubscriberDB {
+    orc8r.LogLevel log_level = 1;
+    // Operator configuration field for LTE
+    bytes lte_auth_op = 2;
+    // Authentication management field for LTE
+    bytes lte_auth_amf = 3;
+
+    message SubscriptionProfile {
+        // Maximum uplink bit rate (AMBR-UL)
+        uint64 max_ul_bit_rate = 1;
+        // Maximum downlink bit rate (AMBR-DL)
+        uint64 max_dl_bit_rate = 2;
+    }
+    map<string, SubscriptionProfile> sub_profiles = 4;
+    // Enable forwarding S6a related requests to Federated GW
+    bool relay_enabled = 5;
+}
+
+//------------------------------------------------------------------------------
+// LighttpD configs
+//------------------------------------------------------------------------------
+message LighttpD {
+    orc8r.LogLevel log_level = 1;
+    bool enable_caching = 2;
+}

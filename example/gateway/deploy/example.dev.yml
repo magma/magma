@@ -1,0 +1,18 @@
+---
+- name: Set up dev build environment on a local machine
+  hosts: example
+  become: yes
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: true
+    full_provision: true
+
+  roles:
+    # Role for gateway development. It also incudes required
+    # roles like pkgrepo, gateway_services, and python_dev.
+    - role: gateway_dev
+      vars:
+        distribution: "xenial"
+        config_dir: "example/gateway/configs"
+    # Role for running the extra services for the example device.
+    - role: example_services

@@ -1,0 +1,32 @@
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">=1.9.1"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.synced_folder "../..", "/home/vagrant/magma"
+  config.vm.provider "virtualbox" do |v|
+    v.linked_clone = true
+    v.memory = 512
+    v.cpus = 1
+  end
+
+  config.vm.define :example, primary: true do |example|
+    example.vm.hostname = "example-dev"
+    example.vm.network "private_network", ip: "192.168.30.10"
+    example.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/example.dev.yml"
+      ansible.limit = "all"
+      ansible.verbose = true
+    end
+  end
+
+end

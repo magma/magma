@@ -1,0 +1,86 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Install prerequisites for building librdkafka
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+      - build-essential
+      - zlib1g-dev
+      - libssl-dev
+      - gcc
+      - make
+      - pkg-config
+  when: preburn
+
+- name: Create archives directory
+  file: path=/var/opt/magma/archives state=directory
+  when: preburn
+
+- name: Clone librdkafka
+  git:
+    repo: https://github.com/edenhill/librdkafka.git
+    version: '{{ librdkafka_version }}'
+    dest: '/var/opt/magma/archives/librdkafka'
+    force: true
+  when: preburn
+
+- name: Install librdkafka
+  become: yes
+  shell: './configure && make && make install && ldconfig'
+  args:
+    chdir: '/var/opt/magma/archives/librdkafka'
+  when: preburn
+
+- name: Copy magma service unit file
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - {src: 'magma.service', dest: '/etc/systemd/system/magma@.service'}
+    - {src: 'magma_certifier.service', dest: '/etc/systemd/system/magma@certifier.service'}
+    - {src: 'magma_bootstrapper.service', dest: '/etc/systemd/system/magma@bootstrapper.service'}
+    - {src: 'magma_obsidian.service', dest: '/etc/systemd/system/magma@obsidian.service'}
+    - {src: 'magma_metricsd.service', dest: '/etc/systemd/system/magma@metricsd.service'}
+  when: full_provision
+
+- name: Stop running magma services
+  when: full_provision and restart_controller
+  systemd: name=magma@* state=stopped daemon_reload=yes
+  ignore_errors: yes
+
+- name: Restart the magma services
+  when: full_provision and restart_controller
+  systemd: name=magma@{{ item }} state=restarted daemon_reload=yes enabled=yes
+  with_items:
+      - magmad
+      - checkind
+      - metricsd
+      - subscriberdb
+      - streamer
+      - certifier
+      - accessd
+      - bootstrapper
+      - obsidian
+      - meteringd_records
+      - upgrade
+      - mesh
+      - logger
+      - dispatcher
+      - config
+      - directoryd
+      - policydb
+      - feg_relay
+      - download
+      - mconfig_streamer
+      - materializer
+      - vpnservice
+      - health
+
+- name: Copy system config files
+  copy: src={{ item.src }} dest={{ item.dest }}
+  with_items:
+    - {src: 'rsyslog', dest: '/etc/logrotate.d/rsyslog'}
+  when: full_provision

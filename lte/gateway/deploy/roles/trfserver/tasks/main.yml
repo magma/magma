@@ -1,0 +1,78 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Check that Ansible version is >=2.2
+  assert:
+    that: ansible_version.major > 2 or
+      (ansible_version.major == 2 and ansible_version.minor >= 2)
+    msg: "Ansible upgrade needed. Current version is {{ ansible_version.full }}"
+  when: preburn or full_provision
+
+# requires Debian 9.2 (Stretch)
+- name: Check Linux distribution version
+  fail: msg="Unsupported host OS {{ ansible_distribution }} {{ ansible_distribution_release }}. Must be Debian 9 (Stretch)"
+  when: ansible_distribution != 'Debian' or ansible_distribution_release != 'stretch'
+
+- name: Create symlink for trfserver scripts
+  file:
+    src: '{{ magma_root }}/lte/gateway/deploy/roles/trfserver/files/{{ item }}'
+    path: /usr/local/bin/{{ item }}
+    state: link
+    force: yes
+  with_items:
+    - traffic_server.py
+  when: full_provision
+
+
+#################################
+# Add common convenience aliases
+#################################
+
+- name: Set a convenience function for disabling TCP checksumming for traffic test
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
+  when: preburn
+
+########################################
+# Install common Magma dev dependencies
+########################################
+
+- name: Install common Magma dev dependencies
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    - python3-pip
+    - git
+    # install ethtool for disabling TCP checksumming
+    - ethtool
+  when: preburn
+
+- name: Install the trfgen-server python dependencies
+  pip: name={{ item }} executable=pip3
+  with_items:
+   - pyroute2
+   - scapy-python3
+   - git+https://github.com/illu89/iperf3-python#egg=iperf3-python
+  when: preburn
+
+
+- name: Install the latest iperf3
+  apt:
+    deb: "https://iperf.fr/download/ubuntu/{{ item }}"
+  with_items:
+    - iperf3_3.1.3-1_amd64.deb
+    - libiperf0_3.1.3-1_amd64.deb
+  when: preburn
+
+- name: Add convenience function for starting the trfgen test servers
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias trfgen-server='sudo traffic_server.py 192.168.60.144 62462'"
+  when: preburn

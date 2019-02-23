@@ -1,0 +1,79 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
+// Package health provides a thin client for using the health service from other cloud services.
+// This can be used by apps to discover and contact the service, without knowing about
+// the RPC implementation.
+package health
+
+import (
+	"context"
+	"fmt"
+
+	"magma/feg/cloud/go/protos"
+	"magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/registry"
+
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+)
+
+const ServiceName = "HEALTH"
+
+// getHealthClient is a utility function to get an RPC connection to the
+// Health service
+func getHealthClient() (protos.HealthClient, *grpc.ClientConn, error) {
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := errors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, nil, initErr
+	}
+	return protos.NewHealthClient(conn), conn, nil
+}
+
+// GetActiveGateway returns the active federated gateway in the network specified by networkID
+func GetActiveGateway(networkID string) (string, error) {
+	client, conn, err := getHealthClient()
+	if err != nil {
+		return "", err
+	}
+	defer conn.Close()
+
+	// Currently, we use networkID as clusterID as we only support one cluster per network
+	clusterState, err := client.GetClusterState(context.Background(), &protos.ClusterStateRequest{
+		NetworkId: networkID,
+		ClusterId: networkID,
+	})
+	if err != nil {
+		return "", err
+	}
+	return clusterState.ActiveGatewayLogicalId, nil
+}
+
+// GetHealth fetches the health stats for a given gateway
+// represented by a (networkID, logicalId)
+func GetHealth(networkID string, logicalID string) (*protos.HealthStats, error) {
+	if len(networkID) == 0 {
+		return nil, fmt.Errorf("Empty networkId provided")
+	}
+	if len(logicalID) == 0 {
+		return nil, fmt.Errorf("Empty logicalId provided")
+	}
+	client, conn, err := getHealthClient()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	gatewayHealthReq := &protos.GatewayStatusRequest{
+		NetworkId: networkID,
+		LogicalId: logicalID,
+	}
+	return client.GetHealth(context.Background(), gatewayHealthReq)
+}

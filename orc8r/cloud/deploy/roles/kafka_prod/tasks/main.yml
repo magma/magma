@@ -1,0 +1,127 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Set server IP fact from env
+  set_fact:
+    server_ip: "{{ lookup('env', 'SERVER_IP') }}"
+- name: Set cluster servers from env as fact
+  set_fact:
+    cluster_servers: "{{ lookup('env', 'CLUSTER_SERVERS') }}"
+
+- name: Append ZK port to cluster servers and register fact
+  set_fact:
+    zk_servers: "{{ cluster_servers.split(',') | map('regex_replace', '(.+)', '\\1:2181') | join(',') }}"
+- name: Set ZK myid fact
+  set_fact:
+    zk_myid: '{{ item.0 + 1 }}'
+  with_indexed_items: "{{ cluster_servers.split(',') }}"
+  when: item.1 == server_ip
+
+- name: Append Kafka port to cluster servers and register fact
+  set_fact:
+    bootstrap_servers: "{{ cluster_servers.split(',') | map('regex_replace', '(.+)', '\\1:9092') | join(',') }}"
+- name: Set Kafka broker ID fact as the last octet of the server IP
+  set_fact:
+    kafka_broker_id: "{{ server_ip.split('.')[3] }}"
+
+# d2.xlarge instances have 2 2TB volumes for ephemeral storage, but they
+# are unformatted and unmounted
+# These devices are /dev/xvdb and /dev/xvdc
+
+# The instances have a default entry for the xvdb device in fstab which
+# mounts the device to /mnt, but we actually want to delete that line and
+# mount the devices to /data1 and /data2 respectively
+
+# One of the devices is reserved for the zookeeper transaction log for perf,
+# and the other will hold all data for Kafka and ZK.
+- name: Check the format of the /dev/xvdb device
+  command: file -s /dev/xvdb
+  register: xvdb_format_output
+
+- name: Determine if /dev/xvdb is unformatted
+  set_fact:
+    xvdb_should_format: xvdb_format_output.stdout_lines[0].split(' ')[1] == 'data'
+
+- name: If /dev/xvdb is unformatted, format it to ext4
+  command: mkfs -t ext4 /dev/xvdb
+  when: xvdb_should_format
+
+- name: Determine if /dev/xvdc is unformatted
+  command: file -s /dev/xvdc
+  register: xvdc_format_output
+
+- name: Determine if /dev/xvdc is unformatted
+  set_fact:
+    xvdc_should_format: xvdc_format_output.stdout_lines[0].split(' ')[1] == 'data'
+
+- name: If /dev/xvdc is unformatted, format it to ext4
+  command: mkfs -t ext4 /dev/xvdc
+  when: xvdc_should_format
+
+- name: Delete the default fstab entry for xvdb
+  lineinfile:
+    dest: /etc/fstab
+    state: absent
+    regexp: '^/dev/xvdb\s*/mnt'
+
+- name: Create mount points for devices
+  file:
+    path: '{{ item }}'
+    state: directory
+  with_items:
+    - '/data1'
+    - '/data2'
+
+- name: Enter fstab entries for xvdb and xvdc
+  lineinfile:
+    dest: /etc/fstab
+    state: present
+    line: '{{ item }}'
+  with_items:
+    - '/dev/xvdb /data1 ext4 defaults,nofail 0 2'
+    - '/dev/xvdc /data2 ext4 defaults,nofail 0 2'
+
+- name: Mount the devices
+  command: mount -a
+
+# Set up routing for the ENI; see https://blog.bluemalkin.net/multiple-ips-and-enis-on-ec2-in-a-vpc/
+- name: Add route table entry for secondary network interface
+  lineinfile:
+    dest: /etc/iproute2/rt_tables
+    state: present
+    line: '2 ens4_rt'
+
+- name: Check ip route for default gateway IP
+  command: ip route
+  register: ip_route_result
+
+# default via 172.16.16.1 dev ens3
+- name: Register default gateway IP as fact
+  set_fact:
+    gateway_ip: "{{ ip_route_result.stdout_lines[0].split(' ')[2] }}"
+
+- name: Get inet configuration of the primary ens3 interface
+  command: ip -f inet addr show ens3
+  register: ens3_ip_result
+
+# To use for ens4
+- name: Save trimmed ens3 inet configuration as fact
+  set_fact:
+    ens3_inet: '{{ ens3_ip_result.stdout_lines[1] | trim }}'
+
+- name: Extract broadcast IP of ens3 as fact
+  set_fact:
+    bcast_ip: "{{ (ens3_ip_result.stdout_lines[1] | trim).split(' ')[3] }}"
+
+- name: Configure network interface and routes for ENI secondary private IP
+  template:
+    src: ens4.cfg.j2
+    dest: /etc/network/interfaces.d/ens4.cfg
+
+- name: Restart ens4 interface
+  shell: 'ifdown --force ens4; sleep 1; ifup ens4'

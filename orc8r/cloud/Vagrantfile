@@ -1,0 +1,121 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+
+require './deploy/vagrant_configs.rb'
+include CloudConfigs
+
+Vagrant.require_version ">=1.9.1"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.box = "bento/ubuntu-16.04"
+  config.vm.box_version = "= 201808.24.0"
+
+  config.vm.define :cloud, primary: true do |cloud|
+    cloud.vm.box = "amarpad/magma_cloud"
+    cloud.vm.box_version = "= 1.0.1548213883"
+
+    cloud.vm.hostname = "magma-cloud"
+    cloud.vm.network "private_network", ip: "192.168.80.10"
+    cloud.vm.network "forwarded_port", guest: 80, host: 9080
+    cloud.vm.network "forwarded_port", guest: 443, host: 9443
+    cloud.vm.network "forwarded_port", guest: 8080, host: 8080
+
+    cloud.ssh.password = "vagrant"
+    cloud.ssh.insert_key = true
+
+    config.vm.provider "virtualbox" do |v|
+      v.linked_clone = true
+      v.memory = 2048
+      v.cpus = 2
+    end
+
+    $repos.each do |repo|
+      if File.directory?(File.expand_path(repo[:host_path]))
+        cloud.vm.synced_folder repo[:host_path], repo[:mount_path]
+      end
+    end
+
+    cloud.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/cloud.dev.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.limit = "all"
+    end
+  end
+
+  config.vm.define :datastore do |datastore|
+    datastore.vm.box = "amarpad/magma_datastore"
+    datastore.vm.box_version = ">= 1.0"
+
+    datastore.ssh.password = "vagrant"
+    datastore.ssh.insert_key = true
+
+    datastore.vm.hostname = "magma-datastore"
+    datastore.vm.network "private_network", ip: "192.168.80.20"
+    datastore.vm.provision "ansible" do |ansible|
+        ansible.playbook = "deploy/datastore.dev.yml"
+        ansible.verbose = true
+    end
+    datastore.vm.provider "virtualbox" do |v|
+      v.memory = 512
+      v.cpus = 1
+    end
+  end
+
+  config.vm.define :kafka, autostart: false do |kafka|
+    kafka.vm.hostname = "magma-kafka"
+    kafka.vm.network "private_network", ip: "192.168.80.30"
+    kafka.vm.provision "ansible" do |ansible|
+        ansible.playbook = "deploy/kafka.dev.yml"
+        ansible.verbose = true
+    end
+    kafka.vm.provider "virtualbox" do |v|
+      v.memory = 2048
+      v.cpus = 1
+    end
+  end
+
+  config.vm.define :ocs, autostart: false do |ocs|
+    ocs.vm.hostname = "magma-ocs"
+    ocs.vm.network "private_network", ip: "192.168.80.40"
+    ocs.vm.network "forwarded_port", guest: 3868, host: 3868
+    ocs.vm.provision "ansible" do |ansible|
+        ansible.playbook = "deploy/ocs.dev.yml"
+        ansible.verbose = true
+    end
+    ocs.vm.provider "virtualbox" do |v|
+      v.memory = 1536
+      v.cpus = 1
+    end
+  end
+
+  config.vm.define :prometheus, autostart: false do |prometheus|
+    prometheus.vm.hostname = "magma-prometheus"
+    prometheus.vm.network "private_network", ip: "192.168.80.50"
+    prometheus.vm.network "forwarded_port", guest: 9090, host: 9090
+    prometheus.vm.network "forwarded_port", guest: 9091, host: 9091
+
+    prometheus.ssh.password = "vagrant"
+    prometheus.ssh.insert_key = true
+
+    prometheus.vm.provision "ansible" do |ansible|
+      ansible.playbook = "deploy/prometheus.dev.yml"
+      ansible.verbose = true
+    end
+    prometheus.vm.provider "virtualbox" do |v|
+      v.memory = 2048
+      v.cpus = 1
+    end
+  end
+
+end

@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+# This script is used by `arc lint`.
+
+ROOT_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && hg root)
+
+# shellcheck source=xplat/js/env-utils/setup_env_vars.sh
+source "$ROOT_DIR/xplat/js/env-utils/setup_env_vars.sh"
+
+TGNMS_DIR="$ROOT_DIR/xplat/fbc/tgnms/www"
+
+pushd "$ROOT_DIR/xplat/fbc" >/dev/null
+  "$INSTALL_NODE_MODULES"
+
+  ESLINT_BIN=$(FORCE_COLOR=0 "$YARN_BINARY" bin eslint)
+
+  # This can't use FLOW_NODE_BINARY because Nuclide uses regular node.
+  # Require "$JS_DIR/.eslintrc.js" so "eslint-plugin-lint" is bootstrapped so
+  # scripts like `js1 lint` can focus on single rules.
+  "$NODE_BINARY" \
+    --require "$TGNMS_DIR/.eslintrc.js" \
+    "$ESLINT_BIN" \
+    --ignore-path "$TGNMS_DIR/.eslintignore" \
+    "$@"
+popd >/dev/null

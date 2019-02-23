@@ -1,0 +1,172 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Check that Ansible version is >=2.2
+  assert:
+    that: ansible_version.major > 2 or
+      (ansible_version.major == 2 and ansible_version.minor >= 2)
+    msg: "Ansible upgrade needed. Current version is {{ ansible_version.full }}"
+  when: preburn
+
+- name: Set build environment variables
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    -  MAGMA_ROOT={{ magma_root }}
+    -  OAI_BUILD={{ oai_build }}
+    -  C_BUILD={{ c_build }}
+    -  CCACHE_DIR="{{magma_root}}/.cache/gateway/ccache"
+    -  MAGMA_DEV_MODE=1
+    -  XDG_CACHE_HOME="{{magma_root}}/.cache"
+  when: full_provision
+
+- name: Create the ccache directory
+  file:
+    path: "{{magma_root}}/.cache/gateway/ccache"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  when: full_provision
+
+#################################
+# Add common convenience aliases
+#################################
+
+- name: Set a convenience function for disabling TCP checksumming for traffic test
+  lineinfile:
+    dest: /home/{{ ansible_user }}/.bashrc
+    state: present
+    line: "alias disable-tcp-checksumming='sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off'"
+  when: full_provision
+
+##############################
+# Install dependency packages
+##############################
+
+- name: Install convenience packages for development
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    update_cache: no
+  with_items:
+    - byobu
+    - vim
+    - aptitude
+  when: preburn
+
+- name: Install debugger packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    update_cache: no
+  with_items:
+    - gdb
+  when: preburn
+
+- name: Install monitoring packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+    update_cache: no
+  with_items:
+    - htop
+    - iotop
+  when: preburn
+
+# TODO: remove this after migrating magma_test box image to plain Debian
+- name: Install lxml
+  apt: pkg=python3-lxml state=present update_cache=no
+  when: preburn
+
+- name: Install prereqs for FPM
+  tags: dev
+  apt: pkg={{ item }} state=present update_cache=no
+  with_items:
+      - ruby
+      - ruby-dev
+      - build-essential
+      - rubygems
+      - libffi-dev
+      - python3-setuptools
+      - python-setuptools
+      - libssl-dev
+  when: preburn
+
+- name: Setup FPM so we can build packages
+  tags: dev
+  shell: gem install fpm
+  when: preburn
+
+- name: Install dependencies for building and shipping client release
+  tags: dev
+  apt: pkg={{ item }} state=present update_cache=no
+  with_items:
+      - autogen
+      - autoconf
+      - build-essential
+      - ccache
+      - clang-3.8
+      - ninja-build
+      - git
+      - libtool
+      - python3-apt
+      - python3-aioeventlet
+      - python3-setuptools
+      - python3-requests
+      - python3-pip
+      - python3-debian
+      - net-tools # ifconfig
+      - tcpdump
+      - curl
+  when: preburn
+
+# /etc/environment doesn't expand variables, so if we want to modify the path,
+# we need to do it in profile.d
+- name: Create the env script
+  file:
+    path: /etc/profile.d/env.sh
+    state: touch
+  when: full_provision
+
+- name: Override the default compiler with cache
+  lineinfile:
+    dest: /etc/profile.d/env.sh
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - PATH="/usr/lib/ccache:{{ ansible_env.PATH }}"
+  when: full_provision
+
+########################################
+# Install common Magma dev dependencies
+########################################
+
+- name: Install common Magma gateway dev dependencies
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    # install gRPC
+    - grpc-dev
+    # install protobuf
+    - libprotobuf10
+    - libprotobuf-dev
+    - libprotobuf-lite10
+    - libprotoc10
+    - libprotoc-dev
+    - libxml2-dev
+    - libxslt-dev
+    - protobuf-compiler
+    # install ethtool for disabling TCP checksumming
+    - ethtool
+    - libssl1.0-dev
+    - libffi-dev
+    - iperf3
+    - libsystemd-dev
+    - pkg-config
+  when: preburn

@@ -1,0 +1,19 @@
+{
+    "name": "@fbcnms/express-middleware",
+    "private": true,
+    "version": "0.1.0",
+    "devDependencies": {
+      "@fbcnms/logging": "^0.1.0",
+      "body-parser": "^1.18.3",
+      "cookie-parser": "^1.4.3",
+      "compression": "^1.7.1",
+      "csurf": "^1.9.0",
+      "express": "^4.16.3",
+      "express-session": "^1.15.6",
+      "helmet": "^3.13.0",
+      "webpack": "^4.25.1",
+      "webpack-dev-middleware": "^3.4.0",
+      "webpack-hot-middleware": "^2.24.3"
+    }
+  }
+  

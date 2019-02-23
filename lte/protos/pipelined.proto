@@ -1,0 +1,99 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+package magma.lte;
+
+import "orc8r/protos/common.proto";
+import "lte/protos/meteringd.proto";
+import "lte/protos/policydb.proto";
+import "lte/protos/subscriberdb.proto";
+
+option go_package = "magma/lte/cloud/go/protos";
+
+message ActivateFlowsRequest {
+  SubscriberID sid = 1;
+
+  // Subscriber session ipv4 address
+  string ip_addr = 2;
+
+  // List of static rules obtained from PCRF
+  repeated string rule_ids = 3;
+
+  // List of dynamic rules obtained from PCRF
+  repeated PolicyRule dynamic_rules = 4;
+}
+
+// DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
+// all flows for some rules, or particular rules for a subscriber, depending on
+// which parameters are passed. Rule IDs can apply to static rules or dynamic
+// rules
+// If no rule ids are given, all flows are deactivated
+message DeactivateFlowsRequest {
+  SubscriberID sid = 1;
+  repeated string rule_ids = 2;
+}
+
+message RuleModResult {
+  string rule_id = 1;
+  enum Result {
+    SUCCESS = 0;
+    PARTIAL_SUCCESS = 1;
+    FAILURE = 2;
+  }
+  Result result = 2;
+}
+
+message ActivateFlowsResult {
+  repeated RuleModResult static_rule_results = 1;
+  repeated RuleModResult dynamic_rule_results = 2;
+}
+
+message DeactivateFlowsResult {
+}
+
+message FlowRequest {
+  FlowMatch match = 1;
+  string app_name = 2;
+  uint64  bytes_rx = 3;
+}
+
+message FlowResponse {
+}
+
+// --------------------------------------------------------------------------
+// Pipelined gateway RPC service
+// --------------------------------------------------------------------------
+service Pipelined {
+  // -------------
+  // Metering App:
+  // -------------
+
+  // Get subscriber metering flows
+  rpc GetSubscriberMeteringFlows(magma.orc8r.Void) returns (FlowTable) {}
+
+  // ----------------
+  // Enforcement App:
+  // ----------------
+
+  // Activate flows for a subscriber based on predefined flow templates
+  rpc ActivateFlows(ActivateFlowsRequest) returns (ActivateFlowsResult) {}
+
+  // Deactivate flows for a subscriber
+  rpc DeactivateFlows(DeactivateFlowsRequest) returns (DeactivateFlowsResult) {}
+
+  // --------
+  // DPI App:
+  // --------
+
+  // Add new dpi flow
+  rpc CreateFlow(FlowRequest) returns (FlowResponse) {};
+
+  // Update flow stats
+  rpc UpdateFlowStats(FlowRequest) returns (FlowResponse) {};
+}

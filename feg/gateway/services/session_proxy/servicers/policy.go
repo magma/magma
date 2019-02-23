@@ -1,0 +1,314 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
+package servicers
+
+import (
+	"fmt"
+	"strconv"
+	"time"
+
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/feg/gateway/services/session_proxy/credit_control/gx"
+	"magma/feg/gateway/services/session_proxy/metrics"
+	"magma/lte/cloud/go/protos"
+
+	"github.com/golang/glog"
+)
+
+func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
+
+	var qos *gx.QosRequestInfo
+	if pReq.GetQosInfo() != nil {
+		qos = &gx.QosRequestInfo{
+			ApnAggMaxBitRateDL: pReq.GetQosInfo().GetApnAmbrDl(),
+			ApnAggMaxBitRateUL: pReq.GetQosInfo().GetApnAmbrUl(),
+			QosClassIdentifier: pReq.GetQosInfo().GetQosClassId(),
+			PriLevel:           pReq.GetQosInfo().GetPriorityLevel(),
+			PreCapability:      pReq.GetQosInfo().GetPreemptionCapability(),
+			PreVulnerability:   pReq.GetQosInfo().GetPreemptionVulnerability(),
+		}
+	}
+
+	request := &gx.CreditControlRequest{
+		SessionID:     pReq.SessionId,
+		Type:          credit_control.CRTInit,
+		IMSI:          imsi,
+		RequestNumber: 1,
+		IPAddr:        pReq.UeIpv4,
+		SpgwIPV4:      pReq.SpgwIpv4,
+		Apn:           pReq.Apn,
+		Msisdn:        pReq.Msisdn,
+		Imei:          pReq.Imei,
+		PlmnID:        pReq.PlmnId,
+		UserLocation:  pReq.UserLocation,
+		GcID:          pReq.GcId,
+		Qos:           qos,
+	}
+	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
+}
+
+func (srv *CentralSessionController) sendTerminationGxRequest(imsi, sessionID, ueIpv4 string,
+	requestNumber uint32,
+	monitorUpdates []*protos.UsageMonitorUpdate,
+) (*gx.CreditControlAnswer, error) {
+	reports := make([]*gx.UsageReport, 0, len(monitorUpdates))
+	for _, update := range monitorUpdates {
+		reports = append(reports, getGxUsageReportFromUsageUpdate(update))
+	}
+	request := &gx.CreditControlRequest{
+		SessionID:     sessionID,
+		Type:          credit_control.CRTTerminate,
+		IMSI:          imsi,
+		RequestNumber: requestNumber,
+		IPAddr:        ueIpv4,
+		UsageReports:  reports,
+	}
+	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
+}
+
+func getGxAnswerOrError(
+	request *gx.CreditControlRequest,
+	policyClient gx.PolicyClient,
+	pcrfConfig *diameter.DiameterServerConfig,
+	requestTimeout time.Duration,
+) (*gx.CreditControlAnswer, error) {
+	done := make(chan interface{}, 1)
+	err := policyClient.SendCreditControlRequest(pcrfConfig, done, request)
+	if err != nil {
+		return nil, err
+	}
+	select {
+	case resp := <-done:
+		answer := resp.(*gx.CreditControlAnswer)
+		metrics.GxResultCodes.WithLabelValues(strconv.FormatUint(uint64(answer.ResultCode), 10)).Inc()
+		if answer.ResultCode != diameter.SuccessCode {
+			return nil, fmt.Errorf(
+				"Received unsuccessful result code from PCRF, ResultCode: %d, ExperimentalResultCode: %d",
+				answer.ResultCode, answer.ExperimentalResultCode)
+		}
+		return answer, nil
+	case <-time.After(requestTimeout):
+		metrics.GxTimeouts.Inc()
+		policyClient.IgnoreAnswer(request)
+		return nil, fmt.Errorf("CCA wait timeout for session: %s after %s", request.SessionID, requestTimeout.String())
+	}
+}
+
+func getPolicyRulesFromDefinitions(ruleDefs []*gx.RuleDefinition) []*protos.PolicyRule {
+	policyRules := make([]*protos.PolicyRule, 0, len(ruleDefs))
+	for _, def := range ruleDefs {
+		policyRules = append(policyRules, def.ToProto())
+	}
+	return policyRules
+}
+
+func getUsageMonitorsFromCCA(imsi string, sessionID string, gxCCA *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
+	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCA.UsageMonitors))
+	for _, monitor := range gxCCA.UsageMonitors {
+		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
+			Credit:    getUsageMonitorCreditFromAVP(monitor),
+			SessionId: sessionID,
+			Sid:       addPrefix(imsi),
+			Success:   true,
+		})
+	}
+	return monitors
+}
+
+func getUsageMonitorCreditFromAVP(monitor *gx.UsageMonitoringInfo) *protos.UsageMonitoringCredit {
+	if monitor.GrantedServiceUnit == nil || (monitor.GrantedServiceUnit.TotalOctets == nil &&
+		monitor.GrantedServiceUnit.InputOctets == nil &&
+		monitor.GrantedServiceUnit.OutputOctets == nil) {
+		return &protos.UsageMonitoringCredit{
+			Action:        protos.UsageMonitoringCredit_DISABLE,
+			MonitoringKey: monitor.MonitoringKey,
+			Level:         protos.MonitoringLevel(monitor.Level),
+		}
+	} else {
+		return &protos.UsageMonitoringCredit{
+			Action:        protos.UsageMonitoringCredit_CONTINUE,
+			MonitoringKey: monitor.MonitoringKey,
+			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
+			Level:         protos.MonitoringLevel(monitor.Level),
+		}
+	}
+}
+
+// getGxUpdateRequestsFromUsage returns a slice of CCRs from usage update protos
+func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest) []*gx.CreditControlRequest {
+	requests := []*gx.CreditControlRequest{}
+	for _, update := range updates {
+		requests = append(requests, &gx.CreditControlRequest{
+			SessionID:     update.SessionId,
+			RequestNumber: update.RequestNumber,
+			Type:          credit_control.CRTUpdate,
+			IMSI:          stripPrefix(update.Sid),
+			IPAddr:        update.UeIpv4,
+			UsageReports:  []*gx.UsageReport{getGxUsageReportFromUsageUpdate(update.Update)},
+		})
+	}
+	return requests
+}
+
+func getGxUsageReportFromUsageUpdate(update *protos.UsageMonitorUpdate) *gx.UsageReport {
+	return &gx.UsageReport{
+		MonitoringKey: update.MonitoringKey,
+		Level:         gx.MonitoringLevel(update.Level),
+		InputOctets:   update.BytesTx,
+		OutputOctets:  update.BytesRx, // receive == output
+		TotalOctets:   update.BytesTx + update.BytesRx,
+	}
+}
+
+// sendMultipleGxRequestsWithTimeout sends a batch of update requests to the PCRF
+// and returns a response for every request, even during timeouts.
+func (srv *CentralSessionController) sendMultipleGxRequestsWithTimeout(
+	requests []*gx.CreditControlRequest,
+	timeoutDuration time.Duration,
+) []*protos.UsageMonitoringUpdateResponse {
+	done := make(chan interface{}, len(requests))
+	srv.sendGxUpdateRequestsToConnections(requests, done)
+	return srv.waitForGxResponses(requests, done, timeoutDuration)
+}
+
+// sendGxUpdateRequestsToConnections sends batches of requests to PCRF's
+func (srv *CentralSessionController) sendGxUpdateRequestsToConnections(
+	requests []*gx.CreditControlRequest,
+	done chan interface{},
+) {
+	sendErrors := []error{}
+	for _, request := range requests {
+		err := srv.policyClient.SendCreditControlRequest(srv.cfg.PCRFConfig, done, request)
+		if err != nil {
+			sendErrors = append(sendErrors, err)
+			metrics.PcrfCcrUpdateSendFailures.Inc()
+		} else {
+			metrics.PcrfCcrUpdateRequests.Inc()
+		}
+	}
+	if len(sendErrors) > 0 {
+		go func() {
+			for _, err := range sendErrors {
+				done <- err
+			}
+		}()
+	}
+}
+
+// waitForGxResponses waits for CreditControlAnswers on the done channel. It stops
+// no matter how many responses it has gotten within the given timeout. If any
+// responses are not received, it manually adds them and returns. It is ensured
+// that the number of requests matches the number of responses
+func (srv *CentralSessionController) waitForGxResponses(
+	requests []*gx.CreditControlRequest,
+	done chan interface{},
+	timeoutDuration time.Duration,
+) []*protos.UsageMonitoringUpdateResponse {
+	requestMap := createGxRequestKeyMap(requests)
+	responses := []*protos.UsageMonitoringUpdateResponse{}
+	timeout := time.After(timeoutDuration)
+	numResponses := len(requests)
+loop:
+	for i := 0; i < numResponses; i++ {
+		select {
+		case resp := <-done:
+			switch ans := resp.(type) {
+			case error:
+				glog.Errorf("Error encountered in request: %s", ans.Error())
+			case *gx.CreditControlAnswer:
+				metrics.GxResultCodes.WithLabelValues(strconv.FormatUint(uint64(ans.ResultCode), 10)).Inc()
+				metrics.UpdateGxRecentRequestMetrics(nil)
+				key := credit_control.GetRequestKey(credit_control.Gx, ans.SessionID, ans.RequestNumber)
+				newResponse := getSingleUsageMonitorResponseFromCCA(ans, requestMap[key])
+				responses = append(responses, newResponse)
+				// satisfied request, remove
+				delete(requestMap, key)
+			default:
+				glog.Errorf("Unknown type sent to CCA done channel")
+			}
+		case <-timeout:
+			glog.Errorf("Timed out receiving responses from PCRF\n")
+			// tell client to ignore answers to timed out responses
+			srv.ignoreGxTimedOutRequests(requestMap)
+			// add missing responses
+			break loop
+		}
+	}
+	responses = addMissingGxResponses(responses, requestMap)
+	return responses
+}
+
+// createRequestKeyMap takes a list of requests and returns a map of request key
+// (SESSIONID-REQUESTNUM) to request. This is used to identify responses as they
+// come through and ensure every request is responded to
+func createGxRequestKeyMap(requests []*gx.CreditControlRequest) map[credit_control.RequestKey]*gx.CreditControlRequest {
+	requestMap := make(map[credit_control.RequestKey]*gx.CreditControlRequest)
+	for _, request := range requests {
+		requestKey := credit_control.GetRequestKey(credit_control.Gx, request.SessionID, request.RequestNumber)
+		requestMap[requestKey] = request
+	}
+	return requestMap
+}
+
+// ignoreGxTimedOutRequests tells the gx client to ignore any requests that have
+// timed out. This ensures the gx client does not leak request trackings
+func (srv *CentralSessionController) ignoreGxTimedOutRequests(
+	leftoverRequests map[credit_control.RequestKey]*gx.CreditControlRequest,
+) {
+	for _, ccr := range leftoverRequests {
+		metrics.GxTimeouts.Inc()
+		srv.policyClient.IgnoreAnswer(ccr)
+	}
+}
+
+// addMissingGxResponses looks through leftoverRequests to see if there are any
+// requests that did not receive responses, and manually adds an errored
+// response to responses
+func addMissingGxResponses(
+	responses []*protos.UsageMonitoringUpdateResponse,
+	leftoverRequests map[credit_control.RequestKey]*gx.CreditControlRequest,
+) []*protos.UsageMonitoringUpdateResponse {
+	for _, ccr := range leftoverRequests {
+		responses = append(responses, &protos.UsageMonitoringUpdateResponse{
+			Success:   false,
+			SessionId: ccr.SessionID,
+			Sid:       addPrefix(ccr.IMSI),
+			Credit: &protos.UsageMonitoringCredit{
+				MonitoringKey: ccr.UsageReports[0].MonitoringKey,
+				Level:         protos.MonitoringLevel(ccr.UsageReports[0].Level),
+			},
+		})
+		metrics.UpdateGxRecentRequestMetrics(fmt.Errorf("Gx update failure"))
+	}
+	return responses
+}
+
+// getSingleUsageMonitorResponseFromCCA creates a UsageMonitoringUpdateResponse proto from a CCA
+func getSingleUsageMonitorResponseFromCCA(
+	answer *gx.CreditControlAnswer,
+	request *gx.CreditControlRequest,
+) *protos.UsageMonitoringUpdateResponse {
+	res := &protos.UsageMonitoringUpdateResponse{
+		Success:   answer.ResultCode == diameter.SuccessCode,
+		SessionId: request.SessionID,
+		Sid:       addPrefix(request.IMSI)}
+
+	if len(answer.UsageMonitors) == 0 {
+		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
+		res.Credit =
+			&protos.UsageMonitoringCredit{
+				Action:        protos.UsageMonitoringCredit_DISABLE,
+				MonitoringKey: request.UsageReports[0].MonitoringKey,
+				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
+	} else {
+		res.Credit = getUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
+	}
+	return res
+}

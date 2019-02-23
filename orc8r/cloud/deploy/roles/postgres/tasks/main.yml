@@ -1,0 +1,100 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Add Postgres repo key
+  apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present id=ACCC4CF8
+  when: preburn
+
+- name: Add Postgres repo
+  apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ xenial-pgdg main' update_cache=yes mode=664
+  when: preburn
+
+- name: Add all the packages needed for operation
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+      - postgresql-{{ postgresql_version }}
+      - postgresql-server-dev-{{ postgresql_version }}
+      - python-psycopg2
+      - gcc
+      - make
+      - git
+  when: preburn
+
+- name: Clone wal2json plugin
+  git:
+    repo: https://github.com/eulerto/wal2json.git
+    dest: "/home/{{ user }}/wal2json"
+  when: preburn
+
+- name: Build wal2json plugin
+  become: yes
+  environment:
+    USE_PGXS: 1
+  command: ' make'
+  args:
+    chdir: '/home/{{ user }}/wal2json'
+  when: preburn
+
+- name: Install wal2json plugin
+  become: yes
+  environment:
+    USE_PGXS: 1
+  command: 'make install'
+  args:
+    chdir: '/home/{{ user }}/wal2json'
+  when: preburn
+
+- name: Add DB
+  become_user: postgres
+  postgresql_db: name={{ db_name }} state=present
+  when: preburn
+
+- name: Add DB user
+  become_user: postgres
+  postgresql_user:
+    db: '{{ db_name }}'
+    name: '{{ db_user }}'
+    password: '{{ db_password }}'
+    priv: ALL
+    role_attr_flags: CREATEDB,REPLICATION
+  when: preburn
+
+- name: Listen for remote connections
+  lineinfile: dest=/etc/postgresql/{{ postgresql_version }}/main/postgresql.conf regexp="listen_address" line="listen_addresses = '*'" state=present
+  when: preburn
+
+- name: Configure pg_hba.conf
+  lineinfile:
+    dest: /etc/postgresql/{{ postgresql_version }}/main/pg_hba.conf
+    regexp: '{{ item.regexp }}'
+    line: '{{ item.line }}'
+    state: present
+  with_items:
+    - regexp: 'host all all 0\.0\.0\.0/0 md5'
+      line: 'host all all 0.0.0.0/0 md5'
+    - regexp: 'host all all ::0/0 md5'
+      line: 'host all all ::0/0 md5'
+    - regexp: 'local replication {{ db_user }} trust'
+      line: 'local replication {{ db_user }} trust'
+    - regexp: 'host replication {{ db_user }} 127\.0\.0\.1/32 trust'
+      line: 'host replication {{ db_user }} 127.0.0.1/32 trust'
+    - regexp: 'host replication {{ db_user }} 192\.168\.80\.30/32 trust'
+      line: 'host replication {{ db_user }} 192.168.80.30/32 trust'
+    - regexp: 'host all {{ db_user }} 192\.168\.80\.30/32 trust'
+      line: 'host all {{ db_user }} 192.168.80.30/32 trust'
+  when: preburn
+
+- name: Copy over Postgres configuration for Kafka Connect plugin
+  copy:
+    src: kafka_confs.conf
+    dest: '/etc/postgresql/{{ postgresql_version }}/main/conf.d/kafka_confs.conf'
+  when: preburn
+
+- name: Restart Postgres
+  service: name=postgresql state=restarted
+  when: preburn or full_provision

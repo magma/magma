@@ -1,0 +1,16 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+syntax = "proto3";
+
+package magma.migrations;
+option go_package = "migration";
+
+// Container message type for namespaced network and gateway configs.
+message Config {
+    // Namespaced map of serialized configs
+    map<string, bytes> configs_by_key = 1;
+}

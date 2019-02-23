@@ -1,0 +1,42 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/identity.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/cloud/go/protos";
+
+enum CertType {
+    DEFAULT = 0; // Bootstrap cert
+    VPN = 1;
+}
+
+message CSR {
+    Identity id = 1;
+    google.protobuf.Duration valid_time = 2;
+    bytes csr_der = 3;// certificate signing request in DER encoding
+    CertType cert_type = 4;
+}
+
+message Certificate {
+    message SN {
+        string sn = 1;
+    }
+
+    SN sn = 1;
+    google.protobuf.Timestamp not_before = 2;
+    google.protobuf.Timestamp not_after = 3;
+    bytes cert_der = 4; // signed certificate in DER encoding
+}
+
+message CACert {
+    bytes cert = 1; // ca certificate in DER encoding
+}

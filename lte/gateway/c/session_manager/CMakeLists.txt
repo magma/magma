@@ -1,0 +1,106 @@
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+cmake_minimum_required(VERSION 3.0.2)
+
+PROJECT(SessionManager)
+
+add_compile_options(-std=c++14)
+
+include_directories("/usr/local/include/prometheus")
+include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+
+set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+
+set(MAGMA_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/../magma_common")
+add_definitions(-DLOG_WITH_GLOG)
+
+include_directories("${OUTPUT_DIR}")
+include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
+
+include_directories(${MAGMA_LIB_DIR}/service303)
+include_directories(${MAGMA_LIB_DIR}/service_registry)
+include_directories(${MAGMA_LIB_DIR}/async_grpc)
+include_directories(${MAGMA_LIB_DIR}/config)
+include_directories(${MAGMA_LIB_DIR}/datastore)
+include_directories(${MAGMA_LIB_DIR}/policydb)
+
+# compile the needed macros
+create_proto_dir("lte" LTE_CPP_OUT_DIR)
+create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
+
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+set(SMGR_ORC8R_CPP_PROTOS common)
+generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
+
+set(SMGR_LTE_CPP_PROTOS session_manager meteringd subscriberdb policydb pipelined mconfig/mconfigs)
+generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+
+set(SMGR_GRPC_PROTOS session_manager pipelined)
+generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+
+message("Proto_srcs are ${PROTO_SRCS}")
+
+link_directories(
+  ${MAGMA_LIB_DIR}/async_grpc
+  ${MAGMA_LIB_DIR}/config
+  ${MAGMA_LIB_DIR}/service303
+  ${MAGMA_LIB_DIR}/datastore
+  ${MAGMA_LIB_DIR}/policydb
+  ${MAGMA_LIB_DIR}/service_registry)
+
+add_library(SESSION_MANAGER
+    SessionManagerServer.cpp
+    SessionManagerServer.h
+    LocalSessionManagerHandler.cpp
+    LocalSessionManagerHandler.h
+    LocalEnforcer.cpp
+    LocalEnforcer.h
+    SessionState.cpp
+    SessionState.h
+    SessionCredit.cpp
+    SessionCredit.h
+    RuleStore.cpp
+    RuleStore.h
+    CloudReporter.cpp
+    CloudReporter.h
+    SessionID.cpp
+    SessionID.h
+    ServiceAction.h
+    PipelinedClient.cpp
+    PipelinedClient.h
+    SessionRules.h
+    SessionRules.cpp
+    CreditPool.cpp
+    CreditPool.h
+    SessionProxyResponderHandler.cpp
+    SessionProxyResponderHandler.h
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
+    )
+
+target_link_libraries(SESSION_MANAGER
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB
+  DATASTORE
+  glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
+  prometheus-cpp tacopie
+  )
+
+
+add_executable(sessiond ${PROJECT_SOURCE_DIR}/sessiond_main.cpp)
+
+target_link_libraries (sessiond SESSION_MANAGER)
+
+if (BUILD_TESTS)
+  ENABLE_TESTING()
+  ADD_SUBDIRECTORY(test)
+endif (BUILD_TESTS)

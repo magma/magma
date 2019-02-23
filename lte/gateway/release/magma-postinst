@@ -1,0 +1,46 @@
+#!/bin/sh
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# update systemd for production environment
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@control_proxy.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@magmad.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@mobilityd.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@mme.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@dnsd.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@pipelined.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@redirectd.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@lighttpd.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@redis.service
+
+# Delete OVS bridge on boot
+sed -i "s/.*OVS_CTL_OPTS.*/OVS_CTL_OPTS='--delete-bridges'/" /etc/default/openvswitch-switch
+
+# Create /var/core directory
+mkdir -p /var/core
+
+# Set magmad service to start on boot
+systemctl enable -f magma@magmad.service
+
+# Installation of the redis-server Debian package has a post-install
+# script that starts a redis-server process. We kill and disable this
+# process, allowing us to manage the process using magmad and our own
+# systemd files.
+systemctl stop redis-server
+systemctl disable redis-server
+
+# Dnsmasq also starts up post-install.
+systemctl stop dnsmasq
+systemctl disable dnsmasq
+
+# Lighttpd also starts up post-install.
+systemctl stop lighttpd
+systemctl disable lighttpd
+
+# Restart all services on package install
+systemctl restart magma@* || true

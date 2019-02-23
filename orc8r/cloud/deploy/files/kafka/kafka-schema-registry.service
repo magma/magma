@@ -1,0 +1,20 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Kafka schema-registry service
+
+[Service]
+Type=simple
+Environment='KAFKA_HEAP_OPTS=-Xmx256M -Xms128M'
+ExecStart=/usr/bin/schema-registry-start /etc/schema-registry/schema-registry.properties
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+User=root
+
+[Install]
+WantedBy=multi-user.target

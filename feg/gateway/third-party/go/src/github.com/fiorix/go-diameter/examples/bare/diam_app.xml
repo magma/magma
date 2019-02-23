@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diameter>
+  <vendor id="1234" name="Test1"/>
+  <vendor id="5678" name="Test2"/>
+
+  <application id="999"> <!-- My custom application -->
+
+    <avp name="My-Custom-AVP1" code="99901">
+      <data type="OctetString"/>
+    </avp>
+
+    <avp name="My-Custom-AVP2" code="99902">
+      <data type="Unsigned32"/>
+    </avp>
+
+    <avp name="My-Custom-Group" code="99903">
+      <data type="Grouped">
+        <rule avp="My-Custom-AVP1" required="true" min="2"/>
+        <rule avp="My-Custom-AVP2" required="false" max="5"/>
+      </data>
+    </avp>
+
+  </application>
+</diameter>

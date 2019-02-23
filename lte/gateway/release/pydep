@@ -1,0 +1,745 @@
+#!/usr/bin/python3
+
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# This script needs to be run inside the dev VM.
+
+"""
+pydep is a tool to deal with finding, building, and tracking Python
+dependencies that get shipped as part of a release process that results in
+Debian packages.
+
+There are two modes for pydep. First, you can pass in a setup.py file (or a
+list of python dependencies), and pydep will recursively determine the list of
+Python packages that your input depends on. From there, it'll generate a
+"lockfile", which is a JSON description of specific packages and versions that
+will satisfy the collective set of dependencies. If debian packages for the
+Python packages you're interested in are available, it'll assume you can use
+those (and that those handle their own dependencies); otherwise, pydep can
+download the packages from PyPI and build them as Debian packages for you
+(using fpm).
+
+Second, given a lockfile, it can produce a "dependency string" that you can
+pass as a parameter to fpm.
+"""
+
+import argparse
+import hashlib
+import json
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import tarfile
+import zipfile
+from datetime import datetime
+from functools import partial
+from functools import lru_cache
+
+import apt
+import pkg_resources
+import requests
+
+PYPI_API_BASE = "https://pypi.python.org/pypi/%s/json"
+
+# In general, system package repos use the same name as PyPI package names,
+# with a prefix (for example, python3-requests is the system package for
+# requests). Some packages break this convention, however, and we maintain a
+# list here. We use the all lower-case version of the package name here.
+PYPI_TO_DEB = {
+    'pyyaml': 'yaml',
+    'msgpack-python': 'msgpack',
+    'scapy-python3': 'scapy',
+    'python-apt': 'apt',
+}
+
+# Some packages exist in the standard Debian repos with an epoch number
+# prepended (this is to handle changes in upstream versioning scheme). This
+# allows us to handle that.
+DEB_EPOCH = {
+    'python3-oslo.config': 1,
+}
+
+def _higher_version(version_a, version_b):
+    """ Return true if :version_a: > :version_b:, false otherwise. """
+    a = pkg_resources.parse_version(version_a)
+    b = pkg_resources.parse_version(version_b)
+    return a > b
+
+def _md5sum(filename):
+    """
+    It's like calling md5sum. Calculates the md5 checksum of a file.
+    """
+    with open(filename, mode='rb') as f:
+        d = hashlib.md5()
+        for buf in iter(partial(f.read, 4096), b''):
+            d.update(buf)
+        return d.hexdigest()
+
+def _wget(url, dest=None):
+    """
+    It's like calling wget. Downloads file to current working directory if
+    dest=None, otherwise puts it in dest (must be a directory).
+    """
+    filename = url.split('/')[-1]
+    if dest:
+        local_path = "%s/%s" % (dest, filename)
+    else:
+        local_path = filename
+
+    # do the request
+    r = requests.get(url)
+    if r.status_code != 200:
+        raise ValueError("couldn't fetch %s (%d)" % (url, r.status_code))
+
+    # make sure it exists
+    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+    with open(local_path, 'wb') as f:
+        f.write(r.content)
+    return local_path
+
+
+
+def gen_sys_package_name(py_pkgname, use_py2=False):
+    """
+    Generate the system package name for a Python package. In general, this
+    will be `python3-pkgname` for py3 and `python-pkgname` for py2, but some
+    packages break convention. We use the PyPI package name as our canonical
+    name source, and PYPI_TO_DEB to handle edge cases.
+
+    Args:
+        py_pkgname: PyPI package name
+        use_py2: Generate a py2 package name (python-pkgname). Default: False
+                 (i.e., use python3-pkgname).
+
+    Return: String representing the system package name.
+    """
+    if use_py2:
+        prefix = "python"
+    else:
+        prefix = "python3"
+
+    if py_pkgname.lower() in PYPI_TO_DEB:
+        suffix = PYPI_TO_DEB[py_pkgname.lower()]
+    else:
+        suffix = py_pkgname
+
+    sysdep_name = "%s-%s" % (prefix, suffix)
+    return sysdep_name.lower() #deb likes lowercase
+
+
+@lru_cache(maxsize=128)
+def get_package(pkgname, version=None, use_latest_if_needed=False):
+    """
+    Downloads and verifies a package from PyPI into
+    /tmp/pyreq-{pkgname}/{version}. If the version number is not specified, we
+    assume the latest version.
+
+    Args:
+        pkgname: The name of the package
+        version: The requested version number
+        use_latest_if_needed: If the requested version isn't available, we use
+                              the latest from PyPI. (Default: False)
+
+    Returns path to the downloaded tar.gz
+    """
+
+    pkg_info_url = PYPI_API_BASE % pkgname
+
+    resp = requests.get(pkg_info_url)
+    if resp.status_code != 200:
+        raise ValueError("couldn't get package info for %s (%d)" %
+                         (pkgname, resp.status_code))
+
+    r = resp.json()
+
+    # get latest package version if version not specified, or doesn't exist
+    if (not version
+            or (use_latest_if_needed and version not in r['releases'])
+            or not r['releases'][version]):
+        version = r['info']['version']
+
+    # get package info for specified version. there can, apparently, be more
+    # than one release package per version, so we use the one with the most
+    # recent release time to disambiguate.
+    release = None
+    newest_time = None
+    for rel in r['releases'][version]:
+        if rel['packagetype'] != 'sdist':
+            continue
+        ul_time = datetime.strptime(rel['upload_time'], "%Y-%m-%dT%H:%M:%S")
+        if not newest_time or ul_time > newest_time:
+            newest_time = ul_time
+            release = rel
+
+    # download package
+    dl_path = "/tmp/pyreq-%s/%s" % (pkgname, version)
+    filename = _wget(release['url'], dl_path)
+    if _md5sum(filename) != release['md5_digest']:
+        raise ValueError("downloaded file doesn't match md5sum, aborting")
+
+    return filename
+
+
+def _unpack_tarfile(filepath, file_type):
+    """
+    Unpacks a tar.gz, and returns a path to the unpacked directory.
+    """
+    extract_path = os.path.dirname(filepath)
+    tarball = tarfile.open(filepath, "r:" + file_type)
+    top_level = tarball.getmembers()[0]
+    if not top_level.isdir():
+        raise ValueError("archive doesn't contain a top level directory")
+
+    tarball.extractall(extract_path)
+    tarball.close()
+    return "%s/%s" % (extract_path, top_level.name)
+
+
+def _unpack_zip(filepath):
+    """
+    Unpacks a zip, and returns a path to the unpacked directory.
+    """
+    extract_path = os.path.dirname(filepath)
+    zfile = zipfile.ZipFile(filepath)
+
+    # we take a guess that it's going to extract to a directory, yolo
+    top_level = os.path.dirname(zfile.infolist()[0].filename)
+
+    zfile.extractall(extract_path)
+    zfile.close()
+    return "%s/%s" % (extract_path, top_level)
+
+
+def _unpack(filepath):
+    """
+    Unpacks a tar.gz or zip, and returns a path to the unpacked directory.
+    """
+    if filepath.endswith(".zip"):
+        return _unpack_zip(filepath)
+    elif filepath.endswith(".tar.gz"):
+        return _unpack_tarfile(filepath, "gz")
+    elif filepath.endswith(".tar.bz2"):
+        return _unpack_tarfile(filepath, "bz2")
+    else:
+        raise ValueError("Unsupported package archive: %s" % filepath)
+
+
+def _get_requires(pkg_dir):
+    """
+    Given an unpacked python package, search for a requires.txt file in an
+    egg-info directory. If we don't have one, assumes we have no deps.
+
+    This assumes we have an egg-info directory for the package.
+    """
+    for f in os.walk(pkg_dir):
+        if "egg-info" in f[0]:
+            if "requires.txt" in f[2]:
+                return os.path.join(f[0], "requires.txt")
+            else:
+                return None
+    return None
+
+
+def get_setup_deps(setup_file):
+    """
+    Given a path to a setup.py file, return a list of Requirement objects
+    required for installation.
+
+    This is far more complicated than it seems like it should be. Installation
+    requirements are method of a call to the setup() function. The clean way to
+    do this is to write a custom setuptools command that loads the distribution
+    and can then access the install_requires. But we can also use a built-in
+    command (egg_info) to create a requires.txt file and parse it like we do
+    our other python deps from pypi, so that's what we do here.
+    """
+
+    tmp_egg_path = "/tmp/pydep-egginfo/"
+    os.makedirs(os.path.dirname(tmp_egg_path), exist_ok=True)
+    cmd = "python3 %s -q egg_info --egg-base %s" % (setup_file, tmp_egg_path)
+
+    # we ignore the result of this, because (a) we'll check later if the file
+    # we need exists and (b) it returns non-zero in the case where the setup.py
+    # file isn't in the current working directory.
+    r = subprocess.call(cmd.split())
+
+    r = _get_requires(tmp_egg_path)
+    if r:
+        dependencies = _parse_requires_txt(r, setup_file)
+    else:
+        dependencies = []
+
+    # cleanup
+    if os.path.isdir(tmp_egg_path):
+        shutil.rmtree(tmp_egg_path)
+
+    return dependencies
+
+
+def _parse_requires_txt(requires_path, depender=None, version=None):
+    """
+    Given a path to a requires.txt file, return a listing of dependencies.
+
+    Args:
+        requires_path: Path to a requires.txt file
+        depender: Package (or file) that depends on this one (optional, debug)
+        version: Package version that depends on this one (optional, debug)
+    """
+    dependencies = []
+    try:
+        with open(requires_path, "r") as f:
+            lines = []
+            all_lines = f.readlines()
+            for l in all_lines:
+                l = l.strip()
+                if l.startswith("["):
+                    break
+                lines.append(l)
+            deps = pkg_resources.parse_requirements(lines)
+    except FileNotFoundError:
+        return dependencies
+
+    for d in deps:
+        if d.specs:
+            for op, ver in d.specs:
+                if "<" in op:
+                    # TODO(shasan): We just assume the common case that
+                    # everything >=, and that the dependnecy contains a single
+                    # constraint operator. We need to implement full dependency
+                    # resolution.
+                    print("Warning: ignoring < dependency: %s %s %s "
+                          "(from %s %s)" % (d.project_name, op, ver,
+                          depender, version), file=sys.stderr)
+                    continue
+                dependencies.append("%s %s %s" % (d.project_name, op, ver))
+        else:
+            dependencies.append(d.project_name)
+
+    return dependencies
+
+
+
+@lru_cache(maxsize=128)
+def _get_pypi_metadata(pkgname):
+    """
+    Get package info from pypi.
+    """
+    pkg_info_url = PYPI_API_BASE % pkgname
+
+    resp = requests.get(pkg_info_url)
+    if resp.status_code != 200:
+        raise ValueError("couldn't get package info for %s (%d)" %
+                         (pkgname, resp.status_code))
+
+    return resp.json()
+
+
+def get_pypi_avail_releases(pkgname):
+    """
+    Get the releases available from PyPI for a package.
+    """
+    metadata = _get_pypi_metadata(pkgname)
+    return metadata['releases']
+
+
+def get_latest_pkg_version(pkgname):
+    """
+    Get the latest version of a package available on PyPI
+    """
+    metadata = _get_pypi_metadata(pkgname)
+    return metadata['info']['version']
+
+
+@lru_cache(maxsize=128)
+def get_latest_apt_pkg_version(pkgname, py2=False):
+    """
+    Check what's available in our apt repo and use that if available.
+    """
+    cache = apt.Cache()
+    sys_pkgname = gen_sys_package_name(pkgname, py2)
+    try:
+        avail_versions = cache[sys_pkgname].versions
+    except KeyError:
+        # package isn't available
+        return None
+
+    latest = None
+    for v in avail_versions:
+        if not latest or v.version > latest:
+            latest = v.version
+
+    return latest
+
+
+def gen_fpm_dep_string_from_lockfile(lockfile_str):
+    """
+    Given the contents of a lockfile (as a string), return a string that can be
+    passed to fpm to list dependencies (e.g., '-d python3-foo>=1.0 -d
+    python3-bar>=4.2').
+
+    We always do >= deps to make upgrades easier.
+    """
+    lockfile = json.loads(lockfile_str)
+    deps = []
+    for dep in lockfile['dependencies'].values():
+        syspkg = dep['sysdep']
+        if syspkg in DEB_EPOCH:
+            version = "%s:%s" % (DEB_EPOCH[syspkg], dep['version'])
+        else:
+            version = dep['version']
+        deps.append('-d "%s >= %s"' % (syspkg, version))
+    return " ".join(deps)
+
+
+class DependencyFinder(object):
+    """
+    We want to get all the dependencies of a set of packages, recursively.
+
+    If we've seen a package in our list already, we assume we've already
+    inspected its deps, so we can prune. We only keep the highest version.
+
+    We default to using packages available in our (local) system package repos
+    when a version isn't specified. Else, we revert to using a recent version
+    from PyPI.
+    """
+    def __init__(self, packages, ignore_root=False, py2=False,
+                 preserve=False, pypi_only=False):
+        self.dep_set = {}
+        self.dep_source = {}
+
+        self._root_packages = packages
+        self._py2 = py2
+        self._pypi_only = pypi_only
+        self._clean = not preserve
+        self._ignore_root = ignore_root
+
+    def _cleanup(self, pkgname):
+        """
+        Deletes a directory associated with a package, namely /tmp/pyreq-{pkgname}
+        """
+        path = "/tmp/pyreq-%s" % pkgname
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+
+    def py_to_deb(self, pkgname, version=None, op="==", more_args=None):
+        """
+        Generates a Debian package from a Python package downloaded from PyPI
+        (using fpm).
+
+        This builds a command that we then shell out to run. Roughly, the
+        command is:
+
+        fpm -s python -t deb \
+        -n {syspkg_name} \
+        {--python-package-name-prefix=python3 # (default) \
+        {--python-bin=python3} # (default) \
+        {more_args} \
+        {pkgname}{==version} \
+
+        Args:
+            pkgname: The name of the Python package (on PyPI)
+            version: (optional) The desired version (Default: most recent).
+            op: (optional) Operator for pulling package. (Default: >=, the
+                latest).
+            more_args: (optional) Add raw arguments to the fpm call.
+
+        Return:
+            Exit code of fpm call (0 is success)
+        """
+        syspkg_name = gen_sys_package_name(pkgname, self._py2)
+        cmd = "fpm -s python -t deb "
+        if not self._py2:
+            cmd += "--python-package-name-prefix=python3 "
+            cmd += "--python-bin=python3 "
+        cmd += "-n %s" % syspkg_name
+
+        # check if the package has an epoch
+        if syspkg_name in DEB_EPOCH:
+            cmd += " --epoch %d" % DEB_EPOCH[syspkg_name]
+
+        # Cleanup "bad" dependencies. Some python packages depend on packages
+        # in our PYPI_TO_DEB list of packages that break naming convention. If
+        # any of those dependencies show up there, we need to manually remove
+        # them and replace with a dep that follows convention. Some of them
+        # also depend on a different Debian epoch version, so we handle that
+        # here too.
+        deps = self.get_pkg_deps(pkgname, version, True)
+        print("pkg deps: %s %s" % (pkgname, deps))
+        for item in deps:
+            try:
+                pkg, _, ver = item.split()
+            except ValueError:
+                pkg = item
+                ver = None
+
+            dep_syspkg = gen_sys_package_name(pkg, self._py2)
+            epoch = None
+            if ver and dep_syspkg in DEB_EPOCH:
+                print("replacing epoch for %s (in %s)" % (dep_syspkg, pkgname))
+                epoch = DEB_EPOCH[dep_syspkg]
+                ver = "%s:%s" % (epoch, ver)
+
+            if pkg in PYPI_TO_DEB or epoch:
+                # got one! replace.
+                cmd += " --python-disable-dependency %s" % pkg
+                correct = gen_sys_package_name(pkg, self._py2)
+                print("replacing %s with %s" % (pkg, correct))
+                if not ver:
+                    cmd += " -d '%s'" % (correct,)
+                else:
+                    cmd += " -d '%s >= %s'" % (correct, ver)
+        if more_args:
+            cmd += " %s " % more_args
+        if version:
+            cmd += " %s%s%s" % (pkgname, op, version)
+        else:
+            cmd += " %s" % pkgname
+
+        print(cmd)
+        return subprocess.call(shlex.split(cmd))
+
+    @lru_cache(maxsize=128)
+    def get_pkg_deps(self, pkgname, version=None, use_latest_if_needed=False):
+        """
+        Get the direct dependencies for a package.
+
+        Args:
+            pkgname: The python package name.
+            version: The desired version (optional)
+            use_latest_if_needed: If the requested version isn't available, we use
+                                  the latest from PyPI. (Default: False)
+            clean: Remove temporary build files. (Default: True)
+
+        Returns:
+            List of tuples containing (depname, version_str)
+        """
+
+        path = _unpack(get_package(pkgname, version, use_latest_if_needed))
+        requires_txt = _get_requires(path)
+        if requires_txt:
+            dependencies = _parse_requires_txt(requires_txt, pkgname, version)
+        else:
+            dependencies = []
+
+        if self._clean:
+            self._cleanup(pkgname)
+
+        return dependencies
+
+    def _pkg_version_available(self, pkg, ver):
+        """
+        Returns True if the package version is available, False otherwise.
+        """
+
+        # if we're considering apt packages, first check if it's the latest
+        if not self._pypi_only:
+            if ver == get_latest_apt_pkg_version(pkg, self._py2):
+                return True
+
+        # then check every version listed on pypi. We don't do a string match
+        # becasue sometimes we'll see things like foo>=1.9 and PyPI has
+        # apackage for foo 1.9.0 -- equivalent but not identical.
+        for v in get_pypi_avail_releases(pkg):
+            py_ver = pkg_resources.Requirement.parse("%s==%s" % (pkg, v))
+            if ver in py_ver:
+                return True
+
+        # if we didn't find an *equivalent* match, we return false.
+        return False
+
+    def gen_dep_set(self):
+        """
+        Recursively get the dependency tree for a given package.
+
+        For each package, we calculate the list of deps and add it to a running
+        list.
+        """
+        if not self._ignore_root:
+            deps = [_ for _ in self._root_packages]
+
+        while deps:
+            pkg, ver = deps.pop()
+            if not ver:
+                # we need to decide on a version
+                if not self._pypi_only:
+                    ver = get_latest_apt_pkg_version(pkg, self._py2)
+
+                # if ver still none, pypi
+                if not ver:
+                    ver = get_latest_pkg_version(pkg)
+
+            # we might have a version that's not actually available. we
+            # need to make sure that the version is either (a) the latest
+            # apt_pkg (if we're using that), or (b) in the set of pypi
+            # releases.
+            if not self._pkg_version_available(pkg, ver):
+                ver = get_latest_pkg_version(pkg)
+
+            if pkg not in self.dep_set or _higher_version(
+                    ver, self.dep_set[pkg]):
+                # this is the highest version we've seen for this package,
+                # record it.
+                self.dep_set[pkg] = ver
+            else:
+                # we've already seen this, continue.
+                continue
+
+            # at this point, we need to have decided on a version
+            dependencies = self.get_pkg_deps(pkg, ver, True)
+
+            for dep_pkg in dependencies:
+                try:
+                    p, _, p_ver = dep_pkg.split()
+                except ValueError:
+                    p = dep_pkg
+                    p_ver = None
+                deps.append((p, p_ver))
+
+        self.gen_dep_sources()
+
+    def gen_dep_sources(self):
+        """
+        Given a populated dep_sources, figure out where we can get
+        them from. We'll actually check if the versions are satisfyable.
+        """
+        for pkg in self.dep_set:
+            ver = self.dep_set[pkg]
+
+            if self._pypi_only:
+                self.dep_source[pkg] = "pypi"
+                continue
+
+            # check if apt can satisfy the version
+            apt_ver = get_latest_apt_pkg_version(pkg, self._py2)
+            if apt_ver:
+                # if the requirement is an apt version, pkg_resources may not
+                # be able to parse it. so first, we check if it's identical
+                # (which must be the case if we decided on a apt package).
+                if ver == apt_ver:
+                    self.dep_source[pkg] = "apt"
+                    continue
+
+                # else, the req is a pypi one, but check if apt can satisfy
+                req = pkg_resources.Requirement.parse("%s>=%s" % (pkg, ver))
+                if apt_ver in req:
+                    # we can satisfy the req w/ the apt ver. use it.
+                    self.dep_source[pkg] = "apt"
+                    continue
+
+            # if it can't, we fall back to pypi.
+            self.dep_source[pkg] = "pypi"
+
+    def lockfile(self):
+        """
+        Based on the root packages, produces a json description of
+        the actual packages we depend on.
+
+        The dependency set is a list of packages that we depend on, but it
+        could be possible to satisfy those deps from multiple sources. We
+        resolve that here based on what's available in the apt repos.
+        """
+        output = {}
+        output['root_packages'] = {}
+        for p in self._root_packages:
+            output['root_packages'][p[0]] = {"version": p[1]}
+
+        output['dependencies'] = {}
+        for k in sorted(self.dep_set.keys()):
+            item = {"version": self.dep_set[k],
+                    "source":  self.dep_source[k],
+                    "root": (k in [_[0] for _ in self._root_packages]),
+                    "sysdep": gen_sys_package_name(k, self._py2)
+                   }
+            output['dependencies'][k] = item
+        return json.dumps(output, sort_keys=True, indent=2)
+
+
+def main():
+    parser = argparse.ArgumentParser("pydep")
+    subparsers = parser.add_subparsers(help="Sub-commands")
+    dep_p = subparsers.add_parser("finddep",
+                                  help="Find dependencies")
+    dep_p.add_argument('-i', '--ignore-root-deps', dest='ig_root',
+                        action='store_true',
+                        help="Don't include root dependencies in the output.")
+    dep_p.add_argument('-o', '--old-python', dest='use_py2',
+                        action='store_true',
+                        help="Target Python 2")
+    dep_p.add_argument('-p', '--preserve', dest='preserve',
+                        action='store_true', help="Preserve temporary files")
+    dep_p.add_argument('-b', '--build', dest='build',
+                        action='store_true', help="Build dependency packages")
+    dep_p.add_argument('-l', '--lockfile', dest='lockfile',
+                        default="pydep.lockfile",
+                        help="Write dependencies to a lockfile (default: pydep.lockfile)")
+    dep_p.add_argument('--pypi', dest='force_pypi', action='store_true',
+                        help="Force using PyPI, ignoring system packages.")
+    dep_p.add_argument('deps', nargs='+',
+                        help=("List of root dependencies or path to a "
+                              "setup.py file."))
+    lock_p = subparsers.add_parser("lockfile",
+                                   help="Working with pydep lockfiles.")
+    lock_p.add_argument('lockfile_path', nargs='?',
+                        help=("Generate fpm dependnecy string from a lockfile,"
+                             " then exit immediately.")),
+    args = parser.parse_args()
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        return 0
+
+    # Building dependency packages with virtualenv enabled would cause packages
+    # to be installed under
+    # "/home/vagrant/build/python/lib/python3.4/site-packages/" instead of
+    # "/usr/local/lib/python3.4/dist-packages/"
+    if "VIRTUAL_ENV" in os.environ:
+        print("Error: virtualenv detected. Please deactivate.")
+        return -1
+
+    if "lockfile_path" in args and args.lockfile_path:
+        # generate the string and return
+        with open(args.lockfile_path, "r") as f:
+            print(gen_fpm_dep_string_from_lockfile(f.read()))
+            exit(0)
+    dependencies = []
+    if len(args.deps) == 1 and "setup.py" in args.deps[0]:
+        # parse a setup.py file for deps
+        input_deps = get_setup_deps(args.deps[0])
+    else:
+        input_deps = args.deps
+
+    # parse dependencies from command line
+    for d in input_deps:
+        req = pkg_resources.Requirement.parse(d)
+        pkgname = req.key
+        versions = pkg_resources.Requirement.parse(d).specs
+        if versions:
+            version = versions[0][1] # take the first, lowest value
+        else:
+            version = None
+        dependencies.append((pkgname, version))
+
+    df = DependencyFinder(dependencies,
+                          ignore_root=args.ig_root,
+                          py2=args.use_py2,
+                          preserve=args.preserve,
+                          pypi_only=args.force_pypi)
+    df.gen_dep_set()
+
+    with open(args.lockfile, "w") as f:
+        f.write(df.lockfile())
+
+    if args.build:
+        for p in df.dep_set:
+            if df.dep_source[p] == "pypi":
+                df.py_to_deb(p, df.dep_set[p])
+
+
+if __name__ == "__main__":
+    main()

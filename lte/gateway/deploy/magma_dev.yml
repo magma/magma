@@ -1,0 +1,25 @@
+---
+- name: Set up Magma dev build environment on a local machine
+  hosts: dev
+  become: yes
+
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: false
+    full_provision: true
+
+  roles:
+    - role: gateway_dev
+      vars:
+        distribution: "stretch"
+        config_dir: "lte/gateway/configs"
+    - role: python_dev
+    - role: dev_common
+      vars:
+        c_build: /home/{{ ansible_user }}/build/c/
+        oai_build: "{{ c_build }}/oai"
+    - role: magma
+      vars:
+        c_build: /home/{{ ansible_user }}/build/c/
+        oai_build: "{{ c_build }}/oai"
+        magma_repo: /home/{{ ansible_user }}/magma-packages

@@ -1,0 +1,82 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/certifier.proto";
+import "orc8r/protos/common.proto";
+import "orc8r/protos/identity.proto";
+import "google/protobuf/timestamp.proto";
+
+package magma.orc8r.certifier;
+option go_package = "protos";
+
+message CertificateInfo {
+  Identity id = 1;
+
+  google.protobuf.Timestamp not_before = 2;
+  google.protobuf.Timestamp not_after = 3;
+
+  CertType cert_type = 4;
+}
+
+message CertificateInfoMap {
+  map<string, CertificateInfo> certificates = 1;
+}
+
+message AddCertRequest {
+  Identity id = 1;
+  bytes cert_der = 2; // signed certificate in DER encoding
+  CertType cert_type = 3;
+}
+
+message SerialNumbers {
+  repeated string sns = 1;
+}
+
+message GetCARequest {
+  CertType cert_type = 1;
+}
+
+service Certifier {
+
+  // Returns the cert of the requested CA
+  rpc GetCA (GetCARequest) returns (CACert) {}
+
+  // Signs and adds a new certificate to the store.
+  // Returns signed certificate.
+  //
+  rpc SignAddCertificate (CSR) returns (Certificate) {}
+
+  // Returns the CertificateInfo for a certificate.
+  // Throws NOT_FOUND if the certificate is missing.
+  //
+  rpc GetIdentity (Certificate.SN) returns (CertificateInfo) {}
+
+  // Revoke an existing certificate.
+  // If the certificate does not exist or is expired, this request is ignored.
+  //
+  rpc RevokeCertificate (Certificate.SN) returns (Void) {}
+
+  // Add provided Certificate (AddCertRequest.cert_der) into Certifier table and
+  // associates its Serial Number with given Identity (AddCertRequest.id)
+  rpc AddCertificate(AddCertRequest) returns (Void) {}
+
+  // Finds & returns Serial Numbers of all Certificates associated with the
+  // given Identity
+  rpc FindCertificates(Identity) returns (SerialNumbers) {}
+
+  // Returns serial numbers of all certificates in the table
+  rpc ListCertificates(Void) returns  (SerialNumbers) {}
+
+  // Returns all registered Certificates
+  rpc GetAll(Void) returns (CertificateInfoMap) {}
+
+  // cleanup expired certificates
+  //
+  rpc CollectGarbage (Void) returns (Void) {}
+}

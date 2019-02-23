@@ -1,0 +1,55 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Copyright (c) 2017-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">=1.9.1"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder "../..", "/home/vagrant/magma"
+
+  config.vm.define :feg, primary: true do |feg|
+    feg.vm.box = "amarpad/magma_feg"
+    feg.vm.box_version = "= 1.0.1548457334"
+    feg.vm.hostname = "magma-feg-dev"
+    feg.vm.network "private_network", ip: "192.168.90.101"
+    feg.vm.network "private_network", ip: "192.168.80.101"
+
+    feg.ssh.password = "vagrant"
+    feg.ssh.insert_key = true
+
+    config.vm.provider "virtualbox" do |v|
+      v.customize ['modifyvm', :id, '--natnet1', '10.0.5.0/24']
+      v.linked_clone = true
+      v.memory = 1536
+      v.cpus = 2
+    end
+    feg.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/feg.dev.yml"
+      ansible.limit = "all"
+      ansible.verbose = true
+    end
+  end
+
+  config.vm.define :feg_prod, autostart: false do |feg_prod|
+    feg_prod.vm.box = "bento/ubuntu-16.04"
+    feg_prod.vm.hostname = "magma-feg-prod"
+    feg_prod.vm.network "private_network", ip: "192.168.91.10"
+    feg_prod.vm.network "private_network", ip: "192.168.81.100"
+    config.vm.provider "virtualbox" do |v|
+      v.customize ['modifyvm', :id, '--natnet1', '10.0.3.0/24']
+      v.linked_clone = true
+      v.memory = 512
+      v.cpus = 2
+    end
+  end
+
+end

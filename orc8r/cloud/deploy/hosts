@@ -1,0 +1,5 @@
+[localvagrant]
+127.0.0.1   ansible_ssh_user=vagrant    ansible_ssh_port=2222   ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
+
+[magma-cloud-dev]
+magma-cloud-dev ansible_ssh_host=192.168.80.10 ansible_ssh_port=22 ansible_user=vagrant

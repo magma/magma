@@ -1,0 +1,65 @@
+### vagrant ###
+.vagrant
+*.retry
+
+### vim ###
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+### python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+# Virtual environments
+.env
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Ignore test certs
+orc8r/cloud/test_certs/*.csr
+orc8r/cloud/test_certs/*.crt
+orc8r/cloud/test_certs/*.key
+orc8r/cloud/test_certs/*.pem
+orc8r/cloud/test_certs/*.srl
+orc8r/cloud/test_certs/*.pfx
+
+# Ignore generated swagger file
+orc8r/cloud/deploy/files/static/apidocs/swagger.yml
+orc8r/cloud/deploy/files/static/apidocs/temp
+
+# Ignore apt/build cache
+.cache/*
+
+# Packer build artifacts
+*.box
+*.iso
+*.vdi
+
+# Terraform
+.terraform
+*.plan
+aws_keys.tfvars
+
+# Certs for accessing the cloud
+.certs

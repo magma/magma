@@ -1,0 +1,25 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Magma Redis datastore service
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/environment
+ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_service_config.py --service=redis --template=redis
+ExecStart=/usr/bin/redis-server /var/opt/magma/tmp/redis.conf
+ExecStop=/usr/bin/redis-cli shutdown
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=redis
+User=root
+Restart=always
+RestartSec=30
+MemoryLimit=300M
+
+[Install]
+WantedBy=multi-user.target

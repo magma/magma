@@ -1,0 +1,14 @@
+---
+- name: Set up the controller production instance
+  hosts: localhost
+  become: yes
+
+  vars:
+    restart_controller: true
+    user: '{{ ansible_user }}'
+
+    preburn: true
+    full_provision: true
+
+  roles:
+    - { role: controller }

@@ -1,0 +1,9 @@
+{
+  "name": "@fbcnms/logging",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "morgan": "^1.9.1",
+    "winston": "^3.0.0"
+  }
+}

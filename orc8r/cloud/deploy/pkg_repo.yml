@@ -1,0 +1,6 @@
+---
+- name: Set up the package repository production instance
+  hosts: localhost
+
+  roles:
+    - { role: pkg_repo }

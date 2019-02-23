@@ -1,0 +1,139 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+# Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.require_version ">=1.9.1"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Mount magma directory in all VMs
+  config.vm.synced_folder "../..", "/home/vagrant/magma"
+
+  config.vm.define :magma, primary: true do |magma|
+    # Get our prepackaged box from the atlas cloud, based on
+    # - debian/contrib-jessie64
+    # - linux kernel from debian jessie backports
+    # - updated vbguest-tool
+    magma.vm.box = "amarpad/magma_dev"
+    magma.vm.hostname = "magma-dev"
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
+    # iperf3 trfserver routable IP.
+    magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
+
+    magma.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-dev"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+    magma.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_dev.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
+    magma_trfserver.vm.box = "amarpad/magma_trfserver"
+    magma_trfserver.vm.hostname = "magma-trfserver"
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
+    # iperf3 server IP.
+    magma_trfserver.vm.network "private_network", ip: "192.168.129.42", nic_type: "82540EM"
+
+    magma_trfserver.vbguest.auto_update = false
+
+    magma_trfserver.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-trfserver"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "256"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    magma_trfserver.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_trfserver.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :magma_test, autostart: false do |magma_test|
+    # Get our prepackaged box from the atlas cloud
+    magma_test.vm.box = "amarpad/magma_test"
+    magma_test.vm.hostname = "magma-test"
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_test.vm.network "private_network", ip: "192.168.60.141", nic_type: "82540EM"
+    # UE trfgen network
+    magma_test.vm.network "private_network", ip: "192.168.128.11", nic_type: "82540EM"
+    #config.ssh.private_key_path = "~/.ssh/vagrant.key"
+    config.ssh.forward_agent = true
+
+    magma_test.vm.provider "virtualbox" do |vb|
+      vb.name = "magma_test"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    magma_test.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_test.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :magma_oai, autostart: false do |magma_oai|
+    # Get our prepackaged box from the atlas cloud, based on
+    # - ubuntu/xenial64
+    # - linux kernel from debian jessie backports
+    # - updated vbguest-tool
+    magma_oai.vm.box = "amarpad/ubuntu"
+    magma_oai.vm.box_version = "1.3"
+    magma_oai.vm.hostname = "magma-oai"
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_oai.vm.network "private_network", ip: "192.168.60.145", nic_type: "82540EM"
+
+    magma_oai.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-oai"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "disconnected"]
+    end
+
+    magma_oai.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_oai.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+end

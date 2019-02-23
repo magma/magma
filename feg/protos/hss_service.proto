@@ -1,0 +1,38 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "lte/protos/subscriberdb.proto";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// HSS configuration service definition.
+// --------------------------------------------------------------------------
+service HSSConfigurator {
+  // Adds a new subscriber to the store.
+  // Throws ALREADY_EXISTS if the subscriber already exists.
+  //
+  rpc AddSubscriber (lte.SubscriberData) returns (orc8r.Void) {}
+
+  // Deletes an existing subscriber.
+  // If the subscriber is not already present, this request is ignored.
+  //
+  rpc DeleteSubscriber (lte.SubscriberID) returns (orc8r.Void) {}
+
+  // Updates an existing subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc UpdateSubscriber (lte.SubscriberData) returns (orc8r.Void) {}
+
+  // Returns the SubscriberData for a subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc GetSubscriberData (lte.SubscriberID) returns (lte.SubscriberData) {}
+}

@@ -1,0 +1,18 @@
+# Add L3 OVS switch gtp_br0 with gtp0, veth0_ovs, and int_nat_peer
+allow-ovs gtp_br0
+iface gtp_br0 inet static
+    address 192.168.128.1
+    netmask 255.255.255.0
+    up sysctl net.ipv4.ip_forward=1
+    up iptables -t mangle -A FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+    up iptables -t mangle -A FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
+    ovs_type OVSBridge
+    ovs_ports gtp0
+
+# Add GTP vport to gtp_br0 as port 32768
+allow-gtp_br0 gtp0
+iface gtp0 inet manual
+    ovs_bridge gtp_br0
+    ovs_type OVSTunnel
+    ovs_tunnel_type gtp
+    ovs_tunnel_options ofport_request=32768 options:remote_ip=flow options:key=flow

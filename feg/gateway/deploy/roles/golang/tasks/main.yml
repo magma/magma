@@ -1,0 +1,60 @@
+########################################
+# Golang provisioning
+########################################
+
+- name: Create gobin directories
+  become: yes
+  become_user: '{{ user }}'
+  file:
+    path: '{{ item }}'
+    state: directory
+  with_items: '{{ gobin.split(":") }}'
+
+- name: Download Golang
+  get_url:
+    url: "https://dl.google.com/go/{{ golang_tar }}"
+    dest: "/home/{{ user }}/{{ golang_tar }}"
+    checksum: "{{ golang_tar_checksum }}"
+  when: preburn
+
+- name: Extract Golang
+  unarchive:
+    src: /home/{{ user }}/{{ golang_tar }}
+    dest: "{{ go_install_path }}"
+    remote_src: yes
+  when: preburn
+
+- name: Remove Golang tar
+  file: path=/home/{{ user }}/{{ golang_tar }} state=absent
+  when: preburn
+
+- name: Install golint
+  become: yes
+  become_user: '{{ user }}'
+  environment:
+    GOPATH: "{{ gopath }}"
+    GOBIN: "{{ gobin }}"
+    PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
+  command: go get -u golang.org/x/lint/golint
+  when: preburn
+
+- name: Install protoc-gen-go
+  become: yes
+  become_user: '{{ user }}'
+  environment:
+    GOPATH: "{{ gopath }}"
+    GOBIN: "{{ gobin }}"
+    PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
+  command: go get -u github.com/golang/protobuf/protoc-gen-go
+  when: preburn
+
+- name: Set Go environment vars in profile
+  tags: magma-cloud-dev
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - export GOPATH={{ gopath }}
+    - export GOBIN={{ gobin }}
+    - export PATH=$PATH:{{ go_bin_path }}:{{ makebin }}

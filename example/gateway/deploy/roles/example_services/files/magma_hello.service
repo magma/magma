@@ -1,0 +1,23 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Example hello service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStart=/usr/bin/env python3 -m magmaexample.%i.main
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=hello
+User=root
+Restart=always
+RestartSec=5s
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

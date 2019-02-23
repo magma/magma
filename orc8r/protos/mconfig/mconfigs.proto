@@ -1,0 +1,87 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.mconfig;
+option go_package = "magma/orc8r/cloud/go/protos/mconfig";
+
+// ===========================================================================
+// Service-specific configs
+// ===========================================================================
+
+
+//------------------------------------------------------------------------------
+// Control Proxy configs
+//------------------------------------------------------------------------------
+message ControlProxy {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// DnsD configs
+//------------------------------------------------------------------------------
+message DnsD {
+    orc8r.LogLevel log_level = 1;
+    bool enable_caching = 2;
+    int32 localTTL = 3;
+    repeated NetworkDNSConfigRecordsItems records = 4;
+}
+
+message NetworkDNSConfigRecordsItems {
+  repeated string a_record = 1;
+  repeated string aaaa_record = 2;
+  repeated string cname_record = 3;
+  string domain = 4;
+}
+
+
+//------------------------------------------------------------------------------
+// MagmaD configs
+//------------------------------------------------------------------------------
+
+message ImageSpec {
+    string name = 1;
+    int64 order = 2;
+}
+
+message MagmaD {
+    orc8r.LogLevel log_level = 1;
+    // Interval for the gateways to send checkin rpc calls to the cloud.
+    int32 checkin_interval = 2;
+    // Checkin rpc timeout
+    int32 checkin_timeout = 3;
+    // Enables autoupgrading of the magma package
+    bool autoupgrade_enabled = 4;
+    // Interval to poll for package upgrades
+    int32 autoupgrade_poll_interval = 5;
+    // The magma package version the gateway should upgrade to
+    string package_version = 6;
+    // List of upgrade images
+    repeated ImageSpec images = 7;
+
+    // For streamer, should be left unused by gateway
+    string tier_id = 8;
+
+    map<string, bool> feature_flags = 9;
+
+    // List of dynamic_services
+    repeated string dynamic_services = 10;
+}
+
+message DirectoryD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// MetricsD configs
+//------------------------------------------------------------------------------
+message MetricsD {
+    orc8r.LogLevel log_level = 1;
+}

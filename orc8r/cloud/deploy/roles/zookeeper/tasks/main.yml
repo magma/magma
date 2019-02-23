@@ -1,0 +1,49 @@
+- name: Add all the packages needed for zookeeper
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+      - default-jre
+
+- name: Create archives directory
+  file: path=/var/opt/magma/archives state=directory
+
+- name: Download zookeeper archive
+  get_url:
+    url: "http://www-us.apache.org/dist/zookeeper/zookeeper-{{ zk_version }}/zookeeper-{{ zk_version }}.tar.gz"
+    dest: "/var/opt/magma/archives/zookeeper-{{ zk_version }}.tar.gz"
+
+- name: Create zookeeper install, data, and log directories
+  file:
+    path: '{{ item }}'
+    state: directory
+  with_items:
+    - /opt/zookeeper
+    - '{{ zk_data_dir }}'
+    - '{{ zk_data_log_dir }}'
+
+- name: Extract zookeeper archive
+  unarchive:
+    remote_src: yes
+    src: "/var/opt/magma/archives/zookeeper-{{ zk_version }}.tar.gz"
+    dest: "/opt/zookeeper/"
+    extra_opts:
+      - --strip=1
+
+- name: Copy over zookeeper config file
+  template:
+    src: 'zoo.{{ zk_config_version }}.cfg'
+    dest: "/opt/zookeeper/conf/zoo.cfg"
+
+- name: Set ZK myid if necessary
+  copy:
+    content: '{{ zk_myid }}'
+    dest: '{{ zk_data_dir }}/myid'
+  when: zk_myid is defined
+
+- name: Copy over zookeeper service file
+  template:
+    src: magma_zookeeper.service
+    dest: /etc/systemd/system/magma@zookeeper.service
+
+- name: Restart zookeeper
+  systemd: name=magma@zookeeper state=restarted daemon_reload=yes enabled=yes
+  when: start_services

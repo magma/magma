@@ -1,0 +1,45 @@
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+# Listening interfaces
+frontend=0.0.0.0,443
+frontend=::,443
+
+# Disable OCSP for the controller for now
+no-ocsp=yes
+
+# Enable access gateway cert verification
+verify-client=yes
+verify-client-cacert=/var/opt/magma/certs/certifier.pem
+
+# Header injection for client certs
+mruby-file=/etc/nghttpx/magma_headers.rb
+
+# FeG services
+{% for backend in proxy_backends.split(',') -%}
+{% for service in feg_services -%}
+backend={{ backend }},{{ gw_to_feg_relay_port }};{{ service }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ gw_to_feg_relay_port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endfor -%}
+{% endfor -%}
+
+# Magma services
+{% for backend in proxy_backends.split(',') -%}
+{% for service, port in clientcert_services.items() -%}
+backend={{ backend }},{{ port }};{{ service }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endfor -%}
+# Send API requests to obsidian
+backend={{ backend }},{{obsidian_port}};{{ api_hostname }};no-tls;dns
+# Nghttp can't send a direct error for other unknown requests.
+# Blackhole all other requests to default port, which is not used by any service.
+backend={{ backend }},{{default_port}};;no-tls;dns
+{% endfor -%}
+
+# Proxy configs
+{% include './nghttpx_common.conf.j2' %}

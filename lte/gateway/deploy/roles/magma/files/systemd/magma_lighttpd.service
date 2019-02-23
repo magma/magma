@@ -1,0 +1,26 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Magma %i service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+User=root
+ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_lighttpd_config.py
+ExecStart=/usr/sbin/lighttpd -D -f /var/opt/magma/tmp/lighttpd.conf
+ExecReload=/bin/kill -HUP $MAINPID
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=%i
+Restart=always
+RestartSec=5s
+StartLimitInterval=0
+MemoryLimit=300M
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,54 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+message HelloRequest {
+  string greeting = 1;
+  // A grpc_err_code is an unsigned 32-bit error code as defined in the gRPC
+  // spec.
+  //	OK Code = 0
+  //	Canceled Code = 1
+  //	Unknown Code = 2
+  //	InvalidArgument Code = 3
+  //	DeadlineExceeded Code = 4
+  //	NotFound Code = 5
+  //	AlreadyExists Code = 6
+  //	PermissionDenied Code = 7
+  //	ResourceExhausted Code = 8
+  //	FailedPrecondition Code = 9
+  //	Aborted Code = 10
+  //	OutOfRange Code = 11
+  //	Unimplemented Code = 12
+  //	Internal Code = 13
+  //	Unavailable Code = 14
+  //	DataLoss Code = 15
+  //	Unauthenticated Code = 16
+  // See https://github.com/grpc/grpc-go/blob/master/codes/codes.go for details
+  // This field lets user request for a grpc err code, and expect server to
+  // successfully send back this err code. If something goes wrong in the path,
+  // the error code will likely come back different. 
+  uint32 grpc_err_code = 2;
+
+}
+
+message HelloReply {
+  string greeting = 1;
+}
+
+// --------------------------------------------------------------------------
+// Hello service definition
+// --------------------------------------------------------------------------
+service Hello {
+
+  // Sample rpc for Hello service
+  //
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+}

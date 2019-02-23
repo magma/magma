@@ -1,0 +1,27 @@
+---
+# Install Prometheus Pushgateway.
+
+- name: set internal variables for convenience
+  set_fact:
+    pushgateway_subdir: "{{ pushgateway_subdir }}"
+
+- name: set download url
+  set_fact:
+    pushgateway_tarball_url: "https://github.com/prometheus/pushgateway/releases/download/v{{ pushgateway_version }}/pushgateway-{{ pushgateway_version }}.{{ prometheus_platform_suffix }}.tar.gz"
+
+- name: set permissions, owner and group
+  file:
+    path: "{{ pushgateway_install_path }}"
+    state: directory
+    owner: "{{ promo_user }}"
+    group: "{{ promo_group }}"
+    mode: "go-w"
+    recurse: yes
+    
+- name: download and untar pushgateway tarball
+  unarchive:
+    src: "{{ pushgateway_tarball_url }}"
+    dest: "{{ pushgateway_install_path }}"
+    copy: no
+
+

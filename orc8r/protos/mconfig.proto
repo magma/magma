@@ -1,0 +1,38 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// GatewayConfigs structure is a container for all Access Gateway's (AG) Cloud
+// Managed Configs (CMC). Each and every field of GatewayConfigs represents
+// one AG service config
+// --------------------------------------------------------------------------
+// NOTE: a service config field name (control_proxy, enodebd, etc.) must match
+//       the corresponding gateway service's name exactly
+message GatewayConfigs {
+    map<string, google.protobuf.Any> configs_by_key = 10;
+}
+
+// Wraps a gateway config and a stream offset that the config was computed
+// from
+message OffsetGatewayConfigs {
+    GatewayConfigs configs = 1;
+    int64 offset = 2;
+}
+
+// Stream request passed as extra args to the streaming mconfig streamer policy.
+// Contains a single field, the offset of the mconfig currently stored on
+// the device.
+message MconfigStreamRequest {
+    int64 offset = 1;
+}

@@ -1,0 +1,5 @@
+# Preload GTP module because adding ovs port directly
+# loads vport-type-6 module without gtp preloaded causes
+# deadlock in netlink
+ip6_udp_tunnel
+gtp

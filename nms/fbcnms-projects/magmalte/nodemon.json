@@ -1,0 +1,13 @@
+{
+  "verbose": true,
+  "ignore": [
+    "../../fbcnms-packages/fbcnms-ui"
+  ],
+  "watch": [
+    "../../fbcnms-packages",
+    "config/",
+    "scripts/",
+    "server/"
+  ],
+  "exec": "node -r '@fbcnms/babel-register'"
+}

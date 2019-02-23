@@ -1,0 +1,123 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Check if role variables are defined
+  fail: msg="config_dir is undefined for the role"
+  when: config_dir is undefined
+
+#################################
+# Run necessary roles
+#################################
+
+- import_role: name=apt_cache
+- import_role: name=pkgrepo
+- import_role: name=gateway_services
+- import_role: name=python_dev
+
+#################################
+# Dev env setup
+#################################
+
+- name: Create a symlink for the service configs
+  file: src={{ magma_root }}/{{ config_dir }} path=/etc/magma state=link force=yes
+  when: full_provision
+
+- name: Create the /var/opt/magma directory
+  file: path=/var/opt/magma state=directory
+  when: full_provision
+
+- name: Create a symlink for the basic orc8r templates
+  file: src={{ magma_root }}/orc8r/gateway/configs/templates path=/var/opt/magma/templates state=link force=yes
+  when: full_provision
+
+##################################
+# Set up dev environment variables
+##################################
+
+- name: Set build environment variables
+  lineinfile:
+    dest: /etc/environment
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - MAGMA_DEV_MODE=1
+    - MAGMA_ROOT={{ magma_root }}
+  when: full_provision
+
+##################################
+# Install protobuf 3
+##################################
+
+- name: Get protoc version
+  command: protoc --version
+  ignore_errors: true
+  register: pbversion
+  when: preburn
+
+- name: Install protobuf compiler
+  command: "{{ item }}"
+  with_items:
+    - curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+    - unzip protoc3.zip -d protoc3
+    - mv protoc3/bin/protoc /usr/bin/protoc
+    - chmod a+rx /usr/bin/protoc
+    - cp -r protoc3/include/google /usr/include/
+    - chmod -R a+Xr /usr/include/google
+    - rm -rf protoc3.zip protoc3
+  when: preburn and ((pbversion is failed) or not (pbversion.stdout|match("^libprotoc 3.")))
+
+########################################
+# Set up test certs
+########################################
+
+- name: Create the .cache/test_certs directory if doesn't exist
+  file: path='{{ magma_root }}/.cache/test_certs' state=directory
+  when: full_provision
+
+- name: Generate the cloud VM's certs if they are not already generated
+  command: '{{ magma_root }}/orc8r/cloud/scripts/create_test_certs {{ magma_root }}/.cache/test_certs'
+  args:
+    creates: '{{ magma_root }}/.cache/test_certs/rootCA.pem'
+  when: full_provision
+
+- name: Create the /var/opt/magma/certs directory
+  file: path=/var/opt/magma/certs state=directory
+  when: full_provision
+
+- name: Copy the cloud VM's rootCA if needed
+  copy:
+    src: '{{ magma_root }}/.cache/test_certs/rootCA.pem'
+    dest: /var/opt/magma/certs/rootCA.pem
+    force: no
+    remote_src: yes
+  when: full_provision
+
+- name: Add the test controller DNS entries
+  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line='192.168.80.10 {{ item }}' state=present
+  with_items:
+    - controller.magma.test
+    - bootstrapper-controller.magma.test
+  when: full_provision
+
+#################################
+# Copy scripts
+#################################
+
+- name: Copy orc8r scripts
+  copy:
+    src: '{{ magma_root }}/orc8r/gateway/python/scripts/{{ item }}'
+    dest: /usr/local/bin/{{ item }}
+    force: yes
+    remote_src: yes
+  with_items:
+    - generate_dnsd_config.py
+    - generate_service_config.py
+    - generate_nghttpx_config.py
+    - generate_lighttpd_config.py
+    - show_gateway_info.py
+  when: full_provision

@@ -1,0 +1,15 @@
+add_library(LIB_MESSAGE_UTILS
+    bytes_to_ie.c
+    ie_to_bytes.c
+    s6a_message_utils.c
+    service303_message_utils.c
+)
+target_include_directories(LIB_MESSAGE_UTILS
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    PRIVATE
+    ${LIB_DIR}/itti
+)
+target_link_libraries(LIB_MESSAGE_UTILS
+    COMMON
+)

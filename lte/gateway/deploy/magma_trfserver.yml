@@ -1,0 +1,23 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+
+# Ansible playbook for setting up a production machine (i.e., a box running
+# Debian 8).
+
+- name: Set up a iperf3 trfserver machine
+  hosts: trfserver
+  become: true
+
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: false
+    full_provision: true
+
+  roles:
+    - role: trfserver

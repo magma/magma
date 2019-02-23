@@ -1,0 +1,105 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "orc8r/protos/metricsd.proto";
+import "google/protobuf/wrappers.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// Service status messages
+// --------------------------------------------------------------------------
+
+message EnodebdStatus {
+  // For bools, parameter is not set if result can't be determined
+  google.protobuf.BoolValue enodeb_connected = 1;
+  google.protobuf.BoolValue opstate_enabled = 2;
+  google.protobuf.BoolValue rf_tx_on = 3;
+  google.protobuf.BoolValue gps_connected = 4;
+  google.protobuf.BoolValue ptp_connected = 5;
+  google.protobuf.BoolValue mme_connected = 6;
+  google.protobuf.BoolValue enodeb_configured = 7;
+  google.protobuf.FloatValue gps_latitude = 8;
+  google.protobuf.FloatValue gps_longitude = 9;
+}
+
+message ServiceStatus {
+  // Metadata from the services that will be sent to the cloud through checkin
+  map<string, string> meta = 2;
+}
+
+message ServiceInfo {
+  string name = 1;
+
+  string version = 2;
+
+  enum ServiceState {
+    UNKNOWN = 0;
+    STARTING = 1;
+    ALIVE = 2;
+    STOPPING = 3;
+    STOPPED = 4;
+  }
+  ServiceState state = 3;
+
+  ServiceStatus status = 4;
+
+  // Gives information about whether the application is usable. Though the
+  // process may have started, the connections may not be set up. APP_HEALTHY in
+  // this case means the application is entirely usable
+  enum ApplicationHealth {
+    APP_UNKNOWN = 0;
+    APP_UNHEALTHY = 1;
+    APP_HEALTHY = 2;
+  }
+  ApplicationHealth health = 5;
+
+  // Time when the service was started (in seconds since epoch)
+  uint64 start_time_secs = 6;
+}
+
+message LogLevelMessage {
+    LogLevel level = 1;
+}
+
+message LogVerbosity {
+  int32 verbosity = 1;
+}
+
+
+// --------------------------------------------------------------------------
+// Service303 interface definition.
+//
+// Service303 is named after fb303, which was named after TB-303
+// https://en.wikipedia.org/wiki/Roland_TB-303.
+//
+// The Service303 interface implements a set of functionalities which
+// all Magma services expose.
+// --------------------------------------------------------------------------
+service Service303 {
+
+  // Returns the service level info like name, version, state, status, etc.
+  //
+  rpc GetServiceInfo (Void) returns (ServiceInfo) {}
+
+  // Request to stop the service gracefully.
+  //
+  rpc StopService (Void) returns (Void) {}
+
+  // Collects metrics from the service
+  rpc GetMetrics (Void) returns (MetricsContainer) {}
+
+  // Set logging level
+  rpc SetLogLevel (LogLevelMessage) returns (Void) {}
+
+  // Set logging verbosity The larger, the more verbose. default 0
+  rpc SetLogVerbosity (LogVerbosity) returns (Void) {}
+}

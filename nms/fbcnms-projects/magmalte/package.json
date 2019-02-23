@@ -1,0 +1,52 @@
+{
+  "name": "@fbcnms/magmalte",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "rimraf static/dist && NODE_ENV=production node -r '@fbcnms/babel-register' ../../node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js --progress --profile --colors",
+    "start": "yarn run start:dev",
+    "start:dev": "nodemon scripts/server",
+    "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
+    "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js"
+  },
+  "dependencies": {
+    "@fbcnms/auth": "^0.1.0",
+    "@fbcnms/babel-register": "^0.1.0",
+    "@fbcnms/express-middleware": "^0.1.0",
+    "@fbcnms/logging": "^0.1.0",
+    "@fbcnms/ui": "^0.1.0",
+    "@fbcnms/util": "^0.1.0",
+    "@material-ui/core": "^3.8.3",
+    "@material-ui/icons": "^3.0.1",
+    "@material-ui/styles": "^3.0.0-alpha.7",
+    "axios": "^0.18.0",
+    "bcryptjs": "^2.4.3",
+    "chart.js": "^2.7.3",
+    "classnames": "^2.2.5",
+    "connect-session-sequelize": "^5.2.2",
+    "dotenv": "^6.0.0",
+    "express": "^4.16.3",
+    "express-http-proxy": "^1.5.1",
+    "express-session": "^1.15.6",
+    "https-proxy-agent": "^2.2.1",
+    "lodash-es": "^4.17.10",
+    "mapbox-gl": "^0.53.0",
+    "mysql2": "^1.5.3",
+    "passport": "^0.4.0",
+    "pug": "^2.0.3",
+    "react-chartjs-2": "^2.7.4",
+    "react-router-dom": "^4.4.0-beta.6",
+    "react-test-renderer": "^16.6.3",
+    "rimraf": "^2.6.3",
+    "sequelize": "^4.38.0",
+    "umzug": "^2.1.0",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {
+    "fbcnms-webpack-config": "^0.1.0",
+    "identity-obj-proxy": "^3.0.0",
+    "nodemon": "^1.17.4",
+    "react-hot-loader": "^4.6.3",
+    "webpack-cli": "^3.1.2"
+  }
+}

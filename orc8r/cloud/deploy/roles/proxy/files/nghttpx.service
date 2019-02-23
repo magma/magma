@@ -1,0 +1,22 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Nghttpx_%i control proxy service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/nghttpx --conf=/etc/nghttpx/nghttpx_%i.conf --daemon /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt
+ExecReload=/bin/kill -HUP $MAINPID
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=nghttpx_%i
+Restart=always
+RestartSec=1s
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

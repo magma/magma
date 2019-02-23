@@ -1,0 +1,16 @@
+# This is the default module configuration for an LTE magma deployment.
+# You can specify your own module file using the environment variable
+# MAGMA_MODULES_FILE
+
+# These are modules included in the magma repo which you want to include
+native_modules:
+  - orc8r
+  - lte
+  - feg
+
+# These are modules with code that lives outside the magma repo
+# Each entry under external_modules should specify a host_path key which points
+# to the location of the module directory on your host machine and a
+# mount_path key which points to the location where you'd like to mount the
+# module directory on the cloud VM.
+external_modules: []

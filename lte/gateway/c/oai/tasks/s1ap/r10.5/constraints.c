@@ -1,0 +1,122 @@
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the Apache License, Version 2.0  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+#include "asn_internal.h"
+#include "constraints.h"
+
+int asn_generic_no_constraint(
+  asn_TYPE_descriptor_t *type_descriptor,
+  const void *struct_ptr,
+  asn_app_constraint_failed_f *cb,
+  void *key)
+{
+  (void) type_descriptor; /* Unused argument */
+  (void) struct_ptr;      /* Unused argument */
+  (void) cb;              /* Unused argument */
+  (void) key;             /* Unused argument */
+
+  /* Nothing to check */
+  return 0;
+}
+
+int asn_generic_unknown_constraint(
+  asn_TYPE_descriptor_t *type_descriptor,
+  const void *struct_ptr,
+  asn_app_constraint_failed_f *cb,
+  void *key)
+{
+  (void) type_descriptor; /* Unused argument */
+  (void) struct_ptr;      /* Unused argument */
+  (void) cb;              /* Unused argument */
+  (void) key;             /* Unused argument */
+
+  /* Unknown how to check */
+  return 0;
+}
+
+struct errbufDesc {
+  asn_TYPE_descriptor_t *failed_type;
+  const void *failed_struct_ptr;
+  char *errbuf;
+  size_t errlen;
+};
+
+static void _asn_i_ctfailcb(
+  void *key,
+  asn_TYPE_descriptor_t *td,
+  const void *sptr,
+  const char *fmt,
+  ...)
+{
+  struct errbufDesc *arg = key;
+  va_list ap;
+  ssize_t vlen;
+  ssize_t maxlen;
+
+  arg->failed_type = td;
+  arg->failed_struct_ptr = sptr;
+
+  maxlen = arg->errlen;
+  if (maxlen <= 0) return;
+
+  va_start(ap, fmt);
+  vlen = vsnprintf(arg->errbuf, maxlen, fmt, ap);
+  va_end(ap);
+  if (vlen >= maxlen) {
+    arg->errbuf[maxlen - 1] = '\0'; /* Ensuring libc correctness */
+    arg->errlen = maxlen - 1;       /* Not counting termination */
+    return;
+  } else if (vlen >= 0) {
+    arg->errbuf[vlen] = '\0'; /* Ensuring libc correctness */
+    arg->errlen = vlen;       /* Not counting termination */
+  } else {
+    /*
+		 * The libc on this system is broken.
+		 */
+    vlen = sizeof("<broken vsnprintf>") - 1;
+    maxlen--;
+    arg->errlen = vlen < maxlen ? vlen : maxlen;
+    memcpy(arg->errbuf, "<broken vsnprintf>", arg->errlen);
+    arg->errbuf[arg->errlen] = 0;
+  }
+
+  return;
+}
+
+int asn_check_constraints(
+  asn_TYPE_descriptor_t *type_descriptor,
+  const void *struct_ptr,
+  char *errbuf,
+  size_t *errlen)
+{
+  struct errbufDesc arg;
+  int ret;
+
+  arg.failed_type = 0;
+  arg.failed_struct_ptr = 0;
+  arg.errbuf = errbuf;
+  arg.errlen = errlen ? *errlen : 0;
+
+  ret = type_descriptor->check_constraints(
+    type_descriptor, struct_ptr, _asn_i_ctfailcb, &arg);
+  if (ret == -1 && errlen) *errlen = arg.errlen;
+
+  return ret;
+}

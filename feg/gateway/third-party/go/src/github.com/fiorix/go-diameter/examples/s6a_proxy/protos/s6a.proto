@@ -1,0 +1,186 @@
+// This is a sample of GRPC -> S6a proxy for Diamater application S6a/S6d 3GPP 29.272
+//
+// For details about fields see:
+// http://www.etsi.org/deliver/etsi_ts/129200_129299/129272/10.09.00_60/ts_129272v100900p.pdf
+
+syntax = "proto3";
+option go_package = "protos";
+// This RPC converts Result-Code from Diameter Base Protocol into gRPC status codes
+service S6aProxy {
+    // Authentication-Information (Code 318)
+    rpc AuthenticationInformation (AuthenticationInformationRequest) returns (AuthenticationInformationAnswer) {}
+
+    // Update-Location (Code 316)
+    rpc UpdateLocation (UpdateLocationRequest) returns (UpdateLocationAnswer) {}
+
+    // Cancel-Location (Code 317)
+    rpc CancelLocation (CancelLocationRequest) returns (CancelLocationAnswer) {}
+
+    // Purge-UE (Code 321)
+    rpc PurgeUE (PurgeUERequest) returns (PurgeUEAnswer) {}
+
+    // Reset (Code 322)
+    rpc Reset(ResetRequest) returns (ResetAnswer) {}
+}
+
+// ErrorCode reflects Experimental-Result values which are 3GPP failures
+// to be processed by EPC. Diameter Base Protocol errors are reflected in gRPC status code
+enum ErrorCode {
+    UNDEFINED                = 0;
+    // Default success code
+    MULTI_ROUND_AUTH         = 1001;
+    SUCCESS                  = 2001;
+    LIMITED_SUCCESS          = 2002;
+    COMMAND_UNSUPORTED       = 3001;
+    UNABLE_TO_DELIVER        = 3002;
+    REALM_NOT_SERVED         = 3003;
+    TOO_BUSY                 = 3004;
+    LOOP_DETECTED            = 3005;
+    REDIRECT_INDICATION      = 3006;
+    APPLICATION_UNSUPPORTED  = 3007;
+    INVALIDH_DR_BITS         = 3008;
+    INVALID_AVP_BITS         = 3009;
+    UNKNOWN_PEER             = 3010;
+    AUTHENTICATION_REJECTED  = 4001;
+    OUT_OF_SPACE             = 4002;
+    ELECTION_LOST            = 4003;
+    // Permanent Failures 7.4.3
+    USER_UNKNOWN             = 5001;
+    UNKNOWN_EPS_SUBSCRIPTION = 5420;
+    RAT_NOT_ALLOWED          = 5421;
+    ROAMING_NOT_ALLOWED      = 5004;
+    EQUIPMENT_UNKNOWN        = 5422;
+    UNKOWN_SERVING_NODE      = 5423;
+    // Transient Failures 7.4.4
+    AUTHENTICATION_DATA_UNAVAILABLE = 4181;
+}
+
+// Authentication Information Request (Section 7.2.5)
+message AuthenticationInformationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Visted site identifier
+    bytes visited_plmn = 2;
+    // Number of vectors to request in response
+    uint32 num_requested_eutran_vectors = 3;
+    // Indicates to the HSS the values are requested for immediate attach
+    bool immediate_response_preferred = 4;
+    // Concatenation of RAND and AUTS in the case of a resync attach case
+    bytes resync_info = 5;
+}
+
+
+// Authentication Information Answer (Section 7.2.6)
+message AuthenticationInformationAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+    // Authentication vectors matching the requested number
+    repeated EUTRANVector eutran_vectors = 2;
+
+    // For details about fields read 3GPP 33.401
+    message EUTRANVector {
+        bytes rand = 1;
+        bytes xres = 2;
+        bytes autn = 3;
+        bytes kasme = 4;
+    }
+}
+
+// Update Location Request (Section 7.2.3)
+message UpdateLocationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Visited site identifier
+    bytes visited_plmn = 2;
+
+    // Selective unrolling of ULR-Flags 29.272 Table 7.3.7/1
+    // Skip subscription data in response
+    bool skip_subscriber_data = 3; // bit 2
+    // Send Cancel Location to other EPCs serving the UE
+    bool initial_attach = 4; // bit 5
+}
+
+// Update Location Answer (Section 7.2.4)
+message UpdateLocationAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+    // Identifier of the default APN
+    uint32 default_context_id = 2;
+    // Subscriber authorized aggregate bitrate
+    AggregatedMaximumBitrate total_ambr = 3;
+    // Indicates to wipe other stored APNs
+    bool all_apns_included = 4;
+    // APN configurations
+    repeated APNConfiguration apn = 5;
+
+    message APNConfiguration {
+        // APN identifier
+        uint32 context_id = 1;
+        // Contains either the APN Name or wildcard "*"
+        string service_selection = 2;
+        // APN QoS profile
+        QoSProfile qos_profile = 3;
+        // APN authorized bitrate
+        AggregatedMaximumBitrate ambr = 4;
+
+        // For details about values see 29.212
+        message QoSProfile {
+            int32 class_id = 1;
+            uint32 priority_level = 2;
+            bool preemption_capability = 3;
+            bool preemption_vulnerability = 4;
+        }
+    }
+
+    message AggregatedMaximumBitrate {
+        // Maximum uplink bitrate
+        uint32 max_bandwidth_ul = 1;
+        // Maximum downlink bitrate
+        uint32 max_bandwidth_dl = 2;
+    }
+}
+
+// Cancel Location Request (Section 7.2.7)
+message CancelLocationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // Type of cancellation 7.3.24
+    CancellationType cancellation_type = 2;
+    enum CancellationType {
+        MME_UPDATE_PROCEDURE     = 0;
+        SGSN_UPDATE_PROCEDURE    = 1;
+        SUBSCRIPTION_WITHDRAWAL  = 2;
+        UPDATE_PROCEDURE_IWF     = 3;
+        INITIAL_ATTACH_PROCEDURE = 4;
+    }
+}
+
+// Cancel Location Answer (Section 7.2.8)
+message CancelLocationAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+}
+
+// Purge UE Request (Section 7.2.14)
+message PurgeUERequest {
+    // Subscriber identifier
+    string user_name = 1;
+}
+
+// Purge UE Answer (Section 7.2.15)
+message PurgeUEAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+}
+
+// Reset Request (3GPP TS 29.272 Section 7.2.15)
+message ResetRequest {
+    // Subscriber identifier
+    repeated string user_id = 1;
+}
+
+// Reset Answer (3GPP TS 29.272 Section 7.2.16)
+message ResetAnswer {
+    // EPC error code on failure
+    ErrorCode error_code = 1;
+}

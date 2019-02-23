@@ -1,0 +1,3 @@
+---
+python_build: "/home/{{ ansible_user }}/build/python"
+python_bin: "{{ python_build }}/bin"

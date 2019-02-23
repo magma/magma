@@ -1,0 +1,92 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.mconfig;
+option go_package = "magma/feg/cloud/go/protos/mconfig";
+
+//------------------------------------------------------------------------------
+// FeG configs
+//------------------------------------------------------------------------------
+message DiamClientConfig {
+    string protocol = 1; // tcp/sctp/...
+    string address = 2; // server's host:port
+    uint32 retransmits = 3;
+    uint32 watchdog_interval = 4;
+    uint32 retry_count = 5;
+    string local_address = 6; // client's local address to bind socket to IP:port OR :port
+    string product_name = 7;
+    string realm = 8; // diameter realm
+    string host = 9; // diameter host
+    string dest_realm = 10; // server diameter realm
+    string dest_host = 11; // server diameter host
+}
+
+message DiamServerConfig {
+    string protocol = 1; // tcp/sctp/...
+    string address = 2; // host:port
+    string local_address = 3; // IP:port or :port
+    string dest_host = 4; // diameter host
+    string dest_realm = 5; // diameter realm
+}
+
+message S6aConfig {
+    orc8r.LogLevel log_level = 1;
+    DiamClientConfig server = 5;
+}
+
+message GxConfig {
+    DiamClientConfig server = 1;
+}
+
+enum GyInitMethod {
+    RESERVED = 0; // proto enums must start with 0
+    PER_SESSION = 1;
+    PER_KEY = 2;
+}
+
+message GyConfig {
+    DiamClientConfig server = 1;
+    GyInitMethod init_method = 2;
+}
+
+message SessionProxyConfig {
+    orc8r.LogLevel log_level = 1;
+    GxConfig gx = 5;
+    GyConfig gy = 6;
+}
+
+message SwxConfig {
+    orc8r.LogLevel log_level = 1;
+    DiamClientConfig server = 2;
+}
+
+message HSSConfig {
+    DiamServerConfig server = 1;
+
+    // Operator configuration field for LTE.
+    bytes lte_auth_op = 2;
+
+    // Authentication management field for LTE.
+    bytes lte_auth_amf = 3;
+
+    message SubscriptionProfile {
+        // Maximum uplink bit rate (AMBR-UL)
+        uint64 max_ul_bit_rate = 1;
+        // Maximum downlink bit rate (AMBR-DL)
+        uint64 max_dl_bit_rate = 2;
+    }
+    // Maps from IMSI to SubscriptionProfile.
+    map<string, SubscriptionProfile> sub_profiles = 4;
+
+    // If an IMSI if not found in sub_profiles, the default profile is used instead.
+    SubscriptionProfile default_sub_profile = 5;
+}
+

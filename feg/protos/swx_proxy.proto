@@ -1,0 +1,73 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+//
+syntax = "proto3";
+
+package magma.feg;
+option go_package = "magma/feg/cloud/go/protos";
+
+service SwxProxy {
+    // Retrieve authentication vectors from the HSS using MAR/MAA
+    rpc Authenticate (AuthenticationRequest) returns (AuthenticationAnswer) {}
+    // Register the AAA server serving a user to the HSS using SAR/SAA
+    rpc Register (RegistrationRequest) returns (RegistrationAnswer) {}
+}
+
+// AuthenticationRequest (Section 8.2.2.1)
+message AuthenticationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+
+    // Number of authentication vectors requested
+    uint32 sip_num_auth_vectors = 2;
+
+    // EAP-AKA or EAP-AKA'
+    AuthenticationScheme authentication_scheme = 3;
+
+    // Concatenation of RAND and AUTS in the case of resync
+    bytes resync_info = 4;
+}
+
+enum AuthenticationScheme {
+    EAP_AKA = 0;
+    EAP_AKA_PRIME = 1;
+}
+
+// MultimediaAuthenticationAnswer (Section 8.2.2.1)
+message AuthenticationAnswer {
+    // Subscriber identifier
+    string user_name = 1;
+
+    // For details about fields read 3GPP 29.273
+    repeated SIPAuthVector sip_auth_vectors = 2;
+
+    // Only for EAP-AKA/EAP-AKA'
+    message SIPAuthVector {
+        // Contains one of EAP-AKA or EAP-AKA'
+        AuthenticationScheme authentication_scheme = 1;
+        // Concatenation of challenge RAND and token AUTN
+        bytes rand_autn = 2;
+        // Expected response
+        bytes xres = 3;
+        // Confidentiality Key
+        bytes confidentiality_key = 4;
+        // Integrity Key
+        bytes integrity_key = 5;
+    }
+}
+
+// RegistrationRequest:
+// ServerAssignmentRequest with ServerAssignmentType set to REGISTRATION (Section 8.2.2.3)
+message RegistrationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+}
+
+// RegistrationAnswer:
+// ServerAssignmentAnswer with ServerAssignmentType set to REGISTRATION (Section 8.2.2.3)
+message RegistrationAnswer {}
+

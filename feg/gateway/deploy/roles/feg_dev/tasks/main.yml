@@ -1,0 +1,93 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+#################################
+# Temp hack: Install kafka
+#################################
+
+# magma/platform go.mod requires kafka. This will be
+# removed soon after code refactor.
+- name: Install prerequisites for building librdkafka
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+      - build-essential
+      - zlib1g-dev
+      - libssl-dev
+      - gcc
+      - make
+      - pkg-config
+  when: preburn
+
+- name: Create archives directory
+  file: path=/var/opt/magma/archives state=directory
+  when: preburn
+
+- name: Clone librdkafka
+  git:
+    repo: https://github.com/edenhill/librdkafka.git
+    version: 'v0.11.6'
+    dest: '/var/opt/magma/archives/librdkafka'
+    force: true
+  when: preburn
+
+- name: Install librdkafka
+  become: yes
+  shell: './configure && make && make install && ldconfig'
+  args:
+    chdir: '/var/opt/magma/archives/librdkafka'
+  when: preburn
+
+#################################
+# Dev env setup
+#################################
+
+- name: Install dev time dependencies
+  apt: pkg={{ item }} state=present
+  with_items:
+    # Required by some go libraries
+    - bzr
+  when: preburn
+
+- name: Create the $GOBIN/services directory
+  file:
+    path: "{{ gobin }}/services"
+    state: directory
+    owner: "{{ user }}"
+
+- name: Create the $GOBIN/tools directory
+  file:
+    path: "{{ gobin }}/tools"
+    state: directory
+    owner: "{{ user }}"
+
+- name: Create a symlink for $GOBIN
+  file:
+    src: "{{ gobin }}"
+    path: /var/opt/magma/bin
+    state: link
+    force: yes
+
+- name: Create a symlink for the envdir
+  file:
+    src: "{{ magma_root }}/orc8r/cloud/deploy/files/envdir"
+    path: /var/opt/magma/envdir
+    state: link
+    force: yes
+
+#################################
+# Copy service files for mock cores
+#################################
+
+- name: Copy mock core service file templates
+  copy:
+    src: "magma_{{ item }}.service"
+    dest: "/etc/systemd/system/magma@{{ item }}.service"
+  with_items:
+    - ocs
+    - pcrf
+    - hss

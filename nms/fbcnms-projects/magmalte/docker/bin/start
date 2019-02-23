@@ -1,0 +1,10 @@
+#!/bin/sh
+
+if [ ! -z "$CHAMBER_PARAMETER_STORE" ]; then
+  chamber exec "$CHAMBER_PARAMETER_STORE" -- yarn run start:prod
+elif [ ! -z "$ENVIRONMENT" ] && [ ! -z "$PARTNER" ]; then
+  # deprecated, use CHAMBER_PARMAETER_STORE instead
+  chamber exec "magmanms/$ENVIRONMENT/$PARTNER" -- yarn run start:prod
+else
+  yarn run start:prod
+fi

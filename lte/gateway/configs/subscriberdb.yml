@@ -1,0 +1,34 @@
+---
+#
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+host_address: 0.0.0.0 # Bind to all interfaces
+
+# Keep subscriberdb in memory. Change to path to persist
+db_path: file::memory:?cache=shared
+
+# MME Configurations
+mme_host_name: hss.magma.com
+mme_realm: magma.com
+mme_host_address: 127.0.0.1
+mme_port: 3868
+
+# Default Subscription Profile
+default_max_ul_bit_rate: 100000000  # 100 Mbps
+default_max_dl_bit_rate: 200000000  # 200 Mbps
+
+# Relay S6A via gRPC
+relay_mode: False
+# NOTE: Turning on retries can result in delayed responses, which results
+# in the MME state machine being out of sync when the attach timer expires.
+relay_retry_count: 0
+
+# Enable s6a interface over gRPC
+# shall set to false if intend to use Free-Diameter for s6a interface
+# TODO replace boolean with list of protocols: "s6a_over_grpc", "s6a_over_fd"
+s6a_over_grpc: True

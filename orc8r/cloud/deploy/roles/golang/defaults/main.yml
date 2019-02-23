@@ -1,0 +1,14 @@
+---
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+
+  golang_tar: go1.11.linux-amd64.tar.gz
+  golang_tar_checksum: 'sha256:b3fcf280ff86558e0559e185b601c9eade0fd24c900b4c63cd14d1d38613e499'
+  go_install_path: /usr/local
+  gopath: '/home/{{ user }}/go'
+  gobin: '/home/{{ user }}/go/bin'
+  go_bin_path: '{{ go_install_path }}/go/bin:{{ gobin }}'
+  makebin: '/home/{{ user }}/magma/orc8r/cloud/go/bin'

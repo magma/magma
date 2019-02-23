@@ -1,0 +1,106 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+matrix:
+  include:
+    - language: go
+      name: Verifying generated files are in-sync
+      go:
+        - 1.11.x
+      os: linux
+      dist: xenial
+
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
+
+      before_install:
+        - ./travis/golang_before_install.sh
+
+      before_script:
+        - sudo mkdir -p /etc/magma/configs
+        - ./travis/link_cloud_configs.sh
+
+      script:
+        - make -C $MAGMA_ROOT/orc8r/cloud gen
+        - make -C $MAGMA_ROOT/feg/gateway gen
+        - cd $MAGMA_ROOT
+        - git add .
+        - git status
+        # This command will exit 1 if there are any changes to the git clone
+        - git diff-index --quiet HEAD
+
+    - language: go
+      name: Cloud precommit
+      go:
+        - 1.11.x
+      os: linux
+      dist: xenial
+
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
+
+      before_install:
+        - ./travis/golang_before_install.sh
+        - ./travis/start_dynamo_local.sh
+
+      before_script:
+        - sudo mkdir -p /etc/magma/configs
+        - ./travis/link_cloud_configs.sh
+
+      script:
+        - make -C $MAGMA_ROOT/orc8r/cloud precommit
+
+    - language: go
+      name: FeG precommit
+      go:
+        - 1.11.x
+      os: linux
+      dist: xenial
+
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
+
+      before_install:
+        - ./travis/golang_before_install.sh
+
+      before_script:
+        - sudo ln -s $MAGMA_ROOT/config/feg /etc/magma
+
+      script:
+        - make -C $MAGMA_ROOT/feg/gateway precommit
+
+    - language: minimal
+      name: LTE gateway python unit tests
+      os: linux
+      dist: xenial
+
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR PYTHON_BUILD=$TRAVIS_BUILD_DIR/build PIP_CACHE_HOME=$TRAVIS_BUILD_DIR/.pipcache MAGMA_DEV_MODE=1 SKIP_SUDO_TESTS=1
+
+      before_install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -y libsystemd-dev pkg-config
+        - sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+
+        # Install protobuf compiler
+        - sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+        - sudo unzip protoc3.zip -d protoc3
+        - sudo mv protoc3/bin/protoc /bin/protoc
+        - sudo chmod a+rx /bin/protoc
+        - sudo mv protoc3/include/google /usr/include/
+        - sudo chmod -R a+Xr /usr/include/google
+        - sudo rm -rf protoc3.zip protoc3
+
+      script:
+        - make -C $MAGMA_ROOT/lte/gateway/python test_all
+
+notifications:
+  slack:
+    rooms:
+      - secure: "aUV+pBw7lLDeog/Q7KTi5BrmH1y6IOUPhK42vYTaKT6/fZ1SlhU78VvgPK406kejRRuJSuYhd3hRt5xS2kJegWik14+y+/uxi6OxiI8GTwJrSnyiAiSGt+lWX+vOTIdWQ1RXTnNuxkWu4KmFJHhffZHlc9z3IalIQP6M19xEzVLr53eJTWg2rcVl4zsw9Wpjnl8yt9UhuHP+S36PWcbEm+aEgdWQONm/fRNH4pV4aTevMaBLDp6sxfrLh/yRlq51rXM2JMAECiTaOrO7YPG+Hb3l1z1GAw2e9zPUsaEFl53xKjtvWfLEZmDuD8OjnNlQJerI44XtGzV8SU7gpMan3974LqJ9cENAOklphV2vpNZKTr0P2OHC1k6apG4eGs/nGCkfhwquE6NvAQHKBWDEvY0tocl1runYRAKsqKbVxPB4sdEFzslsskBu9yS215DXPJ6khQS8HbO+/IHClv8Vm8/YpTS+8hRyPvP1u9zMX+VbslpYYZiOtriETyJIi8C/Jc8QS4uzsn5hHolmnJpCkDv3YyOVOZLpMaE46BR3D1kuZssnmrLPT7ChE5dygtHXAOr54CgXc/jBvn2+JvTNdTCuOZNe191P3cLnHjImW2B8+TRmE+GjAVvc5MA9n9+8nKUkooXLvt7uNckrIrwwWuSmqni6gDcXjKm1fjKVciY="
+    on_success: change
+    on_failure: always
+    on_pull_requests: false
+

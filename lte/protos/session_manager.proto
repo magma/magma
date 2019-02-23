@@ -1,0 +1,352 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "lte/protos/policydb.proto";
+import "lte/protos/subscriberdb.proto";
+import "google/protobuf/timestamp.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+message RuleRecord {
+  string sid = 1;
+  string rule_id = 2;
+  uint64 bytes_tx = 3;
+  uint64 bytes_rx = 4;
+}
+
+message RuleRecordTable {
+  repeated RuleRecord records = 1;
+}
+
+///////////////////
+// LocalSessionManager service
+///////////////////
+
+message LocalCreateSessionRequest {
+  SubscriberID sid = 1;
+  string ue_ipv4 = 2;
+  string spgw_ipv4 = 3;
+  string apn = 4;
+  string imei = 6;
+  string plmn_id = 7;
+  string imsi_plmn_id = 8;
+  bytes user_location = 9;
+  QosInformationRequest qos_info = 10;
+  bytes  msisdn = 11;
+}
+
+message LocalCreateSessionResponse {
+}
+
+message LocalEndSessionResponse {
+}
+
+message ChargingReAuthRequest {
+  string session_id = 1;
+  uint32 charging_key = 2;
+  string sid = 3;
+  enum Type {
+    SINGLE_SERVICE = 0;
+    ENTIRE_SESSION = 1;
+  }
+  Type type = 4;
+}
+
+message ChargingReAuthAnswer {
+  enum Result {
+    UPDATE_INITIATED = 0;
+    UPDATE_NOT_NEEDED = 1;
+    SESSION_NOT_FOUND = 2;
+    OTHER_FAILURE = 3;
+  }
+  Result result = 1;
+}
+
+message PolicyReAuthRequest {
+  string session_id = 1;
+  string imsi = 2;
+  repeated string rules_to_remove = 3;
+  repeated StaticRuleInstall rules_to_install = 6;
+  repeated DynamicRuleInstall dynamic_rules_to_install = 7;
+}
+
+enum ReAuthResult {
+  UPDATE_INITIATED = 0;
+  UPDATE_NOT_NEEDED = 1;
+  SESSION_NOT_FOUND = 2;
+  OTHER_FAILURE = 3;
+}
+
+message PolicyReAuthAnswer {
+  enum FailureCode {
+    // We want to map these directly to the diameter return codes, so use a
+    // placeholder for 0
+    UNUSED = 0;
+    UNKNOWN_RULE_NAME = 1;
+    RATING_GROUP_ERROR = 2;
+    SERVICE_IDENTIFIER_ERROR = 3;
+    GW_PCEF_MALFUNCTION = 4;
+    RESOURCES_LIMITATION = 5;
+    MAX_NR_BEARERS_REACHED = 6;
+    UNKNOWN_BEARER_ID = 7;
+    MISSING_BEARER_ID = 8;
+    MISSING_FLOW_INFORMATION = 9;
+    RESOURCE_ALLOCATION_FAILURE = 10;
+    UNSUCCESSFUL_QOS_VALIDATION = 11;
+    INCORRECT_FLOW_INFORMATION = 12;
+    PS_TO_CS_HANDOVER = 13;
+    TDF_APPLICATION_IDENTIFIER_ERROR = 14;
+    NO_BEARER_FOUND = 15;
+    FILTER_RESTRICTIONS = 16;
+    AN_GW_FAILED = 17;
+    MISSING_REDIRECT_SERVER_ADDRESS = 18;
+    CM_END_USER_SERVICE_DENIED = 19;
+    CM_CREDIT_CONTROL_NOT_APPLICABLE = 20;
+    CM_AUTHORIZATION_REJECTED = 21;
+    CM_USER_UNKNOWN = 22;
+    CM_RATING_FAILED = 23;
+    ROUTING_RULE_REJECTION = 24;
+    UNKNOWN_ROUTING_ACCESS_INFORMATION = 25;
+    NO_NBIFOM_SUPPORT = 26;
+  }
+
+  string session_id = 1;
+  ReAuthResult result = 2;
+  map<string, FailureCode> failed_rules = 3;
+}
+
+service LocalSessionManager {
+  rpc ReportRuleStats(RuleRecordTable) returns (orc8r.Void) {}
+
+  rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
+
+  rpc EndSession(SubscriberID) returns (LocalEndSessionResponse) {}
+}
+
+service SessionProxyResponder {
+  rpc ChargingReAuth(ChargingReAuthRequest) returns (ChargingReAuthAnswer) {}
+
+  rpc PolicyReAuth(PolicyReAuthRequest) returns (PolicyReAuthAnswer) {}
+}
+
+///////////////////
+// CentralSessionController service
+///////////////////
+
+message CreditUnit {
+  bool is_valid = 1;
+  uint64 volume = 2;
+}
+
+message GrantedUnits {
+  CreditUnit total = 1;
+  CreditUnit tx = 2;
+  CreditUnit rx = 3;
+}
+
+// OCS CHARGING
+
+message ChargingCredit {
+  enum UnitType {
+      BYTES = 0;
+      SECONDS = 1;
+  }
+  UnitType type = 2;
+  uint32 validity_time = 3; // seconds
+  bool is_final = 4;
+  enum FinalAction {
+    TERMINATE = 0;
+    REDIRECT = 1;
+    RESTRICT_ACCESS = 2;
+  }
+  FinalAction final_action = 5;
+  GrantedUnits granted_units = 6;
+}
+
+message CreditUsage {
+  uint64 bytes_tx = 1;
+  uint64 bytes_rx = 2;
+  uint32 charging_key = 4;
+  enum UpdateType {
+    THRESHOLD = 0;
+    QHT = 1;
+    TERMINATED = 2; // FINAL - UE disconnected, flow not in use
+    QUOTA_EXHAUSTED = 3; // UE hit credit limit
+    VALIDITY_TIMER_EXPIRED = 4; // Credit expired
+    OTHER_QUOTA_TYPE = 5;
+    RATING_CONDITION_CHANGE = 6;
+    REAUTH_REQUIRED = 7; // FORCED_REAUTHORISATION
+    POOL_EXHAUSTED = 8;
+  }
+  UpdateType type = 5;
+  string monitoring_key = 6;
+}
+
+message CreditUsageUpdate {
+  CreditUsage usage = 1;
+  string session_id = 2;
+  uint32 request_number = 3; // unique among session
+  string sid = 4;
+  bytes msisdn = 5;
+  string ue_ipv4 = 6;
+  string spgw_ipv4 = 7;
+  string apn = 8;
+  string imei = 9;
+  string plmn_id = 10;
+  string imsi_plmn_id = 11;
+  bytes user_location = 12;
+}
+
+message CreditUpdateResponse {
+  enum ResponseType {
+    UPDATE = 0;
+  }
+  bool success = 1;
+  string sid = 2;
+  uint32 charging_key = 3;
+  ChargingCredit credit = 4;
+  ResponseType type = 5;
+}
+
+// PCRF USAGE MONITORING
+
+enum MonitoringLevel {
+  SESSION_LEVEL = 0;
+  PCC_RULE_LEVEL = 1;
+}
+
+// Used amount for a usage monitor
+message UsageMonitorUpdate {
+  string monitoring_key = 1;
+  MonitoringLevel level = 2;
+  uint64 bytes_tx = 3;
+  uint64 bytes_rx = 4;
+}
+
+// New received threshold for a usage monitor
+message UsageMonitoringCredit {
+  enum Action {
+    CONTINUE = 0; // continue monitoring as normal
+    DISABLE = 1; // no need to monitor any more
+  }
+  Action action = 1;
+  string monitoring_key = 2;
+  MonitoringLevel level = 3;
+  GrantedUnits granted_units = 5;
+}
+
+// A request to update a usage monitor given its usage and session information
+message UsageMonitoringUpdateRequest {
+  UsageMonitorUpdate update = 1;
+  string session_id = 2;
+  uint32 request_number = 3; // unique among session
+  string sid = 4;
+  string ue_ipv4 = 5;
+}
+
+// Response to a usage monitor update with the credit received and session info
+message UsageMonitoringUpdateResponse {
+  UsageMonitoringCredit credit = 1;
+  string session_id = 2;
+  string sid = 3;
+  bool success = 4;
+}
+
+
+// COMBINED MESSAGES
+
+// QoS Information to be sent in CCR-Init message
+message QosInformationRequest {
+  uint32 apn_ambr_dl = 1;
+  uint32 apn_ambr_ul = 2;
+  uint32 priority_level = 3;
+  uint32 preemption_capability = 4;
+  uint32 preemption_vulnerability = 5;
+  uint32 qos_class_id = 6;
+}
+
+message CreateSessionRequest {
+  SubscriberID subscriber = 1;
+  string session_id = 2;
+  string ue_ipv4 = 3;
+  string spgw_ipv4 = 4;
+  string apn = 5;
+  string imei = 7;
+  string plmn_id = 8;
+  string imsi_plmn_id = 9;
+  bytes user_location = 10;
+  QosInformationRequest qos_info = 11;
+  bytes  msisdn = 12;
+  string gc_id = 13;
+}
+
+message CreateSessionResponse {
+  repeated CreditUpdateResponse credits = 1; // these will only have updates
+  repeated string rule_base_names = 5; // static rule base names
+  repeated UsageMonitoringUpdateResponse usage_monitors = 6;
+  repeated StaticRuleInstall static_rules = 7; // static rules
+  repeated DynamicRuleInstall dynamic_rules = 8; // dynamic rules
+}
+
+message StaticRuleInstall {
+  string rule_id = 1;
+  google.protobuf.Timestamp activation_time = 2;
+  google.protobuf.Timestamp deactivation_time = 3;
+}
+
+message DynamicRuleInstall {
+  PolicyRule policy_rule = 1;
+  google.protobuf.Timestamp activation_time = 2;
+  google.protobuf.Timestamp deactivation_time = 3;
+}
+
+message UpdateSessionRequest {
+  repeated CreditUsageUpdate updates = 1;
+  repeated UsageMonitoringUpdateRequest usage_monitors = 3;
+}
+
+message UpdateSessionResponse {
+  repeated CreditUpdateResponse responses = 1;
+  repeated UsageMonitoringUpdateResponse usage_monitor_responses = 3;
+}
+
+message SessionTerminateResponse {
+  string sid = 1;
+  string session_id = 2;
+}
+
+message SessionTerminateRequest {
+  string sid = 1;
+  string session_id = 2;
+  string apn = 3;
+  uint32 request_number = 4;
+  repeated CreditUsage credit_usages = 5;
+  repeated UsageMonitorUpdate monitor_usages = 6;
+  string ue_ipv4 = 7;
+  bytes msisdn = 8;
+  string spgw_ipv4 = 9;
+  string imei = 10;
+  string plmn_id = 11;
+  string imsi_plmn_id = 12;
+  bytes user_location = 13;
+}
+
+service CentralSessionController {
+  // Notify OCS/PCRF of new session and return rules associated with subscriber
+  // along with credits for each rule
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse) {}
+
+  // Updates OCS/PCRF with used credit and terminations from gateway
+  rpc UpdateSession(UpdateSessionRequest) returns (UpdateSessionResponse) {}
+
+  // Terminates session in OCS/PCRF for a subscriber
+  rpc TerminateSession(SessionTerminateRequest) returns (SessionTerminateResponse) {}
+}

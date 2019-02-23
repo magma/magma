@@ -1,0 +1,181 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+import "google/protobuf/field_mask.proto";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// --------------------------------------------------------------------------
+// SubscriberID (or SID) uniquely identifies the subscriber across the system
+// --------------------------------------------------------------------------
+message SubscriberID {
+  string id = 1;
+
+  enum IDType {
+    IMSI = 0;
+  }
+  IDType type = 2;
+}
+
+message SubscriberIDSet {
+  repeated SubscriberID sids = 1;
+}
+
+// --------------------------------------------------------------------------
+// GSM/LTE subscription info
+// --------------------------------------------------------------------------
+message GSMSubscription {
+  enum GSMSubscriptionState {
+    INACTIVE = 0;
+    ACTIVE = 1;
+  }
+  GSMSubscriptionState state = 1;
+
+  enum GSMAuthAlgo {
+    PRECOMPUTED_AUTH_TUPLES = 0;  // default
+    // COMP128_V1 = 1; Not supported
+  }
+  GSMAuthAlgo auth_algo = 2;
+
+  // Authentication key (ki). Need for A3/A8 algos. This is not used
+  // when the auth_algo is PRECOMPUTED_AUTH_TUPLES.
+  bytes auth_key = 3;
+
+  // Precomputed (rand, sres, kc) tuples. Used when the auth_algo is
+  // PRECOMPUTED_AUTH_TUPLES.
+  repeated bytes auth_tuples = 4;
+}
+
+message LTESubscription {
+  enum LTESubscriptionState {
+    INACTIVE = 0;
+    ACTIVE = 1;
+  }
+  LTESubscriptionState state = 1;
+
+  enum LTEAuthAlgo {
+    MILENAGE = 0;  // default
+  }
+  LTEAuthAlgo auth_algo = 2;
+
+  // Authentication key (k).
+  bytes auth_key = 3;
+
+  // Operator configuration field (Op) signed with authentication key (k)
+  bytes auth_opc = 4;
+}
+
+message SubscriberState {
+  // Next SEQ to be used for calculating the AUTN.
+  uint64 lte_auth_next_seq = 1;
+}
+
+// --------------------------------------------------------------------------
+// User subscription record. This record is serialized and stored in the DB.
+// --------------------------------------------------------------------------
+message SubscriberData {
+  // Unique indentifier for the subscriber
+  SubscriberID sid = 1;
+
+  GSMSubscription gsm = 2;
+
+  LTESubscription lte = 3;
+
+  magma.orc8r.NetworkID network_id = 4;
+
+  SubscriberState state = 5;
+
+  // Subscription profile
+  string sub_profile = 6;
+}
+
+message SubscriberUpdate {
+  // Updated subscription data
+  SubscriberData data = 1;
+
+  // Specifies the fields to be updated
+  // The mask can be individual subscription elements (Eg: 'lte.auth_key') or
+  // entire subset in the SubscriberData (Eg: 'lte' to update all lte.* fields)
+  google.protobuf.FieldMask mask = 2;
+}
+
+// --------------------------------------------------------------------------
+// SubscriberDB service definition.
+// --------------------------------------------------------------------------
+service SubscriberDB {
+
+  // Adds a new subscriber to the store.
+  // Throws ALREADY_EXISTS if the subscriber already exists.
+  //
+  rpc AddSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
+
+  // Deletes an existing subscriber.
+  // If the subscriber is not already present, this request is ignored.
+  //
+  rpc DeleteSubscriber (SubscriberID) returns (magma.orc8r.Void) {}
+
+  // Updates an existing subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc UpdateSubscriber (SubscriberUpdate) returns (magma.orc8r.Void) {}
+
+  // Returns the SubscriberData for a subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc GetSubscriberData (SubscriberID) returns (SubscriberData) {}
+
+  // List the subscribers in the store.
+  //
+  rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
+}
+
+// --------------------------------------------------------------------------
+// SubscriberDB controller
+// --------------------------------------------------------------------------
+message SubscriberLookup {
+  magma.orc8r.NetworkID network_id = 1;
+
+  SubscriberID sid = 2;
+}
+
+message GetAllSubscriberDataResponse {
+  repeated SubscriberData subscribers = 1;
+}
+
+service SubscriberDBController {
+
+  // Adds a new subscriber to the store.
+  // Throws ALREADY_EXISTS if the subscriber already exists.
+  //
+  rpc AddSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
+
+  // Deletes an existing subscriber.
+  // If the subscriber is not already present, this request is ignored.
+  //
+  rpc DeleteSubscriber (SubscriberLookup) returns (magma.orc8r.Void) {}
+
+  // Updates an existing subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc UpdateSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
+
+  // Returns the SubscriberData for a subscriber.
+  // Throws NOT_FOUND if the subscriber is missing.
+  //
+  rpc GetSubscriberData (SubscriberLookup) returns (SubscriberData) {}
+
+  // List the subscribers in the store.
+  //
+  rpc ListSubscribers (magma.orc8r.NetworkID) returns (SubscriberIDSet) {}
+
+  // Get all subscriber data for the network
+  rpc GetAllSubscriberData (magma.orc8r.NetworkID) returns (GetAllSubscriberDataResponse) {}
+}

@@ -1,0 +1,21 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+[Unit]
+Description=Magma prometheus service
+
+[Service]
+Type=simple
+ExecStart={{ prometheus_subdir }}/prometheus --web.listen-address=":{{ prometheus_port }}" --storage.tsdb.path="{{ prometheus_db_path }}" --config.file="{{ prometheus_subdir }}/prometheus.yml"
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=prometheus
+Restart=always
+RestartSec=1s
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target
