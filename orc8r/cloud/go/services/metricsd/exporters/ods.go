@@ -177,8 +177,6 @@ func (e *ODSMetricExporter) GetTags(s *Sample) []string {
 }
 
 // ODSDatapoint is used to Marshal JSON encoding for ODS data submission
-// see https://phabricator.intern.facebook.com/diffusion/E/browse/tfb/trunk/www/flib/platform/graph/resources/ods/metrics/GraphOdsMetricsPost.php
-// for types accepted
 type ODSDatapoint struct {
 	Entity string   `json:"entity"`
 	Key    string   `json:"key"`

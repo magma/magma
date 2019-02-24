@@ -143,7 +143,7 @@ stop:  # Stops all Magma services
 
 create_admin_oper:  # Creates new admin operator and adds to certifier
 	test -s $(CERTS_DIR)/admin_operator.pem || { $(BIN_DIR)/accessc add-admin -cert $(CERTS_DIR)/admin_operator admin_operator; }
-	test -s $(CERTS_DIR)/admin_operator.pfx || { openssl pkcs12 -passout pass:mai -export -out $(CERTS_DIR)/admin_operator.pfx -inkey $(CERTS_DIR)/admin_operator.key.pem -in $(CERTS_DIR)/admin_operator.pem; }
+	test -s $(CERTS_DIR)/admin_operator.pfx || { openssl pkcs12 -passout pass:magma -export -out $(CERTS_DIR)/admin_operator.pfx -inkey $(CERTS_DIR)/admin_operator.key.pem -in $(CERTS_DIR)/admin_operator.pem; }
 
 restore_admin_operator:  # Adds existing admin operator to certifier
 	$(BIN_DIR)/accessc add-existing -admin -cert $(CERTS_DIR)/admin_operator.pem admin_operator

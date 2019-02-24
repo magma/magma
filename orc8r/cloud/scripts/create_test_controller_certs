@@ -57,6 +57,6 @@ else
   echo "Create admin certs.."
   echo "####################"
   ${ACCESSC} add-admin -cert admin_operator admin_operator
-  openssl pkcs12 -passout pass:mai -export -out admin_operator.pfx \
+  openssl pkcs12 -passout pass:magma -export -out admin_operator.pfx \
         -inkey admin_operator.key.pem -in admin_operator.pem
 fi
