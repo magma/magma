@@ -5,6 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^3.8.3",
     "@material-ui/icons": "^3.0.1",
+    "@material-ui/lab": "^3.0.0-alpha.30",
     "@material-ui/styles": "^3.0.0-alpha.7",
     "notistack": "^0.4.1",
     "react": "^16.8.1",

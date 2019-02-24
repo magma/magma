@@ -9,7 +9,7 @@
  */
 
 import {createMuiTheme} from '@material-ui/core/styles';
-import {sea100, sea200, sea300} from './colors';
+import {sea100, sea200, sea300, white} from './colors';
 
 export default createMuiTheme({
   palette: {
@@ -44,7 +44,7 @@ export default createMuiTheme({
     MuiAppBar: {
       colorPrimary: {
         backgroundColor: sea200,
-        color: '#fff',
+        color: white,
       },
     },
     MuiButton: {
@@ -53,6 +53,24 @@ export default createMuiTheme({
         cursor: 'pointer',
         fontSize: 14,
         padding: '6px 30px',
+      },
+    },
+    MuiToggleButtonGroup: {
+      selected: {
+        boxShadow: 'none',
+        borderRadius: 4,
+        border: `1px solid ${sea200}`,
+      },
+    },
+    MuiToggleButton: {
+      root: {
+        color: sea200,
+        backgroundColor: white,
+        textTransform: 'none',
+        '&$selected': {
+          color: white,
+          backgroundColor: sea200,
+        },
       },
     },
     MuiIconButton: {

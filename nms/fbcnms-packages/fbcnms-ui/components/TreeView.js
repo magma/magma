@@ -70,6 +70,7 @@ const styles = (theme: Theme) => ({
   title: {
     lineHeight: '100%',
     flexGrow: 1,
+    fontWeight: 'bold',
   },
   panel: {
     width: '100%',
