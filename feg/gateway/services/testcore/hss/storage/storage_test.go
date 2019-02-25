@@ -11,6 +11,7 @@ package storage
 import (
 	"magma/lte/cloud/go/protos"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -66,7 +67,7 @@ func (suite *SubscriberStoreTestSuite) TestGetSubscriberData() {
 
 	result, err := store.GetSubscriberData("1")
 	suite.NoError(err)
-	suite.Equal(sub, *result)
+	suite.True(proto.Equal(&sub, result))
 }
 
 func (suite *SubscriberStoreTestSuite) TestUpdateSubscriberData() {
@@ -95,7 +96,7 @@ func (suite *SubscriberStoreTestSuite) TestUpdateSubscriberData() {
 
 	retrievedSub, err := store.GetSubscriberData("1")
 	suite.NoError(err)
-	suite.Equal(updatedSub, retrievedSub)
+	suite.True(proto.Equal(updatedSub, retrievedSub))
 }
 
 func (suite *SubscriberStoreTestSuite) TestDeleteSubscriber() {
@@ -107,7 +108,7 @@ func (suite *SubscriberStoreTestSuite) TestDeleteSubscriber() {
 
 	result, err := store.GetSubscriberData("1")
 	suite.NoError(err)
-	suite.Equal(sub, *result)
+	suite.True(proto.Equal(&sub, result))
 
 	err = store.DeleteSubscriber("1")
 	suite.NoError(err)

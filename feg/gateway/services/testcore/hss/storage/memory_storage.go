@@ -72,6 +72,10 @@ func (store *MemorySubscriberStore) UpdateSubscriber(data *protos.SubscriberData
 // Input: The id of the subscriber to be looked up.
 // Output: The data of the corresponding subscriber or an error.
 func (store *MemorySubscriberStore) GetSubscriberData(id string) (*protos.SubscriberData, error) {
+	if err := validateSubscriberID(id); err != nil {
+		return nil, err
+	}
+
 	data, exists := store.accounts[id]
 	if exists {
 		return data, nil
@@ -84,19 +88,10 @@ func (store *MemorySubscriberStore) GetSubscriberData(id string) (*protos.Subscr
 // If the subscriber is not found, then this call is ignored.
 // Input: The id of the subscriber to be deleted.
 func (store *MemorySubscriberStore) DeleteSubscriber(id string) error {
+	if err := validateSubscriberID(id); err != nil {
+		return err
+	}
+
 	delete(store.accounts, id)
-	return nil
-}
-
-// validateSubscriberData ensures that a subscriber data proto is not nil and
-// that itcontains a subscriber id.
-func validateSubscriberData(subscriber *protos.SubscriberData) error {
-	if subscriber == nil {
-		return NewInvalidArgumentError("Subscriber data cannot be nil")
-	}
-
-	if subscriber.Sid == nil {
-		return NewInvalidArgumentError("Subscriber data must contain a subscriber id")
-	}
 	return nil
 }

@@ -11,13 +11,18 @@ package storage
 import (
 	"testing"
 
+	"magma/orc8r/cloud/go/datastore"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
-func TestMemorySubscriberStore(t *testing.T) {
+func TestSubscriberDataStore(t *testing.T) {
 	testSuite := new(SubscriberStoreTestSuite)
 	testSuite.createStore = func() SubscriberStore {
-		return NewMemorySubscriberStore()
+		db, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+		assert.NoError(t, err)
+		return NewSubscriberDataStore(db)
 	}
 	suite.Run(t, testSuite)
 }
