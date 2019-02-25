@@ -16,6 +16,7 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
+	"magma/feg/gateway/services/testcore/hss/storage"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -54,7 +55,10 @@ func (srv *HomeSubscriberServer) NewULA(msg *diam.Message) (*diam.Message, error
 
 	subscriber, err := srv.store.GetSubscriberData(string(ulr.UserName))
 	if err != nil {
-		return ConstructFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_USER_UNKNOWN)), err
+		if _, ok := err.(storage.UnknownSubscriberError); ok {
+			return ConstructFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_USER_UNKNOWN)), err
+		}
+		return ConstructFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE)), err
 	}
 
 	profile, ok := srv.Config.SubProfiles[subscriber.SubProfile]

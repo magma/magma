@@ -17,6 +17,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/crypto"
+	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -62,8 +63,10 @@ func (srv *HomeSubscriberServer) NewAIA(msg *diam.Message) (*diam.Message, error
 
 	subscriber, err := srv.store.GetSubscriberData(air.UserName)
 	if err != nil {
-		// TODO(vikg): Differentiate between transient and permanent storage errors
-		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
+		if _, ok := err.(storage.UnknownSubscriberError); ok {
+			return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
+		}
+		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE)), err
 	}
 
 	err = srv.ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize())
