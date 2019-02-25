@@ -76,9 +76,10 @@ func TestHomeSubscriberServer_handleMAR(t *testing.T) {
 		assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+		checkSIPAuthVectors(t, maa, 1)
 	}
 
-	mar := createMAR("sub1")
+	mar := createMARWithSingleAuthItem("sub1")
 	testDiameterMessage(t, clientHandler, mar)
 }
 
