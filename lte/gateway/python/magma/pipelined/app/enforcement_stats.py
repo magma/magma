@@ -124,6 +124,10 @@ class EnforcementStatsController(MagmaController):
         """
         Aggregate flow stats by rule, and report to session manager
         """
+        stat_count = sum(len(flow_stats) for flow_stats in stats_msgs)
+        if stat_count == 0:
+            return
+
         self.logger.debug("Processing %s stats responses", len(stats_msgs))
         # Aggregate flows into rule records
         current_usage = defaultdict(RuleRecord)
