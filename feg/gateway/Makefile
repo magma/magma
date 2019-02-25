@@ -46,4 +46,4 @@ lint:
 build_only:
 	go build ./...
 
-precommit: fmt build_only test vet
+precommit: fmt gen build_only test vet

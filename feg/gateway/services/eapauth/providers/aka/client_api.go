@@ -13,13 +13,12 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/gateway/services/eapauth"
-
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/eapauth"
 	"magma/feg/gateway/services/eapauth/protos"
 )
 
