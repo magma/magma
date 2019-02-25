@@ -110,7 +110,7 @@ def display_flows(_unused, _):
             print(flow)
 
 
-def create_enforecement_parser(apps):
+def create_enforcement_parser(apps):
     """
     Creates the argparse subparser for the enforcement app
     """
@@ -158,7 +158,7 @@ def create_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
     create_metering_parser(apps)
-    create_enforecement_parser(apps)
+    create_enforcement_parser(apps)
     return parser
 
 
