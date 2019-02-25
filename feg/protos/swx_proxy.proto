@@ -10,6 +10,15 @@ syntax = "proto3";
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
 
+// SwxErrorCode reflects Experimental-Result values which are 3GPP failures
+// to be processed by EPC. Diameter Base Protocol errors are reflected in gRPC status code
+enum SwxErrorCode {
+    ERROR_UNDEFINED = 0;
+
+    IDENTITY_ALREADY_REGISTERED = 5005;
+    USER_NO_NON_3GPP_SUBSCRIPTION = 5450;
+}
+
 service SwxProxy {
     // Retrieve authentication vectors from the HSS using MAR/MAA
     rpc Authenticate (AuthenticationRequest) returns (AuthenticationAnswer) {}

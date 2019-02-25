@@ -76,6 +76,83 @@ message LTESubscription {
 message SubscriberState {
   // Next SEQ to be used for calculating the AUTN.
   uint64 lte_auth_next_seq = 1;
+
+  // The Diameter address of the 3GPP AAA Server which is serving the user.
+  // An empty string indicates that no server is currently serving the user.
+  string tgpp_aaa_server_name = 2;
+
+  // Whether the subscribers User Status is REGISTERED or NOT_REGISTERED.
+  bool tgpp_aaa_server_registered = 3;
+}
+
+// For details about values read 3GPP 24.302
+enum AccessNetworkIdentifier {
+  HRPD = 0;
+  WIMAX = 1;
+  WLAN = 2;
+  ETHERNET = 3;
+}
+
+message APNConfiguration {
+  // APN identifier
+  uint32 context_id = 1;
+  // Contains either the APN Name or wildcard "*"
+  string service_selection = 2;
+  // APN QoS profile
+  QoSProfile qos_profile = 3;
+  // APN authorized bitrate
+  AggregatedMaximumBitrate ambr = 4;
+
+  enum PDNType {
+    IPV4 = 0;
+    IPV6 = 1;
+    IPV4V6 = 2;
+    IPV4_OR_IPV6 = 3;
+  }
+  PDNType pdn = 5;
+
+  // For details about values see 29.212
+  message QoSProfile {
+    int32 class_id = 1;
+    uint32 priority_level = 2;
+    bool preemption_capability = 3;
+    bool preemption_vulnerability = 4;
+  }
+}
+
+message AggregatedMaximumBitrate {
+  // Maximum uplink bitrate
+  uint32 max_bandwidth_ul = 1;
+  // Maximum downlink bitrate
+  uint32 max_bandwidth_dl = 2;
+}
+
+message Non3GPPUserProfile {
+  string msisdn = 1;
+
+  enum Non3GPPIPAccess {
+    // Subscriber has non-3GPP subscription access to EPC network
+    NON_3GPP_SUBSCRIPTION_ALLOWED = 0;
+
+    // Subscriber has no non-3GPP subscription access to EPC network
+    NON_3GPP_SUBSCRIPTION_BARRED = 1;
+  }
+  Non3GPPIPAccess non_3gpp_ip_access = 2;
+
+  enum Non3GPPIPAccessAPN {
+    // Enable all APNs for a subscriber
+    NON_3GPP_APNS_ENABLE = 0;
+
+    // Disable all APNs for a subscriber
+    NON_3GPP_APNS_DISABLE = 1;
+  }
+  Non3GPPIPAccessAPN non_3gpp_ip_access_apn = 3;
+
+  AggregatedMaximumBitrate ambr = 4;
+
+  APNConfiguration apn_config = 5;
+
+  AccessNetworkIdentifier access_net_id = 6;
 }
 
 // --------------------------------------------------------------------------
@@ -95,6 +172,8 @@ message SubscriberData {
 
   // Subscription profile
   string sub_profile = 6;
+
+  Non3GPPUserProfile non_3gpp = 7;
 }
 
 message SubscriberUpdate {
