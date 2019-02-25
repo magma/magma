@@ -108,6 +108,7 @@ func (srv *HomeSubscriberServer) Start() error {
 	mux.HandleFunc("ALL", handleUnknownMessage) // default handler
 	mux.Handle(diam.AIR, srv.handleMessage(NewAIA))
 	mux.Handle(diam.ULR, srv.handleMessage(NewULA))
+	mux.Handle(diam.MAR, srv.handleMessage(NewMAA))
 
 	server := &diam.Server{
 		Network: serverCfg.Protocol,

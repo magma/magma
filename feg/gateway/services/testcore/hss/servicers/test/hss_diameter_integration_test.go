@@ -14,7 +14,8 @@ import (
 	"time"
 
 	"magma/feg/gateway/diameter"
-	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
+	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
+	swx "magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -27,7 +28,7 @@ import (
 func TestHomeSubscriberServer_handleAIR(t *testing.T) {
 	// Create a test client interface which expects a valid AIA response.
 	clientHandler := func(conn diam.Conn, msg *diam.Message) {
-		var aia definitions.AIA
+		var aia s6a.AIA
 
 		// Check that the AIA is a success and has the expected data.
 		err := msg.Unmarshal(&aia)
@@ -46,7 +47,7 @@ func TestHomeSubscriberServer_handleAIR(t *testing.T) {
 func TestHomeSubscriberServer_handleULA(t *testing.T) {
 	// Create a test client interface which expects a valid ULA response.
 	clientHandler := func(conn diam.Conn, msg *diam.Message) {
-		var ula definitions.ULA
+		var ula s6a.ULA
 
 		// Check that the ULA is a success and has the expected data.
 		err := msg.Unmarshal(&ula)
@@ -60,6 +61,25 @@ func TestHomeSubscriberServer_handleULA(t *testing.T) {
 
 	ulr := createULR("sub1")
 	testDiameterMessage(t, clientHandler, ulr)
+}
+
+func TestHomeSubscriberServer_handleMAR(t *testing.T) {
+	// Create a test client interface which expects a valid MAA response.
+	clientHandler := func(conn diam.Conn, msg *diam.Message) {
+		var maa swx.MAA
+
+		// Check that the MAA is a success and has the expected data.
+		err := msg.Unmarshal(&maa)
+		assert.NoError(t, err)
+		assert.Equal(t, "magma;123_1234", maa.SessionID)
+		assert.Equal(t, diam.Success, int(maa.ResultCode))
+		assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
+		assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
+		assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+	}
+
+	mar := createMAR("sub1")
+	testDiameterMessage(t, clientHandler, mar)
 }
 
 // testDiameterMessage sends a message to a test diameter server and provides the
