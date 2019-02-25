@@ -100,14 +100,12 @@ def _print_rule_mod_results(results):
 
 
 @grpc_wrapper
-def display_flows(_unused, _):
-    ENFORCEMENT_TABLE_NUM = 5
+def display_flows(_unused, args):
     pipelined_config = load_service_config('pipelined')
     bridge_name = pipelined_config['bridge_name']
     flows = []
     try:
-        flows = BridgeTools.get_flows_for_bridge(bridge_name,
-                                                 ENFORCEMENT_TABLE_NUM)
+        flows = BridgeTools.get_flows_for_bridge(bridge_name, args.table_num)
     except subprocess.CalledProcessError as e:
         if (e.returncode == errno.EPERM):
             print("Need to run as root to dump flows")
@@ -156,6 +154,7 @@ def create_enforcement_parser(apps):
     subcmd.set_defaults(func=activate_dynamic_rule)
 
     subcmd = subparsers.add_parser('display_flows', help='Display flows')
+    subcmd.add_argument('--table_num', help='table number to filter')
     subcmd.set_defaults(func=display_flows)
 
 
