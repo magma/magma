@@ -54,14 +54,14 @@ func (srv *HomeSubscriberServer) NewULA(msg *diam.Message) (*diam.Message, error
 
 	subscriber, err := srv.store.GetSubscriberData(string(ulr.UserName))
 	if err != nil {
-		return ConstructPermanentFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_USER_UNKNOWN)), err
+		return ConstructFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_USER_UNKNOWN)), err
 	}
 
 	profile, ok := srv.Config.SubProfiles[subscriber.SubProfile]
 	if !ok || profile == nil {
 		profile = srv.Config.DefaultSubProfile
 		if profile == nil {
-			answer := ConstructPermanentFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_UNKNOWN_EPS_SUBSCRIPTION))
+			answer := ConstructFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_UNKNOWN_EPS_SUBSCRIPTION))
 			return answer, fmt.Errorf("unknown subscriber profile: %s and default profile was not initialized", subscriber.SubProfile)
 		} else {
 			glog.V(2).Infof("Subscriber profile '%s' not found, using default profile instead", subscriber.SubProfile)

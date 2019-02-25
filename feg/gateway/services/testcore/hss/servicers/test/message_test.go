@@ -28,7 +28,7 @@ func TestConstructPermanentFailureAnswer(t *testing.T) {
 		DestHost:  "magma_host",
 		DestRealm: "magma_realm",
 	}
-	response := servicers.ConstructPermanentFailureAnswer(msg, datatype.UTF8String("magma"), serverCfg, 1000)
+	response := servicers.ConstructFailureAnswer(msg, datatype.UTF8String("magma"), serverCfg, 1000)
 
 	assert.Equal(t, msg.Header.CommandCode, response.Header.CommandCode)
 	assert.Equal(t, uint8(0), response.Header.CommandFlags)

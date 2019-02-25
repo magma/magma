@@ -19,11 +19,10 @@ import (
 	"github.com/fiorix/go-diameter/diam/datatype"
 )
 
-// ConstructPermanentFailureAnswer creates an answer for the message with an embedded
-// Experimental-Result AVP. This answer informs the peer that the request has failed,
-// and should not be attempted again.
-// See 3GPP TS 29.272 section 7.4.3.
-func ConstructPermanentFailureAnswer(msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig, resultCode uint32) *diam.Message {
+// ConstructFailureAnswer creates an answer for the message with an embedded
+// Experimental-Result AVP. This answer informs the peer that the request has failed.
+// See 3GPP TS 29.272 section 7.4.3 (permanent errors) and section 7.4.4 (transient errors).
+func ConstructFailureAnswer(msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig, resultCode uint32) *diam.Message {
 	newMsg := diam.NewMessage(
 		msg.Header.CommandCode,
 		msg.Header.CommandFlags&^diam.RequestFlag, // Reset the Request bit.

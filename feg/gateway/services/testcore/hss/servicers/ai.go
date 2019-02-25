@@ -62,7 +62,7 @@ func (srv *HomeSubscriberServer) NewAIA(msg *diam.Message) (*diam.Message, error
 
 	subscriber, err := srv.store.GetSubscriberData(air.UserName)
 	if err != nil {
-		return ConstructPermanentFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
+		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
 	}
 
 	// TODO(vikg): Differentiate between auth rejected, auth data unavailable, and unable to comply errors.
