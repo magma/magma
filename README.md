@@ -188,8 +188,8 @@ After this, you will be able to access the UI by visiting [https://localhost](ht
 ## Join the Magma Community
 
 - Mailing lists:
-  - Join <magma-dev@googlegroups.com> for technical discussions
-  - Join <magma-announce@googlegroups.com> for announcements
+  - Join [magma-dev](https://groups.google.com/forum/#!forum/magma-dev) for technical discussions
+  - Join [magma-announce](https://groups.google.com/forum/#!forum/magma-announce) for announcements
 - Discord:
   - [magma\_dev](https://discord.gg/WDBpebF) channel
 
