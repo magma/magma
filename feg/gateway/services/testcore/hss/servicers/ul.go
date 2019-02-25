@@ -42,7 +42,7 @@ const (
 
 // NewULA outputs a update location answer (ULA) to reply to an
 // update location request (ULR) message.
-func (srv *HomeSubscriberServer) NewULA(msg *diam.Message) (*diam.Message, error) {
+func NewULA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error) {
 	err := ValidateULR(msg)
 	if err != nil {
 		return msg.Answer(diam.MissingAVP), err
@@ -153,22 +153,4 @@ func ValidateULR(msg *diam.Message) error {
 		return errors.New("Missing SessionID in message")
 	}
 	return nil
-}
-
-// handleULR is called upon receiving an update location request (ULR).
-// It processes the request and sends a update location answer (ULA) back.
-func (srv *HomeSubscriberServer) handleULR() diam.HandlerFunc {
-	return func(conn diam.Conn, msg *diam.Message) {
-		glog.V(2).Info("ULR Received in hss service")
-
-		answer, err := srv.NewULA(msg)
-		if err != nil {
-			glog.Error(err)
-		}
-
-		_, err = answer.WriteTo(conn)
-		if err != nil {
-			glog.Errorf("Failed to send ULA: %s", err.Error())
-		}
-	}
 }

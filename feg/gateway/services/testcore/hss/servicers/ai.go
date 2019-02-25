@@ -51,7 +51,7 @@ const (
 
 // NewAIA outputs a authentication information answer (AIA) to reply to an
 // authentication information request (AIR) message.
-func (srv *HomeSubscriberServer) NewAIA(msg *diam.Message) (*diam.Message, error) {
+func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error) {
 	if err := ValidateAIR(msg); err != nil {
 		return msg.Answer(diam.MissingAVP), err
 	}
@@ -300,22 +300,4 @@ func ValidateLteSubscription(lte *protos.LTESubscription) error {
 		return fmt.Errorf("Unsupported crypto algorithm: %v", lte.AuthAlgo)
 	}
 	return nil
-}
-
-// handleAIR is called upon receiving an authentication information request (AIR).
-// It processes the request and sends a authentication information answer (AIA) back.
-func (srv *HomeSubscriberServer) handleAIR() diam.HandlerFunc {
-	return func(conn diam.Conn, msg *diam.Message) {
-		glog.V(2).Info("AIR Received in hss service")
-
-		a, err := srv.NewAIA(msg)
-		if err != nil {
-			glog.Error(err)
-		}
-
-		_, err = a.WriteTo(conn)
-		if err != nil {
-			glog.Errorf("Failed to send AIA: %s", err.Error())
-		}
-	}
 }

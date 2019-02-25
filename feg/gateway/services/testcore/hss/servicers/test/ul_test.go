@@ -28,7 +28,7 @@ import (
 func TestNewULA_MissingMandatoryAVP(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 	m := diam.NewMessage(diam.UpdateLocation, diam.RequestFlag|diam.ProxiableFlag, diam.TGPP_S6A_APP_ID, 1, 1, dict.Default)
-	response, err := server.NewULA(m)
+	response, err := servicers.NewULA(server, m)
 	assert.EqualError(t, err, "Missing IMSI in message")
 
 	// Check that the ULA is a failure message.
@@ -41,7 +41,7 @@ func TestNewULA_MissingMandatoryAVP(t *testing.T) {
 func TestNewULA_UnknownSubscriber(t *testing.T) {
 	ulr := createULR("sub_unknown")
 	server := newTestHomeSubscriberServer(t)
-	response, err := server.NewULA(ulr)
+	response, err := servicers.NewULA(server, ulr)
 	assert.Exactly(t, err, storage.NewUnknownSubscriberError("sub_unknown"))
 
 	// Check that the ULA is a failure message.
@@ -54,7 +54,7 @@ func TestNewULA_UnknownSubscriber(t *testing.T) {
 func TestNewULA_SuccessfulResponse(t *testing.T) {
 	ulr := createULR("sub1")
 	server := newTestHomeSubscriberServer(t)
-	response, err := server.NewULA(ulr)
+	response, err := servicers.NewULA(server, ulr)
 	assert.NoError(t, err)
 
 	// Check that the ULA has all the expected data.

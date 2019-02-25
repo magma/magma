@@ -30,7 +30,7 @@ import (
 func TestNewAIA_MissingSessionID(t *testing.T) {
 	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
 	server := newTestHomeSubscriberServer(t)
-	response, err := server.NewAIA(m)
+	response, err := servicers.NewAIA(server, m)
 	assert.Error(t, err)
 
 	// Check that the AIA is a failure message.
@@ -42,7 +42,8 @@ func TestNewAIA_MissingSessionID(t *testing.T) {
 
 func TestNewAIA_UnknownIMSI(t *testing.T) {
 	air := createAIR("sub_unknown")
-	response, err := newTestHomeSubscriberServer(t).NewAIA(air)
+	server := newTestHomeSubscriberServer(t)
+	response, err := servicers.NewAIA(server, air)
 	assert.Exactly(t, storage.NewUnknownSubscriberError("sub_unknown"), err)
 
 	// Check that the AIA is a failure message.
@@ -61,7 +62,7 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 	server.Milenage = milenage
 
 	air := createAIR("sub1")
-	response, err := server.NewAIA(air)
+	response, err := servicers.NewAIA(server, air)
 	assert.NoError(t, err)
 
 	// Check that the AIA has all the expected data.
@@ -92,7 +93,7 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 func TestNewAIA_MultipleVectors(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 	air := createAIRExtended("sub1", 3)
-	response, err := server.NewAIA(air)
+	response, err := servicers.NewAIA(server, air)
 	assert.NoError(t, err)
 
 	var aia definitions.AIA
@@ -118,7 +119,7 @@ func TestNewAIA_MissingAuthKey(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 
 	air := createAIR("missing_auth_key")
-	response, err := server.NewAIA(air)
+	response, err := servicers.NewAIA(server, air)
 	assert.Exactly(t, servicers.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
 
 	// Check that the AIA has the expected error.
