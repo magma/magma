@@ -19,7 +19,11 @@ from magma.subscriberdb.sid import SIDUtils
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
 from orc8r.protos.common_pb2 import Void
-from lte.protos.pipelined_pb2 import ActivateFlowsRequest, DeactivateFlowsRequest
+from lte.protos.pipelined_pb2 import (
+    ActivateFlowsRequest,
+    DeactivateFlowsRequest,
+    RuleModResult,
+)
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 
@@ -56,7 +60,8 @@ def activate_flows(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         rule_ids=args.rule_ids.split(','))
-    client.ActivateFlows(request)
+    response = client.ActivateFlows(request)
+    _print_rule_mod_results(response.static_rule_results)
 
 
 @grpc_wrapper
@@ -82,7 +87,16 @@ def activate_dynamic_rule(client, args):
                     ipv4_src=args.ipv4_dst, direction=FlowMatch.DOWNLINK)),
             ],
         )])
-    client.ActivateFlows(request)
+    response = client.ActivateFlows(request)
+    _print_rule_mod_results(response.dynamic_rule_results)
+
+
+def _print_rule_mod_results(results):
+    # The message cannot be directly printed because SUCCESS is mapped to 0,
+    # which is ignored in the printing by default.
+    for result in results:
+        print(result.rule_id,
+              RuleModResult.Result.Name(result.result))
 
 
 @grpc_wrapper
