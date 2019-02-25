@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strings"
 
+	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/gateway/registry"
 	"magma/lte/cloud/go/protos"
 
@@ -30,7 +31,7 @@ func (client *CloseableSessionProxyResponderClient) Close() {
 // Get a client to the local session manager client. To avoid leaking
 // connections, defer Close() on the returned client.
 func GetSessionProxyResponderClient(cloudRegistry registry.CloudRegistry) (*CloseableSessionProxyResponderClient, error) {
-	conn, err := cloudRegistry.GetCloudConnection("feg_to_gw_relay")
+	conn, err := cloudRegistry.GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to connect to gw relay: %s", err)
 	}

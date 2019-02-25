@@ -8,4 +8,4 @@ LICENSE file in the root directory of this source tree.
 
 package feg_relay
 
-const ServiceName = "FEG_TO_GW_RELAY"
+const ServiceName = "FEG_RELAY"

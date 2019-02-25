@@ -14,6 +14,7 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	orcprotos "magma/orc8r/cloud/go/protos"
@@ -42,7 +43,7 @@ var clientFuncMap = map[decode.SGsMessageType]grpcClient{
 }
 
 func SendSGsMessageToGateway(messageType decode.SGsMessageType, msg *any.Any) (*orcprotos.Void, error) {
-	conn, err := registry.NewCloudRegistry().GetCloudConnection("feg_to_gw_relay")
+	conn, err := registry.NewCloudRegistry().GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to establish connection to cloud FegToGwRelayClient: %s", err)
 		glog.Error(errMsg)

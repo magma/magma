@@ -32,7 +32,7 @@ clientcert_services:
   config: 9099
   directoryd: 9100
   download: 9102
-  feg_to_gw_relay: 9103
+  feg_relay: 9103
   vpnservice: 9104
   health: 9107
 feg_services:

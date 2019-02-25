@@ -13,6 +13,7 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/gateway/registry"
 
 	"github.com/golang/glog"
@@ -21,7 +22,7 @@ import (
 )
 
 func getCloudConn() (*grpc.ClientConn, error) {
-	conn, err := registry.NewCloudRegistry().GetCloudConnection("feg_to_gw_relay")
+	conn, err := registry.NewCloudRegistry().GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {
 		errMsg := fmt.Sprintf("Failed to establish connection to cloud FegToGwRelayClient: %s", err)
 		glog.Error(errMsg)

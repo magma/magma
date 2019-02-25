@@ -7,7 +7,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 services:
-  feg_to_gw_relay:
+  feg_relay:
     host: "localhost"
     port: 9103
 
