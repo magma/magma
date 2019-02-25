@@ -23,9 +23,18 @@ matrix:
         - ./travis/link_cloud_configs.sh
 
       script:
-        - make -C $MAGMA_ROOT/orc8r/cloud gen
-        - make -C $MAGMA_ROOT/feg/gateway gen
-        - cd $MAGMA_ROOT
+        - cd ${MAGMA_ROOT}/orc8r/cloud
+        - travis_retry travis_wait go mod download
+        - cd ${MAGMA_ROOT}/feg/gateway
+        - travis_retry travis_wait go mod download
+
+        # Clear temp files (e.g. travis_retry/travis_wait logs)
+        - cd ${MAGMA_ROOT}
+        - git clean -fd
+
+        - make -C ${MAGMA_ROOT}/orc8r/cloud gen
+        - make -C ${MAGMA_ROOT}/feg/gateway gen
+        - cd ${MAGMA_ROOT}
         - git add .
         - git status
         # This command will exit 1 if there are any changes to the git clone
@@ -50,7 +59,9 @@ matrix:
         - ./travis/link_cloud_configs.sh
 
       script:
-        - make -C $MAGMA_ROOT/orc8r/cloud precommit
+        - cd ${MAGMA_ROOT}/orc8r/cloud
+        - travis_retry travis_wait go mod download
+        - make -C ${MAGMA_ROOT}/orc8r/cloud precommit
 
     - language: go
       name: FeG precommit
@@ -69,7 +80,9 @@ matrix:
         - sudo ln -s $MAGMA_ROOT/config/feg /etc/magma
 
       script:
-        - make -C $MAGMA_ROOT/feg/gateway precommit
+        - cd ${MAGMA_ROOT}/feg/gateway
+        - travis_retry travis_wait go mod download
+        - make -C ${MAGMA_ROOT}/feg/gateway precommit
 
     - language: minimal
       name: LTE gateway python unit tests
