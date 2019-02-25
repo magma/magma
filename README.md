@@ -83,7 +83,8 @@ Here, we'll be setting up the orchestrator cloud and datastore VMs. The datastor
 
 ```console
 HOST [magma]$ cd orc8r/cloud
-HOST [magma/orc8r/cloud]$ vagrant up
+HOST [magma/orc8r/cloud]$ vagrant up datastore
+HOST [magma/orc8r/cloud]$ vagrant up cloud
 ```
 
 An Ansible error about a `.cache/test_certs` directory being missing is benign.
@@ -183,7 +184,7 @@ HOST [magma/nms/fbcnms-projects/magmalte] $
 docker-compose run magmalte yarn run setAdminPassword admin@magma.test password1234
 ```
 
-After this, you will be able to access the UI by visiting [https://localhost](https://localhost), and using the email `admin@magma.test` and password `password1234`.
+After this, you will be able to access the UI by visiting [https://localhost](https://localhost), and using the email `admin@magma.test` and password `password1234`. If you see Gateway Error 502, don't worry, the NMS can take upto 60 seconds to finish starting up.
 
 ## Join the Magma Community
 
