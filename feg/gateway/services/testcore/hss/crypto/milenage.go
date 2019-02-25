@@ -49,6 +49,15 @@ const (
 	// KasmeBytes is the number of bytes for the base network authentication token.
 	KasmeBytes = 32
 
+	// ConfidentialityKeyBytes is the number of bytes for the confidentiality key.
+	ConfidentialityKeyBytes = 16
+
+	// IntegrityKeyBytes is the number of bytes for the integrity key.
+	IntegrityKeyBytes = 16
+
+	// AnonymityKeyBytes is the number of bytes for the anonymity key.
+	AnonymityKeyBytes = 16
+
 	// The highest valid sequence number (since sequence numbers are 48 bits).
 	maxSqn      = (1 << 47) - 1
 	sqnMaxBytes = 6
@@ -89,6 +98,27 @@ type EutranVector struct {
 	Kasme [KasmeBytes]byte
 }
 
+// SIPAuthVector represents the data encoded in a SIP auth data item.
+type SIPAuthVector struct {
+	// Rand is a random challenge
+	Rand [RandChallengeBytes]byte
+
+	// Xres is the expected response
+	Xres [XresBytes]byte
+
+	// Autn is an authentication token
+	Autn [AutnBytes]byte
+
+	// Confidentialitykey is used to ensure the confidentiality of messages
+	ConfidentialityKey [ConfidentialityKeyBytes]byte
+
+	// IntegrityKey is used to ensure the integrity of messages
+	IntegrityKey [IntegrityKeyBytes]byte
+
+	// AnonymityKey is used to ensure the anonymity of messages
+	AnonymityKey [AnonymityKeyBytes]byte
+}
+
 // GenerateEutranVector creates an E-UTRAN key vector.
 // Inputs:
 //   key: 128 bit subscriber key
@@ -106,16 +136,37 @@ func (milenage *MilenageCipher) GenerateEutranVector(key []byte, opc []byte, sqn
 		return nil, err
 	}
 
-	var randChallenge = make([]byte, RandChallengeBytes)
-	_, err = milenage.rng.Read(randChallenge)
+	vector, err := milenage.GenerateSIPAuthVector(key, opc, sqn)
 	if err != nil {
 		return nil, err
 	}
 
-	const uint64Bytes = 8
-	sqnBytes := make([]byte, uint64Bytes)
-	binary.BigEndian.PutUint64(sqnBytes, sqn)
-	sqnBytes = sqnBytes[uint64Bytes-sqnMaxBytes:]
+	sqnBytes := getSqnBytes(sqn)
+	kasme, err := generateKasme(vector.ConfidentialityKey[:], vector.IntegrityKey[:], plmn, sqnBytes, vector.AnonymityKey[:])
+	if err != nil {
+		return nil, err
+	}
+
+	return newEutranVector(vector.Rand[:], vector.Xres[:], vector.Autn[:], kasme), nil
+}
+
+// GenerateSIPAuthVector creates a SIP auth vector.
+// Inputs:
+//   key: 128 bit subscriber key
+//   opc: 128 bit operator variant algorithm configuration field
+//   sqn: 48 bit sequence number
+// Outputs: A SIP auth vector or an error. The SIP auth vector is not nil if and only if err == nil.
+func (milenage *MilenageCipher) GenerateSIPAuthVector(key []byte, opc []byte, sqn uint64) (*SIPAuthVector, error) {
+	if err := validateGenerateSIPAuthVectorInputs(key, opc, sqn); err != nil {
+		return nil, err
+	}
+
+	var randChallenge = make([]byte, RandChallengeBytes)
+	_, err := milenage.rng.Read(randChallenge)
+	if err != nil {
+		return nil, err
+	}
+	sqnBytes := getSqnBytes(sqn)
 
 	macA, _, err := f1(key, sqnBytes, randChallenge, opc, milenage.amf[:])
 	if err != nil {
@@ -137,12 +188,7 @@ func (milenage *MilenageCipher) GenerateEutranVector(key []byte, opc []byte, sqn
 	}
 
 	autn := generateAutn(sqnBytes, ak, macA, milenage.amf[:])
-	kasme, err := generateKasme(ck, ik, plmn, sqnBytes, ak)
-	if err != nil {
-		return nil, err
-	}
-
-	return newEutranVector(randChallenge, xres, autn, kasme), nil
+	return newSIPAuthVector(randChallenge, xres, autn, ck, ik, ak), nil
 }
 
 // GenerateOpc returns the OP_c according to 3GPP 35.205 8.2
@@ -219,14 +265,24 @@ func validateGenerateResyncInputs(auts, key, opc, rand []byte) error {
 // Each byte slice must be the correct number of bytes and sqn must fit within 48 bits.
 // Output: An error if any of the arguments is invalid or nil otherwise.
 func validateGenerateEutranVectorInputs(key []byte, opc []byte, sqn uint64, plmn []byte) error {
-	if len(key) != ExpectedKeyBytes {
-		return fmt.Errorf("incorrect key size. Expected 16 bytes, but got %v bytes", len(key))
-	}
-	if len(opc) != ExpectedOpcBytes {
-		return fmt.Errorf("incorrect opc size. Expected 16 bytes, but got %v bytes", len(opc))
+	if err := validateGenerateSIPAuthVectorInputs(key, opc, sqn); err != nil {
+		return err
 	}
 	if len(plmn) != ExpectedPlmnBytes {
 		return fmt.Errorf("incorrect plmn size. Expected 3 bytes, but got %v bytes", len(plmn))
+	}
+	return nil
+}
+
+// validateGenerateSIPAuthVectorInputs ensures that each argument has the required form.
+// Each byte slice must be the correct number of bytes and sqn must fit within 48 bits.
+// Output: An error if any of the arguments is invalid or nil otherwise.
+func validateGenerateSIPAuthVectorInputs(key []byte, opc []byte, sqn uint64) error {
+	if len(key) != ExpectedKeyBytes {
+		return fmt.Errorf("incorrect key size. Expected %v bytes, but got %v bytes", ExpectedKeyBytes, len(key))
+	}
+	if len(opc) != ExpectedOpcBytes {
+		return fmt.Errorf("incorrect opc size. Expected %v bytes, but got %v bytes", ExpectedOpcBytes, len(opc))
 	}
 	if uint64(sqn) > maxSqn {
 		return fmt.Errorf("sequence number too large, expected a number which can fit in 48 bits. Got: %v", sqn)
@@ -450,6 +506,14 @@ func generateKasme(ck, ik, plmn, sqn, ak []byte) ([]byte, error) {
 	return hash.Sum(nil), nil
 }
 
+// getSqnBytes encodes sqn in a byte slice.
+func getSqnBytes(sqn uint64) []byte {
+	const uint64Bytes = 8
+	sqnBytes := make([]byte, uint64Bytes)
+	binary.BigEndian.PutUint64(sqnBytes, sqn)
+	return sqnBytes[uint64Bytes-sqnMaxBytes:]
+}
+
 // encrypt implements the Rijndael (AES-128) cipher function used by Milenage
 // Inputs:
 //   key: 128 bit encryption key
@@ -498,6 +562,18 @@ func newEutranVector(rand, xres, autn, kasme []byte) *EutranVector {
 	copy(eutran.Autn[:], autn)
 	copy(eutran.Kasme[:], kasme)
 	return eutran
+}
+
+// newSIPAuthVector creates a SIP auth vector by copying in the given slices.
+func newSIPAuthVector(rand, xres, autn, ck, ik, ak []byte) *SIPAuthVector {
+	var vector = &SIPAuthVector{}
+	copy(vector.Rand[:], rand)
+	copy(vector.Xres[:], xres)
+	copy(vector.Autn[:], autn)
+	copy(vector.ConfidentialityKey[:], ck)
+	copy(vector.IntegrityKey[:], ik)
+	copy(vector.AnonymityKey[:], ak)
+	return vector
 }
 
 // cryptoRNG allows reading random bytes

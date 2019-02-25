@@ -34,6 +34,26 @@ func TestGenerateEutranVector(t *testing.T) {
 	assert.Equal(t, []byte("\x87H\xc1\xc0\xa2\x82o\xa4\x05\xb1\xe2~\xa1\x04CJ\xe5V\xc7e\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2"), eutran.Kasme[:])
 }
 
+func TestGenerateSIPAuthVector(t *testing.T) {
+	rand := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f")
+	key := []byte("\x8b\xafG?/\x8f\xd0\x94\x87\xcc\xcb\xd7\t|hb")
+	sqn := uint64(7351)
+	opc := []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]")
+	amf := []byte("\x80\x00")
+
+	milenage, err := NewMockMilenageCipher(amf, rand)
+	assert.NoError(t, err)
+
+	vector, err := milenage.GenerateSIPAuthVector(key, opc, sqn)
+	assert.NoError(t, err)
+	assert.Equal(t, rand, vector.Rand[:])
+	assert.Equal(t, []byte("\x2d\xaf\x87\x3d\x73\xf3\x10\xc6"), vector.Xres[:])
+	assert.Equal(t, []byte("o\xbf\xa3\x80\x1fW\x80\x00{\xdeY\x88n\x96\xe4\xfe"), vector.Autn[:])
+	assert.Equal(t, []byte{0xf0, 0x6e, 0x32, 0xf9, 0x13, 0xee, 0xfb, 0x49, 0xfb, 0x72, 0xf1, 0x9, 0xb3, 0xa5, 0xf3, 0xc8}, vector.ConfidentialityKey[:])
+	assert.Equal(t, []byte{0xb0, 0x6a, 0x7b, 0x46, 0xf, 0x4f, 0x53, 0xc4, 0x16, 0x6b, 0xf4, 0xa2, 0xe0, 0xa0, 0xc2, 0x5c}, vector.IntegrityKey[:])
+	assert.Equal(t, []byte{0x6f, 0xbf, 0xa3, 0x80, 0x3, 0xe0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, vector.AnonymityKey[:])
+}
+
 func TestGenerateEutranVectorError(t *testing.T) {
 	amf := []byte("\x80\x00")
 	milenage, err := NewMilenageCipher(amf)
@@ -68,6 +88,27 @@ func TestValidateGenerateEutranVectorInputs(t *testing.T) {
 
 	err = validateGenerateEutranVectorInputs(key, opc, maxSqn+1, plmn)
 	assert.Error(t, err)
+}
+
+func TestValidateGenerateSIPAuthVectorInputs(t *testing.T) {
+	err := validateGenerateEutranVectorInputs(nil, nil, 0, nil)
+	assert.Error(t, err)
+
+	var key = make([]byte, ExpectedKeyBytes)
+	var opc = make([]byte, ExpectedOpcBytes)
+	err = validateGenerateSIPAuthVectorInputs(key, opc, 0)
+	assert.NoError(t, err)
+
+	var badKey = make([]byte, ExpectedKeyBytes*2)
+	err = validateGenerateSIPAuthVectorInputs(badKey, opc, 0)
+	assert.EqualError(t, err, "incorrect key size. Expected 16 bytes, but got 32 bytes")
+
+	var badOpc = make([]byte, ExpectedOpcBytes/2)
+	err = validateGenerateSIPAuthVectorInputs(key, badOpc, 0)
+	assert.EqualError(t, err, "incorrect opc size. Expected 16 bytes, but got 8 bytes")
+
+	err = validateGenerateSIPAuthVectorInputs(key, opc, maxSqn+1)
+	assert.EqualError(t, err, "sequence number too large, expected a number which can fit in 48 bits. Got: 140737488355328")
 }
 
 func TestNewMilenageError(t *testing.T) {
