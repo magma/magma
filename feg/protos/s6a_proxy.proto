@@ -59,6 +59,7 @@ enum ErrorCode {
     AUTHENTICATION_REJECTED  = 4001;
     OUT_OF_SPACE             = 4002;
     ELECTION_LOST            = 4003;
+    AUTHORIZATION_REJECTED   = 5003;
     // Permanent Failures 7.4.3
     USER_UNKNOWN             = 5001;
     UNKNOWN_EPS_SUBSCRIPTION = 5420;

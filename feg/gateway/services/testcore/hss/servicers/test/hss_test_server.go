@@ -53,6 +53,20 @@ func newTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 	err := store.AddSubscriber(sub)
 	assert.NoError(t, err)
 
+	sub = &protos.SubscriberData{
+		Sid: &protos.SubscriberID{Id: "missing_auth_key"},
+		Lte: &protos.LTESubscription{
+			State:    protos.LTESubscription_ACTIVE,
+			AuthAlgo: protos.LTESubscription_MILENAGE,
+			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
+		},
+		State: &protos.SubscriberState{
+			LteAuthNextSeq: 7350,
+		},
+	}
+	err = store.AddSubscriber(sub)
+	assert.NoError(t, err)
+
 	config := &mconfig.HSSConfig{
 		Server: &mconfig.DiamServerConfig{
 			Protocol:  defaultServerProtocol,

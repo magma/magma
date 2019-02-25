@@ -62,14 +62,13 @@ func (srv *HomeSubscriberServer) NewAIA(msg *diam.Message) (*diam.Message, error
 
 	subscriber, err := srv.store.GetSubscriberData(air.UserName)
 	if err != nil {
+		// TODO(vikg): Differentiate between transient and permanent storage errors
 		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
 	}
 
-	// TODO(vikg): Differentiate between auth rejected, auth data unavailable, and unable to comply errors.
-
 	err = srv.ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize())
 	if err != nil {
-		return msg.Answer(diam.UnableToComply), err
+		return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 	}
 
 	const plmnOffsetBytes = 1
@@ -83,7 +82,7 @@ func (srv *HomeSubscriberServer) NewAIA(msg *diam.Message) (*diam.Message, error
 			// return it. Otherwise, we must signal an error.
 			// See 3GPP TS 29.272 section 5.2.3.1.3.
 			if i == 0 {
-				return msg.Answer(diam.UnableToComply), err
+				return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 			}
 			glog.Errorf("failed to generate lte auth vector: %v", err)
 			break
@@ -124,17 +123,17 @@ func (srv *HomeSubscriberServer) ResyncLteAuthSeq(subscriber *protos.SubscriberD
 		return nil
 	}
 	if len(resyncInfo) != lteResyncInfoBytes {
-		return fmt.Errorf("resync info incorrect length. expected %v bytes, but got %v bytes", lteResyncInfoBytes, len(resyncInfo))
+		return NewAuthRejectedError(fmt.Sprintf("resync info incorrect length. expected %v bytes, but got %v bytes", lteResyncInfoBytes, len(resyncInfo)))
 	}
 	lte := subscriber.Lte
 	if err := ValidateLteSubscription(lte); err != nil {
-		return err
+		return NewAuthRejectedError(err.Error())
 	}
 
 	// Use dummy AMF for re-synchronization. See 3GPP TS 33.102 section 6.3.3.
 	milenage, err := crypto.NewMilenageCipher(make([]byte, crypto.ExpectedAmfBytes))
 	if err != nil {
-		return err
+		return NewAuthDataUnavailableError(err.Error())
 	}
 	rand := resyncInfo[:crypto.RandChallengeBytes]
 	auts := resyncInfo[crypto.RandChallengeBytes:]
@@ -144,10 +143,10 @@ func (srv *HomeSubscriberServer) ResyncLteAuthSeq(subscriber *protos.SubscriberD
 	}
 	sqnMs, macS, err := milenage.GenerateResync(auts, subscriber.Lte.AuthKey, opc, rand)
 	if err != nil {
-		return err
+		return NewAuthDataUnavailableError(err.Error())
 	}
 	if !bytes.Equal(macS[:], auts[crypto.ExpectedAutsBytes-len(macS):]) {
-		return errors.New("Invalid resync authentication code")
+		return NewAuthRejectedError("Invalid resync authentication code")
 	}
 
 	return srv.SetNextLteAuthSqnAfterResync(subscriber, sqnMs)
@@ -164,7 +163,7 @@ func (srv *HomeSubscriberServer) SetNextLteAuthSqnAfterResync(subscriber *protos
 		if seqDelta <= maxSeqDelta {
 			// This error indicates that the last sequence number should have been
 			// accepted by the USIM but wasn't (this should never happen).
-			return fmt.Errorf("Re-sync delta in range but UE rejected auth: %d", seqDelta)
+			return NewAuthRejectedError(fmt.Sprintf("Re-sync delta in range but UE rejected auth: %d", seqDelta))
 		}
 	}
 
@@ -180,10 +179,10 @@ func (srv *HomeSubscriberServer) SetNextLteAuthSqnAfterResync(subscriber *protos
 func (srv *HomeSubscriberServer) GenerateLteAuthVector(subscriber *protos.SubscriberData, plmn []byte) (*crypto.EutranVector, error) {
 	lte := subscriber.Lte
 	if err := ValidateLteSubscription(lte); err != nil {
-		return nil, err
+		return nil, NewAuthRejectedError(err.Error())
 	}
 	if subscriber.State == nil {
-		return nil, fmt.Errorf("Subscriber data missing subscriber state")
+		return nil, NewAuthRejectedError("Subscriber data missing subscriber state")
 	}
 
 	opc, err := srv.GetOrGenerateOpc(lte)
@@ -196,13 +195,20 @@ func (srv *HomeSubscriberServer) GenerateLteAuthVector(subscriber *protos.Subscr
 		return nil, err
 	}
 	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, ind)
-	return srv.Milenage.GenerateEutranVector(lte.AuthKey, opc, sqn, plmn)
+	vector, err := srv.Milenage.GenerateEutranVector(lte.AuthKey, opc, sqn, plmn)
+	if err != nil {
+		return vector, NewAuthRejectedError(err.Error())
+	}
+	return vector, err
 }
 
 // GetOrGenerateOpc returns lte.AuthOpc and generates if it isn't stored in the proto
 func (srv *HomeSubscriberServer) GetOrGenerateOpc(lte *protos.LTESubscription) ([]byte, error) {
 	if lte == nil || len(lte.AuthOpc) == 0 {
 		opc, err := crypto.GenerateOpc(lte.AuthKey, srv.Config.LteAuthOp)
+		if err != nil {
+			err = NewAuthDataUnavailableError(err.Error())
+		}
 		return opc[:], err
 	}
 	return lte.AuthOpc, nil
@@ -249,7 +255,11 @@ func (srv *HomeSubscriberServer) SetNextLteAuthSeq(subscriber *protos.Subscriber
 	}
 
 	subscriber.State.LteAuthNextSeq = nextLteAuthSeq
-	return srv.store.UpdateSubscriber(subscriber)
+	err := srv.store.UpdateSubscriber(subscriber)
+	if err != nil {
+		return NewAuthDataUnavailableError(err.Error())
+	}
+	return nil
 }
 
 // ValidateAIR returns an error if the message is missing any mandatory AVPs.

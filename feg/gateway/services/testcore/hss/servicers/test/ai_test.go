@@ -114,6 +114,24 @@ func TestNewAIA_MultipleVectors(t *testing.T) {
 	}
 }
 
+func TestNewAIA_MissingAuthKey(t *testing.T) {
+	server := newTestHomeSubscriberServer(t)
+
+	air := createAIR("missing_auth_key")
+	response, err := server.NewAIA(air)
+	assert.Exactly(t, servicers.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
+
+	// Check that the AIA has the expected error.
+	var aia definitions.AIA
+	err = response.Unmarshal(&aia)
+	assert.NoError(t, err)
+	assert.Equal(t, uint32(protos.ErrorCode_AUTHORIZATION_REJECTED), aia.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, 0, len(aia.AIs))
+	assert.Equal(t, "magma;123_1234", aia.SessionID)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginHost)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginRealm)
+}
+
 func TestValidateAIR_MissingUserName(t *testing.T) {
 	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
@@ -269,7 +287,7 @@ func TestGenerateLteAuthVector_MissingLTE(t *testing.T) {
 
 	subscriber := &lteprotos.SubscriberData{State: &lteprotos.SubscriberState{}}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
-	assert.EqualError(t, err, "Subscriber data missing LTE subscription")
+	assert.Exactly(t, servicers.NewAuthRejectedError("Subscriber data missing LTE subscription"), err)
 }
 
 func TestGenerateLteAuthVector_MissingSubscriberState(t *testing.T) {
@@ -283,7 +301,7 @@ func TestGenerateLteAuthVector_MissingSubscriberState(t *testing.T) {
 		},
 	}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
-	assert.EqualError(t, err, "Subscriber data missing subscriber state")
+	assert.Exactly(t, servicers.NewAuthRejectedError("Subscriber data missing subscriber state"), err)
 }
 
 func TestGenerateLteAuthVector_InactiveLTESubscription(t *testing.T) {
@@ -298,7 +316,7 @@ func TestGenerateLteAuthVector_InactiveLTESubscription(t *testing.T) {
 		State: &lteprotos.SubscriberState{},
 	}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
-	assert.EqualError(t, err, "LTE Service not active")
+	assert.Exactly(t, servicers.NewAuthRejectedError("LTE Service not active"), err)
 }
 
 func TestGenerateLteAuthVector_UnknownLTEAuthAlgo(t *testing.T) {
@@ -313,7 +331,7 @@ func TestGenerateLteAuthVector_UnknownLTEAuthAlgo(t *testing.T) {
 		State: &lteprotos.SubscriberState{},
 	}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
-	assert.EqualError(t, err, "Unsupported crypto algorithm: 10")
+	assert.Exactly(t, servicers.NewAuthRejectedError("Unsupported crypto algorithm: 10"), err)
 }
 
 func TestGenerateLteAuthVector_Success(t *testing.T) {
@@ -395,12 +413,12 @@ func TestResyncLteAuthSeq(t *testing.T) {
 	resyncInfo := make([]byte, 50)
 	resyncInfo[25] = 1
 	err = server.ResyncLteAuthSeq(subscriber, resyncInfo)
-	assert.EqualError(t, err, "resync info incorrect length. expected 30 bytes, but got 50 bytes")
+	assert.Exactly(t, servicers.NewAuthRejectedError("resync info incorrect length. expected 30 bytes, but got 50 bytes"), err)
 
 	resyncInfo = make([]byte, 30)
 	resyncInfo[0] = 0xFF
 	err = server.ResyncLteAuthSeq(subscriber, resyncInfo)
-	assert.EqualError(t, err, "Invalid resync authentication code")
+	assert.Exactly(t, servicers.NewAuthRejectedError("Invalid resync authentication code"), err)
 
 	macS := []byte{132, 178, 239, 23, 199, 61, 138, 176}
 	copy(resyncInfo[22:], macS)
@@ -420,7 +438,7 @@ func TestSetNextLteAuthSqnAfterResync(t *testing.T) {
 	assert.NoError(t, err)
 
 	err = server.SetNextLteAuthSqnAfterResync(subscriber, servicers.SeqToSqn(1<<30-1<<10, 2))
-	assert.EqualError(t, err, "Re-sync delta in range but UE rejected auth: 1023")
+	assert.Exactly(t, servicers.NewAuthRejectedError("Re-sync delta in range but UE rejected auth: 1023"), err)
 
 	err = server.SetNextLteAuthSqnAfterResync(subscriber, servicers.SeqToSqn(1<<30-1, 3))
 	assert.NoError(t, err)
