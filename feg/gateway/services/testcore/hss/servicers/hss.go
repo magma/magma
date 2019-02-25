@@ -109,6 +109,7 @@ func (srv *HomeSubscriberServer) Start() error {
 	mux.Handle(diam.AIR, srv.handleMessage(NewAIA))
 	mux.Handle(diam.ULR, srv.handleMessage(NewULA))
 	mux.Handle(diam.MAR, srv.handleMessage(NewMAA))
+	mux.Handle(diam.SAR, srv.handleMessage(NewSAA))
 
 	server := &diam.Server{
 		Network: serverCfg.Protocol,
