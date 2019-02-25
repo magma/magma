@@ -67,7 +67,7 @@ def get_add_flow_msg(datapath, table, match, actions=None, instructions=None,
                      priority=MINIMUM_PRIORITY, cookie=0x0, idle_timeout=0,
                      hard_timeout=0, resubmit_table=None):
     """
-    Get an add flow modifcation message
+    Get an add flow modification message
 
     Args:
         datapath (ryu.controller.controller.Datapath):
@@ -181,6 +181,7 @@ def delete_flow(datapath, table, match, actions=None, instructions=None,
                             table_id=table, out_group=ofproto.OFPG_ANY,
                             out_port=ofproto.OFPP_ANY,
                             **kwargs)
+    logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries=retries)
 
 
