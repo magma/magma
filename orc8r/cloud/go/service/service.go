@@ -95,7 +95,7 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {
-		glog.Errorf("Failed to load config for service %s: %s", serviceName, err)
+		glog.Warningf("Failed to load config for service %s: %s", serviceName, err)
 		configMap = nil
 	}
 
