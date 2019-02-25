@@ -147,7 +147,7 @@ class QosQueueMap:
         Args:
             imsi: subscriber id
             rule_num: rule number of the policy
-                (imsi, rule_num) uniquely identifu a flow
+                (imsi, rule_num) uniquely identify a flow
         """
         if not self._enable_qdisc:
             return
