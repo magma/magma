@@ -21,8 +21,6 @@ import (
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
 	configregistry "magma/orc8r/cloud/go/services/config/registry"
-	"magma/orc8r/cloud/go/services/config/streaming"
-	configstreamer "magma/orc8r/cloud/go/services/config/streaming/providers"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
@@ -70,15 +68,6 @@ func (*BaseOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMconfigStreamers() []streaming.MconfigStreamer {
-	return []streaming.MconfigStreamer{
-		// magmad
-		&magmadconfig.MagmadStreamer{},
-		// dnsd
-		&dnsdconfig.DnsdStreamer{},
-	}
-}
-
 func (*BaseOrchestratorPlugin) GetMetricsProfiles() []metricsd.MetricsProfile {
 	return getMetricsProfiles()
 }
@@ -97,7 +86,6 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers() []obsidianh.Handler {
 
 func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
 	return []providers.StreamProvider{
-		configstreamer.GetProvider(),
 		mconfig.GetProvider(),
 	}
 }

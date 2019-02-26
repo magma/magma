@@ -9,7 +9,6 @@ module magma/orc8r/cloud/go
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/aws/aws-sdk-go v1.16.19
-	github.com/confluentinc/confluent-kafka-go v0.11.6
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
@@ -52,7 +51,7 @@ require (
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
 	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
 	golang.org/x/sys v0.0.0-20190115152922-a457fd036447 // indirect
-	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
+	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c // indirect
 	google.golang.org/grpc v1.17.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.2.2

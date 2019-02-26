@@ -58,7 +58,3 @@ services:
   directoryd:
     host: "localhost"
     port: 9100
-
-  mconfig_streamer:
-    host: "localhost"
-    port: 9105

@@ -4,7 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 #
-.PHONY: build clean clean_gen download fmt gen lint plugin test vet
+.PHONY: build clean clean_gen download fmt gen lint plugin test tidy vet
 
 build:: plugin
 	go install ./...
@@ -37,6 +37,9 @@ plugin::
 
 test::
 	go test ./...
+
+tidy:
+	go mod tidy
 
 tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:

@@ -19,7 +19,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/registry"
 	config_registry "magma/orc8r/cloud/go/services/config/registry"
-	"magma/orc8r/cloud/go/services/config/streaming"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -53,14 +52,6 @@ type OrchestratorPlugin interface {
 	// the config streamer application. These builders are responsible for
 	// constructing gateway mconfigs from cloud-stored configs.
 	GetMconfigBuilders() []factory.MconfigBuilder
-
-	// GetMconfigStreamers returns a list of MconfigStreamers to register with
-	// the materialized mconfig streaming application. The difference between
-	// MconfigStreamer and MconfigBuilder is that the former is designed to
-	// read sequential, incremental configuration updates and populate a
-	// materialized view accordingly. The latter simply reconstructs the same
-	// view on-demand.
-	GetMconfigStreamers() []streaming.MconfigStreamer
 
 	// GetMetricsProfile returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
@@ -172,7 +163,6 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin) error {
 		return err
 	}
 	factory.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
-	streaming.RegisterMconfigStreamers(orc8rPlugin.GetMconfigStreamers()...)
 	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles()...); err != nil {
 		return err
 	}

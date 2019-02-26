@@ -35,8 +35,6 @@ github.com/cockroachdb/cmux v0.0.0-20170110192607-30d10be49292/go.mod h1:qRiX68m
 github.com/cockroachdb/cockroach v0.0.0-20170608034007-84bc9597164f/go.mod h1:xeT/CQ0qZHangbYbWShlCGAx31aV4AjGswDUjhKS6HQ=
 github.com/cockroachdb/cockroach-go v0.0.0-20181001143604-e0a95dfd547c/go.mod h1:XGLbWH/ujMcbPbhZq52Nv6UrCghb1yGn//133kEsvDk=
 github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd/go.mod h1:sE/e/2PUdi/liOCUjSTXgM1o87ZssimdTWN964YiIeI=
-github.com/confluentinc/confluent-kafka-go v0.11.6 h1:rEblubnNXCjRThwAGnFSzLKYIRAoXLDC3A9r4ciziHU=
-github.com/confluentinc/confluent-kafka-go v0.11.6/go.mod h1:u2zNLny2xq+5rWeTQjFHbDzzNuba4P1vo31r9r4uAdg=
 github.com/coreos/etcd v3.3.10+incompatible/go.mod h1:uF7uidLiAD3TWHmW31ZFd/JWoc32PjwdhPthX9715RE=
 github.com/coreos/go-etcd v2.0.0+incompatible/go.mod h1:Jez6KQU2B/sWsbdaef3ED8NzMklzPG4d5KIOhIy30Tk=
 github.com/coreos/go-semver v0.2.0/go.mod h1:nnelYz7RCh+5ahJtPPxZlU+153eP4D4r3EedlOD2RNk=
@@ -115,8 +113,6 @@ github.com/go-swagger/go-swagger v0.18.0 h1:oVUUoMY2DMfDjjWqBdDaGbdxBfHllH3xt2DS
 github.com/go-swagger/go-swagger v0.18.0/go.mod h1:fOcXeMI1KPNv3uk4u7cR4VSyq0NyrYx4SS1/ajuTWDg=
 github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013 h1:l9rI6sNaZgNC0LnF3MiE+qTmyBA/tZAg1rtyrGbUMK0=
 github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013/go.mod h1:b65mBPzqzZWxOZGxSWrqs4GInLIn+u99Q9q7p+GKni0=
-github.com/go-yaml/yaml v2.1.0+incompatible h1:RYi2hDdss1u4YE7GwixGzWwVo47T8UQwnTLB6vQiq+o=
-github.com/go-yaml/yaml v2.1.0+incompatible/go.mod h1:w2MrLa16VYP0jy6N7M5kHaCkaLENm+P+Tv+MfurjSw0=
 github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f h1:zlOR3rOlPAVvtfuxGKoghCmop5B0TRyu/ZieziZuGiM=
 github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f/go.mod h1:/YcGZj5zSblfDWMMoOzV4fas9FZnQYTkDnsGvmh2Grw=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
@@ -176,6 +172,7 @@ github.com/julienschmidt/httprouter v0.0.0-20150905172533-109e267447e9/go.mod h1
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/knz/strtime v0.0.0-20181018220328-af2256ee352c/go.mod h1:4ZxfWkxwtc7dBeifERVVWRy9F9rTU9p0yCDgeCtlius=
+github.com/konsorten/go-windows-terminal-sequences v1.0.1 h1:mweAR1A6xJ3oS2pRaGiHgQ4OO8tzTaLawm8vnODuwDk=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515 h1:T+h1c/A9Gawja4Y9mFVWj2vyii2bbUNDw3kt9VxK2EY=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=

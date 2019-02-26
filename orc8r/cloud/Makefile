@@ -49,6 +49,7 @@ define add_module
 	PLUGIN_LIST += $(MODULE)_plugin
 	SWAGGER_LIST += $(MODULE)_swagger
 	TEST_LIST += $(MODULE)_test
+	TIDY_LIST += $(MODULE)_tidy
 	TOOLS_LIST += $(MODULE)_tools
 	VET_LIST += $(MODULE)_vet
 
@@ -113,6 +114,10 @@ $(PLUGIN_LIST): %_plugin:
 test: $(TEST_LIST)
 $(TEST_LIST): %_test:
 	make -C $*/cloud/go test
+
+tidy: $(TIDY_LIST)
+$(TIDY_LIST): %_tidy:
+	make -C $*/cloud/go tidy
 
 tools: $(TOOLS_LIST)
 $(TOOLS_LIST): %_tools:
