@@ -16,7 +16,7 @@ test:
 	go test ./...
 
 buildenv: stop
-	PROTO_LIST="orc8r_protos feg_protos lte_protos" $(MAKE) -C ../../orc8r/gateway/python $@
+	PROTO_LIST="orc8r_protos feg_protos lte_protos" $(MAKE) -C $(MAGMA_ROOT)/orc8r/gateway/python $@
 
 run: buildenv build
 	sudo service magma@magmad start
@@ -29,6 +29,7 @@ stop:
 	sudo service magma@* stop
 
 clean:
+	$(MAKE) -C $(MAGMA_ROOT)/lte/gateway/python $@
 	go clean ./...
 
 fmt:
