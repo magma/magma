@@ -332,9 +332,8 @@ class EnforcementController(MagmaController):
     def deactivate_flows(self, imsi, rule_ids):
         """
         Deactivate flows for a subscriber. If only imsi is present, delete all
-        rule flows for a subscriber (i.e. end its session). If only rule_ids is
-        present, delete the rules for all subscribers. If both are present,
-        delete the rule flows for that subscriber
+        rule flows for a subscriber (i.e. end its session). If rule_ids are
+        present, delete the rule flows for that subscriber.
 
         Args:
             imsi (string): subscriber id
@@ -344,8 +343,8 @@ class EnforcementController(MagmaController):
             self.logger.error('Datapath not initialized')
             return
 
-        if not imsi and not rule_ids:
-            self.logger.error('No subscriber or policies specified')
+        if not imsi:
+            self.logger.error('No subscriber specified')
             return
 
         if not rule_ids:
