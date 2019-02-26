@@ -47,10 +47,42 @@ func newTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
 		},
 		State: &protos.SubscriberState{
-			LteAuthNextSeq: 7350,
+			LteAuthNextSeq:          7350,
+			TgppAaaServerName:       defaultServerHost,
+			TgppAaaServerRegistered: false,
+		},
+		Non_3Gpp: &protos.Non3GPPUserProfile{
+			Msisdn:              "12345",
+			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
+			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
+			Ambr: &protos.AggregatedMaximumBitrate{
+				MaxBandwidthUl: uint32(defaultMaxUlBitRate),
+				MaxBandwidthDl: uint32(defaultMaxDlBitRate),
+			},
+			ApnConfig: &protos.APNConfiguration{
+				ContextId:        10,
+				ServiceSelection: "*",
+				QosProfile: &protos.APNConfiguration_QoSProfile{
+					ClassId:                 7,
+					PriorityLevel:           3,
+					PreemptionCapability:    true,
+					PreemptionVulnerability: true,
+				},
+				Ambr: &protos.AggregatedMaximumBitrate{
+					MaxBandwidthUl: uint32(defaultMaxUlBitRate),
+					MaxBandwidthDl: uint32(defaultMaxDlBitRate),
+				},
+				Pdn: protos.APNConfiguration_IPV6,
+			},
 		},
 	}
 	err := store.AddSubscriber(sub)
+	assert.NoError(t, err)
+
+	sub = &protos.SubscriberData{
+		Sid: &protos.SubscriberID{Id: "empty_sub"},
+	}
+	err = store.AddSubscriber(sub)
 	assert.NoError(t, err)
 
 	sub = &protos.SubscriberData{
@@ -61,7 +93,8 @@ func newTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
 		},
 		State: &protos.SubscriberState{
-			LteAuthNextSeq: 7350,
+			LteAuthNextSeq:    7350,
+			TgppAaaServerName: defaultServerHost,
 		},
 	}
 	err = store.AddSubscriber(sub)

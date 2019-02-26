@@ -17,3 +17,11 @@ func AllZero(bytes []byte) bool {
 	}
 	return true
 }
+
+// BoolToInt converts true to a 1 and false to a 0.
+func BoolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}

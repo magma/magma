@@ -11,6 +11,7 @@ package servicers
 import (
 	"time"
 
+	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 
@@ -84,4 +85,13 @@ func (srv *HomeSubscriberServer) handleMessage(reply replyFunc) diam.HandlerFunc
 			glog.Errorf("Failed to send response: %s", err.Error())
 		}
 	}
+}
+
+// getRedirectMessage returns a response message which can be used to redirect
+// the user to a different 3GPP AAA server.
+func getRedirectMessage(msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig, aaaServer datatype.DiameterIdentity) *diam.Message {
+	answer := msg.Answer(diam.RedirectIndication)
+	AddStandardAnswerAVPS(answer, sessionID, serverCfg, uint32(protos.SwxErrorCode_IDENTITY_ALREADY_REGISTERED))
+	answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
+	return answer
 }

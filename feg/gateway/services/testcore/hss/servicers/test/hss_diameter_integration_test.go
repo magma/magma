@@ -86,19 +86,10 @@ func TestHomeSubscriberServer_handleMAR(t *testing.T) {
 func TestHomeSubscriberServer_handleSAR(t *testing.T) {
 	// Create a test client interface which expects a valid SAA response.
 	clientHandler := func(conn diam.Conn, msg *diam.Message) {
-		var saa swx.SAA
-
-		// Check that the SAA is a success and has the expected data.
-		err := msg.Unmarshal(&saa)
-		assert.NoError(t, err)
-		assert.Equal(t, "magma;123_1234", saa.SessionID)
-		assert.Equal(t, diam.Success, int(saa.ResultCode))
-		assert.Equal(t, uint32(diam.Success), saa.ExperimentalResult.ExperimentalResultCode)
-		assert.Equal(t, datatype.DiameterIdentity("magma.com"), saa.OriginHost)
-		assert.Equal(t, datatype.DiameterIdentity("magma.com"), saa.OriginRealm)
+		checkSAASuccess(t, msg)
 	}
 
-	sar := createSAR("sub1")
+	sar := createSAR("sub1", swx.ServerAssignmentType_REGISTRATION)
 	testDiameterMessage(t, clientHandler, sar)
 }
 

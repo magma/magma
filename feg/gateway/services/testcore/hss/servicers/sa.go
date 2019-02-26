@@ -12,16 +12,21 @@ import (
 	"errors"
 	"fmt"
 
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/swx_proxy/servicers"
+	"magma/feg/gateway/services/testcore/hss/storage"
+	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
+	"github.com/fiorix/go-diameter/diam/datatype"
 	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/golang/glog"
 )
 
 // NewSAA outputs a server assignment answer (SAA) to reply to a server
-// assignment request (SAR) message.
+// assignment request (SAR) message. See 3GPP TS 29.273 section 8.1.2.2.2.2.
 func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error) {
 	err := ValidateSAR(msg)
 	if err != nil {
@@ -33,8 +38,105 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return msg.Answer(diam.UnableToComply), fmt.Errorf("SAR Unmarshal failed for message: %v failed: %v", msg, err)
 	}
 
-	// TODO(vikg): Actually handle the SAR here
-	return ConstructSuccessAnswer(msg, sar.SessionID, srv.Config.Server), nil
+	subscriber, err := srv.store.GetSubscriberData(string(sar.UserName))
+	if err != nil {
+		if _, ok := err.(storage.UnknownSubscriberError); ok {
+			return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
+		}
+		return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
+	}
+
+	aaaServer := datatype.DiameterIdentity(subscriber.GetState().GetTgppAaaServerName())
+	if len(aaaServer) == 0 {
+		err = errors.New("no 3GPP AAA server is already serving the user")
+		return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
+	}
+	if aaaServer != sar.OriginHost {
+		err = errors.New("diameter identity for AAA server already registered")
+		return getRedirectMessage(msg, sar.SessionID, srv.Config.Server, aaaServer), err
+	}
+
+	if subscriber.GetNon_3Gpp().GetApnConfig() == nil {
+		subscriber.State.TgppAaaServerName = ""
+		err = srv.store.UpdateSubscriber(subscriber)
+		if err != nil {
+			glog.Errorf("Failed to remove the 3GPP AAA Server name: %v", err)
+		}
+		err = errors.New("User has no non 3GPP subscription")
+		return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(fegprotos.SwxErrorCode_USER_NO_NON_3GPP_SUBSCRIPTION)), err
+	}
+
+	answer := ConstructSuccessAnswer(msg, sar.SessionID, srv.Config.Server)
+	answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
+	answer.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, sar.UserName)
+	switch sar.ServerAssignmentType {
+	case servicers.ServerAssignmentType_REGISTRATION:
+		subscriber.State.TgppAaaServerRegistered = true
+		err = srv.store.UpdateSubscriber(subscriber)
+		if err != nil {
+			err = fmt.Errorf("Failed to register 3GPP AAA server: %v", err)
+			return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
+		}
+		fallthrough
+	case servicers.ServerAssignmentType_AAA_USER_DATA_REQUEST:
+		answer.AddAVP(getNon3GPPUserDataAVP(subscriber.GetNon_3Gpp()))
+	default:
+		err = fmt.Errorf("server assignment type not implemented: %v", sar.ServerAssignmentType)
+		return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
+	}
+	return answer, nil
+}
+
+// getNon3GPPUserDataAVP converts a Non3GPPUserProfile proto to a diameter AVP.
+func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
+	apnConfig := profile.GetApnConfig()
+	qosProfile := apnConfig.GetQosProfile()
+	qosProfileAvp := diam.NewAVP(avp.EPSSubscribedQoSProfile, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.QoSClassIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(qosProfile.GetClassId())),
+			diam.NewAVP(avp.AllocationRetentionPriority, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					diam.NewAVP(avp.PriorityLevel, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(qosProfile.GetPriorityLevel())),
+					diam.NewAVP(avp.PreemptionCapability, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(BoolToInt(qosProfile.GetPreemptionCapability()))),
+					diam.NewAVP(avp.PreemptionVulnerability, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(BoolToInt(qosProfile.GetPreemptionVulnerability()))),
+				},
+			}),
+		},
+	})
+	apnConfigAvp := diam.NewAVP(avp.APNConfiguration, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetContextId())),
+			diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(apnConfig.GetPdn())),
+			diam.NewAVP(avp.ServiceSelection, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String(apnConfig.GetServiceSelection())),
+			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, 0, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthUl())),
+					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthDl())),
+				},
+			}),
+			qosProfileAvp,
+		},
+	})
+	return diam.NewAVP(avp.Non3GPPUserData, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					diam.NewAVP(avp.SubscriptionIDType, avp.Mbit, 0, datatype.Enumerated(servicers.END_USER_E164)),
+					diam.NewAVP(avp.SubscriptionIDData, avp.Mbit, 0, datatype.UTF8String(profile.GetMsisdn())),
+				},
+			}),
+			diam.NewAVP(avp.Non3GPPIPAccess, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(profile.GetNon_3GppIpAccess())),
+			diam.NewAVP(avp.Non3GPPIPAccessAPN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(profile.GetNon_3GppIpAccessApn())),
+			diam.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(servicers.RadioAccessTechnologyType_WLAN)),
+			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, 0, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(profile.GetAmbr().GetMaxBandwidthUl())),
+					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(profile.GetAmbr().GetMaxBandwidthDl())),
+				},
+			}),
+			apnConfigAvp,
+		},
+	})
 }
 
 // ValidateSAR returns an error if the message is missing any mandatory AVPs.
