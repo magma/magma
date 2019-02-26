@@ -321,12 +321,16 @@ class EnforcementController(MagmaController):
         match = MagmaMatch(imsi=encode_imsi(imsi))
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
+        self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
+                                                        num)
         self._qos_map.del_queue_for_flow(imsi, num)
 
     def _deactivate_flows_for_subscriber(self, imsi):
         """ Deactivate all rules for a subscriber, ending any enforcement """
         flows.delete_flow(self._datapath, self.tbl_num,
                           MagmaMatch(imsi=encode_imsi(imsi)))
+        self._redirect_manager.deactivate_flows_for_subscriber(self._datapath,
+                                                               imsi)
         self._qos_map.del_subscriber_queues(imsi)
 
     def deactivate_flows(self, imsi, rule_ids):

@@ -221,7 +221,7 @@ class RedirectionManager:
         match = parser.OFPMatch(metadata=encode_imsi(imsi))
         action = []
         flows.add_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match, action,
-                       priority=flows.MINIMUM_PRIORITY + 1)
+                       priority=flows.MINIMUM_PRIORITY + 1, cookie=rule_num)
 
     def _install_not_processed_flows(self, datapath, imsi, rule, rule_num,
                                      priority):
@@ -391,3 +391,22 @@ class RedirectionManager:
         except RedisError as exp:
             raise RedirectException(exp)
         self.logger.info("Saved redirect rule for %s" % ip_str)
+
+    def deactivate_flow_for_rule(self, datapath, imsi, rule_num):
+        """
+        Deactivate a specific rule using the flow cookie for a subscriber
+        """
+        match_kwargs = {'metadata': encode_imsi(imsi)}
+        cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
+        parser = datapath.ofproto_parser
+        match = parser.OFPMatch(**match_kwargs)
+        flows.delete_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match,
+                          cookie=cookie, cookie_mask=mask)
+
+    def deactivate_flows_for_subscriber(self, datapath, imsi):
+        """
+        Deactivate all rules for a subscriber
+        """
+        parser = datapath.ofproto_parser
+        flows.delete_flow(datapath, self.REDIRECT_SCRATCH_TABLE,
+                          parser.OFPMatch(metadata=encode_imsi(imsi)))
