@@ -21,7 +21,8 @@ const (
 	RadioAccessTechnologyType_WLAN = 0
 
 	// 3GPP 29.273 8.1.2.1.1/2
-	SipAuthScheme_EAP_AKA = "EAP-AKA"
+	SipAuthScheme_EAP_AKA       = "EAP-AKA"
+	SipAuthScheme_EAP_AKA_PRIME = "EAP-AKA'"
 )
 
 // 3GPP 29.273 8.2.2.1 - Multimedia Authentication Request

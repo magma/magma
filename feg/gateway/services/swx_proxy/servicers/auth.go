@@ -42,7 +42,10 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	// if request hasn't been removed by end of transaction, remove it
 	defer s.requestTracker.DeregisterRequest(sid)
 
-	marMsg := s.createMAR(sid, req)
+	marMsg, err := s.createMAR(sid, req)
+	if err != nil {
+		return res, status.Errorf(codes.InvalidArgument, err.Error())
+	}
 	err = s.sendDiameterMsg(marMsg, MAX_DIAM_RETRIES)
 	if err != nil {
 		glog.Errorf("Error while sending MAR with SID %s: %s", sid, err)
@@ -81,7 +84,12 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 
 // createMAR creates a Multimedia Authentication Request diameter msg with provided SessionID (sid)
 // to be sent to HSS
-func (s *swxProxy) createMAR(sid string, req *protos.AuthenticationRequest) *diam.Message {
+func (s *swxProxy) createMAR(sid string, req *protos.AuthenticationRequest) (*diam.Message, error) {
+	authScheme, err := convertAuthSchemeToString(req.GetAuthenticationScheme())
+	if err != nil {
+		return nil, err
+	}
+
 	msg := diameter.NewProxiableRequest(diam.MultimediaAuthentication, diam.TGPP_SWX_APP_ID, dict.Default)
 	msg.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(sid))
 	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.clientCfg.Host))
@@ -91,7 +99,7 @@ func (s *swxProxy) createMAR(sid string, req *protos.AuthenticationRequest) *dia
 	msg.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(req.GetSipNumAuthVectors()))
 	msg.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(RadioAccessTechnologyType_WLAN))
 	authDataAvp := []*diam.AVP{
-		diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, uint32(diameter.Vendor3GPP), datatype.UTF8String(req.GetAuthenticationScheme())),
+		diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, uint32(diameter.Vendor3GPP), datatype.UTF8String(authScheme)),
 	}
 	if len(req.GetResyncInfo()) > 0 {
 		authDataAvp = append(
@@ -100,7 +108,7 @@ func (s *swxProxy) createMAR(sid string, req *protos.AuthenticationRequest) *dia
 		)
 	}
 	msg.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: authDataAvp})
-	return msg
+	return msg, nil
 }
 
 func handleMAA(s *swxProxy) diam.HandlerFunc {
@@ -124,7 +132,7 @@ func getSIPAuthenticationVectors(items []SIPAuthDataItem) []*protos.Authenticati
 	var authVectors []*protos.AuthenticationAnswer_SIPAuthVector
 	for _, item := range items {
 		// If the auth scheme is unrecognized, don't include the vector
-		authScheme, err := getAuthenticationScheme(item.AuthScheme)
+		authScheme, err := convertStringToAuthScheme(item.AuthScheme)
 		if err != nil {
 			glog.Error(err)
 			continue
@@ -158,13 +166,24 @@ func validateAuthRequest(req *protos.AuthenticationRequest) error {
 	return nil
 }
 
-func getAuthenticationScheme(maaScheme string) (protos.AuthenticationScheme, error) {
+func convertStringToAuthScheme(maaScheme string) (protos.AuthenticationScheme, error) {
 	switch maaScheme {
-	case "EAP-AKA":
+	case SipAuthScheme_EAP_AKA:
 		return protos.AuthenticationScheme_EAP_AKA, nil
-	case "EAP-AKA'":
+	case SipAuthScheme_EAP_AKA_PRIME:
 		return protos.AuthenticationScheme_EAP_AKA_PRIME, nil
 	default:
 		return protos.AuthenticationScheme_EAP_AKA, fmt.Errorf("Unrecognized Authentication Scheme returned: %s", maaScheme)
+	}
+}
+
+func convertAuthSchemeToString(scheme protos.AuthenticationScheme) (string, error) {
+	switch scheme {
+	case protos.AuthenticationScheme_EAP_AKA:
+		return SipAuthScheme_EAP_AKA, nil
+	case protos.AuthenticationScheme_EAP_AKA_PRIME:
+		return SipAuthScheme_EAP_AKA_PRIME, nil
+	default:
+		return "", fmt.Errorf("Unrecognized Authentication Scheme returned: %v", scheme)
 	}
 }
