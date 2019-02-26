@@ -74,8 +74,6 @@
       - policydb
       - feg_relay
       - download
-      - mconfig_streamer
-      - materializer
       - vpnservice
       - health
 
