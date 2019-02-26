@@ -90,7 +90,9 @@ class EnforcementStatsTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,
             },
-            mconfig={},
+            mconfig=PipelineD(
+                relay_enabled=True,
+            ),
             loop=loop_mock,
             service_manager=service_manager,
             integ_test=False,

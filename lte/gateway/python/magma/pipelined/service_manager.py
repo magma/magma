@@ -142,11 +142,6 @@ class ServiceManager:
             for app in self.SERVICE_TO_APP_NAMES_DICT[service]:
                 self._app_table_num_dict[app] = tbl_num
 
-        if PipelineD.ENFORCEMENT in dynamic_services and \
-                not self._magma_service.mconfig.relay_enabled:
-            self._app_modules.remove(EnforcementStatsController.__module__)
-            self._app_table_num_dict.pop(EnforcementStatsController.APP_NAME)
-
     def load(self):
         """
         Instantiates and schedules the Ryu app eventlets in the service

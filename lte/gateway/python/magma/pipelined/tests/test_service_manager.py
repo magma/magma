@@ -26,7 +26,7 @@ class ServiceManagerTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         magma_service_mock = MagicMock()
-        magma_service_mock.mconfig = PipelineD(relay_enabled=False)
+        magma_service_mock.mconfig = PipelineD()
         magma_service_mock.mconfig.services.extend(
             [PipelineD.ENFORCEMENT, PipelineD.DPI, PipelineD.METERING])
         magma_service_mock.config = {
@@ -86,9 +86,9 @@ class ServiceManagerTest(unittest.TestCase):
             MeterController.APP_NAME))
         self.assertTrue(self.service_manager.is_app_enabled(
             MeterStatsController.APP_NAME))
-
-        self.assertFalse(self.service_manager.is_app_enabled(
+        self.assertTrue(self.service_manager.is_app_enabled(
             EnforcementStatsController.APP_NAME))
+
         self.assertFalse(
             self.service_manager.is_app_enabled("Random name lol"))
 

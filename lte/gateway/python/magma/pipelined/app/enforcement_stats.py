@@ -43,6 +43,12 @@ class EnforcementStatsController(MagmaController):
 
     def __init__(self, *args, **kwargs):
         super(EnforcementStatsController, self).__init__(*args, **kwargs)
+        # No need to report usage if relay mode is not enabled.
+        self._relay_enabled = kwargs['mconfig'].relay_enabled
+        if not self._relay_enabled:
+            self.logger.info('Relay mode is not enabled. '
+                             'enforcement_stats will not report usage.')
+            return
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.dpset = kwargs['dpset']
         self.loop = kwargs['loop']
@@ -56,6 +62,14 @@ class EnforcementStatsController(MagmaController):
         self.failed_usage = {}  # Store failed usage to retry rpc to sesiond
         self._rule_mapper = kwargs['rule_id_mapper']
 
+    def _check_relay(func):  # pylint: disable=no-self-argument
+        def wrapped(self, *args, **kwargs):
+            if self._relay_enabled:  # pylint: disable=protected-access
+                func(self, *args, **kwargs)  # pylint: disable=not-callable
+
+        return wrapped
+
+    @_check_relay
     def delete_stats(self, imsi, rule_ids=None):
         """
         Manually reset the statistics for an entire subscriber or a particular
@@ -106,6 +120,7 @@ class EnforcementStatsController(MagmaController):
             self.logger.warning("Couldn't poll datapath stats: %s", e)
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
+    @_check_relay
     def _flow_stats_reply_handler(self, ev):
         """
         Schedule the flow stats handling in the main event loop, so as to
