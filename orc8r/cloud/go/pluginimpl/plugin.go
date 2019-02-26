@@ -87,6 +87,7 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers() []obsidianh.Handler {
 func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
 	return []providers.StreamProvider{
 		mconfig.GetProvider(),
+		mconfig.GetViewProvider(),
 	}
 }
 
