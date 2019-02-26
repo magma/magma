@@ -10,6 +10,7 @@ package exporters
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -27,10 +28,6 @@ const (
 	MetricPostfixLE     = "__le"
 	MetricPostfixSum    = "__sum"
 	MetricInfixBucket   = "_bucket_"
-)
-
-var (
-	networkLabelNames = []string{NetworkLabelInstance, NetworkLabelGateway, NetworkLabelService, NetworkLabelHost}
 )
 
 // PrometheusSubmittable provides Register and Update functions to facilitate
@@ -58,6 +55,7 @@ func (g *PrometheusGauge) Register(metric *dto.Metric,
 ) error {
 	exporter.registeredMetrics[name] = g
 
+	networkLabelNames := extractNetworkLabelKeys(networkLabels)
 	g.gaugeVec = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: name, Help: name}, networkLabelNames)
 	g.gaugeVec.With(networkLabels).Set(metric.GetGauge().GetValue())
 
@@ -94,6 +92,7 @@ func (s *PrometheusSummary) Register(metric *dto.Metric,
 	exporter.registeredMetrics[name] = s
 
 	sumName := makeSumName(name)
+	networkLabelNames := extractNetworkLabelKeys(networkLabels)
 	s.sumGaugeVec = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: sumName, Help: sumName}, networkLabelNames)
 	s.sumGaugeVec.With(networkLabels).Set(metric.GetSummary().GetSampleSum())
 	err := exporter.Registry.Register(s.sumGaugeVec)
@@ -142,6 +141,7 @@ func (c *PrometheusCounter) Register(metric *dto.Metric,
 ) error {
 	exporter.registeredMetrics[name] = c
 
+	networkLabelNames := extractNetworkLabelKeys(networkLabels)
 	c.counterVec = prometheus.NewCounterVec(prometheus.CounterOpts{Name: name, Help: name}, networkLabelNames)
 	c.counterVec.With(networkLabels).Add(metric.GetCounter().GetValue())
 	c.counterValues[makeNetworkLabelString(networkLabelNames, networkLabels)] = metric.GetCounter().GetValue()
@@ -159,6 +159,7 @@ func (c *PrometheusCounter) Register(metric *dto.Metric,
 // and then re-adding the counter with the new value
 func (c *PrometheusCounter) Update(metric *dto.Metric, networkLabels prometheus.Labels) error {
 	newVal := metric.Counter.GetValue()
+	networkLabelNames := extractNetworkLabelKeys(networkLabels)
 	if oldVal, ok := c.counterValues[makeNetworkLabelString(networkLabelNames, networkLabels)]; ok {
 		difference := newVal - oldVal
 		if difference < 0 {
@@ -177,6 +178,7 @@ func (c *PrometheusCounter) handleDecreasedCounter(newVal float64, networkLabels
 		return fmt.Errorf("could not update counter: failed to delete decreased counter %v", c.name)
 	}
 	c.counterVec.With(networkLabels).Add(newVal)
+	networkLabelNames := extractNetworkLabelKeys(networkLabels)
 	c.counterValues[makeNetworkLabelString(networkLabelNames, networkLabels)] = newVal
 	return nil
 }
@@ -207,6 +209,7 @@ func (h *PrometheusHistogram) Register(metric *dto.Metric,
 ) error {
 	exporter.registeredMetrics[name] = h
 
+	networkLabelNames := extractNetworkLabelKeys(networkLabels)
 	sumName := makeSumName(name)
 	h.sumGaugeVec = prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: sumName, Help: sumName}, networkLabelNames)
 	h.sumGaugeVec.With(networkLabels).Set(metric.GetHistogram().GetSampleSum())
@@ -249,6 +252,7 @@ func (h *PrometheusHistogram) Register(metric *dto.Metric,
 func (h *PrometheusHistogram) Update(metric *dto.Metric, networkLabels prometheus.Labels) error {
 	h.sumGaugeVec.With(networkLabels).Set(metric.GetHistogram().GetSampleSum())
 	h.countGaugeVec.With(networkLabels).Set(float64(metric.GetHistogram().GetSampleCount()))
+	networkLabelNames := extractNetworkLabelKeys(networkLabels)
 
 	for i, bucket := range metric.GetHistogram().GetBucket() {
 		bucketLEName := makeBucketLEName(h.baseName, networkLabelNames, networkLabels, i)
@@ -307,4 +311,13 @@ func makeBucketCountName(baseName string, labelNames []string, networkLabels pro
 	}
 	bucketCountName += MetricInfixBucket + strconv.Itoa(bucketNum) + MetricPostfixCount
 	return bucketCountName
+}
+
+func extractNetworkLabelKeys(networkLabels prometheus.Labels) []string {
+	var keys []string
+	for k := range networkLabels {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

@@ -37,7 +37,10 @@ type PrometheusPushExporter struct {
 
 // NewPrometheusExporter create a new PrometheusExporter with own registry
 func NewPrometheusPushExporter() Exporter {
-	exporter := NewPrometheusExporter()
+	config := PrometheusExporterConfig{
+		UseHostLabel: false,
+	}
+	exporter := NewPrometheusExporter(config)
 	pusher := push.New(os.Getenv(PushURLEnv), PushJob)
 	pusher.Gatherer(exporter.(*PrometheusExporter).Registry.(*prometheus.Registry))
 

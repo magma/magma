@@ -19,25 +19,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var (
+	defaultConfig     = exporters.PrometheusExporterConfig{UseHostLabel: true}
+	pushgatewayConfig = exporters.PrometheusExporterConfig{UseHostLabel: false}
+)
+
 func TestPromoSubmitGauge(t *testing.T) {
-	testSubmitPrometheusType(t, dto.MetricType_GAUGE)
+	testSubmitPrometheusType(t, dto.MetricType_GAUGE, defaultConfig)
+	testSubmitPrometheusType(t, dto.MetricType_GAUGE, pushgatewayConfig)
 }
 
 func TestPromoSubmitCounter(t *testing.T) {
-	testSubmitPrometheusType(t, dto.MetricType_COUNTER)
+	testSubmitPrometheusType(t, dto.MetricType_COUNTER, defaultConfig)
+	testSubmitPrometheusType(t, dto.MetricType_COUNTER, pushgatewayConfig)
 }
 
 func TestPromoSubmitSummary(t *testing.T) {
-	testSubmitPrometheusType(t, dto.MetricType_SUMMARY)
+	testSubmitPrometheusType(t, dto.MetricType_SUMMARY, defaultConfig)
+	testSubmitPrometheusType(t, dto.MetricType_SUMMARY, pushgatewayConfig)
 }
 
 func TestPromoSubmitHistogram(t *testing.T) {
-	testSubmitPrometheusType(t, dto.MetricType_HISTOGRAM)
+	testSubmitPrometheusType(t, dto.MetricType_HISTOGRAM, defaultConfig)
+	testSubmitPrometheusType(t, dto.MetricType_HISTOGRAM, pushgatewayConfig)
 }
 
-func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType) {
+func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config exporters.PrometheusExporterConfig) {
 	registry := &mocks.Registerer{}
-	exporter := exporters.NewPrometheusExporter()
+	exporter := exporters.NewPrometheusExporter(config)
 	exporter.(*exporters.PrometheusExporter).Registry = registry
 
 	serviceLabelPair := dto.LabelPair{

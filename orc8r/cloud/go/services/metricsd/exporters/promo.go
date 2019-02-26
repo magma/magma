@@ -15,11 +15,10 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/prometheus/common/log"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/log"
 )
 
 const (
@@ -27,18 +26,29 @@ const (
 	PromoHTTPPort     = 8080
 )
 
+var (
+	DefaultPrometheusConfig = PrometheusExporterConfig{UseHostLabel: true}
+)
+
 // PrometheusExporter handles registering and updating prometheus metrics
 type PrometheusExporter struct {
 	registeredMetrics map[string]PrometheusMetric
 	Registry          prometheus.Registerer
 	lock              sync.RWMutex
+	config            PrometheusExporterConfig
+}
+
+type PrometheusExporterConfig struct {
+	// Include "host":<hostname> as a label on each metric
+	UseHostLabel bool
 }
 
 // NewPrometheusExporter create a new PrometheusExporter with own registry
-func NewPrometheusExporter() Exporter {
+func NewPrometheusExporter(config PrometheusExporterConfig) Exporter {
 	return &PrometheusExporter{
 		registeredMetrics: make(map[string]PrometheusMetric),
 		Registry:          prometheus.NewRegistry(),
+		config:            config,
 	}
 }
 
@@ -47,7 +57,7 @@ func NewPrometheusExporter() Exporter {
 func (e *PrometheusExporter) Submit(family *dto.MetricFamily, context MetricsContext) error {
 	for _, metric := range family.GetMetric() {
 		registeredName := makeRegisteredName(metric, family, context.MetricName)
-		networkLabels, err := makeNetworkLabels(context.NetworkID, context.GatewayID, metric)
+		networkLabels, err := e.makeNetworkLabels(context.NetworkID, context.GatewayID, metric)
 		if err != nil {
 			return fmt.Errorf("prometheus submit error %s: %v", registeredName, err)
 		}
@@ -78,7 +88,7 @@ func (e *PrometheusExporter) clearRegistry() {
 	e.registeredMetrics = make(map[string]PrometheusMetric)
 }
 
-func makeNetworkLabels(networkID, gatewayID string, metric *dto.Metric) (prometheus.Labels, error) {
+func (e *PrometheusExporter) makeNetworkLabels(networkID, gatewayID string, metric *dto.Metric) (prometheus.Labels, error) {
 	var serviceName = "defaultServiceName"
 	for _, label := range metric.GetLabel() {
 		if label.GetName() == SERVICE_LABEL_NAME || label.GetName() == "serviceName" {
@@ -86,13 +96,16 @@ func makeNetworkLabels(networkID, gatewayID string, metric *dto.Metric) (prometh
 			break
 		}
 	}
+	labels := prometheus.Labels{NetworkLabelInstance: networkID, NetworkLabelGateway: gatewayID, NetworkLabelService: serviceName}
 
-	hostName, err := os.Hostname()
-	if err != nil {
-		hostName = "defaultHostName"
+	if e.config.UseHostLabel {
+		hostName, err := os.Hostname()
+		if err != nil {
+			hostName = "defaultHostName"
+		}
+		labels[NetworkLabelHost] = hostName
 	}
-
-	return prometheus.Labels{NetworkLabelInstance: networkID, NetworkLabelGateway: gatewayID, NetworkLabelService: serviceName, NetworkLabelHost: hostName}, nil
+	return labels, nil
 }
 
 func (e *PrometheusExporter) registerMetric(metric *dto.Metric,

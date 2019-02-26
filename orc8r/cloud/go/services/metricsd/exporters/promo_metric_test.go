@@ -28,15 +28,61 @@ var (
 		exporters.NetworkLabelService:  "testService",
 		exporters.NetworkLabelHost:     "testHost",
 	}
+
+	testPushgatewayLabels = prometheus.Labels{
+		exporters.NetworkLabelInstance: "testInstance",
+		exporters.NetworkLabelGateway:  "testGateway",
+		exporters.NetworkLabelService:  "testService",
+	}
 )
 
 func TestPrometheusGauge_Register(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+	testGaugeRegisterHelper(t, defaultConfig, testNetworkLabels)
+	testGaugeRegisterHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func TestPrometheusGauge_Update(t *testing.T) {
+	testGaugeUpdateHelper(t, defaultConfig, testNetworkLabels)
+	testGaugeUpdateHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func TestPrometheusCounter_Register(t *testing.T) {
+	testCounterRegisterHelper(t, defaultConfig, testNetworkLabels)
+	testCounterRegisterHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func TestPrometheusCounter_Update(t *testing.T) {
+	testCounterUpdateHelper(t, defaultConfig, testNetworkLabels)
+	testCounterUpdateHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func TestPrometheusSummary_Register(t *testing.T) {
+	testSummaryRegisterHelper(t, defaultConfig, testNetworkLabels)
+	testSummaryRegisterHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func TestPrometheusSummary_Update(t *testing.T) {
+	testSummaryUpdateHelper(t, defaultConfig, testNetworkLabels)
+	testSummaryUpdateHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func TestPrometheusHistogram_Register(t *testing.T) {
+	testHistogramRegisterHelper(t, defaultConfig, testNetworkLabels)
+	testHistogramRegisterHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func TestPrometheusHistogram_Update(t *testing.T) {
+	testHistogramUpdateHelper(t, defaultConfig, testNetworkLabels)
+	testHistogramUpdateHelper(t, pushgatewayConfig, testPushgatewayLabels)
+}
+
+func testGaugeRegisterHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(config).(*exporters.PrometheusExporter)
 	g := exporters.NewPrometheusGauge()
 
 	testGaugeValue := 123.0
 	gauge := makePromoGauge(testGaugeValue)
-	g.Register(&gauge, "testGauge", exporter, testNetworkLabels)
+	g.Register(&gauge, "testGauge", exporter, labels)
 
 	metrics, err := exporter.Registry.(*prometheus.Registry).Gather()
 	assert.NoError(t, err)
@@ -44,8 +90,8 @@ func TestPrometheusGauge_Register(t *testing.T) {
 	assert.Equal(t, testGaugeValue, metrics[0].Metric[0].Gauge.GetValue())
 }
 
-func TestPrometheusGauge_Update(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+func testGaugeUpdateHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(defaultConfig).(*exporters.PrometheusExporter)
 	g := exporters.NewPrometheusGauge()
 	gauge := makePromoGauge(0.0)
 
@@ -61,8 +107,8 @@ func TestPrometheusGauge_Update(t *testing.T) {
 	assert.Equal(t, updatedGaugeValue, metrics[0].Metric[0].Gauge.GetValue())
 }
 
-func TestPrometheusCounter_Register(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+func testCounterRegisterHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(defaultConfig).(*exporters.PrometheusExporter)
 	c := exporters.NewPrometheusCounter(exporter)
 
 	testValue := 123.0
@@ -75,8 +121,8 @@ func TestPrometheusCounter_Register(t *testing.T) {
 	assert.Equal(t, testValue, metrics[0].Metric[0].Counter.GetValue())
 }
 
-func TestPrometheusCounter_Update(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+func testCounterUpdateHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(defaultConfig).(*exporters.PrometheusExporter)
 	c := exporters.NewPrometheusCounter(exporter)
 
 	counter := makePromoCounter(0.0)
@@ -104,8 +150,8 @@ func TestPrometheusCounter_Update(t *testing.T) {
 	assert.Equal(t, decreasedValue, updatedMetrics[0].Metric[0].Counter.GetValue())
 }
 
-func TestPrometheusSummary_Register(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+func testSummaryRegisterHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(defaultConfig).(*exporters.PrometheusExporter)
 	s := exporters.NewPrometheusSummary()
 
 	objectives := map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
@@ -120,8 +166,8 @@ func TestPrometheusSummary_Register(t *testing.T) {
 	checkSummaryResults(t, metricName, objectives, observations, metrics)
 }
 
-func TestPrometheusSummary_Update(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+func testSummaryUpdateHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(defaultConfig).(*exporters.PrometheusExporter)
 	s := exporters.NewPrometheusSummary()
 
 	objectives := map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
@@ -168,8 +214,8 @@ func checkSummaryResults(
 	}
 }
 
-func TestPrometheusHistogram_Register(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+func testHistogramRegisterHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(config).(*exporters.PrometheusExporter)
 
 	metricBaseName := "testBaseName"
 	h := exporters.NewPrometheusHistogram(metricBaseName)
@@ -178,7 +224,7 @@ func TestPrometheusHistogram_Register(t *testing.T) {
 	observations := []float64{0.5, 0.8, 2.0, 7.2, 9.2}
 	histogram := makePromoHistogram(buckets, observations)
 
-	h.Register(&histogram, metricBaseName, exporter, testNetworkLabels)
+	h.Register(&histogram, metricBaseName, exporter, labels)
 
 	metrics, err := exporter.Registry.(*prometheus.Registry).Gather()
 	assert.NoError(t, err)
@@ -186,8 +232,8 @@ func TestPrometheusHistogram_Register(t *testing.T) {
 	checkHistogramResults(t, metricBaseName, buckets, observations, metrics)
 }
 
-func TestPrometheusHistogram_Update(t *testing.T) {
-	exporter := exporters.NewPrometheusExporter().(*exporters.PrometheusExporter)
+func testHistogramUpdateHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
+	exporter := exporters.NewPrometheusExporter(config).(*exporters.PrometheusExporter)
 
 	metricBaseName := "testBaseName"
 	h := exporters.NewPrometheusHistogram(metricBaseName)
@@ -196,7 +242,7 @@ func TestPrometheusHistogram_Update(t *testing.T) {
 	observations := []float64{0.5, 0.8, 2.0, 7.2, 9.2}
 	histogram := makePromoHistogram(buckets, observations)
 
-	h.Register(&histogram, metricBaseName, exporter, testNetworkLabels)
+	h.Register(&histogram, metricBaseName, exporter, labels)
 
 	newObservations := []float64{0.4, 2.5, 8.0}
 	for _, obs := range newObservations {
@@ -204,7 +250,7 @@ func TestPrometheusHistogram_Update(t *testing.T) {
 	}
 	updatedHistogram := makePromoHistogram(buckets, observations)
 
-	h.Update(&updatedHistogram, testNetworkLabels)
+	h.Update(&updatedHistogram, labels)
 	metrics, err := exporter.Registry.(*prometheus.Registry).Gather()
 	assert.NoError(t, err)
 
