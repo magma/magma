@@ -27,7 +27,7 @@ func getGWMagmadClient(networkId string, gatewayId string) (protos.MagmadClient,
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection("magmad", gwRecord.HwId.Id)
 	if err != nil {
-		errMsg := fmt.Sprintf("reboot gwClient init error: %s", err)
+		errMsg := fmt.Sprintf("gateway magmad client initialization error: %s", err)
 		glog.Errorf(errMsg, err)
 		return nil, nil, nil, errors.New(errMsg)
 	}
