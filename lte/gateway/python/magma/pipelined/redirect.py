@@ -19,7 +19,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    Direction, REG_ZERO_VAL
+    Direction, SCRATCH_REGS, REG_ZERO_VAL
 from magma.redirectd.redirect_store import RedirectDict
 
 from ryu.lib.packet import ether_types
@@ -206,7 +206,7 @@ class RedirectionManager:
                 ]
             ),
             parser.NXActionRegLoad2(dst='reg2', value=rule_num),
-            parser.NXActionRegLoad2(dst=flows.SCRATCH_REG,
+            parser.NXActionRegLoad2(dst=SCRATCH_REGS[0],
                                     value=self.REDIRECT_PROCESSED),
             parser.OFPActionSetField(ipv4_dst=self._bridge_ip),
             parser.OFPActionSetField(tcp_dst=self._redirect_port),
@@ -218,7 +218,7 @@ class RedirectionManager:
                        hard_timeout=rule.hard_timeout,
                        resubmit_table=self.tbl_num)
 
-        match = parser.OFPMatch(metadata=encode_imsi(imsi))
+        match = MagmaMatch(imsi=encode_imsi(imsi))
         action = []
         flows.add_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match, action,
                        priority=flows.MINIMUM_PRIORITY + 1, cookie=rule_num)
@@ -233,19 +233,19 @@ class RedirectionManager:
         parser = datapath.ofproto_parser
         of_note = parser.NXActionNote(list(rule.id.encode()))
 
-        match = parser.OFPMatch(reg0=self.REDIRECT_NOT_PROCESSED,
-                                reg1=inout.DIRECTION_OUT,
-                                eth_type=ether_types.ETH_TYPE_IP,
-                                metadata=encode_imsi(imsi))
+        match = MagmaMatch(imsi=encode_imsi(imsi),
+                           direction=Direction.OUT,
+                           reg0=self.REDIRECT_NOT_PROCESSED,
+                           eth_type=ether_types.ETH_TYPE_IP)
         action = [of_note]
         flows.add_flow(datapath, self.tbl_num, match, action,
                        priority=priority, cookie=rule_num,
                        hard_timeout=rule.hard_timeout,
                        resubmit_table=self.REDIRECT_SCRATCH_TABLE)
 
-        match = parser.OFPMatch(reg0=self.REDIRECT_PROCESSED,
-                                metadata=encode_imsi(imsi),
-                                reg1=inout.DIRECTION_OUT)
+        match = MagmaMatch(imsi=encode_imsi(imsi),
+                           direction=Direction.OUT,
+                           reg0=self.REDIRECT_PROCESSED)
         action = [of_note]
         flows.add_flow(datapath, self.tbl_num, match, action,
                        priority=priority, cookie=rule_num,
@@ -396,10 +396,8 @@ class RedirectionManager:
         """
         Deactivate a specific rule using the flow cookie for a subscriber
         """
-        match_kwargs = {'metadata': encode_imsi(imsi)}
         cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
-        parser = datapath.ofproto_parser
-        match = parser.OFPMatch(**match_kwargs)
+        match = MagmaMatch(imsi=encode_imsi(imsi))
         flows.delete_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match,
                           cookie=cookie, cookie_mask=mask)
 
@@ -407,6 +405,5 @@ class RedirectionManager:
         """
         Deactivate all rules for a subscriber
         """
-        parser = datapath.ofproto_parser
         flows.delete_flow(datapath, self.REDIRECT_SCRATCH_TABLE,
-                          parser.OFPMatch(metadata=encode_imsi(imsi)))
+                          MagmaMatch(imsi=encode_imsi(imsi)))
