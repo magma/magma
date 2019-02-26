@@ -62,7 +62,3 @@ services:
   mconfig_streamer:
     host: "localhost"
     port: 9105
-
-  materializer:
-    host: "localhost"
-    port: 9106

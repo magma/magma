@@ -27,8 +27,6 @@ import (
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/materializer"
-	"magma/orc8r/cloud/go/services/materializer/gateways"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
@@ -95,12 +93,6 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers() []obsidianh.Handler {
 		upgradeh.GetObsidianHandlers(),
 		hello.GetObsidianHandlers(),
 	)
-}
-
-func (*BaseOrchestratorPlugin) GetMaterializerApplications() []materializer.Application {
-	return []materializer.Application{
-		gateways.GetApplication(),
-	}
 }
 
 func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {

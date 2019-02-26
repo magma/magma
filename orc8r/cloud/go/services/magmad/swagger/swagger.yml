@@ -142,6 +142,29 @@ paths:
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/gateways?view=full:
+    get:
+      summary: Get full view of all gateways in a network
+      tags:
+        - Gateways
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: gateway_ids
+          type: array
+          required: false
+          items:
+            type: string
+      responses:
+        '200':
+          description: Materialized views of gateways specified in query
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/gateway_state'
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/gateways/{gateway_id}:
     get:
       summary: Get Registered Gateway's Record
@@ -465,3 +488,88 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/ping_result'
+
+  # Full view
+  gateway_state:
+    type: object
+    required:
+      - gateway_id
+    properties:
+      gateway_id:
+        $ref: './swagger-common.yml#/definitions/gateway_id'
+      config:
+        type: object
+        additionalProperties:
+          type: object
+      status:
+        $ref: '#/definitions/gateway_status'
+      record:
+        $ref: '#/definitions/access_gateway_record'
+  system_status:
+    type: object
+    properties:
+      time:
+        type: integer
+        format: uint64
+        example: 1234567000
+      cpu_user:
+        type: integer
+        format: uint64
+        x-go-custom-tag: 'magma_alt_name:"CpuUser"'
+      cpu_system:
+        type: integer
+        format: uint64
+        x-go-custom-tag: 'magma_alt_name:"CpuSystem"'
+      cpu_idle:
+        type: integer
+        format: uint64
+        x-go-custom-tag: 'magma_alt_name:"CpuIdle"'
+      mem_total:
+        type: integer
+        format: uint64
+      mem_available:
+        type: integer
+        format: uint64
+      mem_used:
+        type: integer
+        format: uint64
+      mem_free:
+        type: integer
+        format: uint64
+      uptime_secs:
+        type: integer
+        format: uint64
+        example: 12345
+  gateway_status:
+    type: object
+    properties:
+      checkin_time:
+        type: integer
+        format: uint64
+        example: 1234567890
+      hardware_id:
+        type: string
+      version:
+        type: string
+      system_status:
+        $ref: '#/definitions/system_status'
+      cert_expiration_time:
+        type: integer
+        format: int64
+        example: 1234567890
+      meta:
+        type: object
+        additionalProperties:
+          type: string
+      vpn_ip:
+        type: string
+        example: 10.0.0.1
+      kernel_version:
+        type: string
+        example: 4.9.0-6-amd64
+      kernel_versions_installed:
+        type: array
+        x-omitempty: true
+        items:
+          type: string
+        example: ["4.9.0-6-amd64", "4.9.0-7-amd64"]

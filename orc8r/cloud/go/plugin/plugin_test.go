@@ -18,7 +18,6 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/config/streaming"
-	"magma/orc8r/cloud/go/services/materializer"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -49,7 +48,6 @@ func TestLoadAllPlugins(t *testing.T) {
 	mockPlugin.On("GetMconfigStreamers").Return([]streaming.MconfigStreamer{})
 	mockPlugin.On("GetMetricsProfiles").Times(1).Return([]metricsd.MetricsProfile{})
 	mockPlugin.On("GetObsidianHandlers").Return([]handlers.Handler{})
-	mockPlugin.On("GetMaterializerApplications").Return([]materializer.Application{})
 	mockPlugin.On("GetStreamerProviders").Return([]providers.StreamProvider{})
 
 	err := plugin.LoadAllPlugins(mockLoader{ret: mockPlugin})
@@ -60,7 +58,6 @@ func TestLoadAllPlugins(t *testing.T) {
 	mockPlugin.AssertNumberOfCalls(t, "GetMconfigStreamers", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetMetricsProfiles", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetObsidianHandlers", 1)
-	mockPlugin.AssertNumberOfCalls(t, "GetMaterializerApplications", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetStreamerProviders", 1)
 	mockPlugin.AssertExpectations(t)
 

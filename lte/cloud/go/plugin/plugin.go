@@ -23,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/config/streaming"
-	"magma/orc8r/cloud/go/services/materializer"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -74,10 +73,6 @@ func (*LteOrchestratorPlugin) GetObsidianHandlers() []handlers.Handler {
 		policydbh.GetObsidianHandlers(),
 		subscriberdbh.GetObsidianHandlers(),
 	)
-}
-
-func (*LteOrchestratorPlugin) GetMaterializerApplications() []materializer.Application {
-	return []materializer.Application{}
 }
 
 func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {

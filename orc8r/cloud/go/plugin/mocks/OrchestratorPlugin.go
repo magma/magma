@@ -12,7 +12,6 @@ package mocks
 
 import factory "magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 import handlers "magma/orc8r/cloud/go/obsidian/handlers"
-import materializer "magma/orc8r/cloud/go/services/materializer"
 import metricsd "magma/orc8r/cloud/go/services/metricsd"
 import mock "github.com/stretchr/testify/mock"
 import platformregistry "magma/orc8r/cloud/go/registry"
@@ -36,22 +35,6 @@ func (_m *OrchestratorPlugin) GetConfigManagers() []registry.ConfigManager {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]registry.ConfigManager)
-		}
-	}
-
-	return r0
-}
-
-// GetMaterializerApplications provides a mock function with given fields:
-func (_m *OrchestratorPlugin) GetMaterializerApplications() []materializer.Application {
-	ret := _m.Called()
-
-	var r0 []materializer.Application
-	if rf, ok := ret.Get(0).(func() []materializer.Application); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]materializer.Application)
 		}
 	}
 
