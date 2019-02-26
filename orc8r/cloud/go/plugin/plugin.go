@@ -20,8 +20,6 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	config_registry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/config/streaming"
-	"magma/orc8r/cloud/go/services/materializer"
-	materializerregistry "magma/orc8r/cloud/go/services/materializer/registry"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -72,10 +70,6 @@ type OrchestratorPlugin interface {
 	// GetObsidianHandlers returns all the custom obsidian handlers for the
 	// plugin to add functionality to the REST API.
 	GetObsidianHandlers() []handlers.Handler
-
-	// GetMaterializerApplications returns streaming applications to register
-	// with the materializer service's application registry
-	GetMaterializerApplications() []materializer.Application
 
 	// GetStreamerProviders returns streamer streams to expose to gateways.
 	// These stream providers are the primary mechanism by which gateways
@@ -185,8 +179,9 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin) error {
 	if err := handlers.RegisterAll(orc8rPlugin.GetObsidianHandlers()); err != nil {
 		return err
 	}
-	materializerregistry.RegisterApplications(orc8rPlugin.GetMaterializerApplications()...)
-	providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...)
+	if err := providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...); err != nil {
+		return err
+	}
 
 	return nil
 }

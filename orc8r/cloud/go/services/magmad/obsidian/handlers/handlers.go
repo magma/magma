@@ -12,19 +12,12 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	"magma/orc8r/cloud/go/services/magmad/config"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	materializerh "magma/orc8r/cloud/go/services/materializer/gateways/obsidian/handlers"
-
-	"github.com/golang/glog"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for magmad
 func GetObsidianHandlers() []handlers.Handler {
-	materializerStorage, err := materializerh.GetStorage()
-	if err != nil {
-		glog.Fatalf("Could not initialize materializer storage: %s", err)
-	}
-
 	return []handlers.Handler{
 		// Network
 		{Path: ListNetworks, Methods: handlers.GET, HandlerFunc: listNetworks},
@@ -34,7 +27,7 @@ func GetObsidianHandlers() []handlers.Handler {
 		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetwork},
 
 		// Gateway
-		{Path: RegisterAG, Methods: handlers.GET, HandlerFunc: getListGatewaysHandler(materializerStorage)},
+		{Path: RegisterAG, Methods: handlers.GET, HandlerFunc: getListGatewaysHandler(&view_factory.FullGatewayViewFactoryImpl{})},
 		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: registerGateway},
 		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGateway},
 		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGateway},

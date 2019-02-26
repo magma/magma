@@ -17,10 +17,9 @@ import (
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
-	materializer_gateways_handlers "magma/orc8r/cloud/go/services/materializer/gateways/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/materializer/gateways/storage"
 
 	"github.com/labstack/echo"
 )
@@ -36,11 +35,11 @@ const (
 	GatewayPing     = CommandRoot + "/ping"
 )
 
-func getListGatewaysHandler(store storage.GatewayViewStorage) func(echo.Context) error {
+func getListGatewaysHandler(factory view_factory.FullGatewayViewFactory) func(echo.Context) error {
 	return func(c echo.Context) error {
 		fields := c.QueryParam("view")
 		if fields == "full" {
-			return materializer_gateways_handlers.ListGatewayViews(c, store)
+			return ListFullGatewayViews(c, factory)
 		}
 		return listGateways(c)
 	}

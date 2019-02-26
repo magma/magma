@@ -119,13 +119,6 @@
 # We don't want any of the following tasks to block provisioning a new cluster,
 # so set ignore_errors
 
-# We want to partition this topic but the number of partitions for auto-create
-# is set to 1 so explicitly create it here with the CLI
-- name: Create gateway materializer Kafka topic
-  command: '/opt/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic magma.public.gatewaystates --partitions {{ num_servers }} --replication-factor {{ num_servers }} --if-not-exists'
-  when: create_topics
-  ignore_errors: yes
-
 # There's no reason to keep all checkins - set to 1 week retention so we don't
 # blow away all our disk space.
 # Note that depending on the frequency of network creation, we depend on
