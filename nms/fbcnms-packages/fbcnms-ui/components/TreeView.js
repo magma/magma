@@ -63,7 +63,7 @@ const styles = (theme: Theme) => ({
   titleContainer: {
     display: 'flex',
     alignItems: 'center',
-    paddingRight: '20px',
+    paddingRight: theme.spacing.unit * 3,
     marginBottom: '12px',
     marginLeft: '12px',
   },
