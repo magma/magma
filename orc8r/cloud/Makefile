@@ -42,6 +42,7 @@ define add_module
 	CLEAN_LIST += $(MODULE)_clean
 	CLEAN_GEN_LIST += $(MODULE)_cleangen
 	COVER_LIST += $(MODULE)_cover
+	DOWNLOAD_LIST += $(MODULE)_download
 	FMT_LIST += $(MODULE)_fmt
 	GEN_LIST += $(MODULE)_gen
 	LINT_LIST += $(MODULE)_lint
@@ -88,6 +89,10 @@ export COVER_DIR
 cover: $(COVER_LIST)
 $(COVER_LIST): %_cover:
 	make -C $*/cloud/go cover
+
+download: $(DOWNLOAD_LIST)
+$(DOWNLOAD_LIST): %_download:
+	make -C $*/cloud/go download
 
 fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
