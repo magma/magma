@@ -23,8 +23,7 @@ matrix:
         - ./travis/link_cloud_configs.sh
 
       script:
-        - cd ${MAGMA_ROOT}/orc8r/cloud
-        - travis_retry travis_wait go mod download
+        - travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
         - cd ${MAGMA_ROOT}/feg/gateway
         - travis_retry travis_wait go mod download
 
@@ -59,8 +58,7 @@ matrix:
         - ./travis/link_cloud_configs.sh
 
       script:
-        - cd ${MAGMA_ROOT}/orc8r/cloud
-        - travis_retry travis_wait go mod download
+        - travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
         - make -C ${MAGMA_ROOT}/orc8r/cloud precommit
 
     - language: go

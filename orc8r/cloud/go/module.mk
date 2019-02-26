@@ -4,7 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 #
-.PHONY: build clean clean_gen fmt gen lint plugin test vet
+.PHONY: build clean clean_gen download fmt gen lint plugin test vet
 
 build:: plugin
 	go install ./...
@@ -15,6 +15,9 @@ clean::
 clean_gen:
 	find . -name "*.pb.go" | xargs --no-run-if-empty rm
 	find . -name "*_swaggergen.go" | xargs --no-run-if-empty rm
+
+download:
+	go mod download
 
 fmt:
 	go fmt ./...
