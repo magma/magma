@@ -9,7 +9,10 @@ LICENSE file in the root directory of this source tree.
 // Datastore provides a key-value pair interface for the cloud services
 package datastore
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type ValueWrapper struct {
 	Value      []byte
@@ -18,6 +21,13 @@ type ValueWrapper struct {
 
 // ErrNotFound is returned by GET when no record for the key is found
 var ErrNotFound = errors.New("No record for query")
+
+func IsErrNotFound(err error) bool {
+	if strings.Contains(err.Error(), ErrNotFound.Error()) {
+		return true
+	}
+	return false
+}
 
 type Api interface {
 	Put(table string, key string, value []byte) error

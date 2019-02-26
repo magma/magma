@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"sort"
 
+	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -184,6 +185,9 @@ func rebootGateway(c echo.Context) error {
 
 	err := magmad.GatewayReboot(networkId, gatewayId)
 	if err != nil {
+		if datastore.IsErrNotFound(err) {
+			return handlers.HttpError(err, http.StatusNotFound)
+		}
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
@@ -207,6 +211,9 @@ func restartServices(c echo.Context) error {
 	}
 	err = magmad.GatewayRestartServices(networkId, gatewayId, services)
 	if err != nil {
+		if datastore.IsErrNotFound(err) {
+			return handlers.HttpError(err, http.StatusNotFound)
+		}
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
@@ -227,6 +234,9 @@ func gatewayPing(c echo.Context) error {
 	err := c.Bind(&pingRequest)
 	response, err := magmad.GatewayPing(networkId, gatewayId, pingRequest.Packets, pingRequest.Hosts)
 	if err != nil {
+		if datastore.IsErrNotFound(err) {
+			return handlers.HttpError(err, http.StatusNotFound)
+		}
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 	var pingResponse magmad_models.PingResponse

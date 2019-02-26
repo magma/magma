@@ -10,8 +10,8 @@ package handlers
 
 import (
 	"fmt"
-	"strings"
 
+	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/services/checkind"
 	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/config/blacklist"
@@ -42,7 +42,7 @@ func loadGatewayState(networkID string, gatewayID string) (*storage.GatewayState
 	}
 	status, err := checkind.GetStatus(networkID, gatewayID)
 	if err != nil {
-		if strings.Contains(err.Error(), "No record for query") {
+		if datastore.IsErrNotFound(err) {
 			status = nil
 		} else {
 			return nil, fmt.Errorf("Error loading gateway status for %s: %s", gatewayID, err)
