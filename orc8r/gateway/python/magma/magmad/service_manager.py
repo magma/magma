@@ -76,31 +76,27 @@ class ServiceManager(object):
                 'Init system {} not found'.format(init_system)
             )
 
-    @asyncio.coroutine
-    def start_services(self):
-        yield from asyncio.gather(
+    async def start_services(self):
+        await asyncio.gather(
             *[self._service_control[s].start_process() for s in self._services]
         )
 
-    @asyncio.coroutine
-    def stop_services(self):
-        yield from asyncio.gather(
+    async def stop_services(self):
+        await asyncio.gather(
             *[self._service_control[s].stop_process() for s in self._services]
         )
 
-    @asyncio.coroutine
-    def restart_services(self, services=None):
+    async def restart_services(self, services=None):
         """ Restart some or all services """
         if not services:
             services = self._services
         for service in services:
             self._service_poller.process_service_restart(service)
-        yield from asyncio.gather(
+        await asyncio.gather(
             *[self._service_control[s].restart_process() for s in services]
         )
 
-    @asyncio.coroutine
-    def update_dynamic_services(self, dynamic_services):
+    async def update_dynamic_services(self, dynamic_services):
         """
         Start/Stop dynamic services, after running this the only dynamic
         services left running are the ones passed in (dynamic_services).
@@ -109,7 +105,7 @@ class ServiceManager(object):
 
         self._services = [s for s in self._services + start if s not in stop]
 
-        yield from asyncio.gather(
+        await asyncio.gather(
             *[self._service_control[s].stop_process() for s in stop],
             *[self._service_control[s].start_process() for s in start]
         )
