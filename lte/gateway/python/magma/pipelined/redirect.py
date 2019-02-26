@@ -19,7 +19,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    Direction
+    Direction, REG_ZERO_VAL
 from magma.redirectd.redirect_store import RedirectDict
 
 from ryu.lib.packet import ether_types
@@ -39,6 +39,11 @@ class RedirectionManager:
     it adds the flows into ovs for redirecting user to the redirection server
     """
     DNS_TIMEOUT_SECS = 15
+
+    REDIRECT_SCRATCH_TABLE = 21
+
+    REDIRECT_NOT_PROCESSED = REG_ZERO_VAL
+    REDIRECT_PROCESSED = 0x1
 
     RedirectRequest = namedtuple(
         'RedirectRequest',
@@ -105,7 +110,8 @@ class RedirectionManager:
         self._install_dns_flows(datapath, imsi, rule, rule_num, priority)
         self._install_server_flows(datapath, imsi, rule, rule_num, priority)
 
-    def _install_server_flows(self, datapath, imsi, rule, rule_num, priority):
+    def _install_scratch_table_flows(self, datapath, imsi, rule, rule_num,
+                                     priority):
         """
         The flow action for subcribers that need to be redirected does 2 things
             * Forward requests from subscriber to the internal http server
@@ -196,19 +202,65 @@ class RedirectionManager:
                     # Learn doesn't support resubmit to table, so send directly
                     parser.NXFlowSpecOutput(
                         src=('in_port', 0), dst="", n_bits=16
-                    )
+                    ),
                 ]
             ),
             parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+            parser.NXActionRegLoad2(dst=flows.SCRATCH_REG,
+                                    value=self.REDIRECT_PROCESSED),
             parser.OFPActionSetField(ipv4_dst=self._bridge_ip),
             parser.OFPActionSetField(tcp_dst=self._redirect_port),
-            of_note
+            of_note,
         ]
 
-        flows.add_flow(datapath, self.tbl_num, match_http, actions,
+        flows.add_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match_http,
+                       actions, priority=priority, cookie=rule_num,
+                       hard_timeout=rule.hard_timeout,
+                       resubmit_table=self.tbl_num)
+
+        match = parser.OFPMatch(metadata=encode_imsi(imsi))
+        action = []
+        flows.add_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match, action,
+                       priority=flows.MINIMUM_PRIORITY + 1)
+
+    def _install_not_processed_flows(self, datapath, imsi, rule, rule_num,
+                                     priority):
+        """
+        Redirect all traffic to the scratch table to only allow redirected
+        http traffic to go through, the rest will be dropped. reg0 is used as
+        a boolean to know whether the drop rule was processed.
+        """
+        parser = datapath.ofproto_parser
+        of_note = parser.NXActionNote(list(rule.id.encode()))
+
+        match = parser.OFPMatch(reg0=self.REDIRECT_NOT_PROCESSED,
+                                reg1=inout.DIRECTION_OUT,
+                                eth_type=ether_types.ETH_TYPE_IP,
+                                metadata=encode_imsi(imsi))
+        action = [of_note]
+        flows.add_flow(datapath, self.tbl_num, match, action,
+                       priority=priority, cookie=rule_num,
+                       hard_timeout=rule.hard_timeout,
+                       resubmit_table=self.REDIRECT_SCRATCH_TABLE)
+
+        match = parser.OFPMatch(reg0=self.REDIRECT_PROCESSED,
+                                metadata=encode_imsi(imsi),
+                                reg1=inout.DIRECTION_OUT)
+        action = [of_note]
+        flows.add_flow(datapath, self.tbl_num, match, action,
                        priority=priority, cookie=rule_num,
                        hard_timeout=rule.hard_timeout,
                        resubmit_table=self.next_table)
+
+    def _install_server_flows(self, datapath, imsi, rule, rule_num, priority):
+        """
+        Install the redirect flows to redirect all HTTP traffic to the captive
+        portal and to drop all of the rest.
+        """
+        self._install_scratch_table_flows(datapath, imsi, rule, rule_num,
+                                          priority)
+        self._install_not_processed_flows(datapath, imsi, rule, rule_num,
+                                          priority)
 
     def _install_url_bypass_flows(self, datapath, loop, imsi, rule, rule_num,
                                   priority):
@@ -261,8 +313,10 @@ class RedirectionManager:
         """
         parser = datapath.ofproto_parser
         of_note = parser.NXActionNote(list(rule.id.encode()))
-        actions = [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
-                   of_note]
+        actions = [
+            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+            of_note,
+        ]
 
         matches = []
         for ip in ips:
@@ -286,8 +340,10 @@ class RedirectionManager:
         """
         parser = datapath.ofproto_parser
         of_note = parser.NXActionNote(list(rule.id.encode()))
-        actions = [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
-                   of_note]
+        actions = [
+            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+            of_note,
+        ]
         matches = []
         # Install UDP flows for DNS
         matches.append(MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,

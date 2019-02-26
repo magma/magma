@@ -84,14 +84,14 @@
     |  DPI engine                 |
     -------------------------------
 
-    -------------------------------
-    |          Table X            |
-    |        enforcement          |
-    |- Activates/deactivates rules|
-    |  for a subscriber           |
-    |- Keeps track of flow stats  |
-    |  and sends to sessiond      |
-    -------------------------------   
+    -------------------------------     -------------------------------
+    |          Table X            |     |           Table 21          |
+    |        enforcement          | --->|       redirect scratch      |
+    |- Activates/deactivates rules|     |- Drop all non-HTTP traffic  |
+    |  for a subscriber           |     |  for redirected subscribers |
+    |- Keeps track of flow stats  |<--- |                             |
+    |  and sends to sessiond      |     |                             |
+    -------------------------------     -------------------------------  
 ```
 
 ### Reserved registers

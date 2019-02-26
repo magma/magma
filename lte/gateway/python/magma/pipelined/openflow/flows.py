@@ -11,6 +11,7 @@ import logging
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
+from magma.pipelined.redirect import RedirectionManager
 
 logger = logging.getLogger(__name__)
 
@@ -113,16 +114,25 @@ def get_add_flow_msg(datapath, table, match, actions=None, instructions=None,
             actions is not None and \
             any(isinstance(action, parser.NXActionRegLoad2)
                 and action.dst in SCRATCH_REGS for action in actions)
-        if scratch_reg_load_action_exists:
+        # TODO: actually check this when apps can claim multiple tables.
+        # For the time being, only redirect app has a scratch table, so just
+        # check if the different table is the redirect scratch table.
+        resubmit_to_other_app = \
+            table != resubmit_table and \
+            RedirectionManager.REDIRECT_SCRATCH_TABLE not in [
+                table, resubmit_table]
+        if scratch_reg_load_action_exists and resubmit_to_other_app:
             raise Exception(
-                'Scratch registers should not be loaded when '
-                'resubmitting table',
+                'Scratch register should not be loaded when '
+                'resubmitting to another table owned by other apps',
             )
 
-        reset_scratch_reg_actions = [
-            parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
-            for reg in SCRATCH_REGS]
-        actions = actions + reset_scratch_reg_actions + [
+        if resubmit_to_other_app:
+            reset_scratch_reg_actions = [
+                parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
+                for reg in SCRATCH_REGS]
+            actions = actions + reset_scratch_reg_actions
+        actions = actions + [
             parser.NXActionResubmitTable(table_id=resubmit_table),
         ]
 

@@ -159,9 +159,11 @@ class RedirectTest(unittest.TestCase):
                                        learn_action_flow)
 
         # =========================== Verification ===========================
-        # 1 packet sent, permit rules installed, learn action installed
+        # 1 packet sent, permit rules installed, learn action installed. Since
+        # the enforcement table is entered via the DPI table and the scratch
+        # enforcement table, the number of packets handled by the table is 2.
         flow_verifier = FlowVerifier(
-            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 1),
+            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
              FlowTest(learn_action_query, 0, flow_count=1)] +
             [FlowTest(query, 0, flow_count=1) for query in permit_outbound] +
             [FlowTest(query, 0, flow_count=1) for query in permit_inbound],
@@ -231,9 +233,11 @@ class RedirectTest(unittest.TestCase):
                                        learn_action_flow)
 
         # =========================== Verification ===========================
-        # 1 packet sent, permit rules installed, learn action installed
+        # 1 packet sent, permit rules installed, learn action installed. Since
+        # the enforcement table is entered via the DPI table and the scratch
+        # enforcement table, the number of packets handled by the table is 2.
         flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 1),
+            FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
             FlowTest(permit_outbound, 0, flow_count=1),
             FlowTest(permit_inbound, 0, flow_count=1),
             FlowTest(learn_action_query, 0, flow_count=1)
