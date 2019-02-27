@@ -10,8 +10,6 @@ syntax = "proto3";
 package eap;
 option go_package = "magma/feg/gateway/services/eapauth/provider/protos";
 
-import "eap_auth.proto"; // include EAP Authenticator API proto definitions
-
 message initial_access_indication {
     string identity = 1;
 }
