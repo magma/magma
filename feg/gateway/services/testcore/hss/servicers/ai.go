@@ -159,7 +159,7 @@ func (srv *HomeSubscriberServer) ResyncLteAuthSeq(subscriber *protos.SubscriberD
 // to the next sequence number after `seq`.
 // See 3GPP TS 33.102 Appendix C.3.
 func (srv *HomeSubscriberServer) SetNextLteAuthSqnAfterResync(subscriber *protos.SubscriberData, sqn uint64) error {
-	seq, ind := SplitSqn(sqn)
+	seq, _ := SplitSqn(sqn)
 	currentSeq := subscriber.State.LteAuthNextSeq - 1
 	if seq < currentSeq {
 		seqDelta := currentSeq - seq
@@ -169,8 +169,6 @@ func (srv *HomeSubscriberServer) SetNextLteAuthSqnAfterResync(subscriber *protos
 			return NewAuthRejectedError(fmt.Sprintf("Re-sync delta in range but UE rejected auth: %d", seqDelta))
 		}
 	}
-
-	srv.AuthSqnInd = ind
 	return srv.SetNextLteAuthSeq(subscriber, seq+1)
 }
 
@@ -192,12 +190,11 @@ func (srv *HomeSubscriberServer) GenerateLteAuthVector(subscriber *protos.Subscr
 	if err != nil {
 		return nil, err
 	}
-	ind := srv.AuthSqnInd // Store IND before incrementing
 	err = srv.IncreaseSQN(subscriber)
 	if err != nil {
 		return nil, err
 	}
-	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, ind)
+	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, srv.AuthSqnInd)
 	vector, err := srv.Milenage.GenerateEutranVector(lte.AuthKey, opc, sqn, plmn)
 	if err != nil {
 		return vector, NewAuthRejectedError(err.Error())
@@ -243,10 +240,6 @@ func (srv *HomeSubscriberServer) IncreaseSQN(subscriber *protos.SubscriberData) 
 	if subscriber.State == nil {
 		subscriber.State = &protos.SubscriberState{}
 	}
-
-	// Per 3GPP TS 33.102 Appendix C.3.4, IND is allocated cyclically within its
-	// range.
-	srv.AuthSqnInd = (srv.AuthSqnInd + 1) % (1 << indBits)
 	return srv.SetNextLteAuthSeq(subscriber, subscriber.State.LteAuthNextSeq+1)
 }
 
