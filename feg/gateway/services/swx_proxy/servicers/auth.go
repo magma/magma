@@ -12,10 +12,12 @@ package servicers
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/swx_proxy/metrics"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -48,26 +50,32 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	}
 	err = s.sendDiameterMsg(marMsg, MAX_DIAM_RETRIES)
 	if err != nil {
+		metrics.MARSendFailures.Inc()
 		glog.Errorf("Error while sending MAR with SID %s: %s", sid, err)
 		return res, err
 	}
+	metrics.MARRequests.Inc()
 	select {
 	case resp, open := <-ch:
 		if !open {
-			err = status.Errorf(codes.Aborted, "MAA for Session ID: %s is canceled", sid)
+			metrics.SwxInvalidSessions.Inc()
+			err = status.Errorf(codes.Aborted, "MAA for Session ID: %s is cancelled", sid)
 			glog.Error(err)
 			return res, err
 		}
 		maa, ok := resp.(*MAA)
 		if !ok {
+			metrics.SwxUnparseableMsg.Inc()
 			err = status.Errorf(codes.Internal, "Invalid Response Type: %T, MAA expected.", resp)
 			glog.Error(err)
-			return res, status.Errorf(codes.Internal, "Invalid Response Type: %T, MAA expected.", resp)
+			return res, err
 		}
 		err = diameter.TranslateDiamResultCode(maa.ResultCode)
+		metrics.SwxResultCodes.WithLabelValues(strconv.FormatUint(uint64(maa.ResultCode), 10)).Inc()
 		// If there is no base diameter error, check that there is no experimental error either
 		if err == nil {
 			err = diameter.TranslateDiamResultCode(maa.ExperimentalResult.ExperimentalResultCode)
+			metrics.SwxExperimentalResultCodes.WithLabelValues(strconv.FormatUint(uint64(maa.ExperimentalResult.ExperimentalResultCode), 10)).Inc()
 		}
 		// According to spec 29.273, SIP-Auth-Data-Item(s) only present on SUCCESS
 		if err != nil {
@@ -76,6 +84,7 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 		res.SipAuthVectors = getSIPAuthenticationVectors(maa.SIPAuthDataItems)
 
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
+		metrics.SwxTimeouts.Inc()
 		err = status.Errorf(codes.DeadlineExceeded, "MAA Timed Out for Session ID: %s", sid)
 		glog.Error(err)
 	}
@@ -116,6 +125,7 @@ func handleMAA(s *swxProxy) diam.HandlerFunc {
 		var maa MAA
 		err := m.Unmarshal(&maa)
 		if err != nil {
+			metrics.SwxUnparseableMsg.Inc()
 			glog.Errorf("MAA Unmarshal failed for remote %s & message %s: %s", c.RemoteAddr(), m, err)
 			return
 		}
@@ -123,6 +133,7 @@ func handleMAA(s *swxProxy) diam.HandlerFunc {
 		if ch != nil {
 			ch <- &maa
 		} else {
+			metrics.SwxInvalidSessions.Inc()
 			glog.Errorf("MAA SessionID %s not found. Message: %s, Remote: %s", maa.SessionID, m, c.RemoteAddr())
 		}
 	}

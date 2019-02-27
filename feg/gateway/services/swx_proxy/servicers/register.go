@@ -12,10 +12,12 @@ package servicers
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/swx_proxy/metrics"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -44,28 +46,36 @@ func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest) (*protos.Regist
 	sarMsg := s.createSAR(sid, req.GetUserName(), ServerAssignmentType_REGISTRATION)
 	err = s.sendDiameterMsg(sarMsg, MAX_DIAM_RETRIES)
 	if err != nil {
+		metrics.SARSendFailures.Inc()
 		glog.Errorf("Error while sending SAR with SID %s: %s", sid, err)
 		return res, err
 	}
+	metrics.SARRequests.Inc()
+
 	select {
 	case resp, open := <-ch:
 		if !open {
+			metrics.SwxInvalidSessions.Inc()
 			err = status.Errorf(codes.Aborted, "SAA for Session ID: %s is cancelled", sid)
 			glog.Error(err)
 			return res, err
 		}
 		saa, ok := resp.(*SAA)
 		if !ok {
+			metrics.SwxUnparseableMsg.Inc()
 			err = status.Errorf(codes.Internal, "Invalid Response Type: %T, SAA expected.", resp)
 			glog.Error(err)
 			return res, err
 		}
 		err = diameter.TranslateDiamResultCode(saa.ResultCode)
+		metrics.SwxResultCodes.WithLabelValues(strconv.FormatUint(uint64(saa.ResultCode), 10)).Inc()
 		// If there is no base diameter error, check that there is no experimental error either
 		if err == nil {
 			err = diameter.TranslateDiamResultCode(saa.ExperimentalResult.ExperimentalResultCode)
+			metrics.SwxExperimentalResultCodes.WithLabelValues(strconv.FormatUint(uint64(saa.ExperimentalResult.ExperimentalResultCode), 10)).Inc()
 		}
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
+		metrics.SwxTimeouts.Inc()
 		err = status.Errorf(codes.DeadlineExceeded, "SAA Timed Out for Session ID: %s", sid)
 		glog.Error(err)
 	}
@@ -90,6 +100,7 @@ func handleSAA(s *swxProxy) diam.HandlerFunc {
 		var saa SAA
 		err := m.Unmarshal(&saa)
 		if err != nil {
+			metrics.SwxUnparseableMsg.Inc()
 			glog.Errorf("SAA Unmarshal failed for remote %s & message %s: %s", c.RemoteAddr(), m, err)
 			return
 		}
@@ -97,6 +108,7 @@ func handleSAA(s *swxProxy) diam.HandlerFunc {
 		if ch != nil {
 			ch <- &saa
 		} else {
+			metrics.SwxInvalidSessions.Inc()
 			glog.Errorf("SAA SessionID %s not found. Message: %s, Remote: %s", saa.SessionID, m, c.RemoteAddr())
 		}
 	}
