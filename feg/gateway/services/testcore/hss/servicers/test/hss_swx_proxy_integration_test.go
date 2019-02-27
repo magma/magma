@@ -46,6 +46,20 @@ func TestMAR_UnknownIMSI(t *testing.T) {
 	assert.Equal(t, 0, len(maa.SipAuthVectors))
 }
 
+func TestSAR_SuccessfulRegistration(t *testing.T) {
+	swxProxy := getTestSwxProxy(t)
+	sar := &protos.RegistrationRequest{UserName: "sub1"}
+	_, err := swxProxy.Register(context.Background(), sar)
+	assert.NoError(t, err)
+}
+
+func TestSAR_UnknownIMSI(t *testing.T) {
+	swxProxy := getTestSwxProxy(t)
+	sar := &protos.RegistrationRequest{UserName: "sub_unknown"}
+	_, err := swxProxy.Register(context.Background(), sar)
+	assert.EqualError(t, err, "rpc error: code = Code(5001) desc = Diameter Error: 5001 (USER_UNKNOWN)")
+}
+
 // getTestSwxProxy creates a SWx Proxy server and test HSS Diameter
 // server which are configured to communicate with each other.
 func getTestSwxProxy(t *testing.T) protos.SwxProxyServer {
