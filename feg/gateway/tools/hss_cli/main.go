@@ -29,15 +29,32 @@ const (
 )
 
 var (
-	cmdRegistry           = new(commands.Map) // manages the commands which this CLI supports
-	subscriberID          string
-	gsmSubscriptionActive bool
-	lteSubscriptionActive bool
-	networkID             string
-	lteAuthNextSeq        uint64
-	subProfile            string
-	authKey               string
-	authOpc               string
+	cmdRegistry                = new(commands.Map) // manages the commands which this CLI supports
+	subscriberID               string
+	gsmSubscriptionActive      bool
+	lteSubscriptionActive      bool
+	networkID                  string
+	lteAuthNextSeq             uint64
+	subProfile                 string
+	authKey                    string
+	authOpc                    string
+	msisdn                     string
+	non3GPPIPAccessBarred      bool
+	non3GPPIPAccessApnDisabled bool
+	maxBandwidthUl             uint
+	maxBandwidthDl             uint
+	tgppAAAServerName          string
+	tgppAAAServerRegistered    bool
+	apnContextID               uint
+	serviceSelection           string
+	qosClassID                 int
+	qosPriorityLevel           uint
+	qosPreemptionCapability    bool
+	qosPreemptionVulnerability bool
+	apnMaxBandwidthUl          uint
+	apnMaxBandwidthDl          uint
+	pdn                        int
+	anid                       int
 )
 
 func main() {
@@ -204,6 +221,23 @@ func addSubscriberDataFlags(flags *flag.FlagSet) {
 	flags.StringVar(&networkID, "network_id", networkID, "Uniquely identifies the network")
 	flags.Uint64Var(&lteAuthNextSeq, "lte_auth_next_seq", lteAuthNextSeq, "Next SEQ to be used for calculating the AUTN")
 	flags.StringVar(&subProfile, "sub_profile", subProfile, "Subscription profile")
+	flags.StringVar(&msisdn, "msisdn", msisdn, "Mobile station international subscriber directory number")
+	flags.BoolVar(&non3GPPIPAccessBarred, "non_3gpp_ip_access_barred", non3GPPIPAccessBarred, "Whether the subscriber has non-3GPP subscription access to EPC network")
+	flags.BoolVar(&non3GPPIPAccessApnDisabled, "non_3gpp_ip_access_apn_disabled", non3GPPIPAccessApnDisabled, "Disables all APNs for a subscriber")
+	flags.UintVar(&maxBandwidthUl, "max_bandwidth_ul", maxBandwidthUl, "Maximum uplink bitrate")
+	flags.UintVar(&maxBandwidthDl, "max_bandwidth_dl", maxBandwidthDl, "Maximum downlink bitrate")
+	flags.StringVar(&tgppAAAServerName, "tgpp_aaa_server_name", tgppAAAServerName, "The Diameter address of the 3GPP AAA Server which is serving the user")
+	flags.BoolVar(&tgppAAAServerRegistered, "tgpp_aaa_server_registered", tgppAAAServerRegistered, "Whether the subscribers User Status is REGISTERED or NOT_REGISTERED")
+	flags.UintVar(&apnContextID, "apn_context_id", apnContextID, "APN identifier")
+	flags.StringVar(&serviceSelection, "service_selection", "*", "Contains either the APN Name or wildcard '*'")
+	flags.IntVar(&qosClassID, "qos_class_id", qosClassID, "QoS profile identifier")
+	flags.UintVar(&qosPriorityLevel, "qos_priority_level", qosPriorityLevel, "QoS priority level")
+	flags.BoolVar(&qosPreemptionCapability, "qos_preemption_capability", qosPreemptionCapability, "Whether a bearer with a lower priority level should be dropped if needed")
+	flags.BoolVar(&qosPreemptionVulnerability, "qos_preemption_vulnerability", qosPreemptionVulnerability, "Whether a bearer is a candidate for dropping")
+	flags.UintVar(&apnMaxBandwidthUl, "apn_max_bandwidth_ul", apnMaxBandwidthUl, "Maximum apn uplink bitrate")
+	flags.UintVar(&apnMaxBandwidthDl, "apn_max_bandwidth_dl", apnMaxBandwidthDl, "Maximum apn downlink bitrate")
+	flags.IntVar(&pdn, "pdn", pdn, "Packet data network type")
+	flags.IntVar(&anid, "anid", anid, "Access network identifier")
 }
 
 // connectToHss establishes a grpc connection to the hss configurator service.
@@ -227,9 +261,39 @@ func getSubscriberData() *lteprotos.SubscriberData {
 			AuthOpc:  []byte(authOpc),
 			AuthAlgo: lteprotos.LTESubscription_MILENAGE,
 		},
-		NetworkId:  &orcprotos.NetworkID{Id: networkID},
-		State:      &lteprotos.SubscriberState{LteAuthNextSeq: lteAuthNextSeq},
+		NetworkId: &orcprotos.NetworkID{Id: networkID},
+		State: &lteprotos.SubscriberState{
+			LteAuthNextSeq:          lteAuthNextSeq,
+			TgppAaaServerName:       tgppAAAServerName,
+			TgppAaaServerRegistered: tgppAAAServerRegistered,
+		},
 		SubProfile: subProfile,
+		Non_3Gpp: &lteprotos.Non3GPPUserProfile{
+			Msisdn: msisdn,
+			Ambr: &lteprotos.AggregatedMaximumBitrate{
+				MaxBandwidthUl: uint32(maxBandwidthUl),
+				MaxBandwidthDl: uint32(maxBandwidthDl),
+			},
+			Non_3GppIpAccess:    getNon3GPPIPAccess(),
+			Non_3GppIpAccessApn: getNon3GPPIPAccessApn(),
+			ApnConfig: &lteprotos.APNConfiguration{
+				ContextId:        uint32(apnContextID),
+				ServiceSelection: serviceSelection,
+				QosProfile: &lteprotos.APNConfiguration_QoSProfile{
+					ClassId:                 int32(qosClassID),
+					PriorityLevel:           uint32(qosPriorityLevel),
+					PreemptionCapability:    qosPreemptionCapability,
+					PreemptionVulnerability: qosPreemptionVulnerability,
+				},
+				Ambr: &lteprotos.AggregatedMaximumBitrate{
+					MaxBandwidthUl: uint32(apnMaxBandwidthUl),
+					MaxBandwidthDl: uint32(apnMaxBandwidthDl),
+				},
+				Pdn: lteprotos.APNConfiguration_PDNType(pdn),
+			},
+
+			AccessNetId: lteprotos.AccessNetworkIdentifier(anid),
+		},
 	}
 }
 
@@ -247,4 +311,18 @@ func getLTESubscriptionState() lteprotos.LTESubscription_LTESubscriptionState {
 		return lteprotos.LTESubscription_ACTIVE
 	}
 	return lteprotos.LTESubscription_INACTIVE
+}
+
+func getNon3GPPIPAccess() lteprotos.Non3GPPUserProfile_Non3GPPIPAccess {
+	if non3GPPIPAccessBarred {
+		return lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_BARRED
+	}
+	return lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED
+}
+
+func getNon3GPPIPAccessApn() lteprotos.Non3GPPUserProfile_Non3GPPIPAccessAPN {
+	if non3GPPIPAccessApnDisabled {
+		return lteprotos.Non3GPPUserProfile_NON_3GPP_APNS_DISABLE
+	}
+	return lteprotos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE
 }
