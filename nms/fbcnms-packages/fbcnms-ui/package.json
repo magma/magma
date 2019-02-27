@@ -8,6 +8,7 @@
     "@material-ui/lab": "^3.0.0-alpha.30",
     "@material-ui/styles": "^3.0.0-alpha.7",
     "notistack": "^0.4.1",
+    "perfect-scrollbar-react": "^1.0.1",
     "react": "^16.8.1",
     "react-dom": "^16.8.1"
   },
