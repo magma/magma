@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/protos"
+	_ "magma/orc8r/cloud/go/protos/mconfig"
 )
 
 var localConfig atomic.Value // always *mconfig.GatewayConfigs, never should be nil
