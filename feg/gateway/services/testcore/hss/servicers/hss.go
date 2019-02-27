@@ -33,8 +33,7 @@ type HomeSubscriberServer struct {
 	Milenage *crypto.MilenageCipher
 
 	// authSqnInd is an index used in the array scheme described by 3GPP TS 33.102 Appendix C.1.2 and C.2.2.
-	// SQN consists of two parts (SQN = SEQ||IND). This value is incremented every
-	// time a batch of authentication vectors is generated (see Appendix C.3.4).
+	// SQN consists of two parts (SQN = SEQ||IND).
 	AuthSqnInd uint64
 }
 

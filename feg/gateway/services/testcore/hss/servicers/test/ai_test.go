@@ -443,7 +443,6 @@ func TestSetNextLteAuthSqnAfterResync(t *testing.T) {
 
 	err = server.SetNextLteAuthSqnAfterResync(subscriber, servicers.SeqToSqn(1<<30-1, 3))
 	assert.NoError(t, err)
-	assert.Equal(t, uint64(3), server.AuthSqnInd)
 	assert.Equal(t, uint64(1<<30), subscriber.State.LteAuthNextSeq)
 }
 
@@ -465,7 +464,6 @@ func TestSetNextLteAuthSeq(t *testing.T) {
 
 func TestIncrementSQN(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
-	server.AuthSqnInd = 31
 
 	id := &lteprotos.SubscriberID{Id: "sub1"}
 	subscriber, err := server.GetSubscriberData(context.Background(), id)
@@ -477,7 +475,6 @@ func TestIncrementSQN(t *testing.T) {
 	err = server.IncreaseSQN(subscriber)
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(51), subscriber.State.LteAuthNextSeq)
-	assert.Equal(t, uint64(0), server.AuthSqnInd)
 
 	subscriber, err = server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)

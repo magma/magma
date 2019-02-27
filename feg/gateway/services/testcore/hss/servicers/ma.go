@@ -117,12 +117,11 @@ func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *lteprotos.Sub
 	if err != nil {
 		return nil, err
 	}
-	ind := srv.AuthSqnInd // Store IND before incrementing
 	err = srv.IncreaseSQN(subscriber)
 	if err != nil {
 		return nil, err
 	}
-	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, ind)
+	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, srv.AuthSqnInd)
 	vector, err := srv.Milenage.GenerateSIPAuthVector(lte.AuthKey, opc, sqn)
 	if err != nil {
 		return vector, NewAuthRejectedError(err.Error())
