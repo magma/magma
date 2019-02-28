@@ -275,8 +275,8 @@ class EnforcementController(MagmaController):
         """
         match = MagmaMatch(imsi=encode_imsi(imsi))
         actions = []  # empty options == drop
-        flows.add_flow(self._datapath, self.tbl_num, match, actions,
-                       priority=self.ENFORCE_DROP_PRIORITY)
+        flows.add_drop_flow(self._datapath, self.tbl_num, match, actions,
+                            priority=self.ENFORCE_DROP_PRIORITY)
 
     def activate_flows(self, imsi, ip_addr, static_rule_ids,
                        dynamic_rules, fut):

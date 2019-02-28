@@ -116,16 +116,16 @@ class ArpController(MagmaController):
                 parser.NXActionRegMove(src_field='reg0',
                                        dst_field='arp_spa',
                                        n_bits=32),
-                parser.OFPActionOutput(ofproto.OFPP_IN_PORT),
             ]
-            flows.add_flow(datapath, self.table_num, match, actions,
-                           priority=flows.DEFAULT_PRIORITY)
+            flows.add_output_flow(datapath, self.table_num, match, actions,
+                                  priority=flows.DEFAULT_PRIORITY,
+                                  output_port=ofproto.OFPP_IN_PORT)
 
         # Drop all other ARPs
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                            direction=Direction.IN)
-        flows.add_flow(datapath, self.table_num, match, [],
-                       priority=flows.MINIMUM_PRIORITY)
+        flows.add_drop_flow(datapath, self.table_num, match, [],
+                            priority=flows.MINIMUM_PRIORITY)
 
     def _set_default_eth_dst_flow(self, datapath):
         """

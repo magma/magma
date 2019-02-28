@@ -77,7 +77,7 @@ class MeterController(MagmaController):
         For every UE IP block, this adds a pair of  0-priority flow-miss rules
         for incoming and outgoing traffic which trigger PACKET IN.
         """
-        parser, ofproto = datapath.ofproto_parser, datapath.ofproto
+        ofproto = datapath.ofproto
         imsi_match = (0x1, 0x1)  # match on the last bit set
         inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                    direction=Direction.IN,
@@ -85,14 +85,16 @@ class MeterController(MagmaController):
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT,
                                     imsi=imsi_match)
-        actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER,
-                                          ofproto.OFPCML_NO_BUFFER)]
-        flows.add_flow(datapath, self.tbl_num, inbound_match, actions,
-                       priority=flows.MINIMUM_PRIORITY,
-                       cookie=self.DEFAULT_FLOW_COOKIE)
-        flows.add_flow(datapath, self.tbl_num, outbound_match, actions,
-                       priority=flows.MINIMUM_PRIORITY,
-                       cookie=self.DEFAULT_FLOW_COOKIE)
+        flows.add_output_flow(datapath, self.tbl_num, inbound_match, [],
+                              priority=flows.MINIMUM_PRIORITY,
+                              cookie=self.DEFAULT_FLOW_COOKIE,
+                              output_port=ofproto.OFPP_CONTROLLER,
+                              max_len=ofproto.OFPCML_NO_BUFFER)
+        flows.add_output_flow(datapath, self.tbl_num, outbound_match, [],
+                              priority=flows.MINIMUM_PRIORITY,
+                              cookie=self.DEFAULT_FLOW_COOKIE,
+                              output_port=ofproto.OFPP_CONTROLLER,
+                              max_len=ofproto.OFPCML_NO_BUFFER)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _install_new_ingress_egress_flows(self, ev):

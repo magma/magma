@@ -68,17 +68,15 @@ class InOutController(MagmaController):
         Raises:
             MagmaOFError if any of the default flows fail to install.
         """
-        parser = dp.ofproto_parser
         downlink_match = MagmaMatch(direction=Direction.IN)
-        downlink_actions = [parser.OFPActionOutput(self.config.gtp_port)]
-        flows.add_flow(dp, self._service_manager.get_table_num(EGRESS),
-                       downlink_match,
-                       downlink_actions)
+        flows.add_output_flow(dp, self._service_manager.get_table_num(EGRESS),
+                              downlink_match, [],
+                              output_port=self.config.gtp_port)
 
         uplink_match = MagmaMatch(direction=Direction.OUT)
-        uplink_actions = [parser.OFPActionOutput(dp.ofproto.OFPP_LOCAL)]
-        flows.add_flow(dp, self._service_manager.get_table_num(EGRESS),
-                       uplink_match, uplink_actions)
+        flows.add_output_flow(dp, self._service_manager.get_table_num(EGRESS),
+                              uplink_match, [],
+                              output_port=dp.ofproto.OFPP_LOCAL)
 
     def _install_default_ingress_flows(self, dp):
         """

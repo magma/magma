@@ -85,13 +85,13 @@ class AccessControlController(MagmaController):
                                    eth_type=ether_types.ETH_TYPE_IP,
                                    ipv4_dst=(ip_network.network_address,
                                              ip_network.netmask))
-                flows.add_flow(datapath, self.tbl_num, match, [],
-                               priority=flows.DEFAULT_PRIORITY)
+                flows.add_drop_flow(datapath, self.tbl_num, match, [],
+                                    priority=flows.DEFAULT_PRIORITY)
             if direction is None or \
                     direction == self.CONFIG_OUTBOUND_DIRECTION:
                 match = MagmaMatch(direction=Direction.IN,
                                    eth_type=ether_types.ETH_TYPE_IP,
                                    ipv4_src=(ip_network.network_address,
                                              ip_network.netmask))
-                flows.add_flow(datapath, self.tbl_num, match, [],
-                               priority=flows.DEFAULT_PRIORITY)
+                flows.add_drop_flow(datapath, self.tbl_num, match, [],
+                                    priority=flows.DEFAULT_PRIORITY)

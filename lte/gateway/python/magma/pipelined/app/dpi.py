@@ -101,6 +101,9 @@ class DPIController(MagmaController):
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
         if self._dpi_enabled:
+            # TODO: Do not directly add this action once there is a way to
+            # add a flow with both resubmit to the next service and send to
+            # another port.
             actions = [parser.OFPActionOutput(self._mon_port_number)]
         else:
             actions = []

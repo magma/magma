@@ -20,11 +20,11 @@ MAXIMUM_PRIORITY = 65535
 OVS_COOKIE_MATCH_ALL = 0xffffffff
 
 
-def add_flow(datapath, table, match, actions=None, instructions=None,
-             priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
-             idle_timeout=0, hard_timeout=0):
+def add_drop_flow(datapath, table, match, actions=None, instructions=None,
+                  priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
+                  idle_timeout=0, hard_timeout=0):
     """
-    Add a flow to a table that drops the packet by default
+    Add a flow to a table that drops the packet
 
     Args:
         datapath (ryu.controller.controller.Datapath):
@@ -47,10 +47,49 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
         MagmaOFError: if the flow can't be added
         Exception: If the actions contain NXActionResubmitTable.
     """
-    mod = get_add_flow_msg(
+    mod = get_add_drop_flow_msg(
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout)
+    logger.debug('flowmod: %s (table %s)', mod, table)
+    messages.send_msg(datapath, mod, retries)
+
+
+def add_output_flow(datapath, table, match, actions=None, instructions=None,
+                    priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
+                    idle_timeout=0, hard_timeout=0, output_port=None,
+                    max_len=None):
+    """
+    Add a flow to a table that sends the packet to the specified port
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        retries (int): Number of times to retry pushing the flow on failure
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+        output_port (int): the port to send the packet
+        max_len (int): Max length to send to controller
+
+    Raises:
+        MagmaOFError: if the flow can't be added
+        Exception: If the actions contain NXActionResubmitTable.
+    """
+    mod = get_add_output_flow_msg(
+        datapath, table, match, actions=actions,
+        instructions=instructions, priority=priority,
+        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
+        output_port=output_port, max_len=max_len)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
@@ -140,9 +179,9 @@ def add_resubmit_current_service_flow(datapath, table, match, actions=None,
     messages.send_msg(datapath, mod, retries)
 
 
-def get_add_flow_msg(datapath, table, match, actions=None,
-                     instructions=None, priority=MINIMUM_PRIORITY,
-                     cookie=0x0, idle_timeout=0, hard_timeout=0):
+def get_add_drop_flow_msg(datapath, table, match, actions=None,
+                          instructions=None, priority=MINIMUM_PRIORITY,
+                          cookie=0x0, idle_timeout=0, hard_timeout=0):
     """
     Get an add flow modification message that drops the packet
 
@@ -171,6 +210,60 @@ def get_add_flow_msg(datapath, table, match, actions=None,
     ofproto, parser = datapath.ofproto, datapath.ofproto_parser
 
     _check_resubmit_action(actions, parser)
+
+    inst = __get_instructions_for_actions(ofproto, parser,
+                                          actions, instructions)
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    return parser.OFPFlowMod(datapath=datapath, priority=priority,
+                             match=ryu_match, instructions=inst,
+                             table_id=table, cookie=cookie,
+                             idle_timeout=idle_timeout,
+                             hard_timeout=hard_timeout)
+
+
+def get_add_output_flow_msg(datapath, table, match, actions=None,
+                            instructions=None, priority=MINIMUM_PRIORITY,
+                            cookie=0x0, idle_timeout=0, hard_timeout=0,
+                            output_port=None, max_len=None):
+    """
+    Add a flow to a table that sends the packet to the specified port
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+        output_port (int): the port to send the packet
+        max_len (int): Max length to send to controller
+
+    Raises:
+        MagmaOFError: if the flow can't be added
+        Exception: If the actions contain NXActionResubmitTable.
+    """
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+
+    _check_resubmit_action(actions, parser)
+
+    if actions is None:
+        actions = []
+    if max_len is None:
+        output_action = parser.OFPActionOutput(output_port)
+    else:
+        output_action = parser.OFPActionOutput(output_port, max_len)
+    actions = actions + [
+        output_action,
+    ]
 
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)

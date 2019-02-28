@@ -220,9 +220,9 @@ class RedirectionManager:
 
         match = MagmaMatch(imsi=encode_imsi(imsi))
         action = []
-        flows.add_flow(datapath, self._scratch_tbl_num, match, action,
-                       priority=flows.MINIMUM_PRIORITY + 1,
-                       cookie=rule_num)
+        flows.add_drop_flow(datapath, self._scratch_tbl_num, match, action,
+                            priority=flows.MINIMUM_PRIORITY + 1,
+                            cookie=rule_num)
 
     def _install_not_processed_flows(self, datapath, imsi, rule, rule_num,
                                      priority):

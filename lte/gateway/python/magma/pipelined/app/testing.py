@@ -56,7 +56,7 @@ class TestingController(MagmaController):
         """ Parse the ryu request and add flow to the ovs table """
         actions = to_instructions(self._datapath, ryu_req["instructions"])
 
-        flows.add_flow(
+        flows.add_drop_flow(
             self._datapath, ryu_req["table_id"], ryu_req["match"],
             instructions=actions,
             priority=ryu_req["priority"]
