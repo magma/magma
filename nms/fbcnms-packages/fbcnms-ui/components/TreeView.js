@@ -15,7 +15,7 @@ import classNames from 'classnames';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import KeyboardArrowDown from '@material-ui/icons/KeyboardArrowDown';
+import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import ListItem from '@material-ui/core/ListItem';
 import nullthrows from '@fbcnms/util/nullthrows';
 import * as React from 'react';
@@ -37,7 +37,7 @@ type Props = WithStyles & {
   /** Title to be displayed **/
   title?: string,
   /** Content to the right on the title **/
-  titleRightContent?: ?React.Node,
+  dummyRootTitle?: ?string,
   /** Callback function fired when a tree leaf is clicked. */
   onClick: ?(any) => void,
   /** Property getter for each tree element's ID **/
@@ -60,12 +60,15 @@ type State = {
 
 const styles = (theme: Theme) => ({
   root: {
-    height: '100%',
+    display: 'flex',
+    flexGrow: 1,
+    flexDirection: 'column',
   },
   treeContainer: {
-    height: '100%',
     backgroundColor: theme.palette.common.white,
     display: 'flex',
+    flexDirection: 'column',
+    flexGrow: 1,
   },
   titleContainer: {
     display: 'flex',
@@ -86,24 +89,22 @@ const styles = (theme: Theme) => ({
     '&:before': {
       opacity: 0,
     },
-    '& $panelContent': {
-      '& $headerContainer': {
-        paddingRight: '16px',
-      },
-    },
   },
-  panelExpanded: {},
   panelContent: {
-    margin: '2px 0px',
+    margin: '0px',
     '&$panelExpanded': {
-      margin: '2px 0px',
+      margin: '0px',
     },
   },
   panelSummary: {
     minHeight: '31px',
     paddingLeft: '20px',
+    paddingRight: '0px',
     '&$panelExpanded': {
       minHeight: '31px',
+    },
+    '& $headerRoot': {
+      paddingRight: '0px',
     },
   },
   panelDetails: {
@@ -111,6 +112,9 @@ const styles = (theme: Theme) => ({
     display: 'block',
   },
   panelExpanded: {
+    '& > $headerRoot > $arrowRightIcon': {
+      transform: 'rotate(90deg)',
+    },
     margin: 0,
     '&:before': {
       opacity: 0,
@@ -127,6 +131,17 @@ const styles = (theme: Theme) => ({
     whiteSpace: 'noWrap',
     maxWidth: '75vw',
   },
+  headerRoot: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    '&:before': {
+      content: '""',
+      paddingTop: '16px',
+      paddingBottom: '16px',
+      borderLeft: `1px solid rgba(0, 0, 0, 0.086)`,
+    },
+  },
   heading: {
     fontSize: theme.typography.pxToRem(13),
     marginRight: '4px',
@@ -140,6 +155,7 @@ const styles = (theme: Theme) => ({
     lineHeight: '100%',
   },
   expandIcon: {
+    display: 'none',
     color: theme.palette.grey[600],
   },
   selectedItem: {
@@ -149,7 +165,7 @@ const styles = (theme: Theme) => ({
     '&:hover': {
       backgroundColor: theme.palette.action.hover,
     },
-    '&:hover $headerContainer::before': {
+    '&:hover $headerRoot::before': {
       borderLeft: `2px solid ${theme.palette.primary.main}`,
     },
     '&:hover $hoverRightContent': {
@@ -159,13 +175,6 @@ const styles = (theme: Theme) => ({
   headerContainer: {
     display: 'flex',
     flexGrow: 1,
-    '&:before': {
-      content: '""',
-      marginRight: '6px',
-      paddingTop: '8px',
-      paddingBottom: '8px',
-      borderLeft: `2px solid ${theme.palette.grey[200]}`,
-    },
   },
   headerLeftContent: {
     display: 'flex',
@@ -175,12 +184,30 @@ const styles = (theme: Theme) => ({
   },
   hoverRightContent: {
     display: 'none',
-    marginRight: '16px',
     alignItems: 'center',
+    marginRight: '24px',
   },
   leafRoot: {
-    paddingTop: '2px',
-    paddingBottom: '2px',
+    paddingTop: '0px',
+    paddingBottom: '0px',
+    '& $headerContainer': {
+      marginLeft: '10px',
+    },
+  },
+  arrowRightIcon: {
+    color: 'rgba(0, 0, 0, 0.54)',
+    transition: 'transform 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+  },
+  addLocationToRootTitle: {
+    color: theme.palette.text.secondary,
+    flexGrow: 1,
+    fontSize: theme.typography.pxToRem(13),
+  },
+  dummyContainer: {
+    alignItems: 'center',
+    display: 'flex',
+    marginRight: '24px',
+    width: '100%',
   },
 });
 
@@ -199,6 +226,38 @@ class TreeView extends React.Component<Props, State> {
     childrenPropertyGetter: (node: Object) => node.children,
     hoverRightContentGetter: null,
   };
+
+  renderDummyTitleNode(dummyNodeTitle: string) {
+    const {
+      classes,
+      theme: {
+        spacing: {unit},
+      },
+    } = this.props;
+    const spacing = unit * 1.5;
+
+    const hoverRightContent = this.getNodeHoverRightContent(null);
+    return (
+      <ListItem
+        classes={{
+          root: classes.leafRoot,
+        }}
+        disableGutters
+        style={{paddingLeft: spacing + unit}}
+        key={'dummy_node'}>
+        <div className={classes.headerRoot}>
+          <div className={classes.headerContainer}>
+            <div className={classes.dummyContainer}>
+              <Typography className={classes.addLocationToRootTitle}>
+                {dummyNodeTitle}
+              </Typography>
+              {hoverRightContent}
+            </div>
+          </div>
+        </div>
+      </ListItem>
+    );
+  }
 
   renderNode = (node: Object, parent: ?Object, depth = 0) => {
     const {
@@ -248,7 +307,7 @@ class TreeView extends React.Component<Props, State> {
           value={title}
           onClick={() => this.props.onClick && this.props.onClick(node)}
           button>
-          {treeItemHeader}
+          <div className={classes.headerRoot}>{treeItemHeader}</div>
         </ListItem>
       );
     }
@@ -274,12 +333,14 @@ class TreeView extends React.Component<Props, State> {
             content: classes.panelContent,
           }}
           style={{paddingLeft}}
-          expandIcon={<KeyboardArrowDown />}
           onClick={() => {
             this.props.onClick && this.props.onClick(node);
             this.expand(node.id);
           }}>
-          {treeItemHeader}
+          <div className={classes.headerRoot}>
+            <KeyboardArrowRight className={classes.arrowRightIcon} />
+            {treeItemHeader}
+          </div>
         </ExpansionPanelSummary>
         {key &&
           this.state.expanded[key] === true && (
@@ -327,18 +388,22 @@ class TreeView extends React.Component<Props, State> {
   }
 
   render() {
-    const {classes, tree, title, titleRightContent} = this.props;
+    const {classes, tree, title, dummyRootTitle} = this.props;
     return (
       <div className={classes.root}>
         <div className={classes.titleContainer}>
           <Typography variant="h6" className={classes.title}>
             {title}
           </Typography>
-          {titleRightContent}
         </div>
         <div className={classes.treeContainer}>
           <Scrollbar enable={true}>
-            <div>{tree.map(node => this.renderNode(node, null))}</div>
+            <div>
+              {dummyRootTitle !== null && dummyRootTitle !== undefined
+                ? this.renderDummyTitleNode(dummyRootTitle)
+                : null}
+              {tree.map(node => this.renderNode(node, null))}
+            </div>
           </Scrollbar>
         </div>
       </div>
