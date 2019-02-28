@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package test
 
 import (
+	"context"
 	"testing"
 
 	"magma/feg/gateway/diameter"
@@ -16,8 +17,9 @@ import (
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
+	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -27,20 +29,8 @@ import (
 )
 
 func TestNewMAA_SuccessfulResponse(t *testing.T) {
-	mar := createMARWithSingleAuthItem("sub1")
 	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewMAA(server, mar)
-	assert.NoError(t, err)
-
-	var maa definitions.MAA
-	err = response.Unmarshal(&maa)
-	assert.NoError(t, err)
-	assert.Equal(t, "magma;123_1234", maa.SessionID)
-	assert.Equal(t, diam.Success, int(maa.ResultCode))
-	assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
-	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
-	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
-	checkSIPAuthVectors(t, maa, 1)
+	testNewMAASuccessfulResponse(t, server)
 }
 
 func TestNewMAA_UnknownIMSI(t *testing.T) {
@@ -53,7 +43,7 @@ func TestNewMAA_UnknownIMSI(t *testing.T) {
 	var maa definitions.MAA
 	err = response.Unmarshal(&maa)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(protos.ErrorCode_USER_UNKNOWN), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(fegprotos.ErrorCode_USER_UNKNOWN), maa.ExperimentalResult.ExperimentalResultCode)
 }
 
 func TestNewMAA_MissingAuthKey(t *testing.T) {
@@ -67,11 +57,40 @@ func TestNewMAA_MissingAuthKey(t *testing.T) {
 	var maa definitions.MAA
 	err = response.Unmarshal(&maa)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(protos.ErrorCode_AUTHORIZATION_REJECTED), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(fegprotos.ErrorCode_AUTHORIZATION_REJECTED), maa.ExperimentalResult.ExperimentalResultCode)
 	checkSIPAuthVectors(t, maa, 0)
 	assert.Equal(t, "magma;123_1234", maa.SessionID)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+}
+
+func TestNewMAA_Redirect(t *testing.T) {
+	server := newTestHomeSubscriberServer(t)
+	set3GPPAAAServerName(t, server, "sub1", "different_server")
+
+	mar := createMARWithSingleAuthItem("sub1")
+	response, err := servicers.NewMAA(server, mar)
+	assert.EqualError(t, err, "diameter identity for AAA server already registered")
+
+	var maa definitions.MAA
+	err = response.Unmarshal(&maa)
+	assert.NoError(t, err)
+	assert.Equal(t, "magma;123_1234", maa.SessionID)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+	assert.Equal(t, uint32(diam.RedirectIndication), maa.ResultCode)
+	assert.Equal(t, uint32(fegprotos.SwxErrorCode_IDENTITY_ALREADY_REGISTERED), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, datatype.DiameterIdentity("different_server"), maa.AAAServerName)
+}
+
+func TestNewMAA_StoreAAAServerName(t *testing.T) {
+	server := newTestHomeSubscriberServer(t)
+	set3GPPAAAServerName(t, server, "sub1", "")
+	testNewMAASuccessfulResponse(t, server)
+
+	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
+	assert.NoError(t, err)
+	assert.Equal(t, "magma.com", subscriber.State.TgppAaaServerName)
 }
 
 func TestNewMAA_MultipleVectors(t *testing.T) {
@@ -217,4 +236,29 @@ func checkSIPAuthVectors(t *testing.T, maa definitions.MAA, expectedNumVectors u
 		assert.Equal(t, crypto.ConfidentialityKeyBytes, len(vector.ConfidentialityKey))
 		assert.Equal(t, crypto.IntegrityKeyBytes, len(vector.IntegrityKey))
 	}
+}
+
+func set3GPPAAAServerName(t *testing.T, server *servicers.HomeSubscriberServer, imsi string, serverName string) {
+	id := &lteprotos.SubscriberID{Id: imsi}
+	subscriber, err := server.GetSubscriberData(context.Background(), id)
+	assert.NoError(t, err)
+	subscriber.State.TgppAaaServerName = serverName
+	_, err = server.UpdateSubscriber(context.Background(), subscriber)
+	assert.NoError(t, err)
+}
+
+func testNewMAASuccessfulResponse(t *testing.T, server *servicers.HomeSubscriberServer) {
+	mar := createMARWithSingleAuthItem("sub1")
+	response, err := servicers.NewMAA(server, mar)
+	assert.NoError(t, err)
+
+	var maa definitions.MAA
+	err = response.Unmarshal(&maa)
+	assert.NoError(t, err)
+	assert.Equal(t, "magma;123_1234", maa.SessionID)
+	assert.Equal(t, diam.Success, int(maa.ResultCode))
+	assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+	checkSIPAuthVectors(t, maa, 1)
 }

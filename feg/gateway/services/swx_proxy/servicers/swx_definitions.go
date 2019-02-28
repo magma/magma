@@ -52,6 +52,7 @@ type MAA struct {
 	ExperimentalResult ExperimentalResult        `avp:"Experimental-Result"`
 	SIPAuthDataItems   []SIPAuthDataItem         `avp:"SIP-Auth-Data-Item"`
 	SIPNumberAuthItems uint32                    `avp:"SIP-Number-Auth-Items"`
+	AAAServerName      datatype.DiameterIdentity `avp:"TGPP-AAA-Server-Name"`
 }
 
 type ExperimentalResult struct {

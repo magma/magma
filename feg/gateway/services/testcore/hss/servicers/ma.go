@@ -46,6 +46,17 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
 	}
 
+	aaaServer := datatype.DiameterIdentity(subscriber.GetState().GetTgppAaaServerName())
+	if len(aaaServer) == 0 {
+		err = srv.set3GPPAAAServerName(subscriber, mar.OriginHost)
+		if err != nil {
+			return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
+		}
+	} else if aaaServer != mar.OriginHost {
+		err = errors.New("diameter identity for AAA server already registered")
+		return getRedirectMessage(msg, mar.SessionID, srv.Config.Server, aaaServer), err
+	}
+
 	err = srv.ResyncLteAuthSeq(subscriber, mar.AuthData.Authorization.Serialize())
 	if err != nil {
 		return ConvertAuthErrorToFailureMessage(err, msg, mar.SessionID, srv.Config.Server), err
@@ -156,4 +167,14 @@ func ValidateMAR(msg *diam.Message) error {
 		return errors.New("Missing RAT type in message")
 	}
 	return nil
+}
+
+// set3GPPAAAServerName sets the 3GPP AAA Server stored inside of a SubscriberData proto.
+func (srv *HomeSubscriberServer) set3GPPAAAServerName(subscriber *lteprotos.SubscriberData, serverName datatype.DiameterIdentity) error {
+	if subscriber.State == nil {
+		subscriber.State = &lteprotos.SubscriberState{}
+	}
+	subscriber.State.TgppAaaServerName = string(serverName)
+	subscriber.State.TgppAaaServerRegistered = false
+	return srv.store.UpdateSubscriber(subscriber)
 }
