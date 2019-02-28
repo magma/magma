@@ -37,7 +37,6 @@ class MagmaPyLintTest(unittest.TestCase):
             show_categories=["warning", "error", "fatal"],
         )
 
-        # TODO: Add other directories when they have been moved to orc8r
         directories = [
             'enodebd',
             'pipelined',

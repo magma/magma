@@ -61,7 +61,7 @@ def _load_magmad_mconfig_value() -> MagmaD:
     except LoadConfigError as e:
         logging.error(
             'Could not load magmad mconfig value '
-            'to check feature flags: {}'.format(e)
+            'to check feature flags: %s', e
         )
         return MagmaD()
 

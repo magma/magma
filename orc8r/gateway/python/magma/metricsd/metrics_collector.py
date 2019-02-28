@@ -76,8 +76,8 @@ class MetricsCollector(object):
         err = collect_future.exception()
         if err:
             self._retry_queue = samples[-self.queue_length:]
-            logging.error("Metrics upload error! [%s] %s" %
-                          (err.code(), err.details()))
+            logging.error("Metrics upload error! [%s] %s",
+                          err.code(), err.details())
 
     def collect(self, service_name):
         """
@@ -99,14 +99,14 @@ class MetricsCollector(object):
         """
         err = get_metrics_future.exception()
         if err:
-            logging.warning("Collect %s Error! [%s] %s" %
-                            (service_name, err.code(), err.details()))
+            logging.warning("Collect %s Error! [%s] %s",
+                            service_name, err.code(), err.details())
             self._samples.append(
                 _get_collect_success_metric(service_name, False))
         else:
             container = get_metrics_future.result()
-            logging.debug("Collected %d from %s..."
-                          % (len(container.family), service_name))
+            logging.debug("Collected %d from %s...",
+                          len(container.family), service_name)
             for family in container.family:
                 for sample in family.metric:
                     sample.label.add(name="service", value=service_name)

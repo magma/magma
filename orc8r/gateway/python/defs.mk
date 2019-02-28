@@ -15,4 +15,5 @@ TESTS=magma/common/tests \
       magma/magmad/tests \
       magma/magmad/logging/tests \
       magma/magmad/upgrade/tests \
-      magma/metricsd/tests
+      magma/metricsd/tests \
+      magma/tests
