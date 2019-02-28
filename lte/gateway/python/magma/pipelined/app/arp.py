@@ -140,15 +140,17 @@ class ArpController(MagmaController):
         actions = [
             parser.NXActionRegLoad2(dst='eth_dst', value=self.config.virtual_mac),
         ]
-        flows.add_flow(datapath, self.table_num, match, actions,
-                       priority=flows.MINIMUM_PRIORITY,
-                       resubmit_next_service=self.next_table)
+        flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
+                                             actions,
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table)
 
     def _set_default_forward_flow(self, datapath):
         """
         Set a default 0-priority flow to forward to the next table.
         """
         match = MagmaMatch()
-        flows.add_flow(datapath, self.table_num, match, [],
-                       priority=flows.MINIMUM_PRIORITY,
-                       resubmit_next_service=self.next_table)
+        flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
+                                             [],
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table)

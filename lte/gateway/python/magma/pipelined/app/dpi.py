@@ -80,10 +80,10 @@ class DPIController(MagmaController):
         app_id = appMap.get(app, 1)  # 1 is returned for unknown apps
         actions = [parser.NXActionRegLoad2(dst='reg3', value=app_id)]
 
-        flows.add_flow(self._datapath, self.tbl_num,
-                       MagmaMatch(**ryu_match), actions,
-                       priority=flows.DEFAULT_PRIORITY,
-                       resubmit_next_service=self.next_table)
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                                             MagmaMatch(**ryu_match), actions,
+                                             priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=self.next_table)
         return True
 
     def _install_default_flows(self, datapath):
@@ -105,12 +105,14 @@ class DPIController(MagmaController):
         else:
             actions = []
 
-        flows.add_flow(datapath, self.tbl_num, inbound_match, actions,
-                       priority=flows.MINIMUM_PRIORITY,
-                       resubmit_next_service=self.next_table)
-        flows.add_flow(datapath, self.tbl_num, outbound_match, actions,
-                       priority=flows.MINIMUM_PRIORITY,
-                       resubmit_next_service=self.next_table)
+        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
+                                             inbound_match, actions,
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table)
+        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
+                                             outbound_match, actions,
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table)
 
     def _create_monitor_port(self):
         add_cmd = "sudo ovs-vsctl add-port gtp_br0 mon1 -- set interface \

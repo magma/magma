@@ -22,10 +22,9 @@ OVS_COOKIE_MATCH_ALL = 0xffffffff
 
 def add_flow(datapath, table, match, actions=None, instructions=None,
              priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
-             idle_timeout=0, hard_timeout=0, resubmit_next_service=None,
-             resubmit_current_service=None):
+             idle_timeout=0, hard_timeout=0):
     """
-    Add a flow to a table
+    Add a flow to a table that drops the packet by default
 
     Args:
         datapath (ryu.controller.controller.Datapath):
@@ -43,37 +42,109 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
         cookie (hex): cookie value for the flow
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
-        resubmit_next_service (int): Table number of the next service to
-            forward traffic to. All scratch registers will be reset before
-            resubmitting.
-        resubmit_current_service (int): Table number of the table within the
-            current service to forward traffic to. Scratch registers are not
-            reset when resubmitting to the current service.
 
     Raises:
         MagmaOFError: if the flow can't be added
         Exception: If the actions contain NXActionResubmitTable.
-            resubmit_next_service or resubmit_current_service should be used.
-            Or if the flow is resubmitted to the next service and the actions
-            contain an action that loads the scratch register. The scratch
-            register is reset on table resubmit so any load has no effect.
     """
     mod = get_add_flow_msg(
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
-        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
-        resubmit_next_service=resubmit_next_service,
-        resubmit_current_service=resubmit_current_service)
+        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
 
-def get_add_flow_msg(datapath, table, match, actions=None, instructions=None,
-                     priority=MINIMUM_PRIORITY, cookie=0x0, idle_timeout=0,
-                     hard_timeout=0, resubmit_next_service=None,
-                     resubmit_current_service=None):
+def add_resubmit_next_service_flow(datapath, table, match, actions=None,
+                                   instructions=None,
+                                   priority=MINIMUM_PRIORITY, retries=3,
+                                   cookie=0x0, idle_timeout=0, hard_timeout=0,
+                                   resubmit_table=None):
     """
-    Get an add flow modification message
+    Add a flow to a table that resubmits to another service.
+    All scratch registers will be reset before resubmitting.
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        retries (int): Number of times to retry pushing the flow on failure
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+        resubmit_table (int): Table number of the next service to
+            forward traffic to.
+
+    Raises:
+        MagmaOFError: if the flow can't be added
+        Exception: If the actions contain NXActionResubmitTable.
+            Or if the flow is resubmitted to the next service and the actions
+            contain an action that loads the scratch register. The scratch
+            register is reset on table resubmit so any load has no effect.
+    """
+    mod = get_add_resubmit_next_service_flow_msg(
+        datapath, table, match, actions=actions,
+        instructions=instructions, priority=priority,
+        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
+        resubmit_table=resubmit_table)
+    logger.debug('flowmod: %s (table %s)', mod, table)
+    messages.send_msg(datapath, mod, retries)
+
+
+def add_resubmit_current_service_flow(datapath, table, match, actions=None,
+                                      instructions=None,
+                                      priority=MINIMUM_PRIORITY, retries=3,
+                                      cookie=0x0, idle_timeout=0,
+                                      hard_timeout=0, resubmit_table=None):
+    """
+    Add a flow to a table that resubmits to the current service.
+    Scratch registers are not reset when resubmitting to the current service.
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        retries (int): Number of times to retry pushing the flow on failure
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+        resubmit_table (int): Table number of the table within the
+            current service to forward traffic to.
+
+    Raises:
+        MagmaOFError: if the flow can't be added
+        Exception: If the actions contain NXActionResubmitTable.
+    """
+    mod = get_add_resubmit_current_service_flow_msg(
+        datapath, table, match, actions=actions,
+        instructions=instructions, priority=priority,
+        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
+        resubmit_table=resubmit_table)
+    logger.debug('flowmod: %s (table %s)', mod, table)
+    messages.send_msg(datapath, mod, retries)
+
+
+def get_add_flow_msg(datapath, table, match, actions=None,
+                     instructions=None, priority=MINIMUM_PRIORITY,
+                     cookie=0x0, idle_timeout=0, hard_timeout=0):
+    """
+    Get an add flow modification message that drops the packet
 
     Args:
         datapath (ryu.controller.controller.Datapath):
@@ -90,42 +161,131 @@ def get_add_flow_msg(datapath, table, match, actions=None, instructions=None,
         cookie (hex): cookie value for the flow
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
-        resubmit_next_service (int): Table number of the next service to
-            forward traffic to. All scratch registers will be reset before
-            resubmitting.
-        resubmit_current_service (int): Table number of the table within the
-            current service to forward traffic to. Scratch registers are not
-            reset when resubmitting to the current service.
 
     Returns:
         OFPFlowMod
 
     Raises:
         Exception: If the actions contain NXActionResubmitTable.
-            resubmit_next_service or resubmit_current_service should be used.
+    """
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+
+    _check_resubmit_action(actions, parser)
+
+    inst = __get_instructions_for_actions(ofproto, parser,
+                                          actions, instructions)
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    return parser.OFPFlowMod(datapath=datapath, priority=priority,
+                             match=ryu_match, instructions=inst,
+                             table_id=table, cookie=cookie,
+                             idle_timeout=idle_timeout,
+                             hard_timeout=hard_timeout)
+
+
+def get_add_resubmit_next_service_flow_msg(datapath, table, match,
+                                           actions=None, instructions=None,
+                                           priority=MINIMUM_PRIORITY,
+                                           cookie=0x0, idle_timeout=0,
+                                           hard_timeout=0,
+                                           resubmit_table=None):
+    """
+    Get an add flow modification message that resubmits to another service
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+        resubmit_table (int): Table number of the next service to
+            forward traffic to.
+
+    Returns:
+        OFPFlowMod
+
+    Raises:
+        Exception: If the actions contain NXActionResubmitTable.
             Or if the flow is resubmitted to the next service and the actions
             contain an action that loads the scratch register. The scratch
             register is reset on table resubmit so any load has no effect.
     """
     ofproto, parser = datapath.ofproto, datapath.ofproto_parser
 
+    _check_resubmit_action(actions, parser)
+
     if actions is None:
         actions = []
-    _check_resubmit_action(actions, parser)
-    if resubmit_next_service is not None:
-        _check_scratch_reg_load(actions, parser)
+    actions = actions + [
+        parser.NXActionResubmitTable(table_id=resubmit_table),
+    ]
+    reset_scratch_reg_actions = [
+        parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
+        for reg in SCRATCH_REGS]
+    actions = actions + reset_scratch_reg_actions
 
-        actions = actions + [
-            parser.NXActionResubmitTable(table_id=resubmit_next_service),
-        ]
-        reset_scratch_reg_actions = [
-            parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
-            for reg in SCRATCH_REGS]
-        actions = actions + reset_scratch_reg_actions
-    elif resubmit_current_service is not None:
-        actions = actions + [
-            parser.NXActionResubmitTable(table_id=resubmit_current_service),
-        ]
+    inst = __get_instructions_for_actions(ofproto, parser,
+                                          actions, instructions)
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    return parser.OFPFlowMod(datapath=datapath, priority=priority,
+                             match=ryu_match, instructions=inst,
+                             table_id=table, cookie=cookie,
+                             idle_timeout=idle_timeout,
+                             hard_timeout=hard_timeout)
+
+
+def get_add_resubmit_current_service_flow_msg(datapath, table, match,
+                                              actions=None, instructions=None,
+                                              priority=MINIMUM_PRIORITY,
+                                              cookie=0x0, idle_timeout=0,
+                                              hard_timeout=0,
+                                              resubmit_table=None):
+    """
+    Get an add flow modification message that resubmits to the current service
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+        resubmit_table (int): Table number of the table within the
+            current service to forward traffic to.
+
+    Returns:
+        OFPFlowMod
+
+    Raises:
+        Exception: If the actions contain NXActionResubmitTable.
+    """
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+
+    _check_resubmit_action(actions, parser)
+
+    if actions is None:
+        actions = []
+    actions = actions + [
+        parser.NXActionResubmitTable(table_id=resubmit_table),
+    ]
 
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)
@@ -227,6 +387,7 @@ def _check_scratch_reg_load(actions, parser):
 
 def _check_resubmit_action(actions, parser):
     resubmit_action_exists = \
+        actions is not None and \
         any(isinstance(action, parser.NXActionResubmitTable) for action in
             actions)
     if resubmit_action_exists:

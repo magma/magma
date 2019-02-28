@@ -60,9 +60,9 @@ class AccessControlController(MagmaController):
         """
         Default flow is to forward to next table.
         """
-        flows.add_flow(datapath, self.tbl_num, MagmaMatch(), [],
-                       priority=flows.MINIMUM_PRIORITY,
-                       resubmit_next_service=self.next_table)
+        flows.add_resubmit_next_service_flow(
+            datapath, self.tbl_num, MagmaMatch(), [],
+            priority=flows.MINIMUM_PRIORITY, resubmit_table=self.next_table)
 
     def _install_ip_blacklist_flow(self, datapath):
         """

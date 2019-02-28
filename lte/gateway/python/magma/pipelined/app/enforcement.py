@@ -115,12 +115,14 @@ class EnforcementController(MagmaController):
                                    direction=Direction.IN)
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
-        flows.add_flow(datapath, self.tbl_num, inbound_match, [],
-                       priority=flows.MINIMUM_PRIORITY,
-                       resubmit_next_service=self.next_main_table)
-        flows.add_flow(datapath, self.tbl_num, outbound_match, [],
-                       priority=flows.MINIMUM_PRIORITY,
-                       resubmit_next_service=self.next_main_table)
+        flows.add_resubmit_next_service_flow(
+            datapath, self.tbl_num, inbound_match, [],
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_main_table)
+        flows.add_resubmit_next_service_flow(
+            datapath, self.tbl_num, outbound_match, [],
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_main_table)
 
     def _install_flow_for_static_rule(self, imsi, ip_addr, rule_id):
         """
@@ -233,13 +235,16 @@ class EnforcementController(MagmaController):
 
         actions = self._get_of_actions_for_flow(flow, rule_num, imsi, ul_qos,
                                                 rule_id)
-        resubmit_table = self.next_main_table if flow.action != flow.DENY else None
 
-        return flows.get_add_flow_msg(self._datapath, self.tbl_num,
-                                      ryu_match, actions,
-                                      hard_timeout=hard_timeout,
-                                      priority=priority, cookie=rule_num,
-                                      resubmit_next_service=resubmit_table)
+        if flow.action == flow.DENY:
+            return flows.get_add_flow_msg(
+                self._datapath, self.tbl_num, ryu_match, actions,
+                hard_timeout=hard_timeout, priority=priority, cookie=rule_num)
+
+        return flows.get_add_resubmit_next_service_flow_msg(
+            self._datapath, self.tbl_num, ryu_match, actions,
+            hard_timeout=hard_timeout, priority=priority, cookie=rule_num,
+            resubmit_table=self.next_main_table)
 
     def _get_of_actions_for_flow(self, flow, rule_num, imsi, ul_qos,
                                  rule_id):
