@@ -16,6 +16,7 @@ type Props = {
   id: string,
   children: any,
   buttonContent: React$Element<any>,
+  className?: string,
 };
 
 export default function TopBarAnchoredMenu(props: Props) {
@@ -26,6 +27,7 @@ export default function TopBarAnchoredMenu(props: Props) {
         aria-owns={anchorEl ? props.id : null}
         aria-haspopup="true"
         onClick={e => setAnchorEl(e.currentTarget)}
+        className={props.className}
         color="inherit">
         {props.buttonContent}
       </Button>
