@@ -19,10 +19,10 @@
 ###############
 # Changes to this file has to be replicated in pipelined.yml
 
-# Enable the apps in PipelineD. Tables will be assigned to the apps in the same
-# order as the list. Cloud managed pipeline apps will be initialized after
-# the static apps.
-static_apps: [
+# Enable the services in PipelineD. Tables will be assigned to the services in
+# the same order as the list. Cloud managed services will be initialized
+# after these static services.
+static_services: [
   'arpd',
   'access_control',
 ]

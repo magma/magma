@@ -29,6 +29,7 @@ should not be accessible to apps from other services.
 # produces a parse error
 
 import asyncio
+from collections import namedtuple
 from typing import List
 
 import aioeventlet
@@ -102,21 +103,13 @@ class _TableManager:
         self._next_main_table += 1
         return table_num
 
-    def register_static_apps(self, app_names: List[str]):
-        for app_name in app_names:
-            self._tables_by_app[app_name] = self.Tables(
-                main_table=self._allocate_main_table())
-
-    def register_dynamic_services(self, services: List[str]):
+    def register_apps_for_service(self, app_names: List[str]):
         """
-        For each service in the give list, register the apps for that service
-        with a main table. Note that a service may consist of multiple Ryu
-        apps, but they are associated with the same main table.
+        Register the apps for a service with a main table.
         """
-        for service in services:
-            table_num = self._allocate_main_table()
-            for app in ServiceManager.SERVICE_TO_APP_NAMES_DICT[service]:
-                self._tables_by_app[app] = self.Tables(main_table=table_num)
+        table_num = self._allocate_main_table()
+        for app in app_names:
+            self._tables_by_app[app] = self.Tables(main_table=table_num)
 
     def get_table_num(self, app_name: str) -> int:
         if app_name not in self._tables_by_app:
@@ -176,44 +169,55 @@ class ServiceManager:
         - Main & scratch tables management
     """
 
-    RYU_REST_APP_NAME = 'ryu_rest_app'
+    App = namedtuple('App', ['name', 'module'])
 
-    # Mapping between services defined in mconfig and the names of the
-    # corresponding Ryu apps in PipelineD with flow tables assigned.
-    # Note that a service may require multiple apps.
-    SERVICE_TO_APP_NAMES_DICT = {
-        PipelineD.METERING: [MeterController.APP_NAME,
-                             MeterStatsController.APP_NAME,
-                             SubscriberController.APP_NAME, ],
-        PipelineD.DPI: [DPIController.APP_NAME],
-        PipelineD.ENFORCEMENT: [EnforcementController.APP_NAME,
-                                EnforcementStatsController.APP_NAME, ],
-    }
-    # Mapping between services defined in mconfig and the module of the
-    # corresponding Ryu apps in PipelineD. The module is used to for the Ryu
+    ARP_SERVICE_NAME = 'arpd'
+    ACCESS_CONTROL_SERVICE_NAME = 'access_control'
+    RYU_REST_SERVICE_NAME = 'ryu_rest_service'
+
+    # Mapping between services defined in mconfig and the names and modules of
+    # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
     # app manager to instantiate the app.
     # Note that a service may require multiple apps.
-    SERVICE_TO_APP_MODULES_DICT = {
-        PipelineD.METERING: [MeterController.__module__,
-                             MeterStatsController.__module__,
-                             SubscriberController.__module__, ],
-        PipelineD.DPI: [DPIController.__module__],
-        PipelineD.ENFORCEMENT: [EnforcementController.__module__,
-                                EnforcementStatsController.__module__, ],
+    DYNAMIC_SERVICE_TO_APPS = {
+        PipelineD.METERING: [
+            App(name=MeterController.APP_NAME,
+                module=MeterController.__module__),
+            App(name=MeterStatsController.APP_NAME,
+                module=MeterStatsController.__module__),
+            App(name=SubscriberController.APP_NAME,
+                module=SubscriberController.__module__),
+        ],
+        PipelineD.DPI: [
+            App(name=DPIController.APP_NAME, module=DPIController.__module__),
+        ],
+        PipelineD.ENFORCEMENT: [
+            App(name=EnforcementController.APP_NAME,
+                module=EnforcementController.__module__),
+            App(name=EnforcementStatsController.APP_NAME,
+                module=EnforcementStatsController.__module__),
+        ],
     }
 
-    # Mapping between the app names defined in pipelined.yml and the module of
-    # their corresponding Ryu apps in PipelineD.
-    STATIC_APP_NAME_TO_MODULE_DICT = {
-        ArpController.APP_NAME: ArpController.__module__,
-        AccessControlController.APP_NAME: AccessControlController.__module__,
-        RYU_REST_APP_NAME: 'ryu.app.ofctl_rest',
+    # Mapping between the app names defined in pipelined.yml and the names and
+    # modules of their corresponding Ryu apps in PipelineD.
+    STATIC_SERVICE_TO_APPS = {
+        ARP_SERVICE_NAME: [
+            App(name=ArpController.APP_NAME, module=ArpController.__module__),
+        ],
+        ACCESS_CONTROL_SERVICE_NAME: [
+            App(name=AccessControlController.APP_NAME,
+                module=AccessControlController.__module__),
+        ],
+        RYU_REST_SERVICE_NAME: [
+            App(name='ryu_rest_app', module='ryu.app.ofctl_rest'),
+        ],
     }
 
     # Some apps do not use a table, so they need to be excluded from table
     # allocation.
-    STATIC_APPS_WITH_NO_TABLE = [
-        RYU_REST_APP_NAME,
+    STATIC_SERVICE_WITH_NO_TABLE = [
+        RYU_REST_SERVICE_NAME,
     ]
 
     def __init__(self, magma_service: MagmaService):
@@ -223,37 +227,46 @@ class ServiceManager:
         self._app_modules = [InOutController.__module__]
         self._table_manager = _TableManager()
 
-        static_apps = self._magma_service.config['static_apps']
-        dynamic_services = self._magma_service.mconfig.services
-        self._init_static_apps(static_apps)
-        self._init_dynamic_apps(dynamic_services)
+        self._init_static_services()
+        self._init_dynamic_services()
 
-    def _init_static_apps(self, static_apps: List[str]):
+    def _init_static_services(self):
         """
-        _init_static_apps populates app modules and table number dict for
-        static apps.
+        _init_static_services populates app modules and allocates a main table
+        for each static service.
         """
-        static_app_modules = [self.STATIC_APP_NAME_TO_MODULE_DICT[app]
-                              for app in static_apps]
+        static_services = self._magma_service.config['static_services']
+        static_app_modules = \
+            [app.module for service in static_services for app in
+             self.STATIC_SERVICE_TO_APPS[service]]
         self._app_modules.extend(static_app_modules)
 
-        # Populate app to table num dict with the static apps. Filter out any
+        # Register static apps for each service to a main table. Filter out any
         # apps that do not need a table.
-        static_app_names = [app_name for app_name in static_apps if
-                            app_name not in self.STATIC_APPS_WITH_NO_TABLE]
-        self._table_manager.register_static_apps(static_app_names)
+        services_with_tables = \
+            [service for service in static_services if
+             service not in self.STATIC_SERVICE_WITH_NO_TABLE]
+        for service in services_with_tables:
+            app_names = [app.name for app in
+                         self.STATIC_SERVICE_TO_APPS[service]]
+            self._table_manager.register_apps_for_service(app_names)
 
-    def _init_dynamic_apps(self, dynamic_services: List[str]):
+    def _init_dynamic_services(self):
         """
-        _init_dynamic_apps populates app modules and table number dict for
-        dynamic apps. Note that each dynamic service can consist of multiple
-        apps that use the same table.
+        _init_dynamic_services populates app modules and allocates a main table
+        for each dynamic service.
         """
-        dynamic_app_modules = [app for service in dynamic_services for app in
-                               self.SERVICE_TO_APP_MODULES_DICT[service]]
+        dynamic_services = self._magma_service.mconfig.services
+        dynamic_app_modules = [app.module for service in dynamic_services for
+                               app in self.DYNAMIC_SERVICE_TO_APPS[service]]
         self._app_modules.extend(dynamic_app_modules)
 
-        self._table_manager.register_dynamic_services(dynamic_services)
+        # Register dynamic apps for each service to a main table. Filter out
+        # any apps that do not need a table.
+        for service in dynamic_services:
+            app_names = [app.name for app in
+                         self.DYNAMIC_SERVICE_TO_APPS[service]]
+            self._table_manager.register_apps_for_service(app_names)
 
     def load(self):
         """

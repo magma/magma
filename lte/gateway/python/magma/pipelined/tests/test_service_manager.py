@@ -29,7 +29,7 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock.mconfig.services.extend(
             [PipelineD.ENFORCEMENT, PipelineD.DPI, PipelineD.METERING])
         magma_service_mock.config = {
-            'static_apps': ['arpd', 'access_control']
+            'static_services': ['arpd', 'access_control']
         }
         self.service_manager = ServiceManager(magma_service_mock)
 

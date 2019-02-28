@@ -272,6 +272,6 @@ def create_service_manager(services=list):
     magma_service = MagicMock()
     magma_service.mconfig = mconfig
     magma_service.config = {
-        'static_apps': ['arpd', 'access_control']
+        'static_services': ['arpd', 'access_control']
     }
     return ServiceManager(magma_service)
