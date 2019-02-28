@@ -19,12 +19,11 @@ from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.app.meter_stats import MeterStatsController
-from magma.pipelined.service_manager import ServiceManager
+from magma.pipelined.service_manager import ServiceManager, TableNumException
 
 
 class ServiceManagerTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         magma_service_mock = MagicMock()
         magma_service_mock.mconfig = PipelineD()
         magma_service_mock.mconfig.services.extend(
@@ -32,7 +31,7 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock.config = {
             'static_apps': ['arpd', 'access_control']
         }
-        cls.service_manager = ServiceManager(magma_service_mock)
+        self.service_manager = ServiceManager(magma_service_mock)
 
     def test_get_table_num(self):
         self.assertEqual(self.service_manager.get_table_num(INGRESS), 1)
@@ -92,6 +91,29 @@ class ServiceManagerTest(unittest.TestCase):
         self.assertFalse(
             self.service_manager.is_app_enabled("Random name lol"))
 
+    def test_allocate_scratch_tables(self):
+        self.assertEqual(self.service_manager.allocate_scratch_tables(
+            EnforcementController.APP_NAME, 1), [21])
+        self.assertEqual(self.service_manager.allocate_scratch_tables(
+            EnforcementController.APP_NAME, 2), [22, 23])
+
+        # There are a total of 255 tables. First 20 tables are reserved as
+        # main tables and 3 scratch tables are allocated above.
+        with self.assertRaises(TableNumException):
+            self.service_manager.allocate_scratch_tables(
+                EnforcementController.APP_NAME, 255 - 20 - 3)
+
+    def test_get_scratch_table_nums(self):
+        enforcement_scratch = \
+            self.service_manager.allocate_scratch_tables(
+                EnforcementController.APP_NAME, 2) + \
+            self.service_manager.allocate_scratch_tables(
+                EnforcementController.APP_NAME, 3)
+
+        self.assertEqual(self.service_manager.get_scratch_table_nums(
+            EnforcementController.APP_NAME), enforcement_scratch)
+        self.assertEqual(self.service_manager.get_scratch_table_nums(
+            MeterController.APP_NAME), [])
 
 if __name__ == "__main__":
     unittest.main()

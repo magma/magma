@@ -6,6 +6,23 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
+
+
+ServiceManager manages the lifecycle and chaining of network services,
+which are cloud managed and provide discrete network functions.
+
+These network services consist of Ryu apps, which operate on tables managed by
+the ServiceManager. OVS provides a set number of tables that can be
+programmed to match and modify traffic. We split these tables two categories,
+main tables and scratch tables.
+
+All apps from the same service are associated with a main table, which is
+visible to other services and they are used to forward traffic between
+different services.
+
+Apps can also optionally claim additional scratch tables, which may be
+required for complex flow matching and aggregation use cases. Scratch tables
+should not be accessible to apps from other services.
 """
 # pylint: skip-file
 # pylint does not play well with aioeventlet, as it uses asyncio.async which
@@ -37,6 +54,114 @@ from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
 
 
+class TableNumException(Exception):
+    """
+    Exception used for when table number allocation fails.
+    """
+    pass
+
+
+class _TableManager:
+    """
+    TableManager maintains an internal mapping between apps to their
+    main and scratch tables.
+    """
+
+    INGRESS_TABLE_NUM = 1
+    EGRESS_TABLE_NUM = 20
+    MAIN_TABLE_START_NUM = 2
+    MAIN_TABLE_LIMIT_NUM = EGRESS_TABLE_NUM  # exclusive
+    SCRATCH_TABLE_START_NUM = EGRESS_TABLE_NUM + 1  # 21
+    SCRATCH_TABLE_LIMIT_NUM = 255  # exclusive
+
+    class Tables:
+        __slots__ = ['main_table', 'scratch_tables']
+
+        def __init__(self, main_table, scratch_tables=None):
+            self.main_table = main_table
+            self.scratch_tables = scratch_tables
+            if self.scratch_tables is None:
+                self.scratch_tables = []
+
+    def __init__(self):
+        self._tables_by_app = {
+            INGRESS: self.Tables(main_table=self.INGRESS_TABLE_NUM),
+            EGRESS: self.Tables(main_table=self.EGRESS_TABLE_NUM),
+        }
+
+        self._next_main_table = self.MAIN_TABLE_START_NUM
+        self._next_scratch_table = self.SCRATCH_TABLE_START_NUM
+
+    def _allocate_main_table(self) -> int:
+        if self._next_main_table == self.MAIN_TABLE_LIMIT_NUM:
+            raise TableNumException(
+                'Cannot generate more tables. Table limit of %s '
+                'reached!' % self.MAIN_TABLE_LIMIT_NUM)
+
+        table_num = self._next_main_table
+        self._next_main_table += 1
+        return table_num
+
+    def register_static_apps(self, app_names: List[str]):
+        for app_name in app_names:
+            self._tables_by_app[app_name] = self.Tables(
+                main_table=self._allocate_main_table())
+
+    def register_dynamic_services(self, services: List[str]):
+        """
+        For each service in the give list, register the apps for that service
+        with a main table. Note that a service may consist of multiple Ryu
+        apps, but they are associated with the same main table.
+        """
+        for service in services:
+            table_num = self._allocate_main_table()
+            for app in ServiceManager.SERVICE_TO_APP_NAMES_DICT[service]:
+                self._tables_by_app[app] = self.Tables(main_table=table_num)
+
+    def get_table_num(self, app_name: str) -> int:
+        if app_name not in self._tables_by_app:
+            raise Exception('App is not registered: %s' % app_name)
+        return self._tables_by_app[app_name].main_table
+
+    def get_next_table_num(self, app_name: str) -> int:
+        """
+        Returns the main table number of the next service.
+        If there are no more services after the current table, return the
+        EGRESS table
+        """
+        if app_name not in self._tables_by_app:
+            raise Exception('App is not registered: %s' % app_name)
+        main_table = self._tables_by_app[app_name].main_table
+        next_table = main_table + 1
+        if next_table < self._next_main_table:
+            return next_table
+        return self.EGRESS_TABLE_NUM
+
+    def is_app_enabled(self, app_name: str) -> bool:
+        return app_name in self._tables_by_app or \
+            app_name == InOutController.APP_NAME
+
+    def allocate_scratch_tables(self, app_name: str, count: int) -> \
+            List[int]:
+        if self._next_scratch_table + count > self.SCRATCH_TABLE_LIMIT_NUM:
+            raise TableNumException(
+                'Cannot generate more tables. Table limit of %s '
+                'reached!' % self.SCRATCH_TABLE_LIMIT_NUM)
+
+        tbl_nums = []
+        for _ in range(count):
+            tbl_nums.append(self._next_scratch_table)
+            self._next_scratch_table += 1
+
+        self._tables_by_app[app_name].scratch_tables.extend(tbl_nums)
+        return tbl_nums
+
+    def get_scratch_table_nums(self, app_name: str) -> List[int]:
+        if app_name not in self._tables_by_app:
+            raise Exception('App is not registered: %s' % app_name)
+        return self._tables_by_app[app_name].scratch_tables
+
+
 class ServiceManager:
     """
     ServiceManager manages the service lifecycle and chaining of services for
@@ -48,11 +173,9 @@ class ServiceManager:
     Currently, its use cases include:
         - Starting all Ryu apps
         - Flow table number lookup for Ryu apps
+        - Main & scratch tables management
     """
 
-    INGRESS_TABLE_NUM = 1
-    EGRESS_TABLE_NUM = 20
-    START_TABLE_NUM = 2
     RYU_REST_APP_NAME = 'ryu_rest_app'
 
     # Mapping between services defined in mconfig and the names of the
@@ -98,11 +221,7 @@ class ServiceManager:
         # inout is a mandatory app and it occupies both table 1(for ingress)
         # and table 20(for egress).
         self._app_modules = [InOutController.__module__]
-        self._app_table_num_dict = {
-            INGRESS: self.INGRESS_TABLE_NUM,
-            EGRESS: self.EGRESS_TABLE_NUM,
-        }
-        self._last_table_num = self.START_TABLE_NUM - 1
+        self._table_manager = _TableManager()
 
         static_apps = self._magma_service.config['static_apps']
         dynamic_services = self._magma_service.mconfig.services
@@ -122,9 +241,7 @@ class ServiceManager:
         # apps that do not need a table.
         static_app_names = [app_name for app_name in static_apps if
                             app_name not in self.STATIC_APPS_WITH_NO_TABLE]
-        for app_name in static_app_names:
-            self._app_table_num_dict[app_name] = self._last_table_num + 1
-            self._last_table_num += 1
+        self._table_manager.register_static_apps(static_app_names)
 
     def _init_dynamic_apps(self, dynamic_services: List[str]):
         """
@@ -136,11 +253,7 @@ class ServiceManager:
                                self.SERVICE_TO_APP_MODULES_DICT[service]]
         self._app_modules.extend(dynamic_app_modules)
 
-        for tbl_num, service in enumerate(dynamic_services,
-                                          start=self._last_table_num + 1):
-            self._last_table_num = tbl_num
-            for app in self.SERVICE_TO_APP_NAMES_DICT[service]:
-                self._app_table_num_dict[app] = tbl_num
+        self._table_manager.register_dynamic_services(dynamic_services)
 
     def load(self):
         """
@@ -191,22 +304,20 @@ class ServiceManager:
         Args:
             app_name: Name of the app
         Returns:
-            The app's corresponding table number
+            The app's main table number
         """
-        return self._app_table_num_dict[app_name]
+        return self._table_manager.get_table_num(app_name)
 
     def get_next_table_num(self, app_name: str) -> int:
         """
         Args:
             app_name: Name of the app
         Returns:
-            The next table after the app's table number.
-            If there are no more used tables after the current table,
+            The main table number of the next service.
+            If there are no more services after the current table,
             return the EGRESS table
         """
-        if self._app_table_num_dict[app_name] < self._last_table_num:
-            return self._app_table_num_dict[app_name] + 1
-        return self.EGRESS_TABLE_NUM
+        return self._table_manager.get_next_table_num(app_name)
 
     def is_app_enabled(self, app_name: str) -> bool:
         """
@@ -215,5 +326,24 @@ class ServiceManager:
         Returns:
             Whether or not the app is enabled
         """
-        return app_name in self._app_table_num_dict or \
-            app_name == InOutController.APP_NAME
+        return self._table_manager.is_app_enabled(app_name)
+
+    def allocate_scratch_tables(self, app_name: str, count: int) -> List[int]:
+        """
+        Args:
+            app_name:
+                Each scratch table is associated with an app. This is used to
+                help enforce scratch table isolation between apps.
+            count: Number of scratch tables to be claimed
+        Returns:
+            List of scratch table numbers
+        Raises:
+            TableNumException if there are no more available tables
+        """
+        return self._table_manager.allocate_scratch_tables(app_name, count)
+
+    def get_scratch_table_nums(self, app_name: str) -> List[int]:
+        """
+        Returns the scratch tables claimed by the given app.
+        """
+        return self._table_manager.get_scratch_table_nums(app_name)
