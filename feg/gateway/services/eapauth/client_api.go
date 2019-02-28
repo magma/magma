@@ -65,14 +65,6 @@ import (
 )
 
 const (
-	// EAP Message Payload Offsets
-	EapMsgCode int = iota
-	EapMsgIdentifier
-	EapMsgLenLow
-	EapMsgLenHigh
-	EapMsgMethodType
-	EapMsgData
-
 	// EAP Related Consts
 	EapMethodIdentity = uint8(protos.EapType_Identity)
 	EapCodeResponse   = uint8(protos.EapCode_Response)
@@ -104,10 +96,6 @@ func HandleIdentityResponse(providerType uint8, msg *protos.EapMessage) (*protos
 func Handle(msg *protos.EapRequest) (*protos.EapResult, error) {
 	if msg == nil {
 		return nil, errors.New("Nil EAP Message")
-	}
-	el := len(msg.Payload)
-	if el < EapMsgData {
-		return nil, fmt.Errorf("EAP Message is too short: %d bytes", el)
 	}
 	err := verifyEapPayload(msg.Payload)
 	if err != nil {
