@@ -31,6 +31,8 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock.config = {
             'static_services': ['arpd', 'access_control']
         }
+        # Hack since service manager is supposed to be a singleton.
+        ServiceManager._instance = None
         self.service_manager = ServiceManager(magma_service_mock)
 
     def test_get_table_num(self):

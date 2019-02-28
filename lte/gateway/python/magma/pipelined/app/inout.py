@@ -108,11 +108,11 @@ class InOutController(MagmaController):
         actions = [load_direction(parser, Direction.IN)]
         flows.add_flow(dp, tbl_num, match, actions=actions,
                        priority=flows.DEFAULT_PRIORITY,
-                       resubmit_table=next_table)
+                       resubmit_next_service=next_table)
 
         # set a direction bit for incoming (inet -> pn) traffic.
         match = MagmaMatch(in_port=dp.ofproto.OFPP_LOCAL)
         actions = [load_direction(parser, Direction.IN)]
         flows.add_flow(dp, tbl_num, match, actions=actions,
                        priority=flows.DEFAULT_PRIORITY,
-                       resubmit_table=next_table)
+                       resubmit_next_service=next_table)

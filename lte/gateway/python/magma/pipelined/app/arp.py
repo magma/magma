@@ -142,7 +142,7 @@ class ArpController(MagmaController):
         ]
         flows.add_flow(datapath, self.table_num, match, actions,
                        priority=flows.MINIMUM_PRIORITY,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_table)
 
     def _set_default_forward_flow(self, datapath):
         """
@@ -151,4 +151,4 @@ class ArpController(MagmaController):
         match = MagmaMatch()
         flows.add_flow(datapath, self.table_num, match, [],
                        priority=flows.MINIMUM_PRIORITY,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_table)

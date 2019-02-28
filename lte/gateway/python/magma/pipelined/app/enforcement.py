@@ -49,7 +49,7 @@ class EnforcementController(MagmaController):
     def __init__(self, *args, **kwargs):
         super(EnforcementController, self).__init__(*args, **kwargs)
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
-        self.next_table = self._service_manager.get_next_table_num(
+        self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
         self._datapath = None
         self._rule_mapper = kwargs['rule_id_mapper']
@@ -60,10 +60,15 @@ class EnforcementController(MagmaController):
             kwargs['config']['enodeb_iface'],
             kwargs['config']['enable_queue_pgm'])
         self._msg_hub = MessageHub(self.logger)
+        self._redirect_scratch = \
+            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
 
         self._redirect_manager = RedirectionManager(
-            kwargs['config']['bridge_ip_address'], self.logger, self.tbl_num,
-            self.next_table)
+            kwargs['config']['bridge_ip_address'],
+            self.logger,
+            self.tbl_num,
+            self.next_main_table,
+            self._redirect_scratch)
 
     def initialize_on_connect(self, datapath):
         """
@@ -72,7 +77,7 @@ class EnforcementController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
         self._datapath = datapath
 
@@ -83,7 +88,11 @@ class EnforcementController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self._delete_all_flows(datapath)
+
+    def _delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._redirect_scratch)
 
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
     def _handle_barrier(self, ev):
@@ -95,7 +104,7 @@ class EnforcementController(MagmaController):
 
     def _install_default_flows(self, datapath):
         """
-        For each direction set the default flows to just forward to next table.
+        For each direction set the default flows to just forward to next app.
         The enforcement flows for each subscriber would be added when the
         IP session is created, by reaching out to the controller/PCRF.
 
@@ -108,10 +117,10 @@ class EnforcementController(MagmaController):
                                     direction=Direction.OUT)
         flows.add_flow(datapath, self.tbl_num, inbound_match, [],
                        priority=flows.MINIMUM_PRIORITY,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_main_table)
         flows.add_flow(datapath, self.tbl_num, outbound_match, [],
                        priority=flows.MINIMUM_PRIORITY,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_main_table)
 
     def _install_flow_for_static_rule(self, imsi, ip_addr, rule_id):
         """
@@ -224,13 +233,13 @@ class EnforcementController(MagmaController):
 
         actions = self._get_of_actions_for_flow(flow, rule_num, imsi, ul_qos,
                                                 rule_id)
-        resubmit_table = self.next_table if flow.action != flow.DENY else None
+        resubmit_table = self.next_main_table if flow.action != flow.DENY else None
 
         return flows.get_add_flow_msg(self._datapath, self.tbl_num,
                                       ryu_match, actions,
                                       hard_timeout=hard_timeout,
                                       priority=priority, cookie=rule_num,
-                                      resubmit_table=resubmit_table)
+                                      resubmit_next_service=resubmit_table)
 
     def _get_of_actions_for_flow(self, flow, rule_num, imsi, ul_qos,
                                  rule_id):

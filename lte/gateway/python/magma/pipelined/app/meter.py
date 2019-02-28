@@ -67,7 +67,7 @@ class MeterController(MagmaController):
         match = MagmaMatch()
         flows.add_flow(datapath, self.tbl_num, match, [],
                        priority=flows.MINIMUM_PRIORITY,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_table)
 
     def cleanup_on_disconnect(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
@@ -132,12 +132,12 @@ class MeterController(MagmaController):
         flows.add_flow(datapath, self.tbl_num, inbound_match, inbound_actions,
                        priority=flows.DEFAULT_PRIORITY,
                        idle_timeout=self.config.idle_timeout,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_table)
         flows.add_flow(datapath, self.tbl_num,
                        outbound_match, outbound_actions,
                        priority=flows.DEFAULT_PRIORITY,
                        idle_timeout=self.config.idle_timeout,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_table)
 
     def _matches_table(self, msg):
         return self.tbl_num == msg.table_id

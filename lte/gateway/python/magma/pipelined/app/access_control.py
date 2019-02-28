@@ -62,7 +62,7 @@ class AccessControlController(MagmaController):
         """
         flows.add_flow(datapath, self.tbl_num, MagmaMatch(), [],
                        priority=flows.MINIMUM_PRIORITY,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_table)
 
     def _install_ip_blacklist_flow(self, datapath):
         """

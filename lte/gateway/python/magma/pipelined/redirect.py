@@ -40,8 +40,6 @@ class RedirectionManager:
     """
     DNS_TIMEOUT_SECS = 15
 
-    REDIRECT_SCRATCH_TABLE = 21
-
     REDIRECT_NOT_PROCESSED = REG_ZERO_VAL
     REDIRECT_PROCESSED = 0x1
 
@@ -50,11 +48,13 @@ class RedirectionManager:
         ['imsi', 'ip_addr', 'rule', 'rule_num', 'priority'],
     )
 
-    def __init__(self, bridge_ip, logger, tbl_num, next_table):
+    def __init__(self, bridge_ip, logger, main_tbl_num, next_table,
+                 scratch_table_num):
         self._bridge_ip = bridge_ip
         self.logger = logger
-        self.tbl_num = tbl_num
+        self.main_tbl_num = main_tbl_num
         self.next_table = next_table
+        self._scratch_tbl_num = scratch_table_num
         self._redirect_dict = RedirectDict()
         self._dns_cache = Memoizer({})
         self._redirect_port = get_service_config_value(
@@ -148,7 +148,7 @@ class RedirectionManager:
 
         actions = [
             parser.NXActionLearn(
-                table_id=self.tbl_num,
+                table_id=self.main_tbl_num,
                 priority=priority,
                 cookie=rule_num,
                 specs=[
@@ -213,14 +213,14 @@ class RedirectionManager:
             of_note,
         ]
 
-        flows.add_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match_http,
+        flows.add_flow(datapath, self._scratch_tbl_num, match_http,
                        actions, priority=priority, cookie=rule_num,
                        hard_timeout=rule.hard_timeout,
-                       resubmit_table=self.tbl_num)
+                       resubmit_current_service=self.main_tbl_num)
 
         match = MagmaMatch(imsi=encode_imsi(imsi))
         action = []
-        flows.add_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match, action,
+        flows.add_flow(datapath, self._scratch_tbl_num, match, action,
                        priority=flows.MINIMUM_PRIORITY + 1, cookie=rule_num)
 
     def _install_not_processed_flows(self, datapath, imsi, rule, rule_num,
@@ -238,19 +238,19 @@ class RedirectionManager:
                            reg0=self.REDIRECT_NOT_PROCESSED,
                            eth_type=ether_types.ETH_TYPE_IP)
         action = [of_note]
-        flows.add_flow(datapath, self.tbl_num, match, action,
+        flows.add_flow(datapath, self.main_tbl_num, match, action,
                        priority=priority, cookie=rule_num,
                        hard_timeout=rule.hard_timeout,
-                       resubmit_table=self.REDIRECT_SCRATCH_TABLE)
+                       resubmit_current_service=self._scratch_tbl_num)
 
         match = MagmaMatch(imsi=encode_imsi(imsi),
                            direction=Direction.OUT,
                            reg0=self.REDIRECT_PROCESSED)
         action = [of_note]
-        flows.add_flow(datapath, self.tbl_num, match, action,
+        flows.add_flow(datapath, self.main_tbl_num, match, action,
                        priority=priority, cookie=rule_num,
                        hard_timeout=rule.hard_timeout,
-                       resubmit_table=self.next_table)
+                       resubmit_next_service=self.next_table)
 
     def _install_server_flows(self, datapath, imsi, rule, rule_num, priority):
         """
@@ -329,10 +329,10 @@ class RedirectionManager:
                 ipv4_src=ip, imsi=encode_imsi(imsi)
             ))
         for match in matches:
-            flows.add_flow(datapath, self.tbl_num, match,
+            flows.add_flow(datapath, self.main_tbl_num, match,
                            actions, priority=priority + 1, cookie=rule_num,
                            hard_timeout=rule.hard_timeout,
-                           resubmit_table=self.next_table)
+                           resubmit_next_service=self.next_table)
 
     def _install_dns_flows(self, datapath, imsi, rule, rule_num, priority):
         """
@@ -368,10 +368,10 @@ class RedirectionManager:
                                   direction=Direction.OUT,
                                   imsi=encode_imsi(imsi)))
         for match in matches:
-            flows.add_flow(datapath, self.tbl_num, match, actions,
+            flows.add_flow(datapath, self.main_tbl_num, match, actions,
                            priority=priority, cookie=rule_num,
                            hard_timeout=rule.hard_timeout,
-                           resubmit_table=self.next_table)
+                           resubmit_next_service=self.next_table)
 
     def _save_redirect_entry(self, ip_addr, redirect_info):
         """
@@ -398,12 +398,12 @@ class RedirectionManager:
         """
         cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
         match = MagmaMatch(imsi=encode_imsi(imsi))
-        flows.delete_flow(datapath, self.REDIRECT_SCRATCH_TABLE, match,
+        flows.delete_flow(datapath, self._scratch_tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
 
     def deactivate_flows_for_subscriber(self, datapath, imsi):
         """
         Deactivate all rules for a subscriber
         """
-        flows.delete_flow(datapath, self.REDIRECT_SCRATCH_TABLE,
+        flows.delete_flow(datapath, self._scratch_tbl_num,
                           MagmaMatch(imsi=encode_imsi(imsi)))

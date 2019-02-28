@@ -274,4 +274,6 @@ def create_service_manager(services=list):
     magma_service.config = {
         'static_services': ['arpd', 'access_control']
     }
+    # Hack since service manager is supposed to be a singleton.
+    ServiceManager._instance = None
     return ServiceManager(magma_service)
