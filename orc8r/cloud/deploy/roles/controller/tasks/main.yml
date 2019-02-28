@@ -53,29 +53,8 @@
 
 - name: Restart the magma services
   when: full_provision and restart_controller
-  systemd: name=magma@{{ item }} state=restarted daemon_reload=yes enabled=yes
-  with_items:
-      - magmad
-      - checkind
-      - metricsd
-      - subscriberdb
-      - streamer
-      - certifier
-      - accessd
-      - bootstrapper
-      - obsidian
-      - meteringd_records
-      - upgrade
-      - mesh
-      - logger
-      - dispatcher
-      - config
-      - directoryd
-      - policydb
-      - feg_relay
-      - download
-      - vpnservice
-      - health
+  systemd: name=magma@{{ item.key }} state=restarted daemon_reload=yes enabled=yes
+  with_items: "{{ service_registry | dict2items }}"
 
 - name: Copy system config files
   copy: src={{ item.src }} dest={{ item.dest }}

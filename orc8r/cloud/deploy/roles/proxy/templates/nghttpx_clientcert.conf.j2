@@ -20,19 +20,21 @@ verify-client-cacert=/var/opt/magma/certs/certifier.pem
 # Header injection for client certs
 mruby-file=/etc/nghttpx/magma_headers.rb
 
-# FeG services
-{% for backend in proxy_backends.split(',') -%}
-{% for service in feg_services -%}
-backend={{ backend }},{{ gw_to_feg_relay_port }};{{ service }}.cloud;proto=h2;no-tls;dns
-backend={{ backend }},{{ gw_to_feg_relay_port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
-{% endfor -%}
-{% endfor -%}
-
 # Magma services
 {% for backend in proxy_backends.split(',') -%}
-{% for service, port in clientcert_services.items() -%}
-backend={{ backend }},{{ port }};{{ service }}.cloud;proto=h2;no-tls;dns
-backend={{ backend }},{{ port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% for service, value in service_registry.items() -%}
+{% if value['proxy_type'] == "clientcert" -%}
+backend={{ backend }},{{ value.port }};{{ service }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ value.port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endif %}
+{% if "proxy_aliases" in value -%}
+# FeG services for {{ service }}
+{% for alias, map in value["proxy_aliases"].items() -%}
+backend={{ backend }},{{ map.port }};{{ alias }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ map.port }};{{ alias }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endfor -%}
+# End of FeG services for {{ service }}
+{% endif -%}
 {% endfor -%}
 # Send API requests to obsidian
 backend={{ backend }},{{obsidian_port}};{{ api_hostname }};no-tls;dns

@@ -18,9 +18,11 @@ verify-client=no
 
 # Magma services
 {% for backend in proxy_backends.split(',') -%}
-{% for service, port in open_services.items() -%}
-backend={{ backend }},{{ port }};{{ service }}.cloud;proto=h2;no-tls;dns
-backend={{ backend }},{{ port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% for service, value in service_registry.items() -%}
+{% if value['proxy_type'] == "open" -%}
+backend={{ backend }},{{ value.port }};{{ service }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ value.port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endif %}
 {% endfor -%}
 # Nghttp can't send a direct error for other unknown requests.
 # Blackhole all other requests to port 9070, which is not used by any service.

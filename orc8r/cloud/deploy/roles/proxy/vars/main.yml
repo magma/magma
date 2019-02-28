@@ -11,35 +11,6 @@ nghttpx_units:
   - open
   - clientcert
   - obsidian
-# List of services behind the proxy with the port they listen on.
 # NOTE: Add the port to Terraform if added here
 default_port: 9070
 obsidian_port: 9081
-gw_to_feg_relay_port: 9079
-open_services:
-  bootstrapper: 9088
-clientcert_services:
-  streamer: 9082
-  subscriberdb: 9083
-  metricsd: 9084
-  checkind: 9085
-  meteringd_records: 9090
-  accessd: 9091
-  magmad: 9092
-  mesh: 9094
-  logger: 9095
-  dispatcher: 9096
-  config: 9099
-  directoryd: 9100
-  download: 9102
-  feg_relay: 9103
-  vpnservice: 9104
-  health: 9107
-feg_services:
-  - s6a_proxy
-  - session_proxy
-  - swx_proxy
-  - csfb
-  - feg_hello
-  - ocs
-  - pcrf

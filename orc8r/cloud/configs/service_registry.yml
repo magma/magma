@@ -6,55 +6,74 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+# proxy_type refers to the names of the proxy systemd nghttpx services installed.
+# Currently the values supported are: 'clientcert', 'open', 'obsidian', 'internal'
+
+# proxy_aliases refers to proxy config when a service might have more than one
+# port. Example in magma/feg/cloud/configs/service_registry.yml
+
 services:
   streamer:
     host: "localhost"
     port: 9082
+    proxy_type: "clientcert"
 
   metricsd:
     host: "localhost"
     port: 9084
+    proxy_type: "clientcert"
 
   checkind:
     host: "localhost"
     port: 9085
+    proxy_type: "clientcert"
 
   certifier:
     host: "localhost"
     port: 9086
+    proxy_type: "internal"
 
   upgrade:
     host: "localhost"
     port: 9087
+    proxy_type: "internal"
 
   bootstrapper:
     host: "localhost"
     port: 9088
+    proxy_type: "open"
 
   accessd:
     host: "localhost"
     port: 9091
+    proxy_type: "clientcert"
 
   magmad:
     host: "localhost"
     port: 9092
+    proxy_type: "clientcert"
 
   obsidian:
     host: "localhost"
     port: 9093
+    proxy_type: "obsidian"
 
   logger:
     host: "localhost"
     port: 9095
+    proxy_type: "clientcert"
 
   dispatcher:
     host: "localhost"
     port: 9096
+    proxy_type: "clientcert"
 
   config:
     host: "localhost"
     port: 9099
+    proxy_type: "clientcert"
 
   directoryd:
     host: "localhost"
     port: 9100
+    proxy_type: "clientcert"
