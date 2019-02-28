@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from lte.protos.pipelined_pb2 import ActivateFlowsResult, RuleModResult
 from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -62,13 +63,10 @@ class EnforcementController(MagmaController):
         self._msg_hub = MessageHub(self.logger)
         self._redirect_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self._bridge_ip_address = kwargs['config']['bridge_ip_address']
 
-        self._redirect_manager = RedirectionManager(
-            kwargs['config']['bridge_ip_address'],
-            self.logger,
-            self.tbl_num,
-            self.next_main_table,
-            self._redirect_scratch)
+        self._redirect_manager = None
+
 
     def initialize_on_connect(self, datapath):
         """
@@ -80,6 +78,21 @@ class EnforcementController(MagmaController):
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
         self._datapath = datapath
+
+        # The next table is dependent on whether enforcement_stats claims a
+        # scratch table, which happens during its initialization. Since
+        # initialization order is non-deterministic, redirect manager is
+        # initialized here instead of in __init__.
+        if self._enforcement_stats_scratch is not None:
+            redirect_next_table = self._enforcement_stats_scratch
+        else:
+            redirect_next_table = self.next_main_table
+        self._redirect_manager = RedirectionManager(
+            self._bridge_ip_address,
+            self.logger,
+            self.tbl_num,
+            redirect_next_table,
+            self._redirect_scratch)
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -93,6 +106,9 @@ class EnforcementController(MagmaController):
     def _delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._redirect_scratch)
+        if self._enforcement_stats_scratch:
+            flows.delete_all_flows_from_table(datapath,
+                                              self._enforcement_stats_scratch)
 
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
     def _handle_barrier(self, ev):
@@ -101,6 +117,20 @@ class EnforcementController(MagmaController):
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
+
+    @property
+    def _enforcement_stats_scratch(self):
+        """
+        Scratch tables are claimed during initialization of each app. Since
+        the order of initialization is non-deterministic, the scratch table num
+        for enforcement_stats is only available after its initialization.
+        """
+        tables = self._service_manager.get_scratch_table_nums(
+            EnforcementStatsController.APP_NAME)
+        if tables:
+            return tables[0]  # enforcement_stats only uses 1 scratch
+        return None
+
 
     def _install_default_flows(self, datapath):
         """
@@ -174,6 +204,11 @@ class EnforcementController(MagmaController):
         priority = self.get_of_priority(rule.priority)
         ul_qos = rule.qos.max_req_bw_ul
 
+        if self._enforcement_stats_scratch:
+            # TODO: check result and handle error
+            self._msg_hub.send(self._get_rule_match_flow_msgs(imsi, rule_num),
+                               self._datapath)
+
         if rule.redirect.support == rule.redirect.ENABLED:
             # TODO currently if redirection is enabled we ignore other flows
             # from rule.flow_list, confirm that this is the expected behaviour
@@ -197,8 +232,9 @@ class EnforcementController(MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                flow_adds.append(self._get_add_flow_msg(
-                    imsi, flow, rule_num, priority, ul_qos, rule.hard_timeout,
+                flow_adds.append(self._get_classify_rule_flow_msg(
+                    imsi, flow, rule_num, priority, ul_qos,
+                    rule.hard_timeout,
                     rule.id))
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -227,27 +263,51 @@ class EnforcementController(MagmaController):
 
         return RuleModResult.SUCCESS
 
-    def _get_add_flow_msg(self, imsi, flow, rule_num, priority,
-                          ul_qos, hard_timeout, rule_id):
-        match = flow.match
-        ryu_match = flow_match_to_magma_match(match)
-        ryu_match.imsi = encode_imsi(imsi)
-
-        actions = self._get_of_actions_for_flow(flow, rule_num, imsi, ul_qos,
-                                                rule_id)
-
+    def _get_classify_rule_flow_msg(self, imsi, flow, rule_num, priority,
+                                    ul_qos, hard_timeout, rule_id):
+        """
+        Install a flow from a rule. If the flow action is DENY, then the flow
+        will drop the packet. Otherwise, the flow classifies the packet with
+        its matched rule and injects the rule num into the packet's register.
+        """
+        flow_match = flow_match_to_magma_match(flow.match)
+        flow_match.imsi = encode_imsi(imsi)
+        flow_match_actions = self._get_classify_rule_of_actions(
+            flow, rule_num, imsi, ul_qos, rule_id)
         if flow.action == flow.DENY:
-            return flows.get_add_flow_msg(
-                self._datapath, self.tbl_num, ryu_match, actions,
-                hard_timeout=hard_timeout, priority=priority, cookie=rule_num)
+            return flows.get_add_drop_flow_msg(self._datapath,
+                                               self.tbl_num,
+                                               flow_match,
+                                               flow_match_actions,
+                                               hard_timeout=hard_timeout,
+                                               priority=priority,
+                                               cookie=rule_num)
 
+        if self._enforcement_stats_scratch:
+            return flows.get_add_resubmit_current_service_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                flow_match,
+                flow_match_actions,
+                hard_timeout=hard_timeout,
+                priority=priority,
+                cookie=rule_num,
+                resubmit_table=self._enforcement_stats_scratch)
+
+        # If enforcement stats has not claimed a scratch table, resubmit
+        # directly to the next app.
         return flows.get_add_resubmit_next_service_flow_msg(
-            self._datapath, self.tbl_num, ryu_match, actions,
-            hard_timeout=hard_timeout, priority=priority, cookie=rule_num,
+            self._datapath,
+            self.tbl_num,
+            flow_match,
+            flow_match_actions,
+            hard_timeout=hard_timeout,
+            priority=priority,
+            cookie=rule_num,
             resubmit_table=self.next_main_table)
 
-    def _get_of_actions_for_flow(self, flow, rule_num, imsi, ul_qos,
-                                 rule_id):
+    def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ul_qos,
+                                      rule_id):
         parser = self._datapath.ofproto_parser
         # encode the rule id in hex
         of_note = parser.NXActionNote(list(rule_id.encode()))
@@ -264,6 +324,37 @@ class EnforcementController(MagmaController):
 
         return [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
                 of_note]
+
+    def _get_rule_match_flow_msgs(self, imsi, rule_num):
+        """
+        Returns flows used for usage reporting in enforcement_stats. These
+        flows match on reg2, which stores the rule num to get usage for each
+        rule.
+        """
+        inbound_rule_match = MagmaMatch(imsi=encode_imsi(imsi),
+                                        direction=Direction.IN,
+                                        reg2=rule_num)
+        outbound_rule_match = MagmaMatch(imsi=encode_imsi(imsi),
+                                         direction=Direction.OUT,
+                                         reg2=rule_num)
+        return [
+            flows.get_add_resubmit_next_service_flow_msg(
+                self._datapath,
+                self._enforcement_stats_scratch,
+                inbound_rule_match,
+                [],
+                priority=flows.DEFAULT_PRIORITY,
+                cookie=rule_num,
+                resubmit_table=self.next_main_table),
+            flows.get_add_resubmit_next_service_flow_msg(
+                self._datapath,
+                self._enforcement_stats_scratch,
+                outbound_rule_match,
+                [],
+                priority=flows.DEFAULT_PRIORITY,
+                cookie=rule_num,
+                resubmit_table=self.next_main_table),
+        ]
 
     def _install_drop_flow(self, imsi):
         """
@@ -335,14 +426,20 @@ class EnforcementController(MagmaController):
         match = MagmaMatch(imsi=encode_imsi(imsi))
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
+        if self._enforcement_stats_scratch:
+            flows.delete_flow(self._datapath, self._enforcement_stats_scratch,
+                              match, cookie=cookie, cookie_mask=mask)
         self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
                                                         num)
         self._qos_map.del_queue_for_flow(imsi, num)
 
     def _deactivate_flows_for_subscriber(self, imsi):
         """ Deactivate all rules for a subscriber, ending any enforcement """
-        flows.delete_flow(self._datapath, self.tbl_num,
-                          MagmaMatch(imsi=encode_imsi(imsi)))
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.delete_flow(self._datapath, self.tbl_num, match)
+        if self._enforcement_stats_scratch:
+            flows.delete_flow(self._datapath, self._enforcement_stats_scratch,
+                              match)
         self._redirect_manager.deactivate_flows_for_subscriber(self._datapath,
                                                                imsi)
         self._qos_map.del_subscriber_queues(imsi)

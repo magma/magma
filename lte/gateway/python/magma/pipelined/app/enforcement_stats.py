@@ -49,7 +49,8 @@ class EnforcementStatsController(MagmaController):
             self.logger.info('Relay mode is not enabled. '
                              'enforcement_stats will not report usage.')
             return
-        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+        self.tbl_num = \
+            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self.dpset = kwargs['dpset']
         self.loop = kwargs['loop']
         # Spawn a thread to poll for flow stats

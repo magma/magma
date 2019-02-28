@@ -13,10 +13,12 @@ from unittest.mock import MagicMock
 
 import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
+from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
+    RedirectInformation
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
+from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
+    TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
@@ -34,8 +36,7 @@ class EnforcementStatsTest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
 
-    @classmethod
-    def setUpClass(cls):
+    def setUp(self):
         """
         Starts the thread which launches ryu apps
 
@@ -46,11 +47,11 @@ class EnforcementStatsTest(unittest.TestCase):
         Mocks the redis policy_dictionary of enforcement_controller.
         Mocks the loop for testing EnforcementStatsController
         """
-        super(EnforcementStatsTest, cls).setUpClass()
+        super(EnforcementStatsTest, self).setUpClass()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
+        self._static_rule_dict = {}
         service_manager = create_service_manager([PipelineD.ENFORCEMENT])
-        cls._tbl_num = service_manager.get_table_num(
+        self._tbl_num = service_manager.get_table_num(
             EnforcementStatsController.APP_NAME)
 
         enforcement_controller_reference = Future()
@@ -83,7 +84,7 @@ class EnforcementStatsTest(unittest.TestCase):
                     enf_stat_ref
             },
             config={
-                'bridge_name': cls.BRIDGE,
+                'bridge_name': self.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
                 'enforcement': {'poll_interval': 5},
                 'nat_iface': 'eth2',
@@ -99,22 +100,31 @@ class EnforcementStatsTest(unittest.TestCase):
             rpc_stubs={'sessiond': MagicMock()}
         )
 
-        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_bridge(self.BRIDGE, self.IFACE)
 
-        cls.thread = start_ryu_app_thread(test_setup)
+        self.thread = start_ryu_app_thread(test_setup)
 
-        cls.enforcement_stats_controller = enf_stat_ref.result()
-        cls.enforcement_controller = enforcement_controller_reference.result()
-        cls.testing_controller = testing_controller_reference.result()
+        self.enforcement_stats_controller = enf_stat_ref.result()
+        self.enforcement_controller = enforcement_controller_reference.result()
+        self.testing_controller = testing_controller_reference.result()
 
-        cls.enforcement_stats_controller._report_usage = MagicMock()
+        self.enforcement_stats_controller._report_usage = MagicMock()
 
-        cls.enforcement_controller._policy_dict = cls._static_rule_dict
+        self.enforcement_controller._policy_dict = self._static_rule_dict
+        self.enforcement_controller._redirect_manager._save_redirect_entry = \
+            MagicMock()
 
-    @classmethod
-    def tearDownClass(cls):
-        stop_ryu_app_thread(cls.thread)
-        BridgeTools.destroy_bridge(cls.BRIDGE)
+    def tearDown(self):
+        stop_ryu_app_thread(self.thread)
+        BridgeTools.destroy_bridge(self.BRIDGE)
+
+    def _wait_func(self, stat_names):
+        def func():
+            wait_after_send(self.testing_controller)
+            wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                       stat_names)
+
+        return func
 
     def test_subscriber_policy(self):
         """
@@ -172,11 +182,7 @@ class EnforcementStatsTest(unittest.TestCase):
             .build()
 
         # =========================== Verification ===========================
-        def wait_func():
-            wait_after_send(self.testing_controller)
-            wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                       enf_stat_name)
-        flow_verifier = FlowVerifier([], wait_func)
+        flow_verifier = FlowVerifier([], self._wait_func(enf_stat_name))
         """ Send packets, wait until pkts are received by ovs and enf stats """
         with isolator, sub_context, flow_verifier:
             pkt_sender.send(packet1)
@@ -202,6 +208,62 @@ class EnforcementStatsTest(unittest.TestCase):
 
         self.assertEqual(len(stats), 2)
 
+    def test_redirect_policy(self):
+        """
+        Add a redirect policy, verifies that EnforcementStatsController reports
+        correct stats to sessiond
+
+        Assert:
+            1 Packet is matched and reported
+        """
+        redirect_ips = ["185.128.101.5", "185.128.121.4"]
+        self.enforcement_controller._redirect_manager._dns_cache.get(
+            "about.sha.ddih.org", lambda: redirect_ips, max_age=42
+        )
+        imsi = 'IMSI010000000088888'
+        sub_ip = '192.168.128.74'
+        flow_list = [FlowDescription(match=FlowMatch())]
+        policy = PolicyRule(
+            id='redir_test', priority=3, flow_list=flow_list,
+            redirect=RedirectInformation(
+                support=1,
+                address_type=2,
+                server_address="http://about.sha.ddih.org/"
+            )
+        )
+        stat_name = imsi + '|redir_test'
+
+        """ Setup subscriber, setup table_isolation to fwd pkts """
+        self._static_rule_dict[policy.id] = policy
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+        ).add_dynamic_rule(policy)
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                                     .build_requests(),
+            self.testing_controller
+        )
+        pkt_sender = ScapyPacketInjector(self.IFACE)
+        packet = TCPPacketBuilder() \
+            .set_tcp_layer(42132, 80, 321) \
+            .set_tcp_flags("S") \
+            .set_ip_layer('151.42.41.122', sub_ip) \
+            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00") \
+            .build()
+
+        # =========================== Verification ===========================
+        flow_verifier = FlowVerifier([], self._wait_func([stat_name]))
+        """ Send packet, wait until pkts are received by ovs and enf stats """
+        with isolator, sub_context, flow_verifier:
+            pkt_sender.send(packet)
+
+        stats = get_enforcement_stats(
+            self.enforcement_stats_controller._report_usage.call_args_list)
+
+        self.assertEqual(stats[stat_name].sid, imsi)
+        self.assertEqual(stats[stat_name].rule_id, "redir_test")
+        self.assertEqual(stats[stat_name].bytes_rx, 0)
+        self.assertEqual(stats[stat_name].bytes_tx, len(packet))
 
 if __name__ == "__main__":
     unittest.main()

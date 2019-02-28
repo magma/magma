@@ -2,6 +2,10 @@
 
 ### Diagram
 
+#### Static Services
+
+OAI and inout are mandatory services and enabled by default. Other static services can be configured in the YAML config.
+
 ```
     GTP port            Local Port
      Uplink              Downlink
@@ -43,8 +47,8 @@
     -------------------------------
                   |
                   V
-   Configurable apps managed by cloud
-            (Tables 4-19)
+   Configurable apps managed by cloud <---> Scratch tables
+            (Tables 4-19)                  (Tables 21 - 254)
                   |
                   V
     -------------------------------
@@ -63,7 +67,9 @@
 
 ```
 
-### Configurable apps
+#### Configurable Services
+
+These services can be enabled and ordered from cloud. `mconfig` is used to stream the list of enabled service to gateway.
 
 ```
     ------------------------------- 
@@ -85,13 +91,22 @@
     -------------------------------
 
     -------------------------------     -------------------------------
-    |          Table X            |     |           Table 21          |
-    |        enforcement          | --->|       redirect scratch      |
+    |          Table X            |     |       Scratch Table 1       |
+    |        enforcement          | --->|           redirect          |
     |- Activates/deactivates rules|     |- Drop all non-HTTP traffic  |
     |  for a subscriber           |     |  for redirected subscribers |
-    |- Keeps track of flow stats  |<--- |                             |
-    |  and sends to sessiond      |     |                             |
-    -------------------------------     -------------------------------  
+    |                             |<--- |                             |
+    |                             |     |                             |
+    -------------------------------     -------------------------------
+                  |
+                  | In relay mode only  -------------------------------
+                  --------------------->|       Scratch Table 2       |
+                                        |      enforcement stats      |
+                                        |- Keeps track of flow stats  |
+                                        |  and sends to sessiond      |
+                                        |                             |
+                                        |                             |
+                                        -------------------------------
 ```
 
 ### Reserved registers

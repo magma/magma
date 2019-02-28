@@ -267,7 +267,7 @@ class RedirectionManager:
                                   priority):
         """
         Resolve DNS queries to get the ip address of redirect url, this is done
-        to allow traffic to safely pass thorugh as we want subcribers to have
+        to allow traffic to safely pass thorugh as we want subscribers to have
         full access to the url they are redirected to.
 
         First check cache for redirect url, if not in cache submit a DNS query
