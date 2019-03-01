@@ -175,7 +175,27 @@ func TestValidateULR_MissingSessionID(t *testing.T) {
 	assert.EqualError(t, err, "Missing SessionID in message")
 }
 
+func TestNewULA_RATTypeNotAllowed(t *testing.T) {
+	ulr := createULRExtended("sub1", 10)
+	server := newTestHomeSubscriberServer(t)
+	response, err := servicers.NewULA(server, ulr)
+	assert.EqualError(t, err, "RAT-Type not allowed: 10")
+
+	// Check that the ULA has all the expected data.
+	var ula definitions.ULA
+	err = response.Unmarshal(&ula)
+	assert.NoError(t, err)
+	assert.Equal(t, "magma;123_1234", ula.SessionID)
+	assert.Equal(t, uint32(fegprotos.ErrorCode_RAT_NOT_ALLOWED), ula.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginHost)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginRealm)
+}
+
 func createULR(userName string) *diam.Message {
+	return createULRExtended(userName, definitions.RadioAccessTechnologyType_EUTRAN)
+}
+
+func createULRExtended(userName string, ratType uint32) *diam.Message {
 	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
 	ulr.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
 	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
@@ -183,6 +203,6 @@ func createULR(userName string) *diam.Message {
 	ulr.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
 	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
 	ulr.NewAVP(avp.ULRFlags, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.RATType, avp.Mbit, 0, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.RATType, avp.Mbit, 0, datatype.Unsigned32(ratType))
 	return ulr
 }

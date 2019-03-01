@@ -72,6 +72,11 @@ func NewULA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		}
 	}
 
+	if !isRATTypeAllowed(uint32(ulr.RATType)) {
+		answer := ConstructFailureAnswer(msg, ulr.SessionID, srv.Config.Server, uint32(protos.ErrorCode_RAT_NOT_ALLOWED))
+		return answer, fmt.Errorf("RAT-Type not allowed: %v", uint32(ulr.RATType))
+	}
+
 	return srv.NewSuccessfulULA(msg, ulr.SessionID, profile), nil
 }
 

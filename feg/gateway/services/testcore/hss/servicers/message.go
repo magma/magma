@@ -14,6 +14,8 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/s6a_proxy/servicers"
+	swx "magma/feg/gateway/services/swx_proxy/servicers"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -94,4 +96,8 @@ func getRedirectMessage(msg *diam.Message, sessionID datatype.UTF8String, server
 	AddStandardAnswerAVPS(answer, sessionID, serverCfg, uint32(protos.SwxErrorCode_IDENTITY_ALREADY_REGISTERED))
 	answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
 	return answer
+}
+
+func isRATTypeAllowed(ratType uint32) bool {
+	return ratType == swx.RadioAccessTechnologyType_WLAN || ratType == servicers.RadioAccessTechnologyType_EUTRAN
 }

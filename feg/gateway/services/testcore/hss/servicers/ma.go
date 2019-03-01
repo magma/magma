@@ -46,6 +46,11 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
 	}
 
+	if !isRATTypeAllowed(uint32(mar.RATType)) {
+		answer := ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_RAT_NOT_ALLOWED))
+		return answer, fmt.Errorf("RAT-Type not allowed: %v", uint32(mar.RATType))
+	}
+
 	aaaServer := datatype.DiameterIdentity(subscriber.GetState().GetTgppAaaServerName())
 	if len(aaaServer) == 0 {
 		err = srv.set3GPPAAAServerName(subscriber, mar.OriginHost)
