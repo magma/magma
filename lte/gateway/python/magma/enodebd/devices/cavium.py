@@ -18,7 +18,7 @@ from magma.enodebd.device_config.enodeb_config_postprocessor import \
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.exceptions import ConfigurationError, Tr069Error
+from magma.enodebd.exceptions import Tr069Error
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
