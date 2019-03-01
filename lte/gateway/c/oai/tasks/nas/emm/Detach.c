@@ -444,6 +444,7 @@ int emm_proc_detach_request(
         "Do not clear emm context for UE Initiated IMSI Detach Request "
         " for the UE (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
         ue_id);
+      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
   }
