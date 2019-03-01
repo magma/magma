@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from collections import namedtuple
-from typing import Any, Optional
+from typing import Any
 from abc import ABC, abstractmethod
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config

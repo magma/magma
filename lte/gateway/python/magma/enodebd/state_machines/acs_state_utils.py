@@ -8,17 +8,16 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
-from typing import Any, Optional, Dict, Type, List
+from typing import Any, Optional, Dict, List
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import get_device_name, \
     EnodebDeviceName
-from magma.enodebd.exceptions import Tr069Error, ConfigurationError, \
+from magma.enodebd.exceptions import ConfigurationError, \
     IncorrectDeviceHandlerError
 from magma.enodebd.tr069 import models
-from magma.enodebd.tr069.models import Tr069ComplexModel
 
 
 def process_inform_message(
