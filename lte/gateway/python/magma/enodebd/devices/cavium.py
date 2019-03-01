@@ -25,10 +25,10 @@ from magma.enodebd.state_machines.enb_acs_impl import \
 from magma.enodebd.state_machines.enb_acs_states import DisconnectedState, \
     SendGetTransientParametersState, WaitGetTransientParametersState, \
     GetParametersState, WaitGetParametersState, DeleteObjectsState, \
-    AddObjectsState, SetParameterValuesNotAdminState, WaitSetParameterValuesState, \
-    WaitInformState, SendRebootState, WaitRebootResponseState, \
-    WaitInformMRebootState, WaitRebootDelayState, EnodebAcsState, \
-    AcsMsgAndTransition, AcsReadMsgResult, UnexpectedInformState, ErrorState
+    AddObjectsState, SetParameterValuesNotAdminState, \
+    WaitSetParameterValuesState, SendRebootState, WaitRebootResponseState, \
+    WaitInformMRebootState, EnodebAcsState, AcsMsgAndTransition, \
+    AcsReadMsgResult, UnexpectedInformState, ErrorState
 from magma.enodebd.tr069 import models
 
 
@@ -51,13 +51,11 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesNotAdminState(self, when_done='wait_set_params'),
-            'wait_set_params': WaitSetParameterValuesState(self, when_done='wait_inform'),
-            'wait_inform': WaitInformState(self, when_done='get_params'),
+            'wait_set_params': WaitSetParameterValuesState(self, when_done='get_transient_params'),
             # Below states only entered through manual user intervention
             'reboot': SendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='disconnected'),
-            'wait_reboot_delay': WaitRebootDelayState(self, when_done='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
             'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),

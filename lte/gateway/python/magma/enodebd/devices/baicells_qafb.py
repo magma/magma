@@ -33,8 +33,8 @@ from magma.enodebd.state_machines.enb_acs_states import \
     GetParametersState, WaitGetParametersState, DeleteObjectsState, \
     AddObjectsState, SetParameterValuesState, WaitSetParameterValuesState, \
     SendRebootState, WaitRebootResponseState, WaitInformMRebootState, \
-    WaitRebootDelayState, WaitInformState, EnodebAcsState, \
-    AcsMsgAndTransition, AcsReadMsgResult, UnexpectedInformState, ErrorState
+    EnodebAcsState, AcsMsgAndTransition, AcsReadMsgResult, \
+    UnexpectedInformState, ErrorState
 from magma.enodebd.tr069 import models
 
 
@@ -56,17 +56,14 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesState(self, when_done='wait_set_params'),
-            'wait_set_params': WaitSetParameterValuesState(self, when_done='get_transient_params'),
-            # Below states only entered through manual user intervention
+            'wait_set_params': WaitSetParameterValuesState(self, when_done='reboot'),
             'reboot': SendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
-            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='disconnected'),
-            'wait_reboot_delay': WaitRebootDelayState(self, when_done='wait_inform'),
-            'wait_inform': WaitInformState(self, when_done='get_transient_params'),
+            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='get_transient_params', when_timeout='disconnected'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),
-            'unexpected_fault': ErrorState(self)
+            'unexpected_inform': UnexpectedInformState(self, when_done='get_transient_params'),
+            'unexpected_fault': ErrorState(self),
         }
 
     @property

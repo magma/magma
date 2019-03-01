@@ -71,13 +71,28 @@ class BaicellsHandlerTests(TestCase):
         # In this scenario, the ACS and thus state machine will not need
         # to delete or add objects to the eNB configuration.
         # SM should then just be attempting to set parameter values
-        print(resp)
         self.assertTrue(isinstance(resp, models.SetParameterValues),
                         'State machine should be setting param values')
 
         # Send back confirmation that the parameters were successfully set
         req = models.SetParameterValuesResponse()
         req.Status = 0
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # SM should be attempting to reboot the Baicells device
+        self.assertTrue(isinstance(resp, models.Reboot),
+                        'State machine should be rebooting the eNB')
+        req = self._get_reboot_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # SM should be trying to end the session with a dummy message
+        self.assertTrue(isinstance(resp, models.DummyInput))
+        req = self._get_reboot_inform()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # SM should have responded to an Inform message with an Inform response
+        self.assertTrue(isinstance(resp, models.InformResponse))
+        req = models.DummyInput()
         resp = acs_state_machine.handle_tr069_message(req)
 
         # And now the SM has finished provisioning, and should only request
@@ -153,6 +168,21 @@ class BaicellsHandlerTests(TestCase):
         msg = models.Fault()
         msg.FaultCode = 0
         msg.FaultString = 'Some sort of fault'
+        return msg
+
+    def _get_reboot_inform(self) -> models.Inform:
+        msg = self._get_inform()
+        events = []
+
+        event_boot = models.EventStruct()
+        event_boot.EventCode = '1 BOOT'
+        events.append(event_boot)
+
+        event_reboot = models.EventStruct()
+        event_reboot.EventCode = 'M Reboot'
+        events.append(event_reboot)
+
+        msg.Event.EventStruct = events
         return msg
 
     def _get_inform(self) -> models.Inform:
@@ -409,3 +439,6 @@ class BaicellsHandlerTests(TestCase):
         msg.ParameterList = models.ParameterValueList()
         msg.ParameterList.ParameterValueStruct = param_val_list
         return msg
+
+    def _get_reboot_response(self) -> models.RebootResponse:
+        return models.RebootResponse()

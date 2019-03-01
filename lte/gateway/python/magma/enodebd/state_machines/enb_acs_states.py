@@ -13,8 +13,6 @@ from typing import Any, Optional
 from abc import ABC, abstractmethod
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
 from magma.enodebd.enodeb_status import get_enodeb_status, \
     update_status_metrics
 from magma.enodebd.exceptions import ConfigurationError, Tr069Error
@@ -238,58 +236,6 @@ class BaicellsRemWaitState(EnodebAcsState):
     @classmethod
     def state_description(cls) -> str:
         return 'Waiting for eNB REM to run'
-
-
-class WaitInformState(EnodebAcsState):
-    """
-    After rebooting an eNB, enodebd expects an Inform message to notify that
-    the eNB has rebooted successfully.
-    """
-    INFORM_EVENT_CODE = '1 BOOT'
-
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
-        super().__init__()
-        self.acs = acs
-        self.done_transition = when_done
-
-    def read_msg(self, message: Any) -> AcsReadMsgResult:
-        """
-        In this case, we assume that we already know things such as the
-        manufacturer OUI, and also the SW-version of the eNodeB which is
-        sending the Inform message, so we don't process the message. We just
-        check that we're getting the right message type that we expect.
-
-        Returns:
-            InformResponse
-        """
-        if not isinstance(message, models.Inform):
-            return AcsReadMsgResult(False, None)
-        is_correct_event = False
-        for event in message.Event.EventStruct:
-            logging.debug('Inform event: %s', event.EventCode)
-            if event.EventCode == self.INFORM_EVENT_CODE:
-                # Mark eNodeB as unconfigured, since some config params
-                # are reset on reboot (e.g. perf mgmt enable)
-                logging.info('eNodeB booting - reconfig required')
-                self.acs.device_cfg = EnodebConfiguration(self.acs.data_model)
-                is_correct_event = True
-        if not is_correct_event:
-            raise Tr069Error('Did not receive 1 BOOT event code in '
-                             'Inform')
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
-        return AcsReadMsgResult(True, None)
-
-    def get_msg(self) -> AcsMsgAndTransition:
-        """ Returns InformResponse """
-        response = models.InformResponse()
-        # Set maxEnvelopes to 1, as per TR-069 spec
-        response.MaxEnvelopes = 1
-        return AcsMsgAndTransition(response, self.done_transition)
-
-    @classmethod
-    def state_description(cls) -> str:
-        return 'Waiting for post-reboot Inform'
 
 
 class WaitEmptyMessageState(EnodebAcsState):
@@ -947,6 +893,10 @@ class WaitRebootResponseState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         return AcsReadMsgResult(True, self.done_transition)
 
+    def get_msg(self) -> AcsMsgAndTransition:
+        """ Reply with empty message """
+        return AcsMsgAndTransition(models.DummyInput(), self.done_transition)
+
     @classmethod
     def state_description(cls) -> str:
         return 'Rebooting eNB'
@@ -977,6 +927,7 @@ class WaitInformMRebootState(EnodebAcsState):
         self.timeout_transition = when_timeout
         self.timeout_timer = None
         self.timer_handle = None
+        self.received_inform = False
 
     def enter(self):
         self.timeout_timer = StateMachineTimer(self.REBOOT_TIMEOUT)
@@ -1011,12 +962,20 @@ class WaitInformMRebootState(EnodebAcsState):
         else:
             return AcsReadMsgResult(False, None)
 
+        self.received_inform = True
         process_inform_message(message, self.acs.device_name,
                                self.acs.data_model, self.acs.device_cfg)
         return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
-        return AcsMsgAndTransition(models.DummyInput(), None)
+        """ Reply with InformResponse """
+        if self.received_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, self.done_transition)
+        else:
+            return AcsMsgAndTransition(models.DummyInput(), None)
 
     @classmethod
     def state_description(cls) -> str:
