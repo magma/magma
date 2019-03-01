@@ -25,6 +25,7 @@ setup(
         'magma.enodebd',
         'magma.enodebd.data_models',
         'magma.enodebd.device_config',
+        'magma.enodebd.devices',
         'magma.enodebd.state_machines',
         'magma.enodebd.tr069',
         'magma.mobilityd',
