@@ -14,6 +14,11 @@ import (
 	"github.com/fiorix/go-diameter/diam/datatype"
 )
 
+const (
+	// 3GPP 29.273 5.2.3.6
+	RadioAccessTechnologyType_EUTRAN = 1004
+)
+
 // Definitions for AIA, see sample below:
 //
 //Authentication-Information-Answer (AIA)

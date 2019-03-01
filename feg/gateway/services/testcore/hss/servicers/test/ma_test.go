@@ -95,7 +95,7 @@ func TestNewMAA_StoreAAAServerName(t *testing.T) {
 
 func TestNewMAA_MultipleVectors(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
-	mar := createMARExtended("sub1", 3)
+	mar := createMARExtended("sub1", 3, definitions.RadioAccessTechnologyType_WLAN)
 	response, err := servicers.NewMAA(server, mar)
 	assert.NoError(t, err)
 
@@ -123,6 +123,22 @@ func TestNewMAA_MissingAVP(t *testing.T) {
 	err = response.Unmarshal(&maa)
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(diam.MissingAVP), maa.ResultCode)
+}
+
+func TestNewMAA_RATTypeNotAllowed(t *testing.T) {
+	mar := createMARExtended("sub1", 1, 20)
+	server := newTestHomeSubscriberServer(t)
+	response, err := servicers.NewMAA(server, mar)
+	assert.EqualError(t, err, "RAT-Type not allowed: 20")
+
+	var maa definitions.MAA
+	err = response.Unmarshal(&maa)
+	assert.NoError(t, err)
+	assert.Equal(t, "magma;123_1234", maa.SessionID)
+	assert.Equal(t, uint32(fegprotos.ErrorCode_RAT_NOT_ALLOWED), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
+	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+	checkSIPAuthVectors(t, maa, 0)
 }
 
 func TestValidateMAR_Success(t *testing.T) {
@@ -209,13 +225,13 @@ func createBaseMAR() *diam.Message {
 }
 
 func createMARWithSingleAuthItem(userName string) *diam.Message {
-	return createMARExtended(userName, 1)
+	return createMARExtended(userName, 1, definitions.RadioAccessTechnologyType_WLAN)
 }
 
-func createMARExtended(userName string, numberAuthItems uint32) *diam.Message {
+func createMARExtended(userName string, numberAuthItems uint32, ratType uint32) *diam.Message {
 	mar := createBaseMAR()
-	mar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String(userName))
-	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	mar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
+	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(ratType))
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(numberAuthItems))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
