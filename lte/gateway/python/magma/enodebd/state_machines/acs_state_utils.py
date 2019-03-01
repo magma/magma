@@ -259,8 +259,6 @@ def parse_get_parameter_values_response(
     message: models.GetParameterValuesResponse,
 ) -> Dict[ParameterName, Any]:
     """ Returns a map of ParameterName to the value read from the response """
-    assert_is_msg_type_and_not_fault(message,
-                                     models.GetParameterValuesResponse)
     param_values_by_path = {}
     for param_value_struct in message.ParameterList.ParameterValueStruct:
         param_values_by_path[param_value_struct.Name] = \
@@ -291,17 +289,3 @@ def get_optional_param_to_check(
         except KeyError:
             return param
     return None
-
-
-def assert_is_msg_type_and_not_fault(
-    message: Tr069ComplexModel,
-    type_: Type[Tr069ComplexModel],
-) -> None:
-    if type(message) == models.Fault:
-        raise Tr069Error(
-            'Received Fault in response to GetParameterValues '
-            '(faultstring = %s)' % message.FaultString)
-    elif type(message) != type_:
-        raise Tr069Error(
-            'Unexpected response type: %s' % type(message))
-

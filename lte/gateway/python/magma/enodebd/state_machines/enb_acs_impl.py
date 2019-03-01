@@ -15,6 +15,7 @@ from magma.enodebd import metrics
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.enodeb_status import get_enodeb_status
+from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import EnodebAcsState
 from magma.enodebd.state_machines.timer import StateMachineTimer
@@ -109,8 +110,10 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
     def _read_tr069_msg(self, message: Any) -> None:
         """ Process incoming message and maybe transition state """
         self._reset_timeout()
-        self._handle_unexpected_inform_msg(message)
-        next_state = self.state.read_msg(message)
+        msg_handled, next_state = self.state.read_msg(message)
+        if not msg_handled:
+            self._transition_for_unexpected_msg(message)
+            _msg_handled, next_state = self.state.read_msg(message)
         if next_state is not None:
             self.transition(next_state)
 
@@ -122,7 +125,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         msg = msg_and_transition.msg
         return msg
 
-    def _handle_unexpected_inform_msg(self, message: Any) -> None:
+    def _transition_for_unexpected_msg(self, message: Any) -> None:
         """
         eNB devices may send an Inform message in the middle of a provisioning
         session. To deal with this, transition to a state that expects an
@@ -130,8 +133,15 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         been disconnected.
         """
         if isinstance(message, models.Inform):
-            if self.is_enodeb_connected():
-                self.transition(self.wait_inform_state_name)
+            logging.debug('ACS in (%s) state. Received an Inform message',
+                          self.state.state_description())
+            self.transition(self.unexpected_inform_state_name)
+        elif isinstance(message, models.Fault):
+            logging.debug('ACS in (%s) state. Received a Fault <%s>',
+                          self.state.state_description(), message.FaultString)
+            self.transition(self.unexpected_fault_state_name)
+        else:
+            raise ConfigurationError('Cannot handle unexpected TR069 msg')
 
     def _reset_timeout(self) -> None:
         if self.timeout_handler is not None:
@@ -209,6 +219,12 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
 
     @property
     @abstractmethod
-    def wait_inform_state_name(self) -> str:
+    def unexpected_inform_state_name(self) -> str:
         """ State to handle unexpected Inform messages """
+        pass
+
+    @property
+    @abstractmethod
+    def unexpected_fault_state_name(self) -> str:
+        """ State to handle unexpected Fault messages """
         pass

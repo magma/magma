@@ -28,7 +28,7 @@ from magma.enodebd.state_machines.enb_acs_states import DisconnectedState, \
     AddObjectsState, SetParameterValuesNotAdminState, WaitSetParameterValuesState, \
     WaitInformState, SendRebootState, WaitRebootResponseState, \
     WaitInformMRebootState, WaitRebootDelayState, EnodebAcsState, \
-    AcsMsgAndTransition, UnexpectedInformState
+    AcsMsgAndTransition, AcsReadMsgResult, UnexpectedInformState, ErrorState
 from magma.enodebd.tr069 import models
 
 
@@ -42,7 +42,6 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
     def _init_state_map(self) -> None:
         self._state_map = {
             'disconnected': DisconnectedState(self, when_done='get_transient_params'),
-            'unexpected_inform': UnexpectedInformState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='get_transient_params'),
             'get_params': GetParametersState(self, when_done='wait_get_parameters'),
@@ -59,6 +58,10 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='disconnected'),
             'wait_reboot_delay': WaitRebootDelayState(self, when_done='wait_inform'),
+            # The states below are entered when an unexpected message type is
+            # received
+            'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),
+            'unexpected_fault': ErrorState(self)
         }
 
     @property
@@ -82,8 +85,12 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
         return 'disconnected'
 
     @property
-    def wait_inform_state_name(self) -> str:
+    def unexpected_inform_state_name(self) -> str:
         return 'unexpected_inform'
+
+    @property
+    def unexpected_fault_state_name(self) -> str:
+        return 'unexpected_fault'
 
 
 class CaviumDisableAdminEnableState(EnodebAcsState):
@@ -96,12 +103,10 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
         self.acs = acs
         self.done_transition = when_done
 
-    def read_msg(self, message: Any) -> Optional[str]:
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
         if not isinstance(message, models.DummyInput):
-            raise ConfigurationError(
-                'ACS in EnableAdmin state. Expected an Empty message. '
-                'Received a %s message.' % type(message))
-        return None
+            return AcsReadMsgResult(False, None)
+        return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
         """
@@ -150,13 +155,11 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
                 'Received Fault in response to SetParameterValues '
                 '(faultstring = %s)' % message.FaultString)
         elif not isinstance(message, models.SetParameterValuesResponse):
-            raise Tr069Error(
-                'ACS in WaitEnableAdmin state. '
-                'Unexpected response type: %s' % type(message))
+            return AcsReadMsgResult(False, None)
         if message.Status != 0:
             raise Tr069Error('Received SetParameterValuesResponse with '
                              'Status=%d' % message.Status)
-        return self.done_transition
+        return AcsReadMsgResult(True, self.done_transition)
 
     @classmethod
     def state_description(cls) -> str:

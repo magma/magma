@@ -27,7 +27,7 @@ from magma.enodebd.state_machines.enb_acs_states import \
     SetParameterValuesState, WaitSetParameterValuesState, SendRebootState, \
     WaitRebootResponseState, WaitInformMRebootState, WaitRebootDelayState, \
     WaitInformState, EnodebAcsState, UnexpectedInformState, \
-    CheckOptionalParamsState, WaitEmptyMessageState
+    CheckOptionalParamsState, WaitEmptyMessageState, ErrorState
 
 
 class BaicellsOldHandler(BasicEnodebAcsStateMachine):
@@ -40,7 +40,6 @@ class BaicellsOldHandler(BasicEnodebAcsStateMachine):
     def _init_state_map(self) -> None:
         self._state_map = {
             'disconnected': BaicellsDisconnectedState(self, when_done='wait_empty'),
-            'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),
             'wait_empty': WaitEmptyMessageState(self, when_done='check_optional_params'),
             'check_optional_params': CheckOptionalParamsState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
@@ -59,6 +58,10 @@ class BaicellsOldHandler(BasicEnodebAcsStateMachine):
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='disconnected'),
             'wait_reboot_delay': WaitRebootDelayState(self, when_done='wait_inform'),
             'wait_inform': WaitInformState(self, when_done='get_transient_params'),
+            # The states below are entered when an unexpected message type is
+            # received
+            'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),
+            'unexpected_fault': ErrorState(self)
         }
 
     @property
@@ -82,8 +85,12 @@ class BaicellsOldHandler(BasicEnodebAcsStateMachine):
         return 'disconnected'
 
     @property
-    def wait_inform_state_name(self) -> str:
+    def unexpected_inform_state_name(self) -> str:
         return 'unexpected_inform'
+
+    @property
+    def unexpected_fault_state_name(self) -> str:
+        return 'unexpected_fault'
 
 
 class BaicellsTrOldDataModel(DataModel):

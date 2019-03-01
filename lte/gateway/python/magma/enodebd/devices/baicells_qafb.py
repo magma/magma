@@ -24,7 +24,7 @@ from magma.enodebd.enodeb_status import update_status_metrics, \
 from magma.enodebd.state_machines.acs_state_utils import \
     parse_get_parameter_values_response, get_params_to_get, \
     get_all_objects_to_delete, get_all_objects_to_add, \
-    assert_is_msg_type_and_not_fault, get_all_param_values_to_set
+    get_all_param_values_to_set
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
@@ -34,7 +34,7 @@ from magma.enodebd.state_machines.enb_acs_states import \
     AddObjectsState, SetParameterValuesState, WaitSetParameterValuesState, \
     SendRebootState, WaitRebootResponseState, WaitInformMRebootState, \
     WaitRebootDelayState, WaitInformState, EnodebAcsState, \
-    AcsMsgAndTransition, UnexpectedInformState
+    AcsMsgAndTransition, AcsReadMsgResult, UnexpectedInformState, ErrorState
 from magma.enodebd.tr069 import models
 
 
@@ -48,7 +48,6 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
     def _init_state_map(self) -> None:
         self._state_map = {
             'disconnected': BaicellsDisconnectedState(self, when_done='get_transient_params'),
-            'unexpected_inform': UnexpectedInformState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': BaicellsQafbWaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='get_transient_params'),
             'get_params': GetParametersState(self, when_done='wait_get_params'),
@@ -64,6 +63,10 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='disconnected'),
             'wait_reboot_delay': WaitRebootDelayState(self, when_done='wait_inform'),
             'wait_inform': WaitInformState(self, when_done='get_transient_params'),
+            # The states below are entered when an unexpected message type is
+            # received
+            'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),
+            'unexpected_fault': ErrorState(self)
         }
 
     @property
@@ -87,8 +90,12 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
         return 'disconnected'
 
     @property
-    def wait_inform_state_name(self) -> str:
+    def unexpected_inform_state_name(self) -> str:
         return 'unexpected_inform'
+
+    @property
+    def unexpected_fault_state_name(self) -> str:
+        return 'unexpected_fault'
 
 
 def _get_object_params_to_get(
@@ -140,8 +147,10 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
         self.set_transition = when_set
         self.skip_transition = when_skip
 
-    def read_msg(self, message: Any) -> Optional[str]:
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
         """ Process GetParameterValuesResponse """
+        if not isinstance(message, models.GetParameterValuesResponse):
+            return AcsReadMsgResult(False, None)
         # Current values of the fetched parameters
         name_to_val = parse_get_parameter_values_response(self.acs.data_model,
                                                           message)
@@ -167,7 +176,7 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
         status = get_enodeb_status(self.acs)
         update_status_metrics(status)
 
-        return self.get_next_state()
+        return AcsReadMsgResult(True, self.get_next_state())
 
     def get_next_state(self) -> str:
         should_get_params = \
@@ -234,7 +243,7 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, None)
 
-    def read_msg(self, message: Any) -> Optional[str]:
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
         Process GetParameterValuesResponse
 
@@ -244,8 +253,8 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
         don't exist on the data model, so this is an idiosyncrasy of Baicells
         QAFB.
         """
-        assert_is_msg_type_and_not_fault(message,
-                                         models.GetParameterValuesResponse)
+        if not isinstance(message, models.GetParameterValuesResponse):
+            return AcsReadMsgResult(False, None)
 
         path_to_val = {}
         for param_value_struct in message.ParameterList.ParameterValueStruct:
@@ -285,15 +294,15 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
 
         if len(get_all_objects_to_delete(self.acs.desired_cfg,
                                          self.acs.device_cfg)) > 0:
-            return self.rm_obj_transition
+            return AcsReadMsgResult(True, self.rm_obj_transition)
         elif len(get_all_objects_to_add(self.acs.desired_cfg,
                                         self.acs.device_cfg)) > 0:
-            return self.add_obj_transition
+            return AcsReadMsgResult(True, self.add_obj_transition)
         elif len(get_all_param_values_to_set(self.acs.desired_cfg,
                                              self.acs.device_cfg,
                                              self.acs.data_model)) > 0:
-            return self.set_params_transition
-        return self.skip_transition
+            return AcsReadMsgResult(True, self.set_params_transition)
+        return AcsReadMsgResult(True, self.skip_transition)
 
     @classmethod
     def state_description(cls) -> str:
