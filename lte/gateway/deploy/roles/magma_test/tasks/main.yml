@@ -41,32 +41,8 @@
     - build_s1_tester.sh
   when: full_provision
 
-- name: Check out s1aptester code
-  shell: "{{ test_scripts }}/clone_s1_tester.sh"
-  args:
-    executable: /bin/bash
-  environment:
-    S1AP_SRC: "{{ s1aptester_src }}"
-    TIP_REPO: "{{ tip_repo }}"
-  when: full_provision
-
-- name: Disable S1SIM logging
-  replace:
-    path: "{{ s1aptester_src }}/TestCntlrApp/build/fw.mak"
-    regexp: '\-DLTE_UE_NAS_SEC'
-    replace: ''
-  when: full_provision
-
-# Used for non-git-checkout s1aptester building
-#- name: Unpack and clean s1aptester build if git checkout fails
-#  shell: "cd {{ s1aptester_src }}/{{ item }}/build && make clean -s"
-#  with_items:
-#    - TestCntlrApp
-#    - TestCntlrStub
-#    - Trfgen
-
-- name: Build s1aptester code
-  shell: "{{ test_scripts }}/build_s1_tester.sh -s"
+- name: Install s1aptester code
+  shell: "{{ test_scripts }}/install_s1_tester.sh"
   args:
     executable: /bin/bash
   environment:
