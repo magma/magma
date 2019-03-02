@@ -69,7 +69,7 @@ setup(
         # lxml required by spyne.
         'lxml==4.2.1',
         'ryu==4.13',
-        'spyne==2.12.14',
+        'spyne==2.12.16',
         'scapy==2.4.2',
         'flask>=1.0.2',
         'aiodns>=1.1.1',
