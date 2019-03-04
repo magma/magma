@@ -66,6 +66,14 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(networkIdOrMatch)}/subscribers/${subscriberId}`,
   upgradeChannel: (channel: string) =>
     `/nms/apicontroller/magma/channels/${channel}`,
+  command: (
+    networkIdOrMatch: string | Match,
+    gatewayId: string,
+    commandName: string,
+  ) =>
+    `${MagmaAPIUrls.network(
+      networkIdOrMatch,
+    )}/gateways/${gatewayId}/command/${commandName}`,
 };
 
 export async function fetchAllNetworkUpgradeTiers(
