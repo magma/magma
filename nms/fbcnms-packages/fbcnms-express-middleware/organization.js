@@ -9,6 +9,7 @@
  */
 
 import {Request, Response, NextFunction} from 'express';
+import Sequelize from 'sequelize';
 
 function getSubdomainList(host: ?string): Array<string> {
   if (!host) {
@@ -25,11 +26,24 @@ export async function getOrganization(
   req: Request,
   OrganizationModel: any,
 ): any {
-  const subDomains = getSubdomainList(req.get('host'));
+  const host = req.get('host');
+  let org = await OrganizationModel.findOne({
+    where: Sequelize.fn(
+      'JSON_CONTAINS',
+      Sequelize.col('customDomains'),
+      `"${host}"`,
+    ),
+  });
+
+  if (org) {
+    return org;
+  }
+
+  const subDomains = getSubdomainList(host);
   if (subDomains.length != 1 && subDomains.length != 2) {
     throw new Error('Invalid organization!');
   }
-  const org = await OrganizationModel.findOne({
+  org = await OrganizationModel.findOne({
     where: {
       name: subDomains[0],
     },
