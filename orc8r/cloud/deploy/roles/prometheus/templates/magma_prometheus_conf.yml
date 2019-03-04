@@ -16,11 +16,6 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: "magma_controller"
-    honor_labels: true
-    static_configs:
-      - targets: ['{{ magma_metrics_endpoint }}']
-
   - job_name: "magma_pushgateway"
     honor_labels: true
     static_configs:

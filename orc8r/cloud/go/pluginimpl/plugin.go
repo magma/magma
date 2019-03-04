@@ -152,7 +152,7 @@ func getMetricsProfiles() []metricsd.MetricsProfile {
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{exporters.NewPrometheusExporter(exporters.DefaultPrometheusConfig), exporters.NewPrometheusPushExporter(), odsExporter},
+		Exporters:  []exporters.Exporter{exporters.NewPrometheusPushExporter(), odsExporter},
 	}
 
 	return []metricsd.MetricsProfile{
