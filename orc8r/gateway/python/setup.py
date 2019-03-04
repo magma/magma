@@ -36,6 +36,7 @@ setup(
         'scripts/generate_dnsd_config.py',
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
+        'scripts/generate_service_config.py',
         'scripts/magma_conditional_service.py',
         'scripts/magma_get_config.py',
         'scripts/magmad_cli.py',
