@@ -30,7 +30,7 @@ using grpc::Status;
 #define MME_SERVICE "mme"
 
 namespace magma {
-using namespace feg;
+using namespace lte;
 
 static bool read_mme_relay_enabled(void);
 
@@ -116,7 +116,7 @@ void S6aClient::purge_ue(
 
 void S6aClient::authentication_info_req(
   const s6a_auth_info_req_t *const msg,
-  std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk)
+  std::function<void(Status, lte::AuthenticationInformationAnswer)> callbk)
 {
   S6aClient &client = get_instance();
   AuthenticationInformationRequest proto_msg =
@@ -141,7 +141,7 @@ void S6aClient::authentication_info_req(
 
 void S6aClient::update_location_request(
   const s6a_update_location_req_t *const msg,
-  std::function<void(Status, feg::UpdateLocationAnswer)> callbk)
+  std::function<void(Status, lte::UpdateLocationAnswer)> callbk)
 {
   S6aClient &client = get_instance();
   UpdateLocationRequest proto_msg =

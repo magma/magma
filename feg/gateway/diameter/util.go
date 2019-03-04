@@ -11,7 +11,7 @@ package diameter
 import (
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
@@ -25,7 +25,7 @@ func TranslateDiamResultCode(diamResult uint32) error {
 		return nil
 	}
 	// diam result code is 2xxx
-	if diamResult >= uint32(protos.ErrorCode_SUCCESS) && diamResult < uint32(protos.ErrorCode_COMMAND_UNSUPORTED) {
+	if diamResult >= uint32(protos.ErrorCode_SUCCESS) && diamResult < uint32(protos.ErrorCode_COMMAND_UNSUPPORTED) {
 		return nil
 	}
 	errName, ok := diamCodeToNameMap[diamResult]

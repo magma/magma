@@ -35,7 +35,7 @@ extern "C" {
 }
 
 using namespace magma;
-using namespace magma::feg;
+using namespace magma::lte;
 
 bool s6a_purge_ue(const char *imsi)
 {
@@ -48,11 +48,11 @@ bool s6a_purge_ue(const char *imsi)
   magma::S6aClient::purge_ue(
     imsi,
     [imsiStr = std::string(imsi)](
-      grpc::Status status, feg::PurgeUEAnswer response) {
+      grpc::Status status, lte::PurgeUEAnswer response) {
       auto log_level = "ERROR";
       if (
         status.ok() &&
-        response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
+        response.error_code() < lte::ErrorCode::COMMAND_UNSUPPORTED) {
         log_level = "INFO";
       }
       // For now, do nothing, just log
@@ -67,7 +67,7 @@ static void _s6a_handle_authentication_info_ans(
   const std::string &imsi,
   uint8_t imsi_length,
   const grpc::Status &status,
-  feg::AuthenticationInformationAnswer response)
+  lte::AuthenticationInformationAnswer response)
 {
   MessageDef *message_p = NULL;
   s6a_auth_info_ans_t *itti_msg = NULL;
@@ -78,7 +78,7 @@ static void _s6a_handle_authentication_info_ans(
   itti_msg->imsi_length = imsi_length;
 
   if (status.ok()) {
-    if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
+    if (response.error_code() < lte::ErrorCode::COMMAND_UNSUPPORTED) {
       std::cout << "[ERROR] "
         << "Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: " << imsi
         << "; Status: " << status.error_message()
@@ -114,7 +114,7 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t *const air_p)
   magma::S6aClient::authentication_info_req(
     air_p,
     [imsiStr = std::string(air_p->imsi), imsi_len](
-      grpc::Status status, feg::AuthenticationInformationAnswer response) {
+      grpc::Status status, lte::AuthenticationInformationAnswer response) {
       _s6a_handle_authentication_info_ans(imsiStr, imsi_len, status, response);
     });
   return true;
@@ -124,7 +124,7 @@ static void _s6a_handle_update_location_ans(
   const std::string &imsi,
   uint8_t imsi_length,
   const grpc::Status &status,
-  feg::UpdateLocationAnswer response)
+  lte::UpdateLocationAnswer response)
 {
   MessageDef *message_p = NULL;
   s6a_update_location_ans_t *itti_msg = NULL;
@@ -136,7 +136,7 @@ static void _s6a_handle_update_location_ans(
   itti_msg->imsi_length = imsi_length;
 
   if (status.ok()) {
-    if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
+    if (response.error_code() < lte::ErrorCode::COMMAND_UNSUPPORTED) {
       std::cout << "[ERROR] Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
                       << imsi << "; Status: " << status.error_message()
                       << "; ErrorCode: " << response.error_code() << std::endl;
@@ -175,7 +175,7 @@ bool s6a_update_location_req(const s6a_update_location_req_t *const ulr_p)
   magma::S6aClient::update_location_request(
     ulr_p,
     [imsiStr = std::string(ulr_p->imsi), imsi_len](
-      grpc::Status status, feg::UpdateLocationAnswer response) {
+      grpc::Status status, lte::UpdateLocationAnswer response) {
       _s6a_handle_update_location_ans(imsiStr, imsi_len, status, response);
     });
   return true;

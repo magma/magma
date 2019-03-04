@@ -64,7 +64,7 @@ Status S6aProxyImpl::Reset(
   ResetAnswer *response)
 {
   if (response != NULL) {
-    response->set_error_code(ErrorCode::SUCCESS);
+    response->set_error_code(lte::ErrorCode::SUCCESS);
   }
   // Send message to MME_APP for furher processing
   handle_reset_request();

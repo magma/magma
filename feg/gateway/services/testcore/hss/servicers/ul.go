@@ -12,11 +12,11 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"

@@ -11,12 +11,12 @@ package test
 import (
 	"testing"
 
-	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -48,7 +48,7 @@ func TestNewULA_UnknownSubscriber(t *testing.T) {
 	var ula definitions.ULA
 	err = response.Unmarshal(&ula)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(fegprotos.ErrorCode_USER_UNKNOWN), ula.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(protos.ErrorCode_USER_UNKNOWN), ula.ExperimentalResult.ExperimentalResultCode)
 }
 
 func TestNewULA_SuccessfulResponse(t *testing.T) {
@@ -100,7 +100,7 @@ func TestNewULA_NewSuccessfulULA(t *testing.T) {
 	assert.Equal(t, uint32(123), config.AMBR.MaxRequestedBandwidthUL)
 	assert.Equal(t, uint32(456), config.AMBR.MaxRequestedBandwidthDL)
 	assert.Equal(t, uint32(0), config.ContextIdentifier)
-	assert.Equal(t, uint32(fegprotos.UpdateLocationAnswer_APNConfiguration_IPV4), config.PDNType)
+	assert.Equal(t, uint32(protos.UpdateLocationAnswer_APNConfiguration_IPV4), config.PDNType)
 	assert.Equal(t, "oai.ipv4", config.ServiceSelection)
 
 	eps := config.EPSSubscribedQoSProfile
@@ -186,7 +186,7 @@ func TestNewULA_RATTypeNotAllowed(t *testing.T) {
 	err = response.Unmarshal(&ula)
 	assert.NoError(t, err)
 	assert.Equal(t, "magma;123_1234", ula.SessionID)
-	assert.Equal(t, uint32(fegprotos.ErrorCode_RAT_NOT_ALLOWED), ula.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(protos.ErrorCode_RAT_NOT_ALLOWED), ula.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginRealm)
 }

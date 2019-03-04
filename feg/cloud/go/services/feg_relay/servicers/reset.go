@@ -12,14 +12,15 @@ import (
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay/utils"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
 
 // Reset (Code 322) over diameter connection,
 // Not implemented
-func (srv *FegToGwRelayServer) Reset(ctx context.Context, in *protos.ResetRequest) (*protos.ResetAnswer, error) {
+func (srv *FegToGwRelayServer) Reset(ctx context.Context, in *fegprotos.ResetRequest) (*fegprotos.ResetAnswer, error) {
 	if err := validateFegContext(ctx); err != nil {
 		return nil, err
 	}
@@ -30,10 +31,10 @@ func (srv *FegToGwRelayServer) Reset(ctx context.Context, in *protos.ResetReques
 // Skip identity check
 func (srv *FegToGwRelayServer) ResetUnverified(
 	ctx context.Context,
-	req *protos.ResetRequest,
-) (*protos.ResetAnswer, error) {
+	req *fegprotos.ResetRequest,
+) (*fegprotos.ResetAnswer, error) {
 
-	res := &protos.ResetAnswer{ErrorCode: protos.ErrorCode_SUCCESS}
+	res := &fegprotos.ResetAnswer{ErrorCode: lteprotos.ErrorCode_SUCCESS}
 	if req == nil {
 		return res, nil
 	}
@@ -74,22 +75,22 @@ func (srv *FegToGwRelayServer) ResetUnverified(
 		}()
 	}
 	// Always ACK success, even if some GWs were unreachable. Our Reset support is "best effort"
-	return &protos.ResetAnswer{ErrorCode: protos.ErrorCode_SUCCESS}, nil
+	return &fegprotos.ResetAnswer{ErrorCode: lteprotos.ErrorCode_SUCCESS}, nil
 }
 
 // sendReset - sends reset request to a GW with given hwId, logs errors if any
-func sendReset(hwId string, req *protos.ResetRequest) {
+func sendReset(hwId string, req *fegprotos.ResetRequest) {
 	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GWS6ASERVICE, hwId)
 	if err != nil {
 		glog.Errorf("Reset: unable to get connection to the gateway Hw ID: %s.", hwId)
 		return
 	}
-	client := protos.NewS6AGatewayServiceClient(conn)
+	client := fegprotos.NewS6AGatewayServiceClient(conn)
 	ans, err := client.Reset(ctx, req)
 	if err != nil {
 		glog.Errorf("Reset error %v for gateway Hw ID: %s", err, hwId)
-	} else if ans.ErrorCode > protos.ErrorCode_LIMITED_SUCCESS {
-		diamErrName, _ := protos.ErrorCode_name[int32(ans.ErrorCode)]
+	} else if ans.ErrorCode > lteprotos.ErrorCode_LIMITED_SUCCESS {
+		diamErrName, _ := lteprotos.ErrorCode_name[int32(ans.ErrorCode)]
 		glog.Errorf("Reset Diameter error %d (%s) for gateway Hw ID: %s.", ans.ErrorCode, diamErrName, hwId)
 	}
 	conn.Close()

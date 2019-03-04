@@ -15,10 +15,11 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
+	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"golang.org/x/net/context"
@@ -60,8 +61,8 @@ func TestS6aProxyService(t *testing.T) {
 		return
 
 	}
-	protos.RegisterS6AProxyServer(s, service)
-	protos.RegisterServiceHealthServer(s, service)
+	lteprotos.RegisterS6AProxyServer(s, service)
+	fegprotos.RegisterServiceHealthServer(s, service)
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			t.Fatalf("failed to serve: %v", err)
@@ -79,9 +80,9 @@ func TestS6aProxyService(t *testing.T) {
 	}
 	defer conn.Close()
 
-	c := protos.NewS6AProxyClient(conn)
-	hs := protos.NewServiceHealthClient(conn)
-	req := &protos.AuthenticationInformationRequest{
+	c := lteprotos.NewS6AProxyClient(conn)
+	hs := fegprotos.NewServiceHealthClient(conn)
+	req := &lteprotos.AuthenticationInformationRequest{
 		UserName:                   test.TEST_IMSI,
 		VisitedPlmn:                []byte(test.TEST_PLMN_ID),
 		NumRequestedEutranVectors:  3,
@@ -97,13 +98,13 @@ func TestS6aProxyService(t *testing.T) {
 			return
 		}
 		t.Logf("GRPC AIA: %#+v", *r)
-		if r.ErrorCode != protos.ErrorCode_UNDEFINED {
+		if r.ErrorCode != lteprotos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected AIA Error Code: %d", r.ErrorCode)
 		}
 		if len(r.EutranVectors) != 3 {
 			t.Errorf("Unexpected Number of EutranVectors: %d, Expected: 3", len(r.EutranVectors))
 		}
-		ulReq := &protos.UpdateLocationRequest{
+		ulReq := &lteprotos.UpdateLocationRequest{
 			UserName:           test.TEST_IMSI,
 			VisitedPlmn:        []byte(test.TEST_PLMN_ID),
 			SkipSubscriberData: false,
@@ -117,11 +118,11 @@ func TestS6aProxyService(t *testing.T) {
 			return
 		}
 		t.Logf("GRPC ULA: %#+v", *ulResp)
-		if ulResp.ErrorCode != protos.ErrorCode_UNDEFINED {
+		if ulResp.ErrorCode != lteprotos.ErrorCode_UNDEFINED {
 			t.Errorf("Unexpected ULA Error Code: %d", ulResp.ErrorCode)
 		}
 
-		puReq := &protos.PurgeUERequest{
+		puReq := &lteprotos.PurgeUERequest{
 			UserName: test.TEST_IMSI,
 		}
 		// PUR
@@ -132,7 +133,7 @@ func TestS6aProxyService(t *testing.T) {
 			return
 		}
 		t.Logf("GRPC PUA: %#+v", *puResp)
-		if puResp.ErrorCode != protos.ErrorCode_SUCCESS {
+		if puResp.ErrorCode != lteprotos.ErrorCode_SUCCESS {
 			t.Errorf("Unexpected PUA Error Code: %d", puResp.ErrorCode)
 		}
 		complChan <- nil
@@ -162,7 +163,7 @@ func TestS6aProxyService(t *testing.T) {
 
 	// Test Disabling / Enabling Connections
 
-	disableReq := &protos.DisableMessage{
+	disableReq := &fegprotos.DisableMessage{
 		DisablePeriodSecs: 10,
 	}
 
@@ -193,7 +194,7 @@ func TestS6aProxyService(t *testing.T) {
 		return
 	}
 	t.Logf("GRPC AIA: %#+v", *airResp)
-	if airResp.ErrorCode != protos.ErrorCode_UNDEFINED {
+	if airResp.ErrorCode != lteprotos.ErrorCode_UNDEFINED {
 		t.Errorf("Unexpected AIA Error Code: %d", airResp.ErrorCode)
 	}
 }

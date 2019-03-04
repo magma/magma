@@ -13,7 +13,6 @@ import (
 	"errors"
 	"fmt"
 
-	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/crypto"
@@ -64,9 +63,9 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	subscriber, err := srv.store.GetSubscriberData(air.UserName)
 	if err != nil {
 		if _, ok := err.(storage.UnknownSubscriberError); ok {
-			return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
+			return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(protos.ErrorCode_USER_UNKNOWN)), err
 		}
-		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE)), err
+		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(protos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE)), err
 	}
 
 	err = srv.ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize())

@@ -12,9 +12,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 import argparse
 
 import grpc
-from feg.protos.s6a_proxy_pb2 import AuthenticationInformationRequest, \
+from lte.protos.s6a_proxy_pb2 import AuthenticationInformationRequest, \
     UpdateLocationRequest
-from feg.protos.s6a_proxy_pb2_grpc import S6aProxyStub
+from lte.protos.s6a_proxy_pb2_grpc import S6aProxyStub
 
 from magma.common.rpc_utils import cloud_grpc_wrapper
 

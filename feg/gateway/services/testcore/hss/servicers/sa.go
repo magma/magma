@@ -41,7 +41,7 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	subscriber, err := srv.store.GetSubscriberData(string(sar.UserName))
 	if err != nil {
 		if _, ok := err.(storage.UnknownSubscriberError); ok {
-			return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
+			return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(lteprotos.ErrorCode_USER_UNKNOWN)), err
 		}
 		return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
 	}

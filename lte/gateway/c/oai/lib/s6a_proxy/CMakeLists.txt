@@ -13,7 +13,8 @@ add_definitions(-DDEBUG_IS_ON=1)
 # compile the needed protos
 set(S6A_FEG_CPP_PROTOS s6a_proxy)
 set(S6A_FEG_GRPC_PROTOS s6a_proxy)
-set(S6A_LTE_CPP_PROTOS mconfig/mconfigs)
+set(S6A_LTE_CPP_PROTOS s6a_proxy mconfig/mconfigs)
+set(S6A_LTE_GRPC_PROTOS s6a_proxy)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
@@ -27,6 +28,8 @@ generate_grpc_protos("${S6A_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
 
 generate_cpp_protos("${S6A_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${S6A_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

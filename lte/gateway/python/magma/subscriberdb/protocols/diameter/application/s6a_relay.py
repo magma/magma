@@ -9,9 +9,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 
-from feg.protos.s6a_proxy_pb2 import AuthenticationInformationRequest, \
+from lte.protos.s6a_proxy_pb2 import AuthenticationInformationRequest, \
     UpdateLocationRequest
-from feg.protos.s6a_proxy_pb2_grpc import S6aProxyStub
+from lte.protos.s6a_proxy_pb2_grpc import S6aProxyStub
 from magma.subscriberdb.metrics import (S6A_AUTH_FAILURE_TOTAL,
                                         S6A_AUTH_SUCCESS_TOTAL, S6A_LUR_TOTAL)
 from magma.subscriberdb.protocols.diameter import avp

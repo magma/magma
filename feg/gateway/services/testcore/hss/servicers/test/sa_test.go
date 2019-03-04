@@ -57,7 +57,7 @@ func TestNewSAA_UnknownIMSI(t *testing.T) {
 	assert.EqualError(t, err, "Subscriber 'sub_unknown' not found")
 
 	saa := testUnmarshalSAA(t, response)
-	assert.Equal(t, uint32(fegprotos.ErrorCode_USER_UNKNOWN), saa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(lteprotos.ErrorCode_USER_UNKNOWN), saa.ExperimentalResult.ExperimentalResultCode)
 }
 
 func TestNewSAA_No3GPPAAAServer(t *testing.T) {

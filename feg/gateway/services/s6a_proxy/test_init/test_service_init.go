@@ -13,11 +13,12 @@ import (
 	"math/rand"
 	"testing"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
@@ -89,8 +90,8 @@ func StartTestService(t *testing.T) error {
 		return err
 	}
 
-	protos.RegisterS6AProxyServer(srv.GrpcServer, service)
-	protos.RegisterServiceHealthServer(srv.GrpcServer, service)
+	lteprotos.RegisterS6AProxyServer(srv.GrpcServer, service)
+	fegprotos.RegisterServiceHealthServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 	return nil
 }

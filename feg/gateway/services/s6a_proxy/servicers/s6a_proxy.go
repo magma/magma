@@ -14,9 +14,10 @@ import (
 	"fmt"
 	"time"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/metrics"
+	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -142,7 +143,7 @@ func NewS6aProxy(
 // AuthenticationInformation sends AIR over diameter connection,
 // waits (blocks) for AIA & returns its RPC representation
 func (s *s6aProxy) AuthenticationInformation(
-	ctx context.Context, req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error,
+	ctx context.Context, req *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error,
 ) {
 	res, err := s.AuthenticationInformationImpl(req)
 	metrics.UpdateS6aRecentRequestMetrics(err)
@@ -152,7 +153,7 @@ func (s *s6aProxy) AuthenticationInformation(
 // UpdateLocation sends ULR (Code 316) over diameter connection,
 // waits (blocks) for ULA & returns its RPC representation
 func (s *s6aProxy) UpdateLocation(
-	ctx context.Context, req *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error,
+	ctx context.Context, req *lteprotos.UpdateLocationRequest) (*lteprotos.UpdateLocationAnswer, error,
 ) {
 	res, err := s.UpdateLocationImpl(req)
 	metrics.UpdateS6aRecentRequestMetrics(err)
@@ -161,7 +162,7 @@ func (s *s6aProxy) UpdateLocation(
 
 // PurgeUE sends PUR (Code 321) over diameter connection,
 // waits (blocks) for PUA & returns its RPC representation
-func (s *s6aProxy) PurgeUE(ctx context.Context, req *protos.PurgeUERequest) (*protos.PurgeUEAnswer, error) {
+func (s *s6aProxy) PurgeUE(ctx context.Context, req *lteprotos.PurgeUERequest) (*lteprotos.PurgeUEAnswer, error) {
 	res, err := s.PurgeUEImpl(req)
 	metrics.UpdateS6aRecentRequestMetrics(err)
 	return res, err
@@ -169,7 +170,7 @@ func (s *s6aProxy) PurgeUE(ctx context.Context, req *protos.PurgeUERequest) (*pr
 
 // Disable closes all existing diameter connections and disables
 // connection creation for the time specified in the request
-func (s *s6aProxy) Disable(ctx context.Context, req *protos.DisableMessage) (*orcprotos.Void, error) {
+func (s *s6aProxy) Disable(ctx context.Context, req *fegprotos.DisableMessage) (*orcprotos.Void, error) {
 	if req == nil {
 		return nil, fmt.Errorf("Nil Disable Request")
 	}
@@ -186,18 +187,18 @@ func (s *s6aProxy) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.
 
 // GetHealthStatus retrieves a health status object which contains the current
 // health of the service
-func (s *s6aProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*protos.HealthStatus, error) {
+func (s *s6aProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*fegprotos.HealthStatus, error) {
 	currentMetrics, err := metrics.GetCurrentHealthMetrics()
 	if err != nil {
-		return &protos.HealthStatus{
-			Health:        protos.HealthStatus_UNHEALTHY,
+		return &fegprotos.HealthStatus{
+			Health:        fegprotos.HealthStatus_UNHEALTHY,
 			HealthMessage: fmt.Sprintf("Error occured while retrieving health metrics: %s", err),
 		}, err
 	}
 	deltaMetrics, err := s.healthMetrics.GetDelta(currentMetrics)
 	if err != nil {
-		return &protos.HealthStatus{
-			Health:        protos.HealthStatus_UNHEALTHY,
+		return &fegprotos.HealthStatus{
+			Health:        fegprotos.HealthStatus_UNHEALTHY,
 			HealthMessage: err.Error(),
 		}, err
 	}
@@ -214,13 +215,13 @@ func (s *s6aProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 			failureTotal,
 			reqTotal,
 		)
-		return &protos.HealthStatus{
-			Health:        protos.HealthStatus_UNHEALTHY,
+		return &fegprotos.HealthStatus{
+			Health:        fegprotos.HealthStatus_UNHEALTHY,
 			HealthMessage: unhealthyMsg,
 		}, nil
 	}
-	return &protos.HealthStatus{
-		Health:        protos.HealthStatus_HEALTHY,
+	return &fegprotos.HealthStatus{
+		Health:        fegprotos.HealthStatus_HEALTHY,
 		HealthMessage: "All metrics appear healthy",
 	}, nil
 }

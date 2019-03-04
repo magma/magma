@@ -17,8 +17,9 @@ import (
 	"github.com/fiorix/go-diameter/diam/datatype"
 	"github.com/golang/glog"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/s6a_proxy"
+	lteprotos "magma/lte/cloud/go/protos"
 )
 
 const (
@@ -30,7 +31,7 @@ const (
 func handleRSR(s *s6aProxy) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		glog.V(2).Infof("handling RSR\n")
-		var code protos.ErrorCode //result-code
+		var code lteprotos.ErrorCode //result-code
 		var rsr RSR
 		err := m.Unmarshal(&rsr)
 		if err != nil {
@@ -53,20 +54,20 @@ func handleRSR(s *s6aProxy) diam.HandlerFunc {
 	}
 }
 
-func forwardRSRToGateway(rsr *RSR) (protos.ErrorCode, error) {
+func forwardRSRToGateway(rsr *RSR) (lteprotos.ErrorCode, error) {
 	if rsr == nil {
 		return diam.MissingAVP, nil
 	}
-	in := new(protos.ResetRequest)
+	in := new(fegprotos.ResetRequest)
 
 	res, err := s6a_proxy.GWS6AProxyReset(in)
 	if err != nil {
-		return protos.ErrorCode_UNABLE_TO_DELIVER, err
+		return lteprotos.ErrorCode_UNABLE_TO_DELIVER, err
 	}
 	return res.ErrorCode, nil
 }
 
-func (s *s6aProxy) sendRSA(c diam.Conn, m *diam.Message, code protos.ErrorCode, rsr *RSR, retries uint) error {
+func (s *s6aProxy) sendRSA(c diam.Conn, m *diam.Message, code lteprotos.ErrorCode, rsr *RSR, retries uint) error {
 	ans := m.Answer(uint32(code))
 	// SessionID is required to be the AVP in position 1
 	ans.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(rsr.SessionID)))

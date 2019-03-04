@@ -6,6 +6,7 @@ package protos // import "magma/feg/cloud/go/protos"
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import protos "magma/lte/cloud/go/protos"
 
 import (
 	context "golang.org/x/net/context"
@@ -22,132 +23,6 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
-
-// ErrorCode reflects Experimental-Result values which are 3GPP failures
-// to be processed by EPC. Diameter Base Protocol errors are reflected in gRPC status code
-type ErrorCode int32
-
-const (
-	ErrorCode_UNDEFINED ErrorCode = 0
-	// Default success code
-	ErrorCode_MULTI_ROUND_AUTH        ErrorCode = 1001
-	ErrorCode_SUCCESS                 ErrorCode = 2001
-	ErrorCode_LIMITED_SUCCESS         ErrorCode = 2002
-	ErrorCode_COMMAND_UNSUPORTED      ErrorCode = 3001
-	ErrorCode_UNABLE_TO_DELIVER       ErrorCode = 3002
-	ErrorCode_REALM_NOT_SERVED        ErrorCode = 3003
-	ErrorCode_TOO_BUSY                ErrorCode = 3004
-	ErrorCode_LOOP_DETECTED           ErrorCode = 3005
-	ErrorCode_REDIRECT_INDICATION     ErrorCode = 3006
-	ErrorCode_APPLICATION_UNSUPPORTED ErrorCode = 3007
-	ErrorCode_INVALIDH_DR_BITS        ErrorCode = 3008
-	ErrorCode_INVALID_AVP_BITS        ErrorCode = 3009
-	ErrorCode_UNKNOWN_PEER            ErrorCode = 3010
-	ErrorCode_AUTHENTICATION_REJECTED ErrorCode = 4001
-	ErrorCode_OUT_OF_SPACE            ErrorCode = 4002
-	ErrorCode_ELECTION_LOST           ErrorCode = 4003
-	ErrorCode_AUTHORIZATION_REJECTED  ErrorCode = 5003
-	// Permanent Failures 7.4.3
-	ErrorCode_USER_UNKNOWN             ErrorCode = 5001
-	ErrorCode_UNKNOWN_EPS_SUBSCRIPTION ErrorCode = 5420
-	ErrorCode_RAT_NOT_ALLOWED          ErrorCode = 5421
-	ErrorCode_ROAMING_NOT_ALLOWED      ErrorCode = 5004
-	ErrorCode_EQUIPMENT_UNKNOWN        ErrorCode = 5422
-	ErrorCode_UNKOWN_SERVING_NODE      ErrorCode = 5423
-	// Transient Failures 7.4.4
-	ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE ErrorCode = 4181
-)
-
-var ErrorCode_name = map[int32]string{
-	0:    "UNDEFINED",
-	1001: "MULTI_ROUND_AUTH",
-	2001: "SUCCESS",
-	2002: "LIMITED_SUCCESS",
-	3001: "COMMAND_UNSUPORTED",
-	3002: "UNABLE_TO_DELIVER",
-	3003: "REALM_NOT_SERVED",
-	3004: "TOO_BUSY",
-	3005: "LOOP_DETECTED",
-	3006: "REDIRECT_INDICATION",
-	3007: "APPLICATION_UNSUPPORTED",
-	3008: "INVALIDH_DR_BITS",
-	3009: "INVALID_AVP_BITS",
-	3010: "UNKNOWN_PEER",
-	4001: "AUTHENTICATION_REJECTED",
-	4002: "OUT_OF_SPACE",
-	4003: "ELECTION_LOST",
-	5003: "AUTHORIZATION_REJECTED",
-	5001: "USER_UNKNOWN",
-	5420: "UNKNOWN_EPS_SUBSCRIPTION",
-	5421: "RAT_NOT_ALLOWED",
-	5004: "ROAMING_NOT_ALLOWED",
-	5422: "EQUIPMENT_UNKNOWN",
-	5423: "UNKOWN_SERVING_NODE",
-	4181: "AUTHENTICATION_DATA_UNAVAILABLE",
-}
-var ErrorCode_value = map[string]int32{
-	"UNDEFINED":                       0,
-	"MULTI_ROUND_AUTH":                1001,
-	"SUCCESS":                         2001,
-	"LIMITED_SUCCESS":                 2002,
-	"COMMAND_UNSUPORTED":              3001,
-	"UNABLE_TO_DELIVER":               3002,
-	"REALM_NOT_SERVED":                3003,
-	"TOO_BUSY":                        3004,
-	"LOOP_DETECTED":                   3005,
-	"REDIRECT_INDICATION":             3006,
-	"APPLICATION_UNSUPPORTED":         3007,
-	"INVALIDH_DR_BITS":                3008,
-	"INVALID_AVP_BITS":                3009,
-	"UNKNOWN_PEER":                    3010,
-	"AUTHENTICATION_REJECTED":         4001,
-	"OUT_OF_SPACE":                    4002,
-	"ELECTION_LOST":                   4003,
-	"AUTHORIZATION_REJECTED":          5003,
-	"USER_UNKNOWN":                    5001,
-	"UNKNOWN_EPS_SUBSCRIPTION":        5420,
-	"RAT_NOT_ALLOWED":                 5421,
-	"ROAMING_NOT_ALLOWED":             5004,
-	"EQUIPMENT_UNKNOWN":               5422,
-	"UNKOWN_SERVING_NODE":             5423,
-	"AUTHENTICATION_DATA_UNAVAILABLE": 4181,
-}
-
-func (x ErrorCode) String() string {
-	return proto.EnumName(ErrorCode_name, int32(x))
-}
-func (ErrorCode) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{0}
-}
-
-type UpdateLocationAnswer_APNConfiguration_PDNType int32
-
-const (
-	UpdateLocationAnswer_APNConfiguration_IPV4         UpdateLocationAnswer_APNConfiguration_PDNType = 0
-	UpdateLocationAnswer_APNConfiguration_IPV6         UpdateLocationAnswer_APNConfiguration_PDNType = 1
-	UpdateLocationAnswer_APNConfiguration_IPV4V6       UpdateLocationAnswer_APNConfiguration_PDNType = 2
-	UpdateLocationAnswer_APNConfiguration_IPV4_OR_IPV6 UpdateLocationAnswer_APNConfiguration_PDNType = 3
-)
-
-var UpdateLocationAnswer_APNConfiguration_PDNType_name = map[int32]string{
-	0: "IPV4",
-	1: "IPV6",
-	2: "IPV4V6",
-	3: "IPV4_OR_IPV6",
-}
-var UpdateLocationAnswer_APNConfiguration_PDNType_value = map[string]int32{
-	"IPV4":         0,
-	"IPV6":         1,
-	"IPV4V6":       2,
-	"IPV4_OR_IPV6": 3,
-}
-
-func (x UpdateLocationAnswer_APNConfiguration_PDNType) String() string {
-	return proto.EnumName(UpdateLocationAnswer_APNConfiguration_PDNType_name, int32(x))
-}
-func (UpdateLocationAnswer_APNConfiguration_PDNType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{3, 0, 0}
-}
 
 type CancelLocationRequest_CancellationType int32
 
@@ -178,544 +53,7 @@ func (x CancelLocationRequest_CancellationType) String() string {
 	return proto.EnumName(CancelLocationRequest_CancellationType_name, int32(x))
 }
 func (CancelLocationRequest_CancellationType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{4, 0}
-}
-
-// Authentication Information Request (Section 7.2.5)
-type AuthenticationInformationRequest struct {
-	// Subscriber identifier
-	UserName string `protobuf:"bytes,1,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
-	// Visted site identifier
-	VisitedPlmn []byte `protobuf:"bytes,2,opt,name=visited_plmn,json=visitedPlmn,proto3" json:"visited_plmn,omitempty"`
-	// Number of vectors to request in response
-	NumRequestedEutranVectors uint32 `protobuf:"varint,3,opt,name=num_requested_eutran_vectors,json=numRequestedEutranVectors,proto3" json:"num_requested_eutran_vectors,omitempty"`
-	// Indicates to the HSS the values are requested for immediate attach
-	ImmediateResponsePreferred bool `protobuf:"varint,4,opt,name=immediate_response_preferred,json=immediateResponsePreferred,proto3" json:"immediate_response_preferred,omitempty"`
-	// Concatenation of RAND and AUTS in the case of a resync attach case
-	ResyncInfo           []byte   `protobuf:"bytes,5,opt,name=resync_info,json=resyncInfo,proto3" json:"resync_info,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *AuthenticationInformationRequest) Reset()         { *m = AuthenticationInformationRequest{} }
-func (m *AuthenticationInformationRequest) String() string { return proto.CompactTextString(m) }
-func (*AuthenticationInformationRequest) ProtoMessage()    {}
-func (*AuthenticationInformationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{0}
-}
-func (m *AuthenticationInformationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AuthenticationInformationRequest.Unmarshal(m, b)
-}
-func (m *AuthenticationInformationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AuthenticationInformationRequest.Marshal(b, m, deterministic)
-}
-func (dst *AuthenticationInformationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AuthenticationInformationRequest.Merge(dst, src)
-}
-func (m *AuthenticationInformationRequest) XXX_Size() int {
-	return xxx_messageInfo_AuthenticationInformationRequest.Size(m)
-}
-func (m *AuthenticationInformationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_AuthenticationInformationRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AuthenticationInformationRequest proto.InternalMessageInfo
-
-func (m *AuthenticationInformationRequest) GetUserName() string {
-	if m != nil {
-		return m.UserName
-	}
-	return ""
-}
-
-func (m *AuthenticationInformationRequest) GetVisitedPlmn() []byte {
-	if m != nil {
-		return m.VisitedPlmn
-	}
-	return nil
-}
-
-func (m *AuthenticationInformationRequest) GetNumRequestedEutranVectors() uint32 {
-	if m != nil {
-		return m.NumRequestedEutranVectors
-	}
-	return 0
-}
-
-func (m *AuthenticationInformationRequest) GetImmediateResponsePreferred() bool {
-	if m != nil {
-		return m.ImmediateResponsePreferred
-	}
-	return false
-}
-
-func (m *AuthenticationInformationRequest) GetResyncInfo() []byte {
-	if m != nil {
-		return m.ResyncInfo
-	}
-	return nil
-}
-
-// Authentication Information Answer (Section 7.2.6)
-type AuthenticationInformationAnswer struct {
-	// EPC error code on failure
-	ErrorCode ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=magma.feg.ErrorCode" json:"error_code,omitempty"`
-	// Authentication vectors matching the requested number
-	EutranVectors        []*AuthenticationInformationAnswer_EUTRANVector `protobuf:"bytes,2,rep,name=eutran_vectors,json=eutranVectors,proto3" json:"eutran_vectors,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                                        `json:"-"`
-	XXX_unrecognized     []byte                                          `json:"-"`
-	XXX_sizecache        int32                                           `json:"-"`
-}
-
-func (m *AuthenticationInformationAnswer) Reset()         { *m = AuthenticationInformationAnswer{} }
-func (m *AuthenticationInformationAnswer) String() string { return proto.CompactTextString(m) }
-func (*AuthenticationInformationAnswer) ProtoMessage()    {}
-func (*AuthenticationInformationAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{1}
-}
-func (m *AuthenticationInformationAnswer) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AuthenticationInformationAnswer.Unmarshal(m, b)
-}
-func (m *AuthenticationInformationAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AuthenticationInformationAnswer.Marshal(b, m, deterministic)
-}
-func (dst *AuthenticationInformationAnswer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AuthenticationInformationAnswer.Merge(dst, src)
-}
-func (m *AuthenticationInformationAnswer) XXX_Size() int {
-	return xxx_messageInfo_AuthenticationInformationAnswer.Size(m)
-}
-func (m *AuthenticationInformationAnswer) XXX_DiscardUnknown() {
-	xxx_messageInfo_AuthenticationInformationAnswer.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AuthenticationInformationAnswer proto.InternalMessageInfo
-
-func (m *AuthenticationInformationAnswer) GetErrorCode() ErrorCode {
-	if m != nil {
-		return m.ErrorCode
-	}
-	return ErrorCode_UNDEFINED
-}
-
-func (m *AuthenticationInformationAnswer) GetEutranVectors() []*AuthenticationInformationAnswer_EUTRANVector {
-	if m != nil {
-		return m.EutranVectors
-	}
-	return nil
-}
-
-// For details about fields read 3GPP 33.401
-type AuthenticationInformationAnswer_EUTRANVector struct {
-	Rand                 []byte   `protobuf:"bytes,1,opt,name=rand,proto3" json:"rand,omitempty"`
-	Xres                 []byte   `protobuf:"bytes,2,opt,name=xres,proto3" json:"xres,omitempty"`
-	Autn                 []byte   `protobuf:"bytes,3,opt,name=autn,proto3" json:"autn,omitempty"`
-	Kasme                []byte   `protobuf:"bytes,4,opt,name=kasme,proto3" json:"kasme,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *AuthenticationInformationAnswer_EUTRANVector) Reset() {
-	*m = AuthenticationInformationAnswer_EUTRANVector{}
-}
-func (m *AuthenticationInformationAnswer_EUTRANVector) String() string {
-	return proto.CompactTextString(m)
-}
-func (*AuthenticationInformationAnswer_EUTRANVector) ProtoMessage() {}
-func (*AuthenticationInformationAnswer_EUTRANVector) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{1, 0}
-}
-func (m *AuthenticationInformationAnswer_EUTRANVector) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AuthenticationInformationAnswer_EUTRANVector.Unmarshal(m, b)
-}
-func (m *AuthenticationInformationAnswer_EUTRANVector) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AuthenticationInformationAnswer_EUTRANVector.Marshal(b, m, deterministic)
-}
-func (dst *AuthenticationInformationAnswer_EUTRANVector) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AuthenticationInformationAnswer_EUTRANVector.Merge(dst, src)
-}
-func (m *AuthenticationInformationAnswer_EUTRANVector) XXX_Size() int {
-	return xxx_messageInfo_AuthenticationInformationAnswer_EUTRANVector.Size(m)
-}
-func (m *AuthenticationInformationAnswer_EUTRANVector) XXX_DiscardUnknown() {
-	xxx_messageInfo_AuthenticationInformationAnswer_EUTRANVector.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AuthenticationInformationAnswer_EUTRANVector proto.InternalMessageInfo
-
-func (m *AuthenticationInformationAnswer_EUTRANVector) GetRand() []byte {
-	if m != nil {
-		return m.Rand
-	}
-	return nil
-}
-
-func (m *AuthenticationInformationAnswer_EUTRANVector) GetXres() []byte {
-	if m != nil {
-		return m.Xres
-	}
-	return nil
-}
-
-func (m *AuthenticationInformationAnswer_EUTRANVector) GetAutn() []byte {
-	if m != nil {
-		return m.Autn
-	}
-	return nil
-}
-
-func (m *AuthenticationInformationAnswer_EUTRANVector) GetKasme() []byte {
-	if m != nil {
-		return m.Kasme
-	}
-	return nil
-}
-
-// Update Location Request (Section 7.2.3)
-type UpdateLocationRequest struct {
-	// Subscriber identifier
-	UserName string `protobuf:"bytes,1,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
-	// Visited site identifier
-	VisitedPlmn []byte `protobuf:"bytes,2,opt,name=visited_plmn,json=visitedPlmn,proto3" json:"visited_plmn,omitempty"`
-	// Selective unrolling of ULR-Flags 29.272 Table 7.3.7/1
-	// Skip subscription data in response
-	SkipSubscriberData bool `protobuf:"varint,3,opt,name=skip_subscriber_data,json=skipSubscriberData,proto3" json:"skip_subscriber_data,omitempty"`
-	// Send Cancel Location to other EPCs serving the UE
-	InitialAttach        bool     `protobuf:"varint,4,opt,name=initial_attach,json=initialAttach,proto3" json:"initial_attach,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateLocationRequest) Reset()         { *m = UpdateLocationRequest{} }
-func (m *UpdateLocationRequest) String() string { return proto.CompactTextString(m) }
-func (*UpdateLocationRequest) ProtoMessage()    {}
-func (*UpdateLocationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{2}
-}
-func (m *UpdateLocationRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateLocationRequest.Unmarshal(m, b)
-}
-func (m *UpdateLocationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateLocationRequest.Marshal(b, m, deterministic)
-}
-func (dst *UpdateLocationRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateLocationRequest.Merge(dst, src)
-}
-func (m *UpdateLocationRequest) XXX_Size() int {
-	return xxx_messageInfo_UpdateLocationRequest.Size(m)
-}
-func (m *UpdateLocationRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateLocationRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateLocationRequest proto.InternalMessageInfo
-
-func (m *UpdateLocationRequest) GetUserName() string {
-	if m != nil {
-		return m.UserName
-	}
-	return ""
-}
-
-func (m *UpdateLocationRequest) GetVisitedPlmn() []byte {
-	if m != nil {
-		return m.VisitedPlmn
-	}
-	return nil
-}
-
-func (m *UpdateLocationRequest) GetSkipSubscriberData() bool {
-	if m != nil {
-		return m.SkipSubscriberData
-	}
-	return false
-}
-
-func (m *UpdateLocationRequest) GetInitialAttach() bool {
-	if m != nil {
-		return m.InitialAttach
-	}
-	return false
-}
-
-// Update Location Answer (Section 7.2.4)
-type UpdateLocationAnswer struct {
-	// EPC error code on failure
-	ErrorCode ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=magma.feg.ErrorCode" json:"error_code,omitempty"`
-	// Identifier of the default APN
-	DefaultContextId uint32 `protobuf:"varint,2,opt,name=default_context_id,json=defaultContextId,proto3" json:"default_context_id,omitempty"`
-	// Subscriber authorized aggregate bitrate
-	TotalAmbr *UpdateLocationAnswer_AggregatedMaximumBitrate `protobuf:"bytes,3,opt,name=total_ambr,json=totalAmbr,proto3" json:"total_ambr,omitempty"`
-	// Indicates to wipe other stored APNs
-	AllApnsIncluded bool `protobuf:"varint,4,opt,name=all_apns_included,json=allApnsIncluded,proto3" json:"all_apns_included,omitempty"`
-	// APN configurations
-	Apn                  []*UpdateLocationAnswer_APNConfiguration `protobuf:"bytes,5,rep,name=apn,proto3" json:"apn,omitempty"`
-	Msisdn               []byte                                   `protobuf:"bytes,7,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                                 `json:"-"`
-	XXX_unrecognized     []byte                                   `json:"-"`
-	XXX_sizecache        int32                                    `json:"-"`
-}
-
-func (m *UpdateLocationAnswer) Reset()         { *m = UpdateLocationAnswer{} }
-func (m *UpdateLocationAnswer) String() string { return proto.CompactTextString(m) }
-func (*UpdateLocationAnswer) ProtoMessage()    {}
-func (*UpdateLocationAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{3}
-}
-func (m *UpdateLocationAnswer) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateLocationAnswer.Unmarshal(m, b)
-}
-func (m *UpdateLocationAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateLocationAnswer.Marshal(b, m, deterministic)
-}
-func (dst *UpdateLocationAnswer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateLocationAnswer.Merge(dst, src)
-}
-func (m *UpdateLocationAnswer) XXX_Size() int {
-	return xxx_messageInfo_UpdateLocationAnswer.Size(m)
-}
-func (m *UpdateLocationAnswer) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateLocationAnswer.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateLocationAnswer proto.InternalMessageInfo
-
-func (m *UpdateLocationAnswer) GetErrorCode() ErrorCode {
-	if m != nil {
-		return m.ErrorCode
-	}
-	return ErrorCode_UNDEFINED
-}
-
-func (m *UpdateLocationAnswer) GetDefaultContextId() uint32 {
-	if m != nil {
-		return m.DefaultContextId
-	}
-	return 0
-}
-
-func (m *UpdateLocationAnswer) GetTotalAmbr() *UpdateLocationAnswer_AggregatedMaximumBitrate {
-	if m != nil {
-		return m.TotalAmbr
-	}
-	return nil
-}
-
-func (m *UpdateLocationAnswer) GetAllApnsIncluded() bool {
-	if m != nil {
-		return m.AllApnsIncluded
-	}
-	return false
-}
-
-func (m *UpdateLocationAnswer) GetApn() []*UpdateLocationAnswer_APNConfiguration {
-	if m != nil {
-		return m.Apn
-	}
-	return nil
-}
-
-func (m *UpdateLocationAnswer) GetMsisdn() []byte {
-	if m != nil {
-		return m.Msisdn
-	}
-	return nil
-}
-
-type UpdateLocationAnswer_APNConfiguration struct {
-	// APN identifier
-	ContextId uint32 `protobuf:"varint,1,opt,name=context_id,json=contextId,proto3" json:"context_id,omitempty"`
-	// Contains either the APN Name or wildcard "*"
-	ServiceSelection string `protobuf:"bytes,2,opt,name=service_selection,json=serviceSelection,proto3" json:"service_selection,omitempty"`
-	// APN QoS profile
-	QosProfile *UpdateLocationAnswer_APNConfiguration_QoSProfile `protobuf:"bytes,3,opt,name=qos_profile,json=qosProfile,proto3" json:"qos_profile,omitempty"`
-	// APN authorized bitrate
-	Ambr                 *UpdateLocationAnswer_AggregatedMaximumBitrate `protobuf:"bytes,4,opt,name=ambr,proto3" json:"ambr,omitempty"`
-	Pdn                  UpdateLocationAnswer_APNConfiguration_PDNType  `protobuf:"varint,5,opt,name=pdn,proto3,enum=magma.feg.UpdateLocationAnswer_APNConfiguration_PDNType" json:"pdn,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                                       `json:"-"`
-	XXX_unrecognized     []byte                                         `json:"-"`
-	XXX_sizecache        int32                                          `json:"-"`
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration) Reset()         { *m = UpdateLocationAnswer_APNConfiguration{} }
-func (m *UpdateLocationAnswer_APNConfiguration) String() string { return proto.CompactTextString(m) }
-func (*UpdateLocationAnswer_APNConfiguration) ProtoMessage()    {}
-func (*UpdateLocationAnswer_APNConfiguration) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{3, 0}
-}
-func (m *UpdateLocationAnswer_APNConfiguration) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateLocationAnswer_APNConfiguration.Unmarshal(m, b)
-}
-func (m *UpdateLocationAnswer_APNConfiguration) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateLocationAnswer_APNConfiguration.Marshal(b, m, deterministic)
-}
-func (dst *UpdateLocationAnswer_APNConfiguration) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateLocationAnswer_APNConfiguration.Merge(dst, src)
-}
-func (m *UpdateLocationAnswer_APNConfiguration) XXX_Size() int {
-	return xxx_messageInfo_UpdateLocationAnswer_APNConfiguration.Size(m)
-}
-func (m *UpdateLocationAnswer_APNConfiguration) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateLocationAnswer_APNConfiguration.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateLocationAnswer_APNConfiguration proto.InternalMessageInfo
-
-func (m *UpdateLocationAnswer_APNConfiguration) GetContextId() uint32 {
-	if m != nil {
-		return m.ContextId
-	}
-	return 0
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration) GetServiceSelection() string {
-	if m != nil {
-		return m.ServiceSelection
-	}
-	return ""
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration) GetQosProfile() *UpdateLocationAnswer_APNConfiguration_QoSProfile {
-	if m != nil {
-		return m.QosProfile
-	}
-	return nil
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration) GetAmbr() *UpdateLocationAnswer_AggregatedMaximumBitrate {
-	if m != nil {
-		return m.Ambr
-	}
-	return nil
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration) GetPdn() UpdateLocationAnswer_APNConfiguration_PDNType {
-	if m != nil {
-		return m.Pdn
-	}
-	return UpdateLocationAnswer_APNConfiguration_IPV4
-}
-
-// For details about values see 29.212
-type UpdateLocationAnswer_APNConfiguration_QoSProfile struct {
-	ClassId                 int32    `protobuf:"varint,1,opt,name=class_id,json=classId,proto3" json:"class_id,omitempty"`
-	PriorityLevel           uint32   `protobuf:"varint,2,opt,name=priority_level,json=priorityLevel,proto3" json:"priority_level,omitempty"`
-	PreemptionCapability    bool     `protobuf:"varint,3,opt,name=preemption_capability,json=preemptionCapability,proto3" json:"preemption_capability,omitempty"`
-	PreemptionVulnerability bool     `protobuf:"varint,4,opt,name=preemption_vulnerability,json=preemptionVulnerability,proto3" json:"preemption_vulnerability,omitempty"`
-	XXX_NoUnkeyedLiteral    struct{} `json:"-"`
-	XXX_unrecognized        []byte   `json:"-"`
-	XXX_sizecache           int32    `json:"-"`
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) Reset() {
-	*m = UpdateLocationAnswer_APNConfiguration_QoSProfile{}
-}
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) String() string {
-	return proto.CompactTextString(m)
-}
-func (*UpdateLocationAnswer_APNConfiguration_QoSProfile) ProtoMessage() {}
-func (*UpdateLocationAnswer_APNConfiguration_QoSProfile) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{3, 0, 0}
-}
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateLocationAnswer_APNConfiguration_QoSProfile.Unmarshal(m, b)
-}
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateLocationAnswer_APNConfiguration_QoSProfile.Marshal(b, m, deterministic)
-}
-func (dst *UpdateLocationAnswer_APNConfiguration_QoSProfile) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateLocationAnswer_APNConfiguration_QoSProfile.Merge(dst, src)
-}
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) XXX_Size() int {
-	return xxx_messageInfo_UpdateLocationAnswer_APNConfiguration_QoSProfile.Size(m)
-}
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateLocationAnswer_APNConfiguration_QoSProfile.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateLocationAnswer_APNConfiguration_QoSProfile proto.InternalMessageInfo
-
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) GetClassId() int32 {
-	if m != nil {
-		return m.ClassId
-	}
-	return 0
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) GetPriorityLevel() uint32 {
-	if m != nil {
-		return m.PriorityLevel
-	}
-	return 0
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) GetPreemptionCapability() bool {
-	if m != nil {
-		return m.PreemptionCapability
-	}
-	return false
-}
-
-func (m *UpdateLocationAnswer_APNConfiguration_QoSProfile) GetPreemptionVulnerability() bool {
-	if m != nil {
-		return m.PreemptionVulnerability
-	}
-	return false
-}
-
-type UpdateLocationAnswer_AggregatedMaximumBitrate struct {
-	// Maximum uplink bitrate
-	MaxBandwidthUl uint32 `protobuf:"varint,1,opt,name=max_bandwidth_ul,json=maxBandwidthUl,proto3" json:"max_bandwidth_ul,omitempty"`
-	// Maximum downlink bitrate
-	MaxBandwidthDl       uint32   `protobuf:"varint,2,opt,name=max_bandwidth_dl,json=maxBandwidthDl,proto3" json:"max_bandwidth_dl,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) Reset() {
-	*m = UpdateLocationAnswer_AggregatedMaximumBitrate{}
-}
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) String() string {
-	return proto.CompactTextString(m)
-}
-func (*UpdateLocationAnswer_AggregatedMaximumBitrate) ProtoMessage() {}
-func (*UpdateLocationAnswer_AggregatedMaximumBitrate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{3, 1}
-}
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateLocationAnswer_AggregatedMaximumBitrate.Unmarshal(m, b)
-}
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateLocationAnswer_AggregatedMaximumBitrate.Marshal(b, m, deterministic)
-}
-func (dst *UpdateLocationAnswer_AggregatedMaximumBitrate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateLocationAnswer_AggregatedMaximumBitrate.Merge(dst, src)
-}
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) XXX_Size() int {
-	return xxx_messageInfo_UpdateLocationAnswer_AggregatedMaximumBitrate.Size(m)
-}
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateLocationAnswer_AggregatedMaximumBitrate.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateLocationAnswer_AggregatedMaximumBitrate proto.InternalMessageInfo
-
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) GetMaxBandwidthUl() uint32 {
-	if m != nil {
-		return m.MaxBandwidthUl
-	}
-	return 0
-}
-
-func (m *UpdateLocationAnswer_AggregatedMaximumBitrate) GetMaxBandwidthDl() uint32 {
-	if m != nil {
-		return m.MaxBandwidthDl
-	}
-	return 0
+	return fileDescriptor_s6a_proxy_1dec138555f04e33, []int{0, 0}
 }
 
 // Cancel Location Request (Section 7.2.7)
@@ -733,7 +71,7 @@ func (m *CancelLocationRequest) Reset()         { *m = CancelLocationRequest{} }
 func (m *CancelLocationRequest) String() string { return proto.CompactTextString(m) }
 func (*CancelLocationRequest) ProtoMessage()    {}
 func (*CancelLocationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{4}
+	return fileDescriptor_s6a_proxy_1dec138555f04e33, []int{0}
 }
 func (m *CancelLocationRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CancelLocationRequest.Unmarshal(m, b)
@@ -770,17 +108,17 @@ func (m *CancelLocationRequest) GetCancellationType() CancelLocationRequest_Canc
 // Cancel Location Answer (Section 7.2.8)
 type CancelLocationAnswer struct {
 	// EPC error code on failure
-	ErrorCode            ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=magma.feg.ErrorCode" json:"error_code,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
-	XXX_unrecognized     []byte    `json:"-"`
-	XXX_sizecache        int32     `json:"-"`
+	ErrorCode            protos.ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=magma.lte.ErrorCode" json:"error_code,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *CancelLocationAnswer) Reset()         { *m = CancelLocationAnswer{} }
 func (m *CancelLocationAnswer) String() string { return proto.CompactTextString(m) }
 func (*CancelLocationAnswer) ProtoMessage()    {}
 func (*CancelLocationAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{5}
+	return fileDescriptor_s6a_proxy_1dec138555f04e33, []int{1}
 }
 func (m *CancelLocationAnswer) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CancelLocationAnswer.Unmarshal(m, b)
@@ -800,91 +138,11 @@ func (m *CancelLocationAnswer) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CancelLocationAnswer proto.InternalMessageInfo
 
-func (m *CancelLocationAnswer) GetErrorCode() ErrorCode {
+func (m *CancelLocationAnswer) GetErrorCode() protos.ErrorCode {
 	if m != nil {
 		return m.ErrorCode
 	}
-	return ErrorCode_UNDEFINED
-}
-
-// Purge UE Request (Section 7.2.14)
-type PurgeUERequest struct {
-	// Subscriber identifier
-	UserName             string   `protobuf:"bytes,1,opt,name=user_name,json=userName,proto3" json:"user_name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PurgeUERequest) Reset()         { *m = PurgeUERequest{} }
-func (m *PurgeUERequest) String() string { return proto.CompactTextString(m) }
-func (*PurgeUERequest) ProtoMessage()    {}
-func (*PurgeUERequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{6}
-}
-func (m *PurgeUERequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PurgeUERequest.Unmarshal(m, b)
-}
-func (m *PurgeUERequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PurgeUERequest.Marshal(b, m, deterministic)
-}
-func (dst *PurgeUERequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PurgeUERequest.Merge(dst, src)
-}
-func (m *PurgeUERequest) XXX_Size() int {
-	return xxx_messageInfo_PurgeUERequest.Size(m)
-}
-func (m *PurgeUERequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_PurgeUERequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PurgeUERequest proto.InternalMessageInfo
-
-func (m *PurgeUERequest) GetUserName() string {
-	if m != nil {
-		return m.UserName
-	}
-	return ""
-}
-
-// Purge UE Answer (Section 7.2.15)
-type PurgeUEAnswer struct {
-	// EPC error code on failure
-	ErrorCode            ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=magma.feg.ErrorCode" json:"error_code,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
-	XXX_unrecognized     []byte    `json:"-"`
-	XXX_sizecache        int32     `json:"-"`
-}
-
-func (m *PurgeUEAnswer) Reset()         { *m = PurgeUEAnswer{} }
-func (m *PurgeUEAnswer) String() string { return proto.CompactTextString(m) }
-func (*PurgeUEAnswer) ProtoMessage()    {}
-func (*PurgeUEAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{7}
-}
-func (m *PurgeUEAnswer) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PurgeUEAnswer.Unmarshal(m, b)
-}
-func (m *PurgeUEAnswer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PurgeUEAnswer.Marshal(b, m, deterministic)
-}
-func (dst *PurgeUEAnswer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PurgeUEAnswer.Merge(dst, src)
-}
-func (m *PurgeUEAnswer) XXX_Size() int {
-	return xxx_messageInfo_PurgeUEAnswer.Size(m)
-}
-func (m *PurgeUEAnswer) XXX_DiscardUnknown() {
-	xxx_messageInfo_PurgeUEAnswer.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PurgeUEAnswer proto.InternalMessageInfo
-
-func (m *PurgeUEAnswer) GetErrorCode() ErrorCode {
-	if m != nil {
-		return m.ErrorCode
-	}
-	return ErrorCode_UNDEFINED
+	return protos.ErrorCode_UNDEFINED
 }
 
 // Reset Request (3GPP TS 29.272 Section 7.2.15)
@@ -900,7 +158,7 @@ func (m *ResetRequest) Reset()         { *m = ResetRequest{} }
 func (m *ResetRequest) String() string { return proto.CompactTextString(m) }
 func (*ResetRequest) ProtoMessage()    {}
 func (*ResetRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{8}
+	return fileDescriptor_s6a_proxy_1dec138555f04e33, []int{2}
 }
 func (m *ResetRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ResetRequest.Unmarshal(m, b)
@@ -930,17 +188,17 @@ func (m *ResetRequest) GetUserId() []string {
 // Reset Answer (3GPP TS 29.272 Section 7.2.16)
 type ResetAnswer struct {
 	// EPC error code on failure
-	ErrorCode            ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=magma.feg.ErrorCode" json:"error_code,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
-	XXX_unrecognized     []byte    `json:"-"`
-	XXX_sizecache        int32     `json:"-"`
+	ErrorCode            protos.ErrorCode `protobuf:"varint,1,opt,name=error_code,json=errorCode,proto3,enum=magma.lte.ErrorCode" json:"error_code,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *ResetAnswer) Reset()         { *m = ResetAnswer{} }
 func (m *ResetAnswer) String() string { return proto.CompactTextString(m) }
 func (*ResetAnswer) ProtoMessage()    {}
 func (*ResetAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_s6a_proxy_0e0ffafc51ce5e41, []int{9}
+	return fileDescriptor_s6a_proxy_1dec138555f04e33, []int{3}
 }
 func (m *ResetAnswer) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ResetAnswer.Unmarshal(m, b)
@@ -960,30 +218,18 @@ func (m *ResetAnswer) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ResetAnswer proto.InternalMessageInfo
 
-func (m *ResetAnswer) GetErrorCode() ErrorCode {
+func (m *ResetAnswer) GetErrorCode() protos.ErrorCode {
 	if m != nil {
 		return m.ErrorCode
 	}
-	return ErrorCode_UNDEFINED
+	return protos.ErrorCode_UNDEFINED
 }
 
 func init() {
-	proto.RegisterType((*AuthenticationInformationRequest)(nil), "magma.feg.AuthenticationInformationRequest")
-	proto.RegisterType((*AuthenticationInformationAnswer)(nil), "magma.feg.AuthenticationInformationAnswer")
-	proto.RegisterType((*AuthenticationInformationAnswer_EUTRANVector)(nil), "magma.feg.AuthenticationInformationAnswer.EUTRANVector")
-	proto.RegisterType((*UpdateLocationRequest)(nil), "magma.feg.UpdateLocationRequest")
-	proto.RegisterType((*UpdateLocationAnswer)(nil), "magma.feg.UpdateLocationAnswer")
-	proto.RegisterType((*UpdateLocationAnswer_APNConfiguration)(nil), "magma.feg.UpdateLocationAnswer.APNConfiguration")
-	proto.RegisterType((*UpdateLocationAnswer_APNConfiguration_QoSProfile)(nil), "magma.feg.UpdateLocationAnswer.APNConfiguration.QoSProfile")
-	proto.RegisterType((*UpdateLocationAnswer_AggregatedMaximumBitrate)(nil), "magma.feg.UpdateLocationAnswer.AggregatedMaximumBitrate")
 	proto.RegisterType((*CancelLocationRequest)(nil), "magma.feg.CancelLocationRequest")
 	proto.RegisterType((*CancelLocationAnswer)(nil), "magma.feg.CancelLocationAnswer")
-	proto.RegisterType((*PurgeUERequest)(nil), "magma.feg.PurgeUERequest")
-	proto.RegisterType((*PurgeUEAnswer)(nil), "magma.feg.PurgeUEAnswer")
 	proto.RegisterType((*ResetRequest)(nil), "magma.feg.ResetRequest")
 	proto.RegisterType((*ResetAnswer)(nil), "magma.feg.ResetAnswer")
-	proto.RegisterEnum("magma.feg.ErrorCode", ErrorCode_name, ErrorCode_value)
-	proto.RegisterEnum("magma.feg.UpdateLocationAnswer_APNConfiguration_PDNType", UpdateLocationAnswer_APNConfiguration_PDNType_name, UpdateLocationAnswer_APNConfiguration_PDNType_value)
 	proto.RegisterEnum("magma.feg.CancelLocationRequest_CancellationType", CancelLocationRequest_CancellationType_name, CancelLocationRequest_CancellationType_value)
 }
 
@@ -994,142 +240,6 @@ var _ grpc.ClientConn
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
-
-// S6AProxyClient is the client API for S6AProxy service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type S6AProxyClient interface {
-	// Authentication-Information (Code 318)
-	AuthenticationInformation(ctx context.Context, in *AuthenticationInformationRequest, opts ...grpc.CallOption) (*AuthenticationInformationAnswer, error)
-	// Update-Location (Code 316)
-	UpdateLocation(ctx context.Context, in *UpdateLocationRequest, opts ...grpc.CallOption) (*UpdateLocationAnswer, error)
-	// Purge-UE (Code 321)
-	PurgeUE(ctx context.Context, in *PurgeUERequest, opts ...grpc.CallOption) (*PurgeUEAnswer, error)
-}
-
-type s6AProxyClient struct {
-	cc *grpc.ClientConn
-}
-
-func NewS6AProxyClient(cc *grpc.ClientConn) S6AProxyClient {
-	return &s6AProxyClient{cc}
-}
-
-func (c *s6AProxyClient) AuthenticationInformation(ctx context.Context, in *AuthenticationInformationRequest, opts ...grpc.CallOption) (*AuthenticationInformationAnswer, error) {
-	out := new(AuthenticationInformationAnswer)
-	err := c.cc.Invoke(ctx, "/magma.feg.S6aProxy/AuthenticationInformation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *s6AProxyClient) UpdateLocation(ctx context.Context, in *UpdateLocationRequest, opts ...grpc.CallOption) (*UpdateLocationAnswer, error) {
-	out := new(UpdateLocationAnswer)
-	err := c.cc.Invoke(ctx, "/magma.feg.S6aProxy/UpdateLocation", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *s6AProxyClient) PurgeUE(ctx context.Context, in *PurgeUERequest, opts ...grpc.CallOption) (*PurgeUEAnswer, error) {
-	out := new(PurgeUEAnswer)
-	err := c.cc.Invoke(ctx, "/magma.feg.S6aProxy/PurgeUE", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// S6AProxyServer is the server API for S6AProxy service.
-type S6AProxyServer interface {
-	// Authentication-Information (Code 318)
-	AuthenticationInformation(context.Context, *AuthenticationInformationRequest) (*AuthenticationInformationAnswer, error)
-	// Update-Location (Code 316)
-	UpdateLocation(context.Context, *UpdateLocationRequest) (*UpdateLocationAnswer, error)
-	// Purge-UE (Code 321)
-	PurgeUE(context.Context, *PurgeUERequest) (*PurgeUEAnswer, error)
-}
-
-func RegisterS6AProxyServer(s *grpc.Server, srv S6AProxyServer) {
-	s.RegisterService(&_S6AProxy_serviceDesc, srv)
-}
-
-func _S6AProxy_AuthenticationInformation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthenticationInformationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(S6AProxyServer).AuthenticationInformation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.feg.S6aProxy/AuthenticationInformation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(S6AProxyServer).AuthenticationInformation(ctx, req.(*AuthenticationInformationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _S6AProxy_UpdateLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateLocationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(S6AProxyServer).UpdateLocation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.feg.S6aProxy/UpdateLocation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(S6AProxyServer).UpdateLocation(ctx, req.(*UpdateLocationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _S6AProxy_PurgeUE_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PurgeUERequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(S6AProxyServer).PurgeUE(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.feg.S6aProxy/PurgeUE",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(S6AProxyServer).PurgeUE(ctx, req.(*PurgeUERequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _S6AProxy_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.feg.S6aProxy",
-	HandlerType: (*S6AProxyServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "AuthenticationInformation",
-			Handler:    _S6AProxy_AuthenticationInformation_Handler,
-		},
-		{
-			MethodName: "UpdateLocation",
-			Handler:    _S6AProxy_UpdateLocation_Handler,
-		},
-		{
-			MethodName: "PurgeUE",
-			Handler:    _S6AProxy_PurgeUE_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "feg/protos/s6a_proxy.proto",
-}
 
 // S6AGatewayServiceClient is the client API for S6AGatewayService service.
 //
@@ -1233,109 +343,36 @@ var _S6AGatewayService_serviceDesc = grpc.ServiceDesc{
 }
 
 func init() {
-	proto.RegisterFile("feg/protos/s6a_proxy.proto", fileDescriptor_s6a_proxy_0e0ffafc51ce5e41)
+	proto.RegisterFile("feg/protos/s6a_proxy.proto", fileDescriptor_s6a_proxy_1dec138555f04e33)
 }
 
-var fileDescriptor_s6a_proxy_0e0ffafc51ce5e41 = []byte{
-	// 1598 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x57, 0xdb, 0x6e, 0xdb, 0xc8,
-	0x19, 0xb6, 0x6c, 0x27, 0xb6, 0x7e, 0x4b, 0x0e, 0x3d, 0xb5, 0x23, 0x59, 0xc9, 0xc2, 0xae, 0xd0,
-	0x22, 0x86, 0xb7, 0x75, 0xb6, 0x4e, 0xe1, 0x1e, 0xf6, 0xa2, 0x4b, 0x89, 0x93, 0x98, 0x1b, 0x8a,
-	0xe4, 0x0e, 0x49, 0x19, 0x5d, 0x14, 0x3b, 0x1d, 0x93, 0x63, 0x85, 0x58, 0x9e, 0x42, 0x52, 0x8e,
-	0xfd, 0x02, 0x05, 0x8a, 0xf6, 0x01, 0x0a, 0xb4, 0x37, 0xdb, 0x02, 0xbd, 0xea, 0x09, 0xe8, 0x55,
-	0x4f, 0xdb, 0xc3, 0x1b, 0xb4, 0xe8, 0x3e, 0x44, 0xdf, 0xa2, 0xe0, 0x90, 0x72, 0x24, 0x25, 0x41,
-	0xb2, 0xf0, 0x5e, 0x69, 0xf8, 0x7d, 0xff, 0x69, 0xbe, 0x7f, 0xe6, 0x27, 0x05, 0x9d, 0x33, 0x3e,
-	0xba, 0x9f, 0xa4, 0x71, 0x1e, 0x67, 0xf7, 0xb3, 0x23, 0x46, 0x93, 0x34, 0xbe, 0xb8, 0x3c, 0x10,
-	0x00, 0xaa, 0x87, 0x6c, 0x14, 0xb2, 0x83, 0x33, 0x3e, 0xea, 0xfe, 0x68, 0x11, 0x76, 0xe5, 0x71,
-	0xfe, 0x84, 0x47, 0xb9, 0xef, 0xb2, 0xdc, 0x8f, 0x23, 0x35, 0x3a, 0x8b, 0xd3, 0x50, 0x2c, 0x09,
-	0x7f, 0x3a, 0xe6, 0x59, 0x8e, 0xee, 0x40, 0x7d, 0x9c, 0xf1, 0x94, 0x46, 0x2c, 0xe4, 0xed, 0xda,
-	0x6e, 0x6d, 0xaf, 0x4e, 0x56, 0x0b, 0x40, 0x67, 0x21, 0x47, 0x5f, 0x86, 0xc6, 0xb9, 0x9f, 0xf9,
-	0x39, 0xf7, 0x68, 0x12, 0x84, 0x51, 0x7b, 0x71, 0xb7, 0xb6, 0xd7, 0x20, 0x6b, 0x15, 0x66, 0x06,
-	0x61, 0x84, 0xbe, 0x07, 0x77, 0xa3, 0x71, 0x48, 0xd3, 0x32, 0x1c, 0xf7, 0x28, 0x1f, 0xe7, 0x29,
-	0x8b, 0xe8, 0x39, 0x77, 0xf3, 0x38, 0xcd, 0xda, 0x4b, 0xbb, 0xb5, 0xbd, 0x26, 0xd9, 0x8e, 0xc6,
-	0x21, 0x99, 0x98, 0x60, 0x61, 0x31, 0x2c, 0x0d, 0xd0, 0x7b, 0x70, 0xd7, 0x0f, 0x43, 0xee, 0xf9,
-	0x2c, 0xe7, 0x34, 0xe5, 0x59, 0x12, 0x47, 0x19, 0xa7, 0x49, 0xca, 0xcf, 0x78, 0x9a, 0x72, 0xaf,
-	0xbd, 0xbc, 0x5b, 0xdb, 0x5b, 0x25, 0x9d, 0x2b, 0x1b, 0x52, 0x99, 0x98, 0x13, 0x0b, 0xb4, 0x03,
-	0x6b, 0x29, 0xcf, 0x2e, 0x23, 0x97, 0xfa, 0xd1, 0x59, 0xdc, 0xbe, 0x21, 0x8a, 0x84, 0x12, 0x2a,
-	0x76, 0xdc, 0xfd, 0xd9, 0x22, 0xec, 0xbc, 0x52, 0x08, 0x39, 0xca, 0x9e, 0xf1, 0x14, 0x3d, 0x00,
-	0xe0, 0x69, 0x1a, 0xa7, 0xd4, 0x8d, 0xbd, 0x52, 0x88, 0xf5, 0xc3, 0xcd, 0x83, 0x2b, 0x31, 0x0f,
-	0x70, 0x41, 0xf6, 0x63, 0x8f, 0x93, 0x3a, 0x9f, 0x2c, 0xd1, 0x47, 0xb0, 0x3e, 0xb7, 0xdd, 0xc5,
-	0xdd, 0xa5, 0xbd, 0xb5, 0xc3, 0x6f, 0x4d, 0x39, 0xbe, 0x26, 0xf1, 0x01, 0x76, 0x6c, 0x22, 0xeb,
-	0xa5, 0x1a, 0xa4, 0xc9, 0xa7, 0xb5, 0xe9, 0xfc, 0x10, 0x1a, 0xd3, 0x34, 0x42, 0xb0, 0x9c, 0xb2,
-	0xc8, 0x13, 0xe5, 0x35, 0x88, 0x58, 0x17, 0xd8, 0x45, 0xca, 0xb3, 0xaa, 0x37, 0x62, 0x5d, 0x60,
-	0x6c, 0x9c, 0x47, 0x42, 0xfc, 0x06, 0x11, 0x6b, 0xb4, 0x09, 0x37, 0x3e, 0x66, 0x59, 0xc8, 0x85,
-	0xa0, 0x0d, 0x52, 0x3e, 0x74, 0xff, 0x50, 0x83, 0x2d, 0x27, 0xf1, 0x58, 0xce, 0xb5, 0xd8, 0xfd,
-	0x42, 0x0f, 0xc6, 0x3b, 0xb0, 0x99, 0x7d, 0xec, 0x27, 0x34, 0x1b, 0x9f, 0x66, 0x6e, 0xea, 0x9f,
-	0xf2, 0x94, 0x7a, 0x2c, 0x67, 0xa2, 0xa6, 0x55, 0x82, 0x0a, 0xce, 0xba, 0xa2, 0x14, 0x96, 0x33,
-	0xf4, 0x55, 0x58, 0xf7, 0x23, 0x3f, 0xf7, 0x59, 0x40, 0x59, 0x9e, 0x33, 0xf7, 0x49, 0xd5, 0xfb,
-	0x66, 0x85, 0xca, 0x02, 0xec, 0x7e, 0xb2, 0x0a, 0x9b, 0xb3, 0x25, 0x5f, 0xa7, 0x85, 0x5f, 0x03,
-	0xe4, 0xf1, 0x33, 0x36, 0x0e, 0x72, 0xea, 0xc6, 0x51, 0xce, 0x2f, 0x72, 0xea, 0x7b, 0x62, 0x3f,
-	0x4d, 0x22, 0x55, 0x4c, 0xbf, 0x24, 0x54, 0x0f, 0x9d, 0x00, 0xe4, 0x71, 0x5e, 0x14, 0x18, 0x9e,
-	0xa6, 0x62, 0x2b, 0x6b, 0x87, 0xdf, 0x9e, 0x4a, 0xf1, 0xb2, 0xba, 0x0e, 0xe4, 0xd1, 0x28, 0xe5,
-	0x23, 0x96, 0x73, 0x6f, 0xc0, 0x2e, 0xfc, 0x70, 0x1c, 0xf6, 0xfc, 0x3c, 0x2d, 0x4e, 0x72, 0x5d,
-	0xc4, 0x92, 0xc3, 0xd3, 0x14, 0xed, 0xc3, 0x06, 0x0b, 0x02, 0xca, 0x92, 0x28, 0xa3, 0x7e, 0xe4,
-	0x06, 0x63, 0xef, 0xea, 0xe8, 0xdf, 0x62, 0x41, 0x20, 0x27, 0x51, 0xa6, 0x56, 0x30, 0xea, 0xc1,
-	0x12, 0x4b, 0xa2, 0xf6, 0x0d, 0x71, 0xd4, 0xde, 0x79, 0x6d, 0x76, 0x53, 0xef, 0xc7, 0xd1, 0x99,
-	0x3f, 0x1a, 0xa7, 0x65, 0x7f, 0x0b, 0x67, 0x74, 0x1b, 0x6e, 0x86, 0x99, 0x9f, 0x79, 0x51, 0x7b,
-	0x45, 0xb4, 0xae, 0x7a, 0xea, 0xfc, 0x77, 0x19, 0xa4, 0x79, 0x0f, 0xf4, 0x16, 0xc0, 0x94, 0x36,
-	0x35, 0xa1, 0x4d, 0xdd, 0xbd, 0x12, 0xe5, 0x6d, 0xd8, 0xc8, 0x78, 0x7a, 0xee, 0xbb, 0x9c, 0x66,
-	0x3c, 0xe0, 0x6e, 0xe1, 0x23, 0x14, 0xac, 0x13, 0xa9, 0x22, 0xac, 0x09, 0x8e, 0x7e, 0x00, 0x6b,
-	0x4f, 0xe3, 0xac, 0x18, 0x59, 0x67, 0x7e, 0xc0, 0x2b, 0x09, 0xdf, 0xfd, 0xbc, 0x9b, 0x38, 0xf8,
-	0x20, 0xb6, 0xcc, 0x32, 0x04, 0x81, 0xa7, 0x71, 0x56, 0xad, 0x91, 0x06, 0xcb, 0xa2, 0x33, 0xcb,
-	0xd7, 0xec, 0x8c, 0x88, 0x82, 0xde, 0x87, 0xa5, 0xc4, 0x8b, 0xc4, 0x40, 0x59, 0x7f, 0x83, 0x60,
-	0xf3, 0x35, 0x9a, 0x8a, 0x6e, 0x5f, 0x26, 0x9c, 0x14, 0x41, 0x3a, 0x9f, 0xd6, 0x00, 0x9e, 0x17,
-	0x8d, 0xb6, 0x61, 0xd5, 0x0d, 0x58, 0x96, 0x4d, 0x04, 0xbd, 0x41, 0x56, 0xc4, 0xb3, 0xea, 0x15,
-	0xd7, 0x20, 0x49, 0xfd, 0x38, 0xf5, 0xf3, 0x4b, 0x1a, 0xf0, 0x73, 0x1e, 0x54, 0xa7, 0xb1, 0x39,
-	0x41, 0xb5, 0x02, 0x44, 0x0f, 0x60, 0x2b, 0x49, 0x39, 0x0f, 0x93, 0x22, 0x17, 0x75, 0x59, 0xc2,
-	0x4e, 0xfd, 0xc0, 0xcf, 0x2f, 0xab, 0x0b, 0xb6, 0xf9, 0x9c, 0xec, 0x5f, 0x71, 0xe8, 0x3b, 0xd0,
-	0x9e, 0x72, 0x3a, 0x1f, 0x07, 0x11, 0x4f, 0x27, 0x7e, 0xe5, 0x69, 0x6b, 0x3d, 0xe7, 0x87, 0xd3,
-	0x74, 0xf7, 0x5d, 0x58, 0xa9, 0x36, 0x84, 0x56, 0x61, 0x59, 0x35, 0x87, 0xdf, 0x94, 0x16, 0xaa,
-	0xd5, 0x91, 0x54, 0x43, 0x00, 0x37, 0x0b, 0x6c, 0x78, 0x24, 0x2d, 0x22, 0x09, 0x1a, 0xc5, 0x9a,
-	0x1a, 0x84, 0x0a, 0x76, 0xa9, 0x13, 0x41, 0xfb, 0x55, 0x5a, 0xa3, 0x3d, 0x90, 0x42, 0x76, 0x41,
-	0x4f, 0x59, 0xe4, 0x3d, 0xf3, 0xbd, 0xfc, 0x09, 0x1d, 0x07, 0xd5, 0x19, 0x5b, 0x0f, 0xd9, 0x45,
-	0x6f, 0x02, 0x3b, 0xc1, 0x8b, 0x96, 0xde, 0x44, 0x9b, 0x19, 0x4b, 0x25, 0xe8, 0xfe, 0x71, 0x11,
-	0xb6, 0xfa, 0x2c, 0x72, 0x79, 0xf0, 0xb9, 0xc6, 0xda, 0x47, 0xb0, 0xe1, 0x0a, 0xaf, 0x40, 0xf8,
-	0xd0, 0xfc, 0x32, 0xe1, 0x22, 0xc3, 0xfa, 0xe1, 0x37, 0xa6, 0xda, 0xff, 0xd2, 0xc8, 0x15, 0x5a,
-	0x7a, 0x8a, 0xbe, 0x4b, 0xee, 0x1c, 0xd2, 0xfd, 0x45, 0x0d, 0xa4, 0x79, 0x33, 0xd4, 0x86, 0xcd,
-	0xc1, 0x00, 0x53, 0xc7, 0x54, 0x64, 0x1b, 0x53, 0x93, 0x18, 0x7d, 0xac, 0x38, 0x04, 0x4b, 0x0b,
-	0x68, 0x1b, 0xb6, 0xac, 0x47, 0x96, 0xfe, 0x22, 0x55, 0x43, 0x77, 0xa0, 0x65, 0x39, 0x3d, 0xab,
-	0x4f, 0x54, 0xd3, 0x56, 0x0d, 0x9d, 0x9e, 0xa8, 0xf6, 0xb1, 0x42, 0xe4, 0x13, 0x59, 0x93, 0x16,
-	0x8b, 0x88, 0xf3, 0x2e, 0x54, 0x3d, 0x79, 0x28, 0x2d, 0xa1, 0xbb, 0xd0, 0x56, 0x75, 0xd5, 0x56,
-	0x65, 0x8d, 0xca, 0xb6, 0x2d, 0xf7, 0x8f, 0xa7, 0x82, 0x2e, 0x77, 0x1f, 0xc3, 0xe6, 0xec, 0xd6,
-	0xae, 0x31, 0x58, 0xbb, 0x5f, 0x87, 0x75, 0x73, 0x9c, 0x8e, 0xb8, 0x83, 0xdf, 0x44, 0xfa, 0xae,
-	0x02, 0xcd, 0xca, 0xfc, 0x3a, 0x49, 0xef, 0x41, 0x83, 0xf0, 0x8c, 0xe7, 0x93, 0x94, 0x2d, 0x58,
-	0x11, 0x29, 0xc5, 0x2d, 0x5b, 0xda, 0xab, 0x93, 0x9b, 0xc5, 0xa3, 0xea, 0x75, 0x7b, 0xb0, 0x26,
-	0x0c, 0xaf, 0x91, 0x6c, 0xff, 0xb3, 0x65, 0xa8, 0x5f, 0x11, 0xa8, 0x09, 0x75, 0x47, 0x57, 0xf0,
-	0x43, 0x55, 0xc7, 0x8a, 0xb4, 0x80, 0xb6, 0x40, 0x1a, 0x38, 0x9a, 0xad, 0x52, 0x62, 0x38, 0xba,
-	0x42, 0x65, 0xc7, 0x3e, 0x96, 0xfe, 0xb7, 0x82, 0x1a, 0xb0, 0x62, 0x39, 0xfd, 0x3e, 0xb6, 0x2c,
-	0xe9, 0xdf, 0xb7, 0xd0, 0x26, 0xdc, 0xd2, 0xd4, 0x81, 0x6a, 0x63, 0x85, 0x4e, 0xd0, 0xff, 0xdc,
-	0x42, 0x2d, 0x40, 0x7d, 0x63, 0x30, 0x90, 0x75, 0x85, 0x3a, 0xba, 0xe5, 0x98, 0x06, 0xb1, 0xb1,
-	0x22, 0xfd, 0xa9, 0x85, 0x6e, 0xc3, 0x86, 0xa3, 0xcb, 0x3d, 0x0d, 0x53, 0xdb, 0xa0, 0x0a, 0xd6,
-	0xd4, 0x21, 0x26, 0xd2, 0x9f, 0x5b, 0x45, 0x2e, 0x82, 0x65, 0x6d, 0x40, 0x75, 0xc3, 0xa6, 0x16,
-	0x26, 0x43, 0xac, 0x48, 0x7f, 0x69, 0xa1, 0x26, 0xac, 0xda, 0x86, 0x41, 0x7b, 0x8e, 0xf5, 0x7d,
-	0xe9, 0xaf, 0x2d, 0x84, 0xa0, 0xa9, 0x19, 0x86, 0x49, 0x15, 0x6c, 0xe3, 0x7e, 0x11, 0xf1, 0x6f,
-	0x2d, 0xd4, 0x86, 0x2f, 0x11, 0xac, 0xa8, 0x04, 0xf7, 0x6d, 0xaa, 0xea, 0x8a, 0xda, 0x97, 0x8b,
-	0xd3, 0x24, 0x7d, 0xda, 0x42, 0x77, 0xa1, 0x25, 0x9b, 0xa6, 0x56, 0x21, 0x65, 0x21, 0x55, 0x25,
-	0x7f, 0x17, 0x19, 0x55, 0x7d, 0x28, 0x6b, 0xaa, 0x72, 0x4c, 0x15, 0x42, 0x7b, 0xaa, 0x6d, 0x49,
-	0xff, 0x98, 0x86, 0xa9, 0x3c, 0x34, 0x4b, 0xf8, 0x9f, 0x2d, 0xb4, 0x01, 0x0d, 0x47, 0x7f, 0xac,
-	0x1b, 0x27, 0x3a, 0x35, 0x31, 0x26, 0xd2, 0xbf, 0xca, 0xf0, 0x8e, 0x7d, 0x8c, 0x75, 0x7b, 0x92,
-	0x81, 0xe0, 0xf7, 0xcb, 0xb2, 0x3e, 0xd9, 0x29, 0x1c, 0x0c, 0xc7, 0xa6, 0xc6, 0x43, 0x6a, 0x99,
-	0x72, 0x1f, 0x4b, 0xbf, 0xdc, 0x29, 0xaa, 0xc7, 0x1a, 0xee, 0x0b, 0x53, 0xcd, 0xb0, 0x6c, 0xe9,
-	0x57, 0x3b, 0xe8, 0x0e, 0xdc, 0x2e, 0x82, 0x18, 0x44, 0xfd, 0x70, 0x2e, 0xc6, 0x4f, 0xee, 0x89,
-	0xa4, 0x16, 0x26, 0xb4, 0xca, 0x2c, 0xfd, 0xf8, 0x1e, 0x7a, 0x0b, 0xda, 0x93, 0x3a, 0xb0, 0x69,
-	0xd1, 0xe9, 0x0b, 0x24, 0xfd, 0x66, 0xbf, 0xe8, 0x06, 0x91, 0x6d, 0x21, 0xa2, 0xac, 0x69, 0xc6,
-	0x09, 0x56, 0xa4, 0xdf, 0xee, 0x0b, 0x89, 0x0c, 0x79, 0xa0, 0xea, 0x8f, 0x66, 0x98, 0x9f, 0xde,
-	0x2b, 0xda, 0x81, 0x3f, 0x70, 0x54, 0x73, 0x80, 0x75, 0xfb, 0x2a, 0xcd, 0xef, 0x84, 0x87, 0xa3,
-	0x3f, 0x2e, 0xb2, 0x14, 0xbd, 0x28, 0x1d, 0x15, 0x2c, 0xfd, 0x7e, 0x1f, 0x7d, 0x05, 0x76, 0xe6,
-	0x76, 0xad, 0xc8, 0xb6, 0x4c, 0x1d, 0x5d, 0x1e, 0xca, 0xaa, 0x56, 0x74, 0x56, 0xfa, 0x6c, 0xf7,
-	0xf0, 0xe7, 0x8b, 0xb0, 0x6a, 0x1d, 0x31, 0xb3, 0xf8, 0xaa, 0x47, 0xe7, 0xb0, 0xfd, 0xca, 0x2f,
-	0x48, 0xf4, 0xf6, 0x9b, 0x7c, 0x67, 0x56, 0x77, 0xa1, 0xb3, 0xff, 0xe6, 0x1f, 0xa5, 0xdd, 0x05,
-	0xe4, 0xc0, 0xfa, 0xec, 0x5b, 0x0e, 0xed, 0xbe, 0xf2, 0x05, 0x38, 0xc9, 0xb0, 0xf3, 0x9a, 0x57,
-	0x64, 0x77, 0x01, 0xbd, 0x07, 0x2b, 0xd5, 0x35, 0x47, 0xdb, 0x53, 0xd6, 0xb3, 0x93, 0xa2, 0xd3,
-	0x7e, 0x91, 0x9a, 0x44, 0x38, 0xfc, 0x75, 0x0d, 0x36, 0xac, 0x23, 0xf6, 0x88, 0xe5, 0xfc, 0x19,
-	0xbb, 0xb4, 0xca, 0xef, 0x8b, 0xa2, 0xdc, 0xd9, 0xd1, 0x35, 0x53, 0xee, 0x4b, 0x07, 0xf6, 0x4c,
-	0xb9, 0x2f, 0x9b, 0x7b, 0xdd, 0x05, 0xf4, 0x5d, 0xb8, 0x21, 0xc6, 0x04, 0x6a, 0x4d, 0xd9, 0x4e,
-	0x4f, 0x98, 0xce, 0xed, 0x79, 0x62, 0xe2, 0xdb, 0xbb, 0xf3, 0xe1, 0xb6, 0xa0, 0xee, 0x17, 0xff,
-	0xd6, 0xdc, 0x20, 0x1e, 0x7b, 0xf7, 0x47, 0x71, 0xf5, 0xb7, 0xed, 0xf4, 0xa6, 0xf8, 0x7d, 0xf0,
-	0xff, 0x00, 0x00, 0x00, 0xff, 0xff, 0xf6, 0x0b, 0x33, 0x2d, 0xcb, 0x0d, 0x00, 0x00,
+var fileDescriptor_s6a_proxy_1dec138555f04e33 = []byte{
+	// 424 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x52, 0x5f, 0x6f, 0xd2, 0x50,
+	0x14, 0x5f, 0x99, 0x4e, 0x7b, 0x34, 0xa4, 0xbb, 0x61, 0xd2, 0x15, 0x13, 0x49, 0x5f, 0xe4, 0xa9,
+	0x44, 0x96, 0xec, 0xc1, 0xb7, 0x52, 0xea, 0xd6, 0xc8, 0x18, 0xb9, 0x2d, 0x21, 0xf1, 0xc1, 0x9b,
+	0x6b, 0x7b, 0x46, 0x48, 0x0a, 0x17, 0x6f, 0x2f, 0x4e, 0xbe, 0x8b, 0xcf, 0x7e, 0x01, 0xbf, 0xa0,
+	0xe9, 0x05, 0x0c, 0x43, 0x89, 0x0f, 0x7b, 0x6a, 0xfb, 0xfb, 0x73, 0xfe, 0xfc, 0x7a, 0xc0, 0xb9,
+	0xc3, 0x49, 0x7b, 0x21, 0x85, 0x12, 0x45, 0xbb, 0xb8, 0xe4, 0x6c, 0x21, 0xc5, 0xf7, 0x95, 0xa7,
+	0x01, 0x62, 0xce, 0xf8, 0x64, 0xc6, 0xbd, 0x3b, 0x9c, 0x38, 0x4e, 0xae, 0xf0, 0x80, 0xcc, 0xfd,
+	0x55, 0x81, 0xb3, 0x80, 0xcf, 0x53, 0xcc, 0xfb, 0x22, 0xe5, 0x6a, 0x2a, 0xe6, 0x14, 0xbf, 0x2e,
+	0xb1, 0x50, 0xa4, 0x01, 0xe6, 0xb2, 0x40, 0xc9, 0xe6, 0x7c, 0x86, 0xb6, 0xd1, 0x34, 0x5a, 0x26,
+	0x7d, 0x5e, 0x02, 0x03, 0x3e, 0x43, 0xf2, 0x19, 0x4e, 0x53, 0xed, 0xca, 0xb5, 0x87, 0xa9, 0xd5,
+	0x02, 0xed, 0x4a, 0xd3, 0x68, 0x55, 0x3b, 0xef, 0xbc, 0x3f, 0x9d, 0xbd, 0x7f, 0x56, 0xde, 0xa0,
+	0x6b, 0x67, 0xb2, 0x5a, 0x20, 0xb5, 0xd2, 0x3d, 0xc4, 0xfd, 0x61, 0x80, 0xb5, 0x2f, 0x23, 0x36,
+	0xd4, 0x6e, 0x6e, 0x42, 0x36, 0x1a, 0xf6, 0xfc, 0x24, 0x64, 0x43, 0x7a, 0x1b, 0x84, 0xbd, 0x11,
+	0x0d, 0xad, 0x23, 0x72, 0x0e, 0x67, 0xf1, 0x55, 0x3c, 0xf8, 0x9b, 0x32, 0x48, 0x03, 0xea, 0xf1,
+	0xa8, 0x1b, 0x07, 0x34, 0x1a, 0x26, 0xd1, 0xed, 0x80, 0x8d, 0xa3, 0xe4, 0xba, 0x47, 0xfd, 0xb1,
+	0xdf, 0xb7, 0x2a, 0x65, 0xc5, 0x7d, 0x0b, 0x8b, 0xc6, 0x1f, 0xac, 0x63, 0xf2, 0x1a, 0xec, 0x68,
+	0x10, 0x25, 0x91, 0xdf, 0x67, 0x7e, 0x92, 0xf8, 0xc1, 0xf5, 0x4e, 0xd1, 0x27, 0xee, 0x47, 0xa8,
+	0x3d, 0x5c, 0xcd, 0x9f, 0x17, 0xf7, 0x28, 0xc9, 0x05, 0x00, 0x4a, 0x29, 0x24, 0x4b, 0x45, 0xb6,
+	0x0e, 0xad, 0xda, 0xa9, 0x6d, 0xf2, 0xc8, 0x15, 0x7a, 0x61, 0x49, 0x06, 0x22, 0x43, 0x6a, 0xe2,
+	0xf6, 0xd5, 0x7d, 0x0b, 0x2f, 0x29, 0x16, 0xa8, 0xb6, 0xc1, 0xd7, 0xe1, 0x99, 0x0e, 0x7e, 0x9a,
+	0xd9, 0x46, 0xf3, 0xb8, 0x65, 0xd2, 0x93, 0xf2, 0x33, 0xca, 0xdc, 0x2e, 0xbc, 0xd0, 0xc2, 0x47,
+	0x34, 0xeb, 0xfc, 0x34, 0xe0, 0x34, 0xbe, 0xe4, 0x57, 0x5c, 0xe1, 0x3d, 0x5f, 0xc5, 0x28, 0xbf,
+	0x4d, 0x53, 0x24, 0x23, 0xa8, 0x3e, 0xdc, 0x87, 0x34, 0xff, 0xf7, 0x17, 0x9d, 0x37, 0x07, 0x15,
+	0xeb, 0xf9, 0xdc, 0x23, 0xf2, 0x1e, 0x9e, 0xea, 0x81, 0x49, 0x7d, 0x47, 0xbb, 0xbb, 0xab, 0xf3,
+	0x6a, 0x9f, 0xd8, 0x7a, 0xbb, 0x8d, 0x4f, 0xe7, 0x9a, 0x6a, 0x97, 0x37, 0x9e, 0xe6, 0x62, 0x99,
+	0xb5, 0x27, 0x62, 0x73, 0xc5, 0x5f, 0x4e, 0xf4, 0xf3, 0xe2, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff,
+	0x50, 0x3c, 0x6c, 0xab, 0x01, 0x03, 0x00, 0x00,
 }

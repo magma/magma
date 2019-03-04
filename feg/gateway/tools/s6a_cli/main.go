@@ -20,12 +20,12 @@ import (
 	"strings"
 	"time"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
+	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/tools/commands"
 
@@ -57,23 +57,23 @@ var (
 
 type s6aCli interface {
 	AuthenticationInformation(
-		req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error)
+		req *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error)
 }
 
 type s6aProxyCli struct{}
 
 func (s6aProxyCli) AuthenticationInformation(
-	req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error) {
+	req *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error) {
 
 	return s6a_proxy.AuthenticationInformation(req)
 }
 
 type s6aBuiltIn struct {
-	impl protos.S6AProxyServer
+	impl lteprotos.S6AProxyServer
 }
 
 func (s s6aBuiltIn) AuthenticationInformation(
-	req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error) {
+	req *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error) {
 
 	return s.impl.AuthenticationInformation(context.Background(), req)
 }
@@ -202,7 +202,7 @@ func air(cmd *commands.Command, args []string) int {
 		peerAddr = proxyAddr
 	}
 
-	req := &protos.AuthenticationInformationRequest{
+	req := &lteprotos.AuthenticationInformationRequest{
 		UserName:                   imsi,
 		VisitedPlmn:                plmnId[:],
 		NumRequestedEutranVectors:  3,

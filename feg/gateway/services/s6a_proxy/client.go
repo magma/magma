@@ -15,8 +15,9 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -24,8 +25,8 @@ import (
 )
 
 type s6aProxyClient struct {
-	protos.S6AProxyClient
-	protos.ServiceHealthClient
+	lteprotos.S6AProxyClient
+	fegprotos.ServiceHealthClient
 }
 
 // getS6aProxyClient is a utility function to get a RPC connection to the
@@ -38,14 +39,14 @@ func getS6aProxyClient() (*s6aProxyClient, *grpc.ClientConn, error) {
 		return nil, conn, errors.New(errMsg)
 	}
 	return &s6aProxyClient{
-		protos.NewS6AProxyClient(conn),
-		protos.NewServiceHealthClient(conn),
+		lteprotos.NewS6AProxyClient(conn),
+		fegprotos.NewServiceHealthClient(conn),
 	}, conn, err
 }
 
 // AuthenticationInformation sends AIR over diameter connection,
 // waits (blocks) for AIA & returns its RPC representation
-func AuthenticationInformation(req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error) {
+func AuthenticationInformation(req *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error) {
 	if req == nil {
 		return nil, errors.New("Invalid AuthenticationInformationRequest")
 	}
@@ -59,7 +60,7 @@ func AuthenticationInformation(req *protos.AuthenticationInformationRequest) (*p
 
 // UpdateLocation sends ULR (Code 316) over diameter connection,
 // waits (blocks) for ULA & returns its RPC representation
-func UpdateLocation(req *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error) {
+func UpdateLocation(req *lteprotos.UpdateLocationRequest) (*lteprotos.UpdateLocationAnswer, error) {
 	if req == nil {
 		return nil, errors.New("Invalid UpdateLocation")
 	}
@@ -73,7 +74,7 @@ func UpdateLocation(req *protos.UpdateLocationRequest) (*protos.UpdateLocationAn
 
 // PurgeUE sends PUR (Code 321) over diameter connection,
 // waits (blocks) for PUA & returns its RPC representation
-func PurgeUE(req *protos.PurgeUERequest) (*protos.PurgeUEAnswer, error) {
+func PurgeUE(req *lteprotos.PurgeUERequest) (*lteprotos.PurgeUEAnswer, error) {
 	if req == nil {
 		return nil, errors.New("Invalid PurgeUE Request")
 	}

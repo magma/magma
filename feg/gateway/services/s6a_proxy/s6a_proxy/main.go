@@ -15,9 +15,10 @@ import (
 	"flag"
 	"log"
 
-	"magma/feg/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 )
 
@@ -37,8 +38,8 @@ func main() {
 		log.Fatalf("failed to create S6aProxy: %v", err)
 		return
 	}
-	protos.RegisterS6AProxyServer(srv.GrpcServer, servicer)
-	protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
+	lteprotos.RegisterS6AProxyServer(srv.GrpcServer, servicer)
+	fegprotos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
 
 	// Run the service
 	err = srv.Run()

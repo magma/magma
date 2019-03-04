@@ -11,8 +11,8 @@ package servicers
 import (
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/datatype"

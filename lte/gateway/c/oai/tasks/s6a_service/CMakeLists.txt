@@ -11,8 +11,8 @@ set (CMAKE_CXX_FLAGS "-Wno-write-strings -Wno-literal-suffix")
 # compile the needed protos
 set(S6ASRV_FEG_CPP_PROTOS s6a_proxy)
 set(S6ASRV_FEG_GRPC_PROTOS s6a_proxy)
-set(S6ASRV_LTE_CPP_PROTOS s6a_service)
-set(S6ASRV_LTE_GRPC_PROTOS s6a_service)
+set(S6ASRV_LTE_CPP_PROTOS s6a_proxy s6a_service)
+set(S6ASRV_LTE_GRPC_PROTOS s6a_proxy s6a_service)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")

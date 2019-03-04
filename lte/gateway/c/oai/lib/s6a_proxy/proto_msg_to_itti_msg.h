@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include "feg/protos/s6a_proxy.pb.h"
-#include "feg/protos/s6a_proxy.grpc.pb.h"
+#include "lte/protos/s6a_proxy.pb.h"
+#include "lte/protos/s6a_proxy.grpc.pb.h"
 #include <gmp.h>
 
 extern "C" {
@@ -31,7 +31,7 @@ extern "C" {
 }
 
 namespace magma {
-using namespace feg;
+using namespace lte;
 
 void convert_proto_msg_to_itti_s6a_auth_info_ans(
   AuthenticationInformationAnswer msg,

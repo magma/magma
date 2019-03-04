@@ -12,12 +12,11 @@ import (
 	"errors"
 	"fmt"
 
-	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/crypto"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -41,13 +40,13 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	subscriber, err := srv.store.GetSubscriberData(mar.UserName)
 	if err != nil {
 		if _, ok := err.(storage.UnknownSubscriberError); ok {
-			return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_USER_UNKNOWN)), err
+			return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(protos.ErrorCode_USER_UNKNOWN)), err
 		}
 		return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
 	}
 
 	if !isRATTypeAllowed(uint32(mar.RATType)) {
-		answer := ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_RAT_NOT_ALLOWED))
+		answer := ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(protos.ErrorCode_RAT_NOT_ALLOWED))
 		return answer, fmt.Errorf("RAT-Type not allowed: %v", uint32(mar.RATType))
 	}
 
@@ -107,7 +106,7 @@ func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID d
 }
 
 // GenerateSIPAuthVectors returns a slice of `numVectors` SIP auth vectors for the subscriber.
-func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.SubscriberData, numVectors uint32) ([]*crypto.SIPAuthVector, error) {
+func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *protos.SubscriberData, numVectors uint32) ([]*crypto.SIPAuthVector, error) {
 	var vectors = make([]*crypto.SIPAuthVector, 0, numVectors)
 	for i := uint32(0); i < numVectors; i++ {
 		vector, err := srv.GenerateSIPAuthVector(subscriber)
@@ -120,7 +119,7 @@ func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.Su
 }
 
 // GenerateSIPAuthVector returns the SIP auth vector for the subscriber.
-func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *lteprotos.SubscriberData) (*crypto.SIPAuthVector, error) {
+func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *protos.SubscriberData) (*crypto.SIPAuthVector, error) {
 	lte := subscriber.Lte
 	if err := ValidateLteSubscription(lte); err != nil {
 		return nil, NewAuthRejectedError(err.Error())
@@ -175,9 +174,9 @@ func ValidateMAR(msg *diam.Message) error {
 }
 
 // set3GPPAAAServerName sets the 3GPP AAA Server stored inside of a SubscriberData proto.
-func (srv *HomeSubscriberServer) set3GPPAAAServerName(subscriber *lteprotos.SubscriberData, serverName datatype.DiameterIdentity) error {
+func (srv *HomeSubscriberServer) set3GPPAAAServerName(subscriber *protos.SubscriberData, serverName datatype.DiameterIdentity) error {
 	if subscriber.State == nil {
-		subscriber.State = &lteprotos.SubscriberState{}
+		subscriber.State = &protos.SubscriberState{}
 	}
 	subscriber.State.TgppAaaServerName = string(serverName)
 	subscriber.State.TgppAaaServerRegistered = false

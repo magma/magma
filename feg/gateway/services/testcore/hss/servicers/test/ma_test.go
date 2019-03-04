@@ -43,7 +43,7 @@ func TestNewMAA_UnknownIMSI(t *testing.T) {
 	var maa definitions.MAA
 	err = response.Unmarshal(&maa)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(fegprotos.ErrorCode_USER_UNKNOWN), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(lteprotos.ErrorCode_USER_UNKNOWN), maa.ExperimentalResult.ExperimentalResultCode)
 }
 
 func TestNewMAA_MissingAuthKey(t *testing.T) {
@@ -57,7 +57,7 @@ func TestNewMAA_MissingAuthKey(t *testing.T) {
 	var maa definitions.MAA
 	err = response.Unmarshal(&maa)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(fegprotos.ErrorCode_AUTHORIZATION_REJECTED), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(lteprotos.ErrorCode_AUTHORIZATION_REJECTED), maa.ExperimentalResult.ExperimentalResultCode)
 	checkSIPAuthVectors(t, maa, 0)
 	assert.Equal(t, "magma;123_1234", maa.SessionID)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
@@ -135,7 +135,7 @@ func TestNewMAA_RATTypeNotAllowed(t *testing.T) {
 	err = response.Unmarshal(&maa)
 	assert.NoError(t, err)
 	assert.Equal(t, "magma;123_1234", maa.SessionID)
-	assert.Equal(t, uint32(fegprotos.ErrorCode_RAT_NOT_ALLOWED), maa.ExperimentalResult.ExperimentalResultCode)
+	assert.Equal(t, uint32(lteprotos.ErrorCode_RAT_NOT_ALLOWED), maa.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
 	checkSIPAuthVectors(t, maa, 0)

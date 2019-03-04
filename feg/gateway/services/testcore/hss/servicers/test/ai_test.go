@@ -12,13 +12,12 @@ import (
 	"context"
 	"testing"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/crypto"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -85,7 +84,7 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 	assert.Equal(t, datatype.OctetString([]byte{0x6f, 0xbf, 0xa3, 0x83, 0x95, 0x0, 0x80, 0x0, 0x9f, 0xbc, 0xe8, 0xd3, 0x47, 0xe, 0x82, 0xd5}), vec.AUTN)
 	assert.Equal(t, datatype.OctetString([]byte{0x62, 0x23, 0xd, 0x4d, 0x26, 0xec, 0xa, 0x12, 0x35, 0x54, 0x6, 0x85, 0x5, 0x5a, 0x94, 0xf8, 0x61, 0x53, 0x71, 0x4b, 0xd9, 0x42, 0xe, 0x64, 0xf1, 0x2f, 0x55, 0xd5, 0x84, 0xca, 0xd9, 0x6}), vec.KASME)
 
-	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
+	subscriber, err := server.GetSubscriberData(context.Background(), &protos.SubscriberID{Id: "sub1"})
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(7351), subscriber.State.LteAuthNextSeq)
 }
@@ -269,12 +268,12 @@ func TestSplitSqn(t *testing.T) {
 func TestGetOrGenerateOpc(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 
-	lte := &lteprotos.LTESubscription{AuthOpc: []byte("\xcdc\xcbq\x95J\x9fNH\xa5\x99N7\xa0+\xaf")}
+	lte := &protos.LTESubscription{AuthOpc: []byte("\xcdc\xcbq\x95J\x9fNH\xa5\x99N7\xa0+\xaf")}
 	opc, err := server.GetOrGenerateOpc(lte)
 	assert.NoError(t, err)
 	assert.Equal(t, lte.AuthOpc, opc)
 
-	lte = &lteprotos.LTESubscription{AuthKey: []byte("\x46\x5b\x5c\xe8\xb1\x99\xb4\x9f\xaa\x5f\x0a\x2e\xe2\x38\xa6\xbc")}
+	lte = &protos.LTESubscription{AuthKey: []byte("\x46\x5b\x5c\xe8\xb1\x99\xb4\x9f\xaa\x5f\x0a\x2e\xe2\x38\xa6\xbc")}
 	opc, err = server.GetOrGenerateOpc(lte)
 	assert.NoError(t, err)
 	expectedOpc, err := crypto.GenerateOpc(lte.AuthKey, []byte(server.Config.LteAuthOp))
@@ -286,7 +285,7 @@ func TestGenerateLteAuthVector_MissingLTE(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 	plmn := []byte("\x02\xf8\x59")
 
-	subscriber := &lteprotos.SubscriberData{State: &lteprotos.SubscriberState{}}
+	subscriber := &protos.SubscriberData{State: &protos.SubscriberState{}}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
 	assert.Exactly(t, servicers.NewAuthRejectedError("Subscriber data missing LTE subscription"), err)
 }
@@ -295,10 +294,10 @@ func TestGenerateLteAuthVector_MissingSubscriberState(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 	plmn := []byte("\x02\xf8\x59")
 
-	subscriber := &lteprotos.SubscriberData{
-		Lte: &lteprotos.LTESubscription{
-			State:    lteprotos.LTESubscription_ACTIVE,
-			AuthAlgo: lteprotos.LTESubscription_MILENAGE,
+	subscriber := &protos.SubscriberData{
+		Lte: &protos.LTESubscription{
+			State:    protos.LTESubscription_ACTIVE,
+			AuthAlgo: protos.LTESubscription_MILENAGE,
 		},
 	}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
@@ -309,12 +308,12 @@ func TestGenerateLteAuthVector_InactiveLTESubscription(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 	plmn := []byte("\x02\xf8\x59")
 
-	subscriber := &lteprotos.SubscriberData{
-		Lte: &lteprotos.LTESubscription{
-			State:    lteprotos.LTESubscription_INACTIVE,
-			AuthAlgo: lteprotos.LTESubscription_MILENAGE,
+	subscriber := &protos.SubscriberData{
+		Lte: &protos.LTESubscription{
+			State:    protos.LTESubscription_INACTIVE,
+			AuthAlgo: protos.LTESubscription_MILENAGE,
 		},
-		State: &lteprotos.SubscriberState{},
+		State: &protos.SubscriberState{},
 	}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
 	assert.Exactly(t, servicers.NewAuthRejectedError("LTE Service not active"), err)
@@ -324,12 +323,12 @@ func TestGenerateLteAuthVector_UnknownLTEAuthAlgo(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 	plmn := []byte("\x02\xf8\x59")
 
-	subscriber := &lteprotos.SubscriberData{
-		Lte: &lteprotos.LTESubscription{
-			State:    lteprotos.LTESubscription_ACTIVE,
+	subscriber := &protos.SubscriberData{
+		Lte: &protos.LTESubscription{
+			State:    protos.LTESubscription_ACTIVE,
 			AuthAlgo: 10,
 		},
-		State: &lteprotos.SubscriberState{},
+		State: &protos.SubscriberState{},
 	}
 	_, err := server.GenerateLteAuthVector(subscriber, plmn)
 	assert.Exactly(t, servicers.NewAuthRejectedError("Unsupported crypto algorithm: 10"), err)
@@ -344,15 +343,15 @@ func TestGenerateLteAuthVector_Success(t *testing.T) {
 	server.Milenage = milenage
 	plmn := []byte("\x02\xf8\x59")
 
-	subscriber := &lteprotos.SubscriberData{
-		Sid: &lteprotos.SubscriberID{Id: "sub1"},
-		Lte: &lteprotos.LTESubscription{
-			State:    lteprotos.LTESubscription_ACTIVE,
-			AuthAlgo: lteprotos.LTESubscription_MILENAGE,
+	subscriber := &protos.SubscriberData{
+		Sid: &protos.SubscriberID{Id: "sub1"},
+		Lte: &protos.LTESubscription{
+			State:    protos.LTESubscription_ACTIVE,
+			AuthAlgo: protos.LTESubscription_MILENAGE,
 			AuthKey:  []byte("\x8b\xafG?/\x8f\xd0\x94\x87\xcc\xcb\xd7\t|hb"),
 			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
 		},
-		State: &lteprotos.SubscriberState{LteAuthNextSeq: 228},
+		State: &protos.SubscriberState{LteAuthNextSeq: 228},
 	}
 	vector, err := server.GenerateLteAuthVector(subscriber, plmn)
 	assert.NoError(t, err)
@@ -402,7 +401,7 @@ func TestNewSuccessfulAIA(t *testing.T) {
 
 func TestResyncLteAuthSeq(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
-	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
+	subscriber, err := server.GetSubscriberData(context.Background(), &protos.SubscriberID{Id: "sub1"})
 	assert.NoError(t, err)
 
 	err = server.ResyncLteAuthSeq(subscriber, nil)
@@ -431,7 +430,7 @@ func TestResyncLteAuthSeq(t *testing.T) {
 func TestSetNextLteAuthSqnAfterResync(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 
-	id := &lteprotos.SubscriberID{Id: "sub1"}
+	id := &protos.SubscriberID{Id: "sub1"}
 	subscriber, err := server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)
 
@@ -449,7 +448,7 @@ func TestSetNextLteAuthSqnAfterResync(t *testing.T) {
 func TestSetNextLteAuthSeq(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 
-	id := &lteprotos.SubscriberID{Id: "sub1"}
+	id := &protos.SubscriberID{Id: "sub1"}
 	subscriber, err := server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)
 
@@ -465,7 +464,7 @@ func TestSetNextLteAuthSeq(t *testing.T) {
 func TestIncrementSQN(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 
-	id := &lteprotos.SubscriberID{Id: "sub1"}
+	id := &protos.SubscriberID{Id: "sub1"}
 	subscriber, err := server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)
 
@@ -485,23 +484,23 @@ func TestValidateLteSubscription(t *testing.T) {
 	err := servicers.ValidateLteSubscription(nil)
 	assert.EqualError(t, err, "Subscriber data missing LTE subscription")
 
-	lte := &lteprotos.LTESubscription{
-		State:    lteprotos.LTESubscription_INACTIVE,
-		AuthAlgo: lteprotos.LTESubscription_MILENAGE,
+	lte := &protos.LTESubscription{
+		State:    protos.LTESubscription_INACTIVE,
+		AuthAlgo: protos.LTESubscription_MILENAGE,
 	}
 	err = servicers.ValidateLteSubscription(lte)
 	assert.EqualError(t, err, "LTE Service not active")
 
-	lte = &lteprotos.LTESubscription{
-		State:    lteprotos.LTESubscription_ACTIVE,
+	lte = &protos.LTESubscription{
+		State:    protos.LTESubscription_ACTIVE,
 		AuthAlgo: 50,
 	}
 	err = servicers.ValidateLteSubscription(lte)
 	assert.EqualError(t, err, "Unsupported crypto algorithm: 50")
 
-	lte = &lteprotos.LTESubscription{
-		State:    lteprotos.LTESubscription_ACTIVE,
-		AuthAlgo: lteprotos.LTESubscription_MILENAGE,
+	lte = &protos.LTESubscription{
+		State:    protos.LTESubscription_ACTIVE,
+		AuthAlgo: protos.LTESubscription_MILENAGE,
 	}
 	err = servicers.ValidateLteSubscription(lte)
 	assert.NoError(t, err)

@@ -14,7 +14,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 import grpc
-from feg.protos.s6a_proxy_pb2 import (AuthenticationInformationAnswer,
+from lte.protos.s6a_proxy_pb2 import (AuthenticationInformationAnswer,
                                       AuthenticationInformationRequest,
                                       ErrorCode, UpdateLocationAnswer,
                                       UpdateLocationRequest)

@@ -12,10 +12,10 @@ import (
 	"context"
 	"testing"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/crypto"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/stretchr/testify/assert"
 )

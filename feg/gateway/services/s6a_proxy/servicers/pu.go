@@ -20,8 +20,8 @@ import (
 	"github.com/fiorix/go-diameter/diam/dict"
 	"google.golang.org/grpc/codes"
 
-	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/lte/cloud/go/protos"
 )
 
 // sendPUR - sends PUR with given Session ID (sid)
