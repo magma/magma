@@ -1583,6 +1583,17 @@ S1ap-ResetIEs S1AP-PROTOCOL-IES ::= {
     ...
 }
 
+S1ap-ResetType ::= CHOICE {
+    s1-Interface        S1ap-ResetAll,
+    partOfS1-Interface      S1ap-UE-associatedLogicalS1-ConnectionListRes,
+    ...
+}
+
+S1ap-ResetAll ::= ENUMERATED {
+    reset-all,
+    ...
+}
+
 S1ap-UE-associatedLogicalS1-ConnectionListRes ::= SEQUENCE (SIZE(1.. s1ap-maxNrOfIndividualS1ConnectionsToReset)) OF ProtocolIE-SingleContainer { { S1ap-UE-associatedLogicalS1-ConnectionItemRes } }
 
 S1ap-UE-associatedLogicalS1-ConnectionItemRes     S1AP-PROTOCOL-IES ::= {

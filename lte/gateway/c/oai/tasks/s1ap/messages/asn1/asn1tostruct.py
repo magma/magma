@@ -36,6 +36,8 @@ version = "1.0.2"
 lines = ""
 iesDefs = {}
 ieofielist = {}
+choicelist = {}
+choiceiesDefs = {}
 outdir = './'
 
 filenames = []
@@ -167,6 +169,8 @@ for filename in filenames:
         ieofielist[m[0]] = m[1]
     for m in re.findall(r'([a-zA-Z0-9-]+)\s*::=\s+E-RAB-IE-ContainerList\s*\{\s*\{\s*([a-zA-Z0-9-]+)\s*\}\s*\}', lines, re.MULTILINE):
         ieofielist[m[0]] = m[1]
+    for m in re.findall(r'([a-zA-Z0-9-]+)\s*::=\s+CHOICE\s*\{', lines, re.MULTILINE):
+        choicelist[m] = m
 
     for i in re.findall(r'([a-zA-Z0-9-]+)\s+([A-Z0-9-]+)\s*::=\s*\{\s+([\,\|\{\}\t\n\.{3}\ \-a-zA-Z0-9]+)\s+}\n', lines, re.MULTILINE):
         ies = []
@@ -185,6 +189,17 @@ for filename in filenames:
 
         if len(ies) > 0:
             iesDefs[i[0]] = { "length": maxLength, "ies": ies }
+        else:
+            printWarning("Didn't find any information element for message: " + i[0])
+    for i in re.findall(r'([a-zA-Z0-9-]+)\s*::=\s*CHOICE\s*\{\s+([\,\|\t\n\.{3}\ \-a-zA-Z0-9]+)\s+}\n', lines, re.MULTILINE):
+        choiceies = []
+        for j in re.findall(r'\s*([a-zA-Z0-9-\ \t\n]+)\s*[\|,]*', i[1], re.MULTILINE):
+            for k in re.findall(r'([a-zA-Z0-9\-]+)\s*([a-zA-Z0-9\-]+)', j, re.MULTILINE):
+                printDebug("Got new ie for message " + i[0] + ": " + str(k))
+                choiceies.append(k)
+
+        if len(choiceies) > 0:
+            choiceiesDefs[i[0]] = { "ies": choiceies }
         else:
             printWarning("Didn't find any information element for message: " + i[0])
 
@@ -320,6 +335,18 @@ for key in iesDefs:
     f.write("    %sIEs_t *%sIEs,\n" % (asn1cStruct, firstlower))
     f.write("    %s_t *%s);\n\n" % (asn1cStruct, lowerFirstCamelWord(asn1cStruct)))
 
+for key in choiceiesDefs:
+    if key not in choicelist.values():
+        continue
+    keyname = re.sub('IEs', '', key)
+    f.write("/** \\brief Decode function for %s ies.\n" % (key))
+    f.write(" *  \\param %s_p pointer to buffer to decode.\n" % (lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write(" *  \\param %s pointer to store the value after decode.\n" %(lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write(" **/\n")
+    f.write("int %s_decode_%s(\n" % (fileprefix, re.sub('-', '_', keyname).lower()))
+    f.write("    %s_t *%s,\n" % (re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write("    %s_t *%s_p);\n\n" % (re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '', keyname))))
+
 for key in iesDefs:
     asn1cStruct = re.sub('-', '_', re.sub('IEs', '', key))
     asn1cStruct = re.sub('Item', 'List', asn1cStruct)
@@ -429,12 +456,19 @@ for key in iesDefs:
         f.write("                decoded += tempDecoded;\n")
         f.write("                if (asn1_xer_print)\n")
         f.write("                    xer_fprint(stdout, &asn_DEF_%s, %s_p);\n" % (ietypeunderscore, lowerFirstCamelWord(ietypesubst)))
-        if ie[2] in ieofielist.keys():
-            f.write("                if (%s_decode_%s(&%s->%s, %s_p) < 0) {\n" % (fileprefix, ietypeunderscore.lower(), lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst)))
-            f.write("                   OAILOG_ERROR (LOG_%s, \"Decoding of encapsulated IE %s failed\\n\");\n" % (fileprefix.upper(), lowerFirstCamelWord(ietypesubst)))
-            f.write("                }\n")
-            f.write("                ASN_STRUCT_FREE(asn_DEF_%s, %s_p);\n" %
-                    (ietypeunderscore, lowerFirstCamelWord(ietypesubst)))
+        if ie[2] in (ieofielist.keys() + choicelist.keys()):
+            if ie[2] in choicelist.keys():
+                f.write("                if (%s_decode_%s(&%s->%s, %s_p) < 0) {\n" % (fileprefix, ietypeunderscore.lower(), lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst)))
+                f.write("                   OAILOG_ERROR (LOG_%s, \"Decoding of encapsulated IE %s failed\\n\");\n" % (fileprefix.upper(), lowerFirstCamelWord(ietypesubst)))
+                f.write("                }\n")
+                f.write("                ASN_STRUCT_FREE(asn_DEF_%s, %s_p);\n" %
+                       (ietypeunderscore, lowerFirstCamelWord(ietypesubst)))
+            elif ie[2] in ieofielist.keys():
+                f.write("                if (%s_decode_%s(&%s->%s, %s_p) < 0) {\n" % (fileprefix, ietypeunderscore.lower(), lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst)))
+                f.write("                   OAILOG_ERROR (LOG_%s, \"Decoding of encapsulated IE %s failed\\n\");\n" % (fileprefix.upper(), lowerFirstCamelWord(ietypesubst)))
+                f.write("                }\n")
+                f.write("                ASN_STRUCT_FREE(asn_DEF_%s, %s_p);\n" %
+                       (ietypeunderscore, lowerFirstCamelWord(ietypesubst)))
         else:
             f.write("                memcpy(&%s->%s, %s_p, sizeof(%s_t));\n" % (lowerFirstCamelWord(re.sub('-', '_', key)), ienameunderscore, lowerFirstCamelWord(ietypesubst), ietypeunderscore))
             f.write("                FREEMEM(%s_p);\n" % (lowerFirstCamelWord(ietypesubst)))
@@ -518,7 +552,6 @@ for key in iesDefs:
         continue
 
     keyname = re.sub('IEs', '', re.sub('Item', 'List', key))
-
     f.write("int %s_decode_%s(\n" % (fileprefix, re.sub('-', '_', keyname).lower()))
     f.write("    %sIEs_t *%sIEs,\n" % (re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '_', keyname))))
     f.write("    %s_t *%s) {\n\n" % (re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '_', keyname))))
@@ -556,6 +589,41 @@ for key in iesDefs:
     f.write("        }\n")
     f.write("    }\n")
     f.write("    return decoded;\n")
+    f.write("}\n\n")
+
+for key in choiceiesDefs:
+    if key not in choicelist.values():
+        continue
+
+    keyname = re.sub('IEs', '', key)
+    f.write("int %s_decode_%s(\n" % (fileprefix, re.sub('-', '_', keyname).lower()))
+    f.write("    %s_t *%s,\n" % (re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write("    %s_t *%s_p) {\n\n" % (re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '', keyname))))
+
+    f.write("    assert(%s_p != NULL);\n" % (lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write("    assert(%s != NULL);\n\n" % (lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write("    OAILOG_DEBUG (LOG_%s, \"Decoding choice %s (%%s:%%d)\\n\", __FILE__, __LINE__);\n" % (fileprefix.upper(), re.sub('-', '_', keyname)))
+    f.write("    %s->present = %s_p->present;\n\n" % (lowerFirstCamelWord(re.sub('-', '', keyname)), lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write("    switch (%s_p->present) {\n" %(lowerFirstCamelWord(re.sub('-', '', keyname))))
+    for ie in choiceiesDefs[key]["ies"]:
+        iename = re.sub('-', '_', ie[0])
+        f.write("            case %s_PR_%s:\n" % (re.sub('-', '_', keyname), iename))
+        f.write("            {\n")
+        if ie[1] in ieofielist.keys():
+            ienameunderscore = re.sub('-', '_', ie[1])
+            f.write("                if (%s_decode_%s((%sIEs_t *)&%s->choice.%s, &%s_p->choice.%s) < 0) {\n" % (fileprefix, ienameunderscore.lower(), ienameunderscore, lowerFirstCamelWord(re.sub('-', '', keyname)), iename, lowerFirstCamelWord(re.sub('-', '', keyname)), iename))
+            f.write("                   OAILOG_ERROR (LOG_%s, \"Decoding of encapsulated IE %s failed\\n\");\n" % (fileprefix.upper(), lowerFirstCamelWord(ienameunderscore)))
+            f.write("                   return -1;\n")
+            f.write("                }\n")
+        else:
+            f.write("                OAILOG_DEBUG (LOG_%s, \"Decoding %s (%%s:%%d)\\n\", __FILE__, __LINE__);\n" % (fileprefix.upper(), re.sub('-', '_', iename)))
+            f.write("                memcpy(%s, %s_p, sizeof(%s_t));\n" % (lowerFirstCamelWord(re.sub('-', '', keyname)), lowerFirstCamelWord(re.sub('-', '', keyname)), re.sub('-', '_', keyname)))
+        f.write("            } break;\n")
+    f.write("            default:\n")
+    f.write("               OAILOG_ERROR (LOG_%s, \"Unknown choice type (%%d) for %s\\n\", (int)%s_p->present);\n" % (fileprefix.upper(), re.sub('-', '_', keyname), lowerFirstCamelWord(re.sub('-', '', keyname))))
+    f.write("                return -1;\n")
+    f.write("        }\n")
+    f.write("   return 0;\n")
     f.write("}\n\n")
 
 
@@ -607,15 +675,27 @@ for key in iesDefs:
                 f.write("    /* Optional field */\n")
             elif ie[3] == "conditional":
                 f.write("    /* Conditional field */\n")
-            f.write("    if (%s->presenceMask & %s_%s_PRESENT) {\n" % (lowerFirstCamelWord(re.sub('-', '_', key)), keyupperunderscore, ieupperunderscore))
+            f.write("    if (%s->presenceMask & %s_%s_PRESENT) {\n\n" % (lowerFirstCamelWord(re.sub('-', '_', key)), keyupperunderscore, ieupperunderscore))
             #f.write("        == %s_%s_PRESENT) {\n" % (keyupperunderscore, ieupperunderscore))
-            f.write("        if ((ie = %s_new_ie(%s_ProtocolIE_ID_%s,\n" % (fileprefix, fileprefix_first_upper, re.sub('-', '_', ie[0])))
+            if ie[2] in ieofielist.keys():
+                f.write("       %s_t %s;\n" % (ietypeunderscore, ienamefirstwordlower))
+                f.write("       memset(&%s, 0, sizeof(%s_t));\n" % (ienamefirstwordlower, ietypeunderscore))
+                f.write("\n")
+                f.write("       if (%s_encode_%s(&%s, &%s->%s) < 0) return -1;\n" % (fileprefix, ietypeunderscore.lower(), ienamefirstwordlower, lowerFirstCamelWord(re.sub('-', '_', key)), ienamefirstwordlower))
+            f.write("       if ((ie = %s_new_ie(%s_ProtocolIE_ID_%s,\n" % (fileprefix, fileprefix_first_upper, re.sub('-', '_', ie[0])))
             f.write("                            %s_Criticality_%s,\n" % (fileprefix_first_upper, ie[1]))
             f.write("                            &asn_DEF_%s,\n" % (ietypeunderscore))
-            f.write("                            &%s->%s)) == NULL) {\n" % (lowerFirstCamelWord(re.sub('-', '_', key)), ienamefirstwordlower))
+            #f.write("                            &%s->%s)) == NULL) {\n" % (lowerFirstCamelWord(re.sub('-', '_', key)), ienamefirstwordlower))
+            if ie[2] in ieofielist.keys():
+                f.write("                          &%s)) == NULL) {\n" % (ienamefirstwordlower))
+            else:
+                f.write("                          &%s->%s)) == NULL) {\n" % (lowerFirstCamelWord(re.sub('-', '_', key)), ienamefirstwordlower))
             f.write("            return -1;\n")
             f.write("        }\n")
             f.write("        ASN_SEQUENCE_ADD(&%s->%slist, ie);\n" % (firstwordlower, iesaccess))
+            if ie[2] in ieofielist.keys():
+                f.write("       /* Free any dynamic allocation that is no more used */\n")
+                f.write("       ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_%s, &%s);\n" % (ietypeunderscore, ienamefirstwordlower))
             f.write("    }\n\n")
         else:
             if ie[2] in ieofielist.keys():

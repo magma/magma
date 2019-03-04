@@ -2460,9 +2460,12 @@ int s1ap_mme_handle_enb_reset(
                 .ue_to_reset_list[i]
                 .mme_ue_s1ap_id = &(ue_ref_p->mme_ue_s1ap_id);
               enb_ue_s1ap_id &= ENB_UE_S1AP_ID_MASK;
-              S1AP_ENB_INITIATED_RESET_REQ(message_p)
-                .ue_to_reset_list[i]
-                .enb_ue_s1ap_id = &enb_ue_s1ap_id;
+              S1AP_ENB_INITIATED_RESET_REQ (message_p)
+                  .ue_to_reset_list[i].enb_ue_s1ap_id = 
+		  (enb_ue_s1ap_id_t *) calloc(1, sizeof(enb_ue_s1ap_id_t));
+              memcpy (S1AP_ENB_INITIATED_RESET_REQ (message_p)
+                       .ue_to_reset_list[i].enb_ue_s1ap_id, 
+                       &enb_ue_s1ap_id, sizeof(enb_ue_s1ap_id_t));
             } else {
               // mismatch in enb_ue_s1ap_id sent by eNB and stored in S1AP ue context in EPC. Abnormal case.
               S1AP_ENB_INITIATED_RESET_REQ(message_p)
@@ -2504,9 +2507,12 @@ int s1ap_mme_handle_enb_reset(
             (ue_ref_p = s1ap_is_ue_enb_id_in_list(
                enb_association, enb_ue_s1ap_id)) != NULL) {
             enb_ue_s1ap_id &= ENB_UE_S1AP_ID_MASK;
-            S1AP_ENB_INITIATED_RESET_REQ(message_p)
-              .ue_to_reset_list[i]
-              .enb_ue_s1ap_id = &enb_ue_s1ap_id;
+            S1AP_ENB_INITIATED_RESET_REQ (message_p)
+                .ue_to_reset_list[i].enb_ue_s1ap_id = 
+		(enb_ue_s1ap_id_t *) calloc(1, sizeof(enb_ue_s1ap_id_t));
+            memcpy (S1AP_ENB_INITIATED_RESET_REQ (message_p)
+                     .ue_to_reset_list[i].enb_ue_s1ap_id, 
+                     &enb_ue_s1ap_id, sizeof(enb_ue_s1ap_id_t));
             if (ue_ref_p->mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
               S1AP_ENB_INITIATED_RESET_REQ(message_p)
                 .ue_to_reset_list[i]
@@ -2564,29 +2570,25 @@ int s1ap_handle_enb_initiated_reset_ack(
     DevAssert(enb_reset_ack_p->num_ue > 0);
     s1ap_ResetAcknowledgeIEs_p->presenceMask |=
       S1AP_RESETACKNOWLEDGEIES_UE_ASSOCIATEDLOGICALS1_CONNECTIONLISTRESACK_PRESENT;
-    s1ap_ResetAcknowledgeIEs_p->uE_associatedLogicalS1_ConnectionListResAck
-      .s1ap_UE_associatedLogicalS1_ConnectionItemResAck.count =
-      enb_reset_ack_p->num_ue;
     for (uint32_t i = 0; i < enb_reset_ack_p->num_ue; i++) {
       if (enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id != NULL) {
         mme_ue_id[i] = *(enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id);
-        sig_conn_list[0].mME_UE_S1AP_ID = &mme_ue_id[i];
+        sig_conn_list[i].mME_UE_S1AP_ID = &mme_ue_id[i];
       } else {
-        sig_conn_list[0].mME_UE_S1AP_ID = NULL;
+        sig_conn_list[i].mME_UE_S1AP_ID = NULL;
       }
       if (enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id != NULL) {
         enb_ue_id[i] = *(enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id);
-        sig_conn_list[0].eNB_UE_S1AP_ID = &enb_ue_id[i];
+        sig_conn_list[i].eNB_UE_S1AP_ID = &enb_ue_id[i];
       } else {
-        sig_conn_list[0].eNB_UE_S1AP_ID = NULL;
+        sig_conn_list[i].eNB_UE_S1AP_ID = NULL;
       }
-      sig_conn_list[0].iE_Extensions = NULL;
+      sig_conn_list[i].iE_Extensions = NULL;
+      ASN_SEQUENCE_ADD(
+        &s1ap_ResetAcknowledgeIEs_p->uE_associatedLogicalS1_ConnectionListResAck
+           .s1ap_UE_associatedLogicalS1_ConnectionItemResAck,
+        &sig_conn_list[i]);
     }
-
-    ASN_SEQUENCE_ADD(
-      &s1ap_ResetAcknowledgeIEs_p->uE_associatedLogicalS1_ConnectionListResAck
-         .s1ap_UE_associatedLogicalS1_ConnectionItemResAck,
-      sig_conn_list);
   }
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Reset Ack encoding failed \n");
