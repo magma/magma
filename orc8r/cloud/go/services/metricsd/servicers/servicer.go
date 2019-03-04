@@ -57,14 +57,7 @@ func (srv *MetricsControllerServer) Collect(
 	}
 	for _, family := range in.GetFamily() {
 		for _, e := range srv.exporters {
-			context := exporters.MetricsContext{
-				MetricName:        protos.GetDecodedName(family),
-				NetworkID:         networkID,
-				HardwareID:        hardwareID,
-				GatewayID:         gatewayID,
-				OriginatingEntity: networkID + "." + gatewayID,
-				DecodedName:       protos.GetDecodedName(family),
-			}
+			context := exporters.NewMetricsContext(family, networkID, hardwareID, gatewayID)
 			err := e.Submit(family, context)
 			if err != nil {
 				glog.Error(err)
@@ -83,14 +76,7 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(
 ) error {
 	for family := range inputChan {
 		for _, e := range srv.exporters {
-			context := exporters.MetricsContext{
-				MetricName:        protos.GetDecodedName(family),
-				NetworkID:         "cloud",
-				GatewayID:         hostName,
-				HardwareID:        "cloud",
-				OriginatingEntity: "cloud." + hostName,
-				DecodedName:       protos.GetDecodedName(family),
-			}
+			context := exporters.NewMetricsContext(family, exporters.CloudMetricID, exporters.CloudMetricID, hostName)
 			err := e.Submit(family, context)
 			if err != nil {
 				glog.Errorf("Error submitting metric family to exporter: %s", err)

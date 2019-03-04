@@ -22,6 +22,8 @@ import (
 )
 
 const (
+	CloudMetricID = "cloud"
+
 	PromoHTTPEndpoint = "/metrics"
 	PromoHTTPPort     = 8080
 )
@@ -55,9 +57,20 @@ func NewPrometheusExporter(config PrometheusExporterConfig) Exporter {
 // Submit takes in an ExportSubmission and either registers it to prometheus or
 // updates the metric if it is already registered
 func (e *PrometheusExporter) Submit(family *dto.MetricFamily, context MetricsContext) error {
+	networkID := context.NetworkID
+	gatewayID := context.GatewayID
+
+	if context.NetworkID == CloudMetricID {
+		parsedNetworkID, parsedGatewayID, err := UnpackCloudMetricName(context.MetricName)
+		if err == nil {
+			networkID = parsedNetworkID
+			gatewayID = parsedGatewayID
+		}
+	}
+
 	for _, metric := range family.GetMetric() {
 		registeredName := makeRegisteredName(metric, family, context.MetricName)
-		networkLabels, err := e.makeNetworkLabels(context.NetworkID, context.GatewayID, metric)
+		networkLabels, err := e.makeNetworkLabels(networkID, gatewayID, metric)
 		if err != nil {
 			return fmt.Errorf("prometheus submit error %s: %v", registeredName, err)
 		}

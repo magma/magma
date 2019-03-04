@@ -66,7 +66,6 @@ func (e *PrometheusPushExporter) Submit(family *dto.MetricFamily, context Metric
 	return nil
 }
 
-// Start does nothing because no goroutines need to be run for the pushgateway
 func (e *PrometheusPushExporter) Start() {
 	go e.exportEvery()
 }
