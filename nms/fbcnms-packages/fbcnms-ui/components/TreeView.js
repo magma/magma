@@ -20,8 +20,8 @@ import ListItem from '@material-ui/core/ListItem';
 import nullthrows from '@fbcnms/util/nullthrows';
 import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
-import Scrollbar from 'perfect-scrollbar-react';
-import 'perfect-scrollbar-react/dist/style.min.css';
+import PerfectScrollbar from 'react-perfect-scrollbar';
+import 'react-perfect-scrollbar/dist/css/styles.css';
 
 type TreeNode = {
   name: string,
@@ -397,14 +397,14 @@ class TreeView extends React.Component<Props, State> {
           </Typography>
         </div>
         <div className={classes.treeContainer}>
-          <Scrollbar enable={true}>
+          <PerfectScrollbar>
             <div>
               {dummyRootTitle !== null && dummyRootTitle !== undefined
                 ? this.renderDummyTitleNode(dummyRootTitle)
                 : null}
               {tree.map(node => this.renderNode(node, null))}
             </div>
-          </Scrollbar>
+          </PerfectScrollbar>
         </div>
       </div>
     );
