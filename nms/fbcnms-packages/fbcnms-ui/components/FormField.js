@@ -10,41 +10,41 @@
 
 import type {WithStyles} from '@material-ui/core';
 
+import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
-  root: {
-    display: 'flex',
-    marginBottom: '5px',
-  },
-  heading: {
-    flexBasis: '33.33%',
-    marginRight: '15px',
-    textAlign: 'left',
-  },
-  secondaryHeading: {
-    color: theme.palette.text.secondary,
-    flexBasis: '66.66%',
+  labelName: {
+    color: theme.palette.grey.A700,
+    fontWeight: 500,
   },
 });
 
 type Props = WithStyles & {
   label: string,
-  children?: any,
+  value?: ?string | ?number,
 };
 
 class FormField extends React.Component<Props> {
   render() {
-    const {classes, label} = this.props;
+    const {classes, label, value} = this.props;
     return (
-      <div className={classes.root}>
-        <Typography className={classes.heading}>{label}</Typography>
-        <Typography className={classes.secondaryHeading} component="div">
-          {this.props.children}
-        </Typography>
+      <div>
+        <Grid container spacing={16}>
+          <Grid item xs={6}>
+            <Typography className={classes.labelName} variant="body2">
+              {label}:
+            </Typography>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="body2" color="secondary">
+              {value}
+            </Typography>
+          </Grid>
+        </Grid>
       </div>
     );
   }

@@ -12,6 +12,7 @@ export const purple = {
   main: '#6200ee',
 };
 
+export const black = '#000';
 export const fadedSea = '#7cc8d0';
 export const gray0 = '#f2f3f5';
 export const gray1 = '#979797';

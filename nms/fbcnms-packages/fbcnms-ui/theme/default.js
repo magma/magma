@@ -9,7 +9,7 @@
  */
 
 import {createMuiTheme} from '@material-ui/core/styles';
-import {sea100, sea200, sea300, white} from './colors';
+import {sea100, sea200, sea300, white, black} from './colors';
 
 export default createMuiTheme({
   palette: {
@@ -82,6 +82,13 @@ export default createMuiTheme({
       colorDefault: {
         backgroundColor: '#e4f0f6',
         color: sea200,
+      },
+    },
+    MuiOutlinedInput: {
+      root: {
+        '&$focused $notchedOutline': {
+          borderColor: black,
+        },
       },
     },
   },
