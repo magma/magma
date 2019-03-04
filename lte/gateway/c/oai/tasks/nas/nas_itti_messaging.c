@@ -443,8 +443,8 @@ void nas_itti_establish_cnf(
 
     derive_keNB(
       emm_ctx->_vector[emm_ctx->_security.vector_index].kasme,
-      emm_ctx->_security.smc_ul_count.seq_num |
-        (emm_ctx->_security.smc_ul_count.overflow << 8),
+      emm_ctx->_security.kenb_ul_count.seq_num |
+        (emm_ctx->_security.kenb_ul_count.overflow << 8),
       NAS_CONNECTION_ESTABLISHMENT_CNF(message_p).kenb);
 
     MSC_LOG_TX_MESSAGE(

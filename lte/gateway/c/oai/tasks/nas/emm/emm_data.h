@@ -85,7 +85,7 @@ typedef struct emm_security_context_s {
     uint32_t spare : 8;
     uint32_t overflow : 16;
     uint32_t seq_num : 8;
-  } dl_count, ul_count, smc_ul_count; /* Downlink and uplink count parameters */
+  } dl_count, ul_count, kenb_ul_count; /* Downlink and uplink count params */
   struct {
     uint8_t eps_encryption;  /* algorithm used for ciphering            */
     uint8_t eps_integrity;   /* algorithm used for integrity protection */
@@ -211,6 +211,7 @@ typedef struct emm_context_s {
   imei_t _imei;          /* The IMEI provided by the UE                     */
   imeisv_t _imeisv;      /* The IMEISV provided by the UE                   */
   //bool                   _guti_is_new; /* The GUTI assigned to the UE is new              */
+  bool is_guti_set;     /* is GUTI has been set                            */
   guti_t _guti;         /* The GUTI assigned to the UE                     */
   guti_t _old_guti;     /* The old GUTI (GUTI REALLOCATION)                */
   tai_list_t _tai_list; /* TACs the the UE is registered to                */

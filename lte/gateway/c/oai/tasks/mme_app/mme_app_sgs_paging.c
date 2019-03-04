@@ -433,7 +433,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
     */
-    if ((ue_context_p->is_guti_set == false)) {
+    if ((ue_context_p->emm_context.is_guti_set == false)) {
       /* On reception of SGS-Paging request in idle and not able retrieve S-TMSI from IMSI,
        * page with IMSI and PS domain
        */
@@ -509,7 +509,7 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
     */
-    if ((ue_context_p->is_guti_set == false)) {
+    if ((ue_context_p->emm_context.is_guti_set == false)) {
       /* On reception of SGS-Paging request in idle and not able retrieve S-TMSI from IMSI,
        * page with IMSI and PS domain
        */
@@ -940,6 +940,7 @@ int mme_app_handle_sgsap_paging_request(
       SGS_CAUSE_IMSI_DETACHED_FOR_NONEPS_SERVICE);
     increment_counter(
       "sgsap_paging_reject", 1, 1, "cause", "SGS context not created");
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   ue_context_p->sgs_context->sgsap_msg = (void *) sgsap_paging_req_pP;

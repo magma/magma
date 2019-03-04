@@ -1143,11 +1143,11 @@ static int s1ap_mme_generate_ue_context_modification(
 #define PLMN_SIZE 3
     S1ap_LAI_t *lai_item = &ueContextModificationIEs_p->registeredLAI;
     lai_item->pLMNidentity.size = PLMN_SIZE;
-    //lai_item->pLMNidentity.buf = calloc(PLMN_SIZE, sizeof (uint8_t));
+    lai_item->pLMNidentity.buf = calloc(PLMN_SIZE, sizeof (uint8_t));
     LAI_T_TO_TBCD(
       ue_context_mod_req_pP->lai,
       lai_item->pLMNidentity.buf,
-      (lai_item->pLMNidentity.size = mme_config_find_mnc_length(
+      (mme_config_find_mnc_length(
          ue_context_mod_req_pP->lai.mccdigit1,
          ue_context_mod_req_pP->lai.mccdigit2,
          ue_context_mod_req_pP->lai.mccdigit3,

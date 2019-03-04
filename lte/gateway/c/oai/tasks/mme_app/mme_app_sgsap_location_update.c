@@ -443,7 +443,8 @@ int mme_app_handle_nas_cs_domain_location_update_req(
       if (
         (_is_combined_tau(ue_context, itti_nas_location_update_req)) ==
         RETURNerror) {
-        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+        unlock_ue_contexts(ue_context);
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
     }
     /*Send SGSAP Location Update Request message to SGS task*/

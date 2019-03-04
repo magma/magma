@@ -141,7 +141,7 @@ int mme_app_handle_nas_pdn_connectivity_req(
         imsi64,
         nas_pdn_connectivity_req_pP->imsi_length,
         ue_context_p->mme_teid_s11,
-        &ue_context_p->guti);
+        &ue_context_p->emm_context._guti);
       /*
        * In some cases if ue context already has valid value , hashtables are not updated by mme_ue_context_update_coll_keys
        * function. Inserting mme_ue_s1ap_id in imsi hashtable explicitly
@@ -228,10 +228,6 @@ void mme_app_handle_conn_est_cnf(
     /*
      * Move the UE to ECM Connected State.
      */
-    if (ue_context_p->ecm_state != ECM_CONNECTED) {
-      mme_ue_context_update_ue_sig_connection_state(
-        &mme_app_desc.mme_ue_contexts, ue_context_p, ECM_CONNECTED);
-    }
     /* 
     * Check that if SGS paging is recieved without LAI then
     * send IMSI Detach towads UE to re-attach for non-eps services
@@ -1924,8 +1920,8 @@ int mme_app_paging_request_helper(
   IMSI64_TO_STRING(
     ue_context_p->imsi, (char *) paging_request->imsi, ue_context_p->imsi_len);
   paging_request->imsi_length = ue_context_p->imsi_len;
-  paging_request->mme_code = ue_context_p->guti.gummei.mme_code;
-  paging_request->m_tmsi = ue_context_p->guti.m_tmsi;
+  paging_request->mme_code = ue_context_p->emm_context._guti.gummei.mme_code;
+  paging_request->m_tmsi = ue_context_p->emm_context._guti.m_tmsi;
   // TODO Pass enb ids based on TAIs
   paging_request->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
   if (paging_id_stmsi) {

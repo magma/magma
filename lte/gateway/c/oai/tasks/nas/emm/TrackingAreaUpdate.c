@@ -98,6 +98,8 @@ static int _emm_tracking_area_update_abort(
   struct nas_base_proc_s *base_proc);
 static void _emm_tracking_area_update_t3450_handler(void *args);
 
+static nas_emm_tau_proc_t * _emm_proc_create_procedure_tau(
+    ue_mm_context_t *const ue_mm_context, emm_tau_request_ies_t *const ies);
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -129,7 +131,8 @@ int _csfb_handle_tracking_area_req(
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  _csfb_handle_tracking_area_req");
+  OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  _csfb_handle_tracking_area_req \n");
+  ue_mm_context_t * ue_mm_context = NULL;
   /*In case we receive periodic TAU, send Location Update to MME only if SGS Association is established*/
   if (
     (EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING ==
@@ -144,13 +147,19 @@ int _csfb_handle_tracking_area_req(
     //Store active flag
     ue_ctx->csfbparams.tau_active_flag = ies->eps_update_type.active_flag;
     //Store Additional Update
-    if (SMS_ONLY == *(ies->additional_updatetype)) {
+    if ((ies->additional_updatetype != NULL) &&
+        (SMS_ONLY == *(ies->additional_updatetype))) {
       ue_ctx->additional_update_type = SMS_ONLY;
     }
     //Send Location Update Req to MME
     nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(ue_ctx);
-    nas_itti_cs_domain_location_update_req(
-      tau_proc->ue_id, TRACKING_AREA_UPDATE_REQUEST);
+    if (!tau_proc) {
+      ue_mm_context = PARENT_STRUCT(ue_ctx,
+                                    struct ue_mm_context_s, emm_context);
+      tau_proc = _emm_proc_create_procedure_tau(ue_mm_context, ies);
+      nas_itti_cs_domain_location_update_req(
+        tau_proc->ue_id, TRACKING_AREA_UPDATE_REQUEST);
+    }
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
@@ -212,6 +221,10 @@ int emm_proc_tracking_area_update_request(
     "EMM-PROC-  Tracking Area Update request. TAU_Type=%d, active_flag=%d)\n",
     ies->eps_update_type.eps_update_type_value,
     ies->eps_update_type.active_flag);
+
+  if (IS_EMM_CTXT_PRESENT_SECURITY(emm_context)) {
+    emm_context->_security.kenb_ul_count = emm_context->_security.ul_count;
+  }
   // Check if it is not periodic update and not combined TAU for CSFB.
   /*If we receive combined TAU/TAU with IMSI attach send Location Update Req to MME instead of
   * sending TAU accept immediately. After receiving Location Update Accept from MME, send TAU accept
@@ -220,6 +233,7 @@ int emm_proc_tracking_area_update_request(
     (_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
     (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) {
     if ((_csfb_handle_tracking_area_req(emm_context, ies)) == RETURNok) {
+      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
   }
@@ -345,14 +359,8 @@ int emm_proc_tracking_area_update_request(
     // Handle periodic TAU
     nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(emm_context);
     if (!tau_proc) {
-      tau_proc = nas_new_tau_procedure(emm_context);
+      tau_proc = _emm_proc_create_procedure_tau(ue_mm_context, ies);
       if (tau_proc) {
-        tau_proc->ies = ies;
-        tau_proc->ue_id = ue_id;
-        tau_proc->emm_spec_proc.emm_proc.base_proc.abort =
-          _emm_tracking_area_update_abort;
-        tau_proc->emm_spec_proc.emm_proc.base_proc.time_out =
-          _emm_tracking_area_update_t3450_handler;
         rc = _emm_tracking_area_update_accept(tau_proc);
         if (rc != RETURNok) {
           OAILOG_ERROR(
@@ -367,6 +375,9 @@ int emm_proc_tracking_area_update_request(
           "tracking_area_update_req", 1, 1, "result", "success");
         unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+      } else {
+          OAILOG_ERROR(LOG_NAS_EMM, "EMM-PROC- Failed to get EMM specific proc"
+            "for TAU for ue_id= " MME_UE_S1AP_ID_FMT ")\n",ue_id);
       }
     }
   }
@@ -999,4 +1010,28 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+static nas_emm_tau_proc_t * _emm_proc_create_procedure_tau(
+    ue_mm_context_t *const ue_mm_context,
+    emm_tau_request_ies_t *const ies) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+
+  nas_emm_tau_proc_t *tau_proc = nas_new_tau_procedure(
+    &ue_mm_context->emm_context);
+  AssertFatal(tau_proc, "TODO Handle this");
+  if ((tau_proc)) {
+    tau_proc->ies = ies;
+    tau_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
+    tau_proc->emm_spec_proc.emm_proc.base_proc.abort =
+      _emm_tracking_area_update_abort;
+    tau_proc->emm_spec_proc.emm_proc.base_proc.fail_in =
+      NULL; // No parent procedure
+    tau_proc->emm_spec_proc.emm_proc.base_proc.time_out =
+      _emm_tracking_area_update_t3450_handler;
+    tau_proc->emm_spec_proc.emm_proc.base_proc.fail_out =
+      NULL;
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, NULL);
 }

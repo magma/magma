@@ -932,6 +932,7 @@ static int _emm_cn_cs_domain_loc_updt_acc(
     }
     if ((_handle_cs_domain_loc_updt_acc(
            emm_cn_sgs_location_updt_acc.ue_id, emm_ctx_p) == RETURNok))
+      emm_context_unlock(emm_ctx_p);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   //Store LAI to be sent in Attach Accept/TAU Accept
@@ -999,11 +1000,9 @@ static int _emm_cn_cs_domain_loc_updt_acc(
     "EMMCN-SAP - Mobile Identity presence mask %d \n",
     emm_cn_sgs_location_updt_acc.presencemask);
   //Send Attach Accept/TAU Accept
-  if (
-    _handle_cs_domain_loc_updt_acc(
-      emm_cn_sgs_location_updt_acc.ue_id, emm_ctx_p) == RETURNerror) {
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
-  }
+  rc = _handle_cs_domain_loc_updt_acc(
+    emm_cn_sgs_location_updt_acc.ue_id, emm_ctx_p);
+
   emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

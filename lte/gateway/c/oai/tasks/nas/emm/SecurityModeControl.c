@@ -484,7 +484,7 @@ int emm_proc_security_mode_complete(
         smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
       REQUIREMENT_3GPP_24_301(R10_5_4_3_4__2);
 
-      emm_ctx->_security.smc_ul_count = emm_ctx->_security.ul_count;
+      emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
       emm_ctx_set_attribute_valid(emm_ctx, EMM_CTXT_MEMBER_SECURITY);
       rc = emm_sap_send(&emm_sap);
     }

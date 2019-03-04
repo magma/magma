@@ -345,6 +345,11 @@ int emm_recv_initial_ext_service_request(
     rc = emm_sap_send(&emm_sap);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
+
+  if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
+    emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
+  }
+
   emm_sap.primitive = EMMAS_ESTABLISH_CNF;
   emm_sap.u.emm_as.u.establish.ue_id = ue_id;
   emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_NONE;

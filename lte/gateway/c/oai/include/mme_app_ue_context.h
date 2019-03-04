@@ -351,16 +351,12 @@ typedef struct ue_mm_context_s {
 
   enum s1cause ue_context_rel_cause;
 
-  // Globally Unique Temporary Identity can be found in emm_nas_context
-  bool is_guti_set; // is GUTI has been set
-  guti_t
-    guti; // Globally Unique Temporary Identity. guti.gummei.plmn set by nas_auth_param_req_t
-
   mm_state_t mm_state;
   ecm_state_t ecm_state;
 
   // read by S6A UPDATE LOCATION REQUEST
-  // was me_identity_t // Mobile Equipment Identity – (e.g. IMEI/IMEISV) Software Version Number not set/read except read by display utility
+  // was me_identity_t // Mobile Equipment Identity - (e.g. IMEI/IMEISV) Software Version Number
+  // not set/read except read by display utility
   //imei_t                   _imei;        /* The IMEI provided by the UE     can be found in emm_nas_context                */
   //imeisv_t                 _imeisv;      /* The IMEISV provided by the UE   can be found in emm_nas_context                */
 
@@ -389,7 +385,6 @@ typedef struct ue_mm_context_s {
   // c) Key K ASME ,
   // d) a network authentication token AUTN.
 
-  network_access_mode_t access_mode; // set by S6A UPDATE LOCATION ANSWER
 
   /* TODO: add ue radio cap, ms classmarks, supported codecs */
 
