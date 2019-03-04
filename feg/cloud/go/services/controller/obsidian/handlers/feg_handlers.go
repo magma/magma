@@ -27,6 +27,6 @@ const (
 func GetObsidianHandlers() []handlers.Handler {
 	ret := make([]handlers.Handler, 0, 8)
 	ret = append(ret, obsidian.GetCRUDNetworkConfigHandlers(NetworkConfigPath, config.FegNetworkType, &models.NetworkFederationConfigs{})...)
-	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, config.FegNetworkType, &models.GatewayFegConfigs{})...)
+	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, config.FegGatewayType, &models.GatewayFegConfigs{})...)
 	return ret
 }
