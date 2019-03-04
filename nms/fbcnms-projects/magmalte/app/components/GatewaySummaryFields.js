@@ -25,6 +25,7 @@ import FormField from './FormField';
 import {GatewayStatus} from './GatewayUtils';
 import Input from '@material-ui/core/Input';
 import {MagmaAPIUrls} from '../common/MagmaAPI';
+import moment from 'moment';
 import Typography from '@material-ui/core/Typography';
 
 import {merge} from 'lodash-es';
@@ -77,7 +78,9 @@ class GatewaySummaryFields extends React.Component<Props, State> {
           </FormField>
           <FormField label="Hardware UUID">{gateway.hwid}</FormField>
           <FormField label="Gateway ID">{gateway.logicalID}</FormField>
-          <FormField label="Last Checkin">{gateway.lastCheckin}</FormField>
+          <FormField label="Last Checkin">
+            {moment(parseInt(gateway.lastCheckin, 10)).fromNow()}
+          </FormField>
           <FormField label="Version">{gateway.version}</FormField>
           <FormField label="VPN IP">{gateway.vpnIP}</FormField>
           <FormField label="RF Transmitter">
