@@ -103,7 +103,7 @@ class InOutController(MagmaController):
         # set traffic direction bits
         # set a direction bit for outgoing (pn -> inet) traffic.
         match = MagmaMatch(in_port=self.config.gtp_port)
-        actions = [load_direction(parser, Direction.IN)]
+        actions = [load_direction(parser, Direction.OUT)]
         flows.add_resubmit_next_service_flow(dp, tbl_num, match,
                                              actions=actions,
                                              priority=flows.DEFAULT_PRIORITY,
