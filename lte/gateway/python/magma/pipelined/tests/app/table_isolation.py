@@ -133,10 +133,10 @@ class RyuForwardFlowArgsBuilder():
         """
         self._ip = ip
         self._ulink_action = {"type": "SET_FIELD", "field": DIRECTION_REG,
-                              "value": Direction.OUT.value}
+                              "value": Direction.OUT}
 
         self._dlink_action = {"type": "SET_FIELD", "field": DIRECTION_REG,
-                              "value": Direction.IN.value}
+                              "value": Direction.IN}
         return self
 
     def _create_subscriber_ip_requests(self):

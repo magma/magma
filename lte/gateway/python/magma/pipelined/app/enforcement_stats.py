@@ -205,7 +205,7 @@ class EnforcementStatsController(MagmaController):
         record = current_usage[key]
         record.rule_id = rule_id
         record.sid = sid
-        if flow_stat.match[DIRECTION_REG] == Direction.IN.value:
+        if flow_stat.match[DIRECTION_REG] == Direction.IN:
             # HACK decrement byte count for downlink packets by the length
             # of an ethernet frame. Only IP and below should be counted towards
             # a user's data. Uplink does this already because the GTP port is

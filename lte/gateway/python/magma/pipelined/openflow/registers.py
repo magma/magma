@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-from enum import Enum
+from enum import IntEnum
 
 # Register names
 IMSI_REG = 'metadata'
@@ -17,7 +17,7 @@ SCRATCH_REGS = ['reg0']
 REG_ZERO_VAL = 0x0
 
 
-class Direction(Enum):
+class Direction(IntEnum):
     """
     Direction bits for direction reg
     """

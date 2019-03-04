@@ -132,9 +132,9 @@ class MeterStatsController(MagmaController):
 
         def get_direction(match):
             inout_bit = match.get(DIRECTION_REG)
-            if inout_bit == Direction.IN.value:
+            if inout_bit == Direction.IN:
                 return incoming
-            elif inout_bit == Direction.OUT.value:
+            elif inout_bit == Direction.OUT:
                 return outgoing
             else:
                 raise ValueError('No inout value found in match.')

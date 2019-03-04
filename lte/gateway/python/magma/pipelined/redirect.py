@@ -160,7 +160,7 @@ class RedirectionManager:
                         src=IPPROTO_TCP, dst=('ip_proto_nxm', 0), n_bits=8
                     ),
                     parser.NXFlowSpecMatch(
-                        src=Direction.IN.value,
+                        src=Direction.IN,
                         dst=(DIRECTION_REG, 0),
                         n_bits=32
                     ),
