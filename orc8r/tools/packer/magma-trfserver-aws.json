@@ -1,0 +1,57 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": ""
+  },
+  "builders": [{
+    "type": "amazon-ebs",
+    "access_key": "{{user `aws_access_key`}}",
+    "secret_key": "{{user `aws_secret_key`}}",
+    "region": "us-west-1",
+    "subnet_id" : "{{user `subnet`}}",
+    "vpc_id" : "{{user `vpc`}}",
+    "source_ami": "ami-0f0674cb683fcc1f7",
+    "instance_type": "t2.medium",
+    "ssh_username": "admin",
+    "ami_name": "magma-trfserver-debian"
+  }],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "scripts/provision-stretch.sh",
+      "execute_command": "sudo -S env {{.Vars}} {{.Path}}"
+    },
+    {
+      "type": "shell",
+      "inline": ["sudo reboot"],
+      "expect_disconnect": true
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'admin' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/setup.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'admin' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/ansible_debian.sh"
+    },
+    {
+      "type": "shell",
+      "script": "scripts/code_deploy.sh",
+      "execute_command": "sudo -S env {{.Vars}} {{.Path}}",
+      "pause_before": "10s"
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "../magma_trfserver.yml",
+      "inventory_groups": "trfserver",
+      "role_paths": [
+        "../roles/trfserver"
+      ],
+      "extra_arguments": [
+        "--extra-vars '{\"ansible_user\": \"admin\", \"preburn\": true, \"full_provision\": false}'"
+      ]
+    }
+  ]
+}

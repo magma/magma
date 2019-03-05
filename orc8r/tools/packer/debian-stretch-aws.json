@@ -1,0 +1,36 @@
+{
+    "variables": {
+        "aws_access_key": "",
+        "aws_secret_key": ""
+    },
+    "builders": [{
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key`}}",
+        "secret_key": "{{user `aws_secret_key`}}",
+        "region": "us-west-1",
+        "subnet_id" : "{{user `subnet`}}",
+        "vpc_id" : "{{user `vpc`}}",
+        "source_ami": "ami-0f0674cb683fcc1f7",
+        "instance_type": "t2.medium",
+        "ssh_username": "admin",
+        "ami_name": "magma-debian-stretch"
+    }],
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "scripts/provision-stretch.sh",
+            "execute_command": "sudo -S env {{.Vars}} {{.Path}}"
+        },
+        {
+            "type": "shell",
+            "inline": ["sudo reboot"],
+            "expect_disconnect": true
+        },
+        {
+            "type": "shell",
+            "script": "scripts/code_deploy.sh",
+            "execute_command": "sudo -S env {{.Vars}} {{.Path}}",
+            "pause_before": "10s"
+        }
+    ]
+}
