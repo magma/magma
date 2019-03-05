@@ -10,16 +10,14 @@ import importlib
 import logging
 
 import snowflake
-
 from magma.common.sdwatchdog import SDWatchdog
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
-    StreamedMconfigManager, get_mconfig_manager
+    get_mconfig_manager
 from magma.magmad.logging.systemd_tailer import start_systemd_tailer
-from magma.magmad.streaming_mconfig_callback import MCONFIG_VIEW_STREAM_NAME, \
-    StreamingMconfigCallback
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
+
 from .bootstrap_manager import BootstrapManager
 from .checkin_manager import CheckinManager
 from .config_manager import CONFIG_STREAM_NAME, ConfigManager
@@ -65,11 +63,6 @@ def main():
                     service,
                     MconfigManagerImpl(),
                 ),
-                MCONFIG_VIEW_STREAM_NAME: StreamingMconfigCallback(
-                    services, service_manager,
-                    service,
-                    StreamedMconfigManager(),
-                )
             },
             service.loop,
         )
