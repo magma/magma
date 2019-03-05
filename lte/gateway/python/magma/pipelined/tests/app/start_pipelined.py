@@ -71,6 +71,9 @@ class PipelinedController(Enum):
     AccessControl = Controller(
         'magma.pipelined.app.access_control', 'access_control'
     )
+    Subscriber = Controller(
+        'magma.pipelined.app.subscriber', 'subscriber'
+    )
 
 
 def assert_pipelined_not_running():

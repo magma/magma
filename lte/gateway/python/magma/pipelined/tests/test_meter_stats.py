@@ -14,6 +14,7 @@ from unittest.mock import MagicMock
 import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.meter import MeterController
+from magma.pipelined.app.meter_stats import UsageRecord
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -23,11 +24,10 @@ from magma.pipelined.tests.app.subscriber import SubContextConfig
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import create_service_manager, \
-    start_ryu_app_thread, stop_ryu_app_thread, wait_after_send
-from ryu.lib import hub
+    start_ryu_app_thread, stop_ryu_app_thread, wait_after_send, \
+    wait_for_meter_stats
 
 
-@unittest.skip("Temporarily disabled T33621957")
 class MeterStatsTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
@@ -60,7 +60,7 @@ class MeterStatsTest(unittest.TestCase):
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
-                'meter': {'poll_interval': -1, 'enabled': True},
+                'meter': {'poll_interval': 3, 'enabled': True},
             },
             mconfig={},
             loop=loop_mock,
@@ -117,35 +117,30 @@ class MeterStatsTest(unittest.TestCase):
             self._make_default_pkt('45.10.0.3', sub2.ip),
         ]
         pkt_size = len(packets[0])
+        # These packets are sent at the start to install the meter flows
+        initial_packets = [
+            self._make_default_pkt('45.10.0.2', sub1.ip),
+            self._make_default_pkt('45.10.0.3', sub2.ip),
+        ]
+
+        target_usage = {
+            # sub1: 2 uplink * 4 packets each = 8
+            #       1 downlink * 4 packets each = 4
+            sub1.imsi: _create_usage_record(8, 4, pkt_size),
+            # sub2: 1 uplink * 4 packets each = 4
+            sub2.imsi: _create_usage_record(4, 0, pkt_size),
+        }
 
         # Send packets through pipeline and wait
         with isolator1, isolator2:
+            for pkt in initial_packets:
+                pkt_sender.send(pkt, 1)
+            wait_after_send(self.testing_controller)
+
             for pkt in packets:
                 pkt_sender.send(pkt, pkt_count)
             wait_after_send(self.testing_controller)
-            hub.sleep(3)
-
-        # manually run stats update
-        for _, datapath in self.stats_controller.dpset.get_all():
-            self.stats_controller._poll_stats(datapath)
-
-        # retrieve the latest statistics
-        stats_queue = hub.Queue()
-
-        def mock_sync_stats(*args, **kwargs):
-            stats_queue.put(args[0])
-        self.stats_controller._sync_stats = MagicMock(
-            side_effect=mock_sync_stats,
-        )
-        stats_dict = stats_queue.get(block=True, timeout=5)
-
-        self.assertTrue(sub1.imsi in stats_dict)
-        self.assertTrue(sub2.imsi in stats_dict)
-        # sub1: 2 uplink * 4 packets each - 1 packet in = 3
-        #       1 downlink * 4 packets each - 1 packet in = 7
-        self._assert_stats_match(stats_dict[sub1.imsi], 7, 3, pkt_size)
-        # sub2: 1 uplink * 4 packets each - 1 packet in = 3
-        self._assert_stats_match(stats_dict[sub2.imsi], 3, 0, pkt_size)
+            wait_for_meter_stats(self.stats_controller, target_usage)
 
     def _make_default_pkt(self, dst, src):
         return IPPacketBuilder()\
@@ -153,11 +148,12 @@ class MeterStatsTest(unittest.TestCase):
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
 
-    def _assert_stats_match(self, stats, pkts_uplink, pkts_downlink, pkt_size):
-        self.assertEqual(stats.pkts_tx, pkts_uplink)
-        self.assertEqual(stats.pkts_rx, pkts_downlink)
-        self.assertEqual(stats.bytes_tx, pkts_uplink * pkt_size)
-        self.assertEqual(stats.bytes_rx, pkts_downlink * pkt_size)
+
+def _create_usage_record(pkts_uplink, pkts_downlink, pkt_size):
+    record = UsageRecord()
+    record.bytes_tx = pkts_uplink * pkt_size
+    record.bytes_rx = pkts_downlink * pkt_size
+    return record
 
 
 if __name__ == "__main__":

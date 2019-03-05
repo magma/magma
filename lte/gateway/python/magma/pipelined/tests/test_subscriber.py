@@ -1,5 +1,5 @@
 """
-Copyright (c) 2018-present, Facebook, Inc.
+Copyright (c) 2019-present, Facebook, Inc.
 All rights reserved.
 
 This source code is licensed under the BSD-style license found in the
@@ -8,323 +8,361 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import unittest
+import warnings
+from unittest.mock import MagicMock
 from concurrent.futures import Future
 
-import warnings
-from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
-from magma.pipelined.app.enforcement import EnforcementController
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import flow_match_to_magma_match
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
-    TCPPacketBuilder
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
+from magma.pipelined.app.meter_stats import UsageRecord
+from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
+from magma.pipelined.app.meter import MeterController
+from magma.pipelined.tests.app.start_pipelined import TestSetup,\
+    PipelinedController
+from magma.pipelined.tests.app.subscriber import SubContextConfig
+from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator,\
     RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
-    PktsToSend, SubTest, create_service_manager, start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send
+from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
+from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
+    stop_ryu_app_thread, wait_after_send, create_service_manager, FlowTest, \
+    FlowVerifier, wait_for_meter_stats
+from lte.protos.mobilityd_pb2 import SubscriberIPTable, SubscriberIPTableEntry
+from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from lte.protos.subscriberdb_pb2 import SubscriberID
 
 
-class EnforcementTableTest(unittest.TestCase):
+class SubscriberTest(unittest.TestCase):
     BRIDGE = 'testing_br'
-    IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
 
-    @classmethod
-    def setUpClass(cls):
-        """
-        Starts the thread which launches ryu apps
-
-        Create a testing bridge, add a port, setup the port interfaces. Then
-        launch the ryu apps for testing pipelined. Gets the references
-        to apps launched by using futures, mocks the redis policy_dictionary
-        of enforcement_controller
-        """
-        super(EnforcementTableTest, cls).setUpClass()
+    def setUp(self):
+        super(SubscriberTest, self).setUp()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
-        service_manager = create_service_manager([PipelineD.ENFORCEMENT])
-        cls._tbl_num = service_manager.get_table_num(
-            EnforcementController.APP_NAME)
+        service_manager = create_service_manager([PipelineD.METERING])
+        self._tbl_num = service_manager.get_table_num(MeterController.APP_NAME)
 
-        enforcement_controller_reference = Future()
+        meter_ref = Future()
         testing_controller_reference = Future()
+        meter_stat_ref = Future()
+        subscriber_ref = Future()
+
+        def mock_thread_safe(cmd, body):
+            cmd(body)
+
+        loop_mock = MagicMock()
+        loop_mock.call_soon_threadsafe = mock_thread_safe
+
         test_setup = TestSetup(
-            apps=[PipelinedController.Enforcement,
-                  PipelinedController.Testing],
+            apps=[
+                PipelinedController.Meter,
+                PipelinedController.Testing,
+                PipelinedController.MeterStats,
+                PipelinedController.Subscriber,
+            ],
             references={
-                PipelinedController.Enforcement:
-                    enforcement_controller_reference,
-                PipelinedController.Testing:
-                    testing_controller_reference
+                PipelinedController.Meter: meter_ref,
+                PipelinedController.Testing: testing_controller_reference,
+                PipelinedController.MeterStats: meter_stat_ref,
+                PipelinedController.Subscriber: subscriber_ref,
             },
             config={
-                'bridge_name': cls.BRIDGE,
+                'bridge_name': self.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
-                'nat_iface': 'eth2',
-                'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False
+                'meter': {'poll_interval': -1,
+                          'enabled': True},
+                'subscriber': {'enabled': True, 'poll_interval': -1},
             },
-            mconfig=None,
-            loop=None,
+            mconfig={},
+            loop=loop_mock,
             service_manager=service_manager,
-            integ_test=False
+            integ_test=False,
+            rpc_stubs={
+                'metering_cloud': MagicMock(),
+                'mobilityd': MagicMock(),
+            }
         )
+        BridgeTools.create_bridge(self.BRIDGE, self.BRIDGE)
 
-        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        self.thread = start_ryu_app_thread(test_setup)
 
-        cls.thread = start_ryu_app_thread(test_setup)
+        self.meter_controller = meter_ref.result()
+        self.stats_controller = meter_stat_ref.result()
+        self.testing_controller = testing_controller_reference.result()
+        self.subscriber_controller = subscriber_ref.result()
 
-        cls.enforcement_controller = enforcement_controller_reference.result()
-        cls.testing_controller = testing_controller_reference.result()
+        self.stats_controller._sync_stats = MagicMock()
+        self.subscriber_controller._poll_subscriber_list = MagicMock()
 
-        cls.enforcement_controller._policy_dict = cls._static_rule_dict
+    def tearDown(self):
+        stop_ryu_app_thread(self.thread)
+        BridgeTools.destroy_bridge(self.BRIDGE)
 
-    @classmethod
-    def tearDownClass(cls):
-        stop_ryu_app_thread(cls.thread)
-        BridgeTools.destroy_bridge(cls.BRIDGE)
-
-    def test_subscriber_policy(self):
+    def test_process_deleted_subscriber(self):
         """
-        Add policy to subscriber, send 4096 packets
+        With usage polling off, send packets to install metering flows and
+        delete one of them by removing the subscriber from the subscriber ip
+        table.
 
-        Assert:
-            Packets are properly matched with the 'simple_match' policy
-            Send /20 (4096) packets, match /16 (256) packets
+        Verifies that the metering flows for the subscriber is deleted when the
+        subscriber is deleted.
         """
-        imsi = 'IMSI010000000088888'
-        sub_ip = '192.168.128.74'
-        flow_list1 = [FlowDescription(
-            match=FlowMatch(
-                ipv4_dst='45.10.0.0/24', direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
-        ]
-        policies = [
-            PolicyRule(id='simple_match', priority=2, flow_list=flow_list1)
-        ]
-        pkts_matched = 256
-        pkts_sent = 4096
+        # Set up subscribers
+        sub1 = SubContextConfig('IMSI001010000000013', '192.168.128.74',
+                                self._tbl_num)
+        sub2 = SubContextConfig('IMSI001010000000014', '192.168.128.75',
+                                self._tbl_num)
 
-        self._static_rule_dict[policies[0].id] = policies[0]
-
-        # ============================ Subscriber ============================
-        sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_static_rule(policies[0].id)
-        isolator = RyuDirectTableIsolator(
-            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
-                                     .build_requests(),
-            self.testing_controller
-        )
-        pkt_sender = ScapyPacketInjector(self.IFACE)
-        packet = IPPacketBuilder()\
-            .set_ip_layer('45.10.0.0/20', sub_ip)\
-            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
-            .build()
-        flow_query = FlowQuery(
-            self._tbl_num, self.testing_controller,
-            match=flow_match_to_magma_match(flow_list1[0].match)
-        )
-
-        # =========================== Verification ===========================
-        # Verify aggregate table stats, subscriber 1 'simple_match' pkt count
-        flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._tbl_num, self.testing_controller),
-                     pkts_sent),
-            FlowTest(flow_query, pkts_matched)
-        ], lambda: wait_after_send(self.testing_controller))
-
-        with isolator, sub_context, flow_verifier:
-            pkt_sender.send(packet)
-
-        flow_verifier.verify()
-
-    def test_invalid_subscriber(self):
-        """
-        Try to apply an invalid policy to a subscriber, should log and error
-
-        Assert:
-            Only 1 flow gets added to the table (drop flow)
-        """
-        imsi = 'IMSI000000000000001'
-        sub_ip = '192.168.128.45'
-        flow_list = [FlowDescription(
-            match=FlowMatch(ipv4_src='9999.0.0.0/24'),
-            action=FlowDescription.DENY
-        )]
-        policy = PolicyRule(id='invalid', priority=2, flow_list=flow_list)
-        invalid_sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
-            self._tbl_num).add_dynamic_rule(policy)
-        isolator = RyuDirectTableIsolator(
-            RyuForwardFlowArgsBuilder.from_subscriber(invalid_sub_context.cfg)
-                                     .build_requests(),
-            self.testing_controller
-        )
-        flow_query = FlowQuery(self._tbl_num, self.testing_controller)
-        num_flows_start = len(flow_query.lookup())
-
-        with isolator, invalid_sub_context:
-            wait_after_send(self.testing_controller)
-            num_flows_final = len(flow_query.lookup())
-
-        self.assertEqual(num_flows_final - num_flows_start, 1)
-
-    def test_subscriber_two_policies(self):
-        """
-        Add 2 policies to subscriber
-
-        Assert:
-            Packets are properly matched with the 'match' policy
-            The total packet delta in the table is from the above match
-        """
-        imsi = 'IMSI208950000000001'
-        sub_ip = '192.168.128.74'
-        flow_list1 = [FlowDescription(
-            match=FlowMatch(
-                ipv4_src='15.0.0.0/24', direction=FlowMatch.DOWNLINK),
-            action=FlowDescription.DENY)
-        ]
-        flow_list2 = [FlowDescription(
-            match=FlowMatch(ip_proto=6, direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
-        ]
-        policies = [
-            PolicyRule(id='match', priority=2, flow_list=flow_list1),
-            PolicyRule(id='no_match', priority=2, flow_list=flow_list2)
-        ]
-        pkts_sent = 42
-
-        self._static_rule_dict[policies[0].id] = policies[0]
-        self._static_rule_dict[policies[1].id] = policies[1]
-
-        # ============================ Subscriber ============================
-        sub_context = RyuDirectSubscriberContext(imsi, sub_ip,
-                                                 self.enforcement_controller,
-                                                 self._tbl_num) \
-            .add_static_rule(policies[0].id)\
-            .add_static_rule(policies[1].id)
-        isolator = RyuDirectTableIsolator(
-            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
-                                     .build_requests(),
-            self.testing_controller
-        )
-        pkt_sender = ScapyPacketInjector(self.IFACE)
-        packet = IPPacketBuilder()\
-            .set_ip_layer(sub_ip, '15.0.0.8')\
-            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
-            .build()
-        flow_query = FlowQuery(
-            self._tbl_num, self.testing_controller,
-            match=flow_match_to_magma_match(flow_list1[0].match)
-        )
-
-        # =========================== Verification ===========================
-        # Verify aggregate table stats, subscriber 1 'match' rule pkt count
-        flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._tbl_num, self.testing_controller),
-                     pkts_sent),
-            FlowTest(flow_query, pkts_sent)
-        ], lambda: wait_after_send(self.testing_controller))
-
-        with isolator, sub_context, flow_verifier:
-            pkt_sender.send(packet, pkts_sent)
-
-        flow_verifier.verify()
-
-    def test_two_subscribers(self):
-        """
-        Add 2 subscribers at the same time
-
-        Assert:
-            For subcriber1 the packets are matched to the proper policy
-            For subcriber2 the packets are matched to the proper policy
-            The total packet delta in the table is from the above matches
-        """
-        pkt_sender = ScapyPacketInjector(self.IFACE)
-        ip_match = [FlowDescription(
-            match=FlowMatch(ipv4_src='8.8.8.0/24', direction=1),
-            action=1)
-        ]
-        tcp_match = [FlowDescription(
-            match=FlowMatch(ip_proto=6, direction=FlowMatch.DOWNLINK),
-            action=FlowDescription.DENY)
-        ]
-
-        self._static_rule_dict['t'] = PolicyRule(id='t', priority=2,
-                                                 flow_list=ip_match)
-
-        # =========================== Subscriber 1 ===========================
-        sub_context1 = RyuDirectSubscriberContext(
-            'IMSI208950001111111', '192.168.128.5',
-            self.enforcement_controller, self._tbl_num
-        ).add_static_rule('t')
         isolator1 = RyuDirectTableIsolator(
-            RyuForwardFlowArgsBuilder.from_subscriber(sub_context1.cfg)
-                                     .build_requests(),
-            self.testing_controller
-        )
-        packet_ip = IPPacketBuilder()\
-            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
-            .set_ip_layer(sub_context1.cfg.ip, '8.8.8.8')\
-            .build()
-        s1_pkts_sent = 29
-        pkts_to_send = [PktsToSend(packet_ip, s1_pkts_sent)]
-        flow_query1 = FlowQuery(
-            self._tbl_num, self.testing_controller,
-            match=flow_match_to_magma_match(ip_match[0].match)
-        )
-        s1 = SubTest(
-            sub_context1, isolator1, FlowTest(flow_query1, s1_pkts_sent)
-        )
-
-        # =========================== Subscriber 2 ===========================
-        sub_context2 = RyuDirectSubscriberContext(
-            'IMSI911500451242001', '192.168.128.100',
-            self.enforcement_controller, self._tbl_num
-        ).add_dynamic_rule(
-            PolicyRule(id='qqq', priority=2, flow_list=tcp_match)
+            RyuForwardFlowArgsBuilder.from_subscriber(sub1).build_requests(),
+            self.testing_controller,
         )
         isolator2 = RyuDirectTableIsolator(
-            RyuForwardFlowArgsBuilder.from_subscriber(sub_context2.cfg)
-                                     .build_requests(),
-            self.testing_controller
+            RyuForwardFlowArgsBuilder.from_subscriber(sub2).build_requests(),
+            self.testing_controller,
         )
-        packet_tcp = TCPPacketBuilder()\
-            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
-            .set_ip_layer(sub_context2.cfg.ip, '15.0.0.8')\
-            .build()
-        s2_pkts_sent = 18
-        pkts_to_send.append(PktsToSend(packet_tcp, s2_pkts_sent))
-        flow_query2 = FlowQuery(
+
+        # Set up packets
+        pkt_sender = ScapyPacketInjector(self.BRIDGE)
+        packets = [
+            _make_default_pkt(self.MAC_DEST, '45.10.0.1', sub1.ip),
+            _make_default_pkt(self.MAC_DEST, '45.10.0.3', sub2.ip),
+        ]
+
+        # Initialize subscriber list in subscriber controller.
+        subscriber_ip_table = SubscriberIPTable()
+        subscriber_ip_table.entries.extend([
+            SubscriberIPTableEntry(sid=SubscriberID(id='IMSI001010000000013')),
+            SubscriberIPTableEntry(sid=SubscriberID(id='IMSI001010000000014')),
+        ])
+        fut = Future()
+        fut.set_result(subscriber_ip_table)
+        self.subscriber_controller._poll_subscriber_list_done(fut)
+
+        # Verify that after the poll, subscriber 2 flows are deleted while
+        # subscriber 1 flows remain.
+        sub1_query = RyuDirectFlowQuery(
             self._tbl_num, self.testing_controller,
-            match=flow_match_to_magma_match(tcp_match[0].match)
-        )
-        s2 = SubTest(
-            sub_context2, isolator2, FlowTest(flow_query2, s2_pkts_sent)
-        )
-
-        # =========================== Verification ===========================
-        # Verify aggregate table stats, subscriber 1 & 2 flows packet matches
-        pkts = s1_pkts_sent + s2_pkts_sent
+            match=MagmaMatch(imsi=encode_imsi('IMSI001010000000013')))
+        sub2_query = RyuDirectFlowQuery(
+            self._tbl_num, self.testing_controller,
+            match=MagmaMatch(imsi=encode_imsi('IMSI001010000000014')))
         flow_verifier = FlowVerifier([
-            FlowTest(FlowQuery(self._tbl_num, self.testing_controller), pkts),
-            s1.flowtest_list,
-            s2.flowtest_list
-        ], lambda: wait_after_send(self.testing_controller))
+            FlowTest(sub1_query, 0, 2),
+            FlowTest(sub2_query, 0, 0),
+        ], lambda: None)
 
-        with s1.isolator, s1.context, s2.isolator, s2.context, flow_verifier:
-            for pkt in pkts_to_send:
-                pkt_sender.send(pkt.pkt, pkt.num)
+        # Send packets through pipeline and wait.
+        with isolator1, isolator2, flow_verifier:
+            # Send packets to create the metering flows. Note that these
+            # packets will not be matched because the test setup does not
+            # support outputting to port.
+            for pkt in packets:
+                pkt_sender.send(pkt)
+            wait_after_send(self.testing_controller)
+
+            # Update the subscriber list to delete subscriber 2.
+            subscriber_ip_table = SubscriberIPTable()
+            subscriber_ip_table.entries.extend([
+                SubscriberIPTableEntry(
+                    sid=SubscriberID(id='IMSI001010000000013')),
+            ])
+            fut = Future()
+            fut.set_result(subscriber_ip_table)
+            self.subscriber_controller._poll_subscriber_list_done(fut)
 
         flow_verifier.verify()
+
+
+class SubscriberWithPollingTest(unittest.TestCase):
+    BRIDGE = 'testing_br'
+    MAC_DEST = "5e:cc:cc:b1:49:4b"
+
+    def setUp(self):
+        super(SubscriberWithPollingTest, self).setUp()
+        warnings.simplefilter('ignore')
+        service_manager = create_service_manager([PipelineD.METERING])
+        self._tbl_num = service_manager.get_table_num(MeterController.APP_NAME)
+
+        meter_ref = Future()
+        testing_controller_reference = Future()
+        meter_stat_ref = Future()
+        subscriber_ref = Future()
+
+        def mock_thread_safe(cmd, body):
+            cmd(body)
+
+        loop_mock = MagicMock()
+        loop_mock.call_soon_threadsafe = mock_thread_safe
+
+        test_setup = TestSetup(
+            apps=[
+                PipelinedController.Meter,
+                PipelinedController.Testing,
+                PipelinedController.MeterStats,
+                PipelinedController.Subscriber,
+            ],
+            references={
+                PipelinedController.Meter: meter_ref,
+                PipelinedController.Testing: testing_controller_reference,
+                PipelinedController.MeterStats: meter_stat_ref,
+                PipelinedController.Subscriber: subscriber_ref,
+            },
+            config={
+                'bridge_name': self.BRIDGE,
+                'bridge_ip_address': '192.168.128.1',
+                'meter': {'poll_interval': 5,
+                          'enabled': True},
+                'subscriber': {'enabled': True, 'poll_interval': -1},
+            },
+            mconfig={},
+            loop=loop_mock,
+            service_manager=service_manager,
+            integ_test=False,
+            rpc_stubs={
+                'metering_cloud': MagicMock(),
+                'mobilityd': MagicMock(),
+            }
+        )
+        BridgeTools.create_bridge(self.BRIDGE, self.BRIDGE)
+
+        self.thread = start_ryu_app_thread(test_setup)
+
+        self.meter_controller = meter_ref.result()
+        self.stats_controller = meter_stat_ref.result()
+        self.testing_controller = testing_controller_reference.result()
+        self.subscriber_controller = subscriber_ref.result()
+
+        # Mock out poll stats so we have more control over when the poll
+        # happens.
+        self.real_poll_stats = self.stats_controller._poll_stats
+        self.stats_controller._poll_stats = MagicMock()
+        self.stats_controller._sync_stats = MagicMock()
+        self.subscriber_controller._poll_subscriber_list = MagicMock()
+
+    def tearDown(self):
+        stop_ryu_app_thread(self.thread)
+        BridgeTools.destroy_bridge(self.BRIDGE)
+
+    def _poll_stats(self):
+        for _, datapath in self.stats_controller.dpset.get_all():
+            self.real_poll_stats(datapath)
+
+    def test_process_deleted_subscriber(self):
+        """
+        With usage polling on, send packets to install metering flows and
+        delete one of them by removing the subscriber from the subscriber ip
+        table.
+
+        Verifies that the metering flows for the subscriber is deleted after
+        the correct usage is reported.
+        """
+        # Set up subscribers
+        sub1 = SubContextConfig('IMSI001010000000013', '192.168.128.74',
+                                self._tbl_num)
+        sub2 = SubContextConfig('IMSI001010000000014', '192.168.128.75',
+                                self._tbl_num)
+
+        isolator1 = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub1).build_requests(),
+            self.testing_controller,
+        )
+        isolator2 = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub2).build_requests(),
+            self.testing_controller,
+        )
+
+        # Set up packets
+        pkt_sender = ScapyPacketInjector(self.BRIDGE)
+        packets = [
+            _make_default_pkt(self.MAC_DEST, '45.10.0.1', sub1.ip),
+            _make_default_pkt(self.MAC_DEST, '45.10.0.3', sub2.ip),
+        ]
+
+        # Initialize subscriber list in subscriber controller.
+        subscriber_ip_table = SubscriberIPTable()
+        subscriber_ip_table.entries.extend([
+            SubscriberIPTableEntry(sid=SubscriberID(id='IMSI001010000000013')),
+            SubscriberIPTableEntry(sid=SubscriberID(id='IMSI001010000000014')),
+        ])
+        fut = Future()
+        fut.set_result(subscriber_ip_table)
+        self.subscriber_controller._poll_subscriber_list_done(fut)
+
+        # Verify that after the poll, flows for subscriber 1 and 2 are
+        # installed and the second pair of packets sent are matched.
+        sub1_query = RyuDirectFlowQuery(
+            self._tbl_num, self.testing_controller,
+            match=MagmaMatch(imsi=encode_imsi('IMSI001010000000013')))
+        sub2_query = RyuDirectFlowQuery(
+            self._tbl_num, self.testing_controller,
+            match=MagmaMatch(imsi=encode_imsi('IMSI001010000000014')))
+        flow_verifier = FlowVerifier([
+            FlowTest(sub1_query, 1, 2),
+            FlowTest(sub2_query, 1, 2),
+        ], lambda: None)
+
+        # Send packets through pipeline and wait.
+        with isolator1, isolator2, flow_verifier:
+            # Send packets to create the metering flows. Note that these
+            # packets will not be matched because the test setup does not
+            # support outputting to port.
+            for pkt in packets:
+                pkt_sender.send(pkt)
+            wait_after_send(self.testing_controller)
+
+            # Update the subscriber list to delete subscriber 2.
+            subscriber_ip_table = SubscriberIPTable()
+            subscriber_ip_table.entries.extend([
+                SubscriberIPTableEntry(
+                    sid=SubscriberID(id='IMSI001010000000013')),
+            ])
+            fut = Future()
+            fut.set_result(subscriber_ip_table)
+            self.subscriber_controller._poll_subscriber_list_done(fut)
+
+            # Send another pair of packets which will be matched.
+            for pkt in packets:
+                pkt_sender.send(pkt)
+            wait_after_send(self.testing_controller)
+
+            # Temporarily mock out _handle_flow_stats because flow_verifier
+            # sends a stats request to the meter table, which will trigger
+            # the deletion prematurely.
+            handle_flow_stats = self.subscriber_controller._handle_flow_stats
+            self.subscriber_controller._handle_flow_stats = MagicMock()
+
+        flow_verifier.verify()
+        self.subscriber_controller._handle_flow_stats = handle_flow_stats
+
+        # Verify that after the usage is reported, the flows for subscriber 2
+        # are deleted.
+        sub1_record = UsageRecord()
+        sub1_record.bytes_tx = len(packets[0])
+        sub2_record = UsageRecord()
+        sub2_record.bytes_tx = len(packets[1])
+        target_usage = {
+            'IMSI001010000000013': sub1_record,
+            'IMSI001010000000014': sub2_record,
+        }
+
+        flow_verifier = FlowVerifier([
+            FlowTest(sub1_query, 0, 2),
+            FlowTest(sub2_query, 0, 0),
+        ], lambda: wait_for_meter_stats(self.stats_controller, target_usage))
+
+        with flow_verifier:
+            self._poll_stats()
+
+        flow_verifier.verify()
+
+
+def _make_default_pkt(mac_dest, dst, src):
+    return IPPacketBuilder() \
+        .set_ip_layer(dst, src) \
+        .set_ether_layer(mac_dest, "00:00:00:00:00:00") \
+        .build()
 
 
 if __name__ == "__main__":
