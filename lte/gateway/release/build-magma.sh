@@ -140,7 +140,8 @@ PY_VERSION=python3.5
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/
-PY_ROOT=${MAGMA_ROOT}/lte/gateway/python
+PY_LTE=${MAGMA_ROOT}/lte/gateway/python
+PY_ORC8R=${MAGMA_ROOT}/orc8r/gateway/python
 PY_TMP_BUILD=/tmp/build-${PKGNAME}
 PY_TMP_BUILD_SUFFIX=/usr/lib/python3/${PY_PKG_LOC}
 
@@ -202,19 +203,22 @@ if [ -d ${PY_TMP_BUILD} ]; then
     rm -r ${PY_TMP_BUILD}
 fi
 
-## first do python protos
-cd ${PY_ROOT}
-make protos
+FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
 
-# now build the magma python package.
+# first do python protos and then build the python packages.
 # library will be dropped in $PY_TMP_BUILD/usr/lib/python3/dist-packages
 # scripts will be dropped in $PY_TMP_BUILD/usr/bin.
-cd ${PY_ROOT}
-FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
+# Use pydep to generate the lockfile and python deps
+cd ${PY_ORC8R}
+make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
-
-# Use pydep to generate the lockfile and python deps
+${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
+PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+cd ${PY_LTE}
+make protos
+PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
+    --no-compile --single-version-externally-managed
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
 PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
 
