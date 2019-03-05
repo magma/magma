@@ -689,7 +689,26 @@ int emm_proc_attach_complete(
        * Forward the Activate Default EPS Bearer Context Accept message
        * to the EPS session management sublayer
        */
-      esm_sap.primitive = ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_CNF;
+      /*currently by default Activate Default Bearer Context Accept message was sent in Attach complete
+       * Now, modified the code to send the message received in Uplink/esmContainer.
+       * third byte of esm message container is a message_type*/
+      switch (esm_msg_pP->data[2]) {
+      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
+        esm_sap.primitive = ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_CNF;
+	break;
+      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
+        esm_sap.primitive = ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REJ;
+	break;
+      case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
+	esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_CNF;
+	break;
+      case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT:
+	esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REJ;
+	break;
+      default:
+	OAILOG_ERROR (LOG_NAS_EMM, "Invalid ESM Message type, value = [%x] \n", esm_msg_pP->data[2]);
+	break;
+      }
       esm_sap.is_standalone = false;
       esm_sap.ue_id = ue_id;
       esm_sap.recv = esm_msg_pP;
