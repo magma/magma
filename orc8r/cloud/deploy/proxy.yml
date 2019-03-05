@@ -14,5 +14,6 @@
 
   roles:
     - { role: pkgrepo, vars: { distribution: "xenial" } }
+    - { role: service_registry}
     - { role: proxy }
     - { role: disk_metrics }

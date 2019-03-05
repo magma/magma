@@ -42,6 +42,7 @@
     - { role: pkgrepo, vars: { distribution: "xenial" } }
     - { role: modules }
     - { role: dev }
+    - { role: service_registry}
     - { role: golang }
     - { role: proxy }
     - { role: controller }

@@ -11,4 +11,5 @@
     full_provision: true
 
   roles:
+    - { role: service_registry}
     - { role: controller }
