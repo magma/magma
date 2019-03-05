@@ -22,6 +22,8 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	orcprotos "magma/orc8r/cloud/go/protos"
 
+	_ "magma/feg/cloud/go/protos" // make sure it only builds for now, to be used later
+
 	"golang.org/x/net/context"
 )
 
