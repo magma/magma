@@ -21,8 +21,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - debian/contrib-jessie64
     # - linux kernel from debian jessie backports
     # - updated vbguest-tool
-    magma.vm.box = "amarpad/magma_dev"
+    magma.vm.box = "fbcmagma/magma_dev"
     magma.vm.hostname = "magma-dev"
+    magma.vm.box_version = "1.0.1551230072"
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
@@ -47,8 +48,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
-    magma_trfserver.vm.box = "amarpad/magma_trfserver"
+    magma_trfserver.vm.box = "fbcmagma/magma_trfserver"
     magma_trfserver.vm.hostname = "magma-trfserver"
+    magma_trfserver.vm.box_version = "1.0.1551294676"
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
@@ -77,8 +79,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :magma_test, autostart: false do |magma_test|
     # Get our prepackaged box from the atlas cloud
-    magma_test.vm.box = "amarpad/magma_test"
+    magma_test.vm.box = "fbcmagma/magma_test"
     magma_test.vm.hostname = "magma-test"
+    magma_test.vm.box_version = "1.0.1551391604"
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_test.vm.network "private_network", ip: "192.168.60.141", nic_type: "82540EM"
@@ -110,7 +113,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - ubuntu/xenial64
     # - linux kernel from debian jessie backports
     # - updated vbguest-tool
-    magma_oai.vm.box = "amarpad/ubuntu"
+    magma_oai.vm.box = "fbcmagma/ubuntu"
     magma_oai.vm.box_version = "1.3"
     magma_oai.vm.hostname = "magma-oai"
     # Create a private network, which allows host-only access to the machine

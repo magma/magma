@@ -22,6 +22,7 @@
     path: "{{ gobin }}/services"
     state: directory
     owner: "{{ user }}"
+  when: full_provision
 
 - name: Create the $GOBIN/tools directory
   file:
@@ -29,12 +30,20 @@
     state: directory
     owner: "{{ user }}"
 
+- name: Create bin directory in var/opt
+  file:
+    path: /var/opt/magma/bin
+    state: directory
+    owner: "{{ user }}"
+  when: full_provision
+
 - name: Create a symlink for $GOBIN
   file:
     src: "{{ gobin }}"
     path: /var/opt/magma/bin
     state: link
     force: yes
+  when: full_provision
 
 - name: Create a symlink for the envdir
   file:
@@ -42,6 +51,7 @@
     path: /var/opt/magma/envdir
     state: link
     force: yes
+  when: full_provision
 
 #################################
 # Copy service files for mock cores

@@ -1,10 +1,10 @@
+#!/usr/bin/env bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 #
-#!/usr/bin/env bash
 # Building library, generator and tests
 for TARGET_DIR in TestCntlrApp Trfgen TestCntlrStub; do
    BUILD_DIR=$S1AP_SRC/$TARGET_DIR/build

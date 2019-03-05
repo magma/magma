@@ -131,10 +131,13 @@
 
 - name: Build swagger code-gen
   become: yes
-  no_log: True
+#  no_log: True
   command: "/home/{{ ansible_user }}/build_swagger_codegen.sh"
   args:
     creates: "{{ swagger_codegen_jar }}"
+  environment:
+    M2_HOME: "{{ mvn_dir }}"
+    CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
 
 - name: Check whether swagger.yml exists

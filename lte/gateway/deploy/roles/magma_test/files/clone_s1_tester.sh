@@ -1,10 +1,10 @@
+#!/usr/bin/env bash
 # Copyright (c) Facebook, Inc. and its affiliates.
 # All rights reserved.
 #
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 #
-#!/usr/bin/env bash
 if ! ssh-add -L | grep 'mai-s1aptester' &> /dev/null; then
    echo "ssh-agent does not hold the 'mai-s1aptester' key."
    tput setaf 1; echo "Please fix by running \`ssh-add mai-s1aptester\` on your host, and provision again."
