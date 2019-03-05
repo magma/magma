@@ -114,7 +114,16 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
   itti_msg->subscription_data.subscriber_status = SS_SERVICE_GRANTED;
   itti_msg->subscription_data.access_restriction =
     ARD_HO_TO_NON_3GPP_NOT_ALLOWED;
-  itti_msg->subscription_data.access_mode = NAM_ONLY_PACKET;
+
+  if (msg.network_access_mode()
+      == UpdateLocationAnswer_NetworkAccessMode_PACKET_AND_CIRCUIT) {
+    itti_msg->subscription_data.access_mode = NAM_PACKET_AND_CIRCUIT;
+  } else if (msg.network_access_mode()
+      == UpdateLocationAnswer_NetworkAccessMode_RESERVED) {
+    itti_msg->subscription_data.access_mode = NAM_RESERVED;
+  } else {
+    itti_msg->subscription_data.access_mode = NAM_ONLY_PACKET;
+  }
 
 #define SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL 10
   itti_msg->subscription_data.rau_tau_timer =

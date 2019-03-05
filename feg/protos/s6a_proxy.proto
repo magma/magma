@@ -131,6 +131,15 @@ message UpdateLocationAnswer {
 
     bytes msisdn = 7;
 
+    // Network Access Mode AVP (Section 7.3.21)
+    enum NetworkAccessMode {
+        PACKET_AND_CIRCUIT = 0;
+        RESERVED = 1;
+        ONLY_PACKET = 2;
+    }
+
+    NetworkAccessMode network_access_mode = 8;
+
     message APNConfiguration {
         // APN identifier
         uint32 context_id = 1;
