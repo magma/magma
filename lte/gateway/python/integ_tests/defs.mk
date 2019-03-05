@@ -30,9 +30,9 @@ s1aptests/test_attach_ipv4v6_pdn_type.py \
 s1aptests/test_service_info.py \
 s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \
-s1aptests/test_standalone_pdn_conn_req.py
-#s1aptests/test_attach_ul_udp_data.py \
-#s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_standalone_pdn_conn_req.py \
+s1aptests/test_attach_ul_udp_data.py \
+s1aptests/test_attach_ul_tcp_data.py
 
 # TODO Disabled because MME wont run without UEs in HSS
 #s1aptests/test_attach_missing_imsi.py \
