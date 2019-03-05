@@ -20,33 +20,6 @@
       - postgresql-{{ postgresql_version }}
       - postgresql-server-dev-{{ postgresql_version }}
       - python-psycopg2
-      - gcc
-      - make
-      - git
-  when: preburn
-
-- name: Clone wal2json plugin
-  git:
-    repo: https://github.com/eulerto/wal2json.git
-    dest: "/home/{{ user }}/wal2json"
-  when: preburn
-
-- name: Build wal2json plugin
-  become: yes
-  environment:
-    USE_PGXS: 1
-  command: ' make'
-  args:
-    chdir: '/home/{{ user }}/wal2json'
-  when: preburn
-
-- name: Install wal2json plugin
-  become: yes
-  environment:
-    USE_PGXS: 1
-  command: 'make install'
-  args:
-    chdir: '/home/{{ user }}/wal2json'
   when: preburn
 
 - name: Add DB
@@ -83,16 +56,6 @@
       line: 'local replication {{ db_user }} trust'
     - regexp: 'host replication {{ db_user }} 127\.0\.0\.1/32 trust'
       line: 'host replication {{ db_user }} 127.0.0.1/32 trust'
-    - regexp: 'host replication {{ db_user }} 192\.168\.80\.30/32 trust'
-      line: 'host replication {{ db_user }} 192.168.80.30/32 trust'
-    - regexp: 'host all {{ db_user }} 192\.168\.80\.30/32 trust'
-      line: 'host all {{ db_user }} 192.168.80.30/32 trust'
-  when: preburn
-
-- name: Copy over Postgres configuration for Kafka Connect plugin
-  copy:
-    src: kafka_confs.conf
-    dest: '/etc/postgresql/{{ postgresql_version }}/main/conf.d/kafka_confs.conf'
   when: preburn
 
 - name: Restart Postgres

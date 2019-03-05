@@ -72,19 +72,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
-  config.vm.define :kafka, autostart: false do |kafka|
-    kafka.vm.hostname = "magma-kafka"
-    kafka.vm.network "private_network", ip: "192.168.80.30"
-    kafka.vm.provision "ansible" do |ansible|
-        ansible.playbook = "deploy/kafka.dev.yml"
-        ansible.verbose = true
-    end
-    kafka.vm.provider "virtualbox" do |v|
-      v.memory = 2048
-      v.cpus = 1
-    end
-  end
-
   config.vm.define :ocs, autostart: false do |ocs|
     ocs.vm.hostname = "magma-ocs"
     ocs.vm.network "private_network", ip: "192.168.80.40"

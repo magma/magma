@@ -5,11 +5,9 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-# Install librdkafka and some other preinstall dependencies
-wget -qO - https://packages.confluent.io/deb/5.1/archive.key | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://packages.confluent.io/deb/5.1 stable main"
+# Install some preinstall dependencies
 sudo apt-get update -qq
-sudo apt-get install -y librdkafka-dev librdkafka1 bzr parallel build-essential unzip default-jre
+sudo apt-get install -y bzr parallel build-essential unzip default-jre
 
 # Install protobuf compiler
 sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
