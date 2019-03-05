@@ -77,6 +77,7 @@ def package(service, cloud_host=None, vcs="hg", force=False):
         run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
         run('cp -pr roles/aws_setup %s/ansible/roles/.' % folder)
         run('cp -pr roles/osquery %s/ansible/roles/.' % folder)
+        run('cp -pr roles/service_registry %s/ansible/roles/.' % folder)
 
         if service == "controller":
             run('cp -pr /etc/magma %s/configs' % folder)
