@@ -6,34 +6,8 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-- name: Install prerequisites for building librdkafka
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-      - build-essential
-      - zlib1g-dev
-      - libssl-dev
-      - gcc
-      - make
-      - pkg-config
-  when: preburn
-
 - name: Create archives directory
   file: path=/var/opt/magma/archives state=directory
-  when: preburn
-
-- name: Clone librdkafka
-  git:
-    repo: https://github.com/edenhill/librdkafka.git
-    version: '{{ librdkafka_version }}'
-    dest: '/var/opt/magma/archives/librdkafka'
-    force: true
-  when: preburn
-
-- name: Install librdkafka
-  become: yes
-  shell: './configure && make && make install && ldconfig'
-  args:
-    chdir: '/var/opt/magma/archives/librdkafka'
   when: preburn
 
 - name: Copy magma service unit file

@@ -94,7 +94,6 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 const (
 	ProfileNameController = "controller"
 	ProfileNameSys        = "sys"
-	ProfileNameKafka      = "kafka"
 	ProfileNamePrometheus = "prometheus"
 
 	OdsMetricsExportInterval = time.Second * 15
@@ -133,19 +132,6 @@ func getMetricsProfiles() []metricsd.MetricsProfile {
 	}
 
 	odsExporter := createODSExporter()
-	// Kakfa profile
-	kafkaProfile := metricsd.MetricsProfile{
-		Name: ProfileNameKafka,
-		Collectors: []collection.MetricCollector{
-			&collection.DiskUsageMetricCollector{},
-			collection.NewCloudServiceMetricCollector(metricsd.ServiceName),
-			collection.NewKafkaConnectCollector("magma-connector", nil),
-			&collection.SystemdStatusMetricCollector{
-				ServiceNames: []string{"magma@kafka", "magma@zookeeper", "magma@kafka_connect"},
-			},
-		},
-		Exporters: []exporters.Exporter{odsExporter},
-	}
 
 	// Prometheus profile - controller profile except using prometheus to
 	// export
@@ -158,7 +144,6 @@ func getMetricsProfiles() []metricsd.MetricsProfile {
 	return []metricsd.MetricsProfile{
 		sysProfile,
 		controllerProfile,
-		kafkaProfile,
 		prometheusProfile,
 	}
 }

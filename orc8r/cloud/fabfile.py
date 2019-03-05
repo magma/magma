@@ -22,7 +22,7 @@ from fab.hosts import vagrant_setup, ansible_setup, split_hoststring # NOQA
 
 
 # List of service tiers
-SERVICES = ["controller", "proxy", "kafka", "osquery", "prometheus"]
+SERVICES = ["controller", "proxy", "osquery", "prometheus"]
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
@@ -87,9 +87,6 @@ def package(service, cloud_host=None, vcs="hg", force=False):
             run('cp -pr roles/disk_metrics %s/ansible/roles/.' % folder)
             run('cp -pr ../../../orc8r/tools/ansible/roles/pkgrepo '
                 '%s/ansible/roles/.' % folder)
-        if service == 'kafka':
-            run('cp -pr roles/zookeeper %s/ansible/roles/.' % folder)
-            run('cp -pr roles/kafka_prod %s/ansible/roles/.' % folder)
         if service == 'prometheus':
             run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
             run('mkdir -p %s/bin' % folder)  # To make CodeDeploy happy
@@ -108,9 +105,6 @@ def package(service, cloud_host=None, vcs="hg", force=False):
 
 
 def _copy_go_binaries(service, folder):
-    if service == 'kafka':
-        run('mkdir -p %s/bin' % folder)
-        run('cp go/bin/metricsd %s/bin/.' % folder)
     if service == 'proxy':
         run('mkdir -p %s/bin' % folder)
         run('cp go/bin/metricsd %s/bin/.' % folder)
