@@ -48,6 +48,8 @@ func TestControllerBuilder_Build(t *testing.T) {
 				Realm:            "magma.com",
 				Host:             "magma-fedgw.magma.com",
 			},
+			RequestFailureThreshold: 0.50,
+			MinimumRequestThreshold: 1,
 		},
 		"hss": &mconfig.HSSConfig{
 			Server: &mconfig.DiamServerConfig{
@@ -90,6 +92,8 @@ func TestControllerBuilder_Build(t *testing.T) {
 				},
 				InitMethod: mconfig.GyInitMethod_PER_SESSION,
 			},
+			RequestFailureThreshold: 0.50,
+			MinimumRequestThreshold: 1,
 		},
 		"swx_proxy": &mconfig.SwxConfig{
 			LogLevel: 1,
@@ -103,6 +107,13 @@ func TestControllerBuilder_Build(t *testing.T) {
 				Realm:            "magma.com",
 				Host:             "magma-fedgw.magma.com",
 			},
+		},
+		"health": &mconfig.GatewayHealthConfig{
+			RequiredServices:          []string{"S6A_PROXY", "SESSION_PROXY"},
+			UpdateIntervalSecs:        10,
+			UpdateFailureThreshold:    3,
+			CloudDisconnectPeriodSecs: 10,
+			LocalDisconnectPeriodSecs: 1,
 		},
 	}
 
@@ -121,6 +132,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 	defaultGwCfg.(*config_protos.Config).Gx.Server.DestRealm = "mno.com"
 	defaultGwCfg.(*config_protos.Config).Swx.Server.Address = "127.0.0.1:9999"
 	defaultGwCfg.(*config_protos.Config).Swx.Server.LocalAddress = ":12123"
+	defaultGwCfg.(*config_protos.Config).Health.UpdateFailureThreshold = 4
 	expected["s6a_proxy"].(*mconfig.S6AConfig).Server.Address = "127.0.0.1:5555"
 	expected["s6a_proxy"].(*mconfig.S6AConfig).Server.LocalAddress = ":56789"
 	expected["hss"].(*mconfig.HSSConfig).Server.Address = "127.0.0.1:5555"
@@ -131,6 +143,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 	expected["session_proxy"].(*mconfig.SessionProxyConfig).Gx.Server.DestRealm = "mno.com"
 	expected["swx_proxy"].(*mconfig.SwxConfig).Server.Address = "127.0.0.1:9999"
 	expected["swx_proxy"].(*mconfig.SwxConfig).Server.LocalAddress = ":12123"
+	expected["health"].(*mconfig.GatewayHealthConfig).UpdateFailureThreshold = 4
 
 	err = config.CreateConfig("network", feg_config.FegGatewayType, "feg1", defaultGwCfg)
 	assert.NoError(t, err)
@@ -151,6 +164,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 	expected["session_proxy"].(*mconfig.SessionProxyConfig).Gx.Server.DestRealm = ""
 	expected["swx_proxy"].(*mconfig.SwxConfig).Server.Address = ""
 	expected["swx_proxy"].(*mconfig.SwxConfig).Server.LocalAddress = ""
+	expected["health"].(*mconfig.GatewayHealthConfig).UpdateFailureThreshold = 3
 
 	actual, err = builder.Build("network", "feg1")
 	assert.NoError(t, err)

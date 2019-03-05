@@ -41,7 +41,9 @@ func StartTestService(t *testing.T) error {
 					"productName": "magma_test",
 					"realm": "openair4G.eur",
 					"host": "magma-oai.openair4G.eur"
-				}
+				},
+				"requestFailureThreshold": 0.5,
+   				"minimumRequestThreshold": 1
 			},
 			"session_proxy": {
 				"@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
@@ -70,7 +72,9 @@ func StartTestService(t *testing.T) error {
 		 				 "host": "magma-fedgw.magma.com"
 					},
 					"initMethod": "PER_KEY"
-				}
+				},
+				"requestFailureThreshold": 0.5,
+   				"minimumRequestThreshold": 1
 			}
 		}
 	}`

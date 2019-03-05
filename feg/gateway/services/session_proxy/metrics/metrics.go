@@ -10,17 +10,20 @@ package metrics
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"magma/feg/cloud/go/protos/mconfig"
+	feg_mconfig "magma/feg/gateway/mconfig"
+	"magma/feg/gateway/registry"
 	service_health_metrics "magma/feg/gateway/service_health/metrics"
 
+	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const GxRequestFailureThresholdPct = 0.50
-const MinimumGxRequestTotal = 2
-const GyRequestFailureThresholdPct = 0.50
-const MinimumGyRequestTotal = 2
+const DefaultRequestFailureThresholdPct = 0.50
+const DefaultMinimumRequestThreshold = 1
 
 // Prometheus counters are monotonically increasing
 // Counters are reset to zero on service restarts
@@ -127,6 +130,12 @@ var (
 	})
 )
 
+type SessionHealthTracker struct {
+	Metrics                 *SessionHealthMetrics
+	RequestFailureThreshold float32
+	MinimumRequestThreshold uint32
+}
+
 type SessionHealthMetrics struct {
 	PcrfInitTotal             int64
 	PcrfInitSendFailures      int64
@@ -154,8 +163,8 @@ func init() {
 		GxSuccessTimestamp, GxFailuresSinceLastSuccess, GySuccessTimestamp, GyFailuresSinceLastSuccess)
 }
 
-func NewSessionHealthMetrics() *SessionHealthMetrics {
-	return &SessionHealthMetrics{
+func NewSessionHealthTracker() *SessionHealthTracker {
+	initMetrics := &SessionHealthMetrics{
 		PcrfInitTotal:             0,
 		PcrfInitSendFailures:      0,
 		PcrfUpdateTotal:           0,
@@ -172,6 +181,31 @@ func NewSessionHealthMetrics() *SessionHealthMetrics {
 		GxUnparseableMsg:          0,
 		GyTimeouts:                0,
 		GyUnparseableMsg:          0,
+	}
+	defaultMetrics := &SessionHealthTracker{
+		Metrics:                 initMetrics,
+		RequestFailureThreshold: float32(DefaultRequestFailureThresholdPct),
+		MinimumRequestThreshold: uint32(DefaultMinimumRequestThreshold),
+	}
+	spCfg := &mconfig.SessionProxyConfig{}
+	err := feg_mconfig.GetServiceConfigs(strings.ToLower(registry.SESSION_PROXY), spCfg)
+	if err != nil {
+		return defaultMetrics
+	}
+	reqFailureThreshold := spCfg.GetRequestFailureThreshold()
+	minReqThreshold := spCfg.GetMinimumRequestThreshold()
+	if reqFailureThreshold == 0 {
+		glog.Info("Request failure threshold cannot be 0; Using default health parameters...")
+		return defaultMetrics
+	}
+	if minReqThreshold == 0 {
+		glog.Info("Minimum request threshold cannot be 0; Using default health parameters...")
+		return defaultMetrics
+	}
+	return &SessionHealthTracker{
+		Metrics:                 initMetrics,
+		RequestFailureThreshold: reqFailureThreshold,
+		MinimumRequestThreshold: minReqThreshold,
 	}
 }
 

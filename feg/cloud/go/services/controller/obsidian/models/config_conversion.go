@@ -39,13 +39,16 @@ func (m *NetworkFederationConfigs) ToServiceModel() (interface{}, error) {
 		Gx:               &fegprotos.GxConfig{Server: &fegprotos.DiamClientConfig{}},
 		Gy:               &fegprotos.GyConfig{Server: &fegprotos.DiamClientConfig{}},
 		Swx:              &fegprotos.SwxConfig{Server: &fegprotos.DiamClientConfig{}},
-		ServedNetworkIds: []string{}}
+		ServedNetworkIds: []string{},
+		Health:           &fegprotos.HealthConfig{},
+	}
 	protos.FillIn(m, magmadConfig)
 	protos.FillIn(m.S6a, magmadConfig.S6A)
 	protos.FillIn(m.Hss, magmadConfig.Hss)
 	protos.FillIn(m.Gx, magmadConfig.Gx)
 	protos.FillIn(m.Gy, magmadConfig.Gy)
 	protos.FillIn(m.Swx, magmadConfig.Swx)
+	protos.FillIn(m.Health, magmadConfig.Health)
 	if err := fegprotos.ValidateNetworkConfig(magmadConfig); err != nil {
 		return nil, err
 	}
@@ -98,11 +101,15 @@ func (m *NetworkFederationConfigs) FromServiceModel(magmadModel interface{}) err
 	} else if m.Swx.Server == nil {
 		m.Swx.Server = &DiameterClientConfigs{}
 	}
+	if m.Health == nil {
+		m.Health = &NetworkFederationConfigsHealth{}
+	}
 	protos.FillIn(magmadConfig.S6A, m.S6a)
 	protos.FillIn(magmadConfig.Hss, m.Hss)
 	protos.FillIn(magmadConfig.Gx, m.Gx)
 	protos.FillIn(magmadConfig.Gy, m.Gy)
 	protos.FillIn(magmadConfig.Swx, m.Swx)
+	protos.FillIn(magmadConfig.Health, m.Health)
 	if m.ServedNetworkIds == nil {
 		m.ServedNetworkIds = []string{}
 	}
@@ -126,13 +133,17 @@ func (m *GatewayFegConfigs) ToServiceModel() (interface{}, error) {
 		Gx:               &fegprotos.GxConfig{Server: &fegprotos.DiamClientConfig{}},
 		Gy:               &fegprotos.GyConfig{Server: &fegprotos.DiamClientConfig{}},
 		Swx:              &fegprotos.SwxConfig{Server: &fegprotos.DiamClientConfig{}},
-		ServedNetworkIds: []string{}}
+		ServedNetworkIds: []string{},
+		Health:           &fegprotos.HealthConfig{},
+	}
+
 	protos.FillIn(m, magmadConfig)
 	protos.FillIn(m.S6a, magmadConfig.S6A)
 	protos.FillIn(m.Hss, magmadConfig.Hss)
 	protos.FillIn(m.Gx, magmadConfig.Gx)
 	protos.FillIn(m.Gy, magmadConfig.Gy)
 	protos.FillIn(m.Swx, magmadConfig.Swx)
+	protos.FillIn(m.Health, magmadConfig.Health)
 	if err := fegprotos.ValidateGatewayConfig(magmadConfig); err != nil {
 		return nil, err
 	}
@@ -185,11 +196,15 @@ func (m *GatewayFegConfigs) FromServiceModel(magmadModel interface{}) error {
 	} else if m.Swx == nil {
 		m.Swx.Server = &DiameterClientConfigs{}
 	}
+	if m.Health == nil {
+		m.Health = &NetworkFederationConfigsHealth{}
+	}
 	protos.FillIn(magmadConfig.S6A, m.S6a)
 	protos.FillIn(magmadConfig.Hss, m.Hss)
 	protos.FillIn(magmadConfig.Gx, m.Gx)
 	protos.FillIn(magmadConfig.Gy, m.Gy)
 	protos.FillIn(magmadConfig.Swx, m.Swx)
+	protos.FillIn(magmadConfig.Health, m.Health)
 	if m.ServedNetworkIds == nil {
 		m.ServedNetworkIds = []string{}
 	}

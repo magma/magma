@@ -40,7 +40,7 @@ type s6aProxy struct {
 	smClient       *sm.Client
 	connMan        *diameter.ConnectionManager
 	requestTracker *diameter.RequestTracker
-	healthMetrics  *metrics.S6aHealthMetrics
+	healthTracker  *metrics.S6aHealthTracker
 	originStateID  uint32
 }
 
@@ -105,15 +105,8 @@ func NewS6aProxy(
 		smClient:       smClient,
 		connMan:        connMan,
 		requestTracker: diameter.NewRequestTracker(),
-		healthMetrics: &metrics.S6aHealthMetrics{
-			AirTotal:        0,
-			AirSendFailures: 0,
-			UlrSendFailures: 0,
-			UlrTotal:        0,
-			Timeouts:        0,
-			UnparseableMsg:  0,
-		},
-		originStateID: originStateID,
+		healthTracker:  metrics.NewS6aHealthTracker(),
+		originStateID:  originStateID,
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_S6A_APP_ID, Code: diam.AuthenticationInformation, Request: false},
@@ -194,7 +187,7 @@ func (s *s6aProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 			HealthMessage: fmt.Sprintf("Error occured while retrieving health metrics: %s", err),
 		}, err
 	}
-	deltaMetrics, err := s.healthMetrics.GetDelta(currentMetrics)
+	deltaMetrics, err := s.healthTracker.Metrics.GetDelta(currentMetrics)
 	if err != nil {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
@@ -206,11 +199,11 @@ func (s *s6aProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 	failureTotal := deltaMetrics.AirSendFailures + deltaMetrics.UlrSendFailures +
 		deltaMetrics.Timeouts + deltaMetrics.UnparseableMsg
 
-	exceedsThreshold := reqTotal >= metrics.MinimumRequiredRequests &&
-		float64(failureTotal)/float64(reqTotal) >= metrics.RequestFailureThresholdPct
+	exceedsThreshold := reqTotal >= int64(s.healthTracker.MinimumRequestThreshold) &&
+		float32(failureTotal)/float32(reqTotal) >= s.healthTracker.RequestFailureThreshold
 	if exceedsThreshold {
 		unhealthyMsg := fmt.Sprintf("Metric Request Failure Ratio >= threshold %f; %d / %d",
-			metrics.RequestFailureThresholdPct,
+			s.healthTracker.RequestFailureThreshold,
 			failureTotal,
 			reqTotal,
 		)

@@ -73,6 +73,17 @@ var defaultConfig = Config{
 		},
 	},
 	ServedNetworkIds: []string{},
+	Health: &HealthConfig{
+		HealthServices:           []string{"S6A_PROXY", "SESSION_PROXY"},
+		UpdateIntervalSecs:       10,
+		CloudDisablePeriodSecs:   10,
+		LocalDisablePeriodSecs:   1,
+		UpdateFailureThreshold:   3,
+		RequestFailureThreshold:  0.50,
+		MinimumRequestThreshold:  1,
+		CpuUtilizationThreshold:  0.90,
+		MemoryAvailableThreshold: 0.90,
+	},
 }
 
 func NewDefaultNetworkConfig() *Config {

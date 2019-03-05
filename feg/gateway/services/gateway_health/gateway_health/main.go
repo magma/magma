@@ -19,8 +19,6 @@ import (
 	"github.com/golang/glog"
 )
 
-const healthIntervalSec = 10
-
 func init() {
 	flag.Parse()
 }
@@ -33,11 +31,12 @@ func main() {
 	}
 
 	cloudReg := registry.NewCloudRegistry()
-	healthManager := health_manager.NewHealthManager(cloudReg)
+	healthCfg := health_manager.GetHealthConfig()
+	healthManager := health_manager.NewHealthManager(cloudReg, healthCfg)
 	// Run Health Collection Loop
 	go func() {
 		for {
-			<-time.After(healthIntervalSec * time.Second)
+			<-time.After(time.Duration(healthCfg.UpdateIntervalSecs) * time.Second)
 			healthManager.SendHealthUpdate()
 		}
 	}()

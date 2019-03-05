@@ -34,7 +34,7 @@ type CentralSessionController struct {
 	policyClient  gx.PolicyClient
 	dbClient      policydb.PolicyDBClient
 	cfg           *SessionControllerConfig
-	healthMetrics *metrics.SessionHealthMetrics
+	healthTracker *metrics.SessionHealthTracker
 }
 
 // SessionControllerConfig stores all the needed configuration for running
@@ -64,7 +64,7 @@ func NewCentralSessionController(
 		policyClient:  policyClient,
 		dbClient:      dbClient,
 		cfg:           cfg,
-		healthMetrics: metrics.NewSessionHealthMetrics(),
+		healthTracker: metrics.NewSessionHealthTracker(),
 	}
 }
 
@@ -267,7 +267,7 @@ func (srv *CentralSessionController) GetHealthStatus(
 			HealthMessage: fmt.Sprintf("Error occured while retrieving health metrics: %s", err),
 		}, err
 	}
-	deltaMetrics, err := srv.healthMetrics.GetDelta(currentMetrics)
+	deltaMetrics, err := srv.healthTracker.Metrics.GetDelta(currentMetrics)
 	if err != nil {
 		return &fegprotos.HealthStatus{
 			Health:        fegprotos.HealthStatus_UNHEALTHY,
@@ -280,7 +280,7 @@ func (srv *CentralSessionController) GetHealthStatus(
 	gxFailureTotal := deltaMetrics.PcrfInitSendFailures + deltaMetrics.PcrfUpdateSendFailures +
 		deltaMetrics.PcrfTerminateSendFailures + deltaMetrics.GxTimeouts + deltaMetrics.GxUnparseableMsg
 
-	gxStatus := getHealthStatusForGxRequests(gxFailureTotal, gxReqTotal)
+	gxStatus := srv.getHealthStatusForGxRequests(gxFailureTotal, gxReqTotal)
 	if gxStatus.Health == fegprotos.HealthStatus_UNHEALTHY {
 		return gxStatus, nil
 	}
@@ -291,7 +291,7 @@ func (srv *CentralSessionController) GetHealthStatus(
 	gyFailureTotal := deltaMetrics.OcsInitSendFailures + deltaMetrics.OcsUpdateSendFailures +
 		deltaMetrics.OcsTerminateSendFailures + deltaMetrics.GyTimeouts + deltaMetrics.GyUnparseableMsg
 
-	gyStatus := getHealthStatusForGyRequests(gyFailureTotal, gyReqTotal)
+	gyStatus := srv.getHealthStatusForGyRequests(gyFailureTotal, gyReqTotal)
 	if gyStatus.Health == fegprotos.HealthStatus_UNHEALTHY {
 		return gyStatus, nil
 	}
@@ -301,12 +301,12 @@ func (srv *CentralSessionController) GetHealthStatus(
 	}, nil
 }
 
-func getHealthStatusForGxRequests(failures, total int64) *fegprotos.HealthStatus {
-	gxExceedsThreshold := total >= metrics.MinimumGxRequestTotal &&
-		float64(failures)/float64(total) >= metrics.GxRequestFailureThresholdPct
+func (srv *CentralSessionController) getHealthStatusForGxRequests(failures, total int64) *fegprotos.HealthStatus {
+	gxExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
+		float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
 	if gxExceedsThreshold {
 		unhealthyMsg := fmt.Sprintf("Metric Gx Request Failure Ratio >= threshold %f; %d / %d",
-			metrics.GxRequestFailureThresholdPct,
+			srv.healthTracker.RequestFailureThreshold,
 			failures,
 			total,
 		)
@@ -321,12 +321,12 @@ func getHealthStatusForGxRequests(failures, total int64) *fegprotos.HealthStatus
 	}
 }
 
-func getHealthStatusForGyRequests(failures, total int64) *fegprotos.HealthStatus {
-	gyExceedsThreshold := total >= metrics.MinimumGyRequestTotal &&
-		float64(failures)/float64(total) >= metrics.GyRequestFailureThresholdPct
+func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, total int64) *fegprotos.HealthStatus {
+	gyExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
+		float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
 	if gyExceedsThreshold {
 		unhealthyMsg := fmt.Sprintf("Metric Gy Request Failure Ratio >= threshold %f; %d / %d",
-			metrics.GyRequestFailureThresholdPct,
+			srv.healthTracker.RequestFailureThreshold,
 			failures,
 			total,
 		)

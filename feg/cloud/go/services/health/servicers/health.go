@@ -25,12 +25,6 @@ import (
 
 type HealthStatus int
 
-// TODO: Use a config rather than consts
-const (
-	cpuUtilThreshold    = 0.90
-	updateThresholdSecs = 30
-)
-
 type HealthServer struct {
 	// healthStore is a datastore used to maintain health updates from gateways
 	healthStore storage.HealthStorage
@@ -46,13 +40,20 @@ func NewHealthServer(healthStore storage.HealthStorage, clusterStore storage.Clu
 	}
 }
 
+type healthConfig struct {
+	services              []string
+	cpuUtilThreshold      float32
+	memAvailableThreshold float32
+	staleUpdateThreshold  uint32
+}
+
 // GetHealth fetches the health stats for a given gateway
 // represented by a (networkID, logicalId)
 func (srv *HealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewayStatusRequest) (*fegprotos.HealthStats, error) {
 	if req == nil {
 		return nil, fmt.Errorf("Nil GatewayHealthRequest")
 	}
-	if len(req.NetworkId) == 0 || len(req.LogicalId) == 0 {
+	if len(req.GetNetworkId()) == 0 || len(req.GetLogicalId()) == 0 {
 		return nil, fmt.Errorf("Empty GatewayHealthRequest parameters provided")
 	}
 	gwHealthStats, err := srv.healthStore.GetHealth(req.NetworkId, req.LogicalId)
@@ -61,7 +62,7 @@ func (srv *HealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewaySt
 	}
 	// Update health status field with new HEALTHY/UNHEALTHY determination
 	// as recency of an update is a factor in gateway health
-	healthStatus, healthMessage, err := srv.analyzeHealthStats(gwHealthStats)
+	healthStatus, healthMessage, err := srv.analyzeHealthStats(gwHealthStats, req.GetNetworkId())
 	gwHealthStats.Health = &fegprotos.HealthStatus{
 		Health:        healthStatus,
 		HealthMessage: healthMessage,
@@ -94,7 +95,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	req.HealthStats.Time = healthResponse.Time
 
 	// Override gateway's view of it's health with cloud's view
-	healthState, healthMsg, _ := srv.analyzeHealthStats(req.HealthStats)
+	healthState, healthMsg, _ := srv.analyzeHealthStats(req.HealthStats, networkID)
 	req.HealthStats.Health = &fegprotos.HealthStatus{
 		Health:        healthState,
 		HealthMessage: healthMsg,
@@ -197,11 +198,11 @@ func (srv *HealthServer) analyzeDualFegState(
 		return fegprotos.HealthResponse_SYSTEM_UP, nil
 	}
 
-	currentHealth, _, err := srv.analyzeHealthStats(gatewayHealth)
+	currentHealth, _, err := srv.analyzeHealthStats(gatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
-	otherHealth, _, err := srv.analyzeHealthStats(otherGatewayHealth)
+	otherHealth, _, err := srv.analyzeHealthStats(otherGatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
@@ -298,24 +299,20 @@ func (srv *HealthServer) analyzeSingleFegState(
 
 func (srv *HealthServer) analyzeHealthStats(
 	healthData *fegprotos.HealthStats,
+	networkID string,
 ) (fegprotos.HealthStatus_HealthState, string, error) {
+	config := GetHealthConfigForNetwork(networkID)
 	if healthData == nil {
 		return fegprotos.HealthStatus_UNHEALTHY, "", fmt.Errorf("Nil HealthStats provided")
 	}
 	updateDelta := time.Now().Unix() - int64(healthData.Time)/1000
-	if updateDelta > updateThresholdSecs {
+	if updateDelta > int64(config.staleUpdateThreshold) {
 		return fegprotos.HealthStatus_UNHEALTHY, "Health update is stale", nil
 	}
-
-	//TODO: Make required services configurable
-	// This is hardcoded because we can't reach into feg gateway packages from
-	// cloud code
-	var requiredServices = [...]string{"S6A_PROXY", "SESSION_PROXY"}
-
-	if !isSystemHealthy(healthData.SystemStatus) {
+	if !isSystemHealthy(healthData.GetSystemStatus(), config) {
 		return fegprotos.HealthStatus_UNHEALTHY, "System unhealthy", nil
 	}
-	for _, service := range requiredServices {
+	for _, service := range config.services {
 		if !isServiceHealthy(healthData.ServiceStatus, service) {
 			return fegprotos.HealthStatus_UNHEALTHY, fmt.Sprintf("Service: %s unhealthy", service), nil
 		}
@@ -341,8 +338,17 @@ func (srv *HealthServer) getClusterState(networkID string, logicalID string) (*f
 	return srv.clusterStore.GetClusterState(networkID, networkID)
 }
 
-func isSystemHealthy(status *fegprotos.SystemHealthStats) bool {
-	return status.CpuUtilPct < cpuUtilThreshold
+func isSystemHealthy(status *fegprotos.SystemHealthStats, config *healthConfig) bool {
+	if status.CpuUtilPct >= config.cpuUtilThreshold {
+		return false
+	}
+	usedMemoryBytes := status.MemTotalBytes - status.MemAvailableBytes
+	exceedsMemThreshold := status.MemTotalBytes != 0 &&
+		float64(usedMemoryBytes)/float64(status.MemTotalBytes) >= float64(config.memAvailableThreshold)
+	if exceedsMemThreshold {
+		return false
+	}
+	return true
 }
 
 func isServiceHealthy(

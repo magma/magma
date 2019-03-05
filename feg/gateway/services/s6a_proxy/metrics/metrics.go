@@ -10,15 +10,20 @@ package metrics
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	mconfigprotos "magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/mconfig"
+	"magma/feg/gateway/registry"
 	service_health_metrics "magma/feg/gateway/service_health/metrics"
 
+	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const RequestFailureThresholdPct = 0.50
-const MinimumRequiredRequests = 2
+const DefaultRequestFailureThreshold = 0.50
+const DefaultMinimumRequiredRequests = 1
 
 // Prometheus counters are monotonically increasing
 // Counters reset to zero on service restart
@@ -71,6 +76,48 @@ type S6aHealthMetrics struct {
 	UlrSendFailures int64
 	Timeouts        int64
 	UnparseableMsg  int64
+}
+
+type S6aHealthTracker struct {
+	Metrics                 *S6aHealthMetrics
+	RequestFailureThreshold float32
+	MinimumRequestThreshold uint32
+}
+
+func NewS6aHealthTracker() *S6aHealthTracker {
+	initMetrics := &S6aHealthMetrics{
+		AirTotal:        0,
+		AirSendFailures: 0,
+		UlrSendFailures: 0,
+		UlrTotal:        0,
+		Timeouts:        0,
+		UnparseableMsg:  0,
+	}
+	defaultHealthTracker := &S6aHealthTracker{
+		Metrics:                 initMetrics,
+		RequestFailureThreshold: float32(DefaultRequestFailureThreshold),
+		MinimumRequestThreshold: uint32(DefaultMinimumRequiredRequests),
+	}
+	s6aCfg := &mconfigprotos.S6AConfig{}
+	err := mconfig.GetServiceConfigs(strings.ToLower(registry.S6A_PROXY), s6aCfg)
+	if err != nil {
+		return defaultHealthTracker
+	}
+	reqFailureThreshold := s6aCfg.GetRequestFailureThreshold()
+	minReqThreshold := s6aCfg.GetMinimumRequestThreshold()
+	if reqFailureThreshold == 0 {
+		glog.Info("Request failure threshold cannot be 0; Using default health parameters...")
+		return defaultHealthTracker
+	}
+	if minReqThreshold == 0 {
+		glog.Info("Minimum request threshold cannot be 0; Using default health parameters...")
+		return defaultHealthTracker
+	}
+	return &S6aHealthTracker{
+		Metrics:                 initMetrics,
+		RequestFailureThreshold: reqFailureThreshold,
+		MinimumRequestThreshold: minReqThreshold,
+	}
 }
 
 func init() {

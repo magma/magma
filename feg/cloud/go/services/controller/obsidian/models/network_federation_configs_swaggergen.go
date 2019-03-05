@@ -7,6 +7,7 @@ package models
 
 import (
 	"encoding/json"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	strfmt "github.com/go-openapi/strfmt"
@@ -23,6 +24,9 @@ type NetworkFederationConfigs struct {
 
 	// gy
 	Gy *NetworkFederationConfigsGy `json:"gy,omitempty"`
+
+	// health
+	Health *NetworkFederationConfigsHealth `json:"health,omitempty"`
 
 	// hss
 	Hss *NetworkFederationConfigsHss `json:"hss,omitempty"`
@@ -46,6 +50,10 @@ func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateGy(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHealth(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -95,6 +103,24 @@ func (m *NetworkFederationConfigs) validateGy(formats strfmt.Registry) error {
 		if err := m.Gy.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("gy")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) validateHealth(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Health) { // not required
+		return nil
+	}
+
+	if m.Health != nil {
+		if err := m.Health.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("health")
 			}
 			return err
 		}
@@ -326,6 +352,107 @@ func (m *NetworkFederationConfigsGy) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *NetworkFederationConfigsGy) UnmarshalBinary(b []byte) error {
 	var res NetworkFederationConfigsGy
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkFederationConfigsHealth network federation configs health
+// swagger:model NetworkFederationConfigsHealth
+type NetworkFederationConfigsHealth struct {
+
+	// cloud disable period secs
+	CloudDisablePeriodSecs uint32 `json:"cloud_disable_period_secs,omitempty"`
+
+	// cpu utilization threshold
+	CPUUtilizationThreshold float32 `json:"cpu_utilization_threshold,omitempty" magma_alt_name:"CpuUtilizationThreshold"`
+
+	// FeG services for the health service to monitor
+	HealthServices []string `json:"health_services"`
+
+	// local disable period secs
+	LocalDisablePeriodSecs uint32 `json:"local_disable_period_secs,omitempty"`
+
+	// memory available threshold
+	MemoryAvailableThreshold float32 `json:"memory_available_threshold,omitempty"`
+
+	// minimum request threshold
+	MinimumRequestThreshold uint32 `json:"minimum_request_threshold,omitempty"`
+
+	// request failure threshold
+	RequestFailureThreshold float32 `json:"request_failure_threshold,omitempty"`
+
+	// update failure threshold
+	UpdateFailureThreshold uint32 `json:"update_failure_threshold,omitempty"`
+
+	// update interval secs
+	UpdateIntervalSecs uint32 `json:"update_interval_secs,omitempty"`
+}
+
+// Validate validates this network federation configs health
+func (m *NetworkFederationConfigsHealth) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateHealthServices(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+var networkFederationConfigsHealthHealthServicesItemsEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["S6A_PROXY","SESSION_PROXY"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		networkFederationConfigsHealthHealthServicesItemsEnum = append(networkFederationConfigsHealthHealthServicesItemsEnum, v)
+	}
+}
+
+func (m *NetworkFederationConfigsHealth) validateHealthServicesItemsEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, networkFederationConfigsHealthHealthServicesItemsEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *NetworkFederationConfigsHealth) validateHealthServices(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HealthServices) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.HealthServices); i++ {
+
+		// value enum
+		if err := m.validateHealthServicesItemsEnum("health"+"."+"health_services"+"."+strconv.Itoa(i), "body", m.HealthServices[i]); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkFederationConfigsHealth) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkFederationConfigsHealth) UnmarshalBinary(b []byte) error {
+	var res NetworkFederationConfigsHealth
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

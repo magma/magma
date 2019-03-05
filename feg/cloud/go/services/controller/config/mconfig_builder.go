@@ -41,11 +41,14 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 	for imsi, profile := range hss.GetSubProfiles() {
 		hssSubProfile[imsi] = profile.ToMconfig()
 	}
+	healthc := gwConfig.GetHealth()
 
 	return map[string]proto.Message{
 		"s6a_proxy": &mconfig.S6AConfig{
-			LogLevel: protos.LogLevel_INFO,
-			Server:   s6ac.GetServer().ToMconfig(),
+			LogLevel:                protos.LogLevel_INFO,
+			Server:                  s6ac.GetServer().ToMconfig(),
+			RequestFailureThreshold: healthc.GetRequestFailureThreshold(),
+			MinimumRequestThreshold: healthc.GetMinimumRequestThreshold(),
 		},
 		"session_proxy": &mconfig.SessionProxyConfig{
 			LogLevel: protos.LogLevel_INFO,
@@ -56,6 +59,15 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 				Server:     gyc.GetServer().ToMconfig(),
 				InitMethod: mconfig.GyInitMethod(gyc.GetInitMethod()),
 			},
+			RequestFailureThreshold: healthc.GetRequestFailureThreshold(),
+			MinimumRequestThreshold: healthc.GetMinimumRequestThreshold(),
+		},
+		"health": &mconfig.GatewayHealthConfig{
+			RequiredServices:          healthc.GetHealthServices(),
+			UpdateIntervalSecs:        healthc.GetUpdateIntervalSecs(),
+			UpdateFailureThreshold:    healthc.GetUpdateFailureThreshold(),
+			CloudDisconnectPeriodSecs: healthc.GetCloudDisablePeriodSecs(),
+			LocalDisconnectPeriodSecs: healthc.GetLocalDisablePeriodSecs(),
 		},
 		"hss": &mconfig.HSSConfig{
 			Server:            hss.GetServer().ToMconfig(),
