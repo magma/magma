@@ -1,0 +1,138 @@
+{
+  "variables": {
+    "version": "1.0.{{timestamp}}"
+  },
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/ansible.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/setup.sh"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}",
+      "inline": ["sudo reboot"],
+      "expect_disconnect": true
+    },
+    {
+      "type": "shell",
+      "script": "scripts/guest_additions.sh",
+      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}",
+      "pause_before": "10s"
+    },
+    {
+      "type": "file",
+      "source": "ansible.cfg",
+      "destination": "/home/vagrant/ansible.cfg"
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | sudo -S env {{.Vars}} {{.Path}}",
+      "inline": ["sudo cp /home/vagrant/ansible.cfg /etc/ansible/ansible.cfg"]
+    },
+    {
+      "type": "ansible-local",
+      "playbook_file": "../../../feg/gateway/deploy/feg.dev.yml",
+      "inventory_groups": "feg",
+      "role_paths": [
+        "../../../orc8r/tools/ansible/roles/gateway_dev",
+        "../../../orc8r/tools/ansible/roles/pkgrepo",
+        "../../../orc8r/tools/ansible/roles/apt_cache",
+        "../../../orc8r/tools/ansible/roles/gateway_services",
+        "../../../orc8r/tools/ansible/roles/python_dev",
+        "../../../feg/gateway/deploy/roles/golang",
+        "../../../feg/gateway/deploy/roles/feg_dev",
+        "../../../feg/gateway/deploy/roles/feg_services"
+      ],
+      "extra_arguments": [ "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"]
+    },
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "script": "scripts/cleanup.sh"
+    }
+  ],
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "boot_command": [
+        "<enter><wait><f6><esc>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US<wait>",
+        " netcfg/get_domain=vm<wait>",
+        " netcfg/get_hostname=magma-feg-dev<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+        " -- <wait>",
+        "<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_size": 10000,
+      "guest_os_type": "Ubuntu_64",
+      "headless": true,
+      "http_directory": "http",
+      "iso_urls": [
+        "iso/ubuntu-16.04.5-server-amd64.iso",
+        "http://releases.ubuntu.com/16.04/ubuntu-16.04.5-server-amd64.iso"
+      ],
+      "iso_checksum_type": "sha256",
+      "iso_checksum": "c94de1cc2e10160f325eb54638a5b5aa38f181d60ee33dae9578d96d932ee5f8",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "10000s",
+      "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+      "virtualbox_version_file": ".vbox_version",
+      "vm_name": "packer-ubuntu-16.04-amd64",
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "1536"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "2"
+        ]
+      ]
+    }
+  ],
+  "post-processors": [
+    [
+      {
+        "output": "builds/magma_feg_{{.Provider}}.box",
+        "type": "vagrant"
+      },
+      {
+        "type": "vagrant-cloud",
+        "box_tag": "fbcmagma/magma_feg",
+        "access_token": "{{user `cloud_token`}}",
+        "version": "{{user `version`}}"
+      }
+    ]
+  ]
+}
