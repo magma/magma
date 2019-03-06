@@ -10,12 +10,14 @@
 
 import type {Theme, WithStyles} from '@material-ui/core';
 
+// $FlowFixMe - icon exists
+import ArrowRightIcon from '@material-ui/icons/ArrowRight';
+
 import {withStyles, withTheme} from '@material-ui/core/styles';
 import classNames from 'classnames';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import ListItem from '@material-ui/core/ListItem';
 import nullthrows from '@fbcnms/util/nullthrows';
 import * as React from 'react';
@@ -159,11 +161,11 @@ const styles = (theme: Theme) => ({
     color: theme.palette.grey[600],
   },
   selectedItem: {
-    backgroundColor: theme.palette.action.selected,
+    backgroundColor: 'rgba(0, 0, 0, 0.08)',
   },
   treeItem: {
     '&:hover': {
-      backgroundColor: theme.palette.action.hover,
+      backgroundColor: 'rgba(0, 0, 0, 0.04)',
     },
     '&:hover $headerRoot::before': {
       borderLeft: `2px solid ${theme.palette.primary.main}`,
@@ -197,6 +199,7 @@ const styles = (theme: Theme) => ({
   arrowRightIcon: {
     color: 'rgba(0, 0, 0, 0.54)',
     transition: 'transform 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+    marginLeft: '4px',
   },
   addLocationToRootTitle: {
     color: theme.palette.text.secondary,
@@ -234,7 +237,7 @@ class TreeView extends React.Component<Props, State> {
         spacing: {unit},
       },
     } = this.props;
-    const spacing = unit * 1.5;
+    const spacing = unit * 2;
 
     const hoverRightContent = this.getNodeHoverRightContent(null);
     return (
@@ -266,7 +269,7 @@ class TreeView extends React.Component<Props, State> {
       },
       classes,
     } = this.props;
-    const spacing = unit * 1.5;
+    const spacing = unit * 2;
     const {selectedId} = this.props;
     const id = this.getNodeId(node);
     const isLeaf = this.isLeaf(node);
@@ -338,7 +341,7 @@ class TreeView extends React.Component<Props, State> {
             this.expand(node.id);
           }}>
           <div className={classes.headerRoot}>
-            <KeyboardArrowRight className={classes.arrowRightIcon} />
+            <ArrowRightIcon className={classes.arrowRightIcon} />
             {treeItemHeader}
           </div>
         </ExpansionPanelSummary>
