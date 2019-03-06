@@ -3,7 +3,7 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
- * 
+ *
  * @format
  */
 
@@ -28,6 +28,20 @@ module.exports = baseConfig => {
         // rebuilds.
         cacheDirectory: true,
       },
+    },
+    {
+      test: /\.css$/,
+      use: [
+        {
+          loader: 'style-loader',
+        },
+        {
+          loader: 'css-loader',
+          options: {
+            sourceMap: true,
+          },
+        },
+      ],
     },
   ];
   return baseConfig;
