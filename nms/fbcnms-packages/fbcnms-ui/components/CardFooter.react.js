@@ -26,7 +26,7 @@ export type FooterAlign = 'left' | 'right';
 
 type Props = {
   alignItems: FooterAlign,
-  children: Array<React.Node>,
+  children: React.Node,
 } & WithStyles;
 
 const CardFooter = (props: Props) => {
