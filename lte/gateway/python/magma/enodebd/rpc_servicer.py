@@ -7,9 +7,8 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from typing import Any
-
 import grpc
+from typing import Any
 from magma.enodebd.enodeb_status import get_enodeb_status
 from lte.protos.enodebd_pb2 import GetParameterResponse
 from lte.protos.enodebd_pb2_grpc import EnodebdServicer, add_EnodebdServicer_to_server
@@ -45,7 +44,7 @@ class EnodebdRpcServicer(EnodebdServicer):
         parameter_path = request.parameter_name
         data_model = self.state_machine_pointer.state_machine.data_model
         param_name = data_model.get_parameter_name_from_path(parameter_path)
-        param_value = state_machine.get_parameter(param_name)
+        param_value = str(state_machine.get_parameter(param_name))
         get_parameter_values_response.parameters.add(
             name=parameter_path, value=param_value)
         return get_parameter_values_response
