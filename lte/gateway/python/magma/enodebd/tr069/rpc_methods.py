@@ -126,22 +126,17 @@ class AutoConfigServer(ServiceBase):
         else:
             logging.debug('Sending TR069 message.')
 
-        # Set return message name
-        ctx.descriptor.out_message.Attributes.sub_name = req.__class__.__name__
-
         # Set header
         ctx.out_header = models.ID(mustUnderstand='1')
         ctx.out_header.Data = 'null'
 
-        req_out = cls._generate_acs_to_cpe_request_copy(req)
-        return req_out
-
-    @staticmethod
-    def _generate_empty_acs_to_cpe_request(ctx):
-        """ Generate 'empty' request to CPE using dummy message and empty
-            message name """
-        ctx.descriptor.out_message.Attributes.sub_name = 'EmptyHttp'
-        return models.AcsToCpeRequests()
+        # Set return message name
+        if isinstance(req, models.DummyInput):
+            # Generate 'empty' request to CPE using empty message name
+            ctx.descriptor.out_message.Attributes.sub_name = 'EmptyHttp'
+            return models.AcsToCpeRequests()
+        ctx.descriptor.out_message.Attributes.sub_name = req.__class__.__name__
+        return cls._generate_acs_to_cpe_request_copy(req)
 
     @staticmethod
     def _generate_acs_to_cpe_request_copy(request):
