@@ -65,7 +65,11 @@ convert_itti_s6a_authentication_info_req_to_proto_msg(
   /*
    * Re-synchronization information containing the AUTS computed at USIM
    */
-  ret.set_resync_info(msg->resync_param, (RAND_LENGTH_OCTETS + AUTS_LENGTH));
+
+  if (msg->re_synchronization){
+    ret.set_resync_info(msg->resync_param, (RAND_LENGTH_OCTETS + AUTS_LENGTH));
+  }
+
   return ret;
 }
 

@@ -44,10 +44,10 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             plmn = request.visited_plmn
 
             re_sync_info = request.resync_info
-            # resync_info =
-            # rand + auts, rand is of 16 bytes + auts is of 14 bytes
+            """resync_info =
+              rand + auts, rand is of 16 bytes + auts is of 14 bytes"""
             sizeof_resync_info = 30
-            if re_sync_info != b'\x00' * sizeof_resync_info:
+            if re_sync_info and (re_sync_info != b'\x00' * sizeof_resync_info):
                 rand = re_sync_info[:16]
                 auts = re_sync_info[16:]
                 self.lte_processor.resync_lte_auth_seq(imsi, rand, auts)
