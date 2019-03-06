@@ -12,6 +12,9 @@ import {createMuiTheme} from '@material-ui/core/styles';
 import {sea100, sea200, sea300, white} from './colors';
 
 export default createMuiTheme({
+  sizes: {
+    textFieldWidth: '280px',
+  },
   palette: {
     primary: {
       light: sea100,
@@ -123,6 +126,12 @@ export default createMuiTheme({
         '&::-ms-input-placeholder': {
           opacity: 1,
         },
+      },
+    },
+    MuiTableCell: {
+      root: {
+        paddingLeft: '0px',
+        paddingRight: '24px',
       },
     },
   },
