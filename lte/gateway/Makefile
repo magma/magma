@@ -19,9 +19,13 @@ clean: clean_python
 clean_python:
 	make -C $(MAGMA_ROOT)/lte/gateway/python clean
 
-restart:
-	sudo service magma@* stop
+start:
 	sudo service magma@magmad start
+
+stop:
+	sudo service magma@* stop
+
+restart: stop start
 
 run: build restart
 
