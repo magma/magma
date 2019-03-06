@@ -40,6 +40,10 @@ message DiamServerConfig {
 message S6aConfig {
     orc8r.LogLevel log_level = 1;
     DiamClientConfig server = 5;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 6;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 7;
 }
 
 message GxConfig {
@@ -61,11 +65,23 @@ message SessionProxyConfig {
     orc8r.LogLevel log_level = 1;
     GxConfig gx = 5;
     GyConfig gy = 6;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 7;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 8;
 }
 
 message SwxConfig {
     orc8r.LogLevel log_level = 1;
     DiamClientConfig server = 2;
+}
+
+message GatewayHealthConfig {
+    repeated string required_services = 1;
+    uint32 update_interval_secs = 2;
+    uint32 update_failure_threshold = 3;
+    uint32 cloud_disconnect_period_secs = 4;
+    uint32 local_disconnect_period_secs = 5;
 }
 
 message HSSConfig {

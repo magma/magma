@@ -189,7 +189,54 @@ definitions:
         type: array
         items:
           type: string
-
+      health:
+        type: object
+        properties:
+          health_services:
+            description: FeG services for the health service to monitor
+            type: array
+            items:
+              type: string
+              enum:
+              - S6A_PROXY
+              - SESSION_PROXY
+            example:
+            - S6A_PROXY
+            - SESSION_PROXY
+          update_interval_secs:
+            type: integer
+            format: uint32
+            example: 10
+          cloud_disable_period_secs:
+            type: integer
+            format: uint32
+            example: 10
+          local_disable_period_secs:
+            type: integer
+            format: uint32
+            example: 1
+          update_failure_threshold:
+            type: integer
+            format: uint32
+            example: 3
+          request_failure_threshold:
+            type: number
+            format: float
+            example: 0.50
+          minimum_request_threshold:
+            type: integer
+            format: uint32
+            example: 1
+          cpu_utilization_threshold:
+            type: number
+            format: float
+            example: 0.90
+            x-go-custom-tag: 'magma_alt_name:"CpuUtilizationThreshold"'
+          memory_available_threshold:
+            type: number
+            format: float
+            example: 0.90
+        x-go-custom-tag: 'magma_alt_name:"HEALTH"'
   diameter_client_configs:
     description: Diameter Configuration of The Client
     type: object

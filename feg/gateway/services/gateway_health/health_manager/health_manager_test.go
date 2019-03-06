@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/gateway_health/health_manager"
 	"magma/feg/gateway/services/session_proxy/relay/mocks"
@@ -78,6 +79,24 @@ type healthMocks struct {
 }
 
 func initTestServices(t *testing.T, mockServiceHealth *MockServiceHealthServicer, mockHealth *MockHealthServicer) *mocks.MockCloudRegistry {
+	// Create tmp mconfig test file & load configs from it
+	fegConfigFmt := `{
+		"configsByKey": {
+			"health": {
+   				"@type": "type.googleapis.com/magma.mconfig.GatewayHealthConfig",
+   				"requiredServices": ["S6A_PROXY", "SESSION_PROXY"],
+   				"updateIntervalSecs": 10,
+   				"consecutiveFailureThreshold": 3,
+   				"cloudDisconnectPeriodSecs": 10,
+   				"localDisconnectPeriodSecs": 1
+  			}
+		}
+	}`
+	err := mconfig.CreateLoadTempConfig(fegConfigFmt)
+	if err != nil {
+		t.Log(err)
+	}
+
 	srv1, lis1 := test_utils.NewTestService(t, registry.ModuleName, registry.S6A_PROXY)
 	srv2, lis2 := test_utils.NewTestService(t, registry.ModuleName, registry.SESSION_PROXY)
 	srv3, lis3 := test_utils.NewTestService(t, registry.ModuleName, registry.HEALTH)
@@ -99,8 +118,8 @@ func TestHealthManager_UpdateHealth_Healthy(t *testing.T) {
 		fegServiceHealthServicer: &MockServiceHealthServicer{},
 	}
 	mockReg := initTestServices(t, healthMocks.fegServiceHealthServicer, healthMocks.cloudHealthServicer)
-
-	healthManager := health_manager.NewHealthManager(mockReg)
+	config := health_manager.GetHealthConfig()
+	healthManager := health_manager.NewHealthManager(mockReg, config)
 
 	healthyResponse := &protos.HealthResponse{
 		Action: protos.HealthResponse_SYSTEM_UP,
@@ -122,8 +141,8 @@ func TestHealthManager_UpdateHealth_SystemDown(t *testing.T) {
 		fegServiceHealthServicer: &MockServiceHealthServicer{},
 	}
 	mockReg := initTestServices(t, healthMocks.fegServiceHealthServicer, healthMocks.cloudHealthServicer)
-
-	healthManager := health_manager.NewHealthManager(mockReg)
+	config := health_manager.GetHealthConfig()
+	healthManager := health_manager.NewHealthManager(mockReg, config)
 
 	closeResponse := &protos.HealthResponse{
 		Action: protos.HealthResponse_SYSTEM_DOWN,
@@ -146,8 +165,8 @@ func TestHealthManager_UpdateHealth_SystemUp(t *testing.T) {
 		fegServiceHealthServicer: &MockServiceHealthServicer{},
 	}
 	mockReg := initTestServices(t, healthMocks.fegServiceHealthServicer, healthMocks.cloudHealthServicer)
-
-	healthManager := health_manager.NewHealthManager(mockReg)
+	config := health_manager.GetHealthConfig()
+	healthManager := health_manager.NewHealthManager(mockReg, config)
 
 	activeResponse := &protos.HealthResponse{
 		Action: protos.HealthResponse_SYSTEM_UP,
@@ -170,8 +189,8 @@ func TestHealthManager_ExceedUpdateFailureThreshold(t *testing.T) {
 		fegServiceHealthServicer: &MockServiceHealthServicer{},
 	}
 	mockReg := initTestServices(t, healthMocks.fegServiceHealthServicer, healthMocks.cloudHealthServicer)
-
-	healthManager := health_manager.NewHealthManager(mockReg)
+	config := health_manager.GetHealthConfig()
+	healthManager := health_manager.NewHealthManager(mockReg, config)
 	healthMocks.fegServiceHealthServicer.On("GetHealthStatus", mock.Anything, mock.Anything).Return(getHealthyServiceStatus(), nil).Times(6)
 	healthMocks.cloudHealthServicer.On("UpdateHealth", mock.Anything, mock.Anything).
 		Return(&protos.HealthResponse{}, fmt.Errorf("rpc error: code = Internal desc = transport")).Times(3)

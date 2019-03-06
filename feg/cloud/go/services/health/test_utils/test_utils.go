@@ -44,8 +44,8 @@ func GetHealthyRequest() *protos.HealthRequest {
 		SystemStatus: &protos.SystemHealthStats{
 			Time:              uint64(time.Now().UnixNano()) / uint64(time.Millisecond),
 			CpuUtilPct:        0.25,
-			MemAvailableBytes: 5000000,
-			MemTotalBytes:     50000000000,
+			MemAvailableBytes: 7500000000,
+			MemTotalBytes:     8000000000,
 		},
 		ServiceStatus: serviceStatsMap,
 		Health: &protos.HealthStatus{
@@ -76,8 +76,8 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 		SystemStatus: &protos.SystemHealthStats{
 			Time:              uint64(time.Now().Unix()),
 			CpuUtilPct:        0.25,
-			MemAvailableBytes: 5000000,
-			MemTotalBytes:     50000000000,
+			MemAvailableBytes: 7500000000,
+			MemTotalBytes:     8000000000,
 		},
 		ServiceStatus: serviceStatsMap,
 		Health: &protos.HealthStatus{

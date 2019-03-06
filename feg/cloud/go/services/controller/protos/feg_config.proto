@@ -76,6 +76,27 @@ message HSSConfig {
     SubscriptionProfile default_sub_profile = 5;
 }
 
+message HealthConfig {
+    // Services the health service is responsible for tracking
+    repeated string health_services = 1;
+    // Frequency of FeG health manager updates to the cloud
+    uint32 update_interval_secs = 2;
+    // Period to disable connection creation when requested to from cloud
+    uint32 cloud_disable_period_secs = 3;
+    // Period to disable connection creation when locally determined
+    uint32 local_disable_period_secs = 4;
+    // The number of consecutive health update failures before locally disabling
+    uint32 update_failure_threshold = 5;
+    // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 6;
+    // Minimum number of requests necessary to consider a metrics interval valid
+    uint32 minimum_request_threshold = 7;
+    // Cpu utilization healthy threshold
+    float cpu_utilization_threshold = 8;
+    // Available memory healthy threshold
+    float memory_available_threshold = 9;
+}
+
 message Config {
     // FeG config params
     S6aConfig s6a = 4;
@@ -84,4 +105,5 @@ message Config {
     repeated string served_network_ids = 7;
     HSSConfig hss = 8;
     SwxConfig swx = 9;
+    HealthConfig health = 10;
 }

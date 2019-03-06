@@ -15,6 +15,7 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
@@ -513,6 +514,9 @@ func TestGxUsageMonitoring(t *testing.T) {
 }
 
 func TestGetHealthStatus(t *testing.T) {
+	err := initMconfig()
+	assert.NoError(t, err)
+
 	mocks := &sessionMocks{
 		gy:       &MockCreditClient{},
 		gx:       &MockPolicyClient{},
@@ -689,6 +693,50 @@ func returnDefaultGxUpdateResponse(args mock.Arguments) {
 		RequestNumber: request.RequestNumber,
 		UsageMonitors: monitors,
 	}
+}
+
+func initMconfig() error {
+	fegConfig := `{
+		"configsByKey": {
+			"session_proxy": {
+				"@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
+				"logLevel": "INFO",
+				"gx": {
+					"server": {
+						 "protocol": "tcp",
+						 "address": "",
+						 "retransmits": 3,
+						 "watchdogInterval": 1,
+						 "retryCount": 5,
+						 "productName": "magma",
+		 				"realm": "magma.com",
+		 				"host": "magma-fedgw.magma.com"
+					}
+				},
+				"gy": {
+					"server": {
+						 "protocol": "tcp",
+						 "address": "",
+						 "retransmits": 3,
+						 "watchdogInterval": 1,
+						 "retryCount": 5,
+						 "productName": "magma",
+		 				 "realm": "magma.com",
+		 				 "host": "magma-fedgw.magma.com"
+					},
+					"initMethod": "PER_KEY"
+				},
+				"requestFailureThreshold": 0.5,
+   				"minimumRequestThreshold": 1
+			}
+		}
+	}`
+
+	err := mconfig.CreateLoadTempConfig(fegConfig)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func returnEmptyGxUpdateResponse(args mock.Arguments) {

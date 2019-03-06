@@ -18,6 +18,8 @@ import (
 	"sync/atomic"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
+	gwmcfg "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/service_health"
 	"magma/feg/gateway/services/gateway_health"
@@ -26,32 +28,62 @@ import (
 	"github.com/golang/glog"
 )
 
-const cloudConnectionDisablePeriodSecs = 10
-const fegConnectionDisablePeriodSecs = 1
-const consecutiveFailuresThreshold = 3
+const (
+	defaultHealthUpdateIntervalSec      = 10
+	defaultCloudDisablePeriodSecs       = 10
+	defaultLocalDisablePeriodSecs       = 1
+	defaultConsecutiveFailuresThreshold = 3
+)
 
-// TODO: Make required services configurable
-var requiredServices = [...]string{registry.S6A_PROXY, registry.SESSION_PROXY}
+var defaultServices = []string{registry.S6A_PROXY, registry.SESSION_PROXY}
 
 type HealthManager struct {
 	cloudReg                  registry.CloudRegistry
-	consecutiveUpdateFailures uint64
+	config                    *mconfig.GatewayHealthConfig
+	consecutiveUpdateFailures uint32
 	prevAction                protos.HealthResponse_RequestedAction
 }
 
-func NewHealthManager(cloudReg registry.CloudRegistry) *HealthManager {
+func NewHealthManager(cloudReg registry.CloudRegistry, hcfg *mconfig.GatewayHealthConfig) *HealthManager {
 	return &HealthManager{
+		config:                    hcfg,
 		cloudReg:                  cloudReg,
 		consecutiveUpdateFailures: 0,
 		prevAction:                protos.HealthResponse_NONE,
 	}
 }
 
+// GetHealthConfig attempts to retrieve a GatewayHealthConfig from mconfig
+// If this retrieval fails, or retrieves an invalid config, the config is
+// set to use default values
+func GetHealthConfig() *mconfig.GatewayHealthConfig {
+	defaultCfg := &mconfig.GatewayHealthConfig{
+		RequiredServices:          defaultServices,
+		UpdateIntervalSecs:        defaultHealthUpdateIntervalSec,
+		UpdateFailureThreshold:    defaultConsecutiveFailuresThreshold,
+		CloudDisconnectPeriodSecs: defaultCloudDisablePeriodSecs,
+		LocalDisconnectPeriodSecs: defaultLocalDisablePeriodSecs,
+	}
+	healthCfg := &mconfig.GatewayHealthConfig{}
+	err := gwmcfg.GetServiceConfigs("health", healthCfg)
+	if err != nil {
+		glog.Infof("Unable to retrieve Gateway Health Config from mconfig: %s; Using default values...", err)
+		return defaultCfg
+	}
+	err = validateHealthConfig(healthCfg)
+	if err != nil {
+		glog.Infof("Invalid parameters in Gateway Health Config: %s; Using default values...", err)
+		return defaultCfg
+	}
+	glog.Info("Using mconfig values for health parameters")
+	return healthCfg
+}
+
 // SendHealthUpdate collects Gateway Service and System Health Status and sends
 // them to the cloud health service. It awaits a response from the cloud and
 // applies any action requested from the cloud (e.g. SYSTEM_DOWN)
 func (hm *HealthManager) SendHealthUpdate() error {
-	healthRequest, err := gatherHealthRequest()
+	healthRequest, err := hm.gatherHealthRequest()
 	if err != nil {
 		glog.Error(err)
 	}
@@ -61,18 +93,18 @@ func (hm *HealthManager) SendHealthUpdate() error {
 	}
 
 	// Update was successful, so reset consecutive failure counter
-	atomic.StoreUint64(&hm.consecutiveUpdateFailures, 0)
+	atomic.StoreUint32(&hm.consecutiveUpdateFailures, 0)
 
 	switch healthResponse.Action {
 	case protos.HealthResponse_NONE:
 	case protos.HealthResponse_SYSTEM_UP:
-		err = takeSystemUp()
+		err = hm.takeSystemUp()
 	case protos.HealthResponse_SYSTEM_DOWN:
-		disablePeriod := cloudConnectionDisablePeriodSecs
+		disablePeriod := hm.config.GetCloudDisconnectPeriodSecs()
 		if hm.prevAction == protos.HealthResponse_SYSTEM_DOWN {
 			disablePeriod = 0
 		}
-		err = takeSystemDown(uint64(disablePeriod), healthRequest.HealthStats.ServiceStatus)
+		err = hm.takeSystemDown(disablePeriod, healthRequest.HealthStats.ServiceStatus)
 	default:
 		err = fmt.Errorf("Invalid requested action: %s returned to FeG Health Manager", healthResponse.Action)
 	}
@@ -93,20 +125,20 @@ func (hm *HealthManager) handleUpdateHealthFailure(
 ) error {
 	glog.Error(err)
 
-	atomic.AddUint64(&hm.consecutiveUpdateFailures, 1)
-	if atomic.LoadUint64(&hm.consecutiveUpdateFailures) < consecutiveFailuresThreshold {
+	atomic.AddUint32(&hm.consecutiveUpdateFailures, 1)
+	if atomic.LoadUint32(&hm.consecutiveUpdateFailures) < hm.config.GetUpdateFailureThreshold() {
 		return err
 	}
 
 	glog.V(2).Info("Consecutive update failures exceed threshold; Disabling FeG services' diameter connections...")
-	actionErr := takeSystemDown(fegConnectionDisablePeriodSecs, req.HealthStats.ServiceStatus)
+	actionErr := hm.takeSystemDown(hm.config.GetLocalDisconnectPeriodSecs(), req.HealthStats.ServiceStatus)
 	if actionErr != nil {
 		glog.Error(actionErr)
 		return actionErr
 	}
 
 	// SYSTEM_DOWN was successful, so reset failure counter
-	atomic.StoreUint64(&hm.consecutiveUpdateFailures, 0)
+	atomic.StoreUint32(&hm.consecutiveUpdateFailures, 0)
 	hm.prevAction = protos.HealthResponse_SYSTEM_DOWN
 	glog.V(2).Infof("Successfully took action: %s", protos.HealthResponse_SYSTEM_DOWN)
 	return err
@@ -114,10 +146,10 @@ func (hm *HealthManager) handleUpdateHealthFailure(
 
 // gatherHealthRequest collects FeG services and system health metrics/status and
 // fills in a HealthRequest with them
-func gatherHealthRequest() (*protos.HealthRequest, error) {
+func (hm *HealthManager) gatherHealthRequest() (*protos.HealthRequest, error) {
 	serviceStatsMap := make(map[string]*protos.ServiceHealthStats)
 
-	for _, service := range requiredServices {
+	for _, service := range hm.config.GetRequiredServices() {
 		serviceStats := collection.CollectServiceStats(service)
 		serviceStatsMap[service] = serviceStats
 	}
@@ -135,11 +167,11 @@ func gatherHealthRequest() (*protos.HealthRequest, error) {
 
 // takeSystemDown disables FeG services' for the period specified in the request by calling each
 // service's Disable method
-func takeSystemDown(disablePeriod uint64, serviceStats map[string]*protos.ServiceHealthStats) error {
+func (hm *HealthManager) takeSystemDown(disablePeriod uint32, serviceStats map[string]*protos.ServiceHealthStats) error {
 	var allActionErrors []string
-	for _, srv := range requiredServices {
+	for _, srv := range hm.config.GetRequiredServices() {
 		disableReq := &protos.DisableMessage{
-			DisablePeriodSecs: disablePeriod,
+			DisablePeriodSecs: uint64(disablePeriod),
 		}
 		// Only disable available services
 		if serviceStats[srv].ServiceState == protos.ServiceHealthStats_UNAVAILABLE {
@@ -160,9 +192,9 @@ func takeSystemDown(disablePeriod uint64, serviceStats map[string]*protos.Servic
 }
 
 // takeSystemUp enables FeG services' by calling each service's Enable method
-func takeSystemUp() error {
+func (hm *HealthManager) takeSystemUp() error {
 	var allActionErrors []string
-	for _, srv := range requiredServices {
+	for _, srv := range hm.config.GetRequiredServices() {
 		// For SYSTEM_UP, all services should be available
 		err := service_health.Enable(srv)
 		if err != nil {
@@ -174,6 +206,17 @@ func takeSystemUp() error {
 		return fmt.Errorf("Encountered the following errors while taking SYSTEM_DOWN:\n%s\n",
 			strings.Join(allActionErrors, "\n"),
 		)
+	}
+	return nil
+}
+
+func validateHealthConfig(config *mconfig.GatewayHealthConfig) error {
+	if config == nil {
+		return fmt.Errorf("Nil GatewayHealthConfig provided")
+	} else if config.GetUpdateIntervalSecs() == 0 {
+		return fmt.Errorf("Cannot use 0 secs as update interval")
+	} else if config.GetUpdateFailureThreshold() == 0 {
+		return fmt.Errorf("Cannot use 0 as consecutive failure threshold")
 	}
 	return nil
 }
