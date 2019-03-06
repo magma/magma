@@ -9,7 +9,7 @@
  */
 
 import {createMuiTheme} from '@material-ui/core/styles';
-import {sea100, sea200, sea300, white, black} from './colors';
+import {sea100, sea200, sea300, white} from './colors';
 
 export default createMuiTheme({
   palette: {
@@ -84,10 +84,44 @@ export default createMuiTheme({
         color: sea200,
       },
     },
+    MuiInputLabel: {
+      outlined: {
+        transform: 'translate(14px, 16px) scale(1)',
+      },
+    },
     MuiOutlinedInput: {
       root: {
+        '& $notchedOutline': {
+          borderColor: '#CCD0D5',
+        },
         '&$focused $notchedOutline': {
-          borderColor: black,
+          borderColor: 'rgba(0, 0, 0, 0.87)',
+          borderWidth: '1px',
+        },
+      },
+      input: {
+        fontSize: '14px',
+        lineHeight: '14px',
+        paddingBottom: '15px',
+        paddingTop: '15px',
+      },
+      inputMarginDense: {
+        paddingTop: '9px',
+        paddingBottom: '9px',
+        fontSize: '14px',
+        lineHeight: '14px',
+        height: '14px',
+        '&::placeholder': {
+          color: 'rgba(0, 0, 0, 0.6)',
+        },
+        '&::-webkit-input-placeholder': {
+          opacity: 1,
+        },
+        '&::-moz-placeholder': {
+          opacity: 1,
+        },
+        '&::-ms-input-placeholder': {
+          opacity: 1,
         },
       },
     },
