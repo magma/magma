@@ -113,7 +113,7 @@ class RedirectionManager:
     def _install_scratch_table_flows(self, datapath, imsi, rule, rule_num,
                                      priority):
         """
-        The flow action for subcribers that need to be redirected does 2 things
+        The flow action for subscribers that need to be redirected does 2 things
             * Forward requests from subscriber to the internal http server
             * Instantiate a flow that matches response packets from the server
               and sends them back to subscriber
@@ -267,7 +267,7 @@ class RedirectionManager:
                                   priority):
         """
         Resolve DNS queries to get the ip address of redirect url, this is done
-        to allow traffic to safely pass thorugh as we want subscribers to have
+        to allow traffic to safely pass through as we want subscribers to have
         full access to the url they are redirected to.
 
         First check cache for redirect url, if not in cache submit a DNS query
@@ -337,7 +337,7 @@ class RedirectionManager:
 
     def _install_dns_flows(self, datapath, imsi, rule, rule_num, priority):
         """
-        Installs flows that allow DNS queries to path thorugh.
+        Installs flows that allow DNS queries to path through.
         """
         parser = datapath.ofproto_parser
         of_note = parser.NXActionNote(list(rule.id.encode()))
