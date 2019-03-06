@@ -18,7 +18,7 @@ These tests use only the *magma* and *magma_test* VMs. The *magma_test* VM abstr
 Spin up and provision the gateway VM, then make and start its services:
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma && vagrant ssh magma`
-1. Now in the gateway VM: `cd $MAGMA_ROOT && make run`
+1. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway/python && make run`
 
 ### Magma_test setup
 
@@ -26,12 +26,12 @@ Spin up and provision the s1ap tester's VM, make, then make in the integ_tests d
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma_test && vagrant ssh magma_test`
 1. Now in the *magma_test* VM:
-    1. cd `$MAGMA_ROOT/python && make`
-    1. cd `$MAGMA_ROOT/python/integ_tests && make`
+    1. cd `$MAGMA_ROOT/lte/gateway/python && make`
+    1. cd `$MAGMA_ROOT/lte/gateway/python/integ_tests && make`
 
 ### Run tests
 
-From `$MAGMA_ROOT/python/integ_tests` on the *magma_test* VM, run either individual tests or the full suite of tests. Note that running all tests currently *fails*. A safe, non-flaky test to run is `s1aptests/test_attach_detach.py`.
+From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run either individual tests or the full suite of tests. Note that running all tests currently *fails*. A safe, non-flaky test to run is `s1aptests/test_attach_detach.py`.
 
 *Note*: after make-ing, run `deactivate; magtivate`. Make sure that you are "magtivate-d" before all tests (your command prompt will include `(python)`).
 
@@ -98,7 +98,7 @@ Using the *cloud* VM requires a few extra steps, which are handled by the above 
 
 The integration tests are told to use the cloud by setting the environment variable `MAGMA_S1APTEST_USE_CLOUD` on the *magma_test* VM.
 
-So from `$MAGMA_ROOT/python/integ_tests` on the *magma_test* VM run e.g. `MAGMA_S1APTEST_USE_CLOUD=1 make integ_test TESTS=s1aptests/test_attach_detach.py` to run a cloud-included version of `test_attach_detach`.
+So from `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM run e.g. `MAGMA_S1APTEST_USE_CLOUD=1 make integ_test TESTS=s1aptests/test_attach_detach.py` to run a cloud-included version of `test_attach_detach`.
 
 ## Notes
 
