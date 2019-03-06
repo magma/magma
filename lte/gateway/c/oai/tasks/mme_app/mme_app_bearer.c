@@ -107,10 +107,10 @@ int mme_app_handle_nas_pdn_connectivity_req(
       " NAS_PDN_CONNECTIVITY_REQ Unknown imsi " IMSI_64_FMT,
       imsi64);
     mme_ue_context_dump_coll_keys();
-    /* 
-     * This is Duplicate Attach case. 
+    /*
+     * This is Duplicate Attach case.
      * Since IMSI has been removed from the mme_ue_context hashtable, we need to insert
-     * it again in the mme_ue_context. 
+     * it again in the mme_ue_context.
      * Get the UE id from the message. And insert the IMSI again in the hashtable
      */
     ue_id = nas_pdn_connectivity_req_pP->ue_id;
@@ -228,7 +228,7 @@ void mme_app_handle_conn_est_cnf(
     /*
      * Move the UE to ECM Connected State.
      */
-    /* 
+    /*
     * Check that if SGS paging is recieved without LAI then
     * send IMSI Detach towads UE to re-attach for non-eps services
     * otherwise send itti SGS Service request message to SGS
@@ -258,7 +258,8 @@ void mme_app_handle_conn_est_cnf(
   if (
     (((nas_conn_est_cnf_pP->presencemask) & SERVICE_TYPE_PRESENT) ==
      SERVICE_TYPE_PRESENT) &&
-    (nas_conn_est_cnf_pP->service_type == MO_CS_FB)) {
+   ((nas_conn_est_cnf_pP->service_type == MO_CS_FB) ||
+    (nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL))) {
     if (ue_context_p->sgs_context != NULL) {
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
     } else {
@@ -272,6 +273,9 @@ void mme_app_handle_conn_est_cnf(
         EMM_CAUSE_CONGESTION,
         INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
       OAILOG_FUNC_OUT(LOG_MME_APP);
+    }
+    if(nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL){
+     ue_context_p->sgs_context->is_emergency_call = true;
     }
   }
   if (
@@ -306,7 +310,12 @@ void mme_app_handle_conn_est_cnf(
     ((ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MT_CALL) ||
      (ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MO_CALL))) {
     establishment_cnf_p->presencemask |= S1AP_CSFB_INDICATOR_PRESENT;
-    establishment_cnf_p->cs_fallback_indicator = CSFB_REQUIRED;
+    if (ue_context_p->sgs_context->is_emergency_call == true){
+      establishment_cnf_p->cs_fallback_indicator   = CSFB_HIGH_PRIORITY;
+      ue_context_p->sgs_context->is_emergency_call = false;
+    } else {
+      establishment_cnf_p->cs_fallback_indicator      = CSFB_REQUIRED;
+    }
   }
   // Copy UE radio capabilities into message if it exists
   OAILOG_DEBUG(
@@ -2228,7 +2237,17 @@ int mme_app_handle_nas_extended_service_req(
           ue_id);
       }
       break;
-    case MO_CS_FB_EMRGNCY_CALL: break;
+    case MO_CS_FB_EMRGNCY_CALL:
+      if (ue_context_p->sgs_context != NULL) {
+        ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
+        ue_context_p->sgs_context->is_emergency_call = true;
+        mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
+      } else {
+        /* send Service Reject to UE */
+        mme_app_notify_service_reject_to_nas(ue_context_p->mme_ue_s1ap_id, EMM_CAUSE_CONGESTION,
+             UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
+      }
+      break;
     /* packet service via s1 */
     case PKT_SRV_VIA_S1:
     case PKT_SRV_VIA_S1_1:
