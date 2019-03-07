@@ -21,7 +21,8 @@ from lte.protos.pipelined_pb2 import (
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
+    RelayDisabledException
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
@@ -162,6 +163,27 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._enforcer_app.deactivate_rules,
             request.sid.id, request.rule_ids)
         return DeactivateFlowsResult()
+
+    def GetPolicyUsage(self, request, context):
+        """
+        Get policy usage stats
+        """
+        if not self._service_manager.is_app_enabled(
+                EnforcementStatsController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(
+            self._enforcement_stats.get_policy_usage, fut)
+        try:
+            return fut.result()
+        except RelayDisabledException:
+            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
+            context.set_details(
+                'Cannot get policy usage: Relay is not enabled!')
+            return None
 
     # --------------------------
     # DPI App

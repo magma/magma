@@ -32,6 +32,10 @@ from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
 ETH_FRAME_SIZE_BYTES = 14
 
 
+class RelayDisabledException(Exception):
+    pass
+
+
 class EnforcementStatsController(PolicyMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
@@ -192,6 +196,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
     def _install_default_flow_for_subscriber(self, imsi):
         pass
+
+    def get_policy_usage(self, fut):
+        if not self._relay_enabled:
+            fut.set_exception(RelayDisabledException())
+            return
+
+        record_table = RuleRecordTable(
+            records=self.total_usage.values())
+        fut.set_result(record_table)
 
     def _monitor(self, poll_interval):
         """

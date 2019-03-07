@@ -12,6 +12,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import argparse
 import binascii
 import errno
+from pprint import pprint
 import subprocess
 
 from magma.common.rpc_utils import grpc_wrapper
@@ -122,6 +123,12 @@ def display_flows(_unused, args):
             print(flow)
 
 
+@grpc_wrapper
+def get_policy_usage(client, _):
+    rule_table = client.GetPolicyUsage(Void())
+    pprint(rule_table)
+
+
 def create_enforcement_parser(apps):
     """
     Creates the argparse subparser for the enforcement app
@@ -156,6 +163,10 @@ def create_enforcement_parser(apps):
     subcmd = subparsers.add_parser('display_flows', help='Display flows')
     subcmd.add_argument('--table_num', help='table number to filter')
     subcmd.set_defaults(func=display_flows)
+
+    subcmd = subparsers.add_parser('get_policy_usage',
+                                   help='Get policy usage stats')
+    subcmd.set_defaults(func=get_policy_usage)
 
 
 # --------------------------

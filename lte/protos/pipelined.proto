@@ -12,6 +12,7 @@ package magma.lte;
 import "orc8r/protos/common.proto";
 import "lte/protos/meteringd.proto";
 import "lte/protos/policydb.proto";
+import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
 
 option go_package = "magma/lte/cloud/go/protos";
@@ -86,6 +87,9 @@ service Pipelined {
 
   // Deactivate flows for a subscriber
   rpc DeactivateFlows(DeactivateFlowsRequest) returns (DeactivateFlowsResult) {}
+
+  // Get policy usage stats
+  rpc GetPolicyUsage(magma.orc8r.Void) returns (RuleRecordTable) {}
 
   // --------
   // DPI App:
