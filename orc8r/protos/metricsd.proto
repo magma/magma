@@ -108,6 +108,8 @@ enum MetricName {
   openflow_error_msg             = 352;
   unknown_pkt_direction          = 353;
   network_iface_status           = 354;
+  enforcement_rule_install_fail  = 355;
+  enforcement_stats_rule_install_fail = 356;
 
   ///////////////////////////////
   // GATEWAY FAILURES & ALERTS //
@@ -189,6 +191,8 @@ enum MetricLabelName {
   error_type                     = 14;
   iface_name                     = 15; // pipelined network_iface_status
   service_name                   = 16; // magmad unexpected_service_restarts
+  rule_id                        = 17; // pipelined rule install failures
+  imsi                           = 18; // pipelined rule install failures
 }
 
 message MetricsContainer {

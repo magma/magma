@@ -27,6 +27,18 @@ UNKNOWN_PACKET_DIRECTION = Counter(
     [],
 )
 
+ENFORCEMENT_RULE_INSTALL_FAIL = Counter(
+    'enforcement_rule_install_fail',
+    'Counts number of times rule install failed in enforcement app',
+    ['rule_id', 'imsi'],
+)
+
+ENFORCEMENT_STATS_RULE_INSTALL_FAIL = Counter(
+    'enforcement_stats_rule_install_fail',
+    'Counts number of times rule install failed in enforcement stats app',
+    ['rule_id', 'imsi'],
+)
+
 NETWORK_IFACE_STATUS = Gauge(
     'network_iface_status',
     'Status of a network interface required for data pipeline',
