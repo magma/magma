@@ -8,23 +8,16 @@
  * @format
  */
 
-import Sequelize from 'sequelize';
 import bodyParser from 'body-parser';
 import express from 'express';
 import fbcPassport from '../passport';
 import passport from 'passport';
 import request from 'supertest';
 import userMiddleware from '../express';
-import UserModelDefinition, {USERS, USERS_EXPECTED} from '../test/UserModel';
+import {USERS, USERS_EXPECTED} from '../test/UserModel';
+import {sequelize, User} from '@fbcnms/sequelize-models';
 
 import {configureAccess} from '../access';
-
-const sequelize = new Sequelize('db', null, null, {
-  dialect: 'sqlite',
-  dialectModulePath: 'sqlite3-offline',
-  logging: false,
-});
-const MockUser = UserModelDefinition(sequelize, Sequelize);
 
 function stripDatesMany(res) {
   res.body.users.map(u => {
@@ -52,7 +45,7 @@ function mockOrgMiddleware(orgName: string) {
 function mockUserMiddleware(where) {
   return async (req, _res, next) => {
     req.isAuthenticated = () => true;
-    req.user = await MockUser.findOne({where});
+    req.user = await User.findOne({where});
     next();
   };
 }
@@ -61,7 +54,7 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   const app = express();
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded());
-  fbcPassport.use({UserModel: MockUser});
+  fbcPassport.use({UserModel: User});
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(configureAccess({loginUrl: '/user/login'}));
@@ -72,7 +65,7 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   app.use(
     '/user',
     userMiddleware({
-      UserModel: MockUser,
+      UserModel: User,
       loginFailureUrl: '/failure',
       loginSuccessUrl: '/success',
     }),
@@ -86,10 +79,10 @@ describe('user tests', () => {
   });
 
   beforeEach(async () => {
-    USERS.forEach(async user => await MockUser.create(user));
+    USERS.forEach(async user => await User.create(user));
   });
   afterEach(async () => {
-    await MockUser.destroy({where: {}, truncate: true});
+    await User.destroy({where: {}, truncate: true});
   });
 
   describe('login', () => {

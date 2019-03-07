@@ -17,6 +17,14 @@ const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
 const logger = require('@fbcnms/logging').getLogger(module);
 
 module.exports = {
+  test: {
+    username: null,
+    password: null,
+    database: 'db',
+    dialect: 'sqlite',
+    dialectModulePath: 'sqlite3-offline',
+    logging: false,
+  },
   development: {
     username: MYSQL_USER,
     password: MYSQL_PASS,

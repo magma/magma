@@ -53,7 +53,7 @@
   },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
-    "test": "jest"
+    "test": "NODE_ENV=test jest"
   },
   "workspaces": [
     "fbcnms-packages/*",

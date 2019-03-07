@@ -14,6 +14,6 @@ source "$ROOT_DIR/xplat/js/env-utils/setup_env_vars.sh"
 
 pushd "$ROOT_DIR/xplat/fbc" >/dev/null
   "$INSTALL_NODE_MODULES"
-  "$YARN_BINARY" run jest "$@"
+  "$YARN_BINARY" run test "$@"
 popd >/dev/null
 

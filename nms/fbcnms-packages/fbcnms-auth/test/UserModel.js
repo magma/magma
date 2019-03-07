@@ -11,9 +11,6 @@
 import {AccessRoles} from '../roles';
 import bcrypt from 'bcryptjs';
 import {UserVerificationTypes} from '../types';
-import type {DataTypes} from 'sequelize';
-import Sequelize from 'sequelize';
-import {omit} from 'lodash-es';
 
 export const USERS = [
   {
@@ -68,34 +65,3 @@ export const USERS_EXPECTED = [
     role: 3,
   },
 ];
-
-export default (sequelize: Sequelize, types: DataTypes) => {
-  const User = sequelize.define(
-    'User',
-    {
-      email: types.STRING,
-      organization: types.STRING,
-      password: types.STRING,
-      role: types.INTEGER,
-      networkIDs: {
-        type: types.JSON,
-        allowNull: false,
-        defaultValue: [],
-        get() {
-          return this.getDataValue('networkIDs') || [];
-        },
-      },
-    },
-    {
-      getterMethods: {
-        isSuperUser() {
-          return this.role === AccessRoles.SUPERUSER;
-        },
-      },
-    },
-  );
-  User.prototype.toJSON = function() {
-    return omit(this.get(), 'password');
-  };
-  return User;
-};
