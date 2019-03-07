@@ -7,6 +7,8 @@
  * @format
  */
 
+const esModules = ['lodash-es'].join('|');
+
 module.exports = {
   collectCoverageFrom: [
     '**/fbcnms-projects/**/*.js',
@@ -27,7 +29,7 @@ module.exports = {
     '/node_modules/',
     '/tgnms', // these tests are run independently
   ],
-  transformIgnorePatterns: [], // babel.config.js manages this
+  transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
   transform: {
     '^.+\\.js$': 'babel-jest',
   },
