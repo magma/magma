@@ -8,9 +8,9 @@
  */
 
 const logger = require('@fbcnms/logging').getLogger(module);
-const {sequelize} = require('../server/models');
+const {sequelize} = require('@fbcnms/sequelize-models');
+const sequelizerc = require('@fbcnms/sequelize-models/sequelizerc');
 
-const path = require('path');
 const {DataTypes} = require('sequelize');
 const Umzug = require('umzug');
 
@@ -31,7 +31,7 @@ const umzug = new Umzug({
     // Might be an array or a synchronous function which returns an array.
     params: [sequelize.getQueryInterface(), DataTypes],
     // The path to the migrations directory.
-    path: path.join(__dirname, '..', 'server/migrations'),
+    path: sequelizerc['migrations-path'],
     // The pattern that determines whether or not a file is a migration.
     pattern: /^\d+[\w-]+\.js$/,
     // A function that receives and returns the to be executed function.

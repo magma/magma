@@ -7,13 +7,13 @@
  * @format
  */
 
-const {
-  MYSQL_HOST,
-  MYSQL_PORT,
-  MYSQL_USER,
-  MYSQL_PASS,
-  MYSQL_DB,
-} = require('./config');
+// TODO: Pull from shared config
+const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
+const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
+const MYSQL_USER = process.env.MYSQL_USER || 'root';
+const MYSQL_PASS = process.env.MYSQL_PASS || '';
+const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
+
 const logger = require('@fbcnms/logging').getLogger(module);
 
 module.exports = {

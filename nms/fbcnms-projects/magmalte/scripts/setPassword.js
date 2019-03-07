@@ -12,7 +12,7 @@
 import bcrypt from 'bcryptjs';
 import {SALT_GEN_ROUNDS} from '../server/config';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {User} from '../server/models';
+import {User} from '@fbcnms/sequelize-models';
 
 type UserObject = {
   email: string,

@@ -31,12 +31,6 @@ switch (apiHostArg) {
 
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
 
-const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
-const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
-const MYSQL_USER = process.env.MYSQL_USER || 'root';
-const MYSQL_PASS = process.env.MYSQL_PASS || '';
-const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
-
 const NETWORK_FALLBACK = process.env.NETWORK_FALLBACK
   ? process.env.NETWORK_FALLBACK.split(',')
   : [];
@@ -67,10 +61,5 @@ module.exports = {
   LOG_FORMAT,
   LOG_LEVEL,
   MAPBOX_ACCESS_TOKEN,
-  MYSQL_HOST,
-  MYSQL_PORT,
-  MYSQL_USER,
-  MYSQL_PASS,
-  MYSQL_DB,
   NETWORK_FALLBACK,
 };

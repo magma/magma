@@ -34,7 +34,7 @@ const passport = require('passport');
 const fbcPassport = require('@fbcnms/auth/passport').default;
 const paths = require('fbcnms-webpack-config/paths');
 const session = require('express-session');
-const {sequelize, User} = require('../server/models');
+const {sequelize, User} = require('@fbcnms/sequelize-models');
 const {runMigrations} = require('./runMigrations');
 const {access, configureAccess} = require('@fbcnms/auth/access');
 const {

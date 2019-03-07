@@ -7,11 +7,4 @@
  * @format
  */
 
-const path = require('path');
-
-module.exports = {
-  'config': path.resolve('server', 'sequelizeConfig.js'),
-  'migrations-path': path.resolve('server', 'migrations'),
-  'models-path': path.resolve('server', 'models'),
-  'seeders-path': path.resolve('server', 'seeders'),
-}
+module.exports = require('@fbcnms/sequelize-models/sequelizerc');

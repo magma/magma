@@ -1,0 +1,9 @@
+{
+  "name": "@fbcnms/sequelize-models",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "sequelize": "^4.38.0"
+  }
+}
+  

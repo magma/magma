@@ -15,7 +15,7 @@ const path = require('path');
 const fs = require('fs');
 const staticDist = require('fbcnms-webpack-config/staticDist').default;
 const userMiddleware = require('@fbcnms/auth/express').default;
-const {User} = require('../models');
+const {User} = require('@fbcnms/sequelize-models');
 
 function getVersion(): string {
   if (DEV_MODE) {

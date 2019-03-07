@@ -35,6 +35,7 @@ module.exports.overrides = [
       'fbcnms-packages/fbcnms-babel-register/**/*.js',
       'fbcnms-packages/fbcnms-express-middleware/**/*.js',
       'fbcnms-packages/fbcnms-logging/**/*.js',
+      'fbcnms-packages/fbcnms-sequelize-models/**/*.js',
       'fbcnms-packages/fbcnms-ui/stories/**/*.js',
       'fbcnms-packages/fbcnms-util/**/*.js',
       'fbcnms-packages/fbcnms-webpack-config/**/*.js',

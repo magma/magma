@@ -4,21 +4,27 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 'use strict';
 
+import type {DataTypes} from 'sequelize';
+
+import {omit} from 'lodash-es';
+import Sequelize from 'sequelize';
 import {AccessRoles} from '@fbcnms/auth/roles';
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize: Sequelize, types: DataTypes) => {
   const User = sequelize.define(
     'User',
     {
-      email: DataTypes.STRING,
-      password: DataTypes.STRING,
-      role: DataTypes.INTEGER,
+      email: types.STRING,
+      organization: types.STRING,
+      password: types.STRING,
+      role: types.INTEGER,
       networkIDs: {
-        type: DataTypes.JSON,
+        type: types.JSON,
         allowNull: false,
         defaultValue: [],
         get() {
@@ -36,6 +42,9 @@ module.exports = (sequelize, DataTypes) => {
   );
   User.associate = function(_models) {
     // associations can be defined here
+  };
+  User.prototype.toJSON = function() {
+    return omit(this.get(), 'password');
   };
   return User;
 };
