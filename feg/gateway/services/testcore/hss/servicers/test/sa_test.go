@@ -94,7 +94,7 @@ func TestNewSAA_MissingAPNConfig(t *testing.T) {
 
 func TestNewSAA_MissingAVP(t *testing.T) {
 	sar := createBaseSAR()
-	sar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("sub1"))
+	sar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
 	server := newTestHomeSubscriberServer(t)
 	response, err := servicers.NewSAA(server, sar)
 	assert.EqualError(t, err, "Missing server assignment type in message")
@@ -107,14 +107,14 @@ func TestNewSAA_MissingAVP(t *testing.T) {
 
 func TestValidateSAR_MissingUserName(t *testing.T) {
 	sar := createBaseSAR()
-	sar.NewAVP(avp.ServerAssignmentType, avp.Mbit, diameter.Vendor3GPP, datatype.Enumerated(definitions.ServerAssignmentType_REGISTRATION))
+	sar.NewAVP(avp.ServerAssignmentType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(definitions.ServerAssignmentType_REGISTRATION))
 	err := servicers.ValidateSAR(sar)
 	assert.EqualError(t, err, "Missing IMSI in message")
 }
 
 func TestValidateSAR_MissingServerAssignmentType(t *testing.T) {
 	sar := createBaseSAR()
-	sar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("sub1"))
+	sar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
 	err := servicers.ValidateSAR(sar)
 	assert.EqualError(t, err, "Missing server assignment type in message")
 }
@@ -132,9 +132,9 @@ func TestValidateSAR_Success(t *testing.T) {
 
 func createBaseSAR() *diam.Message {
 	sar := diameter.NewProxiableRequest(diam.ServerAssignment, diam.TGPP_SWX_APP_ID, dict.Default)
-	sar.NewAVP(avp.SessionID, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("magma;123_1234"))
-	sar.NewAVP(avp.OriginHost, avp.Mbit, diameter.Vendor3GPP, datatype.DiameterIdentity("magma.com"))
-	sar.NewAVP(avp.OriginRealm, avp.Mbit, diameter.Vendor3GPP, datatype.DiameterIdentity("magma.com"))
+	sar.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
+	sar.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	sar.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	return sar
 }
 
@@ -144,11 +144,11 @@ func createSAR(userName string, serverAssignmentType int) *diam.Message {
 
 func createSARExtended(userName string, serverAssignmentType int, originHost string) *diam.Message {
 	sar := diameter.NewProxiableRequest(diam.ServerAssignment, diam.TGPP_SWX_APP_ID, dict.Default)
-	sar.NewAVP(avp.SessionID, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("magma;123_1234"))
-	sar.NewAVP(avp.OriginHost, avp.Mbit, diameter.Vendor3GPP, datatype.DiameterIdentity(originHost))
-	sar.NewAVP(avp.OriginRealm, avp.Mbit, diameter.Vendor3GPP, datatype.DiameterIdentity("magma.com"))
-	sar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String(userName))
-	sar.NewAVP(avp.ServerAssignmentType, avp.Mbit, diameter.Vendor3GPP, datatype.Enumerated(serverAssignmentType))
+	sar.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
+	sar.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(originHost))
+	sar.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	sar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
+	sar.NewAVP(avp.ServerAssignmentType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(serverAssignmentType))
 	return sar
 }
 

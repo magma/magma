@@ -22,7 +22,6 @@ import (
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
 )
 
 // NewMAA outputs a multimedia authentication answer (MAA) to reply to a multimedia
@@ -92,7 +91,7 @@ func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID d
 	maa := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server)
 	for _, vector := range vectors {
 		authenticate := append(vector.Rand[:], vector.Autn[:]...)
-		maa.NewAVP(avp.SIPAuthDataItem, avp.Mbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		maa.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
 				diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(servicers.SipAuthScheme_EAP_AKA)),
 				diam.NewAVP(avp.SIPAuthenticate, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(authenticate)),
@@ -151,7 +150,7 @@ func ValidateMAR(msg *diam.Message) error {
 	if msg == nil {
 		return errors.New("Message is nil")
 	}
-	_, err := msg.FindAVP(avp.UserName, dict.UndefinedVendorID)
+	_, err := msg.FindAVP(avp.UserName, 0)
 	if err != nil {
 		return errors.New("Missing IMSI in message")
 	}

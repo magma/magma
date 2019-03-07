@@ -21,7 +21,6 @@ import (
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
 	"github.com/golang/glog"
 )
 
@@ -68,7 +67,7 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 
 	answer := ConstructSuccessAnswer(msg, sar.SessionID, srv.Config.Server)
 	answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
-	answer.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, sar.UserName)
+	answer.NewAVP(avp.UserName, avp.Mbit, 0, sar.UserName)
 	switch sar.ServerAssignmentType {
 	case servicers.ServerAssignmentType_REGISTRATION:
 		subscriber.State.TgppAaaServerRegistered = true
@@ -94,11 +93,11 @@ func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 	qosProfileAvp := diam.NewAVP(avp.EPSSubscribedQoSProfile, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.QoSClassIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(qosProfile.GetClassId())),
-			diam.NewAVP(avp.AllocationRetentionPriority, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+			diam.NewAVP(avp.AllocationRetentionPriority, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
-					diam.NewAVP(avp.PriorityLevel, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(qosProfile.GetPriorityLevel())),
-					diam.NewAVP(avp.PreemptionCapability, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(BoolToInt(qosProfile.GetPreemptionCapability()))),
-					diam.NewAVP(avp.PreemptionVulnerability, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(BoolToInt(qosProfile.GetPreemptionVulnerability()))),
+					diam.NewAVP(avp.PriorityLevel, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(qosProfile.GetPriorityLevel())),
+					diam.NewAVP(avp.PreemptionCapability, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(BoolToInt(qosProfile.GetPreemptionCapability()))),
+					diam.NewAVP(avp.PreemptionVulnerability, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(BoolToInt(qosProfile.GetPreemptionVulnerability()))),
 				},
 			}),
 		},
@@ -108,7 +107,7 @@ func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 			diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetContextId())),
 			diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(apnConfig.GetPdn())),
 			diam.NewAVP(avp.ServiceSelection, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String(apnConfig.GetServiceSelection())),
-			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, 0, &diam.GroupedAVP{
+			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthUl())),
 					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthDl())),
@@ -145,7 +144,7 @@ func ValidateSAR(msg *diam.Message) error {
 	if msg == nil {
 		return errors.New("Message is nil")
 	}
-	_, err := msg.FindAVP(avp.UserName, dict.UndefinedVendorID)
+	_, err := msg.FindAVP(avp.UserName, 0)
 	if err != nil {
 		return errors.New("Missing IMSI in message")
 	}

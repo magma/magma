@@ -107,7 +107,7 @@ func TestNewMAA_MultipleVectors(t *testing.T) {
 
 func TestNewMAA_MissingAVP(t *testing.T) {
 	mar := createBaseMAR()
-	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	mar.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(definitions.RadioAccessTechnologyType_WLAN))
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
@@ -149,7 +149,7 @@ func TestValidateMAR_Success(t *testing.T) {
 
 func TestValidateMAR_MissingUserName(t *testing.T) {
 	mar := createBaseMAR()
-	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	mar.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(definitions.RadioAccessTechnologyType_WLAN))
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
@@ -163,8 +163,8 @@ func TestValidateMAR_MissingUserName(t *testing.T) {
 
 func TestValidateMAR_MissingSIPNumberAuthItems(t *testing.T) {
 	mar := createBaseMAR()
-	mar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("sub1"))
-	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	mar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
+	mar.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(definitions.RadioAccessTechnologyType_WLAN))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String("EAP-AKA")),
@@ -177,8 +177,8 @@ func TestValidateMAR_MissingSIPNumberAuthItems(t *testing.T) {
 
 func TestValidateMAR_MissingSIPAuthDataItem(t *testing.T) {
 	mar := createBaseMAR()
-	mar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("sub1"))
-	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	mar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
+	mar.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(definitions.RadioAccessTechnologyType_WLAN))
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1))
 	mar.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String("EAP-AKA"))
 
@@ -188,8 +188,8 @@ func TestValidateMAR_MissingSIPAuthDataItem(t *testing.T) {
 
 func TestValidateMAR_MissingSIPAuthenticationScheme(t *testing.T) {
 	mar := createBaseMAR()
-	mar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("sub1"))
-	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	mar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
+	mar.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(definitions.RadioAccessTechnologyType_WLAN))
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{})
 
@@ -199,7 +199,7 @@ func TestValidateMAR_MissingSIPAuthenticationScheme(t *testing.T) {
 
 func TestValidateMAR_MissingRATType(t *testing.T) {
 	mar := createBaseMAR()
-	mar.NewAVP(avp.UserName, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("sub1"))
+	mar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
@@ -218,9 +218,9 @@ func TestValidateMAR_NilMessage(t *testing.T) {
 
 func createBaseMAR() *diam.Message {
 	mar := diameter.NewProxiableRequest(diam.MultimediaAuthentication, diam.TGPP_SWX_APP_ID, dict.Default)
-	mar.NewAVP(avp.SessionID, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String("magma;123_1234"))
-	mar.NewAVP(avp.OriginHost, avp.Mbit, diameter.Vendor3GPP, datatype.DiameterIdentity("magma.com"))
-	mar.NewAVP(avp.OriginRealm, avp.Mbit, diameter.Vendor3GPP, datatype.DiameterIdentity("magma.com"))
+	mar.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
+	mar.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	mar.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	return mar
 }
 
@@ -231,7 +231,7 @@ func createMARWithSingleAuthItem(userName string) *diam.Message {
 func createMARExtended(userName string, numberAuthItems uint32, ratType uint32) *diam.Message {
 	mar := createBaseMAR()
 	mar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
-	mar.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(ratType))
+	mar.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(ratType))
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(numberAuthItems))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{

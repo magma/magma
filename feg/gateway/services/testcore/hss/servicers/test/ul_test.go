@@ -111,65 +111,55 @@ func TestNewULA_NewSuccessfulULA(t *testing.T) {
 }
 
 func TestValidateULR_MissingUserName(t *testing.T) {
-	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
+	ulr := createBaseULR()
 	ulr.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	ulr.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.ULRFlags, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.RATType, avp.Mbit, 0, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
 	err := servicers.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing IMSI in message")
 }
 
 func TestValidateULR_MissingVisitedPLMNID(t *testing.T) {
-	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
+	ulr := createBaseULR()
 	ulr.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	ulr.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	ulr.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	ulr.NewAVP(avp.ULRFlags, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.RATType, avp.Mbit, 0, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
 	err := servicers.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing Visited PLMN ID in message")
 }
 
 func TestValidateULR_MissingULRFlags(t *testing.T) {
-	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
+	ulr := createBaseULR()
 	ulr.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	ulr.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	ulr.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.RATType, avp.Mbit, 0, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
 	err := servicers.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing ULR flags in message")
 }
 
 func TestValidateULR_MissingRATType(t *testing.T) {
-	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
+	ulr := createBaseULR()
 	ulr.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	ulr.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	ulr.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.ULRFlags, avp.Mbit, 0, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
 	err := servicers.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing RAT type in message")
 }
 
 func TestValidateULR_MissingSessionID(t *testing.T) {
-	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
-	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	ulr.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	ulr := createBaseULR()
 	ulr.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.ULRFlags, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.RATType, avp.Mbit, 0, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
 	err := servicers.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing SessionID in message")
@@ -191,18 +181,23 @@ func TestNewULA_RATTypeNotAllowed(t *testing.T) {
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginRealm)
 }
 
+func createBaseULR() *diam.Message {
+	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
+	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	ulr.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	return ulr
+}
+
 func createULR(userName string) *diam.Message {
 	return createULRExtended(userName, definitions.RadioAccessTechnologyType_EUTRAN)
 }
 
 func createULRExtended(userName string, ratType uint32) *diam.Message {
-	ulr := diameter.NewProxiableRequest(diam.UpdateLocation, diam.TGPP_S6A_APP_ID, dict.Default)
+	ulr := createBaseULR()
 	ulr.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	ulr.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	ulr.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	ulr.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
-	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.ULRFlags, avp.Mbit, 0, datatype.Unsigned32(0))
-	ulr.NewAVP(avp.RATType, avp.Mbit, 0, datatype.Unsigned32(ratType))
+	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
+	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(ratType))
 	return ulr
 }
