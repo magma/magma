@@ -21,8 +21,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box_version = "= 201808.24.0"
 
   config.vm.define :cloud, primary: true do |cloud|
-    cloud.vm.box = "fbcmagma/magma_cloud"
-    cloud.vm.box_version = "1.0.1551299551"
+    cloud.vm.box = "amarpad/magma_cloud"
+    cloud.vm.box_version = "1.0.1548213883"
 
     cloud.vm.hostname = "magma-cloud"
     cloud.vm.network "private_network", ip: "192.168.80.10"
@@ -54,8 +54,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :datastore do |datastore|
-    datastore.vm.box = "fbcmagma/magma_datastore"
-    datastore.vm.box_version = "1.0.1551303304"
+    datastore.vm.box = "amarpad/magma_datastore"
+    datastore.vm.box_version = "1.0.1548213883"
 
     datastore.ssh.password = "vagrant"
     datastore.ssh.insert_key = true
