@@ -23,7 +23,6 @@ import (
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
 	"github.com/golang/glog"
 )
 
@@ -102,9 +101,9 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 func (srv *HomeSubscriberServer) NewSuccessfulAIA(msg *diam.Message, sessionID datatype.UTF8String, vectors []*crypto.EutranVector) *diam.Message {
 	answer := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server)
 	for _, vector := range vectors {
-		answer.NewAVP(avp.AuthenticationInfo, avp.Mbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		answer.NewAVP(avp.AuthenticationInfo, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
-				diam.NewAVP(avp.EUTRANVector, avp.Mbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+				diam.NewAVP(avp.EUTRANVector, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 					AVP: []*diam.AVP{
 						diam.NewAVP(avp.RAND, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Rand[:])),
 						diam.NewAVP(avp.XRES, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
@@ -261,19 +260,19 @@ func (srv *HomeSubscriberServer) SetNextLteAuthSeq(subscriber *protos.Subscriber
 // ValidateAIR returns an error if the message is missing any mandatory AVPs.
 // Mandatory AVPs are specified in 3GPP TS 29.272 Table 5.2.3.1.1/1
 func ValidateAIR(msg *diam.Message) error {
-	_, err := msg.FindAVP(avp.UserName, dict.UndefinedVendorID)
+	_, err := msg.FindAVP(avp.UserName, 0)
 	if err != nil {
 		return errors.New("Missing IMSI in message")
 	}
-	_, err = msg.FindAVP(avp.VisitedPLMNID, dict.UndefinedVendorID)
+	_, err = msg.FindAVP(avp.VisitedPLMNID, diameter.Vendor3GPP)
 	if err != nil {
 		return errors.New("Missing Visited PLMN ID in message")
 	}
-	_, err = msg.FindAVP(avp.RequestedEUTRANAuthenticationInfo, dict.UndefinedVendorID)
+	_, err = msg.FindAVP(avp.RequestedEUTRANAuthenticationInfo, diameter.Vendor3GPP)
 	if err != nil {
 		return errors.New("Missing requested E-UTRAN authentication info in message")
 	}
-	_, err = msg.FindAVP(avp.SessionID, dict.UndefinedVendorID)
+	_, err = msg.FindAVP(avp.SessionID, 0)
 	if err != nil {
 		return errors.New("Missing SessionID in message")
 	}

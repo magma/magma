@@ -134,12 +134,9 @@ func TestNewAIA_MissingAuthKey(t *testing.T) {
 }
 
 func TestValidateAIR_MissingUserName(t *testing.T) {
-	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
+	m := createBaseAIR()
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	authInfo := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(
@@ -157,12 +154,9 @@ func TestValidateAIR_MissingUserName(t *testing.T) {
 }
 
 func TestValidateAIR_MissingVistedPLMNID(t *testing.T) {
-	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
+	m := createBaseAIR()
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("magma"))
-	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
 	authInfo := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(
@@ -180,24 +174,18 @@ func TestValidateAIR_MissingVistedPLMNID(t *testing.T) {
 }
 
 func TestValidateAIR_MissingEUTRANInfo(t *testing.T) {
-	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
+	m := createBaseAIR()
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("magma"))
-	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
 	assert.EqualError(t, servicers.ValidateAIR(m), "Missing requested E-UTRAN authentication info in message")
 }
 
 func TestValidateAIR_MissingSessionId(t *testing.T) {
-	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
-	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	m := createBaseAIR()
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("magma"))
-	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	authInfo := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(
@@ -219,6 +207,16 @@ func TestValidateAIR_Success(t *testing.T) {
 	assert.NoError(t, servicers.ValidateAIR(air))
 }
 
+// createBaseAIR outputs a mock authentication information request with only a
+// few AVPs added.
+func createBaseAIR() *diam.Message {
+	air := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
+	air.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	air.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
+	air.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
+	return air
+}
+
 // createAIR outputs a mock authentication information request.
 func createAIR(userName string) *diam.Message {
 	return createAIRExtended(userName, 1)
@@ -227,13 +225,10 @@ func createAIR(userName string) *diam.Message {
 // createAIRExtended outputs a mock authentication information request.
 // It allows specifying more options than createAIR.
 func createAIRExtended(userName string, numRequestedVectors uint32) *diam.Message {
-	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
+	m := createBaseAIR()
 	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String("magma;123_1234"))
-	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
-	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity("magma.com"))
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
-	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
-	m.NewAVP(avp.VisitedPLMNID, avp.Mbit, 0, datatype.Unsigned32(0))
+	m.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	authInfo := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(

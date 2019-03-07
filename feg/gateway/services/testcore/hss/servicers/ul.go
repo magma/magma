@@ -21,7 +21,6 @@ import (
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
 	"github.com/golang/glog"
 )
 
@@ -85,8 +84,8 @@ func NewULA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 // and adds the subscriber profile information.
 func (srv *HomeSubscriberServer) NewSuccessfulULA(msg *diam.Message, sessionID datatype.UTF8String, profile *mconfig.HSSConfig_SubscriptionProfile) *diam.Message {
 	ula := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server)
-	ula.NewAVP(avp.ULAFlags, avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(ulaFlags))
-	ula.NewAVP(avp.SubscriptionData, avp.Mbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+	ula.NewAVP(avp.ULAFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(ulaFlags))
+	ula.NewAVP(avp.SubscriptionData, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.MSISDN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(msisdn)),
 			diam.NewAVP(avp.AccessRestrictionData, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(accessRestrictionData)),
@@ -96,11 +95,11 @@ func (srv *HomeSubscriberServer) NewSuccessfulULA(msg *diam.Message, sessionID d
 				AVP: []*diam.AVP{
 					diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnContextIdentifier)),
 					diam.NewAVP(avp.AllAPNConfigurationsIncludedIndicator, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(allAPNConfigurationsIncludedIndicator)),
-					diam.NewAVP(avp.APNConfiguration, avp.Mbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+					diam.NewAVP(avp.APNConfiguration, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 						AVP: []*diam.AVP{
 							diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnContextIdentifier)),
 							diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(protos.UpdateLocationAnswer_APNConfiguration_IPV4)),
-							diam.NewAVP(avp.ServiceSelection, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(apnServiceSelection)),
+							diam.NewAVP(avp.ServiceSelection, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String(apnServiceSelection)),
 							diam.NewAVP(avp.EPSSubscribedQoSProfile, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 								AVP: []*diam.AVP{
 									diam.NewAVP(avp.QoSClassIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnQoSClassIdentifier)),
@@ -137,23 +136,23 @@ func (srv *HomeSubscriberServer) NewSuccessfulULA(msg *diam.Message, sessionID d
 // ValidateULR returns an error if the message is missing any mandatory AVPs.
 // Mandatory AVPs are specified in 3GPP TS 29.272 Table 5.2.1.1.1/1
 func ValidateULR(msg *diam.Message) error {
-	_, err := msg.FindAVP(avp.UserName, dict.UndefinedVendorID)
+	_, err := msg.FindAVP(avp.UserName, 0)
 	if err != nil {
 		return errors.New("Missing IMSI in message")
 	}
-	_, err = msg.FindAVP(avp.VisitedPLMNID, dict.UndefinedVendorID)
+	_, err = msg.FindAVP(avp.VisitedPLMNID, diameter.Vendor3GPP)
 	if err != nil {
 		return errors.New("Missing Visited PLMN ID in message")
 	}
-	_, err = msg.FindAVP(avp.ULRFlags, dict.UndefinedVendorID)
+	_, err = msg.FindAVP(avp.ULRFlags, diameter.Vendor3GPP)
 	if err != nil {
 		return errors.New("Missing ULR flags in message")
 	}
-	_, err = msg.FindAVP(avp.RATType, dict.UndefinedVendorID)
+	_, err = msg.FindAVP(avp.RATType, diameter.Vendor3GPP)
 	if err != nil {
 		return errors.New("Missing RAT type in message")
 	}
-	_, err = msg.FindAVP(avp.SessionID, dict.UndefinedVendorID)
+	_, err = msg.FindAVP(avp.SessionID, 0)
 	if err != nil {
 		return errors.New("Missing SessionID in message")
 	}
