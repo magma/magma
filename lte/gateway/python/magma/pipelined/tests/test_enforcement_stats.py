@@ -108,6 +108,7 @@ class EnforcementStatsTest(unittest.TestCase):
         self.enforcement_controller = enforcement_controller_reference.result()
         self.testing_controller = testing_controller_reference.result()
 
+        self.enforcement_stats_controller._policy_dict = self._static_rule_dict
         self.enforcement_stats_controller._report_usage = MagicMock()
 
         self.enforcement_controller._policy_dict = self._static_rule_dict
@@ -162,7 +163,8 @@ class EnforcementStatsTest(unittest.TestCase):
         self._static_rule_dict[policies[0].id] = policies[0]
         self._static_rule_dict[policies[1].id] = policies[1]
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, self.enforcement_controller,
+            self._tbl_num, self.enforcement_stats_controller
         ).add_static_rule(policies[0].id).add_static_rule(policies[1].id)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -236,7 +238,8 @@ class EnforcementStatsTest(unittest.TestCase):
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, self.enforcement_controller,
+            self._tbl_num, self.enforcement_stats_controller
         ).add_dynamic_rule(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)

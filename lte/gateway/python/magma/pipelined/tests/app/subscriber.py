@@ -143,11 +143,13 @@ class RyuDirectSubscriberContext(SubscriberContext):
     directly manage subscriber flows
     """
 
-    def __init__(self, imsi, ip, enforcement_controller, table_id=5):
+    def __init__(self, imsi, ip, enforcement_controller, table_id=5,
+                 enforcement_stats_controller=None):
         self.cfg = SubContextConfig(imsi, ip, table_id)
         self._dynamic_rules = []
         self._static_rule_names = set()
         self._ec = enforcement_controller
+        self._esc = enforcement_stats_controller
 
     def add_static_rule(self, id):
         self._static_rule_names.add(id)
@@ -159,14 +161,23 @@ class RyuDirectSubscriberContext(SubscriberContext):
 
     def _activate_subscriber_rules(self):
         def activate_flows():
-            self._ec.activate_flows(imsi=self.cfg.imsi,
+            self._ec.activate_rules(imsi=self.cfg.imsi,
                                     ip_addr=self.cfg.ip,
                                     static_rule_ids=self._static_rule_names,
                                     dynamic_rules=self._dynamic_rules,
                                     fut=Future())
+            if self._esc:
+                self._esc.activate_rules(
+                    imsi=self.cfg.imsi,
+                    ip_addr=self.cfg.ip,
+                    static_rule_ids=self._static_rule_names,
+                    dynamic_rules=self._dynamic_rules,
+                    fut=Future())
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):
         def deactivate_flows():
-            self._ec.deactivate_flows(imsi=self.cfg.imsi, rule_ids=None)
+            self._ec.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
+            if self._esc:
+                self._esc.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
         hub.joinall([hub.spawn(deactivate_flows)])
