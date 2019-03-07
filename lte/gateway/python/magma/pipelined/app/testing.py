@@ -80,9 +80,17 @@ class TestingController(MagmaController):
         parser = self._datapath.ofproto_parser
         match = parser.OFPMatch(**ryu["match"].ryu_match) \
             if ryu["match"] is not None else None
-        req = parser.OFPFlowStatsRequest(
-            self._datapath, table_id=ryu["table_id"], match=match
-        )
+        if "cookie" not in ryu:
+            # If cookie is not set in the parameter, then do not match on
+            # cookie.
+            req = parser.OFPFlowStatsRequest(
+                self._datapath, table_id=ryu["table_id"], match=match
+            )
+        else:
+            req = parser.OFPFlowStatsRequest(
+                self._datapath, table_id=ryu["table_id"], match=match,
+                cookie=ryu["cookie"], cookie_mask=flows.OVS_COOKIE_MATCH_ALL
+            )
         try:
             messages.send_msg(self._datapath, req)
         except MagmaOFError as e:
