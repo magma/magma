@@ -23,7 +23,7 @@ export SWAGGER_TEMPLATE
 export SWAGGER_TEMP_GEN
 export SWAGGER_COMMON
 
-BIN_DIR := /home/$(USER)/go/bin
+BIN_DIR := $(GOPATH)/bin
 
 CERTS_DIR := $(MAGMA_ROOT)/.cache/test_certs
 ifndef PLUGIN_DIR
@@ -53,21 +53,19 @@ define add_module
 	TOOLS_LIST += $(MODULE)_tools
 	VET_LIST += $(MODULE)_vet
 
-	SERVICES += $(foreach srvs, $($(MODULE)_SERVICE_NAMES), $($(MODULE)_ROOTLEVEL_PKG)/services/$(srvs))
-	MOCK_SERVICES += $(foreach srvs, $($(MODULE)_MOCK_SERVICE_NAMES), $($(MODULE)_ROOTLEVEL_MOCK_PKG)/services/$(srvs))
+	SERVICES += $(foreach srvs, $($(MODULE)_SERVICE_NAMES), $(srvs))
 endef
 _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
 
-RUN_LIST = $(foreach srv, $(SERVICES), $(srv)_run) obsidian_run
-RUN_LIST += $(foreach srv, $(MOCK_SERVICES), $(srv)_run)
 
 ###################
 ## General Rules ##
 ###################
 
+RUN_LIST = $(foreach srv, $(SERVICES), $(srv)_run) obsidian_run
 run: build $(RUN_LIST) create_admin_oper
 $(RUN_LIST): %_run:
-	sudo systemctl restart magma@$(*F)
+	sudo systemctl restart magma@$*
 
 precommit: fmt test vet swagger_validate
 
@@ -166,7 +164,16 @@ restart_services: $(RUN_LIST) # Restart/Start all magma services
 
 restart: restart_proxy restart_services # Restart proxies & all magma services
 
+# Check if all magma services are healthy
+CHECK_LIST = $(foreach srv, $(SERVICES), $(srv)_check) obsidian_check
+check: $(CHECK_LIST)
+$(CHECK_LIST): %_check:
+	sudo systemctl is-active magma@$*
+
 list:  # List all commands
 	@echo -e "\nAvailable commands:\n"
 	@grep '^[[:lower:]].*:.*#.*' Makefile | awk -F ':|#' '{ printf "\t%-30s%s\n", $$1, $$3 }'
 	@echo -e "\n"
+
+# Run target for travis - don't create admin certs since we don't spin up postgres
+travis_run: build $(RUN_LIST)
