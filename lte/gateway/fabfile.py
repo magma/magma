@@ -42,6 +42,7 @@ in `release/magma.lockfile`
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
+DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
@@ -91,41 +92,28 @@ def package(vcs='hg', all_deps="False"):
         pkg.upload_pkgs_to_aws()
 
 
-def _setup_cloud_environment(control_proxy_path):
+def connect_gateway_to_cloud(control_proxy_setting_path=None, cert_path=DEFAULT_CERT):
+    """
+    Setup the gateway VM to connects to the cloud
+    Path to control_proxy.yml and rootCA.pem could be specified to use
+    non-default control proxy setting and certificates
+    """
     setup_env_vagrant()
     # Add the override for the production endpoints
     run("sudo rm -rf /var/opt/magma/configs")
     run("sudo mkdir /var/opt/magma/configs")
-    if control_proxy_path is not None:
-        run("sudo cp " + control_proxy_path +
-            " /var/opt/magma/configs/control_proxy.yml")
+    if control_proxy_setting_path is not None:
+        run("sudo cp " + control_proxy_setting_path
+            + " /var/opt/magma/configs/control_proxy.yml")
 
-    # Use the prod rootCA cert
+    # Copy certs which will be used by the bootstrapper
     run("sudo rm -rf /var/opt/magma/certs")
     run("sudo mkdir /var/opt/magma/certs")
-    run("sudo cp magma/.cache/test_certs/rootCA.pem /var/opt/magma/certs/")
+    run("sudo cp " + cert_path + " /var/opt/magma/certs/")
 
-    # Restart the bootstrapper in the gateway to get the new certs
+    # Restart the bootstrapper in the gateway to use the new certs
     run("sudo systemctl stop magma@*")
     run("sudo systemctl restart magma@magmad")
-
-
-def use_local_cloud():
-    """Connects the gateway VM to the local dev cloud"""
-    control_proxy_path = None
-    _setup_cloud_environment(control_proxy_path)
-
-
-def use_staging_cloud():
-    """Connects the gateway VM to the prod cloud"""
-    control_proxy_path = "magma/fb/config/service/control_proxy_staging.yml"
-    _setup_cloud_environment(control_proxy_path)
-
-
-def use_prod_cloud():
-    """Connects the gateway VM to the prod cloud"""
-    control_proxy_path = "magma/fb/config/service/control_proxy.yml"
-    _setup_cloud_environment(control_proxy_path)
 
 
 def _set_service_config_var(service, var_name, value):
@@ -137,7 +125,7 @@ def _set_service_config_var(service, var_name, value):
 def s1ap_setup_cloud():
     """ Prepare VMs for s1ap tests touching the cloud. """
     # Use the local cloud for integ tests
-    use_local_cloud()
+    connect_gateway_to_cloud()
 
     # Update the gateway's streamer timeout and restart services
     run("sudo mkdir -p /var/opt/magma/configs")
