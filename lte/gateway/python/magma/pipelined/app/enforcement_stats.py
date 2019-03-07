@@ -9,29 +9,35 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from collections import defaultdict
 
+from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.session_manager_pb2 import RuleRecord, \
     RuleRecordTable
-from magma.pipelined.app.base import MagmaController
-from magma.pipelined.imsi import decode_imsi
-from magma.pipelined.openflow import messages
-from magma.pipelined.openflow.exceptions import MagmaOFError
-from magma.pipelined.openflow.registers import DIRECTION_REG, Direction, \
-    IMSI_REG
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 
+from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.openflow import messages, flows
+from magma.pipelined.openflow.exceptions import MagmaOFError
+from magma.pipelined.imsi import decode_imsi, encode_imsi
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.messages import MsgChannel, MessageHub
+
+from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
+    IMSI_REG
+
+
 ETH_FRAME_SIZE_BYTES = 14
 
 
-class EnforcementStatsController(MagmaController):
+class EnforcementStatsController(PolicyMixin, MagmaController):
     """
-    This openflow controller periodically polls OVS for flow stats on the
-    policy table and reports the usage records to session manager via RPC.
-
-    This controller is an entirely read-only controller, meaning that it will
-    never push any flows.
+    This openflow controller installs flows for aggregating policy usage
+    statistics, which are sent to sessiond for tracking. It periodically polls
+    OVS for flow stats on the its table and reports the usage records to
+    session manager via RPC.
     """
 
     APP_NAME = 'enforcement_stats'
@@ -51,6 +57,8 @@ class EnforcementStatsController(MagmaController):
             return
         self.tbl_num = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self.next_table = \
+            self._service_manager.get_next_table_num(self.APP_NAME)
         self.dpset = kwargs['dpset']
         self.loop = kwargs['loop']
         # Spawn a thread to poll for flow stats
@@ -58,10 +66,10 @@ class EnforcementStatsController(MagmaController):
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
         # Create a rpc channel to sessiond
         self.sessiond = kwargs['rpc_stubs']['sessiond']
+        self._msg_hub = MessageHub(self.logger)
         self.unhandled_stats_msgs = []  # Store multi-part responses from ovs
         self.last_usage = {}  # Store last usage for calulcating delta
         self.failed_usage = {}  # Store failed usage to retry rpc to sesiond
-        self._rule_mapper = kwargs['rule_id_mapper']
 
     def _check_relay(func):  # pylint: disable=no-self-argument
         def wrapped(self, *args, **kwargs):
@@ -69,6 +77,145 @@ class EnforcementStatsController(MagmaController):
                 func(self, *args, **kwargs)  # pylint: disable=not-callable
 
         return wrapped
+
+    def initialize_on_connect(self, datapath):
+        """
+        Install the default flows on datapath connect event.
+
+        Args:
+            datapath: ryu datapath struct
+        """
+        self._datapath = datapath
+        if self._relay_enabled:
+            flows.delete_all_flows_from_table(datapath, self.tbl_num)
+
+    @_check_relay
+    def cleanup_on_disconnect(self, datapath):
+        """
+        Cleanup flows on datapath disconnect event.
+
+        Args:
+            datapath: ryu datapath struct
+        """
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+
+    def _install_flow_for_rule(self, imsi, ip_addr, rule):
+        """
+        Install a flow to get stats for a particular rule. Flows will match on
+        IMSI, cookie (the rule num), in/out direction
+
+        Args:
+            imsi (string): subscriber to install rule for
+            ip_addr (string): subscriber session ipv4 address
+            rule (PolicyRule): policy rule proto
+        """
+        # Do not install anything if relay is disabled
+        if not self._relay_enabled:
+            return RuleModResult.SUCCESS
+
+        def fail(err):
+            self.logger.error(
+                "Failed to install rule %s for subscriber %s: %s",
+                rule.id, imsi, err)
+            return RuleModResult.FAILURE
+
+        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        msgs = self._get_rule_match_flow_msgs(imsi, rule_num)
+
+        chan = self._msg_hub.send(msgs, self._datapath)
+        for _ in range(len(msgs)):
+            try:
+                result = chan.get()
+            except MsgChannel.Timeout:
+                return fail("No response from OVS")
+            if not result.ok():
+                return fail(result.exception())
+
+        return RuleModResult.SUCCESS
+
+    @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
+    @_check_relay
+    def _handle_barrier(self, ev):
+        self._msg_hub.handle_barrier(ev)
+
+    @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
+    @_check_relay
+    def _handle_error(self, ev):
+        self._msg_hub.handle_error(ev)
+
+    def _get_rule_match_flow_msgs(self, imsi, rule_num):
+        """
+        Returns flows used for usage reporting in enforcement_stats. These
+        flows match on reg2, which stores the rule num to get usage for each
+        rule.
+        """
+        inbound_rule_match = MagmaMatch(imsi=encode_imsi(imsi),
+                                        direction=Direction.IN,
+                                        reg2=rule_num)
+        outbound_rule_match = MagmaMatch(imsi=encode_imsi(imsi),
+                                         direction=Direction.OUT,
+                                         reg2=rule_num)
+        return [
+            flows.get_add_resubmit_next_service_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                inbound_rule_match,
+                [],
+                priority=flows.DEFAULT_PRIORITY,
+                cookie=rule_num,
+                resubmit_table=self.next_table),
+            flows.get_add_resubmit_next_service_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                outbound_rule_match,
+                [],
+                priority=flows.DEFAULT_PRIORITY,
+                cookie=rule_num,
+                resubmit_table=self.next_table),
+        ]
+
+    def _install_default_flow_for_subscriber(self, imsi):
+        pass
+
+    @_check_relay
+    def deactivate_rules(self, imsi, rule_ids):
+        """
+        Deactivate flows for a subscriber. If only imsi is present, delete all
+        rule flows for a subscriber (i.e. end its session). If rule_ids are
+        present, delete the rule flows for that subscriber.
+
+        Args:
+            imsi (string): subscriber id
+            rule_ids (list of strings): policy rule ids
+        """
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized')
+            return
+
+        if not imsi:
+            self.logger.error('No subscriber specified')
+            return
+
+        if not rule_ids:
+            self._deactivate_flows_for_subscriber(imsi)
+        else:
+            for rule_id in rule_ids:
+                self._deactivate_flow_for_rule(imsi, rule_id)
+
+    def _deactivate_flow_for_rule(self, imsi, rule_id):
+        try:
+            rule_num = self._rule_mapper.get_rule_num(rule_id)
+        except KeyError:
+            self.logger.error('Could not find rule id %s', rule_id)
+            return
+        cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.delete_flow(self._datapath, self.tbl_num, match, cookie=cookie,
+                          cookie_mask=mask)
+
+    def _deactivate_flows_for_subscriber(self, imsi):
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        flows.delete_flow(self._datapath, self.tbl_num, match)
 
     @_check_relay
     def delete_stats(self, imsi, rule_ids=None):
