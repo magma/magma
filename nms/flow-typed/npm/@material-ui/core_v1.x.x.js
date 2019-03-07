@@ -1738,7 +1738,7 @@ declare module "@material-ui/core/Snackbar/Snackbar" {
     TransitionCallback
   } from "@material-ui/core/internal/transition";
 
-  declare type Origin = {
+  declare export type Origin = {
     horizontal?: "left" | "center" | "right" | number,
     vertical?: "top" | "center" | "bottom" | number
   };

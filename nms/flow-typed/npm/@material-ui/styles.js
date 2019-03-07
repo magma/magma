@@ -5,6 +5,6 @@ declare module "@material-ui/styles/ThemeProvider" {
 
 declare module "@material-ui/styles" {
   declare module.exports: {
-    makeStyles: (color: Object) => () => any,
+    makeStyles: (color: Object) => (props: any) => any,
   };
 }
