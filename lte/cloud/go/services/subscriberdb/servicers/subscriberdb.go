@@ -22,8 +22,6 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	orcprotos "magma/orc8r/cloud/go/protos"
 
-	_ "magma/feg/cloud/go/protos" // make sure it only builds for now, to be used later
-
 	"golang.org/x/net/context"
 )
 
@@ -31,7 +29,7 @@ type SubscriberDBServer struct {
 	store *storage.SubscriberDBStorage
 }
 
-func NewSubscriberDBServer(store *storage.SubscriberDBStorage) (protos.SubscriberDBControllerServer, error) {
+func NewSubscriberDBServer(store *storage.SubscriberDBStorage) (*SubscriberDBServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("Cannot initialize SubscriberDBServer with Nil store")
 	}

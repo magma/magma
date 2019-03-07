@@ -11,8 +11,9 @@ package main
 import (
 	"log"
 
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/protos"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
@@ -44,8 +45,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Subscriberdb Servicer Initialization Error: %s", err)
 	}
-	protos.RegisterSubscriberDBControllerServer(srv.GrpcServer, servicer)
-	srv.GrpcServer.RegisterService(protos.GetLegacySubscriberdbDesc(), servicer)
+	lteprotos.RegisterSubscriberDBControllerServer(srv.GrpcServer, servicer)
+	fegprotos.RegisterS6AProxyServer(srv.GrpcServer, servicer)
+	srv.GrpcServer.RegisterService(lteprotos.GetLegacySubscriberdbDesc(), servicer)
 
 	// Run the service
 	err = srv.Run()
