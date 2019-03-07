@@ -17,12 +17,30 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
+	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
-func StartTestService(t *testing.T) error {
+func StartTestService(t *testing.T) (*service.Service, error) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 
+	config := servicers.GetSwxProxyConfig()
+	serverAddr, err := test.StartTestSwxServer(config.ServerCfg.Protocol, config.ServerCfg.Addr)
+	if err != nil {
+		return nil, err
+	}
+	// Update server config with chosen port of swx test server
+	config.ServerCfg.Addr = serverAddr
+	service, err := servicers.NewSwxProxy(config)
+	if err != nil {
+		return nil, err
+	}
+	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	go srv.RunTest(lis)
+	return srv, nil
+}
+
+func InitTestMconfig(t *testing.T, addr string, verify bool) error {
 	// Create tmp mconfig test file & load configs from it
 	fegConfigFmt := `{
 		"configsByKey": {
@@ -38,27 +56,10 @@ func StartTestService(t *testing.T) error {
 					"productName": "magma_test",
 					"realm": "openair4G.eur",
 					"host": "magma-oai.openair4G.eur"
-				}
+				},
+				"verifyAuthorization": %t
 			}
 		}
 	}`
-
-	err := mconfig.CreateLoadTempConfig(fmt.Sprintf(fegConfigFmt, "127.0.0.1:0"))
-	if err != nil {
-		return err
-	}
-	clientCfg, serverCfg := servicers.GetSwxProxyConfigs()
-	serverAddr, err := test.StartTestSwxServer(serverCfg.Protocol, serverCfg.Addr)
-	if err != nil {
-		return err
-	}
-	// Update server config with chosen port of swx test server
-	serverCfg.Addr = serverAddr
-	service, err := servicers.NewSwxProxy(clientCfg, serverCfg)
-	if err != nil {
-		return err
-	}
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
-	go srv.RunTest(lis)
-	return nil
+	return mconfig.CreateLoadTempConfig(fmt.Sprintf(fegConfigFmt, addr, verify))
 }

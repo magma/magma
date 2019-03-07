@@ -85,7 +85,12 @@ func getTestSwxProxy(t *testing.T) protos.SwxProxyServer {
 		DestHost:  serverCfg.DestHost,
 		DestRealm: serverCfg.DestRealm,
 	}
-	swxProxy, err := servicers.NewSwxProxy(clientCfg, diameterServerCfg)
+	swxProxyConfig := &servicers.SwxProxyConfig{
+		ClientCfg:           clientCfg,
+		ServerCfg:           diameterServerCfg,
+		VerifyAuthorization: false,
+	}
+	swxProxy, err := servicers.NewSwxProxy(swxProxyConfig)
 	assert.NoError(t, err)
 	return swxProxy
 }

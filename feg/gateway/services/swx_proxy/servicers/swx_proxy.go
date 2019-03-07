@@ -31,35 +31,33 @@ const (
 )
 
 type swxProxy struct {
-	clientCfg      *diameter.DiameterClientConfig
-	serverCfg      *diameter.DiameterServerConfig
+	config         *SwxProxyConfig
 	smClient       *sm.Client
 	connMan        *diameter.ConnectionManager
 	requestTracker *diameter.RequestTracker
 	originStateID  uint32
 }
 
-func NewSwxProxy(
-	clientCfg *diameter.DiameterClientConfig,
-	serverCfg *diameter.DiameterServerConfig,
-) (*swxProxy, error) {
-	err := clientCfg.Validate()
-	if err != nil {
-		return nil, err
-	}
-	clientCfg = clientCfg.FillInDefaults()
+type SwxProxyConfig struct {
+	ClientCfg           *diameter.DiameterClientConfig
+	ServerCfg           *diameter.DiameterServerConfig
+	VerifyAuthorization bool // should we verify non-3gpp IP access is enabled for user
+}
 
-	err = serverCfg.Validate()
+func NewSwxProxy(config *SwxProxyConfig) (*swxProxy, error) {
+	err := ValidateSwxProxyConfig(config)
 	if err != nil {
 		return nil, err
 	}
+	config.ClientCfg = config.ClientCfg.FillInDefaults()
+
 	originStateID := uint32(time.Now().Unix())
 
 	mux := sm.New(&sm.Settings{
-		OriginHost:       datatype.DiameterIdentity(clientCfg.Host),
-		OriginRealm:      datatype.DiameterIdentity(clientCfg.Realm),
+		OriginHost:       datatype.DiameterIdentity(config.ClientCfg.Host),
+		OriginRealm:      datatype.DiameterIdentity(config.ClientCfg.Realm),
 		VendorID:         datatype.Unsigned32(diameter.Vendor3GPP),
-		ProductName:      datatype.UTF8String(clientCfg.ProductName),
+		ProductName:      datatype.UTF8String(config.ClientCfg.ProductName),
 		OriginStateID:    datatype.Unsigned32(originStateID),
 		FirmwareRevision: 1,
 	})
@@ -70,17 +68,17 @@ func NewSwxProxy(
 		}
 	}) // Catch all.
 
-	if clientCfg.WatchdogInterval == 0 {
-		clientCfg.WatchdogInterval = diameter.DefaultWatchdogIntervalSeconds
+	if config.ClientCfg.WatchdogInterval == 0 {
+		config.ClientCfg.WatchdogInterval = diameter.DefaultWatchdogIntervalSeconds
 	}
 
 	smClient := &sm.Client{
 		Dict:               dict.Default,
 		Handler:            mux,
-		MaxRetransmits:     clientCfg.Retransmits,
+		MaxRetransmits:     config.ClientCfg.Retransmits,
 		RetransmitInterval: time.Second,
-		EnableWatchdog:     clientCfg.WatchdogInterval > 0,
-		WatchdogInterval:   time.Second * time.Duration(clientCfg.WatchdogInterval),
+		EnableWatchdog:     config.ClientCfg.WatchdogInterval > 0,
+		WatchdogInterval:   time.Second * time.Duration(config.ClientCfg.WatchdogInterval),
 		SupportedVendorID: []*diam.AVP{
 			diam.NewAVP(avp.SupportedVendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
 		},
@@ -96,11 +94,10 @@ func NewSwxProxy(
 
 	connMan := diameter.NewConnectionManager()
 	// create connection in connection map
-	connMan.GetConnection(smClient, serverCfg)
+	connMan.GetConnection(smClient, config.ServerCfg)
 
 	proxy := &swxProxy{
-		clientCfg:      clientCfg,
-		serverCfg:      serverCfg,
+		config:         config,
 		smClient:       smClient,
 		connMan:        connMan,
 		requestTracker: diameter.NewRequestTracker(),
@@ -137,5 +134,5 @@ func (s *swxProxy) Register(
 }
 
 func (s *swxProxy) genSID() string {
-	return s.clientCfg.GenSessionID("swx")
+	return s.config.ClientCfg.GenSessionID("swx")
 }

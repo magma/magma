@@ -15,7 +15,7 @@ import (
 )
 
 func (s *swxProxy) sendDiameterMsg(msg *diam.Message, retryCount uint) error {
-	conn, err := s.connMan.GetConnection(s.smClient, s.serverCfg)
+	conn, err := s.connMan.GetConnection(s.smClient, s.config.ServerCfg)
 	if err != nil {
 		return err
 	}

@@ -36,36 +36,39 @@ func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest) (*protos.Regist
 	if err != nil {
 		return res, status.Errorf(codes.InvalidArgument, err.Error())
 	}
+	_, err = s.sendSAR(req.GetUserName(), ServerAssignmentType_REGISTRATION)
+	return res, err
+}
 
+func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, error) {
 	sid := s.genSID()
 	ch := make(chan interface{})
 	s.requestTracker.RegisterRequest(sid, ch)
 	// if request hasn't been removed by end of transaction, remove it
 	defer s.requestTracker.DeregisterRequest(sid)
 
-	sarMsg := s.createSAR(sid, req.GetUserName(), ServerAssignmentType_REGISTRATION)
-	err = s.sendDiameterMsg(sarMsg, MAX_DIAM_RETRIES)
+	sarMsg := s.createSAR(sid, userName, serverAssignmentType)
+	err := s.sendDiameterMsg(sarMsg, MAX_DIAM_RETRIES)
 	if err != nil {
 		metrics.SARSendFailures.Inc()
 		glog.Errorf("Error while sending SAR with SID %s: %s", sid, err)
-		return res, err
+		return nil, err
 	}
 	metrics.SARRequests.Inc()
-
 	select {
 	case resp, open := <-ch:
 		if !open {
 			metrics.SwxInvalidSessions.Inc()
 			err = status.Errorf(codes.Aborted, "SAA for Session ID: %s is cancelled", sid)
 			glog.Error(err)
-			return res, err
+			return nil, err
 		}
 		saa, ok := resp.(*SAA)
 		if !ok {
 			metrics.SwxUnparseableMsg.Inc()
 			err = status.Errorf(codes.Internal, "Invalid Response Type: %T, SAA expected.", resp)
 			glog.Error(err)
-			return res, err
+			return nil, err
 		}
 		err = diameter.TranslateDiamResultCode(saa.ResultCode)
 		metrics.SwxResultCodes.WithLabelValues(strconv.FormatUint(uint64(saa.ResultCode), 10)).Inc()
@@ -74,12 +77,14 @@ func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest) (*protos.Regist
 			err = diameter.TranslateDiamResultCode(saa.ExperimentalResult.ExperimentalResultCode)
 			metrics.SwxExperimentalResultCodes.WithLabelValues(strconv.FormatUint(uint64(saa.ExperimentalResult.ExperimentalResultCode), 10)).Inc()
 		}
+		return saa, err
+
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
 		metrics.SwxTimeouts.Inc()
 		err = status.Errorf(codes.DeadlineExceeded, "SAA Timed Out for Session ID: %s", sid)
 		glog.Error(err)
+		return nil, err
 	}
-	return res, err
 }
 
 // createSAR creates a Server Assignment Request with provided SessionID (sid),
@@ -87,8 +92,8 @@ func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest) (*protos.Regist
 func (s *swxProxy) createSAR(sid, userName string, saType uint32) *diam.Message {
 	msg := diameter.NewProxiableRequest(diam.ServerAssignment, diam.TGPP_SWX_APP_ID, dict.Default)
 	msg.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(sid))
-	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.clientCfg.Host))
-	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.clientCfg.Realm))
+	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Host))
+	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))
 	msg.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
 	msg.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
 	msg.NewAVP(avp.ServerAssignmentType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(saType))

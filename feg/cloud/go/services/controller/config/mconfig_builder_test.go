@@ -107,6 +107,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 				Realm:            "magma.com",
 				Host:             "magma-fedgw.magma.com",
 			},
+			VerifyAuthorization: false,
 		},
 		"health": &mconfig.GatewayHealthConfig{
 			RequiredServices:          []string{"S6A_PROXY", "SESSION_PROXY"},

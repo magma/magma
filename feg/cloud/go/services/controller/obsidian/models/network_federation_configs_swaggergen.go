@@ -642,6 +642,9 @@ type NetworkFederationConfigsSwx struct {
 
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`
+
+	// verify authorization
+	VerifyAuthorization bool `json:"verify_authorization,omitempty"`
 }
 
 // Validate validates this network federation configs swx

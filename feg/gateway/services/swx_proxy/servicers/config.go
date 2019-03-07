@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fmt"
+
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/mconfig"
@@ -28,46 +30,72 @@ const (
 	HSSHostEnv        = "HSS_HOST"
 	HSSRealmEnv       = "HSS_REALM"
 
-	DefaultSwxDiamRealm = "epc.mnc070.mcc722.3gppnetwork.org"
-	DefaultSwxDiamHost  = "feg-swx.epc.mnc070.mcc722.3gppnetwork.org"
+	DefaultSwxDiamRealm        = "epc.mnc070.mcc722.3gppnetwork.org"
+	DefaultSwxDiamHost         = "feg-swx.epc.mnc070.mcc722.3gppnetwork.org"
+	DefaultVerifyAuthorization = false
 )
 
-// Get GetSwxProxyConfigs returns the server config for an HSS based on the
+// GetSwxProxyConfig returns the service config based on the
 // the values in mconfig or default values provided
-func GetSwxProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterServerConfig) {
+func GetSwxProxyConfig() *SwxProxyConfig {
 	configsPtr := &mcfgprotos.SwxConfig{}
 	err := mconfig.GetServiceConfigs(SwxProxyServiceName, configsPtr)
 	if err != nil || configsPtr.Server == nil {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v", SwxProxyServiceName, err)
-		return &diameter.DiameterClientConfig{
+		return &SwxProxyConfig{
+			ClientCfg: &diameter.DiameterClientConfig{
 				Host:        diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
 				Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),
 				ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, diameter.DiamProductName),
 			},
-			&diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+			ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
 				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, "sctp"),
 				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, "")},
 				DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
 				DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
-			}
+			},
+			VerifyAuthorization: DefaultVerifyAuthorization,
+		}
 	}
 
 	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, *configsPtr)
 
-	return &diameter.DiameterClientConfig{
-			Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, configsPtr.Server.Host),
-			Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, configsPtr.Server.Realm),
-			ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, configsPtr.Server.ProductName),
-			Retransmits:      uint(configsPtr.Server.Retransmits),
-			WatchdogInterval: uint(configsPtr.Server.WatchdogInterval),
-			RetryCount:       uint(configsPtr.Server.RetryCount),
+	return &SwxProxyConfig{
+		ClientCfg: &diameter.DiameterClientConfig{
+			Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, configsPtr.GetServer().GetHost()),
+			Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, configsPtr.GetServer().GetRealm()),
+			ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, SwxDiamProductEnv, configsPtr.GetServer().GetProductName()),
+			Retransmits:      uint(configsPtr.GetServer().GetRetransmits()),
+			WatchdogInterval: uint(configsPtr.GetServer().GetWatchdogInterval()),
+			RetryCount:       uint(configsPtr.GetServer().GetRetryCount()),
 		},
-		&diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.Server.Address),
-			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, configsPtr.Server.Protocol),
-			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, configsPtr.Server.LocalAddress)},
-			DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.Server.DestHost),
-			DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.Server.DestRealm),
-		}
+		ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.GetServer().GetAddress()),
+			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, configsPtr.GetServer().GetProtocol()),
+			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, configsPtr.GetServer().GetLocalAddress())},
+			DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.GetServer().GetDestHost()),
+			DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
+		},
+		VerifyAuthorization: configsPtr.GetVerifyAuthorization(),
+	}
+}
+
+// ValidateSwxProxyConfig ensures that the swx proxy config specified has valid
+// diameter client and server configs
+func ValidateSwxProxyConfig(config *SwxProxyConfig) error {
+	if config == nil {
+		return fmt.Errorf("Nil SwxProxyConfig provided")
+	}
+	if config.ClientCfg == nil {
+		return fmt.Errorf("Nil client config provided")
+	}
+	err := config.ClientCfg.Validate()
+	if err != nil {
+		return err
+	}
+	if config.ServerCfg == nil {
+		return fmt.Errorf("Nil server config provided")
+	}
+	return config.ServerCfg.Validate()
 }

@@ -52,6 +52,8 @@ message GyConfig {
 
 message SwxConfig {
     DiamClientConfig server = 1;
+    // After auth, verify Non-3GPP IP Access enabled
+    bool verify_authorization = 2;
 }
 
 message HSSConfig {

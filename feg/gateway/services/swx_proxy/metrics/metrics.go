@@ -55,10 +55,14 @@ var (
 		},
 		[]string{"code"},
 	)
+	UnauthorizedAuthAttempts = prometheus.NewCounter(prometheus.CounterOpts{
+		Name: "unauthorized_auth_requests_total",
+		Help: "Total number of authentication requests for un-authorized users",
+	})
 )
 
 func init() {
 	prometheus.MustRegister(MARRequests, MARSendFailures, SARRequests,
 		SARSendFailures, SwxTimeouts, SwxUnparseableMsg, SwxInvalidSessions,
-		SwxResultCodes, SwxExperimentalResultCodes)
+		SwxResultCodes, SwxExperimentalResultCodes, UnauthorizedAuthAttempts)
 }

@@ -51,7 +51,8 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	err = s.sendDiameterMsg(marMsg, MAX_DIAM_RETRIES)
 	if err != nil {
 		metrics.MARSendFailures.Inc()
-		glog.Errorf("Error while sending MAR with SID %s: %s", sid, err)
+		err = status.Errorf(codes.Internal, "Error while sending MAR with SID %s: %s", sid, err)
+		glog.Error(err)
 		return res, err
 	}
 	metrics.MARRequests.Inc()
@@ -81,6 +82,13 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 		if err != nil {
 			return res, err
 		}
+
+		if s.config.VerifyAuthorization {
+			err = s.authorize(req.GetUserName())
+			if err != nil {
+				return res, err
+			}
+		}
 		res.SipAuthVectors = getSIPAuthenticationVectors(maa.SIPAuthDataItems)
 
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
@@ -89,6 +97,22 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 		glog.Error(err)
 	}
 	return res, err
+}
+
+// authorize sends SAR over diameter with ServerAssignmentType set to
+// AAA_USER_DATA_REQUEST and ensures the user profile received back allows
+// for Non 3GPP IP Access
+func (s *swxProxy) authorize(userName string) error {
+	saa, err := s.sendSAR(userName, ServerAssignmentType_AAA_USER_DATA_REQUEST)
+	if err != nil {
+		return err
+	}
+	if saa.UserData.Non3GPPIPAccess != datatype.Enumerated(Non3GPPIPAccess_ENABLED) {
+		metrics.UnauthorizedAuthAttempts.Inc()
+		return status.Errorf(codes.PermissionDenied, "User %s is not authorized for Non-3GPP Subscription Access", userName)
+	}
+	// User is authorized
+	return nil
 }
 
 // createMAR creates a Multimedia Authentication Request diameter msg with provided SessionID (sid)
@@ -101,8 +125,8 @@ func (s *swxProxy) createMAR(sid string, req *protos.AuthenticationRequest) (*di
 
 	msg := diameter.NewProxiableRequest(diam.MultimediaAuthentication, diam.TGPP_SWX_APP_ID, dict.Default)
 	msg.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(sid))
-	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.clientCfg.Host))
-	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.clientCfg.Realm))
+	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Host))
+	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))
 	msg.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(req.GetUserName()))
 	msg.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
 	msg.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(req.GetSipNumAuthVectors()))

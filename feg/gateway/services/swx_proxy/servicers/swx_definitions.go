@@ -28,6 +28,9 @@ const (
 	// in international E.164 format (eg. MSISDN).
 	// See IETF RFC 4006 section 8.47.
 	END_USER_E164 = 0
+
+	// 3GPP 29.273 8.2.3.4
+	Non3GPPIPAccess_ENABLED = 0
 )
 
 // 3GPP 29.273 8.2.2.1 - Multimedia Authentication Request
