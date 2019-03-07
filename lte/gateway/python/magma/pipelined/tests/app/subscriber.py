@@ -178,6 +178,4 @@ class RyuDirectSubscriberContext(SubscriberContext):
     def _deactivate_subscriber_rules(self):
         def deactivate_flows():
             self._ec.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
-            if self._esc:
-                self._esc.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
         hub.joinall([hub.spawn(deactivate_flows)])

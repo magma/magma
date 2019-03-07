@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 from typing import Optional
 
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    is_valid_direction, Direction
+    is_valid_direction, Direction, RULE_VERSION_REG
 
 
 class MagmaMatch(object):
@@ -20,9 +20,10 @@ class MagmaMatch(object):
     """
 
     def __init__(self, imsi: int = None, direction: Optional[Direction] = None,
-                 **kwargs):
+                 rule_version: int = None, **kwargs):
         self.imsi = imsi
         self.direction = direction
+        self.rule_version = rule_version
         self._match_kwargs = kwargs
         self._check_args()
 
@@ -40,6 +41,8 @@ class MagmaMatch(object):
             ryu_match[DIRECTION_REG] = self.direction.value
         if self.imsi is not None:
             ryu_match[IMSI_REG] = self.imsi
+        if self.rule_version is not None:
+            ryu_match[RULE_VERSION_REG] = self.rule_version
         return ryu_match
 
     def _check_args(self):

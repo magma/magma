@@ -47,7 +47,8 @@ from magma.pipelined.app.inout import EGRESS, INGRESS, InOutController
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.app.subscriber import SubscriberController
-from magma.pipelined.rule_mapper import RuleIDToNumMapper
+from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
+    SessionRuleToVersionMapper
 from ryu.base.app_manager import AppManager
 
 from magma.common.service import MagmaService
@@ -226,6 +227,7 @@ class ServiceManager:
         # and table 20(for egress).
         self._app_modules = [InOutController.__module__]
         self._table_manager = _TableManager()
+        self.session_rule_version_mapper = SessionRuleToVersionMapper()
 
         self._init_static_services()
         self._init_dynamic_services()
@@ -277,6 +279,8 @@ class ServiceManager:
         manager.load_apps(self._app_modules)
         contexts = manager.create_contexts()
         contexts['rule_id_mapper'] = RuleIDToNumMapper()
+        contexts[
+            'session_rule_version_mapper'] = self.session_rule_version_mapper
         contexts['app_futures'] = {}
         contexts['config'] = self._magma_service.config
         contexts['mconfig'] = self._magma_service.mconfig

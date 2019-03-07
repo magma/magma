@@ -15,7 +15,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
-from magma.pipelined.openflow.registers import Direction
+from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match
 from magma.pipelined.redirect import RedirectionManager, RedirectException
@@ -29,9 +29,10 @@ class EnforcementController(PolicyMixin, MagmaController):
     """
     EnforcementController
 
-    The enforcement controller installs flows for tracking subscriber usage
-    per rule and enforcing the usage. Each flow installed matches on a rule
-    and an IMSI and then labels the packet with the rule.
+    The enforcement controller installs flows for policy enforcement and
+    classification. Each flow installed matches on a rule and an IMSI and then
+    classifies the packet with the rule. The flow also redirects and drops
+    the packet as specified in the policy.
 
     NOTE: Enforcement currently relies on the fact that policies do not
     overlap. In this implementation, there is the idea of a 'default rule'
@@ -88,7 +89,8 @@ class EnforcementController(PolicyMixin, MagmaController):
             self.logger,
             self.tbl_num,
             redirect_next_table,
-            self._redirect_scratch)
+            self._redirect_scratch,
+            self._session_rule_version_mapper)
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -282,19 +284,24 @@ class EnforcementController(PolicyMixin, MagmaController):
         parser = self._datapath.ofproto_parser
         # encode the rule id in hex
         of_note = parser.NXActionNote(list(rule_id.encode()))
+        actions = [of_note]
         if flow.action == flow.DENY:
-            return [of_note]
+            return actions
 
         # QoS Rate-Limiting is currently supported for uplink traffic
         if ul_qos != 0 and flow.match.direction == flow.match.UPLINK:
-            qid = self._qos_map.map_flow_to_queue(imsi, rule_num, ul_qos, True)
+            qid = self._qos_map.map_flow_to_queue(imsi, rule_num, ul_qos,
+                                                  True)
             if qid != 0:
-                return [parser.OFPActionSetField(pkt_mark=qid),
-                        parser.NXActionRegLoad2(dst='reg2', value=rule_num),
-                        of_note]
+                actions.append(parser.OFPActionSetField(pkt_mark=qid))
 
-        return [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
-                of_note]
+        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        actions.extend(
+            [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
+             ])
+
+        return actions
 
     def _install_default_flow_for_subscriber(self, imsi):
         """

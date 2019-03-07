@@ -19,7 +19,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    Direction, SCRATCH_REGS, REG_ZERO_VAL
+    Direction, SCRATCH_REGS, REG_ZERO_VAL, RULE_VERSION_REG
 from magma.redirectd.redirect_store import RedirectDict
 
 from ryu.lib.packet import ether_types
@@ -49,7 +49,7 @@ class RedirectionManager:
     )
 
     def __init__(self, bridge_ip, logger, main_tbl_num, next_table,
-                 scratch_table_num):
+                 scratch_table_num, session_rule_version_mapper):
         self._bridge_ip = bridge_ip
         self.logger = logger
         self.main_tbl_num = main_tbl_num
@@ -59,6 +59,7 @@ class RedirectionManager:
         self._dns_cache = Memoizer({})
         self._redirect_port = get_service_config_value(
             'redirectd', 'http_port', 8080)
+        self._session_rule_version_mapper = session_rule_version_mapper
 
     def handle_redirection(self, datapath, loop, redirect_request):
         """
@@ -205,13 +206,13 @@ class RedirectionManager:
                     ),
                 ]
             ),
-            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
             parser.NXActionRegLoad2(dst=SCRATCH_REGS[0],
                                     value=self.REDIRECT_PROCESSED),
             parser.OFPActionSetField(ipv4_dst=self._bridge_ip),
             parser.OFPActionSetField(tcp_dst=self._redirect_port),
             of_note,
         ]
+        actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
 
         flows.add_resubmit_current_service_flow(
             datapath, self._scratch_tbl_num, match_http, actions,
@@ -315,9 +316,9 @@ class RedirectionManager:
         parser = datapath.ofproto_parser
         of_note = parser.NXActionNote(list(rule.id.encode()))
         actions = [
-            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
             of_note,
         ]
+        actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
 
         matches = []
         for ip in ips:
@@ -342,9 +343,9 @@ class RedirectionManager:
         parser = datapath.ofproto_parser
         of_note = parser.NXActionNote(list(rule.id.encode()))
         actions = [
-            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
             of_note,
         ]
+        actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
         matches = []
         # Install UDP flows for DNS
         matches.append(MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -408,3 +409,10 @@ class RedirectionManager:
         """
         flows.delete_flow(datapath, self._scratch_tbl_num,
                           MagmaMatch(imsi=encode_imsi(imsi)))
+
+    def _load_rule_actions(self, parser, rule_num, imsi, rule_id):
+        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        return [
+            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+            parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version),
+        ]

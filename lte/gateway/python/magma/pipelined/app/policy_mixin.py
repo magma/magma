@@ -25,6 +25,8 @@ class PolicyMixin(metaclass=ABCMeta):
         self._datapath = None
         self._policy_dict = PolicyRuleDict()
         self._rule_mapper = kwargs['rule_id_mapper']
+        self._session_rule_version_mapper = kwargs[
+            'session_rule_version_mapper']
 
     def activate_rules(self, imsi, ip_addr, static_rule_ids, dynamic_rules,
                        fut):

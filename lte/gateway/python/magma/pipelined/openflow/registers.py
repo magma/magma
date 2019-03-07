@@ -9,9 +9,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 from enum import IntEnum
 
 # Register names
+# Global registers:
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
+
+# Local scratch registers (These registers are reset when submitting to
+# another app):
 SCRATCH_REGS = ['reg0']
+RULE_VERSION_REG = 'reg4'
 
 # Register values
 REG_ZERO_VAL = 0x0

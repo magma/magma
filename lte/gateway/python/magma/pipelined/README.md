@@ -119,5 +119,6 @@ These services can be enabled and ordered from cloud. `mconfig` is used to strea
 | reg1     | Global     | Direction bit        | Table 1 (inout application) |
 | reg2     | Local      | Policy number        | enforcement app             |
 | reg3     | Local      | App ID               | DPI app                     |
+| reg4     | Local      | Policy version number| enforcement app             |
 +----------+------------+----------------------+-----------------------------+
 ```

@@ -92,6 +92,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         flow install fails after, no traffic will be directed to the
         enforcement_stats flows.
         """
+        for rule_id in request.rule_ids:
+            self._service_manager.session_rule_version_mapper.update_version(
+                request.sid.id, rule_id)
+        for rule in request.dynamic_rules:
+            self._service_manager.session_rule_version_mapper.update_version(
+                request.sid.id, rule.id)
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.ip_addr, request.rule_ids,
             request.dynamic_rules)
@@ -149,17 +155,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+        for rule_id in request.rule_ids:
+            self._service_manager.session_rule_version_mapper.update_version(
+                request.sid.id, rule_id)
         self._loop.call_soon_threadsafe(
             self._enforcer_app.deactivate_rules,
             request.sid.id, request.rule_ids)
-        if self._service_manager.is_app_enabled(
-                EnforcementStatsController.APP_NAME):
-            self._loop.call_soon_threadsafe(
-                self._enforcement_stats.deactivate_rules, request.sid.id,
-                request.rule_ids)
-            self._loop.call_soon_threadsafe(
-                self._enforcement_stats.delete_stats,
-                request.sid.id, request.rule_ids)
         return DeactivateFlowsResult()
 
     # --------------------------

@@ -26,7 +26,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG
+    IMSI_REG, RULE_VERSION_REG
 
 
 ETH_FRAME_SIZE_BYTES = 14
@@ -35,13 +35,18 @@ ETH_FRAME_SIZE_BYTES = 14
 class EnforcementStatsController(PolicyMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
-    statistics, which are sent to sessiond for tracking. It periodically polls
-    OVS for flow stats on the its table and reports the usage records to
-    session manager via RPC.
+    statistics, which are sent to sessiond for tracking.
+
+    It periodically polls OVS for flow stats on the its table and reports the
+    usage records to session manager via RPC. Flows are deleted when their
+    version (reg4 match) is different from the current version of the rule for
+    the subscriber maintained by the rule version mapper.
     """
 
     APP_NAME = 'enforcement_stats'
     SESSIOND_RPC_TIMEOUT = 10
+    # 0xffffffffffffffff is reserved in openflow
+    DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
 
     _CONTEXTS = {
         'dpset': dpset.DPSet,
@@ -68,8 +73,10 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self.sessiond = kwargs['rpc_stubs']['sessiond']
         self._msg_hub = MessageHub(self.logger)
         self.unhandled_stats_msgs = []  # Store multi-part responses from ovs
-        self.last_usage = {}  # Store last usage for calulcating delta
-        self.failed_usage = {}  # Store failed usage to retry rpc to sesiond
+        self.total_usage = {}  # Store total usage
+        # Store last usage excluding deleted flows for calculating deltas
+        self.last_usage_for_delta = {}
+        self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
 
     def _check_relay(func):  # pylint: disable=no-self-argument
         def wrapped(self, *args, **kwargs):
@@ -88,6 +95,17 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._datapath = datapath
         if self._relay_enabled:
             flows.delete_all_flows_from_table(datapath, self.tbl_num)
+            self._install_default_flows(datapath)
+
+    def _install_default_flows(self, datapath):
+        """
+        If no flows are matched, simply forward the traffic.
+        """
+        match = MagmaMatch()
+        flows.add_resubmit_next_service_flow(datapath, self.tbl_num, match, [],
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table,
+                                             cookie=self.DEFAULT_FLOW_COOKIE)
 
     @_check_relay
     def cleanup_on_disconnect(self, datapath):
@@ -120,7 +138,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             return RuleModResult.FAILURE
 
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        msgs = self._get_rule_match_flow_msgs(imsi, rule_num)
+        msgs = self._get_rule_match_flow_msgs(imsi, rule_num, rule.id)
 
         chan = self._msg_hub.send(msgs, self._datapath)
         for _ in range(len(msgs)):
@@ -143,18 +161,16 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
 
-    def _get_rule_match_flow_msgs(self, imsi, rule_num):
+    def _get_rule_match_flow_msgs(self, imsi, rule_num, rule_id):
         """
-        Returns flows used for usage reporting in enforcement_stats. These
-        flows match on reg2, which stores the rule num to get usage for each
-        rule.
+        Returns flow add messages used for rule matching.
         """
-        inbound_rule_match = MagmaMatch(imsi=encode_imsi(imsi),
-                                        direction=Direction.IN,
-                                        reg2=rule_num)
-        outbound_rule_match = MagmaMatch(imsi=encode_imsi(imsi),
-                                         direction=Direction.OUT,
-                                         reg2=rule_num)
+        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        inbound_rule_match = _generate_rule_match(imsi, rule_num, version,
+                                                  Direction.IN)
+        outbound_rule_match = _generate_rule_match(imsi, rule_num, version,
+                                                   Direction.OUT)
+
         return [
             flows.get_add_resubmit_next_service_flow_msg(
                 self._datapath,
@@ -176,70 +192,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
     def _install_default_flow_for_subscriber(self, imsi):
         pass
-
-    @_check_relay
-    def deactivate_rules(self, imsi, rule_ids):
-        """
-        Deactivate flows for a subscriber. If only imsi is present, delete all
-        rule flows for a subscriber (i.e. end its session). If rule_ids are
-        present, delete the rule flows for that subscriber.
-
-        Args:
-            imsi (string): subscriber id
-            rule_ids (list of strings): policy rule ids
-        """
-        if self._datapath is None:
-            self.logger.error('Datapath not initialized')
-            return
-
-        if not imsi:
-            self.logger.error('No subscriber specified')
-            return
-
-        if not rule_ids:
-            self._deactivate_flows_for_subscriber(imsi)
-        else:
-            for rule_id in rule_ids:
-                self._deactivate_flow_for_rule(imsi, rule_id)
-
-    def _deactivate_flow_for_rule(self, imsi, rule_id):
-        try:
-            rule_num = self._rule_mapper.get_rule_num(rule_id)
-        except KeyError:
-            self.logger.error('Could not find rule id %s', rule_id)
-            return
-        cookie, mask = (rule_num, flows.OVS_COOKIE_MATCH_ALL)
-        match = MagmaMatch(imsi=encode_imsi(imsi))
-        flows.delete_flow(self._datapath, self.tbl_num, match, cookie=cookie,
-                          cookie_mask=mask)
-
-    def _deactivate_flows_for_subscriber(self, imsi):
-        match = MagmaMatch(imsi=encode_imsi(imsi))
-        flows.delete_flow(self._datapath, self.tbl_num, match)
-
-    @_check_relay
-    def delete_stats(self, imsi, rule_ids=None):
-        """
-        Manually reset the statistics for an entire subscriber or a particular
-        subscriber. This is necessary because if a rule is deactivated and
-        activated between stats updates, this state machine may not be able
-        to clear the statistics in time. This should be called when rules are
-        deactivated in the enforcement app
-
-        Args:
-            imsi (string): subscriber id of subscriber
-            rule_ids ([string]): ids of rules to clear. If empty, clears all
-                rules for subscriber
-        """
-        if rule_ids:
-            for rule_id in rule_ids:
-                self.last_usage.pop(imsi + "|" + rule_id, None)
-            return
-        # delete all
-        prefix = imsi + "|"
-        for k in list(self.last_usage.keys()):
-            if k.startswith(prefix):
-                del self.last_usage[k]
 
     def _monitor(self, poll_interval):
         """
@@ -300,11 +252,13 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 if stat.table_id != self.tbl_num:
                     # this update is not intended for policy
                     return
-                current_usage = self._usage_from_flow_stat(current_usage, stat)
+                current_usage = self._update_usage_from_flow_stat(
+                    current_usage, stat)
 
         # Calculate the delta values from last stat update
-        delta_usage = _delta_usage_maps(current_usage, self.last_usage)
-        self.last_usage = current_usage
+        delta_usage = _delta_usage_maps(current_usage,
+                                        self.last_usage_for_delta)
+        self.total_usage = current_usage
 
         # Append any records which we couldn't send to session manager earlier
         delta_usage = _merge_usage_maps(delta_usage, self.failed_usage)
@@ -313,6 +267,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # Send report even if usage is empty. Sessiond uses empty reports to
         # recognize when flows have ended
         self._report_usage(delta_usage)
+
+        self._delete_old_flows(stats_msgs)
 
     def _report_usage(self, delta_usage):
         """
@@ -335,7 +291,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             self.failed_usage = _merge_usage_maps(
                 delta_usage, self.failed_usage)
 
-    def _usage_from_flow_stat(self, current_usage, flow_stat):
+    def _update_usage_from_flow_stat(self, current_usage, flow_stat):
         """
         Update the rule record map with the flow stat and return the
         updated map.
@@ -343,6 +299,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         rule_id = self._get_rule_id(flow_stat)
         # Rule not found, must be default flow
         if rule_id == "":
+            default_flow_matched = \
+                flow_stat.cookie == self.DEFAULT_FLOW_COOKIE and \
+                flow_stat.byte_count != 0
+            if default_flow_matched:
+                self.logger.error('%s bytes total not reported.',
+                                  flow_stat.byte_count)
             return current_usage
         sid = _get_sid(flow_stat)
 
@@ -363,13 +325,74 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         current_usage[key] = record
         return current_usage
 
+    def _delete_old_flows(self, stats_msgs):
+        """
+        Check if the version of any flow is older than the current version. If
+        so, delete the flow and update last_usage_for_delta so we calculate the
+        correct usage delta for the next poll.
+        """
+        deleted_flow_usage = defaultdict(RuleRecord)
+        for deletable_stat in self._old_flow_stats(stats_msgs):
+            stat_rule_id = self._get_rule_id(deletable_stat)
+            stat_sid = _get_sid(deletable_stat)
+            rule_version = _get_version(deletable_stat)
+
+            try:
+                self._delete_flow(deletable_stat, stat_sid, rule_version)
+                # Only remove the usage of the deleted flow if deletion
+                # is successful.
+                self._update_usage_from_flow_stat(deleted_flow_usage,
+                                                  deletable_stat)
+            except MagmaOFError as e:
+                self.logger.error(
+                    'Failed to delete rule %s for subscriber %s '
+                    '(version: %s): %s', stat_rule_id,
+                    stat_sid, rule_version, e)
+
+        self.last_usage_for_delta = _delta_usage_maps(self.total_usage,
+                                                      deleted_flow_usage)
+
+    def _old_flow_stats(self, stats_msgs):
+        """
+        Generator function to filter the flow stats that should be deleted from
+        the stats messages.
+        """
+        for flow_stats in stats_msgs:
+            for stat in flow_stats:
+                if stat.table_id != self.tbl_num:
+                    # this update is not intended for policy
+                    return
+
+                rule_id = self._get_rule_id(stat)
+                sid = _get_sid(stat)
+                rule_version = _get_version(stat)
+                if rule_id == "":
+                    continue
+
+                current_ver = \
+                    self._session_rule_version_mapper.get_version(sid, rule_id)
+                if current_ver != rule_version:
+                    yield stat
+
+    def _delete_flow(self, flow_stat, sid, version):
+        cookie, mask = (
+            flow_stat.cookie, flows.OVS_COOKIE_MATCH_ALL)
+        match = _generate_rule_match(
+            sid, flow_stat.cookie, version,
+            Direction(flow_stat.match[DIRECTION_REG]))
+        flows.delete_flow(self._datapath,
+                          self.tbl_num,
+                          match,
+                          cookie=cookie,
+                          cookie_mask=mask)
+
     def _get_rule_id(self, flow):
         """
         Return the rule id from the rule cookie
         """
         # the default rule will have a cookie of 0
         rule_num = flow.cookie
-        if rule_num == 0:
+        if rule_num == 0 or rule_num == self.DEFAULT_FLOW_COOKIE:
             return ""
         try:
             return self._rule_mapper.get_rule_id(rule_num)
@@ -378,6 +401,13 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                               rule_num, e)
             return ""
 
+
+def _generate_rule_match(imsi, rule_num, version, direction):
+    """
+    Return a MagmaMatch that matches on the rule num and the version.
+    """
+    return MagmaMatch(imsi=encode_imsi(imsi), direction=direction,
+                      reg2=rule_num, rule_version=version)
 
 def _delta_usage_maps(current_usage, last_usage):
     """
@@ -421,7 +451,15 @@ def _merge_usage_maps(current_usage, last_usage):
 
 
 def _get_sid(flow):
+    if IMSI_REG not in flow.match:
+        return None
     return decode_imsi(flow.match[IMSI_REG])
+
+
+def _get_version(flow):
+    if RULE_VERSION_REG not in flow.match:
+        return None
+    return flow.match[RULE_VERSION_REG]
 
 
 def _get_downlink_byte_count(flow_stat):
