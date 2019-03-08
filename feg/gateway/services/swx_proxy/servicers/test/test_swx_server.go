@@ -183,7 +183,7 @@ func testSendSAA(w io.Writer, m *diam.Message) (n int64, err error) {
 			}),
 			diam.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Enumerated(2002)),
 			diam.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Enumerated(2003)),
-			diam.NewAVP(avp.Non3GPPIPAccess, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Enumerated(0)),
+			diam.NewAVP(avp.Non3GPPIPAccess, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Enumerated(swx.Non3GPPIPAccess_ENABLED)),
 			diam.NewAVP(avp.Non3GPPIPAccessAPN, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Enumerated(0)),
 		},
 	})

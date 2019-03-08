@@ -71,6 +71,7 @@ var defaultConfig = Config{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
+		VerifyAuthorization: false,
 	},
 	ServedNetworkIds: []string{},
 	Health: &HealthConfig{

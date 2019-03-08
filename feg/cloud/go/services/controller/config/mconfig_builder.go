@@ -77,8 +77,9 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 			SubProfiles:       hssSubProfile,
 		},
 		"swx_proxy": &mconfig.SwxConfig{
-			LogLevel: protos.LogLevel_INFO,
-			Server:   swxc.GetServer().ToMconfig(),
+			LogLevel:            protos.LogLevel_INFO,
+			Server:              swxc.GetServer().ToMconfig(),
+			VerifyAuthorization: swxc.GetVerifyAuthorization(),
 		},
 	}, nil
 }

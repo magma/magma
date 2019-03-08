@@ -184,6 +184,9 @@ definitions:
         properties:
           server:
             $ref: '#/definitions/diameter_client_configs'
+          verify_authorization:
+            type: boolean
+            example: false
         x-go-custom-tag: 'magma_alt_name:"SWX"'
       served_network_ids:
         type: array

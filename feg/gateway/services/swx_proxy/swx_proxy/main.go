@@ -31,7 +31,7 @@ func main() {
 		glog.Fatalf("Error creating Swx Proxy service: %s", err)
 	}
 
-	servicer, err := servicers.NewSwxProxy(servicers.GetSwxProxyConfigs())
+	servicer, err := servicers.NewSwxProxy(servicers.GetSwxProxyConfig())
 	if err != nil {
 		glog.Fatalf("Failed to create SwxProxy: %v", err)
 	}

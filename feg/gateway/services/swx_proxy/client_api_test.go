@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package swx_proxy_test
 
 import (
+	"context"
 	"strconv"
 	"testing"
 
@@ -16,16 +17,36 @@ import (
 	"magma/feg/gateway/services/swx_proxy"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
 	"magma/feg/gateway/services/swx_proxy/test_init"
+	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSwxProxyClient(t *testing.T) {
-	err := test_init.StartTestService(t)
+func TestSwxProxyClient_VerifyAuthorization(t *testing.T) {
+	err := test_init.InitTestMconfig(t, "127.0.0.1:0", true)
+	assert.NoError(t, err)
+	srv, err := test_init.StartTestService(t)
 	if err != nil {
 		t.Fatal(err)
-		return
 	}
+	standardSwxProxyTest(t)
+	_, err = srv.StopService(context.Background(), &orcprotos.Void{})
+	assert.NoError(t, err)
+}
+
+func TestSwxProxyClient_VerifyAuthorizationOff(t *testing.T) {
+	err := test_init.InitTestMconfig(t, "127.0.0.1:0", false)
+	assert.NoError(t, err)
+	srv, err := test_init.StartTestService(t)
+	if err != nil {
+		t.Fatal(err)
+	}
+	standardSwxProxyTest(t)
+	_, err = srv.StopService(context.Background(), &orcprotos.Void{})
+	assert.NoError(t, err)
+}
+
+func standardSwxProxyTest(t *testing.T) {
 	expectedUsername := test.BASE_IMSI
 	expectedNumVectors := 5
 	expectedAuthScheme := protos.AuthenticationScheme_EAP_AKA
