@@ -35,14 +35,15 @@ const (
 
 // 3GPP 29.273 8.2.2.1 - Multimedia Authentication Request
 type MAR struct {
-	SessionID        datatype.UTF8String       `avp:"Session-Id"`
-	OriginHost       datatype.DiameterIdentity `avp:"Origin-Host"`
-	OriginRealm      datatype.DiameterIdentity `avp:"Origin-Realm"`
-	AuthSessionState datatype.UTF8String       `avp:"Auth-Session-State"`
-	UserName         string                    `avp:"User-Name"`
-	RATType          datatype.Enumerated       `avp:"RAT-Type"`
-	AuthData         SIPAuthDataItem           `avp:"SIP-Auth-Data-Item"`
-	NumberAuthItems  uint32                    `avp:"SIP-Number-Auth-Items"`
+	SessionID           datatype.UTF8String         `avp:"Session-Id"`
+	VendorSpecificAppId VendorSpecificApplicationId `avp:"Vendor-Specific-Application-Id"`
+	OriginHost          datatype.DiameterIdentity   `avp:"Origin-Host"`
+	OriginRealm         datatype.DiameterIdentity   `avp:"Origin-Realm"`
+	AuthSessionState    datatype.UTF8String         `avp:"Auth-Session-State"`
+	UserName            string                      `avp:"User-Name"`
+	RATType             datatype.Enumerated         `avp:"RAT-Type"`
+	AuthData            SIPAuthDataItem             `avp:"SIP-Auth-Data-Item"`
+	NumberAuthItems     uint32                      `avp:"SIP-Number-Auth-Items"`
 }
 
 // 3GPP 29.273 8.2.2.1 - Multimedia Authentication Answer
@@ -56,6 +57,13 @@ type MAA struct {
 	SIPAuthDataItems   []SIPAuthDataItem         `avp:"SIP-Auth-Data-Item"`
 	SIPNumberAuthItems uint32                    `avp:"SIP-Number-Auth-Items"`
 	AAAServerName      datatype.DiameterIdentity `avp:"TGPP-AAA-Server-Name"`
+}
+
+// VendorSpecificApplicationId
+type VendorSpecificApplicationId struct {
+	VendorId          uint32 `avp:"Vendor-Id"`
+	AuthApplicationId uint32 `avp:"Auth-Application-Id"`
+	AcctApplicationId uint32 `avp:"Acct-Application-Id"`
 }
 
 type ExperimentalResult struct {
@@ -73,12 +81,13 @@ type SIPAuthDataItem struct {
 
 // 3GPP 29.273 8.2.2.3 - Server Assignment Request
 type SAR struct {
-	SessionID            datatype.UTF8String       `avp:"Session-Id"`
-	OriginHost           datatype.DiameterIdentity `avp:"Origin-Host"`
-	OriginRealm          datatype.DiameterIdentity `avp:"Origin-Realm"`
-	AuthSessionState     datatype.Unsigned32       `avp:"Auth-Session-State"`
-	UserName             datatype.UTF8String       `avp:"User-Name"`
-	ServerAssignmentType datatype.Enumerated       `avp:"Server-Assignment-Type"`
+	SessionID            datatype.UTF8String         `avp:"Session-Id"`
+	VendorSpecificAppId  VendorSpecificApplicationId `avp:"Vendor-Specific-Application-Id"`
+	OriginHost           datatype.DiameterIdentity   `avp:"Origin-Host"`
+	OriginRealm          datatype.DiameterIdentity   `avp:"Origin-Realm"`
+	AuthSessionState     datatype.Unsigned32         `avp:"Auth-Session-State"`
+	UserName             datatype.UTF8String         `avp:"User-Name"`
+	ServerAssignmentType datatype.Enumerated         `avp:"Server-Assignment-Type"`
 }
 
 // 3GPP 29.273 8.2.2.3 - Server Assignment Answer
