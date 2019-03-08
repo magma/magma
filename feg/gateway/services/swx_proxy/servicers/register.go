@@ -92,8 +92,15 @@ func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, 
 func (s *swxProxy) createSAR(sid, userName string, saType uint32) *diam.Message {
 	msg := diameter.NewProxiableRequest(diam.ServerAssignment, diam.TGPP_SWX_APP_ID, dict.Default)
 	msg.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(sid))
+	msg.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.TGPP_SWX_APP_ID)),
+			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+		},
+	})
 	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Host))
 	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))
+
 	msg.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
 	msg.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
 	msg.NewAVP(avp.ServerAssignmentType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(saType))
