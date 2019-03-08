@@ -28,14 +28,18 @@
 #define PGW
 #define PGW_TASK_C
 
+#include <stdio.h>
+#include <sys/types.h>
+
 #include "log.h"
-#include "msc.h"
 #include "intertask_interface.h"
 #include "pgw_defs.h"
 #include "pgw_handlers.h"
-#include "pcef_handlers.h"
 #include "sgw.h"
 #include "common_defs.h"
+#include "bstrlib.h"
+#include "intertask_interface_types.h"
+#include "spgw_config.h"
 
 pgw_app_t pgw_app;
 

@@ -38,6 +38,11 @@
 
 *****************************************************************************/
 
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "log.h"
 #include "service303.h"
 #include "mme_config.h"
@@ -46,6 +51,14 @@
 #include "assertions.h"
 #include "conversions.h"
 #include "mme_app_defs.h"
+#include "common_defs.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "mme_app_ue_context.h"
+#include "sgs_messages_types.h"
 
 static int _mme_app_send_sgsap_alert_reject(
   itti_sgsap_alert_request_t *const sgsap_alert_req_pP,

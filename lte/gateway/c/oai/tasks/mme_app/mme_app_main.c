@@ -27,14 +27,12 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <pthread.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "log.h"
 #include "msc.h"
@@ -53,6 +51,19 @@
 #include "common_defs.h"
 #include "mme_app_edns_emulation.h"
 #include "nas_proc.h"
+#include "3gpp_36.401.h"
+#include "common_types.h"
+#include "hashtable.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_desc.h"
+#include "mme_app_messages_types.h"
+#include "nas_messages_types.h"
+#include "obj_hashtable.h"
+#include "s11_messages_types.h"
+#include "s1ap_messages_types.h"
+#include "sctp_messages_types.h"
+#include "timer_messages_types.h"
 
 mme_app_desc_t mme_app_desc = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 

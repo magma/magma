@@ -19,6 +19,9 @@
  *      contact@openairinterface.org
  */
 
+#include <stdbool.h>
+#include <string.h>
+
 /*****************************************************************************
   Source      NasTransportHdl.c
 
@@ -42,10 +45,17 @@
 #include "emm_proc.h"
 #include "log.h"
 #include "emm_data.h"
-#include "emm_cause.h"
-#include "msc.h"
 #include "nas_itti_messaging.h"
 #include "conversions.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
+#include "DetachRequest.h"
+#include "MobileStationClassmark2.h"
+#include "bstrlib.h"
+#include "common_defs.h"
+#include "common_types.h"
+#include "esm_data.h"
+#include "mme_api.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

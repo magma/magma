@@ -36,15 +36,12 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <netinet/in.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
-#include "log.h"
 #include "dynamic_memory_check.h"
 #include "common_defs.h"
 #include "assertions.h"
-#include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "TLVDecoder.h"
 #include "TLVEncoder.h"

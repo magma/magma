@@ -19,46 +19,12 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      esm_main.c
-
-  Version     0.1
-
-  Date        2012/12/04
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EPS Session Management procedure call manager,
-        the main entry point for elementary ESM processing.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include "bstrlib.h"
-
-#include "common_types.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "common_defs.h"
-#include "mme_app_ue_context.h"
 #include "esm_main.h"
-#include "commonDef.h"
 #include "log.h"
-
-#include "emm_data.h"
 #include "esm_data.h"
-#include "esm_pt.h"
 #include "esm_ebr.h"
+#include "mme_api.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

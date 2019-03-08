@@ -19,50 +19,15 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      EmmDeregisteredInitiated.c
-
-  Version     0.1
-
-  Date        2012/10/03
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel, Lionel GAUTHIER
-
-  Description Implements the EPS Mobility Management procedures executed
-        when the EMM-SAP is in EMM-DEREGISTERED-INITIATED state.
-
-        In EMM-DEREGISTERED-INITIATED state, the UE has requested
-        release of the EMM context by starting the detach or combined
-        detach procedure and is waiting for a response from the MME.
-        The MME has started a detach procedure and is waiting for a
-        response from the UE.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
 #include <assert.h>
-
-#include "bstrlib.h"
 
 #include "log.h"
 #include "common_defs.h"
 #include "emm_fsm.h"
-#include "commonDef.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "emm_fsm.h"
-
-#include "emm_proc.h"
+#include "emm_data.h"
+#include "emm_regDef.h"
+#include "msc.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

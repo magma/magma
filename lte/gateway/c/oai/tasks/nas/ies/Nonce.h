@@ -22,6 +22,8 @@
 #ifndef NONCE_SEEN
 #define NONCE_SEEN
 
+#include <stdint.h>
+
 #define NONCE_MINIMUM_LENGTH 5
 #define NONCE_MAXIMUM_LENGTH 5
 

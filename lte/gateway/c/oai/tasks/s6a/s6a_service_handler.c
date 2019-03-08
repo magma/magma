@@ -18,8 +18,14 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include <string.h>
+#include <sys/types.h>
+
 #include "intertask_interface.h"
-#include "log.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "s6a_messages_types.h"
 
 int delete_subscriber_request(const char *imsi, const uint imsi_len)
 {

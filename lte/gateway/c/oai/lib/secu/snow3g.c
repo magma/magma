@@ -19,10 +19,7 @@
  *      contact@openairinterface.org
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 
 #include "rijndael.h"
 #include "snow3g.h"

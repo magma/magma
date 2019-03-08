@@ -53,16 +53,12 @@
 
 *****************************************************************************/
 
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
-#include "gcc_diag.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
@@ -71,27 +67,37 @@
 #include "common_types.h"
 #include "3gpp_24.008.h"
 #include "3gpp_36.401.h"
-#include "3gpp_29.274.h"
 #include "conversions.h"
 #include "3gpp_requirements_24.301.h"
 #include "nas_message.h"
-#include "as_message.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
-#include "networkDef.h"
 #include "emm_sap.h"
 #include "mme_api.h"
 #include "emm_data.h"
-#include "esm_proc.h"
 #include "esm_sapDef.h"
 #include "esm_sap.h"
 #include "emm_cause.h"
-#include "NasSecurityAlgorithms.h"
 #include "mme_config.h"
 #include "nas_itti_messaging.h"
 #include "service303.h"
 #include "common_ies.h"
-#include "mme_app_defs.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
+#include "AdditionalUpdateType.h"
+#include "EmmCause.h"
+#include "EpsNetworkFeatureSupport.h"
+#include "TrackingAreaIdentity.h"
+#include "TrackingAreaIdentityList.h"
+#include "common_defs.h"
+#include "emm_asDef.h"
+#include "emm_cnDef.h"
+#include "emm_fsm.h"
+#include "emm_regDef.h"
+#include "esm_data.h"
+#include "mme_app_desc.h"
+#include "nas_messages_types.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

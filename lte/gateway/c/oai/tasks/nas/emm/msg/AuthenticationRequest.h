@@ -22,6 +22,8 @@
 #ifndef FILE_AUTHENTICATION_REQUEST_SEEN
 #define FILE_AUTHENTICATION_REQUEST_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "NasKeySetIdentifier.h"

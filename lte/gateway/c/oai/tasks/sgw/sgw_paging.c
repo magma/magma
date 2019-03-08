@@ -19,14 +19,19 @@
  *      contact@openairinterface.org
  */
 
-#include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/socket.h>
 
 #include "intertask_interface.h"
 #include "log.h"
 #include "rpc_client.h"
 #include "sgw_paging.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "s11_messages_types.h"
 
 int sgw_send_paging_request(const struct in_addr *dest_ip)
 {

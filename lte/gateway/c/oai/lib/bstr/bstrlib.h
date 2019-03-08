@@ -23,6 +23,8 @@ extern "C" {
 #include <limits.h>
 #include <ctype.h>
 
+struct bStream;
+
 #if !defined(BSTRLIB_VSNP_OK) && !defined(BSTRLIB_NOVSNP)
 #if defined(__TURBOC__) && !defined(__BORLANDC__)
 #define BSTRLIB_NOVSNP

@@ -22,6 +22,8 @@
 #ifndef EMM_CAUSE_SEEN
 #define EMM_CAUSE_SEEN
 
+#include <stdint.h>
+
 #define EMM_CAUSE_MINIMUM_LENGTH 1
 #define EMM_CAUSE_MAXIMUM_LENGTH 1
 

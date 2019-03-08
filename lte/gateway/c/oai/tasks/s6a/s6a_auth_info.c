@@ -27,11 +27,9 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <pthread.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "log.h"
 #include "msc.h"
@@ -43,6 +41,16 @@
 #include "intertask_interface.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
+#include "3gpp_23.003.h"
+#include "3gpp_33.401.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "s6a_messages_types.h"
+#include "security_types.h"
+
+struct avp;
+struct msg;
+struct session;
 
 static int s6a_parse_rand(struct avp_hdr *hdr, uint8_t *rand_p)
 {

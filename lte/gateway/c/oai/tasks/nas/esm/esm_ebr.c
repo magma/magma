@@ -19,41 +19,16 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      esm_ebr.c
-
-  Version     0.1
-
-  Date        2013/01/29
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines functions used to handle state of EPS bearer contexts
-        and manage ESM messages re-transmission.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "log.h"
 #include "msc.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "common_defs.h"
-#include "commonDef.h"
 #include "mme_app_ue_context.h"
 #include "emm_data.h"
 #include "esm_ebr.h"

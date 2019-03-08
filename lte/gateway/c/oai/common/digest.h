@@ -37,6 +37,8 @@
 #ifndef FILE_DIGEST_SEEN
 #define FILE_DIGEST_SEEN
 #include <openssl/evp.h>
+#include <openssl/ossl_typ.h>
+#include <stddef.h>
 
 int digest_buffer(
   const EVP_MD *(*evp_x)(void),

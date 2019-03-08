@@ -19,8 +19,14 @@
  *      contact@openairinterface.org
  */
 #include "s6a_service.h"
+
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/security/server_credentials.h>
+#include <memory>
+
 #include "S6aServiceImpl.h"
 #include "S6aProxyImpl.h"
+
 extern "C" {
 #include "log.h"
 }

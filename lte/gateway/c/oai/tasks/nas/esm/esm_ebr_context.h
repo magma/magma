@@ -38,6 +38,13 @@ Description Defines functions used to handle EPS bearer contexts.
 #ifndef ESM_EBR_CONTEXT_SEEN
 #define ESM_EBR_CONTEXT_SEEN
 
+#include <stdbool.h>
+
+#include "3gpp_24.007.h"
+#include "3gpp_24.008.h"
+#include "common_types.h"
+#include "emm_data.h"
+#include "esm_data.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

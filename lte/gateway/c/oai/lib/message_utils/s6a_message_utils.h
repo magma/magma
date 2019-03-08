@@ -23,6 +23,7 @@
 #define FILE_S6A_MESSAGE_UTILS
 
 #include "intertask_interface.h"
+#include "intertask_interface_types.h"
 
 int send_start_s6a_server(task_id_t origin_id);
 

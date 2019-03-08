@@ -20,17 +20,26 @@
  */
 
 #include <stdio.h>
-#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "mme_config.h"
 #include "assertions.h"
-#include "conversions.h"
 #include "intertask_interface.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
 #include "msc.h"
 #include "log.h"
 #include "common_defs.h"
+#include "bstrlib.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "s6a_messages_types.h"
+
+struct avp;
+struct msg;
+struct session;
 
 int s6a_pua_cb(
   struct msg **msg_pP,

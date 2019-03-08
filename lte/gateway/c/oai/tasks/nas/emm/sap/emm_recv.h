@@ -41,11 +41,11 @@ Description Defines functions executed at the EMMAS Service Access
 #ifndef FILE_EMM_RECV_SEEN
 #define FILE_EMM_RECV_SEEN
 
-#include "EmmStatus.h"
+#include <stdbool.h>
 
+#include "EmmStatus.h"
 #include "DetachRequest.h"
 #include "DetachAccept.h"
-
 #include "AttachRequest.h"
 #include "AttachComplete.h"
 #include "TrackingAreaUpdateRequest.h"
@@ -60,6 +60,9 @@ Description Defines functions executed at the EMMAS Service Access
 #include "SecurityModeReject.h"
 #include "UplinkNasTransport.h"
 #include "nas_message.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
+#include "TrackingAreaIdentity.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

@@ -19,47 +19,24 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-
-  Source    nas_message.c
-
-  Version   0.1
-
-  Date    2012/26/09
-
-  Product   NAS stack
-
-  Subsystem Application Programming Interface
-
-  Author    Frederic Maurel
-
-  Description Defines the layer 3 messages supported by the NAS sublayer
-    protocol and functions used to encode and decode
-
-*****************************************************************************/
-#include <arpa/inet.h> // htonl
 #include <string.h>    // memcpy
 #include <stdlib.h>    // free
 #include <stdint.h>
 #include <stdbool.h>
-
-#include "bstrlib.h"
+#include <netinet/in.h>
 
 #include "log.h"
-#include "3gpp_36.401.h"
-#include "common_types.h"
 #include "nas_message.h"
-#include "gcc_diag.h"
-#include "TLVDecoder.h"
-#include "TLVEncoder.h"
-#include "mme_api.h"
-#include "mme_config.h"
-#include "emm_main.h"
-#include "esm_main.h"
-#include "emm_sap.h"
 #include "emm_data.h"
 #include "secu_defs.h"
 #include "dynamic_memory_check.h"
+#include "3gpp_24.301.h"
+#include "KsiAndSequenceNumber.h"
+#include "NasSecurityAlgorithms.h"
+#include "ServiceRequest.h"
+#include "common_defs.h"
+#include "emm_msgDef.h"
+#include "securityDef.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

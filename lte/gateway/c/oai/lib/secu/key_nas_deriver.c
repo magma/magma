@@ -19,18 +19,11 @@
  *      contact@openairinterface.org
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
-
-#include "bstrlib.h"
 
 #include "security_types.h"
 #include "secu_defs.h"
-#include "secu_defs.h"
-#include "log.h"
 
 /*!
    @brief Derive the kNASenc from kasme and perform truncate on the generated key to

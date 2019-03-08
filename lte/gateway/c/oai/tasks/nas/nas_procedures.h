@@ -28,7 +28,25 @@
 
 #ifndef FILE_NAS_PROCEDURES_SEEN
 #define FILE_NAS_PROCEDURES_SEEN
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "3gpp_24.008.h"
+#include "3gpp_23.003.h"
+#include "3gpp_33.401.h"
+#include "3gpp_36.401.h"
+#include "bstrlib.h"
+#include "common_types.h"
+#include "emm_fsm.h"
+#include "nas_timer.h"
+#include "queue.h"
+#include "securityDef.h"
+#include "security_types.h"
+
+struct emm_context_s;
+struct nas_base_proc_s;
+struct nas_emm_proc_s;
 
 struct emm_context_s;
 struct nas_base_proc_s;

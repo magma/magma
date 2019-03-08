@@ -21,7 +21,11 @@
 
 #include "service303_message_utils.h"
 
+#include <stddef.h>
+
 #include "assertions.h"
+#include "intertask_interface.h"
+#include "itti_types.h"
 
 int send_app_health_to_service303(task_id_t origin_id, bool healthy)
 {

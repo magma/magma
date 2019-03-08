@@ -18,39 +18,42 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
 
 #include "bstrlib.h"
-
-#include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
 #include "msc.h"
-#include "tree.h"
 #include "common_types.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "common_types.h"
-#include "commonDef.h"
 #include "common_defs.h"
 #include "mme_app_ue_context.h"
 #include "NasSecurityAlgorithms.h"
 #include "conversions.h"
 #include "emm_data.h"
 #include "esm_data.h"
-#include "emm_proc.h"
 #include "security_types.h"
-#include "mme_config.h"
 #include "secu_defs.h"
-#include "emm_cause.h"
-#include "mme_app_defs.h"
+#include "3gpp_23.003.h"
+#include "3gpp_33.401.h"
+#include "3gpp_36.401.h"
+#include "EpsBearerContextStatus.h"
+#include "MobileStationClassmark2.h"
+#include "TrackingAreaIdentity.h"
+#include "TrackingAreaIdentityList.h"
+#include "emm_fsm.h"
+#include "hashtable.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_procedures.h"
+#include "nas_timer.h"
+#include "securityDef.h"
 
 //------------------------------------------------------------------------------
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t *const ctxt)

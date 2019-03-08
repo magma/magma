@@ -21,7 +21,11 @@
 
 #include "s6a_message_utils.h"
 
+#include <stddef.h>
+
 #include "assertions.h"
+#include "intertask_interface.h"
+#include "itti_types.h"
 
 int send_start_s6a_server(task_id_t origin_id)
 {

@@ -28,7 +28,13 @@
 
 #ifndef FILE_SCTP_ITTI_MESSAGING_SEEN
 #define FILE_SCTP_ITTI_MESSAGING_SEEN
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "common_defs.h"
+#include "bstrlib.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
 
 int sctp_itti_send_lower_layer_conf(
   const task_id_t origin_task_id,

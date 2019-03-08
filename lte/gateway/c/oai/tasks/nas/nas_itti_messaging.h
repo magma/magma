@@ -29,10 +29,19 @@
 #ifndef FILE_NAS_ITTI_MESSAGING_SEEN
 #define FILE_NAS_ITTI_MESSAGING_SEEN
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "nas_message.h"
 #include "as_message.h"
 #include "esm_proc.h"
 #include "MobileStationClassmark2.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.007.h"
+#include "3gpp_36.401.h"
+#include "TrackingAreaIdentity.h"
+#include "bstrlib.h"
+#include "common_types.h"
 
 int nas_itti_dl_data_req(
   const mme_ue_s1ap_id_t ue_idP,

@@ -19,7 +19,12 @@
  *      contact@openairinterface.org
  */
 
-#include <arpa/inet.h>
+#include <assert.h>
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <netinet/in.h>
+#include <string.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -27,8 +32,8 @@
 #include "lte/protos/mobilityd.grpc.pb.h"
 #include "lte/protos/mobilityd.pb.h"
 #include "orc8r/protos/common.pb.h"
-
 #include "MobilityClient.h"
+#include "lte/protos/subscriberdb.pb.h"
 
 using grpc::Channel;
 using grpc::ClientContext;

@@ -20,11 +20,19 @@
  */
 
 
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <thread> // std::thread
+#include <utility>
 
 #include "CSFBClient.h"
 #include "itti_msg_to_proto_msg.h"
 #include "ServiceRegistrySingleton.h"
+#include "feg/protos/csfb.pb.h"
+#include "orc8r/protos/common.pb.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
 
 namespace magma {
 

@@ -19,11 +19,19 @@
  *      contact@openairinterface.org
  */
 
-#include <arpa/inet.h>
+#include <grpcpp/create_channel.h>
+#include <grpcpp/security/credentials.h>
+#include <stdint.h>
+#include <string.h>
 #include <string>
+#include <memory>
 
 #include "MobilityClient.h"
 #include "rpc_client.h"
+
+namespace grpc {
+class Channel;
+}  // namespace grpc
 
 // TODO: MobilityService IP:port config (t14002037)
 #define MOBILITYD_ENDPOINT "localhost:60051"

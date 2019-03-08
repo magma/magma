@@ -22,6 +22,9 @@
 #ifndef FILE_MME_APP_SGW_SELECTION_SEEN
 #define FILE_MME_APP_SGW_SELECTION_SEEN
 
+#include "TrackingAreaIdentity.h"
+
+struct in_addr;
 /*! \file mme_app_sgw_selection.h
   \brief
   \author Lionel Gauthier

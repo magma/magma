@@ -22,6 +22,8 @@
 #define FILE_SGW_PAGING_SEEN
 #include <netinet/ip.h>
 
+struct in_addr;
+
 int sgw_send_paging_request(const struct in_addr *dest_ip);
 
 #endif

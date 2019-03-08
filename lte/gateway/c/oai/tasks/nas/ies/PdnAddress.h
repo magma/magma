@@ -22,6 +22,10 @@
 #ifndef PDN_ADDRESS_SEEN
 #define PDN_ADDRESS_SEEN
 
+#include <stdint.h>
+
+#include "bstrlib.h"
+
 #define PDN_ADDRESS_MINIMUM_LENGTH 7
 #define PDN_ADDRESS_MAXIMUM_LENGTH 15
 

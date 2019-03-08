@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 #include "intertask_interface.h"
+#include "sgs_messages_types.h"
 
 void send_alert_ack(const itti_sgsap_alert_ack_t *msg);
 

@@ -19,45 +19,19 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-
-  Source      emm_fsm.c
-
-  Version     0.1
-
-  Date        2012/10/03
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EPS Mobility Management procedures executed at
-        the EMMREG Service Access Point.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 
 #include "emm_fsm.h"
-#include "commonDef.h"
 #include "log.h"
 #include "common_defs.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "mme_api.h"
 #include "emm_data.h"
 #include "assertions.h"
 #include "msc.h"
-#include "mme_app_defs.h"
+#include "common_types.h"
+#include "emm_regDef.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

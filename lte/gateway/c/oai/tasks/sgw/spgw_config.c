@@ -28,37 +28,16 @@
 #define SGW
 #define SPGW_CONFIG_C
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
 #include <unistd.h>
-#include <netdb.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
-
 #include <libconfig.h>
-#include "bstrlib.h"
-#include "queue.h"
 
-#include "hashtable.h"
-#include "obj_hashtable.h"
+#include "bstrlib.h"
 #include "log.h"
 #include "assertions.h"
 #include "common_defs.h"
-#include "common_types.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "pgw_pcef_emulation.h"
 #include "spgw_config.h"
-#include "sgw_defs.h"
-#include "pgw_defs.h"
-#include "intertask_interface.h"
-#include "dynamic_memory_check.h"
-#include "async_system.h"
 
 void spgw_config_display(spgw_config_t *config_p);
 

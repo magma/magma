@@ -37,10 +37,9 @@
 *****************************************************************************/
 #include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "msc.h"
 #include "assertions.h"
@@ -50,11 +49,20 @@
 #include "emm_main.h"
 #include "emm_sap.h"
 #include "esm_main.h"
-#include "msc.h"
 #include "s6a_defs.h"
-#include "dynamic_memory_check.h"
 #include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
+#include "3gpp_24.008.h"
+#include "3gpp_33.401.h"
+#include "DetachRequest.h"
+#include "MobileIdentity.h"
+#include "common_types.h"
+#include "emm_asDef.h"
+#include "emm_data.h"
+#include "hashtable.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_procedures.h"
+#include "service303.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

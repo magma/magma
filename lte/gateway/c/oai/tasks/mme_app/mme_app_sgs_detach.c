@@ -28,8 +28,8 @@
  *******************************************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "dynamic_memory_check.h"
 #include "assertions.h"
@@ -41,6 +41,17 @@
 #include "timer.h"
 #include "conversions.h"
 #include "service303.h"
+#include "3gpp_36.401.h"
+#include "common_defs.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "log.h"
+#include "mme_app_desc.h"
+#include "mme_app_sgs_fsm.h"
+#include "nas_messages_types.h"
+#include "s1ap_messages_types.h"
+#include "sgs_messages_types.h"
 
 /**
  * Function to send a SGS EPS detach indication to SGSAP in either the initial case

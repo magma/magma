@@ -21,7 +21,18 @@
 
 
 #include "proto_msg_to_itti_msg.h"
+
+#include <stdint.h>
+#include <string.h>
+#include <iostream>
+#include <string>
+
 #include "bstrlib.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.008.h"
+#include "common_ies.h"
+#include "feg/protos/csfb.pb.h"
+
 extern "C" {
 #include "bytes_to_ie.h"
 }

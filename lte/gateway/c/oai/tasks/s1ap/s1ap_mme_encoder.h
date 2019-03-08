@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include "s1ap_ies_defs.h"
+
 #ifndef FILE_S1AP_MME_ENCODER_SEEN
 #define FILE_S1AP_MME_ENCODER_SEEN
 

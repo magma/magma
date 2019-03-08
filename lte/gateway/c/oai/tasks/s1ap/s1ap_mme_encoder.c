@@ -19,27 +19,26 @@
  *      contact@openairinterface.org
  */
 
-/*! \file s1ap_mme_encoder.c
-   \brief s1ap encode procedures for MME
-   \author Sebastien ROUX <sebastien.roux@eurecom.fr>
-   \date 2012
-   \version 0.1
-*/
-#include <stdbool.h>
 #include <stdint.h>
-#include <inttypes.h>
-#include <pthread.h>
+#include <string.h>
 
-#include "bstrlib.h"
-
-#include "intertask_interface.h"
-#include "mme_api.h"
 #include "s1ap_common.h"
 #include "s1ap_ies_defs.h"
 #include "s1ap_mme_encoder.h"
-#include "s1ap_mme.h"
 #include "assertions.h"
 #include "log.h"
+#include "S1AP-PDU.h"
+#include "S1ap-Criticality.h"
+#include "S1ap-DownlinkNASTransport.h"
+#include "S1ap-E-RABSetupRequest.h"
+#include "S1ap-InitialContextSetupRequest.h"
+#include "S1ap-Paging.h"
+#include "S1ap-ProcedureCode.h"
+#include "S1ap-ResetAcknowledge.h"
+#include "S1ap-S1SetupFailure.h"
+#include "S1ap-S1SetupResponse.h"
+#include "S1ap-UEContextModificationRequest.h"
+#include "S1ap-UEContextReleaseCommand.h"
 
 static inline int s1ap_mme_encode_initial_context_setup_request(
   s1ap_message *message_p,

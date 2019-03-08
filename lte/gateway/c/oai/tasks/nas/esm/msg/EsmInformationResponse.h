@@ -22,6 +22,8 @@
 #ifndef ESM_INFORMATION_RESPONSE_H_
 #define ESM_INFORMATION_RESPONSE_H_
 
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"

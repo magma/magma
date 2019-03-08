@@ -28,17 +28,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <netinet/in.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
-#include "log.h"
 #include "obj_hashtable.h"
 #include "mme_config.h"
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "mme_app_edns_emulation.h"
+#include "hashtable.h"
 
 static obj_hash_table_t *g_e_dns_entries = NULL;
 

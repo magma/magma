@@ -32,13 +32,10 @@
   \author Sebastien ROUX
   \company Eurecom
 */
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <ctype.h>
-#include <inttypes.h>
 
-#include "common_defs.h"
+#include <stdint.h>
+#include <ctype.h>
+
 #include "conversions.h"
 
 static const char hex_to_ascii_table[16] = {

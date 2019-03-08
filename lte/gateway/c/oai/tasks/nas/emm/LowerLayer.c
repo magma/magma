@@ -19,51 +19,28 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      LowerLayer.c
-
-  Version     0.1
-
-  Date        2012/03/14
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel, Lionel GAUTHIER
-
-  Description Defines EMM procedures executed by the Non-Access Stratum
-        upon receiving notifications from lower layers so that data
-        transfer succeed or failed, or NAS signalling connection is
-        released, or ESM unit data has been received from under layer,
-        and to request ESM unit data transfer to under layer.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "msc.h"
-#include "gcc_diag.h"
-#include "commonDef.h"
 #include "common_defs.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "esm_sap.h"
-#include "log.h"
 #include "LowerLayer.h"
-#include "mme_app_defs.h"
+#include "emm_asDef.h"
+#include "emm_regDef.h"
+#include "esm_sapDef.h"
+#include "mme_app_desc.h"
+#include "nas_procedures.h"
+#include "securityDef.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

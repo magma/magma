@@ -22,6 +22,9 @@
 #ifndef GUTI_TYPE_SEEN
 #define GUTI_TYPE_SEEN
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #define GUTI_TYPE_MINIMUM_LENGTH 1
 #define GUTI_TYPE_MAXIMUM_LENGTH 1
 

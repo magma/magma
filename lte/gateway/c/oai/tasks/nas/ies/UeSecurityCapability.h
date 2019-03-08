@@ -22,6 +22,10 @@
 #ifndef UE_SECURITY_CAPABILITY_SEEN
 #define UE_SECURITY_CAPABILITY_SEEN
 
+#include <stdint.h>
+
+#include "3gpp_24.301.h"
+
 int encode_ue_security_capability(
   ue_security_capability_t *uesecuritycapability,
   uint8_t iei,

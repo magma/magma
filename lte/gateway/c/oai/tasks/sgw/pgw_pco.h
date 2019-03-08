@@ -28,6 +28,10 @@
 #ifndef FILE_PGW_PCO_SEEN
 #define FILE_PGW_PCO_SEEN
 
+#include <stdint.h>
+
+#include "3gpp_24.008.h"
+
 /**
  * protocol_configuration_options_ids_t
  *

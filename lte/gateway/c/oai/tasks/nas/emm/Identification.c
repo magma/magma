@@ -19,37 +19,10 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      Identification.c
-
-  Version     0.1
-
-  Date        2013/04/09
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel, Lionel GAUTHIER
-
-  Description Defines the identification EMM procedure executed by the
-        Non-Access Stratum.
-
-        The identification procedure is used by the network to request
-        a particular UE to provide specific identification parameters
-        (IMSI, IMEI).
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-
-#include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
 #include "msc.h"
@@ -57,16 +30,21 @@
 #include "common_types.h"
 #include "nas_timer.h"
 #include "3gpp_requirements_24.301.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "EmmCommon.h"
 #include "conversions.h"
-#include "mme_app_defs.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
+#include "emm_asDef.h"
+#include "emm_cnDef.h"
+#include "emm_fsm.h"
+#include "emm_regDef.h"
+#include "mme_app_desc.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

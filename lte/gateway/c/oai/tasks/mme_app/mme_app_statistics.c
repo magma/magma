@@ -19,17 +19,10 @@
  *      contact@openairinterface.org
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
-
-#include "bstrlib.h"
-
 #include "log.h"
-#include "intertask_interface.h"
-#include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
 #include "mme_app_statistics.h"
+#include "mme_app_desc.h"
 
 int mme_app_statistics_display(void)
 {

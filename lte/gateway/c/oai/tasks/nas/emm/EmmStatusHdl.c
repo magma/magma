@@ -19,53 +19,20 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      Emmstatus.c
-
-  Version     0.1
-
-  Date        2013/06/26
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EMM status procedure executed by the Non-Access
-        Stratum.
-
-        The purpose of the sending of the EMM STATUS message is to
-        report at any time certain error conditions detected upon
-        receipt of EMM protocol data. The EMM STATUS message can be
-        sent by both the MME and the UE.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-
 #include "log.h"
-#include "common_types.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
-#include "commonDef.h"
 #include "common_defs.h"
-
-#include "emm_cause.h"
 #include "emm_data.h"
-
 #include "emm_sap.h"
 #include "service303.h"
-#include "mme_app_defs.h"
+#include "3gpp_36.401.h"
+#include "EmmCause.h"
+#include "emm_asDef.h"
+#include "mme_app_desc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

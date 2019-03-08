@@ -22,6 +22,8 @@
 #ifndef FILE_EMM_INFORMATION_SEEN
 #define FILE_EMM_INFORMATION_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "3gpp_23.003.h"

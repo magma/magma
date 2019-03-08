@@ -36,7 +36,12 @@
 #ifndef FILE_OBJ_HASHTABLE_SEEN
 #define FILE_OBJ_HASHTABLE_SEEN
 
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "hashtable.h"
+#include "bstrlib.h"
 
 typedef struct obj_hash_node_s {
   int key_size;

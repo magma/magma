@@ -19,19 +19,22 @@
  *      contact@openairinterface.org
  */
 
-#include <exception>
-#include <ostream>
+#include <grpcpp/impl/codegen/status.h>
+#include <stdint.h>
+#include <string.h>
 #include <string>
-#include <thread>
+#include <iostream>
 
 #include "s6a_client_api.h"
 #include "S6aClient.h"
-#include "rpc_client.h"
-#include "itti_msg_to_proto_msg.h"
 #include "proto_msg_to_itti_msg.h"
+#include "common_types.h"
+#include "feg/protos/s6a_proxy.pb.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
 
 extern "C" {
-#include "conversions.h"
 }
 
 using namespace magma;

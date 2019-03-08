@@ -22,6 +22,8 @@
 #ifndef FILE_EXTENDED_SERVICE_REQUEST_SEEN
 #define FILE_EXTENDED_SERVICE_REQUEST_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "ServiceType.h"

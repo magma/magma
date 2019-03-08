@@ -30,7 +30,11 @@
 #ifndef FILE_SCTP_COMMON_SEEN
 #define FILE_SCTP_COMMON_SEEN
 
+#include <stdint.h>
+
 #include "common_types.h"
+
+struct sockaddr;
 
 int sctp_set_init_opt(
   const int sd,

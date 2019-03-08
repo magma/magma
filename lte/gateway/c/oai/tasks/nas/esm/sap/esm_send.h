@@ -42,18 +42,19 @@ Description Defines functions executed at the ESM Service Access
 
 #include "common_defs.h"
 #include "EsmStatus.h"
-
 #include "PdnConnectivityReject.h"
 #include "PdnDisconnectReject.h"
 #include "BearerResourceAllocationReject.h"
 #include "BearerResourceModificationReject.h"
-
 #include "ActivateDefaultEpsBearerContextRequest.h"
 #include "ActivateDedicatedEpsBearerContextRequest.h"
 #include "ModifyEpsBearerContextRequest.h"
 #include "DeactivateEpsBearerContextRequest.h"
-
 #include "EsmInformationRequest.h"
+#include "3gpp_24.007.h"
+#include "3gpp_24.008.h"
+#include "EpsQualityOfService.h"
+#include "bstrlib.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

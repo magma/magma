@@ -44,6 +44,9 @@ Description Defines EMM procedures executed by the Non-Access Stratum
 
 #include "common_types.h"
 #include "bstrlib.h"
+#include "3gpp_24.007.h"
+#include "3gpp_36.401.h"
+#include "common_defs.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

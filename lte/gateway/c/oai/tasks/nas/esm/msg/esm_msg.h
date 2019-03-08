@@ -39,13 +39,13 @@ Description Defines EPS Session Management messages and functions used
 #ifndef __ESM_MSG_H__
 #define __ESM_MSG_H__
 
-#include "esm_msgDef.h"
+#include <stdint.h>
 
+#include "esm_msgDef.h"
 #include "EsmInformationTransferFlag.h"
 #include "NasRequestType.h"
 #include "PdnType.h"
 #include "TrafficFlowAggregateDescription.h"
-
 #include "ActivateDedicatedEpsBearerContextRequest.h"
 #include "ActivateDedicatedEpsBearerContextAccept.h"
 #include "ActivateDedicatedEpsBearerContextReject.h"

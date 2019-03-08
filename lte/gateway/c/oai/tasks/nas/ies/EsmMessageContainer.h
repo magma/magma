@@ -21,6 +21,10 @@
 
 #ifndef ESM_MESSAGE_CONTAINER_SEEN
 #define ESM_MESSAGE_CONTAINER_SEEN
+#include <stdint.h>
+
+#include "bstrlib.h"
+
 struct scenario_s;
 struct scenario_player_msg_s;
 

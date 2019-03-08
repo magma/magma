@@ -30,23 +30,15 @@
 
 #include <pthread.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <netdb.h>
-
 #include <libconfig.h>
-#include "bstrlib.h"
 
+#include "bstrlib.h"
 #include "assertions.h"
-#include "dynamic_memory_check.h"
 #include "log.h"
-#include "intertask_interface.h"
 #include "common_defs.h"
 #include "sgw_config.h"
 

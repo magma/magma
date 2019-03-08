@@ -19,9 +19,6 @@
  *      contact@openairinterface.org
  */
 
-#include <string.h>
-#include "secu_defs.h"
-
 /*!
    Derive the kNASenc from kasme and perform truncate on the generated key to
    reduce his size to 128 bits. Definition of the derivation function can

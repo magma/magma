@@ -19,35 +19,10 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      nas_network.h
-
-  Version     0.1
-
-  Date        2012/09/20
-
-  Product     NAS stack
-
-  Subsystem   NAS main process
-
-  Author      Frederic Maurel, Lionel GAUTHIER
-
-  Description NAS procedure functions triggered by the network
-
-*****************************************************************************/
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
-
-#include "bstrlib.h"
-
 #include "log.h"
 #include "mme_config.h"
 #include "nas_network.h"
-#include "common_types.h"
 #include "nas_timer.h"
-#include "TrackingAreaIdentity.h"
-#include "as_message.h"
 #include "nas_proc.h"
 
 /****************************************************************************/

@@ -36,19 +36,10 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <netinet/in.h>
-#include <pthread.h>
-
-#include "bstrlib.h"
 
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
-#include "3gpp_24.007.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.331.h"
 #include "common_defs.h"
-#include "assertions.h"
 #include "TLVDecoder.h"
 #include "TLVEncoder.h"
 #include "log.h"

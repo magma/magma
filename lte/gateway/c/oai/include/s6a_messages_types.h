@@ -35,6 +35,12 @@
 #ifndef FILE_S6A_MESSAGES_TYPES_SEEN
 #define FILE_S6A_MESSAGES_TYPES_SEEN
 
+#include <stdint.h>
+
+#include "3gpp_23.003.h"
+#include "common_types.h"
+#include "security_types.h"
+
 #define S6A_UPDATE_LOCATION_REQ(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s6a_update_location_req
 #define S6A_UPDATE_LOCATION_ANS(mSGpTR)                                        \

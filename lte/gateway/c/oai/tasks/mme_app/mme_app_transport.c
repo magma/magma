@@ -26,27 +26,25 @@
   \email: lionel.gauthier@eurecom.fr
 */
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "msc.h"
 #include "assertions.h"
-#include "conversions.h"
 #include "intertask_interface.h"
-#include "mme_config.h"
-#include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
-#include "sgw_ie_defs.h"
-#include "secu_defs.h"
 #include "common_defs.h"
 #include "mme_app_itti_messaging.h"
+#include "3gpp_36.401.h"
+#include "as_message.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_desc.h"
+#include "nas_messages_types.h"
+#include "s1ap_messages_types.h"
+#include "sgs_messages_types.h"
 
 //------------------------------------------------------------------------------
 int mme_app_handle_nas_dl_req(itti_nas_dl_data_req_t *const nas_dl_req_pP)

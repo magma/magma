@@ -28,18 +28,25 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "assertions.h"
 #include "conversions.h"
-#include "msc.h"
 #include "log.h"
 #include "intertask_interface.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
 #include "mme_app_sgs_fsm.h"
 #include "service303.h"
+#include "3gpp_36.401.h"
+#include "common_defs.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_desc.h"
+#include "nas_messages_types.h"
+#include "sgs_messages_types.h"
 
 /****************************************************************************
  **                                                                        **

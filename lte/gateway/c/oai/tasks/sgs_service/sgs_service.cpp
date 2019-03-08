@@ -19,7 +19,13 @@
  *      contact@openairinterface.org
  */
 #include "sgs_service.h"
+
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/security/server_credentials.h>
+#include <memory>
+
 #include "CSFBGatewayServiceImpl.h"
+
 extern "C" {
 #include "log.h"
 }

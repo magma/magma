@@ -22,6 +22,10 @@
 #ifndef LCS_CLIENT_IDENTITY_SEEN
 #define LCS_CLIENT_IDENTITY_SEEN
 
+#include <stdint.h>
+
+#include "bstrlib.h"
+
 #define LCS_CLIENT_IDENTITY_MINIMUM_LENGTH 3
 #define LCS_CLIENT_IDENTITY_MAXIMUM_LENGTH 257
 

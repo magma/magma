@@ -27,10 +27,20 @@
 */
 
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "s1ap_common.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
+#include "ANY.h"
+#include "S1AP-PDU.h"
+#include "S1ap-InitiatingMessage.h"
+#include "S1ap-SuccessfulOutcome.h"
+#include "S1ap-UnsuccessfulOutcome.h"
+#include "per_encoder.h"
+#include "xer_encoder.h"
 
 int asn_debug = 0;
 int asn1_xer_print = 0;

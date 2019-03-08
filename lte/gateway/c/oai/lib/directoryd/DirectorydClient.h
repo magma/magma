@@ -22,10 +22,25 @@
 #pragma once
 
 #include <grpc++/grpc++.h>
+#include <stdint.h>
+#include <functional>
+#include <memory>
+#include <string>
 
 #include "orc8r/protos/directoryd.grpc.pb.h"
-
 #include "GRPCReceiver.h"
+#include "orc8r/protos/directoryd.pb.h"
+
+namespace grpc {
+class Channel;
+class ClientContext;
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace orc8r {
+class Void;
+}  // namespace orc8r
+}  // namespace magma
 
 using grpc::Channel;
 using grpc::ClientContext;

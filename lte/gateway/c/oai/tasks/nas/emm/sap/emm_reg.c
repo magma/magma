@@ -19,39 +19,11 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-
-  Source      emm_reg.c
-
-  Version     0.1
-
-  Date        2012/10/16
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EMMREG Service Access Point that provides
-        registration services for location updating and attach/detach
-        procedures.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
 #include <assert.h>
-
-#include "bstrlib.h"
 
 #include "common_defs.h"
 #include "log.h"
 #include "emm_reg.h"
-#include "commonDef.h"
 #include "emm_fsm.h"
 
 /****************************************************************************/

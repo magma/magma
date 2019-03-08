@@ -19,42 +19,13 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      PdnConnectivity.c
-
-  Version     0.1
-
-  Date        2013/01/02
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines the PDN connectivity ESM procedure executed by the
-        Non-Access Stratum.
-
-        The PDN connectivity procedure is used by the UE to request
-        the setup of a default EPS bearer to a PDN.
-
-        The procedure is used either to establish the 1st default
-        bearer by including the PDN CONNECTIVITY REQUEST message
-        into the initial attach message, or to establish subsequent
-        default bearers to additional PDNs in order to allow the UE
-        simultaneous access to multiple PDNs by sending the message
-        stand-alone.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
@@ -64,16 +35,19 @@
 #include "3gpp_29.274.h"
 #include "3gpp_36.401.h"
 #include "mme_app_ue_context.h"
-#include "commonDef.h"
 #include "esm_proc.h"
 #include "esm_data.h"
 #include "esm_cause.h"
 #include "esm_pt.h"
 #include "mme_api.h"
 #include "emm_sap.h"
-#include "mme_app_apn_selection.h"
 #include "mme_app_pdn_context.h"
-#include "mme_app_bearer_context.h"
+#include "3gpp_24.301.h"
+#include "EsmCause.h"
+#include "common_defs.h"
+#include "emm_data.h"
+#include "emm_esmDef.h"
+#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

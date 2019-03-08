@@ -19,14 +19,21 @@
  *      contact@openairinterface.org
  */
 #include <string.h>
-#include "feg/protos/s6a_proxy.grpc.pb.h"
+#include <grpcpp/impl/codegen/status_code_enum.h>
+#include <string>
+
 #include "feg/protos/s6a_proxy.pb.h"
-#include "gmp.h"
+
 extern "C" {
 #include "s6a_service_handler.h"
 #include "log.h"
 }
 #include "S6aProxyImpl.h"
+
+namespace grpc {
+class Channel;
+class ServerContext;
+}  // namespace grpc
 
 using grpc::Channel;
 using grpc::ServerContext;

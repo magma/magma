@@ -19,13 +19,14 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/protos/mconfig/mconfigs.pb.h"
-
 #include <iomanip>
-#include <sstream>
+#include <iostream>
+#include <string>
 
+#include "lte/protos/mconfig/mconfigs.pb.h"
 #include "MConfigLoader.h"
 #include "itti_msg_to_proto_msg.h"
+#include "bstrlib.h"
 
 extern "C" {
 #include "ie_to_bytes.h"

@@ -29,10 +29,16 @@
 #ifndef FILE_PGW_PCEF_EMULATION_SEEN
 #define FILE_PGW_PCEF_EMULATION_SEEN
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "queue.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_29.274.h"
+#include "bstrlib.h"
+
+struct pgw_config_s;
 
 typedef enum {
   PF_ID_MIN = 0,

@@ -22,6 +22,8 @@
 #ifndef EPS_UPDATE_TYPE_SEEN
 #define EPS_UPDATE_TYPE_SEEN
 
+#include <stdint.h>
+
 #define EPS_UPDATE_TYPE_MINIMUM_LENGTH 1
 #define EPS_UPDATE_TYPE_MAXIMUM_LENGTH 1
 

@@ -30,6 +30,8 @@
 #ifndef FILE_IE_TO_BYTES_SEEN
 #define FILE_IE_TO_BYTES_SEEN
 
+#include <stdbool.h>
+
 #include "common_ies.h"
 #include "common_types.h"
 #include "3gpp_23.003.h"

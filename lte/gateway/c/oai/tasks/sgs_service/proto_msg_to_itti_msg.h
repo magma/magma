@@ -23,10 +23,28 @@
 #pragma once
 
 #include <gmp.h>
+
 #include "feg/protos/csfb.grpc.pb.h"
+#include "sgs_messages_types.h"
 
 extern "C" {
 #include "intertask_interface.h"
+
+namespace magma {
+namespace feg {
+class AlertRequest;
+class DownlinkUnitdata;
+class EPSDetachAck;
+class IMSIDetachAck;
+class LocationUpdateAccept;
+class LocationUpdateReject;
+class MMInformationRequest;
+class PagingRequest;
+class ReleaseRequest;
+class ResetIndication;
+class Status;
+}  // namespace feg
+}  // namespace magma
 }
 
 namespace magma {

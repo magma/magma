@@ -19,49 +19,17 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      Detach.c
-
-  Version     0.1
-
-  Date        2013/05/07
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the detach related EMM procedure executed by the
-        Non-Access Stratum.
-
-        The detach procedure is used by the UE to detach for EPS servi-
-        ces, to disconnect from the last PDN it is connected to; by the
-        network to inform the UE that it is detached for EPS services
-        or non-EPS services or both, to disconnect the UE from the last
-        PDN to which it is connected and to inform the UE to re-attach
-        to the network and re-establish all PDN connections.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "msc.h"
-#include "gcc_diag.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "common_types.h"
 #include "nas_timer.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "emm_data.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
@@ -69,7 +37,17 @@
 #include "esm_sap.h"
 #include "nas_itti_messaging.h"
 #include "service303.h"
-#include "mme_app_defs.h"
+#include "3gpp_36.401.h"
+#include "DetachRequest.h"
+#include "common_defs.h"
+#include "emm_asDef.h"
+#include "emm_fsm.h"
+#include "emm_regDef.h"
+#include "esm_data.h"
+#include "esm_sapDef.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -38,6 +38,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <pthread.h>
+#include <stddef.h>
 
 #include "bstrlib.h"
 

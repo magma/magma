@@ -22,6 +22,10 @@
 #ifndef PDN_TYPE_SEEN
 #define PDN_TYPE_SEEN
 
+#include <stdint.h>
+
+#include "common_types.h"
+
 #define PDN_TYPE_MINIMUM_LENGTH 1
 #define PDN_TYPE_MAXIMUM_LENGTH 1
 

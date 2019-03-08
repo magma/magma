@@ -35,22 +35,12 @@
 */
 
 #include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "assertions.h"
 #include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
-#include "3gpp_24.007.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.331.h"
-#include "security_types.h"
 #include "common_types.h"
-#include "common_defs.h"
 #include "3gpp_29.274.h"
 
 /* Clear GUTI without free it */

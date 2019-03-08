@@ -22,6 +22,8 @@
 #ifndef NAS_REQUEST_TYPE_SEEN
 #define NAS_REQUEST_TYPE_SEEN
 
+#include <stdint.h>
+
 #define REQUEST_TYPE_MINIMUM_LENGTH 1
 #define REQUEST_TYPE_MAXIMUM_LENGTH 1
 

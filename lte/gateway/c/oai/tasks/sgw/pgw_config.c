@@ -33,27 +33,24 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <netdb.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <pthread.h>
+#include <libconfig.h>
+#include <inttypes.h>
+#include <stdint.h>
 
 #include "bstrlib.h"
-#include <libconfig.h>
-
 #include "assertions.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "intertask_interface.h"
-#include "async_system.h"
 #include "common_defs.h"
 #include "pgw_pcef_emulation.h"
-#include "spgw_config.h"
 #include "rpc_client.h"
+#include "pgw_config.h"
 #ifdef LIBCONFIG_LONG
 #define libconfig_int long
 #else

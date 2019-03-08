@@ -22,6 +22,8 @@
 #ifndef FILE_ATTACH_REQUEST_SEEN
 #define FILE_ATTACH_REQUEST_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EpsAttachType.h"
@@ -35,6 +37,7 @@
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "3gpp_24.301.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ATTACH_REQUEST_MINIMUM_LENGTH                                          \

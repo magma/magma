@@ -19,6 +19,8 @@
  *      contact@openairinterface.org
  */
 
+#include <stddef.h>
+
 /*****************************************************************************
 
   Source      mme_app_sgs_fsm.c
@@ -38,10 +40,11 @@
 *****************************************************************************/
 #include "log.h"
 #include "mme_app_sgs_fsm.h"
-#include "commonDef.h"
 #include "assertions.h"
 #include "msc.h"
-#include "mme_app_defs.h"
+#include "common_defs.h"
+#include "common_types.h"
+#include "mme_app_ue_context.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

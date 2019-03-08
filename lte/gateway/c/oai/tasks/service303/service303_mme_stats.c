@@ -20,6 +20,8 @@
  */
 #define SERVICE303
 
+#include <stddef.h>
+
 #include "mme_app_desc.h"
 #include "service303.h"
 

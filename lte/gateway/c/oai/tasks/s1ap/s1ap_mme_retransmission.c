@@ -27,18 +27,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
-#include <stdint.h>
-
-#include "bstrlib.h"
+#include <string.h>
 
 #include "tree.h"
 #include "assertions.h"
-#include "intertask_interface.h"
 #include "timer.h"
 #include "s1ap_mme_retransmission.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
+#include "common_types.h"
 
 //------------------------------------------------------------------------------
 inline int s1ap_mme_timer_map_compare_id(

@@ -21,7 +21,21 @@
 #pragma once
 
 #include <grpc++/grpc++.h>
+#include <grpcpp/impl/codegen/status.h>
+
 #include "feg/protos/s6a_proxy.grpc.pb.h"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+namespace feg {
+class CancelLocationAnswer;
+class CancelLocationRequest;
+class ResetAnswer;
+class ResetRequest;
+}  // namespace feg
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;

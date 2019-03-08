@@ -29,6 +29,10 @@
 */
 
 #include "queue.h"
+#include "3gpp_23.401.h"
+#include "common_types.h"
+#include "pgw_pcef_emulation.h"
+#include "sgw_context_manager.h"
 
 typedef enum {
   // should introduce Gx IP CAN procedures, etc, here

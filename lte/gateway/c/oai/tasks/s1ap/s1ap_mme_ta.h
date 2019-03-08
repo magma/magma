@@ -29,6 +29,8 @@
 #ifndef FILE_S1AP_MME_TA_SEEN
 #define FILE_S1AP_MME_TA_SEEN
 
+#include "S1ap-SupportedTAs.h"
+
 enum {
   TA_LIST_UNKNOWN_TAC = -2,
   TA_LIST_UNKNOWN_PLMN = -1,

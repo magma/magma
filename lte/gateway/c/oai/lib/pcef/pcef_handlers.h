@@ -22,11 +22,16 @@
 #pragma once
 
 #include <gmp.h>
+#include <netinet/in.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "intertask_interface.h"
+#include "common_types.h"
+#include "ip_forward_messages_types.h"
+#include "s5_messages_types.h"
 
 struct pcef_create_session_data {
   char msisdn[MSISDN_LENGTH + 1];

@@ -19,16 +19,11 @@
  *      contact@openairinterface.org
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include <math.h> // double ceil(double x);
 
 #include "secu_defs.h"
-
-#include "assertions.h"
 #include "conversions.h"
 #include "snow3g.h"
 

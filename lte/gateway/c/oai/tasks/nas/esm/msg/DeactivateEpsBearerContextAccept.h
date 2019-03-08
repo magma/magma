@@ -22,6 +22,8 @@
 #ifndef DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_H_
 #define DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_H_
 
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"

@@ -40,10 +40,16 @@ Description Defines the layer 3 messages supported by the NAS sublayer
 #ifndef FILE_NAS_MESSAGE_SEEN
 #define FILE_NAS_MESSAGE_SEEN
 
+#include <linux/byteorder/little_endian.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "commonDef.h"
 #include "emm_msg.h"
 #include "emm_data.h"
 #include "esm_msg.h"
+#include "3gpp_24.007.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

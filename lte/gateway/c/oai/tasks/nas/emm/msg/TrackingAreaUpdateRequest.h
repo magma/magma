@@ -21,6 +21,8 @@
 
 #ifndef FILE_TRACKING_AREA_UPDATE_REQUEST_SEEN
 #define FILE_TRACKING_AREA_UPDATE_REQUEST_SEEN
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EpsUpdateType.h"
@@ -36,6 +38,7 @@
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "3gpp_24.301.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define TRACKING_AREA_UPDATE_REQUEST_MINIMUM_LENGTH                            \

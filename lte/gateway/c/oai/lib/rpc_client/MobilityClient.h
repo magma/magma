@@ -24,8 +24,17 @@
 
 #include <arpa/inet.h>
 #include <grpc++/grpc++.h>
+#include <stdint.h>
+#include <memory>
+#include <string>
 
 #include "lte/protos/mobilityd.grpc.pb.h"
+
+namespace grpc {
+class Channel;
+class ClientContext;
+class Status;
+}  // namespace grpc
 
 using grpc::Channel;
 using grpc::ClientContext;

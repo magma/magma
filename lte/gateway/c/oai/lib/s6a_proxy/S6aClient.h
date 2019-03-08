@@ -21,17 +21,29 @@
 
 #pragma once
 
+#include <gmp.h>
+#include <grpc++/grpc++.h>
+#include <stdint.h>
 #include <functional>
 #include <memory>
 
-#include <gmp.h>
-#include <grpc++/grpc++.h>
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-
 #include "GRPCReceiver.h"
+#include "s6a_messages_types.h"
 
 extern "C" {
 #include "intertask_interface.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace feg {
+class AuthenticationInformationAnswer;
+class PurgeUEAnswer;
+class UpdateLocationAnswer;
+}  // namespace feg
+}  // namespace magma
 }
 
 using grpc::Status;

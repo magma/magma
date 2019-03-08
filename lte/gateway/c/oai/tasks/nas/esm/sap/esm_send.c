@@ -19,43 +19,18 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      esm_send.c
-
-  Version     0.1
-
-  Date        2013/02/11
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines functions executed at the ESM Service Access
-        Point to send EPS Session Management messages to the
-        EPS Mobility Management sublayer.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
-#include "gcc_diag.h"
-#include "commonDef.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.301.h"
-#include "nas_message.h"
 #include "esm_send.h"
-#include "esm_msgDef.h"
 #include "esm_cause.h"
+#include "ApnAggregateMaximumBitRate.h"
+#include "PdnAddress.h"
+#include "common_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

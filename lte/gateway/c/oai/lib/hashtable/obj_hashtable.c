@@ -36,15 +36,12 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <stdbool.h>
 #include <pthread.h>
 
 #include "bstrlib.h"
-
 #include "obj_hashtable.h"
 #include "dynamic_memory_check.h"
-#include "log.h"
 
 #if TRACE_HASHTABLE
 #define PRINT_HASHTABLE(hTbLe, ...)                                            \

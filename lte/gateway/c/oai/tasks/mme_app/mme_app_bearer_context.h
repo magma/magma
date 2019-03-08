@@ -37,6 +37,13 @@
 #ifndef FILE_MME_APP_BEARER_CONTEXT_SEEN
 #define FILE_MME_APP_BEARER_CONTEXT_SEEN
 
+#include <stdbool.h>
+
+#include "3gpp_24.007.h"
+#include "bstrlib.h"
+#include "common_types.h"
+#include "mme_app_ue_context.h"
+
 bstring bearer_state2string(const mme_app_bearer_state_t bearer_state);
 bearer_context_t *mme_app_create_bearer_context(
   ue_mm_context_t *const ue_mm_context,

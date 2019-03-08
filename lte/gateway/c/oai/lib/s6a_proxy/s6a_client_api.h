@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 #include "intertask_interface.h"
+#include "s6a_messages_types.h"
 
 /**
  * s6a_purge is an asynchronous call that forwards S6a PU to Federation Gateway

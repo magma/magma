@@ -22,6 +22,8 @@
 #ifndef SERVICE_TYPE_SEEN
 #define SERVICE_TYPE_SEEN
 
+#include <stdint.h>
+
 #define SERVICE_TYPE_MINIMUM_LENGTH 1
 #define SERVICE_TYPE_MAXIMUM_LENGTH 1
 

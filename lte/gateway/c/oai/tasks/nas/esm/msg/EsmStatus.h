@@ -22,6 +22,12 @@
 #ifndef ESM_STATUS_H_
 #define ESM_STATUS_H_
 
+#include <stdint.h>
+
+#include "3gpp_24.007.h"
+#include "EsmCause.h"
+#include "MessageType.h"
+
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ESM_STATUS_MINIMUM_LENGTH (ESM_CAUSE_MINIMUM_LENGTH)
 

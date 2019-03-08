@@ -19,21 +19,13 @@
  *      contact@openairinterface.org
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "bstrlib.h"
-
-#include "log.h"
-#include "common_types.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.301.h"
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
 #include "ActivateDedicatedEpsBearerContextRequest.h"
+#include "common_defs.h"
 
 int decode_activate_dedicated_eps_bearer_context_request(
   activate_dedicated_eps_bearer_context_request_msg

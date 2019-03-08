@@ -31,6 +31,8 @@
 
 #include "intertask_interface.h"
 #include "sctp_itti_messaging.h"
+#include "itti_types.h"
+#include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
 int sctp_itti_send_lower_layer_conf(

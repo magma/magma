@@ -21,9 +21,17 @@
 
 #ifndef FILE_S1AP_MME_HANDLERS_SEEN
 #define FILE_S1AP_MME_HANDLERS_SEEN
+#include <stdbool.h>
+
 #include "s1ap_ies_defs.h"
 #include "s1ap_mme.h"
 #include "intertask_interface.h"
+#include "S1ap-Cause.h"
+#include "common_types.h"
+#include "s1ap_messages_types.h"
+#include "sctp_messages_types.h"
+
+struct s1ap_message_s;
 
 #define MAX_NUM_PARTIAL_S1_CONN_RESET 256
 

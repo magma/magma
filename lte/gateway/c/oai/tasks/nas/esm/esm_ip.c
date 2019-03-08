@@ -18,8 +18,6 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 
 #include "bstrlib.h"

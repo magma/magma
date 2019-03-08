@@ -19,60 +19,30 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      EpsBearerContextDeactivation.c
-
-  Version     0.1
-
-  Date        2013/05/22
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EPS bearer context deactivation ESM procedure
-        executed by the Non-Access Stratum.
-
-        The purpose of the EPS bearer context deactivation procedure
-        is to deactivate an EPS bearer context or disconnect from a
-        PDN by deactivating all EPS bearer contexts to the PDN.
-        The EPS bearer context deactivation procedure is initiated
-        by the network, and it may be triggered by the UE by means
-        of the UE requested bearer resource modification procedure
-        or UE requested PDN disconnect procedure.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "dynamic_memory_check.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "esm_proc.h"
-#include "commonDef.h"
 #include "emm_data.h"
 #include "esm_data.h"
 #include "esm_cause.h"
 #include "esm_ebr.h"
 #include "esm_ebr_context.h"
-
 #include "emm_sap.h"
-#include "esm_sap.h"
-
 #include "mme_config.h"
-#include "mme_app_defs.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "EsmCause.h"
+#include "common_defs.h"
+#include "emm_esmDef.h"
+#include "esm_sapDef.h"
+#include "msc.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/

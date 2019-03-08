@@ -18,13 +18,21 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "lte/protos/mconfig/mconfigs.pb.h"
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <thread> // std::thread
-#include "ServiceConfigLoader.h"
+#include <iostream>
+#include <utility>
+
+#include "lte/protos/mconfig/mconfigs.pb.h"
 #include "MConfigLoader.h"
 #include "S6aClient.h"
 #include "ServiceRegistrySingleton.h"
 #include "itti_msg_to_proto_msg.h"
+#include "feg/protos/s6a_proxy.pb.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
 
 using grpc::Status;
 #define MME_SERVICE "mme"

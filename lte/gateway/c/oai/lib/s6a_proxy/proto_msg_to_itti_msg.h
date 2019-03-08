@@ -22,12 +22,21 @@
 
 #pragma once
 
+#include <gmp.h>
+
 #include "feg/protos/s6a_proxy.pb.h"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-#include <gmp.h>
+#include "s6a_messages_types.h"
 
 extern "C" {
 #include "intertask_interface.h"
+
+namespace magma {
+namespace feg {
+class AuthenticationInformationAnswer;
+class UpdateLocationAnswer;
+}  // namespace feg
+}  // namespace magma
 }
 
 namespace magma {

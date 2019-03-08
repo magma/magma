@@ -22,6 +22,9 @@
 #ifndef DETACH_TYPE_SEEN
 #define DETACH_TYPE_SEEN
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #define DETACH_TYPE_MINIMUM_LENGTH 1
 #define DETACH_TYPE_MAXIMUM_LENGTH 1
 

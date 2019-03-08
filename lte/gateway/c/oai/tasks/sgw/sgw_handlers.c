@@ -36,12 +36,9 @@
 #include <netinet/in.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "assertions.h"
-#include "conversions.h"
 #include "hashtable.h"
-#include "obj_hashtable.h"
 #include "common_defs.h"
 #include "intertask_interface.h"
 #include "msc.h"
@@ -49,8 +46,6 @@
 #include "sgw_ie_defs.h"
 #include "3gpp_23.401.h"
 #include "common_types.h"
-#include "mme_config.h"
-#include "sgw_defs.h"
 #include "sgw_handlers.h"
 #include "sgw_context_manager.h"
 #include "sgw.h"
@@ -59,11 +54,18 @@
 #include "gtpv1u.h"
 #include "pgw_ue_ip_address_alloc.h"
 #include "pgw_pcef_emulation.h"
-#include "sgw_context_manager.h"
 #include "pgw_procedures.h"
 #include "service303.h"
 #include "pcef_handlers.h"
-#include "async_system.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.007.h"
+#include "3gpp_24.008.h"
+#include "3gpp_29.274.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "pgw_config.h"
+#include "queue.h"
+#include "sgw_config.h"
 
 extern sgw_app_t sgw_app;
 extern spgw_config_t spgw_config;

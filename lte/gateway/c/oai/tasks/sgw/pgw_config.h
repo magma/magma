@@ -31,6 +31,10 @@
 #include <sys/socket.h> // inet_aton
 #include <netinet/in.h> // inet_aton
 #include <arpa/inet.h>  // inet_aton
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "queue.h"
 #include "bstrlib.h"
 

@@ -22,6 +22,8 @@
 #ifndef FILE_ATTACH_ACCEPT_SEEN
 #define FILE_ATTACH_ACCEPT_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EpsAttachResult.h"

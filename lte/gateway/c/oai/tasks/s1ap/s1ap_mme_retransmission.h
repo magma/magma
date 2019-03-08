@@ -29,6 +29,8 @@
 #define FILE_S1AP_MME_RETRANSMISSION_SEEN
 
 #include "tree.h"
+#include "3gpp_36.401.h"
+#include "timer_messages_types.h"
 
 typedef struct s1ap_timer_map_s {
   long timer_id;

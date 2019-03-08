@@ -19,9 +19,14 @@
  *      contact@openairinterface.org
  */
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "mme_app_embedded_spgw.h"
 #include "common_defs.h"
+#include "bstrlib.h"
+#include "log.h"
+#include "pgw_config.h"
+#include "sgw_config.h"
 
 char *USAGE_TEXT =
   "==== EURECOM %s version: %s ====\n" // PACKAGE_NAME, PACKAGE_VERSION

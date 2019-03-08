@@ -22,6 +22,8 @@
 #ifndef FILE_CS_SERVICE_NOTIFICATION_SEEN
 #define FILE_CS_SERVICE_NOTIFICATION_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "PagingIdentity.h"

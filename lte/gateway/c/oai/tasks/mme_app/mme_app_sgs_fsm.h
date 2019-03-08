@@ -41,6 +41,7 @@ Description Defines the SGS State Machine handling
 
 #include "common_types.h"
 #include "sgs_messages_types.h"
+#include "3gpp_36.401.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

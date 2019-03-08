@@ -21,11 +21,17 @@
 #define SERVICE303
 #define SERVICE303_TASK_C
 
+#include <stdio.h>
+
 #include "log.h"
 #include "intertask_interface.h"
 #include "timer.h"
 #include "common_defs.h"
 #include "service303.h"
+#include "bstrlib.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "timer_messages_types.h"
 
 static long service303_epc_stats_timer_id;
 

@@ -19,26 +19,6 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      esm_sap.c
-
-  Version     0.1
-
-  Date        2012/11/22
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines the ESM Service Access Points at which the EPS
-        Session Management sublayer provides procedures for the
-        EPS bearer context handling and resources allocation.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -46,24 +26,23 @@
 #include <assert.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "mme_app_ue_context.h"
-#include "nas_message.h"
 #include "esm_sap.h"
 #include "esm_recv.h"
 #include "esm_send.h"
-#include "commonDef.h"
-#include "TLVDecoder.h"
 #include "esm_msgDef.h"
 #include "esm_msg.h"
 #include "esm_cause.h"
 #include "esm_proc.h"
 #include "service303.h"
+#include "3gpp_24.301.h"
+#include "EpsQualityOfService.h"
+#include "EsmCause.h"
+#include "PdnConnectivityReject.h"
+#include "common_defs.h"
+#include "emm_data.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -37,22 +37,14 @@
 
 *****************************************************************************/
 
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "msc.h"
-#include "gcc_diag.h"
-#include "dynamic_memory_check.h"
-#include "assertions.h"
-#include "commonDef.h"
 #include "common_types.h"
 #include "common_defs.h"
 #include "3gpp_24.007.h"
@@ -62,22 +54,35 @@
 #include "emm_cn.h"
 #include "emm_sap.h"
 #include "emm_proc.h"
-#include "emm_cause.h"
-
 #include "esm_send.h"
 #include "esm_proc.h"
 #include "esm_cause.h"
-#include "assertions.h"
 #include "emm_data.h"
 #include "conversions.h"
 #include "esm_sap.h"
-#include "3gpp_requirements_24.301.h"
 #include "service303.h"
 #include "nas_itti_messaging.h"
-#include "mme_app_defs.h"
 #include "mme_app_apn_selection.h"
-#include "nas_itti_messaging.h"
 #include "mme_config.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "EpsQualityOfService.h"
+#include "EpsUpdateType.h"
+#include "EsmCause.h"
+#include "MobileIdentity.h"
+#include "emm_fsm.h"
+#include "emm_regDef.h"
+#include "esm_data.h"
+#include "esm_msg.h"
+#include "esm_sapDef.h"
+#include "mme_app_desc.h"
+#include "mme_app_messages_types.h"
+#include "mme_app_sgs_fsm.h"
+#include "nas_messages_types.h"
+#include "nas_procedures.h"
+#include "networkDef.h"
+#include "security_types.h"
 
 extern int emm_proc_tracking_area_update_accept(
   nas_emm_tau_proc_t *const tau_proc);

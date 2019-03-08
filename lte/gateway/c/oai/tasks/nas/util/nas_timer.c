@@ -36,22 +36,15 @@
 
 *****************************************************************************/
 
-#include <pthread.h>
-#include <assert.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <string.h>   // memset
 #include <stdlib.h>   // malloc, free
-#include <sys/time.h> // setitimer
 
-#include "bstrlib.h"
-
-#include "intertask_interface.h"
 #include "timer.h"
 #include "nas_timer.h"
-#include "commonDef.h"
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
 
 //------------------------------------------------------------------------------
 int nas_timer_init(void)

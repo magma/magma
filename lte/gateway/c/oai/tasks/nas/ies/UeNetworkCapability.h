@@ -22,7 +22,10 @@
 #ifndef UE_NETWORK_CAPABILITY_SEEN
 #define UE_NETWORK_CAPABILITY_SEEN
 
+#include <stdint.h>
+
 #include "3gpp_24.301.h"
+
 int encode_ue_network_capability(
   ue_network_capability_t *uenetworkcapability,
   uint8_t iei,

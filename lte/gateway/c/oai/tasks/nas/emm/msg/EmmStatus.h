@@ -22,6 +22,8 @@
 #ifndef FILE_EMM_STATUS_SEEN
 #define FILE_EMM_STATUS_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EmmCause.h"

@@ -19,12 +19,15 @@
  *      contact@openairinterface.org
  */
 
+#include <string.h>
+
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "log.h"
-#include "assertions.h"
 #include "common_defs.h"
-#include "csfb_client_api.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "sgs_messages_types.h"
 
 static void _sgs_send_sgsap_vlr_reset_ack(void);
 

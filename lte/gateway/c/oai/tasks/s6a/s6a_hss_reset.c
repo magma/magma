@@ -26,17 +26,19 @@
 */
 
 #include <stdio.h>
-#include <stdint.h>
 
-#include "mme_config.h"
 #include "assertions.h"
-#include "conversions.h"
 #include "intertask_interface.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
-#include "s6a_messages_types.h"
-#include "msc.h"
 #include "log.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+
+struct avp;
+struct msg;
+struct session;
 
 int s6a_rsr_cb(
   struct msg **msg_p,

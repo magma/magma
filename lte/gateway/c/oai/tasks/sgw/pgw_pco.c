@@ -29,19 +29,18 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
-#include "assertions.h"
 #include "log.h"
 #include "common_defs.h"
-#include "common_types.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "pgw_pco.h"
 #include "rfc_1877.h"
 #include "rfc_1332.h"
 #include "spgw_config.h"
+#include "pgw_config.h"
+
 //------------------------------------------------------------------------------
 int pgw_pco_push_protocol_or_container_id(
   protocol_configuration_options_t *const pco,

@@ -27,20 +27,24 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <gnutls/gnutls.h>
+#include <stdarg.h>
+#include <string.h>
 
 #include "bstrlib.h"
+#include "3gpp_23.003.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "s6a_messages_types.h"
+#include "service303.h"
+#include "timer_messages_types.h"
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
-#include "bstrlib.h"
+
 #include "log.h"
 #include "assertions.h"
 #include "intertask_interface.h"
@@ -52,7 +56,6 @@
 #include "timer.h"
 #include "s6a_service.h"
 #include "s6a_client_api.h"
-#include "dynamic_memory_check.h"
 
 #define S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC (0)
 #define S6A_PEER_CONNECT_TIMEOUT_SEC (1)

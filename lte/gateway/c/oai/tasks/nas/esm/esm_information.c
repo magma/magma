@@ -19,41 +19,29 @@
  *      contact@openairinterface.org
  */
 
-/*! \file esm_information.c
-   \brief
-   \author  Lionel GAUTHIER
-   \date 2017
-   \email: lionel.gauthier@eurecom.fr
-*/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "dynamic_memory_check.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "esm_proc.h"
-#include "commonDef.h"
 #include "emm_data.h"
 #include "esm_data.h"
 #include "esm_cause.h"
-#include "esm_ebr.h"
-#include "esm_ebr_context.h"
 #include "emm_sap.h"
-#include "esm_sap.h"
 #include "esm_send.h"
-#include "mme_config.h"
-#include "mme_app_defs.h"
-#include "nas_itti_messaging.h"
+#include "3gpp_36.401.h"
+#include "EsmCause.h"
+#include "common_defs.h"
+#include "emm_esmDef.h"
+#include "esm_msg.h"
+#include "msc.h"
+#include "nas_timer.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/

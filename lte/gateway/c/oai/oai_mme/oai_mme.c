@@ -22,6 +22,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <stdbool.h>
+#include <string.h>
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -36,21 +38,26 @@
 #include "shared_ts_log.h"
 
 #include "intertask_interface_init.h"
-
 #include "sctp_primitives_server.h"
 #include "udp_primitives_server.h"
 #include "s1ap_mme.h"
 #include "mme_app_extern.h"
 #include "nas_defs.h"
-
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
-
 #include "sgs_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
 #include "mme_app_embedded_spgw.h"
+#include "bstrlib.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "pgw_defs.h"
+#include "service303.h"
+#include "sgw_defs.h"
+#include "shared_ts_log.h"
+#include "spgw_config.h"
 
 int main(int argc, char *argv[])
 {

@@ -19,34 +19,8 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      TrackingAreaUpdate.c
-
-  Version     0.1
-
-  Date        2013/05/07
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the tracking area update EMM procedure executed by the
-        Non-Access Stratum.
-
-        The tracking area updating procedure is always initiated by the
-        UE and is used to update the registration of the actual tracking
-        area of a UE in the network, to periodically notify the availa-
-        bility of the UE to the network, for MME load balancing, to up-
-        date certain UE specific parameters in the network.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "dynamic_memory_check.h"
@@ -57,21 +31,32 @@
 #include "3gpp_requirements_24.301.h"
 #include "common_types.h"
 #include "common_defs.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
-#include "common_defs.h"
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "emm_cause.h"
-#include "mme_config.h"
-#include "mme_app_defs.h"
 #include "service303.h"
 #include "nas_itti_messaging.h"
 #include "conversions.h"
 #include "EmmCommon.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "AdditionalUpdateType.h"
+#include "EpsUpdateResult.h"
+#include "EpsUpdateType.h"
+#include "MobileStationClassmark2.h"
+#include "TrackingAreaIdentityList.h"
+#include "common_ies.h"
+#include "emm_asDef.h"
+#include "emm_regDef.h"
+#include "esm_data.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_messages_types.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

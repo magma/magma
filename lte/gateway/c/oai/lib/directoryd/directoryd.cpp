@@ -19,11 +19,14 @@
  *      contact@openairinterface.org
  */
 
+#include <grpcpp/impl/codegen/status.h>
 #include <string>
-#include <thread>
+#include <iostream>
 
 #include "DirectorydClient.h"
 #include "directoryd.h"
+#include "orc8r/protos/common.pb.h"
+#include "orc8r/protos/directoryd.pb.h"
 
 static void directoryd_rpc_call_done(const grpc::Status &status);
 

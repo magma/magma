@@ -19,13 +19,13 @@
  *      contact@openairinterface.org
  */
 
-
-#include <netinet/in.h>
+#include "pgw_ue_ip_address_alloc.h"
 
 #include "log.h"
-#include "pgw_ue_ip_address_alloc.h"
 #include "rpc_client.h"
 #include "service303.h"
+
+struct in_addr;
 
 int allocate_ue_ipv4_address(const char *imsi, struct in_addr *addr)
 {

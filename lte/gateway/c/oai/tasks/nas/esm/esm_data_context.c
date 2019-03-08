@@ -19,47 +19,21 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      esm_data_context.c
-
-  Version     0.1
-
-  Date        2016/01/29
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Lionel Gauthier
-
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-
-#include "assertions.h"
 #include "common_types.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "emm_data.h"
 #include "nas_timer.h"
 #include "esm_data.h"
-#include "commonDef.h"
-#include "networkDef.h"
 #include "log.h"
-#include "esm_ebr_context.h"
 #include "dynamic_memory_check.h"
-
 #include "common_defs.h"
 #include "mme_app_ue_context.h"
 #include "mme_config.h"
+#include "3gpp_36.401.h"
+#include "msc.h"
 
 // free allocated structs
 //------------------------------------------------------------------------------

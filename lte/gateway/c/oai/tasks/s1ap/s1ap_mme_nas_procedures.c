@@ -28,31 +28,50 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "hashtable.h"
 #include "log.h"
 #include "msc.h"
 #include "conversions.h"
-#include "intertask_interface.h"
 #include "asn1_conversions.h"
-#include "s1ap_common.h"
 #include "s1ap_ies_defs.h"
 #include "s1ap_mme_encoder.h"
 #include "s1ap_mme.h"
-#include "s1ap_mme_handlers.h"
 #include "s1ap_mme_nas_procedures.h"
-#include "s1ap_mme_retransmission.h"
 #include "s1ap_mme_itti_messaging.h"
-
-#include "s1ap_mme.h"
-#include "dynamic_memory_check.h"
 #include "service303.h"
-#include "timer.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.007.h"
+#include "3gpp_36.413.h"
+#include "INTEGER.h"
+#include "OCTET_STRING.h"
+#include "S1AP-PDU.h"
+#include "S1ap-AllocationAndRetentionPriority.h"
+#include "S1ap-E-RABLevelQoSParameters.h"
+#include "S1ap-E-RABToBeSetupItemBearerSUReq.h"
+#include "S1ap-E-RABToBeSetupItemCtxtSUReq.h"
+#include "S1ap-EUTRAN-CGI.h"
+#include "S1ap-EncryptionAlgorithms.h"
+#include "S1ap-GBR-QosInformation.h"
+#include "S1ap-GUMMEI.h"
+#include "S1ap-IntegrityProtectionAlgorithms.h"
+#include "S1ap-NAS-PDU.h"
+#include "S1ap-PLMNidentity.h"
+#include "S1ap-ProcedureCode.h"
+#include "S1ap-S-TMSI.h"
+#include "S1ap-SecurityKey.h"
+#include "S1ap-TAI.h"
+#include "S1ap-TransportLayerAddress.h"
+#include "S1ap-UEAggregateMaximumBitrate.h"
+#include "S1ap-UESecurityCapabilities.h"
+#include "TrackingAreaIdentity.h"
+#include "asn_SEQUENCE_OF.h"
+#include "securityDef.h"
 
 /* Every time a new UE is associated, increment this variable.
    But care if it wraps to increment also the mme_ue_s1ap_id_has_wrapped

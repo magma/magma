@@ -29,6 +29,12 @@
 #ifndef FILE_SGW_HANDLERS_SEEN
 #define FILE_SGW_HANDLERS_SEEN
 
+#include "common_types.h"
+#include "gtpv1_u_messages_types.h"
+#include "ip_forward_messages_types.h"
+#include "s11_messages_types.h"
+#include "s5_messages_types.h"
+
 int sgw_handle_create_session_request(
   const itti_s11_create_session_request_t *const session_req_p);
 int sgw_handle_sgi_endpoint_created(

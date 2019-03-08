@@ -39,8 +39,12 @@
 
 #include <sys/time.h>
 #include <liblfds710.h>
+
 #include "msc.h"
 #include "log.h"
+#include "bstrlib.h"
+
+struct timeval;
 
 typedef enum {
   MIN_SH_TS_LOG_CLIENT = 0,

@@ -31,25 +31,26 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <pthread.h>
-#include <stdbool.h>
-
-#include "bstrlib.h"
+#include <inttypes.h>
+#include <stdint.h>
+#include <sys/epoll.h>
 
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "queue.h"
 #include "log.h"
-#include "msc.h"
 #include "conversions.h"
 #include "intertask_interface.h"
 #include "udp_primitives_server.h"
 #include "itti_free_defined_msg.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "udp_messages_types.h"
 
 struct udp_socket_desc_s {
   uint8_t buffer[4096];

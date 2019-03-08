@@ -19,33 +19,23 @@
  *      contact@openairinterface.org
  */
 
-/*! \file nas_mme_task.c
-   \brief
-   \author  Sebastien ROUX, Lionel GAUTHIER
-   \date
-   \email: lionel.gauthier@eurecom.fr
-*/
-#include <pthread.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-
-#include "bstrlib.h"
 
 #include "log.h"
-#include "msc.h"
-#include "assertions.h"
-#include "common_defs.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "mme_config.h"
 #include "nas_defs.h"
 #include "nas_network.h"
 #include "nas_proc.h"
-#include "emm_main.h"
 #include "nas_timer.h"
+#include "intertask_interface_types.h"
+#include "mme_app_messages_types.h"
+#include "nas_messages_types.h"
+#include "s1ap_messages_types.h"
+#include "s6a_messages_types.h"
+#include "sgs_messages_types.h"
+#include "timer_messages_types.h"
 
 static void nas_exit(void);
 

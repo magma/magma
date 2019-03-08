@@ -21,8 +21,6 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <string.h>
-
 #include <nettle/hmac.h>
 
 #include "security_types.h"

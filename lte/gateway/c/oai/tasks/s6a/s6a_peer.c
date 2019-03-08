@@ -29,21 +29,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
-#include "common_types.h"
 #include "intertask_interface.h"
 #include "common_defs.h"
 #include "s6a_defs.h"
-#include "s6a_messages.h"
 #include "assertions.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
 
 #define NB_MAX_TRIES (8)
 

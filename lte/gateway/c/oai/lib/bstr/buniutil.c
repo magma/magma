@@ -13,6 +13,8 @@
  * this module is dependent upon bstrlib.c and utf8util.c
  */
 
+#include <stddef.h>
+
 #include "bstrlib.h"
 #include "buniutil.h"
 

@@ -27,25 +27,13 @@
 */
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
 
 #include "bstrlib.h"
-
-#include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
-#include "assertions.h"
-#include "conversions.h"
 #include "common_types.h"
-#include "intertask_interface.h"
-#include "mme_config.h"
-#include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
-#include "common_defs.h"
 #include "mme_app_apn_selection.h"
+#include "emm_data.h"
 
 //------------------------------------------------------------------------------
 struct apn_configuration_s *mme_app_select_apn(

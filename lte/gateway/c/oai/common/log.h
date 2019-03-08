@@ -36,8 +36,10 @@
 #ifndef FILE_LOG_SEEN
 #define FILE_LOG_SEEN
 
-#include "gcc_diag.h"
 #include <syslog.h>
+#include <stdio.h>
+
+#include "gcc_diag.h"
 
 /* asn1c debug */
 extern int asn_debug;
@@ -48,8 +50,11 @@ extern int fd_g_debug_lvl;
 #include <stdint.h>
 #include <stdbool.h>
 #include <pthread.h>
+
 #include "bstrlib.h"
 #include "msc.h"
+
+struct shared_log_queue_item_s;
 
 /* asn1c debug */
 extern int asn_debug;

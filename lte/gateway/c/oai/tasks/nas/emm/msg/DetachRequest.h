@@ -22,6 +22,8 @@
 #ifndef FILE_DETACH_REQUEST_SEEN
 #define FILE_DETACH_REQUEST_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "DetachType.h"

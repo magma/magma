@@ -39,8 +39,9 @@ Description Defines EPS Mobility Management messages and functions used
 #ifndef FILE_EMM_MSG_SEEN
 #define FILE_EMM_MSG_SEEN
 
-#include "emm_msgDef.h"
+#include <stdint.h>
 
+#include "emm_msgDef.h"
 #include "AdditionalUpdateResult.h"
 #include "AdditionalUpdateType.h"
 #include "Cli.h"

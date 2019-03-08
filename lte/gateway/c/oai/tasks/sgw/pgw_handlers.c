@@ -27,11 +27,15 @@
 #define PGW
 #define S5_HANDLERS_C
 
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <string.h>
+#include <sys/socket.h>
+
 #include "assertions.h"
-#include "conversions.h"
 #include "intertask_interface.h"
 #include "log.h"
-
 #include "sgw.h"
 #include "spgw_config.h"
 #include "pgw_pco.h"
@@ -39,6 +43,20 @@
 #include "pgw_handlers.h"
 #include "pcef_handlers.h"
 #include "common_defs.h"
+#include "3gpp_23.003.h"
+#include "3gpp_23.401.h"
+#include "3gpp_24.008.h"
+#include "3gpp_29.274.h"
+#include "common_types.h"
+#include "hashtable.h"
+#include "intertask_interface_types.h"
+#include "ip_forward_messages_types.h"
+#include "itti_types.h"
+#include "pgw_config.h"
+#include "s11_messages_types.h"
+#include "service303.h"
+#include "sgw_context_manager.h"
+#include "sgw_ie_defs.h"
 
 static void get_session_req_data(
   const itti_s11_create_session_request_t *saved_req,

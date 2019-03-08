@@ -19,49 +19,22 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      esm_ebr_context.h
-
-  Version     0.1
-
-  Date        2013/05/28
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines functions used to handle EPS bearer contexts.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-
-#include "obj_hashtable.h"
 #include "log.h"
 #include "msc.h"
-#include "gcc_diag.h"
-#include "dynamic_memory_check.h"
-#include "assertions.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_bearer_context.h"
 #include "common_defs.h"
-#include "commonDef.h"
 #include "emm_data.h"
 #include "esm_ebr.h"
 #include "esm_ebr_context.h"
-#include "emm_sap.h"
+#include "nas_timer.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

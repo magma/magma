@@ -43,17 +43,16 @@
 *****************************************************************************/
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <pthread.h>
-#include <sys/types.h>
-#include "dynamic_memory_check.h"
-#include "assertions.h"
+#include <stdbool.h>
+
 #include "log.h"
 #include "common_defs.h"
-#include "EmmInformation.h"
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "mme_app_ue_context.h"
+#include "bstrlib.h"
+#include "emm_asDef.h"
+#include "mme_api.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

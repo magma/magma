@@ -46,37 +46,40 @@
 
 *****************************************************************************/
 
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
-
-#include "bstrlib.h"
 
 #include "log.h"
 #include "msc.h"
-#include "gcc_diag.h"
-#include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "3gpp_requirements_24.301.h"
 #include "common_types.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
 #include "common_defs.h"
 #include "nas_timer.h"
 #include "emm_data.h"
 #include "emm_sap.h"
-#include "emm_cause.h"
 #include "secu_defs.h"
-#include "mme_app_defs.h"
 #include "nas_itti_messaging.h"
 #include "service303.h"
 #include "EmmCommon.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
+#include "3gpp_33.401.h"
+#include "3gpp_36.401.h"
+#include "NasSecurityAlgorithms.h"
+#include "emm_asDef.h"
+#include "emm_cnDef.h"
+#include "emm_fsm.h"
+#include "emm_regDef.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_procedures.h"
+#include "securityDef.h"
+#include "security_types.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

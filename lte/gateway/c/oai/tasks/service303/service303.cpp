@@ -20,9 +20,13 @@
  */
 #include <stdio.h>
 #include <assert.h>
+#include <stdarg.h>
+
 #include "service303.h"
 #include "MagmaService.h"
 #include "MetricsSingleton.h"
+#include "bstrlib.h"
+#include "orc8r/protos/service303.pb.h"
 
 using magma::service303::MagmaService;
 using magma::service303::MetricsSingleton;

@@ -35,6 +35,9 @@
 #ifndef FILE_MME_APP_PDN_CONTEXT_SEEN
 #define FILE_MME_APP_PDN_CONTEXT_SEEN
 
+#include "common_types.h"
+#include "mme_app_ue_context.h"
+
 pdn_context_t *mme_app_create_pdn_context(
   ue_mm_context_t *const ue_mm_context,
   const pdn_cid_t pdn_cid,

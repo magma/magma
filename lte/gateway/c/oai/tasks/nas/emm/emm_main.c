@@ -19,40 +19,13 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      emm_main.c
-
-  Version     0.1
-
-  Date        2012/10/10
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EPS Mobility Management procedure call manager,
-        the main entry point for elementary EMM processing.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
-#include <stdlib.h>
-
-#include "bstrlib.h"
 
 #include "log.h"
-#include "obj_hashtable.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
 #include "common_defs.h"
 #include "emm_main.h"
-#include "log.h"
 #include "mme_config.h"
+#include "mme_api.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

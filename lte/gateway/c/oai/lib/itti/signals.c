@@ -31,26 +31,19 @@
 #include "config.h"
 #endif
 
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <signal.h>
-#include <time.h>
-#include <errno.h>
-
-#include "bstrlib.h"
+#include <ctype.h>
 
 #include "intertask_interface.h"
 #include "timer.h"
 #include "backtrace.h"
 #include "assertions.h"
-
 #include "signals.h"
-#include "log.h"
+#include "intertask_interface_types.h"
 
 #if defined(LOG_D) && defined(LOG_E)
 #define SIG_DEBUG(x, args...) OAILOG_D(EMU, x, ##args)

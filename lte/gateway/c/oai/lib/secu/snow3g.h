@@ -33,6 +33,8 @@
 #ifndef FILE_SNOW3G_SEEN
 #define FILE_SNOW3G_SEEN
 
+#include <stdint.h>
+
 typedef struct snow_3g_context_s {
   uint32_t LFSR_S0;
   uint32_t LFSR_S1;

@@ -38,12 +38,23 @@ Description NAS procedure call manager
 #ifndef FILE_NAS_PROC_SEEN
 #define FILE_NAS_PROC_SEEN
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "common_defs.h"
 #include "mme_config.h"
 #include "emm_cnDef.h"
-
 #include "commonDef.h"
 #include "networkDef.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
+#include "TrackingAreaIdentity.h"
+#include "as_message.h"
+#include "bstrlib.h"
+#include "nas_messages_types.h"
+#include "s6a_messages_types.h"
+#include "security_types.h"
+#include "sgs_messages_types.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

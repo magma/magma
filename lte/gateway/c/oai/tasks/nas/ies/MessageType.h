@@ -22,6 +22,8 @@
 #ifndef MESSAGE_TYPE_SEEN
 #define MESSAGE_TYPE_SEEN
 
+#include <stdint.h>
+
 #define MESSAGE_TYPE_MINIMUM_LENGTH 1
 #define MESSAGE_TYPE_MAXIMUM_LENGTH 1
 

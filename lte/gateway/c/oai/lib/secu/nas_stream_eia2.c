@@ -22,26 +22,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
-
-#include "secu_defs.h"
-
-#include <openssl/aes.h>
 #include <openssl/cmac.h>
 #include <openssl/evp.h>
+#include <openssl/ossl_typ.h>
 
-// test
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <openssl/bio.h>
-#include "bstrlib.h"
-
+#include "secu_defs.h"
 #include "assertions.h"
 #include "conversions.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "gcc_diag.h"
 
 /*!
    @brief Create integrity cmac t for a given message.

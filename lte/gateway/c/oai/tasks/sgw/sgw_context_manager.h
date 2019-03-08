@@ -28,7 +28,11 @@
 #ifndef FILE_SGW_CONTEXT_MANAGER_SEEN
 #define FILE_SGW_CONTEXT_MANAGER_SEEN
 
+#include <stdint.h>
+
 #include "3gpp_23.401.h"
+#include "3gpp_24.007.h"
+#include "common_types.h"
 
 /********************************
 *     Paired contexts           *

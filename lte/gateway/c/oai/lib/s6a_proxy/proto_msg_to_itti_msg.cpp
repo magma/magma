@@ -20,13 +20,18 @@
  */
 
 
-#include <iomanip>
-#include <sstream>
+#include <stdint.h>
+#include <string.h>
+#include <iostream>
+#include <string>
 
 #include "proto_msg_to_itti_msg.h"
+#include "3gpp_33.401.h"
+#include "common_types.h"
+#include "feg/protos/s6a_proxy.pb.h"
+#include "security_types.h"
 
 extern "C" {
-#include "ie_to_bytes.h"
 }
 
 namespace magma {

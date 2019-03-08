@@ -22,6 +22,8 @@
 #ifndef FILE_AUTHENTICATION_FAILURE_SEEN
 #define FILE_AUTHENTICATION_FAILURE_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EmmCause.h"

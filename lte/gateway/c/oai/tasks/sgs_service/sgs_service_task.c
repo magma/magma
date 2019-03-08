@@ -21,11 +21,15 @@
 #define sgs_service
 #define sgs_service_TASK_C
 
+#include <stddef.h>
+
 #include "log.h"
 #include "intertask_interface.h"
-#include "assertions.h"
 #include "common_defs.h"
 #include "sgs_service.h"
+#include "bstrlib.h"
+#include "intertask_interface_types.h"
+#include "mme_default_values.h"
 
 static void *sgs_service_server_task(void *args)
 {

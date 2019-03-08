@@ -19,12 +19,27 @@
  *      contact@openairinterface.org
  */
 
+#include <grpcpp/channel.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <thread>
-#include "orc8r/protos/mconfig/mconfigs.pb.h"
+#include <iostream>
+#include <string>
+#include <utility>
 
+#include "orc8r/protos/mconfig/mconfigs.pb.h"
 #include "PCEFClient.h"
 #include "ServiceRegistrySingleton.h"
 #include "MConfigLoader.h"
+#include "lte/protos/session_manager.pb.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class SubscriberID;
+}  // namespace lte
+}  // namespace magma
 
 #define CAPTIVE_PORTAL_SERVICE "captive_portal"
 #define MAGMAD_SERVICE "magmad"

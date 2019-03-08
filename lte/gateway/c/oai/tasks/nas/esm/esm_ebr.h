@@ -39,6 +39,14 @@ Description Defines functions used to handle state of EPS bearer contexts
 #ifndef ESM_EBR_SEEN
 #define ESM_EBR_SEEN
 
+#include <stdbool.h>
+
+#include "3gpp_24.007.h"
+#include "bstrlib.h"
+#include "common_defs.h"
+#include "emm_data.h"
+#include "esm_data.h"
+#include "nas_timer.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

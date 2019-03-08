@@ -19,8 +19,3 @@
  *      contact@openairinterface.org
  */
 
-#include "common_types.h"
-#include "assertions.h"
-#include "msc.h"
-#include "log.h"
-#include "nas_if.h"

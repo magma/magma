@@ -21,7 +21,33 @@
 #pragma once
 
 #include <grpc++/grpc++.h>
+#include <grpcpp/impl/codegen/status.h>
+
 #include "feg/protos/csfb.grpc.pb.h"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+namespace feg {
+class AlertRequest;
+class DownlinkUnitdata;
+class EPSDetachAck;
+class IMSIDetachAck;
+class LocationUpdateAccept;
+class LocationUpdateReject;
+class MMInformationRequest;
+class PagingRequest;
+class ReleaseRequest;
+class ResetAck;
+class ResetIndication;
+class ServiceAbortRequest;
+class Status;
+}  // namespace feg
+namespace orc8r {
+class Void;
+}  // namespace orc8r
+}  // namespace magma
 
 using grpc::ServerContext;
 

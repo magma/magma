@@ -35,44 +35,22 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <stdarg.h>
-#include <inttypes.h>
 #include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <fcntl.h>
 #include <pthread.h>
 
 #include "bstrlib.h"
-
 #include "hashtable.h"
-#include "obj_hashtable.h"
-#include "common_types.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
-#include "3gpp_24.007.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.331.h"
-#include "3gpp_24.301.h"
-#include "security_types.h"
-#include "common_types.h"
-#include "emm_msg.h"
-#include "esm_msg.h"
 #include "intertask_interface.h"
 #include "timer.h"
-#include "hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "shared_ts_log.h"
 #include "assertions.h"
 #include "dynamic_memory_check.h"
-#include "gcc_diag.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "timer_messages_types.h"
+
 //-------------------------------
 #define LOG_MAX_QUEUE_ELEMENTS 2048
 #define LOG_MESSAGE_MIN_ALLOC_SIZE 256

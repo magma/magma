@@ -19,19 +19,12 @@
  *      contact@openairinterface.org
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 
-#include "bstrlib.h"
-
-#include "log.h"
-#include "assertions.h"
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
 #include "GutiReallocationCommand.h"
+#include "common_defs.h"
 
 int decode_guti_reallocation_command(
   guti_reallocation_command_msg *guti_reallocation_command,

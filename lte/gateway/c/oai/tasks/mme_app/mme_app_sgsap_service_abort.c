@@ -23,20 +23,17 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 
 #include "common_types.h"
 #include "conversions.h"
-#include "msc.h"
 #include "log.h"
-#include "intertask_interface.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
-#include "mme_config.h"
-#include "timer.h"
-#include "3gpp_24.301.h"
 #include "mme_app_sgs_fsm.h"
+#include "common_defs.h"
+#include "mme_app_desc.h"
+#include "sgs_messages_types.h"
 
 /**********************************************************************************
  **                                                                              **

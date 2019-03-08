@@ -19,14 +19,20 @@
  *      contact@openairinterface.org
  */
 
-#include <iostream>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <memory>
 #include <thread>
+#include <utility>
 
 #include "orc8r/protos/common.pb.h"
-
 #include "DirectorydClient.h"
 #include "ServiceRegistrySingleton.h"
+
+namespace grpc {
+class Channel;
+class ClientContext;
+class Status;
+}  // namespace grpc
 
 using grpc::Channel;
 using grpc::ClientContext;

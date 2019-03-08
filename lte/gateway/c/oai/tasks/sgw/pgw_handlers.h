@@ -28,6 +28,8 @@
 
 #ifndef FILE_PGW_HANDLERS_SEEN
 #define FILE_PGW_HANDLERS_SEEN
+#include "s5_messages_types.h"
+
 int pgw_handle_create_bearer_request(
   const itti_s5_create_bearer_request_t *const bearer_req_p);
 

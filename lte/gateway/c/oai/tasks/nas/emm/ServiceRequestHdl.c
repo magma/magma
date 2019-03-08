@@ -19,59 +19,34 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      ServiceRequest.c
-
-  Version     0.1
-
-  Date        2013/05/07
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the service request EMM procedure executed by the
-        Non-Access Stratum.
-
-        The purpose of the service request procedure is to transfer
-        the EMM mode from EMM-IDLE to EMM-CONNECTED mode and establish
-        the radio and S1 bearers when uplink user data or signalling
-        is to be sent.
-
-        This procedure is used when the network has downlink signalling
-        pending, the UE has uplink signalling pending, the UE or the
-        network has user data pending and the UE is in EMM-IDLE mode.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
-#include "bstrlib.h"
-
 #include "log.h"
-#include "msc.h"
-#include "dynamic_memory_check.h"
 #include "common_types.h"
 #include "common_defs.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
-#include "nas_timer.h"
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "emm_cause.h"
 #include "nas_itti_messaging.h"
-#include "mme_app_defs.h"
 #include "service303.h"
 #include "conversions.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "DetachRequest.h"
+#include "ExtendedServiceRequest.h"
+#include "ServiceType.h"
+#include "emm_asDef.h"
+#include "emm_cnDef.h"
+#include "esm_data.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_message.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

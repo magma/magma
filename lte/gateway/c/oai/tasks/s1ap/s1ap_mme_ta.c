@@ -26,20 +26,18 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
-
-#include "bstrlib.h"
 
 #include "log.h"
 #include "assertions.h"
 #include "conversions.h"
 #include "mme_config.h"
-#include "s1ap_common.h"
 #include "s1ap_mme_ta.h"
+#include "S1ap-BPLMNs.h"
+#include "S1ap-PLMNidentity.h"
+#include "S1ap-SupportedTAs-Item.h"
+#include "S1ap-TAC.h"
 
 static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t *const plmn)
 {

@@ -42,12 +42,10 @@ Description Defines functions executed at the ESM Service Access
 
 #include "EsmStatus.h"
 #include "emm_data.h"
-
 #include "PdnConnectivityRequest.h"
 #include "PdnDisconnectRequest.h"
 #include "BearerResourceAllocationRequest.h"
 #include "BearerResourceModificationRequest.h"
-
 #include "ActivateDefaultEpsBearerContextAccept.h"
 #include "ActivateDefaultEpsBearerContextReject.h"
 #include "ActivateDedicatedEpsBearerContextAccept.h"
@@ -55,8 +53,10 @@ Description Defines functions executed at the ESM Service Access
 #include "ModifyEpsBearerContextAccept.h"
 #include "ModifyEpsBearerContextReject.h"
 #include "DeactivateEpsBearerContextAccept.h"
-
 #include "EsmInformationResponse.h"
+#include "3gpp_24.007.h"
+#include "EsmCause.h"
+#include "common_types.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

@@ -21,15 +21,28 @@
 
 #pragma once
 
-#include "GRPCReceiver.h"
-
 #include <gmp.h>
 #include <grpc++/grpc++.h>
-#include "feg/protos/csfb.grpc.pb.h"
+#include <stdint.h>
 #include <string>
+#include <functional>
+#include <memory>
+
+#include "GRPCReceiver.h"
+#include "feg/protos/csfb.grpc.pb.h"
+#include "sgs_messages_types.h"
 
 extern "C" {
 #include "intertask_interface.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace orc8r {
+class Void;
+}  // namespace orc8r
+}  // namespace magma
 }
 
 namespace magma {

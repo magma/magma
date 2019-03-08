@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -21,6 +21,10 @@
 
 #ifndef EPS_QUALITY_OF_SERVICE_SEEN
 #define EPS_QUALITY_OF_SERVICE_SEEN
+
+#include <stdint.h>
+
+#include "common_types.h"
 
 #define EPS_QUALITY_OF_SERVICE_MINIMUM_LENGTH 2
 #define EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH 10

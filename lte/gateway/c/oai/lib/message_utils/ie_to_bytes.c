@@ -28,7 +28,7 @@
  */
 
 #include <stdbool.h>
-#include <stdlib.h>
+
 #include "ie_to_bytes.h"
 
 // 18.4.24 in 3GPP TS 29.018

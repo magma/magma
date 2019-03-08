@@ -28,6 +28,7 @@
  *  @{
  */
 
+#include <stdint.h>
 #if !defined(HAVE_LIBSCTP)
 #error "You must install libsctp-dev"
 #endif
@@ -39,6 +40,7 @@
 #endif
 #include <netinet/in.h>
 #include <netinet/sctp.h>
+
 #include "mme_config.h"
 
 /** \brief SCTP data received callback

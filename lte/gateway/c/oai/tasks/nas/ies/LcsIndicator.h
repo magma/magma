@@ -22,6 +22,8 @@
 #ifndef LCS_INDICATOR_SEEN
 #define LCS_INDICATOR_SEEN
 
+#include <stdint.h>
+
 #define LCS_INDICATOR_MINIMUM_LENGTH 2
 #define LCS_INDICATOR_MAXIMUM_LENGTH 2
 

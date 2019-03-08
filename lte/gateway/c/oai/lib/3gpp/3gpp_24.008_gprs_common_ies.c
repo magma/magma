@@ -34,17 +34,11 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdbool.h>
+#include <stdint.h>
 
-#include "bstrlib.h"
-
-#include "common_defs.h"
-#include "assertions.h"
-#include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "TLVDecoder.h"
 #include "TLVEncoder.h"
-#include "log.h"
 
 //******************************************************************************
 // 10.5.7 GPRS Common information elements

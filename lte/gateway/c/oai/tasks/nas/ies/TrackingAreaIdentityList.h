@@ -22,6 +22,8 @@
 #ifndef TRACKING_AREA_IDENTITY_LIST_SEEN
 #define TRACKING_AREA_IDENTITY_LIST_SEEN
 
+#include <stdint.h>
+
 #include "TrackingAreaIdentity.h"
 
 #define TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH 8

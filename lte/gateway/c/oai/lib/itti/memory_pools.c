@@ -27,9 +27,12 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+
 #include "assertions.h"
 #include "memory_pools.h"
-#include "dynamic_memory_check.h"
 
 /*------------------------------------------------------------------------------*/
 const static int mp_debug = 0;

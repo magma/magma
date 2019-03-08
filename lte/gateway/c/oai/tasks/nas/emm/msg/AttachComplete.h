@@ -22,6 +22,8 @@
 #ifndef FILE_ATTACH_COMPLETE_SEEN
 #define FILE_ATTACH_COMPLETE_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EsmMessageContainer.h"

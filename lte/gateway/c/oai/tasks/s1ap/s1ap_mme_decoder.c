@@ -27,22 +27,22 @@
 */
 
 #include <stdbool.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <pthread.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "assertions.h"
 #include "common_defs.h"
-#include "intertask_interface.h"
-#include "s1ap_common.h"
 #include "s1ap_ies_defs.h"
-#include "s1ap_mme.h"
 #include "s1ap_mme_decoder.h"
-#include "s1ap_mme_handlers.h"
-#include "dynamic_memory_check.h"
+#include "S1AP-PDU.h"
+#include "S1ap-InitiatingMessage.h"
+#include "S1ap-ProcedureCode.h"
+#include "S1ap-SuccessfulOutcome.h"
+#include "S1ap-UnsuccessfulOutcome.h"
+#include "asn_codecs.h"
+#include "constr_TYPE.h"
+#include "per_decoder.h"
 
 static int s1ap_mme_decode_initiating(
   s1ap_message *message,

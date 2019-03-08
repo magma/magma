@@ -22,6 +22,8 @@
 #ifndef FILE_TRACKING_AREA_UPDATE_ACCEPT_SEEN
 #define FILE_TRACKING_AREA_UPDATE_ACCEPT_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EpsUpdateResult.h"

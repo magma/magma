@@ -22,6 +22,8 @@
 #ifndef BEARER_RESOURCE_MODIFICATION_REJECT_H_
 #define BEARER_RESOURCE_MODIFICATION_REJECT_H_
 
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "EsmCause.h"
 #include "3gpp_23.003.h"

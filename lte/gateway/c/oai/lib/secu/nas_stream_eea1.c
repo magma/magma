@@ -22,13 +22,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
-
-#include <nettle/nettle-meta.h>
-#include <nettle/aes.h>
-#include <nettle/ctr.h>
-#include "bstrlib.h"
 
 #include "assertions.h"
 #include "conversions.h"

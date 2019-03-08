@@ -27,20 +27,16 @@
 */
 
 #include <string.h>
-#include <stdbool.h>
 #include <stdint.h>
+#include <errno.h>
 
-#include "bstrlib.h"
-
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
-#include "security_types.h"
 #include "common_types.h"
 #include "common_defs.h"
 #include "assertions.h"
 #include "log.h"
 #include "s6a_defs.h"
+
+struct avp;
 
 int s6a_parse_experimental_result(
   struct avp *avp,

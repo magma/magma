@@ -19,42 +19,11 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      emm_esm.c
-
-  Version     0.1
-
-  Date        2012/10/16
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EMMESM Service Access Point that provides
-        interlayer services to the EPS Session Management sublayer
-        for service registration and activate/deactivate PDN
-        connections.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-
-#include "bstrlib.h"
-
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
 #include "emm_esm.h"
-#include "commonDef.h"
 #include "common_defs.h"
 #include "log.h"
 #include "LowerLayer.h"
+#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -31,6 +31,7 @@
 #include "sgw_config.h"
 #include "pgw_config.h"
 #include "service303.h"
+#include "bstrlib.h"
 
 #define MAGMA_CONFIG_STRING "MAGMA"
 #define SPGW_CONFIG_STRING_SERVICE303_CONFIG "SERVICE303"

@@ -26,19 +26,11 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdlib.h>
-
-#include "bstrlib.h"
-
-#include "obj_hashtable.h"
-#include "log.h"
-
-#include "oai_mme.h"
-
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
+
+#include "log.h"
+#include "oai_mme.h"
 
 // TODO: (amar) unused function check with OAI.
 int oai_mme_log_specific(int log_level)

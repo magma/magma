@@ -19,17 +19,14 @@
  *      contact@openairinterface.org
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
-
-#include "bstrlib.h"
+#include <string.h>
 
 #include "log.h"
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
 #include "UeNetworkCapability.h"
+#include "common_defs.h"
 
 //------------------------------------------------------------------------------
 int decode_ue_network_capability(

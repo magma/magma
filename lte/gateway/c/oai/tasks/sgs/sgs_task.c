@@ -29,23 +29,15 @@
 #define SGS_TASK_C
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <string.h>
-#include <assert.h>
-#include "assertions.h"
 
-#include "queue.h"
-#include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "intertask_interface.h"
 #include "mme_config.h"
 #include "sgs_messages_types.h"
 #include "csfb_client_api.h"
 #include "sgs_service.h"
 #include "common_defs.h"
+#include "intertask_interface_types.h"
 
 static void sgs_exit(void);
 

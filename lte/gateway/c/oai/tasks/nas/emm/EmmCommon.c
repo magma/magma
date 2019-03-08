@@ -54,10 +54,8 @@
 #include "assertions.h"
 #include "common_defs.h"
 #include "log.h"
-#include "commonDef.h"
 #include "emm_data.h"
 #include "EmmCommon.h"
-#include "emm_sap.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

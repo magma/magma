@@ -22,6 +22,8 @@
 #ifndef ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_H_
 #define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_H_
 
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "LinkedEpsBearerIdentity.h"
 #include "EpsQualityOfService.h"

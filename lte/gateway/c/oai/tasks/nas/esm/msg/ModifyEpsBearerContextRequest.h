@@ -21,10 +21,15 @@
 
 #ifndef MODIFY_EPS_BEARER_CONTEXT_REQUEST_H_
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_H_
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "ApnAggregateMaximumBitRate.h"
+#include "EpsQualityOfService.h"
+#include "RadioPriority.h"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH (0)

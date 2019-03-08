@@ -19,10 +19,13 @@
  *      contact@openairinterface.org
  */
 
-#include <thread>
+#include <grpcpp/impl/codegen/status.h>
+#include <iostream>
+#include <string>
 
 #include "csfb_client_api.h"
 #include "CSFBClient.h"
+#include "orc8r/protos/common.pb.h"
 
 void empty_callback(grpc::Status status, magma::Void void_response)
 {

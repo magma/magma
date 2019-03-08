@@ -18,15 +18,20 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <string.h>
-#include "lte/protos/s6a_service.grpc.pb.h"
+#include <string>
+
 #include "lte/protos/s6a_service.pb.h"
-#include "gmp.h"
+
 extern "C" {
 #include "s6a_service_handler.h"
 #include "log.h"
 }
 #include "S6aServiceImpl.h"
+
+namespace grpc {
+class Channel;
+class ServerContext;
+}  // namespace grpc
 
 using grpc::Channel;
 using grpc::ServerContext;

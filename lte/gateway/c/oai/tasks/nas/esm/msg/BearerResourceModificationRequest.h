@@ -22,6 +22,8 @@
 #ifndef BEARER_RESOURCE_MODIFICATION_REQUEST_H_
 #define BEARER_RESOURCE_MODIFICATION_REQUEST_H_
 
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "LinkedEpsBearerIdentity.h"
 #include "TrafficFlowAggregateDescription.h"

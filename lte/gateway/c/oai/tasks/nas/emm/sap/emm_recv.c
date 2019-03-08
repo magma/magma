@@ -19,54 +19,41 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-
-  Source      emm_recv.c
-
-  Version     0.1
-
-  Date        2013/01/30
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines functions executed at the EMMAS Service Access
-        Point upon receiving EPS Mobility Management messages
-        from the Access Stratum sublayer.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 
 #include "bstrlib.h"
-
-#include "common_types.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "emm_recv.h"
-
-#include "commonDef.h"
 #include "common_defs.h"
 #include "log.h"
-#include "emm_msgDef.h"
 #include "emm_cause.h"
 #include "emm_proc.h"
-#include "mme_config.h"
 #include "3gpp_requirements_24.301.h"
-#include "mme_app_defs.h"
 #include "emm_sap.h"
 #include "service303.h"
 #include "nas_itti_messaging.h"
 #include "conversions.h"
+#include "3gpp_24.301.h"
+#include "AdditionalUpdateType.h"
+#include "DetachType.h"
+#include "EmmCause.h"
+#include "EpsAttachType.h"
+#include "EpsBearerContextStatus.h"
+#include "EpsMobileIdentity.h"
+#include "GutiType.h"
+#include "MobileIdentity.h"
+#include "MobileStationClassmark2.h"
+#include "NASSecurityModeCommand.h"
+#include "NasKeySetIdentifier.h"
+#include "ServiceType.h"
+#include "emm_asDef.h"
+#include "emm_data.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "mme_app_ue_context.h"
 
 extern mme_app_desc_t mme_app_desc;
 

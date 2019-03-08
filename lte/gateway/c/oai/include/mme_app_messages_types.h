@@ -35,6 +35,14 @@
 #ifndef FILE_MME_APP_MESSAGES_TYPES_SEEN
 #define FILE_MME_APP_MESSAGES_TYPES_SEEN
 
+#include <stdint.h>
+
+#include "bstrlib.h"
+
+#include "3gpp_24.007.h"
+#include "3gpp_36.401.h"
+#include "common_types.h"
+
 #define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.mme_app_connection_establishment_cnf
 #define MME_APP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                              \

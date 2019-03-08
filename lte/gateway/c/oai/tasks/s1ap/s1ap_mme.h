@@ -33,7 +33,12 @@
 #include "intertask_interface.h"
 #endif
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "hashtable.h"
+#include "3gpp_36.401.h"
+#include "common_types.h"
 
 // Forward declarations
 struct enb_description_s;

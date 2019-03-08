@@ -37,6 +37,11 @@
 #ifndef FILE_CONVERSIONS_SEEN
 #define FILE_CONVERSIONS_SEEN
 #include <stdio.h>
+#include <endian.h>
+#include <netinet/in.h>
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "common_types.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"

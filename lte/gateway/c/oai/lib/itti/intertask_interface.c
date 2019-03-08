@@ -36,24 +36,23 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
-
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
 #include <malloc.h>
-
-#include "bstrlib.h"
+#include <stdint.h>
+#include <sys/time.h>
 
 #include "assertions.h"
 #include "intertask_interface.h"
-#include "intertask_interface_dump.h"
-
 #include "memory_pools.h"
+#include "intertask_interface_conf.h"
 
 /* Includes "intertask_interface_init.h" to check prototype coherence, but
    disable threads and messages information generation.
 */
 #define CHECK_PROTOTYPE_ONLY
 #include "intertask_interface_init.h"
+
 #undef CHECK_PROTOTYPE_ONLY
 
 #include "signals.h"

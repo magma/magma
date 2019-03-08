@@ -27,8 +27,12 @@
 #ifndef FILE_TLV_ENCODER_SEEN
 #define FILE_TLV_ENCODER_SEEN
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "bstrlib.h"
 #include "common_defs.h"
+#include "log.h"
 
 #define IES_ENCODE_U8(buffer, encoded, value)                                  \
   ENCODE_U8(buffer + encoded, value, encoded)

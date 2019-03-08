@@ -41,23 +41,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <inttypes.h>
 #include <sys/time.h>
-
 #include <unistd.h>
-#include <ctype.h>
-#include <fcntl.h>
 #include <stdarg.h>
 #include <pthread.h>
 #include <syslog.h>
+#include <assert.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <time.h>
+
 #include "intertask_interface.h"
 #include "log.h"
 #include "timer.h"
 #include "shared_ts_log.h"
 #include "assertions.h"
 #include "dynamic_memory_check.h"
+#include "asn_system.h"
+#include "hashtable.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "timer_messages_types.h"
 
 #if HAVE_CONFIG_H
 #include "config.h"

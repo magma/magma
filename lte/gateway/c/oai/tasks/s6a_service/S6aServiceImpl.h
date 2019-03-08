@@ -21,7 +21,19 @@
 #pragma once
 
 #include <grpc++/grpc++.h>
+#include <grpcpp/impl/codegen/status.h>
+
 #include "lte/protos/s6a_service.grpc.pb.h"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class DeleteSubscriberRequest;
+class DeleteSubscriberResponse;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;

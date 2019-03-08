@@ -41,8 +41,9 @@ Description Defines functions executed at the EMMAS Service Access
 #ifndef FILE_EMM_SEND_SEEN
 #define FILE_EMM_SEND_SEEN
 
-#include "EmmStatus.h"
+#include <stdint.h>
 
+#include "EmmStatus.h"
 #include "DetachRequest.h"
 #include "DetachAccept.h"
 #include "AttachAccept.h"

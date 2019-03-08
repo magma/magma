@@ -30,6 +30,9 @@
 #define FILE_SGW_CONFIG_SEEN
 #include <stdint.h>
 #include <stdbool.h>
+#include <netinet/in.h>
+#include <pthread.h>
+
 #include "log.h"
 #include "bstrlib.h"
 #include "common_types.h"

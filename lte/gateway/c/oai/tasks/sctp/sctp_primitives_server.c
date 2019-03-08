@@ -37,19 +37,25 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/sctp.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
 
 #include "dynamic_memory_check.h"
 #include "common_defs.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
 #include "sctp_primitives_server.h"
-#include "conversions.h"
 #include "sctp_common.h"
 #include "sctp_itti_messaging.h"
 #include "service303.h"
+#include "bstrlib.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_default_values.h"
+#include "sctp_messages_types.h"
 
 #define SCTP_RC_ERROR -1
 #define SCTP_RC_NORMAL_READ 0

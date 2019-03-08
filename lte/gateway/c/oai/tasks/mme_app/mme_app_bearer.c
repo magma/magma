@@ -30,10 +30,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <3gpp_29.274.h>
+#include <inttypes.h>
+#include <netinet/in.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "log.h"
 #include "msc.h"
@@ -42,24 +43,40 @@
 #include "common_types.h"
 #include "intertask_interface.h"
 #include "mme_config.h"
-#include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
-#include "mme_app_apn_selection.h"
-#include "mme_app_pdn_context.h"
-#include "mme_app_sgw_selection.h"
 #include "mme_app_bearer_context.h"
 #include "sgw_ie_defs.h"
 #include "common_defs.h"
-#include "gcc_diag.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_procedures.h"
 #include "mme_app_statistics.h"
 #include "timer.h"
 #include "nas_proc.h"
-#include "s1ap_mme.h"
-#include "EpsAttachType.h"
-#include <3gpp_29.274.h>
+#include "3gpp_23.003.h"
+#include "3gpp_24.007.h"
+#include "3gpp_24.008.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "3gpp_36.413.h"
+#include "CsfbResponse.h"
+#include "ServiceType.h"
+#include "TrackingAreaIdentity.h"
+#include "as_message.h"
+#include "emm_data.h"
+#include "esm_data.h"
+#include "hashtable.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "mme_app_messages_types.h"
+#include "nas_messages_types.h"
+#include "s11_messages_types.h"
+#include "s1ap_messages_types.h"
+#include "securityDef.h"
+#include "service303.h"
+#include "sgs_messages_types.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP

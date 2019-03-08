@@ -15,13 +15,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include <stdio.h>
 #include <stddef.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+
 #include "bstrlib.h"
 
 /* Optionally include a mechanism for debugging memory */

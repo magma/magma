@@ -26,15 +26,20 @@
 */
 #include <stdio.h>
 #include <errno.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <string.h>
 
 #include "log.h"
 #include "assertions.h"
-#include "msc.h"
 #include "intertask_interface.h"
 #include "gtpv1u.h"
 #include "gtpv1u_sgw_defs.h"
 #include "pgw_ue_ip_address_alloc.h"
 #include "sgw.h"
+#include "intertask_interface_types.h"
+#include "pgw_config.h"
+#include "spgw_config.h"
 
 extern sgw_app_t sgw_app;
 

@@ -20,10 +20,8 @@
  */
 
 
-#include <iomanip>
-#include <sstream>
-
 #include "itti_msg_to_proto_msg.h"
+#include "security_types.h"
 
 extern "C" {
 #include "ie_to_bytes.h"

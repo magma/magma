@@ -30,21 +30,12 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <sys/time.h>
-#include <pthread.h>
+#include <inttypes.h>
 
-#include "bstrlib.h"
-
-#include "log.h"
 #include "conversions.h"
-#include "common_types.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
-#include "mme_app_bearer_context.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
 
 static mme_ue_s1ap_id_t mme_app_ue_s1ap_id_generator = 1;
 

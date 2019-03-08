@@ -27,19 +27,17 @@
 */
 
 #include <stdint.h>
-#include <stdbool.h>
-
-#include "bstrlib.h"
+#include <netinet/in.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "assertions.h"
-#include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
-#include "security_types.h"
 #include "common_defs.h"
 #include "common_types.h"
-#include "PdnType.h"
 #include "s6a_defs.h"
+
+struct avp;
 
 static inline int s6a_parse_subscriber_status(
   struct avp_hdr *hdr_sub_status,

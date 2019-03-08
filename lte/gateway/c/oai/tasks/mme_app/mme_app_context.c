@@ -26,24 +26,25 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <unistd.h>
 #include <string.h>
 #include <inttypes.h>
 #include <arpa/inet.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <execinfo.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <time.h>
 
-#include "gcc_diag.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
 #include "msc.h"
-#include "3gpp_requirements_36.413.h"
 #include "common_types.h"
 #include "conversions.h"
 #include "intertask_interface.h"
@@ -60,10 +61,22 @@
 #include "timer.h"
 #include "mme_app_statistics.h"
 #include "directoryd.h"
-
-#include <execinfo.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "3gpp_23.003.h"
+#include "3gpp_24.008.h"
+#include "3gpp_29.274.h"
+#include "3gpp_36.401.h"
+#include "bstrlib.h"
+#include "emm_data.h"
+#include "esm_data.h"
+#include "hashtable.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_messages_types.h"
+#include "nas_timer.h"
+#include "obj_hashtable.h"
+#include "s1ap_messages_types.h"
 
 /* Obtain a backtrace and print it to stdout. */
 

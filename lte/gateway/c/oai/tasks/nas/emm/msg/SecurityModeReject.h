@@ -21,6 +21,8 @@
 
 #ifndef FILE_SECURITY_MODE_REJECT_SEEN
 #define FILE_SECURITY_MODE_REJECT_SEEN
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "EmmCause.h"

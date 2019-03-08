@@ -29,25 +29,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
-#include "conversions.h"
 #include "common_types.h"
-#include "intertask_interface.h"
-#include "mme_config.h"
-#include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
-#include "sgw_ie_defs.h"
 #include "common_defs.h"
 #include "mme_app_bearer_context.h"
+#include "3gpp_29.274.h"
+#include "esm_data.h"
 
 static void mme_app_bearer_context_init(bearer_context_t *const bearer_context);
 

@@ -19,53 +19,26 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      PdnDisconnect.c
-
-  Version     0.1
-
-  Date        2013/05/15
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines the PDN disconnect ESM procedure executed by the
-        Non-Access Stratum.
-
-        The PDN disconnect procedure is used by the UE to request
-        disconnection from one PDN.
-
-        All EPS bearer contexts established towards this PDN, inclu-
-        ding the default EPS bearer context, are released.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "common_types.h"
 #include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "3gpp_36.401.h"
 #include "common_defs.h"
 #include "mme_app_ue_context.h"
 #include "esm_proc.h"
-#include "commonDef.h"
 #include "log.h"
-
 #include "esm_data.h"
-#include "esm_cause.h"
 #include "esm_pt.h"
 #include "emm_sap.h"
+#include "3gpp_24.301.h"
+#include "EsmCause.h"
+#include "emm_data.h"
+#include "emm_esmDef.h"
+#include "mme_api.h"
+#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

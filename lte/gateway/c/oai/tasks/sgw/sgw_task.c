@@ -29,33 +29,27 @@
 #define SGW_TASK_C
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <string.h>
-#include <assert.h>
 #include <netinet/in.h>
+#include <sys/types.h>
 
 #include "bstrlib.h"
-#include "queue.h"
-
 #include "dynamic_memory_check.h"
 #include "hashtable.h"
-#include "obj_hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "common_defs.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
-#include "sgw_ie_defs.h"
-#include "3gpp_23.401.h"
-#include "mme_config.h"
 #include "sgw_defs.h"
 #include "sgw_handlers.h"
 #include "sgw.h"
 #include "spgw_config.h"
 #include "pgw_ue_ip_address_alloc.h"
+#include "gtpv1_u_messages_types.h"
+#include "gtpv1u_sgw_defs.h"
+#include "intertask_interface_types.h"
+#include "pgw_pcef_emulation.h"
+#include "sgw_config.h"
+#include "sgw_context_manager.h"
 
 spgw_config_t spgw_config;
 sgw_app_t sgw_app;

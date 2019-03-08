@@ -28,12 +28,7 @@
  *******************************************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include <pthread.h>
-
-#include "bstrlib.h"
 
 #include "log.h"
 #include "assertions.h"
@@ -44,6 +39,17 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_defs.h"
+#include "3gpp_24.007.h"
+#include "3gpp_29.274.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_desc.h"
+#include "nas_messages_types.h"
+#include "s11_messages_types.h"
+#include "s1ap_messages_types.h"
+#include "service303.h"
+#include "sgw_ie_defs.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP

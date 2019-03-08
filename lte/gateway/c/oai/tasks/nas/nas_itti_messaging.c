@@ -29,19 +29,15 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <time.h>
 
 #include "bstrlib.h"
-#include "tree.h"
-
 #include "log.h"
 #include "msc.h"
 #include "assertions.h"
 #include "conversions.h"
-#include "dynamic_memory_check.h"
 #include "intertask_interface.h"
 #include "common_defs.h"
 #include "secu_defs.h"
@@ -49,9 +45,24 @@
 #include "esm_proc.h"
 #include "nas_itti_messaging.h"
 #include "nas_proc.h"
-#include "mme_app_defs.h"
-#include "secu_defs.h"
 #include "emm_proc.h"
+#include "3gpp_24.008.h"
+#include "3gpp_24.301.h"
+#include "3gpp_29.274.h"
+#include "3gpp_33.401.h"
+#include "EpsAttachType.h"
+#include "common_ies.h"
+#include "emm_data.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_desc.h"
+#include "mme_app_messages_types.h"
+#include "nas_messages_types.h"
+#include "nas_procedures.h"
+#include "nas_timer.h"
+#include "s6a_messages_types.h"
+#include "securityDef.h"
+#include "sgs_messages_types.h"
 
 #define TASK_ORIGIN TASK_NAS_MME
 

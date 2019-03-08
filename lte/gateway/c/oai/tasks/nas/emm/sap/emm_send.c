@@ -19,53 +19,48 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-
-  Source      emm_send.c
-
-  Version     0.1
-
-  Date        2013/01/30
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines functions executed at the EMMAS Service Access
-        Point to send EPS Mobility Management messages to the
-        Access Stratum sublayer.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <stdio.h>
+#include <time.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "assertions.h"
-#include "commonDef.h"
-#include "common_types.h"
 #include "common_defs.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "3gpp_24.301.h"
 #include "emm_msgDef.h"
 #include "emm_proc.h"
 #include "mme_config.h"
-
-#include <string.h> // strlen
 #include "emm_send.h"
 #include "emm_data.h"
 #include "mme_app_ue_context.h"
 #include "conversions.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
+#include "AdditionalUpdateResult.h"
+#include "AdditionalUpdateType.h"
+#include "Cli.h"
+#include "DetachType.h"
+#include "EmmCause.h"
+#include "EpsAttachResult.h"
+#include "EpsBearerContextStatus.h"
+#include "EpsMobileIdentity.h"
+#include "EpsNetworkFeatureSupport.h"
+#include "EpsUpdateResult.h"
+#include "EsmMessageContainer.h"
+#include "MobileIdentity.h"
+#include "NasKeySetIdentifier.h"
+#include "NasMessageContainer.h"
+#include "NasSecurityAlgorithms.h"
+#include "PagingIdentity.h"
+#include "TrackingAreaIdentityList.h"
+#include "esm_data.h"
+#include "mme_api.h"
+#include "securityDef.h"
+
 #define MAX_MINUTE_DIGITS 3 /* Maximum digits required to hold minute value */
 
 /****************************************************************************/

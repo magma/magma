@@ -38,11 +38,12 @@
 
 *****************************************************************************/
 
+#include <assert.h>
+
 #include "common_defs.h"
 #include "log.h"
 #include "mme_app_sgs_fsm.h"
-#include "mme_app_defs.h"
-#include <assert.h>
+#include "common_types.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -37,6 +37,10 @@
 #ifndef FILE_MME_APP_APN_SELECTION_SEEN
 #define FILE_MME_APP_APN_SELECTION_SEEN
 
+#include "bstrlib.h"
+#include "common_types.h"
+#include "mme_app_ue_context.h"
+
 struct apn_configuration_s *mme_app_select_apn(
   ue_mm_context_t *const ue_context,
   const_bstring const ue_selected_apn);

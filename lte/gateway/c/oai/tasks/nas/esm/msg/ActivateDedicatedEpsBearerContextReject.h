@@ -22,6 +22,8 @@
 #ifndef ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_H_
 #define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT_H_
 
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "EsmCause.h"
 #include "3gpp_23.003.h"

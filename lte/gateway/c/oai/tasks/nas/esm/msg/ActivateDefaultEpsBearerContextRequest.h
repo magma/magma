@@ -22,6 +22,8 @@
 #ifndef ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_H_
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_H_
 
+#include <stdint.h>
+
 #include "MessageType.h"
 #include "EpsQualityOfService.h"
 #include "PdnAddress.h"

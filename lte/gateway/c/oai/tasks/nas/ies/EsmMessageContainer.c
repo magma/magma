@@ -19,17 +19,14 @@
  *      contact@openairinterface.org
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
-
-#include "bstrlib.h"
+#include <sys/types.h>
 
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
 #include "EsmMessageContainer.h"
 #include "log.h"
+#include "common_defs.h"
 
 //------------------------------------------------------------------------------
 int decode_esm_message_container(

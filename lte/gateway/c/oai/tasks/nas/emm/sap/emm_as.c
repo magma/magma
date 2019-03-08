@@ -19,35 +19,13 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-
-  Source      emm_as.c
-
-  Version     0.1
-
-  Date        2012/10/16
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EMMAS Service Access Point that provides
-        services to the EPS Mobility Management for NAS message
-        transfer to/from the Access Stratum sublayer.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
+#include <netinet/in.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "log.h"
 #include "msc.h"
@@ -55,8 +33,6 @@
 #include "3gpp_requirements_24.301.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "as_message.h"
 #include "emm_cause.h"
@@ -65,13 +41,23 @@
 #include "emm_recv.h"
 #include "LowerLayer.h"
 #include "emm_send.h"
-#include "mme_app_defs.h"
 #include "nas_proc.h"
 #include "emm_proc.h"
-#include "nas_proc.h"
 #include "service303.h"
 #include "conversions.h"
-#include "common_ies.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "AttachRequest.h"
+#include "DetachRequest.h"
+#include "TrackingAreaIdentity.h"
+#include "emm_data.h"
+#include "emm_msg.h"
+#include "emm_msgDef.h"
+#include "mme_api.h"
+#include "mme_app_desc.h"
+#include "nas_message.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

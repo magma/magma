@@ -19,54 +19,23 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      EsmStatus.c
-
-  Version     0.1
-
-  Date        2013/06/17
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines the ESM status procedure executed by the Non-Access
-        Stratum.
-
-        ESM status procedure can be related to an EPS bearer context
-        or to a procedure transaction.
-
-        The purpose of the sending of the ESM STATUS message is to
-        report at any time certain error conditions detected upon
-        receipt of ESM protocol data. The ESM STATUS message can be
-        sent by both the MME and the UE.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "common_types.h"
-#include "dynamic_memory_check.h"
 #include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "esm_proc.h"
-#include "commonDef.h"
 #include "common_defs.h"
 #include "log.h"
-
-#include "esm_cause.h"
-
 #include "emm_sap.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "EsmCause.h"
+#include "emm_data.h"
+#include "emm_esmDef.h"
+#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

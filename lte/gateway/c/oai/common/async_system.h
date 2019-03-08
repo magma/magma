@@ -39,6 +39,8 @@
 #ifndef FILE_ASYNC_SYSTEM_SEEN
 #define FILE_ASYNC_SYSTEM_SEEN
 
+#include <stdbool.h>
+
 int async_system_init(void);
 int async_system_command(
   int sender_itti_task,

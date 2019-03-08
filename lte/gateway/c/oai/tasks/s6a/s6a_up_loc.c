@@ -27,15 +27,11 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <string.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
-#include "hashtable.h"
-#include "obj_hashtable.h"
 #include "log.h"
 #include "msc.h"
 #include "assertions.h"
@@ -45,6 +41,14 @@
 #include "s6a_defs.h"
 #include "s6a_messages_types.h"
 #include "mme_config.h"
+#include "3gpp_23.003.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+
+struct avp;
+struct msg;
+struct session;
 
 int s6a_ula_cb(
   struct msg **msg_pP,

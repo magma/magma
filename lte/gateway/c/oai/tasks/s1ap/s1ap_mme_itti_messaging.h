@@ -29,7 +29,17 @@
 #ifndef FILE_S1AP_MME_ITTI_MESSAGING_SEEN
 #define FILE_S1AP_MME_ITTI_MESSAGING_SEEN
 
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
 #include "common_defs.h"
+#include "3gpp_23.003.h"
+#include "3gpp_36.401.h"
+#include "S1ap-Cause.h"
+#include "TrackingAreaIdentity.h"
+#include "bstrlib.h"
+#include "common_types.h"
 
 int s1ap_mme_itti_send_sctp_request(
   STOLEN_REF bstring *payload,

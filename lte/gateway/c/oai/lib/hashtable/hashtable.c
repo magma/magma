@@ -41,12 +41,8 @@
 #include <pthread.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "hashtable.h"
-#include "assertions.h"
-#include "dynamic_memory_check.h"
-#include "log.h"
 
 #if TRACE_HASHTABLE
 #define PRINT_HASHTABLE(hTbLe, ...)                                            \

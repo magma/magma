@@ -21,6 +21,8 @@
 
 #ifndef FILE_TRACKING_AREA_UPDATE_COMPLETE_SEEN
 #define FILE_TRACKING_AREA_UPDATE_COMPLETE_SEEN
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "3gpp_23.003.h"

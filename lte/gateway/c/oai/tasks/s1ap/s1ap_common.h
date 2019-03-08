@@ -24,6 +24,13 @@
  * @{
  */
 
+#include <stdint.h>
+#include <sys/types.h>
+
+#include "asn_internal.h"
+#include "constr_TYPE.h"
+
+struct s1ap_message_s;
 #if HAVE_CONFIG_H_
 #include "config.h"
 #endif
@@ -334,7 +341,6 @@ inline void ASN_DEBUG(const char *fmt, ...);
 #include "S1ap-UE-associatedLogicalS1-ConnectionListResAck.h"
 #include "S1ap-IE.h"
 #include "S1AP-PDU.h"
-
 // UPDATE RELEASE 9
 #include "S1ap-BroadcastCancelledAreaList.h"
 #include "S1ap-CancelledCellinEAI.h"
@@ -366,7 +372,6 @@ inline void ASN_DEBUG(const char *fmt, ...);
 #include "S1ap-UplinkUEAssociatedLPPaTransport.h"
 #include "S1ap-DownlinkNonUEAssociatedLPPaTransport.h"
 #include "S1ap-UplinkNonUEAssociatedLPPaTransport.h"
-
 // UPDATE RELEASE 10
 #include "S1ap-PagingPriority.h"
 #include "S1ap-RelayNode-Indicator.h"
@@ -386,6 +391,7 @@ extern int asn_debug;
 extern int asn1_xer_print;
 
 #include <stdbool.h>
+
 #include "mme_default_values.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"

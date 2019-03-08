@@ -43,10 +43,7 @@
 #include <libgen.h>
 
 #include "bstrlib.h"
-
 #include "pid_file.h"
-
-#include "dynamic_memory_check.h"
 
 #define PID_DEC_BUF_SIZE 64 /* should be big enough */
 

@@ -33,25 +33,22 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <inttypes.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "assertions.h"
-#include "conversions.h"
 #include "hashtable.h"
-#include "obj_hashtable.h"
 #include "common_defs.h"
-#include "intertask_interface.h"
-#include "msc.h"
 #include "log.h"
 #include "3gpp_24.008.h"
 #include "spgw_config.h"
 #include "pgw_pcef_emulation.h"
-#include "sgw_context_manager.h"
-#include "pgw_procedures.h"
 #include "sgw.h"
 #include "async_system.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "pgw_config.h"
 
 extern pgw_app_t pgw_app;
 

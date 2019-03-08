@@ -35,7 +35,19 @@
 */
 #ifndef FILE_3GPP_23_401_SEEN
 #define FILE_3GPP_23_401_SEEN
+
+#include <stdint.h>
+
+#include "hashtable.h"
+#include "obj_hashtable.h"
 #include "queue.h"
+
+#include "3gpp_23.003.h"
+#include "3gpp_24.007.h"
+#include "3gpp_24.008.h"
+#include "3gpp_29.274.h"
+#include "common_types.h"
+#include "s11_messages_types.h"
 
 //==============================================================================
 //5.7 Information storage
@@ -105,9 +117,9 @@ typedef struct sgw_pdn_connection_s {
     default_bearer; ///< Identifies the default bearer within the PDN connection by its EPS Bearer Id. (For PMIP based S5/S8.)
   bool
     ue_suspended_for_ps_handover; ///< Suspend Notification is received from MME, which would
-    ///< indicate that CSFB is invoked and UE doesn't have the support
-    ///< for PS handover, so move the UE to suspended state and
-    ///< SPGW shall discard the DL data.
+  ///< indicate that CSFB is invoked and UE doesn't have the support
+  ///< for PS handover, so move the UE to suspended state and
+  ///< SPGW shall discard the DL data.
 
   // eps bearers
   sgw_eps_bearer_ctxt_t *sgw_eps_bearers_array[BEARERS_PER_UE];

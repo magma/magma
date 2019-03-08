@@ -47,8 +47,11 @@ Description Defines callback functions executed within EMM common procedures
 *****************************************************************************/
 #ifndef FILE_EMM_COMMON_SEEN
 #define FILE_EMM_COMMON_SEEN
+#include <pthread.h>
+
 #include "common_types.h"
 #include "tree.h"
+#include "3gpp_36.401.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

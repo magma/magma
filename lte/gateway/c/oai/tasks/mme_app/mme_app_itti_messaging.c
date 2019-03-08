@@ -28,14 +28,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <netinet/in.h>
 
 #include "bstrlib.h"
-
-#include "dynamic_memory_check.h"
 #include "log.h"
 #include "msc.h"
 #include "assertions.h"
@@ -44,16 +40,20 @@
 #include "intertask_interface.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
-#include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
-#include "mme_app_defs.h"
 #include "mme_app_apn_selection.h"
-#include "mme_app_pdn_context.h"
 #include "mme_app_bearer_context.h"
 #include "sgw_ie_defs.h"
 #include "common_defs.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_sgw_selection.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.008.h"
+#include "3gpp_29.274.h"
+#include "emm_data.h"
+#include "esm_data.h"
+#include "mme_app_desc.h"
+#include "s11_messages_types.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP

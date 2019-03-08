@@ -26,26 +26,18 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <string.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <stdlib.h>
-
-#include "bstrlib.h"
 
 #include "dynamic_memory_check.h"
 #include "assertions.h"
-#include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
-#include "3gpp_24.007.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.331.h"
-#include "security_types.h"
-#include "common_types.h"
-#include "common_defs.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
+#include "async_system_messages_types.h"
+#include "ip_forward_messages_types.h"
+#include "nas_messages_types.h"
+#include "s11_messages_types.h"
+#include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
 void itti_free_msg_content(MessageDef *const message_p)

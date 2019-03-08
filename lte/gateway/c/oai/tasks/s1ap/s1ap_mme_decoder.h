@@ -24,6 +24,7 @@
 #include "bstrlib.h"
 #include "s1ap_common.h"
 #include "s1ap_ies_defs.h"
+#include "intertask_interface_types.h"
 
 int s1ap_mme_decode_pdu(
   s1ap_message *message,

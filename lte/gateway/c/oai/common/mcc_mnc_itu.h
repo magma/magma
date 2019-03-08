@@ -36,6 +36,8 @@
 #ifndef FILE_MCC_MNC_SEEN
 #define FILE_MCC_MNC_SEEN
 
+#include <stdint.h>
+
 typedef struct mcc_mnc_list_s {
   uint16_t mcc;
   char mnc[4];

@@ -19,42 +19,8 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      emm_sap.c
-
-  Version     0.1
-
-  Date        2012/10/01
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel
-
-  Description Defines the EMM Service Access Points at which the EPS
-        Mobility Management sublayer provides procedures for the
-        control of security and mobility when the User Equipment
-        is using the Evolved UTRA Network.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-
-#include "bstrlib.h"
-
 #include "log.h"
-#include "commonDef.h"
-#include "common_types.h"
 #include "common_defs.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "emm_sap.h"
 #include "emm_reg.h"
 #include "emm_esm.h"

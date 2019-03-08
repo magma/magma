@@ -39,11 +39,15 @@
 
 #include <inttypes.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdint.h>
+
 #include "bstrlib.h"
 #include "3gpp_33.401.h"
 #include "3gpp_36.401.h"
 #include "security_types.h"
 #include "common_dim.h"
+#include "3gpp_24.008.h"
 
 //------------------------------------------------------------------------------
 typedef uint16_t sctp_stream_id_t;
@@ -365,5 +369,7 @@ typedef enum {
 } s6a_cancellation_type_t;
 
 #include "commonDef.h"
+
+struct fteid_s;
 
 #endif /* FILE_COMMON_TYPES_SEEN */

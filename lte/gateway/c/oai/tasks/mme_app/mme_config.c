@@ -43,23 +43,26 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
 #include <arpa/inet.h> /* To provide inet_addr */
 #include <pthread.h>
-
 #include <libconfig.h>
+#include <netinet/in.h>
 
 #include "assertions.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
-#include "intertask_interface.h"
-#include "common_types.h"
 #include "common_defs.h"
 #include "mme_config.h"
-#include "spgw_config.h"
 #include "3gpp_33.401.h"
 #include "intertask_interface_conf.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.008.h"
+#include "3gpp_24.301.h"
+#include "TrackingAreaIdentity.h"
+#include "bstrlib.h"
+#include "mme_default_values.h"
+#include "service303.h"
+#include "sgw_config.h"
 
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 

@@ -19,51 +19,15 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      EmmRegistered.c
-
-  Version     0.1
-
-  Date        2012/10/03
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel, Lionel GAUTHIER
-
-  Description Implements the EPS Mobility Management procedures executed
-        when the EMM-SAP is in EMM-REGISTERED state.
-
-        In EMM-REGISTERED state, an EMM context has been established
-        and a default EPS bearer context has been activated in the UE
-        and the MME.
-        The UE may initiate sending and receiving user data and signal-
-        ling information and reply to paging. Additionally, tracking
-        area updating or combined tracking area updating procedure is
-        performed.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
 #include <assert.h>
-
-#include "bstrlib.h"
 
 #include "log.h"
 #include "common_defs.h"
 #include "emm_fsm.h"
-#include "commonDef.h"
-#include "3gpp_24.007.h"
-#include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
-#include "networkDef.h"
-#include "emm_proc.h"
+#include "emm_data.h"
+#include "emm_regDef.h"
+#include "msc.h"
+#include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

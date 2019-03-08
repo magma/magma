@@ -21,13 +21,25 @@
 
 #pragma once
 
+#include <grpc++/grpc++.h>
+#include <stdint.h>
 #include <functional>
 #include <memory>
 
-#include <grpc++/grpc++.h>
 #include "lte/protos/session_manager.grpc.pb.h"
-
 #include "GRPCReceiver.h"
+
+namespace grpc {
+class Status;
+}  // namespace grpc
+namespace magma {
+namespace lte {
+class LocalCreateSessionRequest;
+class LocalCreateSessionResponse;
+class LocalEndSessionResponse;
+class SubscriberID;
+}  // namespace lte
+}  // namespace magma
 
 using grpc::Status;
 

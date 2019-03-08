@@ -35,21 +35,10 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
-#include <inttypes.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <fcntl.h>
-#include <pthread.h>
 
 #include "bstrlib.h"
-
 #include "intertask_interface.h"
 #include "log.h"
 #include "async_system.h"
@@ -57,6 +46,10 @@
 #include "dynamic_memory_check.h"
 #include "itti_free_defined_msg.h"
 #include "common_defs.h"
+#include "async_system_messages_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+
 //-------------------------------
 void async_system_exit(void);
 void *async_system_task(__attribute__((unused)) void *args_p);

@@ -28,18 +28,21 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "assertions.h"
 #include "common_types.h"
 #include "common_defs.h"
 #include "conversions.h"
-#include "msc.h"
 #include "log.h"
 #include "intertask_interface.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_desc.h"
+#include "s6a_messages_types.h"
 
 int mme_app_send_s6a_purge_ue_req(struct ue_mm_context_s *const ue_context_pP)
 {

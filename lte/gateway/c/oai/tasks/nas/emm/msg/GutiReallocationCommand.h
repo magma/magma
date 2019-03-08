@@ -22,6 +22,8 @@
 #ifndef FILE_GUTI_REALLOCATION_COMMAND_SEEN
 #define FILE_GUTI_REALLOCATION_COMMAND_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "NasMessageContainer.h"

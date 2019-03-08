@@ -22,8 +22,11 @@
 
 #pragma once
 
-#include "feg/protos/csfb.grpc.pb.h"
 #include <gmp.h>
+
+#include "feg/protos/csfb.grpc.pb.h"
+#include "feg/protos/csfb.pb.h"
+#include "sgs_messages_types.h"
 
 extern "C" {
 #include "intertask_interface.h"

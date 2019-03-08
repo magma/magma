@@ -34,12 +34,9 @@
    \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
-
-#include "bstrlib.h"
+#include <openssl/crypto.h>
+#include <openssl/evp.h>
 
 #include "log.h"
 #include "common_defs.h"

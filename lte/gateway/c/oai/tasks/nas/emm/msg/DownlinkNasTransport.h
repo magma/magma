@@ -22,6 +22,8 @@
 #ifndef FILE_DOWNLINK_NAS_TRANSPORT_SEEN
 #define FILE_DOWNLINK_NAS_TRANSPORT_SEEN
 
+#include <stdint.h>
+
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
 #include "NasMessageContainer.h"

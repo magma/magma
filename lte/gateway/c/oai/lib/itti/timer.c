@@ -30,15 +30,13 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <signal.h>
 #include <time.h>
 #include <errno.h>
-
-#include "bstrlib.h"
+#include <sys/time.h>
 
 #include "intertask_interface.h"
 #include "timer.h"
@@ -46,6 +44,7 @@
 #include "queue.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
+#include "timer_messages_types.h"
 
 int timer_handle_signal(siginfo_t *info);
 

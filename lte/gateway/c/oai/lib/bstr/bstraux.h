@@ -17,7 +17,12 @@
 #define BSTRAUX_INCLUDE
 
 #include <time.h>
+#include <string.h>
+
 #include "bstrlib.h"
+
+struct bStream;
+struct bwriteStream;
 
 #ifdef __cplusplus
 extern "C" {

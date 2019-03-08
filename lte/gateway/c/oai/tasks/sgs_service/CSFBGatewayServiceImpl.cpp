@@ -18,15 +18,39 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "feg/protos/csfb.grpc.pb.h"
-#include "feg/protos/csfb.pb.h"
-#include <gmp.h>
+#include <iostream>
+
 #include "CSFBGatewayServiceImpl.h"
 #include "proto_msg_to_itti_msg.h"
+#include "common_ies.h"
+#include "sgs_messages_types.h"
 
 extern "C" {
 #include "sgs_service_handler.h"
-#include "intertask_interface.h"
+
+namespace grpc {
+class ServerContext;
+}  // namespace grpc
+namespace magma {
+namespace feg {
+class AlertRequest;
+class DownlinkUnitdata;
+class EPSDetachAck;
+class IMSIDetachAck;
+class LocationUpdateAccept;
+class LocationUpdateReject;
+class MMInformationRequest;
+class PagingRequest;
+class ReleaseRequest;
+class ResetAck;
+class ResetIndication;
+class ServiceAbortRequest;
+class Status;
+}  // namespace feg
+namespace orc8r {
+class Void;
+}  // namespace orc8r
+}  // namespace magma
 }
 
 using grpc::ServerContext;

@@ -37,35 +37,12 @@
 
 *****************************************************************************/
 #include <stdint.h>
-#include <stdbool.h>
-#include <pthread.h>
 
-#include "bstrlib.h"
-
-#include "hashtable.h"
-#include "obj_hashtable.h"
 #include "log.h"
-#include "msc.h"
-#include "assertions.h"
-#include "conversions.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.008.h"
-#include "3gpp_33.401.h"
 #include "3gpp_24.007.h"
-#include "3gpp_36.401.h"
-#include "3gpp_36.331.h"
 #include "3gpp_24.301.h"
-#include "3gpp_29.274.h"
-#include "security_types.h"
-#include "common_types.h"
-#include "mme_app_ue_context.h"
 #include "emm_msg.h"
-#include "esm_msg.h"
-#include "intertask_interface.h"
-#include "TLVDecoder.h"
-#include "TLVEncoder.h"
-#include "esm_proc.h"
-#include "nas_itti_messaging.h"
+#include "common_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

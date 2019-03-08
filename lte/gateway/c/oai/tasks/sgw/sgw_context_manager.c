@@ -32,25 +32,16 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
-#include <netinet/in.h>
+#include <inttypes.h>
 
 #include "bstrlib.h"
-
 #include "dynamic_memory_check.h"
 #include "assertions.h"
-#include "conversions.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #include "common_defs.h"
-#include "intertask_interface.h"
-#include "msc.h"
 #include "log.h"
-#include "sgw_ie_defs.h"
 #include "3gpp_23.401.h"
-#include "mme_config.h"
-#include "sgw_defs.h"
-#include "pgw_defs.h"
 #include "sgw_context_manager.h"
 #include "sgw.h"
 

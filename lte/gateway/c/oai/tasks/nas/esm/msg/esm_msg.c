@@ -36,22 +36,8 @@
 
 *****************************************************************************/
 #include <stdint.h>
-#include <stdbool.h>
-#include <pthread.h>
 
-#include "bstrlib.h"
-
-#include "hashtable.h"
-#include "obj_hashtable.h"
 #include "log.h"
-#include "TLVDecoder.h"
-#include "TLVEncoder.h"
-#include "common_types.h"
-#include "3gpp_24.008.h"
-#include "3gpp_36.331.h"
-#include "3gpp_36.401.h"
-#include "3gpp_29.274.h"
-
 #include "ActivateDedicatedEpsBearerContextRequest.h"
 #include "ActivateDedicatedEpsBearerContextAccept.h"
 #include "ActivateDedicatedEpsBearerContextReject.h"
@@ -74,11 +60,10 @@
 #include "EsmInformationRequest.h"
 #include "EsmInformationResponse.h"
 #include "EsmStatus.h"
-
-#include "mme_app_ue_context.h"
 #include "esm_msg.h"
-#include "esm_proc.h"
-#include "nas_itti_messaging.h"
+#include "3gpp_24.007.h"
+#include "3gpp_24.301.h"
+#include "common_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

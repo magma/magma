@@ -26,13 +26,9 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #include "bstrlib.h"
-
 #include "TLVDecoder.h"
 
 int errorCodeDecoder = 0;

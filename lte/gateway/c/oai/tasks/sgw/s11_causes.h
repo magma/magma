@@ -28,6 +28,8 @@
 #ifndef FILE_S11_CAUSES_SEEN
 #define FILE_S11_CAUSES_SEEN
 
+#include <stdint.h>
+
 typedef struct SGWCauseMapping_e {
   uint8_t value;
   /* Displayable cause name */

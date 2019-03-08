@@ -28,9 +28,19 @@
 
 #ifndef FILE_MME_APP_ITTI_MESSAGING_SEEN
 #define FILE_MME_APP_ITTI_MESSAGING_SEEN
+#include <inttypes.h>
+#include <string.h>
+
 #include "log.h"
 #include "timer.h"
 #include "mme_config.h"
+#include "3gpp_36.401.h"
+#include "common_types.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_ue_context.h"
+#include "s1ap_messages_types.h"
 
 void mme_app_itti_ue_context_release(
   struct ue_mm_context_s *ue_context_p,

@@ -31,6 +31,12 @@
 #define TIMER_H_
 
 #include <signal.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/types.h>
+
+#include "intertask_interface_types.h"
 
 #define SIGTIMER SIGRTMIN
 

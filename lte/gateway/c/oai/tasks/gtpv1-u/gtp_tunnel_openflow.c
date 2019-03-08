@@ -20,19 +20,13 @@
  */
 
 #include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <arpa/inet.h>
-#include <net/if.h>
-#include <errno.h>
+#include <netinet/in.h>
 
 #include "assertions.h"
 #include "log.h"
-#include "common_defs.h"
 #include "gtpv1u.h"
 #include "ControllerMain.h"
+#include "3gpp_23.003.h"
 
 extern struct gtp_tunnel_ops gtp_tunnel_ops;
 

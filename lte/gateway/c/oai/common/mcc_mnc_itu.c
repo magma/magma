@@ -34,11 +34,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdlib.h>
-#include <stdint.h>
 #include <string.h>
-#include <errno.h>
-#include <limits.h>
 
 #include "assertions.h"
 #include "mcc_mnc_itu.h"

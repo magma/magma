@@ -22,6 +22,10 @@
 #ifndef CLI_SEEN
 #define CLI_SEEN
 
+#include <stdint.h>
+
+#include "bstrlib.h"
+
 #define CLI_MINIMUM_LENGTH 3
 #define CLI_MAXIMUM_LENGTH 14
 

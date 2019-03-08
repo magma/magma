@@ -26,18 +26,22 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "assertions.h"
 #include "intertask_interface.h"
-#include "s1ap_common.h"
 #include "s1ap_mme_itti_messaging.h"
+#include "S1ap-CauseRadioNetwork.h"
+#include "as_message.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "nas_messages_types.h"
+#include "s1ap_messages_types.h"
+#include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
 int s1ap_mme_itti_send_sctp_request(

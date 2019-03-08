@@ -23,8 +23,11 @@
 #include <string.h>
 #include <limits.h>
 #include <ctype.h>
+
 #include "bstrlib.h"
 #include "bstraux.h"
+
+struct bStream;
 
 #ifndef UNUSED
 #define UNUSED(x) (void) (x)

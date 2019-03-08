@@ -31,14 +31,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
-
-#include "bstrlib.h"
 
 #include "s11_causes.h"
-#include "common_types.h"
-#include "common_defs.h"
-#include "sgw_ie_defs.h"
+#include "3gpp_29.274.h"
 
 static const SGWCauseMapping_t causes[] = {
   {LOCAL_DETACH, "Local detach", 0, 0, 0, 0},

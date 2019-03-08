@@ -37,9 +37,6 @@
 #include <netinet/in.h>
 
 #include "bstrlib.h"
-#include "queue.h"
-#include "tree.h"
-
 #include "hashtable.h"
 #include "log.h"
 #include "msc.h"
@@ -50,13 +47,23 @@
 #include "s1ap_mme_handlers.h"
 #include "s1ap_ies_defs.h"
 #include "s1ap_mme_nas_procedures.h"
-#include "s1ap_mme_retransmission.h"
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
 #include "timer.h"
 #include "itti_free_defined_msg.h"
+#include "S1ap-TimeToWait.h"
+#include "asn_internal.h"
+#include "common_defs.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "mme_app_messages_types.h"
+#include "mme_default_values.h"
+#include "s1ap_messages_types.h"
+#include "sctp_messages_types.h"
+#include "timer_messages_types.h"
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \

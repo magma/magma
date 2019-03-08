@@ -21,11 +21,16 @@
 #define s6a_service
 #define s6a_service_TASK_C
 
+#include <stddef.h>
+
 #include "log.h"
 #include "intertask_interface.h"
 #include "assertions.h"
 #include "common_defs.h"
 #include "s6a_service.h"
+#include "bstrlib.h"
+#include "intertask_interface_types.h"
+#include "mme_default_values.h"
 
 static void *s6a_service_server_task(void *args)
 {

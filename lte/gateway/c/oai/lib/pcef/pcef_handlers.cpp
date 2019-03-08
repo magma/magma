@@ -19,14 +19,20 @@
  *      contact@openairinterface.org
  */
 
+#include <grpcpp/impl/codegen/status.h>
+#include <string.h>
 #include <string>
-#include <thread>
+
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
 #include "rpc_client.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
 
 extern "C" {
-#include "conversions.h"
 }
 
 #define ULI_DATA_SIZE 13

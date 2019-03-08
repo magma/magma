@@ -19,60 +19,30 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      DedicatedEpsBearerContextActivation.c
-
-  Version     0.1
-
-  Date        2013/07/16
-
-  Product     NAS stack
-
-  Subsystem   EPS Session Management
-
-  Author      Frederic Maurel
-
-  Description Defines the dedicated EPS bearer context activation ESM
-        procedure executed by the Non-Access Stratum.
-
-        The purpose of the dedicated EPS bearer context activation
-        procedure is to establish an EPS bearer context with specific
-        QoS and TFT between the UE and the EPC.
-
-        The procedure is initiated by the network, but may be requested
-        by the UE by means of the UE requested bearer resource alloca-
-        tion procedure or the UE requested bearer resource modification
-        procedure.
-        It can be part of the attach procedure or be initiated together
-        with the default EPS bearer context activation procedure when
-        the UE initiated stand-alone PDN connectivity procedure.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "dynamic_memory_check.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "emm_data.h"
 #include "mme_app_ue_context.h"
 #include "esm_proc.h"
-#include "commonDef.h"
-#include "esm_cause.h"
 #include "esm_ebr.h"
 #include "esm_ebr_context.h"
 #include "emm_sap.h"
 #include "mme_config.h"
 #include "nas_itti_messaging.h"
+#include "3gpp_24.301.h"
+#include "3gpp_36.401.h"
+#include "EsmCause.h"
+#include "common_defs.h"
+#include "emm_esmDef.h"
+#include "esm_data.h"
+#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

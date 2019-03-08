@@ -22,6 +22,10 @@
 #ifndef FILE_MME_APP_EDNS_EMULATION_SEEN
 #define FILE_MME_APP_EDNS_EMULATION_SEEN
 
+#include "bstrlib.h"
+#include "mme_config.h"
+
+struct in_addr;
 /*! \file mme_app_edns_emulation.h
   \brief
   \author Lionel Gauthier

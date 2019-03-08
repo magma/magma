@@ -30,6 +30,13 @@
 #define FILE_S1AP_MME_NAS_PROCEDURES_SEEN
 
 #include "common_defs.h"
+#include "3gpp_36.401.h"
+#include "bstrlib.h"
+#include "common_types.h"
+#include "mme_app_messages_types.h"
+#include "s1ap_messages_types.h"
+
+struct s1ap_message_s;
 
 /** \brief Handle an Initial UE message.
  * \param assocId lower layer assoc id (SCTP)

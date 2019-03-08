@@ -19,55 +19,19 @@
  *      contact@openairinterface.org
  */
 
-/*****************************************************************************
-  Source      Authentication.c
-
-  Version     0.1
-
-  Date        2013/03/04
-
-  Product     NAS stack
-
-  Subsystem   EPS Mobility Management
-
-  Author      Frederic Maurel, Lionel GAUTHIER
-
-  Description Defines the authentication EMM procedure executed by the
-        Non-Access Stratum.
-
-        The purpose of the EPS authentication and key agreement (AKA)
-        procedure is to provide mutual authentication between the user
-        and the network and to agree on a key KASME. The procedure is
-        always initiated and controlled by the network. However, the
-        UE can reject the EPS authentication challenge sent by the
-        network.
-
-        A partial native EPS security context is established in the
-        UE and the network when an EPS authentication is successfully
-        performed. The computed key material KASME is used as the
-        root for the EPS integrity protection and ciphering key
-        hierarchy.
-
-*****************************************************************************/
-#include <pthread.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
 #include "msc.h"
-#include "gcc_diag.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "common_types.h"
 #include "3gpp_requirements_24.301.h"
-#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
-#include "3gpp_29.274.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
 #include "nas_timer.h"
@@ -76,8 +40,23 @@
 #include "emm_cause.h"
 #include "nas_itti_messaging.h"
 #include "service303.h"
-#include "mme_app_defs.h"
 #include "EmmCommon.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
+#include "3gpp_33.401.h"
+#include "3gpp_36.401.h"
+#include "AuthenticationResponse.h"
+#include "TrackingAreaIdentity.h"
+#include "common_defs.h"
+#include "emm_asDef.h"
+#include "emm_cnDef.h"
+#include "emm_fsm.h"
+#include "emm_regDef.h"
+#include "mme_app_desc.h"
+#include "nas_procedures.h"
+#include "s6a_messages_types.h"
+#include "securityDef.h"
+#include "security_types.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

@@ -27,19 +27,14 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <inttypes.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "bstrlib.h"
-
 #include "log.h"
-#include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "TrackingAreaIdentity.h"
-#include "mme_config.h"
 #include "mme_app_sgw_selection.h"
 #include "mme_app_edns_emulation.h"
 
