@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+	"time"
 
 	"magma/orc8r/cloud/go/protos"
 
@@ -22,10 +23,22 @@ import (
 type mconfigFactory struct {
 	sync.RWMutex
 	builders []MconfigBuilder
+	clock    clock
+}
+
+type clock interface {
+	Now() time.Time
+}
+
+type realClock struct{}
+
+func (realClock) Now() time.Time {
+	return time.Now()
 }
 
 var factory = mconfigFactory{
 	builders: []MconfigBuilder{},
+	clock:    &realClock{},
 }
 
 func RegisterMconfigBuilders(builders ...MconfigBuilder) {
@@ -75,13 +88,22 @@ func CreateMconfig(networkId string, gatewayId string) (*protos.GatewayConfigs, 
 	}
 	return &protos.GatewayConfigs{
 		ConfigsByKey: ret,
+		Metadata: &protos.GatewayConfigsMetadata{
+			CreatedAt: factory.clock.Now().Unix(),
+		},
 	}, nil
 }
 
-// Exists ONLY for testing - thus the required but unused *testing.T param
+// Methods below exist ONLY for testing - thus the required but unused *testing.T param
 // DO NOT USE IN ANYTHING BUT TESTS
 func ClearMconfigBuilders(_ *testing.T) {
 	factory.Lock()
 	factory.builders = factory.builders[:0]
+	factory.Unlock()
+}
+
+func SetClock(_ *testing.T, clock clock) {
+	factory.Lock()
+	factory.clock = clock
 	factory.Unlock()
 }

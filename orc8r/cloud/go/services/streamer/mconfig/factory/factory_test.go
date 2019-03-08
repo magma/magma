@@ -11,6 +11,7 @@ package factory
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/test_protos"
@@ -30,8 +31,17 @@ func (builder *mockMconfigBuilder) Build(networkId string, gatewayId string) (ma
 	return builder.result, builder.err
 }
 
+type mockClock struct {
+	now time.Time
+}
+
+func (mockClock *mockClock) Now() time.Time {
+	return mockClock.now
+}
+
 func TestCreateMconfig(t *testing.T) {
 	factory.builders = factory.builders[:0]
+	factory.clock = &mockClock{now: time.Unix(1551916956, 0)}
 
 	builder1 := &mockMconfigBuilder{
 		result: map[string]proto.Message{
@@ -61,12 +71,18 @@ func TestCreateMconfig(t *testing.T) {
 		assert.NoError(t, err)
 		expectedAny[k] = anyV
 	}
-	expected := &protos.GatewayConfigs{ConfigsByKey: expectedAny}
+	expected := &protos.GatewayConfigs{
+		ConfigsByKey: expectedAny,
+		Metadata: &protos.GatewayConfigsMetadata{
+			CreatedAt: 1551916956,
+		},
+	}
 	assert.Equal(t, *expected, *actual)
 }
 
 func TestCreateMconfig_DuplicateKey(t *testing.T) {
 	factory.builders = factory.builders[:0]
+	factory.clock = &mockClock{now: time.Unix(1551916956, 0)}
 
 	builder1 := &mockMconfigBuilder{
 		result: map[string]proto.Message{
@@ -88,6 +104,7 @@ func TestCreateMconfig_DuplicateKey(t *testing.T) {
 
 func TestCreateMconfig_BuilderError(t *testing.T) {
 	factory.builders = factory.builders[:0]
+	factory.clock = &mockClock{now: time.Unix(1551916956, 0)}
 
 	builder := &mockMconfigBuilder{
 		err: errors.New("FOO"),

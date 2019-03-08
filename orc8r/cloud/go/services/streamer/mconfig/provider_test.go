@@ -11,6 +11,7 @@ package mconfig_test
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
@@ -40,6 +41,14 @@ type mockMconfigBuilder struct {
 
 func (builder *mockMconfigBuilder) Build(networkId string, gatewayId string) (map[string]proto.Message, error) {
 	return builder.retVal, builder.retErr
+}
+
+type mockClock struct {
+	now time.Time
+}
+
+func (mockClock *mockClock) Now() time.Time {
+	return mockClock.now
 }
 
 // Test AG Configs Streaming
@@ -74,6 +83,7 @@ func TestMconfigStreamer(t *testing.T) {
 			"builder2_1": &test_protos.Message1{Field: "foo"},
 		},
 	}
+	factory.SetClock(t, &mockClock{now: time.Unix(1551916956, 0)})
 	factory.ClearMconfigBuilders(t)
 	factory.RegisterMconfigBuilder(builder1)
 	factory.RegisterMconfigBuilder(builder2)
@@ -100,7 +110,12 @@ func TestMconfigStreamer(t *testing.T) {
 		assert.NoError(t, err)
 		expected[k] = anyV
 	}
-	expectedMarshaled, err := protos.MarshalIntern(&protos.GatewayConfigs{ConfigsByKey: expected})
+	expectedMarshaled, err := protos.MarshalIntern(&protos.GatewayConfigs{
+		ConfigsByKey: expected,
+		Metadata: &protos.GatewayConfigsMetadata{
+			CreatedAt: 1551916956,
+		},
+	})
 	assert.NoError(t, err)
 
 	// Assert value

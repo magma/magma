@@ -21,6 +21,14 @@ option go_package = "magma/orc8r/cloud/go/protos";
 //       the corresponding gateway service's name exactly
 message GatewayConfigs {
     map<string, google.protobuf.Any> configs_by_key = 10;
+
+    GatewayConfigsMetadata metadata = 11;
+}
+
+// Metadata about the configs.
+message GatewayConfigsMetadata {
+    // Unix timestamp of Cloud at the time of config generation.
+    int64 created_at = 11;
 }
 
 // Wraps a gateway config and a stream offset that the config was computed
