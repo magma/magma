@@ -55,7 +55,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   config.vm.define :datastore do |datastore|
     datastore.vm.box = "amarpad/magma_datastore"
-    datastore.vm.box_version = "1.0.1548213883"
+    datastore.vm.box_version = ">= 1.0"
 
     datastore.ssh.password = "vagrant"
     datastore.ssh.insert_key = true

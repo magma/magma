@@ -8,7 +8,7 @@ HOST$ open magma/.cache/test_certs
 
 This will open up a finder window. Double-click the `admin_operator.pfx` cert
 in this directory, which will open up Keychain to import the cert. The
-password for the cert is `mai`. If you use Chrome or Safari, this is all you
+password for the cert is `magma`. If you use Chrome or Safari, this is all you
 need to do. If you use Firefox, copy this file to your desktop, then go to
 `Preferences -> PrivacyAndSecurity -> View Certificates -> Import` and select
 it.
