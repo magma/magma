@@ -85,23 +85,8 @@ func testHandleALL(results chan error) diam.HandlerFunc {
 
 // S6a AI
 func testHandleAIR(settings *sm.Settings) diam.HandlerFunc {
-	type RequestedEUTRANAuthInfo struct {
-		NumVectors        datatype.Unsigned32  `avp:"Number-Of-Requested-Vectors"`
-		ImmediateResponse datatype.Unsigned32  `avp:"Immediate-Response-Preferred"`
-		ResyncInfo        datatype.OctetString `avp:"Re-synchronization-Info"`
-	}
-
-	type AIR struct {
-		SessionID               datatype.UTF8String       `avp:"Session-Id"`
-		OriginHost              datatype.DiameterIdentity `avp:"Origin-Host"`
-		OriginRealm             datatype.DiameterIdentity `avp:"Origin-Realm"`
-		AuthSessionState        datatype.UTF8String       `avp:"Auth-Session-State"`
-		UserName                string                    `avp:"User-Name"`
-		VisitedPLMNID           datatype.Unsigned32       `avp:"Visited-PLMN-Id"`
-		RequestedEUTRANAuthInfo RequestedEUTRANAuthInfo   `avp:"Requested-EUTRAN-Authentication-Info"`
-	}
 	return func(c diam.Conn, m *diam.Message) {
-		var req AIR
+		var req servicers.AIR
 		var code uint32
 
 		err := m.Unmarshal(&req)
@@ -126,7 +111,6 @@ func testHandleAIR(settings *sm.Settings) diam.HandlerFunc {
 }
 
 func testSendAIA(w io.Writer, m *diam.Message, vectors int) (n int64, err error) {
-
 	if vectors < 0 {
 		vectors = 1
 	}
@@ -152,19 +136,8 @@ func testSendAIA(w io.Writer, m *diam.Message, vectors int) (n int64, err error)
 
 // S6a UL
 func testHandleULR(settings *sm.Settings) diam.HandlerFunc {
-
-	type ULR struct {
-		SessionID        datatype.UTF8String       `avp:"Session-Id"`
-		OriginHost       datatype.DiameterIdentity `avp:"Origin-Host"`
-		OriginRealm      datatype.DiameterIdentity `avp:"Origin-Realm"`
-		AuthSessionState datatype.Unsigned32       `avp:"Auth-Session-State"`
-		UserName         datatype.UTF8String       `avp:"User-Name"`
-		VisitedPLMNID    datatype.Unsigned32       `avp:"Visited-PLMN-Id"`
-		RATType          datatype.Unsigned32       `avp:"RAT-Type"`
-		ULRFlags         datatype.Unsigned32       `avp:"ULR-Flags"`
-	}
 	return func(c diam.Conn, m *diam.Message) {
-		var req ULR
+		var req servicers.ULR
 		var code uint32
 
 		err := m.Unmarshal(&req)
@@ -244,7 +217,6 @@ func testSendULA(settings *sm.Settings, w io.Writer, m *diam.Message) (n int64, 
 }
 
 func testHandlePUR(settings *sm.Settings) diam.HandlerFunc {
-
 	return func(c diam.Conn, m *diam.Message) {
 		var req servicers.PUR
 		var code uint32
