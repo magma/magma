@@ -9,11 +9,11 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
 	"time"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/testcore/hss/crypto"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos"

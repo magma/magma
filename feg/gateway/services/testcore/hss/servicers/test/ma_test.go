@@ -10,10 +10,10 @@ package test
 
 import (
 	"context"
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
 	"testing"
 
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/testcore/hss/crypto"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
 
