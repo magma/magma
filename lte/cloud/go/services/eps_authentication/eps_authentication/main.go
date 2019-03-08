@@ -11,10 +11,10 @@ package main
 import (
 	"log"
 
+	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/subscriberdb"
-	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	"magma/lte/cloud/go/services/eps_authentication"
+	"magma/lte/cloud/go/services/eps_authentication/servicers"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/service"
@@ -22,14 +22,13 @@ import (
 
 func main() {
 	// Create the service
-	srv, err := service.NewOrchestratorService(lte.ModuleName, subscriberdb.ServiceName)
+	srv, err := service.NewOrchestratorService(lte.ModuleName, eps_authentication.ServiceName)
 	if err != nil {
 		log.Fatalf("Error creating service: %s", err)
 	}
 
 	// Init the Datastore
-	store, err :=
-		datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}
@@ -40,12 +39,11 @@ func main() {
 	}
 
 	// Add servicers to the service
-	servicer, err := servicers.NewSubscriberDBServer(subscriberDBStore)
+	servicer, err := servicers.NewEPSAuthServer(subscriberDBStore)
 	if err != nil {
-		log.Fatalf("Subscriberdb Servicer Initialization Error: %s", err)
+		log.Fatalf("EPS Auth Servicer Initialization Error: %s", err)
 	}
-	protos.RegisterSubscriberDBControllerServer(srv.GrpcServer, servicer)
-	srv.GrpcServer.RegisterService(protos.GetLegacySubscriberdbDesc(), servicer)
+	protos.RegisterS6AProxyServer(srv.GrpcServer, servicer)
 
 	// Run the service
 	err = srv.Run()
