@@ -13,7 +13,7 @@ import datetime
 import enum
 import logging
 
-import functools
+from contextlib import suppress
 import grpc
 import os
 import snowflake
@@ -31,6 +31,7 @@ from orc8r.protos.identity_pb2 import AccessGatewayID, Identity
 
 import magma.common.cert_utils as cert_utils
 from magma.common.cert_validity import cert_is_invalid
+from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
@@ -45,7 +46,9 @@ class BootstrapError(Exception):
 class BootstrapState(enum.Enum):
     INITIAL = 0
     BOOTSTRAPPING = 1
-    SCHEDULED = 2
+    SCHEDULED_BOOTSTRAP = 2
+    SCHEDULED_CHECK = 3
+    IDLE = 4
 
 
 class BootstrapManager(SDWatchdogTask):
@@ -76,44 +79,80 @@ class BootstrapManager(SDWatchdogTask):
         self._gateway_key_file = control_proxy_config['gateway_key']
         self._gateway_cert_file = control_proxy_config['gateway_cert']
         self._gateway_key = None
-        self._scheduled_event = None
+        self._task = None
         self._state = BootstrapState.INITIAL
         self._bootstrap_success_cb = bootstrap_success_cb
 
         # give some margin on watchdog check interval
         self.SetSDWatchdogTimeout(
             self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds() * 1.1)
+        self.delay = 5
 
     def start_bootstrap_manager(self):
-        self._bootstrap_check()
+        self._task = asyncio.ensure_future(self._run(), loop=self._loop)
         self._maybe_create_challenge_key()
 
-    def on_checkin_fail(self, err_code):
+    def stop_bootstrap_manager(self):
+        self._task.cancel()
+        with suppress(asyncio.CancelledError):
+            # Await task to execute it's cancellation
+            self._loop.run_until_complete(self._task)
+
+    async def _run(self):
+        """
+        Loops with intermediate delays to perform periodic bootstrap checks
+        and bootstrap retries
+        """
+        while True:
+            if self._state == BootstrapState.INITIAL:
+                await self._bootstrap_check()
+            elif self._state == BootstrapState.BOOTSTRAPPING:
+                pass
+            elif self._state == BootstrapState.SCHEDULED_BOOTSTRAP:
+                await self._bootstrap_now()
+            elif self._state == BootstrapState.SCHEDULED_CHECK:
+                await self._bootstrap_now()
+            elif self._state == BootstrapState.IDLE:
+                pass
+
+            await asyncio.sleep(self.delay)
+
+    async def on_checkin_fail(self, err_code):
         """Checks for invalid certificate as cause for checkin failures"""
         if err_code == grpc.StatusCode.PERMISSION_DENIED:
             # Immediately bootstrap if the error is PERMISSION_DENIED
-            self.bootstrap()
-            return
-        logging.info('Checking cert validity')
+            return await self.bootstrap()
         proxy_config = ServiceRegistry.get_proxy_config()
         host = proxy_config['cloud_address']
         port = proxy_config['cloud_port']
         certfile = proxy_config['gateway_cert']
         keyfile = proxy_config['gateway_key']
 
-        future = asyncio.ensure_future(
-            cert_is_invalid(host, port, certfile, keyfile, self._loop),
-            loop=self._loop,
-        )
-        future.add_done_callback(
-            functools.partial(self._cert_is_invalid_done)
-        )
-        return future  # for testing
+        not_valid = await \
+            cert_is_invalid(host, port, certfile, keyfile, self._loop)
+        await self._cert_is_invalid_done(not_valid)
+        return not_valid  # for testing
 
-    def _cert_is_invalid_done(self, future):
-        if future.result():
+    async def bootstrap(self):
+        """Public Interface to start a bootstrap
+
+        1. If the device is bootstrapping, do nothing
+        2. If there is something scheduled, put it in idle so the run loop is
+           paused until this _bootstrap_now is complete
+        3. run _bootstrap_now
+        """
+        if self._state is BootstrapState.BOOTSTRAPPING:
+            return
+
+        if self._state in [BootstrapState.SCHEDULED_CHECK,
+                           BootstrapState.SCHEDULED_BOOTSTRAP]:
+            self._state = BootstrapState.IDLE
+        await self._bootstrap_now()
+
+    async def _cert_is_invalid_done(self, not_valid):
+        if not_valid:
             logging.info('Bootstrapping due to invalid cert')
-            self._bootstrap_now()
+            await self._bootstrap_now()
         else:
             logging.error('Checkin failure likely not due to invalid cert')
 
@@ -126,22 +165,7 @@ class BootstrapManager(SDWatchdogTask):
                 ec.SECP384R1(), default_backend())
             cert_utils.write_key(challenge_key, self._challenge_key_file)
 
-    def bootstrap(self):
-        """Public Interface to start a bootstrap
-
-        1. If the device is bootstrapping, do nothing
-        2. If there is something scheduled, cancel it
-        3. run _bootstrap_now
-        """
-        if self._state is BootstrapState.BOOTSTRAPPING:
-            return
-
-        if self._scheduled_event is not None:
-            self._scheduled_event.cancel()
-
-        self._bootstrap_now()
-
-    def _bootstrap_check(self):
+    async def _bootstrap_check(self):
         """Check whether bootstrap is need
 
         Check whether cert is present and still valid
@@ -155,29 +179,30 @@ class BootstrapManager(SDWatchdogTask):
             cert = cert_utils.load_cert(self._gateway_cert_file)
         except (IOError, ValueError):
             logging.info('Cannot load a proper cert, start bootstrapping')
-            return self._bootstrap_now()
+            await self._bootstrap_now()
+            return
 
         now = datetime.datetime.utcnow()
         if now + self.PREEXPIRY_BOOTSTRAP_INTERVAL > cert.not_valid_after:
             logging.info(
                 'Certificate is expiring soon at %s, start bootstrapping',
                 cert.not_valid_after)
-            return self._bootstrap_now()
+            return await self._bootstrap_now()
         if now < cert.not_valid_before:
             logging.error(
                 'Certificate is not valid until %s', cert.not_valid_before)
-            return self._bootstrap_now()
+            return await self._bootstrap_now()
 
         # no need to restart control_proxy
         self._bootstrap_success_cb(False)
-        self._schedule_periodic_bootstrap_check()
+        self._schedule_next_bootstrap_check()
 
-    def _bootstrap_now(self):
+    async def _bootstrap_now(self):
         """Main entrance to bootstrapping
 
         1. set self._state to BOOTSTRAPPING
         2. set up a gPRC channel and get a challenge (async)
-        3. setup _get_challenge_done callback
+        3. call _get_challenge_done_success  to deal with the response
         If any steps fails, a new _bootstrap_now call will be scheduled.
         """
         assert self._state != BootstrapState.BOOTSTRAPPING, \
@@ -188,111 +213,87 @@ class BootstrapManager(SDWatchdogTask):
             chan = ServiceRegistry.get_bootstrap_rpc_channel()
         except ValueError as exp:
             logging.error('Failed to get rpc channel: %s', exp)
-            self._retry_bootstrap(hard_failure=False)
+            self._schedule_next_bootstrap(hard_failure=False)
             return
 
-        logging.info('Beginning bootstrap process')
         client = BootstrapperStub(chan)
-        future = client.GetChallenge.future(AccessGatewayID(id=self._hw_id))
-        future.add_done_callback(
-            lambda future:
-            self._loop.call_soon_threadsafe(self._get_challenge_done, future))
+        try:
+            result = await grpc_async_wrapper(
+                client.GetChallenge.future(AccessGatewayID(id=self._hw_id)),
+                self._loop
+            )
+            await self._get_challenge_done_success(result)
 
-    def _get_challenge_done(self, future):
-        """Callback for GetChallenge.future
+        except grpc.RpcError as err:
+            self._get_challenge_done_fail(err)
 
-        1. check whether future correctly returns
-        2. create key and store it in self._gateway_key
-        3. create csr and response
-        If any step fails, call _retry_bootstrap.
-        Otherwise _request_sign is called and process to next procedure
-
-        Args:
-            future: Future object returned by async GetChallenge gRPC call
-        """
-        err = future.exception()
-        if err:
-            err = 'GetChallenge error! [%s] %s' % (err.code(), err.details())
-            logging.error(err)
-            BOOTSTRAP_EXCEPTION.labels(cause='GetChallengeResp').inc()
-            self._retry_bootstrap(hard_failure=False)
-            return
-
-        challenge = future.result()
-
+    async def _get_challenge_done_success(self, challenge):
         # create key
         try:
             self._gateway_key = ec.generate_private_key(
                 ec.SECP384R1(), default_backend())
         except InternalError as exp:
             logging.error('Fail to generate private key: %s', exp)
-            BOOTSTRAP_EXCEPTION.labels(cause='GetChallengeDonePrivateKey').inc()
-            self._retry_bootstrap(hard_failure=True)
+            BOOTSTRAP_EXCEPTION.labels(
+                cause='GetChallengeDonePrivateKey').inc()
+            self._schedule_next_bootstrap(hard_failure=True)
             return
-
         # create csr and send for signing
         try:
             csr = self._create_csr()
         except Exception as exp:
             logging.error('Fail to create csr: %s', exp)
-            BOOTSTRAP_EXCEPTION.labels(cause='GetChallengeDoneCreateCSR:%s' % type(exp).__name__).inc()
+            BOOTSTRAP_EXCEPTION.labels(
+                cause='GetChallengeDoneCreateCSR:%s' % type(
+                    exp).__name__).inc()
 
         try:
             response = self._construct_response(challenge, csr)
         except BootstrapError as exp:
             logging.error('Fail to create response: %s', exp)
-            BOOTSTRAP_EXCEPTION.labels(cause='GetChallengeDoneCreateResponse').inc()
-            self._retry_bootstrap(hard_failure=True)
+            BOOTSTRAP_EXCEPTION.labels(
+                cause='GetChallengeDoneCreateResponse').inc()
+            self._schedule_next_bootstrap(hard_failure=True)
             return
+        await self._request_sign(response)
 
-        self._request_sign(response)
+    def _get_challenge_done_fail(self, err):
+        err = 'GetChallenge error! [%s] %s' % (err.code(), err.details())
+        logging.error(err)
+        BOOTSTRAP_EXCEPTION.labels(cause='GetChallengeResp').inc()
+        self._schedule_next_bootstrap(hard_failure=False)
 
-    def _request_sign(self, response):
+    async def _request_sign(self, response):
         """Request a signed certificate
 
         set up a gPRC channel and set the response
 
-        If it fails, call _retry_bootstrap,
-        Otherwise _request_sign_done callback is added to the future
+        If it fails, schedule the next bootstrap,
+        Otherwise _request_sign_done callback is called
         """
         try:
             chan = ServiceRegistry.get_bootstrap_rpc_channel()
         except ValueError as exp:
             logging.error('Failed to get rpc channel: %s', exp)
             BOOTSTRAP_EXCEPTION.labels(cause='RequestSignGetRPC').inc()
-            self._retry_bootstrap(hard_failure=False)
+            self._schedule_next_bootstrap(hard_failure=False)
             return
 
-        client = BootstrapperStub(chan)
-        future = client.RequestSign.future(response)
-        future.add_done_callback(
-            lambda future:
-            self._loop.call_soon_threadsafe(self._request_sign_done, future))
+        try:
+            client = BootstrapperStub(chan)
+            result = await grpc_async_wrapper(
+                client.RequestSign.future(response),
+                self._loop
+            )
+            self._request_sign_done_success(result)
 
-    def _request_sign_done(self, future):
-        """Callback for RequestSign.future
+        except grpc.RpcError as err:
+            self._request_sign_done_fail(err)
 
-        1. check whether future correctly returns
-        2. check whether returned cert is valid
-        3. write key and cert into files, reset self._gateway_key to None
-        If any steps fails, call _retry_bootstrap,
-        Otherwise call _schedule_periodic_bootstrap_check.
-
-        Args:
-            future: Future object returned by async RequestSign gRPC call
-        """
-        err = future.exception()
-        if err:
-            err = 'RequestSign error! [%s], %s' % (err.code(), err.details())
-            BOOTSTRAP_EXCEPTION.labels(cause='RequestSignDoneResp').inc()
-            logging.error(err)
-            self._retry_bootstrap(hard_failure=False)
-            return
-
-        cert = future.result()
+    def _request_sign_done_success(self, cert):
         if not self._is_valid_certificate(cert):
             BOOTSTRAP_EXCEPTION.labels(cause='RequestSignDoneInvalidCert').inc()
-            self._retry_bootstrap(hard_failure=True)
+            self._schedule_next_bootstrap(hard_failure=True)
             return
 
         try:
@@ -302,13 +303,19 @@ class BootstrapManager(SDWatchdogTask):
             BOOTSTRAP_EXCEPTION.labels(cause='RequestSignDoneWriteCert:%s' % type(exp).__name__).inc()
             logging.error('Failed to write cert: %s', exp)
 
-        logging.info('Bootstrap succeeds')
         # need to restart control_proxy
         self._bootstrap_success_cb(True)
         self._gateway_key = None
-        self._schedule_periodic_bootstrap_check()
+        self._schedule_next_bootstrap_check()
+        logging.info("Bootstrapped Successfully!")
 
-    def _retry_bootstrap(self, hard_failure):
+    def _request_sign_done_fail(self, err):
+        err = 'RequestSign error! [%s], %s' % (err.code(), err.details())
+        BOOTSTRAP_EXCEPTION.labels(cause='RequestSignDoneResp').inc()
+        logging.error(err)
+        self._schedule_next_bootstrap(hard_failure=False)
+
+    def _schedule_next_bootstrap(self, hard_failure):
         """Schedule a bootstrap
 
         Args:
@@ -319,16 +326,13 @@ class BootstrapManager(SDWatchdogTask):
         else:
             delay = self.SHORT_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
         logging.info('Retrying bootstrap in %d seconds', delay)
-        self._scheduled_event = self._loop.call_later(
-            delay, self._bootstrap_now)
-        self._state = BootstrapState.SCHEDULED
+        self.delay = delay
+        self._state = BootstrapState.SCHEDULED_BOOTSTRAP
 
-    def _schedule_periodic_bootstrap_check(self):
+    def _schedule_next_bootstrap_check(self):
         """Schedule a bootstrap_check"""
-        self._scheduled_event = self._loop.call_later(
-            self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds(),
-            self._bootstrap_check)
-        self._state = BootstrapState.SCHEDULED
+        self.delay = self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds()
+        self._state = BootstrapState.SCHEDULED_CHECK
 
 
     def _create_csr(self):

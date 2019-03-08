@@ -197,7 +197,8 @@ class CheckinManager(SDWatchdogTask):
         if self.num_failed_checkins == self.CHECKIN_FAIL_THRESHOLD:
             logging.info('Checkin failure threshold met, remediating...')
             if self._checkin_failure_cb is not None:
-                self._checkin_failure_cb(err.code())
+                asyncio.ensure_future(
+                    self._checkin_failure_cb(err.code()), loop=self._loop)
         self._try_reuse_checkin_client(err.code())
 
     def _checkin_done(self):

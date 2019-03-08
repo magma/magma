@@ -97,8 +97,8 @@ def main():
     # Create bootstrap manager
     bootstrap_manager = BootstrapManager(service, bootstrap_success_cb)
 
-    def checkin_failure_cb(err_code):
-        bootstrap_manager.on_checkin_fail(err_code)
+    async def checkin_failure_cb(err_code):
+        await bootstrap_manager.on_checkin_fail(err_code)
     checkin_manager.set_failure_cb(checkin_failure_cb)
 
     # Start bootstrap_manager after checkin_manager's callback is set

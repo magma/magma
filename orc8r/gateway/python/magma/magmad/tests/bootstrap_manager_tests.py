@@ -85,9 +85,10 @@ class BootstrapManagerTest(TestCase):
         }
         snowflake_mock.return_value = self.hw_id
 
+        self.loop = asyncio.new_event_loop()
         service = MagicMock()
-        asyncio.set_event_loop(None)
-        service.loop = asyncio.new_event_loop()
+        service.loop = self.loop
+        asyncio.set_event_loop(self.loop)
         service.config = {
             'bootstrap_config': {
                 'challenge_key': '__test_challenge.key',
@@ -127,59 +128,80 @@ class BootstrapManagerTest(TestCase):
 
     def tearDown(self):
         self._rpc_server.stop(None)
+        self.manager.stop_bootstrap_manager()
+        self.loop.close()
 
     @patch('%s.BootstrapManager._bootstrap_now' % BM)
-    def test_bootstrap(self, _bootstrap_now_mock):
-        # boostrapping, no interruption
-        self.manager._state = bm.BootstrapState.BOOTSTRAPPING
-        self.manager.bootstrap()
-        _bootstrap_now_mock.assert_not_called()
+    def test__bootstrap(self, _bootstrap_now_mock):
+        async def test():
+            # boostrapping, no interruption
+            self.manager._state = bm.BootstrapState.BOOTSTRAPPING
+            await self.manager.bootstrap()
+            _bootstrap_now_mock.assert_not_called()
 
-        self.manager._state = bm.BootstrapState.SCHEDULED
-        self.manager._scheduled_event = MagicMock()
-        self.manager.bootstrap()
-        _bootstrap_now_mock.assert_has_calls([call()])
-        self.manager._scheduled_event.cancel.assert_has_calls([call()])
+            self.manager._state = bm.BootstrapState.SCHEDULED_BOOTSTRAP
+            # set up bootstrap mock to return when awaited
+            future = asyncio.Future()
+            future.set_result(None)
+            self.manager._bootstrap_now.return_value = future
+
+            await self.manager.bootstrap()
+            _bootstrap_now_mock.assert_has_calls([call()])
+
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.loop.run_until_complete(test())
 
     @patch('magma.common.cert_utils.load_cert')
     @patch('%s.BootstrapManager._bootstrap_now' % BM)
-    @patch('%s.BootstrapManager._schedule_periodic_bootstrap_check' % BM)
+    @patch('%s.BootstrapManager._schedule_next_bootstrap_check' % BM)
     def test__bootstrap_check(self,
                               schedule_bootstrap_check_mock,
                               bootstrap_now_mock,
                               load_cert_mock):
-        # cannot load cert
-        load_cert_mock.side_effect = IOError
-        self.manager._bootstrap_check()
-        load_cert_mock.assert_has_calls([call(self.gateway_cert_file)])
-        bootstrap_now_mock.assert_has_calls([call()])
+        async def test():
+            # set up bootstrap mock to return when awaited
+            future = asyncio.Future()
+            future.set_result(None)
+            self.manager._bootstrap_now.return_value = future
 
-        # invalid not_before
-        load_cert_mock.reset_mock()
-        load_cert_mock.side_effect = None # clear IOError side effect
-        not_before = datetime.datetime.utcnow() + datetime.timedelta(days=3)
-        not_after = not_before + datetime.timedelta(days=3)
-        load_cert_mock.return_value = create_cert(not_before, not_after)
-        self.manager._bootstrap_check()
-        bootstrap_now_mock.assert_has_calls([call()])
+            # cannot load cert
+            load_cert_mock.side_effect = IOError
+            await self.manager._bootstrap_check()
+            load_cert_mock.assert_has_calls([call(self.gateway_cert_file)])
+            bootstrap_now_mock.assert_has_calls([call()])
 
-        # invalid not_after
-        load_cert_mock.reset_mock()
-        not_before = datetime.datetime.utcnow()
-        not_after = not_before + datetime.timedelta(hours=1)
-        load_cert_mock.return_value = create_cert(not_before, not_after)
-        self.manager._bootstrap_check()
-        bootstrap_now_mock.assert_has_calls([call()])
+            # invalid not_before
+            load_cert_mock.reset_mock()
+            load_cert_mock.side_effect = None  # clear IOError side effect
+            not_before = datetime.datetime.utcnow() + datetime.timedelta(
+                days=3)
+            not_after = not_before + datetime.timedelta(days=3)
+            load_cert_mock.return_value = create_cert(not_before, not_after)
+            await self.manager._bootstrap_check()
+            bootstrap_now_mock.assert_has_calls([call()])
 
-        # cert is present and valid,
-        load_cert_mock.reset_mock()
-        not_before = datetime.datetime.utcnow()
-        not_after = not_before + datetime.timedelta(days=10)
-        load_cert_mock.return_value = create_cert(not_before, not_after)
-        self.manager._bootstrap_check()
-        schedule_bootstrap_check_mock.assert_has_calls([call()])
+            # invalid not_after
+            load_cert_mock.reset_mock()
+            not_before = datetime.datetime.utcnow()
+            not_after = not_before + datetime.timedelta(hours=1)
+            load_cert_mock.return_value = create_cert(not_before, not_after)
+            await self.manager._bootstrap_check()
+            bootstrap_now_mock.assert_has_calls([call()])
 
-    @patch('%s.BootstrapManager._schedule_periodic_bootstrap_check' % BM)
+            # cert is present and valid,
+            load_cert_mock.reset_mock()
+            not_before = datetime.datetime.utcnow()
+            not_after = not_before + datetime.timedelta(days=10)
+            load_cert_mock.return_value = create_cert(not_before, not_after)
+            await self.manager._bootstrap_check()
+            schedule_bootstrap_check_mock.assert_has_calls([call()])
+
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.loop.run_until_complete(test())
+
+    @patch('%s.BootstrapManager._schedule_next_bootstrap_check' % BM)
     @patch('%s.ServiceRegistry.get_bootstrap_rpc_channel' % BM)
     @patch('%s.cert_utils.write_cert' % BM)
     @patch('magma.common.cert_utils.write_key')
@@ -188,126 +210,193 @@ class BootstrapManagerTest(TestCase):
                             write_cert_mock,
                             bootstrap_channel_mock,
                             schedule_mock):
-
         def fake_schedule():
             self.manager._loop.stop()
 
-        bootstrap_channel_mock.return_value = self.channel
-        schedule_mock.side_effect = fake_schedule
+        async def test():
+            bootstrap_channel_mock.return_value = self.channel
+            schedule_mock.side_effect = fake_schedule
 
-        self.manager._bootstrap_now()
-        self.manager._loop.run_forever()
-        write_key_mock.assert_has_calls(
-            [call(ANY, self.manager._gateway_key_file)])
-        write_cert_mock.assert_has_calls(
-            [call(ANY, self.manager._gateway_cert_file)])
-        self.assertIs(self.manager._state, bm.BootstrapState.BOOTSTRAPPING)
-        self.manager._bootstrap_success_cb.assert_has_calls([call(True)])
+            await self.manager._bootstrap_now()
+            write_key_mock.assert_has_calls(
+                [call(ANY, self.manager._gateway_key_file)])
+            write_cert_mock.assert_has_calls(
+                [call(ANY, self.manager._gateway_cert_file)])
+            self.assertIs(self.manager._state, bm.BootstrapState.BOOTSTRAPPING)
+            self.manager._bootstrap_success_cb.assert_has_calls([call(True)])
 
-    @patch('%s.BootstrapManager._retry_bootstrap' % BM)
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.loop.run_until_complete(test())
+
+    @patch('%s.BootstrapManager._schedule_next_bootstrap' % BM)
     @patch('%s.ServiceRegistry.get_bootstrap_rpc_channel' % BM)
     def test__bootstrap_fail(self,
                              bootstrap_channel_mock,
-                             retry_bootstrap_mock):
-        # test fail to get channel
-        bootstrap_channel_mock.side_effect = ValueError
-        self.manager._bootstrap_now()
-        retry_bootstrap_mock.assert_has_calls([call(hard_failure=False)])
-        # because retry is mocked, state should still be bootstrapping
-        self.assertIs(self.manager._state, bm.BootstrapState.BOOTSTRAPPING)
+                             schedule_next_bootstrap_mock):
+        async def test():
+            # test fail to get channel
+            bootstrap_channel_mock.side_effect = ValueError
+            await self.manager._bootstrap_now()
+            schedule_next_bootstrap_mock.assert_has_calls(
+                [call(hard_failure=False)]
+            )
+            # because retry is mocked, state should still be bootstrapping
+            self.assertIs(self.manager._state, bm.BootstrapState.BOOTSTRAPPING)
+
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.loop.run_until_complete(test())
 
     @patch('%s.ec.generate_private_key' % BM)
-    @patch('%s.BootstrapManager._retry_bootstrap' % BM)
-    def test__get_challenge_done_pk_exception(self, retry_bootstrap_mock, generate_pk_mock):
-        future = MagicMock()
-        future.exception = lambda: None
-        # Private key generation returns error
-        generate_pk_mock.side_effect = InternalError("", 0)
-        self.manager._get_challenge_done(future)
-        retry_bootstrap_mock.assert_has_calls([call(hard_failure=True)])
+    @patch('%s.BootstrapManager._schedule_next_bootstrap' % BM)
+    def test__get_challenge_done_pk_exception(
+            self,
+            schedule_next_bootstrap_mock,
+            generate_pk_mock
+    ):
+        async def test():
+            future = MagicMock()
+            # Private key generation returns error
+            generate_pk_mock.side_effect = InternalError("", 0)
+            await self.manager._get_challenge_done_success(future.result)
+            schedule_next_bootstrap_mock.assert_has_calls(
+                [call(hard_failure=True)]
+            )
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.loop.run_until_complete(test())
 
-    @patch('%s.BootstrapManager._retry_bootstrap' % BM)
+    @patch('%s.BootstrapManager._schedule_next_bootstrap' % BM)
     @patch('%s.BootstrapManager._request_sign' % BM)
-    def test__get_challenge_done(self, request_sign_mock, retry_bootstrap_mock):
-        future = MagicMock()
+    def test__get_challenge_done(
+            self,
+            request_sign_mock,
+            schedule_next_bootstrap_mock
+    ):
+        async def test():
+            future = MagicMock()
 
-        # GetChallenge returns error
-        self.manager._get_challenge_done(future)
-        retry_bootstrap_mock.assert_has_calls([call(hard_failure=False)])
+            # GetChallenge returns error
+            self.manager._get_challenge_done_fail(future.exception)
+            schedule_next_bootstrap_mock.assert_has_calls(
+                [call(hard_failure=False)]
+            )
 
-        # Fail to construct response
-        retry_bootstrap_mock.reset_mock()
-        future.exception = lambda: None
-        self.manager._get_challenge_done(future)
-        retry_bootstrap_mock.assert_has_calls([call(hard_failure=True)])
+            # Fail to construct response
+            schedule_next_bootstrap_mock.reset_mock()
+            future.exception = lambda: None
+            await self.manager._get_challenge_done_success(future.result)
+            schedule_next_bootstrap_mock.assert_has_calls(
+                [call(hard_failure=True)]
+            )
 
-        # No error
-        retry_bootstrap_mock.reset_mock()
-        self.manager._loop = MagicMock()
-        future.result = lambda: Challenge(
-            challenge=b'simple_challenge',
-            key_type=ChallengeKey.ECHO
-        )
-        self.manager._get_challenge_done(future)
-        retry_bootstrap_mock.assert_not_called()
-        request_sign_mock.assert_has_calls([call(ANY)])
+            # No error
+            schedule_next_bootstrap_mock.reset_mock()
+            self.manager._loop = MagicMock()
+            future.result = lambda: Challenge(
+                challenge=b'simple_challenge',
+                key_type=ChallengeKey.ECHO
+            )
+            # Make request_sign to return immediately with None
+            request_sign_mock.return_value = asyncio.Future()
+            request_sign_mock.return_value.set_result(None)
 
-    @patch('%s.BootstrapManager._retry_bootstrap' % BM)
+            await self.manager._get_challenge_done_success(future.result())
+            schedule_next_bootstrap_mock.assert_not_called()
+            request_sign_mock.assert_has_calls([call(ANY)])
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.loop.run_until_complete(test())
+
+    @patch('%s.BootstrapManager._schedule_next_bootstrap' % BM)
     @patch('%s.ServiceRegistry.get_bootstrap_rpc_channel' % BM)
-    def test__request_sign(self, bootstrap_channel_mock, retry_bootstrap_mock):
-        challenge = Challenge(
-            challenge=b'simple_challenge',
-            key_type=ChallengeKey.ECHO
-        )
-        self.manager._gateway_key = ec.generate_private_key(
-            ec.SECP384R1(), default_backend())
-        csr = self.manager._create_csr()
-        response = self.manager._construct_response(challenge, csr)
+    def test__request_sign_fail(
+            self,
+            bootstrap_channel_mock,
+            schedule_next_bootstrap_mock
+    ):
+        async def test():
+            challenge = Challenge(
+                challenge=b'simple_challenge',
+                key_type=ChallengeKey.ECHO
+            )
+            self.manager._gateway_key = ec.generate_private_key(
+                ec.SECP384R1(), default_backend())
+            csr = self.manager._create_csr()
+            response = self.manager._construct_response(challenge, csr)
 
-        # test fail to get channel
-        bootstrap_channel_mock.side_effect = ValueError
-        self.manager._request_sign(response)
-        retry_bootstrap_mock.assert_has_calls([call(hard_failure=False)])
+            # test fail to get channel
+            bootstrap_channel_mock.side_effect = ValueError
+            await self.manager._request_sign(response)
+            schedule_next_bootstrap_mock.assert_has_calls(
+                [call(hard_failure=False)]
+            )
 
-        # test no error
-        retry_bootstrap_mock.reset_mock()
-        bootstrap_channel_mock.reset_mock()
-        bootstrap_channel_mock.side_effect = None
-        bootstrap_channel_mock.return_value = self.channel
-        self.manager._request_sign(response)
-        retry_bootstrap_mock.assert_not_called()
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.loop.run_until_complete(test())
+
+    @patch('%s.BootstrapManager._schedule_next_bootstrap' % BM)
+    @patch('%s.ServiceRegistry.get_bootstrap_rpc_channel' % BM)
+    def test__request_sign(
+            self,
+            bootstrap_channel_mock,
+            schedule_next_bootstrap_mock
+    ):
+        async def test():
+            challenge = Challenge(
+                challenge=b'simple_challenge',
+                key_type=ChallengeKey.ECHO
+            )
+            self.manager._gateway_key = ec.generate_private_key(
+                ec.SECP384R1(), default_backend())
+            csr = self.manager._create_csr()
+            response = self.manager._construct_response(challenge, csr)
+            # test no error
+            schedule_next_bootstrap_mock.reset_mock()
+            bootstrap_channel_mock.reset_mock()
+            bootstrap_channel_mock.side_effect = None
+            bootstrap_channel_mock.return_value = self.channel
+            await self.manager._request_sign(response)
+            schedule_next_bootstrap_mock.assert_not_called()
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.manager._loop.run_until_complete(test())
 
     @patch('%s.cert_utils.write_cert' % BM)
     @patch('%s.cert_utils.write_key' % BM)
-    @patch('%s.BootstrapManager._schedule_periodic_bootstrap_check' % BM)
-    @patch('%s.BootstrapManager._retry_bootstrap' % BM)
+    @patch('%s.BootstrapManager._schedule_next_bootstrap_check' % BM)
+    @patch('%s.BootstrapManager._schedule_next_bootstrap' % BM)
     def test__request_sign_done(self,
-                                retry_bootstrap_mock,
+                                schedule_next_bootstrap_mock,
                                 schedule_bootstrap_check_mock,
                                 write_key_mock,
                                 write_cert_mock):
         future = MagicMock()
 
         # RequestSign returns error
-        self.manager._request_sign_done(future)
-        retry_bootstrap_mock.assert_has_calls([call(hard_failure=False)])
+        self.manager._request_sign_done_fail(future.exception)
+        schedule_next_bootstrap_mock.assert_has_calls(
+            [call(hard_failure=False)]
+        )
 
         # certificate is invalid
-        retry_bootstrap_mock.reset_mock()
+        schedule_next_bootstrap_mock.reset_mock()
         future.exception = lambda: None
         not_before = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
         invalid_cert = create_cert_message(not_before=not_before)
-        future.result = lambda: invalid_cert
-        self.manager._request_sign_done(future)
-        retry_bootstrap_mock.assert_has_calls([call(hard_failure=True)])
+        self.manager._request_sign_done_success(invalid_cert)
+        schedule_next_bootstrap_mock.assert_has_calls(
+            [call(hard_failure=True)]
+        )
 
         # certificate is valid
-        retry_bootstrap_mock.reset_mock()
+        schedule_next_bootstrap_mock.reset_mock()
         valid_cert = create_cert_message()
-        future.result = lambda: valid_cert
-        self.manager._request_sign_done(future)
+        self.manager._request_sign_done_success(valid_cert)
         self.manager._bootstrap_success_cb.assert_has_calls([call(True)])
-        retry_bootstrap_mock.assert_not_called()
+        schedule_next_bootstrap_mock.assert_not_called()
         write_key_mock.assert_has_calls(
             [call(ANY, self.manager._gateway_key_file)])
         write_cert_mock.assert_has_calls(
@@ -315,7 +404,7 @@ class BootstrapManagerTest(TestCase):
 
         schedule_bootstrap_check_mock.assert_has_calls([call()])
 
-    def test__retry_bootstrap(self):
+    def test__schedule_next_bootstrap(self):
         self.manager._loop = MagicMock()
         self.manager.LONG_BOOTSTRAP_RETRY_INTERVAL = datetime.timedelta(
                 seconds=1)
@@ -323,25 +412,36 @@ class BootstrapManagerTest(TestCase):
                 seconds=0)
         self.manager._state = bm.BootstrapState.BOOTSTRAPPING
 
-        self.manager._retry_bootstrap(False)
-        self.manager._loop.call_later.assert_has_calls(
-            [call(0, self.manager._bootstrap_now)])
-        self.assertIs(self.manager._state, bm.BootstrapState.SCHEDULED)
+        self.manager._schedule_next_bootstrap(False)
+        self.assertAlmostEqual(
+            self.manager.delay,
+            self.manager.SHORT_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
+        )
+        self.assertIs(
+            self.manager._state,
+            bm.BootstrapState.SCHEDULED_BOOTSTRAP
+        )
 
         self.manager._state = bm.BootstrapState.BOOTSTRAPPING
-        self.manager._retry_bootstrap(True)
-        self.manager._loop.call_later.assert_has_calls(
-            [call(1, self.manager._bootstrap_now)])
-        self.assertIs(self.manager._state, bm.BootstrapState.SCHEDULED)
+        self.manager._schedule_next_bootstrap(True)
+        self.assertAlmostEqual(
+            self.manager.delay,
+            self.manager.LONG_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
+        )
+        self.assertIs(
+            self.manager._state,
+            bm.BootstrapState.SCHEDULED_BOOTSTRAP
+        )
 
-    def test__schedule_periodic_bootstrap_check(self):
+    def test__schedule_next_bootstrap_check(self):
         self.manager._loop = MagicMock()
         self.manager._state = bm.BootstrapState.BOOTSTRAPPING
-        self.manager._schedule_periodic_bootstrap_check()
-        self.manager._loop.call_later.assert_has_calls(
-            [call(self.manager.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds(),
-                  self.manager._bootstrap_check)])
-        self.assertIs(self.manager._state, bm.BootstrapState.SCHEDULED)
+        self.manager._schedule_next_bootstrap_check()
+        self.assertAlmostEqual(
+            self.manager.delay,
+            self.manager.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds()
+        )
+        self.assertIs(self.manager._state, bm.BootstrapState.SCHEDULED_CHECK)
 
     def test__create_csr(self):
         self.manager._gateway_key = ec.generate_private_key(
@@ -425,13 +525,22 @@ class BootstrapManagerTest(TestCase):
         mock_cert_is_invalid,
         mock_get_proxy_config,
     ):
+        asyncio.set_event_loop(self.manager._loop)
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+
         mock_get_proxy_config.return_value = {
             'cloud_address': self.host,
             'cloud_port': self.port,
             'gateway_cert': self.cert,
             'gateway_key': self.key,
         }
+
+        # set up bootstrap mock to return when awaited
         self.manager._bootstrap_now = MagicMock(name='_bootstrap_now')
+        future = asyncio.Future()
+        future.set_result(None)
+        self.manager._bootstrap_now.return_value = future
 
         future = self.manager.on_checkin_fail(grpc.StatusCode.UNKNOWN)
         self.manager._loop.run_until_complete(future)
@@ -440,6 +549,7 @@ class BootstrapManagerTest(TestCase):
             self.host, self.port, self.cert, self.key, self.manager._loop
         )
         self.assertEqual(self.manager._bootstrap_now.call_count, 1)
+        self.manager._bootstrap_now.assert_has_calls([call()])
 
     @patch('%s.ServiceRegistry.get_proxy_config' % BM)
     @patch('%s.cert_is_invalid' % BM, new_callable=AsyncMock)
@@ -448,6 +558,8 @@ class BootstrapManagerTest(TestCase):
         mock_cert_is_invalid,
         mock_get_proxy_config,
     ):
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
         mock_get_proxy_config.return_value = {
             'cloud_address': self.host,
             'cloud_port': self.port,
