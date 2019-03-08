@@ -33,6 +33,7 @@
 #include "msc.h"
 #include "mme_config.h"
 #include "daemonize.h"
+#include "shared_ts_log.h"
 
 #include "intertask_interface_init.h"
 

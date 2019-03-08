@@ -96,6 +96,7 @@ int sgw_config_parse_file(sgw_config_t *config_pP)
   bstring cidr = NULL;
   bstring mask = NULL;
   struct in_addr in_addr_var = {0};
+  (void) in_addr_var;
 
   config_init(&cfg);
 

@@ -49,6 +49,7 @@ extern int fd_g_debug_lvl;
 #include <stdbool.h>
 #include <pthread.h>
 #include "bstrlib.h"
+#include "msc.h"
 
 /* asn1c debug */
 extern int asn_debug;
@@ -236,6 +237,26 @@ typedef struct log_config_s {
     asn1_verbosity_level; /*!< \brief related to asn1c generated code for S1AP verbosity level */
   bool color; /*!< \brief use of ANSI styling codes or no */
 } log_config_t;
+
+inline void nop(int x, ...)
+{
+  (void) x;
+}
+
+inline void nopp(void *x, ...)
+{
+  (void) x;
+}
+
+#define NOP(...)                                                               \
+  do {                                                                         \
+    nop(__VA_ARGS__);                                                          \
+  } while (0)
+
+#define NOPP(...)                                                              \
+  do {                                                                         \
+    nopp(__VA_ARGS__);                                                         \
+  } while (0)
 
 #if LOG_OAI
 void log_configure(const log_config_t *const config);
@@ -433,32 +454,29 @@ void log_message(
 #endif
 #include "shared_ts_log.h"
 #else
-#define OAILOG_SPEC(...)
+#define OAILOG_SPEC(...) NOP(__VA_ARGS__)
 #define OAILOG_LOG_CONFIGURE(a)
 #define OAILOG_LEVEL_STR2INT(a) OAILOG_LEVEL_EMERGENCY
 #define OAILOG_LEVEL_INT2STR(a) "EMERGENCY"
 #define OAILOG_INIT(a, b, c) 0
 #define OAILOG_ITTI_CONNECT()
 #define OAILOG_EXIT()
-#define OAILOG_EMERGENCY(...)
-#define OAILOG_ALERT(...)
-#define OAILOG_CRITICAL(...)
-#define OAILOG_ERROR(...)
-#define OAILOG_WARNING(...)
-#define OAILOG_NOTICE(...)
-#define OAILOG_INFO(...)
-#define OAILOG_MESSAGE_START_SYNC(...)
-#define OAILOG_MESSAGE_START_ASYNC(...)
-#define OAILOG_MESSAGE_ADD_SYNC(...)
-#define OAILOG_MESSAGE_ADD_ASYNC(...)
-#define OAILOG_MESSAGE_FINISH(cOnTeXt)
+#define OAILOG_EMERGENCY(...) NOP(__VA_ARGS__)
+#define OAILOG_ALERT(...) NOP(__VA_ARGS__)
+#define OAILOG_CRITICAL(...) NOP(__VA_ARGS__)
+#define OAILOG_ERROR(...) NOP(__VA_ARGS__)
+#define OAILOG_WARNING(...) NOP(__VA_ARGS__)
+#define OAILOG_NOTICE(...) NOP(__VA_ARGS__)
+#define OAILOG_INFO(...) NOP(__VA_ARGS__)
+#define OAILOG_MESSAGE_START_SYNC(...) NOP(__VA_ARGS__)
+#define OAILOG_MESSAGE_START_ASYNC(...) NOP(__VA_ARGS__)
+#define OAILOG_MESSAGE_ADD_SYNC(...) NOPP(__VA_ARGS__)
+#define OAILOG_MESSAGE_ADD_ASYNC(...) NOPP(__VA_ARGS__)
+#define OAILOG_MESSAGE_FINISH(cOnTeXt) NOPP(cOnTeXt)
 #endif
 
 #if !defined(OAILOG_DEBUG)
-#define OAILOG_DEBUG(...)                                                      \
-  {                                                                            \
-    void;                                                                      \
-  }
+#define OAILOG_DEBUG(...) NOP(__VA_ARGS__)
 #endif
 #if !defined(OAILOG_TRACE)
 #define OAILOG_TRACE(pRoTo, ...) (void) (pRoTo)
@@ -482,10 +500,7 @@ void log_message(
   } while (0)
 #endif
 #if !defined(OAILOG_STREAM_HEX)
-#define OAILOG_STREAM_HEX(...)                                                 \
-  {                                                                            \
-    void;                                                                      \
-  }
+#define OAILOG_STREAM_HEX(...) NOP(__VA_ARGS__)
 #endif
 
 #if DAEMONIZE

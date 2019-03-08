@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -420,7 +420,7 @@ int nas_message_decode(
    * Decode the header
    */
   OAILOG_STREAM_HEX(
-    OAILOG_LEVEL_DEBUG, LOG_NAS, "Incoming NAS message: ", buffer, length)
+    OAILOG_LEVEL_DEBUG, LOG_NAS, "Incoming NAS message: ", buffer, length);
   if (emm_security_context) {
     status->security_context_available = 1;
   }
@@ -462,9 +462,9 @@ int nas_message_decode(
     msg->plain.emm.service_request.messagetype = SERVICE_REQUEST;
 
     if (emm_security_context == NULL) {
-      /* 
+      /*
        * This implies UE context is not present. Send Service Reject with Cause- "UE identity cannot be derived by the
-       * network" so that UE can do fresh attach 
+       * network" so that UE can do fresh attach
        */
       status->mac_matched = 0;
       OAILOG_FUNC_RETURN(LOG_NAS, size);
@@ -801,8 +801,8 @@ int nas_message_header_decode(
             /*
              * Current Scope - Service Request message that comes as Initial
              * NAS Message is supported. Note - Service reqeust message which is sent in connected mode
-             * due to CSFB comes ciphered as well and is not handled currently. 
-             * CSFB is not a critical feature from data only service pov and it is not supported. 
+             * due to CSFB comes ciphered as well and is not handled currently.
+             * CSFB is not a critical feature from data only service pov and it is not supported.
              */
 
             OAILOG_FUNC_RETURN(LOG_NAS, size);

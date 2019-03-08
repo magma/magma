@@ -267,7 +267,10 @@ int shared_log_init(const int max_threadsP)
   OAI_FPRINTF_INFO("Initializing shared logging\n");
   gettimeofday(&start_time, NULL);
   g_shared_log.log_start_time_second = start_time.tv_sec;
+
+#if LOG_OAI
   g_shared_log.logger_callback[SH_TS_LOG_TXT] = log_flush_message;
+#endif
 #if MESSAGE_CHART_GENERATOR
   g_shared_log.logger_callback[SH_TS_LOG_MSC] = msc_flush_message;
 #endif

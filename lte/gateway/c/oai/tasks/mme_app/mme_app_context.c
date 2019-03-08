@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/time.h>
 #include <pthread.h>
 
 #include "gcc_diag.h"
@@ -1296,7 +1297,7 @@ void mme_app_dump_protocol_configuration_options(
         LOG_MME_APP,
         "        Hex data: ",
         bdata(pco->protocol_or_container_ids[i].contents),
-        blength(pco->protocol_or_container_ids[i].contents))
+        blength(pco->protocol_or_container_ids[i].contents));
       i++;
     }
   }
