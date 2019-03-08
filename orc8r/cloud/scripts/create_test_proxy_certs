@@ -42,3 +42,12 @@ openssl req -new -key controller.key -out controller.csr \
       -subj "/C=US/CN=*.magma.test"
 openssl x509 -req -in controller.csr -CA rootCA.pem -CAkey rootCA.key \
       -CAcreateserial -out controller.crt -days 36400 -sha256
+
+if [ ! -f certifier.key ]; then
+  echo "#######################"
+  echo "Creating certifier CA.."
+  echo "#######################"
+  openssl genrsa -out certifier.key 2048
+  openssl req -x509 -new -nodes -key certifier.key -sha256 -days 365000 \
+        -out certifier.pem -subj "/C=US/CN=certifier.magma.test"
+fi
