@@ -11,8 +11,8 @@
       "express": "^4.16.3",
       "express-session": "^1.15.6",
       "helmet": "^3.13.0",
-      "webpack": "^4.25.1",
-      "webpack-dev-middleware": "^3.4.0",
+      "webpack": "^4.29.6",
+      "webpack-dev-middleware": "^3.6.1",
       "webpack-hot-middleware": "^2.24.3"
     }
   }

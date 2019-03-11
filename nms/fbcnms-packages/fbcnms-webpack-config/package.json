@@ -15,8 +15,9 @@
     "postcss-flexbugs-fixes": "3.2.0",
     "postcss-loader": "3.0.0",
     "style-loader": "^0.23.1",
+    "terser-webpack-plugin": "^1.2.3",
     "url-loader": "1.1.2",
-    "webpack": "^4.25.1",
+    "webpack": "^4.29.6",
     "webpack-bundle-analyzer": "^3.0.3"
   },
   "dependencies": {

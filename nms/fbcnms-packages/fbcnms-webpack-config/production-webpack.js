@@ -13,6 +13,7 @@ const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin;
 const ManifestPlugin = require('webpack-manifest-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 type Options = {
   projectName: string,
@@ -157,6 +158,17 @@ function createProductionWebpackConfig(options: Options) {
       new webpack.ContextReplacementPlugin(/moment[/\\]locale$/, /en/),
     ],
     optimization: {
+      minimizer: [
+        new TerserPlugin({
+          chunkFilter: chunk => {
+            if (chunk.name === 'vendor') {
+              return false;
+            }
+            return true;
+          },
+          parallel: true,
+        }),
+      ],
       splitChunks: {
         cacheGroups: {
           vendor: {

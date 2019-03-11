@@ -47,7 +47,7 @@
     "fbcnms-webpack-config": "^0.1.0",
     "identity-obj-proxy": "^3.0.0",
     "nodemon": "^1.17.4",
-    "react-hot-loader": "^4.6.3",
-    "webpack-cli": "^3.1.2"
+    "react-hot-loader": "^4.8.0",
+    "webpack-cli": "^3.2.3"
   }
 }

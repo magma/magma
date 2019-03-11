@@ -10,7 +10,7 @@ COPY fbcnms-projects/magmalte/package.json fbcnms-projects/magmalte/
 COPY fbcnms-packages fbcnms-packages
 
 # Install node dependencies
-RUN yarn install --frozen-lockfile && yarn cache clean
+RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
 
 # Build our static files
 COPY fbcnms-projects/magmalte fbcnms-projects/magmalte
