@@ -9,7 +9,7 @@
  */
 
 import {createMuiTheme} from '@material-ui/core/styles';
-import {sea100, sea200, sea300, white} from './colors';
+import {gray0, sea100, sea200, sea300, white} from './colors';
 
 export default createMuiTheme({
   palette: {
@@ -123,6 +123,9 @@ export default createMuiTheme({
         '&::-ms-input-placeholder': {
           opacity: 1,
         },
+      },
+      disabled: {
+        background: gray0,
       },
     },
   },
