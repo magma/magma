@@ -17,7 +17,10 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsResult,
     FlowResponse,
     RuleModResult,
-    ActivateFlowsRequest)
+    ActivateFlowsRequest,
+    AllTableAssignments,
+    TableAssignment,
+)
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -215,6 +218,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
         resp = FlowResponse()
         return resp
+
+    # --------------------------
+    # Debugging
+    # --------------------------
+
+    def GetAllTableAssignments(self, request, context):
+        """
+        Get the flow table assignment for all apps ordered by main table number
+        and name
+        """
+        table_assignments = self._service_manager.get_all_table_assignments()
+        return AllTableAssignments(table_assignments=[
+            TableAssignment(app_name=app_name, main_table=tables.main_table,
+                            scratch_tables=tables.scratch_tables) for
+            app_name, tables in table_assignments.items()])
+
 
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
