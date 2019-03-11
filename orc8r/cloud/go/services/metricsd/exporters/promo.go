@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	"sort"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -146,7 +147,10 @@ func (e *PrometheusExporter) registerMetric(metric *dto.Metric,
 // name. Name will be of form: family_name_label0Name_label0Value_label1Name...
 func makeRegisteredName(metric *dto.Metric, family *dto.MetricFamily, metricName string) string {
 	name := ""
-	for _, labelPair := range metric.GetLabel() {
+	labels := metric.GetLabel()
+	sort.Sort(ByName(labels))
+
+	for _, labelPair := range labels {
 		if labelPair.GetName() == SERVICE_LABEL_NAME || labelPair.GetName() == "serviceName" {
 			continue
 		}
