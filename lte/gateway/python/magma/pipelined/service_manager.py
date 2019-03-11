@@ -29,7 +29,7 @@ should not be accessible to apps from other services.
 # produces a parse error
 
 import asyncio
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from typing import List
 
 import aioeventlet
@@ -56,6 +56,16 @@ from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
 
 
+class Tables:
+    __slots__ = ['main_table', 'scratch_tables']
+
+    def __init__(self, main_table, scratch_tables=None):
+        self.main_table = main_table
+        self.scratch_tables = scratch_tables
+        if self.scratch_tables is None:
+            self.scratch_tables = []
+
+
 class TableNumException(Exception):
     """
     Exception used for when table number allocation fails.
@@ -76,19 +86,10 @@ class _TableManager:
     SCRATCH_TABLE_START_NUM = EGRESS_TABLE_NUM + 1  # 21
     SCRATCH_TABLE_LIMIT_NUM = 255  # exclusive
 
-    class Tables:
-        __slots__ = ['main_table', 'scratch_tables']
-
-        def __init__(self, main_table, scratch_tables=None):
-            self.main_table = main_table
-            self.scratch_tables = scratch_tables
-            if self.scratch_tables is None:
-                self.scratch_tables = []
-
     def __init__(self):
         self._tables_by_app = {
-            INGRESS: self.Tables(main_table=self.INGRESS_TABLE_NUM),
-            EGRESS: self.Tables(main_table=self.EGRESS_TABLE_NUM),
+            INGRESS: Tables(main_table=self.INGRESS_TABLE_NUM),
+            EGRESS: Tables(main_table=self.EGRESS_TABLE_NUM),
         }
 
         self._next_main_table = self.MAIN_TABLE_START_NUM
@@ -110,7 +111,7 @@ class _TableManager:
         """
         table_num = self._allocate_main_table()
         for app in app_names:
-            self._tables_by_app[app] = self.Tables(main_table=table_num)
+            self._tables_by_app[app] = Tables(main_table=table_num)
 
     def get_table_num(self, app_name: str) -> int:
         if app_name not in self._tables_by_app:
@@ -154,6 +155,10 @@ class _TableManager:
         if app_name not in self._tables_by_app:
             raise Exception('App is not registered: %s' % app_name)
         return self._tables_by_app[app_name].scratch_tables
+
+    def get_all_table_assignments(self) -> 'OrderedDict[str, Tables]':
+        return OrderedDict(sorted(self._tables_by_app.items(),
+                                  key=lambda kv: (kv[1].main_table, kv[0])))
 
 
 class ServiceManager:
@@ -364,3 +369,10 @@ class ServiceManager:
         Returns the scratch tables claimed by the given app.
         """
         return self._table_manager.get_scratch_table_nums(app_name)
+
+    def get_all_table_assignments(self):
+        """
+        Returns: OrderedDict of app name to tables mapping, ordered by main
+        table number, and app name.
+        """
+        return self._table_manager.get_all_table_assignments()

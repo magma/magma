@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import unittest
+from collections import OrderedDict
 from unittest.mock import MagicMock
 
 from magma.pipelined.app.access_control import AccessControlController
@@ -19,7 +20,11 @@ from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.app.meter_stats import MeterStatsController
-from magma.pipelined.service_manager import ServiceManager, TableNumException
+from magma.pipelined.service_manager import (
+    ServiceManager,
+    TableNumException,
+    Tables,
+)
 
 
 class ServiceManagerTest(unittest.TestCase):
@@ -31,8 +36,6 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock.config = {
             'static_services': ['arpd', 'access_control']
         }
-        # Hack since service manager is supposed to be a singleton.
-        ServiceManager._instance = None
         self.service_manager = ServiceManager(magma_service_mock)
 
     def test_get_table_num(self):
@@ -116,6 +119,36 @@ class ServiceManagerTest(unittest.TestCase):
             EnforcementController.APP_NAME), enforcement_scratch)
         self.assertEqual(self.service_manager.get_scratch_table_nums(
             MeterController.APP_NAME), [])
+
+    def test_get_all_table_assignments(self):
+        self.service_manager.allocate_scratch_tables(
+            EnforcementController.APP_NAME, 1)
+        self.service_manager.allocate_scratch_tables(
+            EnforcementStatsController.APP_NAME, 2)
+
+        result = self.service_manager.get_all_table_assignments()
+        expected = OrderedDict([
+            ('ingress', Tables(main_table=1, scratch_tables=[])),
+            ('arpd', Tables(main_table=2, scratch_tables=[])),
+            ('access_control', Tables(main_table=3, scratch_tables=[])),
+            ('enforcement', Tables(main_table=4, scratch_tables=[21])),
+            ('enforcement_stats',
+             Tables(main_table=4, scratch_tables=[22, 23])),
+            ('dpi', Tables(main_table=5, scratch_tables=[])),
+            ('meter', Tables(main_table=6, scratch_tables=[])),
+            ('meter_stats', Tables(main_table=6, scratch_tables=[])),
+            ('subscriber', Tables(main_table=6, scratch_tables=[])),
+            ('egress', Tables(main_table=20, scratch_tables=[])),
+        ])
+
+        self.assertEqual(len(result), len(expected))
+        for result_key, expected_key in zip(result, expected):
+            self.assertEqual(result_key, expected_key)
+            self.assertEqual(result[result_key].main_table,
+                             expected[expected_key].main_table)
+            self.assertEqual(result[result_key].scratch_tables,
+                             expected[expected_key].scratch_tables)
+
 
 if __name__ == "__main__":
     unittest.main()

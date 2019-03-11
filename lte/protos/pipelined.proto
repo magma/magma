@@ -67,6 +67,16 @@ message FlowRequest {
 message FlowResponse {
 }
 
+message TableAssignment {
+  string app_name = 1;
+  uint64 main_table = 2;
+  repeated uint64 scratch_tables = 3;
+}
+
+message AllTableAssignments {
+  repeated TableAssignment table_assignments = 1;
+}
+
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
@@ -76,28 +86,36 @@ service Pipelined {
   // -------------
 
   // Get subscriber metering flows
-  rpc GetSubscriberMeteringFlows(magma.orc8r.Void) returns (FlowTable) {}
+  rpc GetSubscriberMeteringFlows (magma.orc8r.Void) returns (FlowTable) {}
 
   // ----------------
   // Enforcement App:
   // ----------------
 
   // Activate flows for a subscriber based on predefined flow templates
-  rpc ActivateFlows(ActivateFlowsRequest) returns (ActivateFlowsResult) {}
+  rpc ActivateFlows (ActivateFlowsRequest) returns (ActivateFlowsResult) {}
 
   // Deactivate flows for a subscriber
-  rpc DeactivateFlows(DeactivateFlowsRequest) returns (DeactivateFlowsResult) {}
+  rpc DeactivateFlows (DeactivateFlowsRequest) returns (DeactivateFlowsResult) {}
 
   // Get policy usage stats
-  rpc GetPolicyUsage(magma.orc8r.Void) returns (RuleRecordTable) {}
+  rpc GetPolicyUsage (magma.orc8r.Void) returns (RuleRecordTable) {}
 
   // --------
   // DPI App:
   // --------
 
   // Add new dpi flow
-  rpc CreateFlow(FlowRequest) returns (FlowResponse) {};
+  rpc CreateFlow (FlowRequest) returns (FlowResponse) {};
 
   // Update flow stats
-  rpc UpdateFlowStats(FlowRequest) returns (FlowResponse) {};
+  rpc UpdateFlowStats (FlowRequest) returns (FlowResponse) {};
+
+  // --------
+  // Debugging:
+  // --------
+
+  // Get the flow table assignment for all apps ordered by main table number
+  // and name
+  rpc GetAllTableAssignments (magma.orc8r.Void) returns (AllTableAssignments);
 }

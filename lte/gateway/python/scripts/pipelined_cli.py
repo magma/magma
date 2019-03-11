@@ -170,6 +170,46 @@ def create_enforcement_parser(apps):
 
 
 # --------------------------
+# Debugging
+# --------------------------
+
+@grpc_wrapper
+def get_table_assignment(client, args):
+    response = client.GetAllTableAssignments(Void())
+    table_assignments = response.table_assignments
+    if args.apps:
+        app_filter = args.apps.split(',')
+        table_assignments = [table_assignment for table_assignment in
+                             table_assignments if
+                             table_assignment.app_name in app_filter]
+
+    table_template = '{:<25}{:<20}{:<25}'
+    print(table_template.format('App', 'Main Table', 'Scratch Tables'))
+    print('-' * 70)
+    for table_assignment in table_assignments:
+        print(table_template.format(
+            table_assignment.app_name,
+            table_assignment.main_table,
+            str([table for table in table_assignment.scratch_tables])))
+
+
+def create_debug_parser(apps):
+    """
+    Creates the argparse subparser for the debugging commands
+    """
+    app = apps.add_parser('debug')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    # Add subcommands
+    subcmd = subparsers.add_parser('table_assignment',
+                                   help='Get the table assignment for apps.')
+    subcmd.add_argument('--apps',
+                        help='Comma separated list of app names. If not set, '
+                             'all table assignments will be printed.')
+    subcmd.set_defaults(func=get_table_assignment)
+
+
+# --------------------------
 # Pipelined base CLI
 # --------------------------
 
@@ -183,6 +223,7 @@ def create_parser():
     apps = parser.add_subparsers(title='apps', dest='cmd')
     create_metering_parser(apps)
     create_enforcement_parser(apps)
+    create_debug_parser(apps)
     return parser
 
 
