@@ -15,6 +15,7 @@ import errno
 from pprint import pprint
 import subprocess
 
+import re
 from magma.common.rpc_utils import grpc_wrapper
 from magma.subscriberdb.sid import SIDUtils
 from magma.configuration.service_configs import load_service_config
@@ -108,19 +109,20 @@ def display_flows(_unused, args):
     try:
         flows = BridgeTools.get_flows_for_bridge(bridge_name, args.table_num)
     except subprocess.CalledProcessError as e:
-        if (e.returncode == errno.EPERM):
+        if e.returncode == errno.EPERM:
             print("Need to run as root to dump flows")
         return
 
     # Parse the flows and print it decoding note
     for flow in flows[1:]:
         flow = flow.replace('00', '').replace('.', '')
-        # If there is a note, decode it otherwise just print the flow
-        if 'note:' in flow:
-            prefix = flow.split('note:')
-            print(prefix[0] + "note:" + str(binascii.unhexlify(prefix[1])))
-        else:
-            print(flow)
+        # If there is a note, decode it.
+        note_regex = r'note:([\d\.a-fA-F]*)'
+        flow = re.sub(note_regex,
+                      lambda match: 'note:' + str(binascii.unhexlify(
+                          match.group().replace('note:', ''))),
+                      flow)
+        print(flow)
 
 
 @grpc_wrapper
