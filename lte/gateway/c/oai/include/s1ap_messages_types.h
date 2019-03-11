@@ -150,8 +150,8 @@ typedef enum s1ap_reset_type_e {
 } s1ap_reset_type_t;
 
 typedef struct s1_sig_conn_id_s {
-  mme_ue_s1ap_id_t *mme_ue_s1ap_id;
-  enb_ue_s1ap_id_t *enb_ue_s1ap_id;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
 } s1_sig_conn_id_t;
 
 typedef struct itti_s1ap_enb_initiated_reset_req_s {
