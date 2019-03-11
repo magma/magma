@@ -53,6 +53,7 @@
   },
   "scripts": {
     "eslint": "./node_modules/.bin/eslint --ignore-path .eslintignore",
+    "jest": "echo 'Dont run jest directly, use \"yarn run test\"' && exit 1",
     "test": "NODE_ENV=test jest"
   },
   "workspaces": [
