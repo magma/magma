@@ -80,12 +80,12 @@ def main():
     # This is called when bootstrap succeeds and when _bootstrap_check is
     # invoked but bootstrap is not needed. If it's invoked right after certs
     # are generated, certs_generated is true, control_proxy will restart.
-    def bootstrap_success_cb(certs_generated):
+    async def bootstrap_success_cb(certs_generated):
         nonlocal first_time_bootstrap
         if first_time_bootstrap:
             if stream_client:
                 stream_client.start()
-            checkin_manager.try_checkin()
+            await checkin_manager.try_checkin()
             if sync_rpc_client:
                 sync_rpc_client.start()
             first_time_bootstrap = False

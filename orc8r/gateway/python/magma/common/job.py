@@ -12,6 +12,7 @@ import logging
 import asyncio
 import time
 from typing import Optional, cast
+from contextlib import suppress
 
 
 class Job(abc.ABC):
@@ -24,41 +25,60 @@ class Job(abc.ABC):
     self._interval.
     """
 
-    def __init__(self, interval) -> None:
-        self._loop = asyncio.get_event_loop()
+    def __init__(self, interval, loop=None) -> None:
+        if loop is None:
+            self._loop = asyncio.get_event_loop()
+        else:
+            self._loop = loop
         self._task = cast(Optional[asyncio.Task], None)
         self._interval = interval  # in seconds
         self._last_run = cast(Optional[float], None)
+        self._timeout = cast(Optional[float], None)
 
     @abc.abstractmethod
-    def run(self):
+    def _run(self):
         """
         Once implemented by a subclass, this function will contain the actual
         work of this Job.
         """
         pass
 
-    async def start(self) -> None:
+    def start(self) -> None:
         if self._task is None:
             self._task = self._loop.create_task(self._periodic())
 
-    async def stop(self) -> None:
+    def stop(self) -> None:
         if self._task is not None:
             self._task.cancel()
+            with suppress(asyncio.CancelledError):
+                # Await task to execute it's cancellation
+                self._loop.run_until_complete(self._task)
             self._task = None
+
+    def set_timeout(self, timeout: float) -> None:
+        self._timeout = timeout
 
     def set_interval(self, interval: int) -> None:
         self._interval = interval
 
-    def _heartbeat(self) -> None:
+    def heartbeat(self) -> None:
         # record time to keep track of iteration length
         self._last_run = time.time()
 
+    def not_completed(self, current_time: float) -> bool:
+        last_time = self._last_run
+
+        if last_time is None:
+            return True
+        if last_time < current_time - (self._timeout or 120):
+            return True
+        return False
+
     async def _periodic(self) -> None:
         while True:
+            self.heartbeat()
             try:
-                self._heartbeat()
-                self.run()
+                await self._run()
             except Exception as exp:  # pylint: disable=broad-except
-                logging.error("Error getting service status: %s", exp)
+                logging.error("Exception from _run: %s", exp)
             await asyncio.sleep(self._interval)

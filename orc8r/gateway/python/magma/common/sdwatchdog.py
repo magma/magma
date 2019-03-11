@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+# pylint: disable=W0223
 
 import asyncio
 import logging
@@ -13,49 +14,12 @@ import os
 import systemd.daemon
 import time
 
+from magma.common.job import Job
 from typing import List, Optional, Set, cast
 
 
-class SDWatchdogTask(object):
-    """
-    This is a base class that provides functions for a specific task to ensure
-    regular completion of the loop.
-
-    A coroutine would be implemented such that the loop will regularly call
-    self.SetSDWatchdogAlive() on each iteration to mark this task as correctly
-    running, such that SDWatchdog will check each loop to ensure the task
-    continues to run.
-
-    Use SetSDWatchdogTimeout() to specify MAX period of each loop iteration.
-    """
-
-    def __init__(self) -> None:
-        """
-        Classes that implement SDWatchdogTask must call
-        super().__init__()
-        in its __init__()
-        """
-
-        self._sdwatchdog = {
-            # time.time() of last completed loop, track for watchdogging
-            "time_last_completed_loop": cast(Optional[float], None),
-            "timeout": 120,
-        }
-
-    def SetSDWatchdogTimeout(self, timeout: float) -> None:
-        self._sdwatchdog["timeout"] = timeout
-
-    def SetSDWatchdogAlive(self) -> None:
-        self._sdwatchdog["time_last_completed_loop"] = time.time()
-
-    def notCompleted(self, current_time: float) -> bool:
-        last_time = self._sdwatchdog["time_last_completed_loop"]
-
-        if last_time is None:
-            return True
-        if last_time < current_time - (self._sdwatchdog["timeout"] or 120):
-            return True
-        return False
+class SDWatchdogTask(Job):
+    pass
 
 
 class SDWatchdog(object):
@@ -111,7 +75,7 @@ class SDWatchdog(object):
             current_time = time.time()
             anyStuck = False
             for task in self.tasks:
-                if task.notCompleted(current_time):
+                if task.not_completed(current_time):
                     errmsg = "SDWatchdog service '%s' has not completed %s" % (
                         repr(task), time.asctime(time.gmtime(current_time)))
                     if self.update_status:

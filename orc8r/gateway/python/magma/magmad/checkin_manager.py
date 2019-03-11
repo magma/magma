@@ -34,13 +34,13 @@ class CheckinManager(SDWatchdogTask):
     """
 
     def __init__(self, service, service_poller):
-        super().__init__()  # runs SDWatchdogTask.__init__()
+        super().__init__(
+            max(5, service.mconfig.checkin_interval),
+            service.loop
+        )
 
-        self._loop = service.loop
         self._service = service
         self._service_poller = service_poller
-
-        self.delay = max(5, service.mconfig.checkin_interval)
 
         # Number of consecutive failed checkins before we check for an outdated
         # cert
@@ -61,27 +61,24 @@ class CheckinManager(SDWatchdogTask):
         self._kernel_version = platform.uname().release
 
         self._kernel_versions_installed = []
-        self._periodically_check_kernel_versions = False
-        if service.config.get('enable_kernel_version_checking', False):
-            self._periodically_check_kernel_versions = True
-
+        self._periodically_check_kernel_versions = \
+            service.config.get('enable_kernel_version_checking', False)
         # set initial checkin timeout to "large" since no checkins occur until
         #   bootstrap succeeds.
-        self.SetSDWatchdogTimeout(60 * 60 * 2)
+        self.set_timeout(60 * 60 * 2)
         # initially set task as alive to wait for bootstrap, where try_checkin()
         #   will recheck alive status
-        self.SetSDWatchdogAlive()
+        self.heartbeat()
 
         # Start try_checkin loop
-        self._task = asyncio.ensure_future(self._run(), loop=self._loop)
+        self.start()
 
-    def try_checkin(self):
+    async def try_checkin(self):
         """
         Attempt to check in. Continue to schedule future checkins
 
         Uses self.num_skipped_checkins to track skipped checkins
         """
-        mconfig = self._service.mconfig
         config = self._service.config
 
         # specifies number of checkin iterations that can have an empty/missing
@@ -114,31 +111,22 @@ class CheckinManager(SDWatchdogTask):
                 else:
                     self.num_skipped_checkins += 1
                     return
-
-            asyncio.ensure_future(
-                self._checkin(service_statusmeta),
-                loop=self._loop
-            )
+            await self._checkin(service_statusmeta)
 
         finally:
-            # always schedule the next checkin, don't allow interval < 5 sec
-            self.delay = max(5, mconfig.checkin_interval)
-
-            # flag to ensure the loop is still running, successfully or not
-            self.SetSDWatchdogAlive()
             # reset checkin timeout to config plus buffer
-            self.SetSDWatchdogTimeout(self.delay * 2)
+            self.set_timeout(self._interval * 2)
 
     def set_failure_cb(self, checkin_failure_cb):
         self._checkin_failure_cb = checkin_failure_cb
 
     async def _run(self):
-        while True:
-            mconfig = self._service.mconfig
-            self.try_checkin()
-            if self._periodically_check_kernel_versions:
-                await self._check_kernel_versions()
-            await asyncio.sleep(max(mconfig.checkin_interval, 5))
+        """
+        This functions gets run in a loop in job.py
+        """
+        if self._periodically_check_kernel_versions:
+            await self._check_kernel_versions()
+        await self.try_checkin()
 
     async def _checkin(self, service_statusmeta):
         """
