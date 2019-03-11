@@ -8,12 +8,10 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 # pylint: disable=broad-except
 
-import asyncio
 import datetime
 import enum
 import logging
 
-from contextlib import suppress
 import grpc
 import os
 import snowflake
@@ -68,54 +66,45 @@ class BootstrapManager(SDWatchdogTask):
     LONG_BOOTSTRAP_RETRY_INTERVAL = datetime.timedelta(minutes=1)
 
     def __init__(self, service, bootstrap_success_cb):
-        super().__init__()  # runs SDWatchdogTask.__init__()
+        super().__init__(
+            self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds(),
+            service.loop
+        )
 
         control_proxy_config = load_service_config('control_proxy')
 
-        self._loop = service.loop
         self._challenge_key_file \
             = service.config['bootstrap_config']['challenge_key']
         self._hw_id = snowflake.snowflake()
         self._gateway_key_file = control_proxy_config['gateway_key']
         self._gateway_cert_file = control_proxy_config['gateway_cert']
         self._gateway_key = None
-        self._task = None
         self._state = BootstrapState.INITIAL
         self._bootstrap_success_cb = bootstrap_success_cb
 
         # give some margin on watchdog check interval
-        self.SetSDWatchdogTimeout(
-            self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds() * 1.1)
-        self.delay = 5
+        self.set_timeout(self._interval * 1.1)
 
     def start_bootstrap_manager(self):
-        self._task = asyncio.ensure_future(self._run(), loop=self._loop)
+        self.start()
         self._maybe_create_challenge_key()
 
     def stop_bootstrap_manager(self):
-        self._task.cancel()
-        with suppress(asyncio.CancelledError):
-            # Await task to execute it's cancellation
-            self._loop.run_until_complete(self._task)
+        self._state = BootstrapState.IDLE
+        self.stop()
 
     async def _run(self):
-        """
-        Loops with intermediate delays to perform periodic bootstrap checks
-        and bootstrap retries
-        """
-        while True:
-            if self._state == BootstrapState.INITIAL:
-                await self._bootstrap_check()
-            elif self._state == BootstrapState.BOOTSTRAPPING:
-                pass
-            elif self._state == BootstrapState.SCHEDULED_BOOTSTRAP:
-                await self._bootstrap_now()
-            elif self._state == BootstrapState.SCHEDULED_CHECK:
-                await self._bootstrap_now()
-            elif self._state == BootstrapState.IDLE:
-                pass
+        if self._state == BootstrapState.INITIAL:
+            await self._bootstrap_check()
+        elif self._state == BootstrapState.BOOTSTRAPPING:
+            pass
+        elif self._state == BootstrapState.SCHEDULED_BOOTSTRAP:
+            await self._bootstrap_now()
+        elif self._state == BootstrapState.SCHEDULED_CHECK:
+            await self._bootstrap_now()
+        elif self._state == BootstrapState.IDLE:
+            pass
 
-            await asyncio.sleep(self.delay)
 
     async def on_checkin_fail(self, err_code):
         """Checks for invalid certificate as cause for checkin failures"""
@@ -173,7 +162,7 @@ class BootstrapManager(SDWatchdogTask):
         Otherwise _bootstrap_now will be called immediately
         """
         # flag to ensure the loop is still running, successfully or not
-        self.SetSDWatchdogAlive()
+        self.heartbeat()
 
         try:
             cert = cert_utils.load_cert(self._gateway_cert_file)
@@ -187,14 +176,16 @@ class BootstrapManager(SDWatchdogTask):
             logging.info(
                 'Certificate is expiring soon at %s, start bootstrapping',
                 cert.not_valid_after)
-            return await self._bootstrap_now()
+            await self._bootstrap_now()
+            return
         if now < cert.not_valid_before:
             logging.error(
                 'Certificate is not valid until %s', cert.not_valid_before)
-            return await self._bootstrap_now()
+            await self._bootstrap_now()
+            return
 
         # no need to restart control_proxy
-        self._bootstrap_success_cb(False)
+        await self._bootstrap_success_cb(False)
         self._schedule_next_bootstrap_check()
 
     async def _bootstrap_now(self):
@@ -285,17 +276,16 @@ class BootstrapManager(SDWatchdogTask):
                 client.RequestSign.future(response),
                 self._loop
             )
-            self._request_sign_done_success(result)
+            await self._request_sign_done_success(result)
 
         except grpc.RpcError as err:
             self._request_sign_done_fail(err)
 
-    def _request_sign_done_success(self, cert):
+    async def _request_sign_done_success(self, cert):
         if not self._is_valid_certificate(cert):
             BOOTSTRAP_EXCEPTION.labels(cause='RequestSignDoneInvalidCert').inc()
             self._schedule_next_bootstrap(hard_failure=True)
             return
-
         try:
             cert_utils.write_key(self._gateway_key, self._gateway_key_file)
             cert_utils.write_cert(cert.cert_der, self._gateway_cert_file)
@@ -304,7 +294,7 @@ class BootstrapManager(SDWatchdogTask):
             logging.error('Failed to write cert: %s', exp)
 
         # need to restart control_proxy
-        self._bootstrap_success_cb(True)
+        await self._bootstrap_success_cb(True)
         self._gateway_key = None
         self._schedule_next_bootstrap_check()
         logging.info("Bootstrapped Successfully!")
@@ -322,18 +312,19 @@ class BootstrapManager(SDWatchdogTask):
             hard_failure: bool. If set, the time to next retry will be longer
         """
         if hard_failure:
-            delay = self.LONG_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
+            interval = self.LONG_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
         else:
-            delay = self.SHORT_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
-        logging.info('Retrying bootstrap in %d seconds', delay)
-        self.delay = delay
+            interval = self.SHORT_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
+        logging.info('Retrying bootstrap in %d seconds', interval)
+        self.set_interval(interval)
         self._state = BootstrapState.SCHEDULED_BOOTSTRAP
 
     def _schedule_next_bootstrap_check(self):
         """Schedule a bootstrap_check"""
-        self.delay = self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds()
+        self.set_interval(
+            self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds()
+        )
         self._state = BootstrapState.SCHEDULED_CHECK
-
 
     def _create_csr(self):
         """Create CSR protobuf

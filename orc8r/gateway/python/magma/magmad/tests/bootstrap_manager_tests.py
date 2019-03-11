@@ -44,6 +44,12 @@ def AsyncMock():
     return corofunc
 
 
+def make_awaitable(func):
+    future = asyncio.Future()
+    future.set_result(None)
+    func.return_value = future
+
+
 class DummpyBootstrapperServer(bootstrapper_pb2_grpc.BootstrapperServicer):
     def __init__(self):
         pass
@@ -160,10 +166,8 @@ class BootstrapManagerTest(TestCase):
                               bootstrap_now_mock,
                               load_cert_mock):
         async def test():
-            # set up bootstrap mock to return when awaited
-            future = asyncio.Future()
-            future.set_result(None)
-            self.manager._bootstrap_now.return_value = future
+            make_awaitable(self.manager._bootstrap_now)
+            make_awaitable(self.manager._bootstrap_success_cb)
 
             # cannot load cert
             load_cert_mock.side_effect = IOError
@@ -214,6 +218,7 @@ class BootstrapManagerTest(TestCase):
             self.manager._loop.stop()
 
         async def test():
+            make_awaitable(self.manager._bootstrap_success_cb)
             bootstrap_channel_mock.return_value = self.channel
             schedule_mock.side_effect = fake_schedule
 
@@ -298,9 +303,8 @@ class BootstrapManagerTest(TestCase):
                 challenge=b'simple_challenge',
                 key_type=ChallengeKey.ECHO
             )
-            # Make request_sign to return immediately with None
-            request_sign_mock.return_value = asyncio.Future()
-            request_sign_mock.return_value.set_result(None)
+
+            make_awaitable(request_sign_mock)
 
             await self.manager._get_challenge_done_success(future.result())
             schedule_next_bootstrap_mock.assert_not_called()
@@ -358,6 +362,7 @@ class BootstrapManagerTest(TestCase):
             bootstrap_channel_mock.reset_mock()
             bootstrap_channel_mock.side_effect = None
             bootstrap_channel_mock.return_value = self.channel
+            make_awaitable(self.manager._bootstrap_success_cb)
             await self.manager._request_sign(response)
             schedule_next_bootstrap_mock.assert_not_called()
         # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
@@ -373,36 +378,39 @@ class BootstrapManagerTest(TestCase):
                                 schedule_bootstrap_check_mock,
                                 write_key_mock,
                                 write_cert_mock):
-        future = MagicMock()
+        async def test():
+            future = MagicMock()
 
-        # RequestSign returns error
-        self.manager._request_sign_done_fail(future.exception)
-        schedule_next_bootstrap_mock.assert_has_calls(
-            [call(hard_failure=False)]
-        )
+            # RequestSign returns error
+            self.manager._request_sign_done_fail(future.exception)
+            schedule_next_bootstrap_mock.assert_has_calls(
+                [call(hard_failure=False)]
+            )
+            # certificate is invalid
+            schedule_next_bootstrap_mock.reset_mock()
+            not_before = \
+                datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+            invalid_cert = create_cert_message(not_before=not_before)
+            await self.manager._request_sign_done_success(invalid_cert)
+            schedule_next_bootstrap_mock.assert_has_calls(
+                [call(hard_failure=True)]
+            )
+            # certificate is valid
+            schedule_next_bootstrap_mock.reset_mock()
+            make_awaitable(self.manager._bootstrap_success_cb)
+            valid_cert = create_cert_message()
+            await self.manager._request_sign_done_success(valid_cert)
+            self.manager._bootstrap_success_cb.assert_has_calls([call(True)])
+            schedule_next_bootstrap_mock.assert_not_called()
+            write_key_mock.assert_has_calls(
+                [call(ANY, self.manager._gateway_key_file)])
+            write_cert_mock.assert_has_calls(
+                [call(ANY, self.manager._gateway_cert_file)])
 
-        # certificate is invalid
-        schedule_next_bootstrap_mock.reset_mock()
-        future.exception = lambda: None
-        not_before = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-        invalid_cert = create_cert_message(not_before=not_before)
-        self.manager._request_sign_done_success(invalid_cert)
-        schedule_next_bootstrap_mock.assert_has_calls(
-            [call(hard_failure=True)]
-        )
-
-        # certificate is valid
-        schedule_next_bootstrap_mock.reset_mock()
-        valid_cert = create_cert_message()
-        self.manager._request_sign_done_success(valid_cert)
-        self.manager._bootstrap_success_cb.assert_has_calls([call(True)])
-        schedule_next_bootstrap_mock.assert_not_called()
-        write_key_mock.assert_has_calls(
-            [call(ANY, self.manager._gateway_key_file)])
-        write_cert_mock.assert_has_calls(
-            [call(ANY, self.manager._gateway_cert_file)])
-
-        schedule_bootstrap_check_mock.assert_has_calls([call()])
+            schedule_bootstrap_check_mock.assert_has_calls([call()])
+        # Cancel the loop so that there's no periodic bootstrap/bootstrap_check
+        self.manager._task.cancel()
+        self.manager._loop.run_until_complete(test())
 
     def test__schedule_next_bootstrap(self):
         self.manager._loop = MagicMock()
@@ -414,7 +422,7 @@ class BootstrapManagerTest(TestCase):
 
         self.manager._schedule_next_bootstrap(False)
         self.assertAlmostEqual(
-            self.manager.delay,
+            self.manager._interval,
             self.manager.SHORT_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
         )
         self.assertIs(
@@ -425,7 +433,7 @@ class BootstrapManagerTest(TestCase):
         self.manager._state = bm.BootstrapState.BOOTSTRAPPING
         self.manager._schedule_next_bootstrap(True)
         self.assertAlmostEqual(
-            self.manager.delay,
+            self.manager._interval,
             self.manager.LONG_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
         )
         self.assertIs(
@@ -438,7 +446,7 @@ class BootstrapManagerTest(TestCase):
         self.manager._state = bm.BootstrapState.BOOTSTRAPPING
         self.manager._schedule_next_bootstrap_check()
         self.assertAlmostEqual(
-            self.manager.delay,
+            self.manager._interval,
             self.manager.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds()
         )
         self.assertIs(self.manager._state, bm.BootstrapState.SCHEDULED_CHECK)
