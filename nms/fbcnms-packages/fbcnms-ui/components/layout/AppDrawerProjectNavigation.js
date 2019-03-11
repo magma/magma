@@ -19,6 +19,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../hooks';
 
 export type ProjectLink = {
+  id: string,
   name: string,
   secondary: string,
   url: string,
