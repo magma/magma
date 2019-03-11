@@ -269,7 +269,7 @@ int decode_attach_request(
         if (
           (decoded_result = decode_supported_codec_list(
              &attach_request->supportedcodecs,
-             true,
+             ATTACH_REQUEST_SUPPORTED_CODECS_IEI,
              buffer + decoded,
              len - decoded)) <= 0) {
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
