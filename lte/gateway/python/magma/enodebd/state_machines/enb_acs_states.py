@@ -796,6 +796,24 @@ class WaitSetParameterValuesState(EnodebAcsState):
         return 'Setting parameter values'
 
 
+class EndSessionState(EnodebAcsState):
+    """ To end a TR-069 session, send an empty HTTP response """
+    def __init__(self, acs: EnodebAcsStateMachine):
+        super().__init__()
+        self.acs = acs
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        return AcsReadMsgResult(False, None)
+
+    def get_msg(self) -> AcsMsgAndTransition:
+        request = models.DummyInput()
+        return AcsMsgAndTransition(request, None)
+
+    @classmethod
+    def state_description(cls) -> str:
+        return 'Completed provisioning eNB. Awaiting new Inform.'
+
+
 class SendRebootState(EnodebAcsState):
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
