@@ -24,10 +24,14 @@ type LteSubscription struct {
 
 	// auth key
 	// Required: true
+	// Max Length: 16
+	// Min Length: 16
 	// Format: byte
 	AuthKey *strfmt.Base64 `json:"auth_key"`
 
 	// auth opc
+	// Max Length: 16
+	// Min Length: 16
 	// Format: byte
 	AuthOpc *strfmt.Base64 `json:"auth_opc,omitempty"`
 
@@ -108,6 +112,14 @@ func (m *LteSubscription) validateAuthKey(formats strfmt.Registry) error {
 		return err
 	}
 
+	if err := validate.MinLength("auth_key", "body", string(*m.AuthKey), 16); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("auth_key", "body", string(*m.AuthKey), 16); err != nil {
+		return err
+	}
+
 	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
@@ -117,6 +129,14 @@ func (m *LteSubscription) validateAuthOpc(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.AuthOpc) { // not required
 		return nil
+	}
+
+	if err := validate.MinLength("auth_opc", "body", string(*m.AuthOpc), 16); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("auth_opc", "body", string(*m.AuthOpc), 16); err != nil {
+		return err
 	}
 
 	// Format "byte" (base64 string) is already validated when unmarshalled
