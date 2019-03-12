@@ -99,6 +99,22 @@ class BaicellsHandlerTests(TestCase):
         resp = acs_state_machine.handle_tr069_message(req)
         self.assertTrue(isinstance(resp, models.GetParameterValues),
                         'State machine should be requesting param values')
+
+        # If a different eNB is suddenly plugged in, or the same eNB sends a
+        # new Inform, enodebd should be able to handle it.
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = self._get_inform()
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # Send an empty http request to kick off the rest of provisioning
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for an optional parameter, three times
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
         return
 
     def _get_mconfig(self) -> mconfigs_pb2.EnodebD:
