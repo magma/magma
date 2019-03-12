@@ -1,4 +1,4 @@
-.PHONY: all build fmt test clean run install build_only gen precommit
+.PHONY: all build download fmt test clean run install build_only gen precommit
 
 ifndef MAGMA_ROOT
 MAGMA_ROOT = /home/$USER/magma
@@ -8,6 +8,9 @@ export MAGMA_ROOT
 all: fmt test vet install
 
 build: install
+
+download:
+	go mod download
 
 install:
 	go install ./...

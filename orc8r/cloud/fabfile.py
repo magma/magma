@@ -186,4 +186,7 @@ def cloud_test(cloud=None, datastore=None, destroy_vm="True"):
         (env.user, _, _) = split_hoststring(cloud)
 
     with cd('~/magma/orc8r/cloud'):
+        # Retry golang dependency fetching 3 times to be resilient to network
+        # flapping
+        run('make download || make download || make download')
         run('make cover')
