@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from typing import Optional, Callable, Any, Dict, List, Type
+from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import TrParam, DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName, \
     TrParameterType
@@ -20,26 +21,34 @@ from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import \
-    BaicellsDisconnectedState, SendGetTransientParametersState, \
+    WaitInformState, SendGetTransientParametersState, \
     WaitGetTransientParametersState, GetParametersState, \
     WaitGetParametersState, GetObjectParametersState, \
     WaitGetObjectParametersState, DeleteObjectsState, AddObjectsState, \
     SetParameterValuesState, WaitSetParameterValuesState, SendRebootState, \
     WaitRebootResponseState, WaitInformMRebootState, EnodebAcsState, \
-    UnexpectedInformState, CheckOptionalParamsState, WaitEmptyMessageState, \
-    ErrorState
+    CheckOptionalParamsState, WaitEmptyMessageState, ErrorState
+from magma.enodebd.stats_manager import StatsManager
 
 
 class BaicellsOldHandler(BasicEnodebAcsStateMachine):
+    def __init__(
+            self,
+            service: MagmaService,
+            stats_mgr: StatsManager,
+    ) -> None:
+        self._state_map = {}
+        super().__init__(service, stats_mgr)
+
     def reboot_asap(self) -> None:
         self.transition('reboot')
 
     def is_enodeb_connected(self) -> bool:
-        return not isinstance(self.state, BaicellsDisconnectedState)
+        return not isinstance(self.state, WaitInformState)
 
     def _init_state_map(self) -> None:
         self._state_map = {
-            'disconnected': BaicellsDisconnectedState(self, when_done='wait_empty'),
+            'wait_inform': WaitInformState(self, when_done='wait_empty'),
             'wait_empty': WaitEmptyMessageState(self, when_done='check_optional_params'),
             'check_optional_params': CheckOptionalParamsState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
@@ -57,11 +66,10 @@ class BaicellsOldHandler(BasicEnodebAcsStateMachine):
             # The state below are only entered with manual user intervention.
             'reboot': SendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
-            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty_after_reboot', when_timeout='disconnected'),
+            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty_after_reboot', when_timeout='wait_inform'),
             'wait_empty_after_reboot': WaitEmptyMessageState(self, when_done='get_transient_params'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),
             'unexpected_fault': ErrorState(self),
         }
 
@@ -83,11 +91,7 @@ class BaicellsOldHandler(BasicEnodebAcsStateMachine):
 
     @property
     def disconnected_state_name(self) -> str:
-        return 'disconnected'
-
-    @property
-    def unexpected_inform_state_name(self) -> str:
-        return 'unexpected_inform'
+        return 'wait_inform'
 
     @property
     def unexpected_fault_state_name(self) -> str:
