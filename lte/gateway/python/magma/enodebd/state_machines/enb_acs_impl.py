@@ -56,25 +56,16 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
             stats_mgr: StatsManager,
     ) -> None:
         super().__init__()
-        self.service = service
-        self.stats_manager = stats_mgr
-        self.data_model = self.data_model_class()
-        # The current known device config has few known parameters
-        self.device_cfg = EnodebConfiguration(self.data_model)
-        # The desired configuration depends on what the current configuration
-        # is. This we don't know fully, yet.
-        self.desired_cfg = None
+        self.state = None
         self.timeout_handler = None
         self.mme_timeout_handler = None
         self.mme_timer = None
-
-        self._init_state_map()
-        self.state = self.state_map[self.disconnected_state_name]
-        self.state.enter()
-        self._reset_timeout()
-        self._periodic_check_mme_connection()
+        self._start_state_machine(service, stats_mgr)
 
     def get_state(self) -> str:
+        if self.state is None:
+            logging.warning('ACS State machine is not in any state.')
+            return 'N/A'
         return self.state.state_description()
 
     def handle_tr069_message(
@@ -102,10 +93,47 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         self.state.enter()
 
     def stop_state_machine(self) -> None:
+        """ Clean up anything the state machine is tracking or doing """
         self.state.exit()
         if self.timeout_handler is not None:
             self.mme_timeout_handler.cancel()
             self.timeout_handler.cancel()
+        self._service = None
+        self._stats_manager = None
+        self._desired_cfg = None
+        self._device_cfg = None
+        self._data_model = None
+
+        self.timeout_handler = None
+        self.mme_timeout_handler = None
+        self.mme_timer = None
+
+    def _start_state_machine(
+            self,
+            service: MagmaService,
+            stats_mgr: StatsManager,
+    ):
+        self.service = service
+        self.stats_manager = stats_mgr
+        self.data_model = self.data_model_class()
+        # The current known device config has few known parameters
+        # The desired configuration depends on what the current configuration
+        # is. This we don't know fully, yet.
+        self.device_cfg = EnodebConfiguration(self.data_model)
+
+        self._init_state_map()
+        self.state = self.state_map[self.disconnected_state_name]
+        self.state.enter()
+        self._reset_timeout()
+        self._periodic_check_mme_connection()
+
+    def _reset_state_machine(
+        self,
+        service: MagmaService,
+        stats_mgr: StatsManager,
+    ):
+        self.stop_state_machine()
+        self._start_state_machine(service, stats_mgr)
 
     def _read_tr069_msg(self, message: Any) -> None:
         """ Process incoming message and maybe transition state """
@@ -135,7 +163,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         if isinstance(message, models.Inform):
             logging.debug('ACS in (%s) state. Received an Inform message',
                           self.state.state_description())
-            self.transition(self.unexpected_inform_state_name)
+            self._reset_state_machine(self.service, self.stats_manager)
         elif isinstance(message, models.Fault):
             logging.debug('ACS in (%s) state. Received a Fault <%s>',
                           self.state.state_description(), message.FaultString)
@@ -215,12 +243,6 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
     @property
     @abstractmethod
     def disconnected_state_name(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def unexpected_inform_state_name(self) -> str:
-        """ State to handle unexpected Inform messages """
         pass
 
     @property
