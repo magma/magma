@@ -89,10 +89,15 @@ class EnodebAcsState(ABC):
         pass
 
 
-class DisconnectedState(EnodebAcsState):
+class WaitInformState(EnodebAcsState):
     """
     This state indicates that no Inform message has been received yet, or
     that no Inform message has been received for a long time.
+
+    This state is used to handle an Inform message that arrived when enodebd
+    already believes that the eNB is connected. As such, it is unclear to
+    enodebd whether the eNB is just sending another Inform, or if a different
+    eNB was plugged into the same interface.
     """
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
@@ -112,78 +117,6 @@ class DisconnectedState(EnodebAcsState):
 
     def get_msg(self) -> AcsMsgAndTransition:
         """ Reply with InformResponse """
-        response = models.InformResponse()
-        # Set maxEnvelopes to 1, as per TR-069 spec
-        response.MaxEnvelopes = 1
-        return AcsMsgAndTransition(response, self.done_transition)
-
-    @classmethod
-    def state_description(cls) -> str:
-        return 'Disconnected'
-
-
-class UnexpectedInformState(EnodebAcsState):
-    """
-    This state indicates that no Inform message has been received yet, or
-    that no Inform message has been received for a long time.
-    """
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
-        super().__init__()
-        self.acs = acs
-        self.done_transition = when_done
-
-    def read_msg(self, message: Any) -> AcsReadMsgResult:
-        """
-        Args:
-            message: models.Inform Tr069 Inform message
-        """
-        if not isinstance(message, models.Inform):
-            return AcsReadMsgResult(False, None)
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
-        return AcsReadMsgResult(True, None)
-
-    def get_msg(self) -> AcsMsgAndTransition:
-        """ Reply with InformResponse """
-        response = models.InformResponse()
-        # Set maxEnvelopes to 1, as per TR-069 spec
-        response.MaxEnvelopes = 1
-        return AcsMsgAndTransition(response, self.done_transition)
-
-    @classmethod
-    def state_description(cls) -> str:
-        return 'Awaiting Inform during provisioning'
-
-
-class BaicellsDisconnectedState(EnodebAcsState):
-    """
-    This state is to handle a Baicells eNodeB issue.
-
-    After eNodeB is rebooted, hold off configuring it for some time to give
-    time for REM to run. This is a BaiCells eNodeB issue that doesn't support
-    enabling the eNodeB during initial REM.
-    """
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
-        super().__init__()
-        self.acs = acs
-        self.done_transition = when_done
-
-    def read_msg(self, message: Any) -> AcsReadMsgResult:
-        """
-        Args:
-            message: models.Inform Tr069 Inform message
-        Returns:
-            InformResponse
-        """
-        if not isinstance(message, models.Inform):
-            return AcsReadMsgResult(False, None)
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
-
-        return AcsReadMsgResult(True, None)
-
-    def get_msg(self) -> AcsMsgAndTransition:
-        """ Returns InformResponse """
         response = models.InformResponse()
         # Set maxEnvelopes to 1, as per TR-069 spec
         response.MaxEnvelopes = 1
