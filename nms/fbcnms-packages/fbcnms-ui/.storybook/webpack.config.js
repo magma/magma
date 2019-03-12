@@ -13,8 +13,8 @@ const autoprefixer = require('autoprefixer');
 const paths = require('fbcnms-webpack-config/paths');
 const webpack = require('webpack');
 
-module.exports = baseConfig => {
-  baseConfig.module.rules = [
+module.exports = ({config}) => {
+  config.module.rules = [
     {
       test: /\.(js|jsx|mjs)$/,
       include: [paths.appSrc, paths.packagesDir],
@@ -44,5 +44,5 @@ module.exports = baseConfig => {
       ],
     },
   ];
-  return baseConfig;
+  return config;
 };
