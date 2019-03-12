@@ -21,8 +21,7 @@
     "@storybook/addon-actions": "^5.0.1",
     "@storybook/addon-links": "^5.0.1",
     "@storybook/addons": "^5.0.1",
-    "@storybook/react": "^5.0.1",
-    "babel-core": "7.0.0-bridge.0"
+    "@storybook/react": "^5.0.1"
   },
   "scripts": {
     "storybook": "start-storybook -p 6006",
