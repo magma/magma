@@ -196,40 +196,49 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
 
         If the eNB doesn't report connection to MME within a timeout period,
         get it to reboot in the hope that it will fix things.
+
+        Usually, enodebd polls the eNodeB for whether it is connected to MME.
+        This method checks the last polled MME connection status, and if
+        eNodeB should be connected to MME but it isn't.
         """
-        logging.info('Checking mme connection')
         status = get_enodeb_status(self)
 
-        reboot_disabled = \
-            not self.is_enodeb_connected() \
-            or not self.is_enodeb_configured() \
-            or status['mme_connected'] == '1' \
-            or not self.mconfig.allow_enodeb_transmit
+        # True if we would expect MME to be connected, but it isn't
+        is_mme_unexpectedly_dc = \
+            self.is_enodeb_connected() \
+            and self.is_enodeb_configured() \
+            and self.mconfig.allow_enodeb_transmit \
+            and not status['mme_connected'] == '1'
 
-        if reboot_disabled:
-            if self.mme_timer is not None:
-                logging.info('Clearing eNodeB reboot timer')
-            metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
-            self.mme_timer = None
-            return
-
-        if self.mme_timer is None:
-            logging.info('Set eNodeB reboot timer: %s',
-                         self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
-            metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(1)
-            self.mme_timer = \
-                StateMachineTimer(self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
-        elif self.mme_timer.is_done():
-            logging.warning('eNodeB reboot timer expired - rebooting!')
-            metrics.STAT_ENODEB_REBOOTS.labels(cause='MME disconnect').inc()
-            metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
-            self.mme_timer = None
-            self.reboot_asap()
+        if is_mme_unexpectedly_dc:
+            logging.warning('eNodeB is connected to AGw, is configured, '
+                            'and has AdminState enabled for transmit. '
+                            'MME connection to eNB is missing.')
+            if self.mme_timer is None:
+                logging.warning('eNodeB will be rebooted if MME connection '
+                                'is not established in: %s seconds.',
+                                self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
+                metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(1)
+                self.mme_timer = \
+                    StateMachineTimer(self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
+            elif self.mme_timer.is_done():
+                logging.warning('eNodeB has not established MME connection '
+                                'within %s seconds - rebooting!',
+                                self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
+                metrics.STAT_ENODEB_REBOOTS.labels(cause='MME disconnect').inc()
+                metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
+                self.mme_timer = None
+                self.reboot_asap()
+            else:
+                # eNB is not connected to MME, but we're still waiting to see
+                # if it will connect within the timeout period.
+                # Take no action for now.
+                pass
         else:
-            # eNB is not connected to MME, but we're still waiting to see if
-            # it will connect within the timeout period.
-            # Take no action for now.
-            pass
+            if self.mme_timer is not None:
+                logging.info('eNodeB has established MME connection.')
+                self.mme_timer = None
+            metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
 
     @abstractmethod
     def _init_state_map(self) -> None:
