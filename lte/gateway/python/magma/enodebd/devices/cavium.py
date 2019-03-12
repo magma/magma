@@ -29,7 +29,7 @@ from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
     AddObjectsState, SetParameterValuesNotAdminState, \
     WaitSetParameterValuesState, SendRebootState, WaitRebootResponseState, \
     WaitInformMRebootState, EnodebAcsState, AcsMsgAndTransition, \
-    AcsReadMsgResult, WaitEmptyMessageState, ErrorState
+    AcsReadMsgResult, WaitEmptyMessageState, ErrorState, EndSessionState
 from magma.enodebd.tr069 import models
 from magma.enodebd.stats_manager import StatsManager
 
@@ -54,7 +54,7 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'wait_inform': WaitInformState(self, when_done='wait_empty'),
             'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
-            'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='get_transient_params'),
+            'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='end_session'),
             'get_params': GetParametersState(self, when_done='wait_get_parameters'),
             'wait_get_params': WaitGetParametersState(self, when_done='disable_admin'),
             'disable_admin': CaviumDisableAdminEnableState(self, when_done='wait_disable_admin'),
@@ -64,7 +64,8 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'set_params': SetParameterValuesNotAdminState(self, when_done='wait_set_params'),
             'wait_set_params': WaitSetParameterValuesState(self, when_done='check_get_params'),
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
-            'check_wait_get_params': WaitGetParametersState(self, when_done='get_transient_params'),
+            'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
+            'end_session': EndSessionState(self),
             # Below states only entered through manual user intervention
             'reboot': SendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
