@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from typing import Optional, Callable, Dict, Any, List, Type
+from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import TrParam, DataModel
 from magma.enodebd.data_models.data_model_parameters import TrParameterType, \
     ParameterName
@@ -22,26 +23,35 @@ from magma.enodebd.exceptions import Tr069Error
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import DisconnectedState, \
+from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
     SendGetTransientParametersState, WaitGetTransientParametersState, \
     GetParametersState, WaitGetParametersState, DeleteObjectsState, \
     AddObjectsState, SetParameterValuesNotAdminState, \
     WaitSetParameterValuesState, SendRebootState, WaitRebootResponseState, \
     WaitInformMRebootState, EnodebAcsState, AcsMsgAndTransition, \
-    AcsReadMsgResult, UnexpectedInformState, WaitEmptyMessageState, ErrorState
+    AcsReadMsgResult, WaitEmptyMessageState, ErrorState
 from magma.enodebd.tr069 import models
+from magma.enodebd.stats_manager import StatsManager
 
 
 class CaviumHandler(BasicEnodebAcsStateMachine):
+    def __init__(
+            self,
+            service: MagmaService,
+            stats_mgr: StatsManager,
+    ) -> None:
+        self._state_map = {}
+        super().__init__(service, stats_mgr)
+
     def reboot_asap(self) -> None:
         self.transition('reboot')
 
     def is_enodeb_connected(self) -> bool:
-        return not isinstance(self.state, DisconnectedState)
+        return not isinstance(self.state, WaitInformState)
 
     def _init_state_map(self) -> None:
         self._state_map = {
-            'disconnected': DisconnectedState(self, when_done='wait_empty'),
+            'wait_inform': WaitInformState(self, when_done='wait_empty'),
             'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='get_transient_params'),
@@ -58,10 +68,9 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             # Below states only entered through manual user intervention
             'reboot': SendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
-            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='disconnected'),
+            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_inform': UnexpectedInformState(self, when_done='wait_empty'),
             'unexpected_fault': ErrorState(self)
         }
 
@@ -83,11 +92,7 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
 
     @property
     def disconnected_state_name(self) -> str:
-        return 'disconnected'
-
-    @property
-    def unexpected_inform_state_name(self) -> str:
-        return 'unexpected_inform'
+        return 'wait_inform'
 
     @property
     def unexpected_fault_state_name(self) -> str:
