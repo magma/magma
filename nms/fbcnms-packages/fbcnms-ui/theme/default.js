@@ -56,7 +56,7 @@ export default createMuiTheme({
       },
     },
     MuiToggleButtonGroup: {
-      selected: {
+      '&$selected': {
         boxShadow: 'none',
         borderRadius: 4,
         border: `1px solid ${sea200}`,
@@ -91,7 +91,7 @@ export default createMuiTheme({
     },
     MuiOutlinedInput: {
       root: {
-        '& $notchedOutline': {
+        '&$notchedOutline': {
           borderColor: '#CCD0D5',
         },
         '&$focused $notchedOutline': {
@@ -124,7 +124,7 @@ export default createMuiTheme({
           opacity: 1,
         },
       },
-      disabled: {
+      '&$disabled': {
         background: gray0,
       },
     },
