@@ -137,11 +137,14 @@ def get_all_objects_to_delete(
 def get_params_to_get(
     device_cfg: EnodebConfiguration,
     data_model: DataModel,
+    request_all_params: bool = False,
 ) -> List[ParameterName]:
     """
     Returns the names of params not belonging to objects that are added/removed
     """
     desired_names = data_model.get_present_params()
+    if request_all_params:
+        return desired_names
     known_names = device_cfg.get_parameter_names()
     names = list(set(desired_names) - set(known_names))
     return names

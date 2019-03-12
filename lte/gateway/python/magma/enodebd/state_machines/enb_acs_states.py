@@ -443,10 +443,18 @@ class GetParametersState(EnodebAcsState):
     Get the value of most parameters of the eNB that are defined in the data
     model. Object parameters are excluded.
     """
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_done: str,
+        request_all_params = False,
+    ):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        # Set to True if we want to request values of all parameters, even if
+        # the ACS state machine already has recorded values of them.
+        self.request_all_params = request_all_params
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
@@ -469,7 +477,8 @@ class GetParametersState(EnodebAcsState):
         """
 
         # Get the names of regular parameters
-        names = get_params_to_get(self.acs.device_cfg, self.acs.data_model)
+        names = get_params_to_get(self.acs.device_cfg, self.acs.data_model,
+                                  self.request_all_params)
 
         # Generate the request
         request = models.GetParameterValues()
