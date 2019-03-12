@@ -1370,6 +1370,24 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
             <data type="OctetString"/>
         </avp>
 
+        <avp name="TFT-Filter" code="1012" must="M,V" may="P" may-encrypt="y" vendor-id="10415">
+            <!-- 3GPP 29.212 5.3.13-->
+            <data type="IPFilterRule"/>
+        </avp>
+
+        <avp name="TFT-Packet-Filter-Information" code="1013" must="M,V" may="P" may-encrypt="y" vendor-id="10415">
+            <!-- 3GPP 29.212 5.3.14-->
+            <data type="Grouped">
+                <rule avp="Precedence" required="false" max="1"/>
+                <rule avp="TFT-Filter" required="false" max="1"/>
+                <rule avp="ToS-Traffic-Class" required="false" max="1"/>
+                <rule avp="Security-Parameter-Index" required="false" max="1"/>
+                <rule avp="Flow-Label" required="false" max="1"/>
+                <rule avp="Flow-Direction" required="false" max="1"/>
+                <!-- *[ AVP ]-->
+            </data>
+        </avp>
+
     </application>
 </diameter>`
 
