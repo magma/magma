@@ -50,7 +50,10 @@ class BaicellsHandler(BasicEnodebAcsStateMachine):
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesState(self, when_done='wait_set_params'),
-            'wait_set_params': WaitSetParameterValuesState(self, when_done='reboot'),
+            'wait_set_params': WaitSetParameterValuesState(self, when_done='check_get_params'),
+            'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
+            'check_wait_get_params': WaitGetParametersState(self, when_done='get_transient_params'),
+            # The state below are only entered with manual user intervention.
             'reboot': SendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty_after_reboot', when_timeout='disconnected'),
