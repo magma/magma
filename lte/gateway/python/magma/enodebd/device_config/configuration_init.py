@@ -55,18 +55,18 @@ def build_desired_config(
 
     # Determine configuration parameters
     _set_management_server(cfg_desired)
-    if mconfig.tdd_config is not None:
+    if mconfig.tdd_config is not None and str(mconfig.tdd_config) != '':
         _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
                                    mconfig.tdd_config.earfcndl)
         _set_tdd_subframe_config(device_config, cfg_desired,
             mconfig.tdd_config.subframe_assignment,
             mconfig.tdd_config.special_subframe_pattern)
-    elif mconfig.fdd_config is not None:
-        _set_earfcn_freq_band_mode(device_config, cfg_desired,
+    elif mconfig.fdd_config is not None and str(mconfig.fdd_config) != '':
+        _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
                                     mconfig.fdd_config.earfcndl)
     else:
         # back-compat: use legacy fields if tdd/fdd aren't set
-        _set_earfcn_freq_band_mode(device_config, cfg_desired,
+        _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
                                    mconfig.earfcndl)
         _set_tdd_subframe_config(device_config, cfg_desired,
             mconfig.subframe_assignment, mconfig.special_subframe_pattern)
@@ -329,7 +329,8 @@ def _set_earfcn_freq_band_mode(
 
     cfg.set_parameter(ParameterName.EARFCNDL, earfcndl)
     if duplex_mode == DuplexMode.FDD:
-        cfg.set_parameter(ParameterName.EARFCNUL, earfcnul)
+        _set_param_if_present(cfg, data_model, ParameterName.EARFCNUL,
+                              earfcnul)
     else:
         logging.debug('Not setting EARFCNUL - duplex mode is not FDD')
 

@@ -460,4 +460,7 @@ class BaicellsQAFBTrDataModel(DataModel):
 
 class BaicellsQAFBTrConfigurationInitializer(EnodebConfigurationPostProcessor):
     def postprocess(self, desired_cfg: EnodebConfiguration) -> None:
-        pass
+        # We don't set this parameter for this device, it should be
+        # auto-configured by the device.
+        desired_cfg.delete_parameter(ParameterName.ADMIN_STATE)
+        return

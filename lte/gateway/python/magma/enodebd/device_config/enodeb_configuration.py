@@ -83,6 +83,9 @@ class EnodebConfiguration():
         self._assert_param_in_model(param_name)
         self._param_to_value[param_name] = value
 
+    def delete_parameter(self, param_name: ParameterName) -> None:
+        del self._param_to_value[param_name]
+
     def get_object_names(self) -> List[ParameterName]:
         return list(self._numbered_objects.keys())
 
@@ -138,6 +141,5 @@ class EnodebConfiguration():
         trparam_model = self.data_model
         tr_param = trparam_model.get_parameter(param_name)
         if tr_param is None:
-            logging.error('%s: Parameter <%s> not defined in model',
-                          self.data_model.__name__, param_name)
+            logging.error('Parameter <%s> not defined in model', param_name)
             raise ConfigurationError("Parameter not defined in model.")
