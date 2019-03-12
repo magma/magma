@@ -79,33 +79,26 @@ class BaicellsHandlerTests(TestCase):
         req.Status = 0
         resp = acs_state_machine.handle_tr069_message(req)
 
-        # SM should be attempting to reboot the Baicells device
-        self.assertTrue(isinstance(resp, models.Reboot),
-                        'State machine should be rebooting the eNB')
-        req = self._get_reboot_response()
-        resp = acs_state_machine.handle_tr069_message(req)
-
-        # SM should be trying to end the session with a dummy message
-        self.assertTrue(isinstance(resp, models.DummyInput))
-        req = self._get_reboot_inform()
-        resp = acs_state_machine.handle_tr069_message(req)
-
-        # SM should have responded to an Inform message with an Inform response
-        self.assertTrue(isinstance(resp, models.InformResponse))
-        req = models.DummyInput()
-        resp = acs_state_machine.handle_tr069_message(req)
-
-        # And now the SM has finished provisioning, and should only request
-        # the transient, read-only parameters
+        # Expect a request for read-only params
         self.assertTrue(isinstance(resp, models.GetParameterValues),
-                        'State machine should be requesting read-only params')
+                        'State machine should be requesting param values')
+        req = self._get_read_only_param_values_response()
 
-        # The eNodeB will send an Inform after ~10 minutes anyways, even
-        # during a provisioning session
-        req = self._get_inform()
+        # Send back some typical values
+        # And then SM should continue polling the read-only params
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(isinstance(resp, models.InformResponse),
-                        'State machine should handle unexpected Inform msgs')
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+
+        # Expect a request for read-only params
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = self._get_read_only_param_values_response()
+
+        # Send back some typical values
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
         return
 
     def _get_mconfig(self) -> mconfigs_pb2.EnodebD:
