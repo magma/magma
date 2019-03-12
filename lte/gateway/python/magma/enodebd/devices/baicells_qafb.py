@@ -402,6 +402,7 @@ class BaicellsQAFBTrDataModel(DataModel):
 
     TRANSFORMS_FOR_ENB[ParameterName.ADMIN_STATE] = transform_for_enb.admin_state
     TRANSFORMS_FOR_MAGMA = {
+        # We don't set these parameters
         ParameterName.BAND_CAPABILITY: transform_for_magma.band_capability,
         ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode
     }
