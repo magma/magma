@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/metricsd"
+	stateregistry "magma/orc8r/cloud/go/services/state/registry"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 )
@@ -53,6 +54,10 @@ func (*FegOrchestratorPlugin) GetConfigManagers() []configregistry.ConfigManager
 		&fegconfig.FegNetworkConfigManager{},
 		&fegconfig.FegGatewayConfigManager{},
 	}
+}
+
+func (*FegOrchestratorPlugin) GetStateSerdes() []stateregistry.StateSerde {
+	return []stateregistry.StateSerde{}
 }
 
 func (*FegOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {

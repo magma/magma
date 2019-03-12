@@ -25,10 +25,12 @@ import (
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/magmad/state"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
+	stateregistry "magma/orc8r/cloud/go/services/state/registry"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -56,6 +58,13 @@ func (*BaseOrchestratorPlugin) GetConfigManagers() []configregistry.ConfigManage
 		&magmadconfig.MagmadGatewayConfigManager{},
 		// dnsd
 		&dnsdconfig.DnsNetworkConfigManager{},
+	}
+}
+
+func (*BaseOrchestratorPlugin) GetStateSerdes() []stateregistry.StateSerde {
+	return []stateregistry.StateSerde{
+		// magmad
+		&state.GatewayStatusSerde{},
 	}
 }
 

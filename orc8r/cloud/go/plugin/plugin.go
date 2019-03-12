@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	config_registry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/metricsd"
+	state_registry "magma/orc8r/cloud/go/services/state/registry"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 
@@ -47,6 +48,11 @@ type OrchestratorPlugin interface {
 	// config service. This is how a plugin adds support for custom
 	// configurations to the config service.
 	GetConfigManagers() []config_registry.ConfigManager
+
+	// GetStateSerdes returns a list of StateSerdeManagers to register
+	// with the state service. This is how a plugin adds support for custom
+	// marshall/unmarshall methods to the state service.
+	GetStateSerdes() []state_registry.StateSerde
 
 	// GetMconfigBuilders returns a list of MconfigBuilders to register with
 	// the config streamer application. These builders are responsible for
@@ -160,6 +166,9 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 func registerPlugin(orc8rPlugin OrchestratorPlugin) error {
 	registry.AddServices(orc8rPlugin.GetServices()...)
 	if err := config_registry.RegisterConfigManagers(orc8rPlugin.GetConfigManagers()...); err != nil {
+		return err
+	}
+	if err := state_registry.RegisterStateSerdes(orc8rPlugin.GetStateSerdes()...); err != nil {
 		return err
 	}
 	factory.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
