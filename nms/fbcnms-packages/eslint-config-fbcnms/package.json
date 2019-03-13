@@ -3,19 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "peerDependencies": {
-    "babel-eslint": "^11.0.0-beta.0",
+    "babel-eslint": "^10.0.1",
     "eslint": "^5.1.0",
-    "eslint-config-fb-strict": "22.1.0",
+    "eslint-config-fb-strict": "^24.3.0",
     "eslint-plugin-babel": "5.1.0",
     "eslint-plugin-eslint-comments": "^3.0.1",
     "eslint-plugin-flowtype": "2.43.0",
-    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-jest": "22.3.0",
     "eslint-plugin-jsx-a11y": "6.0.3",
     "eslint-plugin-lint": "1.0.0",
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-prettier": "2.6.0",
-    "eslint-plugin-react": "7.8.2",
-    "eslint-plugin-relay": "0.0.23"
+    "eslint-plugin-react": "^7.12.4",
+    "eslint-plugin-relay": "^1.0.0"
   }
 }

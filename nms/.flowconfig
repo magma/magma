@@ -59,6 +59,9 @@ all=warn
 # There is an ESLint rule for this
 unclear-type=off
 
+# We dont want this -- see https://github.com/facebook/flow/issues/7473
+dynamic-export=off
+
 sketchy-null=off
 sketchy-null-number=warn
 sketchy-null-mixed=warn
@@ -76,4 +79,4 @@ untyped-import
 untyped-type-import
 
 [version]
-0.92.0
+0.94.0
