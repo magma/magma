@@ -8,7 +8,7 @@
 syntax = "proto3";
 
 package eap;
-option go_package = "magma/feg/gateway/services/eapauth/protos";
+option go_package = "magma/feg/gateway/services/eap/protos";
 
 enum eap_type { // also known as EAP Methods
     // Mandatory EAP Method types
@@ -44,29 +44,11 @@ message eap_message {
     bytes payload = 1;
 }
 
-message eap_request {
+message eap {
     bytes payload = 1;
     eap_context ctx = 2;
 }
 
-message eap_success {
-    bytes data = 1;
-    bytes master_session_key = 2;
-}
-
-message eap_intermediate_resp {
-    bytes data = 1;
-    uint32 identifier = 2;
-}
-
-message eap_result {
-    oneof payload {
-        eap_intermediate_resp response = 1;
-        eap_success success = 2;
-    }
-    eap_context ctx = 3;
-}
-
 service eap_service {
-    rpc handle(eap_request) returns (eap_result) {}
+    rpc handle(eap) returns (eap) {}
 }

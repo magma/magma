@@ -8,11 +8,16 @@
 syntax = "proto3";
 
 package eap;
-option go_package = "magma/feg/gateway/services/eapauth/provider/protos";
+option go_package = "magma/feg/gateway/services/eap/provider/protos";
 
-import "eap_auth.proto"; // include EAP Authenticator API proto definitions
-
-message initial_access_indication {
-    string identity = 1;
+enum eap_aka_subtype {
+    eap_aka_subtype_undefined = 0;
+    aka_challenge = 1;
+    aka_authentication_reject = 2;
+    aka_synchronization_failure = 4;
+    SubtypeIdentity = 5;
+    SubtypeNotification = 12;
+    aka_reauthentication = 13;
+    aka_cient_error  = 14;
 }
 

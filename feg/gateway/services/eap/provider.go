@@ -6,13 +6,13 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// Package eapauth (EAP Authenticator) provides interface to supported & registered EAP Authenticator Providers
-package eapauth
+// Package eap (EAP Authenticator) provides interface to supported & registered EAP Authenticator Providers
+package eap
 
 import (
 	"fmt"
 
-	"magma/feg/gateway/services/eapauth/protos"
+	"magma/feg/gateway/services/eap/protos"
 )
 
 // Provider is the Interface for Eap Provider
@@ -22,5 +22,5 @@ type Provider interface {
 	// EAPType should return a valid EAP Type
 	EAPType() uint8
 	// Handle - handles EAP Resp message (protos.EapRequest)
-	Handle(*protos.EapRequest) (*protos.EapResult, error)
+	Handle(*protos.Eap) (*protos.Eap, error)
 }

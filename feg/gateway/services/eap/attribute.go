@@ -1,31 +1,35 @@
-package eapauth
+package eap
 
 import (
 	"fmt"
 	"io"
 )
 
+type AttrType uint8
+
 // attribute EAP Method's attribute implementation
 // attribute provides the following interface:
 //
-// type Attribute interface {
-// 	   Type() uint8
-// 	   Value() []byte
-// 	   String() string
-// 	   Len() int
-//     Marshal() []byte
-// }
+type Attribute interface {
+	Type() AttrType
+	Value() []byte
+	String() string
+	Len() int
+	AttrLen() uint8
+	Marshaled() []byte
+}
+
 type attribute []byte
 
 // NewAttribute creates and returns new attribute of given type (typ) & value
 // the new attribute is padded with zeros to 4 byte boundary
-func NewAttribute(typ uint8, data []byte) attribute {
+func NewAttribute(typ AttrType, data []byte) attribute {
 	ld := len(data)
 	l := 2 + ld
 	pad := (4 - l&3) & 3
 	l += pad
 	res := make([]byte, 2, l)
-	res[0], res[1] = typ, uint8(l<<2)
+	res[0], res[1] = byte(typ), byte(l<<2)
 	if ld > 0 {
 		res = append(res, data...)
 	}
@@ -44,13 +48,21 @@ func (a attribute) String() string {
 }
 
 // Type returns attribute type byte
-func (a attribute) Type() uint8 {
-	return a[0]
+func (a attribute) Type() AttrType {
+	return AttrType(a[0])
 }
 
-// Type returns attribute type byte
+// Value returns attribute type bytes
 func (a attribute) Value() []byte {
 	return a[2:]
+}
+
+// AttrLen returns the length byte from the attribute header
+func (a attribute) AttrLen() uint8 {
+	if a == nil || len(a) < 1 {
+		return 0
+	}
+	return a[1]
 }
 
 // Len returns total serialized length of the attribute (the size that the attribute will occupy in EAP packet)
@@ -59,7 +71,7 @@ func (a attribute) Len() int {
 }
 
 // Marshal serialized attribute (the form that the attribute will occupy in EAP packet)
-func (a attribute) Marshal() []byte {
+func (a attribute) Marshaled() []byte {
 	return a
 }
 
@@ -73,10 +85,13 @@ type attributeScanner struct {
 	current       int
 }
 
-func NewAttributeScanner(eapData []byte) (*attributeScanner, error) {
+func NewAttributeScanner(eapData Packet) (*attributeScanner, error) {
 	el := len(eapData)
 	if el <= EapFirstAttribute {
 		return nil, fmt.Errorf("EAP Message is too short (%d bytes) to include attributes", el)
+	}
+	if err := Packet(eapData).Validate(); err != nil {
+		return nil, err
 	}
 	dataLen := el - EapFirstAttribute
 	return &attributeScanner{
@@ -87,7 +102,7 @@ func NewAttributeScanner(eapData []byte) (*attributeScanner, error) {
 }
 
 // Next Returns next available attribute (if any) and adjusts internal reference to point past it
-func (sc *attributeScanner) Next() (attribute, error) {
+func (sc *attributeScanner) Next() (Attribute, error) {
 	attrStart := sc.current
 	if attrStart >= sc.len {
 		return nil, io.EOF
@@ -107,7 +122,7 @@ func (sc *attributeScanner) Next() (attribute, error) {
 			attrStart, attrStart+attrLen, attrLen, sc.len)
 	}
 	sc.current += attrLen
-	return sc.data[attrStart:sc.current], nil
+	return attribute(sc.data[attrStart:sc.current]), nil
 }
 
 // Reset resets the scanner to the beginning of the attributes
@@ -116,7 +131,7 @@ func (sc *attributeScanner) Reset() {
 }
 
 // Append adds given Attribute to EAP Packet and amends the packet's header to reflect the new EAP packet size
-func (eap Packet) Append(a attribute) (Packet, error) {
+func (eap Packet) Append(a Attribute) (Packet, error) {
 	if a == nil {
 		return eap, fmt.Errorf("Nil Attribute")
 	}
@@ -148,7 +163,7 @@ func (eap Packet) Append(a attribute) (Packet, error) {
 	if mLen > EapMaxLen {
 		return eap, fmt.Errorf("EAP Len would exceeds %d bytes: %d", EapMaxLen, mLen)
 	}
-	eap = append(eap, a...)
+	eap = append(eap, a.Marshaled()...)
 	if l > 0 { // attribute was not 4 bytes aligned
 		eap = append(eap, make([]byte, l)...)
 	}

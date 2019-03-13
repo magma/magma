@@ -6,8 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// Package eapauth (EAP Authenticator) provides interface to supported & registered EAP Authenticator Providers
-package eapauth
+// Package eap (EAP Authenticator) provides interface to supported & registered EAP Authenticator Providers
+package eap
 
 import "sync/atomic"
 

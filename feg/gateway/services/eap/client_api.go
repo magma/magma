@@ -55,13 +55,13 @@ LICENSE file in the root directory of this source tree.
 //       ...
 //go:generate protoc --go_out=plugins=grpc,paths=source_relative:. protos/eap_auth.proto
 //
-package eapauth
+package eap
 
 import (
 	"errors"
 	"fmt"
 
-	"magma/feg/gateway/services/eapauth/protos"
+	"magma/feg/gateway/services/eap/protos"
 )
 
 const (
@@ -72,7 +72,7 @@ const (
 
 // Handle handles passed EAP payload & returns corresponding EAP result
 // NOTE: Identity Request is handled by APs & does not involve EAP Authenticator's support
-func HandleIdentityResponse(providerType uint8, msg *protos.EapMessage) (*protos.EapResult, error) {
+func HandleIdentityResponse(providerType uint8, msg *protos.EapMessage) (*protos.Eap, error) {
 	if msg == nil {
 		return nil, errors.New("Nil EAP Request")
 	}
@@ -89,11 +89,11 @@ func HandleIdentityResponse(providerType uint8, msg *protos.EapMessage) (*protos
 	if p == nil {
 		return nil, unsupportedProviderError(providerType)
 	}
-	return p.Handle(&protos.EapRequest{Payload: msg.Payload})
+	return p.Handle(&protos.Eap{Payload: msg.Payload})
 }
 
 // Handle handles passed EAP payload & returns corresponding EAP result
-func Handle(msg *protos.EapRequest) (*protos.EapResult, error) {
+func Handle(msg *protos.Eap) (*protos.Eap, error) {
 	if msg == nil {
 		return nil, errors.New("Nil EAP Message")
 	}

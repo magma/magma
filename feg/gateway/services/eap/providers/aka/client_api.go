@@ -18,19 +18,15 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/eapauth"
-	"magma/feg/gateway/services/eapauth/protos"
-)
-
-const (
-	AKA_TYPE = uint8(protos.EapType_AKA)
+	"magma/feg/gateway/services/eap"
+	"magma/feg/gateway/services/eap/protos"
 )
 
 // AKA Provider Implementation
 type providerImpl struct{} // singleton for now
 
 func init() {
-	eapauth.Register(providerImpl{})
+	eap.Register(providerImpl{})
 }
 
 // Wrapper to provide a wrapper for GRPC Client to extend it with Cleanup
@@ -67,11 +63,11 @@ func (providerImpl) String() string {
 
 // EAPType returns EAP AKA Type - 23
 func (providerImpl) EAPType() uint8 {
-	return AKA_TYPE
+	return TYPE
 }
 
 // Handle handles passed EAP-AKA payload & returns corresponding result
-func (providerImpl) Handle(msg *protos.EapRequest) (*protos.EapResult, error) {
+func (providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 	if msg == nil {
 		return nil, errors.New("Invalid EAP AKA Message")
 	}

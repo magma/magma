@@ -1,4 +1,4 @@
-package eapauth
+package eap
 
 import (
 	"io"
@@ -54,8 +54,8 @@ func TestAttributeScanner(t *testing.T) {
 		t.Fatal("Nil Attribute Scanner")
 	}
 	var (
-		attr       attribute
-		attributes []attribute
+		attr       Attribute
+		attributes []Attribute
 	)
 	i := 0
 	for ; ; i++ {
@@ -94,7 +94,7 @@ func TestAttributeScanner(t *testing.T) {
 		t.Fatalf("EAP Attr Value Mismatch: expected %v got %v", []byte(expected), attr.Value())
 	}
 	// build EAP with reserved capacity (optimization)
-	p := NewEapPacket(1, 2, []byte{23, 1, 0, 0}, 180)
+	p := NewPacket(1, 2, []byte{23, 1, 0, 0}, 180)
 	for _, a := range attributes {
 		p, err = p.Append(a)
 		if err != nil {
@@ -105,7 +105,7 @@ func TestAttributeScanner(t *testing.T) {
 		t.Fatalf("EAP Mismatch 1\nexpected: %v\n     got: %v", []byte(testEAP), p)
 	}
 	// build EAP without reserved capacity
-	p = NewEapPacket(1, 2, []byte{23, 1, 0, 0})
+	p = NewPacket(1, 2, []byte{23, 1, 0, 0})
 	for _, a := range attributes {
 		p, err = p.Append(a)
 		if err != nil {
