@@ -26,6 +26,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
 import {MagmaAPIUrls} from '../common/MagmaAPI';
+import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -88,11 +89,19 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
       };
     }
 
+    const authKey = editingSubscriber.lte.auth_key
+      ? base64ToHex(editingSubscriber.lte.auth_key)
+      : '';
+
+    const authOpc = editingSubscriber.lte.auth_opc
+      ? base64ToHex(editingSubscriber.lte.auth_opc)
+      : '';
+
     return {
       imsiID: editingSubscriber.id,
       lteState: editingSubscriber.lte.state,
-      authKey: editingSubscriber.lte.auth_key,
-      authOpc: editingSubscriber.lte.auth_opc || '',
+      authKey,
+      authOpc,
       subProfile: editingSubscriber.sub_profile,
     };
   }
@@ -180,10 +189,16 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
         state: this.state.editingSubscriber.lteState,
         auth_algo: 'MILENAGE', // default auth algo
         auth_key: this.state.editingSubscriber.authKey,
-        auth_opc: this.state.editingSubscriber.authOpc,
+        auth_opc: this.state.editingSubscriber.authOpc || null,
       },
       sub_profile: this.state.editingSubscriber.subProfile,
     };
+    if (data.lte.auth_key && isValidHex(data.lte.auth_key)) {
+      data.lte.auth_key = hexToBase64(data.lte.auth_key);
+    }
+    if (data.lte.auth_opc && isValidHex(data.lte.auth_opc)) {
+      data.lte.auth_opc = hexToBase64(data.lte.auth_opc);
+    }
     if (this.props.editingSubscriber) {
       axios
         .put(MagmaAPIUrls.subscriber(this.props.match, data.id), data)
