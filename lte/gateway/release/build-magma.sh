@@ -280,6 +280,7 @@ ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
+$(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/)"
 
 eval $BUILDCMD

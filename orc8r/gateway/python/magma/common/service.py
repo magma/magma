@@ -74,7 +74,7 @@ class MagmaService(Service303Servicer):
         self._version = '0.0.0'
         # Load the service version if available
         try:
-            self._version = pkg_resources.get_distribution('magma').version
+            self._version = pkg_resources.get_distribution('orc8r').version
         except pkg_resources.ResolutionError as e:
             logging.info(e)
 
