@@ -70,7 +70,7 @@ def activate_flows(client, args):
 def deactivate_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        rule_ids=args.rule_ids.split(','))
+        rule_ids=args.rule_ids.split(',') if args.rule_ids else [])
     client.DeactivateFlows(request)
 
 
@@ -147,8 +147,7 @@ def create_enforcement_parser(apps):
 
     subcmd = subparsers.add_parser('deactivate_flows', help='Deactivate flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
-    subcmd.add_argument('--rule_ids',
-                        help='Comma separated rule ids', default='rule1,rule2')
+    subcmd.add_argument('--rule_ids', help='Comma separated rule ids')
     subcmd.set_defaults(func=deactivate_flows)
 
     subcmd = subparsers.add_parser('activate_dynamic_rule',
