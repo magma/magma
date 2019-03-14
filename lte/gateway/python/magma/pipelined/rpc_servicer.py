@@ -159,9 +159,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
-        for rule_id in request.rule_ids:
+        if request.rule_ids:
+            for rule_id in request.rule_ids:
+                self._service_manager.session_rule_version_mapper \
+                    .update_version(request.sid.id, rule_id)
+        else:
+            # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, rule_id)
+                request.sid.id)
         self._loop.call_soon_threadsafe(
             self._enforcer_app.deactivate_rules,
             request.sid.id, request.rule_ids)
