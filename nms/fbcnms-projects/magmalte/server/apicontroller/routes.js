@@ -94,6 +94,16 @@ router.use(
   }),
 );
 
-router.use('/', proxy(API_HOST, PROXY_OPTIONS));
+router.use(
+  '/magma/channels/:channel',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: (req, _res) => req.method === 'GET',
+  }),
+);
+
+router.use('', (req, res) => {
+  res.status(404).send('Not Found');
+});
 
 module.exports = router;
