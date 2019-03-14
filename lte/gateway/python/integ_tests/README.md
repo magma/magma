@@ -83,7 +83,7 @@ Same as for gateway-only.
 Spin up and provision the *cloud* and *datastore* VMs, then make.
 
 1. From `magma/orc8r/cloud` on the host machine: `vagrant up datastore && vagrant up cloud && vagrant ssh cloud`
-1. Now in the *cloud* VM: `cd ~/modules/platform/cloud/go && make run`
+1. Now in the *cloud* VM: `cd ~/magma/orc8r/cloud && make run`
 
 ### Other setup
 
