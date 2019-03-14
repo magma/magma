@@ -1,8 +1,11 @@
 /**
  * Copyright 2004-present Facebook. All Rights Reserved.
- * @noformat
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * @format
  */
-'use strict';
 
 module.exports.extends = ['eslint-config-fbcnms'];
 module.exports.overrides = [
@@ -17,10 +20,7 @@ module.exports.overrides = [
       jest: true,
       node: true,
     },
-    files: [
-      '**/__mocks__/**/*.js',
-      '**/__tests__/**/*.js',
-    ],
+    files: ['**/__mocks__/**/*.js', '**/__tests__/**/*.js'],
   },
   {
     env: {
@@ -48,3 +48,8 @@ module.exports.overrides = [
     },
   },
 ];
+module.exports.settings = {
+  react: {
+    version: 'detect',
+  },
+};
