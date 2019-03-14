@@ -9,10 +9,14 @@
  */
 
 const TEST_SUBDOMAIN = 'fb-test';
+const LOCALHOST = 'localhost';
 const PHB_SUBDOMAIN = 'purpleheadband.cloud';
 
 export function isTestEnv(): boolean {
-  return window.location.hostname.includes(TEST_SUBDOMAIN);
+  return (
+    window.location.hostname.includes(TEST_SUBDOMAIN) ||
+    window.location.hostname.includes(LOCALHOST)
+  );
 }
 
 export function isPhbProdEnv(): boolean {
