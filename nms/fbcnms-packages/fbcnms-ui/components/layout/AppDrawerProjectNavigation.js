@@ -9,8 +9,11 @@
  */
 
 import React, {useState} from 'react';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -40,6 +43,8 @@ const useClasses = makeStyles(theme => ({
     color: theme.palette.common.white,
   },
   selectedRow: {
+    borderBottom: '1px solid ' + theme.palette.grey[400],
+    borderTop: '1px solid ' + theme.palette.grey[400],
     '&:hover': {
       backgroundColor: '#2e3c42',
     },
@@ -72,6 +77,11 @@ export default function AppDrawerProjectNavigation(props: Props) {
             primary={selected?.name}
             secondary={selected?.secondary}
           />
+          <ListItemSecondaryAction>
+            <IconButton>
+              <ArrowDropDownIcon />
+            </IconButton>
+          </ListItemSecondaryAction>
         </ListItem>
       </List>
       <Menu
