@@ -89,9 +89,45 @@ message FlowMatch {
   string app_name = 9;
 }
 
+message QosArp {
+  uint32 priority_level = 1;
+  enum PreCap {
+    PRE_CAP_ENABLED = 0;
+    PRE_CAP_DISABLED = 1;
+  }
+  PreCap pre_capability = 2;
+  enum PreVul {
+    PRE_VUL_ENABLED = 0;
+    PRE_VUL_DISABLED = 1;
+  }
+  PreVul pre_vulnerability = 3;
+}
 message FlowQos {
+  enum Qci {
+    QCI_0 = 0;
+    QCI_1 = 1;
+    QCI_2 = 2;
+    QCI_3 = 3;
+    QCI_4 = 4;
+    QCI_5 = 5;
+    QCI_6 = 6;
+    QCI_7 = 7;
+    QCI_8 = 8;
+    QCI_9 = 9;
+    QCI_65 = 65;
+    QCI_66 = 66;
+    QCI_67 = 67;
+    QCI_70 = 70;
+    QCI_75 = 75;
+    QCI_79 = 79;
+  }
+
   uint32 max_req_bw_ul = 1;
   uint32 max_req_bw_dl = 2;
+  uint32 gbr_ul = 3;
+  uint32 gbr_dl = 4;
+  Qci qci = 5;
+  QosArp arp = 6;
 }
 
 message PolicyRuleData {

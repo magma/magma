@@ -63,6 +63,33 @@
             </answer>
         </command>
 
+		    <command code="258" short="RA" name="Re-Auth">
+			      <request>
+				        <rule avp="Session-Id" required="true" max="1"/>
+				        <rule avp="Origin-Host" required="true" max="1"/>
+				        <rule avp="Origin-Realm" required="true" max="1"/>
+				        <rule avp="Destination-Realm" required="true" max="1"/>
+				        <rule avp="Destination-Host" required="true" max="1"/>
+				        <rule avp="Auth-Application-Id" required="true" max="1"/>
+				        <rule avp="Re-Auth-Request-Type" required="true" max="1"/>
+                <rule avp="QoS-Information" required="false" max="1"/>
+				        <rule avp="Origin-State-Id" required="false" max="1"/>
+				        <rule avp="Proxy-Info" required="false"/>
+				        <rule avp="Route-Record" required="false"/>
+			      </request>
+			      <answer>
+				        <rule avp="Session-Id" required="true" max="1"/>
+				        <rule avp="Result-Code" required="true" max="1"/>
+				        <rule avp="Origin-Host" required="true" max="1"/>
+				        <rule avp="Origin-Realm" required="true" max="1"/>
+				        <rule avp="Origin-State-Id" required="false" max="1"/>
+				        <rule avp="Error-Message" required="false" max="1"/>
+				        <rule avp="Error-Reporting-Host" required="false" max="1"/>
+				        <rule avp="Failed-AVP" required="false" max="1"/>
+				        <rule avp="Proxy-Info" required="false"/>
+			      </answer>
+		    </command>
+
         <avp name="Flow-Description" code="507" must="M,V" may="P" may-encrypt="y" vendor-id="10415">
             <!-- 3GPP 29.212 -->
             <data type="IPFilterRule"/>
