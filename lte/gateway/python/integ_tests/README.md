@@ -18,7 +18,7 @@ These tests use only the *magma* and *magma_test* VMs. The *magma_test* VM abstr
 Spin up and provision the gateway VM, then make and start its services:
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma && vagrant ssh magma`
-1. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway/python && make run`
+1. Now in the gateway VM: `cd $MAGMA_ROOT/lte/gateway && make run`
 
 ### Magma_test setup
 
@@ -33,7 +33,7 @@ Spin up and provision the s1ap tester's VM, make, then make in the integ_tests d
 
 From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run either individual tests or the full suite of tests. Note that running all tests currently *fails*. A safe, non-flaky test to run is `s1aptests/test_attach_detach.py`.
 
-*Note*: after make-ing, run `deactivate; magtivate`. Make sure that you are "magtivate-d" before all tests (your command prompt will include `(python)`).
+*Note*: after make-ing, run `magtivate`. Make sure that you are "magtivate-d" before all tests (your command prompt will include `(python)`).
 
 * Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
 * All tests: `make integ_test`

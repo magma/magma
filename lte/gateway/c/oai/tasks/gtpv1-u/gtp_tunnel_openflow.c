@@ -62,25 +62,29 @@ int openflow_add_tunnel(
   struct in_addr enb,
   uint32_t i_tei,
   uint32_t o_tei,
-  Imsi_t imsi)
+  Imsi_t imsi,
+  struct ipv4flow_dl *flow_dl)
 {
   return openflow_controller_add_gtp_tunnel(
-    ue, enb, i_tei, o_tei, (const char *) imsi.digit);
+    ue, enb, i_tei, o_tei, (const char *) imsi.digit, flow_dl);
 }
 
-int openflow_del_tunnel(struct in_addr ue, uint32_t i_tei, uint32_t o_tei)
+int openflow_del_tunnel(struct in_addr ue, uint32_t i_tei,
+    uint32_t o_tei, struct ipv4flow_dl *flow_dl)
 {
-  return openflow_controller_del_gtp_tunnel(ue, i_tei);
+  return openflow_controller_del_gtp_tunnel(ue, i_tei, flow_dl);
 }
 
-int openflow_discard_data_on_tunnel(struct in_addr ue, uint32_t i_tei)
+int openflow_discard_data_on_tunnel(struct in_addr ue, uint32_t i_tei,
+    struct ipv4flow_dl *flow_dl)
 {
-  return openflow_controller_discard_data_on_tunnel(ue, i_tei);
+  return openflow_controller_discard_data_on_tunnel(ue, i_tei, flow_dl);
 }
 
-int openflow_forward_data_on_tunnel(struct in_addr ue, uint32_t i_tei)
+int openflow_forward_data_on_tunnel(struct in_addr ue, uint32_t i_tei,
+    struct ipv4flow_dl *flow_dl)
 {
-  return openflow_controller_forward_data_on_tunnel(ue, i_tei);
+  return openflow_controller_forward_data_on_tunnel(ue, i_tei, flow_dl);
 }
 
 static const struct gtp_tunnel_ops openflow_ops = {

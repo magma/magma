@@ -126,16 +126,36 @@ void ExternalEvent::set_of_connection(fluid_base::OFConnection *ofconn)
 }
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
-  const struct in_addr ue_ip,
-  const struct in_addr enb_ip,
-  const uint32_t in_tei,
-  const uint32_t out_tei,
-  const char *imsi):
+    const struct in_addr ue_ip,
+    const struct in_addr enb_ip,
+    const uint32_t in_tei,
+    const uint32_t out_tei,
+    const char *imsi):
   ue_ip_(ue_ip),
   enb_ip_(enb_ip),
   in_tei_(in_tei),
   out_tei_(out_tei),
   imsi_(imsi),
+  dl_flow_valid_(false),
+  dl_flow_(),
+  ExternalEvent(EVENT_ADD_GTP_TUNNEL)
+{
+}
+
+AddGTPTunnelEvent::AddGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const struct in_addr enb_ip,
+    const uint32_t in_tei,
+    const uint32_t out_tei,
+    const char *imsi,
+    const struct ipv4flow_dl *dl_flow):
+  ue_ip_(ue_ip),
+  enb_ip_(enb_ip),
+  in_tei_(in_tei),
+  out_tei_(out_tei),
+  imsi_(imsi),
+  dl_flow_valid_(true),
+  dl_flow_(*dl_flow),
   ExternalEvent(EVENT_ADD_GTP_TUNNEL)
 {
 }
@@ -165,11 +185,35 @@ const std::string &AddGTPTunnelEvent::get_imsi() const
   return imsi_;
 }
 
+const bool AddGTPTunnelEvent::is_dl_flow_valid() const
+{
+  return dl_flow_valid_;
+}
+
+const struct ipv4flow_dl &AddGTPTunnelEvent::get_dl_flow() const
+{
+  return dl_flow_;
+}
+
 DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
-  const struct in_addr ue_ip,
-  const uint32_t in_tei):
+    const struct in_addr ue_ip,
+    const uint32_t in_tei,
+    const struct ipv4flow_dl *dl_flow):
   ue_ip_(ue_ip),
   in_tei_(in_tei),
+  dl_flow_valid_(true),
+  dl_flow_(*dl_flow),
+  ExternalEvent(EVENT_DELETE_GTP_TUNNEL)
+{
+}
+
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const uint32_t in_tei):
+  ue_ip_(ue_ip),
+  in_tei_(in_tei),
+  dl_flow_valid_(false),
+  dl_flow_(),
   ExternalEvent(EVENT_DELETE_GTP_TUNNEL)
 {
 }
@@ -184,12 +228,37 @@ const uint32_t DeleteGTPTunnelEvent::get_in_tei() const
   return in_tei_;
 }
 
+const bool DeleteGTPTunnelEvent::is_dl_flow_valid() const
+{
+  return dl_flow_valid_;
+}
+
+const struct ipv4flow_dl &DeleteGTPTunnelEvent::get_dl_flow() const
+{
+  return dl_flow_;
+}
+
 HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
-  const struct in_addr ue_ip,
-  const uint32_t in_tei,
-  const ControllerEventType event_type):
+    const struct in_addr ue_ip,
+    const uint32_t in_tei,
+    const ControllerEventType event_type,
+    const struct ipv4flow_dl *dl_flow):
   ue_ip_(ue_ip),
   in_tei_(in_tei),
+  dl_flow_valid_(true),
+  dl_flow_(*dl_flow),
+  ExternalEvent(event_type)
+{
+}
+
+HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const uint32_t in_tei,
+    const ControllerEventType event_type):
+  ue_ip_(ue_ip),
+  in_tei_(in_tei),
+  dl_flow_valid_(false),
+  dl_flow_(),
   ExternalEvent(event_type)
 {
 }
@@ -202,6 +271,16 @@ const struct in_addr &HandleDataOnGTPTunnelEvent::get_ue_ip() const
 const uint32_t HandleDataOnGTPTunnelEvent::get_in_tei() const
 {
   return in_tei_;
+}
+
+const bool HandleDataOnGTPTunnelEvent::is_dl_flow_valid() const
+{
+  return dl_flow_valid_;
+}
+
+const struct ipv4flow_dl &HandleDataOnGTPTunnelEvent::get_dl_flow() const
+{
+  return dl_flow_;
 }
 
 } // namespace openflow

@@ -24,6 +24,7 @@
 #include <arpa/inet.h>
 #include <fluid/OFServer.hh>
 #include <fluid/ofcommon/openflow-common.hh>
+#include "gtpv1u.h"
 
 using namespace fluid_msg;
 
@@ -158,13 +159,23 @@ class AddGTPTunnelEvent : public ExternalEvent {
     const struct in_addr enb_ip,
     const uint32_t in_tei,
     const uint32_t out_tei,
-    const char *imsi_);
+    const char *imsi,
+    const struct ipv4flow_dl *dl_flow);
+
+  AddGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const struct in_addr enb_ip,
+    const uint32_t in_tei,
+    const uint32_t out_tei,
+    const char *imsi);
 
   const struct in_addr &get_ue_ip() const;
   const struct in_addr &get_enb_ip() const;
   const uint32_t get_in_tei() const;
   const uint32_t get_out_tei() const;
   const std::string &get_imsi() const;
+  const bool is_dl_flow_valid() const;
+  const struct ipv4flow_dl &get_dl_flow() const;
 
  private:
   const struct in_addr ue_ip_;
@@ -172,6 +183,8 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const uint32_t in_tei_;
   const uint32_t out_tei_;
   const std::string imsi_;
+  const struct ipv4flow_dl dl_flow_;
+  const bool dl_flow_valid_;
 };
 
 /*
@@ -179,14 +192,24 @@ class AddGTPTunnelEvent : public ExternalEvent {
  */
 class DeleteGTPTunnelEvent : public ExternalEvent {
  public:
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei);
+  DeleteGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const uint32_t in_tei,
+    const struct ipv4flow_dl *dl_flow);
+  DeleteGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const uint32_t in_tei);
 
   const struct in_addr &get_ue_ip() const;
   const uint32_t get_in_tei() const;
+  const bool is_dl_flow_valid() const;
+  const struct ipv4flow_dl &get_dl_flow() const;
 
  private:
   const struct in_addr ue_ip_;
   const uint32_t in_tei_;
+  const struct ipv4flow_dl dl_flow_;
+  const bool dl_flow_valid_;
 };
 
 /*
@@ -199,14 +222,23 @@ class HandleDataOnGTPTunnelEvent : public ExternalEvent {
   HandleDataOnGTPTunnelEvent(
     const struct in_addr ue_ip,
     const uint32_t in_tei,
+    const ControllerEventType event_type,
+    const struct ipv4flow_dl *dl_flow);
+  HandleDataOnGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const uint32_t in_tei,
     const ControllerEventType event_type);
 
   const struct in_addr &get_ue_ip() const;
   const uint32_t get_in_tei() const;
+  const bool is_dl_flow_valid() const;
+  const struct ipv4flow_dl &get_dl_flow() const;
 
  private:
   const struct in_addr ue_ip_;
   const uint32_t in_tei_;
+  const struct ipv4flow_dl dl_flow_;
+  const bool dl_flow_valid_;
 };
 
 } // namespace openflow

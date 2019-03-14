@@ -35,6 +35,29 @@
 #define GTPU_HEADER_OVERHEAD_MAX 64
 
 /*
+ * downlink flow description for a dedicated bearer
+ */
+
+#define SRC_IPV4 0x1
+#define DST_IPV4 0x2
+#define TCP_SRC_PORT 0x4
+#define TCP_DST_PORT 0x8
+#define UDP_SRC_PORT 0x10
+#define UDP_DST_PORT 0x20
+#define IP_PROTO 0x40
+
+struct ipv4flow_dl {
+  struct in_addr dst_ip;
+  struct in_addr src_ip;
+  uint32_t set_params;
+  uint16_t tcp_dst_port;
+  uint16_t tcp_src_port;
+  uint16_t udp_dst_port;
+  uint16_t udp_src_port;
+  uint8_t ip_proto;
+};
+
+/*
  * This structure defines the management hooks for GTP tunnels.
  * The following hooks can be defined; unless noted otherwise, they are
  * optional and can be filled with a null pointer.
@@ -87,10 +110,14 @@ struct gtp_tunnel_ops {
     struct in_addr enb,
     uint32_t i_tei,
     uint32_t o_tei,
-    Imsi_t imsi);
-  int (*del_tunnel)(struct in_addr ue, uint32_t i_tei, uint32_t o_tei);
-  int (*discard_data_on_tunnel)(struct in_addr ue, uint32_t i_tei);
-  int (*forward_data_on_tunnel)(struct in_addr ue, uint32_t i_tei);
+    Imsi_t imsi,
+    struct ipv4flow_dl *flow_dl);
+  int (*del_tunnel)(struct in_addr ue, uint32_t i_tei,
+      uint32_t o_tei, struct ipv4flow_dl *flow_dl);
+  int (*discard_data_on_tunnel)(struct in_addr ue,
+      uint32_t i_tei, struct ipv4flow_dl *flow_dl);
+  int (*forward_data_on_tunnel)(struct in_addr ue,
+      uint32_t i_tei, struct ipv4flow_dl *flow_dl);
 };
 
 uint32_t gtpv1u_new_teid(void);

@@ -77,37 +77,68 @@ int openflow_controller_add_gtp_tunnel(
   struct in_addr enb,
   uint32_t i_tei,
   uint32_t o_tei,
-  const char *imsi)
+  const char *imsi,
+  struct ipv4flow_dl *flow_dl)
 {
-  auto add_tunnel =
-    std::make_shared<openflow::AddGTPTunnelEvent>(ue, enb, i_tei, o_tei, imsi);
-  ctrl.inject_external_event(add_tunnel, external_event_callback);
+  if (flow_dl) {
+    auto add_tunnel =
+        std::make_shared<openflow::AddGTPTunnelEvent>(ue, enb, i_tei,
+            o_tei, imsi, flow_dl);
+    ctrl.inject_external_event(add_tunnel, external_event_callback);
+  } else {
+    auto add_tunnel =
+        std::make_shared<openflow::AddGTPTunnelEvent>(ue, enb, i_tei,
+            o_tei, imsi);
+    ctrl.inject_external_event(add_tunnel, external_event_callback);
+  }
   return 0;
 }
 
-int openflow_controller_del_gtp_tunnel(struct in_addr ue, uint32_t i_tei)
+int openflow_controller_del_gtp_tunnel(struct in_addr ue, uint32_t i_tei,
+    struct ipv4flow_dl *flow_dl)
 {
-  auto del_tunnel = std::make_shared<openflow::DeleteGTPTunnelEvent>(ue, i_tei);
-  ctrl.inject_external_event(del_tunnel, external_event_callback);
+  if (flow_dl) {
+    auto del_tunnel =
+      std::make_shared<openflow::DeleteGTPTunnelEvent>(ue, i_tei, flow_dl);
+    ctrl.inject_external_event(del_tunnel, external_event_callback);
+  } else {
+    auto del_tunnel =
+      std::make_shared<openflow::DeleteGTPTunnelEvent>(ue, i_tei);
+    ctrl.inject_external_event(del_tunnel, external_event_callback);
+  }
   return 0;
 }
 
 int openflow_controller_discard_data_on_tunnel(
   struct in_addr ue,
-  uint32_t i_tei)
+  uint32_t i_tei,
+  struct ipv4flow_dl *flow_dl)
 {
-  auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-    ue, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);
-  ctrl.inject_external_event(gtp_tunnel, external_event_callback);
+  if (flow_dl) {
+    auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
+        ue, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL, flow_dl);
+    ctrl.inject_external_event(gtp_tunnel, external_event_callback);
+  } else {
+    auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
+        ue, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);
+    ctrl.inject_external_event(gtp_tunnel, external_event_callback);
+  }
   return 0;
 }
 
 int openflow_controller_forward_data_on_tunnel(
   struct in_addr ue,
-  uint32_t i_tei)
+  uint32_t i_tei,
+  struct ipv4flow_dl *flow_dl)
 {
-  auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
-    ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
-  ctrl.inject_external_event(gtp_tunnel, external_event_callback);
+  if (flow_dl) {
+    auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
+        ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL, flow_dl);
+    ctrl.inject_external_event(gtp_tunnel, external_event_callback);
+  } else {
+    auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
+        ue, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
+    ctrl.inject_external_event(gtp_tunnel, external_event_callback);
+  }
   return 0;
 }

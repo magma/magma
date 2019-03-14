@@ -25,6 +25,7 @@
 
 #include "GTPApplication.h"
 #include "IMSIEncoder.h"
+#include "gtpv1u.h"
 
 extern "C" {
 #include "log.h"
@@ -148,7 +149,8 @@ void GTPApplication::delete_uplink_tunnel_flow(
 /*
  * Helper method to add matching for adding/deleting the downlink flow
  */
-void add_downlink_match(of13::FlowMod &downlink_fm, const struct in_addr &ue_ip)
+static void add_downlink_match(of13::FlowMod &downlink_fm,
+    const struct in_addr &ue_ip)
 {
   // Set match on uplink port and IP eth type
   of13::InPort uplink_port_match(of13::OFPP_LOCAL);
@@ -161,6 +163,53 @@ void add_downlink_match(of13::FlowMod &downlink_fm, const struct in_addr &ue_ip)
   downlink_fm.add_oxm_field(ip_match);
 }
 
+static void add_ded_brr_dl_match(of13::FlowMod &downlink_fm,
+    const struct ipv4flow_dl &flow)
+{
+  // Set match on uplink port and IP eth type
+  of13::InPort uplink_port_match(of13::OFPP_LOCAL);
+  downlink_fm.add_oxm_field(uplink_port_match);
+  of13::EthType ip_type(0x0800);
+  downlink_fm.add_oxm_field(ip_type);
+
+  // Match UE IP destination
+  if (flow.set_params & DST_IPV4) {
+    of13::IPv4Dst ipv4_dst(flow.dst_ip.s_addr);
+    downlink_fm.add_oxm_field(ipv4_dst);
+  }
+
+  // Match IP source
+  if (flow.set_params & SRC_IPV4) {
+    of13::IPv4Src ipv4_src(flow.src_ip.s_addr);
+    downlink_fm.add_oxm_field(ipv4_src);
+  }
+
+  if (flow.set_params & IP_PROTO) {
+    of13::IPProto proto(flow.ip_proto);
+    downlink_fm.add_oxm_field(proto);
+  }
+
+  if (flow.set_params & TCP_SRC_PORT) {
+    of13::TCPSrc tcp_src_port(flow.tcp_src_port);
+    downlink_fm.add_oxm_field(tcp_src_port);
+  }
+
+  if (flow.set_params & TCP_DST_PORT) {
+    of13::TCPDst tcp_dst_port(flow.tcp_dst_port);
+    downlink_fm.add_oxm_field(tcp_dst_port);
+  }
+
+  if (flow.set_params & UDP_SRC_PORT) {
+    of13::UDPSrc udp_src_port(flow.udp_src_port);
+    downlink_fm.add_oxm_field(udp_src_port);
+  }
+
+  if (flow.set_params & UDP_DST_PORT) {
+    of13::UDPDst udp_dst_port(flow.udp_dst_port);
+    downlink_fm.add_oxm_field(udp_dst_port);
+  }
+}
+
 void GTPApplication::add_downlink_tunnel_flow(
   const AddGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
@@ -168,7 +217,11 @@ void GTPApplication::add_downlink_tunnel_flow(
   of13::FlowMod downlink_fm =
     messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY);
 
-  add_downlink_match(downlink_fm, ev.get_ue_ip());
+  if (ev.is_dl_flow_valid()) {
+    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+  } else {
+    add_downlink_match(downlink_fm, ev.get_ue_ip());
+  }
 
   of13::ApplyActions apply_dl_inst;
 
@@ -203,7 +256,12 @@ void GTPApplication::delete_downlink_tunnel_flow(
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
 
-  add_downlink_match(downlink_fm, ev.get_ue_ip());
+  if (ev.is_dl_flow_valid()) {
+    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+  } else {
+    add_downlink_match(downlink_fm, ev.get_ue_ip());
+  }
+
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
@@ -237,7 +295,12 @@ void GTPApplication::discard_downlink_tunnel_flow(
   downlink_fm.cookie(cookie + 1);
   downlink_fm.cookie_mask(cookie + 1);
 
-  add_downlink_match(downlink_fm, ev.get_ue_ip());
+  if (ev.is_dl_flow_valid()) {
+    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+  } else {
+    add_downlink_match(downlink_fm, ev.get_ue_ip());
+  }
+
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
@@ -271,7 +334,12 @@ void GTPApplication::forward_downlink_tunnel_flow(
   downlink_fm.cookie(cookie + 1);
   downlink_fm.cookie_mask(cookie + 1);
 
-  add_downlink_match(downlink_fm, ev.get_ue_ip());
+  if (ev.is_dl_flow_valid()) {
+    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+  } else {
+    add_downlink_match(downlink_fm, ev.get_ue_ip());
+  }
+
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
