@@ -18,15 +18,15 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers"
 )
 
 // AKA Provider Implementation
 type providerImpl struct{} // singleton for now
 
-func init() {
-	eap.Register(providerImpl{})
+func New() providers.Method {
+	return providerImpl{}
 }
 
 // Wrapper to provide a wrapper for GRPC Client to extend it with Cleanup

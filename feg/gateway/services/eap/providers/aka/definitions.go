@@ -11,7 +11,6 @@ package aka
 
 import (
 	"fmt"
-	"unsafe"
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
@@ -95,10 +94,9 @@ const (
 )
 
 const (
-	ByteLen     = unsafe.Sizeof(byte(0))
 	ATT_HDR_LEN = 4
-	AUTN_LEN    = int(uintptr(128) / ByteLen) //128/8 -> 16
-	RAND_LEN    = int(uintptr(128) / ByteLen) //128/8
+	AUTN_LEN    = 16
+	RAND_LEN    = 16
 	RandAutnLen = RAND_LEN + AUTN_LEN
 	MAC_LEN     = 16
 
