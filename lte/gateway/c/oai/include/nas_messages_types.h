@@ -37,12 +37,13 @@
 #ifndef FILE_NAS_MESSAGES_TYPES_SEEN
 #define FILE_NAS_MESSAGES_TYPES_SEEN
 
-#include "as_message.h"
-#include "nas_message.h"
-#include "networkDef.h"
+#include <stdint.h>
+
 #include "3gpp_23.003.h"
-#include "common_ies.h"
 #include "3gpp_29.274.h"
+#include "as_message.h"
+#include "common_ies.h"
+#include "networkDef.h"
 
 #define NAS_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.nas_ul_data_ind
 #define NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_req
