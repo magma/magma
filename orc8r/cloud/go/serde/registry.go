@@ -72,7 +72,12 @@ func Serialize(domain string, typeVal string, data interface{}) ([]byte, error) 
 
 // Deserialize deserializes a bytearray by delegating to the appropriate Serde
 // identified by the domain and typeVal. This function is thread-safe.
+// If the data parameter is nil or empty, this function will return nil, nil.
 func Deserialize(domain string, typeVal string, data []byte) (interface{}, error) {
+	if data == nil || len(data) == 0 {
+		return nil, nil
+	}
+
 	registry.RLock()
 	defer registry.RUnlock()
 	subregistry, ok := registry.serdeRegistriesByDomain[domain]
@@ -207,4 +212,15 @@ func UnregisterAllSerdes(t *testing.T) {
 	registry.Lock()
 	defer registry.Unlock()
 	registry.serdeRegistriesByDomain = map[string]*serdes{}
+}
+
+// UnregisterSerdesForDomain should only be used in test code!!!!
+// DO NOT USE IN ANYTHING OTHER THAN TESTS
+func UnregisterSerdesForDomain(t *testing.T, domain string) {
+	if t == nil {
+		panic("Nice try")
+	}
+	registry.Lock()
+	defer registry.Unlock()
+	registry.serdeRegistriesByDomain[domain] = &serdes{serdesByKey: map[string]Serde{}}
 }

@@ -21,7 +21,6 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
-	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
@@ -52,19 +51,11 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 	return serviceLocations
 }
 
-func (*BaseOrchestratorPlugin) GetConfigManagers() []configregistry.ConfigManager {
-	return []configregistry.ConfigManager{
-		// magmad
-		&magmadconfig.MagmadGatewayConfigManager{},
-		// dnsd
-		&dnsdconfig.DnsNetworkConfigManager{},
-	}
-}
-
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		// magmad
 		&state.CheckinRequestSerde{},
+		&magmadconfig.MagmadGatewayConfigManager{},
+		&dnsdconfig.DnsNetworkConfigManager{},
 	}
 }
 

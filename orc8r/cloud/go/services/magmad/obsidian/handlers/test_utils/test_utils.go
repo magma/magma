@@ -11,8 +11,8 @@ package test_utils
 import (
 	"encoding/json"
 
-	"magma/orc8r/cloud/go/services/config/registry"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/config"
 )
 
 type Conf1 struct {
@@ -23,23 +23,23 @@ type Conf1 struct {
 
 type Conf1Manager struct{}
 
-func NewConfig1Manager() registry.ConfigManager {
+func NewConfig1Manager() serde.Serde {
 	return &Conf1Manager{}
 }
 
-func (manager *Conf1Manager) GetConfigType() string {
+func (manager *Conf1Manager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (manager *Conf1Manager) GetType() string {
 	return "Config1"
 }
 
-func (manager *Conf1Manager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return magmad.ListGateways(networkId)
-}
-
-func (manager *Conf1Manager) MarshalConfig(config interface{}) ([]byte, error) {
+func (manager *Conf1Manager) Serialize(config interface{}) ([]byte, error) {
 	return json.Marshal(config)
 }
 
-func (manager *Conf1Manager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (manager *Conf1Manager) Deserialize(message []byte) (interface{}, error) {
 	var out Conf1
 	err := json.Unmarshal(message, &out)
 	return &out, err
@@ -52,23 +52,23 @@ type Conf2 struct {
 
 type Conf2Manager struct{}
 
-func NewConfig2Manager() registry.ConfigManager {
+func NewConfig2Manager() serde.Serde {
 	return &Conf2Manager{}
 }
 
-func (manager *Conf2Manager) GetConfigType() string {
+func (manager *Conf2Manager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (manager *Conf2Manager) GetType() string {
 	return "Config2"
 }
 
-func (manager *Conf2Manager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (manager *Conf2Manager) MarshalConfig(config interface{}) ([]byte, error) {
+func (manager *Conf2Manager) Serialize(config interface{}) ([]byte, error) {
 	return json.Marshal(config)
 }
 
-func (manager *Conf2Manager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (manager *Conf2Manager) Deserialize(message []byte) (interface{}, error) {
 	var out Conf2
 	err := json.Unmarshal(message, &out)
 	return &out, err
