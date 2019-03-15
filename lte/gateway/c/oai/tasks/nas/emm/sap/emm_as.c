@@ -34,7 +34,7 @@
 #include "common_types.h"
 #include "3gpp_24.007.h"
 #include "mme_app_ue_context.h"
-#include "as_message.h"
+#include "nas/as_message.h"
 #include "emm_cause.h"
 #include "nas_itti_messaging.h"
 #include "emm_as.h"
@@ -511,7 +511,7 @@ static int _emm_as_recv(
       }
       rc =
         emm_recv_tau_complete(ue_id, &emm_msg->tracking_area_update_complete);
-      /* 
+      /*
     * send the SGSAP TMSI Reallocation complete message towards SGS.
     * if csfb newTmsiAllocated flag is true
     * After sending set it to false

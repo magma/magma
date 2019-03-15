@@ -62,7 +62,7 @@
 #include "CsfbResponse.h"
 #include "ServiceType.h"
 #include "TrackingAreaIdentity.h"
-#include "as_message.h"
+#include "nas/as_message.h"
 #include "emm_data.h"
 #include "esm_data.h"
 #include "hashtable.h"
@@ -74,7 +74,7 @@
 #include "nas_messages_types.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 #include "service303.h"
 #include "sgs_messages_types.h"
 

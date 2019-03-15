@@ -42,7 +42,7 @@ Description
 
 #include "intertask_interface_types.h"
 
-#include "as_message.h"
+#include "nas/as_message.h"
 #include "common_ies.h"
 #include "LocationAreaIdentification.h"
 

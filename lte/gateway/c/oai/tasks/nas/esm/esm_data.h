@@ -41,7 +41,7 @@ Description Defines internal private data handled by EPS Session
 #define __ESMDATA_H__
 
 #include "nas_timer.h"
-#include "networkDef.h"
+#include "nas/networkDef.h"
 #include "tree.h"
 #include "3gpp_24.007.h"
 #include "mme_api.h"

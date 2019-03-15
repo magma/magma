@@ -41,9 +41,9 @@
 
 #include "3gpp_23.003.h"
 #include "3gpp_29.274.h"
-#include "as_message.h"
+#include "nas/as_message.h"
 #include "common_ies.h"
-#include "networkDef.h"
+#include "nas/networkDef.h"
 
 #define NAS_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.nas_ul_data_ind
 #define NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_req

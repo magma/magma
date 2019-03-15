@@ -41,7 +41,7 @@
 #include "emm_fsm.h"
 #include "nas_timer.h"
 #include "queue.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 #include "security_types.h"
 
 struct emm_context_s;

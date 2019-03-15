@@ -81,7 +81,7 @@
 #include "mme_app_sgs_fsm.h"
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
-#include "networkDef.h"
+#include "nas/networkDef.h"
 #include "security_types.h"
 
 extern int emm_proc_tracking_area_update_accept(

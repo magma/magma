@@ -59,7 +59,7 @@
 #include "TrackingAreaIdentityList.h"
 #include "esm_data.h"
 #include "mme_api.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 
 #define MAX_MINUTE_DIGITS 3 /* Maximum digits required to hold minute value */
 

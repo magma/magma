@@ -92,7 +92,6 @@ add_boolean_option(LINK_GCOV                       False    "Whether to link gco
 
 add_boolean_option(S6A_OVER_GRPC                   True     "S6a messages sent over gRPC")
 
-
 ################################################################
 # Include CMake modules to find other library
 ################################################################
@@ -114,24 +113,9 @@ find_library(SERVICE303_LIB SERVICE303_LIB ${MAGMA_LIB_DIR}/service303)
 find_library(CONFIG CONFIG ${MAGMA_LIB_DIR}/config)
 find_library(SERVICE_REGISTRY SERVICE_REGISTRY ${MAGMA_LIB_DIR}/service_registry)
 
-# add_compile_options(-ftime-report)
-
 ################################################################
 # Add sub modules
 ################################################################
-
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/api)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/api/mme)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/api/network)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/emm)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/emm/msg)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/emm/sap)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/esm)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/esm/msg)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/esm/sap)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/ies)
-include_directories(${PROJECT_SOURCE_DIR}/tasks/nas/util)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
