@@ -15,12 +15,16 @@ from typing import List
 
 import snowflake
 from google.protobuf import json_format
+from google.protobuf.struct_pb2 import Struct
 from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 
 from magma.common.rpc_utils import return_void
 from magma.common.service import MagmaService
 from magma.configuration.mconfig_managers import MconfigManager
+from magma.magmad.generic_command.command_executor import \
+    CommandExecutor
 from magma.magmad.service_manager import ServiceManager
+
 from .network_check import ping, traceroute
 
 
@@ -34,6 +38,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                  services: List[str],
                  service_manager: ServiceManager,
                  mconfig_manager: MconfigManager,
+                 command_executor: CommandExecutor,
                  loop):
         """
         Constructor for the magmad RPC servicer
@@ -53,6 +58,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._services = services
         self._mconfig_manager = mconfig_manager
         self._magma_service = magma_service
+        self._command_executor = command_executor
         self._loop = loop
 
     def add_to_server(self, server):
@@ -144,15 +150,49 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         return magmad_pb2.GetGatewayIdResponse(gateway_id=snowflake.snowflake())
 
-    def GenericCommand(self, _, context):
+    def GenericCommand(self, request, context):
         """
         Execute generic command. This method will run the command with params
         as specified in the command executor's command table, then return
         the response of the command.
         """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Generic command not implemented')
-        return magmad_pb2.GenericCommandResponse()
+        if 'generic_command_config' not in self._magma_service.config:
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+            context.set_details('Generic command config not found')
+            return magmad_pb2.GenericCommandResponse()
+
+        params = json_format.MessageToDict(request.params)
+
+        # Run the execute command coroutine. Return an error if it times out or
+        # if an exception occurs.
+        logging.info('Running generic command %s with parameters %s',
+                     request.command, params)
+        future = asyncio.run_coroutine_threadsafe(
+            self._command_executor.execute_command(request.command, params),
+            self._loop)
+
+        timeout = self._magma_service.config['generic_command_config']\
+            .get('timeout_secs', 15)
+
+        response = magmad_pb2.GenericCommandResponse()
+        try:
+            result = future.result(timeout=timeout)
+            logging.debug('Command was successful')
+            response.response.MergeFrom(
+                json_format.ParseDict(result, Struct()))
+        except asyncio.TimeoutError:
+            logging.error('Error running command %s! Command timed out',
+                          request.command)
+            future.cancel()
+            context.set_code(grpc.StatusCode.DEADLINE_EXCEEDED)
+            context.set_details('Command timed out')
+        except Exception as e:  # pylint: disable=broad-except
+            logging.error('Error running command %s! %s: %s',
+                          request.command, e.__class__.__name__, e)
+            context.set_code(grpc.StatusCode.UNKNOWN)
+            context.set_details('{}: {}'.format(e.__class__.__name__, str(e)))
+
+        return response
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):

@@ -16,6 +16,8 @@ from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
     get_mconfig_manager
 from magma.magmad.logging.systemd_tailer import start_systemd_tailer
+from magma.magmad.generic_command.command_executor import \
+    get_command_executor_impl
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
 
 from .bootstrap_manager import BootstrapManager
@@ -119,13 +121,18 @@ def main():
     if service.config.get('enable_systemd_tailer', False):
         service.loop.create_task(start_systemd_tailer(service.config))
 
+    # Create generic command executor
+    command_executor = None
+    if service.config.get('generic_command_config', None):
+        command_executor = get_command_executor_impl(service)
+
     # Start loop to monitor unattended upgrade status
     service.loop.create_task(monitor_unattended_upgrade_status(service.loop))
 
     # Add all servicers to the server
     magmad_servicer = MagmadRpcServicer(
         service,
-        services, service_manager, get_mconfig_manager(),
+        services, service_manager, get_mconfig_manager(), command_executor,
         service.loop,
     )
     magmad_servicer.add_to_server(service.rpc_server)
