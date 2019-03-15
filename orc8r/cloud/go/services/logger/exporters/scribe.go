@@ -10,7 +10,6 @@ package exporters
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -100,7 +99,7 @@ func (e *ScribeExporter) write(client HttpClient, logEntries []*ScribeLogEntry) 
 	if resp.StatusCode != 200 {
 		errMsg, _ := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
-		err = errors.New(fmt.Sprintf("Scribe status code %d: %s", resp.StatusCode, errMsg))
+		err = fmt.Errorf("Scribe status code %d: %s", resp.StatusCode, errMsg)
 	}
 	return err
 }
