@@ -6,6 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import grpc
+
 import os
 import asyncio
 import logging
@@ -141,6 +143,16 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         Get gateway hardware ID
         """
         return magmad_pb2.GetGatewayIdResponse(gateway_id=snowflake.snowflake())
+
+    def GenericCommand(self, _, context):
+        """
+        Execute generic command. This method will run the command with params
+        as specified in the command executor's command table, then return
+        the response of the command.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Generic command not implemented')
+        return magmad_pb2.GenericCommandResponse()
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):
