@@ -6,20 +6,22 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// Package eap (EAP Authenticator) provides interface to supported & registered EAP Authenticator Providers
-package eap
+// Package registry defines API to register and fing EAP providers
+package registry
 
 import (
 	"log"
 	"sort"
 	"sync"
+
+	"magma/feg/gateway/services/eap/providers"
 )
 
 // registry is a "read mostly" map of eap providers
 // to register provider, add it into init()
 
 var (
-	eapProviderRegistry               = map[uint8]Provider{}
+	eapProviderRegistry               = map[uint8]providers.Method{}
 	supportedTypes                    = []uint8{}
 	registryMu          *sync.RWMutex = new(sync.RWMutex)
 )
@@ -27,14 +29,16 @@ var (
 // Register adds (registers) the provider to the internal registry, if a provider for the same type is already
 // registered it'll be overwritten.
 // Register returns the previously registered provider for the type or nil if none was registered for the type before
-func Register(p Provider) (oldProvider Provider) {
+func Register(p providers.Method) (oldProvider providers.Method) {
 	typ := p.EAPType()
 	registryMu.Lock()
 	defer registryMu.Unlock()
 	oldProvider, previousExists := eapProviderRegistry[typ]
 	eapProviderRegistry[typ] = p
 	if previousExists {
-		log.Printf("EAP Provider is already registered for type %d: %s. Will overwrite with: %s", typ, oldProvider, p)
+		log.Printf(
+			"EAP Provider is already registered for type %d: %s. Will overwrite with: %s",
+			typ, oldProvider, p)
 	} else {
 		supportedTypes = append(supportedTypes, typ)
 		sort.Sort(typesSlice(supportedTypes))
@@ -42,7 +46,8 @@ func Register(p Provider) (oldProvider Provider) {
 	return
 }
 
-func getProvider(typ uint8) Provider {
+// GetProvider returns registered Method provider for EAP type
+func GetProvider(typ uint8) providers.Method {
 	registryMu.RLock()
 	defer registryMu.RUnlock()
 	p, found := eapProviderRegistry[typ]

@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	"magma/feg/gateway/services/eap/client"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
@@ -58,7 +60,7 @@ func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, e
 	}
 	identifier := p.Identifier()
 	method := p.Type()
-	if method == eap.EapMethodIdentity {
+	if method == client.EapMethodIdentity {
 		return &protos.Eap{Payload: aka.NewIdentityReq(identifier, aka.AT_PERMANENT_ID_REQ)}, nil
 	}
 	if method != aka.TYPE {
@@ -89,7 +91,8 @@ func (s *EapAkaSrv) GetLockedUserCtx(imsi aka.IMSI) *UserCtx {
 		return res
 	}
 	s.rwl.RUnlock()
-	s.rwl.RLock()
+	s.rwl.Lock()
+	// check again after locking
 	if res, ok := s.users[imsi]; ok {
 		res.mu.Lock()
 		s.rwl.Unlock()
@@ -97,8 +100,11 @@ func (s *EapAkaSrv) GetLockedUserCtx(imsi aka.IMSI) *UserCtx {
 	}
 	res = &UserCtx{imsi: imsi, state: aka.StateCreated, stateTime: time.Now()}
 	res.mu.Lock()
+	if s.users == nil {
+		s.users = map[aka.IMSI]*UserCtx{}
+	}
 	s.users[imsi] = res
-	res.mu.Lock()
+	s.rwl.Unlock()
 	return res
 }
 

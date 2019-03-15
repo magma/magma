@@ -16,6 +16,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
+	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	"magma/orc8r/cloud/go/service"
 )
 
