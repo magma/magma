@@ -67,3 +67,13 @@ func GatewayPing(networkId string, gatewayId string, packets int32, hosts []stri
 	}
 	return client.RunNetworkTests(ctx, &protos.NetworkTestRequest{Pings: pingParams})
 }
+
+func GatewayGenericCommand(networkId string, gatewayId string, params *protos.GenericCommandParams) (*protos.GenericCommandResponse, error) {
+	client, conn, ctx, err := getGWMagmadClient(networkId, gatewayId)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	return client.GenericCommand(ctx, params)
+}
