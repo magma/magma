@@ -10,7 +10,6 @@ package exporters
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"magma/orc8r/cloud/go/protos"
@@ -38,7 +37,7 @@ func ConvertToScribeLogEntries(entries []*protos.LogEntry) ([]*ScribeLogEntry, e
 	scribeEntries := []*ScribeLogEntry{}
 	for _, entry := range entries {
 		if entry.Time == 0 {
-			return nil, errors.New(fmt.Sprintf("ScribeLogEntry %v doesn't have time field set", entry))
+			return nil, fmt.Errorf("ScribeLogEntry %v doesn't have time field set", entry)
 		}
 		scribeMsg := ScribeLogMessage{}
 		// if any of the following fields are nil, they will be omitted when scribeMsg is marshalled into json.

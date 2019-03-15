@@ -65,7 +65,7 @@ func (table *ResponseTableImpl) SendResponse(resp *protos.SyncRPCResponse) error
 			return errors.New("sendResponse timed out as respChan is not being actively waited on")
 		}
 	} else {
-		return errors.New(fmt.Sprintf("No response channel found for reqId %v\n", resp.ReqId))
+		return fmt.Errorf("No response channel found for reqId %v\n", resp.ReqId)
 	}
 }
 
