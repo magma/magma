@@ -39,9 +39,12 @@ add_library(LIB_SGS_CLIENT
 
 target_link_libraries(LIB_SGS_CLIENT
     COMMON
-    ASYNC_GRPC SERVICE_REGISTRY
-    LIB_BSTR LIB_HASHTABLE CONFIG
+    ${ASYNC_GRPC} ${SERVICE_REGISTRY}
+    LIB_BSTR LIB_HASHTABLE ${CONFIG}
 )
 target_include_directories(LIB_SGS_CLIENT PUBLIC
+    ${MAGMA_LIB_DIR}/async_grpc
+    ${MAGMA_LIB_DIR}/config
+    ${MAGMA_LIB_DIR}/service_registry
     ${CMAKE_CURRENT_SOURCE_DIR}
     )

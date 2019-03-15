@@ -29,9 +29,13 @@ add_library(LIB_DIRECTORYD
   )
 
 target_link_libraries(LIB_DIRECTORYD
-  LIB_RPC_CLIENT ASYNC_GRPC SERVICE_REGISTRY
+  LIB_RPC_CLIENT ${ASYNC_GRPC} ${SERVICE_REGISTRY}
+  ${CONFIG}
 )
 
 target_include_directories(LIB_DIRECTORYD PUBLIC
+  ${MAGMA_LIB_DIR}/async_grpc
+  ${MAGMA_LIB_DIR}/config
+  ${MAGMA_LIB_DIR}/service_registry
   ${CMAKE_CURRENT_SOURCE_DIR}
 )

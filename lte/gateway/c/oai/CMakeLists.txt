@@ -108,6 +108,12 @@ include_directories(${CONFIG_INCLUDE_DIRS})
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
+set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
+find_library(ASYNC_GRPC ASYNC_GRPC ${MAGMA_LIB_DIR}/async_grpc)
+find_library(SERVICE303_LIB SERVICE303_LIB ${MAGMA_LIB_DIR}/service303)
+find_library(CONFIG CONFIG ${MAGMA_LIB_DIR}/config)
+find_library(SERVICE_REGISTRY SERVICE_REGISTRY ${MAGMA_LIB_DIR}/service_registry)
+
 # add_compile_options(-ftime-report)
 
 ################################################################
@@ -132,17 +138,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 #############################################################
 # Add magma libraries
 #############################################################
-
-set(MAGMA_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/../magma_common")
-include_directories(${MAGMA_LIB_DIR}/config)
-include_directories(${MAGMA_LIB_DIR}/async_grpc)
-include_directories(${MAGMA_LIB_DIR}/service303)
-include_directories(${MAGMA_LIB_DIR}/service_registry)
-link_directories(
-  ${MAGMA_LIB_DIR}/async_grpc
-  ${MAGMA_LIB_DIR}/config
-  ${MAGMA_LIB_DIR}/service303
-  ${MAGMA_LIB_DIR}/service_registry)
 
 add_subdirectory(common)
 add_subdirectory(lib)

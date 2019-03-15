@@ -16,11 +16,18 @@ add_library(TASK_SERVICE303
 
 target_link_libraries(TASK_SERVICE303
   COMMON
-  SERVICE303_LIB
+  ${SERVICE303_LIB}
+  ${ASYNC_GRPC}
+  ${SERVICE_REGISTRY}
+  ${CONFIG}
   LIB_BSTR
   ${PROTOBUF_LIBRARIES}
   )
 
 target_include_directories(TASK_SERVICE303 PUBLIC
+  ${MAGMA_LIB_DIR}/service303
+  ${MAGMA_LIB_DIR}/async_grpc
+  ${MAGMA_LIB_DIR}/config
+  ${MAGMA_LIB_DIR}/service_registry
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
