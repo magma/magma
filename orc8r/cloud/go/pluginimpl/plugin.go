@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
@@ -30,7 +31,6 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
-	stateregistry "magma/orc8r/cloud/go/services/state/registry"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -61,10 +61,10 @@ func (*BaseOrchestratorPlugin) GetConfigManagers() []configregistry.ConfigManage
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetStateSerdes() []stateregistry.StateSerde {
-	return []stateregistry.StateSerde{
+func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
+	return []serde.Serde{
 		// magmad
-		&state.GatewayStatusSerde{},
+		&state.CheckinRequestSerde{},
 	}
 }
 
