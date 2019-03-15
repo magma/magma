@@ -1314,6 +1314,7 @@ void mme_app_handle_release_access_bearers_resp(
     // Just cleanup the MME APP state associated with s1.
     mme_ue_context_update_ue_sig_connection_state(
       &mme_app_desc.mme_ue_contexts, ue_context_p, ECM_IDLE);
+    ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
