@@ -11,6 +11,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import argparse
 
+from google.protobuf import json_format
+from google.protobuf.struct_pb2 import Struct
 from magma.common.rpc_utils import grpc_wrapper
 from orc8r.protos import common_pb2, magmad_pb2, magmad_pb2_grpc
 
@@ -74,6 +76,15 @@ def get_gateway_id(client, args):
     print(response)
 
 
+@grpc_wrapper
+def generic_command(client, args):
+    params = json_format.Parse(args.params, Struct())
+    response = client.GenericCommand(
+        magmad_pb2.GenericCommandParams(command=args.command, params=params)
+    )
+    print(response)
+
+
 def create_parser():
     """
     Creates the argparse parser with all the arguments.
@@ -100,6 +111,8 @@ def create_parser():
         help='traceroute a host from the gateway')
     parser_get_id = subparsers.add_parser('get_gateway_id',
                                            help='Get gateway hardware ID')
+    parser_generic_command = subparsers.add_parser('generic_command',
+                                                   help='Execute generic command')
 
     parser_ping.add_argument('hosts', nargs='+', type=str,
                              help='Hosts (URLs or IPs) to ping')
@@ -114,6 +127,10 @@ def create_parser():
                                    help='Bytes per packet, defaults to 60')
     parser_restart.add_argument('services', nargs='*', type=str,
                                 help='Services to restart')
+    parser_generic_command.add_argument('command', type=str,
+                                        help='Command name')
+    parser_generic_command.add_argument('params', type=str,
+                                        help='Params (string)')
     # Add function callbacks
     parser_start.set_defaults(func=start_services)
     parser_stop.set_defaults(func=stop_services)
@@ -122,6 +139,7 @@ def create_parser():
     parser_ping.set_defaults(func=ping)
     parser_traceroute.set_defaults(func=traceroute)
     parser_get_id.set_defaults(func=get_gateway_id)
+    parser_generic_command.set_defaults(func=generic_command)
     return parser
 
 
@@ -136,6 +154,7 @@ def main():
 
     # Execute the subcommand function
     args.func(args, magmad_pb2_grpc.MagmadStub, 'magmad')
+
 
 if __name__ == "__main__":
     main()

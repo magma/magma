@@ -10,6 +10,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 import "orc8r/protos/mconfig.proto";
 import "orc8r/protos/service303.proto";
+import "google/protobuf/struct.proto";
 
 package magma.orc8r;
 option go_package = "magma/orc8r/cloud/go/protos";
@@ -70,6 +71,15 @@ message RestartServicesRequest {
   repeated string services = 1;
 }
 
+message GenericCommandParams {
+  string command = 1;
+  google.protobuf.Struct params = 2;
+}
+
+message GenericCommandResponse {
+  google.protobuf.Struct response = 1;
+}
+
 // --------------------------------------------------------------------------
 // Magmad service definition.
 // --------------------------------------------------------------------------
@@ -98,6 +108,9 @@ service Magmad {
 
   // Get gateway hardware ID
   rpc GetGatewayId (Void) returns (GetGatewayIdResponse) {}
+
+  // Execute generic command
+  rpc GenericCommand (GenericCommandParams) returns (GenericCommandResponse) {}
 }
 
 message SystemStatus {
