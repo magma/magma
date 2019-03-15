@@ -77,7 +77,7 @@ func IsGateway(id *protos.Identity) bool {
 
 //GetStreamGatewayId returns a valid, non nil Gateway identity based on the
 //stream's metadata CTX or error if no GW Identity can be found/verified
-func GetStreamGatewayId(stream grpc.Stream) (*protos.Identity_Gateway, error) {
+func GetStreamGatewayId(stream grpc.ServerStream) (*protos.Identity_Gateway, error) {
 	ctx := stream.Context()
 	if ctx == nil {
 		msg := "Missing Stream Context"
