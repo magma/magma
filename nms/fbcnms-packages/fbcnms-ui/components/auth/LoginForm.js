@@ -56,6 +56,9 @@ class LoginForm extends React.Component<Props, State> {
       <FormLabel error>{this.props.error}</FormLabel>
     ) : null;
 
+    const params = new URLSearchParams(window.location.search);
+    const to = params.get('to');
+
     return (
       <Card raised={true} className={classes.card}>
         <form
@@ -63,6 +66,7 @@ class LoginForm extends React.Component<Props, State> {
           method="post"
           action={this.props.action}>
           <input type="hidden" name="_csrf" value={csrfToken} />
+          <input type="hidden" name="to" value={to} />
           <CardContent>
             <Typography variant="h5" align="center" gutterBottom>
               {this.props.title}

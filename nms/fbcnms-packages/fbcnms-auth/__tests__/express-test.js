@@ -97,6 +97,45 @@ describe('user tests', () => {
           .expect('Location', '/success');
       });
 
+      it('valid user can login (redirected)', async () => {
+        const app = getApp('validorg');
+        await request(app)
+          .post('/user/login')
+          .type('form')
+          .send({
+            email: 'valid@123.com',
+            password: 'password1234',
+            to: '/other/success',
+          })
+          .expect(302)
+          .expect('Location', '/other/success');
+      });
+
+      it('valid user can login (non-relative redirect)', async () => {
+        const app = getApp('validorg');
+        await request(app)
+          .post('/user/login')
+          .type('form')
+          .send({
+            email: 'valid@123.com',
+            password: 'password1234',
+            to: 'http://evilsite.com/other/success',
+          })
+          .expect(302)
+          .expect('Location', '/success');
+
+        await request(app)
+          .post('/user/login')
+          .type('form')
+          .send({
+            email: 'valid@123.com',
+            password: 'password1234',
+            to: '//evilsite.com/other/success',
+          })
+          .expect(302)
+          .expect('Location', '/success');
+      });
+
       it('valid user, invalid org cant login', async () => {
         const app = getApp('invalidorg');
         await request(app)

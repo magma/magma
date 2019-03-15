@@ -16,6 +16,7 @@ import passport from 'passport';
 import staticDist from 'fbcnms-webpack-config/staticDist';
 import {access} from './access';
 import {AccessRoles} from './roles';
+import {addQueryParamsToUrl} from './util';
 import EmailValidator from 'email-validator';
 
 const SALT_GEN_ROUNDS = 10;
@@ -84,17 +85,33 @@ function userMiddleware(options: Options): express.Router {
   }
 
   // Login / Logout Routes
-  router.post(
-    '/login',
-    passport.authenticate('local', {
-      successRedirect: options.loginSuccessUrl,
-      failureRedirect: options.loginFailureUrl,
-    }),
-  );
+  router.post('/login', (req, res, next) => {
+    const redirectTo = ensureRelativeUrl(req.body.to);
+
+    const loginSuccessUrl = redirectTo || options.loginSuccessUrl;
+    const loginFailureUrl = redirectTo
+      ? addQueryParamsToUrl(options.loginFailureUrl, {to: redirectTo})
+      : options.loginFailureUrl;
+
+    passport.authenticate('local', (err, user, _info) => {
+      if (err) {
+        return next(err);
+      }
+      if (!user) {
+        return res.redirect(loginFailureUrl);
+      }
+      req.logIn(user, err => {
+        if (err) {
+          return next(err);
+        }
+        res.redirect(loginSuccessUrl);
+      });
+    })(req, res, next);
+  });
 
   router.get('/login', (req, res) => {
     if (req.isAuthenticated()) {
-      res.redirect('/');
+      res.redirect(ensureRelativeUrl(req.body.to) || '/');
       return;
     }
     res.render('login', {
@@ -253,6 +270,13 @@ async function validateAndHashPassword(password) {
 
   const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
   return await bcrypt.hash(password, salt);
+}
+
+function ensureRelativeUrl(url: ?string): ?string {
+  if (url && (url.indexOf('/') !== 0 || url.indexOf('//') === 0)) {
+    return null;
+  }
+  return url;
 }
 
 export default userMiddleware;

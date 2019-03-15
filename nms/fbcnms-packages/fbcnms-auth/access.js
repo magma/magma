@@ -14,6 +14,7 @@ import type {AccessRoleLevel} from './roles';
 const path = require('path');
 
 const {AccessRoles} = require('./roles');
+const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
 const express = require('express');
 const logger = require('@fbcnms/logging').getLogger(module);
 const openRoutes = require('./openRoutes').default;
@@ -71,6 +72,10 @@ export const access = (level: AccessRoleLevel) => {
       'Client has no permission to view route: [%s], redirecting to /',
       req.originalUrl,
     );
-    res.redirect(req.access.loginUrl);
+    res.redirect(
+      addQueryParamsToUrl(req.access.loginUrl, {
+        to: req.originalUrl,
+      }),
+    );
   };
 };

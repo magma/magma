@@ -12,13 +12,13 @@
 // NOTE: Regex based routes for paths that don't require logged in user access
 export default [
   /^\/favicon.ico$/,
-  /^\/user\/login$/,
+  /^\/user\/login(\?.*)?/,
   /^\/([a-z_-]+\/)?static\/css/,
   /^\/([a-z_-]+\/)?static\/dist\/login.js/,
   /^\/([a-z_-]+\/)?static\/dist\/vendor.js/,
   /^\/([a-z_-]+\/)?static\/fonts/,
   /^\/([a-z_-]+\/)?static\/images/,
-  /^\/([a-z_-]+\/)?user\/login$/,
+  /^\/([a-z_-]+\/)?user\/login(\?.*)?$/,
   /^\/([a-z_-]+\/)?user\/login\/facebook$/,
   /^\/([a-z_-]+\/)?user\/login\/facebook\/callback/,
   /^\/([a-z_-]+\/)?user\/logout$/,
