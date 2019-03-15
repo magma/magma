@@ -31,30 +31,27 @@ export default function useAxios<T, R>(
 
   const stringConfig = JSON.stringify(config);
 
-  useEffect(
-    () => {
-      const source = axios.CancelToken.source();
-      const configWithCancelToken = merge({}, config, {
-        cancelToken: source.token,
+  useEffect(() => {
+    const source = axios.CancelToken.source();
+    const configWithCancelToken = merge({}, config, {
+      cancelToken: source.token,
+    });
+    setIsLoading(true);
+    setError(null);
+    axios
+      .request<T, R>(configWithCancelToken)
+      .then(res => {
+        setIsLoading(false);
+        setResponse(res);
+        setLoadedUrl(config.url);
+      })
+      .catch(error => {
+        setIsLoading(false);
+        axios.isCancel(error) || setError(error);
+        setLoadedUrl(config.url);
       });
-      setIsLoading(true);
-      setError(null);
-      axios
-        .request<T, R>(configWithCancelToken)
-        .then(res => {
-          setIsLoading(false);
-          setResponse(res);
-          setLoadedUrl(config.url);
-        })
-        .catch(error => {
-          setIsLoading(false);
-          axios.isCancel(error) || setError(error);
-          setLoadedUrl(config.url);
-        });
-      return () => source.cancel();
-    },
-    [stringConfig],
-  );
+    return () => source.cancel();
+  }, [stringConfig]);
   return {
     error,
     isLoading,

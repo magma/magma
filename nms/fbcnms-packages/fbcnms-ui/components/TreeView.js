@@ -345,14 +345,11 @@ class TreeView extends React.Component<Props, State> {
             {treeItemHeader}
           </div>
         </ExpansionPanelSummary>
-        {key &&
-          this.state.expanded[key] === true && (
-            <ExpansionPanelDetails classes={{root: classes.panelDetails}}>
-              {nullthrows(children).map(l =>
-                this.renderNode(l, node, depth + 1),
-              )}
-            </ExpansionPanelDetails>
-          )}
+        {key && this.state.expanded[key] === true && (
+          <ExpansionPanelDetails classes={{root: classes.panelDetails}}>
+            {nullthrows(children).map(l => this.renderNode(l, node, depth + 1))}
+          </ExpansionPanelDetails>
+        )}
       </ExpansionPanel>
     );
   };
