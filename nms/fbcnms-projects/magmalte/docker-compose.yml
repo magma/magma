@@ -25,10 +25,10 @@ services:
       dockerfile: fbcnms-projects/magmalte/Dockerfile
     command: yarn run start:dev
     volumes:
-      - ${PWD}/../../fbcnms-packages:/usr/src/fbcnms-packages
-      - ${PWD}/../../fbcnms-projects/magmalte/app:/usr/src/fbcnms-projects/magmalte/app
-      - ${PWD}/../../fbcnms-projects/magmalte/scripts:/usr/src/fbcnms-projects/magmalte/scripts
-      - ${PWD}/../../fbcnms-projects/magmalte/server:/usr/src/fbcnms-projects/magmalte/server
+      - ../../fbcnms-packages:/usr/src/fbcnms-packages
+      - ../../fbcnms-projects/magmalte/app:/usr/src/fbcnms-projects/magmalte/app
+      - ../../fbcnms-projects/magmalte/scripts:/usr/src/fbcnms-projects/magmalte/scripts
+      - ../../fbcnms-projects/magmalte/server:/usr/src/fbcnms-projects/magmalte/server
     depends_on:
       - mysql
     ports:
