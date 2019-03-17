@@ -1,4 +1,6 @@
 ---
+log_level: INFO
+
 # List of services for magmad to control
 magma_services:
   - control_proxy

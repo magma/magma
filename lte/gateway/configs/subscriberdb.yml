@@ -7,6 +7,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+log_level: INFO
 host_address: 0.0.0.0 # Bind to all interfaces
 
 # Keep subscriberdb in memory. Change to path to persist
