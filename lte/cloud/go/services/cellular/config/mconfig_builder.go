@@ -15,7 +15,6 @@ import (
 
 	"magma/lte/cloud/go/protos/mconfig"
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
 	dnsd_config "magma/orc8r/cloud/go/services/dnsd/config"
 	dsnd_protos "magma/orc8r/cloud/go/services/dnsd/protos"
@@ -79,7 +78,6 @@ func (builder *CellularBuilder) Build(networkId string, gatewayId string) (map[s
 
 	return map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
 			Pci:                    gwRan.GetPci(),
 			Earfcndl:               nwRan.GetEarfcndl(),
 			FddConfig:              getFddConfig(nwRan.GetFddConfig()),
@@ -94,11 +92,9 @@ func (builder *CellularBuilder) Build(networkId string, gatewayId string) (map[s
 			Arfcn_2G:               nonEPSServiceMconfig.arfcn_2g,
 		},
 		"mobilityd": &mconfig.MobilityD{
-			LogLevel: protos.LogLevel_INFO,
-			IpBlock:  gwEpc.GetIpBlock(),
+			IpBlock: gwEpc.GetIpBlock(),
 		},
 		"mme": &mconfig.MME{
-			LogLevel:             protos.LogLevel_INFO,
 			Mcc:                  nwEpc.GetMcc(),
 			Mnc:                  nwEpc.GetMnc(),
 			Tac:                  nwEpc.GetTac(),
@@ -112,7 +108,6 @@ func (builder *CellularBuilder) Build(networkId string, gatewayId string) (map[s
 			RelayEnabled:         nwEpc.GetRelayEnabled(),
 		},
 		"pipelined": &mconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     gwEpc.GetIpBlock(),
 			NatEnabled:    gwEpc.GetNatEnabled(),
 			DefaultRuleId: nwEpc.GetDefaultRuleId(),
@@ -120,17 +115,13 @@ func (builder *CellularBuilder) Build(networkId string, gatewayId string) (map[s
 			Services:      pipelineDServices,
 		},
 		"subscriberdb": &mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    nwEpc.GetLteAuthOp(),
 			LteAuthAmf:   nwEpc.GetLteAuthAmf(),
 			SubProfiles:  getSubProfiles(nwEpc),
 			RelayEnabled: nwEpc.GetRelayEnabled(),
 		},
-		"policydb": &mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
-		},
+		"policydb": &mconfig.PolicyDB{},
 		"sessiond": &mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: nwEpc.GetRelayEnabled(),
 		},
 	}, nil

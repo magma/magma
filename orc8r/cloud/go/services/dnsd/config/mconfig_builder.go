@@ -33,7 +33,6 @@ func (builder *DnsdMconfigBuilder) Build(networkId string, gatewayId string) (ma
 
 	mconfigDnsD := &mconfig.DnsD{}
 	protos.FillIn(networkDNSconfig, mconfigDnsD)
-	mconfigDnsD.LogLevel = protos.LogLevel_INFO
 
 	return map[string]proto.Message{
 		"dnsd": mconfigDnsD,

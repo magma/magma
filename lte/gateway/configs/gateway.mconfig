@@ -2,14 +2,12 @@
   "configs_by_key": {
     "mobilityd": {
       "@type": "type.googleapis.com/magma.mconfig.MobilityD",
-      "logLevel": "INFO",
       "ipBlock": "192.168.128.0/24"
     },
     "mme": {
       "@type": "type.googleapis.com/magma.mconfig.MME",
       "mmeCode": 1,
       "mmeGid": 1,
-      "logLevel": "INFO",
       "mcc": "001",
       "mnc": "01",
       "tac": 1,
@@ -25,7 +23,6 @@
       "bandwidthMhz": 20,
       "specialSubframePattern": 7,
       "earfcndl": 44490,
-      "logLevel": "INFO",
       "plmnidList": "00101",
       "pci": 260,
       "allowEnodebTransmit": false,
@@ -33,12 +30,10 @@
       "tac": 1
     },
     "control_proxy": {
-      "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
-      "logLevel": "INFO"
+      "@type": "type.googleapis.com/magma.mconfig.ControlProxy"
     },
     "magmad": {
       "@type": "type.googleapis.com/magma.mconfig.MagmaD",
-      "logLevel": "INFO",
       "checkinInterval": 60,
       "checkinTimeout": 10,
       "autoupgradeEnabled": false,
@@ -47,12 +42,10 @@
       "dynamic_services": []
     },
     "metricsd": {
-      "@type": "type.googleapis.com/magma.mconfig.MetricsD",
-      "logLevel": "INFO"
+      "@type": "type.googleapis.com/magma.mconfig.MetricsD"
     },
     "pipelined": {
       "@type": "type.googleapis.com/magma.mconfig.PipelineD",
-      "logLevel": "INFO",
       "ueIpBlock": "192.168.128.0/24",
       "natEnabled": true,
       "relayEnabled": false,
@@ -65,37 +58,29 @@
     },
     "subscriberdb": {
       "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
-      "logLevel": "INFO",
       "lteAuthOp": "EREREREREREREREREREREQ==",
       "lteAuthAmf": "gAA="
     },
     "dnsd": {
       "@type": "type.googleapis.com/magma.mconfig.DnsD",
-      "logLevel": "INFO",
       "enableCaching": false,
       "localTTL": 0
     },
     "lighttpd": {
       "@type": "type.googleapis.com/magma.mconfig.LighttpD",
-      "enableCaching": false,
-      "logLevel": "INFO"
+      "enableCaching": false
     },
     "directoryd": {
-      "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
-      "logLevel": "INFO"
+      "@type": "type.googleapis.com/magma.mconfig.DirectoryD"
     },
     "policydb": {
-      "@type": "type.googleapis.com/magma.mconfig.PolicyDB",
-      "logLevel": "INFO"
+      "@type": "type.googleapis.com/magma.mconfig.PolicyDB"
     },
     "redirectd": {
-      "@type": "type.googleapis.com/magma.mconfig.RedirectD",
-      "logLevel": "INFO"
+      "@type": "type.googleapis.com/magma.mconfig.RedirectD"
     },
     "sessiond": {
-      "@type": "type.googleapis.com/magma.mconfig.SessionD",
-      "logLevel": "INFO",
-      "relayEnabled": false
+      "@type": "type.googleapis.com/magma.mconfig.SessionD"
     }
   }
 }

@@ -21,14 +21,14 @@ option go_package = "magma/orc8r/cloud/go/protos/mconfig";
 // Control Proxy configs
 //------------------------------------------------------------------------------
 message ControlProxy {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
 }
 
 //------------------------------------------------------------------------------
 // DnsD configs
 //------------------------------------------------------------------------------
 message DnsD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     bool enable_caching = 2;
     int32 localTTL = 3;
     repeated NetworkDNSConfigRecordsItems records = 4;
@@ -52,7 +52,7 @@ message ImageSpec {
 }
 
 message MagmaD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     // Interval for the gateways to send checkin rpc calls to the cloud.
     int32 checkin_interval = 2;
     // Checkin rpc timeout
@@ -76,12 +76,12 @@ message MagmaD {
 }
 
 message DirectoryD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
 }
 
 //------------------------------------------------------------------------------
 // MetricsD configs
 //------------------------------------------------------------------------------
 message MetricsD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
 }

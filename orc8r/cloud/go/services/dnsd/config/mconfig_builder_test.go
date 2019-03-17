@@ -13,7 +13,6 @@ import (
 
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/config"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
@@ -40,7 +39,6 @@ func TestDNSDBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	expected := map[string]proto.Message{
 		"dnsd": &mconfig.DnsD{
-			LogLevel:      protos.LogLevel_INFO,
 			EnableCaching: false,
 			LocalTTL:      0,
 			Records:       []*mconfig.NetworkDNSConfigRecordsItems{},
@@ -57,7 +55,6 @@ func TestDNSDBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	expected = map[string]proto.Message{
 		"dnsd": &mconfig.DnsD{
-			LogLevel:      protos.LogLevel_INFO,
 			EnableCaching: true,
 			LocalTTL:      0,
 			Records:       []*mconfig.NetworkDNSConfigRecordsItems{},

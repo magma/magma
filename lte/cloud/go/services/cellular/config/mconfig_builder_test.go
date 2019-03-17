@@ -17,7 +17,6 @@ import (
 	"magma/lte/cloud/go/services/cellular/test_utils"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	dnsd_config "magma/orc8r/cloud/go/services/dnsd/config"
@@ -48,7 +47,6 @@ func TestCellularBuilder_Build(t *testing.T) {
 
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
 			Earfcndl:               44590,
 			SubframeAssignment:     2,
 			SpecialSubframePattern: 7,
@@ -66,11 +64,9 @@ func TestCellularBuilder_Build(t *testing.T) {
 			Arfcn_2G:            []int32{},
 		},
 		"mobilityd": &mconfig.MobilityD{
-			LogLevel: protos.LogLevel_INFO,
-			IpBlock:  "192.168.128.0/24",
+			IpBlock: "192.168.128.0/24",
 		},
 		"mme": &mconfig.MME{
-			LogLevel:             protos.LogLevel_INFO,
 			Mcc:                  "001",
 			Mnc:                  "01",
 			Tac:                  1,
@@ -83,7 +79,6 @@ func TestCellularBuilder_Build(t *testing.T) {
 			RelayEnabled:         false,
 		},
 		"pipelined": &mconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24",
 			NatEnabled:    true,
 			DefaultRuleId: "",
@@ -94,17 +89,13 @@ func TestCellularBuilder_Build(t *testing.T) {
 			},
 		},
 		"subscriberdb": &mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
 			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
 			RelayEnabled: false,
 		},
-		"policydb": &mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
-		},
+		"policydb": &mconfig.PolicyDB{},
 		"sessiond": &mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
 		},
 	}
@@ -131,7 +122,6 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
 			Earfcndl:               44590,
 			SubframeAssignment:     2,
 			SpecialSubframePattern: 7,
@@ -149,11 +139,9 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 			Arfcn_2G:            []int32{},
 		},
 		"mobilityd": &mconfig.MobilityD{
-			LogLevel: protos.LogLevel_INFO,
-			IpBlock:  "192.168.128.0/24",
+			IpBlock: "192.168.128.0/24",
 		},
 		"mme": &mconfig.MME{
-			LogLevel:             protos.LogLevel_INFO,
 			Mcc:                  "001",
 			Mnc:                  "01",
 			Tac:                  1,
@@ -166,7 +154,6 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 			RelayEnabled:         false,
 		},
 		"pipelined": &mconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24",
 			NatEnabled:    true,
 			DefaultRuleId: "",
@@ -177,17 +164,13 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 			},
 		},
 		"subscriberdb": &mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
 			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
 			RelayEnabled: false,
 		},
-		"policydb": &mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
-		},
+		"policydb": &mconfig.PolicyDB{},
 		"sessiond": &mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
 		},
 	}

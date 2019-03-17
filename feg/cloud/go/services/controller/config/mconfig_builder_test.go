@@ -37,7 +37,6 @@ func TestControllerBuilder_Build(t *testing.T) {
 
 	expected := map[string]proto.Message{
 		"s6a_proxy": &mconfig.S6AConfig{
-			LogLevel: 1,
 			Server: &mconfig.DiamClientConfig{
 				Protocol:         "sctp",
 				Address:          "",
@@ -66,7 +65,6 @@ func TestControllerBuilder_Build(t *testing.T) {
 			SubProfiles: make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
 		},
 		"session_proxy": &mconfig.SessionProxyConfig{
-			LogLevel: 1,
 			Gx: &mconfig.GxConfig{
 				Server: &mconfig.DiamClientConfig{
 					Protocol:         "tcp",
@@ -96,7 +94,6 @@ func TestControllerBuilder_Build(t *testing.T) {
 			MinimumRequestThreshold: 1,
 		},
 		"swx_proxy": &mconfig.SwxConfig{
-			LogLevel: 1,
 			Server: &mconfig.DiamClientConfig{
 				Protocol:         "sctp",
 				Address:          "",

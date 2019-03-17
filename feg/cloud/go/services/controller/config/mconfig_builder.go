@@ -15,7 +15,6 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	config_protos "magma/feg/cloud/go/services/controller/protos"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
 )
 
@@ -45,13 +44,11 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 
 	return map[string]proto.Message{
 		"s6a_proxy": &mconfig.S6AConfig{
-			LogLevel:                protos.LogLevel_INFO,
 			Server:                  s6ac.GetServer().ToMconfig(),
 			RequestFailureThreshold: healthc.GetRequestFailureThreshold(),
 			MinimumRequestThreshold: healthc.GetMinimumRequestThreshold(),
 		},
 		"session_proxy": &mconfig.SessionProxyConfig{
-			LogLevel: protos.LogLevel_INFO,
 			Gx: &mconfig.GxConfig{
 				Server: gxc.GetServer().ToMconfig(),
 			},
@@ -77,7 +74,6 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 			SubProfiles:       hssSubProfile,
 		},
 		"swx_proxy": &mconfig.SwxConfig{
-			LogLevel:            protos.LogLevel_INFO,
 			Server:              swxc.GetServer().ToMconfig(),
 			VerifyAuthorization: swxc.GetVerifyAuthorization(),
 		},

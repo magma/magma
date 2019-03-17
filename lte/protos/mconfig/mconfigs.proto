@@ -32,7 +32,7 @@ message EnodebD {
         int32 special_subframe_pattern = 3;
     }
 
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
 
     // Physical cell ID (0-504)
     int32 pci = 2;
@@ -68,7 +68,7 @@ message PipelineD {
         DPI = 1;
         ENFORCEMENT = 2;
     }
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     // Range of IPs allocated to UEs
     string ue_ip_block = 2;
     // Whether NAT is enabled
@@ -87,7 +87,7 @@ message PipelineD {
 // SessionD configs
 //------------------------------------------------------------------------------
 message SessionD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 2;
 }
@@ -96,21 +96,21 @@ message SessionD {
 // PolicyDB configs
 //------------------------------------------------------------------------------
 message PolicyDB {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
 }
 
 //------------------------------------------------------------------------------
 // RedirectD configs
 //------------------------------------------------------------------------------
 message RedirectD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
 }
 
 //------------------------------------------------------------------------------
 // MobilityD configs
 //------------------------------------------------------------------------------
 message MobilityD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     // An IP block is a range of IP addresses specified by a network address and
     // a prefix-length of the netmask. For example,
     //    IPv4 IP block:      "192.168.0.0/24"
@@ -129,7 +129,7 @@ message MME {
         NON_EPS_SERVICE_CONTROL_SMS = 2;
     }
 
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     // Mobile country code
     string mcc = 2;
     // Mobile network code
@@ -164,7 +164,7 @@ message MME {
 // SubscriberDB configs
 //------------------------------------------------------------------------------
 message SubscriberDB {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     // Operator configuration field for LTE
     bytes lte_auth_op = 2;
     // Authentication management field for LTE
@@ -185,6 +185,6 @@ message SubscriberDB {
 // LighttpD configs
 //------------------------------------------------------------------------------
 message LighttpD {
-    orc8r.LogLevel log_level = 1;
+    orc8r.LogLevel log_level = 1 [deprecated = true];
     bool enable_caching = 2;
 }
