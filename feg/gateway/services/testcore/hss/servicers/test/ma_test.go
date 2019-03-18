@@ -12,14 +12,13 @@ import (
 	"context"
 	"testing"
 
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/testcore/hss/crypto"
+	definitions "magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-
-	fegprotos "magma/feg/cloud/go/protos"
-	definitions "magma/feg/gateway/services/swx_proxy/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
