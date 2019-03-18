@@ -33,6 +33,7 @@ using grpc::InsecureServerCredentials;
 using grpc::Server;
 using magma::orc8r::Service303;
 using magma::orc8r::ServiceInfo;
+using magma::orc8r::ReloadConfigResponse;
 using magma::orc8r::Void;
 using magma::service303::MetricsSingleton;
 using magma::service303::MagmaService;
@@ -126,6 +127,14 @@ Status MagmaService::SetLogLevel(
   // log level FATAL is minimum verbosity and maximum level
   auto verbosity = LogLevel::FATAL - request->level();
   set_verbosity(verbosity);
+  return Status::OK;
+}
+
+Status MagmaService::ReloadServiceConfig(
+    ServerContext *context,
+    const Void *request,
+    ReloadConfigResponse *response) {
+  response->set_result(ReloadConfigResponse::RELOAD_UNSUPPORTED);
   return Status::OK;
 }
 
