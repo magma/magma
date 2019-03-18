@@ -65,4 +65,10 @@ int sgw_handle_modify_ue_ambr_request(
   teid_t teid,
   bitrate_t mbr_ul,
   bitrate_t mbr_dl);
+int sgw_handle_dedicated_bearer_actv_req(
+  const itti_s5_activate_dedicated_bearer_request_t
+  *const itti_s5_activ_dedicated_bearer_req);
+int sgw_handle_pcrf_dedicated_bearer_actv_rsp(
+  const itti_s11_pcrf_ded_bearer_actv_rsp_t
+ *const s11_pcrf_ded_bearer_actv_rsp);
 #endif /* FILE_SGW_HANDLERS_SEEN */

@@ -103,3 +103,13 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_s11_modify_ue_ambr_request_t,
   s11_modify_ue_ambr_request)
+MESSAGE_DEF(
+  S11_PCRF_BEARER_ACTV_REQUEST,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_pcrf_ded_bearer_actv_request_t,
+  s11_pcrf_bearer_actv_request)
+MESSAGE_DEF(
+  S11_PCRF_BEARER_ACTV_RSP,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_pcrf_ded_bearer_actv_rsp_t,
+  s11_pcrf_ded_bearer_actv_rsp)

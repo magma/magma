@@ -490,6 +490,12 @@ void *mme_app_thread(void *args)
           &S11_MODIFY_UE_AMBR_REQUEST(received_message_p));
       } break;
 
+      case S11_PCRF_BEARER_ACTV_REQUEST: {
+        mme_app_handle_pcrf_ded_bearer_actv_req(
+          &received_message_p->ittiMsg.s11_pcrf_bearer_actv_request);
+      } break;
+
+
       case TERMINATE_MESSAGE: {
         /*
        * Termination message received TODO -> release any data allocated

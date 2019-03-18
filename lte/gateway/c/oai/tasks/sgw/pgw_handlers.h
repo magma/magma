@@ -32,5 +32,6 @@
 
 int pgw_handle_create_bearer_request(
   const itti_s5_create_bearer_request_t *const bearer_req_p);
-
+uint32_t pgw_handle_activate_ded_bearer_rsp(
+  const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp);
 #endif /* FILE_PGW_HANDLERS_SEEN */

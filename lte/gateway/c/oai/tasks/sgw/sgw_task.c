@@ -141,6 +141,18 @@ static void *sgw_intertask_interface(void *args_p)
           &received_message_p->ittiMsg.s5_create_bearer_response);
       } break;
 
+      case S5_ACTIVATE_DEDICATED_BEARER_REQ: {
+        //Handle Dedicated bearer activation from PCRF
+        sgw_handle_dedicated_bearer_actv_req(
+          &received_message_p->ittiMsg.s5_activate_dedicated_bearer_request);
+      } break;
+
+      case S11_PCRF_BEARER_ACTV_RSP: {
+        //Handle Dedicated bearer Activation Rsp from MME
+        sgw_handle_pcrf_dedicated_bearer_actv_rsp(
+          &received_message_p->ittiMsg.s11_pcrf_ded_bearer_actv_rsp);
+      } break;
+
       case TERMINATE_MESSAGE: {
         sgw_exit();
         itti_exit_task();

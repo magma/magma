@@ -38,3 +38,13 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_s5_create_bearer_response_t,
   s5_create_bearer_response)
+MESSAGE_DEF(
+  S5_ACTIVATE_DEDICATED_BEARER_REQ,
+  MESSAGE_PRIORITY_MED,
+  itti_s5_activate_dedicated_bearer_request_t,
+  s5_activate_dedicated_bearer_request)
+MESSAGE_DEF(
+  S5_ACTIVATE_DEDICATED_BEARER_RSP,
+  MESSAGE_PRIORITY_MED,
+  itti_s5_activate_dedicated_bearer_rsp_t,
+  s5_activate_dedicated_bearer_response)
