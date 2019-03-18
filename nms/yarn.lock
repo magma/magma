@@ -11184,7 +11184,7 @@ relay-compiler@^3.0.0:
     signedsource "^1.0.0"
     yargs "^9.0.0"
 
-relay-runtime@3.0.0:
+relay-runtime@3.0.0, relay-runtime@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/relay-runtime/-/relay-runtime-3.0.0.tgz#a024e1d80c9a71e76495f3a15e8f3f40113385e2"
   integrity sha512-P9pDoAaqku9m5MTMjampwo+0vsNd2Nv8x78GpWuxPxvqJusqz8MBpu0RVBViIpLzCn77Pegw2ihtXgQSBdvs0w==
