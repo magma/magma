@@ -531,7 +531,6 @@ void mme_app_handle_sgs_detach_req(
   } else {
     OAILOG_ERROR(
       LOG_MME_APP, "UE SGS context doesn't exist -> Nothing to do :-) \n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   unlock_ue_contexts(ue_context);
   OAILOG_FUNC_OUT(LOG_MME_APP);

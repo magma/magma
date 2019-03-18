@@ -392,6 +392,7 @@ int mme_app_handle_s6a_cancel_location_req(
       LOG_MME_APP,
       "S6a Cancel Location Request: Cancellation_type not supported %d \n",
       clr_pP->cancellation_type);
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   /* 
@@ -449,6 +450,7 @@ int mme_app_handle_s6a_cancel_location_req(
       mme_app_handle_sgs_detach_req(&sgs_detach_req);
     }
   }
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
