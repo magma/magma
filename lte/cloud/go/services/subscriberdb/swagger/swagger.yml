@@ -120,12 +120,16 @@ definitions:
         x-nullable: false
       auth_key:
         type: string
-        format: byte
+        format: byte # auth_key is encoded in base64
+        minLength: 16
+        maxLength: 16
         x-nullable: true
         example: "AAAAAAAAAAAAAAAAAAAAAA=="
       auth_opc:
         type: string
-        format: byte
+        format: byte # auth_opc is encoded in base64
+        minLength: 16
+        maxLength: 16
         x-nullable: true
         example: 'AAECAwQFBgcICQoLDA0ODw=='
   subscriber:
