@@ -14,8 +14,9 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/s6a_proxy/servicers"
+	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
+	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -37,6 +38,18 @@ func ConstructFailureAnswer(msg *diam.Message, sessionID datatype.UTF8String, se
 	)
 	AddStandardAnswerAVPS(newMsg, sessionID, serverCfg, resultCode)
 	return newMsg
+}
+
+// ConvertAuthErrorToFailureMessage creates a corresponding diameter failure message for an auth error.
+func ConvertAuthErrorToFailureMessage(err error, msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig) *diam.Message {
+	switch err.(type) {
+	case servicers.AuthRejectedError:
+		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHORIZATION_REJECTED))
+	case servicers.AuthDataUnavailableError:
+		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE))
+	default:
+		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(diam.UnableToComply))
+	}
 }
 
 // ConstructSuccessAnswer returns a message response with a success result code
@@ -99,5 +112,5 @@ func getRedirectMessage(msg *diam.Message, sessionID datatype.UTF8String, server
 }
 
 func isRATTypeAllowed(ratType uint32) bool {
-	return ratType == swx.RadioAccessTechnologyType_WLAN || ratType == servicers.RadioAccessTechnologyType_EUTRAN
+	return ratType == swx.RadioAccessTechnologyType_WLAN || ratType == s6a.RadioAccessTechnologyType_EUTRAN
 }
