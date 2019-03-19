@@ -147,10 +147,12 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				// Calculate AT_MAC
 				IK := av.GetIntegrityKey()
 				CK := av.GetConfidentialityKey()
-				_, K_aut, _, _ := MakeAKAKeys([]byte(identity), IK, CK)
+				_, K_aut, msk, _ := MakeAKAKeys([]byte(identity), IK, CK)
 				mac := GenMac(p, K_aut)
 				// Set AT_MAC
 				copy(p[atMacOffset:], mac)
+
+				uc.K_aut, uc.MSK = K_aut, msk
 
 				// Update state
 				uc.SetState(aka.StateChallenge)

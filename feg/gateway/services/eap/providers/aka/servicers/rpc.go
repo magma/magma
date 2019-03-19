@@ -30,7 +30,8 @@ type UserCtx struct {
 	state     aka.AkaState
 	stateTime time.Time
 	Rand,
-	Mac,
+	K_aut,
+	MSK,
 	Xres []byte
 }
 
