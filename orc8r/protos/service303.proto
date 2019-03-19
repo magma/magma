@@ -74,6 +74,16 @@ message LogVerbosity {
   int32 verbosity = 1;
 }
 
+message ReloadConfigResponse {
+  enum ReloadConfigResult {
+    RELOAD_UNKNOWN = 0;
+    RELOAD_SUCCESS = 1;
+    RELOAD_FAILURE = 2;
+    RELOAD_UNSUPPORTED = 3;
+  }
+  ReloadConfigResult result = 1;
+}
+
 
 // --------------------------------------------------------------------------
 // Service303 interface definition.
@@ -102,4 +112,7 @@ service Service303 {
 
   // Set logging verbosity The larger, the more verbose. default 0
   rpc SetLogVerbosity (LogVerbosity) returns (Void) {}
+
+  // Requests service reloads config files loaded on startup (<servicename>.yml)
+  rpc ReloadServiceConfig (Void) returns (ReloadConfigResponse) {}
 }

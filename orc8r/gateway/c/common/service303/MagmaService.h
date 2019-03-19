@@ -128,6 +128,19 @@ class MagmaService final : public Service303::Service {
          Void* response) override;
 
     /*
+     * Handles request to reload the service config file
+     *
+     * @param context: the grpc Server context
+     * @param request: Void
+     * @param response (out): reload config result (SUCCESS/FAILURE/UNSUPPORTED)
+     * @return grpc Status instance
+     */
+    Status ReloadServiceConfig(
+        ServerContext *context,
+        const Void *request,
+        ReloadConfigResponse *response) override;
+
+    /*
      * Simple setter function to set the new application health
      *
      * @param newState: the new application health you want to set
