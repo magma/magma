@@ -43,6 +43,7 @@ class MagmaService(Service303Servicer):
         self._name = name
         self._port = 0
         self._get_status_callback = None
+        self._reload_config_callback = None
 
         # Init logging before doing anything
         logging.basicConfig(
@@ -182,6 +183,11 @@ class MagmaService(Service303Servicer):
             Must return a map(string, string)"""
         self._get_status_callback = get_status_callback
 
+    def register_reload_config_callback(self, reload_config_callback):
+        """ Register function for reloading config file.
+            Must return boolean whether the reload succeeded"""
+        self._reload_config_callback = reload_config_callback
+
     def _stop(self, reason):
         """
         Stops the service gracefully
@@ -306,5 +312,11 @@ class MagmaService(Service303Servicer):
         """
         Handles request to reload the service config file
         """
-        res = ReloadConfigResponse.RELOAD_UNSUPPORTED
+        if self._reload_config_callback:
+            if self._reload_config_callback():
+                res = ReloadConfigResponse.RELOAD_SUCCESS
+            else:
+                res = ReloadConfigResponse.RELOAD_FAILURE
+        else:
+            res = ReloadConfigResponse.RELOAD_UNSUPPORTED
         return ReloadConfigResponse(result=res)
