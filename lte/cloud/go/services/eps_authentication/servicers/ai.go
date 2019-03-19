@@ -17,5 +17,14 @@ import (
 )
 
 func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error) {
+	networkID, err := getNetworkID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	_, err = getConfig(networkID)
+	if err != nil {
+		return nil, err
+	}
+
 	return nil, status.Errorf(codes.Unimplemented, "authentication information not implemented")
 }
