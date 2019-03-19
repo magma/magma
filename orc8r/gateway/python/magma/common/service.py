@@ -19,9 +19,11 @@ import os
 import pkg_resources
 from orc8r.protos.common_pb2 import LogLevel, Void
 from orc8r.protos.metricsd_pb2 import MetricsContainer
-from orc8r.protos.service303_pb2 import ServiceInfo
-from orc8r.protos.service303_pb2_grpc import Service303Servicer, \
-    add_Service303Servicer_to_server
+from orc8r.protos.service303_pb2 import ServiceInfo, ReloadConfigResponse
+from orc8r.protos.service303_pb2_grpc import (
+    Service303Servicer,
+    add_Service303Servicer_to_server,
+)
 
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import get_mconfig_manager
@@ -299,3 +301,10 @@ class MagmaService(Service303Servicer):
 
     def SetLogVerbosity(self, request, context):
         pass  # Not Implemented
+
+    def ReloadServiceConfig(self, request, context):
+        """
+        Handles request to reload the service config file
+        """
+        res = ReloadConfigResponse.RELOAD_UNSUPPORTED
+        return ReloadConfigResponse(result=res)
