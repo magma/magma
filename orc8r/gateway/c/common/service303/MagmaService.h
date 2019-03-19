@@ -27,6 +27,7 @@ namespace magma { namespace service303 {
 
 using ServiceInfoMeta = std::map<std::string,std::string>;
 using ServiceInfoCallback = std::function<ServiceInfoMeta()>;
+using ConfigReloadCallback = std::function<bool()>;
 
 /**
  * MagmaService provides the framework for all Magma services.
@@ -73,6 +74,16 @@ class MagmaService final : public Service303::Service {
      * Unsets the callback to generate the meta field for service info
      */
     void ClearServiceInfoCallback();
+
+    /**
+     * Sets the callback to request a config reload from a service
+     */
+    void SetConfigReloadCallback(ConfigReloadCallback callback);
+
+    /**
+     * Unsets the callback to request a config reload from a service
+     */
+    void ClearConfigReloadCallback();
 
     /*
     * Returns the service info (name, version, state, etc.)
@@ -179,6 +190,7 @@ class MagmaService final : public Service303::Service {
     std::unique_ptr<Server> server_;
     grpc::ServerBuilder builder_;
     ServiceInfoCallback service_info_callback_;
+    ConfigReloadCallback config_reload_callback_;
 };
 
 }} // namespace magma::service303

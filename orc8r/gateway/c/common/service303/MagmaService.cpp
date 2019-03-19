@@ -43,7 +43,7 @@ using namespace std::chrono;
 MagmaService::MagmaService(const std::string& name, const std::string& version)
     : name_(name), version_(version), health_(ServiceInfo::APP_UNKNOWN),
       start_time_(steady_clock::now()), wall_start_time_(system_clock::now()),
-      service_info_callback_(nullptr)
+      service_info_callback_(nullptr), config_reload_callback_(nullptr)
       {}
 
 void MagmaService::AddServiceToServer(grpc::Service *service) {
@@ -79,6 +79,14 @@ void MagmaService::SetServiceInfoCallback(ServiceInfoCallback callback) {
 
 void MagmaService::ClearServiceInfoCallback() {
   service_info_callback_ = nullptr;
+}
+
+void MagmaService::SetConfigReloadCallback(ConfigReloadCallback callback) {
+  config_reload_callback_ = callback;
+}
+
+void MagmaService::ClearConfigReloadCallback() {
+  config_reload_callback_ = nullptr;
 }
 
 Status MagmaService::GetServiceInfo(
@@ -134,7 +142,16 @@ Status MagmaService::ReloadServiceConfig(
     ServerContext *context,
     const Void *request,
     ReloadConfigResponse *response) {
-  response->set_result(ReloadConfigResponse::RELOAD_UNSUPPORTED);
+  if (config_reload_callback_ != nullptr) {
+    if (config_reload_callback_()) {
+      response->set_result(ReloadConfigResponse::RELOAD_SUCCESS);
+    } else {
+      response->set_result(ReloadConfigResponse::RELOAD_FAILURE);
+    }
+  } else {
+    response->set_result(ReloadConfigResponse::RELOAD_UNSUPPORTED);
+  }
+
   return Status::OK;
 }
 
