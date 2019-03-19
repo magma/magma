@@ -60,3 +60,9 @@ func (service *Service) SetLogVerbosity(ctx context.Context, verbosity *protos.L
 	flag.Lookup("v").Value.Set(strconv.Itoa(int(verbosity.Verbosity)))
 	return new(protos.Void), nil
 }
+
+// ReloadServiceConfig: not currently implemented for cloud services
+func (service *Service) ReloadServiceConfig(ctx context.Context, void *protos.Void) (*protos.ReloadConfigResponse, error) {
+	res := protos.ReloadConfigResponse{}
+	return &res, fmt.Errorf("SetLogLevel not implemented\n")
+}
