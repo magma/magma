@@ -10,14 +10,20 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health"
+	"magma/feg/cloud/go/services/health/reporter"
 	"magma/feg/cloud/go/services/health/servicers"
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/service"
+)
+
+const (
+	NETWORK_HEALTH_STATUS_REPORT_INTERVAL = time.Second * 60
 )
 
 func main() {
@@ -53,6 +59,14 @@ func main() {
 		log.Fatalf("Health Servicer Initialization Error: %s", err)
 	}
 	protos.RegisterHealthServer(srv.GrpcServer, healthServer)
+
+	// create a networkHealthStatusReporter to monitor and periodically log metrics
+	// on if all gateways in a network are unhealthy
+	healthStatusReporter, err := reporter.NewNetworkHealthStatusReporter(healthStore)
+	if err != nil {
+		log.Fatalf("NetworkHealthStatusReporter Initialization Error: %s\n", err)
+	}
+	go healthStatusReporter.ReportHealthStatus(NETWORK_HEALTH_STATUS_REPORT_INTERVAL)
 
 	// Run the service
 	err = srv.Run()
