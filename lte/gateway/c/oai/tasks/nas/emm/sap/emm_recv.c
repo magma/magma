@@ -745,6 +745,10 @@ int emm_recv_service_request(
 
   // Get emm_ctx
   emm_ctx = emm_context_get(&_emm_data, ue_id);
+
+  if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
+    emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
+  }
   /*
    * if service request is recieved for either SMS or PS data,
    * and if neaf flag is true then send the itti message to SGS

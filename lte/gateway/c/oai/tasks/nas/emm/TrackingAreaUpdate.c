@@ -958,7 +958,11 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   /*
    * Get the UE context
    */
-  emm_ctx = emm_context_get(&_emm_data, ue_id);
+   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+		   &mme_app_desc.mme_ue_contexts, ue_id);
+   if(ue_mm_context) {
+	   emm_ctx = &ue_mm_context->emm_context;
+   }
 
   if (emm_ctx) {
     /*
@@ -993,7 +997,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   if (!emm_ctx->csfbparams.tau_active_flag) {
     nas_itti_tau_complete(ue_id);
   }
-
+  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

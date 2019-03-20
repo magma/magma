@@ -2156,6 +2156,7 @@ int mme_app_handle_nas_extended_service_req(
         "ue_context %d, %d\n",
         ue_id,
         ue_context_p->mme_ue_s1ap_id);
+      unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   } else {
@@ -2279,6 +2280,7 @@ int mme_app_handle_nas_extended_service_req(
         "ERROR***** Invalid Service Type Received %d\n",
         serviceType);
   }
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
