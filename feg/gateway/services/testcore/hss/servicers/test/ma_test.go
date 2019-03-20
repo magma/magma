@@ -276,6 +276,7 @@ func testNewMAASuccessfulResponse(t *testing.T, server *hss.HomeSubscriberServer
 	assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+	assert.Equal(t, int32(definitions.AuthSessionState_NO_STATE_MAINTAINED), maa.AuthSessionState)
 	checkSIPAuthVectors(t, maa, 1)
 
 	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
