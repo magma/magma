@@ -13,6 +13,7 @@ import (
 	"time"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/magmad"
@@ -62,7 +63,7 @@ func (srv *HealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewaySt
 	}
 	// Update health status field with new HEALTHY/UNHEALTHY determination
 	// as recency of an update is a factor in gateway health
-	healthStatus, healthMessage, err := srv.analyzeHealthStats(gwHealthStats, req.GetNetworkId())
+	healthStatus, healthMessage, err := AnalyzeHealthStats(gwHealthStats, req.GetNetworkId())
 	gwHealthStats.Health = &fegprotos.HealthStatus{
 		Health:        healthStatus,
 		HealthMessage: healthMessage,
@@ -95,7 +96,7 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 	req.HealthStats.Time = healthResponse.Time
 
 	// Override gateway's view of it's health with cloud's view
-	healthState, healthMsg, _ := srv.analyzeHealthStats(req.HealthStats, networkID)
+	healthState, healthMsg, _ := AnalyzeHealthStats(req.HealthStats, networkID)
 	req.HealthStats.Health = &fegprotos.HealthStatus{
 		Health:        healthState,
 		HealthMessage: healthMsg,
@@ -198,23 +199,17 @@ func (srv *HealthServer) analyzeDualFegState(
 		return fegprotos.HealthResponse_SYSTEM_UP, nil
 	}
 
-	currentHealth, _, err := srv.analyzeHealthStats(gatewayHealth, networkID)
+	currentHealth, _, err := AnalyzeHealthStats(gatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
-	otherHealth, _, err := srv.analyzeHealthStats(otherGatewayHealth, networkID)
+	otherHealth, _, err := AnalyzeHealthStats(otherGatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
+	// Update gauge metric for how many gateways are healthy
+	metrics.SetHealthyGatewayMetric(networkID, currentHealth, otherHealth)
 
-	if currentHealth == fegprotos.HealthStatus_UNHEALTHY && otherHealth == fegprotos.HealthStatus_UNHEALTHY {
-		glog.Infof(
-			"Both gateways %s and %s are unhealthy in network: %s",
-			gatewayID,
-			otherGatewayID,
-			networkID,
-		)
-	}
 	// Determine what to send back based off of health of active and standby, as well as where the request is from
 	if gatewayID == activeID {
 		return srv.determineAction(networkID, gatewayID, gatewayID, currentHealth, otherGatewayID, otherHealth)
@@ -255,6 +250,7 @@ func (srv *HealthServer) failover(
 ) (fegprotos.HealthResponse_RequestedAction, error) {
 	glog.V(2).Infof("Updating active for networkID: %s from: %s to: %s", networkID, oldActive, newActive)
 
+	metrics.ActiveGatewayChanged.WithLabelValues(networkID).Inc()
 	err := srv.clusterStore.UpdateClusterState(networkID, networkID, newActive)
 	if err != nil {
 		errMsg := fmt.Errorf(
@@ -297,7 +293,9 @@ func (srv *HealthServer) analyzeSingleFegState(
 	return fegprotos.HealthResponse_SYSTEM_UP, err
 }
 
-func (srv *HealthServer) analyzeHealthStats(
+// AnalyzeHealthStats takes a HealthStats proto and determines if it is
+// HEALTHY or UNHEALTHY based on the configuration for the provided networkID
+func AnalyzeHealthStats(
 	healthData *fegprotos.HealthStats,
 	networkID string,
 ) (fegprotos.HealthStatus_HealthState, string, error) {
