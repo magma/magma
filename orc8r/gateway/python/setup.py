@@ -24,6 +24,7 @@ setup(
         'magma.common.redis',
         'magma.configuration',
         'magma.magmad',
+        'magma.magmad.generic_command',
         'magma.magmad.kernel_check',
         'magma.magmad.logging',
         'magma.magmad.network_check',
