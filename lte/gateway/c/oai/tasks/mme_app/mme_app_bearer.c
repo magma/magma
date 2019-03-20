@@ -2714,56 +2714,6 @@ void mme_app_handle_pcrf_ded_bearer_actv_req(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   pdn_cid_t cid = linked_bc->pdn_cx_id;
-
-  mme_app_s11_proc_create_bearer_t *s11_proc_create_bearer =
-    mme_app_create_s11_procedure_create_bearer(ue_context_p);
-
-  bearer_context_t *dedicated_bc = mme_app_create_bearer_context(
-    ue_context_p, cid, pcrf_bearer_actv_req_p->lbi, false);
-  if (dedicated_bc == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Could not create bearer cntxt for LBI %" PRIu8
-      " for UE: " MME_UE_S1AP_ID_FMT "\n",
-      linked_eps_bearer_id,
-      ue_context_p->mme_ue_s1ap_id);
-  OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Created new dedicated bearer cntxt with EBI %d\n",
-    dedicated_bc->ebi);
-  s11_proc_create_bearer->num_bearers++;
-  s11_proc_create_bearer->bearer_status[EBI_TO_INDEX(dedicated_bc->ebi)] =
-    S11_PROC_BEARER_PENDING;
-
-  dedicated_bc->bearer_state |= BEARER_STATE_SGW_CREATED;
-  dedicated_bc->bearer_state |= BEARER_STATE_MME_CREATED;
-
-  memcpy(
-    &dedicated_bc->s_gw_fteid_s1u,
-    &pcrf_bearer_actv_req_p->s1_u_sgw_fteid,
-    sizeof(fteid_t));
-
-  dedicated_bc->qci = pcrf_bearer_actv_req_p->eps_bearer_qos.qci;
-  dedicated_bc->priority_level = pcrf_bearer_actv_req_p->eps_bearer_qos.pl;
-  dedicated_bc->preemption_vulnerability = pcrf_bearer_actv_req_p->eps_bearer_qos.pvi;
-  dedicated_bc->preemption_capability = pcrf_bearer_actv_req_p->eps_bearer_qos.pci;
-  /*Save TFT and QoS to be sent to SGW.
-  * At SGW context will be created after receiving
-  * itti_s11_pcrf_ded_bearer_actv_rsp_t
-  */
-  dedicated_bc->saved_tft = calloc(1, sizeof(traffic_flow_template_t));
-  memcpy(
-    &dedicated_bc->saved_tft,
-    &pcrf_bearer_actv_req_p->tft,
-    sizeof(traffic_flow_template_t));
-  dedicated_bc->saved_qos = calloc(1, sizeof(bearer_qos_t));
-  memcpy(
-    &dedicated_bc->saved_qos,
-    &pcrf_bearer_actv_req_p->eps_bearer_qos,
-    sizeof(bearer_qos_t));
-
   // forward request to NAS
   MessageDef *message_p =
     itti_alloc_new_message(TASK_MME_APP, MME_APP_CREATE_DEDICATED_BEARER_REQ);
@@ -2776,11 +2726,13 @@ void mme_app_handle_pcrf_ded_bearer_actv_req(
   MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).ue_id =
     ue_context_p->mme_ue_s1ap_id;
   MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).cid = cid;
-  MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).ebi = dedicated_bc->ebi;
+  MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).ebi = 0; //Will be assigned by NAS Task
   MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).linked_ebi =
     ue_context_p->pdn_contexts[cid]->default_ebi;
   MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).bearer_qos =
     pcrf_bearer_actv_req_p->eps_bearer_qos;
+  MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).gtp_teid =
+    pcrf_bearer_actv_req_p->s1_u_sgw_fteid.teid;
   if (pcrf_bearer_actv_req_p->tft.numberofpacketfilters) {
     MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).tft =
       calloc(1, sizeof(traffic_flow_template_t));
@@ -2808,11 +2760,11 @@ void mme_app_handle_pcrf_ded_bearer_actv_req(
 
   OAILOG_INFO(
     LOG_MME_APP,
-    "Sending MME_APP_CREATE_DEDICATED_BEARER_REQ to NAS with UE ID %d and EBI %d\n",
+    "Sending MME_APP_CREATE_DEDICATED_BEARER_REQ to NAS with UE ID %d for LBI %d\n",
     MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).ue_id,
-    dedicated_bc->ebi);
+    ue_context_p->pdn_contexts[cid]->default_ebi);
   itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
-
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

@@ -422,12 +422,11 @@ static void get_session_req_data(
 
 //--------------------------------------------------------------------------------
 
-uint32_t handle_dedicated_bearer_actv_req(
-  Imsi_t imsi,
-  ip_address_t ue_ip,
-  traffic_flow_template_t tft,
-  bearer_qos_t eps_bearer_qos,
-  protocol_configuration_options_t pco)
+uint32_t pgw_handle_dedicated_bearer_actv_req(
+  Imsi_t *imsi,
+  ip_address_t *ue_ip,
+  traffic_flow_template_t *tft,
+  bearer_qos_t *eps_bearer_qos)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
@@ -436,15 +435,16 @@ uint32_t handle_dedicated_bearer_actv_req(
   uint32_t rc = RETURNok;
   hash_table_ts_t *hashtblP = NULL;
   uint32_t num_elements = 0;
+  s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
   hash_node_t *node = NULL;
+  itti_s5_activate_dedicated_bearer_request_t *itti_s5_actv_ded_bearer_req = NULL;
 
   OAILOG_INFO(
     LOG_PGW_APP,
     "Received Create Bearer Req from PCRF with IMSI %s\n",
-    imsi.digit);
+    imsi->digit);
 
   teid_t pgw_u_teid = sgw_get_new_s1u_teid();
-  s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
   message_p =
     itti_alloc_new_message(TASK_SPGW_APP, S5_ACTIVATE_DEDICATED_BEARER_REQ);
   if (message_p == NULL) {
@@ -453,29 +453,24 @@ uint32_t handle_dedicated_bearer_actv_req(
     "itti_alloc_new_message failed for S5_ACTIVATE_DEDICATED_BEARER_REQ\n");
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
-  itti_s5_activate_dedicated_bearer_request_t *itti_s5_actv_ded_bearer_req =
+  itti_s5_actv_ded_bearer_req =
     &message_p->ittiMsg.s5_activate_dedicated_bearer_request;
   //Send ITTI message to SGW
   memset(
-    &itti_s5_actv_ded_bearer_req,
+    itti_s5_actv_ded_bearer_req,
     0,
     sizeof(itti_s5_activate_dedicated_bearer_request_t));
 
   //Copy Bearer QoS
   memcpy(
     &itti_s5_actv_ded_bearer_req->eps_bearer_qos,
-    &eps_bearer_qos,
+    eps_bearer_qos,
     sizeof(bearer_qos_t));
   //Copy TFT
   memcpy(
     &itti_s5_actv_ded_bearer_req->tft,
-    &tft,
+    tft,
     sizeof(traffic_flow_template_t));
-  //Copy PCO
-  memcpy(
-    &itti_s5_actv_ded_bearer_req->pco,
-    &pco,
-    sizeof(protocol_configuration_options_t));
   //Assign TEID
   itti_s5_actv_ded_bearer_req->S5_U_pgw_teid = pgw_u_teid;
   //Assign LBI
@@ -498,16 +493,17 @@ uint32_t handle_dedicated_bearer_actv_req(
         hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
         if (!strcmp((const char *)spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-          (const char *)imsi.digit)) {
+          (const char *)imsi->digit)) {
           itti_s5_actv_ded_bearer_req->mme_teid_S11 =
             spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
         }
         for (j = 0; j < BEARERS_PER_UE; j++) {
           if (spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
             sgw_eps_bearers_array[j]->paa.pdn_type == IPv4) { //TODO - IPv6
-            if (spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
+            if ((spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.sgw_eps_bearers_array[j]) &&
+              (spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
               sgw_eps_bearers_array[j]->paa.ipv4_address.s_addr ==
-              ue_ip.address.ipv4_address.s_addr) {
+              ue_ip->address.ipv4_address.s_addr)) {
               itti_s5_actv_ded_bearer_req->lbi = spgw_ctxt_p->sgw_eps_bearer_context_information.
                 pdn_connection.default_bearer;
               break;
@@ -521,7 +517,7 @@ uint32_t handle_dedicated_bearer_actv_req(
   }
   OAILOG_INFO(LOG_PGW_APP, "LBI for the received Create Bearer Req %d\n",
     itti_s5_actv_ded_bearer_req->lbi);
-  OAILOG_INFO(LOG_PGW_APP, "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW \n");
+  OAILOG_INFO(LOG_PGW_APP, "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",itti_s5_actv_ded_bearer_req->mme_teid_S11);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }

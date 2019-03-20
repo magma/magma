@@ -758,6 +758,7 @@ static int _emm_cn_activate_dedicated_bearer_req(
   esm_sap.data.eps_dedicated_bearer_context_activate.pco = msg->pco;
   // stole ref if any
   msg->pco = NULL;
+  esm_sap.data.eps_dedicated_bearer_context_activate.gtp_teid = msg->gtp_teid;
 
   MSC_LOG_TX_MESSAGE(
     MSC_NAS_EMM_MME,

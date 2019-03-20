@@ -66,6 +66,7 @@
 #include "pgw_config.h"
 #include "queue.h"
 #include "sgw_config.h"
+#include "pgw_handlers.h"
 
 extern sgw_app_t sgw_app;
 extern spgw_config_t spgw_config;
@@ -1265,6 +1266,27 @@ int sgw_handle_modify_bearer_request(
             sgw_no_pcef_create_dedicated_bearer(modify_bearer_pP->teid);
           }
         }
+    // For testing
+    Imsi_t imsi;
+    ip_address_t ue_ip;
+    traffic_flow_template_t tft;
+    bearer_qos_t qos;
+    strcpy((char*)imsi.digit,"001010000000001");
+    imsi.length = 15;
+    ue_ip.pdn_type = IPv4;
+    memcpy(&ue_ip.address.ipv4_address.s_addr,&eps_bearer_ctxt_p->paa.ipv4_address.s_addr,4);
+    //Fill QoS
+    qos.pci = 1;
+    qos.pl = 1;
+    qos.pvi = 0;
+    qos.qci =1;
+    qos.gbr.br_ul = 100;
+    qos.gbr.br_dl = 200;
+    qos.mbr.br_ul = 300;
+    qos.mbr.br_dl = 400;
+    memset(&tft,0,sizeof(traffic_flow_template_t));
+    pgw_handle_dedicated_bearer_actv_req(&imsi,&ue_ip,&tft,&qos);
+
       }
     }
   } else {
@@ -1291,6 +1313,7 @@ int sgw_handle_modify_bearer_request(
       "Rx MODIFY_BEARER_REQUEST, teid " TEID_FMT " CONTEXT_NOT_FOUND\n",
       modify_bearer_pP->teid);
     rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   }
 
@@ -1741,6 +1764,10 @@ int sgw_handle_s5_create_bearer_response(
     create_session_response_p->trxn =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.trxn;
   }
+    OAILOG_ERROR(
+      LOG_SPGW_APP, "*********Sending create session rsp with TEID %d *********\n",create_session_response_p->teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+
   rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }

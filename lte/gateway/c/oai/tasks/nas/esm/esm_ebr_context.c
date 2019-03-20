@@ -84,7 +84,8 @@ ebi_t esm_ebr_context_create(
   const bitrate_t mbr_dl,
   const bitrate_t mbr_ul,
   traffic_flow_template_t *tft,
-  protocol_configuration_options_t *pco)
+  protocol_configuration_options_t *pco,
+  teid_t gtp_teid)
 {
   int bidx = 0;
   esm_context_t *esm_ctx = NULL;
@@ -184,6 +185,7 @@ ebi_t esm_ebr_context_create(
           &bearer_context->esm_ebr_context.pco);
       }
       bearer_context->esm_ebr_context.pco = pco;
+      bearer_context->s_gw_fteid_s1u.teid = gtp_teid;
 
       if (is_default) {
         /*
