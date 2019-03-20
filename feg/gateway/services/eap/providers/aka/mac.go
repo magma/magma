@@ -7,12 +7,14 @@ LICENSE file in the root directory of this source tree.
 */
 
 // Package handlers provided AKA Response handlers for supported AKA subtypes
-package handlers
+package aka
 
 import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"math/big"
+
+	"magma/feg/gateway/services/eap"
 )
 
 const (
@@ -195,4 +197,19 @@ func block(h *[5]uint32, p []byte) {
 		p = p[chunkSize:]
 	}
 	h[0], h[1], h[2], h[3], h[4] = h0, h1, h2, h3, h4
+}
+
+// AppendMac appends AT_MAC attribute to eap npacket, signs the packet & returns the new, signed packet
+// returns error if provided EAP Packet was malformed
+func AppendMac(p eap.Packet, K_aut []byte) (eap.Packet, error) {
+	p = p.Truncate()
+	atMacOffset := len(p) + ATT_HDR_LEN
+	p, err := p.Append(eap.NewAttribute(AT_MAC, append([]byte{0, 0}, make([]byte, MAC_LEN)...)))
+	if err != nil {
+		return p, err
+	}
+	mac := GenMac(p, K_aut)
+	// Set AT_MAC
+	copy(p[atMacOffset:], mac)
+	return p, nil
 }
