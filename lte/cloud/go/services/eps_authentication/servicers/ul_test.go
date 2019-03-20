@@ -16,43 +16,54 @@ func (suite *EpsAuthTestSuite) TestUpdateLocation_NilRequest() {
 }
 
 func (suite *EpsAuthTestSuite) TestUpdateLocation_EmptyUserName() {
-	air := &protos.UpdateLocationRequest{
+	ulr := &protos.UpdateLocationRequest{
 		VisitedPlmn: []byte{0, 0, 0},
 	}
 
-	_, err := suite.UpdateLocation(air)
+	_, err := suite.UpdateLocation(ulr)
 	suite.EqualError(err, "rpc error: code = InvalidArgument desc = user name was empty")
 }
 
 func (suite *EpsAuthTestSuite) TestUpdateLocation_EmptyPlmm() {
-	air := &protos.UpdateLocationRequest{
+	ulr := &protos.UpdateLocationRequest{
 		UserName: "sub1",
 	}
 
-	_, err := suite.UpdateLocation(air)
+	_, err := suite.UpdateLocation(ulr)
 	suite.EqualError(err, "rpc error: code = InvalidArgument desc = expected Visited PLMN to be 3 bytes, but got 0 bytes")
 }
 
 func (suite *EpsAuthTestSuite) TestUpdateLocation_Success() {
-	air := &protos.UpdateLocationRequest{
+	ulr := &protos.UpdateLocationRequest{
 		UserName:    "sub1",
 		VisitedPlmn: []byte{0, 0, 0},
 	}
 
-	ula, err := suite.UpdateLocation(air)
+	ula, err := suite.UpdateLocation(ulr)
 	suite.NoError(err)
 	suite.checkULA(ula, 7000, 5000)
 }
 
 func (suite *EpsAuthTestSuite) TestUpdateLocation_DefaultProfile() {
-	air := &protos.UpdateLocationRequest{
+	ulr := &protos.UpdateLocationRequest{
 		UserName:    "empty_sub",
 		VisitedPlmn: []byte{0, 0, 0},
 	}
 
-	ula, err := suite.UpdateLocation(air)
+	ula, err := suite.UpdateLocation(ulr)
 	suite.NoError(err)
 	suite.checkULA(ula, 1000, 2000)
+}
+
+func (suite *EpsAuthTestSuite) TestUpdateLocation_UnknownSubscriber() {
+	ulr := &protos.UpdateLocationRequest{
+		UserName:    "sub_unknown",
+		VisitedPlmn: []byte{0, 0, 0},
+	}
+
+	ula, err := suite.UpdateLocation(ulr)
+	suite.EqualError(err, "rpc error: code = NotFound desc = Error fetching subscriber: IMSIsub_unknown, No record for query")
+	suite.Equal(protos.ErrorCode_USER_UNKNOWN, ula.ErrorCode)
 }
 
 func (suite *EpsAuthTestSuite) checkULA(ula *protos.UpdateLocationAnswer, maxUlBitRate, maxDlBitRate uint32) {
