@@ -54,7 +54,7 @@ setup(
         'Jinja2>=2.8',
         'netifaces>=0.10.4',
         'pylint>=1.7.1',
-        'PyYAML>=3.11',
+        'PyYAML>=5.1',
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
         'snowflake>=0.0.3',

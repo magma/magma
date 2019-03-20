@@ -140,7 +140,7 @@ def _load_yaml_file(file_name: str) -> Any:
 
     try:
         with open(file_name, 'r') as stream:
-            data = yaml.load(stream)
+            data = yaml.safe_load(stream)
             return data
     except (OSError, yaml.YAMLError) as e:
         raise LoadConfigError('Error loading yml config') from e
