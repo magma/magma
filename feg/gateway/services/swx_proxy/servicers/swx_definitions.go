@@ -31,6 +31,10 @@ const (
 
 	// 3GPP 29.273 8.2.3.4
 	Non3GPPIPAccess_ENABLED = 0
+
+	// Value of AVP auth-session-state indicating that no state is maintained
+	// between calls.
+	AuthSessionState_NO_STATE_MAINTAINED = 1
 )
 
 // 3GPP 29.273 8.2.2.1 - Multimedia Authentication Request

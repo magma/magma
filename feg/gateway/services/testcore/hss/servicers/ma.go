@@ -88,18 +88,19 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		}
 	}
 
-	return srv.NewSuccessfulMAA(msg, mar.SessionID, vectors), nil
+	return srv.NewSuccessfulMAA(msg, mar.SessionID, datatype.UTF8String(mar.UserName), vectors), nil
 }
 
 // NewSuccessfulMAA outputs a successful multimedia authentication answer (MAA) to reply to an
 // multimedia authentication request (MAR) message. It populates the MAA with all of the mandatory fields
 // and adds the authentication vectors. See 3GPP TS 29.273 table 8.1.2.1.1/5.
-func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID datatype.UTF8String, vectors []*crypto.SIPAuthVector) *diam.Message {
+func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID datatype.UTF8String, userName datatype.UTF8String, vectors []*crypto.SIPAuthVector) *diam.Message {
 	maa := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server)
-	for _, vector := range vectors {
+	for itemNumber, vector := range vectors {
 		authenticate := append(vector.Rand[:], vector.Autn[:]...)
 		maa.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
+				diam.NewAVP(avp.SIPItemNumber, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(itemNumber)),
 				diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(swx.SipAuthScheme_EAP_AKA)),
 				diam.NewAVP(avp.SIPAuthenticate, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(authenticate)),
 				diam.NewAVP(avp.SIPAuthorization, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
@@ -109,6 +110,14 @@ func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID d
 		})
 	}
 	maa.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(len(vectors)))
+	maa.NewAVP(avp.UserName, avp.Mbit, 0, userName)
+	maa.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(swx.AuthSessionState_NO_STATE_MAINTAINED))
+	maa.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.TGPP_SWX_APP_ID)),
+		},
+	})
 	return maa
 }
 
