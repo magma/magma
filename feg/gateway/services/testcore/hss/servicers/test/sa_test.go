@@ -156,7 +156,6 @@ func createSARExtended(userName string, serverAssignmentType int, originHost str
 func checkSAASuccess(t *testing.T, response *diam.Message) {
 	saa := testUnmarshalSAA(t, response)
 	assert.Equal(t, diam.Success, int(saa.ResultCode))
-	assert.Equal(t, uint32(diam.Success), saa.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), saa.AAAServerName)
 	assert.Equal(t, datatype.UTF8String("sub1"), saa.UserName)
 	assert.Equal(t, int32(definitions.AuthSessionState_NO_STATE_MAINTAINED), saa.AuthSessionState)

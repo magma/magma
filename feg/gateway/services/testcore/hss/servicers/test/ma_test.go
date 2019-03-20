@@ -273,7 +273,6 @@ func testNewMAASuccessfulResponse(t *testing.T, server *hss.HomeSubscriberServer
 	assert.NoError(t, err)
 	assert.Equal(t, "magma;123_1234", maa.SessionID)
 	assert.Equal(t, diam.Success, int(maa.ResultCode))
-	assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
 	assert.Equal(t, int32(definitions.AuthSessionState_NO_STATE_MAINTAINED), maa.AuthSessionState)
