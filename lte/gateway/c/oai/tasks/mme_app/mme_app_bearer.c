@@ -2042,7 +2042,8 @@ void mme_app_handle_ulr_timer_expiry(ue_mm_context_t *ue_context_p)
  *
  * */
 int mme_app_send_s11_suspend_notification(
-  struct ue_mm_context_s *const ue_context_pP)
+  struct ue_mm_context_s *const ue_context_pP,
+  const pdn_cid_t pdn_index)
 {
   MessageDef *message_p = NULL;
   itti_s11_suspend_notification_t *suspend_notification_p = NULL;
@@ -2061,7 +2062,8 @@ int mme_app_send_s11_suspend_notification(
   suspend_notification_p = &message_p->ittiMsg.s11_suspend_notification;
   memset(suspend_notification_p, 0, sizeof(itti_s11_suspend_notification_t));
 
-  suspend_notification_p->teid = ue_context_pP->mme_teid_s11;
+  pdn_context_t *pdn_connection = ue_context_pP->pdn_contexts[pdn_index];
+  suspend_notification_p->teid = pdn_connection->s_gw_teid_s11_s4;
 
   IMSI64_TO_STRING(
     ue_context_pP->imsi,
@@ -2073,7 +2075,7 @@ int mme_app_send_s11_suspend_notification(
   /* lbi: currently one default bearer, fill lbi from UE context
    * TODO for multiple PDN support, get lbi from PDN context
   */
-  suspend_notification_p->lbi = ue_context_pP->pdn_contexts[0]->default_ebi;
+  suspend_notification_p->lbi = ue_context_pP->pdn_contexts[pdn_index]->default_ebi;
 
   OAILOG_INFO(
     LOG_MME_APP,

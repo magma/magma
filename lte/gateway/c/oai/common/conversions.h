@@ -514,7 +514,8 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
     }                                                                          \
     (aSN)->buf = calloc(len, sizeof(uint8_t));                                 \
     for (idx = 0; idx < (len); idx++) {                                        \
-      ((aSN)->buf)[idx] = iMsI_sTr[2 * idx] | (iMsI_sTr[(2 * idx) + 1] << 4);  \
+      ((aSN)->buf)[idx] = (iMsI_sTr[2 * idx] & 0x0f)                           \
+      | ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0);                               \
     }                                                                          \
     if ((iMsI_len % 2) != 0) {                                                 \
       ((aSN)->buf)[idx - 1] |= 0xf0;                                           \
@@ -613,25 +614,6 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
     }                                                                          \
   }
 
-#define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)                          \
-  do {                                                                         \
-    int len = 0;                                                               \
-    int idx = 0;                                                               \
-    if ((iMsI_len % 2) != 0) {                                                 \
-      len = (iMsI_len / 2) + 1;                                                \
-    } else {                                                                   \
-      len = (iMsI_len / 2);                                                    \
-    }                                                                          \
-    (aSN)->buf = calloc(len, sizeof(uint8_t));                                 \
-    for (idx = 0; idx < (len); idx++) {                                        \
-      ((aSN)->buf)[idx] = iMsI_sTr[2 * idx] | (iMsI_sTr[(2 * idx) + 1] << 4);  \
-    }                                                                          \
-    if ((iMsI_len % 2) != 0) {                                                 \
-      ((aSN)->buf)[idx - 1] |= 0xf0;                                           \
-    }                                                                          \
-    (aSN)->size = len;                                                         \
-  } while (0)
-
 /*Used to convert char* IMSI/TMSI Mobile Identity to MobileIdentity(digit) format*/
 #define MOBILE_ID_CHAR_TO_MOBILE_ID_TMSI_NAS(mObId_ChAr, mObId_PtR, tMsI_LeN)  \
   {                                                                            \
@@ -691,24 +673,6 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
          OAILOG_DEBUG(LOG_MME_APP, "numOfValidImsiDigits %d \n",mObId_PtR->numOfValidImsiDigits);\
         } \*/
 
-#define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)                          \
-  do {                                                                         \
-    int len = 0;                                                               \
-    int idx = 0;                                                               \
-    if ((iMsI_len % 2) != 0) {                                                 \
-      len = (iMsI_len / 2) + 1;                                                \
-    } else {                                                                   \
-      len = (iMsI_len / 2);                                                    \
-    }                                                                          \
-    (aSN)->buf = calloc(len, sizeof(uint8_t));                                 \
-    for (idx = 0; idx < (len); idx++) {                                        \
-      ((aSN)->buf)[idx] = iMsI_sTr[2 * idx] | (iMsI_sTr[(2 * idx) + 1] << 4);  \
-    }                                                                          \
-    if ((iMsI_len % 2) != 0) {                                                 \
-      ((aSN)->buf)[idx - 1] |= 0xf0;                                           \
-    }                                                                          \
-    (aSN)->size = len;                                                         \
-  } while (0)
 
 void hexa_to_ascii(uint8_t *from, char *to, size_t length);
 

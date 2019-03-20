@@ -177,7 +177,7 @@ void mme_app_handle_suspend_acknowledge(
   const itti_s11_suspend_acknowledge_t *const suspend_acknowledge);
 
 int mme_app_send_s11_suspend_notification(
-  struct ue_mm_context_s *const ue_context_pP);
+  struct ue_mm_context_s *const ue_context_pP, const pdn_cid_t cid);
 
 int mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP);
 

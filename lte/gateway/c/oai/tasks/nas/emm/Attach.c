@@ -552,6 +552,7 @@ int emm_proc_attach_request(
 
     new_emm_ctx->num_attach_request++;
     new_emm_ctx->attach_type = ies->type;
+    new_emm_ctx->additional_update_type = ies->additional_update_type;
     OAILOG_NOTICE(
       LOG_NAS_EMM,
       "EMM-PROC  - Create EMM context ue_id = " MME_UE_S1AP_ID_FMT "\n",
