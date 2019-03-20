@@ -62,6 +62,7 @@ func GetTestSubscribers() []*protos.SubscriberData {
 				Pdn: protos.APNConfiguration_IPV6,
 			},
 		},
+		SubProfile: "test_profile",
 	}
 	subs = append(subs, sub)
 
