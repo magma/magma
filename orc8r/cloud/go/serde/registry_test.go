@@ -29,7 +29,7 @@ func TestSerialize(t *testing.T) {
 	mockSerde.On("GetType").Return("bar")
 	mockSerde.On("Serialize", mock.Anything).Return([]byte("hello world"), nil)
 
-	err := serde.RegisterSerdes([]serde.Serde{mockSerde})
+	err := serde.RegisterSerdes(mockSerde)
 	assert.NoError(t, err)
 	actual, err := serde.Serialize("foo", "bar", "baz")
 	assert.NoError(t, err)
@@ -53,7 +53,7 @@ func TestDeserialize(t *testing.T) {
 	mockSerde.On("GetType").Return("bar")
 	mockSerde.On("Deserialize", mock.Anything).Return("hello world", nil)
 
-	err := serde.RegisterSerdes([]serde.Serde{mockSerde})
+	err := serde.RegisterSerdes(mockSerde)
 	assert.NoError(t, err)
 	actual, err := serde.Deserialize("foo", "bar", []byte("baz"))
 	assert.NoError(t, err)

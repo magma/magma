@@ -34,7 +34,7 @@ var (
 // the global Serde registry. The semantics are all-or-nothing: if an error is
 // encountered while registering any Serde, the registry will rollback all
 // changes made. This function is thread-safe.
-func RegisterSerdes(serdesToRegister []Serde) error {
+func RegisterSerdes(serdesToRegister ...Serde) error {
 	serdesByDomain := getSerdesByDomain(serdesToRegister)
 	missingDomains := getNewDomainsToCreate(serdesByDomain)
 	missingDomainsCalculatedCallback()

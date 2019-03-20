@@ -54,7 +54,7 @@ func TestRegisterSerdes(t *testing.T) {
 		waiter <- nil
 	}
 	go func() {
-		err := RegisterSerdes([]Serde{fooSerde1, barSerde})
+		err := RegisterSerdes(fooSerde1, barSerde)
 		// Signal to the test case that this call is finished
 		waiter <- err
 	}()
@@ -63,7 +63,7 @@ func TestRegisterSerdes(t *testing.T) {
 	// Wait until the first call enters the blocking callback
 	<-waiter
 	missingDomainsCalculatedCallback = func() {}
-	err := RegisterSerdes([]Serde{fooSerde2})
+	err := RegisterSerdes(fooSerde2)
 	assert.NoError(t, err)
 
 	// Only the second call should have gone through
@@ -122,9 +122,9 @@ func TestRegisterSerdesRollback(t *testing.T) {
 	barSerde.On("GetDomain").Return("bar")
 	barSerde.On("GetType").Return("bar1")
 
-	err := RegisterSerdes([]Serde{fooSerde1, barSerde})
+	err := RegisterSerdes(fooSerde1, barSerde)
 	assert.NoError(t, err)
-	err = RegisterSerdes([]Serde{fooSerde2, barSerde})
+	err = RegisterSerdes(fooSerde2, barSerde)
 	assert.EqualError(t, err, "Error registering serdes: Serde with key bar1 is already registered; registry has been rolled back")
 	expected := &serdeRegistry{
 		serdeRegistriesByDomain: map[string]*serdes{
@@ -173,13 +173,13 @@ func TestRegisterSerdesRaceRollback(t *testing.T) {
 		waiter <- nil
 	}
 	go func() {
-		err := RegisterSerdes([]Serde{fooSerde1, barSerde})
+		err := RegisterSerdes(fooSerde1, barSerde)
 		waiter <- err
 	}()
 
 	<-waiter
 	newDomainsCreatedCallback = func() {}
-	err := RegisterSerdes([]Serde{fooSerde2, barSerde})
+	err := RegisterSerdes(fooSerde2, barSerde)
 	assert.NoError(t, err)
 	expected := &serdeRegistry{
 		serdeRegistriesByDomain: map[string]*serdes{

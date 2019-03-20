@@ -18,10 +18,10 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/metricsd"
-	stateregistry "magma/orc8r/cloud/go/services/state/registry"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 )
@@ -40,13 +40,6 @@ func (*FegOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 		return []registry.ServiceLocation{}
 	}
 	return serviceLocations
-
-	// TODO: do we need FEG gateway services in the plugin or is that
-	// the wild west?
-	//{Name: session_proxy.ServiceName, Host: "localhost", Port: 9097},
-	//{Name: s6a_proxy.ServiceName, Host: "localhost", Port: 9098},
-	//{Name: csfb.ServiceName, Host: "localhost", Port: 9101},
-	// feg hello went on 9093
 }
 
 func (*FegOrchestratorPlugin) GetConfigManagers() []configregistry.ConfigManager {
@@ -56,8 +49,8 @@ func (*FegOrchestratorPlugin) GetConfigManagers() []configregistry.ConfigManager
 	}
 }
 
-func (*FegOrchestratorPlugin) GetStateSerdes() []stateregistry.StateSerde {
-	return []stateregistry.StateSerde{}
+func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
+	return []serde.Serde{}
 }
 
 func (*FegOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
