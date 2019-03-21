@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+  proxy:
+    build:
+      # Use the temporary context created by the build.py script
+      context: /tmp/magma_orc8r_build
+      dockerfile: $PWD/proxy/Dockerfile
+
+  controller:
+    build:
+      # Use the temporary context created by the build.py script
+      context: /tmp/magma_orc8r_build
+      dockerfile: $PWD/controller/Dockerfile
