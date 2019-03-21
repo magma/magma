@@ -33,6 +33,10 @@ func (tk TypeAndKey) ToProto() protos.TypeAndKey {
 	}
 }
 
+func (tk TypeAndKey) String() string {
+	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
+}
+
 // Blob encapsulates a blob for storage
 type Blob struct {
 	Type    string
