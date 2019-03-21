@@ -105,8 +105,75 @@ func TestCheckind(t *testing.T) {
 		},
 	}
 
-	requestPtr2 := proto.Clone(&request).(*protos.CheckinRequest)
-	requestPtr2.GatewayId = testAgHwId2
+	request2 := protos.CheckinRequest{
+		GatewayId: testAgHwId2,
+		Status: &protos.ServiceStatus{
+			Meta: map[string]string{
+				"test": "meta",
+			},
+		},
+		SystemStatus: &protos.SystemStatus{
+			Time:         8,
+			CpuUser:      7,
+			CpuSystem:    6,
+			CpuIdle:      5,
+			MemTotal:     4,
+			MemAvailable: 3,
+			MemUsed:      2,
+			MemFree:      1,
+			UptimeSecs:   1234,
+			SwapTotal:    1016081,
+			SwapUsed:     54415,
+			SwapFree:     412771,
+			DiskPartitions: []*protos.DiskPartition{
+				{
+					Device:     "/dev/sda1",
+					MountPoint: "/",
+					Total:      1,
+					Used:       2,
+					Free:       3,
+				},
+			},
+		},
+		PlatformInfo: &protos.PlatformInfo{
+			VpnIp: "facebook.com",
+			Packages: []*protos.Package{
+				{
+					Name:    "magma",
+					Version: "0.0.0.0",
+				},
+			},
+			KernelVersion:           "42",
+			KernelVersionsInstalled: []string{"42", "43"},
+		},
+		MachineInfo: &protos.MachineInfo{
+			CpuInfo: &protos.CPUInfo{
+				CoreCount:      4,
+				ThreadsPerCore: 1,
+				Architecture:   "x86_64",
+				ModelName:      "Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz",
+			},
+			NetworkInfo: &protos.NetworkInfo{
+				NetworkInterfaces: []*protos.NetworkInterface{
+					{
+						NetworkInterfaceId: "gtp_br0",
+						Status:             protos.NetworkInterface_UP,
+						MacAddress:         "08:00:27:1e:8a:32",
+						IpAddresses:        []string{"10.10.10.1"},
+						Ipv6Addresses:      []string{"fe80::a00:27ff:fe1e:8332"},
+					},
+				},
+				RoutingTable: []*protos.Route{
+					{
+						DestinationIp:      "0.0.0.0",
+						GatewayIp:          "10.10.10.1",
+						Genmask:            "255.255.255.0",
+						NetworkInterfaceId: "eth0",
+					},
+				},
+			},
+		},
+	}
 
 	_, readStatus := checkinRound(
 		t, magmaCheckindClient, testNetworkId, logicalId, &request)
@@ -114,7 +181,7 @@ func TestCheckind(t *testing.T) {
 	time.Sleep(100 * time.Millisecond) // let some time pass
 
 	_, readStatus2 := checkinRound(
-		t, magmaCheckindClient, testNetworkId, logicalId2, requestPtr2)
+		t, magmaCheckindClient, testNetworkId, logicalId2, &request2)
 	assert.NotEqual(t, readStatus.Time, readStatus2.Time)
 
 	repeatRequest := proto.Clone(&request).(*protos.CheckinRequest)

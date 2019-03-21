@@ -25,28 +25,42 @@ type GatewayStatus struct {
 	// hardware id
 	HardwareID string `json:"hardware_id,omitempty"`
 
-	// kernel version
+	// deprecated
 	KernelVersion string `json:"kernel_version,omitempty"`
 
-	// kernel versions installed
+	// deprecated
 	KernelVersionsInstalled []string `json:"kernel_versions_installed,omitempty"`
+
+	// machine info
+	MachineInfo *MachineInfo `json:"machine_info,omitempty"`
 
 	// meta
 	Meta map[string]string `json:"meta,omitempty"`
 
+	// platform info
+	PlatformInfo *PlatformInfo `json:"platform_info,omitempty"`
+
 	// system status
 	SystemStatus *SystemStatus `json:"system_status,omitempty"`
 
-	// version
+	// deprecated
 	Version string `json:"version,omitempty"`
 
-	// vpn ip
+	// deprecated
 	VpnIP string `json:"vpn_ip,omitempty"`
 }
 
 // Validate validates this gateway status
 func (m *GatewayStatus) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateMachineInfo(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePlatformInfo(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateSystemStatus(formats); err != nil {
 		res = append(res, err)
@@ -55,6 +69,42 @@ func (m *GatewayStatus) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *GatewayStatus) validateMachineInfo(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.MachineInfo) { // not required
+		return nil
+	}
+
+	if m.MachineInfo != nil {
+		if err := m.MachineInfo.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("machine_info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayStatus) validatePlatformInfo(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.PlatformInfo) { // not required
+		return nil
+	}
+
+	if m.PlatformInfo != nil {
+		if err := m.PlatformInfo.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("platform_info")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

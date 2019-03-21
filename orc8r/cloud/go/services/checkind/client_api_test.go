@@ -106,30 +106,78 @@ func insertStatuses(t *testing.T) map[string]*protos.CheckinRequest {
 	defer conn.Close()
 	client := protos.NewCheckindClient(conn)
 	checkinRequest1 := &protos.CheckinRequest{
-		GatewayId:       gw1HardwareID,
-		MagmaPkgVersion: "v1",
+		GatewayId: gw1HardwareID,
 		Status: &protos.ServiceStatus{
 			Meta: map[string]string{
-				"Hello": "World!",
+				"hello": "world",
 			},
 		},
 		SystemStatus: &protos.SystemStatus{
-			Time:         1,
-			CpuUser:      2,
-			CpuSystem:    3,
-			CpuIdle:      4,
-			MemTotal:     5,
-			MemAvailable: 6,
-			MemUsed:      7,
-			MemFree:      8,
+			Time:       1495484735606,
+			CpuUser:    31498,
+			CpuSystem:  8361,
+			CpuIdle:    1869111,
+			MemTotal:   1016084,
+			MemUsed:    54416,
+			MemFree:    412772,
+			UptimeSecs: 1234,
+			SwapTotal:  1016081,
+			SwapUsed:   54415,
+			SwapFree:   412771,
+			DiskPartitions: []*protos.DiskPartition{
+				{
+					Device:     "/dev/sda1",
+					MountPoint: "/",
+					Total:      1,
+					Used:       2,
+					Free:       3,
+				},
+			},
+		},
+		PlatformInfo: &protos.PlatformInfo{
+			VpnIp: "facebook.com",
+			Packages: []*protos.Package{
+				{
+					Name:    "magma",
+					Version: "0.0.0.0",
+				},
+			},
+			KernelVersion:           "42",
+			KernelVersionsInstalled: []string{"42", "43"},
+		},
+		MachineInfo: &protos.MachineInfo{
+			CpuInfo: &protos.CPUInfo{
+				CoreCount:      4,
+				ThreadsPerCore: 1,
+				Architecture:   "x86_64",
+				ModelName:      "Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz",
+			},
+			NetworkInfo: &protos.NetworkInfo{
+				NetworkInterfaces: []*protos.NetworkInterface{
+					{
+						NetworkInterfaceId: "gtp_br0",
+						Status:             protos.NetworkInterface_UP,
+						MacAddress:         "08:00:27:1e:8a:32",
+						IpAddresses:        []string{"10.10.10.1"},
+						Ipv6Addresses:      []string{"fe80::a00:27ff:fe1e:8332"},
+					},
+				},
+				RoutingTable: []*protos.Route{
+					{
+						DestinationIp:      "0.0.0.0",
+						GatewayIp:          "10.10.10.1",
+						Genmask:            "255.255.255.0",
+						NetworkInterfaceId: "eth0",
+					},
+				},
+			},
 		},
 	}
 	_, err = client.Checkin(context.Background(), checkinRequest1)
 	assert.NoError(t, err)
 
 	checkinRequest2 := &protos.CheckinRequest{
-		GatewayId:       gw2HardwareID,
-		MagmaPkgVersion: "v2",
+		GatewayId: gw2HardwareID,
 		Status: &protos.ServiceStatus{
 			Meta: map[string]string{
 				"test": "meta",
@@ -144,6 +192,57 @@ func insertStatuses(t *testing.T) map[string]*protos.CheckinRequest {
 			MemAvailable: 3,
 			MemUsed:      2,
 			MemFree:      1,
+			UptimeSecs:   1234,
+			SwapTotal:    1016081,
+			SwapUsed:     54415,
+			SwapFree:     412771,
+			DiskPartitions: []*protos.DiskPartition{
+				{
+					Device:     "/dev/sda1",
+					MountPoint: "/",
+					Total:      1,
+					Used:       2,
+					Free:       3,
+				},
+			},
+		},
+		PlatformInfo: &protos.PlatformInfo{
+			VpnIp: "facebook.com",
+			Packages: []*protos.Package{
+				{
+					Name:    "magma",
+					Version: "0.0.0.0",
+				},
+			},
+			KernelVersion:           "42",
+			KernelVersionsInstalled: []string{"42", "43"},
+		},
+		MachineInfo: &protos.MachineInfo{
+			CpuInfo: &protos.CPUInfo{
+				CoreCount:      4,
+				ThreadsPerCore: 1,
+				Architecture:   "x86_64",
+				ModelName:      "Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz",
+			},
+			NetworkInfo: &protos.NetworkInfo{
+				NetworkInterfaces: []*protos.NetworkInterface{
+					{
+						NetworkInterfaceId: "gtp_br0",
+						Status:             protos.NetworkInterface_UP,
+						MacAddress:         "08:00:27:1e:8a:32",
+						IpAddresses:        []string{"10.10.10.1"},
+						Ipv6Addresses:      []string{"fe80::a00:27ff:fe1e:8332"},
+					},
+				},
+				RoutingTable: []*protos.Route{
+					{
+						DestinationIp:      "0.0.0.0",
+						GatewayIp:          "10.10.10.1",
+						Genmask:            "255.255.255.0",
+						NetworkInterfaceId: "eth0",
+					},
+				},
+			},
 		},
 	}
 	_, err = client.Checkin(context.Background(), checkinRequest2)
