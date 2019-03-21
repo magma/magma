@@ -83,7 +83,7 @@ matrix:
       script:
         - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
         - make -C ${MAGMA_ROOT}/orc8r/cloud travis_run
-        - /bin/sleep 20
+        - sleep 60
         - travis_retry make -C ${MAGMA_ROOT}/orc8r/cloud check
 
     - language: go
