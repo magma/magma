@@ -525,16 +525,10 @@ class EnforcementStatsTest(unittest.TestCase):
             self.service_manager.session_rule_version_mapper. \
                 update_version(imsi, 'rule1')
             self.enforcement_controller.deactivate_rules(imsi, [policy.id])
-            enf_future = Future()
-            es_future = Future()
             self.enforcement_controller.activate_rules(imsi, sub_ip,
-                                                       [policy.id], [],
-                                                       enf_future)
+                                                       [policy.id], [])
             self.enforcement_stats_controller.activate_rules(imsi, sub_ip,
-                                                             [policy.id], [],
-                                                             es_future)
-            enf_future.result()
-            es_future.result()
+                                                             [policy.id], [])
             pkt_sender.send(packet)
 
         verifier.verify()
