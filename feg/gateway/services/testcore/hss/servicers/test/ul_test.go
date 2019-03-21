@@ -63,7 +63,6 @@ func TestNewULA_SuccessfulResponse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "magma;123_1234", ula.SessionID)
 	assert.Equal(t, diam.Success, int(ula.ResultCode))
-	assert.Equal(t, uint32(diam.Success), ula.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginRealm)
 }

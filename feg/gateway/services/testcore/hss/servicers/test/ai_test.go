@@ -72,7 +72,6 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "magma;123_1234", aia.SessionID)
 	assert.Equal(t, diam.Success, int(aia.ResultCode))
-	assert.Equal(t, uint32(diam.Success), aia.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginRealm)
 	assert.Equal(t, 1, len(aia.AIs))
@@ -266,7 +265,6 @@ func TestNewSuccessfulAIA(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, uint32(diam.Success), aia.ResultCode)
-	assert.Equal(t, uint32(diam.Success), aia.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, air.SessionID, datatype.UTF8String(aia.SessionID))
 	assert.Equal(t, datatype.DiameterIdentity(serverCfg.DestHost), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity(serverCfg.DestRealm), aia.OriginRealm)

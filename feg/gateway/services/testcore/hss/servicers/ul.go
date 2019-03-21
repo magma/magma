@@ -83,7 +83,7 @@ func NewULA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 // update location request (ULR) message. It populates the ULA with all of the mandatory fields
 // and adds the subscriber profile information.
 func (srv *HomeSubscriberServer) NewSuccessfulULA(msg *diam.Message, sessionID datatype.UTF8String, profile *mconfig.HSSConfig_SubscriptionProfile) *diam.Message {
-	ula := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server)
+	ula := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server, diam.TGPP_S6A_APP_ID)
 	ula.NewAVP(avp.ULAFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(ulaFlags))
 	ula.NewAVP(avp.SubscriptionData, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
@@ -99,7 +99,7 @@ func (srv *HomeSubscriberServer) NewSuccessfulULA(msg *diam.Message, sessionID d
 						AVP: []*diam.AVP{
 							diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnContextIdentifier)),
 							diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(protos.UpdateLocationAnswer_APNConfiguration_IPV4)),
-							diam.NewAVP(avp.ServiceSelection, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String(apnServiceSelection)),
+							diam.NewAVP(avp.ServiceSelection, avp.Mbit, 0, datatype.UTF8String(apnServiceSelection)),
 							diam.NewAVP(avp.EPSSubscribedQoSProfile, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 								AVP: []*diam.AVP{
 									diam.NewAVP(avp.QoSClassIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnQoSClassIdentifier)),

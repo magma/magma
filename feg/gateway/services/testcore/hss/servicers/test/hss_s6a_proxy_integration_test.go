@@ -30,7 +30,7 @@ func TestAIR_Successful(t *testing.T) {
 
 	aia, err := s6aProxy.AuthenticationInformation(context.Background(), air)
 	assert.NoError(t, err)
-	assert.Equal(t, protos.ErrorCode_SUCCESS, aia.ErrorCode)
+	assert.Equal(t, protos.ErrorCode_UNDEFINED, aia.ErrorCode)
 
 	assert.Equal(t, 1, len(aia.EutranVectors))
 	vector := aia.EutranVectors[0]
@@ -63,7 +63,7 @@ func TestULR_Successful(t *testing.T) {
 
 	ula, err := s6aProxy.UpdateLocation(context.Background(), ulr)
 	assert.NoError(t, err)
-	assert.Equal(t, protos.ErrorCode_SUCCESS, ula.ErrorCode)
+	assert.Equal(t, protos.ErrorCode_UNDEFINED, ula.ErrorCode)
 	assert.Equal(t, uint32(defaultMaxUlBitRate), ula.GetTotalAmbr().GetMaxBandwidthUl())
 	assert.Equal(t, uint32(defaultMaxDlBitRate), ula.GetTotalAmbr().GetMaxBandwidthDl())
 	assert.Equal(t, []byte("12345"), ula.Msisdn)

@@ -35,7 +35,6 @@ func TestHomeSubscriberServer_handleAIR(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "magma;123_1234", aia.SessionID)
 		assert.Equal(t, diam.Success, int(aia.ResultCode))
-		assert.Equal(t, uint32(diam.Success), aia.ExperimentalResult.ExperimentalResultCode)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginHost)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginRealm)
 	}
@@ -54,7 +53,6 @@ func TestHomeSubscriberServer_handleULA(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "magma;123_1234", ula.SessionID)
 		assert.Equal(t, diam.Success, int(ula.ResultCode))
-		assert.Equal(t, uint32(diam.Success), ula.ExperimentalResult.ExperimentalResultCode)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginHost)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), ula.OriginRealm)
 	}
@@ -73,7 +71,6 @@ func TestHomeSubscriberServer_handleMAR(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "magma;123_1234", maa.SessionID)
 		assert.Equal(t, diam.Success, int(maa.ResultCode))
-		assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 		assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
 		checkSIPAuthVectors(t, maa, 1)
