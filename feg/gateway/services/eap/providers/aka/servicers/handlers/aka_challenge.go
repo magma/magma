@@ -84,27 +84,18 @@ attrLoop:
 
 	if err != nil {
 		if err == io.EOF {
-			return aka.EapErrorResPacketWithMac(
-				identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.InvalidArgument, "Missing AT_MAC | AT_RES")
+			return aka.EapErrorResPacket(
+				identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Missing AT_MAC | AT_RES")
 		}
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.InvalidArgument, err.Error())
-	}
-
-	// Verify AT_RES
-	ueRes := atRes.Marshaled()[aka.ATT_HDR_LEN:]
-	if !reflect.DeepEqual(ueRes, uc.Xres) {
-		log.Printf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v", ctx.SessionId, imsi, ueRes, uc.Xres)
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.Unauthenticated,
-			"Invalid AT_RES for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
+		return aka.EapErrorResPacket(
+			identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, err.Error())
 	}
 
 	// Verify MAC
 	macBytes := atMac.Marshaled()
 	if len(macBytes) < aka.ATT_HDR_LEN+aka.MAC_LEN {
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.InvalidArgument, "Malformed AT_MAC")
+		return aka.EapErrorResPacket(
+			identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Malformed AT_MAC")
 	}
 	ueMac := make([]byte, len(macBytes)-aka.ATT_HDR_LEN)
 	copy(ueMac, macBytes[aka.ATT_HDR_LEN:])
@@ -117,12 +108,22 @@ attrLoop:
 		log.Printf(
 			"Invalid MAC for Session ID: %s; IMSI: %s; UE MAC: %x; Expected MAC: %x; EAP: %x",
 			ctx.SessionId, imsi, ueMac, mac, req)
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.Unauthenticated,
+		return aka.EapErrorResPacket(
+			identifier, aka.NOTIFICATION_FAILURE, codes.Unauthenticated,
 			"Invalid MAC for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
 	}
 
-	// All good, return
+	// Verify AT_RES
+	ueRes := atRes.Marshaled()[aka.ATT_HDR_LEN:]
+	if !reflect.DeepEqual(ueRes, uc.Xres) {
+		log.Printf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v",
+			ctx.SessionId, imsi, ueRes, uc.Xres)
+		return aka.EapErrorResPacketWithMac(
+			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.Unauthenticated,
+			"Invalid AT_RES for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
+	}
+
+	// All good, set MSK & return SuccessCode
 	ctx.Msk = uc.MSK
 
 	return []byte{eap.SuccessCode, identifier, 0, 4}, nil

@@ -130,7 +130,8 @@ func TestEAPClientApi(t *testing.T) {
 	}
 
 	// Test timeout
-	aka.SetChallengeTimeout(time.Millisecond * 300)
+	currentTout := aka.ChallengeTimeout()
+	aka.SetChallengeTimeout(time.Millisecond * 100)
 	eapCtx = &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapIdentityResp, Ctx: eapCtx})
 	if err != nil {
@@ -144,4 +145,5 @@ func TestEAPClientApi(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Expected Error for timed out Session ID: %s", eapCtx.SessionId)
 	}
+	aka.SetChallengeTimeout(currentTout)
 }

@@ -29,6 +29,7 @@ type UserCtx struct {
 	state      aka.AkaState
 	stateTime  time.Time
 	locked     bool
+	Identity   string
 	Imsi       aka.IMSI
 	Identifier uint8
 	Rand,
@@ -105,6 +106,9 @@ func (s *EapAkaSrv) GetLockedUserCtx(imsi aka.IMSI) *UserCtx {
 		if res.locked {
 			panic("Expected unlocked")
 		}
+		if res.Imsi != imsi {
+			panic("IMSI Mismatch")
+		}
 		res.locked = true
 		return res
 	}
@@ -138,6 +142,9 @@ func (s *EapAkaSrv) FindLockedUserCtx(imsi aka.IMSI) *UserCtx {
 		res.mu.Lock()
 		if res.locked {
 			panic("Expected unlocked")
+		}
+		if res.Imsi != imsi {
+			panic("IMSI Mismatch")
 		}
 		res.locked = true
 		return res
@@ -242,13 +249,20 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 
 // FindSession finds and returns IMSI of a session and a flag indication if the find succeeded
 func (s *EapAkaSrv) FindSession(sessionId string) (aka.IMSI, bool) {
-	var imsi aka.IMSI
+	var (
+		imsi  aka.IMSI
+		timer *time.Timer
+	)
 	s.sessionsMu.Lock()
 	sessionCtx, exist := s.sessions[sessionId]
 	if exist && sessionCtx != nil {
-		imsi = sessionCtx.Imsi
+		imsi, timer = sessionCtx.Imsi, sessionCtx.CleanupTimer
 	}
 	s.sessionsMu.Unlock()
+
+	if timer != nil {
+		timer.Stop()
+	}
 	return imsi, exist
 }
 
@@ -261,7 +275,6 @@ func (s *EapAkaSrv) RemoveSession(sessionId string) {
 		delete(s.sessions, sessionId)
 		if sessionCtx != nil {
 			timer = sessionCtx.CleanupTimer
-			sessionCtx.CleanupTimer = nil
 		}
 	}
 	s.sessionsMu.Unlock()
@@ -274,15 +287,21 @@ func (s *EapAkaSrv) RemoveSession(sessionId string) {
 // FindAndRemoveSession finds returns IMSI of a session and a flag indication if the find succeeded
 // then it deletes the session ID from the map
 func (s *EapAkaSrv) FindAndRemoveSession(sessionId string) (aka.IMSI, bool) {
-	var imsi aka.IMSI
+	var (
+		imsi  aka.IMSI
+		timer *time.Timer
+	)
 	s.sessionsMu.Lock()
 	sessionCtx, exist := s.sessions[sessionId]
 	if exist {
 		delete(s.sessions, sessionId)
 		if sessionCtx != nil {
-			imsi = sessionCtx.Imsi
+			imsi, timer = sessionCtx.Imsi, sessionCtx.CleanupTimer
 		}
 	}
 	s.sessionsMu.Unlock()
+	if timer != nil {
+		timer.Stop()
+	}
 	return imsi, exist
 }
