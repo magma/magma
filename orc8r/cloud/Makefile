@@ -168,7 +168,7 @@ restart: restart_proxy restart_services # Restart proxies & all magma services
 CHECK_LIST = $(foreach srv, $(SERVICES), $(srv)_check) obsidian_check
 check: $(CHECK_LIST)
 $(CHECK_LIST): %_check:
-	sudo systemctl is-active magma@$*
+	sudo systemctl is-active magma@$* || (sudo service magma@$* status && sleep 5)
 
 list:  # List all commands
 	@echo -e "\nAvailable commands:\n"
