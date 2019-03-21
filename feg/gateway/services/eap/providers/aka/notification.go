@@ -37,8 +37,22 @@ func EapErrorResPacket(id uint8, code uint16, rpcCode codes.Code, f string, a ..
 	return NewAKANotificationReq(id, code), Errorf(rpcCode, f, a...)
 }
 
-func EapErrorRes(id uint8, code uint16, rpcCode codes.Code, f string, a ...interface{}) (*protos.Eap, error) {
-	return &protos.Eap{Payload: NewAKANotificationReq(id, code)}, Errorf(rpcCode, f, a...)
+func EapErrorResPacketWithMac(id uint8, code uint16, K_aut []byte, rpcCode codes.Code, f string, a ...interface{}) (eap.Packet, error) {
+	p := NewAKANotificationReq(id, code)
+	p, err := AppendMac(p, K_aut)
+	if err != nil {
+		panic(err) // should never happen
+	}
+	return p, Errorf(rpcCode, f, a...)
+}
+
+func EapErrorRes(
+	id uint8, code uint16,
+	rpcCode codes.Code,
+	ctx *protos.EapContext,
+	f string, a ...interface{}) (*protos.Eap, error) {
+
+	return &protos.Eap{Payload: NewAKANotificationReq(id, code), Ctx: ctx}, Errorf(rpcCode, f, a...)
 }
 
 func Errorf(code codes.Code, format string, a ...interface{}) error {

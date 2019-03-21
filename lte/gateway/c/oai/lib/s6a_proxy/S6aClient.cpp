@@ -26,6 +26,7 @@
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "MConfigLoader.h"
 #include "S6aClient.h"
+#include "ServiceConfigLoader.h"
 #include "ServiceRegistrySingleton.h"
 #include "itti_msg_to_proto_msg.h"
 #include "feg/protos/s6a_proxy.pb.h"
@@ -42,7 +43,11 @@ using namespace feg;
 
 static bool read_mme_relay_enabled(void);
 
+static bool read_mme_cloud_subscriberdb_enabled(void);
+
 static const bool relay_enabled = read_mme_relay_enabled();
+
+static const bool cloud_subscriberdb_enabled = read_mme_cloud_subscriberdb_enabled();
 
 // Relay enabled must be controlled by mconfigs in ONE place
 // and mme app should be restarted on the config changes.
@@ -54,6 +59,11 @@ static const bool relay_enabled = read_mme_relay_enabled();
 bool get_s6a_relay_enabled(void)
 {
   return relay_enabled;
+}
+
+bool get_cloud_subscriberdb_enabled(void)
+{
+  return cloud_subscriberdb_enabled;
 }
 
 static bool read_mme_relay_enabled(void)
@@ -68,6 +78,13 @@ static bool read_mme_relay_enabled(void)
   return mconfig.relay_enabled();
 }
 
+static bool read_mme_cloud_subscriberdb_enabled(void)
+{
+  auto config = magma::ServiceConfigLoader{}.load_service_config(MME_SERVICE);
+  return config["cloud_subscriberdb_enabled"].IsDefined() &&
+         config["cloud_subscriberdb_enabled"].as<bool>();
+}
+
 S6aClient &S6aClient::get_instance()
 {
   static S6aClient client_instance;
@@ -76,15 +93,19 @@ S6aClient &S6aClient::get_instance()
 
 S6aClient::S6aClient()
 {
-  /* Based on relaymode configuration, Create channel
-    If relaymode is set, create channel towards feg
-    otherwise create channel towards subscriberdb
-   */
-
+   // Create channel based on relay_enabled and cloud_subscriberdb_enabled
+   // flags. If relay_enabled is true, then create a channel towards the FeG.
+   // Otherwise, create a channel towards either local or cloud-based
+   // subscriberdb.
   if (get_s6a_relay_enabled() == true) {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "s6a_proxy", ServiceRegistrySingleton::CLOUD);
     // Create stub for S6aProxy gRPC service
+    stub_ = S6aProxy::NewStub(channel);
+  } else if (get_cloud_subscriberdb_enabled()) {
+    auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+      "eps_authentication", ServiceRegistrySingleton::CLOUD);
+    // Create stub for EPS Authentication gRPC service
     stub_ = S6aProxy::NewStub(channel);
   } else {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(

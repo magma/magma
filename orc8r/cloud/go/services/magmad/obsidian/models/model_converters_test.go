@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package models_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"magma/orc8r/cloud/go/protos"
@@ -17,6 +18,8 @@ import (
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
 
+	"github.com/golang/protobuf/jsonpb"
+	"github.com/golang/protobuf/ptypes/struct"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -127,4 +130,48 @@ func TestGatewayStateToModelNilFields(t *testing.T) {
 	actualModel, err = magmad_models.GatewayStateToModel(state)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, actualModel)
+}
+
+func TestJSONMapToProtobufStruct(t *testing.T) {
+	jsonMap := map[string]interface{}{
+		"nil":    nil,
+		"number": 1.0,
+		"string": "str",
+		"struct": map[string]interface{}{
+			"a": 2.0,
+		},
+		"list": []interface{}{1.0, "foo"},
+	}
+	marshaled, err := json.Marshal(jsonMap)
+	assert.NoError(t, err)
+	expectedProtobufStruct := &structpb.Struct{}
+	err = jsonpb.UnmarshalString(string(marshaled), expectedProtobufStruct)
+	assert.NoError(t, err)
+
+	actualProtobufStruct, err := magmad_models.JSONMapToProtobufStruct(jsonMap)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedProtobufStruct, actualProtobufStruct)
+}
+
+func TestProtobufStructToJSONMap(t *testing.T) {
+	expectedJsonMap := map[string]interface{}{
+		"nil":    nil,
+		"number": 1.0,
+		"string": "str",
+		"struct": map[string]interface{}{
+			"a": 2.0,
+		},
+		"list": []interface{}{1.0, "foo"},
+	}
+	marshaled, err := json.Marshal(expectedJsonMap)
+	assert.NoError(t, err)
+	protobufStruct := &structpb.Struct{}
+	err = jsonpb.UnmarshalString(string(marshaled), protobufStruct)
+	assert.NoError(t, err)
+
+	actualJsonMap, err := magmad_models.ProtobufStructToJSONMap(protobufStruct)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expectedJsonMap, actualJsonMap)
 }

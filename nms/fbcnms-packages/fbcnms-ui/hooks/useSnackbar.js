@@ -17,7 +17,7 @@ export default function useSnackbar(
   config: any,
   show: boolean,
 ) {
-  const enqueueSnackbar = useContext(SnackbarContextNext);
+  const enqueueSnackbar = useContext(SnackbarContextNext).handleEnqueueSnackbar;
   useEffect(() => {
     if (show) {
       enqueueSnackbar(message, config);

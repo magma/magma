@@ -24,37 +24,37 @@ class DirectoryServiceRpcServicer(DirectoryServiceServicer):
         """ Add the servicer to a gRPC server """
         add_DirectoryServiceServicer_to_server(self, server)
 
-    def GetLocation(self, request_msg, context):
+    def GetLocation(self, request, context):
         """ Get the location record of an object
 
         Args:
-            request_msg (GetLocationRequest): get location request
+            request (GetLocationRequest): get location request
 
         Returns:
             LocationRecord: location record
         """
-        location_record = self._get_grpc_client().GetLocation(request_msg)
+        location_record = self._get_grpc_client().GetLocation(request)
         return location_record
 
     @return_void
-    def UpdateLocation(self, request_msg, context):
+    def UpdateLocation(self, request, context):
         """ Update the location record of an object
 
         Args:
-            request_msg (UpdateLocationRequest): update location
+            request (UpdateLocationRequest): update location
             request
         """
-        self._get_grpc_client().UpdateLocation(request_msg)
+        self._get_grpc_client().UpdateLocation(request)
 
     @return_void
-    def DeleteLocation(self, request_msg, context):
+    def DeleteLocation(self, request, context):
         """ Delete the location record of an object
 
         Args:
-            request_msg (DeleteLocationRequest): delete location
+            request (DeleteLocationRequest): delete location
             request
         """
-        self._get_grpc_client().DeleteLocation(request_msg)
+        self._get_grpc_client().DeleteLocation(request)
 
     def _get_grpc_client(self):
         chan = ServiceRegistry.get_rpc_channel(

@@ -1,3 +1,11 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSDstyle license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
 package eap
 
 import (
@@ -37,6 +45,11 @@ func NewAttribute(typ AttrType, data []byte) attribute {
 		res = append(res, make([]byte, pad)...)
 	}
 	return res
+}
+
+// NewRawAttribute 'casts' given slice to Attribute type without any validations
+func NewRawAttribute(data []byte) attribute {
+	return data
 }
 
 // String - implements stringer interface
@@ -136,14 +149,14 @@ func (eap Packet) Append(a Attribute) (Packet, error) {
 		return eap, fmt.Errorf("Nil Attribute")
 	}
 	eapLen := len(eap)
-	mLen := uint(eap[EapMsgLenHigh])<<8 + uint(eap[EapMsgLenLow])
-	if mLen > uint(eapLen) {
+	mLen := eap.Len()
+	if mLen > eapLen {
 		return eap, fmt.Errorf("Invalid EAP Length, header: %d, actual: %d", mLen, eapLen)
 	}
-	if mLen < uint(EapFirstAttribute) {
+	if mLen < EapFirstAttribute {
 		return eap, fmt.Errorf("Insufficient EAP length, header: %d, data: %d", mLen, eapLen)
 	}
-	if uint(eapLen) > mLen {
+	if eapLen > mLen {
 		eap = eap[:mLen]
 	}
 	l := a.Len()
@@ -159,8 +172,8 @@ func (eap Packet) Append(a Attribute) (Packet, error) {
 		alen += 1
 		l = 4 - l
 	}
-	mLen += uint(alen << 2)
-	if mLen > EapMaxLen {
+	mLen += alen << 2
+	if mLen > int(EapMaxLen) {
 		return eap, fmt.Errorf("EAP Len would exceeds %d bytes: %d", EapMaxLen, mLen)
 	}
 	eap = append(eap, a.Marshaled()...)

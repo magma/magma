@@ -194,7 +194,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(time.Millisecond * 60)
+	time.Sleep(time.Millisecond * 120)
 	pdcfg := &ltemcfg.PipelineD{}
 	err = GetServiceConfigs("pipelined", pdcfg)
 	if err != nil {

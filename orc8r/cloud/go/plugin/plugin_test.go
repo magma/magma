@@ -16,9 +16,9 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/plugin/mocks"
 	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/serde"
 	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/metricsd"
-	stateregistry "magma/orc8r/cloud/go/services/state/registry"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 
@@ -44,7 +44,7 @@ func TestLoadAllPlugins(t *testing.T) {
 	mockPlugin := &mocks.OrchestratorPlugin{}
 	mockPlugin.On("GetServices").Return([]registry.ServiceLocation{})
 	mockPlugin.On("GetConfigManagers").Return([]configregistry.ConfigManager{})
-	mockPlugin.On("GetStateSerdes").Return([]stateregistry.StateSerde{})
+	mockPlugin.On("GetSerdes").Return([]serde.Serde{})
 	mockPlugin.On("GetMconfigBuilders").Return([]factory.MconfigBuilder{})
 	mockPlugin.On("GetMetricsProfiles").Times(1).Return([]metricsd.MetricsProfile{})
 	mockPlugin.On("GetObsidianHandlers").Return([]handlers.Handler{})
@@ -53,7 +53,7 @@ func TestLoadAllPlugins(t *testing.T) {
 	assert.NoError(t, err)
 	mockPlugin.AssertNumberOfCalls(t, "GetServices", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetConfigManagers", 1)
-	mockPlugin.AssertNumberOfCalls(t, "GetStateSerdes", 1)
+	mockPlugin.AssertNumberOfCalls(t, "GetSerdes", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetMconfigBuilders", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetMetricsProfiles", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetObsidianHandlers", 1)

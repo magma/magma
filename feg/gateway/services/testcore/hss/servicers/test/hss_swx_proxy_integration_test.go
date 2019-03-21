@@ -7,9 +7,9 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/crypto"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
 
 	"github.com/stretchr/testify/assert"
 )

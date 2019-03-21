@@ -72,6 +72,28 @@ static const std::shared_ptr<grpc::Channel> get_controller_channel(
                                    grpc::ChannelArguments{});
 }
 
+static uint32_t get_log_verbosity(const YAML::Node& config) {
+    if(!config["log_level"].IsDefined()) {
+        return MINFO;
+    }
+    std::string log_level = config["log_level"].as<std::string>();
+        if(log_level == "DEBUG"){
+            return MDEBUG;
+        } else if(log_level == "INFO"){
+            return MINFO;
+        } else if(log_level == "WARNING"){
+            return MWARNING;
+        } else if(log_level == "ERROR"){
+            return MERROR;
+        } else if(log_level == "FATAL"){
+            return MFATAL;
+        } else {
+            MLOG(MINFO) << "Invalid log level in config: "
+                        << config["log_level"].as<std::string>();
+            return MINFO;
+        }
+}
+
 int main (int argc, char* argv[]) {
 #ifdef DEBUG
   __gcov_flush();
@@ -81,7 +103,7 @@ int main (int argc, char* argv[]) {
   auto mconfig = load_mconfig();
   auto config = magma::ServiceConfigLoader{}.load_service_config(
     SESSIOND_SERVICE);
-  magma::set_verbosity(magma::LogLevel::FATAL - mconfig.log_level());
+  magma::set_verbosity(get_log_verbosity(config));
 
   if (!sessiond_enabled(mconfig)) {
     MLOG(MINFO) << "Credit control disabled, local enforcer not running";

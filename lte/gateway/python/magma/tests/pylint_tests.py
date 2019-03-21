@@ -38,8 +38,14 @@ class MagmaPyLintTest(unittest.TestCase):
         )
 
         directories = [
+            'captive_portal',
+            'directoryd',
             'enodebd',
+            # 'mobilityd',
             'pipelined',
+            # 'pkt_tester',
+            # 'policydb',
+            # 'redirectd',
             'subscriberdb',
         ]
         parent_path = os.path.dirname(os.path.dirname(__file__))

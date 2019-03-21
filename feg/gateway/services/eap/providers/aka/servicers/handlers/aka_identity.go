@@ -71,6 +71,13 @@ func init() {
 // identityResponse implements handler for AKA Challenge, see https://tools.ietf.org/html/rfc4187#page-49 for reference
 func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
 	identifier := req.Identifier()
+	if ctx == nil {
+		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Nil CTX")
+	}
+	if len(ctx.SessionId) == 0 {
+		ctx.SessionId = eap.CreateSessionId()
+		log.Printf("Missing Session ID for EAP: %x; Generated new SID: %s", req, ctx.SessionId)
+	}
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.Aborted, err.Error())
@@ -128,6 +135,9 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 						"Invalid SWx RandAutn len (%d, expected: %d) in Response: %+v",
 						len(ra), aka.RandAutnLen, *ans)
 				}
+				identifier += 1
+
+				uc.Identifier = identifier
 				uc.Rand = ra[:aka.RAND_LEN]
 				autn := ra[aka.RAND_LEN:aka.RandAutnLen]
 				uc.Xres = av.GetXres()
@@ -147,13 +157,13 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				// Calculate AT_MAC
 				IK := av.GetIntegrityKey()
 				CK := av.GetConfidentialityKey()
-				_, K_aut, _, _ := MakeAKAKeys([]byte(identity), IK, CK)
-				mac := GenMac(p, K_aut)
+				_, uc.K_aut, uc.MSK, _ = aka.MakeAKAKeys([]byte(identity), IK, CK)
+				mac := aka.GenMac(p, uc.K_aut)
 				// Set AT_MAC
 				copy(p[atMacOffset:], mac)
-
 				// Update state
 				uc.SetState(aka.StateChallenge)
+				s.UpdateSession(uc, ctx.SessionId, aka.ChallengeTimeout())
 				return p, nil // success - return EAP packet
 			}
 		}
@@ -174,11 +184,11 @@ func getIMSIIdentity(a eap.Attribute) (string, aka.IMSI, error) {
 		return "", "", fmt.Errorf("AT_IDENTITY is too short: %d", a.Len())
 	}
 	val := a.Value()
-	actualLen := int(val[0])<<8 + int(val[1])
-	if actualLen > len(val) {
-		return "", "", fmt.Errorf("Corrupt AT_IDENTITY Attribute: actual len %d > data len %d", actualLen, len(val))
+	actualLen2 := int(val[0])<<8 + int(val[1]) + 2
+	if actualLen2 > len(val) {
+		return "", "", fmt.Errorf("Corrupt AT_IDENTITY Attribute: actual len %d > data len %d", actualLen2-2, len(val))
 	}
-	fullIdentity := string(val[2:actualLen])
+	fullIdentity := string(val[2:actualLen2])
 	atIdx := strings.Index(fullIdentity, "@")
 	var imsi aka.IMSI
 	if atIdx > 0 {

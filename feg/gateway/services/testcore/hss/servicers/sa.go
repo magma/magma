@@ -68,6 +68,13 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	answer := ConstructSuccessAnswer(msg, sar.SessionID, srv.Config.Server)
 	answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
 	answer.NewAVP(avp.UserName, avp.Mbit, 0, sar.UserName)
+	answer.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(servicers.AuthSessionState_NO_STATE_MAINTAINED))
+	answer.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.TGPP_SWX_APP_ID)),
+		},
+	})
 	switch sar.ServerAssignmentType {
 	case servicers.ServerAssignmentType_REGISTRATION:
 		subscriber.State.TgppAaaServerRegistered = true
@@ -106,7 +113,7 @@ func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetContextId())),
 			diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(apnConfig.GetPdn())),
-			diam.NewAVP(avp.ServiceSelection, avp.Mbit, diameter.Vendor3GPP, datatype.UTF8String(apnConfig.GetServiceSelection())),
+			diam.NewAVP(avp.ServiceSelection, avp.Mbit, 0, datatype.UTF8String(apnConfig.GetServiceSelection())),
 			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthUl())),
@@ -127,7 +134,7 @@ func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 			diam.NewAVP(avp.Non3GPPIPAccess, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(profile.GetNon_3GppIpAccess())),
 			diam.NewAVP(avp.Non3GPPIPAccessAPN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(profile.GetNon_3GppIpAccessApn())),
 			diam.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(servicers.RadioAccessTechnologyType_WLAN)),
-			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, 0, &diam.GroupedAVP{
+			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(profile.GetAmbr().GetMaxBandwidthUl())),
 					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(profile.GetAmbr().GetMaxBandwidthDl())),

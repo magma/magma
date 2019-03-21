@@ -15,30 +15,29 @@ import (
 	"magma/orc8r/cloud/go/protos"
 )
 
-// GatewayStatusSerde manages how to marshal / unmarshal checkin
-// response received
-type GatewayStatusSerde struct{}
+type CheckinRequestSerde struct{}
 
-// GetStateType returns the type of state
-func (*GatewayStatusSerde) GetStateType() string {
-	return "gateway_state"
+func (*CheckinRequestSerde) GetDomain() string {
+	return "state"
 }
 
-// MarshalState calls the appropriate marshalling method
-func (*GatewayStatusSerde) MarshalState(state interface{}) ([]byte, error) {
-	castedState, ok := state.(*protos.ServiceStatus)
+func (s *CheckinRequestSerde) GetType() string {
+	return "checkin_request"
+}
+
+func (s *CheckinRequestSerde) Serialize(in interface{}) ([]byte, error) {
+	castedState, ok := in.(*protos.CheckinRequest)
 	if !ok {
 		return nil, fmt.Errorf(
-			"Invalid magmad gateway state type. Expected *MagmadGatewayState, received %s",
-			reflect.TypeOf(state),
+			"Invalid gateway state type. Expected *CheckinRequest, received %s",
+			reflect.TypeOf(in),
 		)
 	}
 	return protos.MarshalIntern(castedState)
 }
 
-// UnmarshalState calls the appropriate un-marshalling method
-func (*GatewayStatusSerde) UnmarshalState(message []byte) (interface{}, error) {
-	response := &protos.ServiceStatus{}
-	err := protos.Unmarshal(message, response)
+func (s *CheckinRequestSerde) Deserialize(in []byte) (interface{}, error) {
+	response := &protos.CheckinRequest{}
+	err := protos.Unmarshal(in, response)
 	return response, err
 }

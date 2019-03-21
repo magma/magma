@@ -15,7 +15,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/crypto"
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
 
 	"github.com/stretchr/testify/assert"
 )

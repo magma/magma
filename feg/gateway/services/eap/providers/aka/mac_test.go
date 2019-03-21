@@ -5,7 +5,7 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
-package handlers
+package aka
 
 import (
 	"reflect"
@@ -36,11 +36,17 @@ const (
 		"\x6f\x72\x6b\x2e\x6f\x72\x67"
 )
 
-var testHmac = [20]byte{222, 124, 155, 133, 184, 183, 138, 166, 188, 138, 122, 54, 247, 10, 144, 112, 28, 157, 180, 217}
+var (
+	testHmac   = [20]byte{222, 124, 155, 133, 184, 183, 138, 166, 188, 138, 122, 54, 247, 10, 144, 112, 28, 157, 180, 217}
+	ueTestData = []byte{2, 2, 0, 40, 23, 1, 0, 0, 11, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0,
+		64, 41, 92, 0, 234, 227, 136, 147, 13}
+	ueMac = []byte{253, 43, 80, 189, 50, 36, 122, 215, 50, 157, 157, 38, 65, 96, 68, 70}
+)
 
 func TestMacGeneration(t *testing.T) {
+	t.Logf("Inputs:\n\tIdentity: %s\n\tIK: %v\n\tCK: %v", origIdentity, []byte(IK), []byte(CK))
 	hmac := HmacSha1([]byte("The quick brown fox jumps over the lazy dog"), []byte("key"))
-	t.Logf("Generated HMAC: %v\n", hmac)
+	t.Logf("Generated HMAC: %v", hmac)
 	if !reflect.DeepEqual(hmac, testHmac[:]) {
 		t.Fatalf(
 			"HMACs don't match.\n\tGenerated HMAC(%d): %v\n\tExpected  HMAC(%d): %v",
@@ -74,5 +80,13 @@ func TestMacGeneration(t *testing.T) {
 		t.Fatalf(
 			"MACs don't match.\n\tGenerated MAC(%d): %v\n\tExpected  MAC(%d): %v",
 			len(mac), mac, len(expectedMac), []byte(expectedMac))
+	}
+
+	mac = GenMac(ueTestData, K_aut)
+
+	if !reflect.DeepEqual(mac, ueMac) {
+		t.Fatalf(
+			"MACs don't match.\n\tGenerated UE MAC(%d): %v\n\tExpected  UE MAC(%d): %v",
+			len(mac), mac, len(ueMac), ueMac)
 	}
 }
