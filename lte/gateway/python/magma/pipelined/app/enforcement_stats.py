@@ -170,6 +170,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         Returns flow add messages used for rule matching.
         """
         version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        self.logger.debug(
+            'Installing flow for %s with rule num %s (version %s)', imsi,
+            rule_num, version)
         inbound_rule_match = _generate_rule_match(imsi, rule_num, version,
                                                   Direction.IN)
         outbound_rule_match = _generate_rule_match(imsi, rule_num, version,

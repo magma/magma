@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import logging
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
@@ -85,9 +86,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        return self._activate_flows(request)
+        fut = Future()  # type: Future[ActivateFlowsResult]
+        self._loop.call_soon_threadsafe(self._activate_flows,
+                                        request, fut)
+        return fut.result()
 
-    def _activate_flows(self, request: ActivateFlowsRequest
+    def _activate_flows(self, request: ActivateFlowsRequest,
+                        fut: 'Future[ActivateFlowsResult]'
                         ) -> ActivateFlowsResult:
         """
         Ensure that the RuleModResult is only successful if the flows are
@@ -96,6 +101,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         flow install fails after, no traffic will be directed to the
         enforcement_stats flows.
         """
+        logging.debug('Activating flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, rule_id)
@@ -120,7 +126,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_res.static_rule_results.extend(failed_static_rule_results)
         enforcement_res.dynamic_rule_results.extend(
             failed_dynamic_rule_results)
-        return enforcement_res
+        fut.set_result(enforcement_res)
 
     def _activate_rules_in_enforcement_stats(self, imsi: str, ip_addr: str,
                                              static_rule_ids: List[str],
@@ -130,11 +136,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 EnforcementStatsController.APP_NAME):
             return ActivateFlowsResult()
 
-        fut = Future()  # type: Future[ActivateFlowsResult]
-        self._loop.call_soon_threadsafe(
-            self._enforcement_stats.activate_rules,
-            imsi, ip_addr, static_rule_ids, dynamic_rules, fut)
-        enforcement_stats_res = fut.result()
+        enforcement_stats_res = self._enforcement_stats.activate_rules(
+            imsi, ip_addr, static_rule_ids, dynamic_rules)
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
@@ -142,11 +145,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                        static_rule_ids: List[str],
                                        dynamic_rules: List[PolicyRule]
                                        ) -> ActivateFlowsResult:
-        fut = Future()  # type: Future[ActivateFlowsResult]
-        self._loop.call_soon_threadsafe(
-            self._enforcer_app.activate_rules,
-            imsi, ip_addr, static_rule_ids, dynamic_rules, fut)
-        enforcement_res = fut.result()
+        enforcement_res = self._enforcer_app.activate_rules(
+            imsi, ip_addr, static_rule_ids, dynamic_rules)
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
 
@@ -159,6 +159,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details('Service not enabled!')
             return None
+
+        self._loop.call_soon_threadsafe(self._deactivate_flows,
+                                        request)
+        return DeactivateFlowsResult()
+
+    def _deactivate_flows(self, request):
+        logging.debug('Deactivating flows for %s', request.sid.id)
         if request.rule_ids:
             for rule_id in request.rule_ids:
                 self._service_manager.session_rule_version_mapper \
@@ -167,10 +174,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id)
-        self._loop.call_soon_threadsafe(
-            self._enforcer_app.deactivate_rules,
-            request.sid.id, request.rule_ids)
-        return DeactivateFlowsResult()
+        self._enforcer_app.deactivate_rules(request.sid.id, request.rule_ids)
 
     def GetPolicyUsage(self, request, context):
         """
