@@ -11,6 +11,7 @@
 # It first creates a tmp directory, and then copies the cloud directories
 # for all modules into it.
 
+import argparse
 import glob
 import os
 import shutil
@@ -43,11 +44,19 @@ def _get_module_dirs() -> List[str]:
     return module_dirs
 
 
-def _init_build_context() -> None:
+def _create_build_context() -> None:
     """ Clear out the build context from the previous run """
     if os.path.exists(BUILD_CONTEXT):
         shutil.rmtree(BUILD_CONTEXT)
     os.mkdir(BUILD_CONTEXT)
+
+    print("Creating build context in '%s'..." % BUILD_CONTEXT)
+    modules = []
+    for module_dir in _get_module_dirs():
+        module = os.path.basename(module_dir)
+        _copy_module(module, module_dir)
+        modules.append(module)
+    print("Context created for modules: %s" % ", ".join(modules))
 
 
 def _copy_module(module: str, src: str) -> None:
@@ -76,22 +85,50 @@ def _copy_module(module: str, src: str) -> None:
         shutil.copyfile(filename, gomod)
 
 
-def main() -> None:
-    print("Creating build context in '%s'..." % BUILD_CONTEXT)
-    _init_build_context()
-
-    modules = []
+def _get_mount_volumes() -> List[str]:
+    """ Return the volumes argument for docker-compose commands """
+    volumes = []
+    cwd = os.getcwd()
     for module_dir in _get_module_dirs():
         module = os.path.basename(module_dir)
-        _copy_module(module, module_dir)
-        modules.append(module)
-    print("Context created for modules: %s" % ", ".join(modules))
+        volumes.extend(["-v", "%s/%s:/magma/%s" % (cwd, module_dir, module)])
+    return volumes
 
-    print("Running 'docker-compose build'...")
+
+def _run_docker(cmd: List[str]) -> None:
+    """ Run the required docker-compose command """
+    print("Running 'docker-compose %s'..." % " ".join(cmd))
     try:
-        subprocess.run(["docker-compose", "build"], check=True)
+        subprocess.run(["docker-compose"] + cmd, check=True)
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
+
+
+def _parse_args() -> argparse.Namespace:
+    """ Parse the command line args """
+    parser = argparse.ArgumentParser(description="Orc8r build tool")
+    parser.add_argument("--tests", "-t", action="store_true",
+                        help="Run unit tests")
+    parser.add_argument("--mount", "-m", action="store_true",
+                        help="Mount the source code and create a bash shell")
+    args = parser.parse_args()
+    return args
+
+
+def main() -> None:
+    args = _parse_args()
+    if args.mount:
+        # Mount the source code and run a contrainer with bash shell
+        _run_docker(["run", "--rm"] + _get_mount_volumes() + ["test", "bash"])
+    elif args.tests:
+        # Run unit tests
+        _create_build_context()
+        _run_docker(["build", "test"])
+        _run_docker(["run", "--rm", "test", "make test"])
+    else:
+        # Build all containers
+        _create_build_context()
+        _run_docker(["build"])
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 FROM ubuntu:xenial
-ENV DEBIAN_FRONTEND noninteractive
 
 # Add the magma apt repo
 RUN apt-get update && \

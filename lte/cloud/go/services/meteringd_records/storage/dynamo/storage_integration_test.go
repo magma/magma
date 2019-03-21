@@ -34,6 +34,11 @@ func TestDynamoMeteringStorage_Integration(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	// Run integration tests only if TEST_MODE is enabled and dynamo is running
+	if os.Getenv("TEST_MODE") != "1" {
+		return
+	}
+
 	// Clear existing data
 	// This is kind of fragile, but we need an end-to-end test with the local
 	// dynamoDB executable and it would suck to make it a manual step to delete the DB
