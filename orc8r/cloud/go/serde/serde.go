@@ -22,8 +22,8 @@ type Serde interface {
 	GetType() string
 
 	// Serialize a piece of data
-	Serialize(interface{}) ([]byte, error)
+	Serialize(in interface{}) ([]byte, error)
 
 	// Deserialize a piece of data
-	Deserialize([]byte) (interface{}, error)
+	Deserialize(in []byte) (interface{}, error)
 }

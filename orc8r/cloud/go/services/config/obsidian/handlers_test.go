@@ -18,9 +18,9 @@ import (
 	"testing"
 
 	obisidan_config "magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/config/obsidian"
-	"magma/orc8r/cloud/go/services/config/registry"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 
 	"github.com/labstack/echo"
@@ -53,10 +53,9 @@ func mockKeyGetter(_ echo.Context) (string, *echo.HTTPError) {
 }
 
 func TestGetConfigHandler(t *testing.T) {
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(&fooConfigManager{})
-	registry.RegisterConfigManager(&convertErrConfigManager{})
-	registry.RegisterConfigManager(&errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
@@ -71,7 +70,7 @@ func TestGetConfigHandler(t *testing.T) {
 
 	// 404
 	actual := &fooConfig{}
-	err := obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
@@ -83,7 +82,8 @@ func TestGetConfigHandler(t *testing.T) {
 	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	json.Unmarshal(rec.Body.Bytes(), actual)
+	err = json.Unmarshal(rec.Body.Bytes(), actual)
+	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
 	// Convert error
@@ -106,17 +106,13 @@ func TestGetConfigHandler(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 
-	registry.ClearRegistryForTesting()
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
 }
 
 func TestCreateConfigHandler(t *testing.T) {
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(&fooConfigManager{})
-
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(&fooConfigManager{})
-	registry.RegisterConfigManager(&convertErrConfigManager{})
-	registry.RegisterConfigManager(&errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
@@ -132,7 +128,7 @@ func TestCreateConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err := obsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
+	err = obsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)
 	assert.Equal(t, `"key"`, rec.Body.String())
@@ -166,21 +162,16 @@ func TestCreateConfigHandler(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Creating already existing config")
 
-	registry.ClearRegistryForTesting()
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
 }
 
 func TestUpdateConfigHandler(t *testing.T) {
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(&fooConfigManager{})
-
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(&fooConfigManager{})
-	registry.RegisterConfigManager(&convertErrConfigManager{})
-	registry.RegisterConfigManager(&errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
-	err := config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
+	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -226,21 +217,16 @@ func TestUpdateConfigHandler(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Updating nonexistent config")
 
-	registry.ClearRegistryForTesting()
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
 }
 
 func TestDeleteConfigHandler(t *testing.T) {
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(&fooConfigManager{})
-
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(&fooConfigManager{})
-	registry.RegisterConfigManager(&convertErrConfigManager{})
-	registry.RegisterConfigManager(&errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
-	err := config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
+	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -262,7 +248,7 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Deleting nonexistent config")
 
-	registry.ClearRegistryForTesting()
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
 }
 
 // Interface implementations for test configs
@@ -281,20 +267,20 @@ func (foo *fooConfig) FromServiceModel(serviceModel interface{}) error {
 	return nil
 }
 
-func (*fooConfigManager) GetConfigType() string {
+func (*fooConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*fooConfigManager) GetType() string {
 	return "foo"
 }
 
-func (*fooConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (*fooConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*fooConfigManager) Serialize(config interface{}) ([]byte, error) {
 	cfgCasted := config.(*fooConfig)
 	return []byte(fmt.Sprintf("%s|%s", cfgCasted.Foo, cfgCasted.Bar)), nil
 }
 
-func (*fooConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*fooConfigManager) Deserialize(message []byte) (interface{}, error) {
 	foobar := string(message)
 	foobarSplit := strings.Split(foobar, "|")
 	if len(foobarSplit) != 2 {
@@ -315,19 +301,19 @@ func (*convertErrConfig) FromServiceModel(serviceModel interface{}) error {
 	return errors.New("FromSerivceModel error")
 }
 
-func (*convertErrConfigManager) GetConfigType() string {
+func (*convertErrConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*convertErrConfigManager) GetType() string {
 	return "convertErr"
 }
 
-func (*convertErrConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (*convertErrConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*convertErrConfigManager) Serialize(config interface{}) ([]byte, error) {
 	return []byte("convertErr"), nil
 }
 
-func (*convertErrConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*convertErrConfigManager) Deserialize(message []byte) (interface{}, error) {
 	return &convertErrConfig{}, nil
 }
 
@@ -346,27 +332,27 @@ func (c *errConfig) FromServiceModel(serviceModel interface{}) error {
 	return nil
 }
 
-func (*errConfigManager) GetConfigType() string {
+func (*errConfigManager) GetType() string {
 	return "err"
 }
 
-func (*errConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
+func (*errConfigManager) GetDomain() string {
+	return config.SerdeDomain
 }
 
-func (*errConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*errConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig := config.(*errConfig)
 	if castedConfig.ShouldErrorOnMarshal == "Y" {
-		return nil, errors.New("MarshalConfig error")
+		return nil, errors.New("Serialize error")
 	}
 	return []byte(fmt.Sprintf("%s|%s", castedConfig.ShouldErrorOnMarshal, castedConfig.ShouldErrorOnUnmarshal)), nil
 }
 
-func (*errConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*errConfigManager) Deserialize(message []byte) (interface{}, error) {
 	msgString := string(message)
 	msgSplit := strings.Split(msgString, "|")
 	if msgSplit[1] == "Y" {
-		return nil, errors.New("UnmarshalConfig error")
+		return nil, errors.New("Deserialize error")
 	}
 	return &errConfig{ShouldErrorOnMarshal: msgSplit[0], ShouldErrorOnUnmarshal: msgSplit[1]}, nil
 }
