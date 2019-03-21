@@ -14,7 +14,7 @@ import (
 
 	config_protos "magma/feg/cloud/go/services/controller/protos"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/config"
 )
 
 const (
@@ -24,15 +24,15 @@ const (
 
 type FegNetworkConfigManager struct{}
 
-func (*FegNetworkConfigManager) GetConfigType() string {
+func (*FegNetworkConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*FegNetworkConfigManager) GetType() string {
 	return FegNetworkType
 }
 
-func (*FegNetworkConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return magmad.ListGateways(networkId)
-}
-
-func (*FegNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*FegNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig, ok := config.(*config_protos.Config)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -46,7 +46,7 @@ func (*FegNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, error
 	return protos.MarshalIntern(castedConfig)
 }
 
-func (*FegNetworkConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*FegNetworkConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &config_protos.Config{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err
@@ -54,15 +54,15 @@ func (*FegNetworkConfigManager) UnmarshalConfig(message []byte) (interface{}, er
 
 type FegGatewayConfigManager struct{}
 
-func (*FegGatewayConfigManager) GetConfigType() string {
+func (*FegGatewayConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*FegGatewayConfigManager) GetType() string {
 	return FegGatewayType
 }
 
-func (*FegGatewayConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (*FegGatewayConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*FegGatewayConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig, ok := config.(*config_protos.Config)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -76,7 +76,7 @@ func (*FegGatewayConfigManager) MarshalConfig(config interface{}) ([]byte, error
 	return protos.MarshalIntern(castedConfig)
 }
 
-func (*FegGatewayConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*FegGatewayConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &config_protos.Config{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err
