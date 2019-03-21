@@ -149,10 +149,12 @@ definitions:
             $ref: '#/definitions/diameter_server_configs'
           lte_auth_op:
             type: string
+            format: byte
             example: EREREREREREREREREREREQ==
           lte_auth_amf:
             type: string
-            example: gA
+            format: byte
+            example: gAA=
           default_sub_profile:
             $ref: '#/definitions/subscription_profile'
           sub_profiles:

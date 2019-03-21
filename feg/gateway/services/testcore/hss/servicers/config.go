@@ -23,23 +23,22 @@ import (
 
 // HSS Flag Variables to overwrite default configs
 const (
-	hssServiceName       = "hss"
-	hssDefaultProtocol   = "tcp"
-	hssDefaultHost       = "magma.com"
-	hssDefaultRealm      = "magma.com"
-	hssDefaultLteAuthOp  = "EREREREREREREREREREREQ=="
-	lteAuthOpFlag        = "lte_auth_op"
-	hssDefaultLteAuthAmf = "gA"
-	lteAuthAmfFlag       = "lte_auth_amf"
-	maxUlBitRateFlag     = "max_ul_bit_rate"
-	maxDlBitRateFlag     = "max_dl_bit_rate"
-	defaultMaxUlBitRate  = uint64(100000000)
-	defaultMaxDlBitRate  = uint64(200000000)
+	hssServiceName      = "hss"
+	hssDefaultProtocol  = "tcp"
+	hssDefaultHost      = "magma.com"
+	hssDefaultRealm     = "magma.com"
+	maxUlBitRateFlag    = "max_ul_bit_rate"
+	maxDlBitRateFlag    = "max_dl_bit_rate"
+	defaultMaxUlBitRate = uint64(100000000)
+	defaultMaxDlBitRate = uint64(200000000)
+)
+
+var (
+	hssDefaultLteAuthAmf = []byte("\x80\x00")
+	hssDefaultLteAuthOp  = []byte("\xcd\xc2\x02\xd5\x12> \xf6+mgj\xc7,\xb3\x18")
 )
 
 func init() {
-	flag.String(lteAuthAmfFlag, hssDefaultLteAuthAmf, "Authentication management field for LTE")
-	flag.String(lteAuthOpFlag, hssDefaultLteAuthOp, "Operator configuration field for LTE")
 	flag.Uint64(maxUlBitRateFlag, defaultMaxUlBitRate, "Maximum uplink bit rate (AMBR-UL)")
 	flag.Uint64(maxDlBitRateFlag, defaultMaxDlBitRate, "Maximum downlink bit rate (AMBR-DL)")
 }
@@ -66,8 +65,8 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 				DestHost:     diameter.GetValue(diameter.DestHostFlag, hssDefaultHost),
 				DestRealm:    diameter.GetValue(diameter.DestRealmFlag, hssDefaultRealm),
 			},
-			LteAuthOp:  []byte(diameter.GetValue(lteAuthOpFlag, hssDefaultLteAuthOp)),
-			LteAuthAmf: []byte(diameter.GetValue(lteAuthAmfFlag, hssDefaultLteAuthAmf)),
+			LteAuthOp:  hssDefaultLteAuthOp,
+			LteAuthAmf: hssDefaultLteAuthAmf,
 			DefaultSubProfile: &mconfig.HSSConfig_SubscriptionProfile{
 				MaxUlBitRate: diameter.GetValueUint64(maxUlBitRateFlag, defaultMaxUlBitRate),
 				MaxDlBitRate: diameter.GetValueUint64(maxDlBitRateFlag, defaultMaxDlBitRate),
@@ -86,8 +85,8 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 			DestHost:     diameter.GetValue(diameter.DestHostFlag, configsPtr.Server.DestHost),
 			DestRealm:    diameter.GetValue(diameter.DestRealmFlag, configsPtr.Server.DestRealm),
 		},
-		LteAuthOp:  []byte(diameter.GetValue(lteAuthOpFlag, string(configsPtr.LteAuthOp))),
-		LteAuthAmf: []byte(diameter.GetValue(lteAuthAmfFlag, string(configsPtr.LteAuthAmf))),
+		LteAuthOp:  configsPtr.LteAuthOp,
+		LteAuthAmf: configsPtr.LteAuthAmf,
 		DefaultSubProfile: &mconfig.HSSConfig_SubscriptionProfile{
 			MaxUlBitRate: diameter.GetValueUint64(maxUlBitRateFlag, configsPtr.DefaultSubProfile.MaxUlBitRate),
 			MaxDlBitRate: diameter.GetValueUint64(maxDlBitRateFlag, configsPtr.DefaultSubProfile.MaxDlBitRate),
