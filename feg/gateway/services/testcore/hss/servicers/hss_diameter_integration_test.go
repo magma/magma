@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"fmt"
@@ -16,7 +16,8 @@ import (
 	"magma/feg/gateway/diameter"
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -124,10 +125,10 @@ func testDiameterMessage(t *testing.T, clientHandler diam.HandlerFunc, msg *diam
 
 // getTestHSSDiameterServer returns a test home subscriber server with a
 // running diameter server listening for new connections.
-func getTestHSSDiameterServer(t *testing.T) *servicers.HomeSubscriberServer {
+func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	// Start s6a diameter server
 	result := make(chan error)
-	hss := newTestHomeSubscriberServer(t)
+	hss := test.NewTestHomeSubscriberServer(t)
 	serverCfg := hss.Config.Server
 	go func() {
 		err := hss.Start()

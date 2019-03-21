@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"context"
@@ -14,7 +14,8 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/testcore/hss/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test"
 	lteprotos "magma/lte/cloud/go/protos"
 
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
@@ -28,8 +29,8 @@ import (
 
 func TestNewSAA_SuccessfulRegistration(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignmentType_REGISTRATION)
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewSAA(server, sar)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
 	assert.NoError(t, err)
 	checkSAASuccess(t, response)
 
@@ -40,8 +41,8 @@ func TestNewSAA_SuccessfulRegistration(t *testing.T) {
 
 func TestNewSAA_SuccessfulUserDataRequest(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignmentType_AAA_USER_DATA_REQUEST)
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewSAA(server, sar)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
 	assert.NoError(t, err)
 	checkSAASuccess(t, response)
 
@@ -52,8 +53,8 @@ func TestNewSAA_SuccessfulUserDataRequest(t *testing.T) {
 
 func TestNewSAA_UnknownIMSI(t *testing.T) {
 	sar := createSAR("sub_unknown", definitions.ServerAssignmentType_REGISTRATION)
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewSAA(server, sar)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "Subscriber 'sub_unknown' not found")
 
 	saa := testUnmarshalSAA(t, response)
@@ -62,8 +63,8 @@ func TestNewSAA_UnknownIMSI(t *testing.T) {
 
 func TestNewSAA_No3GPPAAAServer(t *testing.T) {
 	sar := createSAR("empty_sub", definitions.ServerAssignmentType_REGISTRATION)
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewSAA(server, sar)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "no 3GPP AAA server is already serving the user")
 
 	saa := testUnmarshalSAA(t, response)
@@ -72,8 +73,8 @@ func TestNewSAA_No3GPPAAAServer(t *testing.T) {
 
 func TestNewSAA_Redirect(t *testing.T) {
 	sar := createSARExtended("sub1", definitions.ServerAssignmentType_REGISTRATION, "different_host")
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewSAA(server, sar)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "diameter identity for AAA server already registered")
 
 	saa := testUnmarshalSAA(t, response)
@@ -84,8 +85,8 @@ func TestNewSAA_Redirect(t *testing.T) {
 
 func TestNewSAA_MissingAPNConfig(t *testing.T) {
 	sar := createSAR("missing_auth_key", definitions.ServerAssignmentType_REGISTRATION)
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewSAA(server, sar)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "User has no non 3GPP subscription")
 
 	saa := testUnmarshalSAA(t, response)
@@ -95,8 +96,8 @@ func TestNewSAA_MissingAPNConfig(t *testing.T) {
 func TestNewSAA_MissingAVP(t *testing.T) {
 	sar := createBaseSAR()
 	sar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewSAA(server, sar)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "Missing server assignment type in message")
 
 	var saa definitions.SAA
@@ -108,25 +109,25 @@ func TestNewSAA_MissingAVP(t *testing.T) {
 func TestValidateSAR_MissingUserName(t *testing.T) {
 	sar := createBaseSAR()
 	sar.NewAVP(avp.ServerAssignmentType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(definitions.ServerAssignmentType_REGISTRATION))
-	err := servicers.ValidateSAR(sar)
+	err := hss.ValidateSAR(sar)
 	assert.EqualError(t, err, "Missing IMSI in message")
 }
 
 func TestValidateSAR_MissingServerAssignmentType(t *testing.T) {
 	sar := createBaseSAR()
 	sar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	err := servicers.ValidateSAR(sar)
+	err := hss.ValidateSAR(sar)
 	assert.EqualError(t, err, "Missing server assignment type in message")
 }
 
 func TestValidateSAR_NilMessage(t *testing.T) {
-	err := servicers.ValidateSAR(nil)
+	err := hss.ValidateSAR(nil)
 	assert.EqualError(t, err, "Message is nil")
 }
 
 func TestValidateSAR_Success(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignmentType_REGISTRATION)
-	err := servicers.ValidateSAR(sar)
+	err := hss.ValidateSAR(sar)
 	assert.NoError(t, err)
 }
 

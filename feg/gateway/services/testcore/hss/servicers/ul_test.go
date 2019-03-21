@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"testing"
@@ -15,7 +15,8 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test"
 	"magma/feg/gateway/services/testcore/hss/storage"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -26,9 +27,9 @@ import (
 )
 
 func TestNewULA_MissingMandatoryAVP(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	m := diam.NewMessage(diam.UpdateLocation, diam.RequestFlag|diam.ProxiableFlag, diam.TGPP_S6A_APP_ID, 1, 1, dict.Default)
-	response, err := servicers.NewULA(server, m)
+	response, err := hss.NewULA(server, m)
 	assert.EqualError(t, err, "Missing IMSI in message")
 
 	// Check that the ULA is a failure message.
@@ -40,8 +41,8 @@ func TestNewULA_MissingMandatoryAVP(t *testing.T) {
 
 func TestNewULA_UnknownSubscriber(t *testing.T) {
 	ulr := createULR("sub_unknown")
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewULA(server, ulr)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewULA(server, ulr)
 	assert.Exactly(t, err, storage.NewUnknownSubscriberError("sub_unknown"))
 
 	// Check that the ULA is a failure message.
@@ -53,8 +54,8 @@ func TestNewULA_UnknownSubscriber(t *testing.T) {
 
 func TestNewULA_SuccessfulResponse(t *testing.T) {
 	ulr := createULR("sub1")
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewULA(server, ulr)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewULA(server, ulr)
 	assert.NoError(t, err)
 
 	// Check that the ULA has all the expected data.
@@ -69,7 +70,7 @@ func TestNewULA_SuccessfulResponse(t *testing.T) {
 
 func TestNewULA_NewSuccessfulULA(t *testing.T) {
 	ulr := createULR("sub1")
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	profile := &mconfig.HSSConfig_SubscriptionProfile{
 		MaxUlBitRate: 123,
 		MaxDlBitRate: 456,
@@ -116,7 +117,7 @@ func TestValidateULR_MissingUserName(t *testing.T) {
 	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
-	err := servicers.ValidateULR(ulr)
+	err := hss.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing IMSI in message")
 }
 
@@ -127,7 +128,7 @@ func TestValidateULR_MissingVisitedPLMNID(t *testing.T) {
 	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
-	err := servicers.ValidateULR(ulr)
+	err := hss.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing Visited PLMN ID in message")
 }
 
@@ -138,7 +139,7 @@ func TestValidateULR_MissingULRFlags(t *testing.T) {
 	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
-	err := servicers.ValidateULR(ulr)
+	err := hss.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing ULR flags in message")
 }
 
@@ -149,7 +150,7 @@ func TestValidateULR_MissingRATType(t *testing.T) {
 	ulr.NewAVP(avp.VisitedPLMNID, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
-	err := servicers.ValidateULR(ulr)
+	err := hss.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing RAT type in message")
 }
 
@@ -160,14 +161,14 @@ func TestValidateULR_MissingSessionID(t *testing.T) {
 	ulr.NewAVP(avp.ULRFlags, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 	ulr.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(0))
 
-	err := servicers.ValidateULR(ulr)
+	err := hss.ValidateULR(ulr)
 	assert.EqualError(t, err, "Missing SessionID in message")
 }
 
 func TestNewULA_RATTypeNotAllowed(t *testing.T) {
 	ulr := createULRExtended("sub1", 10)
-	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewULA(server, ulr)
+	server := test.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewULA(server, ulr)
 	assert.EqualError(t, err, "RAT-Type not allowed: 10")
 
 	// Check that the ULA has all the expected data.

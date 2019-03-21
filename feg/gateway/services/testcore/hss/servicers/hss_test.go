@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"context"
@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/testcore/hss/servicers/test"
 	"magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
 
@@ -22,7 +23,7 @@ import (
 )
 
 func TestHomeSubscriberServer_AddSubscriber(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 
 	sub1 := protos.SubscriberData{Sid: &protos.SubscriberID{Id: "1"}}
 	sub2 := protos.SubscriberData{Sid: &protos.SubscriberID{Id: "2"}}
@@ -41,7 +42,7 @@ func TestHomeSubscriberServer_AddSubscriber(t *testing.T) {
 }
 
 func TestHomeSubscriberServer_GetSubscriberData(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 
 	id1 := protos.SubscriberID{Id: "1"}
 	sub1 := protos.SubscriberData{Sid: &id1}
@@ -58,7 +59,7 @@ func TestHomeSubscriberServer_GetSubscriberData(t *testing.T) {
 }
 
 func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 
 	_, err := server.UpdateSubscriber(context.Background(), nil)
 	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Subscriber data cannot be nil")
@@ -88,7 +89,7 @@ func TestHomeSubscriberServer_UpdateSubscriber(t *testing.T) {
 }
 
 func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 
 	id := protos.SubscriberID{Id: "1"}
 	sub := protos.SubscriberData{Sid: &id}
@@ -108,7 +109,7 @@ func TestHomeSubscriberServer_DeleteSubscriber(t *testing.T) {
 }
 
 func getConnToTestHomeSubscriberServer(t *testing.T) *grpc.ClientConn {
-	srv := newTestHomeSubscriberServer(t)
+	srv := test.NewTestHomeSubscriberServer(t)
 
 	s := grpc.NewServer()
 	fegprotos.RegisterHSSConfiguratorServer(s, srv)
