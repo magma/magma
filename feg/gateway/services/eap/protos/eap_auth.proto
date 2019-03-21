@@ -37,7 +37,8 @@ enum eap_code {
 }
 
 message eap_context {
-    // TBD
+    string session_id = 1;
+    bytes msk = 2;
 }
 
 message eap_message {

@@ -16,6 +16,7 @@ import (
 
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -29,10 +30,11 @@ const (
 	ManageAG    = RegisterAG + "/:logical_ag_id"
 	ConfigureAG = ManageAG + "/configs"
 
-	CommandRoot     = ManageAG + "/command"
-	RebootGateway   = CommandRoot + "/reboot"
-	RestartServices = CommandRoot + "/restart_services"
-	GatewayPing     = CommandRoot + "/ping"
+	CommandRoot           = ManageAG + "/command"
+	RebootGateway         = CommandRoot + "/reboot"
+	RestartServices       = CommandRoot + "/restart_services"
+	GatewayPing           = CommandRoot + "/ping"
+	GatewayGenericCommand = CommandRoot + "/generic"
 )
 
 func getListGatewaysHandler(factory view_factory.FullGatewayViewFactory) func(echo.Context) error {
@@ -251,4 +253,40 @@ func gatewayPing(c echo.Context) error {
 		pingResponse.Pings = append(pingResponse.Pings, pingResult)
 	}
 	return c.JSON(http.StatusOK, &pingResponse)
+}
+
+func gatewayGenericCommand(c echo.Context) error {
+	networkId, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	gatewayId, gerr := handlers.GetLogicalGwId(c)
+	if gerr != nil {
+		return gerr
+	}
+
+	request := magmad_models.GenericCommandParams{}
+	err := c.Bind(&request)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+	params, err := magmad_models.JSONMapToProtobufStruct(request.Params)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+	genericCommandParams := protos.GenericCommandParams{
+		Command: *request.Command,
+		Params:  params,
+	}
+
+	response, err := magmad.GatewayGenericCommand(networkId, gatewayId, &genericCommandParams)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	resp, err := magmad_models.ProtobufStructToJSONMap(response.Response)
+	genericCommandResponse := magmad_models.GenericCommandResponse{
+		Response: resp,
+	}
+	return c.JSON(http.StatusOK, genericCommandResponse)
 }

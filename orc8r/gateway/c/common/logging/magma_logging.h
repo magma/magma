@@ -12,6 +12,7 @@
 #define MWARNING 2
 #define MINFO 3
 #define MDEBUG 4
+#define MFATAL 5
 
 // GLOG LOGGING
 #ifdef LOG_WITH_GLOG

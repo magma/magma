@@ -32,9 +32,12 @@ func GetObsidianHandlers() []handlers.Handler {
 		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGateway},
 		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGateway},
 		{Path: ManageAG, Methods: handlers.DELETE, HandlerFunc: deleteGateway},
+
+		// Gateway Commands
 		{Path: RebootGateway, Methods: handlers.POST, HandlerFunc: rebootGateway},
 		{Path: RestartServices, Methods: handlers.POST, HandlerFunc: restartServices},
 		{Path: GatewayPing, Methods: handlers.POST, HandlerFunc: gatewayPing},
+		{Path: GatewayGenericCommand, Methods: handlers.POST, HandlerFunc: gatewayGenericCommand},
 
 		obsidian.GetReadGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
 		obsidian.GetCreateGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),

@@ -1522,6 +1522,12 @@ static int _emm_as_data_req(
         LOG_NAS_EMM,
         "Set nas_msg.header.sequence_number -> %u\n",
         nas_msg.header.sequence_number);
+    } else {
+      OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "Security context is NULL for UE -> %d\n",
+        msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM,RETURNerror);
     }
 
     if (!is_encoded) {

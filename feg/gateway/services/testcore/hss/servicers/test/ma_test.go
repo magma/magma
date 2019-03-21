@@ -12,14 +12,14 @@ import (
 	"context"
 	"testing"
 
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/testcore/hss/crypto"
-	"magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/storage"
-
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/storage"
 	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
+	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -36,7 +36,7 @@ func TestNewMAA_SuccessfulResponse(t *testing.T) {
 func TestNewMAA_UnknownIMSI(t *testing.T) {
 	mar := createMARWithSingleAuthItem("sub_unknown")
 	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewMAA(server, mar)
+	response, err := hss.NewMAA(server, mar)
 	assert.Exactly(t, storage.NewUnknownSubscriberError("sub_unknown"), err)
 
 	// Check that the MAA is a failure message.
@@ -50,7 +50,7 @@ func TestNewMAA_MissingAuthKey(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 
 	mar := createMARWithSingleAuthItem("missing_auth_key")
-	response, err := servicers.NewMAA(server, mar)
+	response, err := hss.NewMAA(server, mar)
 	assert.Exactly(t, servicers.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
 
 	// Check that the MAA has the expected error.
@@ -69,7 +69,7 @@ func TestNewMAA_Redirect(t *testing.T) {
 	set3GPPAAAServerName(t, server, "sub1", "different_server")
 
 	mar := createMARWithSingleAuthItem("sub1")
-	response, err := servicers.NewMAA(server, mar)
+	response, err := hss.NewMAA(server, mar)
 	assert.EqualError(t, err, "diameter identity for AAA server already registered")
 
 	var maa definitions.MAA
@@ -96,7 +96,7 @@ func TestNewMAA_StoreAAAServerName(t *testing.T) {
 func TestNewMAA_MultipleVectors(t *testing.T) {
 	server := newTestHomeSubscriberServer(t)
 	mar := createMARExtended("sub1", 3, definitions.RadioAccessTechnologyType_WLAN)
-	response, err := servicers.NewMAA(server, mar)
+	response, err := hss.NewMAA(server, mar)
 	assert.NoError(t, err)
 
 	var maa definitions.MAA
@@ -116,7 +116,7 @@ func TestNewMAA_MissingAVP(t *testing.T) {
 	})
 
 	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewMAA(server, mar)
+	response, err := hss.NewMAA(server, mar)
 	assert.EqualError(t, err, "Missing IMSI in message")
 
 	var maa definitions.MAA
@@ -128,7 +128,7 @@ func TestNewMAA_MissingAVP(t *testing.T) {
 func TestNewMAA_RATTypeNotAllowed(t *testing.T) {
 	mar := createMARExtended("sub1", 1, 20)
 	server := newTestHomeSubscriberServer(t)
-	response, err := servicers.NewMAA(server, mar)
+	response, err := hss.NewMAA(server, mar)
 	assert.EqualError(t, err, "RAT-Type not allowed: 20")
 
 	var maa definitions.MAA
@@ -143,7 +143,7 @@ func TestNewMAA_RATTypeNotAllowed(t *testing.T) {
 
 func TestValidateMAR_Success(t *testing.T) {
 	mar := createMARWithSingleAuthItem("sub1")
-	err := servicers.ValidateMAR(mar)
+	err := hss.ValidateMAR(mar)
 	assert.NoError(t, err)
 }
 
@@ -157,7 +157,7 @@ func TestValidateMAR_MissingUserName(t *testing.T) {
 		},
 	})
 
-	err := servicers.ValidateMAR(mar)
+	err := hss.ValidateMAR(mar)
 	assert.EqualError(t, err, "Missing IMSI in message")
 }
 
@@ -171,7 +171,7 @@ func TestValidateMAR_MissingSIPNumberAuthItems(t *testing.T) {
 		},
 	})
 
-	err := servicers.ValidateMAR(mar)
+	err := hss.ValidateMAR(mar)
 	assert.EqualError(t, err, "Missing SIP-Number-Auth-Items in message")
 }
 
@@ -182,7 +182,7 @@ func TestValidateMAR_MissingSIPAuthDataItem(t *testing.T) {
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1))
 	mar.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String("EAP-AKA"))
 
-	err := servicers.ValidateMAR(mar)
+	err := hss.ValidateMAR(mar)
 	assert.EqualError(t, err, "Missing SIP-Auth-Data-Item in message")
 }
 
@@ -193,7 +193,7 @@ func TestValidateMAR_MissingSIPAuthenticationScheme(t *testing.T) {
 	mar.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1))
 	mar.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{})
 
-	err := servicers.ValidateMAR(mar)
+	err := hss.ValidateMAR(mar)
 	assert.EqualError(t, err, "Missing SIP-Authentication-Scheme in message")
 }
 
@@ -207,12 +207,12 @@ func TestValidateMAR_MissingRATType(t *testing.T) {
 		},
 	})
 
-	err := servicers.ValidateMAR(mar)
+	err := hss.ValidateMAR(mar)
 	assert.EqualError(t, err, "Missing RAT type in message")
 }
 
 func TestValidateMAR_NilMessage(t *testing.T) {
-	err := servicers.ValidateMAR(nil)
+	err := hss.ValidateMAR(nil)
 	assert.EqualError(t, err, "Message is nil")
 }
 
@@ -254,7 +254,7 @@ func checkSIPAuthVectors(t *testing.T, maa definitions.MAA, expectedNumVectors u
 	}
 }
 
-func set3GPPAAAServerName(t *testing.T, server *servicers.HomeSubscriberServer, imsi string, serverName string) {
+func set3GPPAAAServerName(t *testing.T, server *hss.HomeSubscriberServer, imsi string, serverName string) {
 	id := &lteprotos.SubscriberID{Id: imsi}
 	subscriber, err := server.GetSubscriberData(context.Background(), id)
 	assert.NoError(t, err)
@@ -263,9 +263,9 @@ func set3GPPAAAServerName(t *testing.T, server *servicers.HomeSubscriberServer, 
 	assert.NoError(t, err)
 }
 
-func testNewMAASuccessfulResponse(t *testing.T, server *servicers.HomeSubscriberServer) {
+func testNewMAASuccessfulResponse(t *testing.T, server *hss.HomeSubscriberServer) {
 	mar := createMARWithSingleAuthItem("sub1")
-	response, err := servicers.NewMAA(server, mar)
+	response, err := hss.NewMAA(server, mar)
 	assert.NoError(t, err)
 
 	var maa definitions.MAA
@@ -276,5 +276,10 @@ func testNewMAASuccessfulResponse(t *testing.T, server *servicers.HomeSubscriber
 	assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
+	assert.Equal(t, int32(definitions.AuthSessionState_NO_STATE_MAINTAINED), maa.AuthSessionState)
 	checkSIPAuthVectors(t, maa, 1)
+
+	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(7351), subscriber.State.LteAuthNextSeq)
 }

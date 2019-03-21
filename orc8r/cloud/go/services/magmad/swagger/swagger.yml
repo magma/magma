@@ -334,6 +334,29 @@ paths:
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
+
+  /networks/{network_id}/gateways/{gateway_id}/command/generic:
+    post:
+      summary: Execute generic command on gateway
+      tags:
+      - Commands
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      - $ref: './swagger-common.yml#/parameters/gateway_id'
+      - in: body
+        name: Parameters
+        description: Parameters
+        required: true
+        schema:
+          $ref: '#/definitions/generic_command_params'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/generic_command_response'
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
 definitions:
   network_record:
     type: object
@@ -488,6 +511,28 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/ping_result'
+  generic_command_params:
+    type: object
+    required:
+      - command
+    properties:
+      command:
+        type: string
+        minLength: 1
+        example: command_name
+      params:
+        type: object
+        additionalProperties:
+          type: object
+        example: {}
+  generic_command_response:
+    type: object
+    properties:
+      response:
+        type: object
+        additionalProperties:
+          type: object
+        example: {}
 
   # Full view
   gateway_state:

@@ -80,7 +80,7 @@ function use(config: PassportConfig) {
     ),
   );
 
-  if (config.facebookLogin) {
+  if (config.facebookLogin && config.facebookLogin.appId) {
     passport.use(
       new FacebookStrategy(
         {

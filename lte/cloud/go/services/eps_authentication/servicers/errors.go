@@ -10,12 +10,6 @@ package servicers
 
 import (
 	"fmt"
-
-	"magma/feg/cloud/go/protos"
-	"magma/feg/cloud/go/protos/mconfig"
-
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/datatype"
 )
 
 // AuthDataUnavailableError indicates that an unexpectedly transient
@@ -46,16 +40,4 @@ func (err AuthRejectedError) Error() string {
 // NewAuthRejectedError creates an AuthRejectedError.
 func NewAuthRejectedError(msg string) AuthRejectedError {
 	return AuthRejectedError{msg: msg}
-}
-
-// ConvertAuthErrorToFailureMessage creates a corresponding diameter failure message for an auth error.
-func ConvertAuthErrorToFailureMessage(err error, msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig) *diam.Message {
-	switch err.(type) {
-	case AuthRejectedError:
-		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHORIZATION_REJECTED))
-	case AuthDataUnavailableError:
-		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE))
-	default:
-		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(diam.UnableToComply))
-	}
 }

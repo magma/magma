@@ -17,7 +17,6 @@ import socket
 import os
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
-from orc8r.protos import common_pb2
 
 from magma.common.misc_utils import get_ip_from_if, get_ip_from_if_cidr
 from magma.configuration.mconfig_managers import load_service_mconfig
@@ -48,21 +47,15 @@ def _get_dns_ip(iface_config):
 
 def _get_oai_log_level():
     """
-    Convert the logLevel in mconfig into the level which OAI code
+    Convert the logLevel in config into the level which OAI code
     uses. We use OAI's 'TRACE' as the debugging log level and 'CRITICAL'
     as the fatal log level.
     """
-    mconfig = load_service_mconfig('mme')
-    oai_log_level = 'INFO'
-    if mconfig.log_level == common_pb2.DEBUG:
+    oai_log_level = get_service_config_value('mme', 'log_level', 'INFO')
+    # Translate common log levels to OAI levels
+    if oai_log_level == 'DEBUG':
         oai_log_level = 'TRACE'
-    elif mconfig.log_level == common_pb2.INFO:
-        oai_log_level = 'INFO'
-    elif mconfig.log_level == common_pb2.WARNING:
-        oai_log_level = 'WARNING'
-    elif mconfig.log_level == common_pb2.ERROR:
-        oai_log_level = 'ERROR'
-    elif mconfig.log_level == common_pb2.FATAL:
+    if oai_log_level == 'FATAL':
         oai_log_level = 'CRITICAL'
     return oai_log_level
 

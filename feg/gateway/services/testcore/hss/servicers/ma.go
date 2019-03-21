@@ -14,10 +14,11 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/crypto"
+	swx "magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
+	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -32,7 +33,7 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return msg.Answer(diam.MissingAVP), err
 	}
 
-	var mar servicers.MAR
+	var mar swx.MAR
 	if err := msg.Unmarshal(&mar); err != nil {
 		return msg.Answer(diam.UnableToComply), fmt.Errorf("MAR Unmarshal failed for message: %v failed: %v", msg, err)
 	}
@@ -61,17 +62,23 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return getRedirectMessage(msg, mar.SessionID, srv.Config.Server, aaaServer), err
 	}
 
-	err = srv.ResyncLteAuthSeq(subscriber, mar.AuthData.Authorization.Serialize())
+	lteAuthNextSeq, err := servicers.ResyncLteAuthSeq(subscriber, mar.AuthData.Authorization.Serialize(), srv.Config.LteAuthOp)
+	if err == nil {
+		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
+	}
 	if err != nil {
 		return ConvertAuthErrorToFailureMessage(err, msg, mar.SessionID, srv.Config.Server), err
 	}
 
-	if mar.AuthData.AuthScheme != servicers.SipAuthScheme_EAP_AKA {
+	if mar.AuthData.AuthScheme != swx.SipAuthScheme_EAP_AKA {
 		err = fmt.Errorf("Unsupported SIP authentication scheme: %s", mar.AuthData.AuthScheme)
 		return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
 	}
 
-	vectors, err := srv.GenerateSIPAuthVectors(subscriber, mar.NumberAuthItems)
+	vectors, lteAuthNextSeq, err := srv.GenerateSIPAuthVectors(subscriber, mar.NumberAuthItems)
+	if err == nil {
+		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
+	}
 	if err != nil {
 		// If we generated any auth vectors successfully, then we can return them.
 		// Otherwise, we must signal an error.
@@ -81,19 +88,20 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		}
 	}
 
-	return srv.NewSuccessfulMAA(msg, mar.SessionID, vectors), nil
+	return srv.NewSuccessfulMAA(msg, mar.SessionID, datatype.UTF8String(mar.UserName), vectors), nil
 }
 
 // NewSuccessfulMAA outputs a successful multimedia authentication answer (MAA) to reply to an
 // multimedia authentication request (MAR) message. It populates the MAA with all of the mandatory fields
 // and adds the authentication vectors. See 3GPP TS 29.273 table 8.1.2.1.1/5.
-func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID datatype.UTF8String, vectors []*crypto.SIPAuthVector) *diam.Message {
+func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID datatype.UTF8String, userName datatype.UTF8String, vectors []*crypto.SIPAuthVector) *diam.Message {
 	maa := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server)
-	for _, vector := range vectors {
+	for itemNumber, vector := range vectors {
 		authenticate := append(vector.Rand[:], vector.Autn[:]...)
 		maa.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
-				diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(servicers.SipAuthScheme_EAP_AKA)),
+				diam.NewAVP(avp.SIPItemNumber, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(itemNumber)),
+				diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(swx.SipAuthScheme_EAP_AKA)),
 				diam.NewAVP(avp.SIPAuthenticate, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(authenticate)),
 				diam.NewAVP(avp.SIPAuthorization, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
 				diam.NewAVP(avp.ConfidentialityKey, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.ConfidentialityKey[:])),
@@ -102,46 +110,54 @@ func (srv *HomeSubscriberServer) NewSuccessfulMAA(msg *diam.Message, sessionID d
 		})
 	}
 	maa.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(len(vectors)))
+	maa.NewAVP(avp.UserName, avp.Mbit, 0, userName)
+	maa.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(swx.AuthSessionState_NO_STATE_MAINTAINED))
+	maa.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.TGPP_SWX_APP_ID)),
+		},
+	})
 	return maa
 }
 
-// GenerateSIPAuthVectors returns a slice of `numVectors` SIP auth vectors for the subscriber.
-func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.SubscriberData, numVectors uint32) ([]*crypto.SIPAuthVector, error) {
+// GenerateSIPAuthVectors generates `numVectors` SIP auth vectors for the subscriber.
+// The vectors and the next value of lteAuthNextSeq are returned (or an error).
+func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.SubscriberData, numVectors uint32) ([]*crypto.SIPAuthVector, uint64, error) {
 	var vectors = make([]*crypto.SIPAuthVector, 0, numVectors)
+	lteAuthNextSeq := subscriber.GetState().GetLteAuthNextSeq()
 	for i := uint32(0); i < numVectors; i++ {
-		vector, err := srv.GenerateSIPAuthVector(subscriber)
+		vector, nextSeq, err := srv.GenerateSIPAuthVector(subscriber)
+		lteAuthNextSeq = nextSeq
 		if err != nil {
-			return vectors, err
+			return vectors, 0, err
 		}
 		vectors = append(vectors, vector)
 	}
-	return vectors, nil
+	return vectors, lteAuthNextSeq, nil
 }
 
-// GenerateSIPAuthVector returns the SIP auth vector for the subscriber.
-func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *lteprotos.SubscriberData) (*crypto.SIPAuthVector, error) {
+// GenerateSIPAuthVector returns the SIP auth vector and the next value of lteAuthNextSeq for the subscriber (or an error).
+func (srv *HomeSubscriberServer) GenerateSIPAuthVector(subscriber *lteprotos.SubscriberData) (*crypto.SIPAuthVector, uint64, error) {
 	lte := subscriber.Lte
-	if err := ValidateLteSubscription(lte); err != nil {
-		return nil, NewAuthRejectedError(err.Error())
+	if err := servicers.ValidateLteSubscription(lte); err != nil {
+		return nil, 0, servicers.NewAuthRejectedError(err.Error())
 	}
 	if subscriber.State == nil {
-		return nil, NewAuthRejectedError("Subscriber data missing subscriber state")
+		return nil, 0, servicers.NewAuthRejectedError("Subscriber data missing subscriber state")
 	}
 
-	opc, err := srv.GetOrGenerateOpc(lte)
+	opc, err := servicers.GetOrGenerateOpc(lte, srv.Config.LteAuthOp)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-	err = srv.IncreaseSQN(subscriber)
-	if err != nil {
-		return nil, err
-	}
-	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, srv.AuthSqnInd)
+
+	sqn := servicers.SeqToSqn(subscriber.State.LteAuthNextSeq, srv.AuthSqnInd)
 	vector, err := srv.Milenage.GenerateSIPAuthVector(lte.AuthKey, opc, sqn)
 	if err != nil {
-		return vector, NewAuthRejectedError(err.Error())
+		return nil, 0, servicers.NewAuthRejectedError(err.Error())
 	}
-	return vector, err
+	return vector, subscriber.State.LteAuthNextSeq + 1, err
 }
 
 // ValidateMAR returns an error if the message is missing any mandatory AVPs.
