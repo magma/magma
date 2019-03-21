@@ -193,4 +193,6 @@ bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 void mme_ue_context_update_ue_sgs_neaf(
   mme_ue_s1ap_id_t mme_ue_s1ap_id,
   bool neaf);
+bool is_mme_ue_context_network_access_mode_packet_only(
+  mme_ue_s1ap_id_t mme_ue_s1ap_id);
 #endif /* FILE_MME_API_SEEN*/

@@ -257,14 +257,16 @@ int emm_send_attach_accept(
      * sending detach so that such UEs can remain attached in the n/w and should be able to get data service from the n/w.
      */
 
-      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails send
+     /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails 
+     *  or Network Access mode received as PACKET_ONLY from HSS in ULS message send
      *  epsattachresult to EPS_ATTACH_RESULT_EPS. If is it successful set epsattachresult
      *  to EPS_ATTACH_RESULT_EPS_IMSI
      */
       if (
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-        (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE)) {
+        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) || 
+        is_mme_ue_context_network_access_mode_packet_only(ue_id))){
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -457,7 +459,8 @@ int emm_send_attach_accept(
    * CSFB -Optional - Send failure cause
    */
 
-  if (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) {
+  if ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+     (is_mme_ue_context_network_access_mode_packet_only(ue_id))) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = emm_ctx->emm_cause;
@@ -543,14 +546,16 @@ int emm_send_attach_accept_dl_nas(
      * sending detach so that such UEs can remain attached in the n/w and should be able to get data service from the n/w.
      */
 
-      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails send
+      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails 
+     *  or Network Access mode received as PACKET_ONLY from HSS in ULS message send
      *  epsattachresult to EPS_ATTACH_RESULT_EPS. If is it successful set epsattachresult
      *  to EPS_ATTACH_RESULT_EPS_IMSI
      */
       if (
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-        (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE)) {
+        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) || 
+        is_mme_ue_context_network_access_mode_packet_only(ue_id))){
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -725,7 +730,9 @@ int emm_send_attach_accept_dl_nas(
    */
 
   if (
-    (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) && (msg->emm_cause)) {
+     ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+     is_mme_ue_context_network_access_mode_packet_only(ue_id)) &&
+    (msg->emm_cause)) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = *msg->emm_cause;

@@ -429,23 +429,31 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
 {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
+  
+  ue_mm_context_t *ue_mm_context_p =
+    PARENT_STRUCT(emm_ctx_p, struct ue_mm_context_s, emm_context);
+  mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   char *non_eps_service_control = bdata(mme_config.non_eps_service_control);
 
   if (emm_ctx_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) {
     if (
       !(strcmp(non_eps_service_control, "SMS")) ||
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
-      OAILOG_DEBUG(
-        LOG_NAS_EMM, " Sending CS Domain Location Update Request to MME APP");
-      nas_emm_attach_proc_t *attach_proc =
-        get_nas_specific_procedure_attach(emm_ctx_p);
-      nas_itti_cs_domain_location_update_req(
-        attach_proc->ue_id, ATTACH_REQUEST);
+      if(is_mme_ue_context_network_access_mode_packet_only(ue_id)) {
+         emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
+      } else {
+         OAILOG_DEBUG(
+           LOG_NAS_EMM, " Sending CS Domain Location Update Request to MME APP");
+           nas_emm_attach_proc_t *attach_proc =
+         get_nas_specific_procedure_attach(emm_ctx_p);
+         nas_itti_cs_domain_location_update_req(
+           attach_proc->ue_id, ATTACH_REQUEST);
       /* Store ESM message Activate Default EPS bearer to be sent in Attach Accept triggered after receiving
        * Location Update Accept
        */
-      emm_ctx_p->csfbparams.esm_data = esm_data;
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+         emm_ctx_p->csfbparams.esm_data = esm_data;
+         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      }
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
