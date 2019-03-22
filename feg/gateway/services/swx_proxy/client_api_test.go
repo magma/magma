@@ -87,10 +87,10 @@ func standardSwxProxyTest(t *testing.T) {
 
 	// Test client error handling
 	authRes, err = swx_proxy.Authenticate(nil)
-	assert.EqualError(t, err, "Invalid AuthenticationRequest provided")
+	assert.EqualError(t, err, "Invalid AuthenticationRequest provided: request is nil")
 	assert.Nil(t, authRes)
 
 	regRes, err = swx_proxy.Register(nil)
-	assert.EqualError(t, err, "Invalid RegistrationRequest provided")
+	assert.EqualError(t, err, "Invalid RegistrationRequest provided: request is nil")
 	assert.Nil(t, regRes)
 }
