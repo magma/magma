@@ -2479,6 +2479,7 @@ bool is_mme_ue_context_network_access_mode_packet_only (
   // Function is used to check the UE's Network Access Mode received in ULA from HSS
 
    struct ue_mm_context_s *ue_context_p = NULL;
+   network_access_mode_t network_access_mode = NAM_MAX;
 
    OAILOG_FUNC_IN (LOG_MME_APP);
    ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
@@ -2487,8 +2488,9 @@ bool is_mme_ue_context_network_access_mode_packet_only (
     OAILOG_CRITICAL (LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
     OAILOG_FUNC_RETURN (LOG_MME_APP, RETURNerror);
   }
+  network_access_mode = ue_context_p->network_access_mode;
   unlock_ue_contexts(ue_context_p);
-  if (ue_context_p->network_access_mode == NAM_ONLY_PACKET)
+  if (network_access_mode == NAM_ONLY_PACKET)
   {
     OAILOG_FUNC_RETURN (LOG_MME_APP, true);
   } else {
