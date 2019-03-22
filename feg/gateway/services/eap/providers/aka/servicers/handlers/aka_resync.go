@@ -34,27 +34,24 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 	if len(ctx.SessionId) == 0 {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Missing Session ID")
 	}
-	imsi, ok := s.FindSession(ctx.SessionId)
+	imsi, uc, ok := s.FindSession(ctx.SessionId)
 	if !ok {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
 			"No Session found for ID: %s", ctx.SessionId)
+	}
+	if uc == nil {
+		s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
+		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
+			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
 	}
 
 	p := make([]byte, len(req))
 	copy(p, req)
 	scanner, err := eap.NewAttributeScanner(p)
 	if err != nil {
-		s.RemoveSession(ctx.SessionId)
+		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.Aborted, err.Error())
 	}
-
-	uc := s.FindLockedUserCtx(imsi)
-	if uc == nil {
-		s.RemoveSession(ctx.SessionId)
-		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
-			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
-	}
-	defer uc.Unlock()
 
 	state, t := uc.State()
 	if state != aka.StateChallenge {
@@ -70,8 +67,8 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 		if a.Type() == aka.AT_AUTS {
 			auts := a.Value()
 			if len(auts) < 14 {
-				s.RemoveSession(ctx.SessionId)
-				s.DeleteUserCtx(uc)
+				uc.Unlock()
+				s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
 				return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument,
 					"Invalid AT_AUTS LKen: %d", len(auts))
 			}
@@ -81,14 +78,14 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 			if err == nil {
 				// Update state
 				uc.SetState(aka.StateChallenge)
-				s.UpdateSession(uc, ctx.SessionId, aka.ChallengeTimeout())
+				s.UpdateSessionUnlockCtx(uc, aka.ChallengeTimeout())
 			} else {
-				s.RemoveSession(ctx.SessionId)
-				s.DeleteUserCtx(uc)
+				s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 			}
 			return p, err
 		}
 	}
 
+	s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 	return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Missing AT_AUTS")
 }
