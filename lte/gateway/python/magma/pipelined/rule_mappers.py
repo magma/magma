@@ -69,14 +69,14 @@ class SessionRuleToVersionMapper:
         self._version_by_imsi_and_rule = defaultdict(lambda: defaultdict(int))
         self._lock = threading.Lock()  # write lock
 
-    def _update_version_unsafe(self, imsi: str, rule_id: int):
+    def _update_version_unsafe(self, imsi: str, rule_id: str):
         encoded_imsi = encode_imsi(imsi)
         version = self._version_by_imsi_and_rule[encoded_imsi][
             rule_id]
         self._version_by_imsi_and_rule[encoded_imsi][rule_id] = \
             (version % self.VERSION_LIMIT) + 1
 
-    def update_version(self, imsi: str, rule_id: Optional[int] = None):
+    def update_version(self, imsi: str, rule_id: Optional[str] = None):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
@@ -89,7 +89,7 @@ class SessionRuleToVersionMapper:
             else:
                 self._update_version_unsafe(imsi, rule_id)
 
-    def get_version(self, imsi: str, rule_id: int) -> int:
+    def get_version(self, imsi: str, rule_id: str) -> int:
         """
         Returns the version number given a subscriber and a rule.
         """
