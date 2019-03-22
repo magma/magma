@@ -50,4 +50,7 @@ lint:
 build_only:
 	go build ./...
 
+run_local_hss:
+	sudo service magma@hss start
+
 precommit: fmt gen build_only test vet
