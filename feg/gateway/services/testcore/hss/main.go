@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
+	"context"
 	"log"
 
 	"magma/feg/cloud/go/protos"
@@ -36,6 +37,18 @@ func main() {
 	}
 	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, servicer)
 
+	subscribers, err := servicers.GetConfiguredSubscribers()
+	if err != nil {
+		glog.Errorf("Could not fetch preconfigured subscribers: %s", err)
+	} else {
+		// Add preconfigured subscribers
+		for _, sub := range subscribers {
+			_, err = servicer.AddSubscriber(context.Background(), sub)
+			if err != nil {
+				glog.Errorf("Error adding subscriber: %s", err)
+			}
+		}
+	}
 	// Start diameter server
 	go func() {
 		glog.V(2).Info("Starting home subscriber server")

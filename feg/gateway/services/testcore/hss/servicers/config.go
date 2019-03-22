@@ -9,7 +9,9 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"encoding/hex"
 	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +19,8 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	configs "magma/feg/gateway/mconfig"
+	"magma/lte/cloud/go/protos"
+	"magma/orc8r/cloud/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -76,7 +80,6 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 	}
 
 	glog.V(2).Infof("Loaded %s configs: %+v\n", hssServiceName, *configsPtr)
-
 	return &mconfig.HSSConfig{
 		Server: &mconfig.DiamServerConfig{
 			Address:      diameter.GetValue(diameter.AddrFlag, configsPtr.Server.Address),
@@ -93,4 +96,82 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 		},
 		SubProfiles: configsPtr.SubProfiles,
 	}, nil
+}
+
+// GetConfiguredSubscribers returns a slice of subscribers configured in hss.yml
+func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
+	hsscfg, err := config.GetServiceConfig("", hssServiceName)
+	if err != nil {
+		return nil, err
+	}
+	subscribers, ok := hsscfg.RawMap["subscribers"]
+	if !ok {
+		return nil, fmt.Errorf("Could not find 'subscribers' in config file")
+	}
+	rawMap, ok := subscribers.(map[interface{}]interface{})
+	if !ok {
+		return nil, fmt.Errorf("Unable to convert map %v", rawMap)
+	}
+	var subscriberData []*protos.SubscriberData
+	for k, v := range rawMap {
+		imsi, ok := k.(string)
+		if !ok {
+			continue
+		}
+		rawMap, ok := v.(map[interface{}]interface{})
+		if !ok {
+			continue
+		}
+		configMap := &config.ConfigMap{RawMap: rawMap}
+
+		// If auth_key is incorrect, skip subscriber
+		authKey, err := configMap.GetStringParam("auth_key")
+		if err != nil {
+			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
+			continue
+		}
+		authKeyBytes, err := hex.DecodeString(authKey)
+		if err != nil {
+			glog.Errorf("Could not add subscriber due to incorrect auth key format: %s", err)
+			continue
+		}
+		non3gppEnabled, err := configMap.GetBoolParam("non_3gpp_enabled")
+		if err != nil {
+			non3gppEnabled = true
+		}
+		subscriberData = append(subscriberData, createSubscriber(imsi, authKeyBytes, non3gppEnabled))
+	}
+	return subscriberData, err
+}
+
+func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool) *protos.SubscriberData {
+	var non3gppProfile *protos.Non3GPPUserProfile
+	if non3gppEnabled {
+		non3gppProfile = &protos.Non3GPPUserProfile{
+			Msisdn:              msisdn,
+			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
+			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
+			ApnConfig:           &protos.APNConfiguration{},
+		}
+	} else {
+		non3gppProfile = &protos.Non3GPPUserProfile{
+			Msisdn:              msisdn,
+			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_BARRED,
+			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_DISABLE,
+			ApnConfig:           &protos.APNConfiguration{},
+		}
+	}
+	return &protos.SubscriberData{
+		Sid: &protos.SubscriberID{Id: imsi},
+		Gsm: &protos.GSMSubscription{State: protos.GSMSubscription_ACTIVE},
+		Lte: &protos.LTESubscription{
+			State:    protos.LTESubscription_ACTIVE,
+			AuthKey:  authKey,
+			AuthAlgo: protos.LTESubscription_MILENAGE,
+		},
+		State: &protos.SubscriberState{
+			TgppAaaServerRegistered: false,
+		},
+		Non_3Gpp: non3gppProfile,
+	}
 }
