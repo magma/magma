@@ -14,6 +14,7 @@ package swx_proxy
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
@@ -51,11 +52,26 @@ func getSwxProxyClient() (*swxProxyClient, error) {
 	}, err
 }
 
+func getRemoteSwxProxyClient() (*swxProxyClient, error) {
+	conn, err := registry.NewCloudRegistry().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
+	if err != nil {
+		errMsg := fmt.Sprintf("Remote Swx Proxy client initialization error: %s", err)
+		glog.Error(errMsg)
+		return nil, errors.New(errMsg)
+	}
+	return &swxProxyClient{
+		protos.NewSwxProxyClient(conn),
+		conn,
+	}, err
+}
+
 // Authenticate sends MAR (code 303) over diameter connection,
 // waits (blocks) for MAA & returns its RPC representation
 func Authenticate(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
-	if req == nil {
-		return nil, errors.New("Invalid AuthenticationRequest provided")
+	err := verifyAuthenticationRequest(req)
+	if err != nil {
+		errMsg := fmt.Errorf("Invalid AuthenticationRequest provided: %s", err)
+		return nil, errors.New(errMsg.Error())
 	}
 	cli, err := getSwxProxyClient()
 	if err != nil {
@@ -68,8 +84,10 @@ func Authenticate(req *protos.AuthenticationRequest) (*protos.AuthenticationAnsw
 // Register sends SAR (Code 301) over diameter connection with ServerAssignmentType
 // set to REGISTRATION, waits (blocks) for SAA & returns its RPC representation
 func Register(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, error) {
-	if req == nil {
-		return nil, errors.New("Invalid RegistrationRequest provided")
+	err := verifyRegistrationRequest(req)
+	if err != nil {
+		errMsg := fmt.Errorf("Invalid RegistrationRequest provided: %s", err)
+		return nil, errors.New(errMsg.Error())
 	}
 	cli, err := getSwxProxyClient()
 	if err != nil {
@@ -77,4 +95,59 @@ func Register(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, erro
 	}
 	defer cli.Cleanup()
 	return cli.Register(context.Background(), req)
+}
+
+// AuthenticateRemote sends MAR (code 303) to a remote swx_proxy service,
+// waits (blocks) for MAA & returns its RPC representation
+func AuthenticateRemote(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
+	err := verifyAuthenticationRequest(req)
+	if err != nil {
+		errMsg := fmt.Errorf("Invalid AuthenticationRequest provided: %s", err)
+		return nil, errors.New(errMsg.Error())
+	}
+	cli, err := getRemoteSwxProxyClient()
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Cleanup()
+	return cli.Authenticate(context.Background(), req)
+}
+
+// RegisterRemote sends SAR (Code 301) with ServerAssignmentType to REGISTRATION
+// to a remote swx_proxy service, waits (blocks) for SAA & returns its RPC representation
+func RegisterRemote(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, error) {
+	err := verifyRegistrationRequest(req)
+	if err != nil {
+		errMsg := fmt.Errorf("Invalid RegistrationRequest provided: %s", err)
+		return nil, errors.New(errMsg.Error())
+	}
+	cli, err := getRemoteSwxProxyClient()
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Cleanup()
+	return cli.Register(context.Background(), req)
+}
+
+func verifyAuthenticationRequest(req *protos.AuthenticationRequest) error {
+	if req == nil {
+		return fmt.Errorf("request is nil")
+	}
+	return verifyUsername(req.GetUserName())
+}
+
+func verifyRegistrationRequest(req *protos.RegistrationRequest) error {
+	if req == nil {
+		return fmt.Errorf("request is nil")
+	}
+	return verifyUsername(req.GetUserName())
+}
+
+func verifyUsername(username string) error {
+	if len(username) == 0 {
+		return fmt.Errorf("no username provided")
+	} else if len(username) > 16 {
+		return fmt.Errorf("username is too long (must be 16 digits or less)")
+	}
+	return nil
 }
