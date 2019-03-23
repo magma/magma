@@ -39,6 +39,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 	}
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
+		s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.Aborted, err.Error())
 	}
 	var a eap.Attribute
@@ -53,9 +54,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				} else {
 					imsi = imsi[1:]
 				}
-				uc := s.GetLockedUserCtx(imsi)
-				defer uc.Unlock()
-
+				uc := s.InitSession(ctx.SessionId, imsi) // we have Locked User Ctx after this call
 				state, t := uc.State()
 				if state > aka.StateCreated {
 					log.Printf(
@@ -68,14 +67,15 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				if err == nil {
 					// Update state
 					uc.SetState(aka.StateChallenge)
-					s.UpdateSession(uc, ctx.SessionId, aka.ChallengeTimeout())
+					s.UpdateSessionUnlockCtx(uc, aka.ChallengeTimeout())
 				} else {
-					s.DeleteUserCtx(uc)
+					s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 				}
 				return p, err
 			}
 		}
 	}
+	s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
 	if err != nil && err != io.EOF {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, err.Error())
 	}
