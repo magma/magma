@@ -1,0 +1,17 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+syntax = "proto3";
+
+package magma.orc8r.blob;
+option go_package = "protos";
+
+
+// TypeAndKey is a composite key to identify blobs inside storage
+message TypeAndKey {
+    string type = 1;
+    string key = 2;
+}
