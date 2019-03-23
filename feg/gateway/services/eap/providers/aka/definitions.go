@@ -106,11 +106,15 @@ const (
 	AT_AUTN_ATTR_LEN = RAND_LEN + ATT_HDR_LEN
 	AT_MAC_ATTR_LEN  = MAC_LEN + ATT_HDR_LEN
 
-	AkaChallengeTimeout = time.Second * 20
+	AkaChallengeTimeout         = time.Second * 20
+	AkaErrorNotificationTimeout = time.Second * 10
+	AkaSessionTimeout           = time.Hour * 12
 )
 
 var (
-	challengeTimeout time.Duration = AkaChallengeTimeout
+	challengeTimeout         time.Duration = AkaChallengeTimeout
+	errorNotificationTimeout time.Duration = AkaErrorNotificationTimeout
+	sessionTimeout           time.Duration = AkaSessionTimeout
 )
 
 func ChallengeTimeout() time.Duration {
@@ -119,6 +123,22 @@ func ChallengeTimeout() time.Duration {
 
 func SetChallengeTimeout(tout time.Duration) {
 	atomic.StoreInt64((*int64)(&challengeTimeout), int64(tout))
+}
+
+func NotificationTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&errorNotificationTimeout)))
+}
+
+func SetNotificationTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&errorNotificationTimeout), int64(tout))
+}
+
+func SessionTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&sessionTimeout)))
+}
+
+func SetSessionTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&sessionTimeout), int64(tout))
 }
 
 type IMSI string
