@@ -14,7 +14,7 @@ import (
 
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/config"
 )
 
 const (
@@ -24,15 +24,15 @@ const (
 
 type CellularNetworkConfigManager struct{}
 
-func (*CellularNetworkConfigManager) GetConfigType() string {
+func (*CellularNetworkConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*CellularNetworkConfigManager) GetType() string {
 	return CellularNetworkType
 }
 
-func (*CellularNetworkConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return magmad.ListGateways(networkId)
-}
-
-func (*CellularNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*CellularNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig, ok := config.(*cellular_protos.CellularNetworkConfig)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -46,7 +46,7 @@ func (*CellularNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, 
 	return protos.MarshalIntern(castedConfig)
 }
 
-func (*CellularNetworkConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*CellularNetworkConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &cellular_protos.CellularNetworkConfig{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err
@@ -54,15 +54,15 @@ func (*CellularNetworkConfigManager) UnmarshalConfig(message []byte) (interface{
 
 type CellularGatewayConfigManager struct{}
 
-func (*CellularGatewayConfigManager) GetConfigType() string {
+func (*CellularGatewayConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*CellularGatewayConfigManager) GetType() string {
 	return CellularGatewayType
 }
 
-func (*CellularGatewayConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (*CellularGatewayConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*CellularGatewayConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig, ok := config.(*cellular_protos.CellularGatewayConfig)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -76,7 +76,7 @@ func (*CellularGatewayConfigManager) MarshalConfig(config interface{}) ([]byte, 
 	return protos.MarshalIntern(castedConfig)
 }
 
-func (*CellularGatewayConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*CellularGatewayConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &cellular_protos.CellularGatewayConfig{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err
