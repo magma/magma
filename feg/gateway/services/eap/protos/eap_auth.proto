@@ -41,10 +41,6 @@ message eap_context {
     bytes msk = 2;
 }
 
-message eap_message {
-    bytes payload = 1;
-}
-
 message eap {
     bytes payload = 1;
     eap_context ctx = 2;

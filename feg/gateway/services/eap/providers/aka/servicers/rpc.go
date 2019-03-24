@@ -25,6 +25,9 @@ import (
 func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, error) {
 	p := eap.Packet(req.GetPayload())
 	eapCtx := req.GetCtx()
+	if eapCtx == nil {
+		eapCtx = &protos.EapContext{}
+	}
 	if p == nil {
 		return aka.EapErrorRes(0, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, eapCtx, "Nil Request")
 	}
@@ -39,7 +42,7 @@ func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, e
 	identifier := p.Identifier()
 	method := p.Type()
 	if method == client.EapMethodIdentity {
-		return &protos.Eap{Payload: aka.NewIdentityReq(identifier, aka.AT_PERMANENT_ID_REQ)}, nil
+		return &protos.Eap{Payload: aka.NewIdentityReq(identifier, aka.AT_PERMANENT_ID_REQ), Ctx: eapCtx}, nil
 	}
 	if method != aka.TYPE {
 		return aka.EapErrorRes(
