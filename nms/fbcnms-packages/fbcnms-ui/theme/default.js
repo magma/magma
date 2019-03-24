@@ -9,7 +9,7 @@
  */
 
 import {createMuiTheme} from '@material-ui/core/styles';
-import {gray0, sea100, sea200, sea300, white} from './colors';
+import {gray0, sea100, sea200, sea300, red, redwood, white} from './colors';
 
 export default createMuiTheme({
   palette: {
@@ -39,6 +39,8 @@ export default createMuiTheme({
       A200: '#8d949e',
       A700: '#444950',
     },
+    red: red,
+    redwood: redwood,
   },
   overrides: {
     MuiAppBar: {
