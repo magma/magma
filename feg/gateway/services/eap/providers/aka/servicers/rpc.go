@@ -42,7 +42,7 @@ func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, e
 	identifier := p.Identifier()
 	method := p.Type()
 	if method == client.EapMethodIdentity {
-		return &protos.Eap{Payload: aka.NewIdentityReq(identifier, aka.AT_PERMANENT_ID_REQ), Ctx: eapCtx}, nil
+		return &protos.Eap{Payload: aka.NewIdentityReq(identifier+1, aka.AT_PERMANENT_ID_REQ), Ctx: eapCtx}, nil
 	}
 	if method != aka.TYPE {
 		return aka.EapErrorRes(

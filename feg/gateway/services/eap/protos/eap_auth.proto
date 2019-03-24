@@ -49,3 +49,22 @@ message eap {
 service eap_service {
     rpc handle(eap) returns (eap) {}
 }
+
+message eap_identity {
+    bytes payload = 1;
+    eap_context ctx = 2;
+    uint32 method = 3;
+}
+
+message void {
+}
+
+message method_list {
+    bytes methods = 1;
+}
+
+service eap_router {
+    rpc handle_identity(eap_identity) returns (eap) {}
+    rpc handle(eap) returns (eap) {}
+    rpc supported_methods(void) returns (method_list) {}
+}
