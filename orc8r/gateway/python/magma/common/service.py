@@ -43,7 +43,6 @@ class MagmaService(Service303Servicer):
         self._name = name
         self._port = 0
         self._get_status_callback = None
-        self._reload_config_callback = None
 
         # Init logging before doing anything
         logging.basicConfig(
@@ -68,11 +67,7 @@ class MagmaService(Service303Servicer):
 
         # Load the service config if present
         self._config = None
-        try:
-            self._config = load_service_config(name)
-        except LoadConfigError as e:
-            logging.warning(e)
-        self._setup_logging()
+        self.reload_config()
 
         self._version = '0.0.0'
         # Load the service version if available
@@ -140,6 +135,16 @@ class MagmaService(Service303Servicer):
         """
         return self._mconfig_manager
 
+    def reload_config(self):
+        """
+        Reloads the local config for the service
+        """
+        try:
+            self._config = load_service_config(self._name)
+            self._setup_logging()
+        except LoadConfigError as e:
+            logging.warning(e)
+
     def reload_mconfig(self):
         """
         Reloads the managed config for the service
@@ -182,11 +187,6 @@ class MagmaService(Service303Servicer):
         """ Register function for getting status.
             Must return a map(string, string)"""
         self._get_status_callback = get_status_callback
-
-    def register_reload_config_callback(self, reload_config_callback):
-        """ Register function for reloading config file.
-            Must return boolean whether the reload succeeded"""
-        self._reload_config_callback = reload_config_callback
 
     def _stop(self, reason):
         """
@@ -312,11 +312,5 @@ class MagmaService(Service303Servicer):
         """
         Handles request to reload the service config file
         """
-        if self._reload_config_callback:
-            if self._reload_config_callback():
-                res = ReloadConfigResponse.RELOAD_SUCCESS
-            else:
-                res = ReloadConfigResponse.RELOAD_FAILURE
-        else:
-            res = ReloadConfigResponse.RELOAD_UNSUPPORTED
-        return ReloadConfigResponse(result=res)
+        self.reload_config()
+        return ReloadConfigResponse(result=ReloadConfigResponse.RELOAD_SUCCESS)
