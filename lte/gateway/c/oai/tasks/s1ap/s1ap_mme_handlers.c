@@ -2247,8 +2247,8 @@ int s1ap_mme_handle_error_ind_message(
   struct s1ap_message_s *message)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
-  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d \n", stream);
-  OAILOG_WARNING(LOG_S1AP, "*****ERROR IND is not supported*****\n");
+  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n",
+                  stream);
   increment_counter("s1ap_error_ind_rcvd", 1, NO_LABELS);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
