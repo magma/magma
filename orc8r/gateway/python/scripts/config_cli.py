@@ -11,6 +11,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 import argparse
 from pprint import PrettyPrinter
 
+from magma.common.service_registry import ServiceRegistry
+from orc8r.protos.common_pb2 import Void
+from orc8r.protos.service303_pb2 import ReloadConfigResponse
+from orc8r.protos.service303_pb2_grpc import Service303Stub
+from orc8r.protos.magmad_pb2 import RestartServicesRequest
+from orc8r.protos.magmad_pb2_grpc import MagmadStub
+
+from magma.common.rpc_utils import grpc_wrapper
 from magma.configuration import service_configs
 
 LOG_LEVEL_KEY = 'log_level'
@@ -18,12 +26,14 @@ LOG_LEVEL_KEY = 'log_level'
 pp = PrettyPrinter(width=1)
 
 
-def load_override_config(args):
+@grpc_wrapper
+def load_override_config(_, args):
     cfg = service_configs.load_override_config(args.service)
     pp.pprint(cfg)
 
 
-def get_log_level(args):
+@grpc_wrapper
+def get_log_level(_, args):
     cfg = service_configs.load_service_config(args.service)
     if cfg is None or LOG_LEVEL_KEY not in cfg:
         print('No log level set!')
@@ -31,7 +41,8 @@ def get_log_level(args):
     print('Log level:', cfg[LOG_LEVEL_KEY])
 
 
-def set_log_level(args):
+@grpc_wrapper
+def set_log_level(client, args):
     cfg = service_configs.load_override_config(args.service)
     if cfg is None:
         cfg = {}
@@ -51,6 +62,26 @@ def set_log_level(args):
         return
     print('New override config:')
     pp.pprint(cfg)
+    _reload_service_config(client, args.service)
+
+
+def _reload_service_config(client, service):
+    response = client.ReloadServiceConfig(Void())
+    if response.result == ReloadConfigResponse.RELOAD_SUCCESS:
+        print('Config successfully reloaded. '
+              'Some config may require a service restart to take effect')
+    else:
+        print('Config cannot be reloaded. Service restart required.')
+        should_restart = input('Restart %s? (y/N) ' % service).lower() == 'y'
+        if should_restart:
+            _restart_service(service)
+
+
+def _restart_service(service):
+    print('Restarting %s...' % service)
+    chan = ServiceRegistry.get_rpc_channel('magmad', ServiceRegistry.LOCAL)
+    client = MagmadStub(chan)
+    client.RestartServices(RestartServicesRequest(services=[service]))
 
 
 def create_parser():
@@ -102,7 +133,7 @@ def main():
         exit(1)
 
     # Execute the subcommand function
-    args.func(args)
+    args.func(args, Service303Stub, args.service)
 
 
 if __name__ == "__main__":
