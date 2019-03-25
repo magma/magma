@@ -17,8 +17,8 @@ import (
 	utils "magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	orc8rprotos "magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/config/test_init"
 	"magma/orc8r/cloud/go/test_utils"
 
@@ -62,7 +62,7 @@ func (suite *EpsAuthTestSuite) SetupTest() {
 
 func TestEpsAuthSuite(t *testing.T) {
 	test_init.StartTestService(t)
-	err := registry.RegisterConfigManager(&cellular.CellularNetworkConfigManager{})
+	err := serde.RegisterSerdes(&cellular.CellularNetworkConfigManager{})
 	assert.NoError(t, err)
 
 	configProto := &cellular_protos.CellularNetworkConfig{
