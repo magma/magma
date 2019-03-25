@@ -16,7 +16,6 @@ import (
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 )
 
-
 // Serdes for user-facing types delegate to swagger's MarshalBinary, which
 // writes the bytearray representation of a JSON swagger struct.
 // The advantage for us here is that compatibility for changes in the model

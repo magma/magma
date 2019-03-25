@@ -72,6 +72,29 @@ func TestSubscriberd(t *testing.T) {
 	}
 	tests.RunTest(t, addSubTestCase)
 
+	addSubTestCase2 := tests.Testcase{
+		Name:   "Add Subscriber",
+		Method: "POST",
+		Url:    fmt.Sprintf("%s/%s/subscribers", testUrlRoot, networkId),
+		Payload: `{"id":"IMSI15234363333", "lte":{"state":"ACTIVE",
+				   "auth_algo":"MILENAGE",
+				   "auth_key":"DtR1RRaOr+LDnAdYKae2Hw==",
+				   "auth_opc":"DtR1RRaOr+LDnAdYKae2Hw=="},
+					 "sub_profile":"superfast"}`,
+		Expected: `"IMSI15234363333"`,
+	}
+	tests.RunTest(t, addSubTestCase2)
+
+	deleteSubscriberTestCase := tests.Testcase{
+		Name:   "Delete Subscriber",
+		Method: "DELETE",
+		Url: fmt.Sprintf(
+			"%s/%s/subscribers/IMSI15234363333", testUrlRoot, networkId),
+		Payload:  "",
+		Expected: "",
+	}
+	tests.RunTest(t, deleteSubscriberTestCase)
+
 	// Test Add Subscriber Using URL based ID
 	addSubUrlTestCase := tests.Testcase{
 		Name:   "Add Subscriber",
@@ -225,7 +248,7 @@ func TestSubscriberd(t *testing.T) {
 	tests.RunTest(t, getSubscriberTestCase2)
 
 	// Delete Subscriber Test
-	deleteSubscriberTestCase := tests.Testcase{
+	deleteSubscriberTestCase = tests.Testcase{
 		Name:   "Delete Subscriber",
 		Method: "DELETE",
 		Url: fmt.Sprintf(
