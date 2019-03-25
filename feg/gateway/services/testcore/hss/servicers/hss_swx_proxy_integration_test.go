@@ -1,4 +1,4 @@
-package test
+package servicers_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
 
@@ -93,7 +93,7 @@ func TestSAR_UnknownIMSI(t *testing.T) {
 
 // getTestSwxProxy creates a SWx Proxy server and test HSS Diameter
 // server which are configured to communicate with each other.
-func getTestSwxProxy(t *testing.T, hss *servicers.HomeSubscriberServer, verifyAuthorization bool) fegprotos.SwxProxyServer {
+func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthorization bool) fegprotos.SwxProxyServer {
 	serverCfg := hss.Config.Server
 
 	// Create an swx proxy server.

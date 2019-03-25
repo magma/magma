@@ -61,29 +61,30 @@ matrix:
         - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
         - make -C ${MAGMA_ROOT}/orc8r/cloud precommit
 
-    - language: go
-      name: Run cloud services
-      go:
-        - 1.11.x
-      os: linux
-      dist: xenial
-
-      env:
-        - MAGMA_ROOT=$TRAVIS_BUILD_DIR PLUGIN_DIR=${MAGMA_ROOT}/plugins GO111MODULE=on
-
-      before_install:
-        - ./travis/golang_before_install.sh
-        - ./travis/start_dynamo_local.sh
-
-      before_script:
-        - sudo mkdir -p /etc/magma/configs
-        - ./travis/link_cloud_configs.sh
-        - ./travis/setup_for_run.sh
-
-      script:
-        - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
-        - make -C ${MAGMA_ROOT}/orc8r/cloud travis_run
-        - make -C ${MAGMA_ROOT}/orc8r/cloud check
+#    - language: go
+#      name: Run cloud services
+#      go:
+#        - 1.11.x
+#      os: linux
+#      dist: xenial
+#
+#      env:
+#        - MAGMA_ROOT=$TRAVIS_BUILD_DIR PLUGIN_DIR=${MAGMA_ROOT}/plugins GO111MODULE=on
+#
+#      before_install:
+#        - ./travis/golang_before_install.sh
+#        - ./travis/start_dynamo_local.sh
+#
+#      before_script:
+#        - sudo mkdir -p /etc/magma/configs
+#        - ./travis/link_cloud_configs.sh
+#        - ./travis/setup_for_run.sh
+#
+#      script:
+#        - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
+#        - make -C ${MAGMA_ROOT}/orc8r/cloud travis_run
+#        - sleep 60
+#        - travis_retry make -C ${MAGMA_ROOT}/orc8r/cloud check
 
     - language: go
       name: FeG precommit

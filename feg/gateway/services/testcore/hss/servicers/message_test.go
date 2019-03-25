@@ -6,14 +6,14 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"testing"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers"
+	hss "magma/feg/gateway/services/testcore/hss/servicers"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -28,7 +28,7 @@ func TestConstructPermanentFailureAnswer(t *testing.T) {
 		DestHost:  "magma_host",
 		DestRealm: "magma_realm",
 	}
-	response := servicers.ConstructFailureAnswer(msg, datatype.UTF8String("magma"), serverCfg, 1000)
+	response := hss.ConstructFailureAnswer(msg, datatype.UTF8String("magma"), serverCfg, 1000)
 
 	assert.Equal(t, msg.Header.CommandCode, response.Header.CommandCode)
 	assert.Equal(t, uint8(0), response.Header.CommandFlags)
@@ -54,16 +54,16 @@ func TestConstructSuccessAnswer(t *testing.T) {
 		DestHost:  "magma_host",
 		DestRealm: "magma_realm",
 	}
-	response := servicers.ConstructSuccessAnswer(msg, datatype.UTF8String("magma"), serverCfg)
+	response := hss.ConstructSuccessAnswer(msg, datatype.UTF8String("magma"), serverCfg, diam.TGPP_S6A_APP_ID)
 
 	var aia definitions.AIA
 	err := response.Unmarshal(&aia)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(diam.Success), aia.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, uint32(diam.Success), aia.ResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma_host"), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma_realm"), aia.OriginRealm)
 	assert.Equal(t, "magma", aia.SessionID)
+	assert.Equal(t, int32(1), aia.AuthSessionState)
 }
 
 func TestAddStandardAnswerAVPS(t *testing.T) {
@@ -72,12 +72,11 @@ func TestAddStandardAnswerAVPS(t *testing.T) {
 		DestHost:  "magma_host",
 		DestRealm: "magma_realm",
 	}
-	servicers.AddStandardAnswerAVPS(msg, "magma", serverCfg, diam.Success)
+	hss.AddStandardAnswerAVPS(msg, "magma", serverCfg, diam.Success)
 
 	var aia definitions.AIA
 	err := msg.Unmarshal(&aia)
 	assert.NoError(t, err)
-	assert.Equal(t, uint32(diam.Success), aia.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma_host"), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma_realm"), aia.OriginRealm)
 	assert.Equal(t, "magma", aia.SessionID)

@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
@@ -30,7 +31,7 @@ import (
 
 func TestNewAIA_MissingSessionID(t *testing.T) {
 	m := diameter.NewProxiableRequest(diam.AuthenticationInformation, diam.TGPP_S6A_APP_ID, dict.Default)
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewAIA(server, m)
 	assert.Error(t, err)
 
@@ -43,7 +44,7 @@ func TestNewAIA_MissingSessionID(t *testing.T) {
 
 func TestNewAIA_UnknownIMSI(t *testing.T) {
 	air := createAIR("sub_unknown")
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewAIA(server, air)
 	assert.Exactly(t, storage.NewUnknownSubscriberError("sub_unknown"), err)
 
@@ -55,7 +56,7 @@ func TestNewAIA_UnknownIMSI(t *testing.T) {
 }
 
 func TestNewAIA_SuccessfulResponse(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	amf := []byte("\x80\x00")
 	rand := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f")
 	milenage, err := crypto.NewMockMilenageCipher(amf, rand)
@@ -72,7 +73,6 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "magma;123_1234", aia.SessionID)
 	assert.Equal(t, diam.Success, int(aia.ResultCode))
-	assert.Equal(t, uint32(diam.Success), aia.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginRealm)
 	assert.Equal(t, 1, len(aia.AIs))
@@ -92,7 +92,7 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 }
 
 func TestNewAIA_MultipleVectors(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	air := createAIRExtended("sub1", 3)
 	response, err := hss.NewAIA(server, air)
 	assert.NoError(t, err)
@@ -117,7 +117,7 @@ func TestNewAIA_MultipleVectors(t *testing.T) {
 }
 
 func TestNewAIA_MissingAuthKey(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 
 	air := createAIR("missing_auth_key")
 	response, err := hss.NewAIA(server, air)
@@ -246,7 +246,7 @@ func createAIRExtended(userName string, numRequestedVectors uint32) *diam.Messag
 }
 
 func TestNewSuccessfulAIA(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	serverCfg := server.Config.Server
 
 	msg := createAIR("user1")
@@ -266,7 +266,6 @@ func TestNewSuccessfulAIA(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, uint32(diam.Success), aia.ResultCode)
-	assert.Equal(t, uint32(diam.Success), aia.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, air.SessionID, datatype.UTF8String(aia.SessionID))
 	assert.Equal(t, datatype.DiameterIdentity(serverCfg.DestHost), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity(serverCfg.DestRealm), aia.OriginRealm)

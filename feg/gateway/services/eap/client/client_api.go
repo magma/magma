@@ -28,7 +28,7 @@ const (
 // HandleIdentityResponse passes Identity EAP payload to corresponding method provider & returns corresponding
 // EAP result
 // NOTE: Identity Request is handled by APs & does not involve EAP Authenticator's support
-func HandleIdentityResponse(providerType uint8, msg *protos.EapMessage) (*protos.Eap, error) {
+func HandleIdentityResponse(providerType uint8, msg *protos.Eap) (*protos.Eap, error) {
 	if msg == nil {
 		return nil, errors.New("Nil EAP Request")
 	}
@@ -46,6 +46,13 @@ func HandleIdentityResponse(providerType uint8, msg *protos.EapMessage) (*protos
 		return nil, unsupportedProviderError(providerType)
 	}
 	return p.Handle(&protos.Eap{Payload: msg.Payload})
+}
+
+// SupportedTypes returns sorted list (ascending, by type) of registered EAP Providers
+// SupportedTypes makes copy of an internally maintained supported types list, so callers
+// are advised to save the result locally and re-use it if needed
+func SupportedTypes() []uint8 {
+	return registry.SupportedTypes()
 }
 
 // Handle handles passed EAP payload & returns corresponding EAP result

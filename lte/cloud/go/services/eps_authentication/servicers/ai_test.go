@@ -69,7 +69,7 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_UnknownSubscriber()
 	}
 
 	aia, err := suite.AuthenticationInformation(air)
-	suite.EqualError(err, "rpc error: code = Aborted desc = Error fetching subscriber: IMSIsub_unknown, No record for query")
+	suite.EqualError(err, "rpc error: code = NotFound desc = Error fetching subscriber: IMSIsub_unknown, No record for query")
 	suite.checkAIA(aia, protos.ErrorCode_USER_UNKNOWN, 0)
 }
 

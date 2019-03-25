@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"context"
@@ -15,6 +15,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
 
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ func TestAIR_Successful(t *testing.T) {
 
 	aia, err := s6aProxy.AuthenticationInformation(context.Background(), air)
 	assert.NoError(t, err)
-	assert.Equal(t, protos.ErrorCode_SUCCESS, aia.ErrorCode)
+	assert.Equal(t, protos.ErrorCode_UNDEFINED, aia.ErrorCode)
 
 	assert.Equal(t, 1, len(aia.EutranVectors))
 	vector := aia.EutranVectors[0]
@@ -63,16 +64,16 @@ func TestULR_Successful(t *testing.T) {
 
 	ula, err := s6aProxy.UpdateLocation(context.Background(), ulr)
 	assert.NoError(t, err)
-	assert.Equal(t, protos.ErrorCode_SUCCESS, ula.ErrorCode)
-	assert.Equal(t, uint32(defaultMaxUlBitRate), ula.GetTotalAmbr().GetMaxBandwidthUl())
-	assert.Equal(t, uint32(defaultMaxDlBitRate), ula.GetTotalAmbr().GetMaxBandwidthDl())
+	assert.Equal(t, protos.ErrorCode_UNDEFINED, ula.ErrorCode)
+	assert.Equal(t, uint32(test.DefaultMaxUlBitRate), ula.GetTotalAmbr().GetMaxBandwidthUl())
+	assert.Equal(t, uint32(test.DefaultMaxDlBitRate), ula.GetTotalAmbr().GetMaxBandwidthDl())
 	assert.Equal(t, []byte("12345"), ula.Msisdn)
 
 	assert.Equal(t, 1, len(ula.Apn))
 	apn := ula.Apn[0]
 	assert.Equal(t, "oai.ipv4", apn.ServiceSelection)
-	assert.Equal(t, uint32(defaultMaxUlBitRate), apn.GetAmbr().GetMaxBandwidthUl())
-	assert.Equal(t, uint32(defaultMaxDlBitRate), apn.GetAmbr().GetMaxBandwidthDl())
+	assert.Equal(t, uint32(test.DefaultMaxUlBitRate), apn.GetAmbr().GetMaxBandwidthUl())
+	assert.Equal(t, uint32(test.DefaultMaxDlBitRate), apn.GetAmbr().GetMaxBandwidthDl())
 	assert.Equal(t, int32(9), apn.GetQosProfile().GetClassId())
 	assert.Equal(t, true, apn.GetQosProfile().GetPreemptionVulnerability())
 	assert.Equal(t, uint32(15), apn.GetQosProfile().GetPriorityLevel())

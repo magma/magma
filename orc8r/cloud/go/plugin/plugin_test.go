@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/plugin/mocks"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -43,7 +42,6 @@ func TestLoadAllPlugins(t *testing.T) {
 	// Happy path - just make sure all functions on the plugin are called
 	mockPlugin := &mocks.OrchestratorPlugin{}
 	mockPlugin.On("GetServices").Return([]registry.ServiceLocation{})
-	mockPlugin.On("GetConfigManagers").Return([]configregistry.ConfigManager{})
 	mockPlugin.On("GetSerdes").Return([]serde.Serde{})
 	mockPlugin.On("GetMconfigBuilders").Return([]factory.MconfigBuilder{})
 	mockPlugin.On("GetMetricsProfiles").Times(1).Return([]metricsd.MetricsProfile{})
@@ -52,7 +50,6 @@ func TestLoadAllPlugins(t *testing.T) {
 	err := plugin.LoadAllPlugins(mockLoader{ret: mockPlugin})
 	assert.NoError(t, err)
 	mockPlugin.AssertNumberOfCalls(t, "GetServices", 1)
-	mockPlugin.AssertNumberOfCalls(t, "GetConfigManagers", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetSerdes", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetMconfigBuilders", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetMetricsProfiles", 1)

@@ -36,31 +36,31 @@ func challengeResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.P
 	if len(ctx.SessionId) == 0 {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Missing Session ID")
 	}
-	imsi, ok := s.FindAndRemoveSession(ctx.SessionId)
+	imsi, uc, ok := s.FindSession(ctx.SessionId)
 	if !ok {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
 			"No Session found for ID: %s", ctx.SessionId)
+	}
+	if uc == nil {
+		s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
+		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
+			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
+	}
+
+	state, _ := uc.State()
+	if state != aka.StateChallenge {
+		log.Printf(
+			"AKA Challenge Response: Unexpected user state: %d for IMSI: %s, Session: %s",
+			state, imsi, ctx.SessionId)
 	}
 
 	p := make([]byte, len(req))
 	copy(p, req)
 	scanner, err := eap.NewAttributeScanner(p)
 	if err != nil {
+		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.Aborted, err.Error())
 	}
-
-	uc := s.FindLockedUserCtx(imsi)
-	if uc == nil {
-		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
-			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
-	}
-
-	// Delete CTX from state map & unlock CTX at the end
-	defer func() {
-		uc.SessionId = ""
-		s.DeleteUserCtx(uc)
-		uc.Unlock()
-	}()
 
 	var a, atMac, atRes eap.Attribute
 
@@ -83,28 +83,21 @@ attrLoop:
 	}
 
 	if err != nil {
+		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 		if err == io.EOF {
-			return aka.EapErrorResPacketWithMac(
-				identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.InvalidArgument, "Missing AT_MAC | AT_RES")
+			return aka.EapErrorResPacket(
+				identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Missing AT_MAC | AT_RES")
 		}
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.InvalidArgument, err.Error())
-	}
-
-	// Verify AT_RES
-	ueRes := atRes.Marshaled()[aka.ATT_HDR_LEN:]
-	if !reflect.DeepEqual(ueRes, uc.Xres) {
-		log.Printf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v", ctx.SessionId, imsi, ueRes, uc.Xres)
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.Unauthenticated,
-			"Invalid AT_RES for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
+		return aka.EapErrorResPacket(
+			identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, err.Error())
 	}
 
 	// Verify MAC
 	macBytes := atMac.Marshaled()
 	if len(macBytes) < aka.ATT_HDR_LEN+aka.MAC_LEN {
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.InvalidArgument, "Malformed AT_MAC")
+		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
+		return aka.EapErrorResPacket(
+			identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Malformed AT_MAC")
 	}
 	ueMac := make([]byte, len(macBytes)-aka.ATT_HDR_LEN)
 	copy(ueMac, macBytes[aka.ATT_HDR_LEN:])
@@ -114,16 +107,32 @@ attrLoop:
 	}
 	mac := aka.GenMac(p, uc.K_aut)
 	if !reflect.DeepEqual(ueMac, mac) {
+		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 		log.Printf(
 			"Invalid MAC for Session ID: %s; IMSI: %s; UE MAC: %x; Expected MAC: %x; EAP: %x",
 			ctx.SessionId, imsi, ueMac, mac, req)
-		return aka.EapErrorResPacketWithMac(
-			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.Unauthenticated,
+		return aka.EapErrorResPacket(
+			identifier, aka.NOTIFICATION_FAILURE, codes.Unauthenticated,
 			"Invalid MAC for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
 	}
 
-	// All good, return
+	// Verify AT_RES
+	ueRes := atRes.Marshaled()[aka.ATT_HDR_LEN:]
+	if !reflect.DeepEqual(ueRes, uc.Xres) {
+		log.Printf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v",
+			ctx.SessionId, imsi, ueRes, uc.Xres)
+		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
+		return aka.EapErrorResPacketWithMac(
+			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.Unauthenticated,
+			"Invalid AT_RES for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
+	}
+
+	// All good, set MSK & return SuccessCode
 	ctx.Msk = uc.MSK
+
+	// For now - cleanup after successful auth, TBD: keep CTX long term...
+	uc.Unlock()
+	s.RemoveSession(ctx.SessionId)
 
 	return []byte{eap.SuccessCode, identifier, 0, 4}, nil
 }

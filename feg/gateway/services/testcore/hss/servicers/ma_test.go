@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package test
+package servicers_test
 
 import (
 	"context"
@@ -16,6 +16,7 @@ import (
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/feg/gateway/services/testcore/hss/servicers/test"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
@@ -29,13 +30,13 @@ import (
 )
 
 func TestNewMAA_SuccessfulResponse(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	testNewMAASuccessfulResponse(t, server)
 }
 
 func TestNewMAA_UnknownIMSI(t *testing.T) {
 	mar := createMARWithSingleAuthItem("sub_unknown")
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewMAA(server, mar)
 	assert.Exactly(t, storage.NewUnknownSubscriberError("sub_unknown"), err)
 
@@ -47,7 +48,7 @@ func TestNewMAA_UnknownIMSI(t *testing.T) {
 }
 
 func TestNewMAA_MissingAuthKey(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 
 	mar := createMARWithSingleAuthItem("missing_auth_key")
 	response, err := hss.NewMAA(server, mar)
@@ -65,7 +66,7 @@ func TestNewMAA_MissingAuthKey(t *testing.T) {
 }
 
 func TestNewMAA_Redirect(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	set3GPPAAAServerName(t, server, "sub1", "different_server")
 
 	mar := createMARWithSingleAuthItem("sub1")
@@ -84,7 +85,7 @@ func TestNewMAA_Redirect(t *testing.T) {
 }
 
 func TestNewMAA_StoreAAAServerName(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	set3GPPAAAServerName(t, server, "sub1", "")
 	testNewMAASuccessfulResponse(t, server)
 
@@ -94,7 +95,7 @@ func TestNewMAA_StoreAAAServerName(t *testing.T) {
 }
 
 func TestNewMAA_MultipleVectors(t *testing.T) {
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	mar := createMARExtended("sub1", 3, definitions.RadioAccessTechnologyType_WLAN)
 	response, err := hss.NewMAA(server, mar)
 	assert.NoError(t, err)
@@ -115,7 +116,7 @@ func TestNewMAA_MissingAVP(t *testing.T) {
 		},
 	})
 
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewMAA(server, mar)
 	assert.EqualError(t, err, "Missing IMSI in message")
 
@@ -127,7 +128,7 @@ func TestNewMAA_MissingAVP(t *testing.T) {
 
 func TestNewMAA_RATTypeNotAllowed(t *testing.T) {
 	mar := createMARExtended("sub1", 1, 20)
-	server := newTestHomeSubscriberServer(t)
+	server := test.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewMAA(server, mar)
 	assert.EqualError(t, err, "RAT-Type not allowed: 20")
 
@@ -273,7 +274,6 @@ func testNewMAASuccessfulResponse(t *testing.T, server *hss.HomeSubscriberServer
 	assert.NoError(t, err)
 	assert.Equal(t, "magma;123_1234", maa.SessionID)
 	assert.Equal(t, diam.Success, int(maa.ResultCode))
-	assert.Equal(t, uint32(diam.Success), maa.ExperimentalResult.ExperimentalResultCode)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), maa.OriginRealm)
 	assert.Equal(t, int32(definitions.AuthSessionState_NO_STATE_MAINTAINED), maa.AuthSessionState)

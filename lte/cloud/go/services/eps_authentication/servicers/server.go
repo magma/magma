@@ -15,6 +15,9 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	orc8rprotos "magma/orc8r/cloud/go/protos"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type EPSAuthServer struct {
@@ -37,8 +40,10 @@ func (srv *EPSAuthServer) lookupSubscriber(userName, networkID string) (*lteprot
 	}
 	subscriber, err := srv.Store.GetSubscriberData(lookup)
 	if err != nil {
-		// TODO: Differentiate between permanent and transient storage errors.
-		return nil, fegprotos.ErrorCode_USER_UNKNOWN, err
+		if status.Convert(err).Code() == codes.NotFound {
+			return nil, fegprotos.ErrorCode_USER_UNKNOWN, err
+		}
+		return nil, fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE, err
 	}
 	return subscriber, fegprotos.ErrorCode_SUCCESS, nil
 }

@@ -164,15 +164,13 @@ class RyuDirectSubscriberContext(SubscriberContext):
             self._ec.activate_rules(imsi=self.cfg.imsi,
                                     ip_addr=self.cfg.ip,
                                     static_rule_ids=self._static_rule_names,
-                                    dynamic_rules=self._dynamic_rules,
-                                    fut=Future())
+                                    dynamic_rules=self._dynamic_rules)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
                     ip_addr=self.cfg.ip,
                     static_rule_ids=self._static_rule_names,
-                    dynamic_rules=self._dynamic_rules,
-                    fut=Future())
+                    dynamic_rules=self._dynamic_rules)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):

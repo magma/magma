@@ -1,32 +1,7 @@
- ________________________________________________________________________
-/  __  __                               ____      _                      \
-| |  \/  | __ _  __ _ _ __ ___   __ _  |  _ \ ___| | ___  __ _ ___  ___  |
-| | |\/| |/ _` |/ _` | '_ ` _ \ / _` | | |_) / _ \ |/ _ \/ _` / __|/ _ \ |
-| | |  | | (_| | (_| | | | | | | (_| | |  _ <  __/ |  __/ (_| \__ \  __/ |
-| |_|  |_|\__,_|\__, |_| |_| |_|\__,_| |_| \_\___|_|\___|\__,_|___/\___| |
-\               |___/                                                    /
- ------------------------------------------------------------------------
-\                             .       .
- \                           / `.   .' "
-  \                  .---.  <    > <    >  .---.
-   \                 |    \  \ - ~ ~ - /  /    |
-         _____          ..-~             ~-..-~
-        |     |   \~~~\.'                    `./~~~/
-       ---------   \__/                        \__/
-      .'  O    \     /               /       \  "
-     (_____,    `._.'               |         }  \/~~~/
-      `----.          /       }     |        /    \__/
-            `-.      |       /      |       /      `. ,~~|
-                ~-.__|      /_ - ~ ^|      /- _      `..-'
-                     |     /        |     /     ~-.     `-. _  _  _
-                     |_____|        |_____|         ~ - . _ _ _ _ _>
-
-
-tl;dr
+TL;DR
 -----
-1) `build-magma.sh` on the dev VM creates packages.
-2) `vi CHANGELOG; fab dev shipit` on your host releases packages.
-3) Commit changes to build-magma.sh, CHANGELOG, and magma.lockfile.
+1. `build-magma.sh` on the dev VM creates packages.
+2. Commit changes to build-magma.sh, CHANGELOG, and magma.lockfile.
 
 Creating a release package.
 ---------------------------
@@ -50,12 +25,12 @@ Testing a release package before you push it.
 You should always do this. In general, try your best not to release broken
 packages.
 
-1) Build the release like you normally would.
-2) Spin up a fresh prod VM.
-3) Run `sudo apt-get install gdebi; cd magma/release; sudo gdebi
+1. Build the release like you normally would.
+2. Spin up a fresh prod VM or gateway and copy the magma_<version>.deb generated
+from build-magma.sh.
+3. Run `sudo apt-get install gdebi; sudo gdebi
    magma_<version>.deb'
-4) A VM reload will likely be required due to kernel upgrade. From the host, run
-   'vagrant reload magma_prod'
+4. A VM reload or gateway reboot will likely be required due to kernel upgrade. 
 
 This will simulate the exact steps that apt-get performs in production.
 After you've done this, your environment is identical to what you'll have if
@@ -67,22 +42,13 @@ upgrade from. For example, if you want to test upgrading from the currrently
 released version N to the new version N+1, install magma v(N) on the prod VM,
 then install your pre-release package of magma v(N+1).
 
-Pushing a release.
-------------------
-Once you're ready to release some packages, copy them to the ~/magma-packages
-directory in your dev VM. Then, on your host machine, run `fab dev shipit` and
-follow the instructions.
-
-You should assume that as soon as you ship code, boxes in the field start
-upgrading. So be sure you're comfortable with what you're shipping.
-
 Building Python dependencies.
 -----------------------------
 The `pydep` tool lets you build Python dependencies. By default,
 `build-magma.sh` figures out what Python packages we depend on, but it doesn't
 build those packages. You can manually build packages by running
 
-    `./pydep finddep -b ../python/setup.py`
+`./pydep finddep -b ../python/setup.py`
 
 This will figure out what Python dependencies aren't satisfied by released
 system packages and build those. You only need to do this when you've added a

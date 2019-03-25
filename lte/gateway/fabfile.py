@@ -102,22 +102,7 @@ def connect_gateway_to_cloud(control_proxy_setting_path=None, cert_path=DEFAULT_
     non-default control proxy setting and certificates
     """
     setup_env_vagrant()
-    # Add the override for the production endpoints
-    run("sudo rm -rf /var/opt/magma/configs")
-    run("sudo mkdir /var/opt/magma/configs")
-    if control_proxy_setting_path is not None:
-        run("sudo cp " + control_proxy_setting_path
-            + " /var/opt/magma/configs/control_proxy.yml")
-
-    # Copy certs which will be used by the bootstrapper
-    run("sudo rm -rf /var/opt/magma/certs")
-    run("sudo mkdir /var/opt/magma/certs")
-    run("sudo cp " + cert_path + " /var/opt/magma/certs/")
-
-    # Restart the bootstrapper in the gateway to use the new certs
-    run("sudo systemctl stop magma@*")
-    run("sudo systemctl restart magma@magmad")
-
+    dev_utils.connect_gateway_to_cloud(control_proxy_setting_path, cert_path)
 
 def _set_service_config_var(service, var_name, value):
     """ Sets variable in config file by value """

@@ -31,6 +31,7 @@ export const lightBlue = '#42a5f5';
 export const orange = '#f9a825';
 export const pink = '#f48fb1';
 export const red = '#e53935';
+export const redwood = '#d45C43';
 export const sea100 = '#6ca0b6';
 export const sea200 = '#0097a7';
 export const sea300 = '#455a64';
@@ -58,6 +59,7 @@ export default {
   pink,
   purple,
   red,
+  redwood,
   sea100,
   sea200,
   sea300,

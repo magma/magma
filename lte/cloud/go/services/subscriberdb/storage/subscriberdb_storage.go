@@ -112,6 +112,10 @@ func (s *SubscriberDBStorage) GetSubscriberData(lookup *lteprotos.SubscriberLook
 	if err != nil {
 		errMsg := fmt.Sprintf("Error fetching subscriber: %s, %s", sid, err)
 		glog.Error(errMsg)
+
+		if err == datastore.ErrNotFound {
+			return nil, status.Error(codes.NotFound, errMsg)
+		}
 		return nil, status.Error(codes.Aborted, errMsg)
 	}
 	if err = proto.Unmarshal(value, &subs); err != nil {
