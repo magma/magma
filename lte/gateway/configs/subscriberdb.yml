@@ -8,12 +8,17 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 log_level: INFO
+
+# Host address of the Diameter/S6A MME server
 host_address: 0.0.0.0 # Bind to all interfaces
+
+# Enable streaming from the cloud for subscriber updates
+enable_streaming: True
 
 # Keep subscriberdb in memory. Change to path to persist
 db_path: file::memory:?cache=shared
 
-# MME Configurations
+# S6A Peer Configurations
 mme_host_name: hss.magma.com
 mme_realm: magma.com
 mme_host_address: 127.0.0.1
