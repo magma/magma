@@ -81,8 +81,8 @@ void _mme_app_send_itti_sgsap_ue_activity_ind(
   SGSAP_UE_ACTIVITY_IND (message_p).imsi_length = imsi_len;
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
   OAILOG_DEBUG(LOG_NAS,
-     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : 
-     %s %d \n", imsi,imsi_len);
+     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi :" 
+     "%s %d \n", imsi,imsi_len);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
