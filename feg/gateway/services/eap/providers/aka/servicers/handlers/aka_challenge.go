@@ -77,8 +77,9 @@ attrLoop:
 			if atMac != nil {
 				break attrLoop
 			}
+		case aka.AT_CHECKCODE: // Ignore CHECKCODE for now
 		default:
-			log.Printf("Unexpected EAP-AKA Challenge Response Attribute type %d", a.Type())
+			log.Printf("INFO: Unexpected EAP-AKA Challenge Response Attribute type %d", a.Type())
 		}
 	}
 
@@ -127,9 +128,9 @@ attrLoop:
 			"Invalid AT_RES for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
 	}
 
-	// All good, set MSK & return SuccessCode
+	// All good, set IMSI & MSK & return SuccessCode
+	ctx.Imsi = string(imsi)
 	ctx.Msk = uc.MSK
-
 	// For now - cleanup after successful auth, TBD: keep CTX long term...
 	uc.Unlock()
 	s.RemoveSession(ctx.SessionId)

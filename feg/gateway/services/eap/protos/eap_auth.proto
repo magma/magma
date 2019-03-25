@@ -38,7 +38,8 @@ enum eap_code {
 
 message eap_context {
     string session_id = 1;
-    bytes msk = 2;
+    string imsi = 2;
+    bytes msk = 3;
 }
 
 message eap {

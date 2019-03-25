@@ -44,6 +44,7 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
 			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
 	}
+	ctx.Imsi = string(imsi) // set IMSI
 
 	p := make([]byte, len(req))
 	copy(p, req)

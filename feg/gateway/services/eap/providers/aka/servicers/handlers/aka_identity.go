@@ -54,6 +54,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				} else {
 					imsi = imsi[1:]
 				}
+				ctx.Imsi = string(imsi)                  // set IMSI
 				uc := s.InitSession(ctx.SessionId, imsi) // we have Locked User Ctx after this call
 				state, t := uc.State()
 				if state > aka.StateCreated {

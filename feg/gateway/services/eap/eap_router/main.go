@@ -10,15 +10,14 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"flag"
 	"log"
-	"net"
 
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 
+	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/eap/client"
 	"magma/feg/gateway/services/eap/protos"
+	"magma/orc8r/cloud/go/service"
 )
 
 type eapRouter struct {
@@ -26,18 +25,19 @@ type eapRouter struct {
 }
 
 func main() {
-	addr := flag.String("addr", ":11111", "Server address (host:port)")
-	flag.Parse()
-
-	log.Printf("Starting EAP Router on tcp: %s", *addr)
-	lis, err := net.Listen("tcp", *addr)
+	// Create the EAP AKA Provider service
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP)
 	if err != nil {
-		log.Fatalf("failed to create listener on address '%s': %v", *addr, err)
+		log.Fatalf("Error creating EAP Router service: %s", err)
 	}
 
-	grpcServer := grpc.NewServer()
-	protos.RegisterEapRouterServer(grpcServer, &eapRouter{supportedMethods: client.SupportedTypes()})
-	grpcServer.Serve(lis)
+	protos.RegisterEapRouterServer(srv.GrpcServer, &eapRouter{supportedMethods: client.SupportedTypes()})
+
+	// Run the service
+	err = srv.Run()
+	if err != nil {
+		log.Fatalf("Error running EAP Router service: %s", err)
+	}
 }
 
 func (s *eapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
