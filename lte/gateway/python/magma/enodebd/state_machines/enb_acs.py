@@ -42,6 +42,7 @@ class EnodebAcsStateMachine(ABC):
         self._desired_cfg = None
         self._device_cfg = None
         self._data_model = None
+        self._are_invasive_changes_applied = True
 
     def get_parameter(self, param: ParameterName) -> Any:
         """
@@ -153,6 +154,14 @@ class EnodebAcsStateMachine(ABC):
     @data_model.setter
     def data_model(self, data_model) -> None:
         self._data_model = data_model
+
+    @property
+    def are_invasive_changes_applied(self) -> bool:
+        return self._are_invasive_changes_applied
+
+    @are_invasive_changes_applied.setter
+    def are_invasive_changes_applied(self, is_applied: bool) -> None:
+        self._are_invasive_changes_applied = is_applied
 
     @property
     @abstractmethod
