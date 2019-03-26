@@ -20,6 +20,16 @@ from magma.enodebd.exceptions import ConfigurationError, \
 from magma.enodebd.tr069 import models
 
 
+def does_inform_have_event(
+    inform: models.Inform,
+    event_code: str,
+) -> bool:
+    """ True if the Inform message contains the specified event code """
+    for event in inform.Event.EventStruct:
+        if event.EventCode == event_code:
+            return True
+    return False
+
 def process_inform_message(
     inform: Any,
     device_name: EnodebDeviceName,

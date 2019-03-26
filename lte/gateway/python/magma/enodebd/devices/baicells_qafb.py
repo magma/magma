@@ -33,9 +33,9 @@ from magma.enodebd.state_machines.enb_acs_states import \
     WaitInformState, SendGetTransientParametersState, \
     GetParametersState, WaitGetParametersState, DeleteObjectsState, \
     AddObjectsState, SetParameterValuesState, WaitSetParameterValuesState, \
-    SendRebootState, WaitRebootResponseState, WaitInformMRebootState, \
-    EnodebAcsState, AcsMsgAndTransition, AcsReadMsgResult, \
-    WaitEmptyMessageState, ErrorState, EndSessionState
+    WaitRebootResponseState, WaitInformMRebootState, EnodebAcsState, \
+    AcsMsgAndTransition, AcsReadMsgResult, WaitEmptyMessageState, ErrorState, \
+    EndSessionState, BaicellsSendRebootState
 from magma.enodebd.tr069 import models
 from magma.enodebd.stats_manager import StatsManager
 
@@ -67,14 +67,14 @@ class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesState(self, when_done='wait_set_params'),
-            'wait_set_params': WaitSetParameterValuesState(self, when_done='check_get_params'),
+            'wait_set_params': WaitSetParameterValuesState(self, when_done='check_get_params', when_apply_invasive='check_get_params'),
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
             'end_session': EndSessionState(self),
-            # The state below are only entered with manual user intervention.
-            'reboot': SendRebootState(self, when_done='wait_reboot'),
+            # These states are only entered through manual user intervention
+            'reboot': BaicellsSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
-            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='get_transient_params', when_timeout='wait_inform'),
+            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
             'unexpected_fault': ErrorState(self),
