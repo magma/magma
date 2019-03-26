@@ -9,8 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 # pylint: disable=protected-access
 from unittest import TestCase
-from lte.gateway.python.magma.enodebd.devices.baicells import \
-    BaicellsTrDataModel
+from magma.enodebd.devices.baicells import BaicellsTrDataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import \
     _set_pci, _set_bandwidth, _set_tdd_subframe_config, \
@@ -18,44 +17,20 @@ from magma.enodebd.device_config.configuration_init import \
     _set_misc_static_params, _set_plmnids_tac, _set_earfcn_freq_band_mode
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
-from gateway.python.magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.exceptions import ConfigurationError
 
 
 class EnodebConfigurationFactoryTest(TestCase):
 
     def setUp(self):
-        self.cfg = EnodebConfiguration(BaicellsTrDataModel)
-        self.device_cfg = EnodebConfiguration(BaicellsTrDataModel)
+        self.data_model = BaicellsTrDataModel()
+        self.cfg = EnodebConfiguration(BaicellsTrDataModel())
+        self.device_cfg = EnodebConfiguration(BaicellsTrDataModel())
 
     def tearDown(self):
+        self.data_model = None
         self.cfg = None
         self.device_cfg = None
-
-    def _get_mconfig(self):
-        return {
-            "@type": "type.googleapis.com/magma.mconfig.EnodebD",
-            "bandwidthMhz": 20,
-            "specialSubframePattern": 7,
-            "earfcndl": 44490,
-            "logLevel": "INFO",
-            "plmnidList": "00101",
-            "pci": 260,
-            "allowEnodebTransmit": False,
-            "subframeAssignment": 2,
-            "tac": 1
-        },
-
-    def _get_service_config(self):
-        return {
-            "tr069": {
-                "interface": "eth1",
-                "port": 48080,
-                "perf_mgmt_port": 8081,
-                "public_ip": "192.88.99.142",
-            },
-            "reboot_enodeb_on_mme_disconnected": True,
-            "s1_interface": "eth1",
-        }
 
     def test_set_pci(self):
         pci = 3
@@ -67,7 +42,7 @@ class EnodebConfigurationFactoryTest(TestCase):
 
     def test_set_bandwidth(self):
         mhz = 15
-        _set_bandwidth(self.cfg, mhz)
+        _set_bandwidth(self.cfg, self.data_model, mhz)
         self.assertEqual(self.cfg.get_parameter(ParameterName.DL_BANDWIDTH),
                          mhz,
                          'Should have set %s' % ParameterName.DL_BANDWIDTH)
@@ -148,9 +123,9 @@ class EnodebConfigurationFactoryTest(TestCase):
 
     def test_set_misc_static_params(self):
         # IPSec enable as integer
-        data_model = BaicellsTrDataModel
         self.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 0)
-        _set_misc_static_params(self.device_cfg, self.cfg, data_model)
+        self.data_model.set_parameter_presence(ParameterName.GPS_ENABLE, True)
+        _set_misc_static_params(self.device_cfg, self.cfg, self.data_model)
         self.assertTrue(
             isinstance(
                 self.cfg.get_parameter(ParameterName.IP_SEC_ENABLE), int),
@@ -158,7 +133,7 @@ class EnodebConfigurationFactoryTest(TestCase):
 
         # IPSec enable as boolean
         self.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'False')
-        _set_misc_static_params(self.device_cfg, self.cfg, data_model)
+        _set_misc_static_params(self.device_cfg, self.cfg, self.data_model)
         self.assertTrue(
             isinstance(
                 self.cfg.get_parameter(ParameterName.IP_SEC_ENABLE), bool),
@@ -175,20 +150,19 @@ class EnodebConfigurationFactoryTest(TestCase):
 
     def test_set_plmnids_tac(self):
         # We only handle a single PLMNID for now
-        data_model = BaicellsTrDataModel
         plmnids = '1, 2, 3, 4'
         tac = 1
         with self.assertRaises(ConfigurationError):
-            _set_plmnids_tac(self.cfg, data_model, plmnids, tac)
+            _set_plmnids_tac(self.cfg, plmnids, tac)
 
         # Max PLMNID length is 6 characters
         plmnids = '1234567'
         with self.assertRaises(ConfigurationError):
-            _set_plmnids_tac(self.cfg, data_model, plmnids, tac)
+            _set_plmnids_tac(self.cfg, plmnids, tac)
 
         # Check that only one PLMN element is enabled
         plmnids = '1'
-        _set_plmnids_tac(self.cfg, data_model, plmnids, tac)
+        _set_plmnids_tac(self.cfg, plmnids, tac)
         self.assertTrue(
             self.cfg.get_parameter_for_object(
                 ParameterName.PLMN_N_ENABLE % 1, ParameterName.PLMN_N % 1),
@@ -201,18 +175,20 @@ class EnodebConfigurationFactoryTest(TestCase):
         with self.assertRaises(ConfigurationError):
             invalid_earfcndl = -1
             _set_earfcn_freq_band_mode(self.device_cfg, self.cfg,
-                                       invalid_earfcndl)
+                                       self.data_model, invalid_earfcndl)
 
         # Duplex_mode is TDD but capability is FDD
         with self.assertRaises(ConfigurationError):
             self.device_cfg.set_parameter(
                 ParameterName.DUPLEX_MODE_CAPABILITY, 'FDDMode')
             earfcndl = 38650  # Corresponds to TDD
-            _set_earfcn_freq_band_mode(self.device_cfg, self.cfg, earfcndl)
+            _set_earfcn_freq_band_mode(self.device_cfg, self.cfg,
+                                       self.data_model, earfcndl)
 
         # Duplex_mode is FDD but capability is TDD
         with self.assertRaises(ConfigurationError):
             self.device_cfg.set_parameter(
                 ParameterName.DUPLEX_MODE_CAPABILITY, 'TDDMode')
             earfcndl = 0  # Corresponds to FDD
-            _set_earfcn_freq_band_mode(self.device_cfg, self.cfg, earfcndl)
+            _set_earfcn_freq_band_mode(self.device_cfg, self.cfg,
+                                       self.data_model, earfcndl)
