@@ -14,8 +14,7 @@ from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.stats_manager import StatsManager
-from gateway.python.magma.enodebd.test_utils.config_builder import \
-    EnodebConfigBuilder
+from magma.enodebd.test_utils.config_builder import EnodebConfigBuilder
 
 
 class EnodebAcsStateMachineBuilder:
