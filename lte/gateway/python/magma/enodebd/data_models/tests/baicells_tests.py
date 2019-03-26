@@ -10,8 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 # pylint: disable=protected-access
 
 from unittest import TestCase
-from lte.gateway.python.magma.enodebd.devices.baicells import \
-    BaicellsTrDataModel
+from magma.enodebd.devices.baicells import BaicellsTrDataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 
 
