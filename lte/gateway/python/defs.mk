@@ -10,6 +10,7 @@ PROTO_LIST:=orc8r_protos lte_protos feg_protos
 # Path to the test files
 TESTS=magma/tests \
       magma/enodebd/tests \
+      magma/enodebd/device_config/tests \
       magma/mobilityd/tests \
       magma/pipelined/openflow/tests \
       magma/pkt_tester/tests \
