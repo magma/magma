@@ -17,7 +17,7 @@ from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
 
 
-class BaicellsHandlerTests(TestCase):
+class BaicellsOldHandlerTests(TestCase):
     def test_initial_enb_bootup(self) -> None:
         """
         Baicells does not support configuration during initial bootup of
@@ -31,13 +31,13 @@ class BaicellsHandlerTests(TestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS_OLD)
 
         # Send an Inform message
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0003',
-                                                    ['1 BOOT'])
+        inform_msg = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003', ['1 BOOT'])
         resp = acs_state_machine.handle_tr069_message(inform_msg)
 
         self.assertTrue(isinstance(resp, models.DummyInput),
@@ -54,10 +54,14 @@ class BaicellsHandlerTests(TestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS_OLD)
 
         # Send an Inform message, wait for an InformResponse
-        inform_msg = Tr069MessageBuilder.get_inform()
+        inform_msg = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC001',
+                                           '120200002618AGP0003',
+                                           ['2 PERIODIC'])
         resp = acs_state_machine.handle_tr069_message(inform_msg)
         self.assertTrue(isinstance(resp, models.InformResponse),
                         'Should respond with an InformResponse')
@@ -66,7 +70,15 @@ class BaicellsHandlerTests(TestCase):
         req = models.DummyInput()
         resp = acs_state_machine.handle_tr069_message(req)
 
-        # Expect a request for an optional parameter, three times
+        # Expect a request for an optional parameter, five times
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
         self.assertTrue(isinstance(resp, models.GetParameterValues),
                         'State machine should be requesting param values')
         req = Tr069MessageBuilder.get_fault()
@@ -130,7 +142,11 @@ class BaicellsHandlerTests(TestCase):
         # If a different eNB is suddenly plugged in, or the same eNB sends a
         # new Inform, enodebd should be able to handle it.
         # Send an Inform message, wait for an InformResponse
-        inform_msg = Tr069MessageBuilder.get_inform()
+        inform_msg = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003',
+                                           ['2 PERIODIC'])
         resp = acs_state_machine.handle_tr069_message(inform_msg)
         self.assertTrue(isinstance(resp, models.InformResponse),
                         'Should respond with an InformResponse')
@@ -162,13 +178,14 @@ class BaicellsHandlerTests(TestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder\
-            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_OLD)
 
         # Send an Inform message, wait for an InformResponse
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0003',
-                                                    ['2 PERIODIC'])
+        inform_msg = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003',
+                                           ['2 PERIODIC'])
         resp = acs_state_machine.handle_tr069_message(inform_msg)
         self.assertTrue(isinstance(resp, models.InformResponse),
                         'Should respond with an InformResponse')
@@ -177,7 +194,15 @@ class BaicellsHandlerTests(TestCase):
         req = models.DummyInput()
         resp = acs_state_machine.handle_tr069_message(req)
 
-        # Expect a request for an optional parameter, three times
+        # Expect a request for an optional parameter, five times
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
         self.assertTrue(isinstance(resp, models.GetParameterValues),
                         'State machine should be requesting param values')
         req = Tr069MessageBuilder.get_fault()
@@ -240,9 +265,11 @@ class BaicellsHandlerTests(TestCase):
         # At this point, sometime after the eNodeB reboots, we expect it to
         # send an Inform indicating reboot. Since it should be in REM process,
         # we hold off on finishing configuration, and end TR-069 sessions.
-        req = Tr069MessageBuilder.get_inform('48BF74', 'BaiBS_RTS_3.1.6',
-                                             '120200002618AGP0003',
-                                             ['1 BOOT', 'M Reboot'])
+        req = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003',
+                                           ['1 BOOT', 'M Reboot'])
         resp = acs_state_machine.handle_tr069_message(req)
         self.assertTrue(isinstance(resp, models.DummyInput),
                         'After receiving a post-reboot Inform, enodebd '
