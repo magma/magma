@@ -30,6 +30,7 @@ module.exports.overrides = [
       '.eslintrc.js',
       'babel.config.js',
       'jest.config.js',
+      'jest.*.config.js',
       'fbcnms-packages/eslint-config-fbcnms/**/*.js',
       'fbcnms-packages/fbcnms-auth/**/*.js',
       'fbcnms-packages/fbcnms-babel-register/**/*.js',
