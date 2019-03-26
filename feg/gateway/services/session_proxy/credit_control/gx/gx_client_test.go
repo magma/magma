@@ -87,6 +87,15 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, "mkey", *ruleDefinitions[0].MonitoringKey)
 	assert.Equal(t, uint32(128000), *ruleDefinitions[0].Qos.MaxReqBwUL)
 	assert.Equal(t, uint32(128000), *ruleDefinitions[0].Qos.MaxReqBwDL)
+	if ruleDefinitions[0].Qos.GbrUL != nil {
+		assert.Equal(t, uint32(64000), *ruleDefinitions[0].Qos.GbrUL)
+	}
+	if ruleDefinitions[0].Qos.GbrDL != nil {
+		assert.Equal(t, uint32(64000), *ruleDefinitions[0].Qos.GbrDL)
+	}
+	if ruleDefinitions[0].Qos.Qci != nil {
+		assert.Equal(t, int32(8), int32(*ruleDefinitions[0].Qos.Qci))
+	}
 
 	// send terminate
 	ccrTerminate := &gx.CreditControlRequest{
@@ -278,7 +287,17 @@ func startServer(
 
 		maxReqBWUL := uint32(128000)
 		maxReqBWDL := uint32(128000)
-		qos := &protos.FlowQos{MaxReqBwUl: maxReqBWUL, MaxReqBwDl: maxReqBWDL}
+		gbrDL := uint32(64000)
+		gbrUL := uint32(64000)
+		qci := protos.FlowQos_Qci(8)
+
+		qos := &protos.FlowQos{
+			MaxReqBwUl: maxReqBWUL,
+			MaxReqBwDl: maxReqBWDL,
+			GbrDl:      gbrDL,
+			GbrUl:      gbrUL,
+			Qci:        qci,
+		}
 
 		pcrf.SetRules(
 			ctx,

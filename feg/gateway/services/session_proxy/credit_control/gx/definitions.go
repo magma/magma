@@ -109,6 +109,9 @@ type RuleDefinition struct {
 type QosInformation struct {
 	MaxReqBwUL *uint32 `avp:"Max-Requested-Bandwidth-UL"`
 	MaxReqBwDL *uint32 `avp:"Max-Requested-Bandwidth-DL"`
+	GbrDL      *uint32 `avp:"Guaranteed-Bitrate-DL"`
+	GbrUL      *uint32 `avp:"Guaranteed-Bitrate-UL"`
+	Qci        *int32  `avp:"QoS-Class-Identifier"`
 }
 
 // RuleInstallAVP represents a policy rule to install. It can hold one of
