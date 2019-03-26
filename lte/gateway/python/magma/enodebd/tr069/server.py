@@ -27,7 +27,7 @@ from .spyne_mods import Tr069Application, Tr069Soap11
 SOCKET_TIMEOUT = 240
 
 class tr069_WSGIRequestHandler(WSGIRequestHandler):
-    timeout = 600
+    timeout = 10
     # pylint: disable=attribute-defined-outside-init
     def handle_single(self):
         """Handle a single HTTP request"""
