@@ -11,7 +11,6 @@ package servicers
 import (
 	"bytes"
 	"fmt"
-	"log"
 
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
@@ -153,11 +152,10 @@ func GetNextLteAuthSqnAfterResync(state *protos.SubscriberState, sqn uint64) (ui
 	currentSeq := state.LteAuthNextSeq - 1
 	if seq < currentSeq {
 		seqDelta := currentSeq - seq
-
 		if seqDelta <= maxSeqDelta {
 			// This error indicates that the last sequence number should have been
 			// accepted by the USIM but wasn't (this should never happen).
-			log.Printf("WARNING: Re-sync delta in range but UE rejected auth: %d", seqDelta)
+			return 0, NewAuthRejectedError(fmt.Sprintf("Re-sync delta in range but UE rejected auth: %d", seqDelta))
 		}
 	}
 
