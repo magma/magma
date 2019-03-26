@@ -845,18 +845,33 @@ class BaicellsSendRebootState(EnodebAcsState):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.prev_msg_was_inform = False
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
         This state can be transitioned into through user command.
         All messages received by enodebd will be ignored in this state.
         """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(message, self.acs.device_name,
+                                   self.acs.data_model, self.acs.device_cfg)
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
+        logging.info('Sending reboot request to eNB')
         request = models.Reboot()
         request.CommandKey = ''
-        logging.info('Sending reboot to eNB')
         self.acs.are_invasive_changes_applied = True
         return AcsMsgAndTransition(request, self.done_transition)
 
@@ -870,15 +885,30 @@ class SendRebootState(EnodebAcsState):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.prev_msg_was_inform = False
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
         This state can be transitioned into through user command.
         All messages received by enodebd will be ignored in this state.
         """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(message, self.acs.device_name,
+                                   self.acs.data_model, self.acs.device_cfg)
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
         logging.info('Sending reboot request to eNB')
         request = models.Reboot()
         request.CommandKey = ''
