@@ -758,11 +758,10 @@ class WaitSetParameterValuesState(EnodebAcsState):
                     logging.error('SetParameterValuesFault Param: %s, '
                                   'Code: %s, String: %s', fault.ParameterName,
                                   fault.FaultCode, fault.FaultString)
-            raise Tr069Error(
-                'Received Fault in response to SetParameterValues '
-                '(faultstring = %s)' % message.FaultString)
-        else:
-            return AcsReadMsgResult(False, None)
+                logging.error('Received Fault in response to '
+                              'SetParameterValues (faultstring = %s)',
+                              message.FaultString)
+        return AcsReadMsgResult(False, None)
 
     def _mark_as_configured(self) -> None:
         """
