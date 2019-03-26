@@ -11,8 +11,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 from unittest import TestCase
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.tr069 import models
-from magma.enodebd.test_utils.tr069_msg_builder import Tr069MessageBuilder
-from magma.enodebd.test_utils.enb_acs_builder import \
+from magma.enodebd.tests.test_utils.tr069_msg_builder import \
+    Tr069MessageBuilder
+from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
 
 
