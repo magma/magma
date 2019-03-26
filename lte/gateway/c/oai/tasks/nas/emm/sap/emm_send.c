@@ -224,8 +224,9 @@ int emm_send_attach_accept(
   // Get the UE context
   emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id;
+  ue_mm_context_t *ue_mm_context_p =
+    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
+  mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message\n");
@@ -266,7 +267,7 @@ int emm_send_attach_accept(
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
         ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) || 
-        is_mme_ue_context_network_access_mode_packet_only(ue_id))){
+        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -460,7 +461,7 @@ int emm_send_attach_accept(
    */
 
   if ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-     (is_mme_ue_context_network_access_mode_packet_only(ue_id))) {
+     (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = emm_ctx->emm_cause;
@@ -513,8 +514,9 @@ int emm_send_attach_accept_dl_nas(
   // Get the UE context
   emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id;
+  ue_mm_context_t *ue_mm_context_p =
+    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
+  mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
 
   OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message\n");
@@ -555,7 +557,7 @@ int emm_send_attach_accept_dl_nas(
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
         ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) || 
-        is_mme_ue_context_network_access_mode_packet_only(ue_id))){
+        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -731,7 +733,7 @@ int emm_send_attach_accept_dl_nas(
 
   if (
      ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-     is_mme_ue_context_network_access_mode_packet_only(ue_id)) &&
+     is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) &&
     (msg->emm_cause)) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;

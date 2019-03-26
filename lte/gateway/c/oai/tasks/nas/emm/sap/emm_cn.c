@@ -432,14 +432,13 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
   
   ue_mm_context_t *ue_mm_context_p =
     PARENT_STRUCT(emm_ctx_p, struct ue_mm_context_s, emm_context);
-  mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   char *non_eps_service_control = bdata(mme_config.non_eps_service_control);
 
   if (emm_ctx_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) {
     if (
       !(strcmp(non_eps_service_control, "SMS")) ||
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
-      if(is_mme_ue_context_network_access_mode_packet_only(ue_id)) {
+      if(is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
          emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
       } else {
          OAILOG_DEBUG(

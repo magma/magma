@@ -452,7 +452,8 @@ int mme_app_handle_nas_cs_domain_location_update_req(
       LOG_MME_APP,
       "Sending Location Update message to SGS task with IMSI" IMSI_64_FMT "\n",
       ue_context->imsi);
-  }else if(ue_context->sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
+  } else if(ue_context->sgs_context->ts6_1_timer.id !=
+            MME_APP_TIMER_INACTIVE_ID) {
     //Ignore the the messae as Location Update procedure is already triggered
     OAILOG_WARNING(
       LOG_MME_APP,
