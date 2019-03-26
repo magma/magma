@@ -40,7 +40,20 @@ var (
 	testHmac   = [20]byte{222, 124, 155, 133, 184, 183, 138, 166, 188, 138, 122, 54, 247, 10, 144, 112, 28, 157, 180, 217}
 	ueTestData = []byte{2, 2, 0, 40, 23, 1, 0, 0, 11, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0,
 		64, 41, 92, 0, 234, 227, 136, 147, 13}
-	ueMac = []byte{253, 43, 80, 189, 50, 36, 122, 215, 50, 157, 157, 38, 65, 96, 68, 70}
+	ueMac                 = []byte{253, 43, 80, 189, 50, 36, 122, 215, 50, 157, 157, 38, 65, 96, 68, 70}
+	MS_MPPE_Send_Key_Salt = []byte{0x9b, 0x87}
+	MS_MPPE_Recv_Key_Salt = []byte{0x95, 0x63}
+	authenticator         = []byte{
+		0x9f, 0xe8, 0xff, 0xcb, 0xc9, 0xd4, 0x85, 0x97, 0xb9, 0x5b, 0x79, 0x7c, 0x2d, 0xf5, 0x43, 0x31}
+	sharedSecret = []byte("1qaz2wsx")
+
+	// Expected MS_MPPE_Send_Key
+	MS_MPPE_Send_Key = []byte{0x9b, 0x87, 0x83, 0x49, 0x6a, 0x78, 0xcc, 0xaa, 0x34, 0x4e, 0x45, 0x51, 0x7f, 0x15,
+		0x37, 0xf9, 0x30, 0x94, 0x26, 0x07, 0x60, 0x68, 0x97, 0xf0, 0xb5, 0x69, 0xab, 0x1d, 0x61, 0x9d, 0x8b, 0xa9,
+		0x85, 0x3c, 0xc8, 0xaf, 0x68, 0x4b, 0xaa, 0x8f, 0x8f, 0x77, 0x5f, 0x68, 0x94, 0xf0, 0xcd, 0xc6, 0xc9, 0x2f}
+	MS_MPPE_Recv_Key = []byte{0x95, 0x63, 0x3c, 0x3a, 0xa5, 0x8b, 0x48, 0xbe, 0xde, 0x6d, 0x2c, 0x1a, 0x91, 0x70,
+		0x71, 0xf5, 0x63, 0xd4, 0xed, 0x7f, 0xba, 0xb3, 0xec, 0x61, 0xed, 0x7e, 0x3a, 0xf4, 0x82, 0x06, 0x58, 0x71,
+		0x8c, 0xf7, 0xee, 0x86, 0x81, 0x0d, 0xf4, 0xf9, 0xf4, 0xb7, 0xb9, 0xdd, 0x14, 0xca, 0xc3, 0xbd, 0x95, 0x80}
 )
 
 func TestMacGeneration(t *testing.T) {
@@ -55,6 +68,11 @@ func TestMacGeneration(t *testing.T) {
 
 	K_encr, K_aut, MSK, EMSK := MakeAKAKeys([]byte(origIdentity), []byte(IK), []byte(CK))
 	t.Logf("Generated keys:\n\tK_encr=%v\n\tK_aut=%v\n\tMSK=%v\n\tEMSK=%v", K_encr, K_aut, MSK, EMSK)
+
+	t.Logf("Generated MS_MPPE_Recv_Key:\n\t%x",
+		EncodeMsMppeKey(MS_MPPE_Recv_Key_Salt, MSK[0:32], authenticator, sharedSecret))
+	t.Logf("Generated MS_MPPE_Send_Key:\n\t%x",
+		EncodeMsMppeKey(MS_MPPE_Send_Key_Salt, MSK[32:64], authenticator, sharedSecret))
 
 	if len(K_encr) != 16 {
 		t.Fatalf("Invalid K_encr Len: %d", len(K_encr))
@@ -89,4 +107,23 @@ func TestMacGeneration(t *testing.T) {
 			"MACs don't match.\n\tGenerated UE MAC(%d): %v\n\tExpected  UE MAC(%d): %v",
 			len(mac), mac, len(ueMac), ueMac)
 	}
+
+	genMS_MPPE_Send_Key := append(
+		MS_MPPE_Send_Key_Salt,
+		EncodeMsMppeKey(MS_MPPE_Send_Key_Salt, MSK[32:64], authenticator, sharedSecret)...)
+	if !reflect.DeepEqual(genMS_MPPE_Send_Key, MS_MPPE_Send_Key) {
+		t.Fatalf(
+			"MS_MPPE_Send_Keys mismatch.\n\tGenerated MS_MPPE_Send_Key(%d): %v\n\tExpected  MS_MPPE_Send_Key(%d): %v",
+			len(genMS_MPPE_Send_Key), genMS_MPPE_Send_Key, len(MS_MPPE_Send_Key), MS_MPPE_Send_Key)
+	}
+
+	genMS_MPPE_Recv_Key := append(
+		MS_MPPE_Recv_Key_Salt,
+		EncodeMsMppeKey(MS_MPPE_Recv_Key_Salt, MSK[0:32], authenticator, sharedSecret)...)
+	if !reflect.DeepEqual(genMS_MPPE_Recv_Key, MS_MPPE_Recv_Key) {
+		t.Fatalf(
+			"MS_MPPE_Recv_Keys mismatch.\n\tGenerated MS_MPPE_Recv_Key(%d): %v\n\tExpected  MS_MPPE_Recv_Key(%d): %v",
+			len(genMS_MPPE_Recv_Key), genMS_MPPE_Recv_Key, len(MS_MPPE_Recv_Key), MS_MPPE_Recv_Key)
+	}
+
 }

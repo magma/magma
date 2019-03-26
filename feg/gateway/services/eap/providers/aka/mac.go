@@ -11,6 +11,7 @@ package aka
 
 import (
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/sha1"
 	"math/big"
 
@@ -212,4 +213,45 @@ func AppendMac(p eap.Packet, K_aut []byte) (eap.Packet, error) {
 	// Set AT_MAC
 	copy(p[atMacOffset:], mac)
 	return p, nil
+}
+
+func EncodeMsMppeKey(salt, key, authenticatorKey, sharedSecret []byte) []byte {
+	l := len(key) + 1
+	reminder := l % 16
+	if reminder != 0 {
+		l += 16 - reminder
+	}
+	p := make([]byte, l)
+	p[0] = byte(len(key))
+	copy(p[1:], key)
+	// b(1) = MD5(S + R + A)    c(1) = p(1) xor b(1)   C = c(1)
+	hash := md5.New()
+	hash.Write(sharedSecret)
+	hash.Write(authenticatorKey)
+	hash.Write(salt)
+	b := hash.Sum(nil)
+	c := xor(p[:16], b)
+	C := c
+	for pstart := 16; pstart < l; pstart += 16 {
+		// b(i) = MD5(S + c(i-1))   c(i) = p(i) xor b(i)   C = C + c(i)
+		hash.Reset()
+		hash.Write(sharedSecret)
+		hash.Write(c)
+		b = hash.Sum(nil)
+		c = xor(p[pstart:pstart+16], b)
+		C = append(C, c...)
+	}
+	return C
+}
+
+func xor(a, b []byte) []byte {
+	l := len(a)
+	if len(b) < l {
+		l = len(b)
+	}
+	res := make([]byte, l)
+	for i := 0; i < l; i++ {
+		res[i] = a[i] ^ b[i]
+	}
+	return res
 }
