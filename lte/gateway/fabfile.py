@@ -297,9 +297,9 @@ def _oai_coverage():
 
 def _run_unit_tests():
     """ Run the magma unit tests """
-    with cd(AGW_PYTHON_ROOT):
+    with cd(AGW_ROOT):
         # Run the unit tests
-        run('make test_all')
+        run('make test')
 
 
 def _python_coverage():
