@@ -80,6 +80,14 @@ message GenericCommandResponse {
   google.protobuf.Struct response = 1;
 }
 
+message TailLogsRequest {
+  string service = 1;
+}
+
+message LogLine {
+  string line = 1;
+}
+
 // --------------------------------------------------------------------------
 // Magmad service definition.
 // --------------------------------------------------------------------------
@@ -111,6 +119,9 @@ service Magmad {
 
   // Execute generic command
   rpc GenericCommand (GenericCommandParams) returns (GenericCommandResponse) {}
+
+  // Get stream of logs
+  rpc TailLogs (TailLogsRequest) returns (stream LogLine) {}
 }
 
 message SystemStatus {

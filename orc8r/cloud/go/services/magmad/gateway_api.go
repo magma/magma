@@ -77,3 +77,17 @@ func GatewayGenericCommand(networkId string, gatewayId string, params *protos.Ge
 
 	return client.GenericCommand(ctx, params)
 }
+
+func TailGatewayLogs(networkId string, gatewayId string, service string) (protos.Magmad_TailLogsClient, *grpc.ClientConn, error) {
+	client, conn, ctx, err := getGWMagmadClient(networkId, gatewayId)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	stream, err := client.TailLogs(ctx, &protos.TailLogsRequest{Service: service})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return stream, conn, nil
+}
