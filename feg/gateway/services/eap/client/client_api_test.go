@@ -108,6 +108,9 @@ func TestEAPClientApi(t *testing.T) {
 			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), expectedTestEap)
 	}
+
+	aka.SetSessionAuthenticatedTimeout(time.Millisecond * 200)
+
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapChallengeResp, Ctx: eapCtx})
 	if err != nil {
@@ -118,6 +121,16 @@ func TestEAPClientApi(t *testing.T) {
 			"Unexpected Challenge Response EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), expectedChallengeResp)
 	}
+
+	time.Sleep(time.Millisecond * 10)
+
+	eapCtx = peap.GetCtx()
+	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapChallengeResp, Ctx: eapCtx})
+	if err != nil {
+		t.Fatalf("Error Handling Second Test Challenge EAP within Auth timeout window: %v", err)
+	}
+
+	time.Sleep(aka.SessionAuthenticatedTimeout() + time.Millisecond*10)
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapChallengeResp, Ctx: eapCtx})
@@ -138,7 +151,7 @@ func TestEAPClientApi(t *testing.T) {
 		t.Fatalf("Error Handling second Test EAP: %v", err)
 	}
 
-	time.Sleep(aka.ChallengeTimeout() + time.Millisecond * 100)
+	time.Sleep(aka.ChallengeTimeout() + time.Millisecond*20)
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapChallengeResp, Ctx: eapCtx})

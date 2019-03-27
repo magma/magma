@@ -368,7 +368,7 @@ func (s *EapAkaSrv) ResetSessionTimeout(sessionId string, newTimeout time.Durati
 	s.rwl.Lock()
 	session, exist := s.sessions[sessionId]
 	if exist {
-		if session == nil {
+		if session != nil {
 			oldTimer, session.CleanupTimer = session.CleanupTimer, time.AfterFunc(newTimeout, func() {
 				sessionTimeoutCleanup(s, sessionId, session)
 			})
