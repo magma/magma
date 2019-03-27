@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 # pylint: disable=protected-access
 from unittest import TestCase, mock
+from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.tr069 import models
 from magma.enodebd.tests.test_utils.tr069_msg_builder import \
@@ -79,6 +80,68 @@ class BaicellsHandlerTests(TestCase):
         self.assertTrue(isinstance(resp, models.DummyInput),
                         'State machine should end TR-069 session after '
                         'receiving a RebootResponse')
+
+    def test_gps_coords(self) -> None:
+        """ Check GPS coordinates are processed and stored correctly """
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder \
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
+                                                    'BaiBS_RTS_3.1.6',
+                                                    '120200002618AGP0003',
+                                                    ['2 PERIODIC'])
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # Send an empty http request to kick off the rest of provisioning
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for an optional parameter, three times
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = models.GetParameterValuesResponse()
+        param_val_list = [Tr069MessageBuilder.get_parameter_value_struct(
+            name='Device.X_BAICELLS_COM_GpsSyncEnable',
+            val_type='boolean',
+            data='true',
+        )]
+        req.ParameterList = models.ParameterValueList()
+        req.ParameterList.ParameterValueStruct = param_val_list
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = models.GetParameterValuesResponse()
+        param_val_list = [Tr069MessageBuilder.get_parameter_value_struct(
+            name='Device.FAP.GPS.LockedLatitude',
+            val_type='int',
+            data='37483629',
+        )]
+        req.ParameterList = models.ParameterValueList()
+        req.ParameterList.ParameterValueStruct = param_val_list
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = models.GetParameterValuesResponse()
+        param_val_list = [Tr069MessageBuilder.get_parameter_value_struct(
+            name='Device.FAP.GPS.LockedLongitude',
+            val_type='int',
+            data='-122150583',
+        )]
+        req.ParameterList = models.ParameterValueList()
+        req.ParameterList.ParameterValueStruct = param_val_list
+        acs_state_machine.handle_tr069_message(req)
+
+        gps_long = acs_state_machine.get_parameter(ParameterName.GPS_LONG)
+        gps_lat = acs_state_machine.get_parameter(ParameterName.GPS_LAT)
+
+        self.assertTrue(gps_long == '-122.150583', 'Should be valid longitude')
+        self.assertTrue(gps_lat == '37.483629', 'Should be valid latitude')
 
     def test_manual_reboot_during_provisioning(self) -> None:
         """
