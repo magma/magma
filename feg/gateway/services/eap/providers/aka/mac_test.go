@@ -10,6 +10,8 @@ package aka
 import (
 	"reflect"
 	"testing"
+
+	"magma/feg/gateway/services/eap"
 )
 
 const (
@@ -70,9 +72,9 @@ func TestMacGeneration(t *testing.T) {
 	t.Logf("Generated keys:\n\tK_encr=%v\n\tK_aut=%v\n\tMSK=%v\n\tEMSK=%v", K_encr, K_aut, MSK, EMSK)
 
 	t.Logf("Generated MS_MPPE_Recv_Key:\n\t%x",
-		EncodeMsMppeKey(MS_MPPE_Recv_Key_Salt, MSK[0:32], authenticator, sharedSecret))
+		eap.EncodeMsMppeKey(MS_MPPE_Recv_Key_Salt, MSK[0:32], authenticator, sharedSecret))
 	t.Logf("Generated MS_MPPE_Send_Key:\n\t%x",
-		EncodeMsMppeKey(MS_MPPE_Send_Key_Salt, MSK[32:64], authenticator, sharedSecret))
+		eap.EncodeMsMppeKey(MS_MPPE_Send_Key_Salt, MSK[32:64], authenticator, sharedSecret))
 
 	if len(K_encr) != 16 {
 		t.Fatalf("Invalid K_encr Len: %d", len(K_encr))
@@ -110,7 +112,7 @@ func TestMacGeneration(t *testing.T) {
 
 	genMS_MPPE_Send_Key := append(
 		MS_MPPE_Send_Key_Salt,
-		EncodeMsMppeKey(MS_MPPE_Send_Key_Salt, MSK[32:64], authenticator, sharedSecret)...)
+		eap.EncodeMsMppeKey(MS_MPPE_Send_Key_Salt, MSK[32:64], authenticator, sharedSecret)...)
 	if !reflect.DeepEqual(genMS_MPPE_Send_Key, MS_MPPE_Send_Key) {
 		t.Fatalf(
 			"MS_MPPE_Send_Keys mismatch.\n\tGenerated MS_MPPE_Send_Key(%d): %v\n\tExpected  MS_MPPE_Send_Key(%d): %v",
@@ -119,7 +121,7 @@ func TestMacGeneration(t *testing.T) {
 
 	genMS_MPPE_Recv_Key := append(
 		MS_MPPE_Recv_Key_Salt,
-		EncodeMsMppeKey(MS_MPPE_Recv_Key_Salt, MSK[0:32], authenticator, sharedSecret)...)
+		eap.EncodeMsMppeKey(MS_MPPE_Recv_Key_Salt, MSK[0:32], authenticator, sharedSecret)...)
 	if !reflect.DeepEqual(genMS_MPPE_Recv_Key, MS_MPPE_Recv_Key) {
 		t.Fatalf(
 			"MS_MPPE_Recv_Keys mismatch.\n\tGenerated MS_MPPE_Recv_Key(%d): %v\n\tExpected  MS_MPPE_Recv_Key(%d): %v",

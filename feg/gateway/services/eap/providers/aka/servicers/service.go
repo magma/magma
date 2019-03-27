@@ -249,7 +249,12 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 		log.Printf("ERROR: Nil EAP-AKA Server for session ID: %s", sessionId)
 		return
 	}
-	var imsi aka.IMSI
+	var (
+		imsi  aka.IMSI
+		state aka.AkaState
+		uc    *UserCtx
+		ok    bool
+	)
 
 	s.rwl.Lock()
 	sessionCtx, exist := s.sessions[sessionId]
@@ -257,7 +262,9 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 		if sessionCtx != nil {
 			imsi = sessionCtx.Imsi
 			if sessionCtx == mySessionCtx {
-				delete(s.users, imsi)
+				if uc, ok = s.users[imsi]; ok {
+					delete(s.users, imsi)
+				}
 				delete(s.sessions, sessionId)
 			}
 		} else {
@@ -266,7 +273,12 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 	}
 	s.rwl.Unlock()
 
-	if exist {
+	if uc != nil {
+		uc.mu.Lock()
+		state = uc.state
+		uc.mu.Unlock()
+	}
+	if exist && state != aka.StateAuthenticated {
 		log.Printf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
 	}
 }
@@ -345,4 +357,26 @@ func (s *EapAkaSrv) FindAndRemoveSession(sessionId string) (aka.IMSI, bool) {
 		timer.Stop()
 	}
 	return imsi, exist
+}
+
+// ResetSessionTimeout finds a session with specified ID, if found - attempts to cancel its current timeout
+// (best effort) & schedules the new one. ResetSessionTimeout does not guarantee that the old timeout cleanup
+// won't be executed
+func (s *EapAkaSrv) ResetSessionTimeout(sessionId string, newTimeout time.Duration) {
+	var oldTimer *time.Timer
+
+	s.rwl.Lock()
+	session, exist := s.sessions[sessionId]
+	if exist {
+		if session == nil {
+			oldTimer, session.CleanupTimer = session.CleanupTimer, time.AfterFunc(newTimeout, func() {
+				sessionTimeoutCleanup(s, sessionId, session)
+			})
+		}
+	}
+	s.rwl.Unlock()
+
+	if oldTimer != nil {
+		oldTimer.Stop()
+	}
 }

@@ -128,12 +128,15 @@ attrLoop:
 			"Invalid AT_RES for Session ID: %s; IMSI: %s", ctx.SessionId, imsi)
 	}
 
-	// All good, set IMSI & MSK & return SuccessCode
+	// All good, set IMSI, MSK & Identity for farther use by Radius and return SuccessCode
 	ctx.Imsi = string(imsi)
 	ctx.Msk = uc.MSK
-	// For now - cleanup after successful auth, TBD: keep CTX long term...
+	ctx.Identity = uc.Identity
+	uc.SetState(aka.StateAuthenticated)
+
+	// Keep session & User Ctx around for some time after authentication and then clean them up
 	uc.Unlock()
-	s.RemoveSession(ctx.SessionId)
+	s.ResetSessionTimeout(ctx.SessionId, aka.SessionAuthenticatedTimeout())
 
 	return []byte{eap.SuccessCode, identifier, 0, 4}, nil
 }

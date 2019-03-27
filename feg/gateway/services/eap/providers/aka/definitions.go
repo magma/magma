@@ -89,10 +89,11 @@ type AkaState int16
 
 const (
 	// Processing/handling States
-	StateNone      AkaState = iota
-	StateCreated            // newly created
-	StateIdentity           // Valid permanent identity received
-	StateChallenge          // Auth Challenge was returned to UE
+	StateNone          AkaState = iota
+	StateCreated                // newly created
+	StateIdentity               // Valid permanent identity received
+	StateChallenge              // Auth Challenge was returned to UE
+	StateAuthenticated          // UE is successfully authenticated
 )
 
 const (
@@ -106,15 +107,17 @@ const (
 	AT_AUTN_ATTR_LEN = RAND_LEN + ATT_HDR_LEN
 	AT_MAC_ATTR_LEN  = MAC_LEN + ATT_HDR_LEN
 
-	AkaChallengeTimeout         = time.Second * 20
-	AkaErrorNotificationTimeout = time.Second * 10
-	AkaSessionTimeout           = time.Hour * 12
+	AkaChallengeTimeout            = time.Second * 20
+	AkaErrorNotificationTimeout    = time.Second * 10
+	AkaSessionTimeout              = time.Hour * 12
+	AkaSessionAuthenticatedTimeout = time.Second * 5
 )
 
 var (
-	challengeTimeout         time.Duration = AkaChallengeTimeout
-	errorNotificationTimeout time.Duration = AkaErrorNotificationTimeout
-	sessionTimeout           time.Duration = AkaSessionTimeout
+	challengeTimeout            time.Duration = AkaChallengeTimeout
+	errorNotificationTimeout    time.Duration = AkaErrorNotificationTimeout
+	sessionTimeout              time.Duration = AkaSessionTimeout
+	sessionAuthenticatedTimeout time.Duration = AkaSessionAuthenticatedTimeout
 )
 
 func ChallengeTimeout() time.Duration {
@@ -139,6 +142,14 @@ func SessionTimeout() time.Duration {
 
 func SetSessionTimeout(tout time.Duration) {
 	atomic.StoreInt64((*int64)(&sessionTimeout), int64(tout))
+}
+
+func SessionAuthenticatedTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&sessionAuthenticatedTimeout)))
+}
+
+func SetSessionAuthenticatedTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&sessionAuthenticatedTimeout), int64(tout))
 }
 
 type IMSI string
