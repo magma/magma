@@ -158,7 +158,7 @@ func TestResyncLteAuthSeq(t *testing.T) {
 	copy(resyncInfo[22:], macS)
 	lteAuthNextSeq, err = ResyncLteAuthSeq(subscriber, resyncInfo, defaultLteAuthOp)
 	assert.NoError(t, err)
-	assert.Equal(t, uint64(0x4204c05f18a9001), lteAuthNextSeq)
+	assert.Equal(t, uint64(0x4204c05f18b), lteAuthNextSeq)
 }
 
 func TestGetNextLteAuthSqnAfterResync(t *testing.T) {

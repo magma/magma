@@ -234,7 +234,8 @@ func (milenage *MilenageCipher) GenerateResync(auts, key, opc, rand []byte) (uin
 		return 0, macS, err
 	}
 	sqnMs := xor(auts[:6], ak)
-	sqnMsInt := binary.BigEndian.Uint64(append(sqnMs, 0, 0))
+	sqnMsInt := uint64(sqnMs[5]) | uint64(sqnMs[4])<<8 | uint64(sqnMs[3])<<16 | uint64(sqnMs[2])<<24 |
+		uint64(sqnMs[1])<<32 | uint64(sqnMs[0])<<40
 	_, macSSlice, err := f1(key, sqnMs, rand, opc, milenage.amf[:])
 	if err != nil {
 		return 0, macS, err
