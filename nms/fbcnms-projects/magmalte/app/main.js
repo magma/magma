@@ -14,7 +14,7 @@ import {BrowserRouter} from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import React from 'react';
 import Main from './components/Main';
-import nullthrows from 'nullthrows';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {} from './common/axiosConfig';
 

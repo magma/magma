@@ -13,7 +13,7 @@ import ReactDOM from 'react-dom';
 import AppContext from './components/context/AppContext.js';
 import {BrowserRouter} from 'react-router-dom';
 import LoginForm from '@fbcnms/ui/components/auth/LoginForm.js';
-import nullthrows from 'nullthrows';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {} from './common/axiosConfig';
 import {useRouter} from '@fbcnms/ui/hooks';
