@@ -489,7 +489,9 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id)
       "EMM-PROC  - Stop timer T3422 (%ld) for ue_id %d \n",
       emm_ctx->T3422.id,
       ue_id);
-    emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, NULL);
+    void *unused = NULL;
+    void **timer_callback = &unused;
+    emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, timer_callback); 
     if (emm_ctx->t3422_arg) {
       free_wrapper(&emm_ctx->t3422_arg);
       emm_ctx->t3422_arg = NULL;
@@ -512,7 +514,7 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id)
     _clear_emm_ctxt(emm_ctx);
   }
   emm_ctx->is_imsi_only_detach = false;
-
+  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
@@ -582,7 +584,9 @@ int emm_proc_nw_initiated_detach_request(
       /*
        * Re-start T3422 timer
        */
-      emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, NULL);
+      void *unused = NULL;
+      void **timer_callback = &unused;
+      emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
       nw_detach_data_t *data = (nw_detach_data_t *) emm_ctx->t3422_arg;
       ;
       emm_ctx->T3422.id = nas_timer_start(
@@ -602,6 +606,7 @@ int emm_proc_nw_initiated_detach_request(
       emm_ctx->t3422_arg = (void *) data;
     }
   }
+  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 //------------------------------------------------------------------------------

@@ -1058,6 +1058,7 @@ static int _emm_cn_cs_domain_loc_updt_fail(
 
   //Store the status of Location Update procedure(success/failure) to send appropriate cause in Attach Accept
   emm_ctx_p->csfbparams.sgs_loc_updt_status = FAILURE;
+  fsm_state = emm_fsm_get_state(emm_ctx_p);
 
   if (EMM_DEREGISTERED == fsm_state) {
     nas_emm_attach_proc_t *attach_proc =

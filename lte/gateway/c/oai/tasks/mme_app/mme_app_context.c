@@ -310,7 +310,6 @@ void mme_app_ue_sgs_context_free_content(
     }
     sgs_context_p->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
-  free_wrapper((void**) &sgs_context_p);
 }
 
 //------------------------------------------------------------------------------
@@ -390,6 +389,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
     // free the sgs context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->imsi);
+    free_wrapper((void **) &(ue_context_p->sgs_context));
   }
 
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
