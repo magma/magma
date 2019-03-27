@@ -8,13 +8,15 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 # pylint: disable=protected-access
-from unittest import TestCase
+from unittest import TestCase, mock
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.tr069 import models
 from magma.enodebd.tests.test_utils.tr069_msg_builder import \
     Tr069MessageBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
+from magma.enodebd.tests.test_utils.mock_functions import \
+    mock_get_ip_from_if, GET_IP_FROM_IF_PATH
 
 
 class BaicellsQAFBHandlerTests(TestCase):
@@ -97,7 +99,9 @@ class BaicellsQAFBHandlerTests(TestCase):
         self.assertTrue(isinstance(resp, models.DummyInput),
                         'State machine should end TR-069 session after '
                         'receiving a RebootResponse')
-    def test_provision(self) -> None:
+
+    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
+    def test_provision(self, _mock_func) -> None:
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
                 .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
