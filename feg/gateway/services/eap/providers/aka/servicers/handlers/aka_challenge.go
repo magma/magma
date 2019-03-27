@@ -36,13 +36,14 @@ func challengeResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.P
 	if len(ctx.SessionId) == 0 {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Missing Session ID")
 	}
-	imsi, uc, ok := s.FindSession(ctx.SessionId)
+	sessionId := ctx.SessionId
+	imsi, uc, ok := s.FindSession(sessionId)
 	if !ok {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
 			"No Session found for ID: %s", ctx.SessionId)
 	}
 	if uc == nil {
-		s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
+		s.UpdateSessionTimeout(sessionId, aka.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
 			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
 	}
@@ -121,7 +122,7 @@ attrLoop:
 	ueRes := atRes.Marshaled()[aka.ATT_HDR_LEN:]
 	if !reflect.DeepEqual(ueRes, uc.Xres) {
 		log.Printf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v",
-			ctx.SessionId, imsi, ueRes, uc.Xres)
+			sessionId, imsi, ueRes, uc.Xres)
 		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 		return aka.EapErrorResPacketWithMac(
 			identifier, aka.NOTIFICATION_FAILURE_AUTH, uc.K_aut, codes.Unauthenticated,
@@ -136,7 +137,7 @@ attrLoop:
 
 	// Keep session & User Ctx around for some time after authentication and then clean them up
 	uc.Unlock()
-	s.ResetSessionTimeout(ctx.SessionId, aka.SessionAuthenticatedTimeout())
+	s.ResetSessionTimeout(sessionId, aka.SessionAuthenticatedTimeout())
 
 	return []byte{eap.SuccessCode, identifier, 0, 4}, nil
 }
