@@ -10,6 +10,7 @@ package test_utils
 
 import (
 	"magma/lte/cloud/go/protos"
+	orc8rprotos "magma/orc8r/cloud/go/protos"
 )
 
 const (
@@ -24,7 +25,8 @@ func GetTestSubscribers() []*protos.SubscriberData {
 	subs := make([]*protos.SubscriberData, 0)
 
 	sub := &protos.SubscriberData{
-		Sid: &protos.SubscriberID{Id: "sub1"},
+		Sid:       &protos.SubscriberID{Id: "sub1"},
+		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
 		Lte: &protos.LTESubscription{
 			State:    protos.LTESubscription_ACTIVE,
 			AuthAlgo: protos.LTESubscription_MILENAGE,
@@ -60,16 +62,19 @@ func GetTestSubscribers() []*protos.SubscriberData {
 				Pdn: protos.APNConfiguration_IPV6,
 			},
 		},
+		SubProfile: "test_profile",
 	}
 	subs = append(subs, sub)
 
 	sub = &protos.SubscriberData{
-		Sid: &protos.SubscriberID{Id: "empty_sub"},
+		Sid:       &protos.SubscriberID{Id: "empty_sub"},
+		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
 	}
 	subs = append(subs, sub)
 
 	sub = &protos.SubscriberData{
-		Sid: &protos.SubscriberID{Id: "missing_auth_key"},
+		Sid:       &protos.SubscriberID{Id: "missing_auth_key"},
+		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
 		Lte: &protos.LTESubscription{
 			State:    protos.LTESubscription_ACTIVE,
 			AuthAlgo: protos.LTESubscription_MILENAGE,

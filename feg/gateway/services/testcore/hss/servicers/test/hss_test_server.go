@@ -24,8 +24,8 @@ const (
 	defaultServerAddr     = "127.0.0.1:0"
 	defaultServerHost     = "magma.com"
 	defaultServerRealm    = "magma.com"
-	defaultMaxUlBitRate   = uint64(100000000)
-	defaultMaxDlBitRate   = uint64(200000000)
+	DefaultMaxUlBitRate   = uint64(100000000)
+	DefaultMaxDlBitRate   = uint64(200000000)
 )
 
 var (
@@ -33,9 +33,9 @@ var (
 	defaultLteAuthOp  = []byte("\xcd\xc2\x02\xd5\x12> \xf6+mgj\xc7,\xb3\x18")
 )
 
-// newTestHomeSubscriberServer creates a HSS with test users so its functionality
+// NewTestHomeSubscriberServer creates a HSS with test users so its functionality
 // can be tested.
-func newTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
+func NewTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 	store := storage.NewMemorySubscriberStore()
 
 	subs := test_utils.GetTestSubscribers()
@@ -54,8 +54,8 @@ func newTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 		LteAuthAmf: defaultLteAuthAmf,
 		LteAuthOp:  defaultLteAuthOp,
 		DefaultSubProfile: &mconfig.HSSConfig_SubscriptionProfile{
-			MaxUlBitRate: defaultMaxUlBitRate,
-			MaxDlBitRate: defaultMaxDlBitRate,
+			MaxUlBitRate: DefaultMaxUlBitRate,
+			MaxDlBitRate: DefaultMaxDlBitRate,
 		},
 		SubProfiles: make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
 	}

@@ -25,10 +25,10 @@ from magma.enodebd.state_machines.enb_acs_states import \
     WaitGetTransientParametersState, GetParametersState, \
     WaitGetParametersState, GetObjectParametersState, \
     WaitGetObjectParametersState, DeleteObjectsState, AddObjectsState, \
-    SetParameterValuesState, WaitSetParameterValuesState, SendRebootState, \
+    SetParameterValuesState, WaitSetParameterValuesState, \
     WaitRebootResponseState, WaitInformMRebootState, EnodebAcsState, \
     CheckOptionalParamsState, WaitEmptyMessageState, ErrorState, \
-    EndSessionState
+    EndSessionState, BaicellsRemWaitState, BaicellsSendRebootState
 from magma.enodebd.stats_manager import StatsManager
 
 
@@ -49,7 +49,8 @@ class BaicellsOldHandler(BasicEnodebAcsStateMachine):
 
     def _init_state_map(self) -> None:
         self._state_map = {
-            'wait_inform': WaitInformState(self, when_done='wait_empty'),
+            'wait_inform': WaitInformState(self, when_done='wait_empty', when_boot='wait_rem'),
+            'wait_rem': BaicellsRemWaitState(self, when_done='wait_inform'),
             'wait_empty': WaitEmptyMessageState(self, when_done='check_optional_params'),
             'check_optional_params': CheckOptionalParamsState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
@@ -61,15 +62,13 @@ class BaicellsOldHandler(BasicEnodebAcsStateMachine):
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesState(self, when_done='wait_set_params'),
-            'wait_set_params': WaitSetParameterValuesState(self, when_done='check_get_params'),
+            'wait_set_params': WaitSetParameterValuesState(self, when_done='check_get_params', when_apply_invasive='reboot'),
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
             'end_session': EndSessionState(self),
-            # The state below are only entered with manual user intervention.
-            'reboot': SendRebootState(self, when_done='wait_reboot'),
+            'reboot': BaicellsSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
-            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_empty_after_reboot', when_timeout='wait_inform'),
-            'wait_empty_after_reboot': WaitEmptyMessageState(self, when_done='get_transient_params'),
+            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_rem', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
             'unexpected_fault': ErrorState(self),

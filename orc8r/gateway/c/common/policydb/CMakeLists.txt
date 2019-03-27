@@ -35,6 +35,7 @@ add_library(POLICYDB
 
 target_link_libraries(POLICYDB
    DATASTORE CONFIG
+   glog
    )
 
 # copy headers to build directory so they can be shared with OAI,
@@ -43,6 +44,7 @@ add_custom_command(TARGET POLICYDB POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
                    ${CMAKE_SOURCE_DIR}/policydb/*.h $<TARGET_FILE_DIR:POLICYDB>)
 
+target_compile_definitions(POLICYDB PUBLIC LOG_WITH_GLOG)
 target_include_directories(POLICYDB PUBLIC
                   $<TARGET_FILE_DIR:POLICYDB>
 )

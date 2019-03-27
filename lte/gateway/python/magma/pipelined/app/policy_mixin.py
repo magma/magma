@@ -28,8 +28,7 @@ class PolicyMixin(metaclass=ABCMeta):
         self._session_rule_version_mapper = kwargs[
             'session_rule_version_mapper']
 
-    def activate_rules(self, imsi, ip_addr, static_rule_ids, dynamic_rules,
-                       fut):
+    def activate_rules(self, imsi, ip_addr, static_rule_ids, dynamic_rules):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -39,11 +38,10 @@ class PolicyMixin(metaclass=ABCMeta):
             ip_addr (string): subscriber session ipv4 address
             static_rule_ids (string []): list of static rules to activate
             dynamic_rules (PolicyRule []): list of dynamic rules to activate
-            fut (Future): future to wait on the results of flow activations
         """
         if self._datapath is None:
             self.logger.error('Datapath not initialized for adding flows')
-            fut.set_result(ActivateFlowsResult(
+            return ActivateFlowsResult(
                 static_rule_results=[RuleModResult(
                     rule_id=rule_id,
                     result=RuleModResult.FAILURE,
@@ -52,8 +50,7 @@ class PolicyMixin(metaclass=ABCMeta):
                     rule_id=rule.id,
                     result=RuleModResult.FAILURE,
                 ) for rule in dynamic_rules],
-            ))
-            return
+            )
         static_results = []
         for rule_id in static_rule_ids:
             res = self._install_flow_for_static_rule(imsi, ip_addr, rule_id)
@@ -65,10 +62,10 @@ class PolicyMixin(metaclass=ABCMeta):
 
         # Install a base flow for when no rule is matched.
         self._install_default_flow_for_subscriber(imsi)
-        fut.set_result(ActivateFlowsResult(
+        return ActivateFlowsResult(
             static_rule_results=static_results,
             dynamic_rule_results=dyn_results,
-        ))
+        )
 
     def _install_flow_for_static_rule(self, imsi, ip_addr, rule_id):
         """

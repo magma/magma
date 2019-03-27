@@ -22,7 +22,6 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/serviceregistry"
-	configregistry "magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -43,15 +42,11 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 	return serviceLocations
 }
 
-func (*LteOrchestratorPlugin) GetConfigManagers() []configregistry.ConfigManager {
-	return []configregistry.ConfigManager{
+func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
+	return []serde.Serde{
 		&config.CellularNetworkConfigManager{},
 		&config.CellularGatewayConfigManager{},
 	}
-}
-
-func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{}
 }
 
 func (*LteOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {

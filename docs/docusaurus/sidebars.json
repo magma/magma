@@ -1,0 +1,9 @@
+{
+  "docs": {
+    "Magma": ["overview"],
+    "Orchestrator": ["orc8r/remote_cli", "orc8r/rest_apis"],
+    "Access Gateway": ["agw/tbd"],
+    "Federated Gateway": ["feg/tbd"],
+    "How To": ["how_to/tbd"]
+  }
+}

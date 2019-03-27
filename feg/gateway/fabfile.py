@@ -17,7 +17,7 @@ from fab.hosts import split_hoststring # NOQA
 from fab.vagrant import setup_env_vagrant  # NOQA
 
 AWS = 'aws --region eu-west-1'
-
+DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 
 def register_feg_vm():
     """ Provisions the feg vm with the cloud vm """
@@ -114,3 +114,13 @@ def package(feg_host=None, vcs="hg", force=False):
     _package_go(target)
     _package_scripts(target)
     return _push_archive_to_s3(vcs, target)
+
+
+def connect_gateway_to_cloud(control_proxy_setting_path=None, cert_path=DEFAULT_CERT):
+    """
+    Setup the feg gateway VM to connect to the cloud
+    Path to control_proxy.yml and rootCA.pem could be specified to use
+    non-default control proxy setting and certificates
+    """
+    setup_env_vagrant("feg")
+    dev_utils.connect_gateway_to_cloud(control_proxy_setting_path, cert_path)

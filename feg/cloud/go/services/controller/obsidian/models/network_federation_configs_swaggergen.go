@@ -469,10 +469,12 @@ type NetworkFederationConfigsHss struct {
 	DefaultSubProfile *SubscriptionProfile `json:"default_sub_profile,omitempty"`
 
 	// lte auth amf
-	LteAuthAmf string `json:"lte_auth_amf,omitempty"`
+	// Format: byte
+	LteAuthAmf strfmt.Base64 `json:"lte_auth_amf,omitempty"`
 
 	// lte auth op
-	LteAuthOp string `json:"lte_auth_op,omitempty"`
+	// Format: byte
+	LteAuthOp strfmt.Base64 `json:"lte_auth_op,omitempty"`
 
 	// server
 	Server *DiameterServerConfigs `json:"server,omitempty"`
@@ -486,6 +488,14 @@ func (m *NetworkFederationConfigsHss) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateDefaultSubProfile(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLteAuthAmf(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLteAuthOp(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -517,6 +527,28 @@ func (m *NetworkFederationConfigsHss) validateDefaultSubProfile(formats strfmt.R
 			return err
 		}
 	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigsHss) validateLteAuthAmf(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.LteAuthAmf) { // not required
+		return nil
+	}
+
+	// Format "byte" (base64 string) is already validated when unmarshalled
+
+	return nil
+}
+
+func (m *NetworkFederationConfigsHss) validateLteAuthOp(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.LteAuthOp) { // not required
+		return nil
+	}
+
+	// Format "byte" (base64 string) is already validated when unmarshalled
 
 	return nil
 }

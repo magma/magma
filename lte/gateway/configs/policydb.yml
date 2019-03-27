@@ -8,3 +8,6 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 log_level: INFO
+
+# Enable streaming from the cloud for policy updates
+enable_streaming: True

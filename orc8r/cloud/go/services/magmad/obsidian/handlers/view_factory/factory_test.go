@@ -13,10 +13,10 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/serde"
 	checkinti "magma/orc8r/cloud/go/services/checkind/test_init"
 	"magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/config/registry"
 	configti "magma/orc8r/cloud/go/services/config/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
 	storagetu "magma/orc8r/cloud/go/services/magmad/obsidian/handlers/test_utils"
@@ -36,9 +36,9 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	configti.StartTestService(t)
 	checkinti.StartTestService(t)
 
-	registry.ClearRegistryForTesting()
-	registry.RegisterConfigManager(storagetu.NewConfig1Manager())
-	registry.RegisterConfigManager(storagetu.NewConfig2Manager())
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	err := serde.RegisterSerdes(storagetu.NewConfig1Manager(), storagetu.NewConfig2Manager())
+	assert.NoError(t, err)
 
 	// Setup fixture data
 	networkID, err := magmad.RegisterNetwork(&magmadprotos.MagmadNetworkRecord{Name: "foobar"}, "xservice1")
@@ -57,24 +57,27 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	assert.NoError(t, err)
 
 	// gw1 has cfg1 and cfg2, gw2 only has cfg2
-	config.CreateConfig(
+	err = config.CreateConfig(
 		networkID,
-		storagetu.NewConfig1Manager().GetConfigType(),
+		storagetu.NewConfig1Manager().GetType(),
 		"gw1",
 		cfg1,
 	)
-	config.CreateConfig(
+	assert.NoError(t, err)
+	err = config.CreateConfig(
 		networkID,
-		storagetu.NewConfig2Manager().GetConfigType(),
+		storagetu.NewConfig2Manager().GetType(),
 		"gw1",
 		cfg2,
 	)
-	config.CreateConfig(
+	assert.NoError(t, err)
+	err = config.CreateConfig(
 		networkID,
-		storagetu.NewConfig2Manager().GetConfigType(),
+		storagetu.NewConfig2Manager().GetType(),
 		"gw2",
 		cfg2,
 	)
+	assert.NoError(t, err)
 
 	// gw1 has status, gw2 does not
 	checkinReq := &protos.CheckinRequest{
@@ -111,8 +114,8 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 		"gw1": {
 			GatewayID: "gw1",
 			Config: map[string]interface{}{
-				storagetu.NewConfig1Manager().GetConfigType(): cfg1,
-				storagetu.NewConfig2Manager().GetConfigType(): cfg2,
+				storagetu.NewConfig1Manager().GetType(): cfg1,
+				storagetu.NewConfig2Manager().GetType(): cfg2,
 			},
 			Record: record1,
 			Status: &protos.GatewayStatus{
@@ -124,7 +127,7 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 		"gw2": {
 			GatewayID: "gw2",
 			Config: map[string]interface{}{
-				storagetu.NewConfig2Manager().GetConfigType(): cfg2,
+				storagetu.NewConfig2Manager().GetType(): cfg2,
 			},
 			Record: record2,
 		},

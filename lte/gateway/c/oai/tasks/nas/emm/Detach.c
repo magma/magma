@@ -158,7 +158,8 @@ void _clear_emm_ctxt(emm_context_t *emm_context)
       ->mme_ue_s1ap_id;
 
   nas_delete_all_emm_procedures(emm_context);
-
+  //Stop T3489 timer
+  free_esm_context_content(&emm_context->esm_ctx);
   esm_sap_t esm_sap = {0};
   /*
    * Release ESM PDN and bearer context

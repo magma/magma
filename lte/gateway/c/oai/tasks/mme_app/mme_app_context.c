@@ -55,7 +55,6 @@
 #include "mme_app_defs.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_procedures.h"
-#include "s1ap_mme.h"
 #include "common_defs.h"
 #include "esm_ebr.h"
 #include "timer.h"
@@ -552,65 +551,6 @@ void mme_app_move_context(ue_mm_context_t *dst, ue_mm_context_t *src)
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-//------------------------------------------------------------------------------
-int mme_ue_context_notified_new_ue_s1ap_id_association(
-  const enb_s1ap_id_key_t enb_key,
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id)
-{
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
-  ue_mm_context_t *ue_context_p = NULL;
-  enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
-
-  OAILOG_FUNC_IN(LOG_MME_APP);
-
-  if (INVALID_MME_UE_S1AP_ID == mme_ue_s1ap_id) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Error could not associate this enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-      " with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-      enb_ue_s1ap_id,
-      mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
-
-  ue_context_p = mme_ue_context_exists_enb_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, enb_key);
-  if (ue_context_p) {
-    if (ue_context_p->enb_s1ap_id_key == enb_key) { // useless
-      if (INVALID_MME_UE_S1AP_ID == ue_context_p->mme_ue_s1ap_id) {
-        // new insertion of mme_ue_s1ap_id, not a change in the id
-        h_rc = hashtable_ts_insert(
-          mme_app_desc.mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl,
-          (const hash_key_t) mme_ue_s1ap_id,
-          (void *) ue_context_p);
-        if (HASH_TABLE_OK == h_rc) {
-          ue_context_p->mme_ue_s1ap_id = mme_ue_s1ap_id;
-          OAILOG_DEBUG(
-            LOG_MME_APP,
-            "Associated this enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-            " with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->enb_ue_s1ap_id,
-            ue_context_p->mme_ue_s1ap_id);
-
-          s1ap_notified_new_ue_mme_s1ap_id_association(
-            ue_context_p->sctp_assoc_id_key,
-            ue_context_p->enb_ue_s1ap_id,
-            mme_ue_s1ap_id);
-          unlock_ue_contexts(ue_context_p);
-          OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
-        }
-      }
-    }
-    unlock_ue_contexts(ue_context_p);
-  }
-  OAILOG_ERROR(
-    LOG_MME_APP,
-    "Error could not associate this enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-    " with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-    enb_ue_s1ap_id,
-    mme_ue_s1ap_id);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-}
 //------------------------------------------------------------------------------
 void mme_ue_context_update_coll_keys(
   mme_ue_context_t *const mme_ue_context_p,
@@ -2171,13 +2111,13 @@ void mme_app_handle_enb_reset_req(
     enb_reset_req->s1ap_reset_type);
   DevAssert(enb_reset_req->ue_to_reset_list != NULL);
 
-    for (int i = 0; i < enb_reset_req->num_ue; i++) {
-      _mme_app_handle_s1ap_ue_context_release(
+  for (int i = 0; i < enb_reset_req->num_ue; i++) {
+    _mme_app_handle_s1ap_ue_context_release(
       enb_reset_req->ue_to_reset_list[i].mme_ue_s1ap_id,
       enb_reset_req->ue_to_reset_list[i].enb_ue_s1ap_id,
-        enb_reset_req->enb_id,
-        S1AP_SCTP_SHUTDOWN_OR_RESET);
-    }
+      enb_reset_req->enb_id,
+      S1AP_SCTP_SHUTDOWN_OR_RESET);
+  }
 
   // Send Reset Ack to S1AP module
   msg = itti_alloc_new_message(TASK_MME_APP, S1AP_ENB_INITIATED_RESET_ACK);

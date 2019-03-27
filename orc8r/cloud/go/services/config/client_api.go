@@ -25,15 +25,20 @@ import (
 
 	"magma/orc8r/cloud/go/errors"
 	service_registry "magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config/protos"
-	"magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/config/storage"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 )
 
-const ServiceName = "CONFIG"
+const (
+	ServiceName = "CONFIG"
+
+	// SerdeDomain is the domain for config serdes
+	SerdeDomain = "config_manager"
+)
 
 func getConfigServiceClient() (protos.ConfigServiceClient, *grpc.ClientConn, error) {
 	conn, err := service_registry.GetConnection(ServiceName)
@@ -58,7 +63,7 @@ func GetConfig(networkId string, configType string, key string) (interface{}, er
 	if err != nil {
 		return nil, err
 	}
-	return registry.UnmarshalConfig(configType, val.GetValue())
+	return serde.Deserialize(SerdeDomain, configType, val.GetValue())
 }
 
 // Fetch all configs matching a type.
@@ -127,7 +132,7 @@ func CreateConfig(networkId string, configType string, key string, value interfa
 	}
 	defer conn.Close()
 
-	marshaledValue, err := registry.MarshalConfig(configType, value)
+	marshaledValue, err := serde.Serialize(SerdeDomain, configType, value)
 	if err != nil {
 		return err
 	}
@@ -146,7 +151,7 @@ func UpdateConfig(networkId string, configType string, key string, updatedValue 
 	}
 	defer conn.Close()
 
-	marshaledValue, err := registry.MarshalConfig(configType, updatedValue)
+	marshaledValue, err := serde.Serialize(SerdeDomain, configType, updatedValue)
 	if err != nil {
 		return err
 	}
@@ -220,7 +225,7 @@ func makeGetConfigsResult(configs []*protos.Config) (map[storage.TypeAndKey]inte
 	ret := make(map[storage.TypeAndKey]interface{}, len(configs))
 	for _, configProto := range configs {
 		k := storage.TypeAndKey{Type: configProto.Type, Key: configProto.Key}
-		unmarshaledVal, err := registry.UnmarshalConfig(configProto.Type, configProto.Value)
+		unmarshaledVal, err := serde.Deserialize(SerdeDomain, configProto.Type, configProto.Value)
 		if err != nil {
 			return nil, err
 		}

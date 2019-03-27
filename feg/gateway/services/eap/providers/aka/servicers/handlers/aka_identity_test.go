@@ -66,18 +66,23 @@ const (
 
 	expectedRand = "\x01\x05\x00\x00\x01\x23\x45\x67\x89\xab\xcd\xef\x01\x23\x45\x67\x89\xab\xcd\xef"
 	expectedAutn = "\x02\x05\x00\x00\x54\xab\x64\x4a\x90\x51\xb9\xb9\x5e\x85\xc1\x22\x3e\x0e\xf1\x4c"
+	identityAttr = "\x0e\x0e\x00\x33\x30\x30\x30\x31\x30\x31\x30\x30\x30\x30\x30\x30" +
+		"\x30\x30\x35\x35\x40\x77\x6c\x61\x6e\x2e\x6d\x6e\x63\x30\x30\x31" +
+		"\x2e\x6d\x63\x63\x30\x30\x31\x2e\x33\x67\x70\x70\x6e\x65\x74\x77" +
+		"\x6f\x72\x6b\x2e\x6f\x72\x67\x00"
 )
 
 var (
-	expectedTestMac = []byte{11, 5, 0, 0, 113, 89, 171, 136, 187, 183, 17, 173, 129, 81, 120, 214, 133, 52, 0, 117}
-	expectedResp    = []byte{1, 1, 0, 68, 23, 1, 0, 0, 1, 5, 0, 0, 1, 35, 69, 103, 137, 171, 205, 239, 1, 35, 69,
-		103, 137, 171, 205, 239, 2, 5, 0, 0, 84, 171, 100, 74, 144, 81, 185, 185, 94, 133, 193, 34, 62, 14, 241,
-		76, 11, 5, 0, 0, 113, 89, 171, 136, 187, 183, 17, 173, 129, 81, 120, 214, 133, 52, 0, 117}
+	expectedTestMac = []byte{11, 5, 0, 0, 187, 28, 77, 175, 111, 216, 83, 74, 247, 124, 169, 254, 40, 141, 169, 189}
+
+	expectedTestEapChallengeResp = []byte{1, 2, 0, 68, 23, 1, 0, 0, 1, 5, 0, 0, 1, 35, 69, 103, 137, 171, 205, 239, 1,
+		35, 69, 103, 137, 171, 205, 239, 2, 5, 0, 0, 84, 171, 100, 74, 144, 81, 185, 185, 94, 133, 193, 34, 62, 14, 241,
+		76, 11, 5, 0, 0, 187, 28, 77, 175, 111, 216, 83, 74, 247, 124, 169, 254, 40, 141, 169, 189}
 )
 
-func TestChallangeEAPTemplate(t *testing.T) {
+func TestChallengeEAPTemplate(t *testing.T) {
 	if challengeReqTemplateLen != 68 {
-		t.Fatalf("Invalid challangeReqTemplateLen: %d", challengeReqTemplateLen)
+		t.Fatalf("Invalid challengeReqTemplateLen: %d", challengeReqTemplateLen)
 	}
 
 	scanner, err := eap.NewAttributeScanner(challengeReqTemplate)
@@ -116,6 +121,17 @@ func TestChallangeEAPTemplate(t *testing.T) {
 	if attr.Type() != aka.AT_MAC || attr.Len() != 20 {
 		t.Fatalf("Invalid AT_MAC: %v\n", attr.Marshaled())
 	}
+
+	fullId, imsi, err := getIMSIIdentity(eap.NewRawAttribute([]byte(identityAttr)))
+	if err != nil {
+		t.Fatalf("getIMSIIdentity Error: %v", err)
+	}
+	if fullId != "0001010000000055@wlan.mnc001.mcc001.3gppnetwork.org" {
+		t.Fatalf("Unexpected full Identity: %s", fullId)
+	}
+	if imsi != "0001010000000055" {
+		t.Fatalf("Unexpected IMSI: %s", imsi)
+	}
 }
 
 func TestAkaChallenge(t *testing.T) {
@@ -124,7 +140,8 @@ func TestAkaChallenge(t *testing.T) {
 	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
-	p, err := identityResponse(&servicers.EapAkaSrv{}, &eap_protos.EapContext{}, eap.Packet(testEapIdentityResp))
+	akaSrv, _ := servicers.NewEapAkaService()
+	p, err := identityResponse(akaSrv, &eap_protos.EapContext{}, eap.Packet(testEapIdentityResp))
 
 	if err != nil {
 		t.Fatalf("Unexpected identityResponse error: %v", err)
@@ -163,7 +180,8 @@ func TestAkaChallenge(t *testing.T) {
 	if attr.Type() != aka.AT_MAC || !reflect.DeepEqual(attr.Marshaled(), []byte(expectedTestMac)) {
 		t.Fatalf("Invalid AT_MAC:\n\tExpected: %v\n\tReceived: %v\n", []byte(expectedTestMac), attr.Marshaled())
 	}
-	if !reflect.DeepEqual([]byte(p), []byte(expectedResp)) {
-		t.Fatalf("Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v", p, expectedResp)
+	if !reflect.DeepEqual([]byte(p), []byte(expectedTestEapChallengeResp)) {
+		t.Fatalf("Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
+			p, expectedTestEapChallengeResp)
 	}
 }

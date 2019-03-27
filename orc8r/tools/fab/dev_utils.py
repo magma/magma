@@ -19,7 +19,6 @@ import fab.vagrant as vagrant
 
 PORTAL_URL = 'https://192.168.80.10:9443/magma'
 
-
 def register_vm(vm_type="magma", admin_cert=(
               './../../.cache/test_certs/admin_operator.pem',
               './../../.cache/test_certs/admin_operator.key.pem')):
@@ -54,6 +53,29 @@ def register_vm(vm_type="magma", admin_cert=(
     _cloud_post('/networks/%s/gateways' % network_id,
                 data=data, params={'requested_id': gateway_id}, admin_cert=admin_cert)
     print('Gateway successfully provisioned as: %s' % gateway_id)
+
+
+def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
+    """
+    Setup the gateway VM to connect to the cloud
+    Path to control_proxy.yml and rootCA.pem could be specified to use
+    non-default control proxy setting and certificates
+    """
+    # Add the override for the production endpoints
+    run("sudo rm -rf /var/opt/magma/configs")
+    run("sudo mkdir /var/opt/magma/configs")
+    if control_proxy_setting_path is not None:
+        run("sudo cp " + control_proxy_setting_path
+            + " /var/opt/magma/configs/control_proxy.yml")
+
+    # Copy certs which will be used by the bootstrapper
+    run("sudo rm -rf /var/opt/magma/certs")
+    run("sudo mkdir /var/opt/magma/certs")
+    run("sudo cp " + cert_path + " /var/opt/magma/certs/")
+
+    # Restart the bootstrapper in the gateway to use the new certs
+    run("sudo systemctl stop magma@*")
+    run("sudo systemctl restart magma@magmad")
 
 
 def _validate_certs(admin_cert):

@@ -13,8 +13,8 @@ import (
 	"reflect"
 
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/config"
 	dns_protos "magma/orc8r/cloud/go/services/dnsd/protos"
-	"magma/orc8r/cloud/go/services/magmad"
 )
 
 const (
@@ -23,15 +23,15 @@ const (
 
 type DnsNetworkConfigManager struct{}
 
-func (*DnsNetworkConfigManager) GetConfigType() string {
+func (*DnsNetworkConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*DnsNetworkConfigManager) GetType() string {
 	return DnsdNetworkType
 }
 
-func (*DnsNetworkConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return magmad.ListGateways(networkId)
-}
-
-func (*DnsNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*DnsNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig, ok := config.(*dns_protos.NetworkDNSConfig)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -45,7 +45,7 @@ func (*DnsNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, error
 	return protos.MarshalIntern(castedConfig)
 }
 
-func (*DnsNetworkConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*DnsNetworkConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &dns_protos.NetworkDNSConfig{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err

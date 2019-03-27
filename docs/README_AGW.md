@@ -44,13 +44,13 @@ Mobilityd functions include:
 ## Sessiond / PCEF
 Sessiond implements the control plane for the PCEF functionality in Magma. Sessiond is responsible for the lifecycle management of the session state (credit and rules) associated with a user. It interacts with the PCEF datapath through pipelined for L2-L4 and DPId for L4-L7 policies.
 
-## pipelined
+## Pipelined
 Pipelined is the control application that programs the OVS openflow rules. In implementation pipelined is a set of services that are chained together. These services can be chained and enabled/disabled through the REST API.  The README (https://github.com/facebookincubator/magma/blob/master/README.md) describes the contract in greater detail.
 
-## policyDB
+## PolicyDB
 PolicyDB is the service that supports static PCRF rules. This service runs in both the AGW and the orchestrator. Rules managed through the rest API are streamed to the policydb instances on the AGW. Sessiond ensures these policies are implemented as specified.
 
-## susbcriberdb
+## Susbcriberdb
 Subscriberdb is Magma's local version of HSS. Magma uses Susbcriberdb to enable LTE data services through one network node like AGW for LTE subscribers.  It is deactivated for the deployments that make use of the MNO's HSS. It supports the following two S6a procedures:
 
 1. S6a: Authentication Information Request and Answer (AIR/AIA) 
@@ -78,3 +78,40 @@ Control proxy manages the network transport between the gateways and the control
 1. Control proxy abstract the service addressability, by providing a service registry which maps a user addressable name to its remote IP and port.
 2. All traffic over HTTP/2, and are encrypted using TLS. The traffic is routed to individual services by encoding the service name in the HTTP/2 :authority: header.
 3. Individual GRPC calls between a gateway and the controller are multiplexed over the same HTTP/2 connection, and this helps to avoid the connection setup time per RPC call.
+
+# Command Line Interfaces to Magma services
+
+Several services listed above can be configured using CLIs, located under
+magma/lte/gateway/python/scripts. These are:
+
+1. Mobilityd: mobility_cli.py
+2. Sessiond: session_manager_cli.py
+3. Pipelined: pipelined_cli.py
+4. PolicyDB: policydb_cli.py
+5. Subscriberdb: subscriber_cli.py
+6. Enodebd: enodebd_cli.py
+
+Each of these CLIs can be used in the gateway VM:
+
+```
+vagrant@magma-dev:~$ cd magma/lte/gateway/python/scripts/
+vagrant@magma-dev:~/magma/lte/gateway/python/scripts$ magtivate
+(python) vagrant@magma-dev:~/magma/lte/gateway/python/scripts$ ./enodebd_cli.py -h
+
+usage: enodebd_cli.py [-h]
+                      {get_parameter,set_parameter,config_enodeb,reboot_enodeb,get_status}
+                      ...
+
+Management CLI for Enodebd
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+subcommands:
+  {get_parameter,set_parameter,config_enodeb,reboot_enodeb,get_status}
+    get_parameter       Send GetParameterValues message
+    set_parameter       Send SetParameterValues message
+    config_enodeb       Configure eNodeB
+    reboot_enodeb       Reboot eNodeB
+    get_status          Get eNodeB status
+```

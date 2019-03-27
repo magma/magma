@@ -10,4 +10,5 @@ services:
     - session_proxy
     - s6a_proxy
     - swx_proxy
+    - eap_aka
     - csfb

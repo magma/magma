@@ -16,63 +16,30 @@ import (
 	"strings"
 
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
-	swx_protos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
-	"magma/feg/gateway/services/swx_proxy"
-)
-
-var (
-	challengeReqTemplate eap.Packet
-	challengeReqTemplateLen,
-	// Offsets in the challenge template of corresponding attribute values
-	atRandOffset,
-	atAutnOffset,
-	atMacOffset int
 )
 
 func init() {
-	var err error
-	p := eap.NewPacket(eap.RequestCode, 0, []byte{aka.TYPE, byte(aka.SubtypeChallenge), 0, 0})
-	atRandOffset = len(p) + aka.ATT_HDR_LEN
-	p, err = p.Append(eap.NewAttribute(
-		aka.AT_RAND, append(
-			[]byte{0, 0}, // reserved
-			make([]byte, aka.RAND_LEN)...)))
-	if err != nil {
-		panic(err)
-	}
-	atAutnOffset = len(p) + aka.ATT_HDR_LEN
-	p, err = p.Append(eap.NewAttribute(
-		aka.AT_AUTN, append(
-			[]byte{0, 0}, // reserved
-			make([]byte, aka.AUTN_LEN)...)))
-	if err != nil {
-		panic(err)
-	}
-	atMacOffset = len(p) + aka.ATT_HDR_LEN
-	p, err = p.Append(eap.NewAttribute(
-		aka.AT_MAC, append(
-			[]byte{0, 0}, // reserved
-			make([]byte, aka.MAC_LEN)...)))
-	if err != nil {
-		panic(err)
-	}
-	challengeReqTemplateLen = len(p)
-	challengeReqTemplate = p
-
 	servicers.AddHandler(aka.SubtypeIdentity, identityResponse)
 }
 
 // identityResponse implements handler for AKA Challenge, see https://tools.ietf.org/html/rfc4187#page-49 for reference
 func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
 	identifier := req.Identifier()
+	if ctx == nil {
+		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Nil CTX")
+	}
+	if len(ctx.SessionId) == 0 {
+		ctx.SessionId = eap.CreateSessionId()
+		log.Printf("Missing Session ID for EAP: %x; Generated new SID: %s", req, ctx.SessionId)
+	}
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
+		s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.Aborted, err.Error())
 	}
 	var a eap.Attribute
@@ -87,79 +54,29 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				} else {
 					imsi = imsi[1:]
 				}
-				uc := s.GetLockedUserCtx(imsi)
-				defer uc.Unlock()
-
+				ctx.Imsi = string(imsi)                  // set IMSI
+				uc := s.InitSession(ctx.SessionId, imsi) // we have Locked User Ctx after this call
 				state, t := uc.State()
 				if state > aka.StateCreated {
 					log.Printf(
-						"EAP AKA IdentityResponse: Overwriting unexpected user state: %d,%s for IMSI: %s",
-						state, t, imsi)
+						"EAP AKA IdentityResponse: Unexpected user state: %d,%s for IMSI: %s, CTX Identity: %s",
+						state, t, imsi, uc.Identity)
 				}
+				uc.Identity = identity
 				uc.SetState(aka.StateIdentity)
-				ans, err := swx_proxy.Authenticate(
-					&swx_protos.AuthenticationRequest{
-						UserName:             string(imsi),
-						SipNumAuthVectors:    1,
-						AuthenticationScheme: swx_protos.AuthenticationScheme_EAP_AKA})
-
-				if err != nil {
-					errCode := codes.Internal
-					if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
-						errCode = se.GRPCStatus().Code()
-					}
-					return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, errCode, err.Error())
+				p, err := createChallengeRequest(s, uc, identifier, nil)
+				if err == nil {
+					// Update state
+					uc.SetState(aka.StateChallenge)
+					s.UpdateSessionUnlockCtx(uc, aka.ChallengeTimeout())
+				} else {
+					s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
 				}
-				if ans == nil || len(ans.SipAuthVectors) == 0 {
-					return aka.EapErrorResPacket(
-						identifier, aka.NOTIFICATION_FAILURE, codes.Internal, "Nil SWx Response")
-				}
-				if len(ans.SipAuthVectors) == 0 {
-					return aka.EapErrorResPacket(
-						identifier, aka.NOTIFICATION_FAILURE, codes.Internal, "Missing SWx Auth Vector: %+v", *ans)
-				}
-				av := ans.SipAuthVectors[0] // Use first vector for now
-				ra := av.GetRandAutn()
-				if len(ra) < aka.RandAutnLen {
-					return aka.EapErrorResPacket(
-						identifier,
-						aka.NOTIFICATION_FAILURE,
-						codes.Internal,
-						"Invalid SWx RandAutn len (%d, expected: %d) in Response: %+v",
-						len(ra), aka.RandAutnLen, *ans)
-				}
-				uc.Rand = ra[:aka.RAND_LEN]
-				autn := ra[aka.RAND_LEN:aka.RandAutnLen]
-				uc.Xres = av.GetXres()
-				// Clone EAP Challenge packet
-				p := eap.Packet(make([]byte, challengeReqTemplateLen))
-				copy(p, challengeReqTemplate)
-
-				// Set current identifier
-				p[eap.EapMsgIdentifier] = identifier
-
-				// Set AT_RAND
-				copy(p[atRandOffset:], uc.Rand)
-
-				// Set AT_AUTN
-				copy(p[atAutnOffset:], autn)
-
-				// Calculate AT_MAC
-				IK := av.GetIntegrityKey()
-				CK := av.GetConfidentialityKey()
-				_, K_aut, msk, _ := MakeAKAKeys([]byte(identity), IK, CK)
-				mac := GenMac(p, K_aut)
-				// Set AT_MAC
-				copy(p[atMacOffset:], mac)
-
-				uc.K_aut, uc.MSK = K_aut, msk
-
-				// Update state
-				uc.SetState(aka.StateChallenge)
-				return p, nil // success - return EAP packet
+				return p, err
 			}
 		}
 	}
+	s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
 	if err != nil && err != io.EOF {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, err.Error())
 	}
@@ -176,11 +93,11 @@ func getIMSIIdentity(a eap.Attribute) (string, aka.IMSI, error) {
 		return "", "", fmt.Errorf("AT_IDENTITY is too short: %d", a.Len())
 	}
 	val := a.Value()
-	actualLen := int(val[0])<<8 + int(val[1])
-	if actualLen > len(val) {
-		return "", "", fmt.Errorf("Corrupt AT_IDENTITY Attribute: actual len %d > data len %d", actualLen, len(val))
+	actualLen2 := int(val[0])<<8 + int(val[1]) + 2
+	if actualLen2 > len(val) {
+		return "", "", fmt.Errorf("Corrupt AT_IDENTITY Attribute: actual len %d > data len %d", actualLen2-2, len(val))
 	}
-	fullIdentity := string(val[2:actualLen])
+	fullIdentity := string(val[2:actualLen2])
 	atIdx := strings.Index(fullIdentity, "@")
 	var imsi aka.IMSI
 	if atIdx > 0 {

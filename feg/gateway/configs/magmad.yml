@@ -11,6 +11,8 @@ magma_services:
   - feg_hello
   - health
   - swx_proxy
+  - eap_aka
+  - eap_router
 
 # List of services that don't provide service303 interface
 non_service303_services:

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -416,31 +416,6 @@ int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t *const guti)
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
-}
-
-/*
- *
- *  Name:    mme_api_notify_end_ue_s1ap_id_changed()
- *
- *  Description: Notify the MME of a change in ue id (reconnection).
- *
- *  Inputs:
- *         old_ueid:      old nas_ue id
- *         new_ueid:      new nas_ue id
- *         mme_ue_s1ap_id:   nas ue id
- *  Return:    RETURNok, RETURNerror
- *
- */
-int mme_api_notified_new_ue_s1ap_id_association(
-  const enb_s1ap_id_key_t enb_ue_s1ap_id_key,
-  const uint32_t enb_id,
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id)
-{
-  int ret = RETURNok;
-  OAILOG_FUNC_IN(LOG_NAS);
-  ret = mme_ue_context_notified_new_ue_s1ap_id_association(
-    enb_ue_s1ap_id_key, mme_ue_s1ap_id);
-  OAILOG_FUNC_RETURN(LOG_NAS, ret);
 }
 
 /****************************************************************************

@@ -11,7 +11,13 @@ package servicers
 import (
 	"fmt"
 
+	fegprotos "magma/feg/cloud/go/protos"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
+	orc8rprotos "magma/orc8r/cloud/go/protos"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type EPSAuthServer struct {
@@ -24,4 +30,20 @@ func NewEPSAuthServer(store *storage.SubscriberDBStorage) (*EPSAuthServer, error
 		return nil, fmt.Errorf("Cannot initialize eps authentication server with nil store")
 	}
 	return &EPSAuthServer{Store: store}, nil
+}
+
+// lookupSubscriber returns a subscriber's data or an error.
+func (srv *EPSAuthServer) lookupSubscriber(userName, networkID string) (*lteprotos.SubscriberData, fegprotos.ErrorCode, error) {
+	lookup := &lteprotos.SubscriberLookup{
+		Sid:       &lteprotos.SubscriberID{Id: userName},
+		NetworkId: &orc8rprotos.NetworkID{Id: networkID},
+	}
+	subscriber, err := srv.Store.GetSubscriberData(lookup)
+	if err != nil {
+		if status.Convert(err).Code() == codes.NotFound {
+			return nil, fegprotos.ErrorCode_USER_UNKNOWN, err
+		}
+		return nil, fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE, err
+	}
+	return subscriber, fegprotos.ErrorCode_SUCCESS, nil
 }
