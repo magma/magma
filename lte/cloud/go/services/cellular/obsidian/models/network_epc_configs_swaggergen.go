@@ -20,6 +20,9 @@ import (
 // swagger:model network_epc_configs
 type NetworkEpcConfigs struct {
 
+	// cloud subscriberdb enabled
+	CloudSubscriberdbEnabled bool `json:"cloud_subscriberdb_enabled,omitempty"`
+
 	// default rule id
 	DefaultRuleID string `json:"default_rule_id,omitempty"`
 

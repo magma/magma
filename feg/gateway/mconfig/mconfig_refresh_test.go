@@ -41,6 +41,7 @@ const testMmconfigJsonV1 = `{
       "tac": 1,
       "enableDnsCaching": false,
       "relayEnabled": false,
+      "cloudSubscriberdbEnabled": false,
       "nonEpsServiceControl": 0,
       "csfbMcc": "001",
       "csfbMnc": "01",

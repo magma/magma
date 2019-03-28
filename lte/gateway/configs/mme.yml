@@ -15,4 +15,3 @@ conf_dir: "/var/opt/magma/tmp"
 cert_dir: "/usr/local/etc/oai"
 hss_ip: "127.0.0.1"
 hss_hostname: "hss"
-cloud_subscriberdb_enabled: false
