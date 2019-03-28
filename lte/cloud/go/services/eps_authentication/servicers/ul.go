@@ -32,29 +32,35 @@ const (
 )
 
 func (srv *EPSAuthServer) UpdateLocation(ctx context.Context, ulr *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error) {
+	glog.V(2).Infof("received ULR from: %s", ulr.GetUserName())
 	metrics.ULRequests.Inc()
 	if err := validateULR(ulr); err != nil {
+		glog.V(2).Infof("ULR is invalid: %v", err.Error())
 		metrics.InvalidRequests.Inc()
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	networkID, err := getNetworkID(ctx)
 	if err != nil {
+		glog.V(2).Infof("could not lookup networkID: %v", err.Error())
 		metrics.NetworkIDErrors.Inc()
 		return nil, err
 	}
 	config, err := getConfig(networkID)
 	if err != nil {
+		glog.V(2).Infof("could not lookup config for networkID '%s': %v", networkID, err.Error())
 		metrics.ConfigErrors.Inc()
 		return nil, err
 	}
 	subscriber, errorCode, err := srv.lookupSubscriber(ulr.UserName, networkID)
 	if err != nil {
+		glog.V(2).Infof("failed to lookup subscriber '%s': %v", ulr.UserName, err.Error())
 		metrics.UnknownSubscribers.Inc()
 		return &protos.UpdateLocationAnswer{ErrorCode: errorCode}, err
 	}
 	profile := getSubProfile(subscriber.SubProfile, config)
 	if profile == nil {
+		glog.V(2).Infof("failed to find subscriber profile '%s'", subscriber.SubProfile)
 		return &protos.UpdateLocationAnswer{ErrorCode: protos.ErrorCode_UNKNOWN_EPS_SUBSCRIPTION},
 			status.Errorf(
 				codes.FailedPrecondition,
