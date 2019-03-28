@@ -6,6 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import queue
+
 import grpc
 
 import os
@@ -16,6 +18,7 @@ from typing import List
 import snowflake
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Struct
+from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 
 from magma.common.rpc_utils import return_void, set_grpc_err
@@ -196,6 +199,53 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                          '{}: {}'.format(e.__class__.__name__, str(e)))
 
         return response
+
+    def TailLogs(self, request, context):
+        """
+        Provides an infinite stream of logs to the client. The client can stop
+        the stream by closing the connection.
+        """
+        if request.service and \
+                request.service not in ServiceRegistry.list_services():
+            set_grpc_err(context,
+                         grpc.StatusCode.NOT_FOUND,
+                         'Service {} not found'.format(request.service))
+            return
+
+        if not request.service:
+            exec_list = ['sudo', 'tail', '-f', '/var/log/syslog']
+        else:
+            exec_list = ['sudo', 'journalctl', '-fu',
+                         'magma@{}'.format(request.service)]
+
+        logging.info("Tailing logs")
+        log_queue = queue.Queue()
+
+        async def enqueue_log_lines():
+            proc = await asyncio.create_subprocess_exec(
+                *exec_list,
+                stdout=asyncio.subprocess.PIPE)
+            try:
+                while context.is_active():
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=10.0)
+                        log_queue.put(line)
+                    except asyncio.TimeoutError:
+                        pass
+            finally:
+                logging.info("Terminating log stream")
+                proc.kill()
+
+        self._loop.create_task(enqueue_log_lines())
+
+        while context.is_active():
+            try:
+                log_line = log_queue.get(block=True, timeout=10.0)
+                yield magmad_pb2.LogLine(line=log_line)
+            except queue.Empty:
+                pass
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):
