@@ -15,6 +15,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
+	"magma/lte/cloud/go/services/eps_authentication/metrics"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -22,33 +23,41 @@ import (
 )
 
 func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fegprotos.AuthenticationInformationRequest) (*fegprotos.AuthenticationInformationAnswer, error) {
+	metrics.AIRequests.Inc()
 	if err := validateAIR(air); err != nil {
+		metrics.InvalidRequests.Inc()
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	networkID, err := getNetworkID(ctx)
 	if err != nil {
+		metrics.NetworkIDErrors.Inc()
 		return nil, err
 	}
 	config, err := getConfig(networkID)
 	if err != nil {
+		metrics.ConfigErrors.Inc()
 		return nil, err
 	}
 	subscriber, errorCode, err := srv.lookupSubscriber(air.UserName, networkID)
 	if err != nil {
+		metrics.UnknownSubscribers.Inc()
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}, err
 	}
 
 	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, air.ResyncInfo, config.LteAuthOp)
 	if err != nil {
+		metrics.ResyncAuthErrors.Inc()
 		return convertAuthErrorToAuthenticationAnswer(err)
 	}
 	if err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq); err != nil {
+		metrics.StorageErrors.Inc()
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
 	}
 
 	milenage, err := crypto.NewMilenageCipher(config.LteAuthAmf)
 	if err != nil {
+		metrics.AuthErrors.Inc()
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHORIZATION_REJECTED},
 			status.Errorf(codes.FailedPrecondition, "Could not create milenage cipher: %s", err.Error())
 	}
@@ -62,9 +71,11 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 		0,
 	)
 	if err != nil {
+		metrics.AuthErrors.Inc()
 		return convertAuthErrorToAuthenticationAnswer(err)
 	}
 	if err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq); err != nil {
+		metrics.StorageErrors.Inc()
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
 	}
 

@@ -15,6 +15,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	cellular "magma/lte/cloud/go/services/cellular/protos"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
+	"magma/lte/cloud/go/services/eps_authentication/metrics"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -31,20 +32,25 @@ const (
 )
 
 func (srv *EPSAuthServer) UpdateLocation(ctx context.Context, ulr *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error) {
+	metrics.ULRequests.Inc()
 	if err := validateULR(ulr); err != nil {
+		metrics.InvalidRequests.Inc()
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	networkID, err := getNetworkID(ctx)
 	if err != nil {
+		metrics.NetworkIDErrors.Inc()
 		return nil, err
 	}
 	config, err := getConfig(networkID)
 	if err != nil {
+		metrics.ConfigErrors.Inc()
 		return nil, err
 	}
 	subscriber, errorCode, err := srv.lookupSubscriber(ulr.UserName, networkID)
 	if err != nil {
+		metrics.UnknownSubscribers.Inc()
 		return &protos.UpdateLocationAnswer{ErrorCode: errorCode}, err
 	}
 	profile := getSubProfile(subscriber.SubProfile, config)
@@ -88,6 +94,7 @@ func getSubProfile(profileName string, config *EpsAuthConfig) *cellular.NetworkE
 	if ok && profile != nil {
 		return profile
 	}
+	metrics.UnknownSubProfiles.Inc()
 
 	profile, ok = config.SubProfiles["default"]
 	if ok && profile != nil {
