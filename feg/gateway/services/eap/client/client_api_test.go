@@ -81,6 +81,22 @@ var (
 		137, 171, 205, 239, 2, 5, 0, 0, 84, 171, 100, 74, 144, 81, 185, 185, 94, 133, 193, 34, 62, 14, 241, 76, 11, 5,
 		0, 0, 180, 191, 23, 199, 219, 210, 244, 54, 3, 41, 254, 37, 158, 216, 47, 19}
 	successEAP = []byte{3, 2, 0, 4}
+
+	expectedMppeRecvKey = []byte(
+		"\x95\x63\x3c\x3a\xa5\x8b\x48\xbe\xde\x6d\x2c\x1a\x91\x70\x71\xf5" +
+		"\x63\xd4\xed\x7f\xba\xb3\xec\x61\xed\x7e\x3a\xf4\x82\x06\x58\x71" +
+		"\x8c\xf7\xee\x86\x81\x0d\xf4\xf9\xf4\xb7\xb9\xdd\x14\xca\xc3\xbd\x95\x80")
+	expectedMppeRecvKeySalt = []byte("\x95\x63")
+
+	expectedMppeSendKey = []byte(
+		"\x9b\x87\x83\x49\x6a\x78\xcc\xaa\x34\x4e\x45\x51\x7f\x15\x37\xf9" +
+		"\x30\x94\x26\x07\x60\x68\x97\xf0\xb5\x69\xab\x1d\x61\x9d\x8b\xa9" +
+		"\x85\x3c\xc8\xaf\x68\x4b\xaa\x8f\x8f\x77\x5f\x68\x94\xf0\xcd\xc6\xc9\x2f")
+	expectedMppeSendKeySalt = []byte("\x9b\x87")
+
+	authenticator         = []byte{
+		0x9f, 0xe8, 0xff, 0xcb, 0xc9, 0xd4, 0x85, 0x97, 0xb9, 0x5b, 0x79, 0x7c, 0x2d, 0xf5, 0x43, 0x31}
+	sharedSecret = []byte("1qaz2wsx")
 )
 
 func TestEAPClientApi(t *testing.T) {
@@ -120,6 +136,27 @@ func TestEAPClientApi(t *testing.T) {
 		t.Fatalf(
 			"Unexpected Challenge Response EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), expectedChallengeResp)
+	}
+
+	// We should get a valid MSR within the auth success EAP Ctx, verify that we generated valid
+	// MS-MPPE-Recv-Key & MS-MPPE-Send-Key according to https://tools.ietf.org/html/rfc2548
+	genMS_MPPE_Recv_Key := append(
+		expectedMppeRecvKeySalt,
+		eap.EncodeMsMppeKey(expectedMppeRecvKeySalt, peap.GetCtx().Msk[0:32], authenticator, sharedSecret)...)
+
+	genMS_MPPE_Send_Key := append(
+		expectedMppeSendKeySalt,
+		eap.EncodeMsMppeKey(expectedMppeSendKeySalt, peap.GetCtx().Msk[32:], authenticator, sharedSecret)...)
+
+	if !reflect.DeepEqual(genMS_MPPE_Recv_Key, expectedMppeRecvKey) {
+		t.Fatalf(
+			"MS_MPPE_Recv_Keys mismatch.\n\tGenerated MS_MPPE_Recv_Key(%d): %v\n\tExpected  MS_MPPE_Recv_Key(%d): %v",
+			len(genMS_MPPE_Recv_Key), genMS_MPPE_Recv_Key, len(expectedMppeRecvKey), expectedMppeRecvKey)
+	}
+	if !reflect.DeepEqual(genMS_MPPE_Send_Key, expectedMppeSendKey) {
+		t.Fatalf(
+			"MS_MPPE_Send_Keys mismatch.\n\tGenerated MS_MPPE_Send_Key(%d): %v\n\tExpected  MS_MPPE_Send_Key(%d): %v",
+			len(genMS_MPPE_Send_Key), genMS_MPPE_Send_Key, len(expectedMppeSendKey), expectedMppeSendKey)
 	}
 
 	time.Sleep(time.Millisecond * 10)
