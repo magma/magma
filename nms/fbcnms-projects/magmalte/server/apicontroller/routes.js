@@ -4,6 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 
@@ -63,7 +64,8 @@ router.use(
   '/magma/networks',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+    userResDecorator: (proxyRes, proxyResData: Buffer, userReq, userRes) => {
+      let networkIds;
       if (
         (proxyRes.statusCode === 403 || proxyRes.statusCode === 401) &&
         NETWORK_FALLBACK.length > 0
@@ -71,20 +73,20 @@ router.use(
         // Temporary hack -- if you don't have a root magma cert,
         // it will return a 403.
         userRes.statusCode = 200;
-        proxyResData = NETWORK_FALLBACK;
+        networkIds = NETWORK_FALLBACK;
       } else {
-        proxyResData = JSON.parse(proxyResData.toString('utf8'));
+        networkIds = JSON.parse(proxyResData.toString('utf8'));
       }
 
       if (userReq.user.isSuperUser) {
-        return JSON.stringify(proxyResData);
+        return JSON.stringify(networkIds);
       }
 
       // if a normal user is fetching the list of networks from the Magma
       // controller we return the intersection of the list from the controller
       // with the networks they're allowed to see
       const allNetworkIDs = new Set();
-      proxyResData.map(id => allNetworkIDs.add(id));
+      networkIds.map(id => allNetworkIDs.add(id));
 
       const results = userReq.user.networkIDs.filter(id =>
         allNetworkIDs.has(id),
