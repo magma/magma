@@ -78,8 +78,9 @@ module.exports = Object.assign({}, fbStrict, {
     'no-unused-vars': ['error', {
       'vars': 'all',
       'args': 'after-used',
-      'argsIgnorePattern': '^_'},
-    ],
+      'argsIgnorePattern': '^_',
+      'varsIgnorePattern': '^_',
+    }],
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
