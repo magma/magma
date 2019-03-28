@@ -109,7 +109,7 @@ code for the first time and run it. Start in
 ```console
 HOST [magma/lte/gateway]$ vagrant ssh
 MAGMA-VM [/home/vagrant]$ cd magma/lte/gateway
-MAGMA-VM [/home/vagrant/magma]$ make run
+MAGMA-VM [/home/vagrant/magma/lte/gateway]$ make run
 ```
 This will take a while (we have a lot of CXX files to build). It's a good time
 to switch over to
