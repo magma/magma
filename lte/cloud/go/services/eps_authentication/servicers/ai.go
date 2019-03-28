@@ -45,6 +45,10 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}, err
 	}
 
+	if subscriber.State == nil {
+		subscriber.State = &lteprotos.SubscriberState{}
+	}
+
 	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, air.ResyncInfo, config.LteAuthOp)
 	if err != nil {
 		metrics.ResyncAuthErrors.Inc()

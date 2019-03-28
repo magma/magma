@@ -93,8 +93,8 @@ func (suite *EpsAuthTestSuite) TestAuthenticationInformation_MissingSubscriberSt
 	}
 
 	aia, err := suite.AuthenticationInformation(air)
-	suite.EqualError(err, "rpc error: code = Unavailable desc = Authentication data unavailable: subscriber state is nil")
-	suite.checkAIA(aia, protos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE, 0)
+	suite.EqualError(err, "rpc error: code = Unauthenticated desc = Authentication rejected: Subscriber data missing LTE subscription")
+	suite.checkAIA(aia, protos.ErrorCode_AUTHORIZATION_REJECTED, 0)
 }
 
 func (suite *EpsAuthTestSuite) TestAuthenticationInformation_Success() {
