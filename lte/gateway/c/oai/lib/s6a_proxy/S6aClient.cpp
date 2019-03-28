@@ -26,7 +26,6 @@
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "MConfigLoader.h"
 #include "S6aClient.h"
-#include "ServiceConfigLoader.h"
 #include "ServiceRegistrySingleton.h"
 #include "itti_msg_to_proto_msg.h"
 #include "feg/protos/s6a_proxy.pb.h"
@@ -80,9 +79,14 @@ static bool read_mme_relay_enabled(void)
 
 static bool read_mme_cloud_subscriberdb_enabled(void)
 {
-  auto config = magma::ServiceConfigLoader{}.load_service_config(MME_SERVICE);
-  return config["cloud_subscriberdb_enabled"].IsDefined() &&
-         config["cloud_subscriberdb_enabled"].as<bool>();
+  magma::mconfig::MME mconfig;
+  magma::MConfigLoader loader;
+
+  if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
+    std::cout << "[INFO] Unable to load mconfig for mme, cloud subscriberdb is disabled" << std::endl;
+    return false; // default is - cloud subscriberdb disabled
+  }
+  return mconfig.cloud_subscriberdb_enabled();
 }
 
 S6aClient &S6aClient::get_instance()
