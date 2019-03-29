@@ -507,6 +507,7 @@ static int _emm_as_recv(
         ((1 == decode_status->security_context_available) &&
          (0 == decode_status->mac_matched))) {
         *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
+        unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoder_rc);
       }
       rc =

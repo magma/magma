@@ -535,6 +535,7 @@ void mme_app_handle_initial_ue_message(
               mme_app_desc.mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
               (const hash_key_t) ue_context_p->enb_s1ap_id_key);
             ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+            ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
           }
           // Update MME UE context with new enb_ue_s1ap_id
           ue_context_p->enb_ue_s1ap_id = initial_pP->enb_ue_s1ap_id;
@@ -2158,6 +2159,7 @@ int mme_app_handle_nas_extended_service_req(
         "ue_context %d, %d\n",
         ue_id,
         ue_context_p->mme_ue_s1ap_id);
+      unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   } else {
@@ -2281,6 +2283,7 @@ int mme_app_handle_nas_extended_service_req(
         "ERROR***** Invalid Service Type Received %d\n",
         serviceType);
   }
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 

@@ -2082,6 +2082,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
     ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
