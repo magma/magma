@@ -310,6 +310,7 @@ void mme_app_ue_sgs_context_free_content(
     }
     sgs_context_p->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
+  free_wrapper((void**) &sgs_context_p);
 }
 
 //------------------------------------------------------------------------------
@@ -389,7 +390,6 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
     // free the sgs context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->imsi);
-    free_wrapper((void **) &(ue_context_p->sgs_context));
   }
 
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
@@ -2395,17 +2395,23 @@ static void _mme_app_handle_s1ap_ue_context_release(
     itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   } else {
     if (cause == S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS) {
-      if ((mme_app_send_s11_suspend_notification(ue_mm_context)) != RETURNok) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to send S11 Suspend Notification for imsi " IMSI_64_FMT "\n",
-          ue_mm_context->imsi);
+      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
+        if (ue_mm_context->pdn_contexts[i]) {
+          if((mme_app_send_s11_suspend_notification(ue_mm_context, i))
+             != RETURNok) {
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              "Failed to send S11 Suspend Notification for imsi " IMSI_64_FMT "\n",
+              ue_mm_context->imsi);
+          }
+        }
       }
-    }
-    // release S1-U tunnel mapping in S_GW for all the active bearers for the UE
-    for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
-      if (ue_mm_context->pdn_contexts[i]) {
-        mme_app_send_s11_release_access_bearers_req(ue_mm_context, i);
+    } else {
+      // release S1-U tunnel mapping in S_GW for all the active bearers for the UE
+      for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
+        if (ue_mm_context->pdn_contexts[i]) {
+          mme_app_send_s11_release_access_bearers_req(ue_mm_context, i);
+        }
       }
     }
   }

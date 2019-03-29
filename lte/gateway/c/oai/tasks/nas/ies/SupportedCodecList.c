@@ -37,7 +37,7 @@ int decode_supported_codec_list(
   uint8_t total_coded_len = 0, decoded_len;
 
   if (iei > 0) {
-    CHECK_IEI_DECODER(iei, *buffer);
+    CHECK_IEI_DECODER(SUPPORTED_CODED_LIST_IE, *buffer);
     decoded++;
   }
 

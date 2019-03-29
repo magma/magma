@@ -552,6 +552,7 @@ int emm_proc_attach_request(
 
     new_emm_ctx->num_attach_request++;
     new_emm_ctx->attach_type = ies->type;
+    new_emm_ctx->additional_update_type = ies->additional_update_type;
     OAILOG_NOTICE(
       LOG_NAS_EMM,
       "EMM-PROC  - Create EMM context ue_id = " MME_UE_S1AP_ID_FMT "\n",
@@ -701,19 +702,19 @@ int emm_proc_attach_complete(
       switch (esm_msg_pP->data[2]) {
       case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
         esm_sap.primitive = ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_CNF;
-	break;
+        break;
       case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
         esm_sap.primitive = ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REJ;
-	break;
+        break;
       case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
-	esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_CNF;
-	break;
+        esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_CNF;
+        break;
       case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT:
-	esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REJ;
-	break;
+        esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REJ;
+        break;
       default:
-	OAILOG_ERROR (LOG_NAS_EMM, "Invalid ESM Message type, value = [%x] \n", esm_msg_pP->data[2]);
-	break;
+        OAILOG_ERROR (LOG_NAS_EMM, "Invalid ESM Message type, value = [%x] \n", esm_msg_pP->data[2]);
+        break;
       }
       esm_sap.is_standalone = false;
       esm_sap.ue_id = ue_id;
