@@ -21,6 +21,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     feg.vm.hostname = "magma-feg-dev"
     feg.vm.network "private_network", ip: "192.168.90.101"
     feg.vm.network "private_network", ip: "192.168.80.101"
+    feg.vm.network "forwarded_port", guest: 9109, host: 9109
 
     feg.ssh.password = "vagrant"
     feg.ssh.insert_key = true
