@@ -13,12 +13,11 @@
 #include "LocalSessionManagerHandler.h"
 #include "SessionProxyResponderHandler.h"
 
+using grpc::ServerCompletionQueue;
 using grpc::ServerContext;
 using grpc::Status;
-using grpc::ServerCompletionQueue;
 
 namespace magma {
-
 
 /**
  * General async gRPC service. It runs a loop pulling requests off a server
@@ -38,7 +37,7 @@ namespace magma {
  * CallData for that RPC is created and the next request will have that tag.
  */
 class AsyncService {
-public:
+ public:
   AsyncService(std::unique_ptr<ServerCompletionQueue> cq);
 
   /**
@@ -50,32 +49,34 @@ public:
    * Stop the server and shutdown the completion queue
    */
   void stop();
-protected:
+
+ protected:
   /**
    * Initialize request handlers for report rule stats, end/create session
    */
   virtual void init_call_data() = 0;
 
-protected:
+ protected:
   std::unique_ptr<ServerCompletionQueue> cq_;
   std::atomic<bool> running_;
-
 };
 
 /**
  * LocalSessionManagerAsyncService handles gRPC calls to LocalSessionManager
  * through a completion queue where requests are processed and returned async
  */
-class LocalSessionManagerAsyncService final
-  : public AsyncService, public LocalSessionManager::AsyncService {
-public:
+class LocalSessionManagerAsyncService final :
+  public AsyncService,
+  public LocalSessionManager::AsyncService {
+ public:
   LocalSessionManagerAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::unique_ptr<LocalSessionManagerHandler> handler);
-protected:
+
+ protected:
   void init_call_data();
 
-private:
+ private:
   std::unique_ptr<LocalSessionManagerHandler> handler_;
 };
 
@@ -83,16 +84,18 @@ private:
  * SessionProxyResponderAsyncService handles gRPC calls to SessionProxyResponder
  * through a completion queue where requests are processed and returned async
  */
-class SessionProxyResponderAsyncService final
-  : public AsyncService, public SessionProxyResponder::AsyncService {
-public:
+class SessionProxyResponderAsyncService final :
+  public AsyncService,
+  public SessionProxyResponder::AsyncService {
+ public:
   SessionProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::unique_ptr<SessionProxyResponderHandler> handler);
-protected:
+
+ protected:
   void init_call_data();
 
-private:
+ private:
   std::unique_ptr<SessionProxyResponderHandler> handler_;
 };
 
@@ -103,7 +106,7 @@ private:
  * call proceed on them
  */
 class CallData {
-public:
+ public:
   /**
    * proceed is called by the AsyncService loop when the CallData is found in
    * the queue
@@ -117,12 +120,10 @@ public:
  * created. When a request is made, the call data moves to processing. When
  * finished, the call data destroys itself
  */
-template <class GRPCService, class RequestType, class ResponseType>
+template<class GRPCService, class RequestType, class ResponseType>
 class AsyncGRPCRequest : public CallData {
-public:
-  AsyncGRPCRequest(
-    ServerCompletionQueue* cq,
-    GRPCService& service);
+ public:
+  AsyncGRPCRequest(ServerCompletionQueue *cq, GRPCService &service);
 
   /**
    * proceed moves to the next step in the state machine. If it's in processing,
@@ -131,8 +132,8 @@ public:
    */
   void proceed();
 
-protected:
-  ServerCompletionQueue* cq_;
+ protected:
+  ServerCompletionQueue *cq_;
   ServerContext ctx_;
 
   enum CallStatus { PROCESS, FINISH };
@@ -141,9 +142,9 @@ protected:
   RequestType request_;
   grpc::ServerAsyncResponseWriter<ResponseType> responder_;
 
-  GRPCService& service_;
+  GRPCService &service_;
 
-protected:
+ protected:
   /**
    * Create new CallData for the request so that more requests can be processed
    */
@@ -163,163 +164,171 @@ protected:
 /**
  * Class to handle ReportRuleStats requests
  */
-class ReportRuleStatsCallData
-  : public AsyncGRPCRequest<
-      LocalSessionManager::AsyncService,
-      RuleRecordTable,
-      Void
-    > {
-public:
+class ReportRuleStatsCallData :
+  public AsyncGRPCRequest<
+    LocalSessionManager::AsyncService,
+    RuleRecordTable,
+    Void> {
+ public:
   ReportRuleStatsCallData(
-      ServerCompletionQueue* cq,
-      LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
-      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    ServerCompletionQueue *cq,
+    LocalSessionManager::AsyncService &service,
+    LocalSessionManagerHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
     // By calling RequestReportRuleStats, any RPC to ReportRuleStats will get
     // added to the request queue cq_ with the tag being the memory address
     // of this instance. When the request is completed, it will be added to
     // cq_ again to be finished
     service_.RequestReportRuleStats(
-      &ctx_, &request_, &responder_, cq_, cq_, (void*)this);
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
   }
-protected:
-  void clone() override {
+
+ protected:
+  void clone() override
+  {
     // When processing a request, create a new ReportRuleStatsCallData to
     // process another request if it comes in.
     new ReportRuleStatsCallData(cq_, service_, handler_);
   }
 
-  void process() override {
+  void process() override
+  {
     // Get a response from a handler and call the finish callback
     handler_.ReportRuleStats(&ctx_, &request_, get_finish_callback());
   }
-private:
-  LocalSessionManagerHandler& handler_;
+
+ private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
  * Class to handle CreateSession requests
  */
-class CreateSessionCallData
-  : public AsyncGRPCRequest<
-      LocalSessionManager::AsyncService,
-      LocalCreateSessionRequest,
-      LocalCreateSessionResponse
-    > {
-public:
+class CreateSessionCallData :
+  public AsyncGRPCRequest<
+    LocalSessionManager::AsyncService,
+    LocalCreateSessionRequest,
+    LocalCreateSessionResponse> {
+ public:
   CreateSessionCallData(
-      ServerCompletionQueue* cq,
-      LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
-      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    ServerCompletionQueue *cq,
+    LocalSessionManager::AsyncService &service,
+    LocalSessionManagerHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
     service_.RequestCreateSession(
-      &ctx_, &request_, &responder_, cq_, cq_, (void*)this);
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
   }
 
-protected:
-  void clone() override {
-    new CreateSessionCallData(cq_, service_, handler_);
-  }
+ protected:
+  void clone() override { new CreateSessionCallData(cq_, service_, handler_); }
 
-  void process() override {
+  void process() override
+  {
     handler_.CreateSession(&ctx_, &request_, get_finish_callback());
   }
-private:
-  LocalSessionManagerHandler& handler_;
+
+ private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
  * Class to handle EndSession requests
  */
-class EndSessionCallData
-  : public AsyncGRPCRequest<
-      LocalSessionManager::AsyncService,
-      SubscriberID,
-      LocalEndSessionResponse
-    > {
-public:
+class EndSessionCallData :
+  public AsyncGRPCRequest<
+    LocalSessionManager::AsyncService,
+    SubscriberID,
+    LocalEndSessionResponse> {
+ public:
   EndSessionCallData(
-      ServerCompletionQueue* cq,
-      LocalSessionManager::AsyncService& service,
-      LocalSessionManagerHandler& handler)
-      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    ServerCompletionQueue *cq,
+    LocalSessionManager::AsyncService &service,
+    LocalSessionManagerHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
     service_.RequestEndSession(
-      &ctx_, &request_, &responder_, cq_, cq_, (void*)this);
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
   }
 
-protected:
-  void clone() override {
-    new EndSessionCallData(cq_, service_, handler_);
-  }
+ protected:
+  void clone() override { new EndSessionCallData(cq_, service_, handler_); }
 
-  void process() override {
+  void process() override
+  {
     handler_.EndSession(&ctx_, &request_, get_finish_callback());
   }
-private:
-  LocalSessionManagerHandler& handler_;
+
+ private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
  * Class to handle ChargingReauth requests
  */
-class ChargingReAuthCallData
-  : public AsyncGRPCRequest<
-      SessionProxyResponder::AsyncService,
-      ChargingReAuthRequest,
-      ChargingReAuthAnswer
-    > {
-public:
+class ChargingReAuthCallData :
+  public AsyncGRPCRequest<
+    SessionProxyResponder::AsyncService,
+    ChargingReAuthRequest,
+    ChargingReAuthAnswer> {
+ public:
   ChargingReAuthCallData(
-      ServerCompletionQueue* cq,
-      SessionProxyResponder::AsyncService& service,
-      SessionProxyResponderHandler& handler)
-      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    ServerCompletionQueue *cq,
+    SessionProxyResponder::AsyncService &service,
+    SessionProxyResponderHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
     service_.RequestChargingReAuth(
-      &ctx_, &request_, &responder_, cq_, cq_, (void*)this);
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
   }
 
-protected:
-  void clone() override {
-    new ChargingReAuthCallData(cq_, service_, handler_);
-  }
+ protected:
+  void clone() override { new ChargingReAuthCallData(cq_, service_, handler_); }
 
-  void process() override {
+  void process() override
+  {
     handler_.ChargingReAuth(&ctx_, &request_, get_finish_callback());
   }
-private:
-  SessionProxyResponderHandler& handler_;
-};
 
+ private:
+  SessionProxyResponderHandler &handler_;
+};
 
 /**
  * Class to handle PolicyReauth requests
  */
-class PolicyReAuthCallData
-  : public AsyncGRPCRequest<
-      SessionProxyResponder::AsyncService,
-      PolicyReAuthRequest,
-      PolicyReAuthAnswer
-    > {
-public:
+class PolicyReAuthCallData :
+  public AsyncGRPCRequest<
+    SessionProxyResponder::AsyncService,
+    PolicyReAuthRequest,
+    PolicyReAuthAnswer> {
+ public:
   PolicyReAuthCallData(
-      ServerCompletionQueue* cq,
-      SessionProxyResponder::AsyncService& service,
-      SessionProxyResponderHandler& handler)
-      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    ServerCompletionQueue *cq,
+    SessionProxyResponder::AsyncService &service,
+    SessionProxyResponderHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
     service_.RequestPolicyReAuth(
-      &ctx_, &request_, &responder_, cq_, cq_, (void*)this);
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
   }
 
-protected:
-  void clone() override {
-    new PolicyReAuthCallData(cq_, service_, handler_);
-  }
+ protected:
+  void clone() override { new PolicyReAuthCallData(cq_, service_, handler_); }
 
-  void process() override {
+  void process() override
+  {
     handler_.PolicyReAuth(&ctx_, &request_, get_finish_callback());
   }
-private:
-  SessionProxyResponderHandler& handler_;
+
+ private:
+  SessionProxyResponderHandler &handler_;
 };
 
-}
+} // namespace magma

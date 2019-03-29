@@ -17,55 +17,57 @@ using grpc::Status;
 namespace magma {
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
-  LocalEnforcer* enforcer,
-  SessionCloudReporter* reporter)
-  : enforcer_(enforcer), reporter_(reporter) {}
+  LocalEnforcer *enforcer,
+  SessionCloudReporter *reporter):
+  enforcer_(enforcer),
+  reporter_(reporter)
+{
+}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
-    ServerContext* context,
-    const RuleRecordTable* request,
-    std::function<void(Status, Void)> response_callback) {
-  auto& request_cpy = *request;
+  ServerContext *context,
+  const RuleRecordTable *request,
+  std::function<void(Status, Void)> response_callback)
+{
+  auto &request_cpy = *request;
   MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
-  enforcer_->get_event_base().runInEventBaseThread(
-    [this, request_cpy]() {
-      enforcer_->aggregate_records(request_cpy);
-      check_usage_for_reporting();
-    }
-  );
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+    enforcer_->aggregate_records(request_cpy);
+    check_usage_for_reporting();
+  });
   response_callback(Status::OK, Void());
 }
 
-void LocalSessionManagerHandlerImpl::check_usage_for_reporting() {
+void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
+{
   auto request = enforcer_->collect_updates();
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
     return; // nothing to report
   }
   MLOG(MDEBUG) << "Sending " << request.updates_size()
-    << " charging updates and " << request.usage_monitors_size()
-    << " monitor updates to OCS and PCRF";
+               << " charging updates and " << request.usage_monitors_size()
+               << " monitor updates to OCS and PCRF";
 
   // report to cloud
-  reporter_->report_updates(request,
-    [this, request](Status status, UpdateSessionResponse response) {
+  reporter_->report_updates(
+    request, [this, request](Status status, UpdateSessionResponse response) {
       if (!status.ok()) {
         enforcer_->reset_updates(request);
-        MLOG(MERROR) << "Update of size " << request.updates_size() <<
-          " to OCS failed entirely: " << status.error_message();
+        MLOG(MERROR) << "Update of size " << request.updates_size()
+                     << " to OCS failed entirely: " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
         enforcer_->update_session_credit(response);
         // Check if we need to report more updates
         check_usage_for_reporting();
       }
-    }
-  );
+    });
 }
 
 static CreateSessionRequest copy_session_info2create_req(
-    const LocalCreateSessionRequest* request,
-    const std::string& sid) {
-
+  const LocalCreateSessionRequest *request,
+  const std::string &sid)
+{
   CreateSessionRequest create_request;
 
   create_request.mutable_subscriber()->CopyFrom(request->sid());
@@ -84,68 +86,66 @@ static CreateSessionRequest copy_session_info2create_req(
 }
 
 void LocalSessionManagerHandlerImpl::CreateSession(
-    ServerContext* context,
-    const LocalCreateSessionRequest* request,
-    std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
+  ServerContext *context,
+  const LocalCreateSessionRequest *request,
+  std::function<void(Status, LocalCreateSessionResponse)> response_callback)
+{
   auto imsi = request->sid().id();
   auto sid = id_gen_.gen_session_id(imsi);
-  SessionState::Config cfg =
-  {.ue_ipv4 = request->ue_ipv4(),
-   .spgw_ipv4 = request->spgw_ipv4(),
-   .msisdn = request->msisdn(),
-   .apn = request->apn(),
-   .imei = request->imei(),
-   .plmn_id = request->plmn_id(),
-   .imsi_plmn_id = request->imsi_plmn_id(),
-   .user_location = request->user_location()
-  };
+  SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
+                              .spgw_ipv4 = request->spgw_ipv4(),
+                              .msisdn = request->msisdn(),
+                              .apn = request->apn(),
+                              .imei = request->imei(),
+                              .plmn_id = request->plmn_id(),
+                              .imsi_plmn_id = request->imsi_plmn_id(),
+                              .user_location = request->user_location()};
   reporter_->report_create_session(
     copy_session_info2create_req(request, sid),
     [this, imsi, sid, cfg, response_callback](
-        Status status,
-        CreateSessionResponse response) {
+      Status status, CreateSessionResponse response) {
       if (status.ok()) {
-        bool success = enforcer_->init_session_credit(imsi,
-            sid, cfg, response);
+        bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {
           MLOG(MERROR) << "Failed to init session in Usage Monitor for IMSI "
-            << imsi;
-          status = Status(grpc::FAILED_PRECONDITION,
-                          "Failed to initialize session");
+                       << imsi;
+          status =
+            Status(grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
           MLOG(MINFO) << "Successfully initialized new session in sessiond "
-            << "for subscriber " << imsi;
+                      << "for subscriber " << imsi;
         }
       } else {
         MLOG(MERROR) << "Failed to initialize session in OCS for IMSI " << imsi
-          << ": " << status.error_message();
+                     << ": " << status.error_message();
       }
       response_callback(status, LocalCreateSessionResponse());
     });
 }
 
 static void report_termination(
-    LocalEnforcer& enforcer,
-    SessionCloudReporter& reporter,
-    const SessionTerminateRequest& term_req,
-    std::function<void(Status, LocalEndSessionResponse)> response_callback) {
-  reporter.report_terminate_session(term_req,
+  LocalEnforcer &enforcer,
+  SessionCloudReporter &reporter,
+  const SessionTerminateRequest &term_req,
+  std::function<void(Status, LocalEndSessionResponse)> response_callback)
+{
+  reporter.report_terminate_session(
+    term_req,
     [&enforcer, &reporter, term_req, response_callback](
-        Status status,
-        SessionTerminateResponse response) {
+      Status status, SessionTerminateResponse response) {
       if (!status.ok()) {
         MLOG(MERROR) << "Failed to terminate session in controller for "
-          "subscriber " << term_req.sid() << ": " << status.error_message();
+                        "subscriber "
+                     << term_req.sid() << ": " << status.error_message();
       } else {
         MLOG(MDEBUG) << "Termination successful in controller for "
-          "subscriber " << term_req.sid();
+                        "subscriber "
+                     << term_req.sid();
       }
       // No matter what, end session locally
-      enforcer.complete_termination(
-        term_req.sid(), term_req.session_id());
+      enforcer.complete_termination(term_req.sid(), term_req.session_id());
       response_callback(status, LocalEndSessionResponse());
-    }
-  );
+    });
 }
 
 /**
@@ -158,24 +158,24 @@ static void report_termination(
  * 4) Remove the terminated session from being tracked
  */
 void LocalSessionManagerHandlerImpl::EndSession(
-    ServerContext* context,
-    const SubscriberID* request,
-    std::function<void(Status, LocalEndSessionResponse)> response_callback) {
-  auto& request_cpy = *request;
+  ServerContext *context,
+  const SubscriberID *request,
+  std::function<void(Status, LocalEndSessionResponse)> response_callback)
+{
+  auto &request_cpy = *request;
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
       try {
         auto term_req = enforcer_->terminate_subscriber(request_cpy.id());
         // report to cloud
         report_termination(*enforcer_, *reporter_, term_req, response_callback);
-      } catch (const SessionNotFound& ex) {
+      } catch (const SessionNotFound &ex) {
         MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-          << request_cpy.id();
+                     << request_cpy.id();
         Status status(grpc::FAILED_PRECONDITION, "Session not found");
         response_callback(status, LocalEndSessionResponse());
       }
-    }
-  );
+    });
 }
 
-}
+} // namespace magma

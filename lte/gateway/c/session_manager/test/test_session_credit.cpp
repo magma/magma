@@ -18,7 +18,8 @@ using ::testing::Test;
 
 namespace magma {
 
-TEST(test_track_credit, test_session_credit) {
+TEST(test_track_credit, test_session_credit)
+{
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
 
@@ -26,7 +27,8 @@ TEST(test_track_credit, test_session_credit) {
   EXPECT_EQ(0, credit.get_credit(USED_TX));
 }
 
-TEST(test_add_received_credit, test_session_credit) {
+TEST(test_add_received_credit, test_session_credit)
+{
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
   credit.add_used_credit(10, 20);
@@ -37,7 +39,8 @@ TEST(test_add_received_credit, test_session_credit) {
   EXPECT_EQ(credit.get_credit(USED_RX), 60);
 }
 
-TEST(test_collect_updates, test_session_credit) {
+TEST(test_collect_updates, test_session_credit)
+{
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
   credit.add_used_credit(1024, 20);
@@ -51,7 +54,8 @@ TEST(test_collect_updates, test_session_credit) {
   EXPECT_EQ(credit.get_credit(REPORTING_RX), 20);
 }
 
-TEST(test_collect_updates_timer_expiries, test_credit_manager) {
+TEST(test_collect_updates_timer_expiries, test_credit_manager)
+{
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 1, false);
   credit.add_used_credit(20, 30);
@@ -63,14 +67,16 @@ TEST(test_collect_updates_timer_expiries, test_credit_manager) {
   EXPECT_EQ(update.bytes_rx, 30);
 }
 
-TEST(test_collect_updates_none_available, test_session_credit) {
+TEST(test_collect_updates_none_available, test_session_credit)
+{
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
   credit.add_used_credit(30, 20);
   EXPECT_EQ(credit.get_update_type(), CREDIT_NO_UPDATE);
 }
 
-TEST(test_get_action, test_session_credit) {
+TEST(test_get_action, test_session_credit)
+{
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, false);
   credit.add_used_credit(1025, 0);
@@ -87,7 +93,8 @@ TEST(test_get_action, test_session_credit) {
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
-TEST(test_failures, test_session_credit) {
+TEST(test_failures, test_session_credit)
+{
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, true);
   credit.add_used_credit(1025, 0);
@@ -101,7 +108,8 @@ TEST(test_failures, test_session_credit) {
   EXPECT_EQ(credit2.get_action(), TERMINATE_SERVICE);
 }
 
-TEST(test_add_rx_tx_credit, test_session_credit) {
+TEST(test_add_rx_tx_credit, test_session_credit)
+{
   SessionCredit credit;
   credit.receive_credit(HIGH_CREDIT, 1000, 1000, 3600, false);
   credit.add_used_credit(1500, 0);
@@ -131,9 +139,10 @@ TEST(test_add_rx_tx_credit, test_session_credit) {
   EXPECT_EQ(credit.get_update_type(), CREDIT_NO_UPDATE);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-}
+} // namespace magma

@@ -15,15 +15,14 @@
 
 #include "LocalEnforcer.h"
 
+using grpc::Server;
 using grpc::ServerContext;
 using grpc::Status;
-using grpc::Server;
 
 namespace magma {
 
 class SessionProxyResponderHandler {
-public:
-
+ public:
   virtual ~SessionProxyResponderHandler() {}
 
   /**
@@ -31,14 +30,14 @@ public:
    * account
    */
   virtual void ChargingReAuth(
-      ServerContext* context,
-      const ChargingReAuthRequest* request,
-      std::function<void(Status, ChargingReAuthAnswer)> response_callback) = 0;
+    ServerContext *context,
+    const ChargingReAuthRequest *request,
+    std::function<void(Status, ChargingReAuthAnswer)> response_callback) = 0;
 
   virtual void PolicyReAuth(
-      ServerContext* context,
-      const PolicyReAuthRequest* request,
-      std::function<void(Status, PolicyReAuthAnswer)> response_callback) = 0;
+    ServerContext *context,
+    const PolicyReAuthRequest *request,
+    std::function<void(Status, PolicyReAuthAnswer)> response_callback) = 0;
 };
 
 /**
@@ -46,8 +45,8 @@ public:
  * federated gateway, such as Re-Auth
  */
 class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
-public:
-  SessionProxyResponderHandlerImpl(LocalEnforcer* monitor);
+ public:
+  SessionProxyResponderHandlerImpl(LocalEnforcer *monitor);
 
   ~SessionProxyResponderHandlerImpl() {}
 
@@ -56,20 +55,20 @@ public:
    * account
    */
   void ChargingReAuth(
-      ServerContext* context,
-      const ChargingReAuthRequest* request,
-      std::function<void(Status, ChargingReAuthAnswer)> response_callback);
+    ServerContext *context,
+    const ChargingReAuthRequest *request,
+    std::function<void(Status, ChargingReAuthAnswer)> response_callback);
 
   /**
    * Install/uninstall rules for an existing session
    */
   void PolicyReAuth(
-      ServerContext* context,
-      const PolicyReAuthRequest* request,
-      std::function<void(Status, PolicyReAuthAnswer)> response_callback);
+    ServerContext *context,
+    const PolicyReAuthRequest *request,
+    std::function<void(Status, PolicyReAuthAnswer)> response_callback);
 
-private:
-  LocalEnforcer* enforcer_;
+ private:
+  LocalEnforcer *enforcer_;
 };
 
-}
+} // namespace magma

@@ -14,14 +14,17 @@ namespace magma {
 
 template<class ResponseType>
 AsyncEvbResponse<ResponseType>::AsyncEvbResponse(
-  folly::EventBase* base,
+  folly::EventBase *base,
   std::function<void(grpc::Status, ResponseType)> callback,
-  uint32_t timeout_sec)
-  : base_(base),
-    AsyncGRPCResponse<ResponseType>(callback, timeout_sec) {}
+  uint32_t timeout_sec):
+  base_(base),
+  AsyncGRPCResponse<ResponseType>(callback, timeout_sec)
+{
+}
 
 template<class ResponseType>
-void AsyncEvbResponse<ResponseType>::handle_response() {
+void AsyncEvbResponse<ResponseType>::handle_response()
+{
   base_->runInEventBaseThread([this]() {
     this->callback_(this->status_, this->response_);
     delete this;
@@ -29,14 +32,17 @@ void AsyncEvbResponse<ResponseType>::handle_response() {
 }
 
 SessionCloudReporter::SessionCloudReporter(
-  folly::EventBase* base,
-  std::shared_ptr<grpc::Channel> channel)
-  : base_(base),
-    stub_(CentralSessionController::NewStub(channel)) {}
+  folly::EventBase *base,
+  std::shared_ptr<grpc::Channel> channel):
+  base_(base),
+  stub_(CentralSessionController::NewStub(channel))
+{
+}
 
 void SessionCloudReporter::report_updates(
-    const UpdateSessionRequest& request,
-    std::function<void(grpc::Status, UpdateSessionResponse)> callback) {
+  const UpdateSessionRequest &request,
+  std::function<void(grpc::Status, UpdateSessionResponse)> callback)
+{
   auto cloud_response = new AsyncEvbResponse<UpdateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
   cloud_response->set_response_reader(std::move(stub_->AsyncUpdateSession(
@@ -44,8 +50,9 @@ void SessionCloudReporter::report_updates(
 }
 
 void SessionCloudReporter::report_create_session(
-    const CreateSessionRequest& request,
-    std::function<void(grpc::Status, CreateSessionResponse)> callback) {
+  const CreateSessionRequest &request,
+  std::function<void(grpc::Status, CreateSessionResponse)> callback)
+{
   auto cloud_response = new AsyncEvbResponse<CreateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
   cloud_response->set_response_reader(std::move(stub_->AsyncCreateSession(
@@ -53,13 +60,13 @@ void SessionCloudReporter::report_create_session(
 }
 
 void SessionCloudReporter::report_terminate_session(
-    const SessionTerminateRequest& request,
-    std::function<void(grpc::Status, SessionTerminateResponse)> callback) {
+  const SessionTerminateRequest &request,
+  std::function<void(grpc::Status, SessionTerminateResponse)> callback)
+{
   auto cloud_response = new AsyncEvbResponse<SessionTerminateResponse>(
     base_, callback, RESPONSE_TIMEOUT);
   cloud_response->set_response_reader(std::move(stub_->AsyncTerminateSession(
     cloud_response->get_context(), request, &queue_)));
 }
 
-
-}
+} // namespace magma

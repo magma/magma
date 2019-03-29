@@ -16,10 +16,11 @@ using grpc::Status;
 
 namespace magma {
 
-template <typename KeyType>
+template<typename KeyType>
 void PoliciesByKeyMap<KeyType>::insert(
-    const KeyType& key,
-    std::shared_ptr<PolicyRule> rule_p) {
+  const KeyType &key,
+  std::shared_ptr<PolicyRule> rule_p)
+{
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     rules_by_key_[key] = {rule_p};
@@ -28,10 +29,11 @@ void PoliciesByKeyMap<KeyType>::insert(
   iter->second.push_back(rule_p);
 }
 
-template <typename KeyType>
+template<typename KeyType>
 void PoliciesByKeyMap<KeyType>::remove(
-    const KeyType& key,
-    std::shared_ptr<PolicyRule> rule_p) {
+  const KeyType &key,
+  std::shared_ptr<PolicyRule> rule_p)
+{
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     return;
@@ -45,53 +47,57 @@ void PoliciesByKeyMap<KeyType>::remove(
   rules.erase(found);
 }
 
-template <typename KeyType>
+template<typename KeyType>
 bool PoliciesByKeyMap<KeyType>::get_rule_ids_for_key(
-    const KeyType& key,
-    std::vector<std::string>& rules_out) {
+  const KeyType &key,
+  std::vector<std::string> &rules_out)
+{
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     return false;
   }
 
-  for (const auto& rule : iter->second) {
+  for (const auto &rule : iter->second) {
     rules_out.push_back(rule->id());
   }
   return true;
 }
 
-template <typename KeyType>
+template<typename KeyType>
 bool PoliciesByKeyMap<KeyType>::get_rule_definitions_for_key(
-    const KeyType& key,
-    std::vector<PolicyRule>& rules_out) {
+  const KeyType &key,
+  std::vector<PolicyRule> &rules_out)
+{
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     return false;
   }
 
-  for (const auto& rule : iter->second) {
+  for (const auto &rule : iter->second) {
     rules_out.push_back(*rule);
   }
   return true;
 }
 
-static bool should_track_charging_key(PolicyRule::TrackingType tracking_type) {
+static bool should_track_charging_key(PolicyRule::TrackingType tracking_type)
+{
   return tracking_type == PolicyRule::ONLY_OCS ||
-    tracking_type == PolicyRule::OCS_AND_PCRF;
+         tracking_type == PolicyRule::OCS_AND_PCRF;
 }
 
-static bool should_track_monitoring_key(
-    PolicyRule::TrackingType tracking_type) {
+static bool should_track_monitoring_key(PolicyRule::TrackingType tracking_type)
+{
   return tracking_type == PolicyRule::ONLY_PCRF ||
-    tracking_type == PolicyRule::OCS_AND_PCRF;
+         tracking_type == PolicyRule::OCS_AND_PCRF;
 }
 
-void PolicyRuleBiMap::sync_rules(const std::vector<PolicyRule>& rules) {
+void PolicyRuleBiMap::sync_rules(const std::vector<PolicyRule> &rules)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
   rules_by_rule_id_.clear();
   rules_by_charging_key_ = PoliciesByKeyMap<uint32_t>();
   rules_by_monitoring_key_ = PoliciesByKeyMap<std::string>();
-  for (const auto& rule : rules) {
+  for (const auto &rule : rules) {
     auto rule_p = std::make_shared<PolicyRule>(rule);
     rules_by_rule_id_[rule.id()] = rule_p;
     if (should_track_charging_key(rule.tracking_type())) {
@@ -103,7 +109,8 @@ void PolicyRuleBiMap::sync_rules(const std::vector<PolicyRule>& rules) {
   }
 }
 
-void PolicyRuleBiMap::insert_rule(const PolicyRule& rule) {
+void PolicyRuleBiMap::insert_rule(const PolicyRule &rule)
+{
   auto rule_p = std::make_shared<PolicyRule>(rule);
   std::lock_guard<std::mutex> lock(map_mutex_);
   rules_by_rule_id_[rule.id()] = rule_p;
@@ -115,7 +122,8 @@ void PolicyRuleBiMap::insert_rule(const PolicyRule& rule) {
   }
 }
 
-bool PolicyRuleBiMap::get_rule(const std::string& rule_id, PolicyRule* rule) {
+bool PolicyRuleBiMap::get_rule(const std::string &rule_id, PolicyRule *rule)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
   if (it == rules_by_rule_id_.end()) {
@@ -125,7 +133,10 @@ bool PolicyRuleBiMap::get_rule(const std::string& rule_id, PolicyRule* rule) {
   return true;
 }
 
-bool PolicyRuleBiMap::remove_rule(const std::string& rule_id, PolicyRule* rule_out) {
+bool PolicyRuleBiMap::remove_rule(
+  const std::string &rule_id,
+  PolicyRule *rule_out)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
   if (it == rules_by_rule_id_.end()) {
@@ -148,8 +159,9 @@ bool PolicyRuleBiMap::remove_rule(const std::string& rule_id, PolicyRule* rule_o
 }
 
 bool PolicyRuleBiMap::get_charging_key_for_rule_id(
-    const std::string& rule_id,
-    uint32_t* charging_key) {
+  const std::string &rule_id,
+  uint32_t *charging_key)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
   if (it == rules_by_rule_id_.end()) {
@@ -163,8 +175,9 @@ bool PolicyRuleBiMap::get_charging_key_for_rule_id(
 }
 
 bool PolicyRuleBiMap::get_monitoring_key_for_rule_id(
-    const std::string& rule_id,
-    std::string* monitoring_key) {
+  const std::string &rule_id,
+  std::string *monitoring_key)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
   if (it == rules_by_rule_id_.end()) {
@@ -178,17 +191,19 @@ bool PolicyRuleBiMap::get_monitoring_key_for_rule_id(
 }
 
 bool PolicyRuleBiMap::get_rule_ids_for_charging_key(
-    uint32_t charging_key,
-    std::vector<std::string>& rules_out) {
+  uint32_t charging_key,
+  std::vector<std::string> &rules_out)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success = rules_by_charging_key_.get_rule_ids_for_key(
-    charging_key, rules_out);
+  bool success =
+    rules_by_charging_key_.get_rule_ids_for_key(charging_key, rules_out);
   return success;
 }
 
 bool PolicyRuleBiMap::get_rule_definitions_for_charging_key(
-    uint32_t charging_key,
-    std::vector<PolicyRule>& rules_out) {
+  uint32_t charging_key,
+  std::vector<PolicyRule> &rules_out)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success = rules_by_charging_key_.get_rule_definitions_for_key(
     charging_key, rules_out);
@@ -196,21 +211,23 @@ bool PolicyRuleBiMap::get_rule_definitions_for_charging_key(
 }
 
 bool PolicyRuleBiMap::get_rule_ids_for_monitoring_key(
-    const std::string& monitoring_key,
-    std::vector<std::string>& rules_out) {
+  const std::string &monitoring_key,
+  std::vector<std::string> &rules_out)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success = rules_by_monitoring_key_.get_rule_ids_for_key(
-    monitoring_key, rules_out);
+  bool success =
+    rules_by_monitoring_key_.get_rule_ids_for_key(monitoring_key, rules_out);
   return success;
 }
 
 bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
-    const std::string& monitoring_key,
-    std::vector<PolicyRule>& rules_out) {
+  const std::string &monitoring_key,
+  std::vector<PolicyRule> &rules_out)
+{
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success = rules_by_monitoring_key_.get_rule_definitions_for_key(
     monitoring_key, rules_out);
   return success;
 }
 
-}
+} // namespace magma

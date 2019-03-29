@@ -12,11 +12,12 @@
 namespace magma {
 
 void create_rule_record(
-    const std::string& imsi,
-    const std::string& rule_id,
-    uint64_t bytes_rx,
-    uint64_t bytes_tx,
-    RuleRecord* rule_record) {
+  const std::string &imsi,
+  const std::string &rule_id,
+  uint64_t bytes_rx,
+  uint64_t bytes_tx,
+  RuleRecord *rule_record)
+{
   rule_record->set_sid(imsi);
   rule_record->set_rule_id(rule_id);
   rule_record->set_bytes_rx(bytes_rx);
@@ -24,9 +25,10 @@ void create_rule_record(
 }
 
 void create_charging_credit(
-    uint64_t volume,
-    bool is_final,
-    ChargingCredit* credit) {
+  uint64_t volume,
+  bool is_final,
+  ChargingCredit *credit)
+{
   credit->mutable_granted_units()->mutable_total()->set_volume(volume);
   credit->mutable_granted_units()->mutable_total()->set_is_valid(true);
   credit->set_type(ChargingCredit::BYTES);
@@ -35,19 +37,21 @@ void create_charging_credit(
 
 // defaults to not final credit
 void create_update_response(
-    const std::string& imsi,
-    uint32_t charging_key,
-    uint64_t volume,
-    CreditUpdateResponse* response) {
+  const std::string &imsi,
+  uint32_t charging_key,
+  uint64_t volume,
+  CreditUpdateResponse *response)
+{
   create_update_response(imsi, charging_key, volume, false, response);
 }
 
 void create_update_response(
-    const std::string& imsi,
-    uint32_t charging_key,
-    uint64_t volume,
-    bool is_final,
-    CreditUpdateResponse* response) {
+  const std::string &imsi,
+  uint32_t charging_key,
+  uint64_t volume,
+  bool is_final,
+  CreditUpdateResponse *response)
+{
   create_charging_credit(volume, is_final, response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
@@ -56,12 +60,13 @@ void create_update_response(
 }
 
 void create_usage_update(
-    const std::string& imsi,
-    uint32_t charging_key,
-    uint64_t bytes_rx,
-    uint64_t bytes_tx,
-    CreditUsage::UpdateType type,
-    CreditUsageUpdate* update) {
+  const std::string &imsi,
+  uint32_t charging_key,
+  uint64_t bytes_rx,
+  uint64_t bytes_tx,
+  CreditUsage::UpdateType type,
+  CreditUsageUpdate *update)
+{
   auto usage = update->mutable_usage();
   update->set_sid(imsi);
   usage->set_charging_key(charging_key);
@@ -71,10 +76,11 @@ void create_usage_update(
 }
 
 void create_monitor_credit(
-    const std::string& m_key,
-    MonitoringLevel level,
-    uint64_t volume,
-    UsageMonitoringCredit* credit) {
+  const std::string &m_key,
+  MonitoringLevel level,
+  uint64_t volume,
+  UsageMonitoringCredit *credit)
+{
   if (volume == 0) {
     credit->set_action(UsageMonitoringCredit::DISABLE);
   } else {
@@ -87,14 +93,15 @@ void create_monitor_credit(
 }
 
 void create_monitor_update_response(
-    const std::string& imsi,
-    const std::string& m_key,
-    MonitoringLevel level,
-    uint64_t volume,
-    UsageMonitoringUpdateResponse* response) {
+  const std::string &imsi,
+  const std::string &m_key,
+  MonitoringLevel level,
+  uint64_t volume,
+  UsageMonitoringUpdateResponse *response)
+{
   create_monitor_credit(m_key, level, volume, response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
 }
 
-}
+} // namespace magma

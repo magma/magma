@@ -24,50 +24,51 @@ using namespace lte;
  * a response is received. This is defined here to limit the dependency on folly
  * in the common library.
  */
-template <typename ResponseType>
+template<typename ResponseType>
 class AsyncEvbResponse : public AsyncGRPCResponse<ResponseType> {
-public:
+ public:
   AsyncEvbResponse(
-    folly::EventBase* base,
+    folly::EventBase *base,
     std::function<void(grpc::Status, ResponseType)> callback,
     uint32_t timeout_sec);
 
- void handle_response() override;
+  void handle_response() override;
 
-private:
- folly::EventBase* base_;
+ private:
+  folly::EventBase *base_;
 };
 
 class SessionCloudReporter : public GRPCReceiver {
-public:
-  SessionCloudReporter(folly::EventBase* base,
-                       std::shared_ptr<grpc::Channel> channel);
+ public:
+  SessionCloudReporter(
+    folly::EventBase *base,
+    std::shared_ptr<grpc::Channel> channel);
 
   /**
    * Proxy an UpdateSessionRequest gRPC call to the cloud
    */
   void report_updates(
-    const UpdateSessionRequest& request,
+    const UpdateSessionRequest &request,
     std::function<void(grpc::Status, UpdateSessionResponse)> callback);
 
   /**
    * Proxy a CreateSessionRequest gRPC call to the cloud
    */
   void report_create_session(
-      const CreateSessionRequest& request,
-      std::function<void(grpc::Status, CreateSessionResponse)> callback);
+    const CreateSessionRequest &request,
+    std::function<void(grpc::Status, CreateSessionResponse)> callback);
 
   /**
    * Proxy a SessionTerminateRequest gRPC call to the cloud
    */
   void report_terminate_session(
-      const SessionTerminateRequest& request,
-      std::function<void(grpc::Status, SessionTerminateResponse)> callback);
+    const SessionTerminateRequest &request,
+    std::function<void(grpc::Status, SessionTerminateResponse)> callback);
 
-private:
-  folly::EventBase* base_;
+ private:
+  folly::EventBase *base_;
   std::unique_ptr<CentralSessionController::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
 };
 
-}
+} // namespace magma
