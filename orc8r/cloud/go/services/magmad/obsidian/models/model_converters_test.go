@@ -32,17 +32,71 @@ func TestGatewayStateToModel(t *testing.T) {
 		Status: &protos.GatewayStatus{
 			Time: 12345,
 			Checkin: &protos.CheckinRequest{
-				GatewayId:       "gw0",
-				MagmaPkgVersion: "v1",
+				GatewayId: "gw0",
 				Status: &protos.ServiceStatus{
 					Meta: map[string]string{
-						"Test": "Map",
+						"hello": "world",
 					},
 				},
 				SystemStatus: &protos.SystemStatus{
-					Time:    12345,
-					CpuUser: 213,
-					MemUsed: 142,
+					Time:       1495484735606,
+					CpuUser:    31498,
+					CpuSystem:  8361,
+					CpuIdle:    1869111,
+					MemTotal:   1016084,
+					MemUsed:    54416,
+					MemFree:    412772,
+					UptimeSecs: 1234,
+					SwapTotal:  1016081,
+					SwapUsed:   54415,
+					SwapFree:   412771,
+					DiskPartitions: []*protos.DiskPartition{
+						{
+							Device:     "/dev/sda1",
+							MountPoint: "/",
+							Total:      1,
+							Used:       2,
+							Free:       3,
+						},
+					},
+				},
+				PlatformInfo: &protos.PlatformInfo{
+					VpnIp: "facebook.com",
+					Packages: []*protos.Package{
+						{
+							Name:    "magma",
+							Version: "0.0.0.0",
+						},
+					},
+					KernelVersion:           "42",
+					KernelVersionsInstalled: []string{"42", "43"},
+				},
+				MachineInfo: &protos.MachineInfo{
+					CpuInfo: &protos.CPUInfo{
+						CoreCount:      4,
+						ThreadsPerCore: 1,
+						Architecture:   "x86_64",
+						ModelName:      "Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz",
+					},
+					NetworkInfo: &protos.NetworkInfo{
+						NetworkInterfaces: []*protos.NetworkInterface{
+							{
+								NetworkInterfaceId: "gtp_br0",
+								Status:             protos.NetworkInterface_UP,
+								MacAddress:         "08:00:27:1e:8a:32",
+								IpAddresses:        []string{"10.10.10.1"},
+								Ipv6Addresses:      []string{"fe80::a00:27ff:fe1e:8332"},
+							},
+						},
+						RoutingTable: []*protos.Route{
+							{
+								DestinationIp:      "0.0.0.0",
+								GatewayIp:          "10.10.10.1",
+								Genmask:            "255.255.255.0",
+								NetworkInterfaceId: "eth0",
+							},
+						},
+					},
 				},
 			},
 		},
@@ -61,16 +115,72 @@ func TestGatewayStateToModel(t *testing.T) {
 		GatewayID: "gw0",
 		Status: &checkind_models.GatewayStatus{
 			CheckinTime: 12345,
-			HardwareID:  "gw0",
-			Meta: map[string]string{
-				"Test": "Map",
-			},
+			Meta:        map[string]string{"hello": "world"},
 			SystemStatus: &checkind_models.SystemStatus{
-				Time:    12345,
-				CPUUser: 213,
-				MemUsed: 142,
+				Time:       1495484735606,
+				CPUUser:    31498,
+				CPUSystem:  8361,
+				CPUIDLE:    1869111,
+				MemTotal:   1016084,
+				MemUsed:    54416,
+				MemFree:    412772,
+				UptimeSecs: 1234,
+				SwapTotal:  1016081,
+				SwapUsed:   54415,
+				SwapFree:   412771,
+				DiskPartitions: []*checkind_models.DiskPartition{
+					{
+						Device:     "/dev/sda1",
+						MountPoint: "/",
+						Total:      1,
+						Used:       2,
+						Free:       3,
+					},
+				},
 			},
-			Version: "v1",
+			PlatformInfo: &checkind_models.PlatformInfo{
+				VpnIP: "facebook.com",
+				Packages: []*checkind_models.Package{
+					{
+						Name:    "magma",
+						Version: "0.0.0.0",
+					},
+				},
+				KernelVersion:           "42",
+				KernelVersionsInstalled: []string{"42", "43"},
+			},
+			MachineInfo: &checkind_models.MachineInfo{
+				CPUInfo: &checkind_models.MachineInfoCPUInfo{
+					CoreCount:      4,
+					ThreadsPerCore: 1,
+					Architecture:   "x86_64",
+					ModelName:      "Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz",
+				},
+				NetworkInfo: &checkind_models.MachineInfoNetworkInfo{
+					NetworkInterfaces: []*checkind_models.NetworkInterface{
+						{
+							NetworkInterfaceID: "gtp_br0",
+							Status:             checkind_models.NetworkInterfaceStatusUP,
+							MacAddress:         "08:00:27:1e:8a:32",
+							IPAddresses:        []string{"10.10.10.1"},
+							IPV6Addresses:      []string{"fe80::a00:27ff:fe1e:8332"},
+						},
+					},
+					RoutingTable: []*checkind_models.Route{
+						{
+							DestinationIP:      "0.0.0.0",
+							GatewayIP:          "10.10.10.1",
+							Genmask:            "255.255.255.0",
+							NetworkInterfaceID: "eth0",
+						},
+					},
+				},
+			},
+			HardwareID:              "gw0",
+			KernelVersion:           "42",
+			KernelVersionsInstalled: []string{"42", "43"},
+			Version:                 "0.0.0.0",
+			VpnIP:                   "facebook.com",
 		},
 		Record: &magmad_models.AccessGatewayRecord{
 			HwID: &magmad_models.HwGatewayID{ID: "gw0"},

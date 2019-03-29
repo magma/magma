@@ -6,8 +6,11 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"strconv"
+
 	strfmt "github.com/go-openapi/strfmt"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
 )
 
@@ -24,6 +27,9 @@ type SystemStatus struct {
 	// cpu user
 	CPUUser uint64 `json:"cpu_user,omitempty" magma_alt_name:"CpuUser"`
 
+	// disk partitions
+	DiskPartitions []*DiskPartition `json:"disk_partitions,omitempty"`
+
 	// mem available
 	MemAvailable uint64 `json:"mem_available,omitempty"`
 
@@ -36,6 +42,15 @@ type SystemStatus struct {
 	// mem used
 	MemUsed uint64 `json:"mem_used,omitempty"`
 
+	// swap free
+	SwapFree uint64 `json:"swap_free,omitempty"`
+
+	// swap total
+	SwapTotal uint64 `json:"swap_total,omitempty"`
+
+	// swap used
+	SwapUsed uint64 `json:"swap_used,omitempty"`
+
 	// time
 	Time uint64 `json:"time,omitempty"`
 
@@ -45,6 +60,40 @@ type SystemStatus struct {
 
 // Validate validates this system status
 func (m *SystemStatus) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateDiskPartitions(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *SystemStatus) validateDiskPartitions(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DiskPartitions) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.DiskPartitions); i++ {
+		if swag.IsZero(m.DiskPartitions[i]) { // not required
+			continue
+		}
+
+		if m.DiskPartitions[i] != nil {
+			if err := m.DiskPartitions[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("disk_partitions" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 

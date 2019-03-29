@@ -15,6 +15,7 @@ import (
 
 	"magma/orc8r/cloud/go/protos"
 	checkin_store "magma/orc8r/cloud/go/services/checkind/store"
+	checkin_test_utils "magma/orc8r/cloud/go/services/checkind/test_utils"
 	logger_test_init "magma/orc8r/cloud/go/services/logger/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
@@ -43,37 +44,17 @@ func TestCheckinStore(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, logicalId, "")
 
-	status := protos.GatewayStatus{
-		Time: uint64(time.Now().UnixNano() / int64(time.Millisecond)),
-		Checkin: &protos.CheckinRequest{
-			GatewayId:       testAgHwId,
-			MagmaPkgVersion: "1.2.3",
-			Status: &protos.ServiceStatus{
-				Meta: map[string]string{
-					"hello": "world",
-				},
-			},
-			SystemStatus: &protos.SystemStatus{
-				CpuUser:   31498,
-				CpuSystem: 8361,
-				CpuIdle:   1869111,
-				MemTotal:  1016084,
-				MemUsed:   54416,
-				MemFree:   412772,
-			},
-			KernelVersionsInstalled: []string{},
-		},
-	}
+	status := checkin_test_utils.GetGatewayStatusProtoFixture(testAgHwId)
 
-	err = store.UpdateGatewayStatus(&status)
+	err = store.UpdateGatewayStatus(status)
 	assert.NoError(t, err)
 
 	status_req := protos.GatewayStatusRequest{NetworkId: testNetworkId, LogicalId: logicalId}
 	read_status, err := store.GetGatewayStatus(&status_req)
 	assert.NoError(t, err)
 
-	if !reflect.DeepEqual(status, *read_status) {
-		t.Errorf("GW Status Mismatch: %#v != %#v", status, *read_status)
+	if !reflect.DeepEqual(status, read_status) {
+		t.Errorf("GW Status Mismatch: %#v != %#v", *status.Checkin, *read_status.Checkin)
 	}
 
 	err = store.DeleteGatewayStatus(&status_req)
@@ -85,15 +66,15 @@ func TestCheckinStore(t *testing.T) {
 
 	status.Time = uint64(time.Now().UnixNano() / int64(time.Millisecond))
 
-	err = store.UpdateGatewayStatus(&status)
+	err = store.UpdateGatewayStatus(status)
 	assert.NoError(t, err)
 
 	status_req = protos.GatewayStatusRequest{NetworkId: testNetworkId, LogicalId: logicalId}
 	read_status, err = store.GetGatewayStatus(&status_req)
 	assert.NoError(t, err)
 
-	if !reflect.DeepEqual(status, *read_status) {
-		t.Errorf("GW Status Mismatch: %#v != %#v", status, *read_status)
+	if !reflect.DeepEqual(status, read_status) {
+		t.Errorf("GW Status Mismatch: %#v != %#v", *status, *read_status)
 	}
 
 	err = store.DeleteNetworkTable(testNetworkId)
