@@ -1,3 +1,7 @@
+---
+id: readme_package
+title: Packaging
+---
 TL;DR
 -----
 1. `build-magma.sh` on the dev VM creates packages.

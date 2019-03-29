@@ -1,5 +1,8 @@
-# Federated Gateway (FeG)
-
+---
+id: readme
+title: Federated Gateway (FeG)
+sidebar_label: Overview
+---
 The federated gateway provides remote procedure call (GRPC) based interfaces to standard 3GPP components, such as 
 HSS (S6a, SWx), OCS (Gy), and PCRF (Gx). The exposed RPC interface provides versioning & backward compatibility, 
 security (HTTP2 & TLS) as well as support for multiple programming languages. The Remote Procedures below provide 
@@ -7,7 +10,7 @@ simple, extensible, multi-language interfaces based on GRPC which allow develope
 complexities of 3GPP protocols. Implementing these RPC interfaces allows networks running on Magma to integrate 
 with traditional 3GPP core components.
 
-![Federated Gateway architecture diagram](../images/federated_gateway_diagram.png?raw=true "FeG Architecture")
+![Federated Gateway architecture diagram](assets/federated_gateway_diagram.png?raw=true "FeG Architecture")
 
 The Federated Gateway supports the following features and functionalities:
 

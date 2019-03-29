@@ -1,4 +1,8 @@
-# Testing in Orchestrator
+---
+id: testing
+sidebar_label: Testing
+title: Testing in Orchestrator
+---
 ### Unit Tests
 One easy way to test is to run unit tests. This can be done by running
 ```

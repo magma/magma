@@ -138,4 +138,3 @@ axios
     this.props.alert('Success');
   })
   .catch(error => this.props.alert(error.response.data.message));
-  

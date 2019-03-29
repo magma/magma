@@ -1,5 +1,8 @@
-# Using the generic command framework
-
+---
+id: generic_commands
+sidebar_label: Generic commands framework
+title: Using the generic command framework
+---
 The generic command framework is a way to define commands in the gateway without having to implement all aspects of a command (such as the cloud implementation and handler). Instead, we can define the commands on the gateway, and call the REST endpoint `/networks/{network_id}/gateways/{gateway_id}/command/generic` with the command name and parameters to execute the command.
 
 ## Explanation

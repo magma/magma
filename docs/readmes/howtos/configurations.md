@@ -1,4 +1,8 @@
-# Configurations in Magma
+---
+id: configurations
+sidebar_label: Configurations
+title: Configurations in Magma
+---
 ### Cloud 
 On the cloud side, service related configuration files are stored in 
 `magma/{MODULE_NAME}/cloud/configs/`.

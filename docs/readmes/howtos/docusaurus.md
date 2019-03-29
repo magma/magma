@@ -1,3 +1,7 @@
+---
+id: docusaurus
+title: Docusaurus
+---
 ### Generating the Documentation Website
 
 1. Ensure [docker](https://docs.docker.com/install/) is installed
