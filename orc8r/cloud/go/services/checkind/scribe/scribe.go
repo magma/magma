@@ -54,7 +54,12 @@ func FormatScribeGwStatusMessage(
 		return nil, nil, fmt.Errorf("Checkin status is nil")
 	}
 	normalMsg := formatScribeGwStatusNormalMessage(status.Checkin.Status, status.Checkin, networkId, logicalId)
-	intMsg := formatScribeGwStatusIntMessage(status.Checkin.SystemStatus, status.Checkin.GetMachineInfo(), status.CertExpirationTime)
+	intMsg := formatScribeGwStatusIntMessage(
+		status.Checkin.SystemStatus,
+		status.Checkin.GetPlatformInfo(),
+		status.Checkin.GetMachineInfo(),
+		status.CertExpirationTime,
+	)
 
 	return normalMsg, intMsg, nil
 }
@@ -181,7 +186,7 @@ func tryAddProtoNormalMessage(normalMsg map[string]string, key string, message i
 	}
 }
 
-func formatScribeGwStatusIntMessage(systemStatus *protos.SystemStatus, machineInfo *protos.MachineInfo, certExpTime int64) map[string]int64 {
+func formatScribeGwStatusIntMessage(systemStatus *protos.SystemStatus, platformInfo *protos.PlatformInfo, machineInfo *protos.MachineInfo, certExpTime int64) map[string]int64 {
 	intMessage := map[string]int64{"cert_expiration_time": certExpTime}
 	if systemStatus != nil {
 		intMessage["cpu_idle"] = int64(systemStatus.CpuIdle)
@@ -195,6 +200,9 @@ func formatScribeGwStatusIntMessage(systemStatus *protos.SystemStatus, machineIn
 		intMessage["swap_total"] = int64(systemStatus.SwapTotal)
 		intMessage["swap_used"] = int64(systemStatus.SwapUsed)
 		intMessage["swap_free"] = int64(systemStatus.SwapFree)
+	}
+	if platformInfo.GetConfigInfo() != nil {
+		intMessage["platform_info.config_info.mconfig_created_at"] = int64(platformInfo.GetConfigInfo().GetMconfigCreatedAt())
 	}
 	if machineInfo.GetCpuInfo() != nil {
 		intMessage["machine_info.cpu_info.core_count"] = int64(machineInfo.GetCpuInfo().GetCoreCount())

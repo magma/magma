@@ -146,6 +146,13 @@ func (mPlatformInfo *PlatformInfo) fillPlatformInfo(pPlatformInfo *protos.Platfo
 			mPlatformInfo.Packages = append(mPlatformInfo.Packages, mPackage)
 		}
 	}
+
+	if pPlatformInfo.ConfigInfo != nil {
+		if mPlatformInfo.ConfigInfo == nil {
+			mPlatformInfo.ConfigInfo = new(ConfigInfo)
+		}
+		protos.FillIn(pPlatformInfo.ConfigInfo, mPlatformInfo.ConfigInfo)
+	}
 }
 
 func (mMachineInfo *MachineInfo) fillMachineInfo(pMachineInfo *protos.MachineInfo) {

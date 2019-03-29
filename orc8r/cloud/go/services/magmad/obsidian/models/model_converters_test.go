@@ -70,6 +70,9 @@ func TestGatewayStateToModel(t *testing.T) {
 					},
 					KernelVersion:           "42",
 					KernelVersionsInstalled: []string{"42", "43"},
+					ConfigInfo: &protos.ConfigInfo{
+						MconfigCreatedAt: 1552968732,
+					},
 				},
 				MachineInfo: &protos.MachineInfo{
 					CpuInfo: &protos.CPUInfo{
@@ -148,6 +151,9 @@ func TestGatewayStateToModel(t *testing.T) {
 				},
 				KernelVersion:           "42",
 				KernelVersionsInstalled: []string{"42", "43"},
+				ConfigInfo: &checkind_models.ConfigInfo{
+					MconfigCreatedAt: 1552968732,
+				},
 			},
 			MachineInfo: &checkind_models.MachineInfo{
 				CPUInfo: &checkind_models.MachineInfoCPUInfo{

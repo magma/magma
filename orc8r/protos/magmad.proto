@@ -162,6 +162,11 @@ message Package {
   string version = 2;
 }
 
+message ConfigInfo {
+  // Unix timestamp of the mconfig on the gateway
+  uint64 mconfig_created_at = 1;
+}
+
 message PlatformInfo {
   // Gateway's IP address on VPN
   string vpn_ip = 1;
@@ -174,6 +179,9 @@ message PlatformInfo {
 
   // All kernel versions installed
   repeated string kernel_versions_installed = 4;
+
+  // Information of gateway configs
+  ConfigInfo config_info = 5;
 }
 
 message NetworkInterface {

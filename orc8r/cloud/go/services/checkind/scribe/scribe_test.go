@@ -125,6 +125,9 @@ func TestFormatScribeGwStatusMessage(t *testing.T) {
 		},
 		KernelVersion:           "42",
 		KernelVersionsInstalled: []string{"42", "43"},
+		ConfigInfo: &protos.ConfigInfo{
+			MconfigCreatedAt: 55555,
+		},
 	}
 	machineInfo := protos.MachineInfo{
 		CpuInfo: &protos.CPUInfo{
@@ -216,20 +219,21 @@ func TestFormatScribeGwStatusMessage(t *testing.T) {
 	assert.Equal(t, expectedNormalMsg, normalMsg)
 
 	expectedIntMsg := map[string]int64{
-		"cpu_idle":                               3915306000,
-		"cpu_system":                             31921900,
-		"cpu_user":                               74180510,
-		"mem_available":                          3109638144,
-		"mem_free":                               2648256512,
-		"mem_total":                              4137000960,
-		"mem_used":                               719056896,
-		"uptime_secs":                            12345,
-		"cert_expiration_time":                   1000,
-		"swap_total":                             111111,
-		"swap_used":                              100000,
-		"swap_free":                              11111,
-		"machine_info.cpu_info.core_count":       4,
-		"machine_info.cpu_info.threads_per_core": 1,
+		"cpu_idle":             3915306000,
+		"cpu_system":           31921900,
+		"cpu_user":             74180510,
+		"mem_available":        3109638144,
+		"mem_free":             2648256512,
+		"mem_total":            4137000960,
+		"mem_used":             719056896,
+		"uptime_secs":          12345,
+		"cert_expiration_time": 1000,
+		"swap_total":           111111,
+		"swap_used":            100000,
+		"swap_free":            11111,
+		"platform_info.config_info.mconfig_created_at": 55555,
+		"machine_info.cpu_info.core_count":             4,
+		"machine_info.cpu_info.threads_per_core":       1,
 	}
 	assert.Equal(t, expectedIntMsg, intMsg)
 }

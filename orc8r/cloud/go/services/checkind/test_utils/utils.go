@@ -69,6 +69,9 @@ func GetCheckinRequestProtoFixture(gatewayId string) *protos.CheckinRequest {
 			},
 			KernelVersion:           "42",
 			KernelVersionsInstalled: []string{"42", "43"},
+			ConfigInfo: &protos.ConfigInfo{
+				MconfigCreatedAt: 1552968732,
+			},
 		},
 		MachineInfo: &protos.MachineInfo{
 			CpuInfo: &protos.CPUInfo{
@@ -144,6 +147,9 @@ func GetGatewayStatusSwaggerFixture(gatewayId string) *models.GatewayStatus {
 			},
 			KernelVersion:           "42",
 			KernelVersionsInstalled: []string{"42", "43"},
+			ConfigInfo: &models.ConfigInfo{
+				MconfigCreatedAt: 1552968732,
+			},
 		},
 		MachineInfo: &models.MachineInfo{
 			CPUInfo: &models.MachineInfoCPUInfo{

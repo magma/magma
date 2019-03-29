@@ -107,6 +107,13 @@ definitions:
       version:
         type: string
         example: 0.0.0
+  config_info:
+    type: object
+    properties:
+      mconfig_created_at:
+        type: integer
+        format: uint64
+        example: 1552968732
   platform_info:
     type: object
     properties:
@@ -128,6 +135,8 @@ definitions:
         items:
           type: string
         example: ["4.9.0-6-amd64", "4.9.0-7-amd64"]
+      config_info:
+        $ref: '#/definitions/config_info'
   network_interface:
     type: object
     properties:

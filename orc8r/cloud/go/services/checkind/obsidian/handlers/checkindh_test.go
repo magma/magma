@@ -180,6 +180,9 @@ func TestCheckind(t *testing.T) {
 				  "hello":"world"
 			   },
 			   "platform_info":{
+				  "config_info":{
+					 "mconfig_created_at":1552968732
+				  },
 				  "kernel_version":"42",
 				  "kernel_versions_installed":[
 					 "42",
