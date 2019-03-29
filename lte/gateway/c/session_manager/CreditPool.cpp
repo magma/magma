@@ -357,9 +357,6 @@ bool UsageMonitoringCreditPool::receive_credit(
     it->second->credit.mark_failure();
     return false;
   }
-  if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
-    monitor_map_.erase(update.credit().monitoring_key());
-  }
   const auto &gsu = update.credit().granted_units();
   MLOG(MDEBUG) << "Received monitor of " << gsu.total().volume()
                << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
@@ -373,6 +370,9 @@ bool UsageMonitoringCreditPool::receive_credit(
     default_volume,
     0,
     false);
+  if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
+    monitor_map_.erase(update.credit().monitoring_key());
+  }
   return true;
 }
 
