@@ -21,6 +21,10 @@ export default function(
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    if (!Object.keys(variables).length) {
+      return;
+    }
+
     setError(null);
     setIsLoading(true);
     fetchQuery(env, query, variables)
