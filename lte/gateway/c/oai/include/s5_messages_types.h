@@ -39,6 +39,10 @@
   (mSGpTR)->ittiMsg.s5_activate_dedicated_bearer_request
 #define S5_ACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s5_activate_dedicated_bearer_response
+#define S5_DEACTIVATE_DEDICATED_BEARER_REQ(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.s5_deactivate_dedicated_bearer_request
+#define S5_DEACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.s5_deactivate_dedicated_bearer_response
 
 typedef struct itti_s5_create_bearer_request_s {
   teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
@@ -70,5 +74,19 @@ typedef struct itti_s5_activate_dedicated_bearer_rsp_s {
   teid_t S1_U_sgw_teid; ///< S1U sge TEID
   teid_t S1_U_enb_teid; ///< S1U enb TEID
 } itti_s5_activate_dedicated_bearer_rsp_t;
+
+typedef struct itti_s5_deactivate_dedicated_bearer_req_s {
+  uint32_t no_of_bearers;
+  ebi_t ebi[BEARERS_PER_UE]; ///<EPS Bearer ID
+  bool delete_default_bearer; ///<True:Delete all bearers
+                              ///<False:Delele ded bearer
+} itti_s5_deactivate_dedicated_bearer_req_t;
+
+typedef struct itti_s5_deactivate_dedicated_bearer_rsp_s {
+  uint32_t no_of_bearers;
+  ebi_t ebi[BEARERS_PER_UE]; ///<EPS Bearer ID
+  bool default_bearer_deleted; ///<True:Delete all bearers
+                              ///<False:Delele ded bearer
+} itti_s5_deactivate_dedicated_bearer_rsp_t;
 
 #endif /* FILE_S5_MESSAGES_TYPES_SEEN*/

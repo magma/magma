@@ -517,24 +517,105 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
   }
   OAILOG_INFO(LOG_PGW_APP, "LBI for the received Create Bearer Req %d\n",
     itti_s5_actv_ded_bearer_req->lbi);
-  OAILOG_INFO(LOG_PGW_APP, "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",itti_s5_actv_ded_bearer_req->mme_teid_S11);
+  OAILOG_INFO(LOG_PGW_APP, "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
+    itti_s5_actv_ded_bearer_req->mme_teid_S11);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 
 //--------------------------------------------------------------------------------
 
-uint32_t pgw_handle_activate_ded_bearer_rsp(
+uint32_t pgw_send_activate_ded_bearer_rsp(
   const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp)
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
 
-  OAILOG_INFO(LOG_PGW_APP, "Sending Create Bearer Rsp to PCRF with EIB %d\n",
+  OAILOG_INFO(LOG_PGW_APP, "Sending Create Bearer Rsp to PCRF with EBI %d\n",
     act_ded_bearer_rsp->ebi);
   //Send Create Bearer Rsp to PCRF
   //TODO-Uncomment once implemented at PCRF
   //rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi);
+  OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
+}
+
+
+//--------------------------------------------------------------------------------
+
+uint32_t pgw_handle_deactivate_ded_bearer_req(
+  Imsi_t *imsi,
+  uint32_t no_of_bearers,
+  ebi_t ebi[])
+{
+  uint32_t rc = RETURNok;
+  OAILOG_FUNC_IN(LOG_PGW_APP);
+  MessageDef *message_p = NULL;
+  uint32_t i = 0;
+  hash_table_ts_t *hashtblP = NULL;
+  uint32_t num_elements = 0;
+  s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
+  hash_node_t *node = NULL;
+  itti_s5_deactivate_dedicated_bearer_req_t *itti_s5_deactv_ded_bearer_req = NULL;
+
+  OAILOG_INFO(LOG_PGW_APP, "Received deactivate dedicated bearer req for bearer %d\n",
+    *ebi);
+  message_p =
+    itti_alloc_new_message(TASK_SPGW_APP, S5_DEACTIVATE_DEDICATED_BEARER_REQ);
+  if (message_p == NULL) {
+    OAILOG_INFO(
+    LOG_PGW_APP,
+    "itti_alloc_new_message failed for S5_DEACTIVATE_DEDICATED_BEARER_REQ\n");
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
+  }
+
+  itti_s5_deactv_ded_bearer_req =
+    &message_p->ittiMsg.s5_deactivate_dedicated_bearer_request;
+  //Send ITTI message to SGW
+  memset(
+    itti_s5_deactv_ded_bearer_req,
+    0,
+    sizeof(itti_s5_deactivate_dedicated_bearer_req_t));
+  itti_s5_deactv_ded_bearer_req->delete_default_bearer = false;
+  itti_s5_deactv_ded_bearer_req->no_of_bearers = no_of_bearers;
+  memcpy(
+    &itti_s5_deactv_ded_bearer_req->ebi
+    ebi,
+    sizeof(ebi_t));
+
+  //Check if the EBI received == LBI to know if default bearer has to be deactivated
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+    if (hashtblP->nodes[i] != NULL) {
+      node = hashtblP->nodes[i];
+      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    }
+    while (node) {
+      num_elements++;
+      hashtable_ts_get(
+        hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
+      if (spgw_ctxt_p != NULL) {
+        if (!strcmp((const char *)spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+          (const char *)imsi->digit)) {
+          itti_s5_deactv_ded_bearer_req->s11_mme_teid =
+            spgw_ctxt_p->sgw_eps_bearer_context_information.s11_mme_teid;
+          for (i = 0; i < no_of_bearers; i++) {
+            if (ebi[i] == spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
+              default_bearer) {
+              itti_s5_deactv_ded_bearer_req->delete_default_bearer = true;
+              break;
+            }
+          }
+        }
+      }
+      node = node->next;
+    }
+    i++;
+  }
+  OAILOG_INFO(LOG_PGW_APP, "Sending S5_DEACTIVATE_DEDICATED_BEARER_REQ to SGW ,"
+    "delete_default_bearer %d\n",
+    itti_s5_deactv_ded_bearer_req->delete_default_bearer);
+  rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 

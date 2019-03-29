@@ -268,6 +268,7 @@ ebi_t esm_ebr_context_release(
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int found = false;
   esm_pdn_t *pdn = NULL;
+  esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
 
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
@@ -349,14 +350,14 @@ ebi_t esm_ebr_context_release(
     /*
      * Delete the TFT
      */
-    // TODO Look at "free_traffic_flow_template"
-    //free_traffic_flow_template(&pdn->bearer[*bid]->tft);
+    // "free_traffic_flow_template"
+    free_traffic_flow_template(&pdn->bearer[*bid]->tft);
 
     /*
      * Release the specified EPS bearer data
      */
-    // TODO Look at "free pdn->bearer"
-    //free_wrapper ((void**)&pdn->bearer[*bid]);
+    //  "free pdn->bearer"
+    free_wrapper ((void**)&pdn->bearer[*bid]);
     /*
      * Decrement the number of EPS bearer context allocated
      * * * * to the PDN connection
@@ -382,8 +383,7 @@ ebi_t esm_ebr_context_release(
           /*
            * Delete the TFT
            */
-          // TODO Look at "free_traffic_flow_template"
-          //free_traffic_flow_template(&pdn->bearer[i]->tft);
+          free_traffic_flow_template(&pdn->bearer[i]->tft);
 
           /*
            * Set the EPS bearer context state to INACTIVE
@@ -402,9 +402,8 @@ ebi_t esm_ebr_context_release(
           /*
            * Release dedicated EPS bearer data
            */
-          // TODO Look at "free pdn->bearer"
-          //free_wrapper ((void**)&pdn->bearer[i]);
-          //pdn->bearer[i] = NULL;
+          free_wrapper ((void**)&pdn->bearer[i]);
+          pdn->bearer[i] = NULL;
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection
@@ -427,12 +426,13 @@ ebi_t esm_ebr_context_release(
       }
     }
 
-    //if (esm_ctx->n_active_ebrs == 0) {
+    if (esm_ctx->n_active_ebrs == 0) {
     /*
-       * TODO: Release the PDN connection and marked the UE as inactive
+       * : Release the PDN connection and marked the UE as inactive
        * * * * in the network for EPS services (is_attached = false)
        */
-    //}
+       esm_proc_pdn_disconnect_accept(emm_context, pid, &esm_cause);
+    }
 
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ebi);
   }

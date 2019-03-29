@@ -138,7 +138,9 @@ s1ap_message_decoded_callback messages_callback[][3] = {
    s1ap_mme_handle_erab_setup_response,
    s1ap_mme_handle_erab_setup_failure}, /* E_RABSetup */
   {0, 0, 0},                            /* E_RABModify */
-  {0, 0, 0},                            /* E_RABRelease */
+  {0,
+   s1ap_mme_handle_erab_rel_response,
+   0},                                  /* E_RABRelease */
   {0, 0, 0},                            /* E_RABReleaseIndication */
   {0,
    s1ap_mme_handle_initial_context_setup_response,
@@ -2302,8 +2304,8 @@ int s1ap_mme_handle_erab_setup_response(
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   S1AP_E_RAB_SETUP_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_SETUP_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
-  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items = 0;
-  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_failed_to_setup_list.no_of_items = 0;
+  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_rel_list.no_of_items = 0;
+  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
 
   if (
     s1ap_E_RABSetupResponseIEs_p->presenceMask &
@@ -2761,3 +2763,105 @@ int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
   free_s1ap_paging(paging_message);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
+
+//------------------------------------------------------------------------------
+int s1ap_mme_handle_erab_rel_response(
+  const sctp_assoc_id_t assoc_id,
+  const sctp_stream_id_t stream,
+  struct s1ap_message_s *message)
+{
+  OAILOG_FUNC_IN(LOG_S1AP);
+  S1ap_E_RABSetupResponseIEs_t *s1ap_E_RABSetupResponseIEs_p = NULL;
+  ue_description_t *ue_ref_p = NULL;
+  MessageDef *message_p = NULL;
+  int rc = RETURNok;
+
+  s1ap_E_RABReleaseResponseIEs_p = &message->msg.s1ap_E_RABReleaseResponseIEs;
+  MSC_LOG_RX_MESSAGE(
+    MSC_S1AP_MME,
+    MSC_S1AP_ENB,
+    NULL,
+    0,
+    "0 E_RABSetupResponse/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+    " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
+    s1ap_direction2String[message->direction],
+    s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID,
+    s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id);
+
+  if (
+    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
+       (uint32_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id)) == NULL) {
+    OAILOG_DEBUG(
+      LOG_S1AP,
+      "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
+      (mme_ue_s1ap_id_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if (
+    ue_ref_p->enb_ue_s1ap_id != s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID) {
+    OAILOG_DEBUG(
+      LOG_S1AP,
+      "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
+      ", received: " ENB_UE_S1AP_ID_FMT "\n",
+      ue_ref_p->enb_ue_s1ap_id,
+      (enb_ue_s1ap_id_t) s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_REL_RSP);
+  if (message_p == NULL) {
+    OAILOG_ERROR(LOG_S1AP,"itti_alloc_new_message Failed\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  S1AP_E_RAB_REL_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
+  S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_setup_list.no_of_items = 0;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
+
+  if (
+    s1ap_E_RABReleaseResponseIEs_p->presenceMask &
+    S1AP_E_RABRELEASERESPONSEIES_E_RABRELEASELISTBEARERSURES_PRESENT) {
+    int num_erab = s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerSURes
+                     .s1ap_E_RABReleaseItemBearerSURes.count;
+    for (int index = 0; index < num_erab; index++) {
+      S1ap_E_RABReleaseItemBearerSURes_t *erab_rel_item =
+        (S1ap_E_RABReleaseItemBearerSURes_t *)
+          s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerSURes
+            .s1ap_E_RABReleaseItemBearerSURes.array[index];
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.item[index].e_rab_id =
+        erab_rel_item->e_RAB_ID;
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items += 1;
+    }
+  }
+
+  if (
+    s1ap_E_RABReleaseResponseIEs_p->presenceMask &
+    S1AP_E_RABRELEASERESPONSEIES_E_RABFAILEDTORELEASELISTBEARERSURES_PRESENT) {
+    int num_erab = s1ap_E_RABReleaseResponseIEs_p
+                     ->e_RABFailedToReleaseListBearerSURes.s1ap_E_RABItem.count;
+    for (int index = 0; index < num_erab; index++) {
+      S1ap_E_RABItem_t *erab_item =
+        (S1ap_E_RABItem_t *) s1ap_E_RABReleaseResponseIEs_p
+          ->e_RABFailedToReleaseListBearerSURes.s1ap_E_RABItem.array[index];
+      S1AP_E_RAB_REL_RSP(message_p)
+        .e_rab_failed_to_rel_list.item[index]
+        .e_rab_id = erab_item->e_RAB_ID;
+      S1AP_E_RAB_REL_RSP(message_p)
+        .e_rab_failed_to_rel_list.item[index]
+        .cause = erab_item->cause;
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items +=
+        1;
+    }
+  }
+
+  MSC_LOG_TX_MESSAGE(
+    MSC_S1AP_MME,
+    MSC_MMEAPP_MME,
+    NULL,
+    0,
+    "0 S1AP_E_RAB_SETUP_RSP mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ");
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+}
+

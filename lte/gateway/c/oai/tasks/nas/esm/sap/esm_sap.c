@@ -277,17 +277,20 @@ int esm_sap_send(esm_sap_t *msg)
 
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
       int bid = BEARERS_PER_UE;
+      uint32_t no_of_bearers = msg->data.eps_bearer_context_deactivate.no_of_bearers;
 
       /*
        * Locally deactivate EPS bearer context
        */
-      rc = esm_proc_eps_bearer_context_deactivate(
-        msg->ctx,
-        true,
-        msg->data.eps_bearer_context_deactivate.ebi,
-        &pid,
-        &bid,
-        NULL);
+      for(i = 0; i < no_of_bearers ; i++) {
+        rc = esm_proc_eps_bearer_context_deactivate(
+          msg->ctx,
+          true,
+          msg->data.eps_bearer_context_deactivate.ebi[0],
+          &pid,
+          &bid,
+          NULL);
+      }
 
       // TODO Assertion bellow is not true now:
       // If only default bearer is supported then release PDN connection as well - Implicit Detach
@@ -1000,7 +1003,21 @@ static int _esm_sap_send(
 
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST: break;
 
-    case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: break;
+    case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: {
+      const esm_eps_bearer_context_deactivate_t *msg =
+        &data->eps_bearer_context_deactivate;
+
+      if (RETURNok == rc) {
+        rc = esm_send_deactivate_eps_bearer_context_request(
+          (proc_tid_t) 0,
+          ebi,
+          &esm_msg.deactivate_eps_bearer_context_request,
+          ESM_CAUSE_REGULAR_DEACTIVATION);
+
+        esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
+      }
+
+      break;
 
     case PDN_CONNECTIVITY_REJECT: break;
 

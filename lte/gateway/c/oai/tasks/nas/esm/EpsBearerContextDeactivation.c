@@ -330,6 +330,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     }
   }
 
+  nas_itti_deactivate_eps_bearer_context(ue_id, ebi);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
 }
 
@@ -468,7 +469,7 @@ static int _eps_bearer_deactivate(
    */
   emm_esm_data_t *emm_esm = &emm_sap.u.emm_esm.u.data;
 
-  emm_sap.primitive = EMMESM_UNITDATA_REQ;
+  emm_sap.primitive = EMMCN_DEACTIVATE_BEARER_REQ;
   emm_sap.u.emm_esm.ue_id = ue_id;
   emm_sap.u.emm_esm.ctx = ue_context;
   emm_esm->msg = *msg;

@@ -990,3 +990,118 @@ void s1ap_handle_mme_ue_id_notification(
     notification_p->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
+
+//------------------------------------------------------------------------------
+int s1ap_generate_s1ap_e_rab_rel_cmd(
+  itti_s1ap_e_rab_rel_cmd_t *const e_rab_rel_cmd)
+{
+  OAILOG_FUNC_IN(LOG_S1AP);
+  ue_description_t *ue_ref = NULL;
+  uint8_t *buffer_p = NULL;
+  uint32_t length = 0;
+  void *id = NULL;
+  const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_rel_cmd->enb_ue_s1ap_id;
+  const mme_ue_s1ap_id_t ue_id = e_rab_rel_cmd->mme_ue_s1ap_id;
+
+  hashtable_ts_get(
+    &g_s1ap_mme_id2assoc_id_coll, (const hash_key_t) ue_id, (void **) &id);
+  if (id) {
+    sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
+    enb_description_t *enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);
+    if (enb_ref) {
+      ue_ref = s1ap_is_ue_enb_id_in_list(enb_ref, enb_ue_s1ap_id);
+    }
+  }
+  // TODO remove soon:
+  if (!ue_ref) {
+    ue_ref = s1ap_is_ue_mme_id_in_list(ue_id);
+  }
+  // finally!
+  if (!ue_ref) {
+    /*
+     * If the UE-associated logical S1-connection is not established,
+     * * * * the MME shall allocate a unique MME UE S1AP ID to be used for the UE.
+     */
+    OAILOG_DEBUG(
+      LOG_S1AP,
+      "Unknown UE MME ID " MME_UE_S1AP_ID_FMT
+      ", This case is not handled right now\n",
+      ue_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  } else {
+    /*
+     * We have found the UE in the list.
+     * Create new IE list message and encode it.
+     */
+    S1ap_E_RABReleaseCommandIEs_t *e_rabreleasecmdies = NULL;
+    s1ap_message message = {0};
+
+    message.procedureCode = S1ap_ProcedureCode_id_E_RABRelease;
+    message.direction = S1AP_PDU_PR_initiatingMessage;
+    ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
+    e_rabreleasecmdies = &message.msg.s1ap_E_RABReleaseCommandIEs;
+    /*
+     * Setting UE information with the ones found in ue_ref
+     */
+    e_rabreleasecmdies->mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
+    e_rabreleasecmdies->eNB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    /*eNB
+     * Fill in the NAS pdu
+     */
+    e_rabreleasecmdies->presenceMask = 0;
+
+    OCTET_STRING_fromBuf(
+      &e_rabreleasecmdies->.nas_pdu,
+      (char *) bdata(e_rabreleasecmdies->nas_pdu),
+      blength(e_rabreleasecmdies->nas_pdu));
+
+
+    S1ap_E_RABReleaseItemBearerRelComp_t s1ap_E_RABReleaseItemBearerRelComp
+      [e_rabreleasecmdies->e_rab_to_be_rel_list.no_of_items];
+    for (int i = 0; i < e_rabreleasecmdies->e_rab_to_be_rel_list.no_of_items;
+         i++) {
+      memset(
+        &s1ap_E_RABReleaseItemBearerRelComp[i],
+        0,
+        sizeof(S1ap_E_RABReleaseItemBearerRelComp_t));
+
+      s1ap_E_RABReleaseItemBearerRelComp[i].e_RAB_ID =
+        e_rabreleasecmdies->e_rab_to_be_rel_list[i].e_rab_id;
+
+      ASN_SEQUENCE_ADD(
+        &e_rabreleasecmdies->e_rab_to_be_rel_list,
+        &s1ap_E_RABReleaseItemBearerRelComp[i]);
+    }
+
+    if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
+      OAILOG_ERROR(LOG_S1AP, "Encoding of  failed \n");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+
+    OAILOG_NOTICE(
+      LOG_S1AP,
+      "Send S1AP E_RABSetup message MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
+      " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
+      (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
+      (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID);
+    MSC_LOG_TX_MESSAGE(
+      MSC_S1AP_MME,
+      MSC_S1AP_ENB,
+      NULL,
+      0,
+      "0 E_RABSetup/initiatingMessage mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+      " enb_ue_s1ap_id" ENB_UE_S1AP_ID_FMT " nas length %u",
+      (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
+      (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID,
+      length);
+    bstring b = blk2bstr(buffer_p, length);
+    s1ap_mme_itti_send_sctp_request(
+      &b,
+      ue_ref->enb->sctp_assoc_id,
+      ue_ref->sctp_stream_send,
+      ue_ref->mme_ue_s1ap_id);
+  }
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+

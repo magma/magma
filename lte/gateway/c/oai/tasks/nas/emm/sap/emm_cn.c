@@ -776,6 +776,45 @@ static int _emm_cn_activate_dedicated_bearer_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
+//------------------------------------------------------------------------------
+static int _emm_cn_deactivate_dedicated_bearer_req(
+  emm_cn_deactivate_dedicated_bearer_req_t *msg)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNok;
+  // forward to ESM
+  esm_sap_t esm_sap = {0};
+
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc.mme_ue_contexts, msg->ue_id);
+
+  esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
+  esm_sap.ctx = &ue_mm_context->emm_context;
+  esm_sap.is_standalone = true;
+  esm_sap.ue_id = msg->ue_id;
+  esm_sap.data.eps_dedicated_bearer_context_activate.no_of_bearers =
+    msg->no_of_bearers;
+  memcpy(
+    esm_sap.data.eps_dedicated_bearer_context_activate.ebi,
+    msg->ebi,
+    sizeof(ebi_t));
+
+  MSC_LOG_TX_MESSAGE(
+    MSC_NAS_EMM_MME,
+    MSC_NAS_ESM_MME,
+    NULL,
+    0,
+    "0 ESM_DEDICATED_EPS_BEARER_CONTEXT_DEACTIVATE_REQ ue id " MME_UE_S1AP_ID_FMT
+    " ebi %u",
+    esm_sap.ue_id,
+    esm_sap.data.eps_dedicated_bearer_context_deactivate.ebi);
+
+  rc = esm_sap_send(&esm_sap);
+
+  unlock_ue_contexts(ue_mm_context);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
 int compare_tmsi(tmsi_mobile_identity_t tmsi1, tmsi_mobile_identity_t tmsi2)
 {
   int rc = RETURNok;
@@ -1247,6 +1286,11 @@ int emm_cn_send(const emm_cn_t *msg)
     case EMMCN_CS_DOMAIN_MM_INFORMATION_REQ:
       rc = _emm_cn_cs_domain_mm_information_req(
         msg->u.emm_cn_cs_domain_mm_information_req);
+      break;
+
+   case EMMCN_DEACTIVATE_BEARER_REQ:
+      rc = _emm_cn_deactivate_dedicated_bearer_req(
+        msg->u.deactivate_dedicated_bearer_req);
       break;
 
     default:

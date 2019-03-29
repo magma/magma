@@ -74,6 +74,8 @@ typedef enum emm_as_primitive_u {
   _EMMAS_DATA_IND,       /* AS->EMM: Data transfer indication      */
   _EMMAS_PAGE_IND,       /* AS->EMM: Paging data indication        */
   _EMMAS_STATUS_IND,     /* AS->EMM: Status indication         */
+  _EMMAS_ERAB_REL_CMD,   /* EMM->AS: ERAB Release Cmd  */
+  _EMMAS_ERAB_REL_RSP,   /* EMM->AS: ERAB Release Rsp  */
   _EMMAS_END
 } emm_as_primitive_t;
 
@@ -296,6 +298,13 @@ typedef struct emm_as_activate_bearer_context_req_s {
   bstring nas_msg;             /* NAS message to be transfered     */
 } emm_as_activate_bearer_context_req_t;
 
+typedef struct emm_as_deactivate_bearer_context_req_s {
+  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
+  ebi_t ebi;              /* EPS rab id                       */
+  emm_as_security_data_t sctx; /* EPS NAS security context         */
+  bstring nas_msg;             /* NAS message to be transfered     */
+} emm_as_deactivate_bearer_context_req_t;
+
 /*
  * EMMAS primitive for status indication
  * -------------------------------------
@@ -337,6 +346,7 @@ typedef struct emm_as_s {
     emm_as_page_t page;
     emm_as_status_t status;
     emm_as_cell_info_t cell_info;
+    emm_as_deactivate_bearer_context_req_t deactivate_bearer_context_req;
   } u;
 } emm_as_t;
 

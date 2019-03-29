@@ -116,6 +116,11 @@ void *mme_app_thread(void *args)
           &NAS_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
       } break;
 
+      case MME_APP_DELETE_DEDICATED_BEARER_RSP: {
+        mme_app_handle_delete_dedicated_bearer_rsp(
+          &MME_APP_DELETE_DEDICATED_BEARER_RSP(received_message_p));
+      } break;
+
       case NAS_DETACH_REQ: {
         mme_app_handle_detach_req(&received_message_p->ittiMsg.nas_detach_req);
       } break;
@@ -128,9 +133,15 @@ void *mme_app_thread(void *args)
         mme_app_handle_s6a_cancel_location_req(
           &received_message_p->ittiMsg.s6a_cancel_location_req);
       } break;
+
       case NAS_ERAB_SETUP_REQ: {
         mme_app_handle_erab_setup_req(&NAS_ERAB_SETUP_REQ(received_message_p));
       } break;
+
+      case NAS_ERAB_REL_CMD: {
+        mme_app_handle_erab_rel_cmd(&NAS_ERAB_REL_CMD(received_message_p));
+      } break;
+
 
       case NAS_PDN_CONFIG_REQ: {
         struct ue_mm_context_s *ue_context_p = NULL;
@@ -230,6 +241,11 @@ void *mme_app_thread(void *args)
       case S1AP_E_RAB_SETUP_RSP: {
         mme_app_handle_e_rab_setup_rsp(
           &S1AP_E_RAB_SETUP_RSP(received_message_p));
+      } break;
+
+      case S1AP_E_RAB_REL_RSP: {
+        mme_app_handle_e_rab_rel_rsp(
+          &S1AP_E_RAB_REL_RSP(received_message_p));
       } break;
 
       case NAS_EXTENDED_SERVICE_REQ: {
@@ -495,6 +511,10 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.s11_pcrf_bearer_actv_request);
       } break;
 
+      case S11_PCRF_DED_BEARER_DEACTV_REQUEST: {
+        mme_app_handle_pcrf_ded_bearer_deactv_req(
+          &received_message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_request);
+      } break;
 
       case TERMINATE_MESSAGE: {
         /*

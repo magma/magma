@@ -663,6 +663,26 @@ int nas_proc_create_dedicated_bearer(
 }
 
 //------------------------------------------------------------------------------
+int nas_proc_delete_dedicated_bearer(
+  emm_cn_deactivate_dedicated_bearer_req_t *emm_cn_deactivate)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNerror;
+  emm_sap_t emm_sap = {0};
+  emm_sap.primitive = _EMMCN_DEACTIVATE_BEARER_REQ;
+  emm_sap.u.emm_cn.u.deactivate_dedicated_bearer_req = emm_cn_deactivate;
+  MSC_LOG_TX_MESSAGE(
+    MSC_NAS_MME,
+    MSC_NAS_EMM_MME,
+    NULL,
+    0,
+    "0 EMM_CN_DEACTIVATE_DEDICATED_BEARER_REQ " MME_UE_S1AP_ID_FMT " ",
+    emm_cn_deactivate->ue_id);
+  rc = emm_sap_send(&emm_sap);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+//------------------------------------------------------------------------------
 int nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id)
 {
   int rc = RETURNerror;

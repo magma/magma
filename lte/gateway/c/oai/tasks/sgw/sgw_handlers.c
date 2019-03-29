@@ -2244,7 +2244,7 @@ int sgw_handle_modify_ue_ambr_request(
 }
 
 /*
- * Handle PGW initiated Dedicated Bearer Activation from PGW
+ * Handle PCRF initiated Dedicated Bearer Activation from PGW
  */
 int sgw_handle_dedicated_bearer_actv_req(
   const itti_s5_activate_dedicated_bearer_request_t
@@ -2300,7 +2300,7 @@ int sgw_handle_dedicated_bearer_actv_req(
 }
 
 /*
- * Handle PGW initiated Dedicated Bearer Activation Rsp from MME
+ * Handle PCRF initiated Dedicated Bearer Activation Rsp from MME
  */
 
 int sgw_handle_pcrf_dedicated_bearer_actv_rsp(
@@ -2405,3 +2405,42 @@ int sgw_handle_pcrf_dedicated_bearer_actv_rsp(
 
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
+
+/*
+ * Handle PCRF initiated Dedicated Bearer Deactivation from PGW
+ */
+int sgw_handle_pcrf_dedicated_bearer_deactv_req(
+  const itti_s5_deactivate_dedicated_bearer_req_t
+  *const itti_s5_deactiv_ded_bearer_req)
+{
+  MessageDef *message_p = NULL;
+  uint32_t rc = RETURNok;
+  uint32_t i = ;
+
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  OAILOG_INFO(LOG_SPGW_APP, "Received Dedicated Bearer Req Dectivation from PGW\n");
+
+  //Send ITTI message to MME APP
+  message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_PCRF_BEARER_DEACTV_REQUEST);
+  if (message_p) {
+    itti_s11_pcrf_ded_bearer_deactv_request_t *s11_pcrf_ded_bearer_deactv_req =
+      &message_p->ittiMsg.s11_pcrf_bearer_deactv_request;
+    memcpy(
+      s11_pcrf_bearer_deactv_request->ebi,
+      itti_s5_deactiv_ded_bearer_req->ebi
+      sizeof(ebi_t));
+    s11_pcrf_bearer_deactv_request->delete_default_bearer =
+      itti_s5_deactiv_ded_bearer_req->delete_default_bearer;
+
+    for (i = 0; i < itti_s5_deactiv_ded_bearer_req.no_of_bearers; i++) {
+      OAILOG_INFO(LOG_SPGW_APP, "Sending S11_PCRF_BEARER_DEACTV_REQUEST to MME with EBI %d\n",
+        s11_pcrf_bearer_deactv_request->ebi[i]);
+    }
+    rc = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+  } else {
+    OAILOG_ERROR(LOG_SPGW_APP, "itti_alloc_new_message failed for S11_PCRF_BEARER_DEACTV_REQUEST\n");
+    rc = RETURNerror;
+  }
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+}
+

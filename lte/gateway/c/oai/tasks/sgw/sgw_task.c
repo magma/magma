@@ -153,6 +153,12 @@ static void *sgw_intertask_interface(void *args_p)
           &received_message_p->ittiMsg.s11_pcrf_ded_bearer_actv_rsp);
       } break;
 
+      case S5_DEACTIVATE_DEDICATED_BEARER_REQ: {
+        //Handle Dedicated bearer Deactivation Res from PGW
+        sgw_handle_pcrf_dedicated_bearer_deactv_req(
+          &received_message_p->ittiMsg.s5_deactivate_dedicated_bearer_request);
+      } break;
+
       case TERMINATE_MESSAGE: {
         sgw_exit();
         itti_exit_task();
