@@ -13,7 +13,7 @@ from collections import namedtuple
 
 import asyncio
 
-from . import subprocess_workflow
+from magma.magmad.check import subprocess_workflow
 
 DEFAULT_TTL = 30
 DEFAULT_BYTES_PER_PACKET = 60

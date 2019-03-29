@@ -27,8 +27,7 @@ from magma.configuration.mconfig_managers import MconfigManager
 from magma.magmad.generic_command.command_executor import \
     CommandExecutor
 from magma.magmad.service_manager import ServiceManager
-
-from .network_check import ping, traceroute
+from magma.magmad.check.network_check import ping, traceroute
 
 
 class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):

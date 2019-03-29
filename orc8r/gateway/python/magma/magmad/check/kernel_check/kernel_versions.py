@@ -14,7 +14,7 @@ from collections import namedtuple
 import asyncio
 import re
 
-from magma.magmad.network_check import subprocess_workflow
+from magma.magmad.check import subprocess_workflow
 
 
 DpkgCommandParams = namedtuple('DpkgCommandParams', [])

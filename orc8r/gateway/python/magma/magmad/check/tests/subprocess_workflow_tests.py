@@ -12,7 +12,7 @@ import subprocess
 import unittest
 from unittest import mock
 
-from magma.magmad.network_check import subprocess_workflow
+from magma.magmad.check import subprocess_workflow
 
 
 class SubprocessWorkflowTests(unittest.TestCase):

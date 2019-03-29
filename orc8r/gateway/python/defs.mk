@@ -10,8 +10,10 @@ endif
 
 TESTS=magma/common/tests \
       magma/configuration/tests \
-      magma/magmad/kernel_check/tests \
-      magma/magmad/network_check/tests \
+      magma/magmad/check/tests \
+      magma/magmad/check/kernel_check/tests \
+      magma/magmad/check/machine_check/tests \
+      magma/magmad/check/network_check/tests \
       magma/magmad/tests \
       magma/magmad/logging/tests \
       magma/magmad/upgrade/tests \

@@ -24,7 +24,9 @@ from magma.common.misc_utils import get_ip_from_if
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service_registry import ServiceRegistry
-from magma.magmad.kernel_check.kernel_versions import get_kernel_versions_async
+from magma.magmad.check.kernel_check.kernel_versions import (
+    get_kernel_versions_async,
+)
 from magma.magmad.metrics import CHECKIN_STATUS
 
 

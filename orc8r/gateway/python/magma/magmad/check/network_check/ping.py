@@ -14,7 +14,7 @@ from collections import namedtuple
 import asyncio
 import re
 
-from . import subprocess_workflow
+from magma.magmad.check import subprocess_workflow
 
 DEFAULT_NUM_PACKETS = 4
 DEFAULT_TIMEOUT_SECS = 20

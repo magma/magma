@@ -10,7 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import textwrap
 import unittest
 
-from magma.magmad.network_check import ping
+from magma.magmad.check.network_check import ping
 
 # Allow access to protected variables for unit testing
 # pylint: disable=protected-access
