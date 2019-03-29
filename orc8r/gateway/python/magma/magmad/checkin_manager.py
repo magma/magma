@@ -25,6 +25,7 @@ from orc8r.protos.magmad_pb2 import (
     PlatformInfo,
     MachineInfo,
     Package,
+    ConfigInfo,
     CPUInfo,
     NetworkInfo,
     NetworkInterface,
@@ -236,6 +237,8 @@ class CheckinManager(SDWatchdogTask):
         except ValueError:
             gw_ip = 'N/A'
 
+        mconfig_metadata = self._service.mconfig_metadata
+
         return PlatformInfo(
             vpn_ip=gw_ip,
             packages=[
@@ -246,6 +249,9 @@ class CheckinManager(SDWatchdogTask):
             ],
             kernel_version=self._kernel_version,
             kernel_versions_installed=self._kernel_versions_installed,
+            config_info=ConfigInfo(
+                mconfig_created_at=mconfig_metadata.created_at,
+            ),
         )
 
     def _network_info(self):

@@ -54,6 +54,7 @@ class MagmaService(Service303Servicer):
 
         # Load the managed config if present
         self._mconfig = None
+        self._mconfig_metadata = None
         self._mconfig_manager = get_mconfig_manager()
         self.reload_mconfig()
 
@@ -129,6 +130,13 @@ class MagmaService(Service303Servicer):
         return self._mconfig
 
     @property
+    def mconfig_metadata(self):
+        """
+        Returns the metadata of the managed config
+        """
+        return self._mconfig_metadata
+
+    @property
     def mconfig_manager(self):
         """
         Returns the mconfig manager for this service
@@ -155,6 +163,8 @@ class MagmaService(Service303Servicer):
             self._mconfig = self._mconfig_manager.load_service_mconfig(
                 self._name,
             )
+            self._mconfig_metadata = \
+                self._mconfig_manager.load_mconfig_metadata()
         except LoadConfigError as e:
             logging.warning(e)
 
