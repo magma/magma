@@ -1533,32 +1533,30 @@ static void _encode_csfb_parameters_attach_accept(
     //CSFB - check if Network Access Mode is Packet only received from HSS in ULA message
     if (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
       establish_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
-    }
-    //CSFB - Check if SGS Location update procedure is successful
-    else if (emm_ctx->csfbparams.sgs_loc_updt_status == SUCCESS) {
-      if (emm_ctx->csfbparams.presencemask & LAI_CSFB) {
-        establish_p->location_area_identification = &emm_ctx->csfbparams.lai;
-      }
-      //CSFB-Encode Mobile Identity
-      if (emm_ctx->csfbparams.presencemask & MOBILE_IDENTITY) {
-        establish_p->ms_identity = &emm_ctx->csfbparams.mobileid;
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit1 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[0]);
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit2 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[1]);
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit3 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[2]);
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit4 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[3]);
-      }
+    } else if (emm_ctx->csfbparams.sgs_loc_updt_status == SUCCESS) { //CSFB - Check if SGS Location update procedure is successful
+        if (emm_ctx->csfbparams.presencemask & LAI_CSFB) {
+          establish_p->location_area_identification = &emm_ctx->csfbparams.lai;
+        }
+        //CSFB-Encode Mobile Identity
+        if (emm_ctx->csfbparams.presencemask & MOBILE_IDENTITY) {
+          establish_p->ms_identity = &emm_ctx->csfbparams.mobileid;
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit1 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[0]);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit2 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[1]);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit3 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[2]);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit4 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[3]);
+        }
     } else if (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) {
       establish_p->emm_cause = emm_ctx->emm_cause;
     }
