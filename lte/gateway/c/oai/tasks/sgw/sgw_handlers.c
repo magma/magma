@@ -1766,10 +1766,6 @@ int sgw_handle_s5_create_bearer_response(
     create_session_response_p->trxn =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.trxn;
   }
-    OAILOG_ERROR(
-      LOG_SPGW_APP, "*********Sending create session rsp with TEID %d *********\n",create_session_response_p->teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-
   rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
