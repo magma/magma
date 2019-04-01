@@ -193,6 +193,12 @@ grpc::Status CSFBGatewayServiceImpl::ServiceAbort(
   const ServiceAbortRequest *request,
   Void *response)
 {
+  itti_sgsap_service_abort_req_t itti_msg;
+  convert_proto_msg_to_itti_sgsap_service_abort_req(request, &itti_msg);
+  std::cout << "[DEBUG]"
+    "Received SGSAP_SERVICE_ABORT_REQ message from FeG with IMSI: "
+    << itti_msg.imsi << std::endl;
+  handle_sgs_service_abort_req(&itti_msg);
   return grpc::Status::OK;
 }
 

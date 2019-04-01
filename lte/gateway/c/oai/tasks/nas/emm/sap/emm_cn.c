@@ -1058,6 +1058,7 @@ static int _emm_cn_cs_domain_loc_updt_fail(
 
   //Store the status of Location Update procedure(success/failure) to send appropriate cause in Attach Accept
   emm_ctx_p->csfbparams.sgs_loc_updt_status = FAILURE;
+  fsm_state = emm_fsm_get_state(emm_ctx_p);
 
   if (EMM_DEREGISTERED == fsm_state) {
     nas_emm_attach_proc_t *attach_proc =
@@ -1152,6 +1153,7 @@ static int _emm_cn_cs_domain_mm_information_req(
     if (ue_context_p->sgs_context == NULL) {
       OAILOG_WARNING(
         LOG_NAS_EMM, " Invalid SGS context for IMSI" IMSI_64_FMT "\n", imsi64);
+      emm_context_unlock(ctxt);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
@@ -1176,6 +1178,7 @@ static int _emm_cn_cs_domain_mm_information_req(
       "imsi" IMSI_64_FMT "\n",
       imsi64);
   }
+  emm_context_unlock(ctxt);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

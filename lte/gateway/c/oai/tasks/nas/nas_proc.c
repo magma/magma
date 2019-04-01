@@ -734,13 +734,13 @@ int nas_proc_downlink_unitdata(itti_sgsap_downlink_unitdata_t *dl_unitdata)
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
-  nas_emm_attach_proc_t *attach_proc = get_nas_specific_procedure_attach(ctxt);
   emm_as->nas_info = EMM_AS_NAS_DL_NAS_TRANSPORT;
   emm_as->nas_msg = bstrcpy(dl_unitdata->nas_msg_container);
   /*
    * Set the UE identifier
    */
-  emm_as->ue_id = attach_proc->ue_id;
+  emm_as->ue_id = PARENT_STRUCT(ctxt,  struct ue_mm_context_s, emm_context)
+                  ->mme_ue_s1ap_id;
   /*
    * Setup EPS NAS security data
    */
@@ -749,6 +749,7 @@ int nas_proc_downlink_unitdata(itti_sgsap_downlink_unitdata_t *dl_unitdata)
    * Notify EMM-AS SAP that Downlink Nas transport message has to be sent to the ue
    */
   emm_sap.primitive = EMMAS_DATA_REQ;
+  emm_context_unlock(ctxt);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -980,6 +981,7 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
       NW_DETACH_TYPE_IMSI_DETACH;
     rc = emm_sap_send(&emm_sap);
   }
+  emm_context_unlock(ctxt);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 /****************************************************************************

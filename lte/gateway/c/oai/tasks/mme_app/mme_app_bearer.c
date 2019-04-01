@@ -268,6 +268,7 @@ void mme_app_handle_conn_est_cnf(
       mme_app_send_nas_detach_request(
         ue_context_p->mme_ue_s1ap_id, SGS_INITIATED_IMSI_DETACH);
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
+      unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
   }
