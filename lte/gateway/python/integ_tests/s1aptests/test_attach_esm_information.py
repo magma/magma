@@ -38,7 +38,8 @@ class TestEsmInformation(unittest.TestCase):
         attach_req.mIdType = id_type
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
-        #enabling ESM Information transfer flag
+
+        # enabling ESM Information transfer flag
         attach_req.eti.pres = 1
         attach_req.eti.esm_info_transfer_flag = 1
 
@@ -71,18 +72,23 @@ class TestEsmInformation(unittest.TestCase):
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete)
 
         # Esm Information Request indication
-        print("Received Esm Information Request ue-id", sec_mode_complete.ue_Id)
+        print("Received Esm Information Request ue-id",
+              sec_mode_complete.ue_Id)
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertTrue(response, s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value)
+        self.assertTrue(response,
+                        s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value)
 
-        #Sending Esm Information Response 
-        print("Sending Esm Information Response ue-id", sec_mode_complete.ue_Id)
+        # Sending Esm Information Response
+        print("Sending Esm Information Response ue-id",
+              sec_mode_complete.ue_Id)
         esm_info_response = s1ap_types.ueEsmInformationRsp_t()
         esm_info_response.ue_Id = 1
         esm_info_response.pdnAPN_pr.pres = 1
         s = 'oai.ipv4'
         esm_info_response.pdnAPN_pr.len = len(s)
-        esm_info_response.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(*[ctypes.c_ubyte(ord(c)) for c in s[:100]])
+        esm_info_response.pdnAPN_pr.pdn_apn = ((ctypes.c_ubyte * 100)
+                                               (*[ctypes.c_ubyte(ord(c))
+                                                   for c in s[:100]]))
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ESM_INFORMATION_RSP,
             esm_info_response)
@@ -101,8 +107,7 @@ class TestEsmInformation(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-
-        print("************************* Running UE detach")
+        print("*** Running UE detach ***")
         # Now detach the UE
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = 1
