@@ -50,6 +50,7 @@ def save_override_config(service_name: str, cfg: Any):
         cfg: json-decoded value of the service config
     """
     override_file_name = _override_file_name(service_name)
+    os.makedirs(CONFIG_OVERRIDE_DIR, exist_ok=True)
     with open(override_file_name, 'w') as override_file:
         yaml.dump(cfg, override_file, default_flow_style=False)
 
