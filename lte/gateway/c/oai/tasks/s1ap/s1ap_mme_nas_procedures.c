@@ -71,7 +71,7 @@
 #include "S1ap-UESecurityCapabilities.h"
 #include "TrackingAreaIdentity.h"
 #include "asn_SEQUENCE_OF.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 
 /* Every time a new UE is associated, increment this variable.
    But care if it wraps to increment also the mme_ue_s1ap_id_has_wrapped

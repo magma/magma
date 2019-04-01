@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from collections import namedtuple
-from typing import Any
+from typing import Any, Optional
 from abc import ABC, abstractmethod
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
@@ -21,7 +21,7 @@ from magma.enodebd.state_machines.acs_state_utils import \
     get_all_objects_to_add, parse_get_parameter_values_response, \
     get_object_params_to_get, get_all_param_values_to_set, \
     get_param_values_to_set, get_obj_param_values_to_set, \
-    get_params_to_get, get_optional_param_to_check
+    get_params_to_get, get_optional_param_to_check, does_inform_have_event
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.timer import StateMachineTimer
 from magma.enodebd.tr069 import models
@@ -99,10 +99,17 @@ class WaitInformState(EnodebAcsState):
     enodebd whether the eNB is just sending another Inform, or if a different
     eNB was plugged into the same interface.
     """
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_done: str,
+        when_boot: Optional[str] = None,
+    ):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.boot_transition = when_boot
+        self.has_enb_just_booted = False
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
@@ -113,6 +120,8 @@ class WaitInformState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         process_inform_message(message, self.acs.device_name,
                                self.acs.data_model, self.acs.device_cfg)
+        if does_inform_have_event(message, '1 BOOT'):
+            return AcsReadMsgResult(True, self.boot_transition)
         return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
@@ -135,6 +144,9 @@ class BaicellsRemWaitState(EnodebAcsState):
     After eNodeB is rebooted, hold off configuring it for some time to give
     time for REM to run. This is a BaiCells eNodeB issue that doesn't support
     enabling the eNodeB during initial REM.
+
+    In this state, just hang at responding to Inform, and then ending the
+    TR-069 session.
     """
 
     CONFIG_DELAY_AFTER_BOOT = 600
@@ -144,27 +156,28 @@ class BaicellsRemWaitState(EnodebAcsState):
         self.acs = acs
         self.done_transition = when_done
         self.rem_timer = None
-        self.timer_handle = None
 
     def enter(self):
         self.rem_timer = StateMachineTimer(self.CONFIG_DELAY_AFTER_BOOT)
-        def check_timer() -> None:
-            if self.rem_timer.is_done():
-                self.acs.transition(self.done_transition)
-
-        self.timer_handle =\
-            self.acs.event_loop.call_later(self.CONFIG_DELAY_AFTER_BOOT,
-                                           check_timer)
+        logging.info('Holding off of eNB configuration for %s seconds due to '
+                     'idiosyncrasy of Baicells eNB.',
+                     self.CONFIG_DELAY_AFTER_BOOT)
 
     def exit(self):
-        self.timer_handle.cancel()
         self.rem_timer = None
 
-    def get_msg(self) -> AcsMsgAndTransition:
-        return AcsMsgAndTransition(models.DummyInput(), None)
-
     def read_msg(self, message: Any) -> AcsReadMsgResult:
+        if not isinstance(message, models.Inform):
+            return AcsReadMsgResult(False, None)
+        process_inform_message(message, self.acs.device_name,
+                               self.acs.data_model, self.acs.device_cfg)
         return AcsReadMsgResult(True, None)
+
+    def get_msg(self) -> AcsMsgAndTransition:
+        if self.rem_timer.is_done():
+            return AcsMsgAndTransition(models.DummyInput(),
+                                       self.done_transition)
+        return AcsMsgAndTransition(models.DummyInput(), None)
 
     @classmethod
     def state_description(cls) -> str:
@@ -665,10 +678,11 @@ class SetParameterValuesState(EnodebAcsState):
         logging.debug('Sending TR069 request to set CPE parameter values: %s',
                       str(param_values))
         for name, value in param_values.items():
-            type_ = self.acs.data_model.get_parameter(name).type
+            param_info = self.acs.data_model.get_parameter(name)
+            type_ = param_info.type
             name_value = models.ParameterValueStruct()
             name_value.Value = models.anySimpleType()
-            name_value.Name = self.acs.data_model.get_parameter(name).path
+            name_value.Name = param_info.path
             enb_value = self.acs.data_model.transform_for_enb(name, value)
             if type_ in ('int', 'unsignedInt'):
                 name_value.Value.type = 'xsd:%s' % type_
@@ -683,6 +697,8 @@ class SetParameterValuesState(EnodebAcsState):
             else:
                 raise Tr069Error('Unsupported type for %s: %s' %
                                  (name, type_))
+            if param_info.is_invasive:
+                self.acs.are_invasive_changes_applied = False
             request.ParameterList.ParameterValueStruct.append(name_value)
 
         return AcsMsgAndTransition(request, self.done_transition)
@@ -711,10 +727,11 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
         logging.debug('Sending TR069 request to set CPE parameter values: %s',
                       str(param_values))
         for name, value in param_values.items():
-            type_ = self.acs.data_model.get_parameter(name).type
+            param_info = self.acs.data_model.get_parameter(name)
+            type_ = param_info.type
             name_value = models.ParameterValueStruct()
             name_value.Value = models.anySimpleType()
-            name_value.Name = self.acs.data_model.get_parameter(name).path
+            name_value.Name = param_info.path
             enb_value = self.acs.data_model.transform_for_enb(name, value)
             if type_ in ('int', 'unsignedInt'):
                 name_value.Value.type = 'xsd:%s' % type_
@@ -729,6 +746,8 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
             else:
                 raise Tr069Error('Unsupported type for %s: %s' %
                                  (name, type_))
+            if param_info.is_invasive:
+                self.acs.are_invasive_changes_applied = False
             request.ParameterList.ParameterValueStruct.append(name_value)
 
         return AcsMsgAndTransition(request, self.done_transition)
@@ -739,10 +758,16 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
 
 
 class WaitSetParameterValuesState(EnodebAcsState):
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_done: str,
+        when_apply_invasive: str,
+    ):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.apply_invasive_transition = when_apply_invasive
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         if type(message) == models.SetParameterValuesResponse:
@@ -750,6 +775,8 @@ class WaitSetParameterValuesState(EnodebAcsState):
                 raise Tr069Error('Received SetParameterValuesResponse with '
                                  'Status=%d' % message.Status)
             self._mark_as_configured()
+            if not self.acs.are_invasive_changes_applied:
+                return AcsReadMsgResult(True, self.apply_invasive_transition)
             return AcsReadMsgResult(True, self.done_transition)
         elif type(message) == models.Fault:
             logging.error('Received Fault in response to SetParameterValues')
@@ -758,11 +785,10 @@ class WaitSetParameterValuesState(EnodebAcsState):
                     logging.error('SetParameterValuesFault Param: %s, '
                                   'Code: %s, String: %s', fault.ParameterName,
                                   fault.FaultCode, fault.FaultString)
-            raise Tr069Error(
-                'Received Fault in response to SetParameterValues '
-                '(faultstring = %s)' % message.FaultString)
-        else:
-            return AcsReadMsgResult(False, None)
+                logging.error('Received Fault in response to '
+                              'SetParameterValues (faultstring = %s)',
+                              message.FaultString)
+        return AcsReadMsgResult(False, None)
 
     def _mark_as_configured(self) -> None:
         """
@@ -814,20 +840,76 @@ class EndSessionState(EnodebAcsState):
         return 'Completed provisioning eNB. Awaiting new Inform.'
 
 
-class SendRebootState(EnodebAcsState):
+class BaicellsSendRebootState(EnodebAcsState):
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.prev_msg_was_inform = False
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
         This state can be transitioned into through user command.
         All messages received by enodebd will be ignored in this state.
         """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(message, self.acs.device_name,
+                                   self.acs.data_model, self.acs.device_cfg)
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
+        logging.info('Sending reboot request to eNB')
+        request = models.Reboot()
+        request.CommandKey = ''
+        self.acs.are_invasive_changes_applied = True
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    @classmethod
+    def state_description(cls) -> str:
+        return 'Rebooting eNB'
+
+
+class SendRebootState(EnodebAcsState):
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.prev_msg_was_inform = False
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        This state can be transitioned into through user command.
+        All messages received by enodebd will be ignored in this state.
+        """
+        if self.prev_msg_was_inform \
+                and not isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(False, None)
+        elif isinstance(message, models.Inform):
+            self.prev_msg_was_inform = True
+            process_inform_message(message, self.acs.device_name,
+                                   self.acs.data_model, self.acs.device_cfg)
+            return AcsReadMsgResult(True, None)
+        self.prev_msg_was_inform = False
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self) -> AcsMsgAndTransition:
+        if self.prev_msg_was_inform:
+            response = models.InformResponse()
+            # Set maxEnvelopes to 1, as per TR-069 spec
+            response.MaxEnvelopes = 1
+            return AcsMsgAndTransition(response, None)
+        logging.info('Sending reboot request to eNB')
         request = models.Reboot()
         request.CommandKey = ''
         return AcsMsgAndTransition(request, self.done_transition)
@@ -844,14 +926,9 @@ class WaitRebootResponseState(EnodebAcsState):
         self.done_transition = when_done
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
-        if type(message) == models.RebootResponse:
-            pass
-        elif type(message) == models.Fault:
-            raise Tr069Error('Received Fault in response to Reboot '
-                             '(faultstring = %s)' % message.FaultString)
-        else:
+        if not isinstance(message, models.RebootResponse):
             return AcsReadMsgResult(False, None)
-        return AcsReadMsgResult(True, self.done_transition)
+        return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
         """ Reply with empty message """
@@ -887,7 +964,6 @@ class WaitInformMRebootState(EnodebAcsState):
         self.timeout_transition = when_timeout
         self.timeout_timer = None
         self.timer_handle = None
-        self.received_inform = False
 
     def enter(self):
         self.timeout_timer = StateMachineTimer(self.REBOOT_TIMEOUT)
@@ -907,35 +983,14 @@ class WaitInformMRebootState(EnodebAcsState):
         self.timeout_timer = None
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
-        if type(message) == models.Inform:
-            is_correct_event = False
-            for event in message.Event.EventStruct:
-                logging.debug('Inform event: %s', event.EventCode)
-                if event.EventCode == self.INFORM_EVENT_CODE:
-                    is_correct_event = True
-            if not is_correct_event:
-                raise Tr069Error('Did not receive M Reboot event code in '
-                                 'Inform')
-        elif type(message) == models.Fault:
-            # eNodeB may send faults for no apparent reason before rebooting
-            return AcsReadMsgResult(True, None)
-        else:
+        if not isinstance(message, models.Inform):
             return AcsReadMsgResult(False, None)
-
-        self.received_inform = True
+        if not does_inform_have_event(message, self.INFORM_EVENT_CODE):
+            raise Tr069Error('Did not receive M Reboot event code in '
+                             'Inform')
         process_inform_message(message, self.acs.device_name,
                                self.acs.data_model, self.acs.device_cfg)
-        return AcsReadMsgResult(True, None)
-
-    def get_msg(self) -> AcsMsgAndTransition:
-        """ Reply with InformResponse """
-        if self.received_inform:
-            response = models.InformResponse()
-            # Set maxEnvelopes to 1, as per TR-069 spec
-            response.MaxEnvelopes = 1
-            return AcsMsgAndTransition(response, self.done_transition)
-        else:
-            return AcsMsgAndTransition(models.DummyInput(), None)
+        return AcsReadMsgResult(True, self.done_transition)
 
     @classmethod
     def state_description(cls) -> str:

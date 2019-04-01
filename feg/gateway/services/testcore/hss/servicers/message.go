@@ -14,8 +14,9 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/s6a_proxy/servicers"
+	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
+	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -39,11 +40,30 @@ func ConstructFailureAnswer(msg *diam.Message, sessionID datatype.UTF8String, se
 	return newMsg
 }
 
+// ConvertAuthErrorToFailureMessage creates a corresponding diameter failure message for an auth error.
+func ConvertAuthErrorToFailureMessage(err error, msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig) *diam.Message {
+	switch err.(type) {
+	case servicers.AuthRejectedError:
+		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHORIZATION_REJECTED))
+	case servicers.AuthDataUnavailableError:
+		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(protos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE))
+	default:
+		return ConstructFailureAnswer(msg, sessionID, serverCfg, uint32(diam.UnableToComply))
+	}
+}
+
 // ConstructSuccessAnswer returns a message response with a success result code
 // and with the server config AVPs already added.
-func ConstructSuccessAnswer(msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig) *diam.Message {
+func ConstructSuccessAnswer(msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig, authApplicationID uint32) *diam.Message {
 	answer := msg.Answer(diam.Success)
 	AddStandardAnswerAVPS(answer, sessionID, serverCfg, diam.Success)
+	answer.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+			diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(authApplicationID)),
+		},
+	})
+	answer.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(swx.AuthSessionState_NO_STATE_MAINTAINED))
 	return answer
 }
 
@@ -51,13 +71,14 @@ func ConstructSuccessAnswer(msg *diam.Message, sessionID datatype.UTF8String, se
 func AddStandardAnswerAVPS(answer *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig, resultCode uint32) {
 	// SessionID is required to be the AVP in position 1
 	answer.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, sessionID))
-	answer.NewAVP(avp.ExperimentalResult, avp.Mbit, 0, &diam.GroupedAVP{
-		AVP: []*diam.AVP{
-			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
-			diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(resultCode)),
-		},
-	})
-
+	if resultCode != diam.Success {
+		answer.NewAVP(avp.ExperimentalResult, avp.Mbit, 0, &diam.GroupedAVP{
+			AVP: []*diam.AVP{
+				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+				diam.NewAVP(avp.ExperimentalResultCode, avp.Mbit, 0, datatype.Unsigned32(resultCode)),
+			},
+		})
+	}
 	answer.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(serverCfg.DestHost))
 	answer.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(serverCfg.DestRealm))
 	answer.NewAVP(avp.OriginStateID, avp.Mbit, 0, datatype.Unsigned32(time.Now().Unix()))
@@ -99,5 +120,5 @@ func getRedirectMessage(msg *diam.Message, sessionID datatype.UTF8String, server
 }
 
 func isRATTypeAllowed(ratType uint32) bool {
-	return ratType == swx.RadioAccessTechnologyType_WLAN || ratType == servicers.RadioAccessTechnologyType_EUTRAN
+	return ratType == swx.RadioAccessTechnologyType_WLAN || ratType == s6a.RadioAccessTechnologyType_EUTRAN
 }

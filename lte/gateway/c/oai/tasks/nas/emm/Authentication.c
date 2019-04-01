@@ -55,7 +55,7 @@
 #include "mme_app_desc.h"
 #include "nas_procedures.h"
 #include "s6a_messages_types.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 #include "security_types.h"
 
 /****************************************************************************/

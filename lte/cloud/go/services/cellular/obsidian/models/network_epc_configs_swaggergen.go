@@ -9,8 +9,9 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/go-openapi/errors"
 	strfmt "github.com/go-openapi/strfmt"
+
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
@@ -18,6 +19,9 @@ import (
 // NetworkEpcConfigs EPC (evolved packet core) cellular configuration for a network
 // swagger:model network_epc_configs
 type NetworkEpcConfigs struct {
+
+	// cloud subscriberdb enabled
+	CloudSubscriberdbEnabled bool `json:"cloud_subscriberdb_enabled,omitempty"`
 
 	// default rule id
 	DefaultRuleID string `json:"default_rule_id,omitempty"`

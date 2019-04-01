@@ -4,6 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 'use strict';
@@ -12,6 +13,7 @@ import ReactDOM from 'react-dom';
 import AppContext from './components/context/AppContext.js';
 import {BrowserRouter} from 'react-router-dom';
 import LoginForm from '@fbcnms/ui/components/auth/LoginForm.js';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {} from './common/axiosConfig';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -33,5 +35,5 @@ ReactDOM.render(
       <LoginWrapper />
     </BrowserRouter>
   </AppContext.Provider>,
-  document.getElementById('root'),
+  nullthrows(document.getElementById('root')),
 );

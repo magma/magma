@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/checkind"
 	checkind_test_init "magma/orc8r/cloud/go/services/checkind/test_init"
+	"magma/orc8r/cloud/go/services/checkind/test_utils"
 	logger_test_init "magma/orc8r/cloud/go/services/logger/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
@@ -105,8 +106,7 @@ func TestCheckind(t *testing.T) {
 		},
 	}
 
-	requestPtr2 := proto.Clone(&request).(*protos.CheckinRequest)
-	requestPtr2.GatewayId = testAgHwId2
+	request2 := test_utils.GetCheckinRequestProtoFixture(testAgHwId2)
 
 	_, readStatus := checkinRound(
 		t, magmaCheckindClient, testNetworkId, logicalId, &request)
@@ -114,7 +114,7 @@ func TestCheckind(t *testing.T) {
 	time.Sleep(100 * time.Millisecond) // let some time pass
 
 	_, readStatus2 := checkinRound(
-		t, magmaCheckindClient, testNetworkId, logicalId2, requestPtr2)
+		t, magmaCheckindClient, testNetworkId, logicalId2, request2)
 	assert.NotEqual(t, readStatus.Time, readStatus2.Time)
 
 	repeatRequest := proto.Clone(&request).(*protos.CheckinRequest)

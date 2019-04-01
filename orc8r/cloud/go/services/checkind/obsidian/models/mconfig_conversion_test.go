@@ -13,21 +13,24 @@ import (
 
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/checkind/obsidian/models"
+	"magma/orc8r/cloud/go/services/checkind/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )
+
+const testAgHwId = "foo"
 
 func TestGatewayStatus_FromMconfig(t *testing.T) {
 	testCases := []struct {
 		In  *protos.GatewayStatus
 		Out *models.GatewayStatus
 	}{
-		// Check all fields
+		// Check old status
 		{
 			In: &protos.GatewayStatus{
 				Time: 42,
 				Checkin: &protos.CheckinRequest{
-					GatewayId:       "foo",
+					GatewayId:       testAgHwId,
 					MagmaPkgVersion: "bar",
 					Status: &protos.ServiceStatus{
 						Meta: map[string]string{"baz": "qux"},
@@ -50,7 +53,7 @@ func TestGatewayStatus_FromMconfig(t *testing.T) {
 			},
 			Out: &models.GatewayStatus{
 				CheckinTime:             42,
-				HardwareID:              "foo",
+				HardwareID:              testAgHwId,
 				KernelVersion:           "42",
 				KernelVersionsInstalled: []string{"11"},
 				Meta:                    map[string]string{"baz": "qux"},
@@ -65,9 +68,26 @@ func TestGatewayStatus_FromMconfig(t *testing.T) {
 					Time:         101,
 					UptimeSecs:   17,
 				},
+				PlatformInfo: &models.PlatformInfo{
+					VpnIP: "facebook.com",
+					Packages: []*models.Package{
+						{
+							Name:    "magma",
+							Version: "bar",
+						},
+					},
+					KernelVersion:           "42",
+					KernelVersionsInstalled: []string{"11"},
+				},
 				Version: "bar",
 				VpnIP:   "facebook.com",
 			},
+		},
+
+		// Check new status
+		{
+			In:  test_utils.GetGatewayStatusProtoFixture(testAgHwId),
+			Out: test_utils.GetGatewayStatusSwaggerFixture(testAgHwId),
 		},
 
 		// Nil status from checkin

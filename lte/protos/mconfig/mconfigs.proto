@@ -153,6 +153,9 @@ message MME {
     string csfb_mnc = 11;
     // Location area code. 16-bit
     int32 lac = 12;
+    // If relay_enabled is false, this determines whether cloud subscriberdb
+    // or local subscriberdb is used for authentication requests.
+    bool cloud_subscriberdb_enabled = 14;
 
     // DEPRECATED
     // Use relay_enabled instead

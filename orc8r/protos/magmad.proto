@@ -10,6 +10,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 import "orc8r/protos/mconfig.proto";
 import "orc8r/protos/service303.proto";
+import "google/protobuf/struct.proto";
 
 package magma.orc8r;
 option go_package = "magma/orc8r/cloud/go/protos";
@@ -70,6 +71,23 @@ message RestartServicesRequest {
   repeated string services = 1;
 }
 
+message GenericCommandParams {
+  string command = 1;
+  google.protobuf.Struct params = 2;
+}
+
+message GenericCommandResponse {
+  google.protobuf.Struct response = 1;
+}
+
+message TailLogsRequest {
+  string service = 1;
+}
+
+message LogLine {
+  string line = 1;
+}
+
 // --------------------------------------------------------------------------
 // Magmad service definition.
 // --------------------------------------------------------------------------
@@ -98,6 +116,21 @@ service Magmad {
 
   // Get gateway hardware ID
   rpc GetGatewayId (Void) returns (GetGatewayIdResponse) {}
+
+  // Execute generic command
+  rpc GenericCommand (GenericCommandParams) returns (GenericCommandResponse) {}
+
+  // Get stream of logs
+  rpc TailLogs (TailLogsRequest) returns (stream LogLine) {}
+}
+
+// Usage information about a disk partition
+message DiskPartition {
+  string device = 1;
+  string mount_point = 2;
+  uint64 total = 3;
+  uint64 used = 4;
+  uint64 free = 5;
 }
 
 message SystemStatus {
@@ -111,8 +144,110 @@ message SystemStatus {
     uint64 mem_available = 11;
     uint64 mem_used = 12;
     uint64 mem_free = 13;
+    uint64 swap_total = 15;
+    uint64 swap_used = 16;
+    uint64 swap_free = 17;
 
     uint64 uptime_secs = 14;
+
+    // Disk usage information
+    repeated DiskPartition disk_partitions = 18;
+}
+
+message Package {
+  // Name of the package. Ex: 'magma'
+  string name = 1;
+
+  // Version of the package. Ex: '0.0.0.0'
+  string version = 2;
+}
+
+message ConfigInfo {
+  // Unix timestamp of the mconfig on the gateway
+  uint64 mconfig_created_at = 1;
+}
+
+message PlatformInfo {
+  // Gateway's IP address on VPN
+  string vpn_ip = 1;
+
+  // Information of packages installed
+  repeated Package packages = 2;
+
+  // Current running kernel version
+  string kernel_version = 3;
+
+  // All kernel versions installed
+  repeated string kernel_versions_installed = 4;
+
+  // Information of gateway configs
+  ConfigInfo config_info = 5;
+}
+
+message NetworkInterface {
+  enum Status {
+    UNKNOWN = 0;
+    UP = 1;
+    DOWN = 2;
+  }
+  // The ID of the network interface. Ex: 'gtp_br0'
+  string network_interface_id = 1;
+
+  // Network interface status
+  Status status = 2;
+
+  // MAC address
+  string mac_address = 3;
+
+  // The IPv4 addresses in CIDR notation associated with the network interface
+  repeated string ip_addresses = 4;
+
+  // The IPv6 addresses in CIDR notation associated with the network interface
+  repeated string ipv6_addresses = 5;
+}
+
+message Route {
+  // The IPv4 address of the destination
+  string destination_ip = 1;
+
+  // The IPv4 address of the gateway
+  string gateway_ip = 2;
+
+  // The subnet mask of the route
+  string genmask = 3;
+
+  // The ID of the network interface associated with the route
+  string network_interface_id = 4;
+}
+
+message NetworkInfo {
+  // The network interfaces of the gateway
+  repeated NetworkInterface network_interfaces = 1;
+
+  // The routing table of the gateway
+  repeated Route routing_table = 2;
+}
+
+message CPUInfo {
+  // The number of CPU cores for the instance
+  uint64 core_count = 1;
+
+  // The number of threads per CPU core
+  uint64 threads_per_core = 2;
+
+  // The architecture of the gateway. Ex: 'x86_64'
+  string architecture = 3;
+
+  // Name of the CPU. Ex: 'Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz'
+  string model_name = 4;
+}
+
+message MachineInfo {
+  // CPU information
+  CPUInfo cpu_info = 1;
+
+  // Network information
+  NetworkInfo network_info = 2;
 }
 
 // --------------------------------------------------------------------------
@@ -122,23 +257,30 @@ message CheckinRequest {
   // Gateway's hardware id
   string gateway_id = 1;
 
-  // Magma python build version number. Ex: '0.0.0'
-  string magma_pkg_version = 2;
-
   // Gateway status
   ServiceStatus status = 3;
 
   // System status
   SystemStatus system_status = 4;
 
-  // Gateway's IP on VPN
-  string vpn_ip = 5;
+  // Platform information
+  PlatformInfo platform_info = 8;
 
-  // Current running kernel version
-  string kernel_version = 6;
+  // Machine information
+  MachineInfo machine_info = 9;
 
-  // All kernel versions installed
-  repeated string kernel_versions_installed = 7;
+  // DEPRECATED
+  // Magma python build version number. Ex: '0.0.0'. Use platform_info instead
+  string magma_pkg_version = 2 [deprecated = true];
+
+  // Gateway's IP on VPN. Use platform_info instead
+  string vpn_ip = 5 [deprecated = true];
+
+  // Current running kernel version. Use platform_info instead
+  string kernel_version = 6 [deprecated = true];
+
+  // All kernel versions installed. Use platform_info instead
+  repeated string kernel_versions_installed = 7 [deprecated = true];
 }
 
 message CheckinResponse {

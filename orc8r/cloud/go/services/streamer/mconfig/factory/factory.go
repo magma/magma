@@ -89,7 +89,7 @@ func CreateMconfig(networkId string, gatewayId string) (*protos.GatewayConfigs, 
 	return &protos.GatewayConfigs{
 		ConfigsByKey: ret,
 		Metadata: &protos.GatewayConfigsMetadata{
-			CreatedAt: factory.clock.Now().Unix(),
+			CreatedAt: uint64(factory.clock.Now().Unix()),
 		},
 	}, nil
 }

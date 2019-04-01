@@ -1824,8 +1824,8 @@ int sgw_handle_suspend_notification(
      */
     eps_bearer_entry_p =
       ctx_p->sgw_eps_bearer_context_information.pdn_connection
-        .sgw_eps_bearers_array[suspend_notification_pP->lbi];
-    if (HASH_TABLE_OK == hash_rc) {
+        .sgw_eps_bearers_array[EBI_TO_INDEX(suspend_notification_pP->lbi)];
+    if (eps_bearer_entry_p) {
       OAILOG_DEBUG(
         LOG_SPGW_APP,
         "Handle S11_SUSPEND_NOTIFICATION: Discard the Data received GTP-U "

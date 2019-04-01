@@ -57,6 +57,37 @@
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
 
+/********************************************************************************
+ **                                                                            **
+ ** Name:               mme_app_send_itti_sgsap_ue_activity_ind()              **
+ ** Description         Send UE Activity Indication Message to SGS Task        **
+ **                                                                            **
+ ** Inputs:              Mobile Id                                             **
+ **                                                                            **
+********************************************************************************/
+
+void _mme_app_send_itti_sgsap_ue_activity_ind(
+  const char *imsi, const unsigned int imsi_len)
+{
+  OAILOG_FUNC_IN(LOG_NAS);
+  MessageDef *message_p = NULL;
+
+  message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
+  memset(&message_p->ittiMsg.sgsap_ue_activity_ind, 0,
+         sizeof(itti_sgsap_ue_activity_ind_t));
+  memcpy(SGSAP_UE_ACTIVITY_IND (message_p).imsi, imsi, imsi_len);
+  OAILOG_DEBUG(LOG_NAS," Imsi : %s %d \n", imsi,imsi_len);
+  SGSAP_UE_ACTIVITY_IND (message_p).imsi[imsi_len] = '\0';
+  SGSAP_UE_ACTIVITY_IND (message_p).imsi_length = imsi_len;
+  itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  OAILOG_DEBUG(LOG_NAS,
+     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi :"
+     "%s %d \n", imsi,imsi_len);
+
+  OAILOG_FUNC_OUT(LOG_NAS);
+}
+
+
 /**********************************************************************************
  **                                                                              **
  ** Name:               _copy_mobile_identity_helper()                           **
@@ -336,6 +367,22 @@ static int _is_combined_tau(
             "UE" IMSI_64_FMT "\n",
             ue_context->imsi);
         }
+        if ((mme_ue_context_get_ue_sgs_neaf(
+           itti_nas_location_update_req->ue_id) == true)) {
+          OAILOG_INFO(
+            LOG_MME_APP,
+            "Sending UE Activity Ind to MSC for UE ID %d\n",
+            itti_nas_location_update_req->ue_id);
+           /* neaf flag is true*/
+           /* send the SGSAP Ue activity indication to MSC/VLR */
+           char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+           IMSI64_TO_STRING(ue_context->imsi, imsi_str,
+                ue_context->imsi_len);
+           _mme_app_send_itti_sgsap_ue_activity_ind(imsi_str,
+                                                    strlen(imsi_str));
+           mme_ue_context_update_ue_sgs_neaf(
+              itti_nas_location_update_req->ue_id, false);
+         }
       } else {
         rc = RETURNok;
       }

@@ -129,4 +129,8 @@ message NetworkEPCConfig {
     bool relay_enabled = 8;
     // Ordered list of network service that will be enabled
     repeated NetworkServices network_services = 9;
+
+    // If relay_enabled is false, this determines whether cloud subscriberdb
+    // or local subscriberdb is used for authentication requests.
+    bool cloud_subscriberdb_enabled = 10;
 }

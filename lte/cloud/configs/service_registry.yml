@@ -20,3 +20,8 @@ services:
     host: "localhost"
     port: 9090
     proxy_type: "clientcert"
+
+  eps_authentication:
+    host: "localhost"
+    port: 9101
+    proxy_type: "clientcert"

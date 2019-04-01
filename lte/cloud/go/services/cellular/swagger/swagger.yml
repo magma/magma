@@ -247,6 +247,9 @@ definitions:
       relay_enabled:
         type: boolean
         example: false
+      cloud_subscriberdb_enabled:
+        type: boolean
+        example: false
       network_services:
         description: Configuration for network services. Services will be instantiated in the listed order.
         type: array

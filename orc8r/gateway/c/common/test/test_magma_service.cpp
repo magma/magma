@@ -70,7 +70,40 @@ TEST(test_magma_service, test_GetServiceInfo_with_callback) {
   magma_service.ClearServiceInfoCallback();
   magma_service.GetServiceInfo(nullptr, nullptr, &response);
   EXPECT_TRUE(response.status().meta().empty());
+}
 
+bool reload_succeeded() {
+  return true;
+}
+
+bool reload_failed() {
+  return false;
+}
+
+TEST(test_magma_service, test_ReloadServiceConfig) {
+  MagmaService magma_service(MAGMA_SERIVCE_NAME, MAGMA_SERVICE_VERSION);
+  ReloadConfigResponse response;
+
+  magma_service.ReloadServiceConfig(nullptr, nullptr, &response);
+  EXPECT_EQ(response.result(), ReloadConfigResponse::RELOAD_UNSUPPORTED);
+
+  response.Clear();
+
+  magma_service.SetConfigReloadCallback(reload_succeeded);
+  magma_service.ReloadServiceConfig(nullptr, nullptr, &response);
+  EXPECT_EQ(response.result(), ReloadConfigResponse::RELOAD_SUCCESS);
+
+  response.Clear();
+
+  magma_service.SetConfigReloadCallback(reload_failed);
+  magma_service.ReloadServiceConfig(nullptr, nullptr, &response);
+  EXPECT_EQ(response.result(), ReloadConfigResponse::RELOAD_FAILURE);
+
+  response.Clear();
+
+  magma_service.ClearConfigReloadCallback();
+  magma_service.ReloadServiceConfig(nullptr, nullptr, &response);
+  EXPECT_EQ(response.result(), ReloadConfigResponse::RELOAD_UNSUPPORTED);
 }
 
 int main(int argc, char **argv) {

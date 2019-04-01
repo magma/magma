@@ -30,6 +30,7 @@ module.exports.overrides = [
       '.eslintrc.js',
       'babel.config.js',
       'jest.config.js',
+      'jest.*.config.js',
       'fbcnms-packages/eslint-config-fbcnms/**/*.js',
       'fbcnms-packages/fbcnms-auth/**/*.js',
       'fbcnms-packages/fbcnms-babel-register/**/*.js',
@@ -45,6 +46,13 @@ module.exports.overrides = [
     ],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['**/tgnms/**/*.js'],
+    rules: {
+      // tgnms doesn't want this because there's too many errors
+      'flowtype/require-valid-file-annotation': 'off',
     },
   },
 ];

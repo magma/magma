@@ -17,24 +17,23 @@
 #include "CloudReporter.h"
 #include "SessionID.h"
 
+using grpc::Server;
 using grpc::ServerContext;
 using grpc::Status;
-using grpc::Server;
 
 namespace magma {
 using namespace orc8r;
 
 class LocalSessionManagerHandler {
-public:
-
+ public:
   virtual ~LocalSessionManagerHandler() {}
 
   /**
    * Report flow stats from pipelined and track the usage per rule
    */
   virtual void ReportRuleStats(
-    ServerContext* context,
-    const RuleRecordTable* request,
+    ServerContext *context,
+    const RuleRecordTable *request,
     std::function<void(Status, Void)> response_callback) = 0;
 
   /**
@@ -42,17 +41,17 @@ public:
    * from the cloud
    */
   virtual void CreateSession(
-    ServerContext* context,
-    const LocalCreateSessionRequest* request,
-    std::function<void(Status, LocalCreateSessionResponse)> response_callback)
-    = 0;
+    ServerContext *context,
+    const LocalCreateSessionRequest *request,
+    std::function<void(Status, LocalCreateSessionResponse)>
+      response_callback) = 0;
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
    */
   virtual void EndSession(
-    ServerContext* context,
-    const SubscriberID* request,
+    ServerContext *context,
+    const SubscriberID *request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) = 0;
 };
 
@@ -62,17 +61,18 @@ public:
  * and report to the cloud, respectively
  */
 class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
-public:
-  LocalSessionManagerHandlerImpl(LocalEnforcer* monitor,
-                                 SessionCloudReporter* reporter);
+ public:
+  LocalSessionManagerHandlerImpl(
+    LocalEnforcer *monitor,
+    SessionCloudReporter *reporter);
 
   ~LocalSessionManagerHandlerImpl() {}
   /**
    * Report flow stats from pipelined and track the usage per rule
    */
   void ReportRuleStats(
-    ServerContext* context,
-    const RuleRecordTable* request,
+    ServerContext *context,
+    const RuleRecordTable *request,
     std::function<void(Status, Void)> response_callback);
 
   /**
@@ -80,25 +80,25 @@ public:
    * from the cloud
    */
   void CreateSession(
-    ServerContext* context,
-    const LocalCreateSessionRequest* request,
+    ServerContext *context,
+    const LocalCreateSessionRequest *request,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback);
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
    */
   void EndSession(
-    ServerContext* context,
-    const SubscriberID* request,
+    ServerContext *context,
+    const SubscriberID *request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
-private:
-  LocalEnforcer* enforcer_;
-  SessionCloudReporter* reporter_;
+ private:
+  LocalEnforcer *enforcer_;
+  SessionCloudReporter *reporter_;
   SessionIDGenerator id_gen_;
 
-private:
+ private:
   void check_usage_for_reporting();
 };
 
-}
+} // namespace magma

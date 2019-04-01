@@ -62,7 +62,7 @@
 #include "CsfbResponse.h"
 #include "ServiceType.h"
 #include "TrackingAreaIdentity.h"
-#include "as_message.h"
+#include "nas/as_message.h"
 #include "emm_data.h"
 #include "esm_data.h"
 #include "hashtable.h"
@@ -74,7 +74,7 @@
 #include "nas_messages_types.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 #include "service303.h"
 #include "sgs_messages_types.h"
 
@@ -613,6 +613,7 @@ void mme_app_handle_initial_ue_message(
               mme_app_desc.mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
               (const hash_key_t) ue_context_p->enb_s1ap_id_key);
             ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+            ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
           }
           // Update MME UE context with new enb_ue_s1ap_id
           ue_context_p->enb_ue_s1ap_id = initial_pP->enb_ue_s1ap_id;
@@ -1392,6 +1393,7 @@ void mme_app_handle_release_access_bearers_resp(
     // Just cleanup the MME APP state associated with s1.
     mme_ue_context_update_ue_sig_connection_state(
       &mme_app_desc.mme_ue_contexts, ue_context_p, ECM_IDLE);
+    ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2119,7 +2121,8 @@ void mme_app_handle_ulr_timer_expiry(ue_mm_context_t *ue_context_p)
  *
  * */
 int mme_app_send_s11_suspend_notification(
-  struct ue_mm_context_s *const ue_context_pP)
+  struct ue_mm_context_s *const ue_context_pP,
+  const pdn_cid_t pdn_index)
 {
   MessageDef *message_p = NULL;
   itti_s11_suspend_notification_t *suspend_notification_p = NULL;
@@ -2138,7 +2141,8 @@ int mme_app_send_s11_suspend_notification(
   suspend_notification_p = &message_p->ittiMsg.s11_suspend_notification;
   memset(suspend_notification_p, 0, sizeof(itti_s11_suspend_notification_t));
 
-  suspend_notification_p->teid = ue_context_pP->mme_teid_s11;
+  pdn_context_t *pdn_connection = ue_context_pP->pdn_contexts[pdn_index];
+  suspend_notification_p->teid = pdn_connection->s_gw_teid_s11_s4;
 
   IMSI64_TO_STRING(
     ue_context_pP->imsi,
@@ -2150,7 +2154,7 @@ int mme_app_send_s11_suspend_notification(
   /* lbi: currently one default bearer, fill lbi from UE context
    * TODO for multiple PDN support, get lbi from PDN context
   */
-  suspend_notification_p->lbi = ue_context_pP->pdn_contexts[0]->default_ebi;
+  suspend_notification_p->lbi = ue_context_pP->pdn_contexts[pdn_index]->default_ebi;
 
   OAILOG_INFO(
     LOG_MME_APP,
@@ -2233,6 +2237,7 @@ int mme_app_handle_nas_extended_service_req(
         "ue_context %d, %d\n",
         ue_id,
         ue_context_p->mme_ue_s1ap_id);
+      unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   } else {
@@ -2356,6 +2361,7 @@ int mme_app_handle_nas_extended_service_req(
         "ERROR***** Invalid Service Type Received %d\n",
         serviceType);
   }
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 

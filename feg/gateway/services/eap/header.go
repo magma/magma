@@ -7,6 +7,9 @@ LICENSE file in the root directory of this source tree.
 */
 
 // Package eap (EAP Authenticator) provides interface to supported & registered EAP Authenticator Providers
+//
+//go:generate protoc --go_out=plugins=grpc,paths=source_relative:. protos/eap_auth.proto
+//
 package eap
 
 import (
@@ -104,4 +107,13 @@ func (p Packet) Type() uint8 {
 		return 0
 	}
 	return p[EapMsgMethodType]
+}
+
+// Truncate truncates EAP Packet to its header defined length
+func (p Packet) Truncate() Packet {
+	mLen := p.Len()
+	if len(p) > mLen {
+		p = p[:mLen]
+	}
+	return p
 }

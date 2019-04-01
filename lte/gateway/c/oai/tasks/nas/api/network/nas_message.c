@@ -36,7 +36,7 @@
 #include "ServiceRequest.h"
 #include "common_defs.h"
 #include "emm_msgDef.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

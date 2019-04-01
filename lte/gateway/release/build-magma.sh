@@ -22,6 +22,9 @@ BUILD_TYPE=Debug
 
 # Cmdline options that overwrite the version configs above
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
+CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
+CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
+
 while [[ $# -gt 0 ]]
 do
 key="$1"
@@ -38,9 +41,19 @@ case $key in
     BUILD_TYPE="$2"
     shift  # pass argument or value
     ;;
+    -c|--cert)
+    CERT_FILE="$2"
+    shift
+    ;;
+    -p|--proxy)
+    CONTROL_PROXY_FILE="$2"
+    shift
+    ;;
     *)
     echo "Error: unknown cmdline option:" $key
-    echo "Usage: $0 [-v|--version V] [-i|--iteration I] [-h|--hash HASH] [-t|--type Debug|RelWithDebInfo]"
+    echo "Usage: $0 [-v|--version V] [-i|--iteration I] [-h|--hash HASH]
+    [-t|--type Debug|RelWithDebInfo] [-c|--cert <path to cert .pem file>]
+    [-p|--proxy <path to control_proxy config .yml file]>"
     exit 1
     ;;
 esac
@@ -214,13 +227,14 @@ make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
-PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+
 cd ${PY_LTE}
 make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 ${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
-PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
 
 # now the binaries are built, we can package up everything else and build the
 # magma package.
@@ -249,7 +263,8 @@ BUILDCMD="fpm \
 --after-install ${POSTINST} \
 --exclude '*/.ignoreme' \
 --config-files /etc/sysctl.d/99-magma.conf \
-${PY_DEPS} \
+${ORC8R_PY_DEPS} \
+${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
@@ -264,13 +279,13 @@ $(glob_files "${SERVICE_DIR}/magma@redirectd.service" /etc/systemd/system/magma@
 $(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.service) \
 $(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \
 $(glob_files "${SERVICE_DIR}/magma@redis.service" /etc/systemd/system/magma@redis.service) \
-$(glob_files "${MAGMA_ROOT}/fb/config/certs/rootCA.pem" /var/opt/magma/certs/rootCA.pem) \
+${CERT_FILE}=/var/opt/magma/certs/rootCA.pem \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml)" /etc/magma/) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/pipelined.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/sessiond.yml_prod" /etc/magma/sessiond.yml) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/templates/*" /etc/magma/templates/) \
 $(glob_files "${MAGMA_ROOT}/orc8r/gateway/configs/templates/*" /etc/magma/templates/) \
-$(glob_files "${MAGMA_ROOT}/fb/config/service/control_proxy.yml" /etc/magma/) \
+${CONTROL_PROXY_FILE}=/etc/magma/ \
 $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.conf) \
 $(glob_files "${ANSIBLE_FILES}/logrotate_oai.conf" /etc/logrotate.d/oai) \
 $(glob_files "${ANSIBLE_FILES}/local-cdn/*" /var/www/local-cdn/) \

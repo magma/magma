@@ -90,6 +90,16 @@ class S6aClient : public GRPCReceiver {
   static const uint32_t RESPONSE_TIMEOUT = 3; // seconds
 };
 
+// There are 3 services which can handle authentication:
+// 1) Local subscriberdb
+// 2) Subscriberdb in the cloud (EPS Authentication)
+// 3) S6a Proxy running in the FeG
+// When relay_enabled is true, then auth requests are sent to the S6a Proxy.
+// Otherwise, if cloud_subscriberdb_enabled is true, then auth requests are
+// sent to the EPS Authentication service.
+// If neither flag is true, then a local instance of subscriberdb receives the
+// auth messages.
 bool get_s6a_relay_enabled(void);
+bool get_cloud_subscriberdb_enabled(void);
 
 } // namespace magma

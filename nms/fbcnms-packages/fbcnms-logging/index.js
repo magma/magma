@@ -31,7 +31,7 @@ const myFormat = printf(info => {
 
 type Options = {
   LOG_FORMAT: 'json' | 'shell',
-  LOG_LEVEL: string,
+  LOG_LEVEL: $Keys<$winstonNpmLogLevels>,
 };
 
 const globalOptions: Options = {
@@ -67,18 +67,34 @@ module.exports = {
     const logger = module.exports.getLogger(callingModule);
     return morgan('combined', {
       stream: {
-        write: (message, _encoding) => {
+        write: message => {
           logger.info(message);
         },
       },
     });
   },
-  getLogger: (callingModule: any) => {
+  getLogger: (callingModule: any): $winstonLogger<$winstonNpmLogLevels> => {
     return winston.createLogger({
       level: globalOptions.LOG_LEVEL,
       format: getLogFormat(callingModule),
       stderrLevels: ['error', 'warning'],
       transports: [new winston.transports.Console()],
     });
+  },
+  getValidLogLevel: (logLevel: ?string): $Keys<$winstonNpmLogLevels> => {
+    switch (logLevel) {
+      case 'error':
+      case 'warn':
+      case 'info':
+      case 'verbose':
+      case 'debug':
+      case 'silly':
+        return logLevel;
+      case undefined:
+      case null:
+        return 'info';
+      default:
+        throw new Error('Invalid log level!');
+    }
   },
 };

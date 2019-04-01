@@ -41,6 +41,7 @@ const testMmconfigJsonV1 = `{
       "tac": 1,
       "enableDnsCaching": false,
       "relayEnabled": false,
+      "cloudSubscriberdbEnabled": false,
       "nonEpsServiceControl": 0,
       "csfbMcc": "001",
       "csfbMnc": "01",
@@ -194,7 +195,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(time.Millisecond * 60)
+	time.Sleep(time.Millisecond * 120)
 	pdcfg := &ltemcfg.PipelineD{}
 	err = GetServiceConfigs("pipelined", pdcfg)
 	if err != nil {

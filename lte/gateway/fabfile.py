@@ -43,6 +43,7 @@ AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/lte/gateway/python/integ_tests"
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
+DEFAULT_PROXY = "$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
@@ -56,7 +57,8 @@ def test():
     env.debug_mode = False
 
 
-def package(vcs='hg', all_deps="False"):
+def package(vcs='hg', all_deps="False",
+            cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
 
@@ -75,7 +77,8 @@ def package(vcs='hg', all_deps="False"):
         print("Building magma package, picking up commit %s..." % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
-        run('./release/build-magma.sh -h %s -t %s' % (hash, build_type))
+        run('./release/build-magma.sh -h %s -t %s --cert %s --proxy %s' % (hash,
+          build_type, cert_file, proxy_config))
 
         # Generate magma dependency packages
         print("Generating magma dependency packages")
@@ -99,22 +102,7 @@ def connect_gateway_to_cloud(control_proxy_setting_path=None, cert_path=DEFAULT_
     non-default control proxy setting and certificates
     """
     setup_env_vagrant()
-    # Add the override for the production endpoints
-    run("sudo rm -rf /var/opt/magma/configs")
-    run("sudo mkdir /var/opt/magma/configs")
-    if control_proxy_setting_path is not None:
-        run("sudo cp " + control_proxy_setting_path
-            + " /var/opt/magma/configs/control_proxy.yml")
-
-    # Copy certs which will be used by the bootstrapper
-    run("sudo rm -rf /var/opt/magma/certs")
-    run("sudo mkdir /var/opt/magma/certs")
-    run("sudo cp " + cert_path + " /var/opt/magma/certs/")
-
-    # Restart the bootstrapper in the gateway to use the new certs
-    run("sudo systemctl stop magma@*")
-    run("sudo systemctl restart magma@magmad")
-
+    dev_utils.connect_gateway_to_cloud(control_proxy_setting_path, cert_path)
 
 def _set_service_config_var(service, var_name, value):
     """ Sets variable in config file by value """
@@ -309,9 +297,9 @@ def _oai_coverage():
 
 def _run_unit_tests():
     """ Run the magma unit tests """
-    with cd(AGW_PYTHON_ROOT):
+    with cd(AGW_ROOT):
         # Run the unit tests
-        run('make test_all')
+        run('make test')
 
 
 def _python_coverage():

@@ -16,6 +16,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
+	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	"magma/orc8r/cloud/go/service"
 )
 
@@ -24,7 +25,7 @@ func init() {
 }
 
 func main() {
-	// Create the EAP AKA Providern service
+	// Create the EAP AKA Provider service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP_AKA)
 	if err != nil {
 		log.Fatalf("Error creating EAP AKA service: %s", err)

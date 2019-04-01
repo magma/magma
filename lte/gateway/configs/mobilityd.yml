@@ -7,5 +7,6 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+log_level: INFO
 persist_to_redis: false
 redis_port: 6379  # this is the default port for redis-server

@@ -27,13 +27,13 @@ using namespace lte;
  * The class is intended on interfacing with the data pipeline to enforce rules.
  */
 class PipelinedClient {
-public:
+ public:
   /**
    * Deactivate all flows for a subscriber's session
    * @param imsi - UE to delete all policy flows for
    * @return true if the operation was successful
    */
-  virtual bool deactivate_all_flows(const std::string& imsi) = 0;
+  virtual bool deactivate_all_flows(const std::string &imsi) = 0;
 
   /**
    * Deactivate all flows for the specified rules
@@ -42,18 +42,18 @@ public:
    * @return true if the operation was successful
    */
   virtual bool deactivate_flows_for_rules(
-    const std::string& imsi,
-    const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules) = 0;
+    const std::string &imsi,
+    const std::vector<std::string> &rule_ids,
+    const std::vector<PolicyRule> &dynamic_rules) = 0;
 
   /**
    * Activate all rules for the specified rules, using a normal vector
    */
   virtual bool activate_flows_for_rules(
-    const std::string& imsi,
-    const std::string& ip_addr,
-    const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules) = 0;
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules) = 0;
 };
 
 /**
@@ -61,7 +61,7 @@ public:
  * asynchronously to pipelined.
  */
 class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
-public:
+ public:
   AsyncPipelinedClient();
 
   AsyncPipelinedClient(std::shared_ptr<grpc::Channel> pipelined_channel);
@@ -71,7 +71,7 @@ public:
    * @param imsi - UE to delete all policy flows for
    * @return true if the operation was successful
    */
-  bool deactivate_all_flows(const std::string& imsi);
+  bool deactivate_all_flows(const std::string &imsi);
 
   /**
    * Deactivate all flows related to a specific charging key
@@ -80,30 +80,31 @@ public:
    * @return true if the operation was successful
    */
   bool deactivate_flows_for_rules(
-    const std::string& imsi,
-    const std::vector<std::string>& rule_ids,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::string &imsi,
+    const std::vector<std::string> &rule_ids,
+    const std::vector<PolicyRule> &dynamic_rules);
 
   /**
    * Activate all rules for the specified rules, using a normal vector
    */
   bool activate_flows_for_rules(
-    const std::string& imsi,
-    const std::string& ip_addr,
-    const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const std::vector<std::string> &static_rules,
+    const std::vector<PolicyRule> &dynamic_rules);
 
-private:
+ private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<Pipelined::Stub> stub_;
-private:
+
+ private:
   void deactivate_flows_rpc(
-    const DeactivateFlowsRequest& request,
+    const DeactivateFlowsRequest &request,
     std::function<void(Status, DeactivateFlowsResult)> callback);
 
   void activate_flows_rpc(
-    const ActivateFlowsRequest& request,
+    const ActivateFlowsRequest &request,
     std::function<void(Status, ActivateFlowsResult)> callback);
 };
 
-}
+} // namespace magma

@@ -4,6 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 
@@ -11,6 +12,7 @@ const logger = require('@fbcnms/logging').getLogger(module);
 const {sequelize} = require('@fbcnms/sequelize-models');
 const sequelizerc = require('@fbcnms/sequelize-models/sequelizerc');
 
+// $FlowFixMe sequelize does a weird thing where the types are objects/funcs
 const {DataTypes} = require('sequelize');
 const Umzug = require('umzug');
 

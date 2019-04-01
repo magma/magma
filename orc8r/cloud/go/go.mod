@@ -32,7 +32,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
-	github.com/labstack/gommon v0.2.8 // indirect
+	github.com/labstack/gommon v0.2.8
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/opentracing/opentracing-go v1.0.2 // indirect
@@ -46,6 +46,7 @@ require (
 	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/toqueteos/webbrowser v1.1.0 // indirect
+	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc // indirect
 	golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc

@@ -326,6 +326,9 @@ int emm_recv_attach_request(
       sizeof(ms_network_capability_t));
   }
 
+  if (msg->presencemask & ATTACH_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT) {
+    params->additional_update_type = msg->additionalupdatetype;
+  }
   params->esm_msg = msg->esmmessagecontainer;
   msg->esmmessagecontainer = NULL;
 
@@ -745,6 +748,10 @@ int emm_recv_service_request(
 
   // Get emm_ctx
   emm_ctx = emm_context_get(&_emm_data, ue_id);
+
+  if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
+    emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
+  }
   /*
    * if service request is recieved for either SMS or PS data,
    * and if neaf flag is true then send the itti message to SGS

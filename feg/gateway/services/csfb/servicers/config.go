@@ -37,7 +37,7 @@ func ConstructMMEName() (string, error) {
 			err,
 			DefaultMMEName,
 		)
-		return DefaultMMEName, err
+		return DefaultMMEName, nil
 	}
 
 	mnc := mmeConfig.GetCsfbMnc()

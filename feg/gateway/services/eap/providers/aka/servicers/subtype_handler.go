@@ -31,6 +31,9 @@ func AddHandler(st aka.Subtype, h Handler) {
 		return
 	}
 	akaHandlers.rwl.Lock()
+	if akaHandlers.hm == nil {
+		akaHandlers.hm = map[aka.Subtype]Handler{}
+	}
 	oldh, ok := akaHandlers.hm[st]
 	if ok && oldh != nil {
 		log.Printf("WARNING: EAP AKA Handler for subtype %d => %+v is already registered, will overwrite with %+v",

@@ -21,6 +21,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	_ "magma/feg/cloud/go/protos/mconfig"
+	_ "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/protos"
 	_ "magma/orc8r/cloud/go/protos/mconfig"
 )

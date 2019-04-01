@@ -78,7 +78,8 @@ export default function AppDrawerProjectNavigation(props: Props) {
             secondary={selected?.secondary}
           />
           <ListItemSecondaryAction>
-            <IconButton>
+            <IconButton
+              onClick={({currentTarget}) => setAnchorEl(currentTarget)}>
               <ArrowDropDownIcon />
             </IconButton>
           </ListItemSecondaryAction>

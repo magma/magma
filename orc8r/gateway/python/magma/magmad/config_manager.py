@@ -84,6 +84,7 @@ class ConfigManager(StreamerClient.Callback):
             return
 
         self._mconfig_manager.update_stored_mconfig(mconfig_str)
+        self._magmad_service.reload_mconfig()
 
         def did_mconfig_change(serv_name):
             return mconfig.configs_by_key.get(serv_name) != \
@@ -91,7 +92,6 @@ class ConfigManager(StreamerClient.Callback):
 
         # Reload magmad configs locally
         if did_mconfig_change('magmad'):
-            self._magmad_service.reload_mconfig()
             self._loop.create_task(
                 self._service_manager.update_dynamic_services(
                     load_service_mconfig('magmad').dynamic_services,

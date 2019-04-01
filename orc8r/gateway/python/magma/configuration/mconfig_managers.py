@@ -17,7 +17,7 @@ from magma.common import serialization_utils
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfigs import filter_configs_by_key, \
     unpack_mconfig_any
-from orc8r.protos.mconfig_pb2 import GatewayConfigs
+from orc8r.protos.mconfig_pb2 import GatewayConfigs, GatewayConfigsMetadata
 
 T = TypeVar('T')
 
@@ -69,6 +69,15 @@ class MconfigManager(Generic[T]):
             service_name (str): name of the service to load a config for
 
         Returns: Loaded config value for the service
+        """
+        pass
+
+    @abc.abstractmethod
+    def load_mconfig_metadata(self) -> GatewayConfigsMetadata:
+        """
+        Load the metadata of the managed configuration.
+
+        Returns: Loaded mconfig metadata
         """
         pass
 
@@ -132,6 +141,10 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
 
         service_mconfig = mconfig.configs_by_key[service_name]
         return unpack_mconfig_any(service_mconfig)
+
+    def load_mconfig_metadata(self) -> GatewayConfigsMetadata:
+        mconfig = self.load_mconfig()
+        return mconfig.metadata
 
     def deserialize_mconfig(self, serialized_value: str,
                             allow_unknown_fields: bool = True,

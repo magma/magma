@@ -11,8 +11,8 @@
 import React from 'react';
 
 type Props = {
-  onClick: () => void,
-  error: boolean,
+  onClick?: () => void,
+  error?: boolean,
   children: any,
 };
 

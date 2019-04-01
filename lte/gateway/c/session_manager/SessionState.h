@@ -19,7 +19,7 @@ namespace magma {
  * usage and allowance for all charging keys
  */
 class SessionState {
-public:
+ public:
   struct Config {
     std::string ue_ipv4;
     std::string spgw_ipv4;
@@ -31,12 +31,12 @@ public:
     std::string user_location;
   };
 
-public:
+ public:
   SessionState(
-    const std::string& imsi,
-    const std::string& session_id,
-    const SessionState::Config& cfg,
-    StaticRuleStore& rule_store);
+    const std::string &imsi,
+    const std::string &session_id,
+    const SessionState::Config &cfg,
+    StaticRuleStore &rule_store);
 
   /**
    * new_report unmarks all credits before an update, to tell if any credits
@@ -48,7 +48,7 @@ public:
    * add_used_credit adds used TX/RX bytes to a particular charging key
    */
   void add_used_credit(
-    const std::string& rule_id,
+    const std::string &rule_id,
     uint64_t used_tx,
     uint64_t used_rx);
 
@@ -59,8 +59,8 @@ public:
    * @param actions (out) - actions to take on services
    */
   void get_updates(
-    UpdateSessionRequest* update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
+    UpdateSessionRequest *update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out);
 
   /**
    * Terminate collects final usages for all credits and returns them in a
@@ -68,20 +68,19 @@ public:
    */
   SessionTerminateRequest terminate();
 
-  void insert_dynamic_rule(const PolicyRule& dynamic_rule);
+  void insert_dynamic_rule(const PolicyRule &dynamic_rule);
 
-  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule* rule_out);
+  bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
 
-  ChargingCreditPool& get_charging_pool();
+  ChargingCreditPool &get_charging_pool();
 
-  UsageMonitoringCreditPool& get_monitor_pool();
+  UsageMonitoringCreditPool &get_monitor_pool();
 
   std::string get_session_id();
 
   std::string get_subscriber_ip_addr();
 
-
-private:
+ private:
   enum State {
     SESSION_ACTIVE = 0,
     SESSION_TERMINATING = 1,
@@ -96,14 +95,15 @@ private:
   SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
-private:
+
+ private:
   void get_updates_from_charging_pool(
-    UpdateSessionRequest* update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
+    UpdateSessionRequest *update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out);
 
   void get_updates_from_monitor_pool(
-    UpdateSessionRequest* update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
+    UpdateSessionRequest *update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out);
 };
 
-}
+} // namespace magma

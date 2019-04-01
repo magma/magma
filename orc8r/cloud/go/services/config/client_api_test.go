@@ -12,8 +12,8 @@ import (
 	"strings"
 	"testing"
 
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/config/registry"
 	"magma/orc8r/cloud/go/services/config/storage"
 	"magma/orc8r/cloud/go/services/config/test_init"
 
@@ -22,8 +22,8 @@ import (
 
 func TestConfigAPI(t *testing.T) {
 	test_init.StartTestService(t)
-	registry.RegisterConfigManager(&type1Manager{})
-	registry.RegisterConfigManager(&type2Manager{})
+	err := serde.RegisterSerdes(&type1Manager{}, &type2Manager{})
+	assert.NoError(t, err)
 
 	// Check contract for empty network
 	actualConfigs, err := config.GetConfigsByType("network0", "type1")
@@ -108,36 +108,36 @@ func TestConfigAPI(t *testing.T) {
 
 type type1Manager struct{}
 
-func (*type1Manager) GetConfigType() string {
+func (*type1Manager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*type1Manager) GetType() string {
 	return "type1"
 }
 
-func (*type1Manager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (*type1Manager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*type1Manager) Serialize(config interface{}) ([]byte, error) {
 	return []byte(config.(string)), nil
 }
 
-func (*type1Manager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*type1Manager) Deserialize(message []byte) (interface{}, error) {
 	return string(message), nil
 }
 
 type type2Manager struct{}
 
-func (*type2Manager) GetConfigType() string {
+func (*type2Manager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*type2Manager) GetType() string {
 	return "type2"
 }
 
-func (*type2Manager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (*type2Manager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*type2Manager) Serialize(config interface{}) ([]byte, error) {
 	return []byte(strings.ToUpper(config.(string))), nil
 }
 
-func (*type2Manager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*type2Manager) Deserialize(message []byte) (interface{}, error) {
 	return string(message), nil
 }

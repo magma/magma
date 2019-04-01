@@ -4,15 +4,17 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 
 const fs = require('fs');
+const {getValidLogLevel} = require('@fbcnms/logging');
 
 require('dotenv').config();
 
 const DEV_MODE = process.env.NODE_ENV !== 'production';
-const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
 const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';
 
 const apiHostArg = process.env.API_HOST || 'staging';

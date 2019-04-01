@@ -75,6 +75,17 @@ def cloud_grpc_wrapper(func):
     return wrapper
 
 
+def set_grpc_err(context: grpc.ServicerContext,
+                 code: grpc.StatusCode,
+                 details: str):
+    """
+    Sets status code and details for a gRPC context. Removes commas from
+    the details message (see https://github.com/grpc/grpc-node/issues/769)
+    """
+    context.set_code(code)
+    context.set_details(details.replace(',', ''))
+
+
 def _grpc_async_wrapper(f, gf):
     try:
         f.set_result(gf.result())

@@ -6,6 +6,10 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import queue
+
+import grpc
+
 import os
 import asyncio
 import logging
@@ -13,13 +17,17 @@ from typing import List
 
 import snowflake
 from google.protobuf import json_format
+from google.protobuf.struct_pb2 import Struct
+from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 
-from magma.common.rpc_utils import return_void
+from magma.common.rpc_utils import return_void, set_grpc_err
 from magma.common.service import MagmaService
 from magma.configuration.mconfig_managers import MconfigManager
+from magma.magmad.generic_command.command_executor import \
+    CommandExecutor
 from magma.magmad.service_manager import ServiceManager
-from .network_check import ping, traceroute
+from magma.magmad.check.network_check import ping, traceroute
 
 
 class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
@@ -32,6 +40,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                  services: List[str],
                  service_manager: ServiceManager,
                  mconfig_manager: MconfigManager,
+                 command_executor: CommandExecutor,
                  loop):
         """
         Constructor for the magmad RPC servicer
@@ -51,6 +60,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._services = services
         self._mconfig_manager = mconfig_manager
         self._magma_service = magma_service
+        self._command_executor = command_executor
         self._loop = loop
 
     def add_to_server(self, server):
@@ -141,6 +151,100 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         Get gateway hardware ID
         """
         return magmad_pb2.GetGatewayIdResponse(gateway_id=snowflake.snowflake())
+
+    def GenericCommand(self, request, context):
+        """
+        Execute generic command. This method will run the command with params
+        as specified in the command executor's command table, then return
+        the response of the command.
+        """
+        if 'generic_command_config' not in self._magma_service.config:
+            set_grpc_err(context,
+                         grpc.StatusCode.NOT_FOUND,
+                         'Generic command config not found')
+            return magmad_pb2.GenericCommandResponse()
+
+        params = json_format.MessageToDict(request.params)
+
+        # Run the execute command coroutine. Return an error if it times out or
+        # if an exception occurs.
+        logging.info('Running generic command %s with parameters %s',
+                     request.command, params)
+        future = asyncio.run_coroutine_threadsafe(
+            self._command_executor.execute_command(request.command, params),
+            self._loop)
+
+        timeout = self._magma_service.config['generic_command_config']\
+            .get('timeout_secs', 15)
+
+        response = magmad_pb2.GenericCommandResponse()
+        try:
+            result = future.result(timeout=timeout)
+            logging.debug('Command was successful')
+            response.response.MergeFrom(
+                json_format.ParseDict(result, Struct()))
+        except asyncio.TimeoutError:
+            logging.error('Error running command %s! Command timed out',
+                          request.command)
+            future.cancel()
+            set_grpc_err(context,
+                         grpc.StatusCode.DEADLINE_EXCEEDED,
+                         'Command timed out')
+        except Exception as e:  # pylint: disable=broad-except
+            logging.error('Error running command %s! %s: %s',
+                          request.command, e.__class__.__name__, e)
+            set_grpc_err(context,
+                         grpc.StatusCode.UNKNOWN,
+                         '{}: {}'.format(e.__class__.__name__, str(e)))
+
+        return response
+
+    def TailLogs(self, request, context):
+        """
+        Provides an infinite stream of logs to the client. The client can stop
+        the stream by closing the connection.
+        """
+        if request.service and \
+                request.service not in ServiceRegistry.list_services():
+            set_grpc_err(context,
+                         grpc.StatusCode.NOT_FOUND,
+                         'Service {} not found'.format(request.service))
+            return
+
+        if not request.service:
+            exec_list = ['sudo', 'tail', '-f', '/var/log/syslog']
+        else:
+            exec_list = ['sudo', 'journalctl', '-fu',
+                         'magma@{}'.format(request.service)]
+
+        logging.info("Tailing logs")
+        log_queue = queue.Queue()
+
+        async def enqueue_log_lines():
+            proc = await asyncio.create_subprocess_exec(
+                *exec_list,
+                stdout=asyncio.subprocess.PIPE)
+            try:
+                while context.is_active():
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=10.0)
+                        log_queue.put(line)
+                    except asyncio.TimeoutError:
+                        pass
+            finally:
+                logging.info("Terminating log stream")
+                proc.kill()
+
+        self._loop.create_task(enqueue_log_lines())
+
+        while context.is_active():
+            try:
+                log_line = log_queue.get(block=True, timeout=10.0)
+                yield magmad_pb2.LogLine(line=log_line)
+            except queue.Empty:
+                pass
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):

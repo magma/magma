@@ -3424,6 +3424,10 @@ declare module "@material-ui/icons/TabUnselected" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/TableChart" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/Tablet" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -4715,6 +4719,7 @@ declare module "@material-ui/icons" {
       SystemUpdateAlt: $Exports<"@material-ui/icons/SystemUpdateAlt">,
       Tab: $Exports<"@material-ui/icons/Tab">,
       TabUnselected: $Exports<"@material-ui/icons/TabUnselected">,
+      TableChart: $Exports<"@material-ui/icons/TableChart">,
       Tablet: $Exports<"@material-ui/icons/Tablet">,
       TabletAndroid: $Exports<"@material-ui/icons/TabletAndroid">,
       TabletMac: $Exports<"@material-ui/icons/TabletMac">,

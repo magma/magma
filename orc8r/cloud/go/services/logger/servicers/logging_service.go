@@ -39,7 +39,7 @@ func (srv *LoggingService) Log(ctx context.Context, request *protos.LogRequest) 
 	exporter, ok := srv.exporters[request.Destination]
 	if !ok {
 		return new(protos.Void),
-			errors.New(fmt.Sprintf("LoggerDestination %v not supported", request.Destination))
+			fmt.Errorf("LoggerDestination %v not supported", request.Destination)
 	}
 	err := exporter.Submit(request.Entries)
 	return new(protos.Void), err

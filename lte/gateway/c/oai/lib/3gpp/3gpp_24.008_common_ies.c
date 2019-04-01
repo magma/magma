@@ -972,7 +972,20 @@ int decode_mobile_station_classmark_3_ie(
   const uint32_t len)
 {
   //AssertFatal(false, "TODO");
-  return 0;
+  //Temporary fix so that we decode other IEs required for CSFB
+  int decoded = 0;
+  uint8_t ielen = 0;
+
+  if (iei_present > 0) {
+    CHECK_IEI_DECODER(C_MOBILE_STATION_CLASSMARK_3_IEI, *buffer);
+    decoded++;
+  }
+
+  ielen = *(buffer + decoded);
+  decoded++;
+
+  decoded += ielen;
+  return decoded;
 }
 
 //------------------------------------------------------------------------------

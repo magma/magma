@@ -66,20 +66,21 @@ module.exports = Object.assign({}, fbStrict, {
   ],
   rules: {
     'comma-dangle': ['warn', 'always-multiline'],
-    'max-len': ['warn', { 
-      "ignorePattern": maxLenIgnorePattern,
-      "ignoreStrings": true,
-      "ignoreTemplateLiterals": true,
-      "ignoreUrls": true,
+    'max-len': ['warn', {
+      'ignorePattern': maxLenIgnorePattern,
+      'ignoreStrings': true,
+      'ignoreTemplateLiterals': true,
+      'ignoreUrls': true,
     }],
     'no-alert': 'off',
     'no-console': ['warn', {allow: ['error', 'warn']}],
     'no-undef': 'error',
     'no-unused-vars': ['error', {
       'vars': 'all',
-      'args': 'after-used', 
-      'argsIgnorePattern': '^_'},
-    ],
+      'args': 'after-used',
+      'argsIgnorePattern': '^_',
+      'varsIgnorePattern': '^_',
+    }],
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
@@ -110,6 +111,8 @@ module.exports = Object.assign({}, fbStrict, {
     // The following rules are made available via `eslint-plugin-flowtype`
     'flowtype/define-flow-type': 1,
     'flowtype/use-flow-type': 1,
+    // The following is disabled for many file types in overrides
+    'flowtype/require-valid-file-annotation': [1, 'always'],
 
     // Node Plugin
     // https://github.com/mysticatea/eslint-plugin-node
@@ -142,9 +145,23 @@ module.exports = Object.assign({}, fbStrict, {
 
     // Jest Plugin
     // The following rules are made available via `eslint-plugin-jest`.
-    // "jest/no-disabled-tests": 1,
-    // "jest/no-focused-tests": 1,
-    // "jest/no-identical-title": 1,
-    // "jest/valid-expect": 1,
+    // 'jest/no-disabled-tests': 1,
+    // 'jest/no-focused-tests': 1,
+    // 'jest/no-identical-title': 1,
+    // 'jest/valid-expect': 1,
   },
+  'overrides': [
+   {
+     'files': [
+       '**/*eslint*/*.js',
+       '.eslintrc.js',
+       'babel.config.js',
+       'jest.config.js',
+       '**/flow-typed/**/*.js',
+       './babel.config.js',
+     ],
+     'rules': {
+       'flowtype/require-valid-file-annotation': 'off',
+     },
+   }],
 });

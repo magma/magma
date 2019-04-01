@@ -16,23 +16,29 @@
 namespace magma {
 
 SessionState::SessionState(
-  const std::string& imsi,
-  const std::string& session_id,
-  const SessionState::Config& cfg,
-  StaticRuleStore& rule_store)
-  : imsi_(imsi), session_id_(session_id), config_(cfg),
-    // Request number set to 2, because request 1 is INIT call
-    request_number_(2),
-    curr_state_(SESSION_ACTIVE), session_rules_(rule_store),
-    charging_pool_(imsi), monitor_pool_(imsi) {}
-
-void SessionState::new_report() {
+  const std::string &imsi,
+  const std::string &session_id,
+  const SessionState::Config &cfg,
+  StaticRuleStore &rule_store):
+  imsi_(imsi),
+  session_id_(session_id),
+  config_(cfg),
+  // Request number set to 2, because request 1 is INIT call
+  request_number_(2),
+  curr_state_(SESSION_ACTIVE),
+  session_rules_(rule_store),
+  charging_pool_(imsi),
+  monitor_pool_(imsi)
+{
 }
 
+void SessionState::new_report() {}
+
 void SessionState::add_used_credit(
-    const std::string& rule_id,
-    uint64_t used_tx,
-    uint64_t used_rx) {
+  const std::string &rule_id,
+  uint64_t used_tx,
+  uint64_t used_rx)
+{
   uint32_t charging_key;
   if (session_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
     charging_pool_.add_used_credit(charging_key, used_tx, used_rx);
@@ -42,39 +48,39 @@ void SessionState::add_used_credit(
     monitor_pool_.add_used_credit(monitoring_key, used_tx, used_rx);
   }
   auto session_level_key_p = monitor_pool_.get_session_level_key();
-  if (session_level_key_p != nullptr &&
-      monitoring_key != *session_level_key_p) {
+  if (
+    session_level_key_p != nullptr && monitoring_key != *session_level_key_p) {
     // Update session level key if its different
     monitor_pool_.add_used_credit(*session_level_key_p, used_tx, used_rx);
   }
 }
 
-template <typename KeyType>
+template<typename KeyType>
 static void get_actions_from_pairs(
-    std::string imsi,
-    std::string ip_addr,
-    const std::vector<ActionPair<KeyType>>& action_pairs,
-    SessionRules& session_rules,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out) {
-  for (const auto& action_pair : action_pairs) {
+  std::string imsi,
+  std::string ip_addr,
+  const std::vector<ActionPair<KeyType>> &action_pairs,
+  SessionRules &session_rules,
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+{
+  for (const auto &action_pair : action_pairs) {
     auto action = std::make_unique<ServiceAction>(action_pair.action);
     action->set_imsi(imsi);
     action->set_ip_addr(ip_addr);
-    session_rules.add_rules_to_action(
-      *action,
-      action_pair.key);
+    session_rules.add_rules_to_action(*action, action_pair.key);
     actions_out->push_back(std::move(action));
   }
 }
 
 void SessionState::get_updates_from_charging_pool(
-    UpdateSessionRequest* update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out) {
+  UpdateSessionRequest *update_request_out,
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+{
   // charging updates
   std::vector<CreditUsage> charging_updates;
   std::vector<ActionPair<uint32_t>> charging_actions;
   charging_pool_.get_updates(&charging_updates, &charging_actions);
-  for (const auto& update : charging_updates) {
+  for (const auto &update : charging_updates) {
     auto new_req = update_request_out->mutable_updates()->Add();
     new_req->set_session_id(session_id_);
     new_req->set_request_number(request_number_);
@@ -90,18 +96,19 @@ void SessionState::get_updates_from_charging_pool(
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
   }
-  get_actions_from_pairs(imsi_, config_.ue_ipv4,
-    charging_actions, session_rules_, actions_out);
+  get_actions_from_pairs(
+    imsi_, config_.ue_ipv4, charging_actions, session_rules_, actions_out);
 }
 
 void SessionState::get_updates_from_monitor_pool(
-    UpdateSessionRequest* update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out) {
+  UpdateSessionRequest *update_request_out,
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+{
   // monitor updates
   std::vector<UsageMonitorUpdate> monitor_updates;
   std::vector<ActionPair<std::string>> monitor_actions;
   monitor_pool_.get_updates(&monitor_updates, &monitor_actions);
-  for (const auto& update : monitor_updates) {
+  for (const auto &update : monitor_updates) {
     auto new_req = update_request_out->mutable_usage_monitors()->Add();
     new_req->set_session_id(session_id_);
     new_req->set_request_number(request_number_);
@@ -110,20 +117,22 @@ void SessionState::get_updates_from_monitor_pool(
     new_req->mutable_update()->CopyFrom(update);
     request_number_++;
   }
-  get_actions_from_pairs(imsi_, config_.ue_ipv4,
-     monitor_actions, session_rules_, actions_out);
+  get_actions_from_pairs(
+    imsi_, config_.ue_ipv4, monitor_actions, session_rules_, actions_out);
 }
 
 void SessionState::get_updates(
-    UpdateSessionRequest* update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out) {
+  UpdateSessionRequest *update_request_out,
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+{
   if (curr_state_ != SESSION_ACTIVE) return;
 
   get_updates_from_charging_pool(update_request_out, actions_out);
   get_updates_from_monitor_pool(update_request_out, actions_out);
 }
 
-SessionTerminateRequest SessionState::terminate() {
+SessionTerminateRequest SessionState::terminate()
+{
   // mark entire session as terminating
   curr_state_ = SESSION_TERMINATING;
   SessionTerminateRequest termination;
@@ -143,30 +152,36 @@ SessionTerminateRequest SessionState::terminate() {
   return termination;
 }
 
-void SessionState::insert_dynamic_rule(const PolicyRule& dynamic_rule) {
+void SessionState::insert_dynamic_rule(const PolicyRule &dynamic_rule)
+{
   session_rules_.insert_dynamic_rule(dynamic_rule);
 }
 
 bool SessionState::remove_dynamic_rule(
-    const std::string& rule_id,
-    PolicyRule* rule_out) {
+  const std::string &rule_id,
+  PolicyRule *rule_out)
+{
   return session_rules_.remove_dynamic_rule(rule_id, rule_out);
 }
 
-ChargingCreditPool& SessionState::get_charging_pool() {
+ChargingCreditPool &SessionState::get_charging_pool()
+{
   return charging_pool_;
 }
 
-UsageMonitoringCreditPool& SessionState::get_monitor_pool() {
+UsageMonitoringCreditPool &SessionState::get_monitor_pool()
+{
   return monitor_pool_;
 }
 
-std::string SessionState::get_session_id() {
+std::string SessionState::get_session_id()
+{
   return session_id_;
 }
 
-std::string SessionState::get_subscriber_ip_addr() {
+std::string SessionState::get_subscriber_ip_addr()
+{
   return config_.ue_ipv4;
 }
 
-}
+} // namespace magma

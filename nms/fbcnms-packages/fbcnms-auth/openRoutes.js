@@ -12,6 +12,7 @@
 // NOTE: Regex based routes for paths that don't require logged in user access
 export default [
   /^\/favicon.ico$/,
+  /^\/healthz$/,
   /^\/user\/login(\?.*)?/,
   /^\/([a-z_-]+\/)?static\/css/,
   /^\/([a-z_-]+\/)?static\/dist\/login.js/,

@@ -10,9 +10,10 @@
 'use strict';
 
 import bcrypt from 'bcryptjs';
-import {SALT_GEN_ROUNDS} from '../server/config';
 import {AccessRoles} from '@fbcnms/auth/roles';
 import {User} from '@fbcnms/sequelize-models';
+
+const SALT_GEN_ROUNDS = 10;
 
 type UserObject = {
   email: string,

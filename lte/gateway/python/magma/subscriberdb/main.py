@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 import asyncio
+import logging
 
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
@@ -40,9 +41,12 @@ def main():
 
 
     # Start a background thread to stream updates from the cloud
-    callback = SubscriberDBStreamerCallback(store, service.loop)
-    stream = StreamerClient({"subscriberdb": callback}, service.loop)
-    stream.start()
+    if service.config['enable_streaming']:
+        callback = SubscriberDBStreamerCallback(store, service.loop)
+        stream = StreamerClient({"subscriberdb": callback}, service.loop)
+        stream.start()
+    else:
+        logging.info('enable_streaming set to False. Streamer disabled!')
 
     # Wait until the datastore is populated by addition or resync before
     # listening for clients.

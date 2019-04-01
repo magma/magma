@@ -1,4 +1,5 @@
 ---
+log_level: INFO
 collect_interval: 60 # How frequently to collect metrics samples in seconds
 sync_interval: 60 # How frequently to sync to cloud in seconds
 grpc_timeout: 10 # Timeout in seconds
@@ -9,4 +10,5 @@ services:
     - session_proxy
     - s6a_proxy
     - swx_proxy
+    - eap_aka
     - csfb

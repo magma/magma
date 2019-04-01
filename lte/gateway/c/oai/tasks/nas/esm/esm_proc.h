@@ -41,7 +41,9 @@ Description Defines the EPS Session Management procedures executed at
 
 #include "3gpp_29.274.h"
 #include "common_defs.h"
-#include "networkDef.h"
+#include "nas/networkDef.h"
+#include "EsmCause.h"
+#include "NasRequestType.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/

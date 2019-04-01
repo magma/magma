@@ -56,7 +56,7 @@ $(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
 cd $(1) && ctest --output-on-failure
 endef
 
-build_python:
+build_python: stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python buildenv
 
 build_common:
@@ -80,7 +80,7 @@ format_oai:
 	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
-test_python:
+test_python: stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
 test_oai: build_common

@@ -158,7 +158,8 @@ void _clear_emm_ctxt(emm_context_t *emm_context)
       ->mme_ue_s1ap_id;
 
   nas_delete_all_emm_procedures(emm_context);
-
+  //Stop T3489 timer
+  free_esm_context_content(&emm_context->esm_ctx);
   esm_sap_t esm_sap = {0};
   /*
    * Release ESM PDN and bearer context
@@ -488,7 +489,9 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id)
       "EMM-PROC  - Stop timer T3422 (%ld) for ue_id %d \n",
       emm_ctx->T3422.id,
       ue_id);
-    emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, NULL);
+    void *unused = NULL;
+    void **timer_callback = &unused;
+    emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
     if (emm_ctx->t3422_arg) {
       free_wrapper(&emm_ctx->t3422_arg);
       emm_ctx->t3422_arg = NULL;
@@ -512,6 +515,7 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id)
   }
   emm_ctx->is_imsi_only_detach = false;
 
+  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
@@ -581,7 +585,9 @@ int emm_proc_nw_initiated_detach_request(
       /*
        * Re-start T3422 timer
        */
-      emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, NULL);
+      void *unused = NULL;
+      void **timer_callback = &unused;
+      emm_ctx->T3422.id = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
       nw_detach_data_t *data = (nw_detach_data_t *) emm_ctx->t3422_arg;
       ;
       emm_ctx->T3422.id = nas_timer_start(
@@ -601,6 +607,7 @@ int emm_proc_nw_initiated_detach_request(
       emm_ctx->t3422_arg = (void *) data;
     }
   }
+  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 //------------------------------------------------------------------------------

@@ -444,12 +444,20 @@ hashtable_key_array_t *hashtable_ts_get_keys(hash_table_ts_t *const hashtblP)
   unsigned int i = 0;
   hashtable_key_array_t *ka = NULL;
 
-  if ((!hashtblP) || !(hashtblP->num_elements)) {
-    return NULL;
+  ka = calloc(1, sizeof(hashtable_key_array_t));
+  if (ka == NULL) return NULL;
+
+  if (hashtblP->num_elements == 0) {
+    ka->keys = NULL;
+    ka->num_keys = 0;
+    return ka;
   }
 
-  ka = calloc(1, sizeof(hashtable_key_array_t));
   ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t *));
+  if (ka->keys == NULL) {
+    free(ka);
+    return NULL;
+  }
 
   while ((ka->num_keys < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
