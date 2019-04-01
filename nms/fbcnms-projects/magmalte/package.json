@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "rimraf static/dist && NODE_ENV=production node -r '@fbcnms/babel-register' ../../node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js --progress --profile --colors",
+    "cmd": "node -r '@fbcnms/babel-register'",
     "start": "yarn run start:dev",
     "start:dev": "nodemon scripts/server",
     "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",

@@ -9,6 +9,7 @@
  */
 
 const fs = require('fs');
+const nullthrows = require('@fbcnms/util/nullthrows').default;
 const {getValidLogLevel} = require('@fbcnms/logging');
 
 require('dotenv').config();
@@ -28,7 +29,7 @@ switch (apiHostArg) {
     API_HOST = 'api.magma.test';
     break;
   default:
-    API_HOST = process.env.API_HOST;
+    API_HOST = nullthrows(process.env.API_HOST);
 }
 
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';

@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useContext} from 'react';
 
 import Divider from '@material-ui/core/Divider';
 
@@ -19,13 +19,19 @@ import SettingsIcon from '@material-ui/icons/Settings';
 
 import {useRouter} from '@fbcnms/ui/hooks';
 import useSections from './useSections';
+import NetworkContext from '../context/NetworkContext';
 
 export default function SectionLinks() {
   const sections = useSections();
   const {relativeUrl} = useRouter();
+  const {networkId} = useContext(NetworkContext);
 
   if (!sections) {
     return <LoadingFiller />;
+  }
+
+  if (!networkId) {
+    return null;
   }
 
   return (
