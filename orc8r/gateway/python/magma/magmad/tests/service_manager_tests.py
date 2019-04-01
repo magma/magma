@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import asyncio
 import os
 import subprocess
 import time
@@ -24,7 +25,7 @@ class ServiceManagerSystemdTest(TestCase):
     Tests for the service manager class using the systemd init system, and the
     service control sub-class. Can be run as integration tests by setting
     environment variable MAGMA_INTEGRATION_TEST=1.
-    Must copy tests/dummy_service.service to /etc/systemd/system/ for
+    Must copy tests/magma@dummy_service.service to /etc/systemd/system/ for
     integration tests to pass.
     """
 
@@ -32,6 +33,8 @@ class ServiceManagerSystemdTest(TestCase):
         """
         Run before each test
         """
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
         #  Only patch if this is a unit test. Otherwise create dummy mock so
         #  code that affects the mock can run.
         self.subprocess_mock = MagicMock(return_value='')
@@ -43,30 +46,31 @@ class ServiceManagerSystemdTest(TestCase):
             name='dummy_service',
             init_system_spec=ServiceManager.SystemdInitSystem
         )
-        self.dummy_service.stop_process()
+        self._loop.run_until_complete(self.dummy_service.stop_process())
 
     def tearDown(self):
         """
         Run after each test
         """
         #  Ensure test process is stopped
-        self.dummy_service.stop_process()
+        self._loop.run_until_complete(self.dummy_service.stop_process())
+        self._loop.close()
 
     def test_process_start_stop(self):
         """
         Test that process can be started and stopped
         """
-        self.subprocess_mock.return_value = 'unknown\n'
-        self.assertEqual(self.dummy_service.status(), ServiceState.Unknown)
+        self.subprocess_mock.return_value = b'inactive\n'
+        self.assertEqual(self.dummy_service.status(), ServiceState.Inactive)
 
-        self.subprocess_mock.return_value = 'active\n'
-        self.dummy_service.start_process()
+        self.subprocess_mock.return_value = b'active\n'
+        self._loop.run_until_complete(self.dummy_service.start_process())
         time.sleep(1)  # Make sure that process doesnt immediately die
         self.assertEqual(self.dummy_service.status(), ServiceState.Active)
 
-        self.subprocess_mock.return_value = 'unknown\n'
-        self.dummy_service.stop_process()
-        self.assertEqual(self.dummy_service.status(), ServiceState.Unknown)
+        self.subprocess_mock.return_value = b'inactive\n'
+        self._loop.run_until_complete(self.dummy_service.stop_process())
+        self.assertEqual(self.dummy_service.status(), ServiceState.Inactive)
 
     def test_service_manager_start_stop(self):
         """
@@ -76,19 +80,19 @@ class ServiceManagerSystemdTest(TestCase):
         mgr = ServiceManager(['dummy1', 'dummy2'], init_system='systemd',
                              service_poller=MagicMock())
 
-        mgr.start_services()
-        self.subprocess_mock.return_value = 'active\n'
+        self._loop.run_until_complete(mgr.start_services())
+        self.subprocess_mock.return_value = b'active\n'
         self.assertEqual(mgr._service_control['dummy1'].status(),
                          ServiceState.Active)
         self.assertEqual(mgr._service_control['dummy2'].status(),
                          ServiceState.Active)
 
-        mgr.stop_services()
-        self.subprocess_mock.return_value = 'unknown\n'
+        self._loop.run_until_complete(mgr.stop_services())
+        self.subprocess_mock.return_value = b'inactive\n'
         self.assertEqual(mgr._service_control['dummy1'].status(),
-                         ServiceState.Unknown)
+                         ServiceState.Inactive)
         self.assertEqual(mgr._service_control['dummy2'].status(),
-                         ServiceState.Unknown)
+                         ServiceState.Inactive)
 
     def test_dynamic_service_manager_start_stop(self):
         """
@@ -99,19 +103,20 @@ class ServiceManagerSystemdTest(TestCase):
             ['dummy1', 'dummy2'], 'systemd', MagicMock(), ['redirectd'], []
         )
 
-        self.subprocess_mock.return_value = 'unknown\n'
+        self.subprocess_mock.return_value = b'inactive\n'
         self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Unknown)
+                         ServiceState.Inactive)
 
-        mgr.update_dynamic_services(['redirectd'])
-        self.subprocess_mock.return_value = 'active\n'
+        self._loop.run_until_complete(
+            mgr.update_dynamic_services(['redirectd']))
+        self.subprocess_mock.return_value = b'active\n'
         self.assertEqual(mgr._service_control['redirectd'].status(),
                          ServiceState.Active)
 
-        mgr.update_dynamic_services([])
-        self.subprocess_mock.return_value = 'unknown\n'
+        self._loop.run_until_complete(mgr.update_dynamic_services([]))
+        self.subprocess_mock.return_value = b'inactive\n'
         self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Unknown)
+                         ServiceState.Inactive)
 
 
 class ServiceManagerRunitTest(TestCase):
