@@ -296,7 +296,7 @@ class ServiceManager(object):
         def parse_status(self, status):
             """Transforms status returned by init system into a ServiceState"""
             statuses = self._statuses
-            std_out_formatted = status.strip()
+            std_out_formatted = status.strip().decode()
             if std_out_formatted in statuses:
                 return statuses[std_out_formatted]
             else:
