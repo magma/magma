@@ -472,12 +472,14 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
         rc =
           esm_ebr_stop_timer(esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi);
       }
-    }
-    if (esm_ebr_timer_data->msg) {
-      bdestroy_wrapper(&esm_ebr_timer_data->msg);
-    }
+
+      if (esm_ebr_timer_data->msg) {
+        bdestroy_wrapper(&esm_ebr_timer_data->msg);
+      }
     free_wrapper((void **) &esm_ebr_timer_data);
   }
+
+    }
 
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }

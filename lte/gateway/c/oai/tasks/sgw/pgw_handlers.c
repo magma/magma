@@ -530,7 +530,7 @@ uint32_t pgw_handle_activate_ded_bearer_rsp(
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
 
-  OAILOG_INFO(LOG_PGW_APP, "Sending Create Bearer Rsp to PCRF with EIB %d\n",
+  OAILOG_INFO(LOG_PGW_APP, "Sending Create Bearer Rsp to PCRF with EBI %d\n",
     act_ded_bearer_rsp->ebi);
   //Send Create Bearer Rsp to PCRF
   //TODO-Uncomment once implemented at PCRF
