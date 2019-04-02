@@ -182,6 +182,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
         priority = self.get_of_priority(rule.priority)
         ul_qos = rule.qos.max_req_bw_ul
+        dl_qos = rule.qos.max_req_bw_dl
 
         if rule.redirect.support == rule.redirect.ENABLED:
             # TODO currently if redirection is enabled we ignore other flows
@@ -208,7 +209,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             try:
                 flow_adds.append(self._get_classify_rule_flow_msg(
                     imsi, flow, rule_num, priority, ul_qos,
-                    rule.hard_timeout,
+                    dl_qos, rule.hard_timeout,
                     rule.id))
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -237,7 +238,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         return RuleModResult.SUCCESS
 
     def _get_classify_rule_flow_msg(self, imsi, flow, rule_num, priority,
-                                    ul_qos, hard_timeout, rule_id):
+                                    ul_qos, dl_qos, hard_timeout, rule_id):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
@@ -246,7 +247,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         flow_match = flow_match_to_magma_match(flow.match)
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions = self._get_classify_rule_of_actions(
-            flow, rule_num, imsi, ul_qos, rule_id)
+            flow, rule_num, imsi, ul_qos, dl_qos, rule_id)
         if flow.action == flow.DENY:
             return flows.get_add_drop_flow_msg(self._datapath,
                                                self.tbl_num,
@@ -280,7 +281,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             resubmit_table=self.next_main_table)
 
     def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ul_qos,
-                                      rule_id):
+                                      dl_qos, rule_id):
         parser = self._datapath.ofproto_parser
         # encode the rule id in hex
         of_note = parser.NXActionNote(list(rule_id.encode()))
@@ -289,11 +290,14 @@ class EnforcementController(PolicyMixin, MagmaController):
             return actions
 
         # QoS Rate-Limiting is currently supported for uplink traffic
+        qid = 0
         if ul_qos != 0 and flow.match.direction == flow.match.UPLINK:
-            qid = self._qos_map.map_flow_to_queue(imsi, rule_num, ul_qos,
-                                                  True)
-            if qid != 0:
-                actions.append(parser.OFPActionSetField(pkt_mark=qid))
+            qid = self._qos_map.map_flow_to_queue(imsi, rule_num, ul_qos, True)
+        elif dl_qos != 0 and flow.match.direction == flow.match.DOWNLINK:
+            qid = self._qos_map.map_flow_to_queue(imsi, rule_num, dl_qos, False)
+
+        if qid != 0:
+            actions.append(parser.OFPActionSetField(pkt_mark=qid))
 
         version = self._session_rule_version_mapper.get_version(imsi, rule_id)
         actions.extend(
