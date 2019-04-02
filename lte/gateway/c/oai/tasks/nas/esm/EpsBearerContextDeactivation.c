@@ -301,6 +301,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   mme_ue_s1ap_id_t ue_id =
     PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
+  bool delete_default_bearer = false;
 
   OAILOG_INFO(
     LOG_NAS_ESM,
@@ -329,8 +330,11 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       pid = RETURNerror;
     }
   }
-
-  nas_itti_deactivate_eps_bearer_context(ue_id, ebi);
+  //If bid == 0,default bearer is deleted
+  if (bid == 0) {
+    delete_default_bearer = true;
+  }
+  nas_itti_deactivate_eps_bearer_context(ue_id, ebi,esm_cause,delete_default_bearer);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
 }
 

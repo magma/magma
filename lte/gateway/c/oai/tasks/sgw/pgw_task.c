@@ -68,6 +68,11 @@ static void *pgw_intertask_interface(void *args_p)
           &received_message_p->ittiMsg.s5_activate_dedicated_bearer_response);
       } break;
 
+      case S5_DEACTIVATE_DEDICATED_BEARER_RSP: {
+        pgw_handle_deactivate_ded_bearer_rsp(
+          &received_message_p->ittiMsg.s5_deactivate_dedicated_bearer_response);
+      } break;
+
       case TERMINATE_MESSAGE: {
         pgw_exit();
         itti_exit_task();

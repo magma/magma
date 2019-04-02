@@ -146,4 +146,9 @@ void s6a_auth_info_rsp_timer_expiry_handler(void *args);
 void nas_itti_sgsap_ue_activity_ind(
   const char *imsi,
   const unsigned int imsi_len);
+
+void nas_itti_deactivate_eps_bearer_context(
+  const mme_ue_s1ap_id_t ue_idP,
+  const ebi_t ebiP,
+  esm_cause_t esm_cause);
 #endif /* FILE_NAS_ITTI_MESSAGING_SEEN */

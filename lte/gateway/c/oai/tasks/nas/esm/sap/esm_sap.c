@@ -276,21 +276,19 @@ int esm_sap_send(esm_sap_t *msg)
     case ESM_EPS_BEARER_CONTEXT_MODIFY_REJ: break;
 
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
+
       int bid = BEARERS_PER_UE;
-      uint32_t no_of_bearers = msg->data.eps_bearer_context_deactivate.no_of_bearers;
 
       /*
        * Locally deactivate EPS bearer context
        */
-      for(i = 0; i < no_of_bearers ; i++) {
-        rc = esm_proc_eps_bearer_context_deactivate(
-          msg->ctx,
-          true,
-          msg->data.eps_bearer_context_deactivate.ebi[0],
-          &pid,
-          &bid,
-          NULL);
-      }
+      rc = esm_proc_eps_bearer_context_deactivate(
+        msg->ctx,
+        true,
+        msg->data.eps_bearer_context_deactivate.ebi[0],
+        &pid,
+        &bid,
+        NULL);
 
       // TODO Assertion bellow is not true now:
       // If only default bearer is supported then release PDN connection as well - Implicit Detach

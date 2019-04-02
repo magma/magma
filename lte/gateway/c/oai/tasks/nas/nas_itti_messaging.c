@@ -834,13 +834,18 @@ void nas_itti_sgsap_ue_activity_ind(
 //------------------------------------------------------------------------------
 void nas_itti_deactivate_eps_bearer_context(
   const mme_ue_s1ap_id_t ue_idP,
-  const ebi_t ebiP)
+  const ebi_t ebiP,
+  esm_cause_t esm_cause,
+  bool delete_default_bearer)
 {
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef *message_p =
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_DELETE_DEDICATED_BEARER_RSP);
   MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).ue_id = ue_idP;
   MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).ebi = ebiP;
+  MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).esm_cause = esm_cause;
+  MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).delete_default_bearer =
+    delete_default_bearer;
   MSC_LOG_TX_MESSAGE(
     MSC_NAS_MME,
     MSC_MMEAPP_MME,

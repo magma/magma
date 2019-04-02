@@ -35,13 +35,13 @@
   (mSGpTR)->ittiMsg.s5_create_bearer_request
 #define S5_CREATE_BEARER_RESPONSE(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s5_create_bearer_response
-#define S5_ACTIVATE_DEDICATED_BEARER_REQ(mSGpTR)                                      \
+#define S5_ACTIVATE_DEDICATED_BEARER_REQ(mSGpTR)                               \
   (mSGpTR)->ittiMsg.s5_activate_dedicated_bearer_request
-#define S5_ACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                                      \
+#define S5_ACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                               \
   (mSGpTR)->ittiMsg.s5_activate_dedicated_bearer_response
-#define S5_DEACTIVATE_DEDICATED_BEARER_REQ(mSGpTR)                                      \
+#define S5_DEACTIVATE_DEDICATED_BEARER_REQ(mSGpTR)                             \
   (mSGpTR)->ittiMsg.s5_deactivate_dedicated_bearer_request
-#define S5_DEACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                                      \
+#define S5_DEACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                             \
   (mSGpTR)->ittiMsg.s5_deactivate_dedicated_bearer_response
 
 typedef struct itti_s5_create_bearer_request_s {
@@ -87,6 +87,7 @@ typedef struct itti_s5_deactivate_dedicated_bearer_rsp_s {
   ebi_t ebi[BEARERS_PER_UE]; ///<EPS Bearer ID
   bool default_bearer_deleted; ///<True:Delete all bearers
                               ///<False:Delele ded bearer
+  gtpv2c_cause_t cause;
 } itti_s5_deactivate_dedicated_bearer_rsp_t;
 
 #endif /* FILE_S5_MESSAGES_TYPES_SEEN*/

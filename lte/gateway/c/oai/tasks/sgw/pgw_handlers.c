@@ -557,8 +557,10 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
   hash_node_t *node = NULL;
   itti_s5_deactivate_dedicated_bearer_req_t *itti_s5_deactv_ded_bearer_req = NULL;
 
-  OAILOG_INFO(LOG_PGW_APP, "Received deactivate dedicated bearer req for bearer %d\n",
-    *ebi);
+  for (i = 0; i < no_of_bearers; i++) {
+    OAILOG_INFO(LOG_PGW_APP, "Received deactivate dedicated bearer req for bearer %d\n",
+    ebi[i]);
+  }
   message_p =
     itti_alloc_new_message(TASK_SPGW_APP, S5_DEACTIVATE_DEDICATED_BEARER_REQ);
   if (message_p == NULL) {
@@ -616,6 +618,25 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
     itti_s5_deactv_ded_bearer_req->delete_default_bearer);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
 
+  OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
+}
+
+//--------------------------------------------------------------------------------
+
+uint32_t pgw_handle_deactivate_ded_bearer_rsp(
+  const itti_s5_deactivate_dedicated_bearer_rsp_t *const deact_ded_bearer_rsp)
+{
+  uint32_t rc = RETURNok;
+  uint32_t i = 0;
+  OAILOG_FUNC_IN(LOG_PGW_APP);
+
+  for (i = 0; i < deact_ded_bearer_rsp->no_of_bearers; i++) {
+    OAILOG_INFO(LOG_PGW_APP, "Sending Delete Bearer Rsp to PCRF with EBI %d\n",
+      deact_ded_bearer_rsp->ebi[i]);
+  }
+  //Send Delete Bearer Rsp to PCRF
+  //TODO-Uncomment once implemented at PCRF
+  //rc = send_dedicated_bearer_deactv_rsp(deact_ded_bearer_rsp->ebi);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 

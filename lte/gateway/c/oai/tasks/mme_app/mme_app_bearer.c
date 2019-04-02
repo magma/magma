@@ -2777,13 +2777,16 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
   *const pcrf_bearer_deactv_req_p)
 {
   ue_mm_context_t *ue_context_p = NULL;
+  uint32_t i = 0;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Received Dedicated bearer deactivation Request from SGW with EBI %d\n",
-    pcrf_bearer_deactv_req_p->ebi);
 
+  for (i = 0; i< pcrf_bearer_deactv_req_p->no_of_bearers; i++) {
+    OAILOG_INFO(
+      LOG_MME_APP,
+      "Received Dedicated bearer deactivation Request from SGW with EBI %d\n",
+      pcrf_bearer_deactv_req_p->ebi);
+  }
   ue_context_p = mme_ue_context_exists_s11_teid(
     &mme_app_desc.mme_ue_contexts, pcrf_bearer_deactv_req_p->s11_mme_teid);
 
@@ -2793,7 +2796,7 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
       MSC_S11_MME,
       NULL,
       0,
-      "0 PCRF initiated Bearer Actv Req local S11 teid " TEID_FMT " ",
+      "0 PCRF initiated Bearer Dectv Req local S11 teid " TEID_FMT " ",
       pcrf_bearer_deactv_req_p->s11_mme_teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -2818,8 +2821,12 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
         "itti_alloc_new_message failed for MME_APP_CREATE_DEDICATED_BEARER_REQ\n");
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
+      MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).delete_default_bearer =
+        pcrf_bearer_deactv_req_p->delete_default_bearer;
       MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).ue_id =
         ue_context_p->mme_ue_s1ap_id;
+      MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).no_of_bearers =
+        pcrf_bearer_deactv_req_p->no_of_bearers;
       memcpy(
         MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).ebi,
         pcrf_bearer_deactv_req_p->ebi,
@@ -2939,6 +2946,7 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s *ue_context_p = NULL;
   MessageDef *message_p = NULL;
+  uint32_t i = 0;
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc.mme_ue_contexts, delete_dedicated_bearer_rsp->ue_id);
@@ -2952,7 +2960,7 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  itti_s5_deactivate_dedicated_bearer_rsp_t *s5_deact_ded_bearer_rsp = NULL;
+  itti_s11_pcrf_ded_bearer_deactv_rsp_t *s11_deact_ded_bearer_rsp = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_p == NULL) {
@@ -2960,19 +2968,37 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   message_p =
-    itti_alloc_new_message(TASK_MME_APP, S5_DEACTIVATE_DEDICATED_BEARER_RSP);
-  s5_deactivate_dedicated_bearer_rsp =
-    &message_p->ittiMsg.s5_deact_ded_bearer_rsp;
-  memset(s5_deact_ded_bearer_rsp, 0, sizeof(itti_s5_deactivate_dedicated_bearer_rsp_t));
-  notification_p->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
-  notification_p->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
-  notification_p->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
+    itti_alloc_new_message(TASK_MME_APP, S11_PCRF_DED_BEARER_DEACTV_RESPONSE);
+  s11_deact_ded_bearer_rsp =
+    &message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_response;
+  memset(s11_deact_ded_bearer_rsp, 0, sizeof(itti_s11_pcrf_ded_bearer_deactv_rsp_t));
 
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  //Fetch PDN Context
+  ebi_t ebi = delete_dedicated_bearer_rsp->ebi[0];
+  pdn_cid_t cid =
+  ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+  pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
+  //Fill SGW S11 CP TEID
+  s11_deact_ded_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
+  s11_deact_ded_bearer_rsp->delete_default_bearer =
+    delete_dedicated_bearer_rsp.delete_default_bearer;
+  if (delete_dedicated_bearer_rsp.delete_default_bearer) {
+    s11_deact_ded_bearer_rsp->lbi = calloc(1, sizeof(ebi_t));
+    s11_deact_ded_bearer_rsp->lbi = ebi;
+  } else {
+    s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context = 1;
+    num_bearer_context = s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context;
+    for (i = 0; i < num_bearer_context; i++) {
+      s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id =
+        delete_dedicated_bearer_rsp->ebi[i];
+      s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].cause.cause_value =
+        delete_dedicated_bearer_rsp->esm_cause;
+    }
+  }
+  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_DEBUG(
     LOG_MME_APP,
-    " Sent MME_APP_S1AP_MME_UE_ID_NOTIFICATION to S1AP for UE Id %u\n",
-    notification_p->mme_ue_s1ap_id);
+    " Sent S11_PCRF_DED_BEARER_DEACTV_RESPONSE to SGW \n");
   OAILOG_FUNC_OUT(LOG_MME_APP);
 
 }

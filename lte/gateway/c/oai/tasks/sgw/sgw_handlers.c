@@ -2421,10 +2421,12 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_req(
   OAILOG_INFO(LOG_SPGW_APP, "Received Dedicated Bearer Req Dectivation from PGW\n");
 
   //Send ITTI message to MME APP
-  message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_PCRF_BEARER_DEACTV_REQUEST);
+  message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_PCRF_DED_BEARER_DEACTV_REQUEST);
   if (message_p) {
     itti_s11_pcrf_ded_bearer_deactv_request_t *s11_pcrf_ded_bearer_deactv_req =
       &message_p->ittiMsg.s11_pcrf_bearer_deactv_request;
+    s11_pcrf_bearer_deactv_request->no_of_bearers =
+      itti_s5_deactiv_ded_bearer_req->no_of_bearers;
     memcpy(
       s11_pcrf_bearer_deactv_request->ebi,
       itti_s5_deactiv_ded_bearer_req->ebi
@@ -2440,6 +2442,85 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_req(
   } else {
     OAILOG_ERROR(LOG_SPGW_APP, "itti_alloc_new_message failed for S11_PCRF_BEARER_DEACTV_REQUEST\n");
     rc = RETURNerror;
+  }
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+}
+
+
+/*
+ * Handle PCRF initiated Dedicated Bearer Dectivation Rsp from MME
+ */
+
+int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
+  const itti_s11_pcrf_ded_bearer_deactv_rsp_t
+ *const s11_pcrf_ded_bearer_deactv_rsp)
+{
+  s_plus_p_gw_eps_bearer_context_information_t *spgw_context = NULL;
+  uint32_t msg_bearer_index = 0;
+  uint32_t rc = RETURNok;
+
+  OAILOG_INFO(
+    LOG_SPGW_APP,
+    "Received pcrf_dedicated_bearer_deactv_rsp from MME\n");
+  hashtable_rc_t hash_rc = HASH_TABLE_OK;
+  hash_rc = hashtable_ts_get(
+    sgw_app.s11_bearer_context_information_hashtable,
+    s11_pcrf_ded_bearer_deactv_rsp->sgw_s11_teid,
+    (void **) &spgw_context);
+  if((spgw_context == NULL) || (hash_rc != HASH_TABLE_OK)) {
+    OAILOG_DEBUG(LOG_SPGW_APP, "Error in retrieving s_plus_p_gw context\n");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+    //--------------------------------------
+    // Get EPS bearer entry
+    //--------------------------------------
+    // TODO -Pruthvi Add Handling for default bearer
+  sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+    &spgw_context->sgw_eps_bearer_context_information
+    .pdn_connection,
+    s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[0].eps_bearer_id);
+
+  if (eps_bearer_ctxt_p == NULL) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to get EPS bearer entry\n");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  } else {
+    OAILOG_INFO(LOG_SPGW_APP, "Successfully retrieved EPS bearer entry with EBI %d\n",
+      eps_bearer_ctxt_p->eps_bearer_id);
+  }
+
+  //Send ACTIVATE_DEDICATED_BEARER_RSP to PGW
+  MessageDef *message_p = NULL;
+  message_p =
+    itti_alloc_new_message(TASK_PGW_APP, S5_DEACTIVATE_DEDICATED_BEARER_RSP);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "itti_alloc_new_message failed for S5_DEACTIVATE_DEDICATED_BEARER_RSP\n");
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
+  itti_s5_deactivate_dedicated_bearer_rsp_t *deact_ded_bearer_rsp =
+    &message_p->ittiMsg.s5_deactivate_dedicated_bearer_response;
+  deact_ded_bearer_rsp->no_of_bearers = s11_pcrf_ded_bearer_deactv_rsp->no_of_bearers;
+
+  for (i = 0; i < deact_ded_bearer_rsp->no_of_bearers; i++) {
+    //EBI
+    deact_ded_bearer_rsp->ebi[i] =
+      s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.
+      bearer_contexts[i].eps_bearer_id;
+    //Cause
+    deact_ded_bearer_rsp->cause.cause_value = s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.
+      bearer_contexts[i].cause.cause_value;
+
+    OAILOG_INFO(LOG_MME_APP, "Sending S5_DEACTIVATE_DEDICATED_BEARER_RSP to PGW with EBI %d\n",
+      deact_ded_bearer_rsp->ebi);
+  }
+  rc = itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
+
+  //Delete the bearer context
+  for (i = 0; i < s11_pcrf_ded_bearer_deactv_rsp->no_of_bearers; i++) {
+    sgw_cm_remove_eps_bearer_entry(&spgw_context->sgw_eps_bearer_context_information
+      .pdn_connection,
+      s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }

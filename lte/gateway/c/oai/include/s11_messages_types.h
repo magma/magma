@@ -71,9 +71,10 @@
   (mSGpTR)->ittiMsg.s11_pcrf_ded_bearer_actv_request
 #define S11_PCRF_BEARER_ACTV_RSP(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.s11_pcrf_ded_bearer_actv_rsp
-#define S11_PCRF_DED_BEARER_DEACTV_REQUEST(mSGpTR)                                       \
+#define S11_PCRF_DED_BEARER_DEACTV_REQUEST(mSGpTR)                             \
   (mSGpTR)->ittiMsg.s11_pcrf_ded_bearer_deactv_request
-
+#define S11_PCRF_DED_BEARER_DEACTV_RESPONSE(mSGpTR)                            \
+  (mSGpTR)->ittiMsg.s11_pcrf_ded_bearer_deactv_response
 
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_pcrf_ded_bearer_actv_request_t
@@ -114,7 +115,18 @@ typedef struct itti_s11_pcrf_ded_bearer_deactv_request_s {
   teid_t s11_mme_teid; ///< MME TEID
 }itti_s11_pcrf_ded_bearer_deactv_request_t;
 
-
+//-----------------------------------------------------------------------------
+/** @struct itti_s11_pcrf_ded_bearer_deactv_rsp_t
+ *  @brief PCRF initiated Dedicated Bearer dectivation Rsp
+ */
+typedef struct itti_s11_pcrf_ded_bearer_deactv_rsp_s {
+  gtpv2c_cause_t cause; ///< M
+  teid_t sgw_s11_teid; //CP TEID
+  ebi_t *lbi; //Default EPS Bearer ID
+  bearer_contexts_within_create_bearer_response_t
+    bearer_contexts; ///< Several IEs with this type and instance value shall be
+  bool delete_default_bearer;
+}itti_s11_pcrf_ded_bearer_deactv_rsp_t;
 
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_create_session_request_t
