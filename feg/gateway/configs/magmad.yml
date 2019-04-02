@@ -20,7 +20,7 @@ non_service303_services:
   - redis
 
 # Init system to use to control services
-# Supported systems include: [systemd, runit]
+# Supported systems include: [systemd, runit, docker]
 init_system: systemd
 
 # bootstrap_manager config

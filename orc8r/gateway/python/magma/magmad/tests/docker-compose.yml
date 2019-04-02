@@ -1,0 +1,20 @@
+version: "2.0"
+
+services:
+  dummy_service:
+    container_name: dummy_service
+    build:
+      dockerfile: Dockerfile
+      context: .
+
+  dummy1:
+    container_name: dummy1
+    build:
+      dockerfile: Dockerfile
+      context: .
+
+  dummy2:
+    container_name: dummy2
+    build:
+      dockerfile: Dockerfile
+      context: .
