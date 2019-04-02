@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 import queue
+import signal
 
 import grpc
 
@@ -221,9 +222,11 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         log_queue = queue.Queue()
 
         async def enqueue_log_lines():
+            #  https://stackoverflow.com/a/32222971
             proc = await asyncio.create_subprocess_exec(
                 *exec_list,
-                stdout=asyncio.subprocess.PIPE)
+                stdout=asyncio.subprocess.PIPE,
+                preexec_fn=os.setsid)
             try:
                 while context.is_active():
                     try:
@@ -235,7 +238,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                         pass
             finally:
                 logging.info("Terminating log stream")
-                proc.kill()
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
 
         self._loop.create_task(enqueue_log_lines())
 
