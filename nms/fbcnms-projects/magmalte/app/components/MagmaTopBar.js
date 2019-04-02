@@ -54,6 +54,14 @@ export default function MagmaTopBar(props: Props) {
                 </MenuItem>
               </Link>
             ))}
+            {appContext.user.isSuperUser && (
+              <>
+                <Divider />
+                <Link className={classes.link} to="/nms/network/create">
+                  <MenuItem>Create Network</MenuItem>
+                </Link>
+              </>
+            )}
           </TopBarAnchoredMenu>
           <TopBarAnchoredMenu
             id="menu-appbar"

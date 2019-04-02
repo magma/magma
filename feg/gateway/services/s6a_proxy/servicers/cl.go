@@ -60,6 +60,9 @@ func forwardCLRToGateway(clr *CLR) (uint32, error) {
 	in := &protos.CancelLocationRequest{UserName: clr.UserName, CancellationType: cancelLocationType}
 	res, err := s6a_proxy.GWS6AProxyCancelLocation(in)
 	if err != nil {
+		if res != nil && res.ErrorCode == protos.ErrorCode_USER_UNKNOWN {
+			return diam.Success, err
+		}
 		return diam.UnableToDeliver, err
 	}
 	if res.ErrorCode != 0 {

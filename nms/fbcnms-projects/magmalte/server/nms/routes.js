@@ -44,6 +44,7 @@ router.use(
     loginFailureUrl: '/nms/user/login',
   }),
 );
+router.use('/network', require('../network/routes').default);
 
 router.get('/*', (req, res) => {
   res.render('index', {

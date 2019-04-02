@@ -11,6 +11,7 @@
 import React from 'react';
 import LoadingFiller from '../LoadingFiller';
 import MagmaTopBar from '../MagmaTopBar';
+import Network from '../network/Network';
 import Settings from '../Settings';
 
 import {Route, Switch} from 'react-router-dom';
@@ -32,6 +33,7 @@ export default function SectionRoutes() {
 
   return (
     <Switch>
+      <Route key="network" path="/nms/network" component={Network} />
       {sections.map(section => (
         <Route
           key={section.path}

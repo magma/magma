@@ -88,7 +88,7 @@ test_oai: build_common
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
-test_%: build_common
+test_%: stop build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
 
 # TODO: include coverage of dpim when it is included in make build

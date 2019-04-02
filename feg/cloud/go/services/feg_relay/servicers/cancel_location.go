@@ -37,7 +37,7 @@ func (srv *FegToGwRelayServer) CancelLocationUnverified(
 ) (*fegprotos.CancelLocationAnswer, error) {
 	hwId, err := getHwIDFromIMSI(req.UserName)
 	if err != nil {
-		return &fegprotos.CancelLocationAnswer{ErrorCode: 1},
+		return &fegprotos.CancelLocationAnswer{ErrorCode: fegprotos.ErrorCode_USER_UNKNOWN},
 			fmt.Errorf("unable to get HwID from IMSI %v. err: %v",
 				req.UserName, err)
 	}
