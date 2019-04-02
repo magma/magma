@@ -261,6 +261,9 @@ int mme_app_handle_sgsap_service_abort_request(
 void mme_app_handle_modify_ue_ambr_request(
   const itti_s11_modify_ue_ambr_request_t *const modify_ue_ambr_request_p);
 
+int mme_app_handle_sgs_status_message(
+    itti_sgsap_status_t *const sgsap_status_pP);
+
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_write_lock(mMEsTATS)                                         \

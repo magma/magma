@@ -391,7 +391,6 @@ void mme_app_handle_sgs_imsi_detach_timer_expiry(ue_mm_context_t *ue_context_p)
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->imsi);
-    free_wrapper((void **) &(ue_context_p->sgs_context));
     increment_counter(
       "sgs_imsi_detach_timer_expired",
       1,
@@ -588,7 +587,6 @@ int mme_app_handle_sgs_eps_detach_ack(
     if (ue_context_p->sgs_context != NULL) {
       // free the sgs context
       mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context, imsi64);
-      free_wrapper((void **) &(ue_context_p->sgs_context));
     }
   } else {
     OAILOG_ERROR(
@@ -682,7 +680,6 @@ int mme_app_handle_sgs_imsi_detach_ack(
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->imsi);
-    free_wrapper((void **) &(ue_context_p->sgs_context));
   } else {
     OAILOG_ERROR(
       LOG_MME_APP,
