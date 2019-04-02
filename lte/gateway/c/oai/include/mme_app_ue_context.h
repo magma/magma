@@ -703,6 +703,8 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
 void mme_app_ue_sgs_context_free_content(
   sgs_context_t *const sgs_context_p,
   imsi64_t imsi);
+bool is_mme_ue_context_network_access_mode_packet_only(
+  ue_mm_context_t  *ue_context_p);
 
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 

@@ -2420,6 +2420,24 @@ static void _mme_app_handle_s1ap_ue_context_release(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
+bool is_mme_ue_context_network_access_mode_packet_only (
+  ue_mm_context_t       *ue_context_p)
+{
+  // Function is used to check the UE's Network Access Mode received in ULA from HSS
+
+  OAILOG_FUNC_IN (LOG_MME_APP);
+  if (ue_context_p == NULL) {
+    OAILOG_CRITICAL (LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
+    OAILOG_FUNC_RETURN (LOG_MME_APP, RETURNerror);
+  }
+  if (ue_context_p->network_access_mode == NAM_ONLY_PACKET)
+  {
+    OAILOG_FUNC_RETURN (LOG_MME_APP, true);
+  } else {
+    OAILOG_FUNC_RETURN (LOG_MME_APP, false);
+  }
+}
+
 //-------------------------------------------------------------------------------------------------------
 void mme_ue_context_update_ue_sgs_vlr_reliable(
   mme_ue_s1ap_id_t mme_ue_s1ap_id,
