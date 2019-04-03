@@ -40,4 +40,5 @@ message UeDescription {
 message S1apState {
   map<uint32, EnbDescription> enbs = 1;  // enbid -> EnbDescription
   map<uint32, uint32> mmeid2associd = 2; // mmeueid -> ue associd
+  uint32 num_enbs = 3;
 }

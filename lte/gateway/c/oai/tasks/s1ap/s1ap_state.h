@@ -25,6 +25,8 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 #include "hashtable.h"
 
 #include "s1ap_types.h"
@@ -34,6 +36,7 @@ typedef struct s1ap_state_s {
   hash_table_ts_t enbs;
   // contains sctp association id, key is mme_ue_s1ap_id
   hash_table_ts_t mmeid2associd;
+  uint32_t num_enbs;
 } s1ap_state_t;
 
 int s1ap_state_init(void);

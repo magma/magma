@@ -90,7 +90,6 @@ bool s1ap_dump_ue_hash_cb(
 void *s1ap_mme_thread(void *args);
 
 bool hss_associated = false;
-uint32_t nb_enb_associated = 0;
 
 static int indent = 0;
 
@@ -492,7 +491,7 @@ void s1ap_dump_ue(const ue_description_t *const ue_ref)
 }
 
 //------------------------------------------------------------------------------
-enb_description_t *s1ap_new_enb(void)
+enb_description_t *s1ap_new_enb(s1ap_state_t *state)
 {
   enb_description_t *enb_ref = NULL;
 
@@ -504,7 +503,7 @@ enb_description_t *s1ap_new_enb(void)
    */
   DevAssert(enb_ref != NULL);
   // Update number of eNB associated
-  nb_enb_associated++;
+  state->num_enbs++;
   bstring bs = bfromcstr("s1ap_ue_coll");
   hashtable_ts_init(
     &enb_ref->ue_coll, mme_config.max_ues, NULL, free_wrapper, bs);
@@ -638,5 +637,5 @@ void s1ap_remove_enb(s1ap_state_t *state, enb_description_t *enb_ref)
   enb_ref->s1_state = S1AP_INIT;
   hashtable_ts_destroy(&enb_ref->ue_coll);
   hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
-  nb_enb_associated--;
+  state->num_enbs--;
 }

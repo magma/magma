@@ -197,6 +197,8 @@ s1ap_state_t *s1ap_state_new(void)
     return NULL;
   }
 
+  state->num_enbs = 0;
+
   return state;
 }
 
@@ -268,6 +270,8 @@ void state2proto(S1apState *proto, s1ap_state_t *state)
   }
   free(keys->keys);
   free(keys);
+
+  proto->set_num_enbs(state->num_enbs);
 }
 
 // expects hashtables in state to be created already
@@ -298,6 +302,8 @@ void proto2state(s1ap_state_t *state, S1apState *proto)
       &state->mmeid2associd, (hash_key_t) mmeid, (void *) (uintptr_t) associd);
     AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
   }
+
+  state->num_enbs = proto->num_enbs();
 }
 
 void enb2proto(EnbDescription *proto, enb_description_t *enb)
