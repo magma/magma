@@ -404,7 +404,6 @@ void ue2proto(UeDescription *proto, ue_description_t *ue)
   proto->set_mme_ue_s1ap_id(ue->mme_ue_s1ap_id);
   proto->set_sctp_stream_recv(ue->sctp_stream_recv);
   proto->set_sctp_stream_send(ue->sctp_stream_send);
-  proto->set_s11_sgw_teid(ue->s11_sgw_teid);
   proto->mutable_s1ap_ue_context_rel_timer()->set_id(
     ue->s1ap_ue_context_rel_timer.id);
   proto->mutable_s1ap_ue_context_rel_timer()->set_sec(
@@ -420,7 +419,6 @@ void proto2ue(ue_description_t *ue, UeDescription *proto)
   ue->mme_ue_s1ap_id = proto->mme_ue_s1ap_id();
   ue->sctp_stream_recv = proto->sctp_stream_recv();
   ue->sctp_stream_send = proto->sctp_stream_send();
-  ue->s11_sgw_teid = proto->s11_sgw_teid();
   ue->s1ap_ue_context_rel_timer.id = proto->s1ap_ue_context_rel_timer().id();
   ue->s1ap_ue_context_rel_timer.sec = proto->s1ap_ue_context_rel_timer().sec();
 }

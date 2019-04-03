@@ -91,11 +91,8 @@ typedef struct ue_description_s {
   sctp_stream_id_t sctp_stream_send; ///< MME -> eNB stream
   /*@}*/
 
-  s11_teid_t s11_sgw_teid;
-
   // UE Context Release procedure guard timer
   struct s1ap_timer_t s1ap_ue_context_rel_timer;
-
 } ue_description_t;
 
 /* Main structure representing eNB association over s1ap

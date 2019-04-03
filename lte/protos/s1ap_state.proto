@@ -32,9 +32,8 @@ message UeDescription {
 
   uint32 sctp_stream_recv = 5; // sctp_stream_id_t
   uint32 sctp_stream_send = 6; // sctp_stream_id_t
-  uint32 s11_sgw_teid = 7;
 
-  S1apTimer s1ap_ue_context_rel_timer = 8; // struct s1ap_timer_t
+  S1apTimer s1ap_ue_context_rel_timer = 7; // struct s1ap_timer_t
 }
 
 message S1apState {
