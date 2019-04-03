@@ -154,34 +154,6 @@ int s1ap_mme_init(void);
  **/
 void s1ap_mme_exit(void);
 
-/** \brief Look for given eNB id in the list
- * \param enb_id The unique eNB id to search in list
- * @returns NULL if no eNB matchs the eNB id, or reference to the eNB element in list if matches
- **/
-enb_description_t *s1ap_is_enb_id_in_list(const uint32_t enb_id);
-
-/** \brief Look for given eNB SCTP assoc id in the list
- * \param enb_id The unique sctp assoc id to search in list
- * @returns NULL if no eNB matchs the sctp assoc id, or reference to the eNB element in list if matches
- **/
-enb_description_t *s1ap_is_enb_assoc_id_in_list(
-  const sctp_assoc_id_t sctp_assoc_id);
-
-/** \brief Look for given ue eNB id in the list
- * \param enb_id The unique ue_eNB id to search in list
- * @returns NULL if no UE matchs the ue_enb_id, or reference to the ue element in list if matches
- **/
-ue_description_t *s1ap_is_ue_enb_id_in_list(
-  enb_description_t *enb_ref,
-  const enb_ue_s1ap_id_t enb_ue_s1ap_id);
-
-/** \brief Look for given ue mme id in the list
- * \param enb_id The unique ue_mme_id to search in list
- * @returns NULL if no UE matchs the ue_mme_id, or reference to the ue element in list if matches
- **/
-ue_description_t *s1ap_is_ue_mme_id_in_list(const mme_ue_s1ap_id_t ue_mme_id);
-ue_description_t *s1ap_is_s11_sgw_teid_in_list(const s11_teid_t teid);
-
 /** \brief associate mainly 2(3) identifiers in S1AP layer: {mme_ue_s1ap_id_t, sctp_assoc_id (,enb_ue_s1ap_id)}
  **/
 void s1ap_notified_new_ue_mme_s1ap_id_association(
@@ -244,6 +216,12 @@ bool s1ap_enb_compare_by_enb_id_cb(
   void *const elementP,
   void *parameterP,
   void __attribute__((unused)) * *unused_resultP);
+
+bool s1ap_enb_find_ue_by_mme_ue_id_cb(
+  __attribute__((unused)) const hash_key_t keyP,
+  void *const elementP,
+  void *parameterP,
+  void **resultP);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove

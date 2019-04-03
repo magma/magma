@@ -114,7 +114,7 @@ int s1ap_mme_handle_initial_ue_message(
     stream,
     (enb_ue_s1ap_id_t) initialUEMessage_p->eNB_UE_S1AP_ID);
 
-  if ((eNB_ref = s1ap_is_enb_assoc_id_in_list(assoc_id)) == NULL) {
+  if ((eNB_ref = s1ap_state_get_enb(s1ap_state, assoc_id)) == NULL) {
     OAILOG_ERROR(LOG_S1AP, "Unknown eNB on assoc_id %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -126,7 +126,7 @@ int s1ap_mme_handle_initial_ue_message(
     "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
     "\n",
     enb_ue_s1ap_id);
-  ue_ref = s1ap_is_ue_enb_id_in_list(eNB_ref, enb_ue_s1ap_id);
+  ue_ref = s1ap_state_get_ue_enbid(s1ap_state, eNB_ref, enb_ue_s1ap_id);
 
   if (ue_ref == NULL) {
     tai_t tai = {0};
@@ -285,9 +285,10 @@ int s1ap_mme_handle_uplink_nas_transport(
       LOG_S1AP,
       "Received S1AP UPLINK_NAS_TRANSPORT message MME_UE_S1AP_ID unknown\n");
 
-    enb_ref = s1ap_is_enb_assoc_id_in_list(assoc_id);
+    enb_ref = s1ap_state_get_enb(s1ap_state, assoc_id);
 
-    if (!(ue_ref = s1ap_is_ue_enb_id_in_list(
+    if (!(ue_ref = s1ap_state_get_ue_enbid(
+            s1ap_state,
             enb_ref,
             (enb_ue_s1ap_id_t) uplinkNASTransport_p->eNB_UE_S1AP_ID))) {
       OAILOG_WARNING(
@@ -304,8 +305,8 @@ int s1ap_mme_handle_uplink_nas_transport(
       "MME_UE_S1AP_ID " MME_UE_S1AP_ID_FMT "\n",
       (mme_ue_s1ap_id_t) uplinkNASTransport_p->mme_ue_s1ap_id);
 
-    if (!(ue_ref =
-            s1ap_is_ue_mme_id_in_list(uplinkNASTransport_p->mme_ue_s1ap_id))) {
+    if (!(ue_ref = s1ap_state_get_ue_mmeid(
+            s1ap_state, uplinkNASTransport_p->mme_ue_s1ap_id))) {
       OAILOG_WARNING(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT No UE is attached to this "
@@ -413,8 +414,8 @@ int s1ap_mme_handle_nas_non_delivery(
     nasNonDeliveryIndication_p->nas_pdu.size);
 
   if (
-    (ue_ref = s1ap_is_ue_mme_id_in_list(
-       nasNonDeliveryIndication_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref = s1ap_state_get_ue_mmeid(
+       s1ap_state, nasNonDeliveryIndication_p->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
@@ -457,9 +458,9 @@ int s1ap_generate_downlink_nas_transport(
     hashtable_ts_get(
       &s1ap_state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id)) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
-    enb_description_t *enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);
+    enb_description_t *enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_is_ue_enb_id_in_list(enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(s1ap_state, enb_ref, enb_ue_s1ap_id);
     } else {
       OAILOG_ERROR(
         LOG_S1AP, "No eNB for SCTP association id %d \n", sctp_assoc_id);
@@ -468,7 +469,7 @@ int s1ap_generate_downlink_nas_transport(
   }
   // TODO remove soon:
   if (!ue_ref) {
-    ue_ref = s1ap_is_ue_mme_id_in_list(ue_id);
+    ue_ref = s1ap_state_get_ue_mmeid(s1ap_state, ue_id);
   }
   // finally!
   if (!ue_ref) {
@@ -562,14 +563,14 @@ int s1ap_generate_s1ap_e_rab_setup_req(
     &s1ap_state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
-    enb_description_t *enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);
+    enb_description_t *enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_is_ue_enb_id_in_list(enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(s1ap_state, enb_ref, enb_ue_s1ap_id);
     }
   }
   // TODO remove soon:
   if (!ue_ref) {
-    ue_ref = s1ap_is_ue_mme_id_in_list(ue_id);
+    ue_ref = s1ap_state_get_ue_mmeid(s1ap_state, ue_id);
   }
   // finally!
   if (!ue_ref) {
@@ -779,7 +780,7 @@ void s1ap_handle_conn_est_cnf(
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(conn_est_cnf_pP != NULL);
 
-  ue_ref = s1ap_is_ue_mme_id_in_list(conn_est_cnf_pP->ue_id);
+  ue_ref = s1ap_state_get_ue_mmeid(s1ap_state, conn_est_cnf_pP->ue_id);
   if (!ue_ref) {
     OAILOG_ERROR(
       LOG_S1AP,

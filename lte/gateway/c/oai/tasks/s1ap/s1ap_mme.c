@@ -255,7 +255,8 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
           if (timer_arg.timer_class == S1AP_UE_TIMER) {
             mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
             if (
-              (ue_ref_p = s1ap_is_ue_mme_id_in_list(mme_ue_s1ap_id)) == NULL) {
+              (ue_ref_p =
+                 s1ap_state_get_ue_mmeid(s1ap_state, mme_ue_s1ap_id)) == NULL) {
               OAILOG_WARNING(
                 LOG_S1AP,
                 "Timer expired but no assoicated UE context for UE id %d\n",
@@ -278,7 +279,8 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
             }
           } else if (timer_arg.timer_class == S1AP_ENB_TIMER) {
             sctp_assoc_id_t assoc_id = timer_arg.instance_id;
-            if ((enb_ref_p = s1ap_is_enb_assoc_id_in_list(assoc_id)) == NULL) {
+            if (
+              (enb_ref_p = s1ap_state_get_enb(s1ap_state, assoc_id)) == NULL) {
               OAILOG_WARNING(
                 LOG_S1AP,
                 "Timer expired but no assoicated eNB context for eNB assoc_id "
@@ -460,6 +462,7 @@ bool s1ap_dump_ue_hash_cb(
   s1ap_dump_ue(ue_ref);
   return false;
 }
+
 //------------------------------------------------------------------------------
 void s1ap_dump_ue(const ue_description_t *const ue_ref)
 {
@@ -472,44 +475,6 @@ void s1ap_dump_ue(const ue_description_t *const ue_ref)
   UE_LIST_OUT("SCTP stream recv: 0x%04x", ue_ref->sctp_stream_recv);
   UE_LIST_OUT("SCTP stream send: 0x%04x", ue_ref->sctp_stream_send);
 #endif
-}
-
-//------------------------------------------------------------------------------
-bool s1ap_enb_compare_by_enb_id_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void *const elementP,
-  void *parameterP,
-  void **resultP)
-{
-  const uint32_t *const enb_id_p = (const uint32_t *const) parameterP;
-  enb_description_t *enb_ref = (enb_description_t *) elementP;
-  if (*enb_id_p == enb_ref->enb_id) {
-    *resultP = elementP;
-    return true;
-  }
-  return false;
-}
-//------------------------------------------------------------------------------
-enb_description_t *s1ap_is_enb_id_in_list(const uint32_t enb_id)
-{
-  enb_description_t *enb_ref = NULL;
-  uint32_t *enb_id_p = (uint32_t *) &enb_id;
-  hashtable_ts_apply_callback_on_elements(
-    (hash_table_ts_t *const) & s1ap_state->enbs,
-    s1ap_enb_compare_by_enb_id_cb,
-    (void *) enb_id_p,
-    (void **) &enb_ref);
-  return enb_ref;
-}
-
-//------------------------------------------------------------------------------
-enb_description_t *s1ap_is_enb_assoc_id_in_list(
-  const sctp_assoc_id_t sctp_assoc_id)
-{
-  enb_description_t *enb_ref = NULL;
-  hashtable_ts_get(
-    &s1ap_state->enbs, (const hash_key_t) sctp_assoc_id, (void **) &enb_ref);
-  return enb_ref;
 }
 
 //------------------------------------------------------------------------------
@@ -527,18 +492,6 @@ bool s1ap_ue_compare_by_enb_ue_s1ap_id_cb(
     return true;
   }
   return false;
-}
-//------------------------------------------------------------------------------
-ue_description_t *s1ap_is_ue_enb_id_in_list(
-  enb_description_t *enb_ref,
-  const enb_ue_s1ap_id_t enb_ue_s1ap_id)
-{
-  ue_description_t *ue_ref = NULL;
-  hashtable_ts_get(
-    (hash_table_ts_t *const) & enb_ref->ue_coll,
-    (const hash_key_t) enb_ue_s1ap_id,
-    (void **) &ue_ref);
-  return ue_ref;
 }
 
 //------------------------------------------------------------------------------
@@ -586,72 +539,6 @@ bool s1ap_enb_find_ue_by_mme_ue_id_cb(
   }
   return false;
 }
-//------------------------------------------------------------------------------
-bool s1ap_ue_compare_by_s11_sgw_teid_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void *const elementP,
-  void *parameterP,
-  void **resultP)
-{
-  s11_teid_t *s11_sgw_teid_p = (s11_teid_t *) parameterP;
-  ue_description_t *ue_ref = (ue_description_t *) elementP;
-  if (*s11_sgw_teid_p == ue_ref->s11_sgw_teid) {
-    *resultP = elementP;
-    return true;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-bool s1ap_enb_find_ue_by_s11_sgw_teid_cb(
-  __attribute((unused)) const hash_key_t keyP,
-  void *const elementP,
-  void *parameterP,
-  void **resultP)
-{
-  enb_description_t *enb_ref = (enb_description_t *) elementP;
-
-  hashtable_ts_apply_callback_on_elements(
-    (hash_table_ts_t *const) & enb_ref->ue_coll,
-    s1ap_ue_compare_by_s11_sgw_teid_cb,
-    parameterP,
-    resultP);
-  if (*resultP) {
-    return true;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-ue_description_t *s1ap_is_ue_mme_id_in_list(
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id)
-{
-  ue_description_t *ue_ref = NULL;
-  mme_ue_s1ap_id_t *mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t *) &mme_ue_s1ap_id;
-
-  hashtable_ts_apply_callback_on_elements(
-    &s1ap_state->enbs,
-    s1ap_enb_find_ue_by_mme_ue_id_cb,
-    (void *) mme_ue_s1ap_id_p,
-    (void **) &ue_ref);
-  OAILOG_TRACE(LOG_S1AP, "Return ue_ref %p \n", ue_ref);
-  return ue_ref;
-}
-
-//------------------------------------------------------------------------------
-// TODO(amar) unused function check with OAI.
-ue_description_t *s1ap_is_s11_sgw_teid_in_list(const s11_teid_t teid)
-{
-  ue_description_t *ue_ref = NULL;
-  s11_teid_t *teid_id_p = (s11_teid_t *) &teid;
-
-  hashtable_ts_apply_callback_on_elements(
-    &s1ap_state->enbs,
-    s1ap_enb_find_ue_by_s11_sgw_teid_cb,
-    (void *) teid_id_p,
-    (void **) &ue_ref);
-  return ue_ref;
-}
 
 //------------------------------------------------------------------------------
 void s1ap_notified_new_ue_mme_s1ap_id_association(
@@ -659,10 +546,10 @@ void s1ap_notified_new_ue_mme_s1ap_id_association(
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
   const mme_ue_s1ap_id_t mme_ue_s1ap_id)
 {
-  enb_description_t *enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);
+  enb_description_t *enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
   if (enb_ref) {
     ue_description_t *ue_ref =
-      s1ap_is_ue_enb_id_in_list(enb_ref, enb_ue_s1ap_id);
+      s1ap_state_get_ue_enbid(s1ap_state, enb_ref, enb_ue_s1ap_id);
     if (ue_ref) {
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
       hashtable_rc_t h_rc = hashtable_ts_insert(
@@ -721,7 +608,7 @@ ue_description_t *s1ap_new_ue(
   enb_description_t *enb_ref = NULL;
   ue_description_t *ue_ref = NULL;
 
-  enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);
+  enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
   ue_ref = calloc(1, sizeof(ue_description_t));
   /*
