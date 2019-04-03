@@ -63,11 +63,14 @@ add_library(TASK_S1AP
     ${S1AP_DIR}/s1ap_mme_itti_messaging.c
     ${S1AP_DIR}/s1ap_mme_retransmission.c
     ${S1AP_DIR}/s1ap_mme_ta.c
-    )
+    ${S1AP_DIR}/s1ap_state.cpp
+)
 target_link_libraries(TASK_S1AP
+    ${CONFIG}
     COMMON
-    LIB_BSTR
+    LIB_BSTR LIB_HASHTABLE
     TASK_SERVICE303
+    cpp_redis tacopie
 )
 target_include_directories(TASK_S1AP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

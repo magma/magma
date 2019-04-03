@@ -45,6 +45,7 @@
 #include "s1ap_mme.h"
 #include "s1ap_mme_decoder.h"
 #include "s1ap_mme_handlers.h"
+#include "s1ap_state.h"
 #include "s1ap_ies_defs.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
@@ -125,7 +126,6 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
      * * * * message is sent to the task.
      */
     itti_receive_msg(TASK_S1AP, &received_message_p);
-    DevAssert(received_message_p != NULL);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case ACTIVATE_MESSAGE: {

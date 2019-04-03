@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -104,9 +104,6 @@ typedef struct ue_description_s {
   /*@}*/
 
   s11_teid_t s11_sgw_teid;
-
-  /* Timer for procedure outcome issued by MME that should be answered */
-  long outcome_response_timer_id;
 
   // UE Context Release procedure guard timer
   struct s1ap_timer_t s1ap_ue_context_rel_timer;
