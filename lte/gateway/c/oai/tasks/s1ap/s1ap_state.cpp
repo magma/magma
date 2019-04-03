@@ -26,6 +26,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cpp_redis/cpp_redis>
+
+#include "lte/protos/s1ap_state.pb.h"
+
+#include "ServiceConfigLoader.h"
+
 extern "C" {
 #include "bstrlib.h"
 
@@ -36,17 +42,41 @@ extern "C" {
 #include "s1ap_mme.h"
 #include "mme_config.h"
 
+using magma::lte::gateway::s1ap::EnbDescription;
+using magma::lte::gateway::s1ap::S1apState;
+using magma::lte::gateway::s1ap::UeDescription;
+
 s1ap_state_t *s1ap_state_new(void);
 void s1ap_state_free(s1ap_state_t *state);
 
 s1ap_state_t *s1ap_state_from_redis(void);
 void s1ap_state_to_redis(s1ap_state_t *state);
 
-bool in_use;
-s1ap_state_t *state_cache;
+void state2proto(S1apState *proto, s1ap_state_t *state);
+void proto2state(s1ap_state_t *state, S1apState *proto);
+
+void enb2proto(EnbDescription *proto, enb_description_t *enb);
+void proto2enb(enb_description_t *enb, EnbDescription *proto);
+
+void ue2proto(UeDescription *proto, ue_description_t *ue);
+void proto2ue(ue_description_t *ue, UeDescription *proto);
+
+bool in_use = false;
+std::shared_ptr<cpp_redis::client> client = nullptr;
+s1ap_state_t *state_cache = NULL;
 
 int s1ap_state_init(void)
 {
+  magma::ServiceConfigLoader loader;
+
+  auto config = loader.load_service_config("redis");
+  auto port = config["port"].as<uint32_t>();
+
+  client = std::make_shared<cpp_redis::client>();
+  client->connect("127.0.0.1", port, nullptr);
+
+  if (!client->is_connected()) return -1;
+
   in_use = false;
   state_cache = s1ap_state_from_redis();
 
@@ -58,6 +88,9 @@ void s1ap_state_exit(void)
   AssertFatal(!in_use, "Exiting without committing s1ap state");
 
   s1ap_state_free(state_cache);
+
+  client = nullptr;
+  state_cache = NULL;
 }
 
 s1ap_state_t *s1ap_state_get(void)
@@ -120,6 +153,7 @@ s1ap_state_t *s1ap_state_new(void)
 
 void s1ap_state_free(s1ap_state_t *state)
 {
+  // TODO leaks memory hard. need to free enb_desc's, ue_desc's, and ue_coll's
   if (hashtable_ts_destroy(&state->enbs) != HASH_TABLE_OK) {
     OAI_FPRINTF_ERR("An error occured while destroying s1 eNB hash table");
   }
@@ -139,4 +173,199 @@ void s1ap_state_to_redis(s1ap_state_t *state)
 {
   // todo implement me
   return;
+}
+
+void state2proto(S1apState *proto, s1ap_state_t *state)
+{
+  int i;
+  hashtable_rc_t ht_rc;
+  hashtable_key_array_t *keys;
+
+  mme_ue_s1ap_id_t mmeid;
+  sctp_assoc_id_t associd;
+  enb_description_t *enb;
+
+  EnbDescription enb_proto;
+
+  proto->Clear();
+
+  // copy over enbs
+  auto enbs = proto->mutable_enbs();
+  keys = hashtable_ts_get_keys(&state->enbs);
+  AssertFatal(keys != NULL, "failed to get keys for enbs");
+  for (i = 0; i < keys->num_keys; i++) {
+    associd = (sctp_assoc_id_t) keys->keys[i];
+    ht_rc =
+      hashtable_ts_get(&state->enbs, (hash_key_t) associd, (void **) &enb);
+    AssertFatal(ht_rc == HASH_TABLE_OK, "associd not in enbs");
+
+    enb2proto(&enb_proto, enb);
+    (*enbs)[associd] = enb_proto;
+  }
+  free(keys->keys);
+  free(keys);
+
+  // copy over mmeid2associd
+  auto mmeid2associd = proto->mutable_mmeid2associd();
+  keys = hashtable_ts_get_keys(&state->mmeid2associd);
+  AssertFatal(keys != NULL, "failed to get keys for mmeid2associd");
+  for (i = 0; i < keys->num_keys; i++) {
+    mmeid = (mme_ue_s1ap_id_t) keys->keys[i];
+    ht_rc = hashtable_ts_get(
+      &state->mmeid2associd, (hash_key_t) mmeid, (void **) &associd);
+    AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
+
+    (*mmeid2associd)[mmeid] = associd;
+  }
+  free(keys->keys);
+  free(keys);
+}
+
+// expects hashtables in state to be created already
+void proto2state(s1ap_state_t *state, S1apState *proto)
+{
+  hashtable_rc_t ht_rc;
+  enb_description_t *enb;
+
+  auto enbs = proto->enbs();
+  for (auto const &kv : enbs) {
+    sctp_assoc_id_t associd = kv.first;
+    EnbDescription enb_proto = kv.second;
+
+    enb = (enb_description_t *) malloc(sizeof(*enb));
+    AssertFatal(enb != NULL, "failed to alloc new enb_desc");
+
+    proto2enb(enb, &enb_proto);
+    ht_rc = hashtable_ts_insert(&state->enbs, (hash_key_t) associd, enb);
+    AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert enb");
+  }
+
+  auto mmeid2associd = proto->mmeid2associd();
+  for (auto const &kv : mmeid2associd) {
+    mme_ue_s1ap_id_t mmeid = (mme_ue_s1ap_id_t) kv.first;
+    sctp_assoc_id_t associd = (sctp_assoc_id_t) kv.second;
+
+    ht_rc = hashtable_ts_insert(
+      &state->mmeid2associd, (hash_key_t) mmeid, (void *) (uintptr_t) associd);
+    AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
+  }
+}
+
+void enb2proto(EnbDescription *proto, enb_description_t *enb)
+{
+  int i;
+  hashtable_rc_t ht_rc;
+  hashtable_key_array_t *keys;
+
+  enb_ue_s1ap_id_t enbueid;
+  ue_description_t *ue;
+
+  UeDescription ue_proto;
+
+  proto->Clear();
+
+  proto->set_enb_id(enb->enb_id);
+  proto->set_s1_state(enb->s1_state);
+  proto->set_enb_name(enb->enb_name);
+  proto->set_default_paging_drx(enb->default_paging_drx);
+  proto->set_nb_ue_associated(enb->nb_ue_associated);
+  proto->mutable_s1ap_enb_assoc_clean_up_timer()->set_id(
+    enb->s1ap_enb_assoc_clean_up_timer.id);
+  proto->mutable_s1ap_enb_assoc_clean_up_timer()->set_sec(
+    enb->s1ap_enb_assoc_clean_up_timer.sec);
+  proto->set_sctp_assoc_id(enb->sctp_assoc_id);
+  proto->set_next_sctp_stream(enb->next_sctp_stream);
+  proto->set_instreams(enb->instreams);
+  proto->set_outstreams(enb->outstreams);
+
+  // store ues
+  auto ues = proto->mutable_ues();
+  keys = hashtable_ts_get_keys(&enb->ue_coll);
+  AssertFatal(keys != NULL, "failed to get keys for ue_coll");
+  for (i = 0; i < keys->num_keys; i++) {
+    enbueid = (mme_ue_s1ap_id_t) keys->keys[i];
+    ht_rc =
+      hashtable_ts_get(&enb->ue_coll, (hash_key_t) enbueid, (void **) &ue);
+    AssertFatal(ht_rc == HASH_TABLE_OK, "enbueid not in ue_coll");
+    AssertFatal(ue->enb == enb, "tried to commit ue assigned to wrong enb");
+
+    ue2proto(&ue_proto, ue);
+    (*ues)[enbueid] = ue_proto;
+  }
+  free(keys->keys);
+  free(keys);
+}
+
+void proto2enb(enb_description_t *enb, EnbDescription *proto)
+{
+  hashtable_rc_t ht_rc;
+  ue_description_t *ue;
+
+  memset(enb, 0, sizeof(*enb));
+
+  enb->enb_id = proto->enb_id();
+  enb->s1_state = (mme_s1_enb_state_s) proto->s1_state();
+  strncpy(enb->enb_name, proto->enb_name().c_str(), sizeof(enb->enb_name));
+  enb->default_paging_drx = proto->default_paging_drx();
+  enb->nb_ue_associated = proto->nb_ue_associated();
+  enb->s1ap_enb_assoc_clean_up_timer.id =
+    proto->s1ap_enb_assoc_clean_up_timer().id();
+  enb->s1ap_enb_assoc_clean_up_timer.sec =
+    proto->s1ap_enb_assoc_clean_up_timer().sec();
+  enb->sctp_assoc_id = proto->sctp_assoc_id();
+  enb->next_sctp_stream = proto->next_sctp_stream();
+  enb->instreams = proto->instreams();
+  enb->outstreams = proto->outstreams();
+
+  // load ues
+  auto ht_name = bfromcstr("s1ap_ue_coll");
+  auto ht = hashtable_ts_init(
+    &enb->ue_coll, mme_config.max_ues, NULL, free_wrapper, ht_name);
+  bdestroy(ht_name);
+  AssertFatal(ht != NULL, "failed to init ue_coll");
+
+  auto ues = proto->ues();
+  for (auto const &kv : ues) {
+    enb_ue_s1ap_id_t enbueid = kv.first;
+    UeDescription ue_proto = kv.second;
+
+    ue = (ue_description_t *) malloc(sizeof(*ue));
+    AssertFatal(ue != NULL, "failed to alloc new ue description");
+
+    proto2ue(ue, &ue_proto);
+    ue->enb = enb; // ue's are linked to parent enb
+
+    ht_rc = hashtable_ts_insert(&enb->ue_coll, (hash_key_t) enbueid, ue);
+    AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert ue");
+  }
+}
+
+void ue2proto(UeDescription *proto, ue_description_t *ue)
+{
+  proto->Clear();
+
+  proto->set_s1_ue_state(ue->s1_ue_state);
+  proto->set_enb_ue_s1ap_id(ue->enb_ue_s1ap_id);
+  proto->set_mme_ue_s1ap_id(ue->mme_ue_s1ap_id);
+  proto->set_sctp_stream_recv(ue->sctp_stream_recv);
+  proto->set_sctp_stream_send(ue->sctp_stream_send);
+  proto->set_s11_sgw_teid(ue->s11_sgw_teid);
+  proto->mutable_s1ap_ue_context_rel_timer()->set_id(
+    ue->s1ap_ue_context_rel_timer.id);
+  proto->mutable_s1ap_ue_context_rel_timer()->set_sec(
+    ue->s1ap_ue_context_rel_timer.sec);
+}
+
+void proto2ue(ue_description_t *ue, UeDescription *proto)
+{
+  memset(ue, 0, sizeof(*ue));
+
+  ue->s1_ue_state = (s1_ue_state_s) proto->s1_ue_state();
+  ue->enb_ue_s1ap_id = proto->enb_ue_s1ap_id();
+  ue->mme_ue_s1ap_id = proto->mme_ue_s1ap_id();
+  ue->sctp_stream_recv = proto->sctp_stream_recv();
+  ue->sctp_stream_send = proto->sctp_stream_send();
+  ue->s11_sgw_teid = proto->s11_sgw_teid();
+  ue->s1ap_ue_context_rel_timer.id = proto->s1ap_ue_context_rel_timer().id();
+  ue->s1ap_ue_context_rel_timer.sec = proto->s1ap_ue_context_rel_timer().sec();
 }
