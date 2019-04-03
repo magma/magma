@@ -160,6 +160,22 @@ void s1ap_notified_new_ue_mme_s1ap_id_association(
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
   const mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
+/** \brief Dump the eNB list
+ * Calls dump_enb for each eNB in list
+ **/
+void s1ap_dump_enb_list(void);
+
+/** \brief Dump eNB related information.
+ * Calls dump_ue for each UE in list
+ * \param enb_ref eNB structure reference to dump
+ **/
+void s1ap_dump_enb(const enb_description_t *const enb_ref);
+
+/** \brief Dump UE related information.
+ * \param ue_ref ue structure reference to dump
+ **/
+void s1ap_dump_ue(const ue_description_t *const ue_ref);
+
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
  **/
@@ -173,48 +189,6 @@ enb_description_t *s1ap_new_enb(void);
 ue_description_t *s1ap_new_ue(
   const sctp_assoc_id_t sctp_assoc_id,
   enb_ue_s1ap_id_t enb_ue_s1ap_id);
-
-/** \brief Dump the eNB related information.
- * hashtable callback. It is called by hashtable_ts_apply_funct_on_elements()
- * Calls s1ap_dump_enb
- **/
-bool s1ap_dump_enb_hash_cb(
-  const hash_key_t keyP,
-  void *const enb_void,
-  void *unused_parameterP,
-  void **unused_resultP);
-
-/** \brief Dump the eNB list
- * Calls dump_enb for each eNB in list
- **/
-void s1ap_dump_enb_list(void);
-
-/** \brief Dump eNB related information.
- * Calls dump_ue for each UE in list
- * \param enb_ref eNB structure reference to dump
- **/
-void s1ap_dump_enb(const enb_description_t *const enb_ref);
-
-/** \brief Dump the ue related information.
- * hashtable callback. It is called by hashtable_ts_apply_funct_on_elements()
- * Calls s1ap_dump_ue
- **/
-bool s1ap_dump_ue_hash_cb(
-  const hash_key_t keyP,
-  void *const ue_void,
-  void *unused_parameterP,
-  void **unused_resultP);
-
-/** \brief Dump UE related information.
- * \param ue_ref ue structure reference to dump
- **/
-void s1ap_dump_ue(const ue_description_t *const ue_ref);
-
-bool s1ap_enb_find_ue_by_mme_ue_id_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void *const elementP,
-  void *parameterP,
-  void **resultP);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove

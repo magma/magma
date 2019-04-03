@@ -37,10 +37,9 @@ extern "C" {
 
 #include "assertions.h"
 #include "dynamic_memory_check.h"
-}
 
-#include "s1ap_mme.h"
 #include "mme_config.h"
+}
 
 using magma::lte::gateway::s1ap::EnbDescription;
 using magma::lte::gateway::s1ap::S1apState;
@@ -60,6 +59,17 @@ void proto2enb(enb_description_t *enb, EnbDescription *proto);
 
 void ue2proto(UeDescription *proto, ue_description_t *ue);
 void proto2ue(ue_description_t *ue, UeDescription *proto);
+
+bool s1ap_enb_compare_by_enb_id_cb(
+  const hash_key_t keyP,
+  void *const elementP,
+  void *parameterP,
+  void **unused_res);
+bool s1ap_enb_find_ue_by_mme_ue_id_cb(
+  __attribute__((unused)) const hash_key_t keyP,
+  void *const elementP,
+  void *parameterP,
+  void **resultP);
 
 bool in_use = false;
 std::shared_ptr<cpp_redis::client> client = nullptr;
@@ -407,4 +417,48 @@ void proto2ue(ue_description_t *ue, UeDescription *proto)
   ue->s11_sgw_teid = proto->s11_sgw_teid();
   ue->s1ap_ue_context_rel_timer.id = proto->s1ap_ue_context_rel_timer().id();
   ue->s1ap_ue_context_rel_timer.sec = proto->s1ap_ue_context_rel_timer().sec();
+}
+
+bool s1ap_ue_compare_by_mme_ue_id_cb(
+  __attribute__((unused)) const hash_key_t keyP,
+  void *const elementP,
+  void *parameterP,
+  void **resultP)
+{
+  mme_ue_s1ap_id_t *mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t *) parameterP;
+  ue_description_t *ue_ref = (ue_description_t *) elementP;
+  if (*mme_ue_s1ap_id_p == ue_ref->mme_ue_s1ap_id) {
+    *resultP = elementP;
+    OAILOG_TRACE(
+      LOG_S1AP,
+      "Found ue_ref %p mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+      ue_ref,
+      ue_ref->mme_ue_s1ap_id);
+    return true;
+  }
+  return false;
+}
+
+bool s1ap_enb_find_ue_by_mme_ue_id_cb(
+  __attribute__((unused)) const hash_key_t keyP,
+  void *const elementP,
+  void *parameterP,
+  void **resultP)
+{
+  enb_description_t *enb_ref = (enb_description_t *) elementP;
+
+  hashtable_ts_apply_callback_on_elements(
+    (hash_table_ts_t *const) & enb_ref->ue_coll,
+    s1ap_ue_compare_by_mme_ue_id_cb,
+    parameterP,
+    resultP);
+  if (*resultP) {
+    OAILOG_TRACE(
+      LOG_S1AP,
+      "Found ue_ref %p mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+      *resultP,
+      ((ue_description_t *) (*resultP))->mme_ue_s1ap_id);
+    return true;
+  }
+  return false;
 }

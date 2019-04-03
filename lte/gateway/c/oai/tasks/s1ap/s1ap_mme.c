@@ -76,13 +76,24 @@
 #define UE_LIST_OUT(x, args...)
 #endif
 
+bool s1ap_dump_enb_hash_cb(
+  const hash_key_t keyP,
+  void *const enb_void,
+  void *unused_param,
+  void **unused_res);
+bool s1ap_dump_ue_hash_cb(
+  const hash_key_t keyP,
+  void *const ue_void,
+  void *unused_param,
+  void **unused_res);
+void *s1ap_mme_thread(void *args);
+
 bool hss_associated = false;
 uint32_t nb_enb_associated = 0;
 
 s1ap_state_t *s1ap_state = NULL;
 
 static int indent = 0;
-void *s1ap_mme_thread(void *args);
 
 //------------------------------------------------------------------------------
 static int s1ap_send_init_sctp(void)
@@ -320,6 +331,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       } break;
 
       case TERMINATE_MESSAGE: {
+        s1ap_state_put(s1ap_state);
         s1ap_mme_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -387,7 +399,6 @@ void s1ap_mme_exit(void)
 {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
 
-  s1ap_state_put(s1ap_state);
   s1ap_state_exit();
 
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
@@ -475,52 +486,6 @@ void s1ap_dump_ue(const ue_description_t *const ue_ref)
   UE_LIST_OUT("SCTP stream recv: 0x%04x", ue_ref->sctp_stream_recv);
   UE_LIST_OUT("SCTP stream send: 0x%04x", ue_ref->sctp_stream_send);
 #endif
-}
-
-//------------------------------------------------------------------------------
-bool s1ap_ue_compare_by_mme_ue_id_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void *const elementP,
-  void *parameterP,
-  void **resultP)
-{
-  mme_ue_s1ap_id_t *mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t *) parameterP;
-  ue_description_t *ue_ref = (ue_description_t *) elementP;
-  if (*mme_ue_s1ap_id_p == ue_ref->mme_ue_s1ap_id) {
-    *resultP = elementP;
-    OAILOG_TRACE(
-      LOG_S1AP,
-      "Found ue_ref %p mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-      ue_ref,
-      ue_ref->mme_ue_s1ap_id);
-    return true;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
-bool s1ap_enb_find_ue_by_mme_ue_id_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void *const elementP,
-  void *parameterP,
-  void **resultP)
-{
-  enb_description_t *enb_ref = (enb_description_t *) elementP;
-
-  hashtable_ts_apply_callback_on_elements(
-    (hash_table_ts_t *const) & enb_ref->ue_coll,
-    s1ap_ue_compare_by_mme_ue_id_cb,
-    parameterP,
-    resultP);
-  if (*resultP) {
-    OAILOG_TRACE(
-      LOG_S1AP,
-      "Found ue_ref %p mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-      *resultP,
-      ((ue_description_t *) (*resultP))->mme_ue_s1ap_id);
-    return true;
-  }
-  return false;
 }
 
 //------------------------------------------------------------------------------
