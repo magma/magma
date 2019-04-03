@@ -478,23 +478,6 @@ void s1ap_dump_ue(const ue_description_t *const ue_ref)
 }
 
 //------------------------------------------------------------------------------
-// TODO: (amar) unused function check with OAI.
-bool s1ap_ue_compare_by_enb_ue_s1ap_id_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void *elementP,
-  void *parameterP,
-  void **resultP)
-{
-  enb_ue_s1ap_id_t *enb_ue_s1ap_id = (enb_ue_s1ap_id_t *) parameterP;
-  ue_description_t *ue_ref = (ue_description_t *) elementP;
-  if (*enb_ue_s1ap_id == ue_ref->enb_ue_s1ap_id) {
-    *resultP = elementP;
-    return true;
-  }
-  return false;
-}
-
-//------------------------------------------------------------------------------
 bool s1ap_ue_compare_by_mme_ue_id_cb(
   __attribute__((unused)) const hash_key_t keyP,
   void *const elementP,

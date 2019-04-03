@@ -143,7 +143,6 @@ typedef struct enb_description_s {
 
 extern bool hss_associated;
 extern uint32_t nb_enb_associated;
-extern struct mme_config_s *global_mme_config_p;
 
 /** \brief S1AP layer top init
  * @returns -1 in case of failure
@@ -210,12 +209,6 @@ bool s1ap_dump_ue_hash_cb(
  * \param ue_ref ue structure reference to dump
  **/
 void s1ap_dump_ue(const ue_description_t *const ue_ref);
-
-bool s1ap_enb_compare_by_enb_id_cb(
-  const hash_key_t keyP,
-  void *const elementP,
-  void *parameterP,
-  void __attribute__((unused)) * *unused_resultP);
 
 bool s1ap_enb_find_ue_by_mme_ue_id_cb(
   __attribute__((unused)) const hash_key_t keyP,
