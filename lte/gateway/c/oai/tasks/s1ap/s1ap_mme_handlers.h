@@ -42,11 +42,13 @@ struct s1ap_message_s;
  * @returns int
  **/
 int s1ap_mme_handle_message(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
 int s1ap_mme_handle_ue_cap_indication(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
@@ -61,45 +63,58 @@ int s1ap_mme_handle_ue_cap_indication(
  * @returns int
  **/
 int s1ap_mme_handle_s1_setup_request(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
 int s1ap_mme_handle_path_switch_request(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
 int s1ap_mme_handle_ue_context_release_request(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
 int s1ap_handle_ue_context_release_command(
+  s1ap_state_t *state,
   const itti_s1ap_ue_context_release_command_t
     *const ue_context_release_command_pP);
 
 int s1ap_mme_handle_ue_context_release_complete(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
 int s1ap_handle_ue_context_mod_req(
+  s1ap_state_t *state,
   const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP);
 
 int s1ap_mme_handle_initial_context_setup_failure(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
 int s1ap_mme_handle_initial_context_setup_response(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
-int s1ap_handle_sctp_disconnection(const sctp_assoc_id_t assoc_id, bool reset);
+int s1ap_handle_sctp_disconnection(
+  s1ap_state_t *state,
+  const sctp_assoc_id_t assoc_id,
+  bool reset);
 
-int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p);
+int s1ap_handle_new_association(
+  s1ap_state_t *state,
+  sctp_new_peer_t *sctp_new_peer_p);
 
 int s1ap_mme_set_cause(
   S1ap_Cause_t *cause_p,
@@ -113,24 +128,29 @@ int s1ap_mme_generate_s1_setup_failure(
   const long time_to_wait);
 
 int s1ap_mme_handle_erab_setup_response(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
 
 int s1ap_mme_handle_erab_setup_failure(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
 
 void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
+  s1ap_state_t *state,
   ue_description_t *ue_ref_p);
 
 int s1ap_mme_handle_error_ind_message(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
 
 int s1ap_mme_handle_enb_reset(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
@@ -138,17 +158,21 @@ int s1ap_mme_handle_enb_reset(
 int s1ap_handle_enb_initiated_reset_ack(
   const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p);
 
-void s1ap_enb_assoc_clean_up_timer_expiry(enb_description_t *enb_ref_p);
+void s1ap_enb_assoc_clean_up_timer_expiry(
+  s1ap_state_t *state,
+  enb_description_t *enb_ref_p);
 
 int s1ap_handle_paging_request(
   const itti_s1ap_paging_request_t *paging_request);
 
 int s1ap_mme_handle_ue_context_modification_response(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
 int s1ap_mme_handle_ue_context_modification_failure(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);

@@ -27,7 +27,7 @@ extern "C" {
 
 #include "hashtable.h"
 
-#include "s1ap_mme.h"
+#include "s1ap_types.h"
 
 typedef struct s1ap_state_s {
   // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t)

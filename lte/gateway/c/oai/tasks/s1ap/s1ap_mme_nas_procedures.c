@@ -82,10 +82,10 @@
 //static bool                             mme_ue_s1ap_id_has_wrapped = false;
 
 extern const char *s1ap_direction2String[];
-extern s1ap_state_t *s1ap_state;
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_ue_message(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -114,7 +114,7 @@ int s1ap_mme_handle_initial_ue_message(
     stream,
     (enb_ue_s1ap_id_t) initialUEMessage_p->eNB_UE_S1AP_ID);
 
-  if ((eNB_ref = s1ap_state_get_enb(s1ap_state, assoc_id)) == NULL) {
+  if ((eNB_ref = s1ap_state_get_enb(state, assoc_id)) == NULL) {
     OAILOG_ERROR(LOG_S1AP, "Unknown eNB on assoc_id %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -126,7 +126,7 @@ int s1ap_mme_handle_initial_ue_message(
     "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
     "\n",
     enb_ue_s1ap_id);
-  ue_ref = s1ap_state_get_ue_enbid(s1ap_state, eNB_ref, enb_ue_s1ap_id);
+  ue_ref = s1ap_state_get_ue_enbid(state, eNB_ref, enb_ue_s1ap_id);
 
   if (ue_ref == NULL) {
     tai_t tai = {0};
@@ -142,7 +142,7 @@ int s1ap_mme_handle_initial_ue_message(
      * * * * Update eNB UE list.
      * * * * Forward message to NAS.
      */
-    if ((ue_ref = s1ap_new_ue(assoc_id, enb_ue_s1ap_id)) == NULL) {
+    if ((ue_ref = s1ap_new_ue(state, assoc_id, enb_ue_s1ap_id)) == NULL) {
       // If we failed to allocate a new UE return -1
       OAILOG_ERROR(
         LOG_S1AP,
@@ -267,6 +267,7 @@ int s1ap_mme_handle_initial_ue_message(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_uplink_nas_transport(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -285,10 +286,10 @@ int s1ap_mme_handle_uplink_nas_transport(
       LOG_S1AP,
       "Received S1AP UPLINK_NAS_TRANSPORT message MME_UE_S1AP_ID unknown\n");
 
-    enb_ref = s1ap_state_get_enb(s1ap_state, assoc_id);
+    enb_ref = s1ap_state_get_enb(state, assoc_id);
 
     if (!(ue_ref = s1ap_state_get_ue_enbid(
-            s1ap_state,
+            state,
             enb_ref,
             (enb_ue_s1ap_id_t) uplinkNASTransport_p->eNB_UE_S1AP_ID))) {
       OAILOG_WARNING(
@@ -306,7 +307,7 @@ int s1ap_mme_handle_uplink_nas_transport(
       (mme_ue_s1ap_id_t) uplinkNASTransport_p->mme_ue_s1ap_id);
 
     if (!(ue_ref = s1ap_state_get_ue_mmeid(
-            s1ap_state, uplinkNASTransport_p->mme_ue_s1ap_id))) {
+            state, uplinkNASTransport_p->mme_ue_s1ap_id))) {
       OAILOG_WARNING(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT No UE is attached to this "
@@ -370,6 +371,7 @@ int s1ap_mme_handle_uplink_nas_transport(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_nas_non_delivery(
+  s1ap_state_t *state,
   __attribute__((unused)) sctp_assoc_id_t assoc_id,
   sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -415,7 +417,7 @@ int s1ap_mme_handle_nas_non_delivery(
 
   if (
     (ue_ref = s1ap_state_get_ue_mmeid(
-       s1ap_state, nasNonDeliveryIndication_p->mme_ue_s1ap_id)) == NULL) {
+       state, nasNonDeliveryIndication_p->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
@@ -441,6 +443,7 @@ int s1ap_mme_handle_nas_non_delivery(
 
 //------------------------------------------------------------------------------
 int s1ap_generate_downlink_nas_transport(
+  s1ap_state_t *state,
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
   const mme_ue_s1ap_id_t ue_id,
   STOLEN_REF bstring *payload)
@@ -456,11 +459,11 @@ int s1ap_generate_downlink_nas_transport(
   if (
     HASH_TABLE_OK ==
     hashtable_ts_get(
-      &s1ap_state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id)) {
+      &state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id)) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
-    enb_description_t *enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
+    enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(s1ap_state, enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
     } else {
       OAILOG_ERROR(
         LOG_S1AP, "No eNB for SCTP association id %d \n", sctp_assoc_id);
@@ -469,7 +472,7 @@ int s1ap_generate_downlink_nas_transport(
   }
   // TODO remove soon:
   if (!ue_ref) {
-    ue_ref = s1ap_state_get_ue_mmeid(s1ap_state, ue_id);
+    ue_ref = s1ap_state_get_ue_mmeid(state, ue_id);
   }
   // finally!
   if (!ue_ref) {
@@ -549,6 +552,7 @@ int s1ap_generate_downlink_nas_transport(
 
 //------------------------------------------------------------------------------
 int s1ap_generate_s1ap_e_rab_setup_req(
+  s1ap_state_t *state,
   itti_s1ap_e_rab_setup_req_t *const e_rab_setup_req)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -560,17 +564,17 @@ int s1ap_generate_s1ap_e_rab_setup_req(
   const mme_ue_s1ap_id_t ue_id = e_rab_setup_req->mme_ue_s1ap_id;
 
   hashtable_ts_get(
-    &s1ap_state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id);
+    &state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
-    enb_description_t *enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
+    enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(s1ap_state, enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
     }
   }
   // TODO remove soon:
   if (!ue_ref) {
-    ue_ref = s1ap_state_get_ue_mmeid(s1ap_state, ue_id);
+    ue_ref = s1ap_state_get_ue_mmeid(state, ue_id);
   }
   // finally!
   if (!ue_ref) {
@@ -761,6 +765,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
 
 //------------------------------------------------------------------------------
 void s1ap_handle_conn_est_cnf(
+  s1ap_state_t *state,
   const itti_mme_app_connection_establishment_cnf_t *const conn_est_cnf_pP)
 {
   /*
@@ -780,7 +785,7 @@ void s1ap_handle_conn_est_cnf(
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(conn_est_cnf_pP != NULL);
 
-  ue_ref = s1ap_state_get_ue_mmeid(s1ap_state, conn_est_cnf_pP->ue_id);
+  ue_ref = s1ap_state_get_ue_mmeid(state, conn_est_cnf_pP->ue_id);
   if (!ue_ref) {
     OAILOG_ERROR(
       LOG_S1AP,
@@ -981,13 +986,44 @@ void s1ap_handle_conn_est_cnf(
 }
 //------------------------------------------------------------------------------
 void s1ap_handle_mme_ue_id_notification(
+  s1ap_state_t *state,
   const itti_mme_app_s1ap_mme_ue_id_notification_t *const notification_p)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(notification_p != NULL);
-  s1ap_notified_new_ue_mme_s1ap_id_association(
-    notification_p->sctp_assoc_id,
-    notification_p->enb_ue_s1ap_id,
-    notification_p->mme_ue_s1ap_id);
+
+  sctp_assoc_id_t sctp_assoc_id = notification_p->sctp_assoc_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id = notification_p->enb_ue_s1ap_id;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = notification_p->mme_ue_s1ap_id;
+
+  enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
+  if (enb_ref) {
+    ue_description_t *ue_ref =
+      s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
+    if (ue_ref) {
+      ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
+      hashtable_rc_t h_rc = hashtable_ts_insert(
+        &state->mmeid2associd,
+        (const hash_key_t) mme_ue_s1ap_id,
+        (void *) (uintptr_t) sctp_assoc_id);
+      OAILOG_DEBUG(
+        LOG_S1AP,
+        "Associated  sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+        ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
+        sctp_assoc_id,
+        enb_ue_s1ap_id,
+        mme_ue_s1ap_id,
+        hashtable_rc_code2string(h_rc));
+      return;
+    }
+    OAILOG_DEBUG(
+      LOG_S1AP,
+      "Could not find  ue  with enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
+      enb_ue_s1ap_id);
+    return;
+  }
+  OAILOG_DEBUG(
+    LOG_S1AP, "Could not find  eNB with sctp_assoc_id %d \n", sctp_assoc_id);
+
   OAILOG_FUNC_OUT(LOG_S1AP);
 }

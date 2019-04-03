@@ -25,6 +25,9 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
+
+#include "s1ap_mme.h"
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -42,10 +45,8 @@
 #include "msc.h"
 #include "assertions.h"
 #include "mme_app_statistics.h"
-#include "s1ap_mme.h"
 #include "s1ap_mme_decoder.h"
 #include "s1ap_mme_handlers.h"
-#include "s1ap_state.h"
 #include "s1ap_ies_defs.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
@@ -91,8 +92,6 @@ void *s1ap_mme_thread(void *args);
 bool hss_associated = false;
 uint32_t nb_enb_associated = 0;
 
-s1ap_state_t *s1ap_state = NULL;
-
 static int indent = 0;
 
 //------------------------------------------------------------------------------
@@ -121,6 +120,8 @@ static int s1ap_send_init_sctp(void)
 //------------------------------------------------------------------------------
 void *s1ap_mme_thread(__attribute__((unused)) void *args)
 {
+  s1ap_state_t *state;
+
   itti_mark_task_ready(TASK_S1AP);
 
   while (1) {
@@ -133,8 +134,8 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
      */
     itti_receive_msg(TASK_S1AP, &received_message_p);
 
-    s1ap_state = s1ap_state_get();
-    AssertFatal(s1ap_state != NULL, "failed to retrieve s1ap state (was null)");
+    state = s1ap_state_get();
+    AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case ACTIVATE_MESSAGE: {
@@ -163,6 +164,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
           OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
         } else {
           s1ap_mme_handle_message(
+            state,
             SCTP_DATA_IND(received_message_p).assoc_id,
             SCTP_DATA_IND(received_message_p).stream,
             &message);
@@ -188,6 +190,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
        */
       case SCTP_CLOSE_ASSOCIATION: {
         s1ap_handle_sctp_disconnection(
+          state,
           SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
           SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
       } break;
@@ -195,7 +198,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       case SCTP_NEW_ASSOCIATION: {
         increment_counter("mme_new_association", 1, NO_LABELS);
         if (s1ap_handle_new_association(
-              &received_message_p->ittiMsg.sctp_new_peer)) {
+              state, &received_message_p->ittiMsg.sctp_new_peer)) {
           increment_counter("mme_new_association", 1, 1, "result", "failure");
         } else {
           increment_counter("mme_new_association", 1, 1, "result", "success");
@@ -208,6 +211,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
          * * * * This corresponds to a S1AP downlink nas transport message.
          */
         s1ap_generate_downlink_nas_transport(
+          state,
           S1AP_NAS_DL_DATA_REQ(received_message_p).enb_ue_s1ap_id,
           S1AP_NAS_DL_DATA_REQ(received_message_p).mme_ue_s1ap_id,
           &S1AP_NAS_DL_DATA_REQ(received_message_p).nas_msg);
@@ -215,23 +219,23 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
 
       case S1AP_E_RAB_SETUP_REQ: {
         s1ap_generate_s1ap_e_rab_setup_req(
-          &S1AP_E_RAB_SETUP_REQ(received_message_p));
+          state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
       } break;
 
       // From MME_APP task
       case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
         s1ap_handle_ue_context_release_command(
-          &received_message_p->ittiMsg.s1ap_ue_context_release_command);
+          state, &received_message_p->ittiMsg.s1ap_ue_context_release_command);
       } break;
 
       case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
         s1ap_handle_conn_est_cnf(
-          &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
+          state, &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
       } break;
 
       case MME_APP_S1AP_MME_UE_ID_NOTIFICATION: {
         s1ap_handle_mme_ue_id_notification(
-          &MME_APP_S1AP_MME_UE_ID_NOTIFICATION(received_message_p));
+          state, &MME_APP_S1AP_MME_UE_ID_NOTIFICATION(received_message_p));
       } break;
 
       case S1AP_ENB_INITIATED_RESET_ACK: {
@@ -248,7 +252,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       } break;
       case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
         s1ap_handle_ue_context_mod_req(
-          &received_message_p->ittiMsg.s1ap_ue_context_mod_request);
+          state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request);
       } break;
 
       case TIMER_HAS_EXPIRED: {
@@ -266,8 +270,8 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
           if (timer_arg.timer_class == S1AP_UE_TIMER) {
             mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
             if (
-              (ue_ref_p =
-                 s1ap_state_get_ue_mmeid(s1ap_state, mme_ue_s1ap_id)) == NULL) {
+              (ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) ==
+              NULL) {
               OAILOG_WARNING(
                 LOG_S1AP,
                 "Timer expired but no assoicated UE context for UE id %d\n",
@@ -286,12 +290,11 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
                 mme_ue_s1ap_id);
               increment_counter(
                 "ue_context_release_command_timer_expired", 1, NO_LABELS);
-              s1ap_mme_handle_ue_context_rel_comp_timer_expiry(ue_ref_p);
+              s1ap_mme_handle_ue_context_rel_comp_timer_expiry(state, ue_ref_p);
             }
           } else if (timer_arg.timer_class == S1AP_ENB_TIMER) {
             sctp_assoc_id_t assoc_id = timer_arg.instance_id;
-            if (
-              (enb_ref_p = s1ap_state_get_enb(s1ap_state, assoc_id)) == NULL) {
+            if ((enb_ref_p = s1ap_state_get_enb(state, assoc_id)) == NULL) {
               OAILOG_WARNING(
                 LOG_S1AP,
                 "Timer expired but no assoicated eNB context for eNB assoc_id "
@@ -311,7 +314,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
                 assoc_id);
               increment_counter(
                 "enb_sctp_shutdown_ue_clean_up_timer_expired", 1, NO_LABELS);
-              s1ap_enb_assoc_clean_up_timer_expiry(enb_ref_p);
+              s1ap_enb_assoc_clean_up_timer_expiry(state, enb_ref_p);
             }
           } else {
             OAILOG_WARNING(
@@ -331,7 +334,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       } break;
 
       case TERMINATE_MESSAGE: {
-        s1ap_state_put(s1ap_state);
+        s1ap_state_put(state);
         s1ap_mme_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -348,7 +351,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       } break;
     }
 
-    s1ap_state_put(s1ap_state);
+    s1ap_state_put(state);
 
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -405,10 +408,10 @@ void s1ap_mme_exit(void)
 }
 
 //------------------------------------------------------------------------------
-void s1ap_dump_enb_list(void)
+void s1ap_dump_enb_list(s1ap_state_t *state)
 {
   hashtable_ts_apply_callback_on_elements(
-    &s1ap_state->enbs, s1ap_dump_enb_hash_cb, NULL, NULL);
+    &state->enbs, s1ap_dump_enb_hash_cb, NULL, NULL);
 }
 
 //------------------------------------------------------------------------------
@@ -489,42 +492,6 @@ void s1ap_dump_ue(const ue_description_t *const ue_ref)
 }
 
 //------------------------------------------------------------------------------
-void s1ap_notified_new_ue_mme_s1ap_id_association(
-  const sctp_assoc_id_t sctp_assoc_id,
-  const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id)
-{
-  enb_description_t *enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
-  if (enb_ref) {
-    ue_description_t *ue_ref =
-      s1ap_state_get_ue_enbid(s1ap_state, enb_ref, enb_ue_s1ap_id);
-    if (ue_ref) {
-      ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
-      hashtable_rc_t h_rc = hashtable_ts_insert(
-        &s1ap_state->mmeid2associd,
-        (const hash_key_t) mme_ue_s1ap_id,
-        (void *) (uintptr_t) sctp_assoc_id);
-      OAILOG_DEBUG(
-        LOG_S1AP,
-        "Associated  sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-        ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
-        sctp_assoc_id,
-        enb_ue_s1ap_id,
-        mme_ue_s1ap_id,
-        hashtable_rc_code2string(h_rc));
-      return;
-    }
-    OAILOG_DEBUG(
-      LOG_S1AP,
-      "Could not find  ue  with enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
-      enb_ue_s1ap_id);
-    return;
-  }
-  OAILOG_DEBUG(
-    LOG_S1AP, "Could not find  eNB with sctp_assoc_id %d \n", sctp_assoc_id);
-}
-
-//------------------------------------------------------------------------------
 enb_description_t *s1ap_new_enb(void)
 {
   enb_description_t *enb_ref = NULL;
@@ -550,13 +517,14 @@ enb_description_t *s1ap_new_enb(void)
 
 //------------------------------------------------------------------------------
 ue_description_t *s1ap_new_ue(
+  s1ap_state_t *state,
   const sctp_assoc_id_t sctp_assoc_id,
   enb_ue_s1ap_id_t enb_ue_s1ap_id)
 {
   enb_description_t *enb_ref = NULL;
   ue_description_t *ue_ref = NULL;
 
-  enb_ref = s1ap_state_get_enb(s1ap_state, sctp_assoc_id);
+  enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
   ue_ref = calloc(1, sizeof(ue_description_t));
   /*
@@ -589,7 +557,7 @@ ue_description_t *s1ap_new_ue(
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_ue(ue_description_t *ue_ref)
+void s1ap_remove_ue(s1ap_state_t *state, ue_description_t *ue_ref)
 {
   enb_description_t *enb_ref = NULL;
 
@@ -631,7 +599,7 @@ void s1ap_remove_ue(ue_description_t *ue_ref)
 
   ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
   hashtable_ts_free(&enb_ref->ue_coll, ue_ref->enb_ue_s1ap_id);
-  hashtable_ts_free(&s1ap_state->mmeid2associd, mme_ue_s1ap_id);
+  hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
@@ -639,14 +607,14 @@ void s1ap_remove_ue(ue_description_t *ue_ref)
       update_mme_app_stats_connected_enb_sub();
     } else if (enb_ref->s1_state == S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
-      s1ap_remove_enb(enb_ref);
+      s1ap_remove_enb(state, enb_ref);
       update_mme_app_stats_connected_enb_sub();
     }
   }
 }
 
 //------------------------------------------------------------------------------
-void s1ap_remove_enb(enb_description_t *enb_ref)
+void s1ap_remove_enb(s1ap_state_t *state, enb_description_t *enb_ref)
 {
   if (enb_ref == NULL) {
     return;
@@ -669,6 +637,6 @@ void s1ap_remove_enb(enb_description_t *enb_ref)
   }
   enb_ref->s1_state = S1AP_INIT;
   hashtable_ts_destroy(&enb_ref->ue_coll);
-  hashtable_ts_free(&s1ap_state->enbs, enb_ref->sctp_assoc_id);
+  hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
   nb_enb_associated--;
 }
