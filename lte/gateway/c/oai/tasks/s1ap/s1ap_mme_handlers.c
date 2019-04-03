@@ -110,11 +110,6 @@ struct S1ap_E_RABSetupItemBearerSURes_s;
 struct S1ap_E_RABSetupItemCtxtSURes_s;
 struct S1ap_IE;
 
-static const char *const s1_enb_state_str[] = {"S1AP_INIT",
-                                               "S1AP_RESETTING",
-                                               "S1AP_READY",
-                                               "S1AP_SHUTDOWN"};
-
 static int s1ap_generate_s1_setup_response(
   s1ap_state_t *state,
   enb_description_t *enb_association);
@@ -190,13 +185,6 @@ s1ap_message_handler_t message_handlers[][3] = {
   {0, 0, 0}, /* UplinkNonUEAssociatedLPPaTransport */
 };
 
-const char *s1ap_direction2String[] = {
-  "",                      /* Nothing */
-  "Originating message",   /* originating message */
-  "Successfull outcome",   /* successfull outcome */
-  "UnSuccessfull outcome", /* successfull outcome */
-};
-
 int s1ap_mme_handle_message(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
@@ -229,7 +217,7 @@ int s1ap_mme_handle_message(
       "[SCTP %d] No handler for procedureCode %d in %s\n",
       assoc_id,
       (int) message->procedureCode,
-      s1ap_direction2String[(int) message->direction]);
+      s1ap_direction2str(message->direction));
     return -2;
   }
 
@@ -362,7 +350,7 @@ int s1ap_mme_handle_s1_setup_request(
     NULL,
     0,
     "0 S1Setup/%s assoc_id %u stream %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     assoc_id,
     stream);
 
@@ -411,7 +399,7 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_WARNING(
       LOG_S1AP,
       "Ignoring s1setup from eNB in state %s on assoc id %u",
-      s1_enb_state_str[enb_association->s1_state],
+      s1_enb_state2str(enb_association->s1_state),
       assoc_id);
     rc = s1ap_mme_generate_s1_setup_failure(
       assoc_id,
@@ -677,7 +665,7 @@ int s1ap_mme_handle_ue_cap_indication(
     0,
     "0 UECapabilityInfoIndication/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ue_cap_p->eNB_UE_S1AP_ID,
     ue_cap_p->mme_ue_s1ap_id);
 
@@ -782,7 +770,7 @@ int s1ap_mme_handle_initial_context_setup_response(
     0,
     "0 InitialContextSetup/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     initialContextSetupResponseIEs_p->eNB_UE_S1AP_ID,
     initialContextSetupResponseIEs_p->mme_ue_s1ap_id);
 
@@ -886,7 +874,7 @@ int s1ap_mme_handle_ue_context_release_request(
     0,
     "0 UEContextReleaseRequest/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextReleaseRequest_p->eNB_UE_S1AP_ID,
     ueContextReleaseRequest_p->mme_ue_s1ap_id);
   // Log the Cause Type and Cause value
@@ -1376,7 +1364,7 @@ int s1ap_mme_handle_ue_context_release_complete(
     0,
     "0 UEContextRelease/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextReleaseComplete_p->eNB_UE_S1AP_ID,
     ueContextReleaseComplete_p->mme_ue_s1ap_id);
 
@@ -1451,7 +1439,7 @@ int s1ap_mme_handle_initial_context_setup_failure(
     0,
     "0 InitialContextSetup/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     initialContextSetupFailureIEs_p->eNB_UE_S1AP_ID,
     initialContextSetupFailureIEs_p->mme_ue_s1ap_id);
 
@@ -1584,7 +1572,7 @@ int s1ap_mme_handle_ue_context_modification_response(
     0,
     "0 UEContextModificationResponse/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextModification_p->eNB_UE_S1AP_ID,
     ueContextMofification_p->mme_ue_s1ap_id);
 
@@ -1684,7 +1672,7 @@ int s1ap_mme_handle_ue_context_modification_failure(
     0,
     "0 UEContextModificationFailure/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextMofification_p->eNB_UE_S1AP_ID,
     ueContextMofification_p->mme_ue_s1ap_id);
 
@@ -2142,7 +2130,7 @@ int s1ap_handle_new_association(
       LOG_S1AP,
       "Received new association request on an association that is being %s, "
       "ignoring",
-      s1_enb_state_str[enb_association->s1_state]);
+      s1_enb_state2str(enb_association->s1_state));
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
     OAILOG_DEBUG(
@@ -2246,7 +2234,7 @@ int s1ap_mme_handle_erab_setup_response(
     0,
     "0 E_RABSetupResponse/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     s1ap_E_RABSetupResponseIEs_p->eNB_UE_S1AP_ID,
     s1ap_E_RABSetupResponseIEs_p->mme_ue_s1ap_id);
 
@@ -2740,4 +2728,26 @@ int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
   }
   free_s1ap_paging(paging_message);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+}
+
+const char *s1_enb_state2str(enum mme_s1_enb_state_s state)
+{
+  switch (state) {
+    case S1AP_INIT: return "S1AP_INIT";
+    case S1AP_RESETING: return "S1AP_RESETING";
+    case S1AP_READY: return "S1AP_READY";
+    case S1AP_SHUTDOWN: return "S1AP_SHUTDOWN";
+    default: return "unknown s1ap_enb_state";
+  }
+}
+
+const char *s1ap_direction2str(uint8_t dir)
+{
+  switch (dir) {
+    case S1AP_PDU_PR_NOTHING: return "<nothing>";
+    case S1AP_PDU_PR_initiatingMessage: return "originating message";
+    case S1AP_PDU_PR_successfulOutcome: return "successful outcome";
+    case S1AP_PDU_PR_unsuccessfulOutcome: return "unsuccessful outcome";
+    default: return "unknown direction";
+  }
 }

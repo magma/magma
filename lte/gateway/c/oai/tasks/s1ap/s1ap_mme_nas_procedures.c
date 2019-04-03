@@ -74,15 +74,6 @@
 #include "nas/securityDef.h"
 #include "s1ap_state.h"
 
-/* Every time a new UE is associated, increment this variable.
-   But care if it wraps to increment also the mme_ue_s1ap_id_has_wrapped
-   variable. Limit: UINT32_MAX (in stdint.h).
-*/
-//static mme_ue_s1ap_id_t                 mme_ue_s1ap_id = 0;
-//static bool                             mme_ue_s1ap_id_has_wrapped = false;
-
-extern const char *s1ap_direction2String[];
-
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_ue_message(
   s1ap_state_t *state,
@@ -109,7 +100,7 @@ int s1ap_mme_handle_initial_ue_message(
     NULL,
     0,
     "0 initialUEMessage/%s assoc_id %u stream %u " ENB_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     assoc_id,
     stream,
     (enb_ue_s1ap_id_t) initialUEMessage_p->eNB_UE_S1AP_ID);
@@ -329,7 +320,7 @@ int s1ap_mme_handle_uplink_nas_transport(
       0,
       "0 uplinkNASTransport/%s mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
       " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " nas len %u",
-      s1ap_direction2String[message->direction],
+      s1ap_direction2str(message->direction),
       (mme_ue_s1ap_id_t) uplinkNASTransport_p->mme_ue_s1ap_id,
       (enb_ue_s1ap_id_t) uplinkNASTransport_p->eNB_UE_S1AP_ID,
       uplinkNASTransport_p->nas_pdu.size);
@@ -357,7 +348,7 @@ int s1ap_mme_handle_uplink_nas_transport(
     0,
     "0 uplinkNASTransport/%s mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
     " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " nas len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     (mme_ue_s1ap_id_t) uplinkNASTransport_p->mme_ue_s1ap_id,
     (enb_ue_s1ap_id_t) uplinkNASTransport_p->eNB_UE_S1AP_ID,
     uplinkNASTransport_p->nas_pdu.size);
@@ -409,7 +400,7 @@ int s1ap_mme_handle_nas_non_delivery(
     0,
     "0 NASNonDeliveryIndication/%s mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
     " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " cause %u nas len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     (mme_ue_s1ap_id_t) nasNonDeliveryIndication_p->mme_ue_s1ap_id,
     (enb_ue_s1ap_id_t) nasNonDeliveryIndication_p->eNB_UE_S1AP_ID,
     nasNonDeliveryIndication_p->cause,

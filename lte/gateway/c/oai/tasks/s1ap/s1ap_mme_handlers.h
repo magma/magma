@@ -35,6 +35,9 @@ struct s1ap_message_s;
 
 #define MAX_NUM_PARTIAL_S1_CONN_RESET 256
 
+const char *s1_enb_state2str(enum mme_s1_enb_state_s state);
+const char *s1ap_direction2str(uint8_t dir);
+
 /** \brief Handle decoded incoming messages from SCTP
  * \param assoc_id SCTP association ID
  * \param stream Stream number
