@@ -15,6 +15,7 @@ module.exports = {
     '**/fbcnms-packages/**/*.js',
     '!**/__mocks__/**',
     '!**/__tests__/**',
+    '!**/node_modules/**',
   ],
   coverageReporters: ['json'],
   moduleNameMapper: {
