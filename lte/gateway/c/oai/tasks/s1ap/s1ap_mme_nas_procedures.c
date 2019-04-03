@@ -72,6 +72,7 @@
 #include "TrackingAreaIdentity.h"
 #include "asn_SEQUENCE_OF.h"
 #include "nas/securityDef.h"
+#include "s1ap_state.h"
 
 /* Every time a new UE is associated, increment this variable.
    But care if it wraps to increment also the mme_ue_s1ap_id_has_wrapped
@@ -81,8 +82,7 @@
 //static bool                             mme_ue_s1ap_id_has_wrapped = false;
 
 extern const char *s1ap_direction2String[];
-extern hash_table_ts_t
-  g_s1ap_mme_id2assoc_id_coll; // contains sctp association id, key is mme_ue_s1ap_id;
+extern s1ap_state_t *s1ap_state;
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_ue_message(
@@ -455,7 +455,7 @@ int s1ap_generate_downlink_nas_transport(
   if (
     HASH_TABLE_OK ==
     hashtable_ts_get(
-      &g_s1ap_mme_id2assoc_id_coll, (const hash_key_t) ue_id, (void **) &id)) {
+      &s1ap_state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id)) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);
     if (enb_ref) {
@@ -559,7 +559,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
   const mme_ue_s1ap_id_t ue_id = e_rab_setup_req->mme_ue_s1ap_id;
 
   hashtable_ts_get(
-    &g_s1ap_mme_id2assoc_id_coll, (const hash_key_t) ue_id, (void **) &id);
+    &s1ap_state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id);
   if (id) {
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);

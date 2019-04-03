@@ -79,12 +79,7 @@
 bool hss_associated = false;
 uint32_t nb_enb_associated = 0;
 
-hash_table_ts_t g_s1ap_enb_coll = {
-  .mutex = PTHREAD_MUTEX_INITIALIZER,
-  0}; // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t);
-hash_table_ts_t g_s1ap_mme_id2assoc_id_coll = {
-  .mutex = PTHREAD_MUTEX_INITIALIZER,
-  0}; // contains sctp association id, key is mme_ue_s1ap_id;
+s1ap_state_t *s1ap_state = NULL;
 
 static int indent = 0;
 void *s1ap_mme_thread(void *args);
@@ -126,6 +121,9 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
      * * * * message is sent to the task.
      */
     itti_receive_msg(TASK_S1AP, &received_message_p);
+
+    s1ap_state = s1ap_state_get();
+    AssertFatal(s1ap_state != NULL, "failed to retrieve s1ap state (was null)");
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case ACTIVATE_MESSAGE: {
@@ -336,6 +334,8 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       } break;
     }
 
+    s1ap_state_put(s1ap_state);
+
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
@@ -356,28 +356,15 @@ int s1ap_mme_init(void)
       get_asn1c_environment_version(),
       ASN1_MINIMUM_VERSION);
     return RETURNerror;
-  } else {
-    OAILOG_DEBUG(
-      LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
   }
 
+  OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
   OAILOG_DEBUG(LOG_S1AP, "S1AP Release v10.5\n");
-  // 16 entries for n eNB.
-  bstring bs1 = bfromcstr("s1ap_eNB_coll");
-  hash_table_ts_t *h = hashtable_ts_init(
-    &g_s1ap_enb_coll, mme_config.max_enbs, NULL, free_wrapper, bs1);
-  bdestroy_wrapper(&bs1);
-  if (!h) return RETURNerror;
 
-  bstring bs2 = bfromcstr("s1ap_mme_id2assoc_id_coll");
-  h = hashtable_ts_init(
-    &g_s1ap_mme_id2assoc_id_coll,
-    mme_config.max_ues,
-    NULL,
-    hash_free_int_func,
-    bs2);
-  bdestroy_wrapper(&bs2);
-  if (!h) return RETURNerror;
+  if (s1ap_state_init() < 0) {
+    OAILOG_ERROR(LOG_S1AP, "Error while initing S1AP state\n");
+    return RETURNerror;
+  }
 
   if (itti_create_task(TASK_S1AP, &s1ap_mme_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while creating S1AP task\n");
@@ -397,12 +384,10 @@ int s1ap_mme_init(void)
 void s1ap_mme_exit(void)
 {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
-  if (hashtable_ts_destroy(&g_s1ap_enb_coll) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occured while destroying s1 eNB hash table");
-  }
-  if (hashtable_ts_destroy(&g_s1ap_mme_id2assoc_id_coll) != HASH_TABLE_OK) {
-    OAI_FPRINTF_ERR("An error occured while destroying assoc_id hash table");
-  }
+
+  s1ap_state_put(s1ap_state);
+  s1ap_state_exit();
+
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
 }
 
@@ -410,7 +395,7 @@ void s1ap_mme_exit(void)
 void s1ap_dump_enb_list(void)
 {
   hashtable_ts_apply_callback_on_elements(
-    &g_s1ap_enb_coll, s1ap_dump_enb_hash_cb, NULL, NULL);
+    &s1ap_state->enbs, s1ap_dump_enb_hash_cb, NULL, NULL);
 }
 
 //------------------------------------------------------------------------------
@@ -510,7 +495,7 @@ enb_description_t *s1ap_is_enb_id_in_list(const uint32_t enb_id)
   enb_description_t *enb_ref = NULL;
   uint32_t *enb_id_p = (uint32_t *) &enb_id;
   hashtable_ts_apply_callback_on_elements(
-    (hash_table_ts_t *const) & g_s1ap_enb_coll,
+    (hash_table_ts_t *const) & s1ap_state->enbs,
     s1ap_enb_compare_by_enb_id_cb,
     (void *) enb_id_p,
     (void **) &enb_ref);
@@ -523,7 +508,7 @@ enb_description_t *s1ap_is_enb_assoc_id_in_list(
 {
   enb_description_t *enb_ref = NULL;
   hashtable_ts_get(
-    &g_s1ap_enb_coll, (const hash_key_t) sctp_assoc_id, (void **) &enb_ref);
+    &s1ap_state->enbs, (const hash_key_t) sctp_assoc_id, (void **) &enb_ref);
   return enb_ref;
 }
 
@@ -645,7 +630,7 @@ ue_description_t *s1ap_is_ue_mme_id_in_list(
   mme_ue_s1ap_id_t *mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t *) &mme_ue_s1ap_id;
 
   hashtable_ts_apply_callback_on_elements(
-    &g_s1ap_enb_coll,
+    &s1ap_state->enbs,
     s1ap_enb_find_ue_by_mme_ue_id_cb,
     (void *) mme_ue_s1ap_id_p,
     (void **) &ue_ref);
@@ -661,7 +646,7 @@ ue_description_t *s1ap_is_s11_sgw_teid_in_list(const s11_teid_t teid)
   s11_teid_t *teid_id_p = (s11_teid_t *) &teid;
 
   hashtable_ts_apply_callback_on_elements(
-    &g_s1ap_enb_coll,
+    &s1ap_state->enbs,
     s1ap_enb_find_ue_by_s11_sgw_teid_cb,
     (void *) teid_id_p,
     (void **) &ue_ref);
@@ -681,7 +666,7 @@ void s1ap_notified_new_ue_mme_s1ap_id_association(
     if (ue_ref) {
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
       hashtable_rc_t h_rc = hashtable_ts_insert(
-        &g_s1ap_mme_id2assoc_id_coll,
+        &s1ap_state->mmeid2associd,
         (const hash_key_t) mme_ue_s1ap_id,
         (void *) (uintptr_t) sctp_assoc_id);
       OAILOG_DEBUG(
@@ -811,7 +796,7 @@ void s1ap_remove_ue(ue_description_t *ue_ref)
 
   ue_ref->s1_ue_state = S1AP_UE_INVALID_STATE;
   hashtable_ts_free(&enb_ref->ue_coll, ue_ref->enb_ue_s1ap_id);
-  hashtable_ts_free(&g_s1ap_mme_id2assoc_id_coll, mme_ue_s1ap_id);
+  hashtable_ts_free(&s1ap_state->mmeid2associd, mme_ue_s1ap_id);
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
@@ -849,6 +834,6 @@ void s1ap_remove_enb(enb_description_t *enb_ref)
   }
   enb_ref->s1_state = S1AP_INIT;
   hashtable_ts_destroy(&enb_ref->ue_coll);
-  hashtable_ts_free(&g_s1ap_enb_coll, enb_ref->sctp_assoc_id);
+  hashtable_ts_free(&s1ap_state->enbs, enb_ref->sctp_assoc_id);
   nb_enb_associated--;
 }

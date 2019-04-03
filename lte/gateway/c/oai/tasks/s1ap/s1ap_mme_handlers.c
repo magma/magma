@@ -103,14 +103,14 @@
 #include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "service303.h"
+#include "s1ap_state.h"
 
 struct S1ap_E_RABItem_s;
 struct S1ap_E_RABSetupItemBearerSURes_s;
 struct S1ap_E_RABSetupItemCtxtSURes_s;
 struct S1ap_IE;
 
-extern hash_table_ts_t
-  g_s1ap_enb_coll; // contains eNB_description_s, key is eNB_description_s.assoc_id
+extern s1ap_state_t *s1ap_state;
 
 static const char *const s1_enb_state_str[] = {"S1AP_INIT",
                                                "S1AP_RESETTING",
@@ -2159,7 +2159,7 @@ int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p)
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
     hashtable_rc_t hash_rc = hashtable_ts_insert(
-      &g_s1ap_enb_coll,
+      &s1ap_state->enbs,
       (const hash_key_t) enb_association->sctp_assoc_id,
       (void *) enb_association);
     if (HASH_TABLE_OK != hash_rc) {
