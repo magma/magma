@@ -195,9 +195,8 @@ int s1ap_mme_handle_message(
    * Checking procedure Code and direction of message
    */
   if (
-    (message->procedureCode >
-     (sizeof(message_handlers) / (3 * sizeof(s1ap_message_handler_t)))) ||
-    (message->direction > S1AP_PDU_PR_unsuccessfulOutcome)) {
+    message->procedureCode >= COUNT_OF(message_handlers) ||
+    message->direction > S1AP_PDU_PR_unsuccessfulOutcome) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n",
