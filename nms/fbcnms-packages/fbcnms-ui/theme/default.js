@@ -42,6 +42,7 @@ export default createMuiTheme({
     },
     red: red,
     redwood: redwood,
+    dark: '#1d2129',
   },
   overrides: {
     MuiAppBar: {
