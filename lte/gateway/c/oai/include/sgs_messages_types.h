@@ -96,6 +96,7 @@ typedef enum SgsCause_e {
 } SgsCause_t;
 
 typedef enum SgsRejectCause_e {
+  SGS_INVALID_CAUSE,
   SGS_IMSI_UNKNOWN_IN_HLR = 2,
   SGS_ILLEGAL_MS = 3,
   SGS_IMSI_UNKNOWN_IN_VLR = 4,

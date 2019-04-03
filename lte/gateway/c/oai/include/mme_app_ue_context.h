@@ -321,7 +321,7 @@ typedef struct sgs_context_s {
                                                                  reception of SGS SERVICE ABORT message fom MSC/VLR*/
   bool mt_call_in_progress; /* Indicates if MT call is in progress, used when
                                                                  SERVICE ABORT is received from MSC*/
-  bool is_emergency_call;   /* True - if the call is of type Emergency call */
+  bool is_emergency_call; /* True - if the call is of type Emergency call */
 } sgs_context_t;
 
 /** @struct ue_mm_context_t
@@ -385,6 +385,7 @@ typedef struct ue_mm_context_s {
   // b) an expected response XRES,
   // c) Key K ASME ,
   // d) a network authentication token AUTN.
+
 
   /* TODO: add ue radio cap, ms classmarks, supported codecs */
 

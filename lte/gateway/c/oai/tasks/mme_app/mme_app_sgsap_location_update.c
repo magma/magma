@@ -81,7 +81,7 @@ void _mme_app_send_itti_sgsap_ue_activity_ind(
   SGSAP_UE_ACTIVITY_IND (message_p).imsi_length = imsi_len;
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
   OAILOG_DEBUG(LOG_NAS,
-     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi :"
+     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
      "%s %d \n", imsi,imsi_len);
 
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -225,6 +225,7 @@ static int _send_cs_domain_loc_updt_acc_to_nas(
     } else if (is_sgs_assoc_exists == SGS_ASSOC_INACTIVE) {
       OAILOG_ERROR(
         LOG_MME_APP, "Failed send CS domain Location Update Accept to NAS \n");
+      itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   }
@@ -297,6 +298,7 @@ static int _is_combined_tau(
 {
   int rc = RETURNerror;
 
+  OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(ue_context != NULL);
   DevAssert(ue_context->sgs_context != NULL);
 
@@ -382,7 +384,7 @@ static int _is_combined_tau(
                                                     strlen(imsi_str));
            mme_ue_context_update_ue_sgs_neaf(
               itti_nas_location_update_req->ue_id, false);
-         }
+        }
       } else {
         rc = RETURNok;
       }

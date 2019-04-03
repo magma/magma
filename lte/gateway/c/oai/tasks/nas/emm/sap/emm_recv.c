@@ -735,6 +735,7 @@ int emm_recv_service_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
   emm_context_t *emm_ctx = NULL;
+  csfb_service_type_t service_type;
   *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
 
   OAILOG_INFO(
@@ -752,16 +753,23 @@ int emm_recv_service_request(
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
     emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
   }
-  /*
-   * if service request is recieved for either SMS or PS data,
-   * and if neaf flag is true then send the itti message to SGS
-   * For triggering SGS ue activity indication message towards MSC.
-   */
-  if (mme_ue_context_get_ue_sgs_neaf(ue_id) == true) {
-    char imsi_str[IMSI_BCD8_SIZE + 1];
-    IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-    nas_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
-    mme_ue_context_update_ue_sgs_neaf(ue_id, false);
+  if(PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
+     ->sgs_context) {
+    service_type = PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
+                   ->sgs_context->csfb_service_type;
+    /*
+     * if service request is received for either MO SMS or PS data,
+     * and if neaf flag is true then send the itti message to SGS
+     * For triggering SGS ue activity indication message towards MSC.
+     */
+    if (mme_ue_context_get_ue_sgs_neaf(ue_id) == true) {
+      if(service_type != CSFB_SERVICE_MT_SMS) {
+        char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+        IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
+        nas_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+      }
+      mme_ue_context_update_ue_sgs_neaf(ue_id, false);
+    }
   }
   /*
    * Do following:
@@ -1284,7 +1292,7 @@ int emm_recv_tau_complete(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Complete message\n");
+  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received TAU Complete message\n");
   /*
    * Execute the attach procedure completion
    */
