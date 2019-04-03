@@ -20,6 +20,8 @@ export default function(
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const queryText = query().text;
+  const variablesJSON = JSON.stringify(variables);
   useEffect(() => {
     if (!Object.keys(variables).length) {
       return;
@@ -36,7 +38,7 @@ export default function(
         setError(error);
         setIsLoading(false);
       });
-  }, [query().text, JSON.stringify(variables)]);
+  }, [queryText, variablesJSON]);
 
   return {error, response, isLoading};
 }

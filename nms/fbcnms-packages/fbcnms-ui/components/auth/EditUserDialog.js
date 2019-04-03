@@ -111,7 +111,7 @@ export default function EditUserDialog(props: Props) {
     } else {
       props.onCreateUser(payload);
     }
-  });
+  }, [password, confirmPassword, email, isSuperUser, networkIds, props]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
