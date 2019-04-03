@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package magma.lte.gateway.s1ap;
 
+option go_package = "magma/lte/cloud/go/protos";
+
 message S1apTimer {
   int32 id = 1;  // long
   int32 sec = 2; // long
