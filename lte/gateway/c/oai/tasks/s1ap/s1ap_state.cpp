@@ -114,6 +114,45 @@ void s1ap_state_put(s1ap_state_t *state)
   in_use = false;
 }
 
+enb_description_t *s1ap_state_get_enb(
+  s1ap_state_t *state,
+  sctp_assoc_id_t assoc_id)
+{
+  enb_description_t *enb = NULL;
+
+  hashtable_ts_get(&state->enbs, (const hash_key_t) assoc_id, (void **) &enb);
+
+  return enb;
+}
+
+ue_description_t *s1ap_state_get_ue_enbid(
+  s1ap_state_t *state,
+  enb_description_t *enb,
+  enb_ue_s1ap_id_t enb_ue_s1ap_id)
+{
+  ue_description_t *ue = NULL;
+
+  hashtable_ts_get(
+    &enb->ue_coll, (const hash_key_t) enb_ue_s1ap_id, (void **) &ue);
+
+  return ue;
+}
+
+ue_description_t *s1ap_state_get_ue_mmeid(
+  s1ap_state_t *state,
+  mme_ue_s1ap_id_t mme_ue_s1ap_id)
+{
+  ue_description_t *ue = NULL;
+
+  hashtable_ts_apply_callback_on_elements(
+    &state->enbs,
+    s1ap_enb_find_ue_by_mme_ue_id_cb,
+    &mme_ue_s1ap_id,
+    (void **) &ue);
+
+  return ue;
+}
+
 s1ap_state_t *s1ap_state_new(void)
 {
   s1ap_state_t *state;

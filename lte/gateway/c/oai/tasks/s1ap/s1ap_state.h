@@ -27,6 +27,8 @@ extern "C" {
 
 #include "hashtable.h"
 
+#include "s1ap_mme.h"
+
 typedef struct s1ap_state_s {
   // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t)
   hash_table_ts_t enbs;
@@ -39,6 +41,17 @@ void s1ap_state_exit(void);
 
 s1ap_state_t *s1ap_state_get(void);
 void s1ap_state_put(s1ap_state_t *state);
+
+enb_description_t *s1ap_state_get_enb(
+  s1ap_state_t *state,
+  sctp_assoc_id_t assoc_id);
+ue_description_t *s1ap_state_get_ue_enbid(
+  s1ap_state_t *state,
+  enb_description_t *enb,
+  enb_ue_s1ap_id_t enb_ue_s1ap_id);
+ue_description_t *s1ap_state_get_ue_mmeid(
+  s1ap_state_t *state,
+  mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 #ifdef __cplusplus
 }

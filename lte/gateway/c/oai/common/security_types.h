@@ -38,10 +38,6 @@
 #include "config.h"
 #endif
 
-#if !defined(HAVE_UINT128_T)
-#include <gmp.h>
-#endif
-
 #ifndef FILE_SECURITY_TYPES_SEEN
 #define FILE_SECURITY_TYPES_SEEN
 
