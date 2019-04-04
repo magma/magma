@@ -15,24 +15,30 @@ const path = require('path');
 
 const {AccessRoles} = require('./roles');
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
-const express = require('express');
 const logger = require('@fbcnms/logging').getLogger(module);
 const openRoutes = require('./openRoutes').default;
 
+import type {FBCNMSPassportRequest} from './passport';
+import type {ExpressResponse, NextFunction} from 'express';
+
+type Options = {loginUrl: string};
+// Final type, thus naming it as thus.
+export type FBCNMSRequest = FBCNMSPassportRequest & {access: Options};
+
 const validators = {
-  [AccessRoles.USER]: req => {
+  [AccessRoles.USER]: (req: FBCNMSPassportRequest) => {
     return req.isAuthenticated();
   },
-  [AccessRoles.SUPERUSER]: req => {
+  [AccessRoles.SUPERUSER]: (req: FBCNMSPassportRequest) => {
     return req.user && req.user.role === AccessRoles.SUPERUSER;
   },
 };
 
-export const configureAccess = (options: {loginUrl: string}) => {
+export const configureAccess = (options: Options) => {
   return function setup(
-    req: express.Request,
-    _res: express.Response,
-    next: express.Next,
+    req: FBCNMSPassportRequest & {access?: Options},
+    _res: ExpressResponse,
+    next: NextFunction,
   ) {
     req.access = options;
     next();
@@ -41,9 +47,9 @@ export const configureAccess = (options: {loginUrl: string}) => {
 
 export const access = (level: AccessRoleLevel) => {
   return async function access(
-    req: express.Request,
-    res: express.Response,
-    next: express.Next,
+    req: FBCNMSRequest,
+    res: ExpressResponse,
+    next: NextFunction,
   ) {
     const normalizedURL = path.normalize(req.originalUrl);
     const isOpenRoute = openRoutes.some(route => normalizedURL.match(route));

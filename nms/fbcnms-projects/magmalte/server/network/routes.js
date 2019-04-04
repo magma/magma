@@ -20,6 +20,8 @@ import {apiCredentials, API_HOST} from '../config';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 
+import type {NMSRequest} from '../../scripts/server';
+
 const httpsAgent = new https.Agent({
   cert: apiCredentials().cert,
   key: apiCredentials().key,
@@ -47,53 +49,57 @@ const DEFAULT_CELLULAR_CONFIG: CellularNetworkConfig = {
   non_eps_service: null,
 };
 
-router.post('/create', access(AccessRoles.SUPERUSER), async (req, res) => {
-  const {name} = req.body;
+router.post(
+  '/create',
+  access(AccessRoles.SUPERUSER),
+  async (req: NMSRequest, res) => {
+    const {name} = req.body;
 
-  let resp;
-  try {
-    // Create network
-    resp = await axios.post(
-      apiUrl('/magma/networks'),
-      {name},
-      {
-        httpsAgent,
-        params: {
-          requested_id: name,
-          new_workflow_flag: false,
+    let resp;
+    try {
+      // Create network
+      resp = await axios.post(
+        apiUrl('/magma/networks'),
+        {name},
+        {
+          httpsAgent,
+          params: {
+            requested_id: name,
+            new_workflow_flag: false,
+          },
         },
-      },
-    );
+      );
 
-    // Create default cellular config
-    await axios.post(
-      apiUrl(`/magma/networks/${name}/configs/cellular`),
-      DEFAULT_CELLULAR_CONFIG,
-      {httpsAgent},
-    );
-  } catch (e) {
-    logger.error(e, {
-      response: e.response?.data,
-    });
+      // Create default cellular config
+      await axios.post(
+        apiUrl(`/magma/networks/${name}/configs/cellular`),
+        DEFAULT_CELLULAR_CONFIG,
+        {httpsAgent},
+      );
+    } catch (e) {
+      logger.error(e, {
+        response: e.response?.data,
+      });
+      res
+        .status(200)
+        .send({
+          success: false,
+          message: e.response?.data.message || e.toString(),
+          apiResponse: e.response?.data,
+        })
+        .end();
+      return;
+    }
+
     res
       .status(200)
       .send({
-        success: false,
-        message: e.response?.data.message || e.toString(),
-        apiResponse: e.response?.data,
+        success: true,
+        apiResponse: resp.data,
       })
       .end();
-    return;
-  }
-
-  res
-    .status(200)
-    .send({
-      success: true,
-      apiResponse: resp.data,
-    })
-    .end();
-});
+  },
+);
 
 const apiUrl = path =>
   !/^https?\:\/\//.test(API_HOST)

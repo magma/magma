@@ -20,16 +20,30 @@ import webpack from 'webpack';
 
 export type Options = {|
   distPath: string,
-  sessionStore: express.Connect,
+  sessionStore: {},
   devMode: boolean,
   sessionStore: session.Session,
   sessionToken: string,
   devWebpackConfig: Object,
 |};
 
+import type {
+  ExpressResponse,
+  ExpressRequest,
+  ExpressApplication,
+  NextFunction,
+} from 'express';
+
+import type {OrganizationMiddlewareRequest} from './organization';
+
+export type FBCNMSMiddleWareRequest = {
+  csrfToken: () => string, // from csrf
+  body: Object, // from bodyParser
+} & OrganizationMiddlewareRequest;
+
 const logger = logging.getLogger(module);
 
-export function middleware(app: express.Application, options: Options) {
+export function middleware(app: ExpressApplication, options: Options) {
   const {
     devMode,
     distPath,
@@ -64,7 +78,9 @@ export function middleware(app: express.Application, options: Options) {
   sessionStore.sync();
 
   // Use csrf middleware (uses session, must be declared after)
-  app.use(csrf({cookie: true, value: req => req.cookies.csrfToken}));
+  app.use(
+    csrf({cookie: true, value: (req: ExpressRequest) => req.cookies.csrfToken}),
+  );
 
   if (devMode) {
     // serve developer, non-minified build
@@ -92,11 +108,11 @@ export function middleware(app: express.Application, options: Options) {
   }
 
   return function(
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction,
+    req: FBCNMSMiddleWareRequest,
+    res: ExpressResponse,
+    next: NextFunction,
   ) {
-    res.cookie('csrfToken', req.csrfToken ? req.csrfToken() : null, {
+    res.cookie('csrfToken', req.csrfToken ? req.csrfToken() : '', {
       sameSite: true,
       httpOnly: true,
     });
