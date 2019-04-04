@@ -9,7 +9,7 @@ Description=Magma metricsd cloud service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/metricsd -logtostderr=true -profile=prometheus -v=0
+ExecStart=/usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/metricsd -logtostderr=true -v=0
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=metricsd
