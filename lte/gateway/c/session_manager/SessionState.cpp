@@ -32,13 +32,29 @@ SessionState::SessionState(
 {
 }
 
-void SessionState::new_report() {}
+void SessionState::new_report()
+{
+  if (curr_state_ == SESSION_TERMINATING_FLOW_ACTIVE) {
+    curr_state_ = SESSION_TERMINATING_AGGREGATING_STATS;
+  }
+}
+
+void SessionState::finish_report()
+{
+  if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
+    curr_state_ = SESSION_TERMINATING_FLOW_DELETED;
+  }
+}
 
 void SessionState::add_used_credit(
   const std::string &rule_id,
   uint64_t used_tx,
   uint64_t used_rx)
 {
+  if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
+    curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
+  }
+
   uint32_t charging_key;
   if (session_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
     charging_pool_.add_used_credit(charging_key, used_tx, used_rx);
@@ -131,10 +147,32 @@ void SessionState::get_updates(
   get_updates_from_monitor_pool(update_request_out, actions_out);
 }
 
-SessionTerminateRequest SessionState::terminate()
+void SessionState::start_termination(
+  std::function<void(SessionTerminateRequest)> on_termination_callback)
 {
-  // mark entire session as terminating
-  curr_state_ = SESSION_TERMINATING;
+  curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
+  on_termination_callback_ = on_termination_callback;
+}
+
+bool SessionState::can_complete_termination()
+{
+  return curr_state_ == SESSION_TERMINATING_FLOW_DELETED;
+}
+
+void SessionState::complete_termination()
+{
+  if (curr_state_ == SESSION_TERMINATED) {
+    // session is already terminated. Do nothing.
+    return;
+  }
+  if (!can_complete_termination()) {
+    MLOG(MERROR) << "Encountered unexpected state(" << curr_state_
+                 << ") while terminating session for IMSI " << imsi_
+                 << " and session id " << session_id_
+                 << ". Forcefully terminating session.";
+  }
+  // mark entire session as terminated
+  curr_state_ = SESSION_TERMINATED;
   SessionTerminateRequest termination;
   termination.set_sid(imsi_);
   termination.set_session_id(session_id_);
@@ -149,7 +187,13 @@ SessionTerminateRequest SessionState::terminate()
   termination.set_user_location(config_.user_location);
   monitor_pool_.get_termination_updates(&termination);
   charging_pool_.get_termination_updates(&termination);
-  return termination;
+  try {
+    on_termination_callback_(termination);
+  } catch (std::bad_function_call &) {
+    MLOG(MERROR) << "Missing termination callback function while terminating "
+                    "session for IMSI "
+                 << imsi_ << " and session id " << session_id_;
+  }
 }
 
 void SessionState::insert_dynamic_rule(const PolicyRule &dynamic_rule)

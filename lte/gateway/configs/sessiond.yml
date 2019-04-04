@@ -12,3 +12,8 @@ rule_update_inteval_sec: 1
 use_proxied_controller: false
 local_controller_port: 9999
 usage_reporting_limit_bytes: 10485760
+
+# Maximum time to wait for the flow to be deleted by pipelined before forcefully
+# terminating the session. This should be at least twice the poll interval of
+# pipelined
+session_force_termination_timeout_ms: 5000
