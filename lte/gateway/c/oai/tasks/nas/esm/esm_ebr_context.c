@@ -35,6 +35,9 @@
 #include "esm_ebr.h"
 #include "esm_ebr_context.h"
 #include "nas_timer.h"
+#include "esm_cause.h"
+#include "esm_proc.h"
+#include "dynamic_memory_check.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -348,16 +351,10 @@ ebi_t esm_ebr_context_release(
       ebi);
 
     /*
-     * Delete the TFT
-     */
-    // "free_traffic_flow_template"
-    free_traffic_flow_template(&pdn->bearer[*bid]->tft);
-
-    /*
      * Release the specified EPS bearer data
      */
     //  "free pdn->bearer"
-    free_wrapper ((void**)&pdn->bearer[*bid]);
+    free_wrapper ((void**)&ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid]);
     /*
      * Decrement the number of EPS bearer context allocated
      * * * * to the PDN connection
@@ -381,11 +378,6 @@ ebi_t esm_ebr_context_release(
             ue_mm_context->bearer_contexts[idx]->ebi);
 
           /*
-           * Delete the TFT
-           */
-          free_traffic_flow_template(&pdn->bearer[i]->tft);
-
-          /*
            * Set the EPS bearer context state to INACTIVE
            */
           (void) esm_ebr_set_status(
@@ -402,8 +394,7 @@ ebi_t esm_ebr_context_release(
           /*
            * Release dedicated EPS bearer data
            */
-          free_wrapper ((void**)&pdn->bearer[i]);
-          pdn->bearer[i] = NULL;
+          free_wrapper ((void**)&ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i]);
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection
@@ -426,12 +417,12 @@ ebi_t esm_ebr_context_release(
       }
     }
 
-    if (esm_ctx->n_active_ebrs == 0) {
+    if (emm_context->esm_ctx.n_active_ebrs == 0) {
     /*
        * : Release the PDN connection and marked the UE as inactive
        * * * * in the network for EPS services (is_attached = false)
        */
-       esm_proc_pdn_disconnect_accept(emm_context, pid, &esm_cause);
+       esm_proc_pdn_disconnect_accept(emm_context, *pid, &esm_cause);
     }
 
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ebi);

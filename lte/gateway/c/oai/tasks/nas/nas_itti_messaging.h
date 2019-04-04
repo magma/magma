@@ -150,5 +150,11 @@ void nas_itti_sgsap_ue_activity_ind(
 void nas_itti_deactivate_eps_bearer_context(
   const mme_ue_s1ap_id_t ue_idP,
   const ebi_t ebiP,
-  esm_cause_t esm_cause);
+  esm_cause_t esm_cause,
+  bool delete_default_bearer);
+
+int nas_itti_erab_rel_cmd(
+  const mme_ue_s1ap_id_t ue_id,
+  const ebi_t ebi,
+  bstring nas_msg);
 #endif /* FILE_NAS_ITTI_MESSAGING_SEEN */

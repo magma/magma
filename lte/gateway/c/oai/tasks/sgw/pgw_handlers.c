@@ -525,7 +525,7 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
 
 //--------------------------------------------------------------------------------
 
-uint32_t pgw_send_activate_ded_bearer_rsp(
+uint32_t pgw_handle_activate_ded_bearer_rsp(
   const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp)
 {
   uint32_t rc = RETURNok;
@@ -580,7 +580,7 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
   itti_s5_deactv_ded_bearer_req->delete_default_bearer = false;
   itti_s5_deactv_ded_bearer_req->no_of_bearers = no_of_bearers;
   memcpy(
-    &itti_s5_deactv_ded_bearer_req->ebi
+    &itti_s5_deactv_ded_bearer_req->ebi,
     ebi,
     sizeof(ebi_t));
 
@@ -599,7 +599,7 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
         if (!strcmp((const char *)spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
           (const char *)imsi->digit)) {
           itti_s5_deactv_ded_bearer_req->s11_mme_teid =
-            spgw_ctxt_p->sgw_eps_bearer_context_information.s11_mme_teid;
+            spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
           for (i = 0; i < no_of_bearers; i++) {
             if (ebi[i] == spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
               default_bearer) {

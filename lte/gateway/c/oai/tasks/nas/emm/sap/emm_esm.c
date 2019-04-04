@@ -137,13 +137,9 @@ int emm_esm_send(const emm_esm_t *msg)
         0,
         "_EMMESM_ACTIVATE_BEARER_REQ ue id " MME_UE_S1AP_ID_FMT " ",
         msg->ue_id);
-      rc = lowerlayer_activate_bearer_req(
+      rc = lowerlayer_deactivate_bearer_req(
         msg->ue_id,
         msg->u.activate_bearer.ebi,
-        msg->u.activate_bearer.mbr_dl,
-        msg->u.activate_bearer.mbr_ul,
-        msg->u.activate_bearer.gbr_dl,
-        msg->u.activate_bearer.gbr_ul,
         msg->u.activate_bearer.msg);
       break;
 

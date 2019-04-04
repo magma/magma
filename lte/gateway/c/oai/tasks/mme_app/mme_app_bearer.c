@@ -2779,13 +2779,13 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
   ue_mm_context_t *ue_context_p = NULL;
   uint32_t i = 0;
   OAILOG_FUNC_IN(LOG_MME_APP);
-
+  MessageDef *message_p = NULL;
 
   for (i = 0; i< pcrf_bearer_deactv_req_p->no_of_bearers; i++) {
     OAILOG_INFO(
       LOG_MME_APP,
       "Received Dedicated bearer deactivation Request from SGW with EBI %d\n",
-      pcrf_bearer_deactv_req_p->ebi);
+      pcrf_bearer_deactv_req_p->ebi[i]);
   }
   ue_context_p = mme_ue_context_exists_s11_teid(
     &mme_app_desc.mme_ue_contexts, pcrf_bearer_deactv_req_p->s11_mme_teid);
@@ -2813,7 +2813,7 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
   } else {
     //If UE is in connected state send Deactivate Bearer Req + ERAB Rel Cmd to NAS
     if (ue_context_p->ecm_state == ECM_CONNECTED) {
-      MessageDef *message_p =
+      message_p =
       itti_alloc_new_message(TASK_MME_APP, MME_APP_DELETE_DEDICATED_BEARER_REQ);
       if (message_p == NULL) {
         OAILOG_INFO(
@@ -2828,7 +2828,7 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
       MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).no_of_bearers =
         pcrf_bearer_deactv_req_p->no_of_bearers;
       memcpy(
-        MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).ebi,
+        &MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).ebi,
         pcrf_bearer_deactv_req_p->ebi,
         sizeof(ebi_t));
     } else {
@@ -2846,24 +2846,24 @@ void mme_app_handle_erab_rel_cmd(
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   struct ue_mm_context_s *ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, itti_erab_setup_req->ue_id);
+    &mme_app_desc.mme_ue_contexts, itti_erab_rel_cmd->ue_id);
 
   if (!ue_context_p) {
     MSC_LOG_EVENT(
       MSC_MMEAPP_MME,
-      " NAS_ERAB_SETUP_REQ Unknown ue " MME_UE_S1AP_ID_FMT " ",
-      itti_erab_setup_req->ue_id);
+      " NAS_ERAB_REL_CMD Unknown ue " MME_UE_S1AP_ID_FMT " ",
+      itti_erab_rel_cmd->ue_id);
     OAILOG_ERROR(
       LOG_MME_APP,
       "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT "\n",
-      itti_erab_setup_req->ue_id);
+      itti_erab_rel_cmd->ue_id);
     // memory leak
-    bdestroy_wrapper(&itti_erab_setup_req->nas_msg);
+    bdestroy_wrapper(&itti_erab_rel_cmd->nas_msg);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
   bearer_context_t *bearer_context =
-    mme_app_get_bearer_context(ue_context_p, itti_erab_setup_req->ebi);
+    mme_app_get_bearer_context(ue_context_p, itti_erab_rel_cmd->ebi);
 
   if (bearer_context) {
     MessageDef *message_p =
@@ -2875,10 +2875,10 @@ void mme_app_handle_erab_rel_cmd(
     s1ap_e_rab_rel_cmd->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
 
     // E-RAB to Be Setup List
-    s1ap_e_rab_rel_cmd->e_rab_to_be_setup_list.no_of_items = 1;
+    s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items = 1;
     s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
       bearer_context->ebi;
-    s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0; //Pruthvi TDB
+    //s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0; //Pruthvi TDB
     s1ap_e_rab_rel_cmd->nas_pdu =
       itti_erab_rel_cmd->nas_msg;
     itti_erab_rel_cmd->nas_msg = NULL;
@@ -2888,12 +2888,14 @@ void mme_app_handle_erab_rel_cmd(
       MSC_S1AP_MME,
       NULL,
       0,
-      "0 S1AP_E_RAB_SETUP_REQ ue id " MME_UE_S1AP_ID_FMT
+      "0 S1AP_E_RAB_REL_CMD ue id " MME_UE_S1AP_ID_FMT
       ue_context_p->mme_ue_s1ap_id,
       itti_erab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id);
+    OAILOG_INFO(LOG_MME_APP,"Sending ERAB REL CMD to S1AP with UE ID %d and EBI %d",
+      itti_erab_rel_cmd->ue_id,itti_erab_rel_cmd->ebi);
     itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   } else {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "No bearer context found ue " MME_UE_S1AP_ID_FMT " ebi %u\n",
       itti_erab_rel_cmd->ue_id,
@@ -2928,13 +2930,16 @@ void mme_app_handle_e_rab_rel_rsp(
 
   for (int i = 0; i < e_rab_rel_rsp->e_rab_rel_list.no_of_items; i++) {
     e_rab_id_t e_rab_id = e_rab_rel_rsp->e_rab_rel_list.item[i].e_rab_id;
-
+    OAILOG_DEBUG(
+      LOG_MME_APP,"Received ERAB Release Rsp with ERAB ID %d",e_rab_id);
   }
-  for (int i = 0; i < e_rab_rel_rsp->e_rab_rel_to_setup_list.no_of_items;
+  for (int i = 0; i < e_rab_rel_rsp->e_rab_rel_list.no_of_items;
        i++) {
     e_rab_id_t e_rab_id =
       e_rab_rel_rsp->e_rab_failed_to_rel_list.item[i].e_rab_id;
-    }
+    OAILOG_DEBUG(
+      LOG_MME_APP,"Received ERAB Release Rsp with ERAB ID %d",e_rab_id);
+  }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2947,6 +2952,7 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
   struct ue_mm_context_s *ue_context_p = NULL;
   MessageDef *message_p = NULL;
   uint32_t i = 0;
+  uint32_t num_bearer_context = 0;
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc.mme_ue_contexts, delete_dedicated_bearer_rsp->ue_id);
@@ -2973,21 +2979,15 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
     &message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_response;
   memset(s11_deact_ded_bearer_rsp, 0, sizeof(itti_s11_pcrf_ded_bearer_deactv_rsp_t));
 
-  //Fetch PDN Context
-  ebi_t ebi = delete_dedicated_bearer_rsp->ebi[0];
-  pdn_cid_t cid =
-  ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
-  pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
-  //Fill SGW S11 CP TEID
-  s11_deact_ded_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
   s11_deact_ded_bearer_rsp->delete_default_bearer =
-    delete_dedicated_bearer_rsp.delete_default_bearer;
-  if (delete_dedicated_bearer_rsp.delete_default_bearer) {
+    delete_dedicated_bearer_rsp->delete_default_bearer;
+  if (delete_dedicated_bearer_rsp->delete_default_bearer) {
     s11_deact_ded_bearer_rsp->lbi = calloc(1, sizeof(ebi_t));
-    s11_deact_ded_bearer_rsp->lbi = ebi;
+    s11_deact_ded_bearer_rsp->lbi = delete_dedicated_bearer_rsp->ebi;
   } else {
+    s11_deact_ded_bearer_rsp->imsi = ue_context_p->imsi;
     s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context = 1;
-    num_bearer_context = s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context;
+    num_bearer_context = delete_dedicated_bearer_rsp->no_of_bearers;
     for (i = 0; i < num_bearer_context; i++) {
       s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id =
         delete_dedicated_bearer_rsp->ebi[i];

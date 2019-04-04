@@ -117,5 +117,10 @@ MESSAGE_DEF(
   S11_PCRF_BEARER_DEACTV_REQUEST,
   MESSAGE_PRIORITY_MED,
   itti_s11_pcrf_ded_bearer_deactv_request_t,
-  s11_pcrf_bearer_deactv_request)
+  s11_pcrf_ded_bearer_deactv_request)
+MESSAGE_DEF(
+  S11_PCRF_DED_BEARER_DEACTV_RESPONSE,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_pcrf_ded_bearer_deactv_rsp_t,
+  s11_pcrf_ded_bearer_deactv_response)
 

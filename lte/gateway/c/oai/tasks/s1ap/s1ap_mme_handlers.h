@@ -153,4 +153,8 @@ int s1ap_mme_handle_ue_context_modification_failure(
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
+int s1ap_mme_handle_erab_rel_response(
+  const sctp_assoc_id_t assoc_id,
+  const sctp_stream_id_t stream,
+  struct s1ap_message_s *message);
 #endif /* FILE_S1AP_MME_HANDLERS_SEEN */

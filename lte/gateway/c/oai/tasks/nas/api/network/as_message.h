@@ -113,7 +113,7 @@ Description Defines the messages supported by the Access Stratum sublayer
 #define AS_RAB_RELEASE_IND (AS_RAB_RELEASE | AS_INDICATION)
 
 /* Deactivate Bearer */
-#define AS_DEACTIVATE_BEARER_CONTEXT 0x08
+#define AS_DEACTIVATE_BEARER_CONTEXT 0xa
 #define AS_DEACTIVATE_BEARER_CONTEXT_REQ (AS_DEACTIVATE_BEARER_CONTEXT | AS_REQUEST)
 
 /* NAS Cause */

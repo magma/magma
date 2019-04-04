@@ -511,7 +511,7 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.s11_pcrf_bearer_actv_request);
       } break;
 
-      case S11_PCRF_DED_BEARER_DEACTV_REQUEST: {
+      case S11_PCRF_BEARER_DEACTV_REQUEST: {
         mme_app_handle_pcrf_ded_bearer_deactv_req(
           &received_message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_request);
       } break;

@@ -78,6 +78,7 @@ typedef struct itti_s5_activate_dedicated_bearer_rsp_s {
 typedef struct itti_s5_deactivate_dedicated_bearer_req_s {
   uint32_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; ///<EPS Bearer ID
+  teid_t s11_mme_teid;
   bool delete_default_bearer; ///<True:Delete all bearers
                               ///<False:Delele ded bearer
 } itti_s5_deactivate_dedicated_bearer_req_t;

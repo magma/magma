@@ -53,3 +53,8 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_s5_deactivate_dedicated_bearer_req_t,
   s5_deactivate_dedicated_bearer_request)
+MESSAGE_DEF(
+  S5_DEACTIVATE_DEDICATED_BEARER_RSP,
+  MESSAGE_PRIORITY_MED,
+  itti_s5_deactivate_dedicated_bearer_rsp_t,
+  s5_deactivate_dedicated_bearer_response)

@@ -2304,8 +2304,8 @@ int s1ap_mme_handle_erab_setup_response(
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   S1AP_E_RAB_SETUP_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_SETUP_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
-  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_rel_list.no_of_items = 0;
-  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
+  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items = 0;
+  S1AP_E_RAB_SETUP_RSP(message_p).e_rab_failed_to_setup_list.no_of_items = 0;
 
   if (
     s1ap_E_RABSetupResponseIEs_p->presenceMask &
@@ -2771,7 +2771,7 @@ int s1ap_mme_handle_erab_rel_response(
   struct s1ap_message_s *message)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
-  S1ap_E_RABSetupResponseIEs_t *s1ap_E_RABSetupResponseIEs_p = NULL;
+  S1ap_E_RABReleaseResponseIEs_t *s1ap_E_RABReleaseResponseIEs_p = NULL;
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
   int rc = RETURNok;
@@ -2816,19 +2816,19 @@ int s1ap_mme_handle_erab_rel_response(
   }
   S1AP_E_RAB_REL_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
-  S1AP_E_RAB_REL_RSP(message_p).e_rab_setup_list.no_of_items = 0;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items = 1;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
 
   if (
     s1ap_E_RABReleaseResponseIEs_p->presenceMask &
-    S1AP_E_RABRELEASERESPONSEIES_E_RABRELEASELISTBEARERSURES_PRESENT) {
-    int num_erab = s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerSURes
-                     .s1ap_E_RABReleaseItemBearerSURes.count;
+    S1AP_E_RABRELEASERESPONSEIES_E_RABRELEASELISTBEARERRELCOMP_PRESENT) {
+    int num_erab = s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerRelComp
+                     .s1ap_E_RABReleaseItemBearerRelComp.count;
     for (int index = 0; index < num_erab; index++) {
-      S1ap_E_RABReleaseItemBearerSURes_t *erab_rel_item =
-        (S1ap_E_RABReleaseItemBearerSURes_t *)
-          s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerSURes
-            .s1ap_E_RABReleaseItemBearerSURes.array[index];
+      S1ap_E_RABReleaseItemBearerRelComp_t *erab_rel_item =
+        (S1ap_E_RABReleaseItemBearerRelComp_t *)
+          s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerRelComp
+            .s1ap_E_RABReleaseItemBearerRelComp.array[index];
       S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.item[index].e_rab_id =
         erab_rel_item->e_RAB_ID;
       S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items += 1;
@@ -2837,13 +2837,13 @@ int s1ap_mme_handle_erab_rel_response(
 
   if (
     s1ap_E_RABReleaseResponseIEs_p->presenceMask &
-    S1AP_E_RABRELEASERESPONSEIES_E_RABFAILEDTORELEASELISTBEARERSURES_PRESENT) {
+    S1AP_E_RABRELEASERESPONSEIES_E_RABFAILEDTORELEASELIST_PRESENT) {
     int num_erab = s1ap_E_RABReleaseResponseIEs_p
-                     ->e_RABFailedToReleaseListBearerSURes.s1ap_E_RABItem.count;
+                     ->e_RABFailedToReleaseList.s1ap_E_RABItem.count;
     for (int index = 0; index < num_erab; index++) {
       S1ap_E_RABItem_t *erab_item =
         (S1ap_E_RABItem_t *) s1ap_E_RABReleaseResponseIEs_p
-          ->e_RABFailedToReleaseListBearerSURes.s1ap_E_RABItem.array[index];
+          ->e_RABFailedToReleaseList.s1ap_E_RABItem.array[index];
       S1AP_E_RAB_REL_RSP(message_p)
         .e_rab_failed_to_rel_list.item[index]
         .e_rab_id = erab_item->e_RAB_ID;

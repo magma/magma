@@ -39,5 +39,6 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
   ip_address_t *ue_ip,
   traffic_flow_template_t *tft,
   bearer_qos_t *eps_bearer_qos);
-
+uint32_t pgw_handle_deactivate_ded_bearer_rsp(
+  const itti_s5_deactivate_dedicated_bearer_rsp_t *const deact_ded_bearer_rsp);
 #endif /* FILE_PGW_HANDLERS_SEEN */

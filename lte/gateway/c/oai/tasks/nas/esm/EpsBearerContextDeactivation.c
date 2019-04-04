@@ -43,6 +43,8 @@
 #include "emm_esmDef.h"
 #include "esm_sapDef.h"
 #include "msc.h"
+#include "nas_itti_messaging.h"
+
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
@@ -302,6 +304,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
   bool delete_default_bearer = false;
+  int bid = BEARERS_PER_UE;
 
   OAILOG_INFO(
     LOG_NAS_ESM,
@@ -315,7 +318,6 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   rc = esm_ebr_stop_timer(ue_context, ebi);
 
   if (rc != RETURNerror) {
-    int bid = BEARERS_PER_UE;
 
     /*
      * Release the EPS bearer context
@@ -334,7 +336,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   if (bid == 0) {
     delete_default_bearer = true;
   }
-  nas_itti_deactivate_eps_bearer_context(ue_id, ebi,esm_cause,delete_default_bearer);
+  nas_itti_deactivate_eps_bearer_context(ue_id, ebi,*esm_cause,delete_default_bearer);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
 }
 
@@ -473,7 +475,7 @@ static int _eps_bearer_deactivate(
    */
   emm_esm_data_t *emm_esm = &emm_sap.u.emm_esm.u.data;
 
-  emm_sap.primitive = EMMCN_DEACTIVATE_BEARER_REQ;
+  emm_sap.primitive = EMMESM_DEACTIVATE_BEARER_REQ;
   emm_sap.u.emm_esm.ue_id = ue_id;
   emm_sap.u.emm_esm.ctx = ue_context;
   emm_esm->msg = *msg;

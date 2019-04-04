@@ -167,7 +167,7 @@ void _clear_emm_ctxt(emm_context_t *emm_context)
   esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
   esm_sap.ue_id = ue_id;
   esm_sap.ctx = emm_context;
-  esm_sap.data.eps_bearer_context_deactivate.ebi = ESM_SAP_ALL_EBI;
+  esm_sap.data.eps_bearer_context_deactivate.ebi[0] = ESM_SAP_ALL_EBI;
   esm_sap_send(&esm_sap);
 
   if (emm_context->esm_msg) {

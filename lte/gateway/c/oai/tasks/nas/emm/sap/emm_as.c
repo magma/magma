@@ -1292,7 +1292,7 @@ static int _emm_as_send(const emm_as_t *msg)
         &as_msg.msg.activate_bearer_context_req);
       break;
 
-    case _EMMAS_ERAB_:
+    case _EMMAS_ERAB_REL_CMD:
       as_msg.msg_id = _emm_as_erab_rel_cmd(
         &msg->u.deactivate_bearer_context_req,
         &as_msg.msg.deactivate_bearer_context_req);

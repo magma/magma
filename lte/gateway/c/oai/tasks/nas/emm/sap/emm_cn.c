@@ -792,10 +792,12 @@ static int _emm_cn_deactivate_dedicated_bearer_req(
   esm_sap.ctx = &ue_mm_context->emm_context;
   esm_sap.is_standalone = true;
   esm_sap.ue_id = msg->ue_id;
-  esm_sap.data.eps_dedicated_bearer_context_activate.no_of_bearers =
+  esm_sap.data.eps_bearer_context_deactivate.
+    is_pcrf_initiated = true;
+  esm_sap.data.eps_bearer_context_deactivate.no_of_bearers =
     msg->no_of_bearers;
   memcpy(
-    esm_sap.data.eps_dedicated_bearer_context_activate.ebi,
+    esm_sap.data.eps_bearer_context_deactivate.ebi,
     msg->ebi,
     sizeof(ebi_t));
 

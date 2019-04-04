@@ -71,4 +71,10 @@ int sgw_handle_dedicated_bearer_actv_req(
 int sgw_handle_pcrf_dedicated_bearer_actv_rsp(
   const itti_s11_pcrf_ded_bearer_actv_rsp_t
  *const s11_pcrf_ded_bearer_actv_rsp);
+int sgw_handle_pcrf_dedicated_bearer_deactv_req(
+  const itti_s5_deactivate_dedicated_bearer_req_t
+  *const itti_s5_deactiv_ded_bearer_req);
+int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
+  const itti_s11_pcrf_ded_bearer_deactv_rsp_t
+ *const s11_pcrf_ded_bearer_deactv_rsp);
 #endif /* FILE_SGW_HANDLERS_SEEN */

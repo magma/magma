@@ -248,7 +248,6 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       } break;
 
 
-
       case TIMER_HAS_EXPIRED: {
         if (!timer_exists(
               received_message_p->ittiMsg.timer_has_expired.timer_id)) {

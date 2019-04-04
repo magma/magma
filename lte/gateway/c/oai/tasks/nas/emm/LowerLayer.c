@@ -448,7 +448,7 @@ int lowerlayer_deactivate_bearer_req(
   ue_mm_context_t *ue_mm_context =
     mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
 
-  emm_sap.primitive = EMMAS_ERAB_REL_RSP;
+  emm_sap.primitive = EMMAS_ERAB_REL_CMD;
   emm_sap.u.emm_as.u.deactivate_bearer_context_req.ebi = ebi;
   emm_sap.u.emm_as.u.deactivate_bearer_context_req.ue_id = ue_id;
 

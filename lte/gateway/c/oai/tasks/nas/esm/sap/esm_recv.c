@@ -952,8 +952,7 @@ esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
    * Execute the dedicated EPS bearer context deactivation procedure accepted
    * * * * by the UE
    */
-  int pid =
-    esm_proc_eps_bearer_context_deactivate_accept(emm_context, ebi, &esm_cause);
+  esm_proc_eps_bearer_context_deactivate_accept(emm_context, ebi, &esm_cause);
 
 #if 0
   if (pid != RETURNerror) {

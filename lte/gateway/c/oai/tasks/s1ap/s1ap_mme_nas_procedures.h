@@ -86,4 +86,6 @@ void s1ap_handle_mme_ue_id_notification(
 int s1ap_generate_s1ap_e_rab_setup_req(
   itti_s1ap_e_rab_setup_req_t *const e_rab_setup_req);
 
+int s1ap_generate_s1ap_e_rab_rel_cmd(
+  itti_s1ap_e_rab_rel_cmd_t *const e_rab_rel_cmd);
 #endif /* FILE_S1AP_MME_NAS_PROCEDURES_SEEN */

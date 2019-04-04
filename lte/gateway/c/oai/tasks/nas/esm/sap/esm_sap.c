@@ -277,6 +277,18 @@ int esm_sap_send(esm_sap_t *msg)
 
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
 
+      if (msg->data.eps_bearer_context_deactivate.
+        is_pcrf_initiated) {
+        rc = _esm_sap_send(
+          DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST,
+          msg->is_standalone,
+          msg->ctx,
+          (proc_tid_t) 0,
+          msg->data.eps_bearer_context_deactivate.ebi[0],
+          &msg->data,
+          msg->send);
+        OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
+      }
       int bid = BEARERS_PER_UE;
 
       /*
@@ -1008,14 +1020,14 @@ static int _esm_sap_send(
       if (RETURNok == rc) {
         rc = esm_send_deactivate_eps_bearer_context_request(
           (proc_tid_t) 0,
-          ebi,
+          msg->ebi[0],
           &esm_msg.deactivate_eps_bearer_context_request,
           ESM_CAUSE_REGULAR_DEACTIVATION);
 
         esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
       }
 
-      break;
+      } break;
 
     case PDN_CONNECTIVITY_REJECT: break;
 

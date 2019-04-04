@@ -72,6 +72,11 @@
 #include "TrackingAreaIdentity.h"
 #include "asn_SEQUENCE_OF.h"
 #include "securityDef.h"
+#include "S1ap-CauseMisc.h"
+#include "S1ap-CauseNas.h"
+#include "S1ap-CauseProtocol.h"
+#include "S1ap-CauseRadioNetwork.h"
+#include "S1ap-CauseTransport.h"
 
 /* Every time a new UE is associated, increment this variable.
    But care if it wraps to increment also the mme_ue_s1ap_id_has_wrapped
@@ -1051,14 +1056,14 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
     e_rabreleasecmdies->presenceMask = 0;
 
     OCTET_STRING_fromBuf(
-      &e_rabreleasecmdies->.nas_pdu,
-      (char *) bdata(e_rabreleasecmdies->nas_pdu),
-      blength(e_rabreleasecmdies->nas_pdu));
+      &e_rabreleasecmdies->nas_pdu,
+      (char *) bdata(e_rab_rel_cmd->nas_pdu),
+      blength(e_rab_rel_cmd->nas_pdu));
 
 
     S1ap_E_RABReleaseItemBearerRelComp_t s1ap_E_RABReleaseItemBearerRelComp
-      [e_rabreleasecmdies->e_rab_to_be_rel_list.no_of_items];
-    for (int i = 0; i < e_rabreleasecmdies->e_rab_to_be_rel_list.no_of_items;
+      [e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items];
+    for (int i = 0; i < e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items;
          i++) {
       memset(
         &s1ap_E_RABReleaseItemBearerRelComp[i],
@@ -1066,10 +1071,15 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
         sizeof(S1ap_E_RABReleaseItemBearerRelComp_t));
 
       s1ap_E_RABReleaseItemBearerRelComp[i].e_RAB_ID =
-        e_rabreleasecmdies->e_rab_to_be_rel_list[i].e_rab_id;
+        e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id;
+      //TODO - cause value is not present in s1ap_E_RABReleaseItemBearerRelComp
+      /*s1ap_mme_set_cause(
+        s1ap_E_RABReleaseItemBearerRelComp[i].cause,
+        S1ap_Cause_PR_radioNetwork,
+        S1ap_CauseRadioNetwork_unspecified);*/
 
       ASN_SEQUENCE_ADD(
-        &e_rabreleasecmdies->e_rab_to_be_rel_list,
+        &e_rabreleasecmdies->e_RABToBeReleasedList,
         &s1ap_E_RABReleaseItemBearerRelComp[i]);
     }
 
