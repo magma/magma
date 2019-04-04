@@ -2,7 +2,9 @@
 id: remote_cli
 title: Orchestrator Remote CLI - Creating commands guide
 sidebar_label: Orchestrator Remote CLI
+hide_title: true
 ---
+# Orchestrator Remote CLI - Creating commands guide
 ## Creating a Command
 
 There are a couple steps needed to implement a command.

@@ -1,7 +1,9 @@
 ---
 id: rest_apis
 title: Swagger UI for REST APIs
+hide_title: true
 ---
+# Swagger UI for REST APIs
 We use [Swagger](https://swagger.io/) for defining the north bound REST APIs, and the APIs can be viewed and tested using the Swagger UI. To use the UI:
 
 ```console

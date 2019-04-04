@@ -1,8 +1,10 @@
 ---
 id: readme_agw
-title: AGW SERVICES/SUB-COMPONENTS
+title: AGW Services/Sub-Components
 sidebar_label: Services/Sub-Components
+hide_title: true
 ---
+# AGW Services/Sub-Components
 ## MME
  MME includes S1AP, NAS and MME_APP subcomponents. MME functions include:  
 
