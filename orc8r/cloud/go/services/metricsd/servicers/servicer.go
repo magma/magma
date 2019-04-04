@@ -13,6 +13,7 @@ package servicers
 
 import (
 	"errors"
+
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
@@ -30,8 +31,50 @@ func NewMetricsControllerServer() *MetricsControllerServer {
 	return &MetricsControllerServer{}
 }
 
-func (srv *MetricsControllerServer) getNetworkAndGatewayID(
-	hardwareID string) (string, string, error) {
+func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.MetricsContainer) (*protos.Void, error) {
+	if in.Family == nil || len(in.Family) == 0 {
+		return new(protos.Void), nil
+	}
+
+	hardwareID := in.GetGatewayId()
+	networkID, gatewayID, err := srv.getNetworkAndGatewayID(hardwareID)
+	if err != nil {
+		return new(protos.Void), err
+	}
+	glog.V(2).Infof("collecting %v metrics from gateway %v\n", len(in.Family), in.GatewayId)
+
+	metricsToSubmit := metricsContainerToMetricAndContexts(in, networkID, hardwareID, gatewayID)
+	for _, e := range srv.exporters {
+		err := e.Submit(metricsToSubmit)
+		if err != nil {
+			glog.Error(err)
+		}
+	}
+	return new(protos.Void), nil
+}
+
+// Pulls metrics off the given input channel and sends them to all exporters
+// after some preprocessing. Should be run in a goroutine as this blocks
+// forever.
+func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prometheus_proto.MetricFamily, hostName string) error {
+	for family := range inputChan {
+		for _, e := range srv.exporters {
+			ctx := exporters.NewMetricsContext(family, exporters.CloudMetricID, exporters.CloudMetricID, hostName)
+			err := e.Submit([]exporters.MetricAndContext{{Family: family, Context: ctx}})
+			if err != nil {
+				glog.Error(err)
+			}
+		}
+	}
+	return nil
+}
+
+func (srv *MetricsControllerServer) RegisterExporter(e exporters.Exporter) []exporters.Exporter {
+	srv.exporters = append(srv.exporters, e)
+	return srv.exporters
+}
+
+func (srv *MetricsControllerServer) getNetworkAndGatewayID(hardwareID string) (string, string, error) {
 	if len(hardwareID) == 0 {
 		return "", "", errors.New("Empty Hardware ID")
 	}
@@ -43,51 +86,14 @@ func (srv *MetricsControllerServer) getNetworkAndGatewayID(
 	return networkID, gatewayID, err
 }
 
-func (srv *MetricsControllerServer) Collect(
-	ctx context.Context,
-	in *protos.MetricsContainer) (*protos.Void, error) {
-
-	hardwareID := in.GetGatewayId()
-	networkID, gatewayID, err := srv.getNetworkAndGatewayID(hardwareID)
-	if err != nil {
-		return new(protos.Void), err
+func metricsContainerToMetricAndContexts(
+	in *protos.MetricsContainer,
+	networkID string, hardwareID string, gatewayID string,
+) []exporters.MetricAndContext {
+	ret := make([]exporters.MetricAndContext, 0, len(in.Family))
+	for _, fam := range in.Family {
+		ctx := exporters.NewMetricsContext(fam, networkID, hardwareID, gatewayID)
+		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}
-	if len(in.Family) != 0 {
-		glog.V(2).Infof("collecting %v metrics from gateway %v\n", len(in.Family), in.GatewayId)
-	}
-	for _, family := range in.GetFamily() {
-		for _, e := range srv.exporters {
-			context := exporters.NewMetricsContext(family, networkID, hardwareID, gatewayID)
-			err := e.Submit(family, context)
-			if err != nil {
-				glog.Error(err)
-			}
-		}
-	}
-	return new(protos.Void), nil
-}
-
-// Pulls metrics off the given input channel and sends them to all exporters
-// after some preprocessing. Should be run in a goroutine as this blocks
-// forever.
-func (srv *MetricsControllerServer) ConsumeCloudMetrics(
-	inputChan chan *prometheus_proto.MetricFamily,
-	hostName string,
-) error {
-	for family := range inputChan {
-		for _, e := range srv.exporters {
-			context := exporters.NewMetricsContext(family, exporters.CloudMetricID, exporters.CloudMetricID, hostName)
-			err := e.Submit(family, context)
-			if err != nil {
-				glog.Errorf("Error submitting metric family to exporter: %s", err)
-			}
-		}
-	}
-	return nil
-}
-
-func (srv *MetricsControllerServer) RegisterExporter(
-	e exporters.Exporter) []exporters.Exporter {
-	srv.exporters = append(srv.exporters, e)
-	return srv.exporters
+	return ret
 }

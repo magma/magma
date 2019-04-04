@@ -53,7 +53,7 @@ func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config ex
 		Name:  makeStringPointer(exporters.SERVICE_LABEL_NAME),
 		Value: makeStringPointer("testService"),
 	}
-	family := makeTestMetricFamily(metricType, []*dto.LabelPair{&serviceLabelPair})
+	family := makeTestMetricFamily(metricType, 1, []*dto.LabelPair{&serviceLabelPair})
 	context := exporters.MetricsContext{
 		NetworkID:         "nID",
 		GatewayID:         "gID",
@@ -63,7 +63,7 @@ func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config ex
 
 	registry.On("Register", mock.Anything).Return(nil)
 	// Registering a new metric should not throw error
-	err := exporter.Submit(family, context)
+	err := exporter.Submit([]exporters.MetricAndContext{{Family: family, Context: context}})
 	assert.NoError(t, err)
 	registry.AssertCalled(t, "Register", mock.Anything)
 
@@ -86,7 +86,7 @@ func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config ex
 	registry.Calls = []mock.Call{}
 
 	// Updating existing metric should not throw error
-	err = exporter.Submit(family, context)
+	err = exporter.Submit([]exporters.MetricAndContext{{Family: family, Context: context}})
 	assert.NoError(t, err)
 	// Register() should not have been called, should have updated instead
 	registry.AssertNotCalled(t, "Register", mock.Anything)

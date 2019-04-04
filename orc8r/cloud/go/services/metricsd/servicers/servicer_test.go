@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package servicers_test
 
 import (
+	"errors"
+	"flag"
 	"strconv"
 	"testing"
 	"time"
@@ -20,39 +22,48 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 
+	"github.com/golang/glog"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
-type TestMetricExporter struct {
-	Queue []exporters.Sample
+type testMetricExporter struct {
+	queue []exporters.Sample
+
+	// error to return
+	retErr error
 }
 
-const MetricName = protos.MetricName_process_virtual_memory_bytes
-const LabelName = protos.MetricLabelName_result
-const LabelValue = "success"
+const (
+	MetricName = protos.MetricName_process_virtual_memory_bytes
+	LabelName  = protos.MetricLabelName_result
+	LabelValue = "success"
+)
 
-func (e *TestMetricExporter) Submit(family *dto.MetricFamily, context exporters.MetricsContext) error {
-	for _, metric := range family.GetMetric() {
-		for _, s := range exporters.GetSamplesForMetrics(context.DecodedName, family.GetType(), metric, context.OriginatingEntity) {
-			e.Queue = append(e.Queue, s)
+// Set verbosity so we can capture exporter error logging
+var _ = flag.Set("vmodule", "*=2")
+
+func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error {
+	for _, metricAndContext := range metrics {
+		family, ctx := metricAndContext.Family, metricAndContext.Context
+		for _, metric := range family.GetMetric() {
+			e.queue = append(
+				e.queue,
+				exporters.GetSamplesForMetrics(ctx.DecodedName, family.GetType(), metric, ctx.OriginatingEntity)...,
+			)
 		}
 	}
-	return nil
+
+	return e.retErr
 }
 
-func (e *TestMetricExporter) Start() {}
-
-func NewTestMetricExporter() *TestMetricExporter {
-	e := new(TestMetricExporter)
-	return e
-}
+func (e *testMetricExporter) Start() {}
 
 func TestCollect(t *testing.T) {
 	magmad_test_init.StartTestService(t)
 
-	e := NewTestMetricExporter()
+	e := &testMetricExporter{}
 	ctx := context.Background()
 	srv := servicers.NewMetricsControllerServer()
 	srv.RegisterExporter(e)
@@ -129,44 +140,52 @@ func TestCollect(t *testing.T) {
 	// Collect counters
 	_, err = srv.Collect(ctx, &counters)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(e.Queue))
-	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.Queue[0].Value())
+	assert.Equal(t, 1, len(e.queue))
+	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
 	// clear queue
-	e.Queue = e.Queue[:0]
+	e.queue = e.queue[:0]
 
 	// Collect gauges
 	_, err = srv.Collect(ctx, &gauges)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(e.Queue))
-	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.Queue[0].Value())
-	e.Queue = e.Queue[:0]
+	assert.Equal(t, 1, len(e.queue))
+	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
+	e.queue = e.queue[:0]
 
 	// Collect summaries
 	_, err = srv.Collect(ctx, &summaries)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(e.Queue))
-	assert.Equal(t, strconv.FormatUint(int_val, 10), e.Queue[0].Value())
-	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.Queue[0].Value())
-	e.Queue = e.Queue[:0]
+	assert.Equal(t, 2, len(e.queue))
+	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[0].Value())
+	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
+	e.queue = e.queue[:0]
 
 	// Collect histograms
 	_, err = srv.Collect(ctx, &histograms)
 	assert.NoError(t, err)
-	assert.Equal(t, 4, len(e.Queue))
-	assert.Equal(t, strconv.FormatUint(int_val, 10), e.Queue[0].Value())
-	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.Queue[1].Value())
-	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.Queue[2].Value())
-	assert.Equal(t, strconv.FormatUint(int_val, 10), e.Queue[3].Value())
-	e.Queue = e.Queue[:0]
+	assert.Equal(t, 4, len(e.queue))
+	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[0].Value())
+	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[1].Value())
+	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[2].Value())
+	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[3].Value())
+	e.queue = e.queue[:0]
 
-	// Test Collect can raise Write errors
+	// Test Collect with empty collection
 	_, err = srv.Collect(ctx, &protos.MetricsContainer{})
-	assert.Error(t, err)
+	assert.NoError(t, err)
+
+	// Exporter error should not result in error returned from Collect
+	// But with verbosity set to 2 at the top of the test, we should log
+	prevInfoLines := glog.Stats.Info.Lines()
+	e.retErr = errors.New("mock exporter error")
+	_, err = srv.Collect(ctx, &gauges)
+	assert.NoError(t, err)
+	assert.Equal(t, prevInfoLines+1, glog.Stats.Info.Lines())
 }
 
 func TestConsume(t *testing.T) {
 	metricsChan := make(chan *dto.MetricFamily)
-	e := NewTestMetricExporter()
+	e := &testMetricExporter{}
 
 	srv := servicers.NewMetricsControllerServer()
 	srv.RegisterExporter(e)
@@ -179,5 +198,5 @@ func TestConsume(t *testing.T) {
 		metricsChan <- &dto.MetricFamily{Name: &fam2, Metric: []*dto.Metric{{}}}
 	}()
 	time.Sleep(time.Second)
-	assert.Equal(t, 2, len(e.Queue))
+	assert.Equal(t, 2, len(e.queue))
 }
