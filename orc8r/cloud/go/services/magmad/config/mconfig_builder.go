@@ -84,7 +84,7 @@ func getPackageVersionAndImagesForGateway(networkId string, tierId string) (stri
 	}
 	tier, ok := tiers[tierId]
 	if !ok {
-		glog.Errorf("Unable to load tier %s, returning 0.0.0-0 as target version.", tierId)
+		glog.V(2).Infof("Unable to load tier %s, returning 0.0.0-0 as target version.", tierId)
 		return "0.0.0-0", []*mconfig.ImageSpec{}, nil
 	}
 
