@@ -49,7 +49,7 @@ class SessiondTest : public ::testing::Test {
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
-    monitor = std::make_shared<LocalEnforcer>(rule_store, pipelined_client);
+    monitor = std::make_shared<LocalEnforcer>(rule_store, pipelined_client, 0);
     reporter = std::make_shared<SessionCloudReporter>(evb, test_channel);
 
     local_service =

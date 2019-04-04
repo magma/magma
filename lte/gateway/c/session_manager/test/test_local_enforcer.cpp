@@ -10,6 +10,7 @@
 #include <memory>
 #include <string.h>
 #include <time.h>
+#include <future>
 
 #include <gtest/gtest.h>
 #include <folly/io/async/EventBaseManager.h>
@@ -40,7 +41,15 @@ class LocalEnforcerTest : public ::testing::Test {
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
     local_enforcer =
-      std::make_unique<LocalEnforcer>(rule_store, pipelined_client);
+      std::make_unique<LocalEnforcer>(rule_store, pipelined_client, 0);
+    evb = folly::EventBaseManager::get()->getEventBase();
+    local_enforcer->attachEventBase(evb);
+  }
+
+  void run_evb()
+  {
+    evb->runAfterDelay([this]() { local_enforcer->stop(); }, 100);
+    local_enforcer->start();
   }
 
   void insert_static_rule(
@@ -92,6 +101,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
+  folly::EventBase *evb;
 };
 
 MATCHER_P(CheckCount, count, "")
@@ -169,6 +179,50 @@ TEST_F(LocalEnforcerTest, test_aggregate_records)
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI1", 2, USED_TX), 150);
 }
 
+TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination)
+{
+  CreateSessionResponse response;
+  create_update_response("IMSI1", 1, 1024, response.mutable_credits()->Add());
+  create_update_response("IMSI1", 2, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
+
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+  insert_static_rule(2, "", "rule3");
+
+  std::promise<void> termination_promise;
+  auto future = termination_promise.get_future();
+  local_enforcer->terminate_subscriber(
+    "IMSI1", [&termination_promise](SessionTerminateRequest req) {
+      termination_promise.set_value();
+
+      EXPECT_EQ(req.credit_usages_size(), 2);
+      for (const auto &usage : req.credit_usages()) {
+        EXPECT_EQ(usage.type(), CreditUsage::TERMINATED);
+      }
+    });
+
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record("IMSI1", "rule1", 10, 20, record_list->Add());
+  create_rule_record("IMSI1", "rule2", 5, 15, record_list->Add());
+  create_rule_record("IMSI1", "rule3", 100, 150, record_list->Add());
+
+  local_enforcer->aggregate_records(table);
+
+  // Termination should not have been completed since we are still aggregating
+  // the records.
+  auto status = future.wait_for(std::chrono::seconds(0));
+  EXPECT_EQ(status, std::future_status::timeout);
+
+  RuleRecordTable empty_table;
+
+  local_enforcer->aggregate_records(empty_table);
+
+  status = future.wait_for(std::chrono::seconds(0));
+  EXPECT_EQ(status, std::future_status::ready);
+}
+
 TEST_F(LocalEnforcerTest, test_collect_updates)
 {
   CreateSessionResponse response;
@@ -222,12 +276,21 @@ TEST_F(LocalEnforcerTest, test_terminate_credit)
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   local_enforcer->init_session_credit("IMSI2", "4321", test_cfg, response2);
 
-  auto req = local_enforcer->terminate_subscriber("IMSI1");
-  EXPECT_EQ(req.credit_usages_size(), 2);
-  for (const auto &usage : req.credit_usages()) {
-    EXPECT_EQ(usage.type(), CreditUsage::TERMINATED);
-  }
-  local_enforcer->complete_termination("IMSI1", "1234");
+  std::promise<void> termination_promise;
+  local_enforcer->terminate_subscriber(
+    "IMSI1", [&termination_promise](SessionTerminateRequest req) {
+      termination_promise.set_value();
+
+      EXPECT_EQ(req.credit_usages_size(), 2);
+      for (const auto &usage : req.credit_usages()) {
+        EXPECT_EQ(usage.type(), CreditUsage::TERMINATED);
+      }
+    });
+  run_evb();
+  auto status =
+    termination_promise.get_future().wait_for(std::chrono::seconds(0));
+  EXPECT_EQ(status, std::future_status::ready);
+
   // No longer in system
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 0);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI1", 2, ALLOWED_TOTAL), 0);
@@ -254,8 +317,17 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting)
     local_enforcer->get_charging_credit("IMSI1", 1, REPORTING_RX), 1024);
 
   // Collecting terminations should key 1 anyways during reporting
-  auto term_req = local_enforcer->terminate_subscriber("IMSI1");
-  EXPECT_EQ(term_req.credit_usages_size(), 2);
+  std::promise<void> termination_promise;
+  local_enforcer->terminate_subscriber(
+    "IMSI1", [&termination_promise](SessionTerminateRequest term_req) {
+      termination_promise.set_value();
+
+      EXPECT_EQ(term_req.credit_usages_size(), 2);
+    });
+  run_evb();
+  auto status =
+    termination_promise.get_future().wait_for(std::chrono::seconds(0));
+  EXPECT_EQ(status, std::future_status::ready);
 }
 
 MATCHER_P2(CheckDeactivateFlows, imsi, rule_count, "")
@@ -342,10 +414,20 @@ TEST_F(LocalEnforcerTest, test_all)
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTING_RX), 0);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTED_TX), 1024);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTED_RX), 1024);
+
   // Terminate IMSI1
-  auto req = local_enforcer->terminate_subscriber("IMSI1");
-  EXPECT_EQ(req.sid(), "IMSI1");
-  EXPECT_EQ(req.credit_usages_size(), 1);
+  std::promise<void> termination_promise;
+  local_enforcer->terminate_subscriber(
+    "IMSI1", [&termination_promise](SessionTerminateRequest term_req) {
+      termination_promise.set_value();
+
+      EXPECT_EQ(term_req.sid(), "IMSI1");
+      EXPECT_EQ(term_req.credit_usages_size(), 1);
+    });
+  run_evb();
+  auto status =
+    termination_promise.get_future().wait_for(std::chrono::seconds(0));
+  EXPECT_EQ(status, std::future_status::ready);
 }
 
 TEST_F(LocalEnforcerTest, test_re_auth)
@@ -491,9 +573,6 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time)
   activation_time = static_rule->mutable_activation_time();
   activation_time->set_seconds(time(NULL) - SECONDS_A_DAY);
   static_rule->set_rule_id("rule6");
-
-  folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
-  local_enforcer->attachEventBase(evb);
 
   // expect calling activate_flows_for_rules for activating rules instantly
   // dynamic rules: rule1, rule3
