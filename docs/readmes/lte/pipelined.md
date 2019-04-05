@@ -16,7 +16,7 @@ The OpenFlow pipeline of OVS contains 255 flow tables. Pipelined splits the tabl
  - Main table (Table 1 - 20)
  - Scratch table (Table 21 - 254)
 
-![OpenFlow Pipeline](https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/openflow-pipeline.png)
+![OpenFlow Pipeline](https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/openflow-pipeline.png?raw=true)
 
 [*Source: OpenFlow Specification*](https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf)
  

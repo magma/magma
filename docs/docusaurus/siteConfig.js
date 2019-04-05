@@ -91,6 +91,9 @@ const siteConfig = {
   ogImage: 'img/docusaurus.png',
   twitterImage: 'img/docusaurus.png',
 
+
+  docsSideNavCollapsible: true,
+
   // Show documentation's last contributor's name.
   // enableUpdateBy: true,
 
