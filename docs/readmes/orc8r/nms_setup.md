@@ -1,7 +1,9 @@
 ---
 id: nms_setup
 title: Setting up the NMS
+hide_title: true
 ---
+# Setting up the NMS
 The NMS is the UI for managing, configuring, and monitoring networks. To set up the NMS, we will first need to set up a couple of prerequisites.
 
 ## Prerequisites

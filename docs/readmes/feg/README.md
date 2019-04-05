@@ -2,7 +2,9 @@
 id: readme
 title: Federated Gateway (FeG)
 sidebar_label: Overview
+hide_title: true
 ---
+# Federated Gateway (FeG)
 The federated gateway provides remote procedure call (GRPC) based interfaces to standard 3GPP components, such as 
 HSS (S6a, SWx), OCS (Gy), and PCRF (Gx). The exposed RPC interface provides versioning & backward compatibility, 
 security (HTTP2 & TLS) as well as support for multiple programming languages. The Remote Procedures below provide 
@@ -10,7 +12,7 @@ simple, extensible, multi-language interfaces based on GRPC which allow develope
 complexities of 3GPP protocols. Implementing these RPC interfaces allows networks running on Magma to integrate 
 with traditional 3GPP core components.
 
-![Federated Gateway architecture diagram](assets/federated_gateway_diagram.png?raw=true "FeG Architecture")
+![Federated Gateway architecture diagram](https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/federated_gateway_diagram.png?raw=true "FeG Architecture")
 
 The Federated Gateway supports the following features and functionalities:
 
@@ -118,65 +120,3 @@ The following services run on the federated gateway:
 
 Associated tools for sending requests and debugging issues can be found
 at `magma/feg/gateway/tools`. 
-
-## Packaging, Deployment, and Upgrades
-
-All necessary federated gateway components are packaged using a fabric
-command located at `magma/feg/gateway/fabfile.py`. To run this command:
-
-```console
-HOST [magma]$ cd magma/feg/gateway
-HOST [magma/feg/gateway]$ fab package
-```
-
-This command will create a zip called `magma_feg_<hash>.zip` that is 
-pushed to S3 on AWS. It can then be copied from S3 and installed on any host.
-
-#### Installation
-
-To install this zip, run:
-
-```console
-INSTALL-HOST [/home]$ mkdir -p /tmp/images/
-INSTALL-HOST [/home]$ cp magma_feg_<hash>.zip /tmp/images
-INSTALL-HOST [/home]$ cd /tmp/images
-INSTALL-HOST [/tmp/images]$ sudo unzip -o magma_feg_<hash>.zip
-INSTALL-HOST [/tmp/images]$ sudo ./install.sh
-```
-
-After this completes, you should see: `Installed Succesfully!!`
-
-#### Upgrades
-
-If running in an Active/Standby configuration, the standard procedure for 
-upgrades is as follows:
-
-1. Find which gateway is currently standby
-2. Stop the services on standby gateway
-3. Wait 30 seconds
-4. Upgrade standby gateway 
-5. Stop services on active gateway
-6. Wait 30 seconds (standby will get promoted to active)
-7. Upgrade (former) active gateway
-
-Please note that this sequence will lead to an outage for 30-40 seconds.
-
-## FAQ
-
-1. Do I need to run the federated gateway as an individual developer?
-    
-   - It is highly unlikely you'll need this component. Only those who plan 
-   to integrate with a Mobile Network Operator will need the federated gateway.
-
-2. I'm seeing 500's in `/var/log/syslog`. How do I fix this?
-
-    - Ensure your cloud VM is up and services are running
-    - Ensure that you've run `register_feg_vm` at `magma/feg/gateway` on your host machine
-     
-3. I'm seeing 200's, but streamed configs at `/var/opt/magma/configs` aren't being updated?
-
-    - Ensure the directory at `/var/opt/magma/configs` exists
-    - Ensure the gateway configs in NMS are created (see [link](https://github.com/facebookincubator/magma/blob/master/docs/Magma_Network_Management_System.pdf) for more instructions) 
-    - Ensure one of the following configs exist:
-        - [Federated Gateway Network Configs](https://192.168.80.10:9443/apidocs#/Networks/post_networks__network_id__configs_federation)
-        - [Federated Gateway Configs](https://192.168.80.10:9443/apidocs#/Gateways/post_networks__network_id__gateways__gateway_id__configs_federation)
