@@ -41,6 +41,7 @@
     "eslint-plugin-node": "^7.0.1",
     "eslint-plugin-prettier": "2.6.0",
     "eslint-plugin-react": "^7.12.4",
+    "eslint-plugin-react-hooks": "^1.6.0",
     "eslint-plugin-relay": "^1.0.0",
     "jest": "24.3.0",
     "prettier": "1.16.4",

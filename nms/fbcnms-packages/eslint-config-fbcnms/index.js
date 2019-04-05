@@ -62,6 +62,7 @@ module.exports = Object.assign({}, fbStrict, {
     'node',
     'prettier',
     'react',
+    'react-hooks',
     'relay',
   ],
   rules: {
@@ -142,6 +143,10 @@ module.exports = Object.assign({}, fbStrict, {
     'react/react-in-jsx-scope': 1,
     'react/self-closing-comp': 1,
     'react/wrap-multilines': 0,
+
+    // React Hooks Plugin
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
 
     // Jest Plugin
     // The following rules are made available via `eslint-plugin-jest`.
