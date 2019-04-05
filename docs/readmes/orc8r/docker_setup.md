@@ -78,3 +78,13 @@ and protobufs, after any changes in those files.
 ./build.py -m
 [container] /magma/orc8r/cloud# make gen
 ```
+
+## Publishing the images
+
+To push the images to a private docker registry, use the following script:
+```
+../../tools/docker/publish.sh -r REGISTRY -i proxy
+../../tools/docker/publish.sh -r REGISTRY -i controller
+
+../../tools/docker/publish.sh -r REGISTRY -i proxy -u USERNAME -p /tmp/password
+```
