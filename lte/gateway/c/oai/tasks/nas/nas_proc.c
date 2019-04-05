@@ -970,13 +970,13 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
     (sgs_release_req->opt_cause ==
      SGS_CAUSE_IMSI_DETACHED_FOR_NONEPS_SERVICE)) {
     // NAS trigger UE to re-attach for non-EPS services.
-    nas_emm_attach_proc_t *attach_proc =
-      get_nas_specific_procedure_attach(ctxt);
+    mme_ue_s1ap_id_t ue_id = PARENT_STRUCT(ctxt, struct ue_mm_context_s,
+                             emm_context)->mme_ue_s1ap_id;
     // update the ue context vlr_reliable flag to false
-    mme_ue_context_update_ue_sgs_vlr_reliable(attach_proc->ue_id, false);
+    mme_ue_context_update_ue_sgs_vlr_reliable(ue_id, false);
     emm_sap_t emm_sap = {0};
     emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
-    emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = attach_proc->ue_id;
+    emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = ue_id;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
       NW_DETACH_TYPE_IMSI_DETACH;
     rc = emm_sap_send(&emm_sap);
