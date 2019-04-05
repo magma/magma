@@ -273,7 +273,7 @@ void mme_app_handle_e_rab_rel_rsp(
   itti_s1ap_e_rab_rel_rsp_t *const e_rab_rel_rsp);
 
 void mme_app_handle_pcrf_ded_bearer_deactv_req(
-  const itti_s11_pcrf_ded_bearer_deactv_request_t
+  itti_s11_pcrf_ded_bearer_deactv_request_t
   *const pcrf_bearer_deactv_req_p);
 
 #define mme_stats_read_lock(mMEsTATS)                                          \

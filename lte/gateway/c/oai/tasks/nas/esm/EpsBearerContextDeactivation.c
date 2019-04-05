@@ -336,7 +336,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   if (bid == 0) {
     delete_default_bearer = true;
   }
-  nas_itti_deactivate_eps_bearer_context(ue_id, ebi,*esm_cause,delete_default_bearer);
+  nas_itti_deactivate_eps_bearer_context(ue_id, ebi,delete_default_bearer);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
 }
 

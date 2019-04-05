@@ -336,6 +336,10 @@ typedef struct emm_context_s {
   //CSFB related parameters
   csfb_params_t csfbparams;
   bool is_imsi_only_detach;
+  /* Set the flag if pcrf initiated bearer deact and UE is in Idle state
+   *if this flag is set after receving service req, send detach
+   */
+  bool pcrf_init_bearer_deactv;
 } emm_context_t;
 
 /*

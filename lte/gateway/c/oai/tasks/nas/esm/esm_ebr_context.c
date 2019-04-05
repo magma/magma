@@ -354,14 +354,14 @@ ebi_t esm_ebr_context_release(
      * Release the specified EPS bearer data
      */
     //  "free pdn->bearer"
-    free_wrapper ((void**)&ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid]);
+    free_wrapper ((void**)&ue_mm_context->bearer_contexts[*bid]);
     /*
      * Decrement the number of EPS bearer context allocated
      * * * * to the PDN connection
      */
     pdn->n_bearers -= 1;
 
-    if (*bid == 0) {
+    if (ue_mm_context->pdn_contexts[*pid]->default_ebi == ebi) {
       /*
        * 3GPP TS 24.301, section 6.4.4.3, 6.4.4.6
        * * * * If the EPS bearer identity is that of the default bearer to a
@@ -394,7 +394,7 @@ ebi_t esm_ebr_context_release(
           /*
            * Release dedicated EPS bearer data
            */
-          free_wrapper ((void**)&ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i]);
+          free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection
@@ -417,7 +417,7 @@ ebi_t esm_ebr_context_release(
       }
     }
 
-    if (emm_context->esm_ctx.n_active_ebrs == 0) {
+    if (pdn->n_bearers == 0) {
     /*
        * : Release the PDN connection and marked the UE as inactive
        * * * * in the network for EPS services (is_attached = false)

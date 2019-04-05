@@ -313,6 +313,7 @@ typedef struct itti_nas_nw_initiated_detach_ue_req_s {
   mme_ue_s1ap_id_t ue_id;
 #define HSS_INITIATED_EPS_DETACH 0x00
 #define SGS_INITIATED_IMSI_DETACH 0x01
+#define MME_INITIATED_EPS_DETACH 0x02
   uint8_t detach_type;
 } itti_nas_nw_initiated_detach_ue_req_t;
 

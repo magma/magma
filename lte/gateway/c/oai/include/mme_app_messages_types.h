@@ -175,7 +175,6 @@ typedef struct itti_mme_app_delete_dedicated_bearer_rsp_s {
   uint32_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
   mme_ue_s1ap_id_t ue_id;
-  esm_cause_t esm_cause;
   bool delete_default_bearer;
 } itti_mme_app_delete_dedicated_bearer_rsp_t;
 

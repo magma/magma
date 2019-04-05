@@ -714,7 +714,8 @@ int nas_proc_nw_initiated_detach_ue_request(
   emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id =
     nw_initiated_detach_p->ue_id;
 
-  if (nw_initiated_detach_p->detach_type == HSS_INITIATED_EPS_DETACH) {
+  if ((nw_initiated_detach_p->detach_type == HSS_INITIATED_EPS_DETACH) ||
+    (nw_initiated_detach_p->detach_type == MME_INITIATED_EPS_DETACH)) {
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
       NW_DETACH_TYPE_RE_ATTACH_NOT_REQUIRED;
   } else if (nw_initiated_detach_p->detach_type == SGS_INITIATED_IMSI_DETACH) {
