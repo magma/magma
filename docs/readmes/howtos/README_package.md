@@ -6,16 +6,17 @@ hide_title: true
 # Packaging
 TL;DR
 -----
-1. `build-magma.sh` on the dev VM creates packages.
-2. Commit changes to build-magma.sh, CHANGELOG, and magma.lockfile.
+1. Running `fab dev package:git` on the host creates the package inside the
+gateway VM
+2. Commit changes to build-magma.sh and magma.lockfile.
 
 Creating a release package.
 ---------------------------
-Run `build-magma.sh` on your dev VM to create a Magma release. Note: this should
-be done WITHOUT running 'magtivate' (or after running 'deactivate').
-This will build everything, identify dependencies (assuming they're specified in
-the setup.py properly), and create a Debian package in the magma/release
-directory.
+Run `fab dev package:git` under lte/gateway/ on the host to create a Magma
+release. This runs the `build-magma.sh` script with the latest commit id and
+build type as DEBUG. It builds everything, identifies dependencies (assuming
+they're specified in the setup.py properly), and creates a Debian package in the
+magma-packages/ directory on dev VM.
 
 For a production release, you'll want to bump the package version probably --
 this can be done inside build-magma.sh. The version number should be bumped
@@ -23,20 +24,16 @@ when there is a minor or major feature or bug fix release. If you're just
 making a minor tweak (e.g., mistake in building the package), you can also
 increment the iteration number.
 
-In addition, ALWAYS update the CHANGELOG when you make a release. This helps us
-keep track of when we did what.
-
 Testing a release package before you push it.
 ---------------------------------------------
 You should always do this. In general, try your best not to release broken
 packages.
 
 1. Build the release like you normally would.
-2. Spin up a fresh prod VM or gateway and copy the magma_<version>.deb generated
-from build-magma.sh.
-3. Run `sudo apt-get install gdebi; sudo gdebi
-   magma_<version>.deb'
-4. A VM reload or gateway reboot will likely be required due to kernel upgrade. 
+2. Spin up a fresh prod VM or gateway machine and copy the magma_<version>.deb
+generated above.
+3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb' 
+4. A VM reload or gateway reboot will likely be required due to kernel upgrade.
 
 This will simulate the exact steps that apt-get performs in production.
 After you've done this, your environment is identical to what you'll have if
