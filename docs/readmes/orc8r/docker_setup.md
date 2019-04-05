@@ -35,6 +35,11 @@ To use a different module.yml file, run something similar to:
 MAGMA_MODULES_FILE=../../../modules.yml ./build.py
 ```
 
+NOTE: If you are running on Mac, you may need to increase the memory
+limit of the docker daemon to build the images. Otherwise, you may see an error 
+message similar to this:
+`/usr/local/go/pkg/tool/linux_amd64/link: signal: killed`.
+
 ## How to run
 
 To run and manage the containers, use the following commands:
