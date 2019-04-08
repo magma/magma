@@ -110,59 +110,40 @@ itti_mme_app_create_dedicated_bearer_rsp_t *const create_dedicated_bearer_rsp)
   s11_pcrf_ded_bearer_actv_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
   int msg_bearer_index = 0;
 
-    bearer_context_t *bc =
-      mme_app_get_bearer_context(ue_context_p,create_dedicated_bearer_rsp->ebi);
-    if (bc->bearer_state & BEARER_STATE_ENB_CREATED) {
-      s11_pcrf_ded_bearer_actv_rsp->cause.cause_value = REQUEST_ACCEPTED;
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
-        .bearer_contexts[msg_bearer_index]
-        .eps_bearer_id = ebi;
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
-        .bearer_contexts[msg_bearer_index]
-        .cause.cause_value = REQUEST_ACCEPTED;
-      //  FTEID eNB
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
-        .bearer_contexts[msg_bearer_index]
-        .s1u_enb_fteid = bc->enb_fteid_s1u;
+  bearer_context_t *bc =
+    mme_app_get_bearer_context(ue_context_p,create_dedicated_bearer_rsp->ebi);
+    s11_pcrf_ded_bearer_actv_rsp->cause.cause_value = REQUEST_ACCEPTED;
+    s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
+      .bearer_contexts[msg_bearer_index]
+      .eps_bearer_id = ebi;
+    s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
+      .bearer_contexts[msg_bearer_index]
+      .cause.cause_value = REQUEST_ACCEPTED;
+    //  FTEID eNB
+    s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
+      .bearer_contexts[msg_bearer_index]
+      .s1u_enb_fteid = bc->enb_fteid_s1u;
 
-      // FTEID SGW S1U
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
-        .bearer_contexts[msg_bearer_index]
-        .s1u_sgw_fteid =
-        bc->s_gw_fteid_s1u; ///< This IE shall be sent on the S11 interface. It shall be used to fetch context
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts.num_bearer_context++;
+    // FTEID SGW S1U
+    s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
+      .bearer_contexts[msg_bearer_index]
+      .s1u_sgw_fteid =
+      bc->s_gw_fteid_s1u; ///< This IE shall be sent on the S11 interface. It shall be used to fetch context
+    s11_pcrf_ded_bearer_actv_rsp->bearer_contexts.num_bearer_context++;
+    //Saved TFT to be sent to SGW in order to save in the SPGW context
+    if (bc->saved_tft) {
+      memcpy(
+        &s11_pcrf_ded_bearer_actv_rsp->tft,
+        bc->saved_tft,
+        sizeof(traffic_flow_template_t));
     }
-    if (bc->bearer_state & BEARER_STATE_MME_CREATED) {
-      if (REQUEST_ACCEPTED == s11_pcrf_ded_bearer_actv_rsp->cause.cause_value) {
-        s11_pcrf_ded_bearer_actv_rsp->cause.cause_value =
-          REQUEST_ACCEPTED_PARTIALLY;
-      } else {
-          s11_pcrf_ded_bearer_actv_rsp->cause.cause_value = REQUEST_REJECTED;
-      }
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
-        .bearer_contexts[msg_bearer_index]
-        .eps_bearer_id = ebi;
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
-        .bearer_contexts[msg_bearer_index]
-        .cause.cause_value =
-        REQUEST_REJECTED;
-      s11_pcrf_ded_bearer_actv_rsp->bearer_contexts.num_bearer_context++;
-      bc->bearer_state = BEARER_STATE_NULL;
+    //Saved QoS to be sent to SGW in order to save in the SPGW context
+    if (bc->saved_qos) {
+      memcpy(
+        &s11_pcrf_ded_bearer_actv_rsp->eps_bearer_qos,
+        bc->saved_qos,
+        sizeof(bearer_qos_t));
     }
-  //Saved TFT to be sent to SGW in order to save in the SPGW context
-  if (bc->saved_tft) {
-    memcpy(
-      &s11_pcrf_ded_bearer_actv_rsp->tft,
-      bc->saved_tft,
-      sizeof(traffic_flow_template_t));
-  }
-  //Saved QoS to be sent to SGW in order to save in the SPGW context
-  if (bc->saved_qos) {
-    memcpy(
-      &s11_pcrf_ded_bearer_actv_rsp->eps_bearer_qos,
-      bc->saved_qos,
-      sizeof(bearer_qos_t));
-  }
 
   MSC_LOG_TX_MESSAGE(
     MSC_MMEAPP_MME,
@@ -172,7 +153,10 @@ itti_mme_app_create_dedicated_bearer_rsp_t *const create_dedicated_bearer_rsp)
     "0 S11_PCRF_BEARER_ACTV_RSP teid %u",
     s11_pcrf_ded_bearer_actv_rsp->teid);
 
-  OAILOG_INFO(LOG_MME_APP,"Sending create_dedicated_bearer_rsp to SGW\n");
+  OAILOG_INFO(LOG_MME_APP,"Sending create_dedicated_bearer_rsp to SGW with EBI %d %d\n",
+    ebi,s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
+        .bearer_contexts[msg_bearer_index]
+        .eps_bearer_id);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP,RETURNok);
 }
@@ -2528,6 +2512,15 @@ void mme_app_handle_create_dedicated_bearer_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+#if EMBEDDED_SGW
+    OAILOG_INFO(
+      LOG_MME_APP,
+      "Sending Activate Dedicated bearer Response to SPGW: " MME_UE_S1AP_ID_FMT
+      "\n",
+      create_dedicated_bearer_rsp->ue_id);
+    _send_pcrf_bearer_actv_rsp(ue_context_p,create_dedicated_bearer_rsp);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+#endif
   // TODO:
   // Actually do it simple, because it appear we have to wait for NAS procedure reworking (work in progress on another branch)
   // for responding to S11 without mistakes (may be the create bearer procedure can be impacted by a S1 ue context release or
@@ -2549,10 +2542,6 @@ void mme_app_handle_create_dedicated_bearer_rsp(
         LOG_MME_APP,
         "Could not get bearer context for EBI:%d\n",
         ebi);
-        OAILOG_FUNC_OUT(LOG_MME_APP);
-      }
-      if (!(bc->bearer_state & BEARER_STATE_SGW_CREATED)) {
-        _send_pcrf_bearer_actv_rsp(ue_context_p,create_dedicated_bearer_rsp);
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
       mme_app_s11_procedure_create_bearer_send_response(
