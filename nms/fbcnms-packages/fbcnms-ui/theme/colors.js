@@ -19,6 +19,7 @@ export const cyan = '#00acc1';
 export const darkGreen = '#2e7d32';
 export const darkPink = '#9c27b0';
 export const darkPurple = '#673ab7';
+export const fadedBlue = 'rgba(53, 135, 229, 0.1)';
 export const fadedSea = '#7cc8d0';
 export const gray0 = '#f2f3f5';
 export const gray1 = '#979797';
