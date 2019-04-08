@@ -87,7 +87,8 @@
 //------------------------------------------------------------------------------
 int _send_pcrf_bearer_actv_rsp(
   struct ue_mm_context_s *ue_context_p,
-itti_mme_app_create_dedicated_bearer_rsp_t *const create_dedicated_bearer_rsp)
+  ebi_t ebi,
+  gtpv2c_cause_value_t cause)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef *message_p =
@@ -101,7 +102,6 @@ itti_mme_app_create_dedicated_bearer_rsp_t *const create_dedicated_bearer_rsp)
   itti_s11_pcrf_ded_bearer_actv_rsp_t *s11_pcrf_ded_bearer_actv_rsp =
     &message_p->ittiMsg.s11_pcrf_ded_bearer_actv_rsp;
 
-  ebi_t ebi = create_dedicated_bearer_rsp->ebi;
  //Fetch PDN context
   pdn_cid_t cid =
   ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
@@ -111,8 +111,8 @@ itti_mme_app_create_dedicated_bearer_rsp_t *const create_dedicated_bearer_rsp)
   int msg_bearer_index = 0;
 
   bearer_context_t *bc =
-    mme_app_get_bearer_context(ue_context_p,create_dedicated_bearer_rsp->ebi);
-    s11_pcrf_ded_bearer_actv_rsp->cause.cause_value = REQUEST_ACCEPTED;
+    mme_app_get_bearer_context(ue_context_p,ebi);
+    s11_pcrf_ded_bearer_actv_rsp->cause.cause_value = cause;
     s11_pcrf_ded_bearer_actv_rsp->bearer_contexts
       .bearer_contexts[msg_bearer_index]
       .eps_bearer_id = ebi;
@@ -2517,7 +2517,9 @@ void mme_app_handle_create_dedicated_bearer_rsp(
       "Sending Activate Dedicated bearer Response to SPGW: " MME_UE_S1AP_ID_FMT
       "\n",
       create_dedicated_bearer_rsp->ue_id);
-    _send_pcrf_bearer_actv_rsp(ue_context_p,create_dedicated_bearer_rsp);
+    _send_pcrf_bearer_actv_rsp(
+      ue_context_p,create_dedicated_bearer_rsp->ebi,
+      REQUEST_ACCEPTED);
     OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
   // TODO:
@@ -2570,6 +2572,18 @@ void mme_app_handle_create_dedicated_bearer_rej(
       create_dedicated_bearer_rej->ue_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+
+#if EMBEDDED_SGW
+    OAILOG_INFO(
+      LOG_MME_APP,
+      "Sending Activate Dedicated bearer Response to SPGW: " MME_UE_S1AP_ID_FMT
+      "\n",
+      create_dedicated_bearer_rej->ue_id);
+    _send_pcrf_bearer_actv_rsp(
+      ue_context_p,create_dedicated_bearer_rej->ebi,
+      REQUEST_REJECTED);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+#endif
 
   // TODO:
   // Actually do it simple, because it appear we have to wait for NAS procedure reworking (work in progress on another branch)

@@ -517,7 +517,9 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
   }
   OAILOG_INFO(LOG_PGW_APP, "LBI for the received Create Bearer Req %d\n",
     itti_s5_actv_ded_bearer_req->lbi);
-  OAILOG_INFO(LOG_PGW_APP, "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",itti_s5_actv_ded_bearer_req->mme_teid_S11);
+  OAILOG_INFO(LOG_PGW_APP,
+    "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
+    itti_s5_actv_ded_bearer_req->mme_teid_S11);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
@@ -534,7 +536,7 @@ uint32_t pgw_handle_activate_ded_bearer_rsp(
     act_ded_bearer_rsp->ebi);
   //Send Create Bearer Rsp to PCRF
   //TODO-Uncomment once implemented at PCRF
-  //rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi);
+  //rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi,act_ded_bearer_rsp->cause);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 
