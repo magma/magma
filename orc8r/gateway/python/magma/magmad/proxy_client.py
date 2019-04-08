@@ -10,6 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 
 import aioh2
+import h2.events
 from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse
 
 from magma.common.service_registry import ServiceRegistry
@@ -36,6 +37,17 @@ class ControlProxyHttpClient(object):
 
         """
         client = await self._get_client(gateway_request.authority)
+
+        # Small hack to set PingReceived to no-op because the log gets spammed
+        # with KeyError messages since aioh2 doesn't have a handler for
+        # PingReceived. Remove if future versions support it.
+        # pylint: disable=protected-access
+        if hasattr(h2.events, "PingReceived"):
+            # Need the hasattr here because some older versions of h2 may not
+            # have the PingReceived event
+            client._event_handlers[h2.events.PingReceived] = lambda _: None
+        # pylint: enable=protected-access
+
         try:
             await client.wait_functional()
             req_headers = self._get_req_headers(gateway_request.headers,

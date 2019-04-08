@@ -23,6 +23,7 @@ class MockClient(object):
         self._expected_headers = headers
         self._expected_trailers = trailers
         self._expected_req = expected_req
+        self._event_handlers = {}
 
     async def start_request(self, headers):
         return 3
