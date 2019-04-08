@@ -7,7 +7,7 @@ services:
     build:
       target: base
       context: ../../../
-      dockerfile: feg/gateway/build/go/Dockerfile
+      dockerfile: feg/gateway/docker/go/Dockerfile
     volumes:
       - ../../../:/magma
       - ../configs:/etc/configs

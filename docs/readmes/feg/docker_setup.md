@@ -30,7 +30,7 @@ folder. That folder is mounted into the appropriate containers.
 ## Development
 
 Follow these steps to run the FeG in a docker container for development:
-1. `cd magma/feg/gateway/build`
+1. `cd magma/feg/gateway/docker`
 2. `docker-compose -f docker-compose.dev.yml up -d`
 3. `docker exec -ti feg /bin/bash`
 
@@ -46,7 +46,7 @@ and so it should be set as the init system in `magmad.yml`.
 ## Production
 
 Follow these steps to run the FeG in docker containers for production:
-1. `cd magma/feg/gateway/build`
+1. `cd magma/feg/gateway/docker`
 2. `docker-compose -f docker-compose.prod.yml up -d`
 
 Each service should now be running in its own docker container. Docker is used

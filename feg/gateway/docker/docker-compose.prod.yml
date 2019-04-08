@@ -25,7 +25,7 @@ services:
     image: magma_feg_go
     build:
       context: ../../../
-      dockerfile: feg/gateway/build/go/Dockerfile
+      dockerfile: feg/gateway/docker/go/Dockerfile
     logging: *logging_anchor
     restart: always
     network_mode: host
@@ -68,7 +68,7 @@ services:
     image: magma_feg_python
     build:
       context: ../../../
-      dockerfile: feg/gateway/build/python/Dockerfile
+      dockerfile: feg/gateway/docker/python/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../../../.cache/test_certs:/var/opt/magma/certs
