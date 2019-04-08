@@ -113,7 +113,7 @@ module.exports = Object.assign({}, fbStrict, {
     'flowtype/define-flow-type': 1,
     'flowtype/use-flow-type': 1,
     // The following is disabled for many file types in overrides
-    'flowtype/require-valid-file-annotation': [1, 'always'],
+    'flowtype/require-valid-file-annotation': [2, 'always'],
 
     // Node Plugin
     // https://github.com/mysticatea/eslint-plugin-node
