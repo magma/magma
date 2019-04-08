@@ -90,6 +90,7 @@ MME :
         ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST = [ "EIA2" , "EIA1" , "EIA0" ];
         ORDERED_SUPPORTED_CIPHERING_ALGORITHM_LIST = [ "EEA0" , "EEA1" , "EEA2" ];
 
+        DISABLE_ESM_INFORMATION_PROCEDURE          = "yes";
         # EMM TIMERS
         # T3402 start:
         # At attach failure and the attempt counter is equal to 5.
