@@ -9,6 +9,7 @@
 package blobstore_test
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"errors"
 	"testing"
@@ -372,6 +373,16 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 
 	runCase(t, happyPath)
 	runCase(t, queryError)
+}
+
+func TestSqlBlobStorage_Integration(t *testing.T) {
+	// Use an in-memory sqlite datastore
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("Could not initialize sqlite DB: %s", err)
+	}
+	fact := blobstore.NewSQLBlobStorageFactory("table", db)
+	integration(t, fact)
 }
 
 type testCase struct {
