@@ -37,7 +37,7 @@ var (
 type PrometheusExporter struct {
 	registeredMetrics map[string]PrometheusMetric
 	Registry          prometheus.Registerer
-	lock              sync.RWMutex
+	lock              sync.Mutex
 	config            PrometheusExporterConfig
 }
 
@@ -57,7 +57,24 @@ func NewPrometheusExporter(config PrometheusExporterConfig) Exporter {
 
 // Submit takes in an ExportSubmission and either registers it to prometheus or
 // updates the metric if it is already registered
-func (e *PrometheusExporter) Submit(family *dto.MetricFamily, context MetricsContext) error {
+func (e *PrometheusExporter) Submit(metrics []MetricAndContext) error {
+	// Coarse locking to prioritize clearing requests so we don't eat memory
+	// with goroutines waiting to finish submitting metrics - lock acquisition
+	// means that all metrics will be submitted and the goroutine freed
+	e.lock.Lock()
+	defer e.lock.Unlock()
+
+	for _, metricAndContext := range metrics {
+		family, context := metricAndContext.Family, metricAndContext.Context
+		if err := e.submitSingleFamilyUnsafe(family, context); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (e *PrometheusExporter) submitSingleFamilyUnsafe(family *dto.MetricFamily, context MetricsContext) error {
 	networkID := context.NetworkID
 	gatewayID := context.GatewayID
 
@@ -70,13 +87,12 @@ func (e *PrometheusExporter) Submit(family *dto.MetricFamily, context MetricsCon
 	}
 
 	for _, metric := range family.GetMetric() {
-		registeredName := makeRegisteredName(metric, family, context.MetricName)
+		registeredName := makeRegisteredName(metric, context.MetricName)
 		networkLabels, err := e.makeNetworkLabels(networkID, gatewayID, metric)
 		if err != nil {
 			return fmt.Errorf("prometheus submit error %s: %v", registeredName, err)
 		}
 
-		e.lock.Lock()
 		if registeredMetric, ok := e.registeredMetrics[registeredName]; ok {
 			err = registeredMetric.Update(metric, networkLabels)
 		} else {
@@ -85,8 +101,8 @@ func (e *PrometheusExporter) Submit(family *dto.MetricFamily, context MetricsCon
 		if err != nil {
 			return fmt.Errorf("prometheus submit error %s: %v", registeredName, err)
 		}
-		e.lock.Unlock()
 	}
+
 	return nil
 }
 
@@ -145,7 +161,7 @@ func (e *PrometheusExporter) registerMetric(metric *dto.Metric,
 
 // Takes all labels except service names from metric and adds to the family
 // name. Name will be of form: family_name_label0Name_label0Value_label1Name...
-func makeRegisteredName(metric *dto.Metric, family *dto.MetricFamily, metricName string) string {
+func makeRegisteredName(metric *dto.Metric, metricName string) string {
 	name := ""
 	labels := metric.GetLabel()
 	sort.Sort(ByName(labels))

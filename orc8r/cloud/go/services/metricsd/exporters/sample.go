@@ -34,8 +34,9 @@ func NewSample(
 	value string,
 	timestampMs int64,
 	labels []*dto.LabelPair,
-	entity string) *Sample {
-	return &Sample{
+	entity string,
+) Sample {
+	return Sample{
 		name:        name,
 		value:       value,
 		timestampMs: timestampMs,

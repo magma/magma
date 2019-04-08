@@ -12,8 +12,10 @@ package exporters
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
@@ -21,7 +23,6 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	dto "github.com/prometheus/client_model/go"
 )
 
 const SERVICE_LABEL_NAME = "service"
@@ -33,9 +34,9 @@ type HttpClient interface {
 
 type ODSMetricExporter struct {
 	odsUrl         string
-	queue          []*Sample
+	queue          []Sample
 	queueMutex     sync.Mutex
-	queueLen       int
+	maxQueueLength int
 	exportInterval time.Duration
 	metricsPrefix  string
 }
@@ -45,38 +46,45 @@ func NewODSExporter(
 	appId string,
 	appSecret string,
 	metricsPrefix string,
-	queueLen int,
+	maxQueueLength int,
 	exportInterval time.Duration,
 ) *ODSMetricExporter {
 	e := new(ODSMetricExporter)
 	e.odsUrl = fmt.Sprintf("%s?access_token=%s|%s", baseUrl, appId,
 		appSecret)
-	e.queueLen = queueLen
+	e.maxQueueLength = maxQueueLength
 	e.exportInterval = exportInterval
 	e.metricsPrefix = metricsPrefix
 	return e
 }
 
 // Submit a Metric for writing
-func (e *ODSMetricExporter) Submit(family *dto.MetricFamily, context MetricsContext) error {
-	for _, metric := range family.GetMetric() {
-		for _, s := range GetSamplesForMetrics(context.DecodedName, family.GetType(), metric, context.OriginatingEntity) {
-			err := e.submitSample(&s)
-			if err != nil {
-				return err
-			}
+func (e *ODSMetricExporter) Submit(metrics []MetricAndContext) error {
+	if len(metrics) == 0 {
+		return nil
+	}
+
+	var convertedSamples []Sample
+	for _, metricAndContext := range metrics {
+		family, context := metricAndContext.Family, metricAndContext.Context
+		for _, metric := range family.GetMetric() {
+			newSamples := GetSamplesForMetrics(context.DecodedName, family.GetType(), metric, context.OriginatingEntity)
+			convertedSamples = append(convertedSamples, newSamples...)
 		}
 	}
-	return nil
-}
 
-func (e *ODSMetricExporter) submitSample(sample *Sample) error {
 	e.queueMutex.Lock()
 	defer e.queueMutex.Unlock()
-	if len(e.queue) >= e.queueLen {
-		return fmt.Errorf("ODS queue is full, dropping sample: %v", sample)
+
+	// Don't append more samples than available queue space.
+	endAppendIdx := int(math.Min(float64(len(convertedSamples)), float64(e.maxQueueLength-len(e.queue))))
+	if endAppendIdx > 0 {
+		e.queue = append(e.queue, convertedSamples[:endAppendIdx]...)
 	}
-	e.queue = append(e.queue, sample)
+	if endAppendIdx < len(convertedSamples) {
+		droppedSampleCount := len(convertedSamples) - endAppendIdx
+		return fmt.Errorf("ODS queue full, dropping %d samples", droppedSampleCount)
+	}
 	return nil
 }
 
@@ -89,29 +97,30 @@ func (e *ODSMetricExporter) exportEvery() {
 	for range time.Tick(e.exportInterval) {
 		err := e.Export(client)
 		if err != nil {
-			glog.Errorf("Error in syncing to ods: %v\n", err)
+			glog.Errorf("Error in syncing to ods: %v", err)
 		}
 	}
 }
 
-//Sync metrics in SampleQueue to MetricsController
+// Export syncs metrics in the exporter's queue to ODS. If export fails, the
+// exporter's queue will still be cleared (i.e. the samples will be dropped).
 func (e *ODSMetricExporter) Export(client HttpClient) error {
 	e.queueMutex.Lock()
 	samples := e.queue
-	e.queue = []*Sample{}
+	e.queue = []Sample{}
 	e.queueMutex.Unlock()
 
 	if len(samples) != 0 {
 		err := e.write(client, samples)
 		if err != nil {
-			return fmt.Errorf("Failed to sync to ODS: %v\n", err)
+			return fmt.Errorf("Failed to sync to ODS: %s", err)
 		}
 	}
 	return nil
 }
 
 // Write to ODS from queued samples or error
-func (e *ODSMetricExporter) write(client HttpClient, samples []*Sample) error {
+func (e *ODSMetricExporter) write(client HttpClient, samples []Sample) error {
 	datapoints := []ODSDatapoint{}
 	for _, s := range samples {
 		key := e.FormatKey(s)
@@ -120,7 +129,8 @@ func (e *ODSMetricExporter) write(client HttpClient, samples []*Sample) error {
 			Key:    key,
 			Value:  s.value,
 			Tags:   e.GetTags(s),
-			Time:   int(s.timestampMs)})
+			Time:   int(s.timestampMs),
+		})
 	}
 
 	datapointsJson, err := json.Marshal(datapoints)
@@ -134,8 +144,7 @@ func (e *ODSMetricExporter) write(client HttpClient, samples []*Sample) error {
 	if resp.StatusCode != 200 {
 		errMsg, _ := ioutil.ReadAll(resp.Body)
 		resp.Body.Close()
-		glog.Errorf("ODS status code: %d: %s", resp.StatusCode, errMsg)
-		// Don't return an error here so we still clear these samples
+		return errors.New(string(errMsg))
 	}
 	return err
 }
@@ -143,7 +152,7 @@ func (e *ODSMetricExporter) write(client HttpClient, samples []*Sample) error {
 // FormatKey generates an entity name for the Sample for use with ODS.
 // The entity name is a dot separated concatenation of sorted label
 // key value pairs.
-func (e *ODSMetricExporter) FormatKey(s *Sample) string {
+func (e *ODSMetricExporter) FormatKey(s Sample) string {
 	var keyBuffer bytes.Buffer
 	var prefixBuffer bytes.Buffer // stores the service when found
 	for _, labelPair := range s.labels {
@@ -167,7 +176,7 @@ func (e *ODSMetricExporter) FormatKey(s *Sample) string {
 }
 
 // GetTags parse label for tags and appends them to a comma-separated string.
-func (e *ODSMetricExporter) GetTags(s *Sample) []string {
+func (e *ODSMetricExporter) GetTags(s Sample) []string {
 	for _, labelPair := range s.labels {
 		if strings.Compare(labelPair.GetName(), TAGS_LABEL_NAME) == 0 {
 			return strings.Split(labelPair.GetValue(), ",")

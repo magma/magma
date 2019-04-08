@@ -51,16 +51,23 @@ func TestODSSubmit(t *testing.T) {
 		2,
 		time.Second*10,
 	)
-	testFamily := makeTestMetricFamily(dto.MetricType_GAUGE, []*dto.LabelPair{})
+
+	singleMetricTestFamily := makeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{})
 	entity := "testId1.testId2"
 	context := exporters.MetricsContext{DecodedName: "test", OriginatingEntity: entity}
-	err := exporter.Submit(testFamily, context)
+	err := exporter.Submit([]exporters.MetricAndContext{{Family: singleMetricTestFamily, Context: context}})
 	assert.NoError(t, err)
-	err = exporter.Submit(testFamily, context)
-	assert.NoError(t, err)
-	// submitting when queue is full should give error
-	err = exporter.Submit(testFamily, context)
-	assert.Error(t, err)
+
+	// Submitting to a full queue should drop metrics
+	multiMetricTestFamily := makeTestMetricFamily(dto.MetricType_GAUGE, 100, []*dto.LabelPair{})
+	err = exporter.Submit([]exporters.MetricAndContext{
+		{Family: multiMetricTestFamily, Context: context},
+		{Family: singleMetricTestFamily, Context: context},
+	})
+	assert.EqualError(t, err, "ODS queue full, dropping 100 samples")
+
+	err = exporter.Submit([]exporters.MetricAndContext{{Family: singleMetricTestFamily, Context: context}})
+	assert.EqualError(t, err, "ODS queue full, dropping 1 samples")
 }
 
 func TestExport(t *testing.T) {
@@ -79,6 +86,7 @@ func TestExport(t *testing.T) {
 		Value: makeStringPointer("Tag1,Tag2"),
 	}
 	sample := exporters.NewSample(nameStr, "0", int64(0), []*dto.LabelPair{&tagLabelPair}, entity)
+
 	client := new(MockClient)
 	resp := &http.Response{StatusCode: 200}
 	datapoints := []exporters.ODSDatapoint{}
@@ -90,20 +98,38 @@ func TestExport(t *testing.T) {
 	datapointsJson, err := json.Marshal(datapoints)
 	assert.NoError(t, err)
 	client.On("PostForm", mock.AnythingOfType("string"), url.Values{"datapoints": {string(datapointsJson)}}).Return(resp, nil)
+
+	// Export called on empty queue
 	err = exporter.Export(client)
 	assert.NoError(t, err)
 	client.AssertNotCalled(t, "PostForm", mock.AnythingOfType("string"), mock.AnythingOfType("url.Values"))
 
-	testFamily := makeTestMetricFamily(dto.MetricType_GAUGE, []*dto.LabelPair{&tagLabelPair})
+	testFamily := makeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{&tagLabelPair})
 	context := exporters.MetricsContext{DecodedName: "test", OriginatingEntity: entity, NetworkID: "nID", GatewayID: "gID"}
-	err = exporter.Submit(testFamily, context)
+	err = exporter.Submit([]exporters.MetricAndContext{{Family: testFamily, Context: context}})
 	assert.NoError(t, err)
+
+	err = exporter.Export(client)
+	assert.NoError(t, err)
+	client.AssertExpectations(t)
+
+	// Fill queue (drop some samples), assert we didn't exceed queue length cap
+	multiTestFamily := makeTestMetricFamily(dto.MetricType_GAUGE, 100, []*dto.LabelPair{&tagLabelPair})
+	err = exporter.Submit([]exporters.MetricAndContext{{Family: multiTestFamily, Context: context}})
+	assert.EqualError(t, err, "ODS queue full, dropping 98 samples")
+
+	// We expect 2 samples to be exported
+	datapoints = append(datapoints, datapoints...)
+	datapointsJson, err = json.Marshal(datapoints)
+	assert.NoError(t, err)
+	client.On("PostForm", mock.Anything, url.Values{"datapoints": {string(datapointsJson)}}).Return(resp, nil)
+
 	err = exporter.Export(client)
 	assert.NoError(t, err)
 	client.AssertExpectations(t)
 }
 
-func makeTestMetricFamily(metricType dto.MetricType, labels []*dto.LabelPair) *dto.MetricFamily {
+func makeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.LabelPair) *dto.MetricFamily {
 	var testMetric dto.Metric
 	switch metricType {
 	case dto.MetricType_COUNTER:
@@ -117,8 +143,10 @@ func makeTestMetricFamily(metricType dto.MetricType, labels []*dto.LabelPair) *d
 	}
 
 	testMetric.Label = labels
-	var metrics []*dto.Metric
-	metrics = append(metrics, &testMetric)
+	metrics := make([]*dto.Metric, 0, count)
+	for i := 0; i < count; i++ {
+		metrics = append(metrics, &testMetric)
+	}
 	return &dto.MetricFamily{
 		Name:   makeStringPointer("testFamily"),
 		Help:   makeStringPointer("testFamilyHelp"),
@@ -194,15 +222,15 @@ func TestFormatKey(t *testing.T) {
 		"val",
 		int64(0),
 		[]*dto.LabelPair{
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("service"),
 				Value: makeStringPointer("mme"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("result"),
 				Value: makeStringPointer("success"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("cause"),
 				Value: makeStringPointer("foo"),
 			},
@@ -219,11 +247,11 @@ func TestFormatKey(t *testing.T) {
 		"val",
 		int64(0),
 		[]*dto.LabelPair{
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("result"),
 				Value: makeStringPointer("success"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("cause"),
 				Value: makeStringPointer("foo"),
 			},
@@ -240,15 +268,15 @@ func TestFormatKey(t *testing.T) {
 		"val",
 		int64(0),
 		[]*dto.LabelPair{
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("results"),
 				Value: makeStringPointer("success"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("cause"),
 				Value: makeStringPointer("foo"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("tags"),
 				Value: makeStringPointer("Magma"),
 			},
@@ -265,19 +293,19 @@ func TestFormatKey(t *testing.T) {
 		"val",
 		int64(0),
 		[]*dto.LabelPair{
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("service"),
 				Value: makeStringPointer("mme"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("results"),
 				Value: makeStringPointer("success"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("cause"),
 				Value: makeStringPointer("foo"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("tags"),
 				Value: makeStringPointer("Magma"),
 			},
@@ -308,19 +336,19 @@ func TestFormatTags(t *testing.T) {
 		"val",
 		int64(0),
 		[]*dto.LabelPair{
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("service"),
 				Value: makeStringPointer("mme"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("result"),
 				Value: makeStringPointer("success"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("cause"),
 				Value: makeStringPointer("foo"),
 			},
-			&dto.LabelPair{
+			{
 				Name:  makeStringPointer("tags"),
 				Value: makeStringPointer("Magma,Bootcamp"),
 			},

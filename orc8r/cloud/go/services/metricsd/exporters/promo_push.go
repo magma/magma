@@ -18,7 +18,6 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
-	dto "github.com/prometheus/client_model/go"
 )
 
 const (
@@ -32,7 +31,7 @@ type PrometheusPushExporter struct {
 	exporter       Exporter
 	Pusher         *push.Pusher
 	exportInterval time.Duration
-	lock           sync.RWMutex
+	lock           sync.Mutex
 }
 
 // NewPrometheusExporter create a new PrometheusExporter with own registry
@@ -53,12 +52,11 @@ func NewPrometheusPushExporter() Exporter {
 
 // Submit registers or updates a prometheus metric in the exporter registry.
 // All metrics in registry are then pushed to the pushgateway
-func (e *PrometheusPushExporter) Submit(family *dto.MetricFamily, context MetricsContext) error {
+func (e *PrometheusPushExporter) Submit(metrics []MetricAndContext) error {
 	// Unregister All Metrics in PrometheusExporter, then register new registry
 	// with Pusher Before submitting new ones to avoid pushing stale metrics
-
 	e.lock.Lock()
-	err := e.exporter.Submit(family, context)
+	err := e.exporter.Submit(metrics)
 	e.lock.Unlock()
 	if err != nil {
 		return fmt.Errorf("error pushing metrics: %v\n", err)
