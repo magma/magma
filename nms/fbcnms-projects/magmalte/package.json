@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "rimraf static/dist && NODE_ENV=production node -r '@fbcnms/babel-register' ../../node_modules/webpack/bin/webpack --config ./config/webpack.production.config.js --progress --profile --colors",
+    "cmd": "node -r '@fbcnms/babel-register'",
     "start": "yarn run start:dev",
     "start:dev": "nodemon scripts/server",
     "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
@@ -46,7 +47,7 @@
   "devDependencies": {
     "fbcnms-webpack-config": "^0.1.0",
     "identity-obj-proxy": "^3.0.0",
-    "nodemon": "^1.17.4",
+    "nodemon": "^1.18.10",
     "react-hot-loader": "^4.8.0",
     "webpack-cli": "^3.2.3"
   }

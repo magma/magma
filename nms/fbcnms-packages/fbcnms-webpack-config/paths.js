@@ -4,6 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 
@@ -13,7 +14,8 @@ const fs = require('fs');
 const path = require('path');
 
 const appDirectory = fs.realpathSync(process.cwd());
-const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+const resolveApp = (relativePath: string) =>
+  path.resolve(appDirectory, relativePath);
 
 module.exports = {
   appIndexJs: resolveApp('app/main.js'),

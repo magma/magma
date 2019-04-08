@@ -8,7 +8,6 @@
  * @format
  */
 
-import {Request} from 'express';
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import {Strategy as LocalStrategy} from 'passport-local';
@@ -16,6 +15,18 @@ import {Strategy as FacebookStrategy} from 'passport-facebook';
 import {UserVerificationTypes} from './types';
 
 import {injectOrganizationParams} from './organization';
+
+import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
+type OutputRequest<T> = {
+  logIn: (T, (err?: ?Error) => void) => void,
+  logOut: () => void,
+  logout: () => void,
+  user: T,
+  isAuthenticated: () => boolean,
+  isUnauthenticated: () => boolean,
+} & FBCNMSMiddleWareRequest;
+// User is currently untyped, export as an object.
+export type FBCNMSPassportRequest = OutputRequest<Object>;
 
 type PassportConfig = {
   UserModel: any,
@@ -26,7 +37,10 @@ type PassportConfig = {
 };
 
 function use(config: PassportConfig) {
-  const getUserFromRequest = async (req: Request, email: string) => {
+  const getUserFromRequest = async (
+    req: FBCNMSMiddleWareRequest,
+    email: string,
+  ) => {
     const where = await injectOrganizationParams(req, {email});
     return await config.UserModel.findOne({where});
   };
@@ -80,7 +94,7 @@ function use(config: PassportConfig) {
     ),
   );
 
-  if (config.facebookLogin) {
+  if (config.facebookLogin && config.facebookLogin.appId) {
     passport.use(
       new FacebookStrategy(
         {

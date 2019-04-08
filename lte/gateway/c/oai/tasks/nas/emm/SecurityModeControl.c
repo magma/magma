@@ -78,7 +78,7 @@
 #include "mme_api.h"
 #include "mme_app_desc.h"
 #include "nas_procedures.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 #include "security_types.h"
 
 /****************************************************************************/

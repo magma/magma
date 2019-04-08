@@ -74,3 +74,6 @@ int handle_sgs_release_req(const itti_sgsap_release_req_t *sgs_release_req_p);
 
 int handle_sgsap_alert_request(
   const itti_sgsap_alert_request_t *const sgsap_alert_request);
+
+int handle_sgs_service_abort_req(
+  const itti_sgsap_service_abort_req_t *const itti_sgsap_service_abort_req_p);

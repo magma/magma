@@ -20,6 +20,41 @@ CONFIG_DIR = '/etc/magma'
 CONFIG_OVERRIDE_DIR = '/var/opt/magma/configs'
 
 
+def load_override_config(service_name: str) -> Any:
+    """
+    Load override service configuration from the file in the override
+    directory.
+
+    Args:
+        service_name: service to pull configs for; name of config file
+
+    Returns: json-decoded value of the service config
+
+    Raises:
+        LoadConfigError:
+            Unable to load config due to missing file or missing key
+    """
+    override_file_name = _override_file_name(service_name)
+    if os.path.isfile(override_file_name):
+        return _load_yaml_file(override_file_name)
+    return {}
+
+
+def save_override_config(service_name: str, cfg: Any):
+    """
+    Write the configuration object to its corresponding file in the override
+    directory.
+
+    Args:
+        service_name: service to write config object to; name of config file
+        cfg: json-decoded value of the service config
+    """
+    override_file_name = _override_file_name(service_name)
+    os.makedirs(CONFIG_OVERRIDE_DIR, exist_ok=True)
+    with open(override_file_name, 'w') as override_file:
+        yaml.dump(cfg, override_file, default_flow_style=False)
+
+
 def load_service_config(service_name: str) -> Any:
     """
     Load service configuration from file. Also check override directory,
@@ -37,10 +72,8 @@ def load_service_config(service_name: str) -> Any:
     cfg_file_name = os.path.join(CONFIG_DIR, '%s.yml' % service_name)
     cfg = _load_yaml_file(cfg_file_name)
 
-    override_file_name = os.path.join(CONFIG_OVERRIDE_DIR,
-                                      '%s.yml' % service_name)
-    if os.path.isfile(override_file_name):
-        overrides = _load_yaml_file(override_file_name)
+    overrides = load_override_config(service_name)
+    if overrides is not None:
         # Update the keys in the config if they are present in the override
         cfg.update(overrides)
     return cfg
@@ -88,6 +121,10 @@ def get_service_config_value(service: str, param: str, default: Any) -> Any:
         return default
 
 
+def _override_file_name(service_name: str) -> str:
+    return os.path.join(CONFIG_OVERRIDE_DIR, '%s.yml' % service_name)
+
+
 def _load_yaml_file(file_name: str) -> Any:
     """
     Load the yaml file and returns the python object.
@@ -104,7 +141,7 @@ def _load_yaml_file(file_name: str) -> Any:
 
     try:
         with open(file_name, 'r') as stream:
-            data = yaml.load(stream)
+            data = yaml.safe_load(stream)
             return data
     except (OSError, yaml.YAMLError) as e:
         raise LoadConfigError('Error loading yml config') from e

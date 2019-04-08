@@ -4,12 +4,13 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 
 // TODO: Pull from shared config
 const MYSQL_HOST = process.env.MYSQL_HOST || '127.0.0.1';
-const MYSQL_PORT = process.env.MYSQL_PORT || '3306';
+const MYSQL_PORT = parseInt(process.env.MYSQL_PORT || '3306');
 const MYSQL_USER = process.env.MYSQL_USER || 'root';
 const MYSQL_PASS = process.env.MYSQL_PASS || '';
 const MYSQL_DB = process.env.MYSQL_DB || 'cxl';
@@ -32,7 +33,7 @@ module.exports = {
     host: MYSQL_HOST,
     port: MYSQL_PORT,
     dialect: 'mysql',
-    logging: msg => logger.debug(msg),
+    logging: (msg: string) => logger.debug(msg),
   },
   production: {
     username: MYSQL_USER,
@@ -41,6 +42,6 @@ module.exports = {
     host: MYSQL_HOST,
     port: MYSQL_PORT,
     dialect: 'mysql',
-    logging: msg => logger.debug(msg),
+    logging: (msg: string) => logger.debug(msg),
   },
 };

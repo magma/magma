@@ -16,7 +16,6 @@ LICENSE file in the root directory of this source tree.
 package httpserver
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -206,11 +205,11 @@ func getHttpStatusFromGatewayResponse(gwRespStatus string) (int, error) {
 	httpStatus, err := strconv.Atoi(gwRespStatus)
 	if err != nil {
 		return DEFAULT_HTTP_RESPONSE_STATUS,
-			errors.New(fmt.Sprintf("cannot parse status of gatewayResponse: %v\n", err))
+			fmt.Errorf("cannot parse status of gatewayResponse: %v\n", err)
 	}
 	// invalid status code, defaults to 200
 	if statusText := http.StatusText(httpStatus); len(statusText) == 0 {
-		return DEFAULT_HTTP_RESPONSE_STATUS, errors.New(fmt.Sprintf("Unrecognized httpStatus: %v\n", httpStatus))
+		return DEFAULT_HTTP_RESPONSE_STATUS, fmt.Errorf("Unrecognized httpStatus: %v\n", httpStatus)
 	}
 	return httpStatus, nil
 }

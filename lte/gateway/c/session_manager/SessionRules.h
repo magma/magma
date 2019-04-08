@@ -17,26 +17,27 @@ namespace magma {
  * SessionRules maintains the dynamic and static rules for a subscriber session
  */
 class SessionRules {
-public:
-  SessionRules(StaticRuleStore& static_rule_ref);
+ public:
+  SessionRules(StaticRuleStore &static_rule_ref);
 
   bool get_charging_key_for_rule_id(
-      const std::string& rule_id,
-      uint32_t* charging_key);
+    const std::string &rule_id,
+    uint32_t *charging_key);
 
   bool get_monitoring_key_for_rule_id(
-      const std::string& rule_id,
-      std::string* monitoring_key);
+    const std::string &rule_id,
+    std::string *monitoring_key);
 
-  void insert_dynamic_rule(const PolicyRule& rule);
+  void insert_dynamic_rule(const PolicyRule &rule);
 
-  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule* rule_out);
+  bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
 
-  void add_rules_to_action(ServiceAction& action, uint32_t charging_key);
-  void add_rules_to_action(ServiceAction& action, std::string monitoring_key);
-private:
-  StaticRuleStore& static_rules_;
+  void add_rules_to_action(ServiceAction &action, uint32_t charging_key);
+  void add_rules_to_action(ServiceAction &action, std::string monitoring_key);
+
+ private:
+  StaticRuleStore &static_rules_;
   DynamicRuleStore dynamic_rules_;
 };
 
-}
+} // namespace magma

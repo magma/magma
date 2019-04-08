@@ -491,10 +491,10 @@ int sgw_cm_remove_eps_bearer_entry(
   if ((ebi < EPS_BEARER_IDENTITY_FIRST) || (ebi > EPS_BEARER_IDENTITY_LAST)) {
     return RETURNerror;
   }
-  sgw_eps_bearer_ctxt_t * sgw_eps_bearer_ctxt = sgw_pdn_connection->sgw_eps_bearers_array[EBI_TO_INDEX(ebi)];
+  /*sgw_eps_bearer_ctxt_t * sgw_eps_bearer_ctxt = sgw_pdn_connection->sgw_eps_bearers_array[EBI_TO_INDEX(ebi)];
   if (sgw_eps_bearer_ctxt) {
     sgw_free_sgw_eps_bearer_context(&sgw_eps_bearer_ctxt);
     return RETURNok;
-  }
+  }*/
   return RETURNerror;
 }

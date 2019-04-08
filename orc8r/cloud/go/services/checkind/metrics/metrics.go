@@ -32,8 +32,20 @@ var (
 			Help: "Total number of gateways that are in the network"},
 		[]string{"networkId"},
 	)
+	gwMconfigAge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "gateway_mconfig_age",
+			Help: "Age of the mconfig in the gateway in seconds",
+		},
+		[]string{"networkId", "gatewayId"},
+	)
 )
 
 func init() {
-	prometheus.MustRegister(gwCheckinStatus, upGwCount, totalGwCount)
+	prometheus.MustRegister(
+		gwCheckinStatus,
+		upGwCount,
+		totalGwCount,
+		gwMconfigAge,
+	)
 }

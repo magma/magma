@@ -35,6 +35,7 @@ add_library(TASK_MME_APP
     mme_app_itti_messaging.c
     mme_app_edns_emulation.c
     mme_app_sgw_selection.c
+    mme_app_sgs_status.c
     )
 target_compile_definitions(TASK_MME_APP PRIVATE
   PACKAGE_NAME=\"MME\"

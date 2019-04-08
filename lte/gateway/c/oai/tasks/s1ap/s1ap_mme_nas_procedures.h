@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -35,6 +35,7 @@
 #include "common_types.h"
 #include "mme_app_messages_types.h"
 #include "s1ap_messages_types.h"
+#include "s1ap_state.h"
 
 struct s1ap_message_s;
 
@@ -45,6 +46,7 @@ struct s1ap_message_s;
  * @returns -1 on failure, 0 otherwise
  **/
 int s1ap_mme_handle_initial_ue_message(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assocId,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
@@ -57,6 +59,7 @@ int s1ap_mme_handle_initial_ue_message(
  * @returns -1 on failure, 0 otherwise
  **/
 int s1ap_mme_handle_uplink_nas_transport(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assocId,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
@@ -68,24 +71,30 @@ int s1ap_mme_handle_uplink_nas_transport(
  * @returns -1 on failure, 0 otherwise
  **/
 int s1ap_mme_handle_nas_non_delivery(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assocId,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
 
 void s1ap_handle_conn_est_cnf(
+  s1ap_state_t *state,
   const itti_mme_app_connection_establishment_cnf_t *const conn_est_cnf_p);
 
 int s1ap_generate_downlink_nas_transport(
+  s1ap_state_t *state,
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
   const mme_ue_s1ap_id_t ue_id,
   STOLEN_REF bstring *payload);
 
 void s1ap_handle_mme_ue_id_notification(
+  s1ap_state_t *state,
   const itti_mme_app_s1ap_mme_ue_id_notification_t *const notification_p);
 
 int s1ap_generate_s1ap_e_rab_setup_req(
+  s1ap_state_t *state,
   itti_s1ap_e_rab_setup_req_t *const e_rab_setup_req);
 
 int s1ap_generate_s1ap_e_rab_rel_cmd(
+  s1ap_state_t *state,
   itti_s1ap_e_rab_rel_cmd_t *const e_rab_rel_cmd);
 #endif /* FILE_S1AP_MME_NAS_PROCEDURES_SEEN */

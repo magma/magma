@@ -41,9 +41,12 @@ const {
   AccessRoles: {USER},
 } = require('@fbcnms/auth/roles');
 
+import type {FBCNMSRequest} from '@fbcnms/auth/access';
+export type NMSRequest = FBCNMSRequest;
+
 const logger = logging.getLogger(module);
 
-const port = process.env.PORT || 80;
+const port = parseInt(process.env.PORT || 80);
 
 const app = express();
 
@@ -84,15 +87,15 @@ app.set('view engine', 'pug');
 app.use('/nms', require('../server/nms/routes'));
 
 // For backward compat, a health check
-app.use('/user/login', (req, res) => {
+app.use('/user/login', (req: NMSRequest, res) => {
   res.send('OK');
 });
 
-app.get('/', (req, res) => {
+app.get('/', (req: NMSRequest, res) => {
   res.redirect('/nms');
 });
 
-app.get('*', (req, res) => {
+app.get('*', (req: NMSRequest, res) => {
   res.status(404);
   res.send('Not Found');
 });
@@ -102,7 +105,7 @@ app.get('*', (req, res) => {
 
   app.listen(port, '', err => {
     if (err) {
-      logger.error(err);
+      logger.error(err.toString());
     }
     if (DEV_MODE) {
       logger.info(`Development server started on port ${port}`);

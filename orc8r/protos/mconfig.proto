@@ -28,7 +28,7 @@ message GatewayConfigs {
 // Metadata about the configs.
 message GatewayConfigsMetadata {
     // Unix timestamp of Cloud at the time of config generation.
-    int64 created_at = 11;
+    uint64 created_at = 11;
 }
 
 // Wraps a gateway config and a stream offset that the config was computed

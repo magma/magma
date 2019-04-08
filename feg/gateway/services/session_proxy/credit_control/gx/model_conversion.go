@@ -41,6 +41,15 @@ func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 		if rd.Qos.MaxReqBwDL != nil {
 			qos.MaxReqBwDl = *rd.Qos.MaxReqBwDL
 		}
+		if rd.Qos.GbrDL != nil {
+			qos.GbrDl = *rd.Qos.GbrDL
+		}
+		if rd.Qos.GbrUL != nil {
+			qos.GbrUl = *rd.Qos.GbrUL
+		}
+		if rd.Qos.Qci != nil {
+			qos.Qci = protos.FlowQos_Qci(*rd.Qos.Qci)
+		}
 	}
 
 	return &protos.PolicyRule{

@@ -29,14 +29,16 @@
 extern "C" void __gcov_flush(void);
 #endif
 
-static magma::mconfig::SessionD get_default_mconfig() {
+static magma::mconfig::SessionD get_default_mconfig()
+{
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
   mconfig.set_relay_enabled(false);
   return mconfig;
 }
 
-static magma::mconfig::SessionD load_mconfig() {
+static magma::mconfig::SessionD load_mconfig()
+{
   magma::mconfig::SessionD mconfig;
   magma::MConfigLoader loader;
   if (!loader.load_service_mconfig(SESSIOND_SERVICE, &mconfig)) {
@@ -46,21 +48,25 @@ static magma::mconfig::SessionD load_mconfig() {
   return mconfig;
 }
 
-static void run_bare_service303() {
+static void run_bare_service303()
+{
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   server.Start();
   server.WaitForShutdown(); // blocks forever
   server.Stop();
 }
 
-static bool sessiond_enabled(const magma::mconfig::SessionD& mconfig) {
+static bool sessiond_enabled(const magma::mconfig::SessionD &mconfig)
+{
   return mconfig.relay_enabled();
 }
 
 static const std::shared_ptr<grpc::Channel> get_controller_channel(
-    const YAML::Node& config) {
-  if (!config["use_proxied_controller"].IsDefined() ||
-      config["use_proxied_controller"].as<bool>()) {
+  const YAML::Node &config)
+{
+  if (
+    !config["use_proxied_controller"].IsDefined() ||
+    config["use_proxied_controller"].as<bool>()) {
     MLOG(MINFO) << "Using proxied sessiond controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
@@ -68,20 +74,44 @@ static const std::shared_ptr<grpc::Channel> get_controller_channel(
   auto port = config["local_controller_port"].as<std::string>();
   auto addr = "127.0.0.1:" + port;
   MLOG(MINFO) << "Using local address " << addr << " for controller";
-  return grpc::CreateCustomChannel(addr, grpc::InsecureChannelCredentials(),
-                                   grpc::ChannelArguments{});
+  return grpc::CreateCustomChannel(
+    addr, grpc::InsecureChannelCredentials(), grpc::ChannelArguments {});
 }
 
-int main (int argc, char* argv[]) {
+static uint32_t get_log_verbosity(const YAML::Node &config)
+{
+  if (!config["log_level"].IsDefined()) {
+    return MINFO;
+  }
+  std::string log_level = config["log_level"].as<std::string>();
+  if (log_level == "DEBUG") {
+    return MDEBUG;
+  } else if (log_level == "INFO") {
+    return MINFO;
+  } else if (log_level == "WARNING") {
+    return MWARNING;
+  } else if (log_level == "ERROR") {
+    return MERROR;
+  } else if (log_level == "FATAL") {
+    return MFATAL;
+  } else {
+    MLOG(MINFO) << "Invalid log level in config: "
+                << config["log_level"].as<std::string>();
+    return MINFO;
+  }
+}
+
+int main(int argc, char *argv[])
+{
 #ifdef DEBUG
   __gcov_flush();
 #endif
 
   magma::init_logging(argv[0]);
   auto mconfig = load_mconfig();
-  auto config = magma::ServiceConfigLoader{}.load_service_config(
-    SESSIOND_SERVICE);
-  magma::set_verbosity(magma::LogLevel::FATAL - mconfig.log_level());
+  auto config =
+    magma::ServiceConfigLoader {}.load_service_config(SESSIOND_SERVICE);
+  magma::set_verbosity(get_log_verbosity(config));
 
   if (!sessiond_enabled(mconfig)) {
     MLOG(MINFO) << "Credit control disabled, local enforcer not running";
@@ -89,15 +119,17 @@ int main (int argc, char* argv[]) {
     return 0;
   }
 
-  folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
+  folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
 
   // prep rule manager and rule update loop
   auto rule_store = std::make_shared<magma::StaticRuleStore>();
   magma::PolicyLoader policy_loader;
   std::thread policy_loader_thread([&]() {
-    policy_loader.start_loop([&](std::vector<magma::PolicyRule>rules) {
-      rule_store->sync_rules(rules);
-    }, config["rule_update_inteval_sec"].as<uint32_t>());
+    policy_loader.start_loop(
+      [&](std::vector<magma::PolicyRule> rules) {
+        rule_store->sync_rules(rules);
+      },
+      config["rule_update_inteval_sec"].as<uint32_t>());
     policy_loader.stop();
   });
 
@@ -110,7 +142,10 @@ int main (int argc, char* argv[]) {
   auto reporting_limit = config["usage_reporting_limit_bytes"].as<uint64_t>();
   magma::SessionCredit::USAGE_REPORTING_LIMIT = reporting_limit;
 
-  auto monitor = magma::LocalEnforcer(rule_store, pipelined_client);
+  auto monitor = magma::LocalEnforcer(
+    rule_store,
+    pipelined_client,
+    config["session_force_termination_timeout_ms"].as<long>());
 
   magma::SessionCloudReporter reporter(evb, get_controller_channel(config));
   std::thread reporter_thread([&]() {
@@ -121,8 +156,8 @@ int main (int argc, char* argv[]) {
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
     &monitor, &reporter);
-  auto proxy_handler = std::make_unique<magma::SessionProxyResponderHandlerImpl>(
-    &monitor);
+  auto proxy_handler =
+    std::make_unique<magma::SessionProxyResponderHandlerImpl>(&monitor);
 
   magma::LocalSessionManagerAsyncService local_service(
     server.GetNewCompletionQueue(), std::move(local_handler));
@@ -135,12 +170,12 @@ int main (int argc, char* argv[]) {
   std::thread local_thread([&]() {
     MLOG(MINFO) << "Started local service thread";
     local_service.wait_for_requests(); // block here instead of on server
-    local_service.stop(); // stop queue after server shuts down
+    local_service.stop();              // stop queue after server shuts down
   });
   std::thread proxy_thread([&]() {
     MLOG(MINFO) << "Started proxy service thread";
     proxy_service.wait_for_requests(); // block here instead of on server
-    proxy_service.stop(); // stop queue after server shuts down
+    proxy_service.stop();              // stop queue after server shuts down
   });
 
   // Block on main monitor (to keep evb in this thread)

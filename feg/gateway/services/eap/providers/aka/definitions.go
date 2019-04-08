@@ -11,7 +11,8 @@ package aka
 
 import (
 	"fmt"
-	"unsafe"
+	"sync/atomic"
+	"time"
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
@@ -88,26 +89,68 @@ type AkaState int16
 
 const (
 	// Processing/handling States
-	StateNone      AkaState = iota
-	StateCreated            // newly created
-	StateIdentity           // Valid permanent identity received
-	StateChallenge          // Auth Challenge was returned to UE
+	StateNone          AkaState = iota
+	StateCreated                // newly created
+	StateIdentity               // Valid permanent identity received
+	StateChallenge              // Auth Challenge was returned to UE
+	StateAuthenticated          // UE is successfully authenticated
 )
 
 const (
-	ByteLen     = unsafe.Sizeof(byte(0))
 	ATT_HDR_LEN = 4
-	AUTN_LEN    = int(uintptr(128) / ByteLen) //128/8 -> 16
-	RAND_LEN    = int(uintptr(128) / ByteLen) //128/8
+	AUTN_LEN    = 16
+	RAND_LEN    = 16
 	RandAutnLen = RAND_LEN + AUTN_LEN
 	MAC_LEN     = 16
 
-	AT_RAND_ATTR_LEN    = AUTN_LEN + ATT_HDR_LEN
-	AT_AUTN_ATTR_LEN    = RAND_LEN + ATT_HDR_LEN
-	AT_MAC_ATTR_LEN     = MAC_LEN + ATT_HDR_LEN
-	CHALLANGE_ATTRS_LEN = AT_RAND_ATTR_LEN + AT_AUTN_ATTR_LEN + AT_MAC_ATTR_LEN
-	CHALLANGE_EAP_LEN   = CHALLANGE_ATTRS_LEN
+	AT_RAND_ATTR_LEN = AUTN_LEN + ATT_HDR_LEN
+	AT_AUTN_ATTR_LEN = RAND_LEN + ATT_HDR_LEN
+	AT_MAC_ATTR_LEN  = MAC_LEN + ATT_HDR_LEN
+
+	AkaChallengeTimeout            = time.Second * 20
+	AkaErrorNotificationTimeout    = time.Second * 10
+	AkaSessionTimeout              = time.Hour * 12
+	AkaSessionAuthenticatedTimeout = time.Second * 5
 )
+
+var (
+	challengeTimeout            time.Duration = AkaChallengeTimeout
+	errorNotificationTimeout    time.Duration = AkaErrorNotificationTimeout
+	sessionTimeout              time.Duration = AkaSessionTimeout
+	sessionAuthenticatedTimeout time.Duration = AkaSessionAuthenticatedTimeout
+)
+
+func ChallengeTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&challengeTimeout)))
+}
+
+func SetChallengeTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&challengeTimeout), int64(tout))
+}
+
+func NotificationTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&errorNotificationTimeout)))
+}
+
+func SetNotificationTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&errorNotificationTimeout), int64(tout))
+}
+
+func SessionTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&sessionTimeout)))
+}
+
+func SetSessionTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&sessionTimeout), int64(tout))
+}
+
+func SessionAuthenticatedTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&sessionAuthenticatedTimeout)))
+}
+
+func SetSessionAuthenticatedTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&sessionAuthenticatedTimeout), int64(tout))
+}
 
 type IMSI string
 

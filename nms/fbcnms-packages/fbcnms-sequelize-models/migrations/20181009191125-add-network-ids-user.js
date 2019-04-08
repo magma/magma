@@ -4,11 +4,14 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 
+import type {DataTypes, QueryInterface} from 'sequelize';
+
 module.exports = {
-  up: (queryInterface, Sequelize) => {
+  up: (queryInterface: QueryInterface, Sequelize: DataTypes) => {
     return queryInterface.addColumn('Users', 'networkIDs', {
       allowNull: false,
       defaultValue: '[]',
@@ -16,7 +19,7 @@ module.exports = {
     });
   },
 
-  down: (queryInterface, _Sequelize) => {
+  down: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
     return queryInterface.removeColumn('Users', 'networkIDs');
   },
 };

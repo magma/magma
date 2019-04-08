@@ -56,6 +56,7 @@ class ConfigManagerTest(TestCase):
         def _mock_restart_services(): return "blah"
 
         service_manager_mock = MagicMock()
+        magmad_service_mock = MagicMock()
         mconfig_manager_mock = MconfigManagerImpl()
 
         load_mock = patch.object(
@@ -76,7 +77,8 @@ class ConfigManagerTest(TestCase):
             loop = asyncio.new_event_loop()
             config_manager = ConfigManager(
                 ['magmad', 'metricsd'], service_manager_mock,
-                None, mconfig_manager_mock, allow_unknown_fields=False,
+                magmad_service_mock, mconfig_manager_mock,
+                allow_unknown_fields=False,
                 loop=loop,
             )
 

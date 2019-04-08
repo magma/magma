@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/checkind"
 	"magma/orc8r/cloud/go/services/checkind/test_init"
+	"magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/magmad"
 	mdprotos "magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
@@ -105,47 +106,11 @@ func insertStatuses(t *testing.T) map[string]*protos.CheckinRequest {
 	assert.NoError(t, err)
 	defer conn.Close()
 	client := protos.NewCheckindClient(conn)
-	checkinRequest1 := &protos.CheckinRequest{
-		GatewayId:       gw1HardwareID,
-		MagmaPkgVersion: "v1",
-		Status: &protos.ServiceStatus{
-			Meta: map[string]string{
-				"Hello": "World!",
-			},
-		},
-		SystemStatus: &protos.SystemStatus{
-			Time:         1,
-			CpuUser:      2,
-			CpuSystem:    3,
-			CpuIdle:      4,
-			MemTotal:     5,
-			MemAvailable: 6,
-			MemUsed:      7,
-			MemFree:      8,
-		},
-	}
+	checkinRequest1 := test_utils.GetCheckinRequestProtoFixture(gw1HardwareID)
 	_, err = client.Checkin(context.Background(), checkinRequest1)
 	assert.NoError(t, err)
 
-	checkinRequest2 := &protos.CheckinRequest{
-		GatewayId:       gw2HardwareID,
-		MagmaPkgVersion: "v2",
-		Status: &protos.ServiceStatus{
-			Meta: map[string]string{
-				"test": "meta",
-			},
-		},
-		SystemStatus: &protos.SystemStatus{
-			Time:         8,
-			CpuUser:      7,
-			CpuSystem:    6,
-			CpuIdle:      5,
-			MemTotal:     4,
-			MemAvailable: 3,
-			MemUsed:      2,
-			MemFree:      1,
-		},
-	}
+	checkinRequest2 := test_utils.GetCheckinRequestProtoFixture(gw2HardwareID)
 	_, err = client.Checkin(context.Background(), checkinRequest2)
 	assert.NoError(t, err)
 

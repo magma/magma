@@ -87,18 +87,16 @@ class PolicyRuleEditDialog extends React.Component<Props, State> {
               <AddCircleOutline />
             </IconButton>
           </Typography>
-          {(rule.flow_list || [])
-            .slice(0, 30)
-            .map((flow, i) => (
-              <PolicyFlowFields
-                key={i}
-                index={i}
-                flow={flow}
-                handleActionChange={this.handleActionChange}
-                handleFieldChange={this.handleFieldChange}
-                handleDelete={this.handleDeleteFlow}
-              />
-            ))}
+          {(rule.flow_list || []).slice(0, 30).map((flow, i) => (
+            <PolicyFlowFields
+              key={i}
+              index={i}
+              flow={flow}
+              handleActionChange={this.handleActionChange}
+              handleFieldChange={this.handleFieldChange}
+              handleDelete={this.handleDeleteFlow}
+            />
+          ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={this.props.onCancel} color="primary">

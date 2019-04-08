@@ -28,6 +28,7 @@
 #define SUPPORTED_CODEC_LIST_MINIMUM_LENGTH 5
 #define SUPPORTED_CODEC_LIST_MAXIMUM_LENGTH                                    \
   ((4 * SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION) + 1)
+#define SUPPORTED_CODED_LIST_IE 0x40
 
 typedef struct SupportedCodecList_tag {
   uint8_t systemidentification;

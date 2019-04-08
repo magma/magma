@@ -14,7 +14,7 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -24,8 +24,8 @@ const (
 	defaultServerAddr     = "127.0.0.1:0"
 	defaultServerHost     = "magma.com"
 	defaultServerRealm    = "magma.com"
-	defaultMaxUlBitRate   = uint64(100000000)
-	defaultMaxDlBitRate   = uint64(200000000)
+	DefaultMaxUlBitRate   = uint64(100000000)
+	DefaultMaxDlBitRate   = uint64(200000000)
 )
 
 var (
@@ -33,72 +33,16 @@ var (
 	defaultLteAuthOp  = []byte("\xcd\xc2\x02\xd5\x12> \xf6+mgj\xc7,\xb3\x18")
 )
 
-// newTestHomeSubscriberServer creates a HSS with test users so its functionality
+// NewTestHomeSubscriberServer creates a HSS with test users so its functionality
 // can be tested.
-func newTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
+func NewTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 	store := storage.NewMemorySubscriberStore()
 
-	sub := &protos.SubscriberData{
-		Sid: &protos.SubscriberID{Id: "sub1"},
-		Lte: &protos.LTESubscription{
-			State:    protos.LTESubscription_ACTIVE,
-			AuthAlgo: protos.LTESubscription_MILENAGE,
-			AuthKey:  []byte("\x8b\xafG?/\x8f\xd0\x94\x87\xcc\xcb\xd7\t|hb"),
-			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
-		},
-		State: &protos.SubscriberState{
-			LteAuthNextSeq:          7350,
-			TgppAaaServerName:       defaultServerHost,
-			TgppAaaServerRegistered: false,
-		},
-		Non_3Gpp: &protos.Non3GPPUserProfile{
-			Msisdn:              "12345",
-			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
-			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			Ambr: &protos.AggregatedMaximumBitrate{
-				MaxBandwidthUl: uint32(defaultMaxUlBitRate),
-				MaxBandwidthDl: uint32(defaultMaxDlBitRate),
-			},
-			ApnConfig: &protos.APNConfiguration{
-				ContextId:        10,
-				ServiceSelection: "*",
-				QosProfile: &protos.APNConfiguration_QoSProfile{
-					ClassId:                 7,
-					PriorityLevel:           3,
-					PreemptionCapability:    true,
-					PreemptionVulnerability: true,
-				},
-				Ambr: &protos.AggregatedMaximumBitrate{
-					MaxBandwidthUl: uint32(defaultMaxUlBitRate),
-					MaxBandwidthDl: uint32(defaultMaxDlBitRate),
-				},
-				Pdn: protos.APNConfiguration_IPV6,
-			},
-		},
+	subs := test_utils.GetTestSubscribers()
+	for _, sub := range subs {
+		err := store.AddSubscriber(sub)
+		assert.NoError(t, err)
 	}
-	err := store.AddSubscriber(sub)
-	assert.NoError(t, err)
-
-	sub = &protos.SubscriberData{
-		Sid: &protos.SubscriberID{Id: "empty_sub"},
-	}
-	err = store.AddSubscriber(sub)
-	assert.NoError(t, err)
-
-	sub = &protos.SubscriberData{
-		Sid: &protos.SubscriberID{Id: "missing_auth_key"},
-		Lte: &protos.LTESubscription{
-			State:    protos.LTESubscription_ACTIVE,
-			AuthAlgo: protos.LTESubscription_MILENAGE,
-			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
-		},
-		State: &protos.SubscriberState{
-			LteAuthNextSeq:    7350,
-			TgppAaaServerName: defaultServerHost,
-		},
-	}
-	err = store.AddSubscriber(sub)
-	assert.NoError(t, err)
 
 	config := &mconfig.HSSConfig{
 		Server: &mconfig.DiamServerConfig{
@@ -110,8 +54,8 @@ func newTestHomeSubscriberServer(t *testing.T) *servicers.HomeSubscriberServer {
 		LteAuthAmf: defaultLteAuthAmf,
 		LteAuthOp:  defaultLteAuthOp,
 		DefaultSubProfile: &mconfig.HSSConfig_SubscriptionProfile{
-			MaxUlBitRate: defaultMaxUlBitRate,
-			MaxDlBitRate: defaultMaxDlBitRate,
+			MaxUlBitRate: DefaultMaxUlBitRate,
+			MaxDlBitRate: DefaultMaxDlBitRate,
 		},
 		SubProfiles: make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
 	}

@@ -271,7 +271,7 @@ ebi_t esm_ebr_context_release(
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int found = false;
   esm_pdn_t *pdn = NULL;
-  esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
+  //esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
 
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
@@ -354,8 +354,7 @@ ebi_t esm_ebr_context_release(
      * Release the specified EPS bearer data
      */
     //  "free pdn->bearer"
-    free_wrapper ((void**)&ue_mm_context->bearer_contexts[*bid]);
-    /*
+   /*
      * Decrement the number of EPS bearer context allocated
      * * * * to the PDN connection
      */
@@ -368,6 +367,12 @@ ebi_t esm_ebr_context_release(
        * * * * PDN, the UE shall delete all EPS bearer contexts associated to
        * * * * that PDN connection.
        */
+      OAILOG_INFO(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Release default EPS bearer context "
+        "(ebi=%d)\n",
+        ebi);
+
       for (i = 1; pdn->n_bearers > 0; i++) {
         int idx = ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i];
         if ((idx >= 0) && (idx < BEARERS_PER_UE)) {
@@ -415,8 +420,23 @@ ebi_t esm_ebr_context_release(
       if (pdn->is_emergency) {
         pdn->is_emergency = false;
       }
+      ue_mm_context->pdn_contexts[*pid]->is_active = false;
+    } else {
+      OAILOG_INFO(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Release dedicated EPS bearer context "
+        "(ebi=%d)\n",
+        ebi);
+      (void) esm_ebr_set_status(
+        emm_context,
+        ue_mm_context->bearer_contexts[*bid]->ebi,
+        ESM_EBR_INACTIVE,
+        true);
+
+      free_wrapper ((void**)&ue_mm_context->bearer_contexts[*bid]);
     }
 
+#if 0
     if (pdn->n_bearers == 0) {
     /*
        * : Release the PDN connection and marked the UE as inactive
@@ -424,7 +444,7 @@ ebi_t esm_ebr_context_release(
        */
        esm_proc_pdn_disconnect_accept(emm_context, *pid, &esm_cause);
     }
-
+#endif
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ebi);
   }
 

@@ -46,9 +46,10 @@ def gps_tr181(value: str) -> str:
     Returns:
         str: GPS value (latitude/longitude) in degrees
     """
-    if value.isnumeric():
+    try:
         return str(float(value) / 1e6)
-    return value
+    except ValueError:
+        return value
 
 
 def bandwidth(bandwidth_rbs: str) -> float:

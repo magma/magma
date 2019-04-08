@@ -37,11 +37,11 @@ enum eap_code {
 }
 
 message eap_context {
-    // TBD
-}
-
-message eap_message {
-    bytes payload = 1;
+    string session_id = 1;
+    string imsi = 2;
+    bytes msk = 3;
+    string identity = 4;
+    string msisdn = 5;
 }
 
 message eap {
@@ -51,4 +51,23 @@ message eap {
 
 service eap_service {
     rpc handle(eap) returns (eap) {}
+}
+
+message eap_identity {
+    bytes payload = 1;
+    eap_context ctx = 2;
+    uint32 method = 3;
+}
+
+message void {
+}
+
+message method_list {
+    bytes methods = 1;
+}
+
+service eap_router {
+    rpc handle_identity(eap_identity) returns (eap) {}
+    rpc handle(eap) returns (eap) {}
+    rpc supported_methods(void) returns (method_list) {}
 }

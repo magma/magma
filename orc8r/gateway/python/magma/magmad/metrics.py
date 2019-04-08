@@ -12,7 +12,7 @@ import logging
 import psutil
 from prometheus_client import Gauge, Counter
 
-from .network_check import ping
+from magma.magmad.check.network_check import ping
 
 POLL_INTERVAL_SECONDS = 10
 

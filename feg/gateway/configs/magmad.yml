@@ -1,4 +1,5 @@
 ---
+log_level: INFO
 # List of services for magmad to control
 magma_services:
   - control_proxy
@@ -10,6 +11,8 @@ magma_services:
   - feg_hello
   - health
   - swx_proxy
+  - eap_aka
+  - eap_router
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -17,7 +20,7 @@ non_service303_services:
   - redis
 
 # Init system to use to control services
-# Supported systems include: [systemd, runit]
+# Supported systems include: [systemd, runit, docker]
 init_system: systemd
 
 # bootstrap_manager config

@@ -4,11 +4,14 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
+ * @flow
  * @format
  */
 
+import type {DataTypes, QueryInterface} from 'sequelize';
+
 module.exports = {
-  up: (queryInterface, _Sequelize) => {
+  up: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
     return queryInterface.bulkInsert(
       'Organizations',
       [
@@ -25,7 +28,7 @@ module.exports = {
     );
   },
 
-  down: (queryInterface, _Sequelize) => {
+  down: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
     return queryInterface.bulkDelete('Organizations', null, {});
   },
 };

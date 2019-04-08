@@ -77,12 +77,78 @@ def get_if_ip_with_netmask(interface, preference=IpPreference.IPV4_PREFERRED):
         raise ValueError('Unknown IP preference %s' % preference)
 
 
+def get_all_if_ips_with_netmask(interface,
+                                preference=IpPreference.IPV4_PREFERRED):
+    """
+    Get all IP addresses and netmasks (in form /255.255.255.0)
+    from interface name and return as a list of tuple (ip, netmask).
+
+    Raise ValueError if unable to get requested IP addresses.
+    """
+    # Raises ValueError if interface is unavailable
+    ip_addresses = netifaces.ifaddresses(interface)
+
+    try:
+        ipv4_addresses = [(ip_address['addr'], ip_address['netmask']) for
+                          ip_address in ip_addresses[netifaces.AF_INET]]
+    except KeyError:
+        ipv4_addresses = None
+
+    try:
+        ipv6_addresses = [(ip_address['addr'], ip_address['netmask']) for
+                          ip_address in ip_addresses[netifaces.AF_INET6]]
+    except KeyError:
+        ipv6_addresses = None
+
+    if preference == IpPreference.IPV4_ONLY:
+        if ipv4_addresses is not None:
+            return ipv4_addresses
+        else:
+            raise ValueError('Error getting IPv4 addresses for %s' % interface)
+
+    elif preference == IpPreference.IPV4_PREFERRED:
+        if ipv4_addresses is not None:
+            return ipv4_addresses
+        elif ipv6_addresses is not None:
+            return ipv6_addresses
+        else:
+            raise ValueError(
+                'Error getting IPv4/6 addresses for %s' % interface)
+
+    elif preference == IpPreference.IPV6_PREFERRED:
+        if ipv6_addresses is not None:
+            return ipv6_addresses
+        elif ipv4_addresses is not None:
+            return ipv4_addresses
+        else:
+            raise ValueError(
+                'Error getting IPv6/4 addresses for %s' % interface)
+
+    elif preference == IpPreference.IPV6_ONLY:
+        if ipv6_addresses is not None:
+            return ipv6_addresses
+        else:
+            raise ValueError('Error getting IPv6 addresses for %s' % interface)
+
+    else:
+        raise ValueError('Unknown IP preference %s' % preference)
+
+
 def get_ip_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
     """
     Get ip address from interface name and return as string.
     Extract only ip address from (ip, netmask)
     """
     return get_if_ip_with_netmask(iface_name, preference)[0]
+
+
+def get_all_ips_from_if(iface_name, preference=IpPreference.IPV4_PREFERRED):
+    """
+    Get all ip addresses from interface name and return as a list of string.
+    Extract only ip address from (ip, netmask)
+    """
+    return [ip[0] for ip in
+            get_all_if_ips_with_netmask(iface_name, preference)]
 
 
 def get_ip_from_if_cidr(iface_name, preference=IpPreference.IPV4_PREFERRED):
@@ -95,6 +161,24 @@ def get_ip_from_if_cidr(iface_name, preference=IpPreference.IPV4_PREFERRED):
     ip = '%s/%s' % (ip, netmask)
     interface = ipaddress.ip_interface(ip).with_prefixlen  # Set CIDR notation
     return interface
+
+
+def get_all_ips_from_if_cidr(iface_name,
+                             preference=IpPreference.IPV4_PREFERRED):
+    """
+    Get all IPAddresses with netmask from interface name and
+    transform into CIDR (eth1 -> 192.168.60.142/24) notation
+    return as a list of string.
+    """
+
+    def ip_cidr_gen():
+        for ip, netmask in get_all_if_ips_with_netmask(iface_name, preference):
+            ip = '%s/%s' % (ip, netmask)
+            # Set CIDR notation
+            ip_cidr = ipaddress.ip_interface(ip).with_prefixlen
+            yield ip_cidr
+
+    return [ip_cidr for ip_cidr in ip_cidr_gen()]
 
 
 def cidr_to_ip_netmask_tuple(cidr_network):
@@ -110,6 +194,31 @@ def cidr_to_ip_netmask_tuple(cidr_network):
     """
     network = ipaddress.ip_network(cidr_network)
     return '{}'.format(network.network_address), '{}'.format(network.netmask)
+
+
+def get_if_mac_address(interface):
+    """
+    Returns the MAC address of an interface.
+    Note: If multiple MAC addresses exist, the first one is chosen.
+
+    Raise ValueError if unable to get requested IP address.
+    """
+    addr = netifaces.ifaddresses(interface)
+    try:
+        return addr[netifaces.AF_LINK][0]['addr']
+    except KeyError:
+        raise ValueError('Error getting MAC address for %s' % interface)
+
+
+def is_interface_up(interface):
+    """
+    Returns whether an interface is up.
+    """
+    try:
+        addr = netifaces.ifaddresses(interface)
+    except ValueError:
+        return False
+    return netifaces.AF_INET in addr
 
 
 def call_process(cmd, callback, loop):

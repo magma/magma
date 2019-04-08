@@ -152,6 +152,7 @@ func TestSuccessfulConsecutiveReadWriteWithWait(t *testing.T) {
 func TestReadSuccessAndFailWithTimeout(t *testing.T) {
 	safeBuffer, err := servicers.NewSafeBuffer()
 	assert.NoError(t, err)
+	signal := make(chan bool)
 
 	go func() {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
@@ -161,6 +162,7 @@ func TestReadSuccessAndFailWithTimeout(t *testing.T) {
 			Imsi: "111111",
 		})
 		assert.Equal(t, expectedMsg, message)
+		signal <- true
 	}()
 	go func() {
 		messageType, message, err := safeBuffer.GetNextMessage(1)
@@ -170,9 +172,11 @@ func TestReadSuccessAndFailWithTimeout(t *testing.T) {
 			Imsi: "111111",
 		})
 		assert.Equal(t, expectedMsg, message)
+		signal <- true
 	}()
 	go func() {
-		time.Sleep(time.Millisecond * 500)
+		<-signal
+		<-signal
 		messageType, message, err := safeBuffer.GetNextMessage(1)
 		assert.EqualError(t, err, "buffer read timeout")
 		assert.Equal(t, decode.SGsMessageType(0x00), messageType)

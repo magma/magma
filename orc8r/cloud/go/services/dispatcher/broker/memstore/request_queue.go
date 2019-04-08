@@ -87,12 +87,12 @@ func (queues *requestQueueImpl) Enqueue(gwReq *protos.SyncRPCRequest) error {
 	defer queues.RUnlock()
 	reqQueue, ok := queues.reqQueueByGwId[gwId]
 	if !ok {
-		return errors.New(fmt.Sprintf("Queue does not exist for gwId %v\n", gwId))
+		return fmt.Errorf("Queue does not exist for gwId %v\n", gwId)
 	}
 	select {
 	case reqQueue <- gwReq:
 		return nil
 	case <-time.After(time.Second):
-		return errors.New(fmt.Sprintf("Failed to enqueue %v because queue for gwId %v is full\n", gwReq, gwId))
+		return fmt.Errorf("Failed to enqueue %v because queue for gwId %v is full\n", gwReq, gwId)
 	}
 }

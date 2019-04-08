@@ -329,6 +329,34 @@ int handle_sgs_vlr_reset_indication(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
+/* handle_sgs_status_message()
+ * Is function invoked by FedGW on reception of Sgs Status message from MSC/VLR
+ */
+
+int handle_sgs_status_message(
+    const itti_sgsap_status_t *sgs_status_pP) {
+  MessageDef *message_p = NULL;
+  int rc = RETURNok;
+  OAILOG_FUNC_IN(LOG_SGS);
+
+  /* Received SGS status message from FedGW
+   * send it to MME App for further processing
+  */
+  message_p = itti_alloc_new_message(TASK_SGS, SGSAP_STATUS);
+  AssertFatal(message_p, "itti_alloc_new_message Failed while handling "
+             "SGS Status message from MSC/VLR \n");
+
+  itti_sgsap_status_t *sgs_status_p = &message_p->ittiMsg.sgsap_status;
+  memset((void *)sgs_status_p, 0, sizeof(itti_sgsap_status_t));
+  memcpy((void *)sgs_status_p, (void *)sgs_status_pP,
+         sizeof(itti_sgsap_status_t));
+  OAILOG_DEBUG(LOG_SGS, "Received SGS Status message from FedGW "
+              "and send sgs status message to MME app for Imsi :%s \n",
+               sgs_status_p->imsi);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN (LOG_NAS_EMM, rc);
+}
+
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/

@@ -43,7 +43,7 @@ Description Defines internal private data handled by EPS Mobility
 #include "queue.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
-#include "securityDef.h"
+#include "nas/securityDef.h"
 #include "TrackingAreaIdentityList.h"
 #include "emm_fsm.h"
 #include "nas_timer.h"

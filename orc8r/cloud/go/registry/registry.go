@@ -23,9 +23,10 @@ import (
 // ServiceLocation is an entry for the service registry which identifies a
 // service by name and the host:port that it is running on.
 type ServiceLocation struct {
-	Name string
-	Host string
-	Port int
+	Name         string
+	Host         string
+	Port         int
+	ProxyAliases map[string]int
 }
 
 const (
@@ -76,6 +77,18 @@ func GetServiceAddress(service string) (string, error) {
 		return "", fmt.Errorf("Service %s is not available", service)
 	}
 	return fmt.Sprintf("%s:%d", location.Host, location.Port), nil
+}
+
+// GetServiceProxyAliases Returns the proxy_aliases, if any, of the service.
+// The service needs to be added to the registry before this.
+func GetServiceProxyAliases(service string) (map[string]int, error) {
+	registry.RLock()
+	defer registry.RUnlock()
+	location, ok := registry.serviceLocations[string(service)]
+	if !ok {
+		return nil, fmt.Errorf("Service %s not registered", service)
+	}
+	return location.ProxyAliases, nil
 }
 
 // Returns the listening port for the RPC service.

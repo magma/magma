@@ -62,7 +62,7 @@ enum CreditUpdateType {
  * there is an update (quota exhausted, etc)
  */
 class SessionCredit {
-public:
+ public:
   struct Usage {
     uint64_t bytes_tx;
     uint64_t bytes_rx;
@@ -145,7 +145,7 @@ public:
    */
   static uint64_t USAGE_REPORTING_LIMIT;
 
-private:
+ private:
   bool reporting_;
   bool is_final_;
   ReAuthState reauth_state_;
@@ -153,7 +153,7 @@ private:
   std::time_t expiry_time_;
   uint64_t buckets_[MAX_VALUES];
 
-private:
+ private:
   bool quota_exhausted();
 
   bool max_overage_reached();
@@ -165,4 +165,4 @@ private:
   bool is_reauth_required();
 };
 
-}
+} // namespace magma

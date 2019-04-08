@@ -19,9 +19,11 @@ import os
 import pkg_resources
 from orc8r.protos.common_pb2 import LogLevel, Void
 from orc8r.protos.metricsd_pb2 import MetricsContainer
-from orc8r.protos.service303_pb2 import ServiceInfo
-from orc8r.protos.service303_pb2_grpc import Service303Servicer, \
-    add_Service303Servicer_to_server
+from orc8r.protos.service303_pb2 import ServiceInfo, ReloadConfigResponse
+from orc8r.protos.service303_pb2_grpc import (
+    Service303Servicer,
+    add_Service303Servicer_to_server,
+)
 
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import get_mconfig_manager
@@ -52,6 +54,7 @@ class MagmaService(Service303Servicer):
 
         # Load the managed config if present
         self._mconfig = None
+        self._mconfig_metadata = None
         self._mconfig_manager = get_mconfig_manager()
         self.reload_mconfig()
 
@@ -61,15 +64,11 @@ class MagmaService(Service303Servicer):
             loop = asyncio.get_event_loop()
         self._loop = loop
         self._start_time = int(time.time())
-        self._setup_logging()
         self._register_signal_handlers()
 
         # Load the service config if present
         self._config = None
-        try:
-            self._config = load_service_config(name)
-        except LoadConfigError as e:
-            logging.warning(e)
+        self.reload_config()
 
         self._version = '0.0.0'
         # Load the service version if available
@@ -131,11 +130,28 @@ class MagmaService(Service303Servicer):
         return self._mconfig
 
     @property
+    def mconfig_metadata(self):
+        """
+        Returns the metadata of the managed config
+        """
+        return self._mconfig_metadata
+
+    @property
     def mconfig_manager(self):
         """
         Returns the mconfig manager for this service
         """
         return self._mconfig_manager
+
+    def reload_config(self):
+        """
+        Reloads the local config for the service
+        """
+        try:
+            self._config = load_service_config(self._name)
+            self._setup_logging()
+        except LoadConfigError as e:
+            logging.warning(e)
 
     def reload_mconfig(self):
         """
@@ -147,6 +163,8 @@ class MagmaService(Service303Servicer):
             self._mconfig = self._mconfig_manager.load_service_mconfig(
                 self._name,
             )
+            self._mconfig_metadata = \
+                self._mconfig_manager.load_mconfig_metadata()
         except LoadConfigError as e:
             logging.warning(e)
 
@@ -207,9 +225,19 @@ class MagmaService(Service303Servicer):
         """
         Setup the logging for the service
         """
-        config_level = getattr(self._mconfig, 'log_level', None)
-        if config_level is not None:
-            self._set_log_level(config_level)
+        if self._config is None:
+            config_level = None
+        else:
+            config_level = self._config.get('log_level', None)
+
+        try:
+            proto_level = LogLevel.Value(config_level)
+        except ValueError:
+            logging.error(
+                'Unknown logging level in config: %s, defaulting to INFO',
+                config_level)
+            proto_level = LogLevel.Value('INFO')
+        self._set_log_level(proto_level)
 
     @staticmethod
     def _set_log_level(proto_level):
@@ -289,3 +317,10 @@ class MagmaService(Service303Servicer):
 
     def SetLogVerbosity(self, request, context):
         pass  # Not Implemented
+
+    def ReloadServiceConfig(self, request, context):
+        """
+        Handles request to reload the service config file
+        """
+        self.reload_config()
+        return ReloadConfigResponse(result=ReloadConfigResponse.RELOAD_SUCCESS)

@@ -103,21 +103,16 @@
 #include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "service303.h"
+#include "s1ap_state.h"
 
 struct S1ap_E_RABItem_s;
 struct S1ap_E_RABSetupItemBearerSURes_s;
 struct S1ap_E_RABSetupItemCtxtSURes_s;
 struct S1ap_IE;
 
-extern hash_table_ts_t
-  g_s1ap_enb_coll; // contains eNB_description_s, key is eNB_description_s.assoc_id
-
-static const char *const s1_enb_state_str[] = {"S1AP_INIT",
-                                               "S1AP_RESETTING",
-                                               "S1AP_READY",
-                                               "S1AP_SHUTDOWN"};
-
-static int s1ap_generate_s1_setup_response(enb_description_t *enb_association);
+static int s1ap_generate_s1_setup_response(
+  s1ap_state_t *state,
+  enb_description_t *enb_association);
 
 static int s1ap_mme_generate_ue_context_release_command(
   ue_description_t *ue_ref_p,
@@ -128,7 +123,7 @@ struct s1ap_message_s;
 
 /* Handlers matrix. Only mme related procedures present here.
 */
-s1ap_message_decoded_callback messages_callback[][3] = {
+s1ap_message_handler_t message_handlers[][3] = {
   {0, 0, 0},                                   /* HandoverPreparation */
   {0, 0, 0},                                   /* HandoverResourceAllocation */
   {0, 0, 0},                                   /* HandoverNotification */
@@ -192,15 +187,8 @@ s1ap_message_decoded_callback messages_callback[][3] = {
   {0, 0, 0}, /* UplinkNonUEAssociatedLPPaTransport */
 };
 
-const char *s1ap_direction2String[] = {
-  "",                      /* Nothing */
-  "Originating message",   /* originating message */
-  "Successfull outcome",   /* successfull outcome */
-  "UnSuccessfull outcome", /* successfull outcome */
-};
-
-//------------------------------------------------------------------------------
 int s1ap_mme_handle_message(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -209,9 +197,8 @@ int s1ap_mme_handle_message(
    * Checking procedure Code and direction of message
    */
   if (
-    (message->procedureCode > (sizeof(messages_callback) /
-                               (3 * sizeof(s1ap_message_decoded_callback)))) ||
-    (message->direction > S1AP_PDU_PR_unsuccessfulOutcome)) {
+    message->procedureCode >= COUNT_OF(message_handlers) ||
+    message->direction > S1AP_PDU_PR_unsuccessfulOutcome) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n",
@@ -221,26 +208,21 @@ int s1ap_mme_handle_message(
     return -1;
   }
 
-  /*
-   * No handler present.
-   * * * * This can mean not implemented or no procedure for eNB (wrong message).
-   */
-  if (
-    messages_callback[message->procedureCode][message->direction - 1] == NULL) {
+  s1ap_message_handler_t handler =
+    message_handlers[message->procedureCode][message->direction - 1];
+
+  if (handler == NULL) {
+    // not implemented or no procedure for eNB (wrong message)
     OAILOG_DEBUG(
       LOG_S1AP,
       "[SCTP %d] No handler for procedureCode %d in %s\n",
       assoc_id,
       (int) message->procedureCode,
-      s1ap_direction2String[(int) message->direction]);
+      s1ap_direction2str(message->direction));
     return -2;
   }
 
-  /*
-   * Calling the right handler
-   */
-  return (*messages_callback[message->procedureCode][message->direction - 1])(
-    assoc_id, stream, message);
+  return handler(state, assoc_id, stream, message);
 }
 
 //------------------------------------------------------------------------------
@@ -327,6 +309,7 @@ int s1ap_mme_generate_s1_setup_failure(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_s1_setup_request(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -368,7 +351,7 @@ int s1ap_mme_handle_s1_setup_request(
     NULL,
     0,
     "0 S1Setup/%s assoc_id %u stream %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     assoc_id,
     stream);
 
@@ -401,7 +384,7 @@ int s1ap_mme_handle_s1_setup_request(
    * S1ap_TimeToWait_v20s.
    * If we get this message when the s1 interface of the MME is in RESETTING stage then we return S1ap_TimeToWait_v20s.
    */
-  if ((enb_association = s1ap_is_enb_assoc_id_in_list(assoc_id)) == NULL) {
+  if ((enb_association = s1ap_state_get_enb(state, assoc_id)) == NULL) {
     /*
      *
      * This should not happen as the thread processing new associations is the one that reads data from the
@@ -417,7 +400,7 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_WARNING(
       LOG_S1AP,
       "Ignoring s1setup from eNB in state %s on assoc id %u",
-      s1_enb_state_str[enb_association->s1_state],
+      s1_enb_state2str(enb_association->s1_state),
       assoc_id);
     rc = s1ap_mme_generate_s1_setup_failure(
       assoc_id,
@@ -481,14 +464,14 @@ int s1ap_mme_handle_s1_setup_request(
   max_enb_connected = mme_config.max_enbs;
   mme_config_unlock(&mme_config);
 
-  if (nb_enb_associated == max_enb_connected) {
+  if (state->num_enbs == max_enb_connected) {
     OAILOG_ERROR(
       LOG_S1AP,
       "There is too much eNB connected to MME, rejecting the association\n");
     OAILOG_DEBUG(
       LOG_S1AP,
       "Connected = %d, maximum allowed = %d\n",
-      nb_enb_associated,
+      state->num_enbs,
       max_enb_connected);
     /*
      * Send an overload cause...
@@ -545,7 +528,7 @@ int s1ap_mme_handle_s1_setup_request(
   }
 
   s1ap_dump_enb(enb_association);
-  rc = s1ap_generate_s1_setup_response(enb_association);
+  rc = s1ap_generate_s1_setup_response(state, enb_association);
   if (rc == RETURNok) {
     update_mme_app_stats_connected_enb_add();
     increment_counter("s1_setup", 1, 1, "result", "success");
@@ -554,7 +537,9 @@ int s1ap_mme_handle_s1_setup_request(
 }
 
 //------------------------------------------------------------------------------
-static int s1ap_generate_s1_setup_response(enb_description_t *enb_association)
+static int s1ap_generate_s1_setup_response(
+  s1ap_state_t *state,
+  enb_description_t *enb_association)
 {
   int i, j;
   int enc_rval = 0;
@@ -631,7 +616,7 @@ static int s1ap_generate_s1_setup_response(enb_description_t *enb_association)
    */
   if (enc_rval < 0) {
     OAILOG_DEBUG(LOG_S1AP, "Removed eNB %d\n", enb_association->sctp_assoc_id);
-    s1ap_remove_enb(enb_association);
+    s1ap_remove_enb(state, enb_association);
     free_s1ap_s1setupresponse(s1_setup_response_p);
   } else {
     /*
@@ -662,6 +647,7 @@ static int s1ap_generate_s1_setup_response(enb_description_t *enb_association)
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_ue_cap_indication(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -680,12 +666,13 @@ int s1ap_mme_handle_ue_cap_indication(
     0,
     "0 UECapabilityInfoIndication/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ue_cap_p->eNB_UE_S1AP_ID,
     ue_cap_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(ue_cap_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(state, ue_cap_p->mme_ue_s1ap_id)) ==
+    NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
@@ -762,6 +749,7 @@ int s1ap_mme_handle_ue_cap_indication(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_context_setup_response(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -783,13 +771,14 @@ int s1ap_mme_handle_initial_context_setup_response(
     0,
     "0 InitialContextSetup/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     initialContextSetupResponseIEs_p->eNB_UE_S1AP_ID,
     initialContextSetupResponseIEs_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       (uint32_t) initialContextSetupResponseIEs_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, (uint32_t) initialContextSetupResponseIEs_p->mme_ue_s1ap_id)) ==
+    NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
@@ -864,6 +853,7 @@ int s1ap_mme_handle_initial_context_setup_response(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_ue_context_release_request(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -885,7 +875,7 @@ int s1ap_mme_handle_ue_context_release_request(
     0,
     "0 UEContextReleaseRequest/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextReleaseRequest_p->eNB_UE_S1AP_ID,
     ueContextReleaseRequest_p->mme_ue_s1ap_id);
   // Log the Cause Type and Cause value
@@ -971,8 +961,8 @@ int s1ap_mme_handle_ue_context_release_request(
   */
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       ueContextReleaseRequest_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, ueContextReleaseRequest_p->mme_ue_s1ap_id)) == NULL) {
     /*
      * MME doesn't know the MME UE S1AP ID provided.
      * No need to do anything. Ignore the message
@@ -1278,6 +1268,7 @@ static int s1ap_mme_generate_ue_context_modification(
 
 //------------------------------------------------------------------------------
 int s1ap_handle_ue_context_release_command(
+  s1ap_state_t *state,
   const itti_s1ap_ue_context_release_command_t
     *const ue_context_release_command_pP)
 {
@@ -1286,8 +1277,8 @@ int s1ap_handle_ue_context_release_command(
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       ue_context_release_command_pP->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, ue_context_release_command_pP->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " %u(10)\n",
@@ -1310,7 +1301,7 @@ int s1ap_handle_ue_context_release_command(
       ue_context_release_command_pP->cause ==
         S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
       ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
-      s1ap_remove_ue(ue_ref_p);
+      s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(
         ue_ref_p, ue_context_release_command_pP->cause);
@@ -1324,6 +1315,7 @@ int s1ap_handle_ue_context_release_command(
 
 //------------------------------------------------------------------------------
 int s1ap_handle_ue_context_mod_req(
+  s1ap_state_t *state,
   const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP)
 {
   ue_description_t *ue_ref_p = NULL;
@@ -1332,8 +1324,8 @@ int s1ap_handle_ue_context_mod_req(
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(ue_context_mod_req_pP != NULL);
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       ue_context_mod_req_pP->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, ue_context_mod_req_pP->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " %u(10)\n",
@@ -1355,6 +1347,7 @@ int s1ap_handle_ue_context_mod_req(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_ue_context_release_complete(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -1372,13 +1365,13 @@ int s1ap_mme_handle_ue_context_release_complete(
     0,
     "0 UEContextRelease/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextReleaseComplete_p->eNB_UE_S1AP_ID,
     ueContextReleaseComplete_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       ueContextReleaseComplete_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, ueContextReleaseComplete_p->mme_ue_s1ap_id)) == NULL) {
     /*
      * MME doesn't know the MME UE S1AP ID provided.
      * This implies that UE context has already been deleted on the expiry of timer
@@ -1415,60 +1408,17 @@ int s1ap_mme_handle_ue_context_release_complete(
     S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
-  s1ap_remove_ue(ue_ref_p);
+  s1ap_remove_ue(state, ue_ref_p);
   OAILOG_DEBUG(
     LOG_S1AP,
     "Removed UE " MME_UE_S1AP_ID_FMT "\n",
     (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
-#if 0
-int
-s1ap_mme_handle_ue_context_mod_resp (
-    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
-    __attribute__((unused)) const sctp_stream_id_t stream,
-    struct s1ap_message_s *message)
-{
-  S1ap_UEContextModificationResp_t     *ueContextModResp_p = NULL;
-  ue_description_t                       *ue_ref_p = NULL;
-  MessageDef                             *message_p = NULL;
 
-  OAILOG_FUNC_IN (LOG_S1AP);
-  ueContextReleaseComplete_p = &message->msg.s1ap_UEContextReleaseCompleteIEs;
-  MSC_LOG_RX_MESSAGE (MSC_S1AP_MME,
-                      MSC_S1AP_ENB,
-                      NULL, 0,
-                      "0 UEContextRelease/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
-                      s1ap_direction2String[message->direction], ueContextReleaseComplete_p->eNB_UE_S1AP_ID, ueContextReleaseComplete_p->mme_ue_s1ap_id);
-
-  if ((ue_ref_p = s1ap_is_ue_mme_id_in_list (ueContextReleaseComplete_p->mme_ue_s1ap_id)) == NULL) {
-    /*
-     * MME doesn't know the MME UE S1AP ID provided.
-     * This implies that UE context has already been deleted on the expiry of timer
-     * Ignore this message.
-     */
-    OAILOG_DEBUG (LOG_S1AP, " UE Context Release commplete:No S1 context. Ignore the message for ueid " MME_UE_S1AP_ID_FMT "\n", (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
-    MSC_LOG_EVENT (MSC_S1AP_MME, "0 UEContextReleaseComplete ignored, no context mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ", ueContextReleaseComplete_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN (LOG_S1AP, RETURNok);
-  }
-
-  /*
-   * eNB has sent a release complete message. We can safely remove UE context.
-   * TODO: inform NAS and remove e-RABS.
-   */
-  message_p = itti_alloc_new_message (TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
-  AssertFatal (message_p != NULL, "itti_alloc_new_message Failed");
-  S1AP_UE_CONTEXT_RELEASE_COMPLETE (message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
-  MSC_LOG_TX_MESSAGE (MSC_S1AP_MME, MSC_MMEAPP_MME, NULL, 0, "0 S1AP_UE_CONTEXT_RELEASE_COMPLETE mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ", S1AP_UE_CONTEXT_RELEASE_COMPLETE (message_p).mme_ue_s1ap_id);
-  itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
-  s1ap_remove_ue (ue_ref_p);
-  OAILOG_DEBUG (LOG_S1AP, "Removed UE " MME_UE_S1AP_ID_FMT "\n", (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
-  OAILOG_FUNC_RETURN (LOG_S1AP, RETURNok);
-}
-#endif
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_context_setup_failure(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -1490,13 +1440,13 @@ int s1ap_mme_handle_initial_context_setup_failure(
     0,
     "0 InitialContextSetup/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     initialContextSetupFailureIEs_p->eNB_UE_S1AP_ID,
     initialContextSetupFailureIEs_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       initialContextSetupFailureIEs_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, initialContextSetupFailureIEs_p->mme_ue_s1ap_id)) == NULL) {
     /*
      * MME doesn't know the MME UE S1AP ID provided.
      */
@@ -1604,6 +1554,7 @@ int s1ap_mme_handle_initial_context_setup_failure(
 }
 
 int s1ap_mme_handle_ue_context_modification_response(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -1622,13 +1573,13 @@ int s1ap_mme_handle_ue_context_modification_response(
     0,
     "0 UEContextModificationResponse/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextModification_p->eNB_UE_S1AP_ID,
     ueContextMofification_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       ueContextModification_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, ueContextModification_p->mme_ue_s1ap_id)) == NULL) {
     /*
      * MME doesn't know the MME UE S1AP ID provided.
      * No need to do anything. Ignore the message
@@ -1700,6 +1651,7 @@ int s1ap_mme_handle_ue_context_modification_response(
 }
 
 int s1ap_mme_handle_ue_context_modification_failure(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -1721,13 +1673,13 @@ int s1ap_mme_handle_ue_context_modification_failure(
     0,
     "0 UEContextModificationFailure/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     ueContextMofification_p->eNB_UE_S1AP_ID,
     ueContextMofification_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       ueContextModification_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, ueContextModification_p->mme_ue_s1ap_id)) == NULL) {
     /*
      * MME doesn't know the MME UE S1AP ID provided.
      * No need to do anything. Ignore the message
@@ -1855,6 +1807,7 @@ int s1ap_mme_handle_ue_context_modification_failure(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_path_switch_request(
+  s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -1875,8 +1828,8 @@ int s1ap_mme_handle_path_switch_request(
     enb_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       pathSwitchRequest_p->sourceMME_UE_S1AP_ID)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, pathSwitchRequest_p->sourceMME_UE_S1AP_ID)) == NULL) {
     /*
      * The MME UE S1AP ID provided by eNB doesn't point to any valid UE.
      * * * * MME replies with a PATH SWITCH REQUEST FAILURE message and start operation
@@ -1992,7 +1945,10 @@ static bool construct_s1ap_mme_full_reset_req(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_handle_sctp_disconnection(const sctp_assoc_id_t assoc_id, bool reset)
+int s1ap_handle_sctp_disconnection(
+  s1ap_state_t *state,
+  const sctp_assoc_id_t assoc_id,
+  bool reset)
 {
   arg_s1ap_send_enb_dereg_ind_t arg = {0};
   int i = 0;
@@ -2004,7 +1960,7 @@ int s1ap_handle_sctp_disconnection(const sctp_assoc_id_t assoc_id, bool reset)
   /*
    * Checking that the assoc id has a valid eNB attached to.
    */
-  enb_association = s1ap_is_enb_assoc_id_in_list(assoc_id);
+  enb_association = s1ap_state_get_enb(state, assoc_id);
   OAILOG_INFO(
     LOG_S1AP,
     "SCTP disconnection request for association id %u. Reset Flag = %u \n",
@@ -2038,7 +1994,7 @@ int s1ap_handle_sctp_disconnection(const sctp_assoc_id_t assoc_id, bool reset)
         assoc_id);
       update_mme_app_stats_connected_enb_sub();
     } else {
-      s1ap_remove_enb(enb_association);
+      s1ap_remove_enb(state, enb_association);
       update_mme_app_stats_connected_enb_sub();
       OAILOG_INFO(
         LOG_S1AP,
@@ -2124,7 +2080,9 @@ int s1ap_handle_sctp_disconnection(const sctp_assoc_id_t assoc_id, bool reset)
 }
 
 //------------------------------------------------------------------------------
-int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p)
+int s1ap_handle_new_association(
+  s1ap_state_t *state,
+  sctp_new_peer_t *sctp_new_peer_p)
 {
   enb_description_t *enb_association = NULL;
 
@@ -2134,9 +2092,8 @@ int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p)
   /*
    * Checking that the assoc id has a valid eNB attached to.
    */
-  if (
-    (enb_association =
-       s1ap_is_enb_assoc_id_in_list(sctp_new_peer_p->assoc_id)) == NULL) {
+  enb_association = s1ap_state_get_enb(state, sctp_new_peer_p->assoc_id);
+  if (enb_association == NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "Create eNB context for assoc_id: %d\n",
@@ -2144,7 +2101,7 @@ int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p)
     /*
      * Create new context
      */
-    enb_association = s1ap_new_enb();
+    enb_association = s1ap_new_enb(state);
 
     if (enb_association == NULL) {
       /*
@@ -2161,7 +2118,7 @@ int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p)
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
     hashtable_rc_t hash_rc = hashtable_ts_insert(
-      &g_s1ap_enb_coll,
+      &state->enbs,
       (const hash_key_t) enb_association->sctp_assoc_id,
       (void *) enb_association);
     if (HASH_TABLE_OK != hash_rc) {
@@ -2174,7 +2131,7 @@ int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p)
       LOG_S1AP,
       "Received new association request on an association that is being %s, "
       "ignoring",
-      s1_enb_state_str[enb_association->s1_state]);
+      s1_enb_state2str(enb_association->s1_state));
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
     OAILOG_DEBUG(
@@ -2204,6 +2161,7 @@ int s1ap_handle_new_association(sctp_new_peer_t *sctp_new_peer_p)
 
 //------------------------------------------------------------------------------
 void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
+  s1ap_state_t *state,
   ue_description_t *ue_ref_p)
 {
   MessageDef *message_p = NULL;
@@ -2239,24 +2197,26 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
     LOG_S1AP,
     "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
     (uint32_t) ue_ref_p->mme_ue_s1ap_id);
-  s1ap_remove_ue(ue_ref_p);
+  s1ap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_error_ind_message(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
-  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d \n", stream);
-  OAILOG_WARNING(LOG_S1AP, "*****ERROR IND is not supported*****\n");
+  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n",
+                  stream);
   increment_counter("s1ap_error_ind_rcvd", 1, NO_LABELS);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_erab_setup_response(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -2275,13 +2235,14 @@ int s1ap_mme_handle_erab_setup_response(
     0,
     "0 E_RABSetupResponse/%s enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " len %u",
-    s1ap_direction2String[message->direction],
+    s1ap_direction2str(message->direction),
     s1ap_E_RABSetupResponseIEs_p->eNB_UE_S1AP_ID,
     s1ap_E_RABSetupResponseIEs_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       (uint32_t) s1ap_E_RABSetupResponseIEs_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, (uint32_t) s1ap_E_RABSetupResponseIEs_p->mme_ue_s1ap_id)) ==
+    NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
@@ -2362,6 +2323,7 @@ int s1ap_mme_handle_erab_setup_response(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_erab_setup_failure(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -2370,6 +2332,7 @@ int s1ap_mme_handle_erab_setup_failure(
 }
 
 int s1ap_mme_handle_enb_reset(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -2389,7 +2352,7 @@ int s1ap_mme_handle_enb_reset(
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  enb_association = s1ap_is_enb_assoc_id_in_list(assoc_id);
+  enb_association = s1ap_state_get_enb(state, assoc_id);
 
   if (enb_association == NULL) {
     OAILOG_ERROR(LOG_S1AP, "No eNB attached to this assoc_id: %d\n", assoc_id);
@@ -2503,7 +2466,9 @@ int s1ap_mme_handle_enb_reset(
         if (s1_sig_conn_id_p->mME_UE_S1AP_ID != NULL) {
           mme_ue_s1ap_id =
             (mme_ue_s1ap_id_t) * (s1_sig_conn_id_p->mME_UE_S1AP_ID);
-          if ((ue_ref_p = s1ap_is_ue_mme_id_in_list(mme_ue_s1ap_id)) != NULL) {
+          if (
+            (ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) !=
+            NULL) {
             if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
               enb_ue_s1ap_id =
                 (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
@@ -2548,8 +2513,8 @@ int s1ap_mme_handle_enb_reset(
             enb_ue_s1ap_id =
               (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
             if (
-              (ue_ref_p = s1ap_is_ue_enb_id_in_list(
-                 enb_association, enb_ue_s1ap_id)) != NULL) {
+              (ue_ref_p = s1ap_state_get_ue_enbid(
+                 state, enb_association, enb_ue_s1ap_id)) != NULL) {
               enb_ue_s1ap_id &= ENB_UE_S1AP_ID_MASK;
               reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = enb_ue_s1ap_id;
               reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
@@ -2641,7 +2606,9 @@ int s1ap_handle_enb_initiated_reset_ack(
 }
 
 //------------------------------------------------------------------------------
-void s1ap_enb_assoc_clean_up_timer_expiry(enb_description_t *enb_ref_p)
+void s1ap_enb_assoc_clean_up_timer_expiry(
+  s1ap_state_t *state,
+  enb_description_t *enb_ref_p)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(enb_ref_p != NULL);
@@ -2658,7 +2625,7 @@ void s1ap_enb_assoc_clean_up_timer_expiry(enb_description_t *enb_ref_p)
     "Removing eNB with association id %u. Number of associated UEs %d  \n",
     enb_ref_p->sctp_assoc_id,
     enb_ref_p->nb_ue_associated);
-  s1ap_remove_enb(enb_ref_p);
+  s1ap_remove_enb(state, enb_ref_p);
   update_mme_app_stats_connected_enb_sub();
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
@@ -2764,8 +2731,31 @@ int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
+const char *s1_enb_state2str(enum mme_s1_enb_state_s state)
+{
+  switch (state) {
+    case S1AP_INIT: return "S1AP_INIT";
+    case S1AP_RESETING: return "S1AP_RESETING";
+    case S1AP_READY: return "S1AP_READY";
+    case S1AP_SHUTDOWN: return "S1AP_SHUTDOWN";
+    default: return "unknown s1ap_enb_state";
+  }
+}
+
+const char *s1ap_direction2str(uint8_t dir)
+{
+  switch (dir) {
+    case S1AP_PDU_PR_NOTHING: return "<nothing>";
+    case S1AP_PDU_PR_initiatingMessage: return "originating message";
+    case S1AP_PDU_PR_successfulOutcome: return "successful outcome";
+    case S1AP_PDU_PR_unsuccessfulOutcome: return "unsuccessful outcome";
+    default: return "unknown direction";
+  }
+}
+
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_erab_rel_response(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message)
@@ -2789,8 +2779,9 @@ int s1ap_mme_handle_erab_rel_response(
     s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id);
 
   if (
-    (ue_ref_p = s1ap_is_ue_mme_id_in_list(
-       (uint32_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id)) == NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, (uint32_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id)) ==
+    NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
@@ -2864,4 +2855,3 @@ int s1ap_mme_handle_erab_rel_response(
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
-

@@ -29,7 +29,7 @@ def _load_services() -> Dict[Any, Any]:
         print("Loading registry for module: %s..." % module)
         filename = os.path.join(CONFIGS_DIR, module, "service_registry.yml")
         with open(filename) as file:
-            registry = yaml.load(file)
+            registry = yaml.safe_load(file)
             if registry and "services" in registry:
                 services.update(registry["services"])
     return services

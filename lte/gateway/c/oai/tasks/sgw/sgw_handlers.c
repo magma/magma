@@ -1267,6 +1267,7 @@ int sgw_handle_modify_bearer_request(
             sgw_no_pcef_create_dedicated_bearer(modify_bearer_pP->teid);
           }
         }
+    #if 0
     // For testing
     Imsi_t imsi;
     ip_address_t ue_ip;
@@ -1287,7 +1288,7 @@ int sgw_handle_modify_bearer_request(
     qos.mbr.br_dl = 400;
     memset(&tft,0,sizeof(traffic_flow_template_t));
     pgw_handle_dedicated_bearer_actv_req(&imsi,&ue_ip,&tft,&qos);
-
+#endif
       }
     }
   } else {
@@ -1765,9 +1766,6 @@ int sgw_handle_s5_create_bearer_response(
     create_session_response_p->trxn =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.trxn;
   }
-    OAILOG_ERROR(
-      LOG_SPGW_APP, "*********Sending create session rsp with TEID %d *********\n",create_session_response_p->teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
 
   rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
@@ -1823,8 +1821,8 @@ int sgw_handle_suspend_notification(
      */
     eps_bearer_entry_p =
       ctx_p->sgw_eps_bearer_context_information.pdn_connection
-        .sgw_eps_bearers_array[suspend_notification_pP->lbi];
-    if (HASH_TABLE_OK == hash_rc) {
+        .sgw_eps_bearers_array[EBI_TO_INDEX(suspend_notification_pP->lbi)];
+    if (eps_bearer_entry_p) {
       OAILOG_DEBUG(
         LOG_SPGW_APP,
         "Handle S11_SUSPEND_NOTIFICATION: Discard the Data received GTP-U "
@@ -2495,9 +2493,10 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
               &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection,
               s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);
             if (eps_bearer_ctxt_p) {
-              sgw_cm_remove_eps_bearer_entry(&spgw_ctxt->sgw_eps_bearer_context_information
+              /*sgw_cm_remove_eps_bearer_entry(&spgw_ctxt->sgw_eps_bearer_context_information
                 .pdn_connection,
-              s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);
+              s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);*/
+              sgw_free_sgw_eps_bearer_context(&eps_bearer_ctxt_p);
                 break;
             }
           }

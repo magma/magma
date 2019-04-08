@@ -311,7 +311,7 @@ typedef struct sgs_context_s {
   unsigned int
     ts13_retransmission_count; /* SGS IMPLICIT EPS DETACH INDICATION retransmission counter*/
   MessageDef *
-    message_p; /*To store S1AP NAS DL DATA REQ in case of UE initiated IMSI or combined 
+    message_p; /*To store S1AP NAS DL DATA REQ in case of UE initiated IMSI or combined
                                            EPS/IMSI detach and send after recieving SGS IMSI Detach Ack */
   void *sgsap_msg;
   ongoing_procedure_t ongoing_procedure;
@@ -611,15 +611,6 @@ void mme_ue_context_duplicate_enb_ue_s1ap_id_detected(
   const mme_ue_s1ap_id_t mme_ue_s1ap_id,
   const bool is_remove_old);
 
-/** \brief Create the association between mme_ue_s1ap_id and an UE context (enb_ue_s1ap_id key)
- * \param enb_key        The UE id identifier used in S1AP and MME_APP (agregated with a enb_id)
- * \param mme_ue_s1ap_id The UE id identifier used in MME_APP and NAS
- * @returns RETURNerror or RETURNok
- **/
-int mme_ue_context_notified_new_ue_s1ap_id_association(
-  const enb_s1ap_id_key_t enb_key,
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id);
-
 /** \brief Update an UE context by selecting the provided guti
  * \param mme_ue_context_p The MME context
  * \param ue_context_p The UE context
@@ -719,6 +710,8 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
 void mme_app_ue_sgs_context_free_content(
   sgs_context_t *const sgs_context_p,
   imsi64_t imsi);
+bool is_mme_ue_context_network_access_mode_packet_only(
+  ue_mm_context_t  *ue_context_p);
 
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 

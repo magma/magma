@@ -13,7 +13,7 @@ import (
 	"reflect"
 
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/config"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 )
 
@@ -29,15 +29,15 @@ const (
 // future migration)
 type MagmadNetworkConfigManager struct{}
 
-func (*MagmadNetworkConfigManager) GetConfigType() string {
+func (*MagmadNetworkConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*MagmadNetworkConfigManager) GetType() string {
 	return MagmadNetworkType
 }
 
-func (*MagmadNetworkConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return magmad.ListGateways(networkId)
-}
-
-func (*MagmadNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*MagmadNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig, ok := config.(*magmad_protos.MagmadNetworkRecord)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -51,7 +51,7 @@ func (*MagmadNetworkConfigManager) MarshalConfig(config interface{}) ([]byte, er
 	return protos.MarshalIntern(castedConfig)
 }
 
-func (*MagmadNetworkConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*MagmadNetworkConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &magmad_protos.MagmadNetworkRecord{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err
@@ -59,15 +59,15 @@ func (*MagmadNetworkConfigManager) UnmarshalConfig(message []byte) (interface{},
 
 type MagmadGatewayConfigManager struct{}
 
-func (*MagmadGatewayConfigManager) GetConfigType() string {
+func (*MagmadGatewayConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*MagmadGatewayConfigManager) GetType() string {
 	return MagmadGatewayType
 }
 
-func (*MagmadGatewayConfigManager) GetGatewayIdsForConfig(networkId string, configKey string) ([]string, error) {
-	return []string{configKey}, nil
-}
-
-func (*MagmadGatewayConfigManager) MarshalConfig(config interface{}) ([]byte, error) {
+func (*MagmadGatewayConfigManager) Serialize(config interface{}) ([]byte, error) {
 	castedConfig, ok := config.(*magmad_protos.MagmadGatewayConfig)
 	if !ok {
 		return nil, fmt.Errorf(
@@ -81,7 +81,7 @@ func (*MagmadGatewayConfigManager) MarshalConfig(config interface{}) ([]byte, er
 	return protos.MarshalIntern(castedConfig)
 }
 
-func (*MagmadGatewayConfigManager) UnmarshalConfig(message []byte) (interface{}, error) {
+func (*MagmadGatewayConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &magmad_protos.MagmadGatewayConfig{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err

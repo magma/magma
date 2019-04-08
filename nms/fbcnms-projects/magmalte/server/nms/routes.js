@@ -17,6 +17,8 @@ const staticDist = require('fbcnms-webpack-config/staticDist').default;
 const userMiddleware = require('@fbcnms/auth/express').default;
 const {User} = require('@fbcnms/sequelize-models');
 
+import type {NMSRequest} from '../../scripts/server';
+
 function getVersion(): string {
   if (DEV_MODE) {
     return 'DEVELOPMENT';
@@ -44,8 +46,9 @@ router.use(
     loginFailureUrl: '/nms/user/login',
   }),
 );
+router.use('/network', require('../network/routes').default);
 
-router.get('/*', (req, res) => {
+router.get('/*', (req: NMSRequest, res) => {
   res.render('index', {
     staticDist,
     configJson: JSON.stringify({

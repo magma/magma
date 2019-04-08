@@ -16,10 +16,9 @@
 #include "SessionState.h"
 
 namespace magma {
-using namespace orc8r;
 
-class SessionNotFound: public std::exception {
-public:
+class SessionNotFound : public std::exception {
+ public:
   SessionNotFound() = default;
 };
 
@@ -28,23 +27,22 @@ public:
  * has run out of credit
  */
 class LocalEnforcer {
-public:
+ public:
   LocalEnforcer();
 
   LocalEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store,
-    std::shared_ptr<PipelinedClient> pipelined_client);
+    std::shared_ptr<PipelinedClient> pipelined_client,
+    long session_force_termination_timeout_ms);
 
-  void attachEventBase(folly::EventBase* evb);
+  void attachEventBase(folly::EventBase *evb);
 
   // blocks
   void start();
 
-  void startOnce(folly::EventBase* evb);
-
   void stop();
 
-  folly::EventBase& get_event_base();
+  folly::EventBase &get_event_base();
 
   /**
    * Insert a group of rule usage into the monitor and update credit manager
@@ -53,7 +51,7 @@ public:
    *
    * @param records - a RuleRecordTable protobuf with a vector of RuleRecords
    */
-  void aggregate_records(const RuleRecordTable& records);
+  void aggregate_records(const RuleRecordTable &records);
 
   /**
    * reset_updates resets all of the charging keys being updated in
@@ -64,7 +62,7 @@ public:
    * @param failed_request - UpdateSessionRequest that couldn't be sent to the
    *                         cloud for whatever reason
    */
-  void reset_updates(const UpdateSessionRequest& failed_request);
+  void reset_updates(const UpdateSessionRequest &failed_request);
 
   /**
    * Collect any credit keys that are either exhausted, timed out, or terminated
@@ -79,46 +77,51 @@ public:
    * @param credit_response - message from cloud containing initial credits
    * @return true if init was successful
    */
-  bool init_session_credit(const std::string& imsi,
-                           const std::string& session_id,
-                           const SessionState::Config& cfg,
-                           const CreateSessionResponse& response);
+  bool init_session_credit(
+    const std::string &imsi,
+    const std::string &session_id,
+    const SessionState::Config &cfg,
+    const CreateSessionResponse &response);
 
   /**
    * Update allowed credit from the cloud in the system
    * @param credit_response - message from cloud containing new credits
    */
-  void update_session_credit(
-      const UpdateSessionResponse& response);
+  void update_session_credit(const UpdateSessionResponse &response);
 
-  SessionTerminateRequest terminate_subscriber(const std::string& imsi);
-
-  void complete_termination(
-    const std::string& imsi,
-    const std::string& session_id);
+  /**
+   * Starts the termination process for the session. When termination completes,
+   * the call back function is executed.
+   * @param imsi - imsi of the subscirber
+   * @param on_termination_callback - callback function to be executed after
+   * termination
+   */
+  void terminate_subscriber(
+    const std::string &imsi,
+    std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   uint64_t get_charging_credit(
-      const std::string& imsi,
-      uint32_t charging_key,
-      Bucket bucket) const;
+    const std::string &imsi,
+    uint32_t charging_key,
+    Bucket bucket) const;
 
   uint64_t get_monitor_credit(
-      const std::string& imsi,
-      const std::string& mkey,
-      Bucket bucket) const;
+    const std::string &imsi,
+    const std::string &mkey,
+    Bucket bucket) const;
 
   /**
    * Initialize reauth for a subscriber service. If the subscriber cannot be
    * found, the method returns SESSION_NOT_FOUND
    */
   ChargingReAuthAnswer::Result init_charging_reauth(
-      ChargingReAuthRequest request);
+    ChargingReAuthRequest request);
 
   void init_policy_reauth(
-      PolicyReAuthRequest request,
-      PolicyReAuthAnswer& answer_out);
+    PolicyReAuthRequest request,
+    PolicyReAuthAnswer &answer_out);
 
-private:
+ private:
   struct RulesToProcess {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
@@ -126,9 +129,22 @@ private:
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
-  folly::EventBase* evb_;
-private:
+  folly::EventBase *evb_;
+  long session_force_termination_timeout_ms_;
+
+ private:
+  /**
+   * new_report notifies all sessions that a new usage report is going to be
+   * aggregated.
+   */
   void new_report();
+
+  /**
+   * finish_report notifies all sessions that the aggregation of the usage
+   * report is finished. For sessions that are terminating, complete the
+   * termination if the session is not included in the report.
+   */
+  void finish_report();
 
   /**
    * Process the create session response to get rules to activate/deactivate
@@ -136,12 +152,12 @@ private:
    * to activate/deactivate later.
    */
   void process_create_session_response(
-      const CreateSessionResponse& response,
-      const std::unordered_set<uint32_t>& successful_credits,
-      const std::string& imsi,
-      const std::string& ip_addr,
-      RulesToProcess* rules_to_activate,
-      RulesToProcess* rules_to_deactivate);
+    const CreateSessionResponse &response,
+    const std::unordered_set<uint32_t> &successful_credits,
+    const std::string &imsi,
+    const std::string &ip_addr,
+    RulesToProcess *rules_to_activate,
+    RulesToProcess *rules_to_deactivate);
 
   /**
    * Process the policy reauth request to get rules to activate/deactivate
@@ -152,28 +168,43 @@ private:
    * rule and put in the vector.
    */
   void process_policy_reauth_request(
-      const PolicyReAuthRequest& request,
-      const std::unique_ptr<SessionState>& session,
-      RulesToProcess* rules_to_activate,
-      RulesToProcess* rules_to_deactivate);
+    const PolicyReAuthRequest &request,
+    const std::unique_ptr<SessionState> &session,
+    RulesToProcess *rules_to_activate,
+    RulesToProcess *rules_to_deactivate);
+
+  /**
+   * Completes the session termination and executes the callback function
+   * registered in terminate_subscriber.
+   * complete_termination is called some time after terminate_subscriber
+   * when the flows no longer appear in the usage report, meaning that they have
+   * been deleted.
+   * It is also called after a timeout to perform forced termination.
+   * If the session cannot be found, either because it has already terminated,
+   * or a new session for the subscriber has been created, then it will do
+   * nothing.
+   */
+  void complete_termination(
+    const std::string &imsi,
+    const std::string &session_id);
 
   void schedule_static_rule_activation(
-      const std::string& imsi,
-      const std::string& ip_addr,
-      const StaticRuleInstall& static_rule);
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const StaticRuleInstall &static_rule);
 
   void schedule_dynamic_rule_activation(
-      const std::string& imsi,
-      const std::string& ip_addr,
-      const DynamicRuleInstall& dynamic_rule);
+    const std::string &imsi,
+    const std::string &ip_addr,
+    const DynamicRuleInstall &dynamic_rule);
 
   void schedule_static_rule_deactivation(
-      const std::string& imsi,
-      const StaticRuleInstall& static_rule);
+    const std::string &imsi,
+    const StaticRuleInstall &static_rule);
 
   void schedule_dynamic_rule_deactivation(
-      const std::string& imsi,
-      const DynamicRuleInstall& dynamic_rule);
+    const std::string &imsi,
+    const DynamicRuleInstall &dynamic_rule);
 };
 
-}
+} // namespace magma

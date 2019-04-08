@@ -18,23 +18,23 @@
 #include "MagmaService.h"
 #include "SessiondMocks.h"
 
-using ::testing::Test;
-using ::testing::_;
 using grpc::Status;
+using ::testing::_;
+using ::testing::Test;
 
 namespace magma {
 
 class CloudReporterTest : public ::testing::Test {
-protected:
-
+ protected:
   /**
    * Create magma service and run in separate thread
    */
-  virtual void SetUp() {
+  virtual void SetUp()
+  {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "test_service", ServiceRegistrySingleton::LOCAL);
-    magma_service = std::make_shared<service303::MagmaService>(
-      "test_service", "1.0");
+    magma_service =
+      std::make_shared<service303::MagmaService>("test_service", "1.0");
     mock_cloud = std::make_shared<MockCentralController>();
     magma_service->AddServiceToServer(mock_cloud.get());
 
@@ -59,13 +59,15 @@ protected:
     cloud_thread.detach();
   }
 
-  virtual void TearDown() {
+  virtual void TearDown()
+  {
     magma_service->Stop();
     reporter->stop();
   }
 
   // Timeout to not block test
-  void set_timeout(uint32_t ms) {
+  void set_timeout(uint32_t ms)
+  {
     std::thread([&]() {
       std::this_thread::sleep_for(std::chrono::milliseconds(ms));
       EXPECT_TRUE(false);
@@ -73,7 +75,7 @@ protected:
     }).detach();
   }
 
-protected:
+ protected:
   std::shared_ptr<service303::MagmaService> magma_service;
   std::shared_ptr<MockCentralController> mock_cloud;
   std::shared_ptr<SessionCloudReporter> reporter;
@@ -81,32 +83,29 @@ protected:
   MockCallback mock_callback;
 };
 
-MATCHER_P(CheckCreateResponseRuleSize, size, "") {
+MATCHER_P(CheckCreateResponseRuleSize, size, "")
+{
   return arg.static_rules_size() == size;
 }
 
 // Test requests on single thread
-TEST_F(CloudReporterTest, test_single_call) {
-  EXPECT_CALL(
-    mock_callback,
-    create_callback(_, CheckCreateResponseRuleSize(1)))
+TEST_F(CloudReporterTest, test_single_call)
+{
+  EXPECT_CALL(mock_callback, create_callback(_, CheckCreateResponseRuleSize(1)))
     .Times(1);
-   // add rule id for verification
+  // add rule id for verification
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->mutable_rule_id();
-  EXPECT_CALL(*mock_cloud, CreateSession(_,_,_))
+  EXPECT_CALL(*mock_cloud, CreateSession(_, _, _))
     .Times(1)
     .WillOnce(testing::DoAll(
-      testing::SetArgPointee<2>(response),
-      testing::Return(grpc::Status::OK)
-    ));
+      testing::SetArgPointee<2>(response), testing::Return(grpc::Status::OK)));
   CreateSessionRequest request;
-  reporter->report_create_session(request,
-    [this](Status status, CreateSessionResponse response_out) {
+  reporter->report_create_session(
+    request, [this](Status status, CreateSessionResponse response_out) {
       mock_callback.create_callback(status, response_out);
       evb.terminateLoopSoon();
-    }
-  );
+    });
 
   set_timeout(1000);
 
@@ -115,50 +114,42 @@ TEST_F(CloudReporterTest, test_single_call) {
 }
 
 // Test multiple calls at the same time, wait for all to finish
-TEST_F(CloudReporterTest, test_multi_call) {
-  EXPECT_CALL(
-    mock_callback,
-    create_callback(_,_))
-    .Times(2);
-  EXPECT_CALL(
-    mock_callback,
-    update_callback(_,_))
-    .Times(1);
+TEST_F(CloudReporterTest, test_multi_call)
+{
+  EXPECT_CALL(mock_callback, create_callback(_, _)).Times(2);
+  EXPECT_CALL(mock_callback, update_callback(_, _)).Times(1);
   CreateSessionResponse response;
-  EXPECT_CALL(*mock_cloud, CreateSession(_,_,_))
+  EXPECT_CALL(*mock_cloud, CreateSession(_, _, _))
     .Times(2)
     .WillRepeatedly(testing::DoAll(
-      testing::SetArgPointee<2>(response),
-      testing::Return(grpc::Status::OK)
-    ));
+      testing::SetArgPointee<2>(response), testing::Return(grpc::Status::OK)));
   UpdateSessionResponse update_response;
-  EXPECT_CALL(*mock_cloud, UpdateSession(_,_,_))
+  EXPECT_CALL(*mock_cloud, UpdateSession(_, _, _))
     .Times(1)
     .WillRepeatedly(testing::DoAll(
       testing::SetArgPointee<2>(update_response),
-      testing::Return(grpc::Status::OK)
-    ));
+      testing::Return(grpc::Status::OK)));
 
   std::promise<void> promise1, promise2, promise3;
 
-  reporter->report_create_session(CreateSessionRequest(),
+  reporter->report_create_session(
+    CreateSessionRequest(),
     [&](Status status, CreateSessionResponse response_out) {
       mock_callback.create_callback(status, response_out);
       promise1.set_value();
-    }
-  );
-  reporter->report_updates(UpdateSessionRequest(),
+    });
+  reporter->report_updates(
+    UpdateSessionRequest(),
     [&](Status status, UpdateSessionResponse response_out) {
       mock_callback.update_callback(status, response_out);
       promise2.set_value();
-    }
-  );
-  reporter->report_create_session(CreateSessionRequest(),
+    });
+  reporter->report_create_session(
+    CreateSessionRequest(),
     [&](Status status, CreateSessionResponse response_out) {
       mock_callback.create_callback(status, response_out);
       promise3.set_value();
-    }
-  );
+    });
 
   // wait for all 3 responses
   std::thread([&]() {
@@ -174,9 +165,10 @@ TEST_F(CloudReporterTest, test_multi_call) {
   evb.loopForever();
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-}
+} // namespace magma

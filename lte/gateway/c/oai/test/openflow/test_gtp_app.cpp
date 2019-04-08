@@ -112,6 +112,38 @@ MATCHER_P(CheckCommandType, command_type, "")
   return msg->command() == command_type;
 }
 
+MATCHER_P(CheckIPv4Src, ip, "")
+{
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv4_field =
+    static_cast<of13::IPv4Src *>(msg->get_oxm_field(of13::OFPXMT_OFB_IPV4_SRC));
+  return ipv4_field->value().getIPv4() == ip.s_addr;
+}
+
+MATCHER_P(CheckIPv4Proto, ip_proto, "")
+{
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv4_field =
+    static_cast<of13::IPProto *>(msg->get_oxm_field(of13::OFPXMT_OFB_IP_PROTO));
+  return ipv4_field->value() == ip_proto;
+}
+
+MATCHER_P(CheckTcpDstPort, tcp_port, "")
+{
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto tcp_port_field =
+    static_cast<of13::TCPDst *>(msg->get_oxm_field(of13::OFPXMT_OFB_TCP_DST));
+  return tcp_port_field->value() == tcp_port;
+}
+
+MATCHER_P(CheckTcpSrcPort, tcp_port, "")
+{
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto tcp_port_field =
+    static_cast<of13::TCPSrc *>(msg->get_oxm_field(of13::OFPXMT_OFB_TCP_SRC));
+  return tcp_port_field->value() == tcp_port;
+}
+
 /*
  * Test that tunnel flows are added when an add tunnel event is sent.
  * This only tests the flow matchers for now, because it is not easy to verify
@@ -190,6 +222,111 @@ TEST_F(GTPApplicationTest, TestDeleteTunnel)
   controller->dispatch_event(del_tunnel);
 }
 
+/*
+ * Test that tunnel flows are added when an add tunnel event
+ * is sent with dl_flow.
+ */
+TEST_F(GTPApplicationTest, TestAddTunnelDlFlow)
+{
+  struct in_addr ue_ip;
+  ue_ip.s_addr = inet_addr("0.0.0.1");
+  struct in_addr enb_ip;
+  enb_ip.s_addr = inet_addr("0.0.0.2");
+  uint32_t in_tei = 1;
+  uint32_t out_tei = 2;
+  char imsi[] = "001010000000013";
+  struct ipv4flow_dl dl_flow;
+
+  dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
+  dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
+  dl_flow.tcp_dst_port = 33;
+  dl_flow.tcp_src_port = 44;
+  dl_flow.ip_proto = 6; //TCP
+  dl_flow.set_params = SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT |
+    TCP_DST_PORT | IP_PROTO;
+
+  AddGTPTunnelEvent add_tunnel(ue_ip, enb_ip, in_tei, out_tei, imsi, &dl_flow);
+  // Uplink
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(TEST_GTP_PORT),
+        CheckTunnelId(in_tei),
+        CheckCommandType(of13::OFPFC_ADD)),
+      _))
+    .Times(1);
+  // downlink
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(of13::OFPP_LOCAL),
+        CheckEthType(0x0800),
+        CheckIPv4Dst(dl_flow.dst_ip),
+        CheckIPv4Src(dl_flow.src_ip),
+        CheckIPv4Proto(dl_flow.ip_proto),
+        CheckTcpDstPort(dl_flow.tcp_dst_port),
+        CheckTcpSrcPort(dl_flow.tcp_src_port),
+        CheckCommandType(of13::OFPFC_ADD)),
+      _))
+    .Times(1);
+
+  controller->dispatch_event(add_tunnel);
+}
+
+/*
+ * Test that tunnel flows are deleted when a delete tunnel event
+ * is sent with dl_flow
+ */
+TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlow)
+{
+  struct in_addr ue_ip;
+  ue_ip.s_addr = inet_addr("0.0.0.1");
+  uint32_t in_tei = 1;
+  struct ipv4flow_dl dl_flow;
+
+  dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
+  dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
+  dl_flow.tcp_dst_port = 33;
+  dl_flow.tcp_src_port = 44;
+  dl_flow.ip_proto = 6; //TCP
+  dl_flow.set_params = SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT |
+    TCP_DST_PORT | IP_PROTO;
+
+  DeleteGTPTunnelEvent del_tunnel(ue_ip, in_tei, &dl_flow);
+  // Uplink
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(TEST_GTP_PORT),
+        CheckTunnelId(in_tei),
+        CheckCommandType(of13::OFPFC_DELETE)),
+      _))
+    .Times(1);
+  // downlink
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(of13::OFPP_LOCAL),
+        CheckEthType(0x0800),
+        CheckIPv4Dst(dl_flow.dst_ip),
+        CheckIPv4Src(dl_flow.src_ip),
+        CheckIPv4Proto(dl_flow.ip_proto),
+        CheckTcpDstPort(dl_flow.tcp_dst_port),
+        CheckTcpSrcPort(dl_flow.tcp_src_port),
+        CheckCommandType(of13::OFPFC_DELETE)),
+      _))
+    .Times(1);
+
+  controller->dispatch_event(del_tunnel);
+}
 int main(int argc, char **argv)
 {
   ::testing::InitGoogleTest(&argc, argv);

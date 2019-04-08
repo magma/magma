@@ -10,12 +10,15 @@
 
 namespace magma {
 
-SessionRules::SessionRules(StaticRuleStore& static_rule_ref)
-  : static_rules_(static_rule_ref) {}
+SessionRules::SessionRules(StaticRuleStore &static_rule_ref):
+  static_rules_(static_rule_ref)
+{
+}
 
 bool SessionRules::get_charging_key_for_rule_id(
-    const std::string& rule_id,
-    uint32_t* charging_key) {
+  const std::string &rule_id,
+  uint32_t *charging_key)
+{
   // first check dynamic rules and then static rules
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, charging_key)) {
     return true;
@@ -27,8 +30,9 @@ bool SessionRules::get_charging_key_for_rule_id(
 }
 
 bool SessionRules::get_monitoring_key_for_rule_id(
-    const std::string& rule_id,
-    std::string* monitoring_key) {
+  const std::string &rule_id,
+  std::string *monitoring_key)
+{
   // first check dynamic rules and then static rules
   if (dynamic_rules_.get_monitoring_key_for_rule_id(rule_id, monitoring_key)) {
     return true;
@@ -39,13 +43,15 @@ bool SessionRules::get_monitoring_key_for_rule_id(
   return false;
 }
 
-void SessionRules::insert_dynamic_rule(const PolicyRule& rule) {
+void SessionRules::insert_dynamic_rule(const PolicyRule &rule)
+{
   dynamic_rules_.insert_rule(rule);
 }
 
 bool SessionRules::remove_dynamic_rule(
-    const std::string &rule_id,
-    PolicyRule *rule_out) {
+  const std::string &rule_id,
+  PolicyRule *rule_out)
+{
   return dynamic_rules_.remove_rule(rule_id, rule_out);
 }
 
@@ -54,25 +60,23 @@ bool SessionRules::remove_dynamic_rule(
  * and the dynamic rule set
  */
 void SessionRules::add_rules_to_action(
-    ServiceAction& action,
-    uint32_t charging_key) {
+  ServiceAction &action,
+  uint32_t charging_key)
+{
   static_rules_.get_rule_ids_for_charging_key(
-    charging_key,
-    *action.get_mutable_rule_ids());
+    charging_key, *action.get_mutable_rule_ids());
   dynamic_rules_.get_rule_definitions_for_charging_key(
-    charging_key,
-    *action.get_mutable_rule_definitions());
+    charging_key, *action.get_mutable_rule_definitions());
 }
 
 void SessionRules::add_rules_to_action(
-    ServiceAction& action,
-    std::string monitoring_key) {
+  ServiceAction &action,
+  std::string monitoring_key)
+{
   static_rules_.get_rule_ids_for_monitoring_key(
-    monitoring_key,
-    *action.get_mutable_rule_ids());
+    monitoring_key, *action.get_mutable_rule_ids());
   dynamic_rules_.get_rule_definitions_for_monitoring_key(
-    monitoring_key,
-    *action.get_mutable_rule_definitions());
+    monitoring_key, *action.get_mutable_rule_definitions());
 }
 
-}
+} // namespace magma

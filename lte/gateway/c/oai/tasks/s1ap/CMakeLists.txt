@@ -53,7 +53,19 @@ target_include_directories(LIB_S1AP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/r10.5
 )
 
+set(PCEF_LTE_CPP_PROTOS s1ap_state)
+
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+generate_all_protos(
+    "${PCEF_LTE_CPP_PROTOS}" "" "" ""
+    "${PROTO_SRCS}" "${PROTO_HDRS}"
+)
+
 add_library(TASK_S1AP
+    "${PROTO_SRCS}"
+    "${PROTO_HDRS}"
     ${S1AP_C_DIR}/s1ap_ies_defs.h
     ${S1AP_DIR}/s1ap_mme_encoder.c
     ${S1AP_DIR}/s1ap_mme_decoder.c
@@ -63,13 +75,17 @@ add_library(TASK_S1AP
     ${S1AP_DIR}/s1ap_mme_itti_messaging.c
     ${S1AP_DIR}/s1ap_mme_retransmission.c
     ${S1AP_DIR}/s1ap_mme_ta.c
-    )
+    ${S1AP_DIR}/s1ap_state.cpp
+)
 target_link_libraries(TASK_S1AP
+    ${CONFIG}
     COMMON
-    LIB_BSTR
+    LIB_BSTR LIB_HASHTABLE
     TASK_SERVICE303
+    cpp_redis tacopie
 )
 target_include_directories(TASK_S1AP PUBLIC
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/messages
     ${CMAKE_CURRENT_SOURCE_DIR}/messages/asn1

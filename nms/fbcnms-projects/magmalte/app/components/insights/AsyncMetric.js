@@ -107,31 +107,28 @@ export default function AsyncMetric(props: Props) {
 
   useSnackbar('Error getting metric ' + props.label, {variant: 'error'}, error);
 
-  const data = useMemo(
-    () => {
-      const result = response?.data.data.result;
-      if (!result || result.length === 0) {
-        return null;
-      }
+  const data = useMemo(() => {
+    const result = response?.data.data.result;
+    if (!result || result.length === 0) {
+      return null;
+    }
 
-      return {
-        datasets: result.map((it, index) => ({
-          label: JSON.stringify(it.metric),
-          unit: props.unit || '',
-          fill: false,
-          lineTension: 0,
-          pointRadius: 4,
-          borderColor: getColorForIndex(index),
-          backgroundColor: 'transparent',
-          data: it.values.map(i => ({
-            t: i[0] * 1000,
-            y: parseInt(i[1], 10),
-          })),
+    return {
+      datasets: result.map((it, index) => ({
+        label: JSON.stringify(it.metric),
+        unit: props.unit || '',
+        fill: false,
+        lineTension: 0,
+        pointRadius: 4,
+        borderColor: getColorForIndex(index),
+        backgroundColor: 'transparent',
+        data: it.values.map(i => ({
+          t: i[0] * 1000,
+          y: parseInt(i[1], 10),
         })),
-      };
-    },
-    [response],
-  );
+      })),
+    };
+  }, [response, props.unit]);
 
   if (error || isLoading || !response) {
     return <Progress />;

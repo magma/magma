@@ -17,13 +17,15 @@ export default function useSnackbar(
   config: any,
   show: boolean,
 ) {
-  const enqueueSnackbar = useContext(SnackbarContextNext);
-  useEffect(
-    () => {
-      if (show) {
-        enqueueSnackbar(message, config);
-      }
-    },
-    [message, show, JSON.stringify(config)],
-  );
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const stringConfig = JSON.stringify(config);
+  useEffect(() => {
+    if (show) {
+      enqueueSnackbar(message, config);
+    }
+  }, [message, show, stringConfig]);
+}
+
+export function useEnqueueSnackbar() {
+  return useContext(SnackbarContextNext).handleEnqueueSnackbar;
 }

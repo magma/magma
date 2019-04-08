@@ -6,6 +6,7 @@ package protos // import "magma/orc8r/cloud/go/protos"
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import _struct "github.com/golang/protobuf/ptypes/struct"
 
 import (
 	context "golang.org/x/net/context"
@@ -22,6 +23,32 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+
+type NetworkInterface_Status int32
+
+const (
+	NetworkInterface_UNKNOWN NetworkInterface_Status = 0
+	NetworkInterface_UP      NetworkInterface_Status = 1
+	NetworkInterface_DOWN    NetworkInterface_Status = 2
+)
+
+var NetworkInterface_Status_name = map[int32]string{
+	0: "UNKNOWN",
+	1: "UP",
+	2: "DOWN",
+}
+var NetworkInterface_Status_value = map[string]int32{
+	"UNKNOWN": 0,
+	"UP":      1,
+	"DOWN":    2,
+}
+
+func (x NetworkInterface_Status) String() string {
+	return proto.EnumName(NetworkInterface_Status_name, int32(x))
+}
+func (NetworkInterface_Status) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{19, 0}
+}
 
 // RequestedAction is an emergency/last resort operation request for an
 // unresponsive or flaky access gateway. It's not meant to be used under normal
@@ -49,7 +76,7 @@ func (x CheckinResponse_RequestedAction) String() string {
 	return proto.EnumName(CheckinResponse_RequestedAction_name, int32(x))
 }
 func (CheckinResponse_RequestedAction) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{12, 0}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{25, 0}
 }
 
 type PingParams struct {
@@ -64,7 +91,7 @@ func (m *PingParams) Reset()         { *m = PingParams{} }
 func (m *PingParams) String() string { return proto.CompactTextString(m) }
 func (*PingParams) ProtoMessage()    {}
 func (*PingParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{0}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{0}
 }
 func (m *PingParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PingParams.Unmarshal(m, b)
@@ -111,7 +138,7 @@ func (m *TracerouteParams) Reset()         { *m = TracerouteParams{} }
 func (m *TracerouteParams) String() string { return proto.CompactTextString(m) }
 func (*TracerouteParams) ProtoMessage()    {}
 func (*TracerouteParams) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{1}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{1}
 }
 func (m *TracerouteParams) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TracerouteParams.Unmarshal(m, b)
@@ -164,7 +191,7 @@ func (m *NetworkTestRequest) Reset()         { *m = NetworkTestRequest{} }
 func (m *NetworkTestRequest) String() string { return proto.CompactTextString(m) }
 func (*NetworkTestRequest) ProtoMessage()    {}
 func (*NetworkTestRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{2}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{2}
 }
 func (m *NetworkTestRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkTestRequest.Unmarshal(m, b)
@@ -214,7 +241,7 @@ func (m *PingResult) Reset()         { *m = PingResult{} }
 func (m *PingResult) String() string { return proto.CompactTextString(m) }
 func (*PingResult) ProtoMessage()    {}
 func (*PingResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{3}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{3}
 }
 func (m *PingResult) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_PingResult.Unmarshal(m, b)
@@ -289,7 +316,7 @@ func (m *TracerouteProbe) Reset()         { *m = TracerouteProbe{} }
 func (m *TracerouteProbe) String() string { return proto.CompactTextString(m) }
 func (*TracerouteProbe) ProtoMessage()    {}
 func (*TracerouteProbe) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{4}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{4}
 }
 func (m *TracerouteProbe) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TracerouteProbe.Unmarshal(m, b)
@@ -342,7 +369,7 @@ func (m *TracerouteHop) Reset()         { *m = TracerouteHop{} }
 func (m *TracerouteHop) String() string { return proto.CompactTextString(m) }
 func (*TracerouteHop) ProtoMessage()    {}
 func (*TracerouteHop) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{5}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{5}
 }
 func (m *TracerouteHop) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TracerouteHop.Unmarshal(m, b)
@@ -389,7 +416,7 @@ func (m *TracerouteResult) Reset()         { *m = TracerouteResult{} }
 func (m *TracerouteResult) String() string { return proto.CompactTextString(m) }
 func (*TracerouteResult) ProtoMessage()    {}
 func (*TracerouteResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{6}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{6}
 }
 func (m *TracerouteResult) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_TracerouteResult.Unmarshal(m, b)
@@ -442,7 +469,7 @@ func (m *NetworkTestResponse) Reset()         { *m = NetworkTestResponse{} }
 func (m *NetworkTestResponse) String() string { return proto.CompactTextString(m) }
 func (*NetworkTestResponse) ProtoMessage()    {}
 func (*NetworkTestResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{7}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{7}
 }
 func (m *NetworkTestResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkTestResponse.Unmarshal(m, b)
@@ -487,7 +514,7 @@ func (m *GetGatewayIdResponse) Reset()         { *m = GetGatewayIdResponse{} }
 func (m *GetGatewayIdResponse) String() string { return proto.CompactTextString(m) }
 func (*GetGatewayIdResponse) ProtoMessage()    {}
 func (*GetGatewayIdResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{8}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{8}
 }
 func (m *GetGatewayIdResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetGatewayIdResponse.Unmarshal(m, b)
@@ -525,7 +552,7 @@ func (m *RestartServicesRequest) Reset()         { *m = RestartServicesRequest{}
 func (m *RestartServicesRequest) String() string { return proto.CompactTextString(m) }
 func (*RestartServicesRequest) ProtoMessage()    {}
 func (*RestartServicesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{9}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{9}
 }
 func (m *RestartServicesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_RestartServicesRequest.Unmarshal(m, b)
@@ -552,26 +579,262 @@ func (m *RestartServicesRequest) GetServices() []string {
 	return nil
 }
 
-type SystemStatus struct {
-	Time                 uint64   `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
-	CpuUser              uint64   `protobuf:"varint,5,opt,name=cpu_user,json=cpuUser,proto3" json:"cpu_user,omitempty"`
-	CpuSystem            uint64   `protobuf:"varint,6,opt,name=cpu_system,json=cpuSystem,proto3" json:"cpu_system,omitempty"`
-	CpuIdle              uint64   `protobuf:"varint,7,opt,name=cpu_idle,json=cpuIdle,proto3" json:"cpu_idle,omitempty"`
-	MemTotal             uint64   `protobuf:"varint,10,opt,name=mem_total,json=memTotal,proto3" json:"mem_total,omitempty"`
-	MemAvailable         uint64   `protobuf:"varint,11,opt,name=mem_available,json=memAvailable,proto3" json:"mem_available,omitempty"`
-	MemUsed              uint64   `protobuf:"varint,12,opt,name=mem_used,json=memUsed,proto3" json:"mem_used,omitempty"`
-	MemFree              uint64   `protobuf:"varint,13,opt,name=mem_free,json=memFree,proto3" json:"mem_free,omitempty"`
-	UptimeSecs           uint64   `protobuf:"varint,14,opt,name=uptime_secs,json=uptimeSecs,proto3" json:"uptime_secs,omitempty"`
+type GenericCommandParams struct {
+	Command              string          `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`
+	Params               *_struct.Struct `protobuf:"bytes,2,opt,name=params,proto3" json:"params,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *GenericCommandParams) Reset()         { *m = GenericCommandParams{} }
+func (m *GenericCommandParams) String() string { return proto.CompactTextString(m) }
+func (*GenericCommandParams) ProtoMessage()    {}
+func (*GenericCommandParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{10}
+}
+func (m *GenericCommandParams) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GenericCommandParams.Unmarshal(m, b)
+}
+func (m *GenericCommandParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GenericCommandParams.Marshal(b, m, deterministic)
+}
+func (dst *GenericCommandParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GenericCommandParams.Merge(dst, src)
+}
+func (m *GenericCommandParams) XXX_Size() int {
+	return xxx_messageInfo_GenericCommandParams.Size(m)
+}
+func (m *GenericCommandParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_GenericCommandParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GenericCommandParams proto.InternalMessageInfo
+
+func (m *GenericCommandParams) GetCommand() string {
+	if m != nil {
+		return m.Command
+	}
+	return ""
+}
+
+func (m *GenericCommandParams) GetParams() *_struct.Struct {
+	if m != nil {
+		return m.Params
+	}
+	return nil
+}
+
+type GenericCommandResponse struct {
+	Response             *_struct.Struct `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *GenericCommandResponse) Reset()         { *m = GenericCommandResponse{} }
+func (m *GenericCommandResponse) String() string { return proto.CompactTextString(m) }
+func (*GenericCommandResponse) ProtoMessage()    {}
+func (*GenericCommandResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{11}
+}
+func (m *GenericCommandResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GenericCommandResponse.Unmarshal(m, b)
+}
+func (m *GenericCommandResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GenericCommandResponse.Marshal(b, m, deterministic)
+}
+func (dst *GenericCommandResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GenericCommandResponse.Merge(dst, src)
+}
+func (m *GenericCommandResponse) XXX_Size() int {
+	return xxx_messageInfo_GenericCommandResponse.Size(m)
+}
+func (m *GenericCommandResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GenericCommandResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GenericCommandResponse proto.InternalMessageInfo
+
+func (m *GenericCommandResponse) GetResponse() *_struct.Struct {
+	if m != nil {
+		return m.Response
+	}
+	return nil
+}
+
+type TailLogsRequest struct {
+	Service              string   `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TailLogsRequest) Reset()         { *m = TailLogsRequest{} }
+func (m *TailLogsRequest) String() string { return proto.CompactTextString(m) }
+func (*TailLogsRequest) ProtoMessage()    {}
+func (*TailLogsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{12}
+}
+func (m *TailLogsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TailLogsRequest.Unmarshal(m, b)
+}
+func (m *TailLogsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TailLogsRequest.Marshal(b, m, deterministic)
+}
+func (dst *TailLogsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TailLogsRequest.Merge(dst, src)
+}
+func (m *TailLogsRequest) XXX_Size() int {
+	return xxx_messageInfo_TailLogsRequest.Size(m)
+}
+func (m *TailLogsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_TailLogsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TailLogsRequest proto.InternalMessageInfo
+
+func (m *TailLogsRequest) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
+type LogLine struct {
+	Line                 string   `protobuf:"bytes,1,opt,name=line,proto3" json:"line,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *LogLine) Reset()         { *m = LogLine{} }
+func (m *LogLine) String() string { return proto.CompactTextString(m) }
+func (*LogLine) ProtoMessage()    {}
+func (*LogLine) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{13}
+}
+func (m *LogLine) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_LogLine.Unmarshal(m, b)
+}
+func (m *LogLine) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_LogLine.Marshal(b, m, deterministic)
+}
+func (dst *LogLine) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LogLine.Merge(dst, src)
+}
+func (m *LogLine) XXX_Size() int {
+	return xxx_messageInfo_LogLine.Size(m)
+}
+func (m *LogLine) XXX_DiscardUnknown() {
+	xxx_messageInfo_LogLine.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LogLine proto.InternalMessageInfo
+
+func (m *LogLine) GetLine() string {
+	if m != nil {
+		return m.Line
+	}
+	return ""
+}
+
+// Usage information about a disk partition
+type DiskPartition struct {
+	Device               string   `protobuf:"bytes,1,opt,name=device,proto3" json:"device,omitempty"`
+	MountPoint           string   `protobuf:"bytes,2,opt,name=mount_point,json=mountPoint,proto3" json:"mount_point,omitempty"`
+	Total                uint64   `protobuf:"varint,3,opt,name=total,proto3" json:"total,omitempty"`
+	Used                 uint64   `protobuf:"varint,4,opt,name=used,proto3" json:"used,omitempty"`
+	Free                 uint64   `protobuf:"varint,5,opt,name=free,proto3" json:"free,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DiskPartition) Reset()         { *m = DiskPartition{} }
+func (m *DiskPartition) String() string { return proto.CompactTextString(m) }
+func (*DiskPartition) ProtoMessage()    {}
+func (*DiskPartition) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{14}
+}
+func (m *DiskPartition) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DiskPartition.Unmarshal(m, b)
+}
+func (m *DiskPartition) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DiskPartition.Marshal(b, m, deterministic)
+}
+func (dst *DiskPartition) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DiskPartition.Merge(dst, src)
+}
+func (m *DiskPartition) XXX_Size() int {
+	return xxx_messageInfo_DiskPartition.Size(m)
+}
+func (m *DiskPartition) XXX_DiscardUnknown() {
+	xxx_messageInfo_DiskPartition.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DiskPartition proto.InternalMessageInfo
+
+func (m *DiskPartition) GetDevice() string {
+	if m != nil {
+		return m.Device
+	}
+	return ""
+}
+
+func (m *DiskPartition) GetMountPoint() string {
+	if m != nil {
+		return m.MountPoint
+	}
+	return ""
+}
+
+func (m *DiskPartition) GetTotal() uint64 {
+	if m != nil {
+		return m.Total
+	}
+	return 0
+}
+
+func (m *DiskPartition) GetUsed() uint64 {
+	if m != nil {
+		return m.Used
+	}
+	return 0
+}
+
+func (m *DiskPartition) GetFree() uint64 {
+	if m != nil {
+		return m.Free
+	}
+	return 0
+}
+
+type SystemStatus struct {
+	Time         uint64 `protobuf:"varint,1,opt,name=time,proto3" json:"time,omitempty"`
+	CpuUser      uint64 `protobuf:"varint,5,opt,name=cpu_user,json=cpuUser,proto3" json:"cpu_user,omitempty"`
+	CpuSystem    uint64 `protobuf:"varint,6,opt,name=cpu_system,json=cpuSystem,proto3" json:"cpu_system,omitempty"`
+	CpuIdle      uint64 `protobuf:"varint,7,opt,name=cpu_idle,json=cpuIdle,proto3" json:"cpu_idle,omitempty"`
+	MemTotal     uint64 `protobuf:"varint,10,opt,name=mem_total,json=memTotal,proto3" json:"mem_total,omitempty"`
+	MemAvailable uint64 `protobuf:"varint,11,opt,name=mem_available,json=memAvailable,proto3" json:"mem_available,omitempty"`
+	MemUsed      uint64 `protobuf:"varint,12,opt,name=mem_used,json=memUsed,proto3" json:"mem_used,omitempty"`
+	MemFree      uint64 `protobuf:"varint,13,opt,name=mem_free,json=memFree,proto3" json:"mem_free,omitempty"`
+	SwapTotal    uint64 `protobuf:"varint,15,opt,name=swap_total,json=swapTotal,proto3" json:"swap_total,omitempty"`
+	SwapUsed     uint64 `protobuf:"varint,16,opt,name=swap_used,json=swapUsed,proto3" json:"swap_used,omitempty"`
+	SwapFree     uint64 `protobuf:"varint,17,opt,name=swap_free,json=swapFree,proto3" json:"swap_free,omitempty"`
+	UptimeSecs   uint64 `protobuf:"varint,14,opt,name=uptime_secs,json=uptimeSecs,proto3" json:"uptime_secs,omitempty"`
+	// Disk usage information
+	DiskPartitions       []*DiskPartition `protobuf:"bytes,18,rep,name=disk_partitions,json=diskPartitions,proto3" json:"disk_partitions,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *SystemStatus) Reset()         { *m = SystemStatus{} }
 func (m *SystemStatus) String() string { return proto.CompactTextString(m) }
 func (*SystemStatus) ProtoMessage()    {}
 func (*SystemStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{10}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{15}
 }
 func (m *SystemStatus) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SystemStatus.Unmarshal(m, b)
@@ -647,11 +910,504 @@ func (m *SystemStatus) GetMemFree() uint64 {
 	return 0
 }
 
+func (m *SystemStatus) GetSwapTotal() uint64 {
+	if m != nil {
+		return m.SwapTotal
+	}
+	return 0
+}
+
+func (m *SystemStatus) GetSwapUsed() uint64 {
+	if m != nil {
+		return m.SwapUsed
+	}
+	return 0
+}
+
+func (m *SystemStatus) GetSwapFree() uint64 {
+	if m != nil {
+		return m.SwapFree
+	}
+	return 0
+}
+
 func (m *SystemStatus) GetUptimeSecs() uint64 {
 	if m != nil {
 		return m.UptimeSecs
 	}
 	return 0
+}
+
+func (m *SystemStatus) GetDiskPartitions() []*DiskPartition {
+	if m != nil {
+		return m.DiskPartitions
+	}
+	return nil
+}
+
+type Package struct {
+	// Name of the package. Ex: 'magma'
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// Version of the package. Ex: '0.0.0.0'
+	Version              string   `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Package) Reset()         { *m = Package{} }
+func (m *Package) String() string { return proto.CompactTextString(m) }
+func (*Package) ProtoMessage()    {}
+func (*Package) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{16}
+}
+func (m *Package) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Package.Unmarshal(m, b)
+}
+func (m *Package) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Package.Marshal(b, m, deterministic)
+}
+func (dst *Package) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Package.Merge(dst, src)
+}
+func (m *Package) XXX_Size() int {
+	return xxx_messageInfo_Package.Size(m)
+}
+func (m *Package) XXX_DiscardUnknown() {
+	xxx_messageInfo_Package.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Package proto.InternalMessageInfo
+
+func (m *Package) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *Package) GetVersion() string {
+	if m != nil {
+		return m.Version
+	}
+	return ""
+}
+
+type ConfigInfo struct {
+	// Unix timestamp of the mconfig on the gateway
+	MconfigCreatedAt     uint64   `protobuf:"varint,1,opt,name=mconfig_created_at,json=mconfigCreatedAt,proto3" json:"mconfig_created_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ConfigInfo) Reset()         { *m = ConfigInfo{} }
+func (m *ConfigInfo) String() string { return proto.CompactTextString(m) }
+func (*ConfigInfo) ProtoMessage()    {}
+func (*ConfigInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{17}
+}
+func (m *ConfigInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ConfigInfo.Unmarshal(m, b)
+}
+func (m *ConfigInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ConfigInfo.Marshal(b, m, deterministic)
+}
+func (dst *ConfigInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConfigInfo.Merge(dst, src)
+}
+func (m *ConfigInfo) XXX_Size() int {
+	return xxx_messageInfo_ConfigInfo.Size(m)
+}
+func (m *ConfigInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConfigInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConfigInfo proto.InternalMessageInfo
+
+func (m *ConfigInfo) GetMconfigCreatedAt() uint64 {
+	if m != nil {
+		return m.MconfigCreatedAt
+	}
+	return 0
+}
+
+type PlatformInfo struct {
+	// Gateway's IP address on VPN
+	VpnIp string `protobuf:"bytes,1,opt,name=vpn_ip,json=vpnIp,proto3" json:"vpn_ip,omitempty"`
+	// Information of packages installed
+	Packages []*Package `protobuf:"bytes,2,rep,name=packages,proto3" json:"packages,omitempty"`
+	// Current running kernel version
+	KernelVersion string `protobuf:"bytes,3,opt,name=kernel_version,json=kernelVersion,proto3" json:"kernel_version,omitempty"`
+	// All kernel versions installed
+	KernelVersionsInstalled []string `protobuf:"bytes,4,rep,name=kernel_versions_installed,json=kernelVersionsInstalled,proto3" json:"kernel_versions_installed,omitempty"`
+	// Information of gateway configs
+	ConfigInfo           *ConfigInfo `protobuf:"bytes,5,opt,name=config_info,json=configInfo,proto3" json:"config_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *PlatformInfo) Reset()         { *m = PlatformInfo{} }
+func (m *PlatformInfo) String() string { return proto.CompactTextString(m) }
+func (*PlatformInfo) ProtoMessage()    {}
+func (*PlatformInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{18}
+}
+func (m *PlatformInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PlatformInfo.Unmarshal(m, b)
+}
+func (m *PlatformInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PlatformInfo.Marshal(b, m, deterministic)
+}
+func (dst *PlatformInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PlatformInfo.Merge(dst, src)
+}
+func (m *PlatformInfo) XXX_Size() int {
+	return xxx_messageInfo_PlatformInfo.Size(m)
+}
+func (m *PlatformInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_PlatformInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PlatformInfo proto.InternalMessageInfo
+
+func (m *PlatformInfo) GetVpnIp() string {
+	if m != nil {
+		return m.VpnIp
+	}
+	return ""
+}
+
+func (m *PlatformInfo) GetPackages() []*Package {
+	if m != nil {
+		return m.Packages
+	}
+	return nil
+}
+
+func (m *PlatformInfo) GetKernelVersion() string {
+	if m != nil {
+		return m.KernelVersion
+	}
+	return ""
+}
+
+func (m *PlatformInfo) GetKernelVersionsInstalled() []string {
+	if m != nil {
+		return m.KernelVersionsInstalled
+	}
+	return nil
+}
+
+func (m *PlatformInfo) GetConfigInfo() *ConfigInfo {
+	if m != nil {
+		return m.ConfigInfo
+	}
+	return nil
+}
+
+type NetworkInterface struct {
+	// The ID of the network interface. Ex: 'gtp_br0'
+	NetworkInterfaceId string `protobuf:"bytes,1,opt,name=network_interface_id,json=networkInterfaceId,proto3" json:"network_interface_id,omitempty"`
+	// Network interface status
+	Status NetworkInterface_Status `protobuf:"varint,2,opt,name=status,proto3,enum=magma.orc8r.NetworkInterface_Status" json:"status,omitempty"`
+	// MAC address
+	MacAddress string `protobuf:"bytes,3,opt,name=mac_address,json=macAddress,proto3" json:"mac_address,omitempty"`
+	// The IPv4 addresses in CIDR notation associated with the network interface
+	IpAddresses []string `protobuf:"bytes,4,rep,name=ip_addresses,json=ipAddresses,proto3" json:"ip_addresses,omitempty"`
+	// The IPv6 addresses in CIDR notation associated with the network interface
+	Ipv6Addresses        []string `protobuf:"bytes,5,rep,name=ipv6_addresses,json=ipv6Addresses,proto3" json:"ipv6_addresses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *NetworkInterface) Reset()         { *m = NetworkInterface{} }
+func (m *NetworkInterface) String() string { return proto.CompactTextString(m) }
+func (*NetworkInterface) ProtoMessage()    {}
+func (*NetworkInterface) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{19}
+}
+func (m *NetworkInterface) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NetworkInterface.Unmarshal(m, b)
+}
+func (m *NetworkInterface) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NetworkInterface.Marshal(b, m, deterministic)
+}
+func (dst *NetworkInterface) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkInterface.Merge(dst, src)
+}
+func (m *NetworkInterface) XXX_Size() int {
+	return xxx_messageInfo_NetworkInterface.Size(m)
+}
+func (m *NetworkInterface) XXX_DiscardUnknown() {
+	xxx_messageInfo_NetworkInterface.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NetworkInterface proto.InternalMessageInfo
+
+func (m *NetworkInterface) GetNetworkInterfaceId() string {
+	if m != nil {
+		return m.NetworkInterfaceId
+	}
+	return ""
+}
+
+func (m *NetworkInterface) GetStatus() NetworkInterface_Status {
+	if m != nil {
+		return m.Status
+	}
+	return NetworkInterface_UNKNOWN
+}
+
+func (m *NetworkInterface) GetMacAddress() string {
+	if m != nil {
+		return m.MacAddress
+	}
+	return ""
+}
+
+func (m *NetworkInterface) GetIpAddresses() []string {
+	if m != nil {
+		return m.IpAddresses
+	}
+	return nil
+}
+
+func (m *NetworkInterface) GetIpv6Addresses() []string {
+	if m != nil {
+		return m.Ipv6Addresses
+	}
+	return nil
+}
+
+type Route struct {
+	// The IPv4 address of the destination
+	DestinationIp string `protobuf:"bytes,1,opt,name=destination_ip,json=destinationIp,proto3" json:"destination_ip,omitempty"`
+	// The IPv4 address of the gateway
+	GatewayIp string `protobuf:"bytes,2,opt,name=gateway_ip,json=gatewayIp,proto3" json:"gateway_ip,omitempty"`
+	// The subnet mask of the route
+	Genmask string `protobuf:"bytes,3,opt,name=genmask,proto3" json:"genmask,omitempty"`
+	// The ID of the network interface associated with the route
+	NetworkInterfaceId   string   `protobuf:"bytes,4,opt,name=network_interface_id,json=networkInterfaceId,proto3" json:"network_interface_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Route) Reset()         { *m = Route{} }
+func (m *Route) String() string { return proto.CompactTextString(m) }
+func (*Route) ProtoMessage()    {}
+func (*Route) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{20}
+}
+func (m *Route) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Route.Unmarshal(m, b)
+}
+func (m *Route) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Route.Marshal(b, m, deterministic)
+}
+func (dst *Route) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Route.Merge(dst, src)
+}
+func (m *Route) XXX_Size() int {
+	return xxx_messageInfo_Route.Size(m)
+}
+func (m *Route) XXX_DiscardUnknown() {
+	xxx_messageInfo_Route.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Route proto.InternalMessageInfo
+
+func (m *Route) GetDestinationIp() string {
+	if m != nil {
+		return m.DestinationIp
+	}
+	return ""
+}
+
+func (m *Route) GetGatewayIp() string {
+	if m != nil {
+		return m.GatewayIp
+	}
+	return ""
+}
+
+func (m *Route) GetGenmask() string {
+	if m != nil {
+		return m.Genmask
+	}
+	return ""
+}
+
+func (m *Route) GetNetworkInterfaceId() string {
+	if m != nil {
+		return m.NetworkInterfaceId
+	}
+	return ""
+}
+
+type NetworkInfo struct {
+	// The network interfaces of the gateway
+	NetworkInterfaces []*NetworkInterface `protobuf:"bytes,1,rep,name=network_interfaces,json=networkInterfaces,proto3" json:"network_interfaces,omitempty"`
+	// The routing table of the gateway
+	RoutingTable         []*Route `protobuf:"bytes,2,rep,name=routing_table,json=routingTable,proto3" json:"routing_table,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *NetworkInfo) Reset()         { *m = NetworkInfo{} }
+func (m *NetworkInfo) String() string { return proto.CompactTextString(m) }
+func (*NetworkInfo) ProtoMessage()    {}
+func (*NetworkInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{21}
+}
+func (m *NetworkInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_NetworkInfo.Unmarshal(m, b)
+}
+func (m *NetworkInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_NetworkInfo.Marshal(b, m, deterministic)
+}
+func (dst *NetworkInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkInfo.Merge(dst, src)
+}
+func (m *NetworkInfo) XXX_Size() int {
+	return xxx_messageInfo_NetworkInfo.Size(m)
+}
+func (m *NetworkInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_NetworkInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NetworkInfo proto.InternalMessageInfo
+
+func (m *NetworkInfo) GetNetworkInterfaces() []*NetworkInterface {
+	if m != nil {
+		return m.NetworkInterfaces
+	}
+	return nil
+}
+
+func (m *NetworkInfo) GetRoutingTable() []*Route {
+	if m != nil {
+		return m.RoutingTable
+	}
+	return nil
+}
+
+type CPUInfo struct {
+	// The number of CPU cores for the instance
+	CoreCount uint64 `protobuf:"varint,1,opt,name=core_count,json=coreCount,proto3" json:"core_count,omitempty"`
+	// The number of threads per CPU core
+	ThreadsPerCore uint64 `protobuf:"varint,2,opt,name=threads_per_core,json=threadsPerCore,proto3" json:"threads_per_core,omitempty"`
+	// The architecture of the gateway. Ex: 'x86_64'
+	Architecture string `protobuf:"bytes,3,opt,name=architecture,proto3" json:"architecture,omitempty"`
+	// Name of the CPU. Ex: 'Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz'
+	ModelName            string   `protobuf:"bytes,4,opt,name=model_name,json=modelName,proto3" json:"model_name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CPUInfo) Reset()         { *m = CPUInfo{} }
+func (m *CPUInfo) String() string { return proto.CompactTextString(m) }
+func (*CPUInfo) ProtoMessage()    {}
+func (*CPUInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{22}
+}
+func (m *CPUInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CPUInfo.Unmarshal(m, b)
+}
+func (m *CPUInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CPUInfo.Marshal(b, m, deterministic)
+}
+func (dst *CPUInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CPUInfo.Merge(dst, src)
+}
+func (m *CPUInfo) XXX_Size() int {
+	return xxx_messageInfo_CPUInfo.Size(m)
+}
+func (m *CPUInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_CPUInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CPUInfo proto.InternalMessageInfo
+
+func (m *CPUInfo) GetCoreCount() uint64 {
+	if m != nil {
+		return m.CoreCount
+	}
+	return 0
+}
+
+func (m *CPUInfo) GetThreadsPerCore() uint64 {
+	if m != nil {
+		return m.ThreadsPerCore
+	}
+	return 0
+}
+
+func (m *CPUInfo) GetArchitecture() string {
+	if m != nil {
+		return m.Architecture
+	}
+	return ""
+}
+
+func (m *CPUInfo) GetModelName() string {
+	if m != nil {
+		return m.ModelName
+	}
+	return ""
+}
+
+type MachineInfo struct {
+	// CPU information
+	CpuInfo *CPUInfo `protobuf:"bytes,1,opt,name=cpu_info,json=cpuInfo,proto3" json:"cpu_info,omitempty"`
+	// Network information
+	NetworkInfo          *NetworkInfo `protobuf:"bytes,2,opt,name=network_info,json=networkInfo,proto3" json:"network_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *MachineInfo) Reset()         { *m = MachineInfo{} }
+func (m *MachineInfo) String() string { return proto.CompactTextString(m) }
+func (*MachineInfo) ProtoMessage()    {}
+func (*MachineInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{23}
+}
+func (m *MachineInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MachineInfo.Unmarshal(m, b)
+}
+func (m *MachineInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MachineInfo.Marshal(b, m, deterministic)
+}
+func (dst *MachineInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MachineInfo.Merge(dst, src)
+}
+func (m *MachineInfo) XXX_Size() int {
+	return xxx_messageInfo_MachineInfo.Size(m)
+}
+func (m *MachineInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_MachineInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MachineInfo proto.InternalMessageInfo
+
+func (m *MachineInfo) GetCpuInfo() *CPUInfo {
+	if m != nil {
+		return m.CpuInfo
+	}
+	return nil
+}
+
+func (m *MachineInfo) GetNetworkInfo() *NetworkInfo {
+	if m != nil {
+		return m.NetworkInfo
+	}
+	return nil
 }
 
 // --------------------------------------------------------------------------
@@ -660,18 +1416,23 @@ func (m *SystemStatus) GetUptimeSecs() uint64 {
 type CheckinRequest struct {
 	// Gateway's hardware id
 	GatewayId string `protobuf:"bytes,1,opt,name=gateway_id,json=gatewayId,proto3" json:"gateway_id,omitempty"`
-	// Magma python build version number. Ex: '0.0.0'
-	MagmaPkgVersion string `protobuf:"bytes,2,opt,name=magma_pkg_version,json=magmaPkgVersion,proto3" json:"magma_pkg_version,omitempty"`
 	// Gateway status
 	Status *ServiceStatus `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
 	// System status
 	SystemStatus *SystemStatus `protobuf:"bytes,4,opt,name=system_status,json=systemStatus,proto3" json:"system_status,omitempty"`
-	// Gateway's IP on VPN
-	VpnIp string `protobuf:"bytes,5,opt,name=vpn_ip,json=vpnIp,proto3" json:"vpn_ip,omitempty"`
-	// Current running kernel version
-	KernelVersion string `protobuf:"bytes,6,opt,name=kernel_version,json=kernelVersion,proto3" json:"kernel_version,omitempty"`
-	// All kernel versions installed
-	KernelVersionsInstalled []string `protobuf:"bytes,7,rep,name=kernel_versions_installed,json=kernelVersionsInstalled,proto3" json:"kernel_versions_installed,omitempty"`
+	// Platform information
+	PlatformInfo *PlatformInfo `protobuf:"bytes,8,opt,name=platform_info,json=platformInfo,proto3" json:"platform_info,omitempty"`
+	// Machine information
+	MachineInfo *MachineInfo `protobuf:"bytes,9,opt,name=machine_info,json=machineInfo,proto3" json:"machine_info,omitempty"`
+	// DEPRECATED
+	// Magma python build version number. Ex: '0.0.0'. Use platform_info instead
+	MagmaPkgVersion string `protobuf:"bytes,2,opt,name=magma_pkg_version,json=magmaPkgVersion,proto3" json:"magma_pkg_version,omitempty"` // Deprecated: Do not use.
+	// Gateway's IP on VPN. Use platform_info instead
+	VpnIp string `protobuf:"bytes,5,opt,name=vpn_ip,json=vpnIp,proto3" json:"vpn_ip,omitempty"` // Deprecated: Do not use.
+	// Current running kernel version. Use platform_info instead
+	KernelVersion string `protobuf:"bytes,6,opt,name=kernel_version,json=kernelVersion,proto3" json:"kernel_version,omitempty"` // Deprecated: Do not use.
+	// All kernel versions installed. Use platform_info instead
+	KernelVersionsInstalled []string `protobuf:"bytes,7,rep,name=kernel_versions_installed,json=kernelVersionsInstalled,proto3" json:"kernel_versions_installed,omitempty"` // Deprecated: Do not use.
 	XXX_NoUnkeyedLiteral    struct{} `json:"-"`
 	XXX_unrecognized        []byte   `json:"-"`
 	XXX_sizecache           int32    `json:"-"`
@@ -681,7 +1442,7 @@ func (m *CheckinRequest) Reset()         { *m = CheckinRequest{} }
 func (m *CheckinRequest) String() string { return proto.CompactTextString(m) }
 func (*CheckinRequest) ProtoMessage()    {}
 func (*CheckinRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{11}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{24}
 }
 func (m *CheckinRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckinRequest.Unmarshal(m, b)
@@ -708,13 +1469,6 @@ func (m *CheckinRequest) GetGatewayId() string {
 	return ""
 }
 
-func (m *CheckinRequest) GetMagmaPkgVersion() string {
-	if m != nil {
-		return m.MagmaPkgVersion
-	}
-	return ""
-}
-
 func (m *CheckinRequest) GetStatus() *ServiceStatus {
 	if m != nil {
 		return m.Status
@@ -729,6 +1483,29 @@ func (m *CheckinRequest) GetSystemStatus() *SystemStatus {
 	return nil
 }
 
+func (m *CheckinRequest) GetPlatformInfo() *PlatformInfo {
+	if m != nil {
+		return m.PlatformInfo
+	}
+	return nil
+}
+
+func (m *CheckinRequest) GetMachineInfo() *MachineInfo {
+	if m != nil {
+		return m.MachineInfo
+	}
+	return nil
+}
+
+// Deprecated: Do not use.
+func (m *CheckinRequest) GetMagmaPkgVersion() string {
+	if m != nil {
+		return m.MagmaPkgVersion
+	}
+	return ""
+}
+
+// Deprecated: Do not use.
 func (m *CheckinRequest) GetVpnIp() string {
 	if m != nil {
 		return m.VpnIp
@@ -736,6 +1513,7 @@ func (m *CheckinRequest) GetVpnIp() string {
 	return ""
 }
 
+// Deprecated: Do not use.
 func (m *CheckinRequest) GetKernelVersion() string {
 	if m != nil {
 		return m.KernelVersion
@@ -743,6 +1521,7 @@ func (m *CheckinRequest) GetKernelVersion() string {
 	return ""
 }
 
+// Deprecated: Do not use.
 func (m *CheckinRequest) GetKernelVersionsInstalled() []string {
 	if m != nil {
 		return m.KernelVersionsInstalled
@@ -762,7 +1541,7 @@ func (m *CheckinResponse) Reset()         { *m = CheckinResponse{} }
 func (m *CheckinResponse) String() string { return proto.CompactTextString(m) }
 func (*CheckinResponse) ProtoMessage()    {}
 func (*CheckinResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{12}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{25}
 }
 func (m *CheckinResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CheckinResponse.Unmarshal(m, b)
@@ -812,7 +1591,7 @@ func (m *GatewayStatus) Reset()         { *m = GatewayStatus{} }
 func (m *GatewayStatus) String() string { return proto.CompactTextString(m) }
 func (*GatewayStatus) ProtoMessage()    {}
 func (*GatewayStatus) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{13}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{26}
 }
 func (m *GatewayStatus) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayStatus.Unmarshal(m, b)
@@ -867,7 +1646,7 @@ func (m *GatewayStatusRequest) Reset()         { *m = GatewayStatusRequest{} }
 func (m *GatewayStatusRequest) String() string { return proto.CompactTextString(m) }
 func (*GatewayStatusRequest) ProtoMessage()    {}
 func (*GatewayStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_magmad_2890662f8d070577, []int{14}
+	return fileDescriptor_magmad_2d8fc06d9226d13d, []int{27}
 }
 func (m *GatewayStatusRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GatewayStatusRequest.Unmarshal(m, b)
@@ -912,11 +1691,25 @@ func init() {
 	proto.RegisterType((*NetworkTestResponse)(nil), "magma.orc8r.NetworkTestResponse")
 	proto.RegisterType((*GetGatewayIdResponse)(nil), "magma.orc8r.GetGatewayIdResponse")
 	proto.RegisterType((*RestartServicesRequest)(nil), "magma.orc8r.RestartServicesRequest")
+	proto.RegisterType((*GenericCommandParams)(nil), "magma.orc8r.GenericCommandParams")
+	proto.RegisterType((*GenericCommandResponse)(nil), "magma.orc8r.GenericCommandResponse")
+	proto.RegisterType((*TailLogsRequest)(nil), "magma.orc8r.TailLogsRequest")
+	proto.RegisterType((*LogLine)(nil), "magma.orc8r.LogLine")
+	proto.RegisterType((*DiskPartition)(nil), "magma.orc8r.DiskPartition")
 	proto.RegisterType((*SystemStatus)(nil), "magma.orc8r.SystemStatus")
+	proto.RegisterType((*Package)(nil), "magma.orc8r.Package")
+	proto.RegisterType((*ConfigInfo)(nil), "magma.orc8r.ConfigInfo")
+	proto.RegisterType((*PlatformInfo)(nil), "magma.orc8r.PlatformInfo")
+	proto.RegisterType((*NetworkInterface)(nil), "magma.orc8r.NetworkInterface")
+	proto.RegisterType((*Route)(nil), "magma.orc8r.Route")
+	proto.RegisterType((*NetworkInfo)(nil), "magma.orc8r.NetworkInfo")
+	proto.RegisterType((*CPUInfo)(nil), "magma.orc8r.CPUInfo")
+	proto.RegisterType((*MachineInfo)(nil), "magma.orc8r.MachineInfo")
 	proto.RegisterType((*CheckinRequest)(nil), "magma.orc8r.CheckinRequest")
 	proto.RegisterType((*CheckinResponse)(nil), "magma.orc8r.CheckinResponse")
 	proto.RegisterType((*GatewayStatus)(nil), "magma.orc8r.GatewayStatus")
 	proto.RegisterType((*GatewayStatusRequest)(nil), "magma.orc8r.GatewayStatusRequest")
+	proto.RegisterEnum("magma.orc8r.NetworkInterface_Status", NetworkInterface_Status_name, NetworkInterface_Status_value)
 	proto.RegisterEnum("magma.orc8r.CheckinResponse_RequestedAction", CheckinResponse_RequestedAction_name, CheckinResponse_RequestedAction_value)
 }
 
@@ -948,6 +1741,10 @@ type MagmadClient interface {
 	RunNetworkTests(ctx context.Context, in *NetworkTestRequest, opts ...grpc.CallOption) (*NetworkTestResponse, error)
 	// Get gateway hardware ID
 	GetGatewayId(ctx context.Context, in *Void, opts ...grpc.CallOption) (*GetGatewayIdResponse, error)
+	// Execute generic command
+	GenericCommand(ctx context.Context, in *GenericCommandParams, opts ...grpc.CallOption) (*GenericCommandResponse, error)
+	// Get stream of logs
+	TailLogs(ctx context.Context, in *TailLogsRequest, opts ...grpc.CallOption) (Magmad_TailLogsClient, error)
 }
 
 type magmadClient struct {
@@ -1030,6 +1827,47 @@ func (c *magmadClient) GetGatewayId(ctx context.Context, in *Void, opts ...grpc.
 	return out, nil
 }
 
+func (c *magmadClient) GenericCommand(ctx context.Context, in *GenericCommandParams, opts ...grpc.CallOption) (*GenericCommandResponse, error) {
+	out := new(GenericCommandResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.Magmad/GenericCommand", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *magmadClient) TailLogs(ctx context.Context, in *TailLogsRequest, opts ...grpc.CallOption) (Magmad_TailLogsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_Magmad_serviceDesc.Streams[0], "/magma.orc8r.Magmad/TailLogs", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &magmadTailLogsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Magmad_TailLogsClient interface {
+	Recv() (*LogLine, error)
+	grpc.ClientStream
+}
+
+type magmadTailLogsClient struct {
+	grpc.ClientStream
+}
+
+func (x *magmadTailLogsClient) Recv() (*LogLine, error) {
+	m := new(LogLine)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // MagmadServer is the server API for Magmad service.
 type MagmadServer interface {
 	// Starts all magma services
@@ -1048,6 +1886,10 @@ type MagmadServer interface {
 	RunNetworkTests(context.Context, *NetworkTestRequest) (*NetworkTestResponse, error)
 	// Get gateway hardware ID
 	GetGatewayId(context.Context, *Void) (*GetGatewayIdResponse, error)
+	// Execute generic command
+	GenericCommand(context.Context, *GenericCommandParams) (*GenericCommandResponse, error)
+	// Get stream of logs
+	TailLogs(*TailLogsRequest, Magmad_TailLogsServer) error
 }
 
 func RegisterMagmadServer(s *grpc.Server, srv MagmadServer) {
@@ -1198,6 +2040,45 @@ func _Magmad_GetGatewayId_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Magmad_GenericCommand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenericCommandParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MagmadServer).GenericCommand(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.Magmad/GenericCommand",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MagmadServer).GenericCommand(ctx, req.(*GenericCommandParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Magmad_TailLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(TailLogsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(MagmadServer).TailLogs(m, &magmadTailLogsServer{stream})
+}
+
+type Magmad_TailLogsServer interface {
+	Send(*LogLine) error
+	grpc.ServerStream
+}
+
+type magmadTailLogsServer struct {
+	grpc.ServerStream
+}
+
+func (x *magmadTailLogsServer) Send(m *LogLine) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 var _Magmad_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "magma.orc8r.Magmad",
 	HandlerType: (*MagmadServer)(nil),
@@ -1234,8 +2115,18 @@ var _Magmad_serviceDesc = grpc.ServiceDesc{
 			MethodName: "GetGatewayId",
 			Handler:    _Magmad_GetGatewayId_Handler,
 		},
+		{
+			MethodName: "GenericCommand",
+			Handler:    _Magmad_GenericCommand_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "TailLogs",
+			Handler:       _Magmad_TailLogs_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "orc8r/protos/magmad.proto",
 }
 
@@ -1447,87 +2338,136 @@ var _Checkind_serviceDesc = grpc.ServiceDesc{
 	Metadata: "orc8r/protos/magmad.proto",
 }
 
-func init() { proto.RegisterFile("orc8r/protos/magmad.proto", fileDescriptor_magmad_2890662f8d070577) }
+func init() { proto.RegisterFile("orc8r/protos/magmad.proto", fileDescriptor_magmad_2d8fc06d9226d13d) }
 
-var fileDescriptor_magmad_2890662f8d070577 = []byte{
-	// 1264 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x5d, 0x73, 0xdb, 0x44,
-	0x17, 0xb6, 0x1d, 0xdb, 0x89, 0x4f, 0xe2, 0x8f, 0x6e, 0xd2, 0x56, 0x71, 0x9b, 0x69, 0xaa, 0xce,
-	0xfb, 0x4e, 0x60, 0x20, 0xe9, 0xa4, 0x2d, 0x30, 0x0c, 0x53, 0xa6, 0x34, 0x6e, 0xea, 0x69, 0xd3,
-	0x66, 0xd6, 0x6e, 0x18, 0xb8, 0xd1, 0x28, 0xd2, 0xa9, 0xab, 0x89, 0xa5, 0x15, 0xbb, 0x2b, 0x37,
-	0xbd, 0x87, 0x3b, 0x2e, 0xb8, 0xe4, 0x77, 0xf0, 0x2f, 0xf8, 0x1f, 0xf0, 0x3f, 0x98, 0xfd, 0xb0,
-	0x23, 0xa5, 0x4e, 0x28, 0x70, 0x65, 0xeb, 0x9c, 0xe7, 0x39, 0x7b, 0x3e, 0x9e, 0xb3, 0x12, 0xac,
-	0x33, 0x1e, 0x7c, 0xc1, 0x77, 0x52, 0xce, 0x24, 0x13, 0x3b, 0xb1, 0x3f, 0x8a, 0xfd, 0x70, 0x5b,
-	0x3f, 0x91, 0x65, 0xfd, 0xb4, 0xad, 0x01, 0xdd, 0x22, 0x2e, 0x60, 0x71, 0xcc, 0x12, 0x83, 0xeb,
-	0x76, 0x8b, 0x21, 0x02, 0x96, 0xbc, 0x8e, 0x46, 0xd6, 0xb7, 0x51, 0xf0, 0x09, 0xe4, 0x93, 0x28,
-	0xc0, 0x7b, 0x77, 0xef, 0x19, 0xb7, 0xfb, 0x0c, 0xe0, 0x30, 0x4a, 0x46, 0x87, 0x3e, 0xf7, 0x63,
-	0x41, 0x6e, 0x02, 0xbc, 0x61, 0x42, 0x7a, 0x8c, 0x7b, 0x51, 0xea, 0x94, 0x37, 0xcb, 0x5b, 0x0d,
-	0xba, 0xa4, 0x2c, 0x2f, 0x79, 0x3f, 0x25, 0xb7, 0x60, 0x39, 0xc9, 0x62, 0x2f, 0xf5, 0x83, 0x13,
-	0x94, 0xc2, 0xa9, 0x6c, 0x96, 0xb7, 0x6a, 0x14, 0x92, 0x2c, 0x3e, 0x34, 0x16, 0x37, 0x83, 0xce,
-	0x90, 0xfb, 0x01, 0x72, 0x96, 0x49, 0xfc, 0xa0, 0x90, 0xeb, 0xb0, 0x14, 0xfb, 0xa7, 0xde, 0x1b,
-	0x96, 0x4e, 0xe3, 0x2d, 0xc6, 0xfe, 0xe9, 0x53, 0x96, 0x0a, 0xb2, 0x05, 0x9d, 0xe3, 0x77, 0x12,
-	0x85, 0x97, 0x22, 0xb7, 0x67, 0x3a, 0x0b, 0x1a, 0xd2, 0xd2, 0xf6, 0x43, 0xe4, 0xe6, 0x5c, 0xf7,
-	0xc7, 0x32, 0x90, 0x17, 0x28, 0xdf, 0x32, 0x7e, 0x32, 0x44, 0x21, 0x29, 0xfe, 0x90, 0xa1, 0x90,
-	0xe4, 0x53, 0xa8, 0xa5, 0x51, 0x32, 0x12, 0x4e, 0x79, 0x73, 0x61, 0x6b, 0x79, 0xf7, 0xfa, 0x76,
-	0xae, 0x9b, 0xdb, 0x67, 0x45, 0x53, 0x83, 0x22, 0x5f, 0xc3, 0xb2, 0x9c, 0x25, 0xaf, 0xb2, 0x51,
-	0xa4, 0x8d, 0x02, 0xe9, 0x7c, 0x71, 0x34, 0xcf, 0x70, 0xff, 0x2c, 0x9b, 0x5e, 0x52, 0x14, 0xd9,
-	0x58, 0xfe, 0xc7, 0x5e, 0x92, 0x35, 0xa8, 0x21, 0xe7, 0x8c, 0xeb, 0x9a, 0x1b, 0xd4, 0x3c, 0x90,
-	0x1d, 0x58, 0xb5, 0x14, 0x4f, 0x72, 0x3f, 0x11, 0x71, 0x24, 0x25, 0x86, 0x4e, 0x55, 0xd3, 0x89,
-	0x75, 0x0d, 0xcf, 0x3c, 0xe4, 0x23, 0xe8, 0x4c, 0x09, 0x1c, 0x03, 0x8c, 0x26, 0x18, 0x3a, 0x35,
-	0x8d, 0x6e, 0x5b, 0x3b, 0xb5, 0x66, 0xf2, 0x7f, 0x68, 0xfb, 0x93, 0x91, 0xc7, 0x51, 0xa4, 0x2c,
-	0x11, 0xe8, 0xc5, 0xc2, 0xa9, 0x6f, 0x96, 0xb7, 0x2a, 0xb4, 0xe9, 0x4f, 0x54, 0x51, 0xda, 0x7a,
-	0x20, 0xdc, 0x21, 0xb4, 0x73, 0x8d, 0xe0, 0xec, 0x18, 0x49, 0x17, 0x74, 0x65, 0x89, 0x1f, 0x63,
-	0xbe, 0x52, 0xf5, 0x4c, 0x5a, 0x50, 0x89, 0x52, 0x5d, 0x60, 0x83, 0x56, 0xa2, 0x94, 0x5c, 0x85,
-	0x3a, 0x97, 0x52, 0x45, 0x5f, 0xd0, 0xd1, 0x6b, 0x5c, 0xca, 0x03, 0xe1, 0x7e, 0x0b, 0xcd, 0xb3,
-	0xa8, 0x4f, 0x59, 0x4a, 0x3a, 0xb0, 0x10, 0x85, 0xa7, 0x3a, 0x5c, 0x8d, 0xaa, 0xbf, 0xe4, 0x3e,
-	0xd4, 0x53, 0x75, 0xdc, 0x74, 0x38, 0x37, 0x2f, 0x1a, 0x8e, 0x02, 0x51, 0x8b, 0x75, 0x27, 0x79,
-	0x51, 0xda, 0xd9, 0xcc, 0x9a, 0x5b, 0xce, 0x37, 0xb7, 0x38, 0xb1, 0xca, 0xb9, 0x89, 0x6d, 0x43,
-	0x55, 0xcb, 0x74, 0x41, 0x9f, 0xdd, 0xbd, 0xe0, 0xec, 0xa7, 0x2c, 0xa5, 0x1a, 0xe7, 0xfe, 0x54,
-	0x86, 0xd5, 0x82, 0x2a, 0x4d, 0x03, 0xff, 0x5e, 0x96, 0x26, 0xc7, 0x7f, 0x25, 0x4b, 0x4b, 0x2d,
-	0xc8, 0xf2, 0x01, 0xac, 0xed, 0xa3, 0xdc, 0xf7, 0x25, 0xbe, 0xf5, 0xdf, 0xf5, 0xc3, 0x59, 0x1e,
-	0x1b, 0x00, 0x23, 0x63, 0xf4, 0xa2, 0xd0, 0x36, 0xa2, 0x31, 0x9a, 0xc2, 0xdc, 0xfb, 0x70, 0x8d,
-	0xa2, 0x90, 0x3e, 0x97, 0x03, 0x73, 0x67, 0x88, 0xe9, 0x5e, 0x75, 0x61, 0xc9, 0x5e, 0x23, 0xa6,
-	0x86, 0x06, 0x9d, 0x3d, 0xbb, 0xbf, 0x54, 0x60, 0x65, 0xf0, 0x4e, 0x48, 0x8c, 0x07, 0xd2, 0x97,
-	0x99, 0x20, 0x04, 0xaa, 0x32, 0xb2, 0xaa, 0xa8, 0x52, 0xfd, 0x5f, 0x2d, 0x7d, 0x90, 0x66, 0x5e,
-	0x26, 0x90, 0x6b, 0x2d, 0x56, 0xe9, 0x62, 0x90, 0x66, 0xaf, 0x04, 0x72, 0x95, 0x94, 0x72, 0x09,
-	0x1d, 0x42, 0xcb, 0xaf, 0x4a, 0x1b, 0x41, 0x9a, 0x99, 0x98, 0x53, 0x66, 0x14, 0x8e, 0xd1, 0x59,
-	0x9c, 0x31, 0xfb, 0xe1, 0x18, 0xc9, 0x0d, 0x68, 0xc4, 0x18, 0x7b, 0x92, 0x49, 0x7f, 0xec, 0x80,
-	0xf6, 0x2d, 0xc5, 0x18, 0x0f, 0xd5, 0x33, 0xb9, 0x03, 0x4d, 0xe5, 0xf4, 0x27, 0x7e, 0x34, 0xf6,
-	0x8f, 0xc7, 0xe8, 0x2c, 0x6b, 0xc0, 0x4a, 0x8c, 0xf1, 0xa3, 0xa9, 0x4d, 0xdf, 0x45, 0x18, 0xab,
-	0xb4, 0x42, 0x67, 0xc5, 0x04, 0x8f, 0x31, 0x7e, 0x25, 0x30, 0x9c, 0xba, 0x5e, 0x73, 0x44, 0xa7,
-	0x39, 0x73, 0x3d, 0xe1, 0x88, 0x6a, 0x91, 0xb3, 0x54, 0x95, 0xe5, 0x09, 0x0c, 0x84, 0xd3, 0xd2,
-	0x5e, 0x30, 0xa6, 0x01, 0x06, 0xc2, 0xfd, 0xbd, 0x02, 0xad, 0xc7, 0x6f, 0x30, 0x38, 0x89, 0x92,
-	0x69, 0x07, 0x2f, 0x6f, 0x3d, 0xf9, 0x18, 0xae, 0xe8, 0xf1, 0x7a, 0xe9, 0xc9, 0xc8, 0x9b, 0x20,
-	0x17, 0x11, 0x4b, 0xac, 0x1c, 0xdb, 0xda, 0x71, 0x78, 0x32, 0x3a, 0x32, 0x66, 0xb2, 0x0b, 0x75,
-	0xa1, 0x3b, 0xad, 0xb7, 0xe9, 0xbc, 0x2e, 0xed, 0xe8, 0xcc, 0x2c, 0xa8, 0x45, 0x92, 0x87, 0xd0,
-	0x34, 0x0d, 0xf6, 0x2c, 0xb5, 0xaa, 0xa9, 0xeb, 0x45, 0x6a, 0x6e, 0x8a, 0x74, 0x45, 0xe4, 0x67,
-	0x7a, 0x15, 0xea, 0x93, 0x34, 0x51, 0x3b, 0x52, 0x33, 0xeb, 0x33, 0x49, 0x93, 0x7e, 0x4a, 0xfe,
-	0x07, 0xad, 0x13, 0xe4, 0x09, 0x8e, 0x67, 0x39, 0xd7, 0xb5, 0xbb, 0x69, 0xac, 0xd3, 0x8c, 0xbf,
-	0x84, 0xf5, 0x22, 0x4c, 0x78, 0x51, 0x22, 0xa4, 0x3f, 0x1e, 0x63, 0xe8, 0x2c, 0x6a, 0x3d, 0x5d,
-	0x2f, 0x30, 0x44, 0x7f, 0xea, 0x76, 0x7f, 0x2b, 0x43, 0x7b, 0xd6, 0x4b, 0xab, 0xe3, 0x3d, 0xa8,
-	0xfb, 0x81, 0x54, 0xc7, 0xa9, 0x46, 0xb6, 0x76, 0x3f, 0x29, 0x94, 0x71, 0x0e, 0xbd, 0x6d, 0x47,
-	0x80, 0xe1, 0x23, 0xcd, 0xa1, 0x96, 0x3b, 0xd3, 0x69, 0xe5, 0x4c, 0xa7, 0x6e, 0x0f, 0xda, 0xe7,
-	0xe0, 0x64, 0x09, 0xaa, 0x2f, 0x5e, 0xbe, 0xe8, 0x75, 0x4a, 0x64, 0x0d, 0x3a, 0xb4, 0x37, 0x18,
-	0x3e, 0xa2, 0x43, 0x6f, 0xd0, 0xa3, 0x47, 0xfd, 0xc7, 0xbd, 0x41, 0xa7, 0x4c, 0x08, 0xb4, 0x66,
-	0xd6, 0xef, 0x06, 0xc3, 0xde, 0x41, 0xa7, 0xe2, 0xfe, 0x5c, 0x86, 0xa6, 0x5d, 0xbf, 0x4b, 0x96,
-	0xe2, 0x01, 0x2c, 0x06, 0x26, 0x57, 0x9d, 0xc3, 0xf2, 0xee, 0x8d, 0xf9, 0x75, 0xe8, 0x7c, 0xe8,
-	0x14, 0x4b, 0xee, 0xc2, 0x5a, 0x80, 0x5c, 0x7a, 0x78, 0x9a, 0x46, 0xdc, 0x57, 0x39, 0x7a, 0x3a,
-	0xb4, 0x52, 0xc3, 0x02, 0x25, 0xca, 0xd7, 0x9b, 0xb9, 0x86, 0xaa, 0xaa, 0x21, 0xac, 0x15, 0xb2,
-	0xc9, 0x89, 0x32, 0x31, 0xd7, 0x55, 0x4e, 0x94, 0xd6, 0xd2, 0x0f, 0x95, 0x7b, 0xcc, 0x46, 0x51,
-	0xe0, 0x8f, 0x95, 0xdb, 0xa8, 0xb1, 0x61, 0x2d, 0xfd, 0x70, 0xf7, 0xd7, 0x2a, 0xd4, 0x0f, 0xf4,
-	0xb7, 0x0b, 0xf9, 0x1c, 0x9a, 0x83, 0xfc, 0xbd, 0x41, 0xae, 0x14, 0x2a, 0x39, 0x62, 0x51, 0xd8,
-	0x7d, 0xdf, 0xe4, 0x96, 0xc8, 0x67, 0xb0, 0x32, 0x90, 0x2c, 0xfd, 0xc7, 0xbc, 0xbb, 0x50, 0xa7,
-	0x78, 0xcc, 0x98, 0xfc, 0x60, 0xc6, 0x33, 0x35, 0xd9, 0xc2, 0xe5, 0x46, 0xee, 0x14, 0x70, 0xf3,
-	0xaf, 0xbe, 0xf9, 0xc1, 0x1e, 0x02, 0x0c, 0x50, 0x3e, 0xd6, 0x1f, 0x5d, 0x82, 0x14, 0xc7, 0x66,
-	0x3b, 0x6d, 0x9d, 0x17, 0xf2, 0xf7, 0xcf, 0xf8, 0x73, 0x4a, 0xb8, 0x2c, 0xa4, 0x5b, 0x22, 0x47,
-	0xd0, 0xa6, 0x59, 0x92, 0x7b, 0xd5, 0x08, 0x72, 0xab, 0xc0, 0x78, 0xff, 0xdb, 0xa8, 0xbb, 0x79,
-	0x31, 0xc0, 0x2c, 0x8a, 0x5b, 0x22, 0x4f, 0x60, 0x25, 0xff, 0xe2, 0x98, 0x97, 0xd9, 0xed, 0x62,
-	0x66, 0x73, 0x5e, 0x33, 0x6e, 0x69, 0xf7, 0x8f, 0x0a, 0x2c, 0x59, 0xf9, 0x86, 0xe4, 0x09, 0x2c,
-	0xda, 0xff, 0xe4, 0x32, 0x81, 0x77, 0x6f, 0x5e, 0xb6, 0xc5, 0x6e, 0x89, 0x3c, 0x87, 0xc6, 0x3e,
-	0x4a, 0xbb, 0x4f, 0xb7, 0xe7, 0x35, 0xa8, 0xa0, 0xee, 0x6e, 0xf7, 0x62, 0x88, 0x5b, 0x22, 0x07,
-	0xb0, 0xba, 0x87, 0x63, 0x94, 0x58, 0xdc, 0xd3, 0x0f, 0x88, 0x3b, 0x77, 0xa2, 0x5f, 0x41, 0xd3,
-	0x84, 0xb3, 0x8d, 0x25, 0xd7, 0xe6, 0xb5, 0xbb, 0xbf, 0x37, 0x9f, 0xfd, 0x00, 0xaa, 0xcf, 0x23,
-	0x21, 0x2f, 0x24, 0xad, 0x16, 0xec, 0xfd, 0x3d, 0x05, 0x76, 0x4b, 0xdf, 0x6c, 0x7c, 0x7f, 0x43,
-	0xdb, 0x77, 0xcc, 0x07, 0x7f, 0x30, 0x66, 0x59, 0xb8, 0x33, 0x62, 0xf6, 0xcb, 0xff, 0xb8, 0xae,
-	0x7f, 0xef, 0xfd, 0x15, 0x00, 0x00, 0xff, 0xff, 0x6f, 0xd7, 0x92, 0x22, 0x6f, 0x0c, 0x00, 0x00,
+var fileDescriptor_magmad_2d8fc06d9226d13d = []byte{
+	// 2046 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x58, 0xcd, 0x6e, 0x1b, 0xc9,
+	0x11, 0xd6, 0x50, 0xfc, 0x11, 0x8b, 0x3f, 0xa2, 0xdb, 0x5a, 0x2f, 0x4d, 0x5b, 0xb0, 0x3d, 0xce,
+	0x8f, 0x17, 0xd9, 0x48, 0x86, 0xbc, 0xde, 0x5d, 0xec, 0x2e, 0x1c, 0xc8, 0x92, 0x6c, 0x13, 0x96,
+	0x64, 0xa2, 0x49, 0x7b, 0x91, 0xbd, 0x0c, 0x5a, 0x33, 0x4d, 0x6a, 0x20, 0xce, 0xf4, 0xa4, 0xbb,
+	0x49, 0xdb, 0xc8, 0x35, 0xc9, 0x29, 0xc7, 0x24, 0x40, 0x5e, 0x22, 0x87, 0x9c, 0xf2, 0x24, 0x79,
+	0x82, 0xe4, 0x0d, 0xf2, 0x00, 0x41, 0xff, 0xcc, 0x70, 0x86, 0xa6, 0x14, 0x27, 0x39, 0x71, 0xba,
+	0xfe, 0xba, 0xaa, 0xba, 0xea, 0xab, 0x6e, 0xc2, 0x4d, 0xc6, 0xfd, 0xaf, 0xf9, 0x6e, 0xc2, 0x99,
+	0x64, 0x62, 0x37, 0x22, 0x93, 0x88, 0x04, 0x3b, 0x7a, 0x85, 0x1a, 0x7a, 0xb5, 0xa3, 0x05, 0x7a,
+	0x45, 0x39, 0x9f, 0x45, 0x11, 0x8b, 0x8d, 0x5c, 0xaf, 0x57, 0x34, 0xe1, 0xb3, 0x78, 0x1c, 0x4e,
+	0x2c, 0x6f, 0xbb, 0xc0, 0x13, 0x94, 0xcf, 0x43, 0x9f, 0x3e, 0x7a, 0xf8, 0xc8, 0xb2, 0x6f, 0x4f,
+	0x18, 0x9b, 0x4c, 0xa9, 0xe1, 0x9f, 0xcd, 0xc6, 0xbb, 0x42, 0xf2, 0x99, 0x2f, 0x0d, 0xd7, 0x7d,
+	0x09, 0x30, 0x08, 0xe3, 0xc9, 0x80, 0x70, 0x12, 0x09, 0x74, 0x1b, 0xe0, 0x9c, 0x09, 0xe9, 0x31,
+	0xee, 0x85, 0x49, 0xd7, 0xb9, 0xeb, 0x3c, 0xa8, 0xe3, 0x0d, 0x45, 0x79, 0xc5, 0xfb, 0x09, 0xba,
+	0x03, 0x8d, 0x78, 0x16, 0x79, 0x09, 0xf1, 0x2f, 0xa8, 0x14, 0xdd, 0xd2, 0x5d, 0xe7, 0x41, 0x05,
+	0x43, 0x3c, 0x8b, 0x06, 0x86, 0xe2, 0xce, 0xa0, 0x33, 0xe2, 0xc4, 0xa7, 0x9c, 0xcd, 0x24, 0xfd,
+	0x28, 0x93, 0x37, 0x61, 0x23, 0x22, 0xef, 0xbc, 0x73, 0x96, 0xa4, 0xf6, 0x6a, 0x11, 0x79, 0xf7,
+	0x82, 0x25, 0x02, 0x3d, 0x80, 0xce, 0xd9, 0x7b, 0x49, 0x85, 0x97, 0x50, 0x6e, 0xf7, 0xec, 0xae,
+	0x6b, 0x91, 0xb6, 0xa6, 0x0f, 0x28, 0x37, 0xfb, 0xba, 0xbf, 0x71, 0x00, 0x9d, 0x52, 0xf9, 0x96,
+	0xf1, 0x8b, 0x11, 0x15, 0x12, 0xd3, 0x5f, 0xcd, 0xa8, 0x90, 0xe8, 0xe7, 0x50, 0x49, 0xc2, 0x78,
+	0x22, 0xba, 0xce, 0xdd, 0xf5, 0x07, 0x8d, 0xbd, 0x4f, 0x77, 0x72, 0xb9, 0xde, 0x59, 0x04, 0x8d,
+	0x8d, 0x14, 0xfa, 0x05, 0x34, 0x64, 0xe6, 0xbc, 0xf2, 0x46, 0x29, 0x6d, 0x17, 0x94, 0x96, 0x83,
+	0xc3, 0x79, 0x0d, 0xf7, 0x9f, 0x8e, 0xc9, 0x25, 0xa6, 0x62, 0x36, 0x95, 0xff, 0x67, 0x2e, 0xd1,
+	0x16, 0x54, 0x28, 0xe7, 0x8c, 0xeb, 0x98, 0xeb, 0xd8, 0x2c, 0xd0, 0x2e, 0x5c, 0xb7, 0x2a, 0x9e,
+	0xe4, 0x24, 0x16, 0x51, 0x28, 0x25, 0x0d, 0xba, 0x65, 0xad, 0x8e, 0x2c, 0x6b, 0xb4, 0xe0, 0xa0,
+	0xcf, 0xa0, 0x93, 0x2a, 0x70, 0xea, 0xd3, 0x70, 0x4e, 0x83, 0x6e, 0x45, 0x4b, 0x6f, 0x5a, 0x3a,
+	0xb6, 0x64, 0xf4, 0x13, 0xd8, 0x24, 0xf3, 0x89, 0xc7, 0xa9, 0x48, 0x58, 0x2c, 0xa8, 0x17, 0x89,
+	0x6e, 0xf5, 0xae, 0xf3, 0xa0, 0x84, 0x5b, 0x64, 0xae, 0x82, 0xd2, 0xd4, 0x13, 0xe1, 0x8e, 0x60,
+	0x33, 0x97, 0x08, 0xce, 0xce, 0x28, 0xea, 0x81, 0x8e, 0x2c, 0x26, 0x11, 0xcd, 0x47, 0xaa, 0xd6,
+	0xa8, 0x0d, 0xa5, 0x30, 0xd1, 0x01, 0xd6, 0x71, 0x29, 0x4c, 0xd0, 0x27, 0x50, 0xe5, 0x52, 0x2a,
+	0xeb, 0xeb, 0xda, 0x7a, 0x85, 0x4b, 0x79, 0x22, 0xdc, 0xef, 0xa1, 0xb5, 0xb0, 0xfa, 0x82, 0x25,
+	0xa8, 0x03, 0xeb, 0x61, 0xf0, 0x4e, 0x9b, 0xab, 0x60, 0xf5, 0x89, 0xbe, 0x80, 0x6a, 0xa2, 0xb6,
+	0x4b, 0x0f, 0xe7, 0xf6, 0x65, 0x87, 0xa3, 0x84, 0xb0, 0x95, 0x75, 0xe7, 0xf9, 0xa2, 0xb4, 0x67,
+	0x93, 0x25, 0xd7, 0xc9, 0x27, 0xb7, 0x78, 0x62, 0xa5, 0xa5, 0x13, 0xdb, 0x81, 0xb2, 0x2e, 0xd3,
+	0x75, 0xbd, 0x77, 0xef, 0x92, 0xbd, 0x5f, 0xb0, 0x04, 0x6b, 0x39, 0xf7, 0xb7, 0x0e, 0x5c, 0x2f,
+	0x54, 0xa5, 0x49, 0xe0, 0x7f, 0x2e, 0x4b, 0xe3, 0xe3, 0xff, 0x54, 0x96, 0x56, 0xb5, 0x50, 0x96,
+	0x8f, 0x61, 0xeb, 0x39, 0x95, 0xcf, 0x89, 0xa4, 0x6f, 0xc9, 0xfb, 0x7e, 0x90, 0xf9, 0xb1, 0x0d,
+	0x30, 0x31, 0x44, 0x2f, 0x0c, 0x6c, 0x22, 0xea, 0x93, 0x54, 0xcc, 0xfd, 0x02, 0x6e, 0x60, 0x2a,
+	0x24, 0xe1, 0x72, 0x68, 0x10, 0x45, 0xa4, 0x7d, 0xd5, 0x83, 0x0d, 0x0b, 0x32, 0x26, 0x86, 0x3a,
+	0xce, 0xd6, 0x2e, 0x51, 0x9b, 0xc5, 0x94, 0x87, 0xfe, 0x01, 0x8b, 0x22, 0x12, 0x07, 0x16, 0x05,
+	0xba, 0x50, 0xf3, 0x0d, 0xc1, 0xee, 0x94, 0x2e, 0xd1, 0x2e, 0x54, 0x13, 0x2d, 0xa3, 0x13, 0xae,
+	0xf2, 0x61, 0xf0, 0x6a, 0x27, 0xc5, 0xab, 0x9d, 0xa1, 0xc6, 0x2b, 0x6c, 0xc5, 0xdc, 0x13, 0xb8,
+	0x51, 0xdc, 0x22, 0x8b, 0xe8, 0x11, 0x6c, 0xa4, 0xc5, 0xab, 0x77, 0xb9, 0xc2, 0x58, 0x26, 0xe8,
+	0xfe, 0x0c, 0x36, 0x47, 0x24, 0x9c, 0x1e, 0xb3, 0x49, 0x16, 0x60, 0x17, 0x6a, 0x36, 0xa0, 0xd4,
+	0x59, 0xbb, 0x74, 0xb7, 0xa1, 0x76, 0xcc, 0x26, 0xc7, 0x61, 0x4c, 0x11, 0x82, 0xf2, 0x34, 0x8c,
+	0x53, 0x09, 0xfd, 0xed, 0xfe, 0xce, 0x81, 0xd6, 0x61, 0x28, 0x2e, 0x06, 0x84, 0xcb, 0x50, 0x86,
+	0x2c, 0x46, 0x37, 0xa0, 0x1a, 0xd0, 0x9c, 0x25, 0xbb, 0x52, 0xed, 0x1f, 0xb1, 0x59, 0x2c, 0xbd,
+	0x84, 0x85, 0xb1, 0xb4, 0xb5, 0x06, 0x9a, 0x34, 0x50, 0x14, 0x55, 0xa1, 0x92, 0x49, 0x32, 0xd5,
+	0x4d, 0x52, 0xc6, 0x66, 0xa1, 0x36, 0x9d, 0x09, 0xdb, 0xef, 0x65, 0xac, 0xbf, 0x15, 0x6d, 0xcc,
+	0x29, 0xd5, 0x5d, 0x5d, 0xc6, 0xfa, 0xdb, 0xfd, 0xcb, 0x3a, 0x34, 0x87, 0xef, 0x85, 0xa4, 0xd1,
+	0x50, 0x12, 0x39, 0x13, 0x4a, 0x48, 0x86, 0xb6, 0x39, 0xcb, 0x58, 0x7f, 0x2b, 0xec, 0xf5, 0x93,
+	0x99, 0x37, 0x13, 0x94, 0x5b, 0xe5, 0x9a, 0x9f, 0xcc, 0x5e, 0x0b, 0xca, 0x55, 0x6d, 0x28, 0x96,
+	0xd0, 0x26, 0x34, 0x0a, 0x94, 0x71, 0xdd, 0x4f, 0x66, 0xc6, 0x66, 0xaa, 0x19, 0x06, 0x53, 0xda,
+	0xad, 0x65, 0x9a, 0xfd, 0x60, 0x4a, 0xd1, 0x2d, 0xa8, 0x47, 0x34, 0xf2, 0x8c, 0xef, 0xa0, 0x79,
+	0x1b, 0x11, 0x8d, 0x46, 0xda, 0xfd, 0xfb, 0xd0, 0x52, 0x4c, 0x32, 0x27, 0xe1, 0x94, 0x9c, 0x4d,
+	0x69, 0xb7, 0xa1, 0x05, 0x9a, 0x11, 0x8d, 0xf6, 0x53, 0x9a, 0x1e, 0x09, 0x34, 0xf2, 0x74, 0x9c,
+	0x4d, 0x63, 0x3c, 0xa2, 0xd1, 0x6b, 0x15, 0xaa, 0x65, 0xe9, 0x70, 0x5b, 0x19, 0xeb, 0x19, 0xa7,
+	0xba, 0x9a, 0xc5, 0x5b, 0x92, 0xd8, 0x8d, 0x37, 0x8d, 0xc7, 0x8a, 0x62, 0x76, 0xbe, 0x05, 0x7a,
+	0x61, 0xac, 0x76, 0x8c, 0x5b, 0x8a, 0xa0, 0xcd, 0xa6, 0x4c, 0x6d, 0xf7, 0xda, 0x82, 0xa9, 0x0d,
+	0xdf, 0x81, 0xc6, 0x2c, 0x51, 0xf9, 0xf2, 0x04, 0xf5, 0x45, 0xb7, 0xad, 0xd9, 0x60, 0x48, 0x43,
+	0xea, 0x0b, 0x74, 0x00, 0x9b, 0x41, 0x28, 0x2e, 0xbc, 0x24, 0x3d, 0x74, 0xd1, 0x45, 0x2b, 0x20,
+	0xa2, 0x50, 0x17, 0xb8, 0x1d, 0xe4, 0x97, 0xc2, 0xfd, 0x0a, 0x6a, 0x0a, 0xf8, 0xc9, 0x44, 0x17,
+	0x56, 0x0e, 0x47, 0xf5, 0xb7, 0xaa, 0xc8, 0x39, 0xe5, 0x22, 0x64, 0xb1, 0x2d, 0x95, 0x74, 0xe9,
+	0x7e, 0x03, 0x70, 0xa0, 0x2f, 0x03, 0xfd, 0x78, 0xcc, 0xd0, 0xe7, 0x80, 0xec, 0xdd, 0xc0, 0xf3,
+	0x39, 0x25, 0x92, 0x06, 0x1e, 0x91, 0xf6, 0xd0, 0x3b, 0x96, 0x73, 0x60, 0x18, 0xfb, 0xd2, 0xfd,
+	0x97, 0x03, 0xcd, 0xc1, 0x94, 0xc8, 0x31, 0xe3, 0x91, 0x56, 0xff, 0x04, 0xaa, 0xf3, 0x24, 0x5e,
+	0x8c, 0xab, 0xca, 0x3c, 0x89, 0xfb, 0x09, 0x7a, 0x08, 0x1b, 0x89, 0x71, 0x2e, 0xc5, 0x9f, 0xad,
+	0x22, 0x68, 0x19, 0x26, 0xce, 0xa4, 0xd0, 0x8f, 0xa1, 0x7d, 0x41, 0x79, 0x4c, 0xa7, 0x5e, 0xea,
+	0xb6, 0x99, 0x62, 0x2d, 0x43, 0x7d, 0x63, 0x88, 0xe8, 0x1b, 0xb8, 0x59, 0x14, 0x13, 0x5e, 0x18,
+	0x0b, 0x49, 0xa6, 0x53, 0x5d, 0xe3, 0x0a, 0x5a, 0x3e, 0x2d, 0x68, 0x88, 0x7e, 0xca, 0x46, 0x5f,
+	0x43, 0xc3, 0x46, 0x1a, 0xc6, 0x63, 0xa6, 0x0b, 0x78, 0x19, 0x4c, 0x17, 0x89, 0xc1, 0xe0, 0x67,
+	0xdf, 0xee, 0x9f, 0x4a, 0xd0, 0xb1, 0xc0, 0xdc, 0x8f, 0x25, 0xe5, 0x63, 0xe2, 0x53, 0xf4, 0x10,
+	0xb6, 0x62, 0x43, 0xf3, 0xc2, 0x94, 0xb8, 0xc0, 0x45, 0x14, 0x2f, 0xc9, 0xf7, 0x03, 0xf4, 0x1d,
+	0x54, 0x85, 0x6e, 0x2e, 0x7d, 0x24, 0xed, 0xbd, 0x1f, 0x15, 0xf6, 0x5e, 0xde, 0x60, 0xc7, 0x34,
+	0x22, 0xb6, 0x3a, 0x1a, 0x00, 0x88, 0xef, 0x91, 0x20, 0xe0, 0x54, 0x08, 0x9b, 0x1e, 0x88, 0x88,
+	0xbf, 0x6f, 0x28, 0xe8, 0x1e, 0x34, 0xc3, 0x24, 0xe5, 0x53, 0x61, 0xd3, 0xd1, 0x08, 0x93, 0xfd,
+	0x94, 0xa4, 0xb2, 0x1c, 0x26, 0xf3, 0x2f, 0x73, 0x42, 0x15, 0x2d, 0xd4, 0x52, 0xd4, 0x4c, 0xcc,
+	0xfd, 0x29, 0x54, 0x2d, 0x0a, 0x34, 0xa0, 0xf6, 0xfa, 0xf4, 0xe5, 0xe9, 0xab, 0xef, 0x4f, 0x3b,
+	0x6b, 0xa8, 0x0a, 0xa5, 0xd7, 0x83, 0x8e, 0x83, 0x36, 0xa0, 0x7c, 0xa8, 0x28, 0x25, 0xf7, 0xcf,
+	0x0e, 0x54, 0xb0, 0x1a, 0x1a, 0xca, 0x72, 0x40, 0x85, 0x0c, 0x63, 0xa2, 0xca, 0x73, 0x51, 0x10,
+	0xad, 0x1c, 0xb5, 0x9f, 0x14, 0x46, 0x48, 0x3a, 0x30, 0xb3, 0x11, 0x92, 0xa8, 0xaa, 0x9d, 0xd0,
+	0x38, 0x22, 0xe2, 0xc2, 0xc6, 0x97, 0x2e, 0x2f, 0xcd, 0x76, 0xf9, 0xb2, 0x6c, 0xbb, 0x7f, 0x70,
+	0xa0, 0x91, 0xe5, 0x74, 0xcc, 0xd0, 0x31, 0xa0, 0x0f, 0x2c, 0xa4, 0x23, 0x75, 0xfb, 0xca, 0x93,
+	0xc0, 0xd7, 0x96, 0xcd, 0x0b, 0xf4, 0x15, 0xb4, 0xd4, 0xb4, 0x0c, 0xe3, 0x89, 0x27, 0x35, 0x30,
+	0x99, 0x32, 0x47, 0x05, 0x43, 0x3a, 0x35, 0xb8, 0x69, 0x05, 0x47, 0x4a, 0xce, 0xfd, 0xa3, 0x03,
+	0xb5, 0x83, 0xc1, 0x6b, 0xed, 0x92, 0x02, 0x4d, 0xc6, 0xa9, 0xe7, 0x2b, 0x14, 0xb7, 0x4d, 0x57,
+	0x57, 0x94, 0x03, 0x45, 0x50, 0xf7, 0x59, 0x79, 0xce, 0x29, 0x09, 0xcc, 0x8d, 0x56, 0x31, 0x74,
+	0xca, 0xca, 0xb8, 0x6d, 0xe9, 0x03, 0xca, 0x0f, 0x18, 0xa7, 0xc8, 0x85, 0x26, 0xe1, 0xfe, 0x79,
+	0x28, 0xa9, 0x2f, 0x67, 0x9c, 0xda, 0xe4, 0x15, 0x68, 0x6a, 0xb3, 0x88, 0x05, 0x74, 0xea, 0x69,
+	0xac, 0x30, 0x79, 0xab, 0x6b, 0xca, 0x29, 0x89, 0xa8, 0xfb, 0x6b, 0x68, 0x9c, 0x10, 0xff, 0x3c,
+	0x8c, 0xa9, 0x76, 0x6d, 0xd7, 0x02, 0xb6, 0xea, 0x14, 0x33, 0x19, 0x8b, 0x1d, 0x6c, 0x43, 0x30,
+	0x30, 0xae, 0x14, 0xbe, 0x85, 0xe6, 0x22, 0xbd, 0x63, 0x66, 0x67, 0x73, 0x77, 0x75, 0x62, 0xc7,
+	0x0c, 0x37, 0xe2, 0xc5, 0xc2, 0xfd, 0xfb, 0x3a, 0xb4, 0x0f, 0xce, 0xa9, 0x7f, 0x11, 0xc6, 0xe9,
+	0x48, 0xbd, 0xfa, 0xb2, 0x81, 0xf6, 0xb2, 0x5e, 0x5a, 0xd7, 0x1b, 0x15, 0xa1, 0xd3, 0x5e, 0x40,
+	0x96, 0x3a, 0xe8, 0x09, 0xb4, 0xcc, 0x7c, 0xf2, 0xac, 0x6a, 0x59, 0xab, 0xde, 0x2c, 0xaa, 0xe6,
+	0x86, 0x20, 0x6e, 0x8a, 0xfc, 0x48, 0x7c, 0x02, 0xad, 0xc4, 0x82, 0x9f, 0x89, 0x71, 0x63, 0x85,
+	0x7e, 0x1e, 0x1e, 0x71, 0x33, 0xc9, 0x83, 0xe5, 0xb7, 0xd0, 0x8c, 0x4c, 0x8a, 0x8d, 0x7a, 0x7d,
+	0x45, 0x8a, 0x72, 0x67, 0x80, 0x1b, 0x51, 0xee, 0x40, 0x76, 0xe0, 0x9a, 0x96, 0xf3, 0x92, 0x8b,
+	0x89, 0x57, 0x80, 0xf6, 0xa7, 0xa5, 0xae, 0x83, 0x37, 0x35, 0x73, 0x70, 0x31, 0x49, 0x91, 0xf2,
+	0x66, 0x86, 0xcc, 0x95, 0x4c, 0xc8, 0xa2, 0xf3, 0x67, 0x1f, 0x60, 0x6d, 0x35, 0x13, 0x59, 0xc2,
+	0xdb, 0x27, 0x57, 0xe1, 0x6d, 0x4d, 0x61, 0x87, 0xd6, 0xba, 0x0c, 0x73, 0xdd, 0xbf, 0x3a, 0xb0,
+	0x99, 0x1d, 0xac, 0xbd, 0x74, 0x1d, 0x42, 0x95, 0xf8, 0x0a, 0x0f, 0xf4, 0xa9, 0xb6, 0xf7, 0x3e,
+	0x2f, 0x16, 0x56, 0x51, 0x7a, 0xc7, 0xd6, 0x03, 0x0d, 0xf6, 0xb5, 0x0e, 0xb6, 0xba, 0xd9, 0xfd,
+	0xa4, 0xb4, 0xb8, 0x9f, 0xb8, 0x47, 0xb0, 0xb9, 0x24, 0xae, 0xb0, 0xea, 0xf4, 0xd5, 0xe9, 0x51,
+	0x67, 0x0d, 0x6d, 0x41, 0x07, 0x1f, 0x0d, 0x47, 0xfb, 0x78, 0xe4, 0x0d, 0x8f, 0xf0, 0x9b, 0xfe,
+	0xc1, 0xd1, 0xb0, 0xe3, 0x20, 0x04, 0xed, 0x8c, 0xfa, 0xcb, 0xe1, 0xe8, 0xe8, 0xa4, 0x53, 0x72,
+	0x7f, 0xef, 0x40, 0xcb, 0xde, 0x7e, 0xaf, 0xb8, 0x0c, 0x3d, 0x86, 0x9a, 0x6f, 0x7c, 0xb5, 0xb5,
+	0x7e, 0x6b, 0x75, 0x1c, 0xda, 0x1f, 0x9c, 0xca, 0x2a, 0x20, 0xf3, 0x29, 0x97, 0x1e, 0x7d, 0x97,
+	0x84, 0xdc, 0x80, 0xa5, 0x36, 0xad, 0xca, 0x78, 0x1d, 0x23, 0xc5, 0x3b, 0xca, 0x58, 0x23, 0x15,
+	0xd5, 0x08, 0xb6, 0x0a, 0xde, 0xe4, 0x3a, 0x24, 0xeb, 0xb8, 0xac, 0x43, 0xd2, 0xae, 0x0a, 0x14,
+	0x7b, 0xca, 0x26, 0xa1, 0x4f, 0xa6, 0x8a, 0x6d, 0xa1, 0xd6, 0x52, 0xfa, 0xc1, 0xde, 0xdf, 0x2a,
+	0x50, 0x3d, 0xd1, 0x7f, 0x2c, 0x28, 0x2c, 0x1b, 0xe6, 0xaf, 0xed, 0xe8, 0x5a, 0x21, 0x92, 0x37,
+	0x2c, 0x0c, 0x7a, 0x1f, 0x92, 0xdc, 0x35, 0xf4, 0x25, 0x34, 0x87, 0x92, 0x25, 0xff, 0xb5, 0xde,
+	0x43, 0xa8, 0x62, 0x7a, 0xc6, 0x98, 0xfc, 0x68, 0x8d, 0x97, 0xea, 0x64, 0x0b, 0x6f, 0x0b, 0x74,
+	0xbf, 0x08, 0xb5, 0x2b, 0x5f, 0x1e, 0xab, 0x8d, 0x3d, 0x01, 0x18, 0x52, 0x69, 0x66, 0xbd, 0x40,
+	0xc5, 0x63, 0xb3, 0x99, 0xb6, 0xcc, 0x4b, 0xf5, 0x9f, 0x2f, 0xf4, 0x57, 0x84, 0x70, 0x95, 0x49,
+	0x77, 0x0d, 0xbd, 0x81, 0x4d, 0x3c, 0x8b, 0x73, 0x2f, 0x3d, 0x81, 0xee, 0xac, 0xc2, 0xc9, 0xdc,
+	0x5f, 0x13, 0xbd, 0xbb, 0x97, 0x0b, 0xd8, 0x67, 0xc9, 0x1a, 0x7a, 0x06, 0xcd, 0xfc, 0xbb, 0x6d,
+	0x95, 0x67, 0xf7, 0x8a, 0x9e, 0xad, 0x78, 0xe5, 0xb9, 0x6b, 0xe8, 0x07, 0x68, 0x17, 0xdf, 0x4b,
+	0x68, 0x59, 0xed, 0xc3, 0xf7, 0x5a, 0xef, 0xfe, 0x15, 0x22, 0x39, 0xdb, 0x4f, 0x61, 0x23, 0x7d,
+	0x3c, 0xa1, 0xa5, 0xd7, 0x78, 0xf1, 0x4d, 0xd5, 0x2b, 0xce, 0x1b, 0xfb, 0x88, 0x72, 0xd7, 0x1e,
+	0x3a, 0x7b, 0xff, 0x28, 0xc1, 0x86, 0x6d, 0xaf, 0x00, 0x3d, 0x83, 0x9a, 0xfd, 0x46, 0x57, 0x35,
+	0x60, 0xef, 0xf6, 0x55, 0x28, 0xe3, 0xae, 0xa1, 0x63, 0xa8, 0x3f, 0xa7, 0xd2, 0xf6, 0xfb, 0xbd,
+	0x55, 0x07, 0x58, 0xe8, 0xbe, 0x5e, 0xef, 0x72, 0x11, 0x77, 0x0d, 0x9d, 0xc0, 0xf5, 0x43, 0x3a,
+	0xa5, 0x92, 0x16, 0x71, 0xe4, 0x23, 0xec, 0xae, 0xac, 0xb8, 0xef, 0xa0, 0x65, 0xcc, 0xd9, 0x83,
+	0x47, 0x37, 0x56, 0xce, 0xd5, 0xc3, 0xd5, 0xda, 0x8f, 0xa1, 0x7c, 0x1c, 0x0a, 0x79, 0xa9, 0xd2,
+	0xf5, 0x02, 0xbd, 0x7f, 0xa8, 0x84, 0xdd, 0xb5, 0xa7, 0xdb, 0x3f, 0xdc, 0xd2, 0xf4, 0x5d, 0xf3,
+	0x6f, 0xa1, 0x3f, 0x65, 0xb3, 0x60, 0x77, 0xc2, 0xec, 0xdf, 0x86, 0x67, 0x55, 0xfd, 0xfb, 0xe8,
+	0xdf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x60, 0xa5, 0x1f, 0x1e, 0xac, 0x14, 0x00, 0x00,
 }

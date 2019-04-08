@@ -61,6 +61,11 @@ func (reporter *GatewayStatusReporter) reportCheckinStatus() error {
 				gwCheckinStatus.WithLabelValues(nw, gw).Set(1)
 				numUpGateways += 1
 			}
+			// report mconfig age
+			mconfigCreatedAt := status.Checkin.GetPlatformInfo().GetConfigInfo().GetMconfigCreatedAt()
+			if mconfigCreatedAt != 0 {
+				gwMconfigAge.WithLabelValues(nw, gw).Set(float64(status.Time/1000 - mconfigCreatedAt))
+			}
 		}
 		upGwCount.WithLabelValues(nw).Set(float64(numUpGateways))
 		totalGwCount.WithLabelValues(nw).Set(float64(len(gateways)))

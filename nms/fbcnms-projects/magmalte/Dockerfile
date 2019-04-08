@@ -24,10 +24,5 @@ COPY --from=builder /usr/src /usr/src
 # Install required binaries
 RUN apk add ca-certificates curl
 
-# Copy startup scripts
-COPY fbcnms-projects/magmalte/docker/bin /usr/local/bin
-ADD https://github.com/segmentio/chamber/releases/download/v2.2.0/chamber-v2.2.0-linux-amd64 /usr/local/bin/chamber
-RUN chmod +x /usr/local/bin/chamber
-
 WORKDIR /usr/src/fbcnms-projects/magmalte
-CMD ["start"]
+CMD ["yarn run start:prod"]

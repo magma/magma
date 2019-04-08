@@ -90,6 +90,9 @@ void convert_proto_msg_to_itti_sgsap_alert_request(
   const AlertRequest *msg,
   itti_sgsap_alert_request_t *itti_msg);
 
+void convert_proto_msg_to_itti_sgsap_service_abort_req(
+    const ServiceAbortRequest* msg, itti_sgsap_service_abort_req_t *itti_msg);
+
 void convert_proto_msg_to_itti_sgsap_mm_information_req(
   const MMInformationRequest *msg,
   itti_sgsap_mm_information_req_t *itti_msg);

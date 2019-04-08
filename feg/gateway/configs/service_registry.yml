@@ -25,6 +25,12 @@ services:
   swx_proxy:
     ip_address: 127.0.0.1
     port: 9110
+  eap_aka:
+    ip_address: 127.0.0.1
+    port: 9123
+  eap_router:
+    ip_address: 127.0.0.1
+    port: 9109
   csfb:
     ip_address: 127.0.0.1
     port: 9101

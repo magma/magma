@@ -43,10 +43,15 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+// These won't be considered networkIds
+const ROOT_PATHS = new Set(['network']);
+
 function Index() {
   const classes = useStyles();
   const {match} = useRouter();
-  const networkId = match.params.networkId;
+  const networkId = ROOT_PATHS.has(match.params.networkId)
+    ? null
+    : match.params.networkId;
 
   return (
     <NetworkContext.Provider value={{networkId}}>
@@ -65,7 +70,7 @@ function Index() {
 
 function Main() {
   const {match} = useRouter();
-  const {response} = useAxios({
+  const {response, error} = useAxios({
     method: 'get',
     url: MagmaAPIUrls.networks(),
   });
@@ -78,6 +83,15 @@ function Main() {
 
   if (networkIds.length > 0 && !match.params.networkId) {
     return <Redirect to={`/nms/${networkIds[0]}/map/`} />;
+  }
+
+  if (
+    response &&
+    !error &&
+    networkIds.length === 0 &&
+    match.params.networkId !== 'network'
+  ) {
+    return <Redirect to="/nms/network/create" />;
   }
 
   return (

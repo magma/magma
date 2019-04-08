@@ -58,7 +58,7 @@ class SessionRpcServicer(session_manager_pb2_grpc.LocalSessionManagerServicer):
         flows in pipelined's enforcement app.
         """
         sid = request.sid
-        logging.info('Create session request for sid: %s' % sid.id)
+        logging.info('Create session request for sid: %s', sid.id)
         try:
             # Gather the set of policy rules to use
             if self._captive_portal_enabled(sid):
@@ -77,17 +77,17 @@ class SessionRpcServicer(session_manager_pb2_grpc.LocalSessionManagerServicer):
                 if res.result != res.SUCCESS:
                     # Hmm rolling back partial success is difficult
                     # Let's just log this for now
-                    logging.error('Failed to activate rule: %s' % res.rule_id)
+                    logging.error('Failed to activate rule: %s', res.rule_id)
         except RpcError as err:
             self._set_rpc_error(context, err)
         return session_manager_pb2.LocalCreateSessionResponse()
 
-    def EndSession(self, sid, context):
+    def EndSession(self, sid, context):  # pylint: disable=arguments-differ
         """
         Handles end session request from MME by removing all the flows
         for the subscriber in pipelined's enforcement app.
         """
-        logging.info('End session request for sid: %s' % sid.id)
+        logging.info('End session request for sid: %s', sid.id)
         try:
             self._pipelined.DeactivateFlows(
                 DeactivateFlowsRequest(sid=sid), timeout=self.RPC_TIMEOUT)

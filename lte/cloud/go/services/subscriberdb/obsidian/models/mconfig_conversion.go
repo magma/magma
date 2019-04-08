@@ -20,6 +20,11 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+const (
+	lteAuthKeyBytes = 16
+	lteAuthOpcBytes = 16
+)
+
 var sharedFormatsRegistry = strfmt.NewFormats()
 
 func init() {
@@ -123,9 +128,24 @@ func (sub *Subscriber) Verify() error {
 	}
 	err := sub.Validate(sharedFormatsRegistry)
 	if err != nil {
-		err = models.ValidateErrorf("Subscriber Validation Error: %s", err)
+		return models.ValidateErrorf("Subscriber Validation Error: %s", err)
 	}
-	return err
+	if sub.Lte == nil {
+		return nil
+	}
+	if sub.Lte.AuthKey != nil {
+		authKeyLen := len([]byte(*sub.Lte.AuthKey))
+		if authKeyLen != lteAuthKeyBytes {
+			return models.ValidateErrorf("expected lte auth key to be %d bytes but got %d bytes", lteAuthKeyBytes, authKeyLen)
+		}
+	}
+	if sub.Lte.AuthOpc != nil {
+		authOpcLen := len([]byte(*sub.Lte.AuthOpc))
+		if authOpcLen != lteAuthOpcBytes {
+			return models.ValidateErrorf("expected lte auth opc to be %d bytes but got %d bytes", lteAuthOpcBytes, authOpcLen)
+		}
+	}
+	return nil
 }
 
 // Verify validates given SubscriberID

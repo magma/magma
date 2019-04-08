@@ -8,8 +8,8 @@
  * @format
  */
 
-import {Request, Response, NextFunction} from 'express';
 import Sequelize from 'sequelize';
+import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
 
 function getSubdomainList(host: ?string): Array<string> {
   if (!host) {
@@ -23,10 +23,10 @@ function getSubdomainList(host: ?string): Array<string> {
 }
 
 export async function getOrganization(
-  req: Request,
+  req: {get(field: string): string | void},
   OrganizationModel: any,
-): any {
-  const host = req.get('host');
+): Object {
+  const host = req.get('host') || 'UNKNOWN_HOST';
   let org = await OrganizationModel.findOne({
     where: Sequelize.fn(
       'JSON_CONTAINS',
@@ -54,8 +54,17 @@ export async function getOrganization(
   return org;
 }
 
+// We don't depend on organization to be there in other modules.
+export type OrganizationRequestPart = {organization: () => Promise<Object>};
+export type OrganizationMiddlewareRequest = ExpressRequest &
+  $Shape<OrganizationRequestPart>;
+
 export function organizationMiddleware({model}: {model: any}) {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (
+    req: OrganizationMiddlewareRequest,
+    res: ExpressResponse,
+    next: NextFunction,
+  ) => {
     try {
       req.organization = () => getOrganization(req, model);
       next();

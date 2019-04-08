@@ -20,6 +20,7 @@ import Tab from '@material-ui/core/Tab';
 import GatewayMagmadFields from './GatewayMagmadFields';
 import GatewaySummaryFields from './GatewaySummaryFields';
 import GatewayCellularFields from './GatewayCellularFields';
+import GatewayCommandFields from './GatewayCommandFields';
 
 import {fetchDevice} from '../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
@@ -72,9 +73,23 @@ class EditGatewayDialog extends React.Component<Props, State> {
       case 2:
         content = <GatewayMagmadFields {...props} />;
         break;
+      case 3:
+        content = (
+          <GatewayCommandFields
+            {...props}
+            showRestartCommand={true}
+            showPingCommand={true}
+            showGenericCommand={true}
+          />
+        );
+        break;
     }
     return (
-      <Dialog open={true} onClose={this.props.onClose} scroll="body">
+      <Dialog
+        open={true}
+        onClose={this.props.onClose}
+        maxWidth="md"
+        scroll="body">
         <AppBar position="static" className={classes.appBar}>
           <Tabs
             indicatorColor="primary"
@@ -84,6 +99,7 @@ class EditGatewayDialog extends React.Component<Props, State> {
             <Tab label="Summary" />
             <Tab label="LTE" />
             <Tab label="Magma" />
+            <Tab label="Commands" />
           </Tabs>
         </AppBar>
         {content}

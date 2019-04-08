@@ -43,6 +43,9 @@
 #define CLONE_REF
 
 #define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe *) 0)->MeMBeR)
+// https://stackoverflow.com/questions/4415524/common-array-length-macro-for-c
+#define COUNT_OF(x)                                                            \
+  ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
 #define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                                 \
   ({                                                                           \

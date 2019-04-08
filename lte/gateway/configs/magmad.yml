@@ -1,4 +1,6 @@
 ---
+log_level: INFO
+
 # List of services for magmad to control
 magma_services:
   - control_proxy
@@ -42,7 +44,7 @@ skip_checkin_if_missing_meta_services: []
 # max_skipped_checkins: 3
 
 # Init system to use to control services
-# Supported systems include: [systemd, runit]
+# Supported systems include: [systemd, runit, docker]
 init_system: systemd
 
 # bootstrap_manager config
@@ -76,7 +78,6 @@ upgrader_factory:
   module: magma.magmad.upgrade.magma_upgrader
   # Name of the UpgraderFactory implementation
   class: MagmaUpgraderFactory
-
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
   - lte.protos.mconfig.mconfigs_pb2

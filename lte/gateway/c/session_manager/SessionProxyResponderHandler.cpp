@@ -17,34 +17,37 @@ using grpc::Status;
 namespace magma {
 
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
-  LocalEnforcer* enforcer) : enforcer_(enforcer) {}
+  LocalEnforcer *enforcer):
+  enforcer_(enforcer)
+{
+}
 
 void SessionProxyResponderHandlerImpl::ChargingReAuth(
-    ServerContext* context,
-    const ChargingReAuthRequest* request,
-    std::function<void(Status, ChargingReAuthAnswer)> response_callback) {
-  auto& request_cpy = *request;
+  ServerContext *context,
+  const ChargingReAuthRequest *request,
+  std::function<void(Status, ChargingReAuthAnswer)> response_callback)
+{
+  auto &request_cpy = *request;
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
       auto result = enforcer_->init_charging_reauth(request_cpy);
       ChargingReAuthAnswer ans;
       ans.set_result(result);
       response_callback(Status::OK, ans);
-    }
-  );
+    });
 }
 
 void SessionProxyResponderHandlerImpl::PolicyReAuth(
-    ServerContext* context,
-    const PolicyReAuthRequest* request,
-    std::function<void(Status, PolicyReAuthAnswer)> response_callback) {
-  auto& request_cpy = *request;
+  ServerContext *context,
+  const PolicyReAuthRequest *request,
+  std::function<void(Status, PolicyReAuthAnswer)> response_callback)
+{
+  auto &request_cpy = *request;
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
       PolicyReAuthAnswer ans;
       enforcer_->init_policy_reauth(request_cpy, ans);
       response_callback(Status::OK, ans);
-    }
-  );
+    });
 }
-}
+} // namespace magma

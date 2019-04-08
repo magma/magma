@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#define MFATAL 0
 #define MERROR 1
 #define MWARNING 2
 #define MINFO 3

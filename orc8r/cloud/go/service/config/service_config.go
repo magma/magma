@@ -73,6 +73,19 @@ func (cfgMap *ConfigMap) GetIntParam(key string) (int, error) {
 	return param, nil
 }
 
+// GetBoolParam is used to retrieve a bool param from a YML file
+func (cfgMap *ConfigMap) GetBoolParam(key string) (bool, error) {
+	paramIface, ok := cfgMap.RawMap[key]
+	if !ok {
+		return false, fmt.Errorf("Could not find key %s", key)
+	}
+	param, ok := paramIface.(bool)
+	if !ok {
+		return false, fmt.Errorf("Could not convert param to bool for key %s", key)
+	}
+	return param, nil
+}
+
 func getServiceConfigImpl(moduleName string, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
 	// Filenames should be lower case
 	moduleName = strings.ToLower(moduleName)

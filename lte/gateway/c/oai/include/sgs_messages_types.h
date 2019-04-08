@@ -96,6 +96,7 @@ typedef enum SgsCause_e {
 } SgsCause_t;
 
 typedef enum SgsRejectCause_e {
+  SGS_INVALID_CAUSE,
   SGS_IMSI_UNKNOWN_IN_HLR = 2,
   SGS_ILLEGAL_MS = 3,
   SGS_IMSI_UNKNOWN_IN_VLR = 4,
@@ -315,10 +316,12 @@ typedef struct error_msg_t {
 
 typedef struct itti_sgsap_status_s {
 #define SGSAP_IMSI (1 << 0)
+#define ERROR_MESSAGE_LEN_MX 255
   uint8_t presencemask;
   uint8_t imsi_length;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   SgsCause_t cause;
+  char error_msg_rcvd[ERROR_MESSAGE_LEN_MX];
   error_msg_t error_msg;
 } itti_sgsap_status_t;
 

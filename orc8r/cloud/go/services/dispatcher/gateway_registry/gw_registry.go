@@ -81,9 +81,9 @@ func GetServiceAddressForGateway(hwId string) (string, error) {
 		fmt.Printf("err getting hostName in GetServiceAddressForGateway for hwId %v: %v\n", hwId, err)
 		return "", err
 	}
-	config.Lock()
+	config.RLock()
 	port := config.port
-	config.Unlock()
+	config.RUnlock()
 	addr := fmt.Sprintf("%s:%v", hostName, port)
 	return addr, nil
 }

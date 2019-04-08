@@ -86,7 +86,7 @@ var echoHandlerInitializers = map[HttpMethod]echoHandlerInitializer{
 func register(registry handlerRegistry, path string, handler echo.HandlerFunc) error {
 	_, registered := registry[path]
 	if registered {
-		return errors.New(fmt.Sprintf("HandlerFunc[s] already registered for path: %q", path))
+		return fmt.Errorf("HandlerFunc[s] already registered for path: %q", path)
 	}
 	registry[path] = handler
 	return nil
@@ -97,7 +97,7 @@ func register(registry handlerRegistry, path string, handler echo.HandlerFunc) e
 // server, see AttachAll below
 func Register(handler Handler) error {
 	if (handler.Methods & ^ALL) != 0 {
-		return errors.New(fmt.Sprintf("Invalid handler method[s]: %b", handler.Methods))
+		return fmt.Errorf("Invalid handler method[s]: %b", handler.Methods)
 	}
 
 	if len(handler.Path) == 0 {
