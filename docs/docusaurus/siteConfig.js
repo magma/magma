@@ -24,7 +24,7 @@ const siteConfig = {
   title: 'Magma', // Title for your website.
   tagline: 'Bring more people online by enabling operators with open, flexible, and extensible network solutions',
   url: 'https://facebookincubator.github.io', // Your website URL
-  baseUrl: '/web/', // Base URL for your project */
+  baseUrl: '/magma/web/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
