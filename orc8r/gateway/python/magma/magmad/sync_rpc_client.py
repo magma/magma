@@ -94,7 +94,6 @@ class SyncRPCClient(threading.Thread):
             try:
                 resp = self._response_queue.get(block=True,
                                                 timeout=self._response_timeout)
-                logging.debug("[SyncRPC] Sending response")
                 yield resp
             except queue.Empty:
                 # response_queue is empty, send heartbeat
@@ -121,8 +120,8 @@ class SyncRPCClient(threading.Thread):
                 self.forward_request(req)
         except grpc.RpcError as err:
             # server end closed connection; retry rpc connection.
-            raise Exception("Error when retrieving request: [%s] %s"
-                            % (err.code(), err.details()))
+            raise Exception("Error when retrieving request: [{}] {}".format(
+                err.code(), err.details()))
 
     def forward_request(self, request):
         if request.heartBeat:
