@@ -9,7 +9,6 @@
 package blobstore_test
 
 import (
-	"database/sql"
 	"sort"
 	"testing"
 
@@ -20,15 +19,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSqlBlobStorage_Integration(t *testing.T) {
-	// Use an in-memory sqlite datastore
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatalf("Could not initialize sqlite DB: %s", err)
-	}
-
-	fact := blobstore.NewSQLBlobStorageFactory("table", db)
-
+func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	// Check the contract for an empty datastore
 	store, err := fact.StartTransaction()
 	assert.NoError(t, err)
