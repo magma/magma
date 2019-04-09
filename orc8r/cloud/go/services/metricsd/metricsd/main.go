@@ -9,17 +9,16 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
+	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 
 	"github.com/prometheus/client_model/go"
@@ -29,26 +28,17 @@ const (
 	CloudMetricsCollectInterval = time.Second * 20
 )
 
-// Target variable for flag
-var profileArg string
-
 func main() {
-	flag.StringVar(
-		&profileArg,
-		"profile",
-		pluginimpl.ProfileNamePrometheus,
-		"Name of the profile to start metricsd with. Determines which collectors and exporters will run. "+
-			"Default value is Prometheus",
-	)
 
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, metricsd.ServiceName)
-	if err != nil {
+	if err != nil || srv.Config == nil {
 		log.Fatalf("Error creating service: %s", err)
 	}
 	controllerServer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServer)
 	srv.GrpcServer.RegisterService(protos.GetLegacyMetricsdDesc(), controllerServer)
 
+	profileArg := srv.Config.GetRequiredStringParam(confignames.Profile)
 	selectedProfile, err := metricsd.GetMetricsProfile(profileArg)
 	if err != nil {
 		log.Fatalf("Error loading metrics profile: %s", err)

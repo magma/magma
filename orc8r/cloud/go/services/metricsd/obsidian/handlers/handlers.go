@@ -9,17 +9,17 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"os"
-
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/cloud/go/services/metricsd/confignames"
 
 	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for metricsd
-func GetObsidianHandlers() []handlers.Handler {
-	client, err := api.NewClient(api.Config{Address: os.Getenv(prometheusAddressEnv)})
+func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
+	client, err := api.NewClient(api.Config{Address: configMap.GetRequiredStringParam(confignames.PrometheusAddress)})
 	if err != nil {
 		return []handlers.Handler{
 			{Path: queryURL, Methods: handlers.GET, HandlerFunc: getInitErrorHandler(err)},

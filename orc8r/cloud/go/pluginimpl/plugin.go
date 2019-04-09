@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
@@ -24,6 +25,7 @@ import (
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
+	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
@@ -71,17 +73,17 @@ func (*BaseOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMetricsProfiles() []metricsd.MetricsProfile {
-	return getMetricsProfiles()
+func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
+	return getMetricsProfiles(metricsConfig)
 }
 
-func (*BaseOrchestratorPlugin) GetObsidianHandlers() []obsidianh.Handler {
+func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidianh.Handler {
 	return plugin.FlattenHandlerLists(
 		accessdh.GetObsidianHandlers(),
 		checkinh.GetObsidianHandlers(),
 		dnsdh.GetObsidianHandlers(),
 		magmadh.GetObsidianHandlers(),
-		metricsdh.GetObsidianHandlers(),
+		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
 		hello.GetObsidianHandlers(),
 	)
@@ -98,7 +100,7 @@ const (
 	ProfileNamePrometheus = "prometheus"
 )
 
-func getMetricsProfiles() []metricsd.MetricsProfile {
+func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
 
 	// Controller profile - 1 collector for each service
 	allServices := registry.ListControllerServices()
@@ -108,11 +110,13 @@ func getMetricsProfiles() []metricsd.MetricsProfile {
 	}
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
 
+	prometheusPushAddress := metricsConfig.GetRequiredStringParam(confignames.PrometheusPushgatewayAddress)
+	prometheusPushExporter := promo_exp.NewPrometheusPushExporter(prometheusPushAddress)
 	// Prometheus profile - Exports all service metric to Prometheus
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{promo_exp.NewPrometheusPushExporter()},
+		Exporters:  []exporters.Exporter{prometheusPushExporter},
 	}
 
 	return []metricsd.MetricsProfile{

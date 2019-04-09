@@ -10,7 +10,6 @@ package exporters
 
 import (
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -23,7 +22,6 @@ import (
 )
 
 const (
-	PushURLEnv   = "PROMETHEUS_PUSHGATEWAY_ADDRESS"
 	PushJob      = "PrometheusPushGateway"
 	PushInterval = time.Second * 15
 )
@@ -34,21 +32,23 @@ type PrometheusPushExporter struct {
 	Pusher         *push.Pusher
 	exportInterval time.Duration
 	lock           sync.Mutex
+	pushAddress    string
 }
 
 // NewPrometheusExporter create a new PrometheusExporter with own registry
-func NewPrometheusPushExporter() mxd_exp.Exporter {
+func NewPrometheusPushExporter(pushAddress string) mxd_exp.Exporter {
 	config := PrometheusExporterConfig{
 		UseHostLabel: false,
 	}
 	exporter := NewPrometheusExporter(config)
-	pusher := push.New(os.Getenv(PushURLEnv), PushJob)
+	pusher := push.New(pushAddress, PushJob)
 	pusher.Gatherer(exporter.(*PrometheusExporter).Registry.(*prometheus.Registry))
 
 	return &PrometheusPushExporter{
 		exporter:       exporter,
 		Pusher:         pusher,
 		exportInterval: PushInterval,
+		pushAddress:    pushAddress,
 	}
 }
 
@@ -81,7 +81,7 @@ func (e *PrometheusPushExporter) Export() error {
 
 func (e *PrometheusPushExporter) resetMetrics() {
 	e.exporter.(*PrometheusExporter).clearRegistry()
-	e.Pusher = push.New(os.Getenv(PushURLEnv), PushJob)
+	e.Pusher = push.New(e.pushAddress, PushJob)
 	e.Pusher.Gatherer(e.exporter.(*PrometheusExporter).Registry.(*prometheus.Registry))
 }
 

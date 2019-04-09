@@ -11,4 +11,6 @@ package exporters
 const (
 	SERVICE_LABEL_NAME = "service"
 	TAGS_LABEL_NAME    = "tags"
+
+	CloudMetricID = "cloud"
 )
