@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/golang/glog"
 	prometheus_proto "github.com/prometheus/client_model/go"
@@ -59,7 +60,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prometheus_proto.MetricFamily, hostName string) error {
 	for family := range inputChan {
 		for _, e := range srv.exporters {
-			ctx := exporters.NewMetricsContext(family, exporters.CloudMetricID, exporters.CloudMetricID, hostName)
+			ctx := exporters.NewMetricsContext(family, promo_exp.CloudMetricID, promo_exp.CloudMetricID, hostName)
 			err := e.Submit([]exporters.MetricAndContext{{Family: family, Context: ctx}})
 			if err != nil {
 				glog.Error(err)

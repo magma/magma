@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package exporters
 
@@ -13,6 +13,8 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
 
 	"github.com/golang/glog"
 
@@ -28,14 +30,14 @@ const (
 
 // PrometheusExporter handles registering and updating prometheus metrics
 type PrometheusPushExporter struct {
-	exporter       Exporter
+	exporter       mxd_exp.Exporter
 	Pusher         *push.Pusher
 	exportInterval time.Duration
 	lock           sync.Mutex
 }
 
 // NewPrometheusExporter create a new PrometheusExporter with own registry
-func NewPrometheusPushExporter() Exporter {
+func NewPrometheusPushExporter() mxd_exp.Exporter {
 	config := PrometheusExporterConfig{
 		UseHostLabel: false,
 	}
@@ -52,9 +54,10 @@ func NewPrometheusPushExporter() Exporter {
 
 // Submit registers or updates a prometheus metric in the exporter registry.
 // All metrics in registry are then pushed to the pushgateway
-func (e *PrometheusPushExporter) Submit(metrics []MetricAndContext) error {
+func (e *PrometheusPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 	// Unregister All Metrics in PrometheusExporter, then register new registry
 	// with Pusher Before submitting new ones to avoid pushing stale metrics
+
 	e.lock.Lock()
 	err := e.exporter.Submit(metrics)
 	e.lock.Unlock()
