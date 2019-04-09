@@ -532,6 +532,14 @@ int mme_config_parse_file(mme_config_t *config_pP)
           (const char **) &astring))) {
       config_pP->ip_capability = bfromcstr(astring);
     }
+
+    if ((config_setting_lookup_string(
+          setting_mme,
+          MME_CONFIG_STRING_USE_STATELESS,
+          (const char **) &astring))) {
+      config_pP->use_stateless = parse_bool(astring);
+    }
+
     if ((config_setting_lookup_string(
           setting_mme,
           EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE,
@@ -1297,6 +1305,10 @@ void mme_config_display(mme_config_t *config_pP)
     LOG_CONFIG,
     "- IP Capability ........................: %s\n\n",
     bdata(config_pP->ip_capability));
+  OAILOG_INFO(
+    LOG_CONFIG,
+    "- Use Stateless ........................: %s\n\n",
+    config_pP->use_stateless ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
     LOG_CONFIG,

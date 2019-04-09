@@ -60,6 +60,7 @@
 #define MME_CONFIG_STRING_STATISTIC_TIMER "MME_STATISTIC_TIMER"
 
 #define MME_CONFIG_STRING_IP_CAPABILITY "IP_CAPABILITY"
+#define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
 #define MME_CONFIG_STRING_FULL_NETWORK_NAME "FULL_NETWORK_NAME"
 #define MME_CONFIG_STRING_SHORT_NETWORK_NAME "SHORT_NETWORK_NAME"
 #define MME_CONFIG_STRING_DAYLIGHT_SAVING_TIME "DAYLIGHT_SAVING_TIME"
@@ -161,80 +162,80 @@
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
 typedef struct eps_network_feature_config_s {
-    uint8_t ims_voice_over_ps_session_in_s1;
-    uint8_t emergency_bearer_services_in_s1_mode;
-    uint8_t location_services_via_epc;
-    uint8_t extended_service_request;
+  uint8_t ims_voice_over_ps_session_in_s1;
+  uint8_t emergency_bearer_services_in_s1_mode;
+  uint8_t location_services_via_epc;
+  uint8_t extended_service_request;
 } eps_network_feature_config_t;
 
 #define TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS 0x00
 #define TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS 0x01
 #define TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS 0x02
 typedef struct served_tai_s {
-    uint8_t list_type;
-    uint8_t nb_tai;
-    uint16_t *plmn_mcc;
-    uint16_t *plmn_mnc;
-    uint16_t *plmn_mnc_len;
-    uint16_t *tac;
+  uint8_t list_type;
+  uint8_t nb_tai;
+  uint16_t *plmn_mcc;
+  uint16_t *plmn_mnc;
+  uint16_t *plmn_mnc_len;
+  uint16_t *tac;
 } served_tai_t;
 
 typedef struct sctp_config_s {
-    uint16_t in_streams;
-    uint16_t out_streams;
+  uint16_t in_streams;
+  uint16_t out_streams;
 } sctp_config_t;
 
 typedef struct s1ap_config_s {
-    uint16_t port_number;
-    uint8_t outcome_drop_timer_sec;
+  uint16_t port_number;
+  uint8_t outcome_drop_timer_sec;
 } s1ap_config_t;
 
 typedef struct ipv4_s {
-    bstring if_name_s1_mme;
-    struct in_addr s1_mme;
-    int netmask_s1_mme;
+  bstring if_name_s1_mme;
+  struct in_addr s1_mme;
+  int netmask_s1_mme;
 
-    bstring if_name_s11;
-    struct in_addr s11;
-    int netmask_s11;
-    uint16_t port_s11;
+  bstring if_name_s11;
+  struct in_addr s11;
+  int netmask_s11;
+  uint16_t port_s11;
 } ipv4_t;
 
 typedef struct s6a_config_s {
-    bstring conf_file;
-    bstring hss_host_name;
+  bstring conf_file;
+  bstring hss_host_name;
 } s6a_config_t;
 
 typedef struct itti_config_s {
-    uint32_t queue_size;
-    bstring log_file;
+  uint32_t queue_size;
+  bstring log_file;
 } itti_config_t;
 
 typedef struct nas_config_s {
-    uint8_t prefered_integrity_algorithm[8];
-    uint8_t prefered_ciphering_algorithm[8];
-    uint32_t t3402_min;
-    uint32_t t3412_min;
-    uint32_t t3422_sec;
-    uint32_t t3450_sec;
-    uint32_t t3460_sec;
-    uint32_t t3470_sec;
-    uint32_t t3485_sec;
-    uint32_t t3486_sec;
-    uint32_t t3489_sec;
-    uint32_t t3495_sec;
-    // non standard features
-    bool force_reject_tau;
-    bool force_reject_sr;
-    bool disable_esm_information;
+  uint8_t prefered_integrity_algorithm[8];
+  uint8_t prefered_ciphering_algorithm[8];
+  uint32_t t3402_min;
+  uint32_t t3412_min;
+  uint32_t t3422_sec;
+  uint32_t t3450_sec;
+  uint32_t t3460_sec;
+  uint32_t t3470_sec;
+  uint32_t t3485_sec;
+  uint32_t t3486_sec;
+  uint32_t t3489_sec;
+  uint32_t t3495_sec;
+  // non standard features
+  bool force_reject_tau;
+  bool force_reject_sr;
+  bool disable_esm_information;
 } nas_config_t;
 
 typedef struct sgs_config_s {
-    uint32_t ts6_1_sec;
-    uint32_t ts8_sec;
-    uint32_t ts9_sec;
-    uint32_t ts10_sec;
-    uint32_t ts13_sec;
+  uint32_t ts6_1_sec;
+  uint32_t ts8_sec;
+  uint32_t ts9_sec;
+  uint32_t ts10_sec;
+  uint32_t ts13_sec;
 } sgs_config_t;
 
 #define MME_CONFIG_MAX_SGW 16
@@ -293,6 +294,8 @@ typedef struct mme_config_s {
   ipv4_t ipv4;
 
   lai_t lai;
+
+  int use_stateless;
 } mme_config_t;
 
 extern mme_config_t mme_config;
