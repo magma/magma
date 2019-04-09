@@ -1623,6 +1623,7 @@ static bool parse_bool(const char *str) {
   if (strcasecmp(str, "true") == 0) return true;
   if (strcasecmp(str, "no") == 0) return false;
   if (strcasecmp(str, "false") == 0) return false;
+  if (strcasecmp(str, "") == 0) return false;
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
