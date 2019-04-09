@@ -1,0 +1,25 @@
+[Unit]
+Description=uwsgi
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStartPre=/bin/mkdir -p /run/uwsgi/graphite
+ExecStartPre=/bin/chown {{ graphite_user }}:{{ graphite_user }} /run/uwsgi/graphite
+ExecStartPre=/bin/touch /var/log/uwsgi_graphite.log
+ExecStartPre=/bin/chown {{ graphite_user }}:{{ graphite_user }} /var/log/uwsgi_graphite.log
+
+ExecStart=/usr/bin/uwsgi \
+  --ini /etc/uwsgi_default.ini \
+  --ini /etc/uwsgi_graphite.ini
+
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+Restart=on-failure
+User={{ graphite_user }}
+Group={{ graphite_user }}
+PermissionsStartOnly=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

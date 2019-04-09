@@ -1,0 +1,23 @@
+# Schema definitions for Whisper files. Entries are scanned in order,
+# and first match wins. This file is scanned for changes every 60 seconds.
+#
+#  [name]
+#  pattern = regex
+#  retentions = timePerPoint:timeToStore, timePerPoint:timeToStore, ...
+
+{% for schema in graphite_storage_schemas %}
+[{{ schema.name }}]
+pattern = {{ schema.pattern }}
+retentions = {{ schema.retentions }}
+{% endfor %}
+
+# Carbon's internal metrics. This entry should match what is specified in
+# CARBON_METRIC_PREFIX and CARBON_METRIC_INTERVAL settings
+[carbon]
+pattern = ^carbon\.
+retentions = {{ graphite_storage_schemas_carbon_retentions }}
+
+[default]
+pattern = .*
+retentions = {{ graphite_storage_schemas_default_retentions }}
+

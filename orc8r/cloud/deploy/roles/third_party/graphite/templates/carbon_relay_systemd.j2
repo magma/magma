@@ -1,0 +1,15 @@
+[Unit]
+Description=carbon-relay
+After=network.target
+
+[Service]
+Environment="PYTHONPATH={{ graphite_install_path }}/lib:{{ graphite_install_path }}/webapp"
+
+ExecStart={{ graphite_install_path }}/bin/carbon-relay.py --nodaemon start
+Restart=on-failure
+User={{ graphite_user }}
+Group={{ graphite_user }}
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

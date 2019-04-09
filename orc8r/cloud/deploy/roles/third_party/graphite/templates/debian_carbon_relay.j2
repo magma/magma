@@ -1,0 +1,65 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:        carbon-relay
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:    $remote_fs $syslog
+# Default-Start:    2 3 4 5
+# Default-Stop:        
+# Short-Description:    carbon-relay server
+### END INIT INFO
+
+set -e
+
+test -x {{ graphite_install_path }}/bin/carbon-relay.py || exit 0
+
+umask 022
+
+. /lib/lsb/init-functions
+
+if [ "x$2" != "x2nd" ]; then
+	sudo -u {{ graphite_user }} $0 $1 2nd
+	exit 0
+fi
+
+export PATH="${PATH:+$PATH:}/usr/sbin:/sbin"
+export PYTHONPATH="{{ graphite_install_path }}/lib:{{ graphite_install_path }}/webapp"
+
+case "$1" in
+  start)
+    log_daemon_msg "Starting carbon-relay daemon" "carbon-relay" || true
+    if {{ graphite_install_path }}/bin/carbon-relay.py start; then
+        log_end_msg 0 || true
+    else
+        log_end_msg 1 || true
+    fi
+    ;;
+  stop)
+    log_daemon_msg "Stopping carbon-relay daemon" "carbon-relay" || true
+    if {{ graphite_install_path }}/bin/carbon-relay.py stop; then
+        log_end_msg 0 || true
+    else
+        log_end_msg 1 || true
+    fi
+    ;;
+
+  restart)
+    log_daemon_msg "Restarting carbon-relay daemon" "carbon-relay" || true
+    {{ graphite_install_path }}/bin/carbon-relay.py stop
+    if {{ graphite_install_path }}/bin/carbon-relay.py start; then
+        log_end_msg 0 || true
+    else
+        log_end_msg 1 || true
+    fi
+    ;;
+
+  status)
+    {{ graphite_install_path }}/bin/carbon-relay.py status && exit 0 || exit $?
+    ;;
+
+  *)
+    log_action_msg "Usage: /etc/init.d/carbon-relay {start|stop|restart|status}" || true
+    exit 1
+esac
+
+exit 0
