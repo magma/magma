@@ -1,0 +1,115 @@
+// Copyright (c) 2018-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+
+package magma.orc8r.configurator;
+option go_package = "protos";
+
+
+// Network is the core tenancy concept in configurator. A network can have
+// configurations which will hierarchically apply to entities in the network.
+// Entities which don't belong to any specific tenant will be organized under
+// the hood into an internal-only network.
+message Network {
+    // Network ID is unique across all tenants
+    string id = 1;
+
+    string name = 10;
+    string description = 11;
+
+    repeated NetworkConfig configs = 20;
+}
+
+// The network entity is the core entity managed by configurator. A network
+// entity can correspond to a physical asset like an access gateway or radio,
+// in which case the physical_id field will be populated. A network entity can
+// also represent an intangible part of a network like a configuration profile,
+// a mesh, an API user, etc.
+// Inside a network, network entities are organized into DAGs. Associations
+// between entities are one-way and define a hierarchical relationship (e.g.,
+// a mesh would be associated towards entities within the mesh).
+message NetworkEntity {
+    // (id, type) is a unique identifier for an entity within a network
+    // type denotes the category of the network entity.
+    string id = 1;
+    string type = 2;
+
+    string name = 10;
+    string description = 11;
+
+    // physical_id ties the network entity back to a physical asset. This
+    // field is optional
+    string physical_id = 20;
+
+    // Serialized representation of the network entity's configuration.
+    // The value of the type field will point to the Serde implementation to
+    // use to deserialize this field.
+    bytes config = 30;
+
+    // assocs represents the related network entities as an adjacency list
+    repeated AssociatedEntity assocs = 40;
+
+    repeated ACL permissions = 50;
+}
+
+message NetworkConfig {
+    string type = 1;
+    google.protobuf.Any value = 2;
+}
+
+message AssociatedEntity {
+    string type = 1;
+    string id = 2;
+}
+
+// ACL specifies R/W/O permissions on a specific type of entity or a wildcard.
+// Each ACL is bound to one or more networks, but may also be globally
+// wildcarded (e.g. admin operators).
+message ACL {
+    // OWN grants READ and WRITE
+    enum Permission {
+        NO_PERM = 0;
+        READ = 1;
+        WRITE = 2;
+        OWN = 3;
+    }
+
+    enum Wildcard {
+        NO_WILDCARD = 0;
+        WILDCARD_ALL = 1;
+    }
+
+    message NetworkIDs {
+        repeated string ids = 1;
+    }
+
+    // Unique identifier for this ACL
+    string id = 1;
+
+    // scope defines the networks to which this ACL applies, or a wildcard
+    // specifying all networks
+    oneof scope {
+        NetworkIDs network_ids = 10;
+        Wildcard scope_wildcard = 11;
+    }
+
+    Permission permission = 20;
+
+    // An ACL either applies to a specific entity type or all entities within
+    // the scope
+    oneof type {
+        string entity_type = 30;
+        Wildcard type_wildcard = 31;
+    }
+
+    // Optionally, a list of specific entity IDs on which this ACL applies.
+    // If empty, the ACL will apply to all entities of the specified type or
+    // wildcard within the scope.
+    repeated string id_filter = 40;
+}
