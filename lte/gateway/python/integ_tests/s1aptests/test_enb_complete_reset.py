@@ -67,7 +67,7 @@ class TestEnbCompleteReset(unittest.TestCase):
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True)
+                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True)
 
 
 if __name__ == "__main__":
