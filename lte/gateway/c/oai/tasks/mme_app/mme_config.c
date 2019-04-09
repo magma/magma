@@ -64,6 +64,8 @@
 #include "service303.h"
 #include "sgw_config.h"
 
+static bool parse_bool(const char *str);
+
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 
 //------------------------------------------------------------------------------
@@ -363,11 +365,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
             LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE,
             (const char **) &astring)) {
         if (astring != NULL) {
-          if (strcasecmp(astring, "yes") == 0) {
-            config_pP->log_config.is_output_thread_safe = true;
-          } else {
-            config_pP->log_config.is_output_thread_safe = false;
-          }
+          config_pP->log_config.is_output_thread_safe = parse_bool(astring);
         }
       }
 
@@ -538,51 +536,36 @@ int mme_config_parse_file(mme_config_t *config_pP)
           setting_mme,
           EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE,
           (const char **) &astring))) {
-      if (strcasecmp(astring, "yes") == 0)
-        config_pP->eps_network_feature_support
-          .emergency_bearer_services_in_s1_mode = 1;
-      else
-        config_pP->eps_network_feature_support
-          .emergency_bearer_services_in_s1_mode = 0;
+      config_pP->eps_network_feature_support
+        .emergency_bearer_services_in_s1_mode = parse_bool(astring);
     }
     if ((config_setting_lookup_string(
           setting_mme,
           EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST,
           (const char **) &astring))) {
-      if (strcasecmp(astring, "yes") == 0)
-        config_pP->eps_network_feature_support.extended_service_request = 1;
-      else
-        config_pP->eps_network_feature_support.extended_service_request = 0;
+      config_pP->eps_network_feature_support.extended_service_request =
+        parse_bool(astring);
     }
     if ((config_setting_lookup_string(
           setting_mme,
           EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1,
           (const char **) &astring))) {
-      if (strcasecmp(astring, "yes") == 0)
-        config_pP->eps_network_feature_support.ims_voice_over_ps_session_in_s1 =
-          1;
-      else
-        config_pP->eps_network_feature_support.ims_voice_over_ps_session_in_s1 =
-          0;
+      config_pP->eps_network_feature_support.ims_voice_over_ps_session_in_s1 =
+        parse_bool(astring);
     }
     if ((config_setting_lookup_string(
           setting_mme,
           EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC,
           (const char **) &astring))) {
-      if (strcasecmp(astring, "yes") == 0)
-        config_pP->eps_network_feature_support.location_services_via_epc = 1;
-      else
-        config_pP->eps_network_feature_support.location_services_via_epc = 0;
+      config_pP->eps_network_feature_support.location_services_via_epc =
+        parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
           setting_mme,
           MME_CONFIG_STRING_UNAUTHENTICATED_IMSI_SUPPORTED,
           (const char **) &astring))) {
-      if (strcasecmp(astring, "yes") == 0)
-        config_pP->unauthenticated_imsi_supported = 1;
-      else
-        config_pP->unauthenticated_imsi_supported = 0;
+      config_pP->unauthenticated_imsi_supported = parse_bool(astring);
     }
 
     // ITTI SETTING
@@ -1088,28 +1071,19 @@ int mme_config_parse_file(mme_config_t *config_pP)
             setting,
             MME_CONFIG_STRING_NAS_FORCE_REJECT_TAU,
             (const char **) &astring))) {
-        if (strcasecmp(astring, "yes") == 0)
-          config_pP->nas_config.force_reject_tau = true;
-        else
-          config_pP->nas_config.force_reject_tau = false;
+        config_pP->nas_config.force_reject_tau = parse_bool(astring);
       }
       if ((config_setting_lookup_string(
             setting,
             MME_CONFIG_STRING_NAS_FORCE_REJECT_SR,
             (const char **) &astring))) {
-        if (strcasecmp(astring, "yes") == 0)
-          config_pP->nas_config.force_reject_sr = true;
-        else
-          config_pP->nas_config.force_reject_sr = false;
+        config_pP->nas_config.force_reject_sr = parse_bool(astring);
       }
       if ((config_setting_lookup_string(
             setting,
             MME_CONFIG_STRING_NAS_DISABLE_ESM_INFORMATION_PROCEDURE,
             (const char **) &astring))) {
-        if (strcasecmp(astring, "yes") == 0)
-          config_pP->nas_config.disable_esm_information = true;
-        else
-          config_pP->nas_config.disable_esm_information = false;
+        config_pP->nas_config.disable_esm_information = parse_bool(astring);
       }
     }
 
@@ -1630,4 +1604,13 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
    */
   mme_config_display(config_pP);
   return 0;
+}
+
+static bool parse_bool(const char *str) {
+  if (strcasecmp(str, "yes") == 0) return true;
+  if (strcasecmp(str, "true") == 0) return true;
+  if (strcasecmp(str, "no") == 0) return false;
+  if (strcasecmp(str, "false") == 0) return false;
+
+  Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
