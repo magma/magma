@@ -29,6 +29,9 @@ const (
 
 	PromoHTTPEndpoint = "/metrics"
 	PromoHTTPPort     = 8080
+
+	defaultNetwork = "defaultNetwork"
+	defaultGateway = "defaultGateway"
 )
 
 var (
@@ -80,12 +83,11 @@ func (e *PrometheusExporter) submitSingleFamilyUnsafe(family *dto.MetricFamily, 
 	networkID := context.NetworkID
 	gatewayID := context.GatewayID
 
-	if context.NetworkID == CloudMetricID {
-		parsedNetworkID, parsedGatewayID, err := mxd_exp.UnpackCloudMetricName(context.MetricName)
-		if err == nil {
-			networkID = parsedNetworkID
-			gatewayID = parsedGatewayID
-		}
+	if networkID == "" {
+		networkID = defaultNetwork
+	}
+	if gatewayID == "" {
+		gatewayID = defaultGateway
 	}
 
 	for _, metric := range family.GetMetric() {
