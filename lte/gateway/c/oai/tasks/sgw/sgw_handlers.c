@@ -34,7 +34,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include <unistd.h>
 
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
@@ -1269,7 +1268,7 @@ int sgw_handle_modify_bearer_request(
           }
         }
     // For testing
-#if 1
+#if 0
     Imsi_t imsi;
     ip_address_t ue_ip;
     traffic_flow_template_t tft;
