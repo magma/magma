@@ -30,6 +30,7 @@ MME :
 
     IP_CAPABILITY = "IPV4";                                                   # UE PDN_TYPE
 
+    USE_STATELESS = "{{ use_stateless }}";
 
     INTERTASK_INTERFACE :
     {
