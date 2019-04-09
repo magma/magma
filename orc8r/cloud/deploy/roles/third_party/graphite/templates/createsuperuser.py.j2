@@ -1,0 +1,5 @@
+from django.contrib.auth.models import User
+
+u = User.objects.get(username__exact='{{ graphite_admin_username }}')
+u.set_password('{{ graphite_admin_password }}')
+u.save()

@@ -1,0 +1,16 @@
+[Unit]
+Description=carbon-cache
+After=network.target
+
+[Service]
+Environment="PYTHONPATH={{ graphite_install_path }}/lib:{{ graphite_install_path }}/webapp"
+
+ExecStart={{ graphite_install_path }}/bin/carbon-cache.py --nodaemon start
+Restart=on-failure
+User={{ graphite_user }}
+Group={{ graphite_user }}
+NoNewPrivileges=true
+LimitNOFILE={{ graphite_service_carbon_open_files_limit }}
+
+[Install]
+WantedBy=multi-user.target

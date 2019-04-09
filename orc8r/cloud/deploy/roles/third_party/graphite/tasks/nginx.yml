@@ -1,0 +1,22 @@
+---
+
+- name: Install nginx with apt
+  apt:
+    name: nginx
+    update_cache: yes
+
+- name: Configure nginx for graphite
+  template:
+    src: nginx.conf.j2
+    dest: "/etc/nginx/nginx.conf"
+
+- name: Create systemd file
+  template:
+    src: nginx.service
+    dest: "/lib/systemd/system/nginx.service"
+
+- name: Start nginx service
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: nginx
