@@ -521,6 +521,11 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_request);
       } break;
 
+      case MME_APP_DELETE_DEDICATED_BEARER_REJ: {
+        mme_app_handle_delete_dedicated_bearer_rej(
+          &MME_APP_DELETE_DEDICATED_BEARER_REJ(received_message_p));
+      } break;
+
       case TERMINATE_MESSAGE: {
         /*
        * Termination message received TODO -> release any data allocated

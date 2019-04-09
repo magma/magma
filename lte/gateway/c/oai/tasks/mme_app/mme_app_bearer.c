@@ -2519,6 +2519,7 @@ void mme_app_handle_create_dedicated_bearer_rsp(
       "\n",
       create_dedicated_bearer_rsp->ue_id);
     _send_pcrf_bearer_actv_rsp(ue_context_p,create_dedicated_bearer_rsp);
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
   // TODO:
@@ -2770,6 +2771,7 @@ void _send_delete_dedicated_bearer_rsp(
   bool delete_default_bearer,
   ebi_t ebi[],
   uint32_t num_bearer_context,
+  teid_t s_gw_teid_s11_s4,
   gtpv2c_cause_value_t cause
   )
 {
@@ -2848,6 +2850,12 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+//Fetch PDN context
+  pdn_cid_t cid =
+  ue_context_p->bearer_contexts
+    [EBI_TO_INDEX(pcrf_bearer_deactv_req_p->ebi[0])]->pdn_cx_id;
+  pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
+
   /* If delete_default_bearer is set and this is the only active PDN,
   *  Send Detach Request to UE
   */
@@ -2910,6 +2918,7 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
           pcrf_bearer_deactv_req_p->delete_default_bearer,
           pcrf_bearer_deactv_req_p->ebi,
           pcrf_bearer_deactv_req_p->no_of_bearers,
+          pdn_context->s_gw_teid_s11_s4,
           REQUEST_ACCEPTED);
       } else {
         OAILOG_ERROR(LOG_MME_APP, "Cannot delete bearer context");
@@ -3049,7 +3058,40 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
      delete_dedicated_bearer_rsp->delete_default_bearer,
      delete_dedicated_bearer_rsp->ebi,
      delete_dedicated_bearer_rsp->no_of_bearers,
+     delete_dedicated_bearer_rsp->s_gw_teid_s11_s4,
      REQUEST_ACCEPTED);
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+
+}
+
+//------------------------------------------------------------------------------
+void mme_app_handle_delete_dedicated_bearer_rej(
+  itti_mme_app_delete_dedicated_bearer_rej_t *const delete_dedicated_bearer_rej)
+{
+  struct ue_mm_context_s *ue_context_p = NULL;
+
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc.mme_ue_contexts, delete_dedicated_bearer_rej->ue_id);
+
+  if (ue_context_p == NULL) {
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
+      "\n",
+      delete_dedicated_bearer_rej->ue_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  //Send delete_dedicated_bearer_rsp to SPGW
+  _send_delete_dedicated_bearer_rsp(
+     ue_context_p,
+     delete_dedicated_bearer_rej->delete_default_bearer,
+     delete_dedicated_bearer_rej->ebi,
+     delete_dedicated_bearer_rej->no_of_bearers,
+     delete_dedicated_bearer_rej->s_gw_teid_s11_s4,
+     UE_NOT_RESPONDING);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 

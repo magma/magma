@@ -34,6 +34,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <unistd.h>
 
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
@@ -1268,7 +1269,7 @@ int sgw_handle_modify_bearer_request(
           }
         }
     // For testing
-#if 0
+#if 1
     Imsi_t imsi;
     ip_address_t ue_ip;
     traffic_flow_template_t tft;
@@ -2458,13 +2459,9 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
 {
   uint32_t rc = RETURNok;
   uint32_t i = 0;
-  uint32_t j = 0;
-  hash_table_ts_t *hashtblP = NULL;
-  uint32_t num_elements = 0;
-  hash_node_t *node = NULL;
-  imsi64_t imsi64 = INVALID_IMSI64;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt = NULL;
   uint32_t no_of_bearers = 0;
+  hashtable_rc_t hash_rc = HASH_TABLE_OK;
 
   OAILOG_INFO(
     LOG_SPGW_APP,
@@ -2474,41 +2471,33 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
   //--------------------------------------
   // Get EPS bearer entry
   //--------------------------------------
-  // TODO -Pruthvi Add Handling for default bearer
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
-    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    }
-    while (node) {
-      num_elements++;
-      hashtable_ts_get(
-        hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt);
-      if (spgw_ctxt != NULL) {
-        IMSI_STRING_TO_IMSI64((char *)
-          spgw_ctxt->sgw_eps_bearer_context_information.imsi.digit, &imsi64);
-        if (imsi64 == s11_pcrf_ded_bearer_deactv_rsp->imsi) {
-          //Delete the bearer context
-          for (j = 0; j < no_of_bearers; j++) {
-            sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-              &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection,
-              s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);
-            if (eps_bearer_ctxt_p) {
-              /*sgw_cm_remove_eps_bearer_entry(&spgw_ctxt->sgw_eps_bearer_context_information
-                .pdn_connection,
-              s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);*/
-              sgw_free_sgw_eps_bearer_context(&eps_bearer_ctxt_p);
-                break;
-            }
-          }
+
+  hash_rc = hashtable_ts_get(
+    sgw_app.s11_bearer_context_information_hashtable,
+    s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4,
+    (void **) &spgw_ctxt);
+  if (HASH_TABLE_OK != hash_rc) {
+    OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "hashtable_ts_get failed for teid %d\n",
+      s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+  }
+  //Remove the default bearer entry
+  if(s11_pcrf_ded_bearer_deactv_rsp->delete_default_bearer) {
+    sgw_cm_remove_bearer_context_information(
+     s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
+  } else {
+      //Remove the dedicated bearer/s context
+      for (i = 0; i < no_of_bearers; i++) {
+        sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+          &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection,
+          s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);
+        if (eps_bearer_ctxt_p) {
+          sgw_free_sgw_eps_bearer_context(&eps_bearer_ctxt_p);
         }
       }
-      node = node->next;
     }
-    i++;
-  }
-
   //Send DEACTIVATE_DEDICATED_BEARER_RSP to PGW
   MessageDef *message_p = NULL;
   message_p =

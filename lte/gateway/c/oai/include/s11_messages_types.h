@@ -126,6 +126,7 @@ typedef struct itti_s11_pcrf_ded_bearer_deactv_rsp_s {
   bearer_contexts_within_create_bearer_response_t
     bearer_contexts; ///< Several IEs with this type and instance value shall be
   bool delete_default_bearer;
+  teid_t s_gw_teid_s11_s4;
 }itti_s11_pcrf_ded_bearer_deactv_rsp_t;
 
 //-----------------------------------------------------------------------------

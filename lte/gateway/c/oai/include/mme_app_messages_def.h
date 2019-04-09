@@ -84,3 +84,8 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_mme_app_delete_dedicated_bearer_req_t,
   mme_app_delete_dedicated_bearer_req)
+MESSAGE_DEF(
+  MME_APP_DELETE_DEDICATED_BEARER_REJ,
+  MESSAGE_PRIORITY_MED,
+  itti_mme_app_delete_dedicated_bearer_rej_t,
+  mme_app_delete_dedicated_bearer_rej)

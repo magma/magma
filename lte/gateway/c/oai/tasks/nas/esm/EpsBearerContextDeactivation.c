@@ -44,6 +44,7 @@
 #include "esm_sapDef.h"
 #include "msc.h"
 #include "nas_itti_messaging.h"
+#include "esm_pt.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -81,6 +82,7 @@ static int _eps_bearer_release(
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
+extern int _pdn_connectivity_delete(emm_context_t *emm_context, pdn_cid_t pid);
 
 /*
    --------------------------------------------------------------------------
@@ -305,6 +307,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       ->mme_ue_s1ap_id;
   bool delete_default_bearer = false;
   int bid = BEARERS_PER_UE;
+  teid_t s_gw_teid_s11_s4 = 0;
 
   OAILOG_INFO(
     LOG_NAS_ESM,
@@ -332,11 +335,30 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       pid = RETURNerror;
     }
   }
+  s_gw_teid_s11_s4 = PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
+    ->pdn_contexts[pid]->s_gw_teid_s11_s4;
+
   //If bid == 0,default bearer is deleted
-  if (bid == 0) {
+  if (PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
+    ->pdn_contexts[pid]->default_ebi == ebi) {
     delete_default_bearer = true;
+    //Release the default bearer
+    rc= mme_api_unsubscribe(NULL);
+
+    if (rc != RETURNerror) {
+      /*
+       * Delete the PDN connection entry
+       */
+      _pdn_connectivity_delete(ue_context, pid);
+    }
   }
-  nas_itti_deactivate_eps_bearer_context(ue_id, ebi,delete_default_bearer);
+  //Send deactivate_eps_bearer_context to MME APP
+  nas_itti_deactivate_eps_bearer_context(
+    ue_id,
+    ebi,
+    delete_default_bearer,
+    s_gw_teid_s11_s4);
+
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
 }
 
@@ -375,7 +397,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
-
+  bool delete_default_bearer = false;
   /*
    * Get retransmission timer parameters data
    */
@@ -424,6 +446,26 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
         rc =
           esm_ebr_stop_timer(esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi);
       }
+
+      teid_t s_gw_teid_s11_s4 =
+        PARENT_STRUCT(esm_ebr_timer_data->ctx, struct ue_mm_context_s, emm_context)
+      ->pdn_contexts[pid]->s_gw_teid_s11_s4;
+
+      if (PARENT_STRUCT(esm_ebr_timer_data->ctx, struct ue_mm_context_s, emm_context)
+        ->pdn_contexts[pid]->default_ebi == esm_ebr_timer_data->ebi) {
+        delete_default_bearer = true;
+        //Release the default bearer
+        /*
+         * Delete the PDN connection entry
+         */
+        _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pid);
+      }
+      //Send bearer_deactivation_reject to MME
+      nas_itti_dedicated_eps_bearer_deactivation_reject(
+        esm_ebr_timer_data->ue_id,
+        esm_ebr_timer_data->ebi,
+        delete_default_bearer,
+        s_gw_teid_s11_s4);
     }
     if (esm_ebr_timer_data->msg) {
       bdestroy_wrapper(&esm_ebr_timer_data->msg);

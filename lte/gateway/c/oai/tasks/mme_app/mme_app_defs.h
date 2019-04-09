@@ -280,6 +280,9 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
   itti_s11_pcrf_ded_bearer_deactv_request_t
   *const pcrf_bearer_deactv_req_p);
 
+void mme_app_handle_delete_dedicated_bearer_rej(
+  itti_mme_app_delete_dedicated_bearer_rej_t *const delete_dedicated_bearer_rej);
+
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_write_lock(mMEsTATS)                                         \
