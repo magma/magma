@@ -55,13 +55,13 @@ Pipelined is the control application that programs the OVS openflow rules. In im
 ## PolicyDB
 PolicyDB is the service that supports static PCRF rules. This service runs in both the AGW and the orchestrator. Rules managed through the rest API are streamed to the policydb instances on the AGW. Sessiond ensures these policies are implemented as specified.
 
-## Susbcriberdb
-Subscriberdb is Magma's local version of HSS. Magma uses Susbcriberdb to enable LTE data services through one network node like AGW for LTE subscribers.  It is deactivated for the deployments that make use of the MNO's HSS. It supports the following two S6a procedures:
+## Subscriberdb
+Subscriberdb is Magma's local version of HSS. Magma uses Subscriberdb to enable LTE data services through one network node like AGW for LTE subscribers.  It is deactivated for the deployments that make use of the MNO's HSS. It supports the following two S6a procedures:
 
 1. S6a: Authentication Information Request and Answer (AIR/AIA) 
 2. S6a: Update Location Request and Answer (ULR/ULA)
 
-Susbcriberdb functions include:
+Subscriberdb functions include:
 
 1. Interface with Orchestrator to receive subscriber information such as IMSI, secret key (K) , OP, user-profile during system bring-up.
 2. Generate Authentication vectors using* *Milenage Algorithm and share these with MME.
