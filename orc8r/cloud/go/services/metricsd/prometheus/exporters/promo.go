@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package exporters
 
@@ -15,6 +15,8 @@ import (
 	"regexp"
 	"sort"
 	"sync"
+
+	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -47,7 +49,7 @@ type PrometheusExporterConfig struct {
 }
 
 // NewPrometheusExporter create a new PrometheusExporter with own registry
-func NewPrometheusExporter(config PrometheusExporterConfig) Exporter {
+func NewPrometheusExporter(config PrometheusExporterConfig) mxd_exp.Exporter {
 	return &PrometheusExporter{
 		registeredMetrics: make(map[string]PrometheusMetric),
 		Registry:          prometheus.NewRegistry(),
@@ -57,7 +59,7 @@ func NewPrometheusExporter(config PrometheusExporterConfig) Exporter {
 
 // Submit takes in an ExportSubmission and either registers it to prometheus or
 // updates the metric if it is already registered
-func (e *PrometheusExporter) Submit(metrics []MetricAndContext) error {
+func (e *PrometheusExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 	// Coarse locking to prioritize clearing requests so we don't eat memory
 	// with goroutines waiting to finish submitting metrics - lock acquisition
 	// means that all metrics will be submitted and the goroutine freed
@@ -74,12 +76,12 @@ func (e *PrometheusExporter) Submit(metrics []MetricAndContext) error {
 	return nil
 }
 
-func (e *PrometheusExporter) submitSingleFamilyUnsafe(family *dto.MetricFamily, context MetricsContext) error {
+func (e *PrometheusExporter) submitSingleFamilyUnsafe(family *dto.MetricFamily, context mxd_exp.MetricsContext) error {
 	networkID := context.NetworkID
 	gatewayID := context.GatewayID
 
 	if context.NetworkID == CloudMetricID {
-		parsedNetworkID, parsedGatewayID, err := UnpackCloudMetricName(context.MetricName)
+		parsedNetworkID, parsedGatewayID, err := mxd_exp.UnpackCloudMetricName(context.MetricName)
 		if err == nil {
 			networkID = parsedNetworkID
 			gatewayID = parsedGatewayID
@@ -121,7 +123,7 @@ func (e *PrometheusExporter) clearRegistry() {
 func (e *PrometheusExporter) makeNetworkLabels(networkID, gatewayID string, metric *dto.Metric) (prometheus.Labels, error) {
 	var serviceName = "defaultServiceName"
 	for _, label := range metric.GetLabel() {
-		if label.GetName() == SERVICE_LABEL_NAME || label.GetName() == "serviceName" {
+		if label.GetName() == mxd_exp.SERVICE_LABEL_NAME || label.GetName() == "serviceName" {
 			serviceName = label.GetValue()
 			break
 		}
@@ -164,10 +166,10 @@ func (e *PrometheusExporter) registerMetric(metric *dto.Metric,
 func makeRegisteredName(metric *dto.Metric, metricName string) string {
 	name := ""
 	labels := metric.GetLabel()
-	sort.Sort(ByName(labels))
+	sort.Sort(mxd_exp.ByName(labels))
 
 	for _, labelPair := range labels {
-		if labelPair.GetName() == SERVICE_LABEL_NAME || labelPair.GetName() == "serviceName" {
+		if labelPair.GetName() == mxd_exp.SERVICE_LABEL_NAME || labelPair.GetName() == "serviceName" {
 			continue
 		}
 		name = fmt.Sprintf("%s_%s_%s", name, labelPair.GetName(), labelPair.GetValue())
@@ -178,7 +180,7 @@ func makeRegisteredName(metric *dto.Metric, metricName string) string {
 
 // PrometheusHTTPExposer handles exposing a given exporter through http
 type PrometheusHTTPExposer struct {
-	exporter Exporter
+	exporter mxd_exp.Exporter
 }
 
 // NewPrometheusHTTPExposer returns a new exposer for a given exporter

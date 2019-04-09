@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/stretchr/testify/assert"
 )

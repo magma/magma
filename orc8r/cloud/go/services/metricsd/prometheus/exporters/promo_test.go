@@ -1,18 +1,20 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package exporters_test
 
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/exporters/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	"magma/orc8r/cloud/go/services/metricsd/test_common"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
@@ -50,11 +52,11 @@ func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config ex
 	exporter.(*exporters.PrometheusExporter).Registry = registry
 
 	serviceLabelPair := dto.LabelPair{
-		Name:  makeStringPointer(exporters.SERVICE_LABEL_NAME),
-		Value: makeStringPointer("testService"),
+		Name:  test_common.MakeStringPointer(mxd_exp.SERVICE_LABEL_NAME),
+		Value: test_common.MakeStringPointer("testService"),
 	}
-	family := makeTestMetricFamily(metricType, 1, []*dto.LabelPair{&serviceLabelPair})
-	context := exporters.MetricsContext{
+	family := test_common.MakeTestMetricFamily(metricType, 1, []*dto.LabelPair{&serviceLabelPair})
+	context := mxd_exp.MetricsContext{
 		NetworkID:         "nID",
 		GatewayID:         "gID",
 		OriginatingEntity: "entity",
@@ -63,7 +65,7 @@ func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config ex
 
 	registry.On("Register", mock.Anything).Return(nil)
 	// Registering a new metric should not throw error
-	err := exporter.Submit([]exporters.MetricAndContext{{Family: family, Context: context}})
+	err := exporter.Submit([]mxd_exp.MetricAndContext{{Family: family, Context: context}})
 	assert.NoError(t, err)
 	registry.AssertCalled(t, "Register", mock.Anything)
 
@@ -86,7 +88,7 @@ func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config ex
 	registry.Calls = []mock.Call{}
 
 	// Updating existing metric should not throw error
-	err = exporter.Submit([]exporters.MetricAndContext{{Family: family, Context: context}})
+	err = exporter.Submit([]mxd_exp.MetricAndContext{{Family: family, Context: context}})
 	assert.NoError(t, err)
 	// Register() should not have been called, should have updated instead
 	registry.AssertNotCalled(t, "Register", mock.Anything)

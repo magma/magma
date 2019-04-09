@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package exporters_test
 
@@ -14,7 +14,8 @@ import (
 	"strconv"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	"magma/orc8r/cloud/go/services/metricsd/test_common"
 
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
@@ -81,7 +82,7 @@ func testGaugeRegisterHelper(t *testing.T, config exporters.PrometheusExporterCo
 	g := exporters.NewPrometheusGauge()
 
 	testGaugeValue := 123.0
-	gauge := makePromoGauge(testGaugeValue)
+	gauge := test_common.MakePromoGauge(testGaugeValue)
 	g.Register(&gauge, "testGauge", exporter, labels)
 
 	metrics, err := exporter.Registry.(*prometheus.Registry).Gather()
@@ -93,7 +94,7 @@ func testGaugeRegisterHelper(t *testing.T, config exporters.PrometheusExporterCo
 func testGaugeUpdateHelper(t *testing.T, config exporters.PrometheusExporterConfig, labels prometheus.Labels) {
 	exporter := exporters.NewPrometheusExporter(defaultConfig).(*exporters.PrometheusExporter)
 	g := exporters.NewPrometheusGauge()
-	gauge := makePromoGauge(0.0)
+	gauge := test_common.MakePromoGauge(0.0)
 
 	g.Register(&gauge, "testGauge", exporter, testNetworkLabels)
 
@@ -112,7 +113,7 @@ func testCounterRegisterHelper(t *testing.T, config exporters.PrometheusExporter
 	c := exporters.NewPrometheusCounter(exporter)
 
 	testValue := 123.0
-	counter := makePromoCounter(testValue)
+	counter := test_common.MakePromoCounter(testValue)
 	c.Register(&counter, "testCounter", exporter, testNetworkLabels)
 
 	metrics, err := exporter.Registry.(*prometheus.Registry).Gather()
@@ -125,7 +126,7 @@ func testCounterUpdateHelper(t *testing.T, config exporters.PrometheusExporterCo
 	exporter := exporters.NewPrometheusExporter(defaultConfig).(*exporters.PrometheusExporter)
 	c := exporters.NewPrometheusCounter(exporter)
 
-	counter := makePromoCounter(0.0)
+	counter := test_common.MakePromoCounter(0.0)
 	c.Register(&counter, "testCounter", exporter, testNetworkLabels)
 
 	updatedValue := 123.0
@@ -156,7 +157,7 @@ func testSummaryRegisterHelper(t *testing.T, config exporters.PrometheusExporter
 
 	objectives := map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
 	observations := []float64{0.5, 0.6, 0.7}
-	summary := makePromoSummary(objectives, observations)
+	summary := test_common.MakePromoSummary(objectives, observations)
 
 	metricName := "testSummary"
 	s.Register(&summary, metricName, exporter, testNetworkLabels)
@@ -172,7 +173,7 @@ func testSummaryUpdateHelper(t *testing.T, config exporters.PrometheusExporterCo
 
 	objectives := map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
 	observations := []float64{0.5, 0.6, 0.7}
-	summary := makePromoSummary(objectives, observations)
+	summary := test_common.MakePromoSummary(objectives, observations)
 
 	metricName := "testSummary"
 	s.Register(&summary, metricName, exporter, testNetworkLabels)
@@ -181,7 +182,7 @@ func testSummaryUpdateHelper(t *testing.T, config exporters.PrometheusExporterCo
 	for _, obs := range newObservations {
 		observations = append(observations, obs)
 	}
-	updatedSummary := makePromoSummary(objectives, observations)
+	updatedSummary := test_common.MakePromoSummary(objectives, observations)
 	s.Update(&updatedSummary, testNetworkLabels)
 
 	metrics, err := exporter.Registry.(*prometheus.Registry).Gather()
@@ -222,7 +223,7 @@ func testHistogramRegisterHelper(t *testing.T, config exporters.PrometheusExport
 
 	buckets := []float64{1.0, 5.0, 10.0}
 	observations := []float64{0.5, 0.8, 2.0, 7.2, 9.2}
-	histogram := makePromoHistogram(buckets, observations)
+	histogram := test_common.MakePromoHistogram(buckets, observations)
 
 	h.Register(&histogram, metricBaseName, exporter, labels)
 
@@ -240,7 +241,7 @@ func testHistogramUpdateHelper(t *testing.T, config exporters.PrometheusExporter
 
 	buckets := []float64{1.0, 5.0, 10.0}
 	observations := []float64{0.5, 0.8, 2.0, 7.2, 9.2}
-	histogram := makePromoHistogram(buckets, observations)
+	histogram := test_common.MakePromoHistogram(buckets, observations)
 
 	h.Register(&histogram, metricBaseName, exporter, labels)
 
@@ -248,7 +249,7 @@ func testHistogramUpdateHelper(t *testing.T, config exporters.PrometheusExporter
 	for _, obs := range newObservations {
 		observations = append(observations, obs)
 	}
-	updatedHistogram := makePromoHistogram(buckets, observations)
+	updatedHistogram := test_common.MakePromoHistogram(buckets, observations)
 
 	h.Update(&updatedHistogram, labels)
 	metrics, err := exporter.Registry.(*prometheus.Registry).Gather()

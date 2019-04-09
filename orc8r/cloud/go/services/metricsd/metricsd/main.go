@@ -36,9 +36,9 @@ func main() {
 	flag.StringVar(
 		&profileArg,
 		"profile",
-		pluginimpl.ProfileNameController,
+		pluginimpl.ProfileNamePrometheus,
 		"Name of the profile to start metricsd with. Determines which collectors and exporters will run. "+
-			"Valid options are sys, controller, and prometheus. Default value is controller",
+			"Default value is Prometheus",
 	)
 
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, metricsd.ServiceName)

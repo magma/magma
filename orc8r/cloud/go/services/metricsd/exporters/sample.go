@@ -57,6 +57,14 @@ func (s *Sample) Value() string {
 	return s.value
 }
 
+func (s *Sample) Entity() string {
+	return s.entity
+}
+
+func (s *Sample) TimestampMs() int64 {
+	return s.timestampMs
+}
+
 // GetSamplesForMetrics takes a Metric protobuf and extracts Samples from them
 // since there may be multiple Samples per a single Metric instance
 func GetSamplesForMetrics(name string,
