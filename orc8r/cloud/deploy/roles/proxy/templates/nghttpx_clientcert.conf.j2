@@ -7,6 +7,9 @@
 #
 
 # Listening interfaces
+frontend=0.0.0.0,9443
+frontend=::,9443
+# TODO: remove 443 after migrating the existing load balancers
 frontend=0.0.0.0,443
 frontend=::,443
 
@@ -22,25 +25,24 @@ mruby-file=/etc/nghttpx/magma_headers.rb
 
 # Magma services
 {% for backend in proxy_backends.split(',') -%}
+
+# Send gRPC requests to individual services
 {% for service, value in service_registry.items() -%}
 {% if value['proxy_type'] == "clientcert" -%}
 backend={{ backend }},{{ value.port }};{{ service }}.cloud;proto=h2;no-tls;dns
 backend={{ backend }},{{ value.port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
 {% endif %}
 {% if "proxy_aliases" in value -%}
-# FeG services for {{ service }}
 {% for alias, map in value["proxy_aliases"].items() -%}
 backend={{ backend }},{{ map.port }};{{ alias }}.cloud;proto=h2;no-tls;dns
 backend={{ backend }},{{ map.port }};{{ alias }}-{{ controller_hostname }};proto=h2;no-tls;dns
 {% endfor -%}
-# End of FeG services for {{ service }}
 {% endif -%}
 {% endfor -%}
-# Send API requests to obsidian
-backend={{ backend }},{{obsidian_port}};{{ api_hostname }};no-tls;dns
-# Nghttp can't send a direct error for other unknown requests.
-# Blackhole all other requests to default port, which is not used by any service.
-backend={{ backend }},{{default_port}};;no-tls;dns
+
+# Send API requests to obsidian. By default, any other requests would also
+# be sent to obsidian.
+backend={{ backend }},{{obsidian_port}};;no-tls;dns
 {% endfor -%}
 
 # Proxy configs

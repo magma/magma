@@ -178,10 +178,8 @@ Magma provides an UI for configuring and monitoring the networks. To run the UI,
 
 ```console
 HOST [magma]$ cd nms/fbcnms-projects/magmalte
-HOST [magma/nms/fbcnms-projects/magmalte] $
-docker-compose up -d
-HOST [magma/nms/fbcnms-projects/magmalte] $
-docker-compose run magmalte yarn run setAdminPassword admin@magma.test password1234
+HOST [magma/nms/fbcnms-projects/magmalte] $ docker-compose up -d
+HOST [magma/nms/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting [https://localhost](https://localhost), and using the email `admin@magma.test` and password `password1234`. If you see Gateway Error 502, don't worry, the NMS can take upto 60 seconds to finish starting up.

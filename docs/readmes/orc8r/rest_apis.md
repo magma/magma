@@ -20,7 +20,7 @@ it.
 Linux/Windows users should replace the above steps with the system-appropriate
 method to import a client cert.
 
-You can access the orchestrator REST API at https://192.168.80.10:9443/apidocs.
+You can access the orchestrator REST API at https://127.0.0.1:9443/apidocs.
 The SSL cert is self-signed, so click through any security warnings your
 browser gives you. You should be prompted for a client cert, at which point
 you should select the `admin_operator` cert that you added to Keychain above.

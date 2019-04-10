@@ -13,9 +13,8 @@ services:
     volumes:
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
     ports:
-      - 443:443/tcp
-      - 8443:8443/tcp
-      - 8444:9443/tcp
+      - 9443:9443/tcp  # API/controller port
+      - 9444:9444/tcp  # Bootstrapper port
 
   controller:
     volumes:
