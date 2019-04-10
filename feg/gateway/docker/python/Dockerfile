@@ -53,6 +53,7 @@ RUN apt-get -y update && apt-get -y install \
   libssl-dev \
   libsystemd-dev \
   magma-nghttpx=1.31.1-1 \
+  net-tools \
   openssl \
   pkg-config \
   python-cffi \

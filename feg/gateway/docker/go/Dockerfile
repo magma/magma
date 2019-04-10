@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -y \
     libsystemd-dev \
     magma-nghttpx=1.31.1-1 \
     make \
+    net-tools \
     pkg-config \
     python-cffi \
     python3-pip \

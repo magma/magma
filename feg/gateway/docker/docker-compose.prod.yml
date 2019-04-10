@@ -14,8 +14,8 @@ services:
     restart: always
     network_mode: host
     extra_hosts: &hosts_anchor
-      - controller.magma.test:192.168.80.10
-      - bootstrapper-controller.magma.test:192.168.80.10
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
     command: >
       sh -c "python3 /tmp/orc8r/scripts/generate_nghttpx_config.py &&
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"

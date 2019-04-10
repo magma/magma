@@ -25,6 +25,6 @@ services:
     cap_add:
       - SYS_ADMIN
     extra_hosts:
-      - controller.magma.test:192.168.80.10
-      - bootstrapper-controller.magma.test:192.168.80.10
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
     command: /sbin/init && tail -f /dev/null
