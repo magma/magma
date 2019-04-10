@@ -12,10 +12,10 @@ import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import {Strategy as LocalStrategy} from 'passport-local';
 import {Strategy as FacebookStrategy} from 'passport-facebook';
-import {UserVerificationTypes} from './types';
 
 import {injectOrganizationParams} from './organization';
 
+import type {StaticUserModel} from '@fbcnms/sequelize-models/models/user';
 import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
 type OutputRequest<T> = {
   logIn: (T, (err?: ?Error) => void) => void,
@@ -29,7 +29,7 @@ type OutputRequest<T> = {
 export type FBCNMSPassportRequest = OutputRequest<Object>;
 
 type PassportConfig = {
-  UserModel: any,
+  UserModel: StaticUserModel,
   facebookLogin?: {
     appId: string,
     appSecret: string,
@@ -75,13 +75,6 @@ function use(config: PassportConfig) {
             });
           }
 
-          if (
-            user.verificationType &&
-            user.verificationType != UserVerificationTypes.PASSWORD
-          ) {
-            return done(null, false, {message: 'Wrong verification type'});
-          }
-
           if (await bcrypt.compare(password, user.password)) {
             done(null, user);
           } else {
@@ -113,13 +106,6 @@ function use(config: PassportConfig) {
             const user = await getUserFromRequest(req, email);
             if (!user) {
               return done(null, false, {message: 'User not authorized'});
-            }
-
-            if (
-              !user.verificationType ||
-              user.verificationType != UserVerificationTypes.FACEBOOK
-            ) {
-              return done(null, false, {message: 'Wrong verification type'});
             }
 
             done(null, user, {message: 'User logged in'});

@@ -10,6 +10,10 @@
 
 import Sequelize from 'sequelize';
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
+import type {
+  StaticOrganizationModel,
+  OrganizationType,
+} from '@fbcnms/sequelize-models/models/organization';
 
 function getSubdomainList(host: ?string): Array<string> {
   if (!host) {
@@ -24,8 +28,8 @@ function getSubdomainList(host: ?string): Array<string> {
 
 export async function getOrganization(
   req: {get(field: string): string | void},
-  OrganizationModel: any,
-): Object {
+  OrganizationModel: StaticOrganizationModel,
+): Promise<OrganizationType> {
   const host = req.get('host') || 'UNKNOWN_HOST';
   let org = await OrganizationModel.findOne({
     where: Sequelize.fn(
@@ -55,11 +59,17 @@ export async function getOrganization(
 }
 
 // We don't depend on organization to be there in other modules.
-export type OrganizationRequestPart = {organization: () => Promise<Object>};
+export type OrganizationRequestPart = {
+  organization: () => Promise<OrganizationType>,
+};
 export type OrganizationMiddlewareRequest = ExpressRequest &
   $Shape<OrganizationRequestPart>;
 
-export function organizationMiddleware({model}: {model: any}) {
+export function organizationMiddleware({
+  model,
+}: {
+  model: StaticOrganizationModel,
+}) {
   return (
     req: OrganizationMiddlewareRequest,
     res: ExpressResponse,

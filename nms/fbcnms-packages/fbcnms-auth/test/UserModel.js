@@ -10,7 +10,6 @@
 
 import {AccessRoles} from '../roles';
 import bcrypt from 'bcryptjs';
-import {UserVerificationTypes} from '../types';
 
 export const USERS = [
   {
@@ -19,7 +18,6 @@ export const USERS = [
     organization: 'validorg',
     role: AccessRoles.USER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
-    verificationType: UserVerificationTypes.PASSWORD,
   },
   {
     id: '2',
@@ -27,7 +25,6 @@ export const USERS = [
     organization: 'nottakenintoconsideration',
     role: AccessRoles.USER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
-    verificationType: UserVerificationTypes.PASSWORD,
   },
   {
     id: '3',
@@ -35,7 +32,6 @@ export const USERS = [
     organization: 'validorg',
     role: AccessRoles.SUPERUSER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
-    verificationType: UserVerificationTypes.PASSWORD,
   },
 ];
 

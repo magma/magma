@@ -8,7 +8,8 @@
  * @format
  */
 
-export const UserRoles = {
-  USER: 0,
-  SUPERUSER: 3,
+import type {Model} from 'sequelize';
+
+export type AssociateProp = {
+  associate: ({[string]: Class<Model<Object>>}) => void,
 };
