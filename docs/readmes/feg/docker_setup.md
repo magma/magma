@@ -31,7 +31,7 @@ folder. That folder is mounted into the appropriate containers.
 
 Follow these steps to run the FeG in a docker container for development:
 1. `cd magma/feg/gateway/docker`
-2. `docker-compose -f docker-compose.dev.yml up -d`
+2. `docker-compose up -d`
 3. `docker exec -ti feg /bin/bash`
 
 Now, your shell should be inside a container with the source code
@@ -58,3 +58,11 @@ To manage the containers the following commands are useful:
 * `docker-compose -f docker-compose.prod.yml logs -f` (tail logs of all containers)
 * `docker logs -f <service name>` (tail logs of a particular service)
 * `docker-compose -f docker-compose.prod.yml down` (stop all services)
+
+## Publishing the images
+
+To push the production images to a private docker registry, use the following script:
+```
+[/magma/feg/gateway/docker]$ ../../../orc8r/tools/docker/publish.sh -r <REGISTRY> -i gateway_python
+[/magma/feg/gateway/docker]$ ../../../orc8r/tools/docker/publish.sh -r <REGISTRY> -i gateway_go
+```

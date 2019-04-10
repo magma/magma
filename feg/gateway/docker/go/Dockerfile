@@ -101,7 +101,7 @@ RUN make -C $MAGMA_ROOT/feg/gateway build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS magma_feg_go
+FROM ubuntu:xenial AS gateway_go
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools

@@ -3,7 +3,7 @@ version: "3.7"
 services:
   feg:
     container_name: feg
-    image: magma_feg_go_base
+    image: feg_gateway_go_base
     build:
       target: base
       context: ../../../

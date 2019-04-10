@@ -32,7 +32,7 @@ RUN make -C $MAGMA_ROOT/lte/gateway/python protos
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS magma_feg_python
+FROM ubuntu:xenial AS gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
