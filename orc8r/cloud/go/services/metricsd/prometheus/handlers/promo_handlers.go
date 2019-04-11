@@ -12,7 +12,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
@@ -20,6 +19,7 @@ import (
 	"github.com/prometheus/common/model"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/labstack/echo"
@@ -33,15 +33,7 @@ const (
 	QueryURL      = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + queryPart
 	QueryRangeURL = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + queryRangePart
 
-	paramQuery      = "query"
-	paramRangeStart = "start"
-	paramRangeEnd   = "end"
-	paramStepWidth  = "step"
-	paramTime       = "time"
-
 	defaultStepWidth = "15s"
-
-	statusSuccess = "success"
 )
 
 func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
@@ -56,9 +48,9 @@ func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
 
 func prometheusQuery(c echo.Context, query string, apiClient v1.API) error {
 	defaultTime := time.Now()
-	queryTime, err := parseTime(c.QueryParam(paramTime), &defaultTime)
+	queryTime, err := utils.ParseTime(c.QueryParam(utils.ParamTime), &defaultTime)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", paramTime, err), http.StatusBadRequest)
+		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamTime, err), http.StatusBadRequest)
 	}
 
 	res, err := apiClient.Query(context.Background(), query, queryTime)
@@ -79,20 +71,20 @@ func GetPrometheusQueryRangeHandler(api v1.API) func(c echo.Context) error {
 }
 
 func prometheusQueryRange(c echo.Context, query string, apiClient v1.API) error {
-	startTime, err := parseTime(c.QueryParam(paramRangeStart), nil)
+	startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), nil)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", paramRangeEnd, err), http.StatusBadRequest)
+		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
 	defaultTime := time.Now()
-	endTime, err := parseTime(c.QueryParam(paramRangeEnd), &defaultTime)
+	endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &defaultTime)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", paramRangeEnd, err), http.StatusBadRequest)
+		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
-	step, err := parseDuration(c.QueryParam(paramStepWidth), defaultStepWidth)
+	step, err := utils.ParseDuration(c.QueryParam(utils.ParamStepWidth), defaultStepWidth)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", paramRangeEnd, err), http.StatusBadRequest)
+		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 	timeRange := v1.Range{Start: startTime, End: endTime, Step: step}
 
@@ -105,7 +97,7 @@ func prometheusQueryRange(c echo.Context, query string, apiClient v1.API) error 
 
 func wrapPrometheusResult(res model.Value) PromQLResultStruct {
 	dataStruct := PromQLDataStruct{ResultType: res.Type().String(), Result: res}
-	return PromQLResultStruct{Status: statusSuccess, Data: dataStruct}
+	return PromQLResultStruct{Status: utils.StatusSuccess, Data: dataStruct}
 }
 
 func preparePrometheusQuery(c echo.Context) (string, error) {
@@ -114,7 +106,7 @@ func preparePrometheusQuery(c echo.Context) (string, error) {
 		return "", nerr
 	}
 
-	restrictedQuery, err := preprocessQuery(c.QueryParam(paramQuery), networkID)
+	restrictedQuery, err := preprocessQuery(c.QueryParam(utils.ParamQuery), networkID)
 	if err != nil {
 		return "", err
 	}
@@ -126,39 +118,6 @@ func preprocessQuery(query, networkID string) (string, error) {
 	restrictedLabels := map[string]string{exporters.NetworkLabelInstance: networkID}
 	restrictor := security.NewQueryRestrictor(restrictedLabels)
 	return restrictor.RestrictQuery(query)
-}
-
-func parseTime(timeString string, defaultTime *time.Time) (time.Time, error) {
-	if timeString == "" {
-		if defaultTime != nil {
-			return *defaultTime, nil
-		}
-		return time.Time{}, fmt.Errorf("time parameter not provided")
-	}
-	time, err := parseUnixTime(timeString)
-	if err == nil {
-		return time, nil
-	}
-	return parseRFCTime(timeString)
-}
-
-func parseUnixTime(timeString string) (time.Time, error) {
-	timeNum, err := strconv.ParseFloat(timeString, 64)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return time.Unix(int64(timeNum), 0), nil
-}
-
-func parseRFCTime(timeString string) (time.Time, error) {
-	return time.Parse(time.RFC3339, timeString)
-}
-
-func parseDuration(durationString, defaultDuration string) (time.Duration, error) {
-	if durationString == "" {
-		durationString = defaultDuration
-	}
-	return time.ParseDuration(durationString)
 }
 
 // PromQLResultStruct carries all of the data of the full prometheus API result

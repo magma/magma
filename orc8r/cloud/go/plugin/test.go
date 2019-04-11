@@ -30,6 +30,7 @@ var testMetricsConfigMap = &config.ConfigMap{
 		confignames.PrometheusPushgatewayAddress: "",
 		confignames.GraphiteAddress:              "",
 		confignames.GraphiteReceivePort:          0,
+		confignames.GraphiteQueryPort:            0,
 	},
 }
 

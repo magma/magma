@@ -55,6 +55,7 @@ const (
 	MAGMA_OPERATORS_URL_PART  = "operators"
 	MAGMA_CHANNELS_URL_PART   = "channels"
 	MAGMA_PROMETHEUS_URL_PART = "prometheus"
+	MAGMA_GRAPHITE_URL_PART   = "graphite"
 	// "/magma"
 	REST_ROOT = URL_SEP + MAGMA_URL_ROOT
 	// "/magma/networks"
@@ -64,7 +65,9 @@ const (
 	// "/magma/channels"
 	CHANNELS_ROOT = REST_ROOT + URL_SEP + MAGMA_CHANNELS_URL_PART
 	// "/magma/network/{network_id}/prometheus
-	PROMETHEUS_ROOT  = REST_ROOT + URL_SEP + "networks" + URL_SEP + ":network_id" + URL_SEP + MAGMA_PROMETHEUS_URL_PART
+	PROMETHEUS_ROOT = REST_ROOT + URL_SEP + "networks" + URL_SEP + ":network_id" + URL_SEP + MAGMA_PROMETHEUS_URL_PART
+	// "/magma/network/{network_id}/graphite
+	GRAPHITE_ROOT    = REST_ROOT + URL_SEP + "networks" + URL_SEP + ":network_id" + URL_SEP + MAGMA_GRAPHITE_URL_PART
 	WILDCARD         = "*"
 	NETWORK_WILDCARD = "N*"
 )
