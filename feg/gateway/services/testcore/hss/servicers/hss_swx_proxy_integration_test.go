@@ -6,6 +6,7 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/swx_proxy/cache"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
@@ -21,7 +22,7 @@ func TestMAR_Successful(t *testing.T) {
 
 func testMARSuccessful(t *testing.T, verifyAuthorization bool) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, verifyAuthorization)
+	swxProxy := getTestSwxProxy(t, hss, verifyAuthorization, false)
 	mar := &fegprotos.AuthenticationRequest{
 		UserName:             "sub1",
 		SipNumAuthVectors:    5,
@@ -49,7 +50,7 @@ func TestMAR_AuthRejected(t *testing.T) {
 	_, err = hss.UpdateSubscriber(context.Background(), subscriber)
 	assert.NoError(t, err)
 
-	swxProxy := getTestSwxProxy(t, hss, true)
+	swxProxy := getTestSwxProxy(t, hss, true, true)
 	mar := &fegprotos.AuthenticationRequest{
 		UserName:             "sub1",
 		SipNumAuthVectors:    5,
@@ -63,7 +64,7 @@ func TestMAR_AuthRejected(t *testing.T) {
 
 func TestMAR_UnknownIMSI(t *testing.T) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, false)
+	swxProxy := getTestSwxProxy(t, hss, false, true)
 	mar := &fegprotos.AuthenticationRequest{
 		UserName:             "sub_unknown",
 		SipNumAuthVectors:    1,
@@ -77,7 +78,7 @@ func TestMAR_UnknownIMSI(t *testing.T) {
 
 func TestSAR_SuccessfulRegistration(t *testing.T) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, false)
+	swxProxy := getTestSwxProxy(t, hss, false, true)
 	sar := &fegprotos.RegistrationRequest{UserName: "sub1"}
 	_, err := swxProxy.Register(context.Background(), sar)
 	assert.NoError(t, err)
@@ -85,7 +86,7 @@ func TestSAR_SuccessfulRegistration(t *testing.T) {
 
 func TestSAR_UnknownIMSI(t *testing.T) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, false)
+	swxProxy := getTestSwxProxy(t, hss, false, true)
 	sar := &fegprotos.RegistrationRequest{UserName: "sub_unknown"}
 	_, err := swxProxy.Register(context.Background(), sar)
 	assert.EqualError(t, err, "rpc error: code = Code(5001) desc = Diameter Error: 5001 (USER_UNKNOWN)")
@@ -93,7 +94,7 @@ func TestSAR_UnknownIMSI(t *testing.T) {
 
 // getTestSwxProxy creates a SWx Proxy server and test HSS Diameter
 // server which are configured to communicate with each other.
-func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthorization bool) fegprotos.SwxProxyServer {
+func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthr, wCache bool) fegprotos.SwxProxyServer {
 	serverCfg := hss.Config.Server
 
 	// Create an swx proxy server.
@@ -118,9 +119,13 @@ func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthoriz
 	swxProxyConfig := &swx.SwxProxyConfig{
 		ClientCfg:           clientCfg,
 		ServerCfg:           diameterServerCfg,
-		VerifyAuthorization: verifyAuthorization,
+		VerifyAuthorization: verifyAuthr,
 	}
-	swxProxy, err := swx.NewSwxProxy(swxProxyConfig)
+	var vc *cache.Impl
+	if wCache {
+		vc = cache.New()
+	}
+	swxProxy, err := swx.NewSwxProxyWithCache(swxProxyConfig, vc)
 	assert.NoError(t, err)
 	return swxProxy
 }
