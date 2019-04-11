@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package handlers
 
@@ -27,12 +27,11 @@ import (
 )
 
 const (
-	prometheusAddressEnv = "PROMETHEUS_ADDRESS"
-
 	queryPart      = "query"
 	queryRangePart = "query_range"
-	queryURL       = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + queryPart
-	queryRangeURL  = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + queryRangePart
+
+	QueryURL      = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + queryPart
+	QueryRangeURL = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + queryRangePart
 
 	paramQuery      = "query"
 	paramRangeStart = "start"
@@ -45,13 +44,7 @@ const (
 	statusSuccess = "success"
 )
 
-func getInitErrorHandler(err error) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		return handlers.HttpError(fmt.Errorf("initialization Error: %v", err), 500)
-	}
-}
-
-func getPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
+func GetPrometheusQueryHandler(api v1.API) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		restrictedQuery, err := preparePrometheusQuery(c)
 		if err != nil {
@@ -75,7 +68,7 @@ func prometheusQuery(c echo.Context, query string, apiClient v1.API) error {
 	return c.JSON(http.StatusOK, wrapPrometheusResult(res))
 }
 
-func getPrometheusQueryRangeHandler(api v1.API) func(c echo.Context) error {
+func GetPrometheusQueryRangeHandler(api v1.API) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		restrictedQuery, err := preparePrometheusQuery(c)
 		if err != nil {
