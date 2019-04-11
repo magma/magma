@@ -6,7 +6,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-profile: "prometheus"
+profile: "default"
 prometheusAddress: "http://192.168.80.50:9090"
 prometheusPushgatewayAddress: "http://192.168.80.50:9091"
 

@@ -25,8 +25,6 @@ import (
 )
 
 const (
-	CloudMetricID = "cloud"
-
 	PromoHTTPEndpoint = "/metrics"
 	PromoHTTPPort     = 8080
 
