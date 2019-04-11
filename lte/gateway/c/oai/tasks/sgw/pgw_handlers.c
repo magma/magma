@@ -485,8 +485,8 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     while (node) {
       num_elements++;
       hashtable_ts_get(
@@ -589,8 +589,8 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     while (node) {
       num_elements++;
       hashtable_ts_get(
