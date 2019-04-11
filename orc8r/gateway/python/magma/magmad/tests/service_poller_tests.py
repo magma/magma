@@ -9,12 +9,16 @@ of patent rights can be found in the PATENTS file in the same directory.
 import asyncio
 import unittest
 import unittest.mock
+import grpc
 
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import ServiceInfo
-
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.service_poller import ServicePoller
+
+# Allow access to protected variables for unit testing
+# pylint: disable=protected-access
+SP = "magma.magmad.service_poller"
 
 
 class MockFuture(object):
@@ -49,42 +53,52 @@ class ServicePollerTests(unittest.TestCase):
             'non_service303_services': ['test2']
         }
         self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
         self._service_poller = ServicePoller(self._loop, config)
 
-    @unittest.mock.patch('magma.magmad.service_poller.Service303Stub')
+    @unittest.mock.patch('%s.Service303Stub' % SP)
     @unittest.mock.patch('magma.configuration.service_configs')
     def test_poll(self, _service_configs_mock, service303_mock):
         """
         Test if the query to Service303 succeeds.
         """
-        # Mock out GetServiceInfo.future
-        mock = unittest.mock.Mock()
-        mock.GetServiceInfo.future.side_effect = [unittest.mock.Mock()]
-        service303_mock.side_effect = [mock]
+        async def test():
+            # Mock out GetServiceInfo.future
+            mock = unittest.mock.Mock()
+            service_info_future = asyncio.Future()
+            service_info_future.set_result(ServiceInfo())
+            mock.GetServiceInfo.future.side_effect = [service_info_future]
+            service303_mock.side_effect = [mock]
 
-        self._service_poller.start()
-        mock.GetServiceInfo.future.assert_called_once_with(
-            Void(), self._service_poller.GET_STATUS_TIMEOUT)
-        # pylint: disable=protected-access
-        self._service_poller._get_service_info_done('test1', MockFuture(False))
+            await self._service_poller._get_service_info()
 
-    @unittest.mock.patch('magma.magmad.service_poller.Service303Stub')
+            mock.GetServiceInfo.future.assert_called_once_with(
+                Void(), self._service_poller.GET_STATUS_TIMEOUT)
+        self._loop.run_until_complete(test())
+
+    @unittest.mock.patch('%s.Service303Stub' % SP)
     @unittest.mock.patch('magma.configuration.service_configs')
     def test_poll_exception(self, _service_configs_mock, service303_mock):
         """
         Test if the query to Service303 fails and handled gracefully.
         """
-        # Mock out GetServiceInfo.future
-        mock = unittest.mock.Mock()
-        mock.GetServiceInfo.future.side_effect = [unittest.mock.Mock()]
-        service303_mock.side_effect = [mock]
+        def fake_add_done(f):
+            raise grpc.RpcError("Test Exception")
 
-        self._service_poller.start()
-        mock.GetServiceInfo.future.assert_called_once_with(
-            Void(), self._service_poller.GET_STATUS_TIMEOUT)
-        # pylint: disable=protected-access
-        self._service_poller._get_service_info_done('test1', MockFuture(True))
+        async def test():
+            # Mock out GetServiceInfo.future
+            mock = unittest.mock.Mock()
+            service_info_future = asyncio.Future()
+            # Force an exception to happen
+            service_info_future.add_done_callback = fake_add_done
+            mock.GetServiceInfo.future.side_effect = [service_info_future]
+            service303_mock.side_effect = [mock]
 
+            await self._service_poller._get_service_info()
+
+            mock.GetServiceInfo.future.assert_called_once_with(
+                Void(), self._service_poller.GET_STATUS_TIMEOUT)
+        self._loop.run_until_complete(test())
 
 if __name__ == "__main__":
     unittest.main()
