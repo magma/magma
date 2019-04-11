@@ -16,7 +16,7 @@ files:
     destination: /var/opt/magma/bin
 hooks:
   BeforeInstall:
-    - location: scripts/prepare_prometheus_server
+    - location: scripts/prepare_metrics_server
       timeout: 300
       runas: root
   AfterInstall:

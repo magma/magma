@@ -7,9 +7,10 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 
-- name: Set up prometheus instance
+- name: Set up metrics instance
   hosts: localhost
   become: yes
 
   roles:
     - { role: prometheus }
+    - { role: graphite, vars: {graphite_cache_graphite_url: 'http://127.0.0.1:8080'}}
