@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // PromqlResult promql result
@@ -21,6 +22,16 @@ type PromqlResult []*PromqlMetricValue
 // Validate validates this promql result
 func (m PromqlResult) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	iPromqlResultSize := int64(len(m))
+
+	if err := validate.MinItems("", "body", iPromqlResultSize, 2); err != nil {
+		return err
+	}
+
+	if err := validate.MaxItems("", "body", iPromqlResultSize, 2); err != nil {
+		return err
+	}
 
 	for i := 0; i < len(m); i++ {
 		if swag.IsZero(m[i]) { // not required
