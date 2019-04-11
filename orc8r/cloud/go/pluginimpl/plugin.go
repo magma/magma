@@ -27,6 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	graphite_exp "magma/orc8r/cloud/go/services/metricsd/graphite/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
@@ -98,6 +99,8 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 
 const (
 	ProfileNamePrometheus = "prometheus"
+	ProfileNameGraphite   = "graphite"
+	ProfileNameDefault    = "default"
 )
 
 func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
@@ -119,7 +122,25 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		Exporters:  []exporters.Exporter{prometheusPushExporter},
 	}
 
+	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
+	graphiteReceivePort := metricsConfig.GetRequiredIntParam(confignames.GraphiteReceivePort)
+	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort)
+	// Graphite profile - Exports all service metrics to Graphite
+	graphiteProfile := metricsd.MetricsProfile{
+		Name:       ProfileNameGraphite,
+		Collectors: controllerCollectors,
+		Exporters:  []exporters.Exporter{},
+	}
+
+	defaultProfile := metricsd.MetricsProfile{
+		Name:       ProfileNameDefault,
+		Collectors: controllerCollectors,
+		Exporters:  []exporters.Exporter{graphiteExporter, prometheusPushExporter},
+	}
+
 	return []metricsd.MetricsProfile{
 		prometheusProfile,
+		graphiteProfile,
+		defaultProfile,
 	}
 }
