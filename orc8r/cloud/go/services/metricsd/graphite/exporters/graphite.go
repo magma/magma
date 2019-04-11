@@ -27,8 +27,8 @@ import (
 const (
 	exportInterval = time.Second * 30
 
-	networkTagName = "networkID"
-	gatewayTagName = "gatewayID"
+	NetworkTagName = "networkID"
+	GatewayTagName = "gatewayID"
 	defaultNetwork = "defaultNetwork"
 	defaultGateway = "defaultGateway"
 )
@@ -182,19 +182,19 @@ func makeGraphiteName(metric *dto.Metric, ctx exporters.MetricsContext) string {
 		gatewayID = defaultGateway
 	}
 
-	tags := make(tagSet)
-	tags.insert(networkTagName, networkID)
-	tags.insert(gatewayTagName, gatewayID)
+	tags := make(TagSet)
+	tags.Insert(NetworkTagName, networkID)
+	tags.Insert(GatewayTagName, gatewayID)
 
 	for _, labelPair := range labels {
-		tags.insert(labelPair.GetName(), labelPair.GetValue())
+		tags.Insert(labelPair.GetName(), labelPair.GetValue())
 	}
 	return name + tags.String()
 }
 
-type tagSet map[string]string
+type TagSet map[string]string
 
-func (s tagSet) insert(name, value string) {
+func (s TagSet) Insert(name, value string) {
 	if _, ok := s[name]; !ok {
 		s[name] = value
 	}
@@ -202,7 +202,7 @@ func (s tagSet) insert(name, value string) {
 
 // String prints the tagSet sorted by key in a format that can be appended to
 // a graphite metric name
-func (s tagSet) String() string {
+func (s TagSet) String() string {
 	var sortedKeys []string
 
 	for key := range s {

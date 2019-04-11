@@ -16,4 +16,5 @@ const (
 
 	GraphiteAddress     = "graphiteAddress"
 	GraphiteReceivePort = "graphiteReceivePort"
+	GraphiteQueryPort   = "graphiteQueryPort"
 )
