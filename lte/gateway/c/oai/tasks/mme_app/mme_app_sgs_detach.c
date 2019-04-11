@@ -653,7 +653,7 @@ int mme_app_handle_sgs_imsi_detach_ack(
        if the ue requested for combined EPS/IMSI detach
        if the ue is in idle state and requested for IMSI detach
       */
-      OAILOG_ERROR(
+      OAILOG_DEBUG(
         LOG_MME_APP,
         "************Before Sending UE Context Release Cmd to S1ap %d cause "
         "%d\n",
@@ -670,7 +670,7 @@ int mme_app_handle_sgs_imsi_detach_ack(
       } else if (
         ue_context_p->detach_type ==
         SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) {
-        OAILOG_ERROR(
+        OAILOG_DEBUG(
           LOG_MME_APP, "************Sending UE Context Release Cmd to S1ap\n");
         mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
