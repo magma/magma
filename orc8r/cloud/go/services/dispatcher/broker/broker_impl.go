@@ -41,7 +41,7 @@ func NewGatewayReqRespBroker() *GatewayRPCBrokerImpl {
 // caller should time out on respChan.
 func (broker *GatewayRPCBrokerImpl) SendRequestToGateway(
 	gwReq *protos.GatewayRequest,
-) (chan *protos.GatewayResponse, error) {
+) (*GatewayResponseChannel, error) {
 	if gwReq == nil || len(gwReq.GwId) == 0 {
 		return nil, errors.New("gwReq cannot be nil and gwId cannot be empty string")
 	}
@@ -51,7 +51,7 @@ func (broker *GatewayRPCBrokerImpl) SendRequestToGateway(
 	if err := broker.requests.Enqueue(syncRPCReq); err != nil {
 		return nil, err
 	}
-	return respChan, nil
+	return &GatewayResponseChannel{respChan, reqId}, nil
 }
 
 // called by grpc servicer
@@ -72,5 +72,13 @@ func (broker *GatewayRPCBrokerImpl) CleanupGateway(gwId string) error {
 	broker.requests.CleanupQueue(gwId)
 	// todo: the above returns the old queue to cleanup. if receive from the queue, it would race with the receiver
 	// that listens on the queue to send down to the stream, for now forget
+	return nil
+}
+
+func (broker *GatewayRPCBrokerImpl) CancelGatewayRequest(gwId string, reqId uint32) error {
+	syncRPCRequest := &protos.SyncRPCRequest{ReqId: reqId, ReqBody: &protos.GatewayRequest{GwId: gwId}, ConnClosed: true}
+	if err := broker.requests.Enqueue(syncRPCRequest); err != nil {
+		return err
+	}
 	return nil
 }

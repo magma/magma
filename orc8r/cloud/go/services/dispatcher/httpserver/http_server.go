@@ -37,6 +37,9 @@ import (
 
 const (
 	DEFAULT_HTTP_RESPONSE_STATUS = 200
+
+	responseTimeoutSecs = 15
+	maxCancelAttempts   = 5
 )
 
 type SyncRPCHttpServer struct {
@@ -65,23 +68,27 @@ func (server *SyncRPCHttpServer) rootHandler(responseWriter http.ResponseWriter,
 		http2.WriteErrResponse(responseWriter, err)
 		return
 	}
-	// wait for response or timeout
-	select {
-	case gwResponse := <-respChan:
-		err := processResponse(responseWriter, gwResponse)
-		if err != nil {
-			glog.Errorf(err.Msg)
-			http2.WriteErrResponse(responseWriter, err)
-		}
-		return
-	case <-time.After(time.Second * 10):
-		http2.WriteErrResponse(responseWriter,
-			http2.NewHTTPGrpcError("Request timed out",
-				int(codes.DeadlineExceeded),
-				http.StatusRequestTimeout))
-		return
-	}
 
+	// wait for response or timeout
+	for {
+		select {
+		case gwResponse := <-respChan:
+			err := processResponse(responseWriter, gwResponse)
+			if err != nil {
+				glog.Errorf(err.Msg)
+				http2.WriteErrResponse(responseWriter, err)
+			}
+			if isResponseComplete(responseWriter) {
+				return
+			}
+		case <-time.After(time.Second * responseTimeoutSecs):
+			http2.WriteErrResponse(responseWriter,
+				http2.NewHTTPGrpcError("Request timed out",
+					int(codes.DeadlineExceeded),
+					http.StatusRequestTimeout))
+			return
+		}
+	}
 }
 
 func (server *SyncRPCHttpServer) sendRequest(req *http.Request) (chan *protos.GatewayResponse, *http2.HTTPGrpcError) {
@@ -89,13 +96,33 @@ func (server *SyncRPCHttpServer) sendRequest(req *http.Request) (chan *protos.Ga
 	if err != nil {
 		return nil, err
 	}
-	respChan, sendReqErr := server.broker.SendRequestToGateway(gwReq)
+	gwRespChannel, sendReqErr := server.broker.SendRequestToGateway(gwReq)
 	if sendReqErr != nil {
 		errMsg := fmt.Sprintf("err sending request %v to gateway: %v", gwReq, sendReqErr)
-		return nil, http2.NewHTTPGrpcError(errMsg,
-			int(codes.Internal), http.StatusInternalServerError)
+		return nil, http2.NewHTTPGrpcError(errMsg, int(codes.Internal), http.StatusInternalServerError)
 	}
-	return respChan, nil
+
+	// If context is done (connection between client and this HTTP/2 server is closed),
+	// notify the proxy client in gateway to stop receiving frames
+	go func() {
+		<-req.Context().Done()
+		// Attempt to cancel the request up to maxCancelAttempts times. This is
+		// because CancelGatewayRequest may fail if the request queue is full,
+		// in which case the cancel message is not added to the request queue.
+		// Therefore, if we fail to enqueue the cancel message, sleep for a couple
+		// seconds and retry.
+		for cancelAttempts := 0; cancelAttempts < maxCancelAttempts; cancelAttempts++ {
+			err := server.broker.CancelGatewayRequest(gwReq.GwId, gwRespChannel.ReqId)
+			if err == nil {
+				return
+			}
+
+			time.Sleep(5 * time.Second)
+		}
+		glog.Errorf("Could not cancel gateway request after %v attempts", maxCancelAttempts)
+	}()
+
+	return gwRespChannel.RespChan, nil
 }
 
 func createRequest(req *http.Request) (*protos.GatewayRequest, *http2.HTTPGrpcError) {
@@ -176,9 +203,12 @@ func concatenateHeaders(headers []string) string {
 }
 
 func processResponse(w http.ResponseWriter, gwResp *protos.GatewayResponse) *http2.HTTPGrpcError {
-	// remain for backward compatibility, but it shouldn't get forwarded
-	// a nil GatewayResponse in new versions.
+	if gwResp.KeepConnActive {
+		return nil
+	}
 	if gwResp == nil {
+		// Remains for backward compatibility, but it shouldn't get forwarded
+		// a nil GatewayResponse in new versions.
 		errMsg := "nil GatewayResponse"
 		return http2.NewHTTPGrpcError(errMsg,
 			int(codes.Internal), http.StatusInternalServerError)
@@ -194,6 +224,7 @@ func processResponse(w http.ResponseWriter, gwResp *protos.GatewayResponse) *htt
 	if gwResp.Payload != nil {
 		w.Write(gwResp.Payload)
 	}
+	w.(http.Flusher).Flush()
 	if err != nil {
 		// only log, and do not send to client
 		glog.Errorf("%v\n", err)
@@ -216,16 +247,15 @@ func getHttpStatusFromGatewayResponse(gwRespStatus string) (int, error) {
 
 func writeHeadersToResponse(headers map[string]string, w http.ResponseWriter) {
 	// see how to write trailers: https://golang.org/pkg/net/http/#example_ResponseWriter_trailers
-	w.Header().Set("Trailer", "Grpc-Status")
-	w.Header().Add("Trailer", "Grpc-Message")
+	w.Header().Set("Trailer", "Grpc-Status, Grpc-Message")
 	for k, v := range headers {
 		vals := strings.Split(v, ",")
 		for _, val := range vals {
-			if len(w.Header().Get(k)) == 0 {
-				w.Header().Set(k, val)
-			} else {
-				w.Header().Add(k, val)
-			}
+			w.Header().Add(k, val)
 		}
 	}
+}
+
+func isResponseComplete(w http.ResponseWriter) bool {
+	return len(w.Header().Get("Grpc-Status")) != 0
 }
