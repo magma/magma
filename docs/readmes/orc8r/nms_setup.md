@@ -4,11 +4,7 @@ title: Setting up the NMS
 hide_title: true
 ---
 # Setting up the NMS
-The NMS is the UI for managing, configuring, and monitoring networks. To set up the NMS, we will first need to set up a couple of prerequisites.
-
-## Prerequisites
-- Magma must be set up (the NMS needs magma certs for the API)
-- Docker must be installed
+The NMS is the UI for managing, configuring, and monitoring networks. To set up the NMS, we will first need the orc8r to be setup (the NMS needs magma certs for the API).
 
 ## Setup
 By default, the NMS looks for API certs in `magma/.cache/test_certs`, and uses `host.docker.internal:9443` as the API host. If you wish to use different API certs and/or a different API host, you can create a `.env` file within `magma/nms/fbcnms-projects/magmalte` and specify them there.

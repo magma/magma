@@ -1,11 +1,7 @@
 ---
 id: docker_setup
 title: Docker Setup
-hide_title: true
 ---
-# Docker Setup
-*NOTE: Docker support for orc8r is not yet official*
-
 ## Container setup
 
 Orc8r consists of 2 containers: one for the proxy, and one for all the
@@ -13,11 +9,14 @@ controller services. We use supervisord to spin multiple services within
 these containers.
 
 NOTE: The multiple services per container model was adopted to model the
-current Vagrant setup and for easier migration, and we will soon migrate to
+legacy Vagrant setup and for easier migration, and we will soon migrate to
 one container per microservice model which is more appropriate.
 
 For development, we use a postgresql container as the datastore. For
 production, it is advisable to use a hosted solution like AWS RDS.
+
+NOTE: This guide assumes that you are running the commands inside 
+the `magma/orc8r/cloud/docker` directory in your host.
 
 ## How to build the images
 
