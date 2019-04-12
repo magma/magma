@@ -190,18 +190,21 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient) {
 			AuthenticationScheme: protos.AuthenticationScheme_EAP_AKA,
 		}
 		// Authentication Request - MAR
-		authRes, err := client.Authenticate(context.Background(), authReq)
-		if err != nil {
-			t.Fatalf("GRPC MAR Error: %v", err)
-			complChan <- err
-			return
-		}
-		t.Logf("GRPC MAA: %#+v", *authRes)
-		assert.Equal(t, userName, authRes.GetUserName())
-		if len(authRes.SipAuthVectors) != int(numVectors) {
-			t.Errorf("Unexpected Number of SIPAuthVectors: %d, Expected: %d", len(authRes.SipAuthVectors), numVectors)
-		}
-		for i, v := range authRes.SipAuthVectors {
+		// with cache numVectors will be ignored & the proxy will always ask for MinRequestedVectors
+		// and always will return 1 vector
+		for i := uint32(0); i < servicers.MinRequestedVectors; i++ {
+			authRes, err := client.Authenticate(context.Background(), authReq)
+			if err != nil {
+				t.Fatalf("GRPC MAR Error: %v", err)
+				complChan <- err
+				return
+			}
+			t.Logf("GRPC MAA: %#+v", *authRes)
+			assert.Equal(t, userName, authRes.GetUserName())
+			if len(authRes.SipAuthVectors) != 1 {
+				t.Errorf("Unexpected Number of SIPAuthVectors: %d, Expected: %d", len(authRes.SipAuthVectors), 1)
+			}
+			v := authRes.SipAuthVectors[0]
 			assert.Equal(t, protos.AuthenticationScheme_EAP_AKA, v.GetAuthenticationScheme())
 			assert.Equal(t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(i+14))), v.GetRandAutn())
 			assert.Equal(t, []byte(test.DefaultSIPAuthorization), v.GetXres())

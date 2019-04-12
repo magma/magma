@@ -76,6 +76,7 @@ message SwxConfig {
     DiamClientConfig server = 2;
     // Flag to ensure that a user is authorized for Non-3GPP IP Access
     bool verify_authorization = 3;
+    uint32 CacheTTLSeconds = 4;
 }
 
 message GatewayHealthConfig {

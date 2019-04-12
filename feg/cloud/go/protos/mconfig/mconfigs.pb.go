@@ -461,6 +461,7 @@ type SwxConfig struct {
 	Server   *DiamClientConfig `protobuf:"bytes,2,opt,name=server,proto3" json:"server,omitempty"`
 	// Flag to ensure that a user is authorized for Non-3GPP IP Access
 	VerifyAuthorization  bool     `protobuf:"varint,3,opt,name=verify_authorization,json=verifyAuthorization,proto3" json:"verify_authorization,omitempty"`
+	CacheTTLSeconds  uint32     `protobuf:"varint,3,opt,name=cache_TTL_seconds,json=verifyAuthorization,proto3" json:"cache_TTL_seconds,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`

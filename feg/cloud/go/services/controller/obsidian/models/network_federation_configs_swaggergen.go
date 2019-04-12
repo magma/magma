@@ -673,6 +673,9 @@ func (m *NetworkFederationConfigsS6a) UnmarshalBinary(b []byte) error {
 // swagger:model NetworkFederationConfigsSwx
 type NetworkFederationConfigsSwx struct {
 
+	// cache TTL seconds
+	CacheTTLSeconds uint32 `json:"cache_TTL_seconds,omitempty"`
+
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`
 

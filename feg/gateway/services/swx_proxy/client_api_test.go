@@ -15,6 +15,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/swx_proxy"
+	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
 	"magma/feg/gateway/services/swx_proxy/test_init"
 	orcprotos "magma/orc8r/cloud/go/protos"
@@ -48,24 +49,27 @@ func TestSwxProxyClient_VerifyAuthorizationOff(t *testing.T) {
 
 func standardSwxProxyTest(t *testing.T) {
 	expectedUsername := test.BASE_IMSI
-	expectedNumVectors := 5
+	numVectors := 5
 	expectedAuthScheme := protos.AuthenticationScheme_EAP_AKA
 	authReq := &protos.AuthenticationRequest{
 		UserName:             expectedUsername,
-		SipNumAuthVectors:    uint32(expectedNumVectors),
+		SipNumAuthVectors:    uint32(numVectors),
 		AuthenticationScheme: expectedAuthScheme,
 	}
 
-	// Authentication request - MAR
-	authRes, err := swx_proxy.Authenticate(authReq)
-	if err != nil {
-		t.Fatalf("GRPC MAR Error: %v", err)
-		return
-	}
-	t.Logf("GRPC MAA: %#+v", *authRes)
-	assert.Equal(t, expectedUsername, authRes.GetUserName())
-	assert.Equal(t, uint32(expectedNumVectors), authReq.GetSipNumAuthVectors())
-	for i, v := range authRes.SipAuthVectors {
+	// Authentication Request - MAR
+	// with cache numVectors will be ignored & the proxy will always ask for MinRequestedVectors
+	// and always will return 1 vector
+	for i := uint32(0); i < servicers.MinRequestedVectors; i++ {
+		authRes, err := swx_proxy.Authenticate(authReq)
+		if err != nil {
+			t.Fatalf("GRPC MAR Error: %v", err)
+			return
+		}
+		t.Logf("GRPC MAA: %#+v", *authRes)
+		assert.Equal(t, expectedUsername, authRes.GetUserName())
+		assert.Equal(t, 1, len(authRes.GetSipAuthVectors()))
+		v := authRes.SipAuthVectors[0]
 		assert.Equal(t, protos.AuthenticationScheme_EAP_AKA, v.GetAuthenticationScheme())
 		assert.Equal(t, []byte(test.DefaultSIPAuthenticate+strconv.Itoa(int(i+14))), v.GetRandAutn())
 		assert.Equal(t, []byte(test.DefaultSIPAuthorization), v.GetXres())
@@ -86,7 +90,7 @@ func standardSwxProxyTest(t *testing.T) {
 	t.Logf("GRPC SAA: %#+v", *regRes)
 
 	// Test client error handling
-	authRes, err = swx_proxy.Authenticate(nil)
+	authRes, err := swx_proxy.Authenticate(nil)
 	assert.EqualError(t, err, "Invalid AuthenticationRequest provided: request is nil")
 	assert.Nil(t, authRes)
 
