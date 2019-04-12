@@ -143,7 +143,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 	newReq.RequestURI = ""
 	newReq.URL.Scheme = "http"
 	newReq.URL.Host = addr
-	newReq.Header.Set(gateway_registry.GATEWAYID_HEADER_KEY, hwId)
+	newReq.Header.Set(gateway_registry.GatewayIdHeaderKey, hwId)
 	// use service name as authority
 	if auth := strings.Split(req.Host, "-"); len(auth) > 0 {
 		newReq.Host = auth[0]

@@ -134,12 +134,12 @@ func (server *SyncRPCHttpServer) sendRequest(req *http.Request) (chan *protos.Ga
 // createRequest converts a HTTP request to a GatewayRequest.
 func createRequest(req *http.Request) (*protos.GatewayRequest, *http2.HTTPGrpcError) {
 	headers := req.Header
-	gwIds := headers[gateway_registry.GATEWAYID_HEADER_KEY]
+	gwIds := headers[gateway_registry.GatewayIdHeaderKey]
 	if len(gwIds) == 0 || len(gwIds[0]) == 0 {
 		return nil, http2.NewHTTPGrpcError("No Gatewayid provided in metaData", int(codes.InvalidArgument), http.StatusBadRequest)
 	}
 	gwId := gwIds[0]
-	delete(headers, gateway_registry.GATEWAYID_HEADER_KEY)
+	delete(headers, gateway_registry.GatewayIdHeaderKey)
 	authority, err := getAuthority(req.Host)
 	if err != nil {
 		return nil, err

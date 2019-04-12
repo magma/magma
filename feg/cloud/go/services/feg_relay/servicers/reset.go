@@ -79,7 +79,7 @@ func (srv *FegToGwRelayServer) ResetUnverified(
 
 // sendReset - sends reset request to a GW with given hwId, logs errors if any
 func sendReset(hwId string, req *protos.ResetRequest) {
-	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GWS6ASERVICE, hwId)
+	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwS6aService, hwId)
 	if err != nil {
 		glog.Errorf("Reset: unable to get connection to the gateway Hw ID: %s.", hwId)
 		return

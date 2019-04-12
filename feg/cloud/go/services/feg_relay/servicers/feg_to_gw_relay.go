@@ -79,7 +79,7 @@ func getGWSGSServiceConnCtx(ctx context.Context, imsi string) (*grpc.ClientConn,
 		return nil, nil, fmt.Errorf(errorStr)
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(
-		gateway_registry.GWSGSSERVICE, hwId)
+		gateway_registry.GwSgsService, hwId)
 	if err != nil {
 		errorStr := fmt.Sprintf(
 			"unable to get connection to the gateway: %v",
@@ -100,7 +100,7 @@ func getAllGWSGSServiceConnCtx(ctx context.Context) ([]*grpc.ClientConn, []conte
 	}
 	for _, hwId := range hwIds {
 		conn, ctx, err := gateway_registry.GetGatewayConnection(
-			gateway_registry.GWSGSSERVICE,
+			gateway_registry.GwSgsService,
 			hwId,
 		)
 		if err != nil {
