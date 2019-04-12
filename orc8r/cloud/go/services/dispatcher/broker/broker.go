@@ -10,6 +10,11 @@ package broker
 
 import "magma/orc8r/cloud/go/protos"
 
+type GatewayResponseChannel struct {
+	RespChan chan *protos.GatewayResponse
+	ReqId    uint32
+}
+
 // ========================
 // GatewayRPCBroker is the bridge between httpServer and SyncRPC grpc servicer,
 // where httpServer handles requests from the cloud service instances, and grpc servicer talks directly
@@ -17,7 +22,7 @@ import "magma/orc8r/cloud/go/protos"
 // ==========================
 type GatewayRPCBroker interface {
 	// httpServer sends request to a certain gateway, and waits on the response channel for response
-	SendRequestToGateway(gwReq *protos.GatewayRequest) (chan *protos.GatewayResponse, error)
+	SendRequestToGateway(gwReq *protos.GatewayRequest) (*GatewayResponseChannel, error)
 	// receive a SyncRPCResponse from grpc servicer, and send the corresponding GatewayResponse to httpServer
 	ProcessGatewayResponse(response *protos.SyncRPCResponse) error
 	// Initialize the necessary datastructure for a gwId when the gw connects to SyncRPC grpc servicer so the dispatcher
@@ -26,4 +31,6 @@ type GatewayRPCBroker interface {
 	InitializeGateway(gwId string) chan *protos.SyncRPCRequest
 	// Cleanup the data and resources for a gwId when the gw loses SyncRPC connection to the cloud
 	CleanupGateway(gwId string) error
+	// CancelGatewayRequest notifies the gateway to stop handling the request with ID reqId
+	CancelGatewayRequest(gwId string, reqId uint32) error
 }
