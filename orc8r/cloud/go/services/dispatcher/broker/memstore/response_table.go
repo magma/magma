@@ -26,7 +26,7 @@ type ResponseTable interface {
 }
 
 type ResponseTableImpl struct {
-	// respChanByReqId is a mapping <uint32, chan *protos.GatewayResponse>
+	// respChanByReqId is a map: <uint32, chan *protos.GatewayResponse>
 	respChanByReqId *sync.Map
 	// reqIdCounter strictly increases, making sure all reqIds will be unique.
 	reqIdCounter uint32
@@ -37,8 +37,9 @@ func NewResponseTable(timeout time.Duration) *ResponseTableImpl {
 	return &ResponseTableImpl{respChanByReqId: &sync.Map{}, timeout: timeout}
 }
 
-// create a request id to bind to the GatewayResponse channel, so when SyncRPCResponse comes back,
-// it can be written to the corresponding GatewayResponse channel identified by the request id.
+// InitializeResponse creates a request ID to bind to the GatewayResponse
+// channel, so when SyncRPCResponse comes back, it can be written to the
+// corresponding GatewayResponse channel identified by the request id.
 func (table *ResponseTableImpl) InitializeResponse() (chan *protos.GatewayResponse, uint32) {
 	reqId := generateReqId(&table.reqIdCounter)
 	respChan := make(chan *protos.GatewayResponse)
@@ -46,7 +47,7 @@ func (table *ResponseTableImpl) InitializeResponse() (chan *protos.GatewayRespon
 	return respChan, reqId
 }
 
-// send response to the corresponding response channel
+// SendResponse sends the response to the corresponding response channel
 func (table *ResponseTableImpl) SendResponse(resp *protos.SyncRPCResponse) error {
 	if resp == nil {
 		return errors.New("cannot send nil SyncRPCResponse")
