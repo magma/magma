@@ -32,6 +32,9 @@ message GatewayResponse {
     bytes payload = 3;
     // err message to return to the caller, if any
     string err = 4;
+    // keepConnActive is used to tell the client that the connection is still active, even if no response has
+    // been received for a while
+    bool keepConnActive = 5;
 }
 
 // SyncRPCRequest is sent down to gateway from cloud
@@ -42,6 +45,8 @@ message SyncRPCRequest {
     // cloud will send a heartBeat every minute, if no other requests are sent
     // down to the gateway
     bool heartBeat = 3;
+    // connClosed is set to true when the client closes the connection
+    bool connClosed = 4;
 }
 
 // SyncRPCResponse is sent from gateway to cloud
