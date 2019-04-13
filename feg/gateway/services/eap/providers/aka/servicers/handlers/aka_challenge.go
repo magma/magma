@@ -131,6 +131,9 @@ attrLoop:
 
 	// All good, set IMSI, MSK & Identity for farther use by Radius and return SuccessCode
 	ctx.Imsi = string(imsi)
+	if uc.Profile != nil {
+		ctx.Msisdn = uc.Profile.Msisdn
+	}
 	ctx.Msk = uc.MSK
 	ctx.Identity = uc.Identity
 	uc.SetState(aka.StateAuthenticated)
