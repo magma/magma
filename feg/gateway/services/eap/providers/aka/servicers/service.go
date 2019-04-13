@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
 )
 
@@ -24,6 +25,7 @@ type UserCtx struct {
 	locked     bool
 	Identity   string
 	Imsi       aka.IMSI
+	Profile    *protos.AuthenticationAnswer_UserProfile
 	Identifier uint8
 	Rand,
 	K_aut,
