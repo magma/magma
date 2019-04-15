@@ -517,9 +517,11 @@ class WaitGetObjectParametersState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
 
         path_to_val = {}
-        for param_value_struct in message.ParameterList.ParameterValueStruct:
-            path_to_val[param_value_struct.Name] = \
-                param_value_struct.Value.Data
+        if hasattr(message.ParameterList, 'ParameterValueStruct') and \
+                message.ParameterList.ParameterValueStruct is not None:
+            for param_value_struct in message.ParameterList.ParameterValueStruct:
+                path_to_val[param_value_struct.Name] = \
+                    param_value_struct.Value.Data
         logging.debug('Received object parameters: %s', str(path_to_val))
 
         # TODO: This might a string for some strange reason, investigate why
