@@ -147,3 +147,43 @@ class BaicellsQAFBHandlerTests(TestCase):
 
         self.assertTrue(isinstance(resp, models.AddObject),
                         'State machine should be adding objects')
+
+    def test_get_rpc_methods_cold(self) -> None:
+        """
+        Test the scenario where:
+        - enodeB just booted
+        - enodeB is cold and has no state of ACS RPCMethods
+        - Simulate the enodeB performing the initial Inform and
+          the call for the GetRPCMethods, and the subsequent Empty
+          response for provisioning
+          finishing on the Baicells eNodeB
+
+        Verifies that the ACS will continue into provisioning
+        """
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder\
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiBS_QAFBv123',
+                                           '120200002618AGP0003',
+                                           ['1 BOOT'])
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # Send GetRPCMethods
+        req = models.GetRPCMethods()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetRPCMethodsResponse),
+                        'State machine should be sending RPC methods')
+
+        # Send an empty http request to kick off the rest of provisioning
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for an optional parameter
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')

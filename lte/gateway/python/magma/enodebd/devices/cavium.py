@@ -29,7 +29,8 @@ from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
     AddObjectsState, SetParameterValuesNotAdminState, \
     WaitSetParameterValuesState, SendRebootState, WaitRebootResponseState, \
     WaitInformMRebootState, EnodebAcsState, AcsMsgAndTransition, \
-    AcsReadMsgResult, WaitEmptyMessageState, ErrorState, EndSessionState
+    AcsReadMsgResult, WaitEmptyMessageState, ErrorState, EndSessionState, \
+    GetRPCMethodsState
 from magma.enodebd.tr069 import models
 from magma.enodebd.stats_manager import StatsManager
 
@@ -51,7 +52,8 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
 
     def _init_state_map(self) -> None:
         self._state_map = {
-            'wait_inform': WaitInformState(self, when_done='wait_empty'),
+            'wait_inform': WaitInformState(self, when_done='get_rpc_methods'),
+            'get_rpc_methods': GetRPCMethodsState(self, when_done='wait_empty', when_skip='get_transient_params'),
             'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='end_session'),
