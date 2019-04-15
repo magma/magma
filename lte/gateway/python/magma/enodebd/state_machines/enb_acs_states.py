@@ -650,8 +650,16 @@ class AddObjectsState(EnodebAcsState):
         request = models.AddObject()
         self.added_param = get_all_objects_to_add(self.acs.desired_cfg,
                                                   self.acs.device_cfg)[0]
-        request.ObjectName = \
-            self.acs.data_model.get_parameter(self.added_param).path
+        desired_param = self.acs.data_model.get_parameter(self.added_param)
+        desired_path = desired_param.path
+        path_parts = desired_path.split('.')
+        # If adding enumerated object, ie. XX.N. we should add it to the
+        # parent object XX. so strip the index
+        if len(path_parts) > 2 and \
+                path_parts[-1] == '' and path_parts[-2].isnumeric():
+            logging.debug('Stripping index from path=%s', desired_path)
+            desired_path = '.'.join(path_parts[:-2]) + '.'
+        request.ObjectName = desired_path
         return AcsMsgAndTransition(request, None)
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
