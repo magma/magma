@@ -1,0 +1,138 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Federated Gateway (FeG) · Magma</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;h1&gt;&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; id=&quot;federated-gateway-feg&quot;&gt;&lt;/a&gt;&lt;a href=&quot;#federated-gateway-feg&quot; aria-hidden=&quot;true&quot; class=&quot;hash-link&quot;&gt;&lt;svg class=&quot;hash-link-icon&quot; aria-hidden=&quot;true&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Federated Gateway (FeG)&lt;/h1&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Federated Gateway (FeG) · Magma"/><meta property="og:type" content="website"/><meta property="og:url" content="https://facebookincubator.github.io/magma/"/><meta property="og:description" content="&lt;h1&gt;&lt;a class=&quot;anchor&quot; aria-hidden=&quot;true&quot; id=&quot;federated-gateway-feg&quot;&gt;&lt;/a&gt;&lt;a href=&quot;#federated-gateway-feg&quot; aria-hidden=&quot;true&quot; class=&quot;hash-link&quot;&gt;&lt;svg class=&quot;hash-link-icon&quot; aria-hidden=&quot;true&quot; height=&quot;16&quot; version=&quot;1.1&quot; viewBox=&quot;0 0 16 16&quot; width=&quot;16&quot;&gt;&lt;path fill-rule=&quot;evenodd&quot; d=&quot;M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z&quot;&gt;&lt;/path&gt;&lt;/svg&gt;&lt;/a&gt;Federated Gateway (FeG)&lt;/h1&gt;
+"/><meta property="og:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://facebookincubator.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/favicon.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/fb.png" alt="Magma"/><h2 class="headerTitleWithLogo">Magma</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/magma/docs/basics/introduction" target="_self">Docs</a></li><li class=""><a href="/magma/help" target="_self">Help</a></li><li class=""><a href="https://github.com/facebookincubator/magma" target="_self">Github</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Federated Gateway</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Basics<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Orchestrator<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/docker_setup">Docker Setup</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/nms_setup">Setting up the NMS</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/testing">Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/remote_cli">Orchestrator Remote CLI</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/rest_apis">Swagger UI for REST APIs</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/generic_commands">Generic commands framework</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/packer">Packer Build</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Access Gateway<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/lte/readme_agw">Services/Sub-Components</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/enodebd">eNodeB Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/redirectd">Redirection</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/pipelined">Pipelined</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/pipelined_tests">Pipelined testing framework</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/readme_callflow">Building the callflow</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Federated Gateway<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/feg/readme">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deployment">Packaging, Deployment, and Upgrades</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/faq">FAQ</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/docker_setup">FeG Docker Setup</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">How To<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/configurations">Configurations</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/readme_package">Packaging</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/docusaurus">Docusaurus</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="federated-gateway-feg"></a><a href="#federated-gateway-feg" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Federated Gateway (FeG)</h1>
+<p>The federated gateway provides remote procedure call (GRPC) based interfaces to standard 3GPP components, such as
+HSS (S6a, SWx), OCS (Gy), and PCRF (Gx). The exposed RPC interface provides versioning &amp; backward compatibility,
+security (HTTP2 &amp; TLS) as well as support for multiple programming languages. The Remote Procedures below provide
+simple, extensible, multi-language interfaces based on GRPC which allow developers to avoid dealing with the
+complexities of 3GPP protocols. Implementing these RPC interfaces allows networks running on Magma to integrate
+with traditional 3GPP core components.</p>
+<p><img src="https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/federated_gateway_diagram.png?raw=true" alt="Federated Gateway architecture diagram" title="FeG Architecture"></p>
+<p>The Federated Gateway supports the following features and functionalities:</p>
+<ol>
+<li>Hosting centralized control plane interface towards HSS, PCRF, OCS and MSC/VLR on behalf of distributed AGW/EPCs.</li>
+<li>Establishing diameter connection with HSS, PCRF and OCS directly as 1:1 or via DRA.</li>
+<li>Establishing SCTP/IP connection with MSC/VLR.</li>
+<li>Interfacing with AGW over GPRC interface by responding to remote calls from EPC (MME and Sessiond/PCEF) components,
+converting these remote calls to 3GPP compliant messages and then sending these messages to the appropriate core network
+components such as HSS, PCRF, OCS and MSC.  Similarly the FeG receives 3GPP compliant messages from HSS, PCRF, OCS and MSC
+and converts these to the appropriate GPRC messages before sending them to the AGW.</li>
+</ol>
+<p>Please see the <strong><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Product Spec</a></strong> for more detailed information.</p>
+<h2><a class="anchor" aria-hidden="true" id="running-the-system"></a><a href="#running-the-system" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Running the System</h2>
+<p>First, ensure you have the necessary developer prerequisites and have built the orc8r as instructed <a href="https://github.com/facebookincubator/magma#developer-prereqs">here</a>.</p>
+<p>While a production system would include the access gateway, orc8r and federated gateway, for feg development
+only the orc8r <em>datastore</em>, <em>orc8r cloud</em> and <em>feg</em> VM's are necessary.</p>
+<p>Now, we will spin up the federated gateway VM. Our development VM's are in the
+192.168.80.0/24 address space, so make sure that you don't have anything running
+already on that IP (e.g. VPN).</p>
+<h4><a class="anchor" aria-hidden="true" id="provisioning-the-virtual-machine"></a><a href="#provisioning-the-virtual-machine" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Provisioning the Virtual Machine</h4>
+<p>In the following steps, note the prefix in terminal commands. <code>HOST</code> means to
+run the indicated command on your host machine, <code>CLOUD-VM</code> on the <code>cloud</code>
+vagrant machine under <code>orc8r/cloud</code>, and <code>FEG-VM</code> on the <code>feg</code> vagrant
+machine under <code>feg/gateway</code>.</p>
+<p>Open two new terminal instances. Start in</p>
+<h5><a class="anchor" aria-hidden="true" id="terminal-tab-1"></a><a href="#terminal-tab-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Terminal Tab 1:</h5>
+<pre><code class="hljs css language-console">HOST [magma]$ cd orc8r/cloud
+HOST [magma/orc8r/cloud]$ vagrant up datastore
+HOST [magma/orc8r/cloud]$ vagrant up cloud
+HOST [magma/orc8r/cloud]$ vagrant ssh cloud
+CLOUD-VM [/home/vagrant]$ cd magma/orc8r/cloud
+CLOUD-VM [/home/vagrant/magma/orc8r/cloud]$ make run
+</code></pre>
+<h5><a class="anchor" aria-hidden="true" id="terminal-tab-2"></a><a href="#terminal-tab-2" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Terminal Tab 2:</h5>
+<p>We'll now provision the federated gateway dev VM:</p>
+<pre><code class="hljs css language-console">HOST [magma]$ cd feg/gateway
+HOST [magma/feg/gateway]$ vagrant up feg
+</code></pre>
+<p>This will take some time. Once finished:</p>
+<pre><code class="hljs css language-console">HOST [magma/feg/gateway]$ vagrant ssh feg
+FEG-VM [/home/vagrant]$ cd magma/feg/gateway
+FEG-VM [/home/vagrant]$ make run
+</code></pre>
+<h4><a class="anchor" aria-hidden="true" id="connecting-your-local-federated-gateway-to-your-local-cloud"></a><a href="#connecting-your-local-federated-gateway-to-your-local-cloud" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Connecting Your Local Federated Gateway to Your Local Cloud</h4>
+<p>At this point, you will have built all the code in the federated gateway and
+the orchestrator cloud. All the services on the federated gateway and
+orchestrator cloud are running, but your feg VM isn't yet set up to
+communicate with your local cloud VM.</p>
+<p>We have a fabric command set up to do this:</p>
+<pre><code class="hljs css language-console">HOST [magma]$ cd feg/gateway
+HOST [magma/feg/gateway]$ fab register_feg_vm
+</code></pre>
+<p>At this point, your federated gateway VM is streaming configurations from your
+cloud VM and sending status, health and metrics back to your cloud VM.</p>
+<p>If you want to see what the federated gateway is doing, you can run
+<code>vagrant ssh feg</code> inside <code>feg/gateway</code>. Then run <code>sudo tail -f /var/log/syslog</code>.
+If everything above went smoothly, you should eventually (give it a minute or two) see
+something along the lines of:</p>
+<pre><code class="hljs css language-console"><span class="hljs-meta">FEG-VM$</span><span class="bash"> sudo service magma@* stop</span>
+<span class="hljs-meta">FEG-VM$</span><span class="bash"> sudo service magma@magmad start</span>
+<span class="hljs-meta">FEG-VM$</span><span class="bash"> sudo tail -f /var/<span class="hljs-built_in">log</span>/syslog</span>
+Sep 27 22:57:35 magma-feg-dev magmad[6226]: [2018-09-27 22:57:35,550 INFO root] Checkin Successful!
+Sep 27 22:57:55 magma-feg-dev magmad[6226]: [2018-09-27 22:57:55,684 INFO root] Processing config update g1
+Sep 27 22:57:55 magma-feg-dev control_proxy[6418]: 2018-09-27T22:57:55.683Z [127.0.0.1 -&gt; streamer-controller.magma.test,8443] "POST /magma.orc8r.Streamer/GetUpdates HTTP/2" 200 7bytes 0.009s
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="federated-gateway-services-tools"></a><a href="#federated-gateway-services-tools" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Federated Gateway Services &amp; Tools</h2>
+<p>The following services run on the federated gateway:</p>
+<ul>
+<li><code>s6a_proxy</code> - translates calls from GRPC to S6a protocol between AGW and HSS</li>
+<li><code>session_proxy</code> - translates calls from GRPC to gx/gy protocol between AGW and PCRF/OCS</li>
+<li><code>csfb</code> - translates calls from GRPC interface to csfb protocol between AGW and VLR</li>
+<li><code>swx_proxy</code> - translates GRPC interface to SWx protocol between AGW and HSS</li>
+<li><code>gateway_health</code> - provides health updates to the orc8r to be used for
+achieving highly available federated gateway clusters (see <strong><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Product Spec</a></strong>
+for more details)</li>
+</ul>
+<p>Associated tools for sending requests and debugging issues can be found
+at <code>magma/feg/gateway/tools</code>.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/lte/readme_callflow"><span class="arrow-prev">← </span><span>Building the callflow</span></a><a class="docs-next button" href="/magma/docs/feg/deployment"><span>Packaging, Deployment, and Upgrades</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#running-the-system">Running the System</a></li><li><a href="#federated-gateway-services-tools">Federated Gateway Services &amp; Tools</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Deployment_Guide_Installing_Magma_V2.pdf">Magma Install Guide</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Network_Management_System.pdf">Magma Network Management System</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://groups.google.com/forum/#!forum/magma-dev">Forum</a><a href="http://stackoverflow.com/questions/tagged/" target="_blank" rel="noreferrer noopener">Stack Overflow</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2019 Facebook</section></footer></div></body></html>
