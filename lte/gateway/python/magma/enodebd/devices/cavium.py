@@ -30,7 +30,7 @@ from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
     WaitSetParameterValuesState, SendRebootState, WaitRebootResponseState, \
     WaitInformMRebootState, EnodebAcsState, AcsMsgAndTransition, \
     AcsReadMsgResult, WaitEmptyMessageState, ErrorState, EndSessionState, \
-    GetRPCMethodsState
+    GetRPCMethodsState, WaitGetObjectParametersState
 from magma.enodebd.state_machines.acs_state_utils import \
      get_all_objects_to_delete, get_all_objects_to_add
 from magma.enodebd.tr069 import models
@@ -59,8 +59,10 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='end_session'),
-            'get_params': GetParametersState(self, when_done='wait_get_parameters'),
-            'wait_get_params': WaitGetParametersState(self, when_done='disable_admin'),
+            'get_params': GetParametersState(self, when_done='wait_get_params'),
+            'wait_get_params': WaitGetParametersState(self, when_done='get_obj_params'),
+            'get_obj_params': CaviumGetObjectParametersState(self, when_done='wait_get_obj_params'),
+            'wait_get_obj_params': CaviumWaitGetObjectParametersState(self, when_edit='disable_admin', when_skip='get_transient_params'),
             'disable_admin': CaviumDisableAdminEnableState(self, admin_value=False, when_done='wait_disable_admin'),
             'wait_disable_admin': CaviumWaitDisableAdminEnableState(self, admin_value=False, when_add='add_objs', when_delete='delete_objs', when_done='set_params'),
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
@@ -104,6 +106,52 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
     @property
     def unexpected_fault_state_name(self) -> str:
         return 'unexpected_fault'
+
+
+class CaviumGetObjectParametersState(EnodebAcsState):
+    """
+    When booted, the PLMN list is empty so we cannot get individual
+    object parameters. Instead, get the parent object PLMN_LIST
+    which will include any children if they exist.
+    """
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+
+    def get_msg(self) -> AcsMsgAndTransition:
+        """ Respond with GetParameterValuesRequest """
+        names = [ParameterName.PLMN_LIST]
+
+        # Generate the request
+        request = models.GetParameterValues()
+        request.ParameterNames = models.ParameterNames()
+        request.ParameterNames.arrayType = 'xsd:string[%d]' \
+                                           % len(names)
+        request.ParameterNames.string = []
+        for name in names:
+            path = self.acs.data_model.get_parameter(name).path
+            request.ParameterNames.string.append(path)
+
+        return AcsMsgAndTransition(request, self.done_transition)
+
+    @classmethod
+    def state_description(cls) -> str:
+        return 'Getting object parameters'
+
+
+class CaviumWaitGetObjectParametersState(WaitGetObjectParametersState):
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_edit: str,
+        when_skip: str,
+    ):
+        super().__init__(acs=acs,
+                         when_add=when_edit,
+                         when_delete=when_edit,
+                         when_set=when_edit,
+                         when_skip=when_skip)
 
 
 class CaviumDisableAdminEnableState(EnodebAcsState):
