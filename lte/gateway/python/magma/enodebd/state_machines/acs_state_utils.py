@@ -70,16 +70,21 @@ def process_inform_message(
 
         # Check the OUI and version number to see if the data model matches
         path_list = list(param_values_by_path.keys())
-        device_oui = _get_param_value_from_path_suffix(
-            'DeviceInfo.ManufacturerOUI',
-            path_list,
-            param_values_by_path,
-        )
         sw_version = _get_param_value_from_path_suffix(
             'DeviceInfo.SoftwareVersion',
             path_list,
             param_values_by_path,
         )
+        # Check DeviceId struct for OUI first
+        if hasattr(inform, 'DeviceId') and \
+                hasattr(inform.DeviceId, 'OUI'):
+            device_oui = inform.DeviceId.OUI
+        else:
+            device_oui = _get_param_value_from_path_suffix(
+                'DeviceInfo.ManufacturerOUI',
+                path_list,
+                param_values_by_path,
+            )
         logging.info('OUI: %s, Software: %s', device_oui, sw_version)
         correct_device_name = get_device_name(device_oui, sw_version)
         if device_name is not correct_device_name:
@@ -116,7 +121,6 @@ def are_tr069_params_equal(param_a: Any, param_b: Any, type_: str) -> bool:
     if cmp_a.lower() in ['true', 'false']:
         cmp_a, cmp_b = map(lambda s: s.lower(), (cmp_a, cmp_b))
     return cmp_a == cmp_b
-
 
 def get_all_objects_to_add(
     desired_cfg: EnodebConfiguration,
