@@ -14,8 +14,8 @@ import (
 
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/config/storage"
 	"magma/orc8r/cloud/go/services/config/test_init"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
 )

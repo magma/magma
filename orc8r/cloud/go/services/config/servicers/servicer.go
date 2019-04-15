@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	config_protos "magma/orc8r/cloud/go/services/config/protos"
 	"magma/orc8r/cloud/go/services/config/storage"
+	mstore "magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -160,7 +161,7 @@ func protoFilterToStorageFilter(in *config_protos.ConfigFilter) *storage.FilterC
 	}
 }
 
-func configValueMapToGetConfigsResponse(in map[storage.TypeAndKey]*storage.ConfigValue) *config_protos.GetConfigsResponse {
+func configValueMapToGetConfigsResponse(in map[mstore.TypeAndKey]*storage.ConfigValue) *config_protos.GetConfigsResponse {
 	ret := make([]*config_protos.Config, 0, len(in))
 	for typeAndKey, val := range in {
 		ret = append(ret, &config_protos.Config{Type: typeAndKey.Type, Key: typeAndKey.Key, Value: val.Value})

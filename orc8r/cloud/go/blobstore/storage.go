@@ -11,31 +11,8 @@ package blobstore
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/blobstore/protos"
+	"magma/orc8r/cloud/go/storage"
 )
-
-// TypeAndKey is an identifier for a blob
-type TypeAndKey struct {
-	Type, Key string
-}
-
-// FromProto fills in this TypeAndKey from protos.TypeAndKey
-func (tk TypeAndKey) FromProto(other protos.TypeAndKey) {
-	tk.Type = other.Type
-	tk.Key = other.Key
-}
-
-// ToProto returns a protos.TypeAndKey equivalent to this TypeAndKey
-func (tk TypeAndKey) ToProto() protos.TypeAndKey {
-	return protos.TypeAndKey{
-		Type: tk.Type,
-		Key:  tk.Key,
-	}
-}
-
-func (tk TypeAndKey) String() string {
-	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
-}
 
 // Blob encapsulates a blob for storage
 type Blob struct {
@@ -71,12 +48,12 @@ type TransactionalBlobStorage interface {
 	// Get loads a specific blob from storage.
 	// If there is no blob matching the given ID, ErrNotFound from
 	// magma/orc8r/cloud/go/errors will be returned.
-	Get(networkID string, id TypeAndKey) (Blob, error)
+	Get(networkID string, id storage.TypeAndKey) (Blob, error)
 
 	// Get loads and returns a collection of blobs matching the specified IDs.
 	// If there is no blob corresponding to a TypeAndKey, the returned list
 	// will not have a corresponding Blob.
-	GetMany(networkID string, ids []TypeAndKey) ([]Blob, error)
+	GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error)
 
 	// CreateOrUpdate writes blobs to the storage. Blobs are either updated
 	// in-place or created. The Version field of Blobs passed in here is
@@ -85,7 +62,7 @@ type TransactionalBlobStorage interface {
 	CreateOrUpdate(networkID string, blobs []Blob) error
 
 	// Delete deletes specified blobs from storage.
-	Delete(networkID string, ids []TypeAndKey) error
+	Delete(networkID string, ids []storage.TypeAndKey) error
 }
 
 // GetTableName returns the full table name for a networkID and a base table
@@ -95,10 +72,10 @@ func GetTableName(networkID string, baseTableName string) string {
 
 // GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of
 // blobs keyed by blob TypeAndKey.
-func GetBlobsByTypeAndKey(blobs []Blob) map[TypeAndKey]Blob {
-	ret := make(map[TypeAndKey]Blob, len(blobs))
+func GetBlobsByTypeAndKey(blobs []Blob) map[storage.TypeAndKey]Blob {
+	ret := make(map[storage.TypeAndKey]Blob, len(blobs))
 	for _, blob := range blobs {
-		ret[TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
+		ret[storage.TypeAndKey{Type: blob.Type, Key: blob.Key}] = blob
 	}
 	return ret
 }

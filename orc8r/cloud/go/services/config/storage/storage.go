@@ -8,6 +8,8 @@ LICENSE file in the root directory of this source tree.
 
 package storage
 
+import "magma/orc8r/cloud/go/storage"
+
 // ConfigurationStorage defines the persistence interface for config service.
 // Implementors are expected to manage configurations given as arbritrary
 // bytes, uniquely keyed by a string tuple of (type, key).
@@ -18,7 +20,7 @@ type ConfigurationStorage interface {
 
 	// Fetch configs given some filter criteria. At least one field of the
 	// input filter criteria must be specified.
-	GetConfigs(networkId string, criteria *FilterCriteria) (map[TypeAndKey]*ConfigValue, error)
+	GetConfigs(networkId string, criteria *FilterCriteria) (map[storage.TypeAndKey]*ConfigValue, error)
 
 	// List all keys for a given config type
 	ListKeysForType(networkId string, configType string) ([]string, error)
@@ -33,11 +35,6 @@ type ConfigurationStorage interface {
 
 	// Delete all configs for a network (drop the table)
 	DeleteConfigsForNetwork(networkId string) error
-}
-
-type TypeAndKey struct {
-	Type string
-	Key  string
 }
 
 type ConfigValue struct {

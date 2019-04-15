@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/config/storage"
+	mstore "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
@@ -36,7 +37,7 @@ func TestSqlConfigStorage_Integration(t *testing.T) {
 
 	configs, err := store.GetConfigs("network", &storage.FilterCriteria{Type: "type"})
 	assert.NoError(t, err)
-	assert.Equal(t, map[storage.TypeAndKey]*storage.ConfigValue{}, configs)
+	assert.Equal(t, map[mstore.TypeAndKey]*storage.ConfigValue{}, configs)
 
 	config, err := store.GetConfig("network", "type", "key")
 	assert.NoError(t, err)
@@ -66,7 +67,7 @@ func TestSqlConfigStorage_Integration(t *testing.T) {
 
 	configs, err = store.GetConfigs("network1", &storage.FilterCriteria{Type: "type1"})
 	assert.NoError(t, err)
-	expectedConfigs := map[storage.TypeAndKey]*storage.ConfigValue{
+	expectedConfigs := map[mstore.TypeAndKey]*storage.ConfigValue{
 		{Type: "type1", Key: "key1"}: {Value: []byte("value1"), Version: 0},
 		{Type: "type1", Key: "key2"}: {Value: []byte("value2"), Version: 0},
 	}
@@ -74,7 +75,7 @@ func TestSqlConfigStorage_Integration(t *testing.T) {
 
 	configs, err = store.GetConfigs("network1", &storage.FilterCriteria{Key: "key1"})
 	assert.NoError(t, err)
-	expectedConfigs = map[storage.TypeAndKey]*storage.ConfigValue{
+	expectedConfigs = map[mstore.TypeAndKey]*storage.ConfigValue{
 		{Type: "type1", Key: "key1"}: {Value: []byte("value1"), Version: 0},
 		{Type: "type2", Key: "key1"}: {Value: []byte("value3"), Version: 0},
 	}
@@ -82,7 +83,7 @@ func TestSqlConfigStorage_Integration(t *testing.T) {
 
 	configs, err = store.GetConfigs("network2", &storage.FilterCriteria{Type: "type3", Key: "key3"})
 	assert.NoError(t, err)
-	expectedConfigs = map[storage.TypeAndKey]*storage.ConfigValue{
+	expectedConfigs = map[mstore.TypeAndKey]*storage.ConfigValue{
 		{Type: "type3", Key: "key3"}: {Value: []byte("value5"), Version: 0},
 	}
 	assert.Equal(t, expectedConfigs, configs)
