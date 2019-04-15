@@ -31,6 +31,8 @@ from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
     WaitInformMRebootState, EnodebAcsState, AcsMsgAndTransition, \
     AcsReadMsgResult, WaitEmptyMessageState, ErrorState, EndSessionState, \
     GetRPCMethodsState
+from magma.enodebd.state_machines.acs_state_utils import \
+     get_all_objects_to_delete, get_all_objects_to_add
 from magma.enodebd.tr069 import models
 from magma.enodebd.stats_manager import StatsManager
 
@@ -59,12 +61,14 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='end_session'),
             'get_params': GetParametersState(self, when_done='wait_get_parameters'),
             'wait_get_params': WaitGetParametersState(self, when_done='disable_admin'),
-            'disable_admin': CaviumDisableAdminEnableState(self, when_done='wait_disable_admin'),
-            'wait_disable_admin': CaviumWaitDisableAdminEnableState(self, when_done='delete_objs'),
+            'disable_admin': CaviumDisableAdminEnableState(self, admin_value=False, when_done='wait_disable_admin'),
+            'wait_disable_admin': CaviumWaitDisableAdminEnableState(self, admin_value=False, when_add='add_objs', when_delete='delete_objs', when_done='set_params'),
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesNotAdminState(self, when_done='wait_set_params'),
-            'wait_set_params': WaitSetParameterValuesState(self, when_done='check_get_params'),
+            'wait_set_params': WaitSetParameterValuesState(self, when_done='enable_admin'),
+            'enable_admin': CaviumDisableAdminEnableState(self, admin_value=True, when_done='wait_enable_admin'),
+            'wait_enable_admin': CaviumWaitDisableAdminEnableState(self, admin_value=True, when_done='check_get_params', when_add='check_get_params', when_delete='check_get_params'),
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
             'end_session': EndSessionState(self),
@@ -107,9 +111,10 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
     Cavium requires that we disable 'Admin Enable' before configuring
     most parameters
     """
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(self, acs: EnodebAcsStateMachine, admin_value: bool, when_done: str):
         super().__init__()
         self.acs = acs
+        self.admin_value = admin_value
         self.done_transition = when_done
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
@@ -123,8 +128,14 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
             A SetParameterValueRequest for setting 'Admin Enable' to False
         """
         param_name = ParameterName.ADMIN_STATE
+        # if we want the cell to be down don't force it up
+        desired_admin_value = \
+                self.acs.desired_cfg.get_parameter(param_name) \
+                and self.admin_value
+        admin_value = \
+                self.acs.data_model.transform_for_enb(param_name,
+                                                      desired_admin_value)
         admin_path = self.acs.data_model.get_parameter(param_name).path
-        admin_value = self.acs.data_model.transform_for_enb(param_name, False)
         param_values = {admin_path: admin_value}
 
         request = models.SetParameterValues()
@@ -147,10 +158,20 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
 
 
 class CaviumWaitDisableAdminEnableState(EnodebAcsState):
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(
+            self,
+            acs: EnodebAcsStateMachine,
+            admin_value: bool,
+            when_done: str,
+            when_add: str,
+            when_delete: str
+    ):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.add_obj_transition = when_add
+        self.del_obj_transition = when_delete
+        self.admin_value = admin_value
 
     def read_msg(self, message: Any) -> Optional[str]:
         if type(message) == models.Fault:
@@ -168,7 +189,23 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
         if message.Status != 0:
             raise Tr069Error('Received SetParameterValuesResponse with '
                              'Status=%d' % message.Status)
-        return AcsReadMsgResult(True, self.done_transition)
+        param_name = ParameterName.ADMIN_STATE
+        desired_admin_value = \
+                self.acs.desired_cfg.get_parameter(param_name) \
+                and self.admin_value
+        magma_value = \
+                self.acs.data_model.transform_for_magma(param_name,
+                                                        desired_admin_value)
+        self.acs.device_cfg.set_parameter(param_name, magma_value)
+
+        if len(get_all_objects_to_delete(self.acs.desired_cfg,
+                                      self.acs.device_cfg)) > 0:
+            return AcsReadMsgResult(True, self.del_obj_transition)
+        elif len(get_all_objects_to_add(self.acs.desired_cfg,
+                                      self.acs.device_cfg)) > 0:
+            return AcsReadMsgResult(True, self.add_obj_transition)
+        else:
+            return AcsReadMsgResult(True, self.done_transition)
 
     @classmethod
     def state_description(cls) -> str:
