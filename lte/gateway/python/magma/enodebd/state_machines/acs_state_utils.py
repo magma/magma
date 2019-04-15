@@ -129,6 +129,12 @@ def get_all_objects_to_add(
     """
     Find a ParameterName that needs to be added to the eNB configuration,
     if any
+
+    Note: This is the expected name of the parameter once it is added
+          but this is different than how to add it. For example,
+          enumerated objects of the form XX.YY.N. should be added
+          by calling AddObject to XX.YY. and having the CPE assign
+          the index.
     """
     desired = desired_cfg.get_object_names()
     current = device_cfg.get_object_names()
