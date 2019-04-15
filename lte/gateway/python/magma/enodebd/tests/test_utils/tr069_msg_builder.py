@@ -191,6 +191,130 @@ class Tr069MessageBuilder:
         return msg
 
     @classmethod
+    def get_cavium_param_values_response(
+        cls,
+        admin_state: bool = False,
+        earfcndl: int = 2405,
+        num_plmns: int = 0,
+    ) -> models.GetParameterValuesResponse:
+        msg = models.GetParameterValuesResponse()
+        param_val_list = []
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
+            val_type='string',
+            data='n100',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
+            val_type='string',
+            data='5',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.ManagementServer.PeriodicInformInterval',
+            val_type='int',
+            data='5',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.CellRestriction.CellReservedForOperatorUse',
+            val_type='boolean',
+            data='false',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
+            val_type='string',
+            data='n100',
+        ))
+        # MME IP
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkServerList',
+            val_type='string',
+            data='"192.168.60.142"',
+        ))
+        # perf mgmt enable
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.PerfMgmt.Config.1.Enable',
+            val_type='boolean',
+            data='true'
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.CellRestriction.CellBarred',
+            val_type='boolean',
+            data='false'
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.PerfMgmt.Config.1.PeriodicUploadInterval',
+            val_type='int',
+            data='600'
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.FAPControl.LTE.AdminState',
+            val_type='boolean',
+            data=admin_state,
+        ))
+        # Perf mgmt upload url
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.PerfMgmt.Config.1.URL',
+            val_type='string',
+            data='http://192.168.60.142:8081/'
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.EPC.TAC',
+            val_type='int',
+            data='1',
+        ))
+        # PCI
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.PhyCellID',
+            val_type='int',
+            data='260',
+        ))
+        # MME port
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkPort',
+            val_type='int',
+            data='36412',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.IPsec.Enable',
+            val_type='boolean',
+            data='false',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.EARFCNDL',
+            val_type='int',
+            data='2405',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.EARFCNUL',
+            val_type='int',
+            data='20405',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.Capabilities.LTE.DuplexMode',
+            val_type='string',
+            data='FDDMode',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.Capabilities.LTE.BandsSupported',
+            val_type='string',
+            data='5',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.ManagementServer.PeriodicInformEnable',
+            val_type='int',
+            data='5',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNListNumberOfEntries',
+            val_type='int',
+            data=str(num_plmns),
+        ))
+        msg.ParameterList = models.ParameterValueList()
+        msg.ParameterList.ParameterValueStruct = param_val_list
+        return msg
+
+
+    @classmethod
     def get_regular_param_values_response(
         cls,
         admin_state: bool = False,
@@ -475,6 +599,39 @@ class Tr069MessageBuilder:
         msg.ParameterList = models.ParameterValueList()
         msg.ParameterList.ParameterValueStruct = param_val_list
         return msg
+
+    @classmethod
+    def get_cavium_object_param_values_response(
+            cls,
+            num_plmns: int,
+    ) -> models.GetParameterValuesResponse:
+        msg = models.GetParameterValuesResponse()
+        param_val_list = []
+        for i in range(1, num_plmns+1):
+            param_val_list.append(cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i,
+                val_type='boolean',
+                data='true',
+            ))
+            param_val_list.append(cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i,
+                val_type='boolean',
+                data='false',
+            ))
+            param_val_list.append(cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i,
+                val_type='string',
+                data='00101',
+            ))
+            param_val_list.append(cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNList.%d.Enable' % i,
+                val_type='boolean',
+                data='true',
+            ))
+        msg.ParameterList = models.ParameterValueList()
+        msg.ParameterList.ParameterValueStruct = param_val_list
+        return msg
+
 
     @classmethod
     def get_object_param_values_response(
