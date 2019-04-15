@@ -288,14 +288,14 @@ class SendGetTransientParametersState(EnodebAcsState):
     def get_msg(self) -> AcsMsgAndTransition:
         request = models.GetParameterValues()
         request.ParameterNames = models.ParameterNames()
-        request.ParameterNames.arrayType = \
-            'xsd:string[%d]' % len(self.PARAMETERS)
         request.ParameterNames.string = []
         for name in self.PARAMETERS:
             # Not all data models have these parameters
             if self.acs.data_model.is_parameter_present(name):
                 path = self.acs.data_model.get_parameter(name).path
                 request.ParameterNames.string.append(path)
+        request.ParameterNames.arrayType = \
+            'xsd:string[%d]' % len(request.ParameterNames.string)
 
         return AcsMsgAndTransition(request, self.done_transition)
 
