@@ -16,6 +16,7 @@ import (
 
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/storage"
 )
 
 type sqlConfigStorage struct {
@@ -69,7 +70,7 @@ func (store *sqlConfigStorage) GetConfig(networkId string, configType string, ke
 	return ret.(*ConfigValue), err
 }
 
-func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCriteria) (map[TypeAndKey]*ConfigValue, error) {
+func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCriteria) (map[storage.TypeAndKey]*ConfigValue, error) {
 	err := validateFilterCriteria(criteria)
 	if err != nil {
 		return nil, err
@@ -84,7 +85,7 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 		}
 		defer rows.Close()
 
-		scannedRows := map[TypeAndKey]*ConfigValue{}
+		scannedRows := map[storage.TypeAndKey]*ConfigValue{}
 		for rows.Next() {
 			var configType, key string
 			var value []byte
@@ -94,7 +95,7 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 			if err != nil {
 				return nil, err
 			}
-			scannedRows[TypeAndKey{Type: configType, Key: key}] = &ConfigValue{Value: value, Version: version}
+			scannedRows[storage.TypeAndKey{Type: configType, Key: key}] = &ConfigValue{Value: value, Version: version}
 		}
 		return scannedRows, nil
 	}
@@ -103,7 +104,7 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 	if err != nil {
 		return nil, err
 	}
-	return ret.(map[TypeAndKey]*ConfigValue), err
+	return ret.(map[storage.TypeAndKey]*ConfigValue), err
 }
 
 func (store *sqlConfigStorage) ListKeysForType(networkId string, configType string) ([]string, error) {

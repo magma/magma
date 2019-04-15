@@ -10,7 +10,13 @@
 // storage interfaces
 package storage
 
+import "fmt"
+
 type TypeAndKey struct {
 	Type string
 	Key  string
+}
+
+func (tk TypeAndKey) String() string {
+	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
 }
