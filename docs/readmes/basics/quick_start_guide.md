@@ -111,3 +111,19 @@ HOST [magma/nms/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting [https://localhost](https://localhost), and using the email `admin@magma.test` and password `password1234`. If you see Gateway Error 502, don't worry, the NMS can take upto 60 seconds to finish starting up.
+
+
+##### Using the NMS UI on a Linux Host (Workaround)
+
+    On Linux hosts, the containers running in the nms network cannot reach the orchestrator
+    via the host network. `host.docker.internal` will not resolve to the host network.
+    
+    We can connect the nms network to the orchestrator network to complete integration.
+
+```console
+HOST[magma] export API_HOST="orc8r_proxy_1:9443"
+HOST [magma]$ cd nms/fbcnms-projects/magmalte
+HOST [magma/nms/fbcnms-projects/magmalte] $ docker-compose up -d
+HOST [magma/nms/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
+HOST[magma] docker network connect orc8r_default magmalte_magmalte_1
+```
