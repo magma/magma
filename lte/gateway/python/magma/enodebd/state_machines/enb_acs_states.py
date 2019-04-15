@@ -522,14 +522,22 @@ class WaitGetObjectParametersState(EnodebAcsState):
                 param_value_struct.Value.Data
         logging.debug('Received object parameters: %s', str(path_to_val))
 
-        # TODO: This might a string for some strange reason, investigate why
-        # Get the names of parameters belonging to numbered objects
-        num_plmns = \
-            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
-        for i in range(1, num_plmns + 1):
-            obj_name = ParameterName.PLMN_N % i
-            obj_to_params = self.acs.data_model.get_numbered_param_names()
+        # Number of PLMN objects reported can be incorrect. Let's count them
+        num_plmns = 0
+        obj_to_params = self.acs.data_model.get_numbered_param_names()
+        while True:
+            obj_name = ParameterName.PLMN_N % (num_plmns + 1)
+            if obj_name not in obj_to_params or len(obj_to_params[obj_name]) == 0:
+                logging.warning("eNB has PLMN %s but not defined in model",
+                    obj_name)
+                break
             param_name_list = obj_to_params[obj_name]
+            obj_path = self.acs.data_model.get_parameter(param_name_list[0]).path
+            if obj_path not in path_to_val:
+                break
+            if not self.acs.device_cfg.has_object(obj_name):
+                self.acs.device_cfg.add_object(obj_name)
+            num_plmns += 1
             for name in param_name_list:
                 path = self.acs.data_model.get_parameter(name).path
                 value = path_to_val[path]
@@ -537,6 +545,13 @@ class WaitGetObjectParametersState(EnodebAcsState):
                     self.acs.data_model.transform_for_magma(name, value)
                 self.acs.device_cfg.set_parameter_for_object(name, magma_val,
                                                              obj_name)
+        num_plmns_reported = \
+                int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+        if num_plmns != num_plmns_reported:
+            logging.warning("eNB reported %d PLMNs but found %d",
+                    num_plmns_reported, num_plmns)
+            self.acs.device_cfg.set_parameter(ParameterName.NUM_PLMNS,
+                                              num_plmns)
 
         # Now we can have the desired state
         if self.acs.desired_cfg is None:
