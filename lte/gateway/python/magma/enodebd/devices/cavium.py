@@ -234,6 +234,14 @@ class CaviumTrDataModel(DataModel):
         ParameterName.PERIODIC_INFORM_INTERVAL:
             TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', False, TrParameterType.UNSIGNED_INT, False),
 
+        # Management server parameters
+        ParameterName.PERIODIC_INFORM_ENABLE: TrParam(
+                DEVICE_PATH + 'ManagementServer.PeriodicInformEnable',
+                False, TrParameterType.BOOLEAN, False),
+        ParameterName.PERIODIC_INFORM_INTERVAL: TrParam(
+                DEVICE_PATH + 'ManagementServer.PeriodicInformInterval',
+                False, TrParameterType.UNSIGNED_INT, False),
+
         # Performance management parameters
         ParameterName.PERF_MGMT_ENABLE: TrParam(
             FAPSERVICE_PATH + 'PerfMgmt.Config.1.Enable', False, TrParameterType.BOOLEAN, False),
@@ -241,6 +249,16 @@ class CaviumTrDataModel(DataModel):
             FAPSERVICE_PATH + 'PerfMgmt.Config.1.PeriodicUploadInterval', False, TrParameterType.UNSIGNED_INT, False),
         ParameterName.PERF_MGMT_UPLOAD_URL: TrParam(
             FAPSERVICE_PATH + 'PerfMgmt.Config.1.URL', False, TrParameterType.STRING, False),
+        ParameterName.PERF_MGMT_USER: TrParam(
+            FAPSERVICE_PATH + 'PerfMgmt.Config.1.Username',
+            False, TrParameterType.STRING, False),
+        ParameterName.PERF_MGMT_PASSWORD: TrParam(
+            FAPSERVICE_PATH + 'PerfMgmt.Config.1.Password',
+            False, TrParameterType.STRING, False),
+
+        #PLMN Info
+        ParameterName.PLMN_LIST: TrParam(
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', False, TrParameterType.OBJECT, False),
     }
 
     NUM_PLMNS_IN_CONFIG = 6
