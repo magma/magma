@@ -440,6 +440,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   hash_node_t *node = NULL;
   itti_s5_nw_init_actv_bearer_request_t
     *itti_s5_actv_bearer_req = NULL;
+  bool lbi_found = false;
 
   OAILOG_INFO(
     LOG_PGW_APP,
@@ -491,7 +492,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
       node = hashtblP->nodes[i];
     }
     pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    while (node) {
+    while ((node) && (!lbi_found)) {
       num_elements++;
       hashtable_ts_get(
         hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
@@ -515,6 +516,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
               itti_s5_actv_bearer_req->lbi =
                 spgw_ctxt_p->sgw_eps_bearer_context_information.
                 pdn_connection.default_bearer;
+              lbi_found = true;
               break;
             }
           }
