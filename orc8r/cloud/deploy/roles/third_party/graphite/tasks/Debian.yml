@@ -1,0 +1,59 @@
+---
+
+- name: Install packages with apt
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+  vars:
+    packages:
+      - python-pip
+      - python-dev
+      - libcairo2-dev
+      - python-cairo
+      - fontconfig
+      - uwsgi
+      - uwsgi-plugin-python
+      - sudo
+      - libffi-dev
+
+- name: Install systemd unit carbon-cache.service
+  template:
+    src: carbon_cache_systemd.j2
+    dest: /etc/systemd/system/carbon-cache.service
+  register: ccunit
+
+- name: Reload systemd if unit file has changed
+  shell: systemctl daemon-reload
+  when: ccunit is changed
+  notify: restart carbon-cache
+
+- name: Install systemd unit carbon-relay.service
+  template:
+    src: carbon_relay_systemd.j2
+    dest: /etc/systemd/system/carbon-relay.service
+  register: ccunit
+
+- name: Reload systemd if unit file has changed
+  shell: systemctl daemon-reload
+  when: ccunit is changed
+  notify: restart carbon-relay
+
+- name: Install uwsgi graphite config
+  template:
+    src: uwsgi_graphite.ini.j2
+    dest: /etc/uwsgi/apps-available/graphite.ini
+  notify: restart uwsgi
+
+- name: Enable uwsgi graphite config
+  file:
+    src: /etc/uwsgi/apps-available/graphite.ini
+    dest: /etc/uwsgi/apps-enabled/graphite.ini
+    state: link
+  notify: restart uwsgi
+
+- name: Make sure we have /run/uwsgi/graphite
+  file:
+    path: /run/uwsgi/graphite
+    state: directory
+    owner: "{{ graphite_user }}"
+    group: "{{ graphite_user }}"

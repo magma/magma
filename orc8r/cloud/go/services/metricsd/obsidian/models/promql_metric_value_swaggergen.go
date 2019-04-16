@@ -22,10 +22,10 @@ type PromqlMetricValue struct {
 	Metric *PromqlMetric `json:"metric"`
 
 	// value
-	Value PromqlValue `json:"value,omitempty"`
+	Value MetricDatapoint `json:"value,omitempty"`
 
 	// values
-	Values PromqlValues `json:"values,omitempty"`
+	Values MetricDatapoints `json:"values,omitempty"`
 }
 
 // Validate validates this promql metric value

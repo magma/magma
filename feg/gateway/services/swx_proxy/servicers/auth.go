@@ -28,15 +28,34 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const MinRequestedVectors uint32 = 5
+
 // AuthenticateImpl sends MAR over diameter connection,
 // waits (blocks) for MAA & returns its RPC representation
 func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
-	res := &protos.AuthenticationAnswer{}
-	err := validateAuthRequest(req)
+	var (
+		res = &protos.AuthenticationAnswer{}
+		err = validateAuthRequest(req)
+	)
 	if err != nil {
 		return res, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 	res.UserName = req.GetUserName()
+	shouldSendSar := s.config.VerifyAuthorization || req.GetRetrieveUserProfile()
+
+	if s.cache != nil {
+		// Check if we still have valid vectors for the user in the cache
+		if len(req.GetResyncInfo()) == 0 { // Only try to get cached vectors if it's not resync request
+			cachedRes := s.cache.Get(res.UserName)
+			if cachedRes != nil && ((!shouldSendSar) || cachedRes.GetUserProfile() != nil) {
+				return cachedRes, nil // We have a valid result in the cache, return it
+			}
+		}
+
+		if req.SipNumAuthVectors < MinRequestedVectors {
+			req.SipNumAuthVectors = MinRequestedVectors // Get Max allowed # of vectors for caching
+		}
+	}
 
 	sid := s.genSID()
 	ch := make(chan interface{})
@@ -83,13 +102,22 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 			return res, err
 		}
 
-		if s.config.VerifyAuthorization {
-			err = s.authorize(req.GetUserName())
+		if shouldSendSar {
+			profile, authorized, err := s.retrieveUserProfile(req.GetUserName())
 			if err != nil {
+				glog.Error(err)
+			}
+			// If user is unauthorized, don't send back auth vectors
+			if !authorized {
 				return res, err
 			}
+			res.UserProfile = profile
 		}
 		res.SipAuthVectors = getSIPAuthenticationVectors(maa.SIPAuthDataItems)
+		// The only point when we cache vectors
+		if s.cache != nil {
+			res = s.cache.Put(res)
+		}
 
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
 		metrics.SwxTimeouts.Inc()
@@ -99,20 +127,27 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	return res, err
 }
 
-// authorize sends SAR over diameter with ServerAssignmentType set to
-// AAA_USER_DATA_REQUEST and ensures the user profile received back allows
-// for Non 3GPP IP Access
-func (s *swxProxy) authorize(userName string) error {
+// retrieveUserProfile sends SARs with ServerAssignmentType AAA_USER_DATA_REQUEST, receives back SAA
+// and returns the subscribers's Non-3GPP-User-Data profile
+func (s *swxProxy) retrieveUserProfile(userName string) (*protos.AuthenticationAnswer_UserProfile, bool, error) {
 	saa, err := s.sendSAR(userName, ServerAssignmentType_AAA_USER_DATA_REQUEST)
 	if err != nil {
-		return err
+		return nil, true, err
 	}
-	if saa.UserData.Non3GPPIPAccess != datatype.Enumerated(Non3GPPIPAccess_ENABLED) {
+	if s.config.VerifyAuthorization && saa.UserData.Non3GPPIPAccess != datatype.Enumerated(Non3GPPIPAccess_ENABLED) {
 		metrics.UnauthorizedAuthAttempts.Inc()
-		return status.Errorf(codes.PermissionDenied, "User %s is not authorized for Non-3GPP Subscription Access", userName)
+		return nil, false, status.Errorf(codes.PermissionDenied, "User %s is not authorized for Non-3GPP Subscription Access", userName)
 	}
-	// User is authorized
-	return nil
+	if saa.UserData.SubscriptionId.SubscriptionIdType != END_USER_E164 {
+		return nil, true, status.Error(
+			codes.Internal,
+			"Subscription ID type is not END_USER_E164; Cannot retrieve MSISDN",
+		)
+	}
+	userProfile := &protos.AuthenticationAnswer_UserProfile{
+		Msisdn: string(saa.UserData.SubscriptionId.SubscriptionIdData),
+	}
+	return userProfile, true, nil
 }
 
 // createMAR creates a Multimedia Authentication Request diameter msg with provided SessionID (sid)

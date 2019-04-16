@@ -50,6 +50,7 @@ class ParameterName():
     MME_PORT = 'MME port'
     NUM_PLMNS = 'Num PLMNs'
     PLMN = 'PLMN'
+    PLMN_LIST = 'PLMN List'
 
     # PLMN parameters
     PLMN_N = 'PLMN %d'
@@ -71,6 +72,8 @@ class ParameterName():
     PERF_MGMT_ENABLE = 'Perf mgmt enable'
     PERF_MGMT_UPLOAD_INTERVAL = 'Perf mgmt upload interval'
     PERF_MGMT_UPLOAD_URL = 'Perf mgmt upload URL'
+    PERF_MGMT_USER = 'Perf mgmt username'
+    PERF_MGMT_PASSWORD = 'Perf mgmt password'
 
 
 class TrParameterType():

@@ -11,6 +11,9 @@ package plugin
 import (
 	"sync"
 	"testing"
+
+	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/cloud/go/services/metricsd/confignames"
 )
 
 type testPluginRegistry struct {
@@ -19,6 +22,17 @@ type testPluginRegistry struct {
 }
 
 var testPlugins = &testPluginRegistry{plugins: map[string]OrchestratorPlugin{}}
+
+var testMetricsConfigMap = &config.ConfigMap{
+	RawMap: map[interface{}]interface{}{
+		confignames.Profile:                      "",
+		confignames.PrometheusAddress:            "",
+		confignames.PrometheusPushgatewayAddress: "",
+		confignames.GraphiteAddress:              "",
+		confignames.GraphiteReceivePort:          0,
+		confignames.GraphiteQueryPort:            0,
+	},
+}
 
 // RegisterPluginForTests registers all components of a given plugin with the
 // corresponding component registries exposed by the orchestrator. This should
@@ -30,7 +44,7 @@ func RegisterPluginForTests(_ *testing.T, plugin OrchestratorPlugin) error {
 	testPlugins.Lock()
 	defer testPlugins.Unlock()
 	if _, ok := testPlugins.plugins[plugin.GetName()]; !ok {
-		return registerPlugin(plugin)
+		return registerPlugin(plugin, testMetricsConfigMap)
 	}
 	// plugin has already been registered, no-op
 	return nil

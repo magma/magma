@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	magmaerrors "magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/storage"
 )
 
 // NewSQLBlobStorageFactory returns a BlobStorageFactory implementation which
@@ -91,9 +92,9 @@ func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]strin
 	return ret, nil
 }
 
-func (store *sqlBlobStorage) Get(networkID string, id TypeAndKey) (Blob, error) {
+func (store *sqlBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
 	// defer table init, tx validation to GetMany
-	multiRet, err := store.GetMany(networkID, []TypeAndKey{id})
+	multiRet, err := store.GetMany(networkID, []storage.TypeAndKey{id})
 	if err != nil {
 		return Blob{}, err
 	}
@@ -103,7 +104,7 @@ func (store *sqlBlobStorage) Get(networkID string, id TypeAndKey) (Blob, error) 
 	return multiRet[0], nil
 }
 
-func (store *sqlBlobStorage) GetMany(networkID string, ids []TypeAndKey) ([]Blob, error) {
+func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error) {
 	emptyRet := []Blob{}
 	if err := store.validateTx(); err != nil {
 		return emptyRet, err
@@ -163,7 +164,7 @@ func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) erro
 	return nil
 }
 
-func (store *sqlBlobStorage) Delete(networkID string, ids []TypeAndKey) error {
+func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	if err := store.validateTx(); err != nil {
 		return err
 	}
@@ -204,7 +205,7 @@ func (store *sqlBlobStorage) initTable(fullTableName string) error {
 	return err
 }
 
-func (store *sqlBlobStorage) updateExistingBlobs(tableName string, blobsToChange map[TypeAndKey]blobChange) error {
+func (store *sqlBlobStorage) updateExistingBlobs(tableName string, blobsToChange map[storage.TypeAndKey]blobChange) error {
 	updateQuery := fmt.Sprintf("UPDATE %s SET value = $1, version = $2 WHERE type = $3 AND key = $4", tableName)
 	updateStmt, err := store.tx.Prepare(updateQuery)
 	if err != nil {
@@ -256,7 +257,7 @@ func getCompositeWhereInArgList(startIdx int, numArgs int) string {
 	return retBuilder.String()
 }
 
-func typeAndKeysToArgs(ids []TypeAndKey) []interface{} {
+func typeAndKeysToArgs(ids []storage.TypeAndKey) []interface{} {
 	ret := make([]interface{}, 0, len(ids)*2)
 	for _, tk := range ids {
 		ret = append(ret, tk.Type)
@@ -265,10 +266,10 @@ func typeAndKeysToArgs(ids []TypeAndKey) []interface{} {
 	return ret
 }
 
-func getBlobIDs(blobs []Blob) []TypeAndKey {
-	ret := make([]TypeAndKey, 0, len(blobs))
+func getBlobIDs(blobs []Blob) []storage.TypeAndKey {
+	ret := make([]storage.TypeAndKey, 0, len(blobs))
 	for _, blob := range blobs {
-		ret = append(ret, TypeAndKey{Type: blob.Type, Key: blob.Key})
+		ret = append(ret, storage.TypeAndKey{Type: blob.Type, Key: blob.Key})
 	}
 	return ret
 }
@@ -280,18 +281,18 @@ type blobChange struct {
 
 type blobsToCreateAndChange struct {
 	blobsToCreate []Blob
-	blobsToChange map[TypeAndKey]blobChange
+	blobsToChange map[storage.TypeAndKey]blobChange
 }
 
 func partitionBlobsToCreateAndChange(blobsToUpdate []Blob, existingBlobs []Blob) blobsToCreateAndChange {
 	ret := blobsToCreateAndChange{
 		blobsToCreate: []Blob{},
-		blobsToChange: map[TypeAndKey]blobChange{},
+		blobsToChange: map[storage.TypeAndKey]blobChange{},
 	}
 	existingBlobsByID := GetBlobsByTypeAndKey(existingBlobs)
 
 	for _, blob := range blobsToUpdate {
-		blobID := TypeAndKey{Type: blob.Type, Key: blob.Key}
+		blobID := storage.TypeAndKey{Type: blob.Type, Key: blob.Key}
 		oldBlob, exists := existingBlobsByID[blobID]
 		if exists {
 			ret.blobsToChange[blobID] = blobChange{old: oldBlob, new: blob}
@@ -302,8 +303,8 @@ func partitionBlobsToCreateAndChange(blobsToUpdate []Blob, existingBlobs []Blob)
 	return ret
 }
 
-func getSortedTypeAndKeys(blobsToChange map[TypeAndKey]blobChange) []TypeAndKey {
-	ret := make([]TypeAndKey, 0, len(blobsToChange))
+func getSortedTypeAndKeys(blobsToChange map[storage.TypeAndKey]blobChange) []storage.TypeAndKey {
+	ret := make([]storage.TypeAndKey, 0, len(blobsToChange))
 	for k := range blobsToChange {
 		ret = append(ret, k)
 	}

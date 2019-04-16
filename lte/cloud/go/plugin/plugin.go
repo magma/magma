@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	srvconfig "magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
@@ -55,11 +56,11 @@ func (*LteOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
 	}
 }
 
-func (*LteOrchestratorPlugin) GetMetricsProfiles() []metricsd.MetricsProfile {
+func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
 	return []metricsd.MetricsProfile{}
 }
 
-func (*LteOrchestratorPlugin) GetObsidianHandlers() []handlers.Handler {
+func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []handlers.Handler {
 	return plugin.FlattenHandlerLists(
 		cellularh.GetObsidianHandlers(),
 		meteringdh.GetObsidianHandlers(),

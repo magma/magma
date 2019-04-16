@@ -23,6 +23,9 @@ hooks:
     - location: scripts/prepare_server
       timeout: 300
       runas: root
+    - location: scripts/set_proxy_services
+      timeout: 300
+      runas: root
   AfterInstall:
     - location: scripts/run_ansible
       timeout: 300

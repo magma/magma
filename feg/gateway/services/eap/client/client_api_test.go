@@ -41,7 +41,7 @@ func (s testSwxProxy) Authenticate(
 
 	time.Sleep(rpcResponseDelay)
 
-	return &protos.AuthenticationAnswer{
+	res := &protos.AuthenticationAnswer{
 		UserName: req.GetUserName(),
 		SipAuthVectors: []*protos.AuthenticationAnswer_SIPAuthVector{
 			&protos.AuthenticationAnswer_SIPAuthVector{
@@ -54,7 +54,11 @@ func (s testSwxProxy) Authenticate(
 				IntegrityKey:       []byte("\xd5\x37\x0f\x13\x79\x6f\x2f\x61\x5c\xbe\x15\xef\x9f\x42\x0a\x98"),
 			},
 		},
-	}, nil
+	}
+	if req.RetrieveUserProfile {
+		res.UserProfile = &protos.AuthenticationAnswer_UserProfile{Msisdn: msisdn}
+	}
+	return res, nil
 }
 
 // Register sends SAR (code 301) over diameter connection,
@@ -97,6 +101,7 @@ var (
 	authenticator         = []byte{
 		0x9f, 0xe8, 0xff, 0xcb, 0xc9, 0xd4, 0x85, 0x97, 0xb9, 0x5b, 0x79, 0x7c, 0x2d, 0xf5, 0x43, 0x31}
 	sharedSecret = []byte("1qaz2wsx")
+	msisdn = "123456789"
 )
 
 func TestEAPClientApi(t *testing.T) {
@@ -187,7 +192,9 @@ func TestEAPClientApi(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling second Test EAP: %v", err)
 	}
-
+	if eapCtx.Msisdn != msisdn {
+		t.Fatalf("Unexpected MSISDN: %s, expected: %s", eapCtx.Msisdn, msisdn)
+	}
 	time.Sleep(aka.ChallengeTimeout() + time.Millisecond*20)
 
 	eapCtx = peap.GetCtx()

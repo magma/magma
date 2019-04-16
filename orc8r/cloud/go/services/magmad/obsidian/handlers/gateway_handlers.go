@@ -10,6 +10,7 @@ package handlers
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"sort"
@@ -35,6 +36,7 @@ const (
 	RestartServices       = CommandRoot + "/restart_services"
 	GatewayPing           = CommandRoot + "/ping"
 	GatewayGenericCommand = CommandRoot + "/generic"
+	TailGatewayLogs       = CommandRoot + "/tail_logs"
 )
 
 func getListGatewaysHandler(factory view_factory.FullGatewayViewFactory) func(echo.Context) error {
@@ -289,4 +291,52 @@ func gatewayGenericCommand(c echo.Context) error {
 		Response: resp,
 	}
 	return c.JSON(http.StatusOK, genericCommandResponse)
+}
+
+func tailGatewayLogs(c echo.Context) error {
+	networkId, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	gatewayId, gerr := handlers.GetLogicalGwId(c)
+	if gerr != nil {
+		return gerr
+	}
+
+	request := magmad_models.TailLogsRequest{}
+	err := c.Bind(&request)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+
+	stream, conn, err := magmad.TailGatewayLogs(networkId, gatewayId, request.Service)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	defer conn.Close()
+
+	go func() {
+		<-c.Request().Context().Done()
+		conn.Close()
+	}()
+	// https://echo.labstack.com/cookbook/streaming-response
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)
+	c.Response().Header().Set(echo.HeaderXContentTypeOptions, "nosniff")
+	c.Response().WriteHeader(http.StatusOK)
+	for {
+		line, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return handlers.HttpError(err, http.StatusInternalServerError)
+		}
+
+		if _, err := c.Response().Write([]byte(line.Line)); err != nil {
+			return handlers.HttpError(err, http.StatusInternalServerError)
+		}
+		c.Response().Flush()
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

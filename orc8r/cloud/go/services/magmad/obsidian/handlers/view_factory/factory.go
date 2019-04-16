@@ -15,9 +15,9 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/checkind"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/config/storage"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
+	"magma/orc8r/cloud/go/storage"
 )
 
 // GatewayState represents the current state of a gateway, including

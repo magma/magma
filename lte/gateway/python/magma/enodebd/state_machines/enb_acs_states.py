@@ -136,6 +136,39 @@ class WaitInformState(EnodebAcsState):
         return 'Disconnected'
 
 
+class GetRPCMethodsState(EnodebAcsState):
+    """
+    After the first Inform message from boot, it is expected that the eNB
+    will try to learn the RPC methods of the ACS.
+    """
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str, when_skip: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.skip_transition = when_skip
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        # If this is a regular Inform, not after a reboot we'll get an empty
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(True, self.skip_transition)
+        if not isinstance(message, models.GetRPCMethods):
+            return AcsReadMsgResult(False, self.done_transition)
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self) -> AcsMsgAndTransition:
+        resp = models.GetRPCMethodsResponse()
+        resp.MethodList = models.MethodList()
+        RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
+        resp.MethodList.arrayType = 'xsd:string[%d]' \
+                                          % len(RPC_METHODS)
+        resp.MethodList.string = RPC_METHODS
+        return AcsMsgAndTransition(resp, self.done_transition)
+
+    @classmethod
+    def state_description(cls) -> str:
+        return 'Waiting for incoming GetRPC Methods after boot'
+
+
 class BaicellsRemWaitState(EnodebAcsState):
     """
     We've already received an Inform message. This state is to handle a
@@ -288,14 +321,14 @@ class SendGetTransientParametersState(EnodebAcsState):
     def get_msg(self) -> AcsMsgAndTransition:
         request = models.GetParameterValues()
         request.ParameterNames = models.ParameterNames()
-        request.ParameterNames.arrayType = \
-            'xsd:string[%d]' % len(self.PARAMETERS)
         request.ParameterNames.string = []
         for name in self.PARAMETERS:
             # Not all data models have these parameters
             if self.acs.data_model.is_parameter_present(name):
                 path = self.acs.data_model.get_parameter(name).path
                 request.ParameterNames.string.append(path)
+        request.ParameterNames.arrayType = \
+            'xsd:string[%d]' % len(request.ParameterNames.string)
 
         return AcsMsgAndTransition(request, self.done_transition)
 
@@ -517,19 +550,29 @@ class WaitGetObjectParametersState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
 
         path_to_val = {}
-        for param_value_struct in message.ParameterList.ParameterValueStruct:
-            path_to_val[param_value_struct.Name] = \
-                param_value_struct.Value.Data
+        if hasattr(message.ParameterList, 'ParameterValueStruct') and \
+                message.ParameterList.ParameterValueStruct is not None:
+            for param_value_struct in message.ParameterList.ParameterValueStruct:
+                path_to_val[param_value_struct.Name] = \
+                    param_value_struct.Value.Data
         logging.debug('Received object parameters: %s', str(path_to_val))
 
-        # TODO: This might a string for some strange reason, investigate why
-        # Get the names of parameters belonging to numbered objects
-        num_plmns = \
-            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
-        for i in range(1, num_plmns + 1):
-            obj_name = ParameterName.PLMN_N % i
-            obj_to_params = self.acs.data_model.get_numbered_param_names()
+        # Number of PLMN objects reported can be incorrect. Let's count them
+        num_plmns = 0
+        obj_to_params = self.acs.data_model.get_numbered_param_names()
+        while True:
+            obj_name = ParameterName.PLMN_N % (num_plmns + 1)
+            if obj_name not in obj_to_params or len(obj_to_params[obj_name]) == 0:
+                logging.warning("eNB has PLMN %s but not defined in model",
+                    obj_name)
+                break
             param_name_list = obj_to_params[obj_name]
+            obj_path = self.acs.data_model.get_parameter(param_name_list[0]).path
+            if obj_path not in path_to_val:
+                break
+            if not self.acs.device_cfg.has_object(obj_name):
+                self.acs.device_cfg.add_object(obj_name)
+            num_plmns += 1
             for name in param_name_list:
                 path = self.acs.data_model.get_parameter(name).path
                 value = path_to_val[path]
@@ -537,6 +580,13 @@ class WaitGetObjectParametersState(EnodebAcsState):
                     self.acs.data_model.transform_for_magma(name, value)
                 self.acs.device_cfg.set_parameter_for_object(name, magma_val,
                                                              obj_name)
+        num_plmns_reported = \
+                int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+        if num_plmns != num_plmns_reported:
+            logging.warning("eNB reported %d PLMNs but found %d",
+                    num_plmns_reported, num_plmns)
+            self.acs.device_cfg.set_parameter(ParameterName.NUM_PLMNS,
+                                              num_plmns)
 
         # Now we can have the desired state
         if self.acs.desired_cfg is None:
@@ -633,8 +683,16 @@ class AddObjectsState(EnodebAcsState):
         request = models.AddObject()
         self.added_param = get_all_objects_to_add(self.acs.desired_cfg,
                                                   self.acs.device_cfg)[0]
-        request.ObjectName = \
-            self.acs.data_model.get_parameter(self.added_param).path
+        desired_param = self.acs.data_model.get_parameter(self.added_param)
+        desired_path = desired_param.path
+        path_parts = desired_path.split('.')
+        # If adding enumerated object, ie. XX.N. we should add it to the
+        # parent object XX. so strip the index
+        if len(path_parts) > 2 and \
+                path_parts[-1] == '' and path_parts[-2].isnumeric():
+            logging.debug('Stripping index from path=%s', desired_path)
+            desired_path = '.'.join(path_parts[:-2]) + '.'
+        request.ObjectName = desired_path
         return AcsMsgAndTransition(request, None)
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:

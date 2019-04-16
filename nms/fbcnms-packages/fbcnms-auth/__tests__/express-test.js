@@ -36,6 +36,7 @@ function stripDates(res) {
 function mockOrgMiddleware(orgName: string) {
   return (req: FBCNMSRequest, _res, next) => {
     if (orgName) {
+      // $FlowIgnore we know this is wrong, and that's okay for this test.
       req.organization = async () => {
         return {name: orgName};
       };

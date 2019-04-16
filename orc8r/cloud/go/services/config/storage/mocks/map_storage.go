@@ -12,9 +12,10 @@ import (
 	"errors"
 
 	"magma/orc8r/cloud/go/services/config/storage"
+	mstore "magma/orc8r/cloud/go/storage"
 )
 
-type configTable map[storage.TypeAndKey][]byte
+type configTable map[mstore.TypeAndKey][]byte
 
 type mapBackedConfigurationStorage struct {
 	// {networkId: {(type, key): value}}
@@ -33,19 +34,19 @@ func (store *mapBackedConfigurationStorage) GetConfig(networkId string, configTy
 	if !tableExists {
 		return &storage.ConfigValue{}, nil
 	}
-	val, exists := table[storage.TypeAndKey{Type: configType, Key: key}]
+	val, exists := table[mstore.TypeAndKey{Type: configType, Key: key}]
 	if !exists {
 		return &storage.ConfigValue{}, nil
 	}
 	return &storage.ConfigValue{Value: val, Version: 0}, nil
 }
 
-func (store *mapBackedConfigurationStorage) GetConfigs(networkId string, criteria *storage.FilterCriteria) (map[storage.TypeAndKey]*storage.ConfigValue, error) {
+func (store *mapBackedConfigurationStorage) GetConfigs(networkId string, criteria *storage.FilterCriteria) (map[mstore.TypeAndKey]*storage.ConfigValue, error) {
 	if len(criteria.Type) == 0 && len(criteria.Key) == 0 {
 		return nil, errors.New("Filter criteria not specified")
 	}
 
-	ret := map[storage.TypeAndKey]*storage.ConfigValue{}
+	ret := map[mstore.TypeAndKey]*storage.ConfigValue{}
 	table, tableExists := store.tables[networkId]
 	if !tableExists {
 		return ret, nil
@@ -78,7 +79,7 @@ func (store *mapBackedConfigurationStorage) ListKeysForType(networkId string, co
 func (store *mapBackedConfigurationStorage) CreateConfig(networkId string, configType string, key string, value []byte) error {
 	table := store.getTable(networkId)
 
-	tk := storage.TypeAndKey{Type: configType, Key: key}
+	tk := mstore.TypeAndKey{Type: configType, Key: key}
 	_, exists := table[tk]
 	if exists {
 		return errors.New("Creating already existing config")
@@ -92,7 +93,7 @@ func (store *mapBackedConfigurationStorage) CreateConfig(networkId string, confi
 func (store *mapBackedConfigurationStorage) UpdateConfig(networkId string, configType string, key string, newValue []byte) error {
 	table := store.getTable(networkId)
 
-	tk := storage.TypeAndKey{Type: configType, Key: key}
+	tk := mstore.TypeAndKey{Type: configType, Key: key}
 	_, exists := table[tk]
 	if !exists {
 		return errors.New("Updating nonexistent config")
@@ -106,7 +107,7 @@ func (store *mapBackedConfigurationStorage) UpdateConfig(networkId string, confi
 func (store *mapBackedConfigurationStorage) DeleteConfig(networkId string, configType string, key string) error {
 	table := store.getTable(networkId)
 
-	tk := storage.TypeAndKey{Type: configType, Key: key}
+	tk := mstore.TypeAndKey{Type: configType, Key: key}
 	_, exists := table[tk]
 	if !exists {
 		return errors.New("Deleting nonexistent config")
@@ -120,7 +121,7 @@ func (store *mapBackedConfigurationStorage) DeleteConfig(networkId string, confi
 func (store *mapBackedConfigurationStorage) DeleteConfigs(networkId string, criteria *storage.FilterCriteria) error {
 	table := store.getTable(networkId)
 
-	var tksToDelete []storage.TypeAndKey
+	var tksToDelete []mstore.TypeAndKey
 	for tk := range table {
 		if doesTypeAndKeyMatchFilter(tk, criteria) {
 			tksToDelete = append(tksToDelete, tk)
@@ -139,7 +140,7 @@ func (store *mapBackedConfigurationStorage) DeleteConfigsForNetwork(networkId st
 	return nil
 }
 
-func doesTypeAndKeyMatchFilter(tk storage.TypeAndKey, filter *storage.FilterCriteria) bool {
+func doesTypeAndKeyMatchFilter(tk mstore.TypeAndKey, filter *storage.FilterCriteria) bool {
 	match := true
 	if len(filter.Type) > 0 {
 		match = match && (tk.Type == filter.Type)

@@ -533,6 +533,13 @@ definitions:
         additionalProperties:
           type: object
         example: {}
+  tail_logs_request:
+    type: object
+    properties:
+      service:
+        type: string
+        minLength: 1
+        example: magmad
 
   # Full view
   gateway_state:

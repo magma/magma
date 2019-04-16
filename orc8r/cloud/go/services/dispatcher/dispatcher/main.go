@@ -23,13 +23,23 @@ import (
 	"magma/orc8r/cloud/go/services/dispatcher/servicers"
 
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
 )
 
 const HTTP_SERVER_PORT = 9080
 
 func main() {
+	// Set MaxConnectionAge to infinity so Sync RPC stream doesn't restart
+	var keepaliveParams = service.GetDefaultKeepaliveParameters()
+	keepaliveParams.MaxConnectionAge = 0
+	keepaliveParams.MaxConnectionAgeGrace = 0
+
 	// Create the service
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, dispatcher.ServiceName)
+	srv, err := service.NewOrchestratorServiceWithOptions(
+		orc8r.ModuleName,
+		dispatcher.ServiceName,
+		grpc.KeepaliveParams(keepaliveParams),
+	)
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}

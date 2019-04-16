@@ -8,11 +8,26 @@
  * @format
  */
 
-import type {DataTypes} from 'sequelize';
-
 import Sequelize from 'sequelize';
 
-export default (sequelize: Sequelize, types: DataTypes) => {
+import type {DataTypes, Model} from 'sequelize';
+import type {AssociateProp} from './AssociateTypes.flow';
+
+export type OrganizationRawType = {
+  name: string,
+  tabs?: Array<string>,
+  customDomains?: Array<string>,
+  networkIDs: Array<string>,
+};
+
+type OrganizationModel = Model<OrganizationRawType>;
+export type StaticOrganizationModel = Class<OrganizationModel>;
+export type OrganizationType = OrganizationModel & OrganizationRawType;
+
+export default (
+  sequelize: Sequelize,
+  types: DataTypes,
+): StaticOrganizationModel & AssociateProp => {
   const Organization = sequelize.define(
     'Organization',
     {

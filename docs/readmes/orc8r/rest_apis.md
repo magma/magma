@@ -1,7 +1,9 @@
 ---
 id: rest_apis
 title: Swagger UI for REST APIs
+hide_title: true
 ---
+# Swagger UI for REST APIs
 We use [Swagger](https://swagger.io/) for defining the north bound REST APIs, and the APIs can be viewed and tested using the Swagger UI. To use the UI:
 
 ```console
@@ -18,7 +20,7 @@ it.
 Linux/Windows users should replace the above steps with the system-appropriate
 method to import a client cert.
 
-You can access the orchestrator REST API at https://192.168.80.10:9443/apidocs.
+You can access the orchestrator REST API at https://127.0.0.1:9443/apidocs.
 The SSL cert is self-signed, so click through any security warnings your
 browser gives you. You should be prompted for a client cert, at which point
 you should select the `admin_operator` cert that you added to Keychain above.

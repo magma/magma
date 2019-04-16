@@ -17,7 +17,7 @@ from fabric.api import run, hide
 import fab.vagrant as vagrant
 
 
-PORTAL_URL = 'https://192.168.80.10:9443/magma'
+PORTAL_URL = 'https://127.0.0.1:9443/magma'
 
 def register_vm(vm_type="magma", admin_cert=(
               './../../.cache/test_certs/admin_operator.pem',

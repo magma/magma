@@ -10,6 +10,38 @@ tags:
   description: Viewing collected gateway metrics
 
 paths:
+  /networks/{network_id}/graphite/query:
+    get:
+      summary: Retrieve datapoints from a graphite query
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: query
+          type: string
+          description: Graphite query to proxy to graphite. Functions are not supported yet. Queries should be of the form "metric_name[;tag=value]*"
+          required: true
+        - in: query
+          name: start
+          type: string
+          description: Start date for query, Unix epoch
+          required: true
+        - in: query
+          name: end
+          type: string
+          description: End date for query, Unix epoch. Defaults to current time.
+          required: false
+      responses:
+        '200':
+          description:
+            List of graphite metrics results
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/graphite_return_object'
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
   /networks/{network_id}/prometheus/query:
     get:
       summary: Retrieve the datapoints from a Prometheus Query
@@ -76,6 +108,26 @@ paths:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
+  graphite_return_object:
+    type: array
+    items:
+      $ref: '#/definitions/graphite_target_data'
+  graphite_target_data:
+    type: object
+    required:
+      - target
+      - tags
+      - datapoints
+    properties:
+      datapoints:
+        $ref: '#/definitions/metric_datapoints'
+      target:
+        type: string
+      tags:
+        type: object
+        additionalProperties:
+          type: string
+
   promql_return_object:
     type: object
     required:
@@ -102,6 +154,8 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/promql_metric_value'
+    minItems: 2
+    maxItems: 2
   promql_metric_value:
     description: If resultType is 'vector' value is in the result, if 'matrix', values is in the result
     type: object
@@ -111,9 +165,9 @@ definitions:
       metric:
         $ref: '#/definitions/promql_metric'
       value:
-        $ref: '#/definitions/promql_value'
+        $ref: '#/definitions/metric_datapoint'
       values:
-        $ref: '#/definitions/promql_values'
+        $ref: '#/definitions/metric_datapoints'
   promql_metric:
     type: object
     required:
@@ -136,14 +190,17 @@ definitions:
       instance: "NFHDZAQU8Pyw2N91nbNdGjk5e"
       job: "sample_service"
       host: "magma_controller_a"
-  promql_value:
+
+
+  metric_datapoints:
+    type: array
+    items:
+      $ref: '#/definitions/metric_datapoint'
+
+  metric_datapoint:
     type: array
     items:
       type: string
     minItems: 2
     maxItems: 2
     example: [1548439790.115,"1"]
-  promql_values:
-    type: array
-    items:
-      $ref: '#/definitions/promql_value'

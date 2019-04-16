@@ -17,7 +17,6 @@ from typing import Any, Dict
 CONFIGS_DIR = "/etc/magma/configs"
 TEMPLATES_DIR = "/etc/magma/templates"
 OUTPUT_DIR = "/etc/nghttpx"
-DEFAULT_PORT = 9070
 OBSIDIAN_PORT = 9081
 
 
@@ -62,8 +61,7 @@ def _run_nghttpx(conf: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Nghttpx runner")
-    parser.add_argument("proxy_type",
-                        choices=["open", "clientcert", "obsidian"])
+    parser.add_argument("proxy_type", choices=["open", "clientcert"])
     args = parser.parse_args()
 
     # Create the jinja context
@@ -72,7 +70,6 @@ def main() -> None:
     context["controller_hostname"] = os.environ["CONTROLLER_HOSTNAME"]
     context["api_hostname"] = os.environ["API_HOSTNAME"]
     context["proxy_backends"] = os.environ["PROXY_BACKENDS"]
-    context["default_port"] = DEFAULT_PORT
     context["obsidian_port"] = OBSIDIAN_PORT
 
     # Generate the nghttpx config

@@ -439,18 +439,18 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
       if(is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
          emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
-      } else {
-         OAILOG_DEBUG(
-           LOG_NAS_EMM, " Sending CS Domain Location Update Request to MME APP");
-           nas_emm_attach_proc_t *attach_proc =
-         get_nas_specific_procedure_attach(emm_ctx_p);
-         nas_itti_cs_domain_location_update_req(
-           attach_proc->ue_id, ATTACH_REQUEST);
+    } else {
+      OAILOG_DEBUG(
+        LOG_NAS_EMM, " Sending CS Domain Location Update Request to MME APP");
+        nas_emm_attach_proc_t *attach_proc =
+      get_nas_specific_procedure_attach(emm_ctx_p);
+      nas_itti_cs_domain_location_update_req(
+        attach_proc->ue_id, ATTACH_REQUEST);
       /* Store ESM message Activate Default EPS bearer to be sent in Attach Accept triggered after receiving
        * Location Update Accept
        */
-         emm_ctx_p->csfbparams.esm_data = esm_data;
-         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      emm_ctx_p->csfbparams.esm_data = esm_data;
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
     }
   }
@@ -672,7 +672,9 @@ static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
     case CAUSE_SERVICE_NOT_SUPPORTED:
       esm_cause = ESM_CAUSE_SERVICE_OPTION_NOT_SUPPORTED;
       break;
-    case CAUSE_SYSTEM_FAILURE: esm_cause = ESM_CAUSE_NETWORK_FAILURE; break;
+    case CAUSE_SYSTEM_FAILURE:
+      esm_cause = ESM_CAUSE_NETWORK_FAILURE;
+      break;
     case CAUSE_NO_RESOURCES_AVAILABLE:
       esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
       increment_counter(

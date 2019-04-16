@@ -73,7 +73,6 @@ add_library(TASK_S1AP
     ${S1AP_DIR}/s1ap_mme_nas_procedures.c
     ${S1AP_DIR}/s1ap_mme.c
     ${S1AP_DIR}/s1ap_mme_itti_messaging.c
-    ${S1AP_DIR}/s1ap_mme_retransmission.c
     ${S1AP_DIR}/s1ap_mme_ta.c
     ${S1AP_DIR}/s1ap_state.cpp
 )

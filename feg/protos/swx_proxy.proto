@@ -39,6 +39,9 @@ message AuthenticationRequest {
 
     // Concatenation of RAND and AUTS in the case of resync
     bytes resync_info = 4;
+
+    // Send an additional SAR message to the HSS to retrieve user profile params
+    bool retrieve_user_profile = 5;
 }
 
 enum AuthenticationScheme {
@@ -66,6 +69,13 @@ message AuthenticationAnswer {
         bytes confidentiality_key = 4;
         // Integrity Key
         bytes integrity_key = 5;
+    }
+
+    UserProfile user_profile = 3;
+
+    message UserProfile {
+        // MSISDN from HSS
+        string msisdn = 1;
     }
 }
 

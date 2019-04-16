@@ -13,7 +13,7 @@ import threading
 import time
 
 import grpc
-from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
+from orc8r.protos.sync_rpc_service_pb2 import SyncRPCResponse
 from orc8r.protos.sync_rpc_service_pb2_grpc import SyncRPCServiceStub
 
 from magma.common.service_registry import ServiceRegistry
@@ -41,6 +41,7 @@ class SyncRPCClient(threading.Thread):
         self.daemon = True
         self._current_delay = 0
         self._last_conn_time = 0
+        self._conn_closed_table = {}  # mapping of req id -> conn closed
 
     def run(self):
         """
@@ -63,6 +64,10 @@ class SyncRPCClient(threading.Thread):
                 logging.error("[SyncRPC] Error after %ds: %s", conn_time, exp)
             # If the connection is terminated, wait for a period of time
             # before connecting back to the cloud.
+            # Also clear the conn closed table since cloud may reuse req IDs,
+            # and clear current proxy client connections
+            self._conn_closed_table.clear()
+            self._proxy_client.close_all_connections()
             self._retry_connect_sleep()
 
     def process_streams(self, client):
@@ -94,7 +99,6 @@ class SyncRPCClient(threading.Thread):
             try:
                 resp = self._response_queue.get(block=True,
                                                 timeout=self._response_timeout)
-                logging.debug("[SyncRPC] Sending response")
                 yield resp
             except queue.Empty:
                 # response_queue is empty, send heartbeat
@@ -121,48 +125,25 @@ class SyncRPCClient(threading.Thread):
                 self.forward_request(req)
         except grpc.RpcError as err:
             # server end closed connection; retry rpc connection.
-            raise Exception("Error when retrieving request: [%s] %s"
-                            % (err.code(), err.details()))
+            raise Exception("Error when retrieving request: [{}] {}".format(
+                err.code(), err.details()))
 
     def forward_request(self, request):
         if request.heartBeat:
             logging.info("[SyncRPC] Got heartBeat from cloud")
             return
-        try:
-            logging.debug("[SyncRPC] Got a request")
-            future = asyncio.run_coroutine_threadsafe(
-                self._proxy_client.send(request.reqBody),
-                self._loop)
-            future.add_done_callback(lambda fut:
-                                     self._loop.call_soon_threadsafe(
-                                         self.send_request_done, request.reqId,
-                                         fut))
-        except Exception as exp:  # pylint: disable=broad-except
-            logging.error("[SyncRPC] Error when forwarding request: %s", exp)
 
-    def send_request_done(self, req_id, future):
-        """
-        A future that has a GatewayResponse is done. Check if a exception is
-        raised. If so, log the error and enqueue an empty SyncRPCResponse.
-        Else, enqueue a SyncRPCResponse that contains the GatewayResponse that
-        became available in the future.
-        Args:
-            req_id: request id that's associated with the response
-            future: A future that contains a GatewayResponse that is done.
+        if request.connClosed:
+            self._conn_closed_table[request.reqId] = True
+            return
 
-        Returns: None
-
-        """
-        err = future.exception()
-        if err:
-            logging.error("[SyncRPC] Forward to control proxy error: %s", err)
-            self._response_queue.put(
-                SyncRPCResponse(heartBeat=False, reqId=req_id,
-                                respBody=GatewayResponse(err=str(err))))
-        else:
-            res = future.result()
-            self._response_queue.put(
-                SyncRPCResponse(heartBeat=False, reqId=req_id, respBody=res))
+        logging.debug("[SyncRPC] Got a request")
+        asyncio.run_coroutine_threadsafe(
+            self._proxy_client.send(request.reqBody,
+                                    request.reqId,
+                                    self._response_queue,
+                                    self._conn_closed_table),
+            self._loop)
 
     def _retry_connect_sleep(self):
         """

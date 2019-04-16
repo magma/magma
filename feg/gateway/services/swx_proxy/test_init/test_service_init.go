@@ -15,6 +15,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/feg/gateway/services/swx_proxy/servicers/test"
 	"magma/orc8r/cloud/go/service"
@@ -22,6 +23,10 @@ import (
 )
 
 func StartTestService(t *testing.T) (*service.Service, error) {
+	return StartTestServiceWithCache(t, cache.New())
+}
+
+func StartTestServiceWithCache(t *testing.T, cache *cache.Impl) (*service.Service, error) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 
 	config := servicers.GetSwxProxyConfig()
@@ -31,7 +36,7 @@ func StartTestService(t *testing.T) (*service.Service, error) {
 	}
 	// Update server config with chosen port of swx test server
 	config.ServerCfg.Addr = serverAddr
-	service, err := servicers.NewSwxProxy(config)
+	service, err := servicers.NewSwxProxyWithCache(config, cache)
 	if err != nil {
 		return nil, err
 	}

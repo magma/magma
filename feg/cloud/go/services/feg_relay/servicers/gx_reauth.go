@@ -29,7 +29,7 @@ func (srv *FegToGwRelayServer) PolicyReAuth(
 		return &protos.PolicyReAuthAnswer{Result: protos.ReAuthResult_SESSION_NOT_FOUND},
 			fmt.Errorf("unable to get HwID from IMSI %v. err: %v", req.Imsi, err)
 	}
-	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GWSESSIONDSERVICE, hwID)
+	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwSessiondService, hwID)
 	if err != nil {
 		return &protos.PolicyReAuthAnswer{Result: protos.ReAuthResult_OTHER_FAILURE},
 			fmt.Errorf("unable to get connection to the gateway ID: %s", hwID)
