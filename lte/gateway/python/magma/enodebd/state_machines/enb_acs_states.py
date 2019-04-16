@@ -136,6 +136,39 @@ class WaitInformState(EnodebAcsState):
         return 'Disconnected'
 
 
+class GetRPCMethodsState(EnodebAcsState):
+    """
+    After the first Inform message from boot, it is expected that the eNB
+    will try to learn the RPC methods of the ACS.
+    """
+    def __init__(self, acs: EnodebAcsStateMachine, when_done: str, when_skip: str):
+        super().__init__()
+        self.acs = acs
+        self.done_transition = when_done
+        self.skip_transition = when_skip
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        # If this is a regular Inform, not after a reboot we'll get an empty
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(True, self.skip_transition)
+        if not isinstance(message, models.GetRPCMethods):
+            return AcsReadMsgResult(False, self.done_transition)
+        return AcsReadMsgResult(True, None)
+
+    def get_msg(self) -> AcsMsgAndTransition:
+        resp = models.GetRPCMethodsResponse()
+        resp.MethodList = models.MethodList()
+        RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
+        resp.MethodList.arrayType = 'xsd:string[%d]' \
+                                          % len(RPC_METHODS)
+        resp.MethodList.string = RPC_METHODS
+        return AcsMsgAndTransition(resp, self.done_transition)
+
+    @classmethod
+    def state_description(cls) -> str:
+        return 'Waiting for incoming GetRPC Methods after boot'
+
+
 class BaicellsRemWaitState(EnodebAcsState):
     """
     We've already received an Inform message. This state is to handle a
