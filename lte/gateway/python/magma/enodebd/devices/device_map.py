@@ -11,7 +11,7 @@ from typing import Type
 from magma.enodebd.devices.baicells import BaicellsHandler
 from magma.enodebd.devices.baicells_old import BaicellsOldHandler
 from magma.enodebd.devices.baicells_qafb import BaicellsQAFBHandler
-from magma.enodebd.devices.cavium import CaviumHandler
+from magma.enodebd.devices.experimental.cavium import CaviumHandler
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 
