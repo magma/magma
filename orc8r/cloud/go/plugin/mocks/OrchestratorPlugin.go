@@ -6,6 +6,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	goregistry "magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -35,7 +36,7 @@ func (_m *OrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
 }
 
 // GetMetricsProfiles provides a mock function with given fields:
-func (_m *OrchestratorPlugin) GetMetricsProfiles() []metricsd.MetricsProfile {
+func (_m *OrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
 	ret := _m.Called()
 
 	var r0 []metricsd.MetricsProfile
@@ -65,7 +66,7 @@ func (_m *OrchestratorPlugin) GetName() string {
 }
 
 // GetObsidianHandlers provides a mock function with given fields:
-func (_m *OrchestratorPlugin) GetObsidianHandlers() []handlers.Handler {
+func (_m *OrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []handlers.Handler {
 	ret := _m.Called()
 
 	var r0 []handlers.Handler

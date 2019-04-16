@@ -157,8 +157,13 @@ class _TableManager:
         return self._tables_by_app[app_name].scratch_tables
 
     def get_all_table_assignments(self) -> 'OrderedDict[str, Tables]':
-        return OrderedDict(sorted(self._tables_by_app.items(),
+        resp = OrderedDict(sorted(self._tables_by_app.items(),
                                   key=lambda kv: (kv[1].main_table, kv[0])))
+        # Even though pipelined does not manage table 0, include it for
+        # completeness.
+        resp['mme'] = Tables(main_table=0)
+        resp.move_to_end('mme', last=False)
+        return resp
 
 
 class ServiceManager:

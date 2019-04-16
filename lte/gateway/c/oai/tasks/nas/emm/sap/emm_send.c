@@ -224,8 +224,9 @@ int emm_send_attach_accept(
   // Get the UE context
   emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id;
+  ue_mm_context_t *ue_mm_context_p =
+    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
+  mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message\n");
@@ -257,14 +258,16 @@ int emm_send_attach_accept(
      * sending detach so that such UEs can remain attached in the n/w and should be able to get data service from the n/w.
      */
 
-      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails send
+     /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails
+     *  or Network Access mode received as PACKET_ONLY from HSS in ULS message send
      *  epsattachresult to EPS_ATTACH_RESULT_EPS. If is it successful set epsattachresult
      *  to EPS_ATTACH_RESULT_EPS_IMSI
      */
       if (
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-        (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE)) {
+        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -457,7 +460,8 @@ int emm_send_attach_accept(
    * CSFB -Optional - Send failure cause
    */
 
-  if (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) {
+  if ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+     (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = emm_ctx->emm_cause;
@@ -510,8 +514,9 @@ int emm_send_attach_accept_dl_nas(
   // Get the UE context
   emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id;
+  ue_mm_context_t *ue_mm_context_p =
+    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
+  mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
 
   OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message\n");
@@ -543,14 +548,16 @@ int emm_send_attach_accept_dl_nas(
      * sending detach so that such UEs can remain attached in the n/w and should be able to get data service from the n/w.
      */
 
-      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails send
+      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails
+     *  or Network Access mode received as PACKET_ONLY from HSS in ULS message send
      *  epsattachresult to EPS_ATTACH_RESULT_EPS. If is it successful set epsattachresult
      *  to EPS_ATTACH_RESULT_EPS_IMSI
      */
       if (
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-        (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE)) {
+        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -725,7 +732,9 @@ int emm_send_attach_accept_dl_nas(
    */
 
   if (
-    (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) && (msg->emm_cause)) {
+     ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+     is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) &&
+    (msg->emm_cause)) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = *msg->emm_cause;

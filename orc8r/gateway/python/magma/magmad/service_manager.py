@@ -11,6 +11,7 @@ from enum import Enum
 import subprocess
 import asyncio
 import logging
+import json
 
 
 class ServiceState(Enum):
@@ -67,6 +68,7 @@ class ServiceManager(object):
         init_systems = {
             'systemd': self.SystemdInitSystem,
             'runit': self.RunitInitSystem,
+            'docker': self.DockerInitSystem,
         }
 
         try:
@@ -322,4 +324,32 @@ class ServiceManager(object):
             if std_out_formatted in statuses:
                 return statuses[std_out_formatted]
             else:
+                return ServiceState.Error
+
+    class DockerInitSystem(InitSystemSpec):
+        _init_cmd = 'docker'
+        _statuses = {
+            'created': ServiceState.Inactive,
+            'restarting': ServiceState.Activating,
+            'running': ServiceState.Active,
+            'paused': ServiceState.Inactive,
+            'removing': ServiceState.Deactivating,
+            'exited': ServiceState.Inactive,
+            'dead': ServiceState.Failed,
+        }
+        _status_cmd = 'inspect'
+        _restart_cmd = 'restart'
+
+        def __init__(self, name):
+            super().__init__(name)
+            self._name = name
+
+        def parse_status(self, status):
+            """Transforms status returned by init system into a ServiceState"""
+            statuses = self._statuses
+
+            try:
+                inspect_data = json.loads(status.decode())
+                return statuses[inspect_data[0]['State']['Status']]
+            except (json.decoder.JSONDecodeError, IndexError, KeyError):
                 return ServiceState.Error

@@ -189,6 +189,12 @@ definitions:
           verify_authorization:
             type: boolean
             example: false
+          cache_TTL_seconds:
+            type: integer
+            format: uint32
+            x-nullable: false
+            default: 10800
+            example: 10800
         x-go-custom-tag: 'magma_alt_name:"SWX"'
       served_network_ids:
         type: array

@@ -10,11 +10,13 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 import time
 
-import functools
+import grpc
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2_grpc import Service303Stub
 
 from magma.common.service_registry import ServiceRegistry
+from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.job import Job
 from magma.magmad.metrics import UNEXPECTED_SERVICE_RESTARTS
 
 
@@ -63,7 +65,7 @@ class ServiceInfo(object):
         self._expected_start_time = time.time()
 
 
-class ServicePoller(object):
+class ServicePoller(Job):
     """
     Periodically query the services' Service303 interface
     """
@@ -73,7 +75,10 @@ class ServicePoller(object):
     GET_STATUS_TIMEOUT = 8
 
     def __init__(self, loop, config):
-        self._loop = loop
+        super().__init__(
+            interval=self.GET_STATUS_INTERVAL,
+            loop=loop
+        )
         self._config = config
         # Holds a map of service name -> ServiceInfo
         self._service_info = {}
@@ -82,10 +87,6 @@ class ServicePoller(object):
         for service_list in config.get('linked_services', []):
             for service in service_list:
                 self._service_info[service].add_linked_services(service_list)
-
-    def start(self):
-        """ Begin polling the services """
-        self._get_service_info()
 
     @property
     def service_info(self):
@@ -96,9 +97,14 @@ class ServicePoller(object):
         for linked_service in self._service_info[service_name].linked_services:
             self._service_info[linked_service].process_service_restart()
 
-    def _get_service_info(self):
-        """ Make RPC calls to 'GetServiceInfo' functions of other services, to
-            get current status. Results are handled by callback function. """
+    async def _run(self):
+        await self._get_service_info()
+
+    async def _get_service_info(self):
+        """
+        Make RPC calls to 'GetServiceInfo' functions of other services, to
+        get current status.
+        """
         for service in self._service_info:
             # Check whether service provides service303 interface
             if service in self._config['non_service303_services']:
@@ -111,24 +117,18 @@ class ServicePoller(object):
                 # Service can't be contacted
                 logging.error('Cant get RPC channel to %s', service)
                 continue
-
             client = Service303Stub(chan)
-            future = client.GetServiceInfo.future(
-                Void(), self.GET_STATUS_TIMEOUT)
-            future.add_done_callback(
-                functools.partial(self._loop.call_soon_threadsafe,
-                                  self._get_service_info_done, service))
-        # Schedule the next poll
-        self._loop.call_later(self.GET_STATUS_INTERVAL, self._get_service_info)
-
-    def _get_service_info_done(self, service, future):
-        """ Callback function to handle service info result """
-        err = future.exception()
-        if err:
-            logging.error("GetServiceInfo Error for %s! [%s] %s",
-                          service, err.code(), err.details())
-        else:
-            logging.debug("Got %s service info!", service)
-            info = future.result()
-            self._service_info[service].update(info.start_time_secs,
-                                               info.status)
+            try:
+                future = client.GetServiceInfo.future(
+                    Void(),
+                    self.GET_STATUS_TIMEOUT,
+                )
+                info = await grpc_async_wrapper(future, self._loop)
+                self._service_info[service].update(info.start_time_secs,
+                                                   info.status)
+            except grpc.RpcError as err:
+                logging.error(
+                    "GetServiceInfo Error for %s! [%s]",
+                    service,
+                    err
+                )

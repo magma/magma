@@ -38,6 +38,7 @@ func GetObsidianHandlers() []handlers.Handler {
 		{Path: RestartServices, Methods: handlers.POST, HandlerFunc: restartServices},
 		{Path: GatewayPing, Methods: handlers.POST, HandlerFunc: gatewayPing},
 		{Path: GatewayGenericCommand, Methods: handlers.POST, HandlerFunc: gatewayGenericCommand},
+		{Path: TailGatewayLogs, Methods: handlers.POST, HandlerFunc: tailGatewayLogs},
 
 		obsidian.GetReadGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
 		obsidian.GetCreateGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),

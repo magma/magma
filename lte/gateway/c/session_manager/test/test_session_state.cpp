@@ -7,6 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 #include <memory>
+#include <future>
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
@@ -90,6 +91,47 @@ TEST_F(SessionStateTest, test_insert_credit)
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(
     session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 1024);
+}
+
+TEST_F(SessionStateTest, test_termination)
+{
+  std::promise<void> termination_promise;
+  session_state->start_termination(
+    [&termination_promise](SessionTerminateRequest term_req) {
+      termination_promise.set_value();
+    });
+  session_state->complete_termination();
+  auto status =
+    termination_promise.get_future().wait_for(std::chrono::seconds(0));
+  EXPECT_EQ(status, std::future_status::ready);
+}
+
+TEST_F(SessionStateTest, test_can_complete_termination)
+{
+  insert_rule(1, "m1", "rule1", true);
+
+  EXPECT_EQ(session_state->can_complete_termination(), false);
+
+  session_state->start_termination([](SessionTerminateRequest term_req) {});
+  EXPECT_EQ(session_state->can_complete_termination(), false);
+
+  // If the rule is still being reported, termination should not be completed.
+  session_state->new_report();
+  EXPECT_EQ(session_state->can_complete_termination(), false);
+  session_state->add_used_credit("rule1", 100, 100);
+  EXPECT_EQ(session_state->can_complete_termination(), false);
+  session_state->finish_report();
+  EXPECT_EQ(session_state->can_complete_termination(), false);
+
+  // The rule is not reported, termination can be completed.
+  session_state->new_report();
+  EXPECT_EQ(session_state->can_complete_termination(), false);
+  session_state->finish_report();
+  EXPECT_EQ(session_state->can_complete_termination(), true);
+
+  // Termination should only be completed once.
+  session_state->complete_termination();
+  EXPECT_EQ(session_state->can_complete_termination(), false);
 }
 
 TEST_F(SessionStateTest, test_add_used_credit)

@@ -62,15 +62,16 @@ func (cfgMap *ConfigMap) GetRequiredStringParam(key string) string {
 
 // GetIntParam is used to retrieve an int param from a YML file
 func (cfgMap *ConfigMap) GetIntParam(key string) (int, error) {
-	paramIface, ok := cfgMap.RawMap[key]
-	if !ok {
-		return 0, fmt.Errorf("Could not find key %s", key)
+	return getIntParamImpl(cfgMap, key)
+}
+
+// GetRequiredIntParam is same as GetIntParam but fails when the int does not exist
+func (cfgMap *ConfigMap) GetRequiredIntParam(key string) int {
+	param, err := getIntParamImpl(cfgMap, key)
+	if err != nil {
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
 	}
-	param, ok := paramIface.(int)
-	if !ok {
-		return 0, fmt.Errorf("Could not convert param to integer for key %s", key)
-	}
-	return param, nil
+	return param
 }
 
 // GetBoolParam is used to retrieve a bool param from a YML file
@@ -148,6 +149,19 @@ func getStringParamImpl(cfgMap *ConfigMap, key string) (string, error) {
 	param, ok := paramIface.(string)
 	if !ok {
 		return "", fmt.Errorf("Could not convert param to string for key %s", key)
+	}
+	return param, nil
+}
+
+// getIntParamImpl retrieves an int param from a ConfigMap
+func getIntParamImpl(cfgMap *ConfigMap, key string) (int, error) {
+	paramIface, ok := cfgMap.RawMap[key]
+	if !ok {
+		return 0, fmt.Errorf("Could not find key %s", key)
+	}
+	param, ok := paramIface.(int)
+	if !ok {
+		return 0, fmt.Errorf("Could not convert param to integer for key %s", key)
 	}
 	return param, nil
 }

@@ -1522,6 +1522,8 @@ static void _encode_csfb_parameters_attach_accept(
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
+  ue_mm_context_t *ue_mm_context_p =
+    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
   OAILOG_DEBUG(LOG_NAS_EMM, "Encoding CSFB parameters\n");
 
   char *non_eps_service_control = bdata(mme_config.non_eps_service_control);
@@ -1529,31 +1531,33 @@ static void _encode_csfb_parameters_attach_accept(
     (emm_ctx->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) &&
     ((!(strcmp(non_eps_service_control, "SMS")) ||
       !(strcmp(non_eps_service_control, "CSFB_SMS"))))) {
-    //CSFB - Check if SGS Location update procedure is successful
-    if (emm_ctx->csfbparams.sgs_loc_updt_status == SUCCESS) {
-      if (emm_ctx->csfbparams.presencemask & LAI_CSFB) {
-        establish_p->location_area_identification = &emm_ctx->csfbparams.lai;
-      }
-      //CSFB-Encode Mobile Identity
-      if (emm_ctx->csfbparams.presencemask & MOBILE_IDENTITY) {
-        establish_p->ms_identity = &emm_ctx->csfbparams.mobileid;
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit1 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[0]);
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit2 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[1]);
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit3 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[2]);
-        OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "TMSI  digit4 %d\n",
-          establish_p->ms_identity->tmsi.tmsi[3]);
-      }
+    //CSFB - check if Network Access Mode is Packet only received from HSS in ULA message
+    if (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
+      establish_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
+    } else if (emm_ctx->csfbparams.sgs_loc_updt_status == SUCCESS) { //CSFB - Check if SGS Location update procedure is successful
+        if (emm_ctx->csfbparams.presencemask & LAI_CSFB) {
+          establish_p->location_area_identification = &emm_ctx->csfbparams.lai;
+        }
+        //CSFB-Encode Mobile Identity
+        if (emm_ctx->csfbparams.presencemask & MOBILE_IDENTITY) {
+          establish_p->ms_identity = &emm_ctx->csfbparams.mobileid;
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit1 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[0]);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit2 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[1]);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit3 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[2]);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "TMSI  digit4 %d\n",
+            establish_p->ms_identity->tmsi.tmsi[3]);
+        }
     } else if (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) {
       establish_p->emm_cause = emm_ctx->emm_cause;
     }
@@ -1806,6 +1810,8 @@ static void _encode_csfb_parameters_attach_accept_retx(
   emm_as_data_t *data_p)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
+  ue_mm_context_t *ue_mm_context_p =
+    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
 
   if (
     (emm_ctx->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) &&
@@ -1820,7 +1826,8 @@ static void _encode_csfb_parameters_attach_accept_retx(
       if (emm_ctx->csfbparams.presencemask & MOBILE_IDENTITY) {
         data_p->ms_identity = &emm_ctx->csfbparams.mobileid;
       }
-    } else if (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) {
+    } else if ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+           is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
       data_p->emm_cause = (uint32_t *) &emm_ctx->emm_cause;
     }
     if (emm_ctx->csfbparams.additional_updt_res == SMS_ONLY) {

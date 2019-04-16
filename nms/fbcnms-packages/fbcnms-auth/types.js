@@ -8,11 +8,6 @@
  * @format
  */
 
-export const UserVerificationTypes = {
-  PASSWORD: 0,
-  FACEBOOK: 1,
-};
-
 export const UserRoles = {
   USER: 0,
   SUPERUSER: 3,

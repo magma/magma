@@ -62,6 +62,7 @@ module.exports = Object.assign({}, fbStrict, {
     'node',
     'prettier',
     'react',
+    'react-hooks',
     'relay',
   ],
   rules: {
@@ -112,7 +113,7 @@ module.exports = Object.assign({}, fbStrict, {
     'flowtype/define-flow-type': 1,
     'flowtype/use-flow-type': 1,
     // The following is disabled for many file types in overrides
-    'flowtype/require-valid-file-annotation': [1, 'always'],
+    'flowtype/require-valid-file-annotation': [2, 'always'],
 
     // Node Plugin
     // https://github.com/mysticatea/eslint-plugin-node
@@ -142,6 +143,10 @@ module.exports = Object.assign({}, fbStrict, {
     'react/react-in-jsx-scope': 1,
     'react/self-closing-comp': 1,
     'react/wrap-multilines': 0,
+
+    // React Hooks Plugin
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
 
     // Jest Plugin
     // The following rules are made available via `eslint-plugin-jest`.

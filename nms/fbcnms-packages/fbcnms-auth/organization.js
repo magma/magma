@@ -8,10 +8,10 @@
  * @format
  */
 
-import express from 'express';
+import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
 
 export async function injectOrganizationParams<T: {[string]: any}>(
-  req: express.Request,
+  req: FBCNMSMiddleWareRequest,
   params: T,
 ): Promise<T & {organization?: string}> {
   if (req.organization) {

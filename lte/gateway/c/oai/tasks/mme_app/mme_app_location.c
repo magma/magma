@@ -56,6 +56,7 @@
 #include "s6a_messages_types.h"
 #include "service303.h"
 #include "sgs_messages_types.h"
+#include "esm_proc.h"
 
 //------------------------------------------------------------------------------
 int mme_app_send_s6a_update_location_req(
@@ -177,8 +178,14 @@ int _handle_ula_failure(struct ue_mm_context_s *ue_context_p)
     (void *) nas_pdn_connectivity_fail,
     0,
     sizeof(itti_nas_pdn_connectivity_fail_t));
-  //nas_pdn_connectivity_fail->pti = ue_context_p->pending_pdn_connectivity_req_pti;
-  //nas_pdn_connectivity_fail->ue_id = ue_context_p->pending_pdn_connectivity_req_ue_id;
+  if(ue_context_p->emm_context.esm_ctx.esm_proc_data) {
+    nas_pdn_connectivity_fail->pti = ue_context_p->emm_context.esm_ctx.
+      esm_proc_data->pti;
+  } else {
+      OAILOG_ERROR(
+        LOG_MME_APP," esm_proc_data is NULL, so failed to fetch pti \n");
+  }
+  nas_pdn_connectivity_fail->ue_id = ue_context_p->mme_ue_s1ap_id;
   nas_pdn_connectivity_fail->cause = CAUSE_SYSTEM_FAILURE;
   rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -222,10 +229,12 @@ int mme_app_handle_s6a_update_location_ans(
         ula_pP->result.choice.base);
       if (_handle_ula_failure(ue_mm_context) == RETURNok) {
         OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS\n");
+        unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
       } else {
         OAILOG_ERROR(
           LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS\n");
+        unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
     }
@@ -240,10 +249,12 @@ int mme_app_handle_s6a_update_location_ans(
       ula_pP->result.present);
     if (_handle_ula_failure(ue_mm_context) == RETURNok) {
       OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS\n");
+      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     } else {
       OAILOG_ERROR(
         LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS\n");
+      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   }

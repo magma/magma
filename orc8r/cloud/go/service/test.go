@@ -10,6 +10,10 @@ package service
 
 import (
 	"testing"
+
+	"magma/orc8r/cloud/go/service/middleware/unary"
+
+	"google.golang.org/grpc"
 )
 
 // NewTestOrchestratorService returns a new GRPC orchestrator service without
@@ -19,5 +23,5 @@ func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType str
 	if t == nil {
 		panic("Nice try, but *testing.T must be non-nil. NewTestOrchestratorService can only be used in a test context.")
 	}
-	return newOrchestratorService(moduleName, serviceType)
+	return NewServiceWithOptions(moduleName, serviceType, grpc.UnaryInterceptor(unary.MiddlewareHandler))
 }

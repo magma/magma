@@ -22,7 +22,7 @@ from fab.hosts import vagrant_setup, ansible_setup, split_hoststring # NOQA
 
 
 # List of service tiers
-SERVICES = ["controller", "proxy", "osquery", "prometheus"]
+SERVICES = ["controller", "proxy", "osquery", "metrics"]
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
@@ -74,10 +74,16 @@ def package(service, cloud_host=None, vcs="hg", force=False):
         run('cp -pr aws/scripts %s/.' % folder)
         run("mkdir -p %s/ansible/roles" % folder)
         run('cp -pr %s.yml %s/ansible/main.yml' % (service, folder))
-        run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
         run('cp -pr roles/aws_setup %s/ansible/roles/.' % folder)
         run('cp -pr roles/osquery %s/ansible/roles/.' % folder)
         run('cp -pr roles/service_registry %s/ansible/roles/.' % folder)
+
+        if service == "metrics":
+            run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
+            run('cp -pr roles/third_party/graphite %s/ansible/roles.' % folder)
+            run('mkdir -p %s/bin' % folder)  # To make CodeDeploy happy
+        else:
+            run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
 
         if service == "controller":
             run('cp -pr /etc/magma %s/configs' % folder)
@@ -88,9 +94,6 @@ def package(service, cloud_host=None, vcs="hg", force=False):
             run('cp -pr roles/disk_metrics %s/ansible/roles/.' % folder)
             run('cp -pr ../../../orc8r/tools/ansible/roles/pkgrepo '
                 '%s/ansible/roles/.' % folder)
-        if service == 'prometheus':
-            run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
-            run('mkdir -p %s/bin' % folder)  # To make CodeDeploy happy
 
     # Build Go binaries and plugins
     build()

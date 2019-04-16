@@ -124,15 +124,12 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 }
 
 static void report_termination(
-  LocalEnforcer &enforcer,
   SessionCloudReporter &reporter,
-  const SessionTerminateRequest &term_req,
-  std::function<void(Status, LocalEndSessionResponse)> response_callback)
+  const SessionTerminateRequest &term_req)
 {
   reporter.report_terminate_session(
     term_req,
-    [&enforcer, &reporter, term_req, response_callback](
-      Status status, SessionTerminateResponse response) {
+    [&reporter, term_req](Status status, SessionTerminateResponse response) {
       if (!status.ok()) {
         MLOG(MERROR) << "Failed to terminate session in controller for "
                         "subscriber "
@@ -142,20 +139,19 @@ static void report_termination(
                         "subscriber "
                      << term_req.sid();
       }
-      // No matter what, end session locally
-      enforcer.complete_termination(term_req.sid(), term_req.session_id());
-      response_callback(status, LocalEndSessionResponse());
     });
 }
 
 /**
  * EndSession completes the entire termination procedure with the OCS & PCRF.
- * Instead of waiting for the last usage updates, termination is reported
- * immediately. The process for session termination is as follows:
- * 1) Collect usages in current state in session state
- * 2) Report usages to cloud in termination requests to OCS & PCRF
- * 3) Wait for response
- * 4) Remove the terminated session from being tracked
+ * The process for session termination is as follows:
+ * 1) Start termination process. Enforcer sends delete flow request to Pipelined
+ * 2) Enforcer continues to collect usages until its flows are no longer
+ *    included in the report (flow deleted in Pipelined) or a specified timeout
+ * 3) Asynchronously report usages to cloud in termination requests to
+ *    OCS & PCRF
+ * 4) Remove the terminated session from being tracked locally, no matter cloud
+ *    termination succeeds or not
  */
 void LocalSessionManagerHandlerImpl::EndSession(
   ServerContext *context,
@@ -166,9 +162,13 @@ void LocalSessionManagerHandlerImpl::EndSession(
   enforcer_->get_event_base().runInEventBaseThread(
     [this, request_cpy, response_callback]() {
       try {
-        auto term_req = enforcer_->terminate_subscriber(request_cpy.id());
-        // report to cloud
-        report_termination(*enforcer_, *reporter_, term_req, response_callback);
+        auto reporter = reporter_;
+        enforcer_->terminate_subscriber(
+          request_cpy.id(), [reporter](SessionTerminateRequest term_req) {
+            // report to cloud
+            report_termination(*reporter, term_req);
+          });
+        response_callback(grpc::Status::OK, LocalEndSessionResponse());
       } catch (const SessionNotFound &ex) {
         MLOG(MERROR) << "Failed to find session to terminate for subscriber "
                      << request_cpy.id();

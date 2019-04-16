@@ -614,10 +614,14 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
     if (ue_mm_context) {
       emm_context = &ue_mm_context->emm_context;
     } else {
+      OAILOG_ERROR(
+        LOG_NAS_EMM,"Failed to get emm context for ue_id"
+        "" MME_UE_S1AP_ID_FMT " \n", tau_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
-    if (tau_proc->ies->eps_update_type.active_flag) {
+    if ((tau_proc->ies->eps_update_type.active_flag) &&
+        (ue_mm_context->ecm_state != ECM_CONNECTED)) {
       /* If active flag is set to true in TAU request then re-establish bearer also for the UE while sending TAU
        * Accept message
        */
@@ -777,7 +781,6 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
        */
       emm_sap.primitive = EMMAS_DATA_REQ;
       rc = emm_sap_send(&emm_sap);
-      nas_delete_tau_procedure(emm_context);
       increment_counter(
         "tracking_area_update", 1, 1, "action", "tau_accept_sent");
 
@@ -818,6 +821,8 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
           " seconds (TAU)",
           tau_proc->T3450.id,
           tau_proc->T3450.sec);
+      } else {
+        nas_delete_tau_procedure(emm_context);
       }
     }
   } else {
@@ -942,12 +947,12 @@ void free_emm_tau_request_ies(emm_tau_request_ies_t **const ies)
 int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
 {
   emm_context_t *emm_ctx = NULL;
-  int rc = RETURNerror;
+  int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(
     LOG_NAS_EMM,
-    "EMM-PROC  - EPS attach complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    "EMM-PROC  - EPS TAU complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
     ue_id);
   REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);
   /*
@@ -958,11 +963,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   /*
    * Get the UE context
    */
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, ue_id);
-  if(ue_mm_context) {
-    emm_ctx = &ue_mm_context->emm_context;
-  }
+  emm_ctx = emm_context_get(&_emm_data, ue_id);
 
   if (emm_ctx) {
     /*
@@ -982,22 +983,25 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
        * consider the TMSI sent in the TAU ACCEPT message as valid.
        * - TODO
        */
+      if(emm_ctx->csfbparams.newTmsiAllocated == true) {
+        nas_delete_tau_procedure(emm_ctx);
+      }
     }
-  }
-  //Send TMSI reallocation complete to SGS task
-  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-  IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-  //TODO-pruthvi Uncomment after merging from master
-  //nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
-  emm_ctx->csfbparams.newTmsiAllocated = false;
+    //Send TMSI reallocation complete to SGS task
+    char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+    IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
+    //TODO-pruthvi Uncomment after merging from master
+    //nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
+    emm_ctx->csfbparams.newTmsiAllocated = false;
 
-  /*If Active flag is not set, send ITTI message to MME APP to
-   *initiate UE context release
-   */
-  if (!emm_ctx->csfbparams.tau_active_flag) {
-    nas_itti_tau_complete(ue_id);
+    /*If Active flag is not set, send ITTI message to MME APP to
+     *initiate UE context release
+     */
+    if (!emm_ctx->csfbparams.tau_active_flag) {
+      nas_itti_tau_complete(ue_id);
+    }
+    emm_context_unlock(emm_ctx);
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

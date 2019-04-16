@@ -7,11 +7,9 @@
 
 set -e
 
+cd "$(dirname "$0")/.."
 docker build -f docusaurus/Dockerfile -t docusaurus-doc .
 docker stop docs_container || true
 docker run --rm -p 3000:3000 -d --name docs_container docusaurus-doc
 
-rm -rf ./web
-docker cp docs_container:/app/website/build/Magma ./web
-
-echo "Navigate to http://127.0.0.1:3000/web/ to see the docs."
+echo "Navigate to http://127.0.0.1:3000/magma/ to see the docs."

@@ -190,6 +190,7 @@ func sendMar(addr string, client swxClient) int {
 		SipNumAuthVectors:    uint32(numVectors),
 		AuthenticationScheme: protos.AuthenticationScheme_EAP_AKA,
 		ResyncInfo:           nil,
+		RetrieveUserProfile:  true,
 	}
 	json, err := orcprotos.MarshalIntern(req)
 	if err != nil {

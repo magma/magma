@@ -19,6 +19,8 @@ import {sequelize, User} from '@fbcnms/sequelize-models';
 
 import {configureAccess} from '../access';
 
+import type {FBCNMSRequest} from '../access';
+
 function stripDatesMany(res) {
   res.body.users.map(u => {
     delete u['createdAt'];
@@ -32,8 +34,9 @@ function stripDates(res) {
 }
 
 function mockOrgMiddleware(orgName: string) {
-  return (req, _res, next) => {
+  return (req: FBCNMSRequest, _res, next) => {
     if (orgName) {
+      // $FlowIgnore we know this is wrong, and that's okay for this test.
       req.organization = async () => {
         return {name: orgName};
       };
@@ -43,7 +46,7 @@ function mockOrgMiddleware(orgName: string) {
 }
 
 function mockUserMiddleware(where) {
-  return async (req, _res, next) => {
+  return async (req: FBCNMSRequest, _res, next) => {
     req.isAuthenticated = () => true;
     req.user = await User.findOne({where});
     next();

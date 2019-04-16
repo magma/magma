@@ -10,9 +10,11 @@
 
 const express = require('express');
 
+import type {NMSRequest} from '../../scripts/server';
+
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', (req: NMSRequest, res) => {
   res.status(200).end('Success');
 });
 

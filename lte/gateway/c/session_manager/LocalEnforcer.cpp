@@ -48,16 +48,19 @@ static void mark_rule_failures(
 
 LocalEnforcer::LocalEnforcer(
   std::shared_ptr<StaticRuleStore> rule_store,
-  std::shared_ptr<PipelinedClient> pipelined_client):
+  std::shared_ptr<PipelinedClient> pipelined_client,
+  long session_force_termination_timeout_ms):
   rule_store_(rule_store),
-  pipelined_client_(pipelined_client)
+  pipelined_client_(pipelined_client),
+  session_force_termination_timeout_ms_(session_force_termination_timeout_ms)
 {
 }
 
 LocalEnforcer::LocalEnforcer():
   LocalEnforcer(
     std::make_shared<StaticRuleStore>(),
-    std::make_shared<AsyncPipelinedClient>())
+    std::make_shared<AsyncPipelinedClient>(),
+    0)
 {
 }
 
@@ -65,6 +68,22 @@ void LocalEnforcer::new_report()
 {
   for (auto &session_pair : session_map_) {
     session_pair.second->new_report();
+  }
+}
+
+void LocalEnforcer::finish_report()
+{
+  // Iterate through sessions and notify that report has finished. Terminate any
+  // sessions that can be terminated.
+  std::vector<std::string> imsi_to_terminate;
+  for (auto &session_pair : session_map_) {
+    session_pair.second->finish_report();
+    if (session_pair.second->can_complete_termination()) {
+      imsi_to_terminate.push_back(session_pair.first);
+    }
+  }
+  for (std::string &imsi : imsi_to_terminate) {
+    complete_termination(imsi, session_map_[imsi]->get_session_id());
   }
 }
 
@@ -106,6 +125,7 @@ void LocalEnforcer::aggregate_records(const RuleRecordTable &records)
     it->second->add_used_credit(
       record.rule_id(), record.bytes_tx(), record.bytes_rx());
   }
+  finish_report();
 }
 
 static void execute_actions(
@@ -428,14 +448,21 @@ void LocalEnforcer::complete_termination(
   const std::string &imsi,
   const std::string &session_id)
 {
+  // If the session cannot be found in session_map_, or a new session has
+  // already begun, do nothing.
   auto it = session_map_.find(imsi);
-  if (it != session_map_.end() && it->second->get_session_id() != session_id) {
-    // New session already began, ignore
+  if (it == session_map_.end() || it->second->get_session_id() != session_id) {
+    // Session is already deleted, or new session already began, ignore.
+    MLOG(MDEBUG) << "Could not find session for IMSI " << imsi
+                 << " and session ID " << session_id
+                 << ". Skipping termination.";
     return;
   }
-  if (session_map_.erase(imsi) == 0) {
-    MLOG(MERROR) << "Terminated non existent session for " << imsi;
-  }
+  // Complete session termination and remove session from session_map_.
+  it->second->complete_termination();
+  session_map_.erase(imsi);
+  MLOG(MDEBUG) << "Successfully terminated session for IMSI " << imsi
+               << "session ID " << session_id;
 }
 
 void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
@@ -460,8 +487,9 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
   }
 }
 
-SessionTerminateRequest LocalEnforcer::terminate_subscriber(
-  const std::string &imsi)
+void LocalEnforcer::terminate_subscriber(
+  const std::string &imsi,
+  std::function<void(SessionTerminateRequest)> on_termination_callback)
 {
   auto it = session_map_.find(imsi);
   if (it == session_map_.end()) {
@@ -469,12 +497,22 @@ SessionTerminateRequest LocalEnforcer::terminate_subscriber(
                  << " during termination";
     throw SessionNotFound();
   }
+  it->second->start_termination(on_termination_callback);
 
   if (!pipelined_client_->deactivate_all_flows(imsi)) {
     MLOG(MERROR) << "Could not deactivate flows for IMSI " << imsi
                  << " during termination";
   }
-  return it->second->terminate();
+  std::string session_id = it->second->get_session_id();
+  // The termination should be completed when aggregated usage record no longer
+  // includes the imsi. If this has not occurred after the timeout, force
+  // terminate the session.
+  evb_->runAfterDelay(
+    [this, imsi, session_id] {
+      MLOG(MDEBUG) << "Completing forced termination for IMSI " << imsi;
+      complete_termination(imsi, session_id);
+    },
+    session_force_termination_timeout_ms_);
 }
 
 uint64_t LocalEnforcer::get_charging_credit(

@@ -34,8 +34,9 @@ func NewSample(
 	value string,
 	timestampMs int64,
 	labels []*dto.LabelPair,
-	entity string) *Sample {
-	return &Sample{
+	entity string,
+) Sample {
+	return Sample{
 		name:        name,
 		value:       value,
 		timestampMs: timestampMs,
@@ -54,6 +55,14 @@ func (s *Sample) Labels() []*dto.LabelPair {
 
 func (s *Sample) Value() string {
 	return s.value
+}
+
+func (s *Sample) Entity() string {
+	return s.entity
+}
+
+func (s *Sample) TimestampMs() int64 {
+	return s.timestampMs
 }
 
 // GetSamplesForMetrics takes a Metric protobuf and extracts Samples from them

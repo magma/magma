@@ -1,1 +1,1 @@
-../../../docs/README_package.md
+../../../docs/readmes/howtos/README_package.md

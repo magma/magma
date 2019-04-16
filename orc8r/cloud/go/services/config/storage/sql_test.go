@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/config/storage"
+	mstore "magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
@@ -83,7 +84,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 
 	actual, err := store.GetConfigs("network", &storage.FilterCriteria{Type: "type"})
 	assert.NoError(t, err)
-	expected := map[storage.TypeAndKey]*storage.ConfigValue{
+	expected := map[mstore.TypeAndKey]*storage.ConfigValue{
 		{Type: "type", Key: "key1"}: {Value: []byte("value1"), Version: 1},
 		{Type: "type", Key: "key2"}: {Value: []byte("value2"), Version: 2},
 	}
@@ -105,7 +106,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 
 	actual, err = store.GetConfigs("network", &storage.FilterCriteria{Key: "key"})
 	assert.NoError(t, err)
-	expected = map[storage.TypeAndKey]*storage.ConfigValue{
+	expected = map[mstore.TypeAndKey]*storage.ConfigValue{
 		{Type: "type1", Key: "key"}: {Value: []byte("value1"), Version: 1},
 		{Type: "type2", Key: "key"}: {Value: []byte("value2"), Version: 2},
 	}
@@ -126,7 +127,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 
 	actual, err = store.GetConfigs("network", &storage.FilterCriteria{Type: "type", Key: "key"})
 	assert.NoError(t, err)
-	expected = map[storage.TypeAndKey]*storage.ConfigValue{
+	expected = map[mstore.TypeAndKey]*storage.ConfigValue{
 		{Type: "type", Key: "key"}: {Value: []byte("value1"), Version: 1},
 	}
 	assert.Equal(t, expected, actual)

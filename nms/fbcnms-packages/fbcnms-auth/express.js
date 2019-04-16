@@ -19,6 +19,8 @@ import {AccessRoles} from './roles';
 import {addQueryParamsToUrl} from './util';
 import EmailValidator from 'email-validator';
 
+import type {FBCNMSRequest} from './access';
+
 const SALT_GEN_ROUNDS = 10;
 const MIN_PASSWORD_LENGTH = 10;
 
@@ -42,7 +44,7 @@ function userMiddleware(options: Options): express.Router {
   const router = express.Router();
 
   async function getPropsToUpdate(
-    req: express.Request,
+    req: FBCNMSRequest,
     allowedProps: string[],
     body: {[string]: string},
   ) {
@@ -85,7 +87,7 @@ function userMiddleware(options: Options): express.Router {
   }
 
   // Login / Logout Routes
-  router.post('/login', (req, res, next) => {
+  router.post('/login', (req: FBCNMSRequest, res, next) => {
     const redirectTo = ensureRelativeUrl(req.body.to);
 
     const loginSuccessUrl = redirectTo || options.loginSuccessUrl;
@@ -94,22 +96,20 @@ function userMiddleware(options: Options): express.Router {
       : options.loginFailureUrl;
 
     passport.authenticate('local', (err, user, _info) => {
-      if (err) {
-        return next(err);
-      }
-      if (!user) {
+      if (!user || err) {
         return res.redirect(loginFailureUrl);
       }
       req.logIn(user, err => {
         if (err) {
-          return next(err);
+          next(err);
+          return;
         }
         res.redirect(loginSuccessUrl);
       });
     })(req, res, next);
   });
 
-  router.get('/login', (req, res) => {
+  router.get('/login', (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       res.redirect(ensureRelativeUrl(req.body.to) || '/');
       return;
@@ -135,10 +135,10 @@ function userMiddleware(options: Options): express.Router {
       successRedirect: options.loginSuccessUrl,
       failureRedirect: options.loginFailureUrl,
     }),
-    (_req, res) => res.redirect('/'),
+    (_req: FBCNMSRequest, res) => res.redirect('/'),
   );
 
-  router.get('/logout', (req, res) => {
+  router.get('/logout', (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       req.logout();
     }
@@ -146,90 +146,102 @@ function userMiddleware(options: Options): express.Router {
   });
 
   // User Routes
-  router.get('/async/', access(AccessRoles.SUPERUSER), async (req, res) => {
-    try {
-      let users;
-      if (req.organization) {
-        const organization = await req.organization();
-        users = await User.findAll({
-          where: {
-            organization: organization.name,
-          },
-        });
-      } else {
-        users = await User.findAll();
+  router.get(
+    '/async/',
+    access(AccessRoles.SUPERUSER),
+    async (req: FBCNMSRequest, res) => {
+      try {
+        let users;
+        if (req.organization) {
+          const organization = await req.organization();
+          users = await User.findAll({
+            where: {
+              organization: organization.name,
+            },
+          });
+        } else {
+          users = await User.findAll();
+        }
+        res.status(200).send({users});
+      } catch (error) {
+        res.status(400).send({error: error.toString()});
       }
-      res.status(200).send({users});
-    } catch (error) {
-      res.status(400).send({error: error.toString()});
-    }
-  });
+    },
+  );
 
-  router.post('/async/', access(AccessRoles.SUPERUSER), async (req, res) => {
-    try {
-      const body = req.body;
-      if (!body.email) {
-        throw new Error('Email not included!');
+  router.post(
+    '/async/',
+    access(AccessRoles.SUPERUSER),
+    async (req: FBCNMSRequest, res) => {
+      try {
+        const body = req.body;
+        if (!body.email) {
+          throw new Error('Email not included!');
+        }
+
+        const allowedProps = [
+          'email',
+          'networkIDs',
+          'password',
+          'superUser',
+          'verificationType',
+        ];
+        let userProperties = await getPropsToUpdate(req, allowedProps, body);
+        userProperties = await injectOrganizationParams(req, userProperties);
+        const user = await User.create(userProperties);
+
+        res.status(201).send({user});
+      } catch (error) {
+        res.status(400).send({error: error.toString()});
       }
+    },
+  );
 
-      const allowedProps = [
-        'email',
-        'networkIDs',
-        'password',
-        'superUser',
-        'verificationType',
-      ];
-      let userProperties = await getPropsToUpdate(req, allowedProps, body);
-      userProperties = await injectOrganizationParams(req, userProperties);
-      const user = await User.create(userProperties);
+  router.put(
+    '/async/:id',
+    access(AccessRoles.SUPERUSER),
+    async (req: FBCNMSRequest, res) => {
+      try {
+        const {id} = req.params;
 
-      res.status(201).send({user});
-    } catch (error) {
-      res.status(400).send({error: error.toString()});
-    }
-  });
+        const where = await injectOrganizationParams(req, {id});
+        const user = await User.findOne({where});
 
-  router.put('/async/:id', access(AccessRoles.SUPERUSER), async (req, res) => {
-    try {
-      const {id} = req.params;
+        // Check if user exists
+        if (!user) {
+          throw new Error('User does not exist!');
+        }
 
-      const where = await injectOrganizationParams(req, {id});
-      const user = await User.findOne({where});
+        // Create object to pass into update()
+        const allowedProps = [
+          'networkIDs',
+          'password',
+          'superUser',
+          'verificationType',
+        ];
 
-      // Check if user exists
-      if (!user) {
-        throw new Error('User does not exist!');
+        const userProperties = await getPropsToUpdate(
+          req,
+          allowedProps,
+          req.body,
+        );
+        if (isEmpty(userProperties)) {
+          throw new Error('No valid properties to edit!');
+        }
+
+        // Update user's password
+        await user.update(userProperties);
+        res.status(200).send({user});
+      } catch (error) {
+        res.status(400).send({error: error.toString()});
       }
-
-      // Create object to pass into update()
-      const allowedProps = [
-        'networkIDs',
-        'password',
-        'superUser',
-        'verificationType',
-      ];
-
-      const userProperties = await getPropsToUpdate(
-        req,
-        allowedProps,
-        req.body,
-      );
-      if (isEmpty(userProperties)) {
-        throw new Error('No valid properties to edit!');
-      }
-
-      // Update user's password
-      await user.update(userProperties);
-      res.status(200).send({user});
-    } catch (error) {
-      res.status(400).send({error: error.toString()});
-    }
-  });
+    },
+  );
 
   router.delete(
     '/async/:id/',
     access(AccessRoles.SUPERUSER),
-    async (req, res) => {
+    async (req: FBCNMSRequest, res) => {
       const {id} = req.params;
 
       try {
@@ -242,7 +254,7 @@ function userMiddleware(options: Options): express.Router {
     },
   );
 
-  router.post('/change_password', async (req, res) => {
+  router.post('/change_password', async (req: FBCNMSRequest, res) => {
     try {
       const {currentPassword, newPassword} = req.body;
       const verified = await bcrypt.compare(currentPassword, req.user.password);

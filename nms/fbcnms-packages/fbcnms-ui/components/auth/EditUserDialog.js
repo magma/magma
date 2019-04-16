@@ -24,7 +24,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import {UserRoles, UserVerificationTypes} from '@fbcnms/auth/types';
+import {UserRoles} from '@fbcnms/auth/types';
 
 import renderList from '@fbcnms/util/renderList';
 import {makeStyles} from '@material-ui/styles';
@@ -35,7 +35,6 @@ export type EditUser = {
   role: number,
   networkIDs?: string[],
   organization?: string,
-  verificationType: number,
 };
 
 type SaveUserData = {
@@ -43,7 +42,6 @@ type SaveUserData = {
   password?: string,
   superUser: boolean,
   networkIds?: string[],
-  verificationType: number,
 };
 
 type Props = {
@@ -97,7 +95,6 @@ export default function EditUserDialog(props: Props) {
       password,
       superUser: isSuperUser,
       networkIDs: Array.from(networkIds),
-      verificationType: UserVerificationTypes.PASSWORD,
     };
 
     // remove the password field if we are editing a user and the password isn't
@@ -111,7 +108,7 @@ export default function EditUserDialog(props: Props) {
     } else {
       props.onCreateUser(payload);
     }
-  });
+  }, [password, confirmPassword, email, isSuperUser, networkIds, props]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>

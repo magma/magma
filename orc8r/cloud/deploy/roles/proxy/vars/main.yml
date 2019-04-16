@@ -10,7 +10,4 @@
 nghttpx_units:
   - open
   - clientcert
-  - obsidian
-# NOTE: Add the port to Terraform if added here
-default_port: 9070
 obsidian_port: 9081

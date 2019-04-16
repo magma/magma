@@ -15,6 +15,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/swx_proxy/cache"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -36,15 +37,27 @@ type swxProxy struct {
 	connMan        *diameter.ConnectionManager
 	requestTracker *diameter.RequestTracker
 	originStateID  uint32
+	cache          *cache.Impl
 }
 
 type SwxProxyConfig struct {
 	ClientCfg           *diameter.DiameterClientConfig
 	ServerCfg           *diameter.DiameterServerConfig
 	VerifyAuthorization bool // should we verify non-3gpp IP access is enabled for user
+	CacheTTLSeconds     uint32
 }
 
+// NewSwxProxy creates a new instance of the proxy with configured cache TTL
 func NewSwxProxy(config *SwxProxyConfig) (*swxProxy, error) {
+	if config.CacheTTLSeconds < uint32(cache.DefaultGcInterval.Seconds()) {
+		config.CacheTTLSeconds = uint32(cache.DefaultTtl.Seconds())
+	}
+	cch, _ := cache.NewExt(cache.DefaultGcInterval, time.Second*time.Duration(config.CacheTTLSeconds))
+	return NewSwxProxyWithCache(config, cch)
+}
+
+// NewSwxProxyWithCache creates a new instance of the proxy with given cache implementation
+func NewSwxProxyWithCache(config *SwxProxyConfig, cache *cache.Impl) (*swxProxy, error) {
 	err := ValidateSwxProxyConfig(config)
 	if err != nil {
 		return nil, err
@@ -102,6 +115,7 @@ func NewSwxProxy(config *SwxProxyConfig) (*swxProxy, error) {
 		connMan:        connMan,
 		requestTracker: diameter.NewRequestTracker(),
 		originStateID:  originStateID,
+		cache:          cache,
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.MultimediaAuthentication, Request: false},

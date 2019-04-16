@@ -36,7 +36,7 @@ services:
     environment:
       API_CERT_FILENAME: /run/secrets/api_cert
       API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
-      API_HOST: ${API_HOST:-192.168.80.10:9443}
+      API_HOST: ${API_HOST:-host.docker.internal:9443}
       PORT: 8081
       HOST: 0.0.0.0
       MYSQL_HOST: mysql

@@ -17,8 +17,10 @@ import (
 	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -56,11 +58,11 @@ type OrchestratorPlugin interface {
 	// GetMetricsProfile returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
 	// to load on startup. See MetricsProfile for additional documentation.
-	GetMetricsProfiles() []metricsd.MetricsProfile
+	GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile
 
 	// GetObsidianHandlers returns all the custom obsidian handlers for the
 	// plugin to add functionality to the REST API.
-	GetObsidianHandlers() []handlers.Handler
+	GetObsidianHandlers(metricsConfig *config.ConfigMap) []handlers.Handler
 
 	// GetStreamerProviders returns streamer streams to expose to gateways.
 	// These stream providers are the primary mechanism by which gateways
@@ -90,8 +92,12 @@ func LoadAllPlugins(loader OrchestratorPluginLoader) error {
 		return err
 	}
 
+	metricsConfig, err := config.GetServiceConfig(orc8r.ModuleName, metricsd.ServiceName)
+	if err != nil {
+		return err
+	}
 	for _, p := range plugins {
-		if err := registerPlugin(p); err != nil {
+		if err := registerPlugin(p, metricsConfig); err != nil {
 			return err
 		}
 	}
@@ -157,16 +163,16 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 	return ret, nil
 }
 
-func registerPlugin(orc8rPlugin OrchestratorPlugin) error {
+func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.ConfigMap) error {
 	registry.AddServices(orc8rPlugin.GetServices()...)
 	if err := serde.RegisterSerdes(orc8rPlugin.GetSerdes()...); err != nil {
 		return err
 	}
 	factory.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
-	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles()...); err != nil {
+	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles(metricsConfig)...); err != nil {
 		return err
 	}
-	if err := handlers.RegisterAll(orc8rPlugin.GetObsidianHandlers()); err != nil {
+	if err := handlers.RegisterAll(orc8rPlugin.GetObsidianHandlers(metricsConfig)); err != nil {
 		return err
 	}
 	if err := providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...); err != nil {

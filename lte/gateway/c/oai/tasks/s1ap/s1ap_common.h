@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -41,7 +41,6 @@ struct s1ap_message_s;
 #include "bstrlib.h"
 
 /* Defined in asn_internal.h */
-// extern int asn_debug_indent;
 extern int asn_debug;
 
 #if defined(EMIT_ASN_DEBUG_EXTERN)
@@ -399,12 +398,15 @@ extern int asn1_xer_print;
 #include "security_types.h"
 #include "common_types.h"
 
+#include "s1ap_state.h"
+
 //Forward declaration
 struct s1ap_message_s;
 
 /** \brief Function callback prototype.
  **/
-typedef int (*s1ap_message_decoded_callback)(
+typedef int (*s1ap_message_handler_t)(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);

@@ -81,7 +81,7 @@ void _mme_app_send_itti_sgsap_ue_activity_ind(
   SGSAP_UE_ACTIVITY_IND (message_p).imsi_length = imsi_len;
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
   OAILOG_DEBUG(LOG_NAS,
-     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi :"
+     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
      "%s %d \n", imsi,imsi_len);
 
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -225,6 +225,7 @@ static int _send_cs_domain_loc_updt_acc_to_nas(
     } else if (is_sgs_assoc_exists == SGS_ASSOC_INACTIVE) {
       OAILOG_ERROR(
         LOG_MME_APP, "Failed send CS domain Location Update Accept to NAS \n");
+      itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   }
@@ -297,6 +298,7 @@ static int _is_combined_tau(
 {
   int rc = RETURNerror;
 
+  OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(ue_context != NULL);
   DevAssert(ue_context->sgs_context != NULL);
 
@@ -382,7 +384,7 @@ static int _is_combined_tau(
                                                     strlen(imsi_str));
            mme_ue_context_update_ue_sgs_neaf(
               itti_nas_location_update_req->ue_id, false);
-         }
+        }
       } else {
         rc = RETURNok;
       }
@@ -482,23 +484,7 @@ int mme_app_handle_nas_cs_domain_location_update_req(
   }
   mme_config_unlock(&mme_config);
 
-/*TODO CSFB, currently from HSS access_mode is rceived as PACKET_ONLY
- * For testing purpose we are commenting, later we will modify code as below
- */
-#if 0
-  if((ue_context->access_mode == NAM_PACKET_AND_CIRCUIT) &&
-    (ue_context->sgs_context->ts6_1_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
-    /*Send SGSAP Location Update Request message to SGS task*/
-    send_itti_sgsap_location_update_req(ue_context);
-    OAILOG_DEBUG (LOG_MME_APP, "Sending Location Update message to SGS task");
-  }else if(ue_context->sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    //Ignore the the messae as Location Update procedure is already triggered
-    OAILOG_DEBUG (LOG_MME_APP, "Dropping the message as Location Update procedure is already triggered for UE %d\n",
-    itti_nas_location_update_req->ue_id);
-  }
-
-#endif
-  if (/*(ue_context->access_mode == NAM_PACKET_AND_CIRCUIT) && */
+  if ((ue_context->network_access_mode == NAM_PACKET_AND_CIRCUIT) &&
       (ue_context->sgs_context->ts6_1_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
     // If we received combined TAU,set granted service and check if we have to send Location Update Request
     if (itti_nas_location_update_req->msg_type == TAU_REQUEST) {
@@ -515,7 +501,8 @@ int mme_app_handle_nas_cs_domain_location_update_req(
       LOG_MME_APP,
       "Sending Location Update message to SGS task with IMSI" IMSI_64_FMT "\n",
       ue_context->imsi);
-  } else {
+  } else if(ue_context->sgs_context->ts6_1_timer.id !=
+            MME_APP_TIMER_INACTIVE_ID) {
     //Ignore the the messae as Location Update procedure is already triggered
     OAILOG_WARNING(
       LOG_MME_APP,

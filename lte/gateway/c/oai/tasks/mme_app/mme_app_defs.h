@@ -265,6 +265,9 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
   const itti_s11_nw_init_actv_bearer_request_t
   *const nw_init_bearer_actv_req_p);
 
+int mme_app_handle_sgs_status_message(
+    itti_sgsap_status_t *const sgsap_status_pP);
+
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_write_lock(mMEsTATS)                                         \

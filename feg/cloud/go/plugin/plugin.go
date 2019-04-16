@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	srvconfig "magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
@@ -54,11 +55,11 @@ func (*FegOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
 	}
 }
 
-func (*FegOrchestratorPlugin) GetMetricsProfiles() []metricsd.MetricsProfile {
+func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
 	return []metricsd.MetricsProfile{}
 }
 
-func (*FegOrchestratorPlugin) GetObsidianHandlers() []handlers.Handler {
+func (*FegOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []handlers.Handler {
 	return plugin.FlattenHandlerLists(
 		fegh.GetObsidianHandlers(),
 	)

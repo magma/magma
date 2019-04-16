@@ -129,7 +129,6 @@ int sgs_la_update_requested_handler(const sgs_fsm_t *evt)
         evt->primitive);
       break;
   }
-
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 

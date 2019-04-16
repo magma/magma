@@ -1,1 +1,1 @@
-../../../../docs/s1ap_tests.md
+../../../../docs/readmes/lte/s1ap_tests.md

@@ -44,7 +44,7 @@ skip_checkin_if_missing_meta_services: []
 # max_skipped_checkins: 3
 
 # Init system to use to control services
-# Supported systems include: [systemd, runit]
+# Supported systems include: [systemd, runit, docker]
 init_system: systemd
 
 # bootstrap_manager config

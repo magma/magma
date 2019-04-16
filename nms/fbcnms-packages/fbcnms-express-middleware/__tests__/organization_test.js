@@ -11,6 +11,8 @@
 import {getOrganization} from '@fbcnms/express-middleware/organization';
 import {find} from 'lodash-es';
 
+import type {StaticOrganizationModel} from '@fbcnms/sequelize-models/models/organization';
+
 const ORGS = [
   {
     id: '1',
@@ -24,7 +26,8 @@ const ORGS = [
   },
 ];
 
-const MockOrganization = {
+// $FlowIgnore We know this is wrong, but don't want to deal with it.
+const MockOrganization: StaticOrganizationModel = {
   findOne: ({where}) => {
     if (where.name) {
       return find(ORGS, where);

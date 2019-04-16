@@ -9,12 +9,14 @@
 package blobstore_test
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"errors"
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
 	magmaerrors "magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
@@ -65,7 +67,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.Get("network", blobstore.TypeAndKey{Type: "t1", Key: "k1"})
+			return store.Get("network", storage.TypeAndKey{Type: "t1", Key: "k1"})
 		},
 
 		expectedError:  nil,
@@ -82,7 +84,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.Get("network", blobstore.TypeAndKey{Type: "t2", Key: "k2"})
+			return store.Get("network", storage.TypeAndKey{Type: "t2", Key: "k2"})
 		},
 
 		expectedError:      magmaerrors.ErrNotFound,
@@ -98,7 +100,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.Get("network", blobstore.TypeAndKey{Type: "t3", Key: "k3"})
+			return store.Get("network", storage.TypeAndKey{Type: "t3", Key: "k3"})
 		},
 
 		expectedError:  errors.New("Mock query error"),
@@ -123,7 +125,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.GetMany("network", []blobstore.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			return store.GetMany("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 		},
 
 		expectedError: nil,
@@ -141,7 +143,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.GetMany("network", []blobstore.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			return store.GetMany("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 		},
 
 		expectedError:  errors.New("Mock query error"),
@@ -346,7 +348,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.Delete("network", []blobstore.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			err := store.Delete("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 			return nil, err
 		},
 
@@ -362,7 +364,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			err := store.Delete("network", []blobstore.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
+			err := store.Delete("network", []storage.TypeAndKey{{Type: "t1", Key: "k1"}, {Type: "t2", Key: "k2"}})
 			return nil, err
 		},
 
@@ -372,6 +374,16 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 
 	runCase(t, happyPath)
 	runCase(t, queryError)
+}
+
+func TestSqlBlobStorage_Integration(t *testing.T) {
+	// Use an in-memory sqlite datastore
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("Could not initialize sqlite DB: %s", err)
+	}
+	fact := blobstore.NewSQLBlobStorageFactory("table", db)
+	integration(t, fact)
 }
 
 type testCase struct {

@@ -71,6 +71,7 @@ func createChallengeRequest(
 			SipNumAuthVectors:    1,
 			AuthenticationScheme: swx_protos.AuthenticationScheme_EAP_AKA,
 			ResyncInfo:           resyncInfo,
+			RetrieveUserProfile:  true,
 		})
 
 	if err != nil {
@@ -105,6 +106,8 @@ func createChallengeRequest(
 	lockedCtx.Rand = ra[:aka.RAND_LEN]
 	autn := ra[aka.RAND_LEN:aka.RandAutnLen]
 	lockedCtx.Xres = av.GetXres()
+	lockedCtx.Profile = ans.GetUserProfile()
+
 	// Clone EAP Challenge packet
 	p := eap.Packet(make([]byte, challengeReqTemplateLen))
 	copy(p, challengeReqTemplate)

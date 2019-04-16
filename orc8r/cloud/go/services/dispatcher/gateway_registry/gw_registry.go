@@ -22,46 +22,41 @@ import (
 )
 
 const (
-	// gateway services
-	GWMOBILITYD       GwServiceType = "mobilityd"
-	GWMAGMAD          GwServiceType = "magmad"
-	GWENODEBD         GwServiceType = "enodebd"
-	GWPIPELINED       GwServiceType = "pipelined"
-	GWSUBSCRIBERDB    GwServiceType = "subscriberdb"
-	GWS6ASERVICE      GwServiceType = "s6a_service"
-	GWSGSSERVICE      GwServiceType = "sgs_service"
-	GWSESSIONDSERVICE GwServiceType = "sessiond"
+	// Gateway services
+	GwMobilityd       GwServiceType = "mobilityd"
+	GwMagmad          GwServiceType = "magmad"
+	GwEnodebd         GwServiceType = "enodebd"
+	GwPipelined       GwServiceType = "pipelined"
+	GwSubscriberDB    GwServiceType = "subscriberdb"
+	GwS6aService      GwServiceType = "s6a_service"
+	GwSgsService      GwServiceType = "sgs_service"
+	GwSessiondService GwServiceType = "sessiond"
 
-	// syncRPC gateway header key
-	GATEWAYID_HEADER_KEY = "Gatewayid"
+	// SyncRPC gateway header key
+	GatewayIdHeaderKey = "Gatewayid"
 
-	HTTP_SERVER_ADDRESS_PORT = 9080
+	HttpServerAddressPort = 9080
 )
 
 type GwServiceType string
-
-var services []GwServiceType
-
-func init() {
-	services = append(services, GWMOBILITYD)
-	services = append(services, GWMAGMAD)
-	services = append(services, GWENODEBD)
-	services = append(services, GWPIPELINED)
-	services = append(services, GWSUBSCRIBERDB)
-	services = append(services, GWS6ASERVICE)
-	services = append(services, GWSGSSERVICE)
-	services = append(services, GWSESSIONDSERVICE)
-}
 
 type httpServerConfig struct {
 	port int
 	*sync.RWMutex
 }
 
-var (
-	config = httpServerConfig{HTTP_SERVER_ADDRESS_PORT,
-		&sync.RWMutex{}}
-)
+var services = []GwServiceType{
+	GwMobilityd,
+	GwMagmad,
+	GwEnodebd,
+	GwPipelined,
+	GwSubscriberDB,
+	GwS6aService,
+	GwSgsService,
+	GwSessiondService,
+}
+
+var config = httpServerConfig{HttpServerAddressPort, &sync.RWMutex{}}
 
 // SetPort sets the port of http_server.
 // If a port is already set, this overrides the previous setting.
@@ -72,9 +67,10 @@ func SetPort(port int) error {
 	return nil
 }
 
-// Returns the ip addr for the SyncRPCHTTPServer instance, which is
-// in the same process of the Dispatcher grpc server who has an open
-// bidirectional stream with the gateway with hwId.
+// GetServiceAddressForGateway returns the ip addr for the
+// SyncRPCHTTPServer instance, which is in the same process
+// of the Dispatcher grpc server who has an open bidirectional
+// stream with the gateway with hwId.
 func GetServiceAddressForGateway(hwId string) (string, error) {
 	hostName, err := directoryd.GetHostNameByIMSI(hwId)
 	if err != nil {
@@ -88,10 +84,11 @@ func GetServiceAddressForGateway(hwId string) (string, error) {
 	return addr, nil
 }
 
-// get a connection to the SYNCRPCHTTPSERVER who can forward the message
-// to the corresponding gateway
-// return a connection, and a context that should be based on for rpc calls on this connection.
-// The context will put the Gatewayid in its metadata, which will be surfaced as http/2 headers
+// GetGatewayConnection gets a connection to the SyncRPC HTTP server
+// who can forward the message to the corresponding gateway.
+//
+// Returns a connection and a context that should be based on for rpc calls on this connection.
+// The context will put the Gatewayid in its metadata, which will be surfaced as HTTP/2 headers.
 func GetGatewayConnection(service GwServiceType, hwId string) (*grpc.ClientConn, context.Context, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpxMaxTimeoutSec*time.Second)
 	defer cancel()
@@ -99,13 +96,18 @@ func GetGatewayConnection(service GwServiceType, hwId string) (*grpc.ClientConn,
 	if err != nil {
 		return nil, nil, err
 	}
-	conn, err := registry.GetClientConnection(ctx, addr, grpc.WithBackoffMaxDelay(registry.GrpcMaxDelaySec*time.Second),
-		grpc.WithBlock(), grpc.WithAuthority(string(service)))
+	conn, err := registry.GetClientConnection(
+		ctx,
+		addr,
+		grpc.WithBackoffMaxDelay(registry.GrpcMaxDelaySec*time.Second),
+		grpc.WithBlock(),
+		grpc.WithAuthority(string(service)),
+	)
 	if err != nil {
 		err = fmt.Errorf("Service %v connection error: %v", service, err)
 		return nil, nil, err
 	}
-	customHeader := metadata.New(map[string]string{GATEWAYID_HEADER_KEY: hwId})
+	customHeader := metadata.New(map[string]string{GatewayIdHeaderKey: hwId})
 	ctxToRet := metadata.NewOutgoingContext(context.Background(), customHeader)
 	return conn, ctxToRet, nil
 

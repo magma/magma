@@ -1,0 +1,30 @@
+version: "3.7"
+
+services:
+  feg:
+    container_name: feg
+    image: feg_gateway_go_base
+    build:
+      target: base
+      context: ../../../
+      dockerfile: feg/gateway/docker/go/Dockerfile
+    volumes:
+      - ../../../:/magma
+      - ../configs:/etc/configs
+      - ../configs:/etc/magma
+      - ../../../orc8r/gateway/configs/templates:/etc/magma/templates
+      - ../deploy/envdir:/var/opt/magma/envdir
+      - ../../../.cache/test_certs:/var/opt/magma/certs
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10mb"
+        max-file: "10"
+    network_mode: host
+    cap_add:
+      - SYS_ADMIN
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+    command: /sbin/init && tail -f /dev/null

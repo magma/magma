@@ -16,7 +16,6 @@
 #include "SessionState.h"
 
 namespace magma {
-using namespace orc8r;
 
 class SessionNotFound : public std::exception {
  public:
@@ -33,14 +32,13 @@ class LocalEnforcer {
 
   LocalEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store,
-    std::shared_ptr<PipelinedClient> pipelined_client);
+    std::shared_ptr<PipelinedClient> pipelined_client,
+    long session_force_termination_timeout_ms);
 
   void attachEventBase(folly::EventBase *evb);
 
   // blocks
   void start();
-
-  void startOnce(folly::EventBase *evb);
 
   void stop();
 
@@ -91,11 +89,16 @@ class LocalEnforcer {
    */
   void update_session_credit(const UpdateSessionResponse &response);
 
-  SessionTerminateRequest terminate_subscriber(const std::string &imsi);
-
-  void complete_termination(
+  /**
+   * Starts the termination process for the session. When termination completes,
+   * the call back function is executed.
+   * @param imsi - imsi of the subscirber
+   * @param on_termination_callback - callback function to be executed after
+   * termination
+   */
+  void terminate_subscriber(
     const std::string &imsi,
-    const std::string &session_id);
+    std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   uint64_t get_charging_credit(
     const std::string &imsi,
@@ -127,9 +130,21 @@ class LocalEnforcer {
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
   folly::EventBase *evb_;
+  long session_force_termination_timeout_ms_;
 
  private:
+  /**
+   * new_report notifies all sessions that a new usage report is going to be
+   * aggregated.
+   */
   void new_report();
+
+  /**
+   * finish_report notifies all sessions that the aggregation of the usage
+   * report is finished. For sessions that are terminating, complete the
+   * termination if the session is not included in the report.
+   */
+  void finish_report();
 
   /**
    * Process the create session response to get rules to activate/deactivate
@@ -157,6 +172,21 @@ class LocalEnforcer {
     const std::unique_ptr<SessionState> &session,
     RulesToProcess *rules_to_activate,
     RulesToProcess *rules_to_deactivate);
+
+  /**
+   * Completes the session termination and executes the callback function
+   * registered in terminate_subscriber.
+   * complete_termination is called some time after terminate_subscriber
+   * when the flows no longer appear in the usage report, meaning that they have
+   * been deleted.
+   * It is also called after a timeout to perform forced termination.
+   * If the session cannot be found, either because it has already terminated,
+   * or a new session for the subscriber has been created, then it will do
+   * nothing.
+   */
+  void complete_termination(
+    const std::string &imsi,
+    const std::string &session_id);
 
   void schedule_static_rule_activation(
     const std::string &imsi,

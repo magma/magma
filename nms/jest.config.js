@@ -15,6 +15,7 @@ module.exports = {
     '**/fbcnms-packages/**/*.js',
     '!**/__mocks__/**',
     '!**/__tests__/**',
+    '!**/node_modules/**',
   ],
   coverageReporters: ['json'],
   moduleNameMapper: {
@@ -25,10 +26,7 @@ module.exports = {
   modulePathIgnorePatterns: [],
   projects: ['<rootDir>'],
   testEnvironment: 'jsdom',
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/tgnms', // these tests are run independently
-  ],
+  testPathIgnorePatterns: ['/node_modules/'],
   transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
   transform: {
     '^.+\\.js$': 'babel-jest',

@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/services/config/servicers"
 	"magma/orc8r/cloud/go/services/config/storage"
 	"magma/orc8r/cloud/go/services/config/storage/mocks"
+	mstore "magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -50,7 +51,7 @@ func TestConfigService_GetConfigs(t *testing.T) {
 
 	store.On("GetConfigs", "network", &storage.FilterCriteria{Type: "type"}).
 		Return(
-			map[storage.TypeAndKey]*storage.ConfigValue{
+			map[mstore.TypeAndKey]*storage.ConfigValue{
 				{Type: "type", Key: "key1"}: {Value: []byte("value1"), Version: 42},
 				{Type: "type", Key: "key2"}: {Value: []byte("value2"), Version: 1},
 			}, nil,

@@ -14,6 +14,9 @@ const HttpsProxyAgent = require('https-proxy-agent');
 const url = require('url');
 const {apiCredentials, API_HOST, NETWORK_FALLBACK} = require('../config');
 
+import type {NMSRequest} from '../../scripts/server';
+import type {ExpressResponse} from 'express';
+
 const router = express.Router();
 
 let agent = null;
@@ -24,7 +27,7 @@ if (process.env.HTTPS_PROXY) {
 const PROXY_OPTIONS = {
   https: true,
   memoizeHost: false,
-  proxyReqOptDecorator: (proxyReqOpts, _originalReq) => {
+  proxyReqOptDecorator: (proxyReqOpts, _originalReq: NMSRequest) => {
     return {
       ...proxyReqOpts,
       agent: agent,
@@ -33,7 +36,7 @@ const PROXY_OPTIONS = {
       rejectUnauthorized: false,
     };
   },
-  proxyReqPathResolver: req =>
+  proxyReqPathResolver: (req: NMSRequest) =>
     req.originalUrl.replace(/^\/nms\/apicontroller/, ''),
 };
 
@@ -41,7 +44,7 @@ router.use(
   '/magma/networks/:networkID',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    filter: req => {
+    filter: (req: NMSRequest) => {
       // super users have access to all proxied API requests
       if (req.user.isSuperUser) {
         return true;
@@ -64,7 +67,12 @@ router.use(
   '/magma/networks',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    userResDecorator: (proxyRes, proxyResData: Buffer, userReq, userRes) => {
+    userResDecorator: (
+      proxyRes: ExpressResponse,
+      proxyResData: Buffer,
+      userReq: NMSRequest,
+      userRes: ExpressResponse,
+    ) => {
       let networkIds;
       if (
         (proxyRes.statusCode === 403 || proxyRes.statusCode === 401) &&
@@ -100,11 +108,11 @@ router.use(
   '/magma/channels/:channel',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
-    filter: (req, _res) => req.method === 'GET',
+    filter: (req: NMSRequest, _res: ExpressResponse) => req.method === 'GET',
   }),
 );
 
-router.use('', (req, res) => {
+router.use('', (req: NMSRequest, res: ExpressResponse) => {
   res.status(404).send('Not Found');
 });
 

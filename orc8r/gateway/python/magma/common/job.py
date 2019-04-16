@@ -25,7 +25,10 @@ class Job(abc.ABC):
     self._interval.
     """
 
-    def __init__(self, interval, loop=None) -> None:
+    def __init__(
+            self,
+            interval: int,
+            loop: Optional[asyncio.AbstractEventLoop] = None) -> None:
         if loop is None:
             self._loop = asyncio.get_event_loop()
         else:

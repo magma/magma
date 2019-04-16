@@ -18,11 +18,12 @@ export default function useSnackbar(
   show: boolean,
 ) {
   const enqueueSnackbar = useEnqueueSnackbar();
+  const stringConfig = JSON.stringify(config);
   useEffect(() => {
     if (show) {
       enqueueSnackbar(message, config);
     }
-  }, [message, show, JSON.stringify(config)]);
+  }, [message, show, stringConfig]);
 }
 
 export function useEnqueueSnackbar() {

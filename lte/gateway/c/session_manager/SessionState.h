@@ -8,6 +8,10 @@
  */
 #pragma once
 
+#include <functional>
+
+#include <lte/protos/session_manager.grpc.pb.h>
+
 #include "RuleStore.h"
 #include "SessionRules.h"
 #include "CreditPool.h"
@@ -39,10 +43,18 @@ class SessionState {
     StaticRuleStore &rule_store);
 
   /**
-   * new_report unmarks all credits before an update, to tell if any credits
-   * were not in the latest report
+   * new_report sets the state of terminating session to aggregating, to tell if
+   * flows for the terminating session is in the latest report.
+   * Should be called before add_used_credit.
    */
   void new_report();
+
+  /**
+   * finish_report updates the state of aggregating session not included report
+   * to specify its flows are deleted and termination can be completed.
+   * Should be called after new_report and add_used_credit.
+   */
+  void finish_report();
 
   /**
    * add_used_credit adds used TX/RX bytes to a particular charging key
@@ -63,10 +75,34 @@ class SessionState {
     std::vector<std::unique_ptr<ServiceAction>> *actions_out);
 
   /**
-   * Terminate collects final usages for all credits and returns them in a
-   * SessionTerminateRequest
+   * start_termination starts the termination process for the session.
+   * The session state transitions from SESSION_ACTIVE to
+   * SESSION_TERMINATING_FLOW_ACTIVE.
+   * When termination completes, the call back function is executed.
+   * @param on_termination_callback - call back function to be executed after
+   * termination
    */
-  SessionTerminateRequest terminate();
+  void start_termination(
+    std::function<void(SessionTerminateRequest)> on_termination_callback);
+
+  /**
+   * can_complete_termination returns whether the termination for the session
+   * can be completed.
+   * For this to be true, start_termination needs to be called for the session,
+   * and the flows for the session needs to be deleted.
+   */
+  bool can_complete_termination();
+
+  /**
+   * complete_termination collects final usages for all credits into a
+   * SessionTerminateRequest and calls the on termination callback with the
+   * request.
+   * Note that complete_termination will forcefully complete the termination
+   * no matter the current state of the session. To properly complete the
+   * termination, this function should only be called when
+   * can_complete_termination returns true.
+   */
+  void complete_termination();
 
   void insert_dynamic_rule(const PolicyRule &dynamic_rule);
 
@@ -81,10 +117,32 @@ class SessionState {
   std::string get_subscriber_ip_addr();
 
  private:
+  /**
+   * State transitions of a session:
+   * SESSION_ACTIVE
+   *       |
+   *       | (start_termination)
+   *       V
+   * SESSION_TERMINATING_FLOW_ACTIVE <----------
+   *       |                                   |
+   *       | (new_report)                      | (add_used_credit)
+   *       V                                   |
+   * SESSION_TERMINATING_AGGREGATING_STATS -----
+   *       |
+   *       | (finish_report)
+   *       V
+   * SESSION_TERMINATING_FLOW_DELETED
+   *       |
+   *       | (complete_termination)
+   *       V
+   * SESSION_TERMINATED
+   */
   enum State {
     SESSION_ACTIVE = 0,
-    SESSION_TERMINATING = 1,
-    SESSION_TERMINATING_REPORTING = 2,
+    SESSION_TERMINATING_FLOW_ACTIVE = 1,
+    SESSION_TERMINATING_AGGREGATING_STATS = 2,
+    SESSION_TERMINATING_FLOW_DELETED = 3,
+    SESSION_TERMINATED = 4
   };
 
   std::string imsi_;
@@ -95,6 +153,7 @@ class SessionState {
   SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
+  std::function<void(SessionTerminateRequest)> on_termination_callback_;
 
  private:
   void get_updates_from_charging_pool(

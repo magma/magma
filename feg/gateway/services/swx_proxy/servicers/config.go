@@ -14,6 +14,7 @@ import (
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/mconfig"
+	"magma/feg/gateway/services/swx_proxy/cache"
 
 	"github.com/golang/glog"
 )
@@ -56,11 +57,16 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 				DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
 			},
 			VerifyAuthorization: DefaultVerifyAuthorization,
+			CacheTTLSeconds:     uint32(cache.DefaultTtl.Seconds()),
 		}
 	}
 
 	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, *configsPtr)
 
+	ttl := configsPtr.CacheTTLSeconds
+	if ttl < uint32(cache.DefaultGcInterval.Seconds()) {
+		ttl = uint32(cache.DefaultTtl.Seconds())
+	}
 	return &SwxProxyConfig{
 		ClientCfg: &diameter.DiameterClientConfig{
 			Host:             diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, configsPtr.GetServer().GetHost()),
@@ -78,6 +84,7 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 			DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
 		},
 		VerifyAuthorization: configsPtr.GetVerifyAuthorization(),
+		CacheTTLSeconds:     ttl,
 	}
 }
 

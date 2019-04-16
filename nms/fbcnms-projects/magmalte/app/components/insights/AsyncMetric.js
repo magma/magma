@@ -128,7 +128,7 @@ export default function AsyncMetric(props: Props) {
         })),
       })),
     };
-  }, [response]);
+  }, [response, props.unit]);
 
   if (error || isLoading || !response) {
     return <Progress />;

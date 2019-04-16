@@ -310,7 +310,6 @@ void mme_app_ue_sgs_context_free_content(
     }
     sgs_context_p->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
-  free_wrapper((void**) &sgs_context_p);
 }
 
 //------------------------------------------------------------------------------
@@ -390,6 +389,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
     // free the sgs context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->imsi);
+    free_wrapper((void **) &(ue_context_p->sgs_context));
   }
 
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
@@ -2418,6 +2418,24 @@ static void _mme_app_handle_s1ap_ue_context_release(
   }
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+bool is_mme_ue_context_network_access_mode_packet_only (
+  ue_mm_context_t       *ue_context_p)
+{
+  // Function is used to check the UE's Network Access Mode received in ULA from HSS
+
+  OAILOG_FUNC_IN (LOG_MME_APP);
+  if (ue_context_p == NULL) {
+    OAILOG_CRITICAL (LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
+    OAILOG_FUNC_RETURN (LOG_MME_APP, RETURNerror);
+  }
+  if (ue_context_p->network_access_mode == NAM_ONLY_PACKET)
+  {
+    OAILOG_FUNC_RETURN (LOG_MME_APP, true);
+  } else {
+    OAILOG_FUNC_RETURN (LOG_MME_APP, false);
+  }
 }
 
 //-------------------------------------------------------------------------------------------------------

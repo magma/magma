@@ -8,8 +8,11 @@ module magma/orc8r/cloud/go
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.16.19
+	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
+	github.com/go-kit/kit v0.8.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.18.0
@@ -34,6 +37,7 @@ require (
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/labstack/gommon v0.2.8
 	github.com/lib/pq v1.0.0
+	github.com/marpaia/graphite-golang v0.0.0-20171231172105-134b9af18cf3
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/opentracing/opentracing-go v1.0.2 // indirect
 	github.com/pkg/errors v0.8.1 // indirect

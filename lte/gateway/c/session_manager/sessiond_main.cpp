@@ -142,7 +142,10 @@ int main(int argc, char *argv[])
   auto reporting_limit = config["usage_reporting_limit_bytes"].as<uint64_t>();
   magma::SessionCredit::USAGE_REPORTING_LIMIT = reporting_limit;
 
-  auto monitor = magma::LocalEnforcer(rule_store, pipelined_client);
+  auto monitor = magma::LocalEnforcer(
+    rule_store,
+    pipelined_client,
+    config["session_force_termination_timeout_ms"].as<long>());
 
   magma::SessionCloudReporter reporter(evb, get_controller_channel(config));
   std::thread reporter_thread([&]() {

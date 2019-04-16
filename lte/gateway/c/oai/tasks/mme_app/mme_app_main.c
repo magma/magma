@@ -495,6 +495,10 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.s11_nw_init_actv_bearer_request);
       } break;
 
+      case SGSAP_STATUS: {
+        mme_app_handle_sgs_status_message(
+          &received_message_p->ittiMsg.sgsap_status);
+      } break;
 
       case TERMINATE_MESSAGE: {
         /*

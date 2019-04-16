@@ -98,7 +98,8 @@
   when: full_provision
 
 - name: Add the test controller DNS entries
-  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line='192.168.80.10 {{ item }}' state=present
+  # Use 10.0.2.2 as the host IP address in vagrant
+  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line='10.0.2.2 {{ item }}' state=present
   with_items:
     - controller.magma.test
     - bootstrapper-controller.magma.test
