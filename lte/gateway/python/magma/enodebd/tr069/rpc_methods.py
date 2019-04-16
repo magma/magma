@@ -9,9 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from typing import Any
-from spyne.decorator import rpc
-from spyne.model.complex import ComplexModelBase
-from spyne.service import ServiceBase
+
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import Tr069Error
@@ -19,6 +17,11 @@ from magma.enodebd.state_machines.acs_state_utils import \
     IncorrectDeviceHandlerError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
+from spyne.decorator import rpc
+from spyne.model.complex import ComplexModelBase, Iterable  # pylint: disable=unused-import
+from spyne.model.primitive import String  # pylint: disable=unused-import
+from spyne.service import ServiceBase
+
 from . import models
 
 # Allow methods without 'self' as first input. Required by spyne
