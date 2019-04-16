@@ -10,8 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 from typing import Any
 from spyne.decorator import rpc
-from spyne.model.complex import Iterable, ComplexModelBase
-from spyne.model.primitive import String
+from spyne.model.complex import ComplexModelBase
 from spyne.service import ServiceBase
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
