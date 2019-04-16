@@ -91,7 +91,7 @@ class Fault(Tr069ComplexModel):
 
 class MethodList(Tr069ComplexModel):
     _type_info = odict()
-    _type_info["MethodList"] = String(max_length=64, max_occurs='unbounded')
+    _type_info["string"] = String(max_length=64, max_occurs='unbounded')
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -360,8 +360,19 @@ class TransferCompleteResponse(Tr069ComplexModel):
     _type_info["DummyField"] = UnsignedInteger
 
 
-# Miscellaneous
+class GetRPCMethods(Tr069ComplexModel):
+    _type_info = odict()
+    _type_info["DummyField"] = UnsignedInteger
 
+
+class GetRPCMethodsResponse(Tr069ComplexModel):
+    _type_info = odict()
+    _type_info["MethodList"] = MethodList
+
+
+#
+# Miscellaneous
+#
 
 class ParameterListUnion(Tr069ComplexModel):
     """ Union of structures that get instantiated as 'ParameterList' in ACS->CPE
