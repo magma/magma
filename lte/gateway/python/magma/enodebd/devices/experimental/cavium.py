@@ -68,7 +68,7 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'delete_objs': DeleteObjectsState(self, when_add='add_objs', when_skip='set_params'),
             'add_objs': AddObjectsState(self, when_done='set_params'),
             'set_params': SetParameterValuesNotAdminState(self, when_done='wait_set_params'),
-            'wait_set_params': WaitSetParameterValuesState(self, when_done='enable_admin'),
+            'wait_set_params': WaitSetParameterValuesState(self, when_done='enable_admin', when_apply_invasive='enable_admin'),
             'enable_admin': CaviumDisableAdminEnableState(self, admin_value=True, when_done='wait_enable_admin'),
             'wait_enable_admin': CaviumWaitDisableAdminEnableState(self, admin_value=True, when_done='check_get_params', when_add='check_get_params', when_delete='check_get_params'),
             'check_get_params': GetParametersState(self, when_done='check_wait_get_params', request_all_params=True),
