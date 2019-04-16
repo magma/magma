@@ -39,12 +39,12 @@ MESSAGE_DEF(
   itti_s5_create_bearer_response_t,
   s5_create_bearer_response)
 MESSAGE_DEF(
-  S5_ACTIVATE_DEDICATED_BEARER_REQ,
+  S5_NW_INITIATED_ACTIVATE_BEARER_REQ,
   MESSAGE_PRIORITY_MED,
-  itti_s5_activate_dedicated_bearer_request_t,
-  s5_activate_dedicated_bearer_request)
+  itti_s5_nw_init_actv_bearer_request_t,
+  s5_nw_init_actv_bearer_request)
 MESSAGE_DEF(
-  S5_ACTIVATE_DEDICATED_BEARER_RSP,
+  S5_NW_INITIATED_ACTIVATE_BEARER_RESP,
   MESSAGE_PRIORITY_MED,
-  itti_s5_activate_dedicated_bearer_rsp_t,
-  s5_activate_dedicated_bearer_response)
+  itti_s5_nw_init_actv_bearer_rsp_t,
+  s5_nw_init_actv_bearer_response)

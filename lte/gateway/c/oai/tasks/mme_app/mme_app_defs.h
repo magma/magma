@@ -261,8 +261,9 @@ int mme_app_handle_sgsap_service_abort_request(
 void mme_app_handle_modify_ue_ambr_request(
   const itti_s11_modify_ue_ambr_request_t *const modify_ue_ambr_request_p);
 
-void mme_app_handle_pcrf_ded_bearer_actv_req(
-  const itti_s11_pcrf_ded_bearer_actv_request_t *const pcrf_bearer_actv_req_p);
+void mme_app_handle_nw_init_ded_bearer_actv_req(
+  const itti_s11_nw_init_actv_bearer_request_t
+  *const nw_init_bearer_actv_req_p);
 
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)

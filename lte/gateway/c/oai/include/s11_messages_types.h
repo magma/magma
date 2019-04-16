@@ -67,16 +67,16 @@
   (mSGpTR)->ittiMsg.s11_suspend_acknowledge
 #define S11_MODIFY_UE_AMBR_REQUEST(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.s11_modify_ue_ambr_request
-#define S11_PCRF_BEARER_ACTV_REQ(mSGpTR)                                       \
-  (mSGpTR)->ittiMsg.s11_pcrf_ded_bearer_actv_request
-#define S11_PCRF_BEARER_ACTV_RSP(mSGpTR)                                       \
-  (mSGpTR)->ittiMsg.s11_pcrf_ded_bearer_actv_rsp
+#define S11_NW_INITIATED_BEARER_ACTV_REQ(mSGpTR)                               \
+  (mSGpTR)->ittiMsg.s11_nw_initiated_ded_bearer_actv_request
+#define S11_NW_INITIATED_BEARER_ACTV_RESP(mSGpTR)                               \
+  (mSGpTR)->ittiMsg.s11_nw_init_ded_bearer_actv_rsp
 
 //-----------------------------------------------------------------------------
-/** @struct itti_s11_pcrf_ded_bearer_actv_request_t
+/** @struct itti_s11_nw_initiated_ded_bearer_actv_request_t
  *  @brief PCRF initiated Dedicated Bearer Activation Request
  */
-typedef struct itti_s11_pcrf_ded_bearer_actv_request_s {
+typedef struct itti_s11_nw_init_actv_bearer_request_s {
   teid_t context_teid; ///< not in specs for inner use;
   teid_t s11_mme_teid; ///< MME TEID
   bearer_qos_t eps_bearer_qos; ///< Bearer QoS
@@ -84,13 +84,13 @@ typedef struct itti_s11_pcrf_ded_bearer_actv_request_s {
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
   fteid_t s1_u_sgw_fteid; ///S1U SGW FTEID
   ebi_t lbi; //Linked Bearer ID
-}itti_s11_pcrf_ded_bearer_actv_request_t;
+}itti_s11_nw_init_actv_bearer_request_t;
 
 //-----------------------------------------------------------------------------
-/** @struct itti_s11_pcrf_ded_bearer_actv_rsp_t
+/** @struct itti_s11_nw_initiated_ded_bearer_actv_rsp_t
  *  @brief PCRF initiated Dedicated Bearer Activation Rsp
  */
-typedef struct itti_s11_pcrf_ded_bearer_actv_rsp_s {
+typedef struct itti_s11_nw_init_actv_bearer_rsp_s {
   gtpv2c_cause_t cause; ///< M
   teid_t sgw_s11_teid; //CP TEID
   bearer_qos_t eps_bearer_qos; ///< Bearer QoS to be stored in SGW context
@@ -98,7 +98,7 @@ typedef struct itti_s11_pcrf_ded_bearer_actv_rsp_s {
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
   bearer_contexts_within_create_bearer_response_t
     bearer_contexts; ///< Several IEs with this type and instance value shall be
-}itti_s11_pcrf_ded_bearer_actv_rsp_t;
+}itti_s11_nw_init_actv_bearer_rsp_t;
 
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_create_session_request_t
