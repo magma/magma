@@ -17,6 +17,11 @@ graphite_admin_last_login: "2014-07-21T10:11:17.464"
 graphite_admin_username: admin
 graphite_admin_password: admin
 
+graphite_db_name: graphitedb
+graphite_mysql_user: graphite_user
+graphite_mysql_password: graphitepass
+mysql_root_pass: mypassword
+
 graphite_service_carbon_open_files_limit: 4096
 
 graphite_storage_schemas_default_retentions: "1m:14d,15m:180d,1h:2y"

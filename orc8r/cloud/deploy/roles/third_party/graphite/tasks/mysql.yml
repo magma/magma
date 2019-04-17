@@ -1,0 +1,46 @@
+---
+- name: Install the MySQL packages
+  apt: name={{ item }} state=installed update_cache=yes
+  with_items:
+    - mysql-server
+    - mysql-client
+    - python-mysqldb
+    - libmysqlclient-dev
+
+- name: Copy the root credentials as .my.cnf file
+  template: src=root.cnf.j2 dest=~/.my.cnf mode=0600
+
+- name: Update MySQL root password for all root accounts
+  mysql_user: name=root host={{ item }} password={{ mysql_root_pass }} state=present
+  with_items:
+    - "{{ ansible_hostname }}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: Create graphite database
+  mysql_db:
+    name: "{{ graphite_db_name }}"
+    state: present
+
+- name: Grant access to graphite_user
+  mysql_user:
+    name: "{{ graphite_mysql_user }}"
+    host: "{{ item }}"
+    password: "{{ graphite_mysql_password }}"
+    priv: '{{ graphite_db_name }}.*:ALL,GRANT'
+    state: present
+  with_items:
+    - '%'
+    - 'localhost'
+
+- name: Ensure Anonymous user(s) are not in the database
+  mysql_user: name='' host={{ item }} state=absent
+  with_items:
+    - localhost
+    - "{{ ansible_hostname }}"
+
+- name: Remove the test database
+  mysql_db: name=test state=absent
+  notify:
+    - Restart MySQL
