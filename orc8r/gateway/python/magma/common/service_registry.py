@@ -26,6 +26,7 @@ class ServiceRegistry:
 
     _REGISTRY = {}
     _PROXY_CONFIG = {}
+    _CHANNELS_CACHE = {}
 
     LOCAL = 'local'
     CLOUD = 'cloud'
@@ -118,26 +119,44 @@ class ServiceRegistry:
         proxy_config = ServiceRegistry.get_proxy_config()
 
         # Control proxy uses the :authority: HTTP header to route to services.
+        if destination == ServiceRegistry.LOCAL:
+            authority = '%s.local' % (service)
+        else:
+            authority = '%s-%s' % (service, proxy_config['cloud_address'])
+
+        should_use_proxy = proxy_config['proxy_cloud_connections'] and \
+            proxy_cloud_connections
+
+        # If speaking to a local service or to the proxy, the grpc channel
+        # can be reused. If speaking to the cloud directly, the client cert
+        # could become stale after the next bootstrapper run.
+        should_reuse_channel = should_use_proxy or \
+            (destination == ServiceRegistry.LOCAL)
+        if should_reuse_channel:
+            channel = ServiceRegistry._CHANNELS_CACHE.get(authority, None)
+            if channel is not None:
+                return channel
+
         # We need to figure out the ip and port to connnect, if we need to use
         # SSL and the authority to use.
         if destination == ServiceRegistry.LOCAL:
             # Connect to the local service directly
             (ip, port) = ServiceRegistry.get_service_address(service)
-            authority = '%s.local' % (service)
-            return create_grpc_channel(ip, port, authority)
-
-        # Connect to the cloud for any other destination
-        cloud_address = proxy_config['cloud_address']
-        authority = '%s-%s' % (service, cloud_address)
-        if proxy_config['proxy_cloud_connections'] and proxy_cloud_connections:
+            channel = create_grpc_channel(ip, port, authority)
+        elif should_use_proxy:
             # Connect to the cloud via local control proxy
             (ip, port) = ('127.0.0.1', proxy_config['local_port'])
-            return create_grpc_channel(ip, port, authority)
+            channel = create_grpc_channel(ip, port, authority)
         else:
             # Connect to the cloud directly
-            (ip, port) = (cloud_address, proxy_config['cloud_port'])
+            ip = proxy_config['cloud_address']
+            port = proxy_config['cloud_port']
             ssl_creds = get_ssl_creds()
-            return create_grpc_channel(ip, port, authority, ssl_creds)
+            channel = create_grpc_channel(ip, port, authority, ssl_creds)
+
+        if should_reuse_channel:
+            ServiceRegistry._CHANNELS_CACHE[authority] = channel
+        return channel
 
     @staticmethod
     def get_registry():
@@ -168,7 +187,9 @@ class ServiceRegistry:
                     'control_proxy')
             except LoadConfigError as err:
                 logging.error(err)
-                ServiceRegistry._PROXY_CONFIG = {}
+                ServiceRegistry._PROXY_CONFIG = {
+                    'proxy_cloud_connections': True
+                }
         return ServiceRegistry._PROXY_CONFIG
 
 
