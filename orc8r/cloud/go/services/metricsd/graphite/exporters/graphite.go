@@ -144,6 +144,7 @@ func (e *GraphiteExporter) Export() error {
 	for _, metric := range e.registeredMetrics {
 		err := metric.Export(e)
 		if err != nil {
+			e.connected = false
 			return err
 		}
 	}
