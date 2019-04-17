@@ -7,13 +7,11 @@
 module magma/orc8r/cloud/go
 
 require (
-	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/VividCortex/gohistogram v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.16.19
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/go-kit/kit v0.8.0
-	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.18.0
 	github.com/go-openapi/inflect v0.18.0 // indirect
@@ -29,7 +27,7 @@ require (
 	github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013 // indirect
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.2.0
+	github.com/golang/protobuf v1.3.1
 	github.com/gorilla/handlers v1.4.0 // indirect
 	github.com/hpcloud/tail v1.0.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -39,25 +37,19 @@ require (
 	github.com/lib/pq v1.0.0
 	github.com/marpaia/graphite-golang v0.0.0-20171231172105-134b9af18cf3
 	github.com/mattn/go-sqlite3 v1.10.0
-	github.com/opentracing/opentracing-go v1.0.2 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
-	github.com/prometheus/client_golang v0.9.2
-	github.com/prometheus/client_model v0.0.0-20190109181635-f287a105a20e
-	github.com/prometheus/common v0.0.0-20190107103113-2998b132700a
-	github.com/prometheus/procfs v0.0.0-20190104112138-b1a0a9a36d74 // indirect
-	github.com/prometheus/prometheus v0.0.0-20190115164134-b639fe140c1f
+	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
+	github.com/prometheus/client_model v0.0.0-20190115171406-56726106282f
+	github.com/prometheus/common v0.3.0
+	github.com/prometheus/prometheus v0.0.0-20190416135227-ad71f2785fc3
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/toqueteos/webbrowser v1.1.0 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
-	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc // indirect
-	golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3
-	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
-	golang.org/x/sync v0.0.0-20181221193216-37e7f081c4d4 // indirect
-	golang.org/x/sys v0.0.0-20190115152922-a457fd036447 // indirect
-	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
-	google.golang.org/grpc v1.17.0
+	golang.org/x/lint v0.0.0-20190301231843-5614ed5bae6f
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19
+	google.golang.org/grpc v1.19.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.2.2
 )

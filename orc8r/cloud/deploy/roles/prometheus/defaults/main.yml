@@ -3,7 +3,7 @@
 promo_user: "{{ ansible_user }}"
 promo_group: "{{ ansible_user }}"
 
-prometheus_version: 2.5.0
+prometheus_version: 2.9.1
 
 prometheus_go_version: 1.6.2
 

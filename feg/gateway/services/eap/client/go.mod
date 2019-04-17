@@ -10,8 +10,8 @@ replace (
 )
 
 require (
-	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
-	google.golang.org/grpc v1.17.0
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	google.golang.org/grpc v1.19.1
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0 // indirect
 	magma/orc8r/cloud/go v0.0.0
