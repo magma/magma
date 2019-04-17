@@ -44,9 +44,9 @@ graphite_cache_log_updates: false
 graphite_cache_log_creates: false
 graphite_cache_enable_manhole: false
 graphite_cache_max_cache_size: inf
-graphite_cache_max_creates_per_minute: 100
-graphite_cache_max_updates_per_second: 500
-graphite_cache_max_updates_per_second_on_shutdown: 1000
+graphite_cache_max_creates_per_minute: 1000
+graphite_cache_max_updates_per_second: 2000
+graphite_cache_max_updates_per_second_on_shutdown: 5000
 graphite_cache_min_timestamp_resolution: 1
 graphite_cache_pickle_receiver_port: 0
 graphite_cache_graphite_url: false  # Set to http://my-graphite-url:port
