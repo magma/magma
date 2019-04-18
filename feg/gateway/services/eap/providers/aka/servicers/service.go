@@ -16,6 +16,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
 
 type UserCtx struct {
@@ -247,6 +248,7 @@ func (s *EapAkaSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration
 }
 
 func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *SessionCtx) {
+	metrics.SessionTimeouts.Inc()
 	if s == nil {
 		log.Printf("ERROR: Nil EAP-AKA Server for session ID: %s", sessionId)
 		return

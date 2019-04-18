@@ -20,6 +20,7 @@ import (
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 )
 
@@ -29,6 +30,13 @@ func init() {
 
 // identityResponse implements handler for AKA Challenge, see https://tools.ietf.org/html/rfc4187#page-49 for reference
 func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+	var success bool
+	metrics.IdentityRequests.Inc()
+	defer func() {
+		if !success {
+			metrics.FailedIdentityRequests.Inc()
+		}
+	}()
 	identifier := req.Identifier()
 	if ctx == nil {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Nil CTX")
@@ -65,7 +73,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				uc.Identity = identity
 				uc.SetState(aka.StateIdentity)
 				p, err := createChallengeRequest(s, uc, identifier, nil)
-				if err == nil {
+				if success = err == nil; success {
 					// Update state
 					uc.SetState(aka.StateChallenge)
 					s.UpdateSessionUnlockCtx(uc, aka.ChallengeTimeout())

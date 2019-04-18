@@ -17,6 +17,7 @@ import (
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 )
 
@@ -27,6 +28,13 @@ func init() {
 // resyncResponse implements handler for EAP-Response/AKA-Synchronization-Failure,
 // see https://tools.ietf.org/html/rfc4187#section-9.6 for details
 func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+	var success bool
+	metrics.ResyncRequests.Inc()
+	defer func() {
+		if !success {
+			metrics.FailedResyncRequests.Inc()
+		}
+	}()
 	identifier := req.Identifier()
 	if ctx == nil {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Nil CTX")
@@ -75,7 +83,7 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 			// Resync Info = RAND | AUTS
 			resyncInfo := append(append(make([]byte, 0, len(uc.Rand)+len(auts)), uc.Rand...), auts...)
 			p, err := createChallengeRequest(s, uc, identifier, resyncInfo)
-			if err == nil {
+			if success = err == nil; success {
 				// Update state
 				uc.SetState(aka.StateChallenge)
 				s.UpdateSessionUnlockCtx(uc, aka.ChallengeTimeout())
