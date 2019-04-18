@@ -105,11 +105,16 @@ type Network struct {
 	// configuration value. The type value will point to the Serde
 	// implementation which can deserialize the associated value.
 	Configs map[string][]byte
+
+	Version uint64
 }
 
 // InternalNetworkID is the ID of the network under which all non-tenant
 // entities are organized under.
 const InternalNetworkID = "network_magma_internal"
+
+const internalNetworkName = "Internal Magma Network"
+const internalNetworkDescription = "Internal network to hold non-network entities"
 
 // NetworkLoadCriteria specifies how much of a network to load
 type NetworkLoadCriteria struct {
@@ -118,6 +123,9 @@ type NetworkLoadCriteria struct {
 
 	LoadConfigs bool
 }
+
+// FullNetworkLoadCriteria is a utility variable to specify a full network load
+var FullNetworkLoadCriteria = NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}
 
 type NetworkLoadResult struct {
 	Networks           []Network
@@ -134,6 +142,9 @@ type NetworkUpdateCriteria struct {
 	// Set DeleteNetwork to true to delete the network
 	DeleteNetwork bool
 
+	// Set NewName or NewDescription to nil to indicate that no update is
+	// desired. To clear the value of name or description, set these fields to
+	// a pointer to an empty string.
 	NewName        *string
 	NewDescription *string
 
