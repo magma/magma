@@ -100,7 +100,7 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 const (
 	ProfileNamePrometheus = "prometheus"
 	ProfileNameGraphite   = "graphite"
-	ProfileNameDefault    = "default"
+	ProfileNameExportAll  = "exportall"
 )
 
 func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
@@ -114,33 +114,38 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
 
 	prometheusPushAddress := metricsConfig.GetRequiredStringParam(confignames.PrometheusPushgatewayAddress)
-	prometheusPushExporter := promo_exp.NewPrometheusPushExporter(prometheusPushAddress)
 	// Prometheus profile - Exports all service metric to Prometheus
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{prometheusPushExporter},
+		Exporters: []exporters.Exporter{
+			promo_exp.NewPrometheusPushExporter(prometheusPushAddress),
+		},
 	}
 
 	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
 	graphiteReceivePort := metricsConfig.GetRequiredIntParam(confignames.GraphiteReceivePort)
-	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort)
 	// Graphite profile - Exports all service metrics to Graphite
 	graphiteProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameGraphite,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{},
+		Exporters: []exporters.Exporter{
+			graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort),
+		},
 	}
 
-	defaultProfile := metricsd.MetricsProfile{
-		Name:       ProfileNameDefault,
+	exportAllProfile := metricsd.MetricsProfile{
+		Name:       ProfileNameExportAll,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{graphiteExporter, prometheusPushExporter},
+		Exporters: []exporters.Exporter{
+			graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort),
+			promo_exp.NewPrometheusPushExporter(prometheusPushAddress),
+		},
 	}
 
 	return []metricsd.MetricsProfile{
 		prometheusProfile,
 		graphiteProfile,
-		defaultProfile,
+		exportAllProfile,
 	}
 }

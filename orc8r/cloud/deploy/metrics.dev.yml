@@ -42,5 +42,4 @@
     full_provision: true
 
   roles:
-    - { role: prometheus }
     - { role: 'third_party/graphite', vars: {graphite_cache_graphite_url: 'http://127.0.0.1:8080'}}
