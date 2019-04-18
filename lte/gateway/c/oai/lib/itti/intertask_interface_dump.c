@@ -60,10 +60,6 @@
 #include "intertask_interface_dump.h"
 #include "dynamic_memory_check.h"
 
-#if OAI_EMU
-#include "vcd_signal_dumper.h"
-#endif
-
 static const int itti_dump_debug = 0; // 0x8 | 0x4 | 0x2;
 
 #define ITTI_DUMP_DEBUG(m, x, args...)                                         \
@@ -330,10 +326,7 @@ static int itti_dump_enqueue_message(
   int overwrite_flag;
 
   AssertFatal(new != NULL, "Message to queue is NULL!\n");
-#if OAI_EMU
-  VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(
-    VCD_SIGNAL_DUMPER_FUNCTIONS_ITTI_DUMP_ENQUEUE_MESSAGE, VCD_FUNCTION_IN);
-#endif
+
   new->message_type = message_type;
   new->message_size = message_size;
   ITTI_DUMP_DEBUG(
@@ -385,10 +378,7 @@ static int itti_dump_enqueue_message(
     new,
     pending_messages,
     message_type);
-#if OAI_EMU
-  VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(
-    VCD_SIGNAL_DUMPER_FUNCTIONS_ITTI_DUMP_ENQUEUE_MESSAGE, VCD_FUNCTION_OUT);
-#endif
+
   return 0;
 }
 
@@ -820,28 +810,11 @@ int itti_dump_queue_message(
 
     AssertFatal(message_name != NULL, "Message name is NULL!\n");
     AssertFatal(message_p != NULL, "Message is NULL!\n");
-#if OAI_EMU
-    VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(
-      VCD_SIGNAL_DUMPER_FUNCTIONS_ITTI_DUMP_ENQUEUE_MESSAGE_malloc,
-      VCD_FUNCTION_IN);
-#endif
+
     new = itti_malloc(sender_task, TASK_MAX, sizeof(itti_dump_queue_item_t));
-#if OAI_EMU
-    VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(
-      VCD_SIGNAL_DUMPER_FUNCTIONS_ITTI_DUMP_ENQUEUE_MESSAGE_malloc,
-      VCD_FUNCTION_OUT);
-#endif
-#if OAI_EMU
-    VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(
-      VCD_SIGNAL_DUMPER_FUNCTIONS_ITTI_DUMP_ENQUEUE_MESSAGE_malloc,
-      VCD_FUNCTION_IN);
-#endif
+
     new->data = itti_malloc(sender_task, TASK_MAX, message_size);
-#if OAI_EMU
-    VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(
-      VCD_SIGNAL_DUMPER_FUNCTIONS_ITTI_DUMP_ENQUEUE_MESSAGE_malloc,
-      VCD_FUNCTION_OUT);
-#endif
+
     memcpy(new->data, message_p, message_size);
     new->data_size = message_size;
     new->message_number = message_number;
