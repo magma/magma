@@ -47,7 +47,9 @@ DEFAULT_PROXY = "$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
-
+# Disable ssh known hosts to resolve key errors
+# with multiple vagrant boxes in use.
+env.disable_known_hosts = True
 
 def dev():
     env.debug_mode = True
