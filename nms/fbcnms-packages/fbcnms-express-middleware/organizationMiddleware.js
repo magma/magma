@@ -65,7 +65,7 @@ export type OrganizationRequestPart = {
 export type OrganizationMiddlewareRequest = ExpressRequest &
   $Shape<OrganizationRequestPart>;
 
-export function organizationMiddleware({
+export default function organizationMiddleware({
   model,
 }: {
   model: StaticOrganizationModel,

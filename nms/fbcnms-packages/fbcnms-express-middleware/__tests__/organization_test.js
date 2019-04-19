@@ -8,7 +8,7 @@
  * @format
  */
 
-import {getOrganization} from '@fbcnms/express-middleware/organization';
+import {getOrganization} from '@fbcnms/express-middleware/organizationMiddleware';
 import {find} from 'lodash-es';
 
 import type {StaticOrganizationModel} from '@fbcnms/sequelize-models/models/organization';
