@@ -13,7 +13,41 @@ import (
 	dto "github.com/prometheus/client_model/go"
 )
 
-func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.LabelPair) *dto.MetricFamily {
+const (
+	TestNetwork = "testNetwork"
+	TestGateway = "testGateway"
+
+	SimpleLabelName  = "name"
+	SimpleLabelValue = "value"
+
+	DefaultGateway = "defaultGateway"
+)
+
+var (
+	SimpleLabelPair = dto.LabelPair{
+		Name:  MakeStringPointer(SimpleLabelName),
+		Value: MakeStringPointer(SimpleLabelValue),
+	}
+	TagLabelPair = dto.LabelPair{
+		Name:  MakeStringPointer("tags"),
+		Value: MakeStringPointer("Tag1,Tag2"),
+	}
+	NetworkLabelPair = dto.LabelPair{
+		Name:  MakeStringPointer("networkId"),
+		Value: MakeStringPointer(TestNetwork),
+	}
+	GatewayLabelPair = dto.LabelPair{
+		Name:  MakeStringPointer("gatewayId"),
+		Value: MakeStringPointer(TestGateway),
+	}
+
+	SimpleLabels            = []*dto.LabelPair{&SimpleLabelPair}
+	GatewayLabels           = []*dto.LabelPair{&GatewayLabelPair}
+	NetworkLabels           = []*dto.LabelPair{&NetworkLabelPair}
+	NetworkAndGatewayLabels = []*dto.LabelPair{&NetworkLabelPair, &GatewayLabelPair}
+)
+
+func MakeTestMetricFamily(metricType dto.MetricType, name string, count int, labels []*dto.LabelPair) *dto.MetricFamily {
 	var testMetric dto.Metric
 	switch metricType {
 	case dto.MetricType_COUNTER:
@@ -32,7 +66,7 @@ func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.La
 		metrics = append(metrics, &testMetric)
 	}
 	return &dto.MetricFamily{
-		Name:   MakeStringPointer("testFamily"),
+		Name:   MakeStringPointer(name),
 		Help:   MakeStringPointer("testFamilyHelp"),
 		Type:   MakeMetricTypePointer(metricType),
 		Metric: metrics,

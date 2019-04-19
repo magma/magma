@@ -33,6 +33,11 @@ const (
 	defaultGateway = "defaultGateway"
 )
 
+var (
+	// Metric tag names that we don't want to add to exported metrics
+	droppedMetricTagNames = []string{"networkId", "gatewayId"}
+)
+
 // GraphiteExporter handles registering and updating graphite metrics
 type GraphiteExporter struct {
 	graphite          *graphite.Graphite
@@ -174,6 +179,15 @@ func makeGraphiteName(metric *dto.Metric, ctx exporters.MetricsContext) string {
 	name := ctx.MetricName
 	labels := protos.GetDecodedLabel(metric)
 
+	tags := make(TagSet)
+
+	for _, labelPair := range labels {
+		labelName := labelPair.GetName()
+		if !labelShouldBeDropped(labelName) {
+			tags.Insert(labelPair.GetName(), labelPair.GetValue())
+		}
+	}
+
 	networkID := ctx.NetworkID
 	gatewayID := ctx.GatewayID
 	if networkID == "" {
@@ -182,15 +196,19 @@ func makeGraphiteName(metric *dto.Metric, ctx exporters.MetricsContext) string {
 	if gatewayID == "" {
 		gatewayID = defaultGateway
 	}
-
-	tags := make(TagSet)
 	tags.Insert(NetworkTagName, networkID)
 	tags.Insert(GatewayTagName, gatewayID)
 
-	for _, labelPair := range labels {
-		tags.Insert(labelPair.GetName(), labelPair.GetValue())
-	}
 	return name + tags.String()
+}
+
+func labelShouldBeDropped(labelName string) bool {
+	for _, check := range droppedMetricTagNames {
+		if labelName == check {
+			return true
+		}
+	}
+	return false
 }
 
 type TagSet map[string]string

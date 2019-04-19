@@ -14,7 +14,7 @@ import (
 
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
-	"magma/orc8r/cloud/go/services/metricsd/test_common"
+	tc "magma/orc8r/cloud/go/services/metricsd/test_common"
 
 	dto "github.com/prometheus/client_model/go"
 
@@ -22,42 +22,38 @@ import (
 )
 
 const (
-	testFamilyName       = "testFamily"
-	testNetwork          = "test_network"
-	testGateway          = "test_gateway"
-	testMetricLabelName  = "metricLabelName"
-	testMetricLabelValue = "metricLabelValue"
-
-	gIDName = "gatewayID"
-	nIDName = "networkID"
-)
-
-var (
-	testLabelPair = &dto.LabelPair{
-		Name:  test_common.MakeStringPointer(testMetricLabelName),
-		Value: test_common.MakeStringPointer(testMetricLabelValue),
-	}
+	testFamilyName = "testFamily"
+	testNetwork    = "test_network"
+	testGateway    = "test_gateway"
 )
 
 func TestMakeGraphiteName(t *testing.T) {
-	expectedName := fmt.Sprintf("%s;%s=%s;%s=%s", testFamilyName, gIDName, "defaultGateway", nIDName, "defaultNetwork")
+	expectedName := fmt.Sprintf("%s;%s=%s;%s=%s", testFamilyName, GatewayTagName, defaultGateway, NetworkTagName, defaultNetwork)
 	testMakeGraphiteNameHelper(t, "", "", testFamilyName, []*dto.LabelPair{}, expectedName)
 
-	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s;%s=%s", testFamilyName, gIDName, testGateway, testMetricLabelName, testMetricLabelValue, nIDName, testNetwork)
-	testMakeGraphiteNameHelper(t, testNetwork, testGateway, testFamilyName, []*dto.LabelPair{testLabelPair}, expectedName)
+	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s;%s=%s", testFamilyName, GatewayTagName, testGateway, tc.SimpleLabelName, tc.SimpleLabelValue, NetworkTagName, testNetwork)
+	testMakeGraphiteNameHelper(t, testNetwork, testGateway, testFamilyName, tc.SimpleLabels, expectedName)
 
-	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s;%s=%s", testFamilyName, gIDName, "defaultGateway", testMetricLabelName, testMetricLabelValue, nIDName, testNetwork)
-	testMakeGraphiteNameHelper(t, testNetwork, "", testFamilyName, []*dto.LabelPair{testLabelPair}, expectedName)
+	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s;%s=%s", testFamilyName, GatewayTagName, defaultGateway, tc.SimpleLabelName, tc.SimpleLabelValue, NetworkTagName, testNetwork)
+	testMakeGraphiteNameHelper(t, testNetwork, "", testFamilyName, tc.SimpleLabels, expectedName)
 
-	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s;%s=%s", testFamilyName, gIDName, "defaultGateway", testMetricLabelName, testMetricLabelValue, nIDName, "defaultNetwork")
-	testMakeGraphiteNameHelper(t, "", "", testFamilyName, []*dto.LabelPair{testLabelPair}, expectedName)
+	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s;%s=%s", testFamilyName, GatewayTagName, defaultGateway, tc.SimpleLabelName, tc.SimpleLabelValue, NetworkTagName, defaultNetwork)
+	testMakeGraphiteNameHelper(t, "", "", testFamilyName, tc.SimpleLabels, expectedName)
+
+	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s", testFamilyName, GatewayTagName, tc.TestGateway, NetworkTagName, tc.TestNetwork)
+	testMakeGraphiteNameHelper(t, tc.TestNetwork, tc.TestGateway, testFamilyName, tc.NetworkLabels, expectedName)
+
+	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s", testFamilyName, GatewayTagName, defaultGateway, NetworkTagName, defaultNetwork)
+	testMakeGraphiteNameHelper(t, "", "", testFamilyName, tc.GatewayLabels, expectedName)
+
+	expectedName = fmt.Sprintf("%s;%s=%s;%s=%s", testFamilyName, GatewayTagName, tc.TestGateway, NetworkTagName, tc.TestNetwork)
+	testMakeGraphiteNameHelper(t, tc.TestNetwork, tc.TestGateway, testFamilyName, tc.NetworkAndGatewayLabels, expectedName)
 }
 
 func testMakeGraphiteNameHelper(t *testing.T, networkID, gatewayID, familyName string, labels []*dto.LabelPair, expectedName string) {
-	metric := test_common.MakePromoGauge(100)
+	metric := tc.MakePromoGauge(100)
 	metric.Label = labels
-	family := test_common.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, []*dto.LabelPair{})
-	family.Name = &familyName
+	family := tc.MakeTestMetricFamily(dto.MetricType_GAUGE, familyName, 1, []*dto.LabelPair{})
 	ctx := exporters.MetricsContext{
 		MetricName:  protos.GetDecodedName(family),
 		NetworkID:   networkID,

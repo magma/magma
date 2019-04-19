@@ -24,6 +24,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+const (
+	CloudNetworkLabelName = "networkId"
+	CloudGatewayLabelName = "gatewayId"
+)
+
 type MetricsControllerServer struct {
 	exporters []exporters.Exporter
 }
@@ -61,13 +66,7 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *promethe
 	for family := range inputChan {
 		for _, e := range srv.exporters {
 			decodedName := protos.GetDecodedName(family)
-			networkID, gatewayID := unpackCloudMetricName(decodedName)
-			if networkID == "" {
-				networkID = exporters.CloudMetricID
-			}
-			if gatewayID == "" {
-				gatewayID = hostName
-			}
+			networkID, gatewayID := determineCloudNetworkAndGatewayID(family, hostName)
 			ctx := exporters.MetricsContext{
 				MetricName:        removeCloudMetricLabels(decodedName),
 				NetworkID:         networkID,
@@ -82,6 +81,45 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *promethe
 		}
 	}
 	return nil
+}
+
+func determineCloudNetworkAndGatewayID(family *prometheus_proto.MetricFamily, defaultGateway string) (string, string) {
+	// First try to unpack the name from labels in the family name
+	networkID, gatewayID := unpackCloudMetricName(family.GetName())
+	if networkID != "" && gatewayID != "" {
+		return networkID, gatewayID
+	}
+	// If not found in name, look at the labels of the family's metrics
+	labeledNetwork, labeledGateway := getLabeledNetworkAndGatewayID(family)
+	if networkID == "" {
+		networkID = labeledNetwork
+	}
+	if gatewayID == "" {
+		gatewayID = labeledGateway
+	}
+	// Finally use default of network: 'cloud' and provided default gateway
+	if networkID == "" {
+		networkID = exporters.CloudMetricID
+	}
+	if gatewayID == "" {
+		gatewayID = defaultGateway
+	}
+	return networkID, gatewayID
+}
+
+func getLabeledNetworkAndGatewayID(family *prometheus_proto.MetricFamily) (string, string) {
+	var networkID, gatewayID string
+	for _, metric := range family.GetMetric() {
+		for _, label := range metric.GetLabel() {
+			if label.GetName() == CloudNetworkLabelName && networkID == "" {
+				networkID = label.GetValue()
+			}
+			if label.GetName() == CloudGatewayLabelName && gatewayID == "" {
+				gatewayID = label.GetValue()
+			}
+		}
+	}
+	return networkID, gatewayID
 }
 
 func (srv *MetricsControllerServer) RegisterExporter(e exporters.Exporter) []exporters.Exporter {
@@ -124,25 +162,21 @@ func metricsContainerToMetricAndContexts(
 // the networkID and gatewayID from the name. Returns an error if either do not
 // exist.
 func unpackCloudMetricName(metricName string) (string, string) {
-	const (
-		networkLabel = "networkId"
-		gatewayLabel = "gatewayId"
-	)
 	var networkID, gatewayID string
 
-	networkLabelIndex := strings.Index(metricName, networkLabel)
-	gatewayLabelIndex := strings.Index(metricName, gatewayLabel)
+	networkLabelIndex := strings.Index(metricName, CloudNetworkLabelName)
+	gatewayLabelIndex := strings.Index(metricName, CloudGatewayLabelName)
 	if gatewayLabelIndex == -1 {
 		if networkLabelIndex == -1 {
 			return "", ""
 		}
-		networkStart := networkLabelIndex + len(networkLabel) + 1
+		networkStart := networkLabelIndex + len(CloudNetworkLabelName) + 1
 		networkID = metricName[networkStart:]
 		return networkID, ""
 	}
 
-	networkStart := networkLabelIndex + len(networkLabel) + 1
-	gatewayStart := gatewayLabelIndex + len(gatewayLabel) + 1
+	networkStart := networkLabelIndex + len(CloudNetworkLabelName) + 1
+	gatewayStart := gatewayLabelIndex + len(CloudGatewayLabelName) + 1
 
 	gatewayID = metricName[gatewayStart : networkLabelIndex-1]
 	networkID = metricName[networkStart:]
@@ -153,12 +187,8 @@ func unpackCloudMetricName(metricName string) (string, string) {
 // removeCloudMetricLabels takes a cloud metric name and removes the networkID
 // and gatewayID labels from the name if they exist
 func removeCloudMetricLabels(metricName string) string {
-	const (
-		networkLabel = "networkId"
-		gatewayLabel = "gatewayId"
-	)
-	networkLabelIndex := strings.Index(metricName, networkLabel)
-	gatewayLabelIndex := strings.Index(metricName, gatewayLabel)
+	networkLabelIndex := strings.Index(metricName, CloudNetworkLabelName)
+	gatewayLabelIndex := strings.Index(metricName, CloudGatewayLabelName)
 	if gatewayLabelIndex == -1 {
 		if networkLabelIndex == -1 {
 			return metricName

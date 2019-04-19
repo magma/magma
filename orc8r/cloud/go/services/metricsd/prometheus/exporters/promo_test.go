@@ -55,7 +55,7 @@ func testSubmitPrometheusType(t *testing.T, metricType dto.MetricType, config ex
 		Name:  test_common.MakeStringPointer(mxd_exp.SERVICE_LABEL_NAME),
 		Value: test_common.MakeStringPointer("testService"),
 	}
-	family := test_common.MakeTestMetricFamily(metricType, 1, []*dto.LabelPair{&serviceLabelPair})
+	family := test_common.MakeTestMetricFamily(metricType, "testName", 1, []*dto.LabelPair{&serviceLabelPair})
 	context := mxd_exp.MetricsContext{
 		NetworkID:         "nID",
 		GatewayID:         "gID",
