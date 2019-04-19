@@ -483,6 +483,15 @@ int emm_send_attach_accept(
     }
   }
 
+  /*
+   * Optional - Network feature support
+   */
+  if (msg->eps_network_feature_support) {
+    size += EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH;
+    emm_msg->presencemask |= ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
+    emm_msg->epsnetworkfeaturesupport = *msg->eps_network_feature_support;
+  }
+
   emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, size);
 }
@@ -738,6 +747,14 @@ int emm_send_attach_accept_dl_nas(
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = *msg->emm_cause;
+  }
+  /*
+   * Optional - Network feature support
+   */
+  if (msg->eps_network_feature_support) {
+    size += EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH;
+    emm_msg->presencemask |= ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
+    emm_msg->epsnetworkfeaturesupport = *msg->eps_network_feature_support;
   }
 
   emm_context_unlock(emm_ctx);

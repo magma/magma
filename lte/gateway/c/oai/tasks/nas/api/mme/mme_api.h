@@ -66,7 +66,8 @@ typedef enum mme_api_feature_s {
   MME_API_IPV6 = (1 << 2),
   MME_API_SINGLE_ADDR_BEARERS = (1 << 3),
   MME_API_SMS_SUPPORTED = (1 << 4),
-  MME_API_CSFB_SMS_SUPPORTED = (1 << 5)
+  MME_API_CSFB_SMS_SUPPORTED = (1 << 5),
+  MME_API_VOLTE_SUPPORTED = (1 << 6)
 } mme_api_feature_t;
 
 /* Network IP version capability */
