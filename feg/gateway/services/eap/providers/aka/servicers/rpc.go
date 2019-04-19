@@ -19,10 +19,19 @@ import (
 	"magma/feg/gateway/services/eap/client"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
 
 // Handle implements AKA handler RPC
 func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, error) {
+	failure := true
+	metrics.Requests.Inc()
+	defer func() {
+		if failure {
+			metrics.FailedRequests.Inc()
+		}
+	}()
+
 	p := eap.Packet(req.GetPayload())
 	eapCtx := req.GetCtx()
 	if eapCtx == nil {
@@ -60,5 +69,6 @@ func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, e
 			"Unsuported Subtype: %d", p[eap.EapSubtype])
 	}
 	rp, err := h(s, eapCtx, p)
+	failure = err != nil
 	return &protos.Eap{Payload: rp, Ctx: eapCtx}, err
 }

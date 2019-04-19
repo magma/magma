@@ -19,6 +19,7 @@ import (
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 )
 
@@ -29,6 +30,14 @@ func init() {
 // challengeResponse implements handler for AKA Challenge Response,
 // see https://tools.ietf.org/html/rfc4187#page-49 for details
 func challengeResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+	var success bool
+	metrics.ChallengeRequests.Inc()
+	defer func() {
+		if !success {
+			metrics.FailedChallengeRequests.Inc()
+		}
+	}()
+
 	identifier := req.Identifier()
 	if ctx == nil {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Nil CTX")
@@ -120,7 +129,7 @@ attrLoop:
 
 	// Verify AT_RES
 	ueRes := atRes.Marshaled()[aka.ATT_HDR_LEN:]
-	if !reflect.DeepEqual(ueRes, uc.Xres) {
+	if success = reflect.DeepEqual(ueRes, uc.Xres); !success {
 		log.Printf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v",
 			sessionId, imsi, ueRes, uc.Xres)
 		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
@@ -141,6 +150,5 @@ attrLoop:
 	// Keep session & User Ctx around for some time after authentication and then clean them up
 	uc.Unlock()
 	s.ResetSessionTimeout(sessionId, aka.SessionAuthenticatedTimeout())
-
 	return []byte{eap.SuccessCode, identifier, 0, 4}, nil
 }
