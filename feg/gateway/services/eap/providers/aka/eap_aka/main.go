@@ -13,12 +13,16 @@ import (
 	"flag"
 	"log"
 
+	"magma/feg/cloud/go/protos/mconfig"
+	managed_configs "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	"magma/orc8r/cloud/go/service"
 )
+
+const EapAkaServiceName = "eap_aka"
 
 func init() {
 	flag.Parse()
@@ -31,7 +35,13 @@ func main() {
 		log.Fatalf("Error creating EAP AKA service: %s", err)
 	}
 
-	servicer, err := servicers.NewEapAkaService()
+	akaConfigs := &mconfig.EapAkaConfig{}
+	err = managed_configs.GetServiceConfigs(EapAkaServiceName, akaConfigs)
+	if err != nil {
+		log.Printf("Error getting EAP AKA service configs: %s", err)
+		akaConfigs = nil
+	}
+	servicer, err := servicers.NewEapAkaService(akaConfigs)
 	if err != nil {
 		log.Fatalf("failed to create EAP AKA Service: %v", err)
 		return

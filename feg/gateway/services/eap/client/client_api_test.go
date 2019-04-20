@@ -8,16 +8,18 @@ LICENSE file in the root directory of this source tree.
 package client_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
+
+	"magma/feg/cloud/go/protos/mconfig"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/eap/client"
@@ -29,7 +31,45 @@ import (
 
 type testSwxProxy struct{}
 
-var rpcResponseDelay time.Duration
+var (
+	rpcResponseDelay time.Duration
+	testEapIdentityResp = []byte("\x02\x01\x00\x40\x17\x05\x00\x00\x0e\x0e\x00\x33\x30\x30\x30\x31" +
+		"\x30\x31\x30\x30\x30\x30\x30\x30\x30\x30\x35\x35\x40\x77\x6c\x61" +
+		"\x6e\x2e\x6d\x6e\x63\x30\x30\x31\x2e\x6d\x63\x63\x30\x30\x31\x2e" +
+		"\x33\x67\x70\x70\x6e\x65\x74\x77\x6f\x72\x6b\x2e\x6f\x72\x67\x00")
+	expectedTestEap = []byte{1, 2, 0, 68, 23, 1, 0, 0, 1, 5, 0, 0, 1, 35, 69, 103, 137, 171, 205, 239, 1, 35, 69,
+		103,137, 171, 205, 239, 2, 5, 0, 0, 84, 171, 100, 74, 144, 81, 185, 185, 94, 133, 193, 34, 62, 14, 241,
+		76, 11, 5, 0, 0, 187, 28, 77, 175, 111, 216, 83, 74, 247, 124, 169, 254, 40, 141, 169, 189}
+
+	testEapChallengeResp = []byte("\x02\x02\x00\x28\x17\x01\x00\x00\x0b\x05\x00\x00\xfd\x2b\x50\xbd" +
+		"\x32\x24\x7a\xd7\x32\x9d\x9d\x26\x41\x60\x44\x46\x03\x03\x00\x40\x29\x5c\x00\xea\xe3\x88\x93\x0d")
+	expectedChallengeResp = []byte{1, 2, 0, 68, 23, 1, 0, 0, 1, 5, 0, 0, 1, 35, 69, 103, 137, 171, 205, 239, 1, 35, 69, 103,
+		137, 171, 205, 239, 2, 5, 0, 0, 84, 171, 100, 74, 144, 81, 185, 185, 94, 133, 193, 34, 62, 14, 241, 76, 11, 5,
+		0, 0, 180, 191, 23, 199, 219, 210, 244, 54, 3, 41, 254, 37, 158, 216, 47, 19}
+	successEAP = []byte{3, 2, 0, 4}
+
+	expectedMppeRecvKey = []byte(
+		"\x95\x63\x3c\x3a\xa5\x8b\x48\xbe\xde\x6d\x2c\x1a\x91\x70\x71\xf5" +
+			"\x63\xd4\xed\x7f\xba\xb3\xec\x61\xed\x7e\x3a\xf4\x82\x06\x58\x71" +
+			"\x8c\xf7\xee\x86\x81\x0d\xf4\xf9\xf4\xb7\xb9\xdd\x14\xca\xc3\xbd\x95\x80")
+	expectedMppeRecvKeySalt = []byte("\x95\x63")
+
+	expectedMppeSendKey = []byte(
+		"\x9b\x87\x83\x49\x6a\x78\xcc\xaa\x34\x4e\x45\x51\x7f\x15\x37\xf9" +
+			"\x30\x94\x26\x07\x60\x68\x97\xf0\xb5\x69\xab\x1d\x61\x9d\x8b\xa9" +
+			"\x85\x3c\xc8\xaf\x68\x4b\xaa\x8f\x8f\x77\x5f\x68\x94\xf0\xcd\xc6\xc9\x2f")
+	expectedMppeSendKeySalt = []byte("\x9b\x87")
+
+	authenticator         = []byte{
+		0x9f, 0xe8, 0xff, 0xcb, 0xc9, 0xd4, 0x85, 0x97, 0xb9, 0x5b, 0x79, 0x7c, 0x2d, 0xf5, 0x43, 0x31}
+	sharedSecret = []byte("1qaz2wsx")
+	msisdn = "123456789"
+
+	plmnId5 = "00101"
+	plmnId6 = "001010"
+	wrongPlmnId6 = "001011"
+)
+
 // Test SwxProxyServer implementation
 //
 // Authenticate sends MAR (code 303) over diameter connection,
@@ -70,40 +110,6 @@ func (s testSwxProxy) Register(
 	return &protos.RegistrationAnswer{}, nil
 }
 
-var (
-	testEapIdentityResp = []byte("\x02\x01\x00\x40\x17\x05\x00\x00\x0e\x0e\x00\x33\x30\x30\x30\x31" +
-		"\x30\x31\x30\x30\x30\x30\x30\x30\x30\x30\x35\x35\x40\x77\x6c\x61" +
-		"\x6e\x2e\x6d\x6e\x63\x30\x30\x31\x2e\x6d\x63\x63\x30\x30\x31\x2e" +
-		"\x33\x67\x70\x70\x6e\x65\x74\x77\x6f\x72\x6b\x2e\x6f\x72\x67\x00")
-	expectedTestEap = []byte{1, 2, 0, 68, 23, 1, 0, 0, 1, 5, 0, 0, 1, 35, 69, 103, 137, 171, 205, 239, 1, 35, 69,
-		103,137, 171, 205, 239, 2, 5, 0, 0, 84, 171, 100, 74, 144, 81, 185, 185, 94, 133, 193, 34, 62, 14, 241,
-		76, 11, 5, 0, 0, 187, 28, 77, 175, 111, 216, 83, 74, 247, 124, 169, 254, 40, 141, 169, 189}
-
-	testEapChallengeResp = []byte("\x02\x02\x00\x28\x17\x01\x00\x00\x0b\x05\x00\x00\xfd\x2b\x50\xbd" +
-		"\x32\x24\x7a\xd7\x32\x9d\x9d\x26\x41\x60\x44\x46\x03\x03\x00\x40\x29\x5c\x00\xea\xe3\x88\x93\x0d")
-	expectedChallengeResp = []byte{1, 2, 0, 68, 23, 1, 0, 0, 1, 5, 0, 0, 1, 35, 69, 103, 137, 171, 205, 239, 1, 35, 69, 103,
-		137, 171, 205, 239, 2, 5, 0, 0, 84, 171, 100, 74, 144, 81, 185, 185, 94, 133, 193, 34, 62, 14, 241, 76, 11, 5,
-		0, 0, 180, 191, 23, 199, 219, 210, 244, 54, 3, 41, 254, 37, 158, 216, 47, 19}
-	successEAP = []byte{3, 2, 0, 4}
-
-	expectedMppeRecvKey = []byte(
-		"\x95\x63\x3c\x3a\xa5\x8b\x48\xbe\xde\x6d\x2c\x1a\x91\x70\x71\xf5" +
-		"\x63\xd4\xed\x7f\xba\xb3\xec\x61\xed\x7e\x3a\xf4\x82\x06\x58\x71" +
-		"\x8c\xf7\xee\x86\x81\x0d\xf4\xf9\xf4\xb7\xb9\xdd\x14\xca\xc3\xbd\x95\x80")
-	expectedMppeRecvKeySalt = []byte("\x95\x63")
-
-	expectedMppeSendKey = []byte(
-		"\x9b\x87\x83\x49\x6a\x78\xcc\xaa\x34\x4e\x45\x51\x7f\x15\x37\xf9" +
-		"\x30\x94\x26\x07\x60\x68\x97\xf0\xb5\x69\xab\x1d\x61\x9d\x8b\xa9" +
-		"\x85\x3c\xc8\xaf\x68\x4b\xaa\x8f\x8f\x77\x5f\x68\x94\xf0\xcd\xc6\xc9\x2f")
-	expectedMppeSendKeySalt = []byte("\x9b\x87")
-
-	authenticator         = []byte{
-		0x9f, 0xe8, 0xff, 0xcb, 0xc9, 0xd4, 0x85, 0x97, 0xb9, 0x5b, 0x79, 0x7c, 0x2d, 0xf5, 0x43, 0x31}
-	sharedSecret = []byte("1qaz2wsx")
-	msisdn = "123456789"
-)
-
 func TestEAPClientApi(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service testSwxProxy
@@ -111,7 +117,7 @@ func TestEAPClientApi(t *testing.T) {
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
-	servicer, err := servicers.NewEapAkaService()
+	servicer, err := servicers.NewEapAkaService(nil)
 	if err != nil {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
@@ -130,7 +136,7 @@ func TestEAPClientApi(t *testing.T) {
 			peap.GetPayload(), expectedTestEap)
 	}
 
-	aka.SetSessionAuthenticatedTimeout(time.Millisecond * 200)
+	servicer.SetSessionAuthenticatedTimeout(time.Millisecond * 200)
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapChallengeResp, Ctx: eapCtx})
@@ -141,6 +147,10 @@ func TestEAPClientApi(t *testing.T) {
 		t.Fatalf(
 			"Unexpected Challenge Response EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), expectedChallengeResp)
+	}
+	// Check that we got expected MSISDN with the success EAP
+	if peap.GetCtx().Msisdn != msisdn {
+		t.Fatalf("Unexpected MSISDN: %s, expected: %s", eapCtx.Msisdn, msisdn)
 	}
 
 	// We should get a valid MSR within the auth success EAP Ctx, verify that we generated valid
@@ -172,7 +182,7 @@ func TestEAPClientApi(t *testing.T) {
 		t.Fatalf("Error Handling Second Test Challenge EAP within Auth timeout window: %v", err)
 	}
 
-	time.Sleep(aka.SessionAuthenticatedTimeout() + time.Millisecond*10)
+	time.Sleep(servicer.SessionAuthenticatedTimeout() + time.Millisecond*10)
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapChallengeResp, Ctx: eapCtx})
@@ -185,22 +195,118 @@ func TestEAPClientApi(t *testing.T) {
 	}
 
 	// Test timeout
-	currentTout := aka.ChallengeTimeout()
-	aka.SetChallengeTimeout(time.Millisecond * 100)
+	servicer.SetChallengeTimeout(time.Millisecond * 100)
 	eapCtx = &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling second Test EAP: %v", err)
 	}
-	if eapCtx.Msisdn != msisdn {
-		t.Fatalf("Unexpected MSISDN: %s, expected: %s", eapCtx.Msisdn, msisdn)
-	}
-	time.Sleep(aka.ChallengeTimeout() + time.Millisecond*20)
+	time.Sleep(servicer.ChallengeTimeout() + time.Millisecond*20)
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: testEapChallengeResp, Ctx: eapCtx})
 	if err == nil {
 		t.Fatalf("Expected Error for timed out Session ID: %s", eapCtx.SessionId)
 	}
-	aka.SetChallengeTimeout(currentTout)
+}
+
+// Not used (panic) SwxProxyServer implementation
+type noUseSwxProxy struct {}
+//
+// Authenticate sends MAR (code 303) over diameter connection,
+// waits (blocks) for MAA & returns its RPC representation
+func (s noUseSwxProxy) Authenticate(
+	ctx context.Context,
+	req *protos.AuthenticationRequest,
+) (*protos.AuthenticationAnswer, error) {
+
+	return nil, fmt.Errorf("Authenticate is NOT IMPLEMENTED")
+}
+
+// Register sends SAR (code 301) over diameter connection,
+// waits (blocks) for SAA & returns its RPC representation
+func (s noUseSwxProxy) Register(
+	ctx context.Context,
+	req *protos.RegistrationRequest,
+) (*protos.RegistrationAnswer, error) {
+	return &protos.RegistrationAnswer{}, fmt.Errorf("Register is NOT IMPLEMENTED")
+}
+
+
+func TestEAPAkaWrongPlmnId(t *testing.T) {
+	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	var service noUseSwxProxy
+	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	go srv.RunTest(lis)
+
+	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
+	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{PlmnIds:[]string{wrongPlmnId6}})
+	if err != nil {
+		t.Fatalf("failed to create EAP AKA Service: %v", err)
+		return
+	}
+	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	go eapSrv.RunTest(eapLis)
+
+	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
+	_, err = client.Handle(&eap_protos.Eap{Payload: testEapIdentityResp, Ctx: eapCtx})
+	if err == nil {
+		t.Fatalf("Expected Error Handling Filtered PLMN ID")
+	}
+}
+
+func TestEAPAkaPlmnId5(t *testing.T) {
+	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	var service testSwxProxy
+	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	go srv.RunTest(lis)
+
+	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
+	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{PlmnIds:[]string{wrongPlmnId6, plmnId5}})
+	if err != nil {
+		t.Fatalf("failed to create EAP AKA Service: %v", err)
+		return
+	}
+	servicer.SetChallengeTimeout(time.Millisecond * 10)
+	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	go eapSrv.RunTest(eapLis)
+
+	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
+	peap, err := client.Handle(&eap_protos.Eap{Payload: testEapIdentityResp, Ctx: eapCtx})
+	if err != nil {
+		t.Fatalf("Error Handling Test EAP: %v", err)
+	}
+	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(expectedTestEap)) {
+		t.Fatalf(
+			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
+			peap.GetPayload(), expectedTestEap)
+	}
+}
+
+func TestEAPAkaPlmnId6(t *testing.T) {
+	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
+	var service testSwxProxy
+	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	go srv.RunTest(lis)
+
+	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
+	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{PlmnIds:[]string{wrongPlmnId6, plmnId6}})
+	if err != nil {
+		t.Fatalf("failed to create EAP AKA Service: %v", err)
+		return
+	}
+	servicer.SetChallengeTimeout(time.Millisecond * 10)
+	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	go eapSrv.RunTest(eapLis)
+
+	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
+	peap, err := client.Handle(&eap_protos.Eap{Payload: testEapIdentityResp, Ctx: eapCtx})
+	if err != nil {
+		t.Fatalf("Error Handling Test EAP: %v", err)
+	}
+	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(expectedTestEap)) {
+		t.Fatalf(
+			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
+			peap.GetPayload(), expectedTestEap)
+	}
 }
