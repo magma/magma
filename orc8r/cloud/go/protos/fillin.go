@@ -6,11 +6,12 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// Package mconfig is protoc generated GRPC package
+// Package mconfig is protoc generated GRPC package as well as helper functions such as FillIn
 package protos
 
 import (
 	"reflect"
+	"strings"
 )
 
 // Go Struct tag to specify an alternative name for field name matching
@@ -111,10 +112,15 @@ func convertStruct(vs *reflect.Value, vd *reflect.Value) int {
 			}
 			if !fs.IsValid() {
 				sidx, ok := altSrcNames[ftd.Name]
-				if !ok {
-					continue
+				if ok {
+					fs = vs.Field(sidx)
+				} else {
+					fsnl := ftd.Name[:1] + strings.ToLower(ftd.Name[1:]) // to lower case, but preserve the first rune
+					fs = vs.FieldByNameFunc(func(sn string) bool { return sn[:1]+strings.ToLower(sn[1:]) == fsnl })
+					if !fs.IsValid() {
+						continue
+					}
 				}
-				fs = vs.Field(sidx)
 			}
 		}
 		vdf := vd.Field(i)

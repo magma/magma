@@ -46,3 +46,14 @@ func (profile *HSSConfig_SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_Sub
 		MaxDlBitRate: profile.GetMaxDlBitRate(),
 	}
 }
+
+// ToMconfig creates new mconfig.EapAkaConfig_Timeouts, copies config proto to a managed config proto & returns
+// the new mconfig.EapAkaConfig_Timeouts
+func (config *EapAkaConfig_Timeouts) ToMconfig() *mconfig.EapAkaConfig_Timeouts {
+	return &mconfig.EapAkaConfig_Timeouts{
+		ChallengeMs:            config.GetChallengeMs(),
+		ErrorNotificationMs:    config.GetErrorNotificationMs(),
+		SessionMs:              config.GetSessionMs(),
+		SessionAuthenticatedMs: config.GetSessionAuthenticatedMs(),
+	}
+}

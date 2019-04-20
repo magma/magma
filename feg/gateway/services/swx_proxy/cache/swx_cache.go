@@ -105,11 +105,11 @@ func (swxCache *Impl) Get(imsi string) *protos.AuthenticationAnswer {
 // Put adds ans vectors into the cache after extracting the first vector from the list, which it returns back to
 // the caller in the returned AuthenticationAnswer
 func (swxCache *Impl) Put(ans *protos.AuthenticationAnswer) *protos.AuthenticationAnswer {
-	swxCache.mu.Lock()
-	defer swxCache.mu.Unlock()
 	if ans == nil || len(ans.UserName) == 0 {
 		return ans
 	}
+	swxCache.mu.Lock()
+	defer swxCache.mu.Unlock()
 	// delete old cache if present
 	ent, found := swxCache.data.vectors[ans.UserName]
 	if found {

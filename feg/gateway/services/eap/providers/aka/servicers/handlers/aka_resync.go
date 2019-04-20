@@ -48,7 +48,7 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 			"No Session found for ID: %s", ctx.SessionId)
 	}
 	if uc == nil {
-		s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
+		s.UpdateSessionTimeout(ctx.SessionId, s.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
 			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
 	}
@@ -58,7 +58,7 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 	copy(p, req)
 	scanner, err := eap.NewAttributeScanner(p)
 	if err != nil {
-		s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
+		s.UpdateSessionUnlockCtx(uc, s.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.Aborted, err.Error())
 	}
 
@@ -76,7 +76,7 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 		if a.Type() == aka.AT_AUTS {
 			auts := a.Value()
 			if len(auts) < 14 {
-				s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
+				s.UpdateSessionUnlockCtx(uc, s.NotificationTimeout())
 				return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument,
 					"Invalid AT_AUTS LKen: %d", len(auts))
 			}
@@ -86,14 +86,14 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pack
 			if success = err == nil; success {
 				// Update state
 				uc.SetState(aka.StateChallenge)
-				s.UpdateSessionUnlockCtx(uc, aka.ChallengeTimeout())
+				s.UpdateSessionUnlockCtx(uc, s.ChallengeTimeout())
 			} else {
-				s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
+				s.UpdateSessionUnlockCtx(uc, s.NotificationTimeout())
 			}
 			return p, err
 		}
 	}
 
-	s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
+	s.UpdateSessionUnlockCtx(uc, s.NotificationTimeout())
 	return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Missing AT_AUTS")
 }
