@@ -1,0 +1,64 @@
+---
+
+- name: django-admin.py - Inspect graphite db
+  command:  django-admin.py inspectdb
+  environment:
+    DJANGO_SETTINGS_MODULE: graphite.settings
+    PYTHONPATH: "{{ graphite_install_path}}/webapp/"
+  become: yes
+  become_user: "{{ graphite_user }}"
+  register: result
+  changed_when: False
+
+- name: django-admin.py - Check for secret key warning
+  command: echo SECRET_KEY is set to an unsafe default.
+  failed_when: "'SECRET_KEY' in result.stderr"
+  changed_when: False
+
+- name: django-admin.py - Sync/create database
+  command: django-admin.py migrate --run-syncdb --noinput
+  environment:
+    DJANGO_SETTINGS_MODULE: graphite.settings
+    PYTHONPATH: "{{ graphite_install_path}}/webapp/"
+  become: yes
+  become_user: "{{ graphite_user }}"
+  when: result.stdout.find("AccountMygraph") == -1
+
+- name: django-admin.py - Create superuser account
+  command: >
+    django-admin.py createsuperuser
+    --username={{ graphite_admin_username }}
+    --email={{ graphite_admin_email }}
+    --noinput
+  environment:
+    DJANGO_SETTINGS_MODULE: graphite.settings
+    PYTHONPATH: "{{ graphite_install_path}}/webapp/"
+  become: yes
+  become_user: "{{ graphite_user }}"
+  register: superuser_created
+  args:
+    creates: "{{ graphite_install_path }}/webapp/graphite/.superuser_created"
+
+- name: django-admin.py - Prepare to set up superuser password
+  template:
+    src: createsuperuser.py.j2
+    dest: /tmp/createsuperuser.py
+  when: superuser_created is changed
+  register: debug2
+
+- name: django-admin.py - Set superuser password
+  shell: >
+    django-admin.py 
+    shell < /tmp/createsuperuser.py
+  environment:
+    DJANGO_SETTINGS_MODULE: graphite.settings
+    PYTHONPATH: "{{ graphite_install_path}}/webapp/"
+  become: yes
+  become_user: "{{ graphite_user }}"
+  when: superuser_created is changed
+
+- name: django-admin.py - Create lock file
+  file:
+    path: "{{ graphite_install_path }}/webapp/graphite/.superuser_created"
+    state: touch
+  when: superuser_created is changed

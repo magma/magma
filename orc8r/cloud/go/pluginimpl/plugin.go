@@ -9,15 +9,13 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
-	"os"
-	"time"
-
 	obsidianh "magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/handlers/hello"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
@@ -27,8 +25,11 @@ import (
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
+	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	graphite_exp "magma/orc8r/cloud/go/services/metricsd/graphite/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
+	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -73,17 +74,17 @@ func (*BaseOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMetricsProfiles() []metricsd.MetricsProfile {
-	return getMetricsProfiles()
+func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
+	return getMetricsProfiles(metricsConfig)
 }
 
-func (*BaseOrchestratorPlugin) GetObsidianHandlers() []obsidianh.Handler {
+func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidianh.Handler {
 	return plugin.FlattenHandlerLists(
 		accessdh.GetObsidianHandlers(),
 		checkinh.GetObsidianHandlers(),
 		dnsdh.GetObsidianHandlers(),
 		magmadh.GetObsidianHandlers(),
-		metricsdh.GetObsidianHandlers(),
+		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
 		hello.GetObsidianHandlers(),
 	)
@@ -97,31 +98,12 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 }
 
 const (
-	ProfileNameController = "controller"
-	ProfileNameSys        = "sys"
 	ProfileNamePrometheus = "prometheus"
-
-	OdsMetricsExportInterval = time.Second * 15
-	// a sample is 10 bytes
-	// right now 50 metrics from each gateway, 35 metrics from each cloud
-	// service per minute assume we support 100 metrics from each gateway,
-	// 70 metrics from each cloud service. with 1000 gws, we will have 100000
-	// metrics per minute from gws. with 30 cloud services,
-	// we have 2100 from cloud.
-	// this needs 10 * 102100 = 1021000 B
-	OdsMetricsQueueLength = 102000
+	ProfileNameGraphite   = "graphite"
+	ProfileNameDefault    = "default"
 )
 
-func getMetricsProfiles() []metricsd.MetricsProfile {
-	// Sys profile - collectors for disk usage and metricsd
-	sysProfile := metricsd.MetricsProfile{
-		Name: ProfileNameSys,
-		Collectors: []collection.MetricCollector{
-			&collection.DiskUsageMetricCollector{},
-			collection.NewCloudServiceMetricCollector(metricsd.ServiceName),
-		},
-		Exporters: []exporters.Exporter{createODSExporter()},
-	}
+func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
 
 	// Controller profile - 1 collector for each service
 	allServices := registry.ListControllerServices()
@@ -130,36 +112,35 @@ func getMetricsProfiles() []metricsd.MetricsProfile {
 		controllerCollectors = append(controllerCollectors, collection.NewCloudServiceMetricCollector(srv))
 	}
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
-	controllerProfile := metricsd.MetricsProfile{
-		Name:       ProfileNameController,
-		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{createODSExporter()},
-	}
 
-	odsExporter := createODSExporter()
-
-	// Prometheus profile - controller profile except using prometheus to
-	// export
+	prometheusPushAddress := metricsConfig.GetRequiredStringParam(confignames.PrometheusPushgatewayAddress)
+	prometheusPushExporter := promo_exp.NewPrometheusPushExporter(prometheusPushAddress)
+	// Prometheus profile - Exports all service metric to Prometheus
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{exporters.NewPrometheusPushExporter(), odsExporter},
+		Exporters:  []exporters.Exporter{prometheusPushExporter},
+	}
+
+	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
+	graphiteReceivePort := metricsConfig.GetRequiredIntParam(confignames.GraphiteReceivePort)
+	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort)
+	// Graphite profile - Exports all service metrics to Graphite
+	graphiteProfile := metricsd.MetricsProfile{
+		Name:       ProfileNameGraphite,
+		Collectors: controllerCollectors,
+		Exporters:  []exporters.Exporter{},
+	}
+
+	defaultProfile := metricsd.MetricsProfile{
+		Name:       ProfileNameDefault,
+		Collectors: controllerCollectors,
+		Exporters:  []exporters.Exporter{graphiteExporter, prometheusPushExporter},
 	}
 
 	return []metricsd.MetricsProfile{
-		sysProfile,
-		controllerProfile,
 		prometheusProfile,
+		graphiteProfile,
+		defaultProfile,
 	}
-}
-
-func createODSExporter() exporters.Exporter {
-	return exporters.NewODSExporter(
-		os.Getenv("METRIC_EXPORT_URL"),
-		os.Getenv("FACEBOOK_APP_ID"),
-		os.Getenv("FACEBOOK_APP_SECRET"),
-		os.Getenv("METRICS_PREFIX"),
-		OdsMetricsQueueLength,
-		OdsMetricsExportInterval,
-	)
 }

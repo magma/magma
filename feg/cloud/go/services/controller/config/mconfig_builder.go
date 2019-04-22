@@ -80,6 +80,7 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 			LogLevel:            protos.LogLevel_INFO,
 			Server:              swxc.GetServer().ToMconfig(),
 			VerifyAuthorization: swxc.GetVerifyAuthorization(),
+			CacheTTLSeconds:     swxc.GetCacheTTLSeconds(),
 		},
 	}, nil
 }

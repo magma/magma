@@ -12,40 +12,10 @@ import asyncio
 import unittest.mock
 
 from orc8r.protos.sync_rpc_service_pb2 import GatewayRequest, GatewayResponse, \
-    SyncRPCResponse
+    SyncRPCResponse, SyncRPCRequest
 
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.sync_rpc_client import SyncRPCClient
-
-
-class MockFuture(object):
-    is_error = True
-
-    def __init__(self, is_error, expected_result, expected_err_msg):
-        self.is_error = is_error
-        self.expected_result = expected_result
-        self.expected_err_msg = expected_err_msg
-
-    def exception(self):
-        if self.is_error:
-            return self.MockException(self.expected_err_msg)
-
-    def result(self):
-        if not self.is_error:
-            return self.expected_result
-
-    class MockException(object):
-        def __init__(self, msg):
-            self._msg = msg
-
-        def details(self):
-            return self._msg
-
-        def code(self):
-            return 0
-
-        def __str__(self):
-            return self._msg
 
 
 class SyncRPCClientTests(unittest.TestCase):
@@ -57,6 +27,9 @@ class SyncRPCClientTests(unittest.TestCase):
         asyncio.set_event_loop(loop)
         self._loop = loop
         self._sync_rpc_client = SyncRPCClient(loop=loop, response_timeout=3)
+        self._sync_rpc_client._conn_closed_table = {
+            12345: False
+        }
         ServiceRegistry.add_service('test', '0.0.0.0', 0)
         ServiceRegistry._PROXY_CONFIG = {'local_port': 2345,
                                          'cloud_address': 'test',
@@ -78,38 +51,10 @@ class SyncRPCClientTests(unittest.TestCase):
                                                       b'\x00\x00\x00\n\n\x08')
         self._expected_err_msg = "test error"
 
-    def test_send_request_done(self):
-        """
-        Test if send_request_done puts the right SyncRPCResponse in
-        response_queue based on the result of future.
-        Returns: None
-
-        """
-        self.assertTrue(self._sync_rpc_client._response_queue.empty())
-        req_id = 356
-        future = MockFuture(is_error=False,
-                            expected_result=self._expected_resp,
-                            expected_err_msg="")
-        # future has result, send_request_done should enqueue a SyncRPCResponse
-        # with the req_id, and the expected_resp set in MockFuture
-        self._sync_rpc_client.send_request_done(req_id, future)
-        self.assertFalse(self._sync_rpc_client._response_queue.empty())
-        res = self._sync_rpc_client._response_queue.get(block=False)
-        self.assertEqual(res, SyncRPCResponse(reqId=req_id,
-                                              respBody=self._expected_resp,
-                                              heartBeat=False))
-
-        self.assertTrue(self._sync_rpc_client._response_queue.empty())
-        req_id = 234
-        expected_err_resp = GatewayResponse(err=self._expected_err_msg)
-        future = MockFuture(is_error=True, expected_result=GatewayResponse(),
-                            expected_err_msg=self._expected_err_msg)
-        self._sync_rpc_client.send_request_done(req_id, future)
-
-        res = self._sync_rpc_client._response_queue.get(block=False)
-        self.assertEqual(res, SyncRPCResponse(reqId=req_id,
-                                              respBody=expected_err_resp,
-                                              heartBeat=False))
+    def test_forward_request_conn_closed(self):
+        self._sync_rpc_client.forward_request(
+            SyncRPCRequest(reqId=12345, connClosed=True))
+        self.assertEqual(self._sync_rpc_client._conn_closed_table[12345], True)
 
     def test_send_sync_rpc_response(self):
         expected = SyncRPCResponse(reqId=123, respBody=self._expected_resp)

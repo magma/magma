@@ -1,0 +1,21 @@
+version: "3.7"
+
+services:
+  datastore:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: magma_dev
+      POSTGRES_PASSWORD: magma_dev
+      POSTGRES_DB: magma_dev
+
+  proxy:
+    volumes:
+      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
+    ports:
+      - 9443:9443/tcp  # API/controller port
+      - 9444:9444/tcp  # Bootstrapper port
+
+  controller:
+    volumes:
+      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs

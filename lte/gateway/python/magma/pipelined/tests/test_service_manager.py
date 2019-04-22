@@ -128,6 +128,7 @@ class ServiceManagerTest(unittest.TestCase):
 
         result = self.service_manager.get_all_table_assignments()
         expected = OrderedDict([
+            ('mme', Tables(main_table=0, scratch_tables=[])),
             ('ingress', Tables(main_table=1, scratch_tables=[])),
             ('arpd', Tables(main_table=2, scratch_tables=[])),
             ('access_control', Tables(main_table=3, scratch_tables=[])),

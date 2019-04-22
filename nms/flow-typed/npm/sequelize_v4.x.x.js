@@ -3284,7 +3284,7 @@ declare module "sequelize" {
      * instance.
      */
     static findOne<TCustomAttributes>(
-      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?this>,
+      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?(this & TAttributes)>,
     static find<TCustomAttributes>(
       options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?this>,
 
@@ -3382,7 +3382,7 @@ declare module "sequelize" {
     /**
      * Builds a new model instance and calls save on it.
      */
-    static create(values?: TInitAttributes, options?: CreateOptions<TAttributes>): Promise<this>,
+    static create(values?: TInitAttributes, options?: CreateOptions<TAttributes>): Promise<(this & TAttributes)>,
 
     /**
      * Find a row that matches the query, or build (but don't save) the row if none is found.
@@ -4791,6 +4791,14 @@ declare module "sequelize" {
    */
   declare export type DefineAttributes = {
     [name: string]: string | DataTypeAbstract | DefineAttributeColumnOptions
+  }
+
+  /**
+   * Interface for Attributes provided for a column
+   * @see  Sequelize.define
+   */
+  declare export type DefineAttributesRestrictive<TAttributes> = {
+    [name: $Keys<TAttributes>]: string | DataTypeAbstract | DefineAttributeColumnOptions
   }
 
 
@@ -6943,7 +6951,7 @@ declare module "sequelize" {
     */
     define<TAttributes, TPlainAttributes, TInstance: Model<TAttributes, TPlainAttributes>>(
       modelName: string,
-      attributes: DefineAttributes,
+      attributes: DefineAttributesRestrictive<TAttributes>,
       options?: DefineOptions<TInstance>): Class<TInstance>,
 
     /**

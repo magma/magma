@@ -17,9 +17,12 @@ import subprocess
 
 import re
 from magma.common.rpc_utils import grpc_wrapper
+from magma.pipelined.app.enforcement import EnforcementController
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.subscriberdb.sid import SIDUtils
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.service_manager import Tables
 from orc8r.protos.common_pb2 import Void
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
@@ -102,27 +105,9 @@ def _print_rule_mod_results(results):
 
 
 @grpc_wrapper
-def display_flows(_unused, args):
-    pipelined_config = load_service_config('pipelined')
-    bridge_name = pipelined_config['bridge_name']
-    flows = []
-    try:
-        flows = BridgeTools.get_flows_for_bridge(bridge_name, args.table_num)
-    except subprocess.CalledProcessError as e:
-        if e.returncode == errno.EPERM:
-            print("Need to run as root to dump flows")
-        return
-
-    # Parse the flows and print it decoding note
-    for flow in flows[1:]:
-        flow = flow.replace('00', '').replace('.', '')
-        # If there is a note, decode it.
-        note_regex = r'note:([\d\.a-fA-F]*)'
-        flow = re.sub(note_regex,
-                      lambda match: 'note:' + str(binascii.unhexlify(
-                          match.group().replace('note:', ''))),
-                      flow)
-        print(flow)
+def display_enforcement_flows(client, _):
+    _display_flows(client, [EnforcementController.APP_NAME,
+                            EnforcementStatsController.APP_NAME])
 
 
 @grpc_wrapper
@@ -161,9 +146,10 @@ def create_enforcement_parser(apps):
                         type=int, default=0)
     subcmd.set_defaults(func=activate_dynamic_rule)
 
-    subcmd = subparsers.add_parser('display_flows', help='Display flows')
-    subcmd.add_argument('--table_num', help='table number to filter')
-    subcmd.set_defaults(func=display_flows)
+    subcmd = subparsers.add_parser('display_flows',
+                                   help='Display flows related to policy '
+                                        'enforcement')
+    subcmd.set_defaults(func=display_enforcement_flows)
 
     subcmd = subparsers.add_parser('get_policy_usage',
                                    help='Get policy usage stats')
@@ -194,6 +180,50 @@ def get_table_assignment(client, args):
             str([table for table in table_assignment.scratch_tables])))
 
 
+@grpc_wrapper
+def display_raw_flows(_unused, args):
+    pipelined_config = load_service_config('pipelined')
+    bridge_name = pipelined_config['bridge_name']
+    try:
+        flows = BridgeTools.get_flows_for_bridge(bridge_name, args.table_num)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == errno.EPERM:
+            print("Need to run as root to dump flows")
+        return
+
+    for flow in flows:
+        print(flow)
+
+
+def _display_flows(client, apps=None):
+    pipelined_config = load_service_config('pipelined')
+    bridge_name = pipelined_config['bridge_name']
+    response = client.GetAllTableAssignments(Void())
+    table_assignments = {
+        table_assignment.app_name:
+            Tables(main_table=table_assignment.main_table,
+                   scratch_tables=table_assignment.scratch_tables)
+        for table_assignment in response.table_assignments}
+    try:
+        flows = BridgeTools.get_annotated_flows_for_bridge(
+            bridge_name, table_assignments, apps)
+    except subprocess.CalledProcessError as e:
+        if e.returncode == errno.EPERM:
+            print("Need to run as root to dump flows")
+        return
+
+    for flow in flows:
+        print(flow)
+
+
+@grpc_wrapper
+def display_flows(client, args):
+    if args.apps is None:
+        _display_flows(client)
+        return
+    _display_flows(client, args.apps.split(','))
+
+
 def create_debug_parser(apps):
     """
     Creates the argparse subparser for the debugging commands
@@ -208,6 +238,19 @@ def create_debug_parser(apps):
                         help='Comma separated list of app names. If not set, '
                              'all table assignments will be printed.')
     subcmd.set_defaults(func=get_table_assignment)
+
+    subcmd = subparsers.add_parser('display_raw_flows',
+                                   help='Display raw flows from ovs dump')
+    subcmd.add_argument('--table_num', help='Table number to filter the flows.'
+                                            'If not set, all flows will be '
+                                            'printed')
+    subcmd.set_defaults(func=display_raw_flows)
+
+    subcmd = subparsers.add_parser('display_flows', help='Display flows')
+    subcmd.add_argument('--apps',
+                        help='Comma separated list of app names to filter the'
+                             'flows. If not set, all flows will be printed.')
+    subcmd.set_defaults(func=display_flows)
 
 
 # --------------------------

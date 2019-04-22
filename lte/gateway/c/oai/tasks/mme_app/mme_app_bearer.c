@@ -3064,6 +3064,7 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
      delete_dedicated_bearer_rsp->s_gw_teid_s11_s4,
      REQUEST_ACCEPTED);
 
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 
 }
@@ -3096,6 +3097,7 @@ void mme_app_handle_delete_dedicated_bearer_rej(
      delete_dedicated_bearer_rej->s_gw_teid_s11_s4,
      UE_NOT_RESPONDING);
 
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 
 }

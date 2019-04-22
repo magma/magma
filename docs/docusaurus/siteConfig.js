@@ -24,13 +24,13 @@ const siteConfig = {
   title: 'Magma', // Title for your website.
   tagline: 'Bring more people online by enabling operators with open, flexible, and extensible network solutions',
   url: 'https://facebookincubator.github.io', // Your website URL
-  baseUrl: '/web/', // Base URL for your project */
+  baseUrl: '/magma/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
 
   // Used for publishing and more
-  projectName: 'Magma',
+  projectName: 'magma',
   organizationName: 'facebook',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
@@ -38,7 +38,7 @@ const siteConfig = {
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
-    {doc: 'overview', label: 'Docs'},
+    {doc: 'basics/introduction', label: 'Docs'},
     {page: 'help', label: 'Help'},
     {href: 'https://github.com/facebookincubator/magma', label: 'Github'},
   ],
@@ -90,6 +90,9 @@ const siteConfig = {
   // Open Graph and Twitter card images.
   ogImage: 'img/docusaurus.png',
   twitterImage: 'img/docusaurus.png',
+
+
+  docsSideNavCollapsible: true,
 
   // Show documentation's last contributor's name.
   // enableUpdateBy: true,

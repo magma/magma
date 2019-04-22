@@ -218,7 +218,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             exec_list = ['sudo', 'journalctl', '-fu',
                          'magma@{}'.format(request.service)]
 
-        logging.info("Tailing logs")
+        logging.debug('Tailing logs')
         log_queue = queue.Queue()
 
         async def enqueue_log_lines():
@@ -237,7 +237,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                     except asyncio.TimeoutError:
                         pass
             finally:
-                logging.info("Terminating log stream")
+                logging.debug('Terminating log stream')
                 os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
 
         self._loop.create_task(enqueue_log_lines())

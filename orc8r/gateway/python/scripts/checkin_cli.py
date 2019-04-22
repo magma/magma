@@ -53,7 +53,7 @@ def main():
             - Double check that cloud is up and gateway has been added with
               correct hardware id and key to allow bootstrap.
                 1. Run show_gateway_info.py.
-                2. Go to cloud swagger (EG. https://192.168.80.10:9443/apidocs).
+                2. Go to cloud swagger (EG. https://127.0.0.1:9443/apidocs).
                 3. POST to add a new gateway. Fill JSON with corresponding
                    values from step 1.
             """,

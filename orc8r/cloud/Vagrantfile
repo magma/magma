@@ -26,8 +26,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     cloud.vm.hostname = "magma-cloud"
     cloud.vm.network "private_network", ip: "192.168.80.10"
-    cloud.vm.network "forwarded_port", guest: 80, host: 9080
-    cloud.vm.network "forwarded_port", guest: 443, host: 9443
+    cloud.vm.network "forwarded_port", guest: 9443, host: 9443
+    cloud.vm.network "forwarded_port", guest: 9444, host: 9444
     cloud.vm.network "forwarded_port", guest: 8080, host: 8080
 
     cloud.ssh.password = "vagrant"
@@ -86,20 +86,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
-  config.vm.define :prometheus, autostart: false do |prometheus|
-    prometheus.vm.hostname = "magma-prometheus"
-    prometheus.vm.network "private_network", ip: "192.168.80.50"
-    prometheus.vm.network "forwarded_port", guest: 9090, host: 9090
-    prometheus.vm.network "forwarded_port", guest: 9091, host: 9091
+  config.vm.define :metrics, autostart: false do |metrics|
+    metrics.vm.hostname = "magma-metrics"
+    metrics.vm.network "private_network", ip: "192.168.80.50"
+    metrics.vm.network "forwarded_port", guest: 9090, host: 9090
+    metrics.vm.network "forwarded_port", guest: 9091, host: 9091
 
-    prometheus.ssh.password = "vagrant"
-    prometheus.ssh.insert_key = true
+    metrics.ssh.password = "vagrant"
+    metrics.ssh.insert_key = true
 
-    prometheus.vm.provision "ansible" do |ansible|
-      ansible.playbook = "deploy/prometheus.dev.yml"
+    metrics.vm.provision "ansible" do |ansible|
+      ansible.playbook = "deploy/metrics.dev.yml"
       ansible.verbose = true
     end
-    prometheus.vm.provider "virtualbox" do |v|
+    metrics.vm.provider "virtualbox" do |v|
       v.memory = 2048
       v.cpus = 1
     end

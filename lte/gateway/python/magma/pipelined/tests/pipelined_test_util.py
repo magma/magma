@@ -8,14 +8,19 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
+import os
+import re
+
 from collections import namedtuple
 from concurrent.futures import Future
-from typing import Dict
+from difflib import unified_diff
+from typing import Dict, List, Optional
 from unittest import TestCase
 from unittest.mock import MagicMock
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.meter_stats import UsageRecord, MeterStatsController
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.tests.app.exceptions import BadConfigError, \
     ServiceRunningError
@@ -31,6 +36,9 @@ these functions can be seen in pipelined/tests/test_*.py files
 SubTest = namedtuple('SubTest', ['context', 'isolator', 'flowtest_list'])
 PktsToSend = namedtuple('PacketToSend', ['pkt', 'num'])
 QueryMatch = namedtuple('QueryMatch', ['pkts', 'flow_count'])
+
+SNAPSHOT_DIR = 'snapshots/'
+SNAPSHOT_EXTENSION = '.snapshot'
 
 
 # Tuple for FlowVerifier, class wrapper needed becuse of optional flow_count
@@ -341,3 +349,73 @@ def create_service_manager(services=list):
         'static_services': ['arpd', 'access_control']
     }
     return ServiceManager(magma_service)
+
+
+def _parse_flow(flow):
+    fields_to_remove = [
+        r'duration=[\d\w\.]*, ',
+        r'idle_age=[\d]*, ',
+    ]
+    for field in fields_to_remove:
+        flow = re.sub(field, '', flow)
+    return flow
+
+
+def _get_current_bridge_snapshot(bridge_name, service_manager) -> List[str]:
+    table_assignments = service_manager.get_all_table_assignments()
+    # Currently, the unit test setup library does not set up the ryu api app.
+    # For now, snapshots are created from the flow dump output using ovs and
+    # parsed using regex. Once the ryu api works for unit tests, we can
+    # directly parse the api response and avoid the regex.
+    flows = BridgeTools.get_annotated_flows_for_bridge(bridge_name,
+                                                       table_assignments)
+    return [_parse_flow(flow) for flow in flows]
+
+
+def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
+                                 service_manager: ServiceManager,
+                                 snapshot_name: Optional[str] = None):
+    """
+    Verifies the current bridge snapshot matches the snapshot saved in file for
+    the given test case. Fails the test case if the snapshots differ.
+
+    Args:
+        test_case: Test case instance of the current test
+        bridge_name: Name of the bridge
+        service_manager: Service manager instance used to obtain the app to
+            table number mapping
+        snapshot_name: Name of the snapshot. For tests with multiple snapshots,
+            this is used to distinguish the snapshots
+    """
+    if snapshot_name is not None:
+        combined_name = '{}.{}{}'.format(test_case.id(), snapshot_name,
+                                         SNAPSHOT_EXTENSION)
+    else:
+        combined_name = '{}{}'.format(test_case.id(), SNAPSHOT_EXTENSION)
+    snapshot_file = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        SNAPSHOT_DIR,
+        combined_name)
+    current_snapshot = _get_current_bridge_snapshot(bridge_name,
+                                                    service_manager)
+
+    def fail(err_msg: str):
+        msg = 'Snapshot mismatch with error:\n' \
+              '{}\n' \
+              'To fix the error, update "{}" to the current snapshot:\n' \
+              '{}'.format(err_msg, snapshot_file,
+                          '\n'.join(current_snapshot))
+        return test_case.fail(msg)
+
+    try:
+        with open(snapshot_file, 'r') as file:
+            prev_snapshot = []
+            for line in file:
+                prev_snapshot.append(line.rstrip('\n'))
+    except OSError as e:
+        fail(str(e))
+        return
+    if set(current_snapshot) != set(prev_snapshot):
+        fail('\n'.join(list(unified_diff(prev_snapshot, current_snapshot,
+                                         fromfile='previous snapshot',
+                                         tofile='current snapshot'))))

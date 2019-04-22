@@ -27,7 +27,7 @@ async function updateUser(user: User, userObject: UserObject) {
   const passwordHash = await bcrypt.hash(password, salt);
   await user.update({
     password: passwordHash,
-    superUser: superUser ? AccessRoles.SUPERUSER : AccessRoles.USER,
+    role: superUser ? AccessRoles.SUPERUSER : AccessRoles.USER,
   });
 }
 

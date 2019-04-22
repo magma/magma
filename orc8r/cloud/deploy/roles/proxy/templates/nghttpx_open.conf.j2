@@ -7,6 +7,9 @@
 #
 
 # Listening interfaces
+frontend=0.0.0.0,9444
+frontend=::,9444
+# TODO: remove 8443 after migrating the existing load balancers
 frontend=0.0.0.0,8443
 frontend=::,8443
 

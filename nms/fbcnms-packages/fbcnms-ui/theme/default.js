@@ -9,7 +9,16 @@
  */
 
 import {createMuiTheme} from '@material-ui/core/styles';
-import {gray0, sea100, sea200, sea300, red, redwood, white} from './colors';
+import {
+  gray0,
+  sea100,
+  sea200,
+  sea300,
+  red,
+  redwood,
+  white,
+  fadedBlue,
+} from './colors';
 
 export default createMuiTheme({
   palette: {
@@ -43,6 +52,7 @@ export default createMuiTheme({
     red: red,
     redwood: redwood,
     dark: '#1d2129',
+    fadedBlue: fadedBlue,
   },
   overrides: {
     MuiAppBar: {

@@ -28,7 +28,7 @@ const db = {
 };
 
 Object.keys(db).forEach(
-  modelName => db[modelName].associate && db[modelName].associate(db),
+  modelName => db[modelName].associate != null && db[modelName].associate(db),
 );
 
 export const Organization = db.Organization;

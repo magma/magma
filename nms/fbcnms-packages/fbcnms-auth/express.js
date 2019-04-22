@@ -96,10 +96,7 @@ function userMiddleware(options: Options): express.Router {
       : options.loginFailureUrl;
 
     passport.authenticate('local', (err, user, _info) => {
-      if (err) {
-        return next(err);
-      }
-      if (!user) {
+      if (!user || err) {
         return res.redirect(loginFailureUrl);
       }
       req.logIn(user, err => {

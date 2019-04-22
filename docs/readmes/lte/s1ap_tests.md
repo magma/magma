@@ -1,7 +1,9 @@
 ---
 id: s1ap_tests
 title: S1AP Integration Tests
+hide_title: true
 ---
+# S1AP Integration Tests
 Current testing workflow for VM-only S1AP integration tests. We cover gateway-only tests, cloud-included tests, and some general notes.
 
 Our VM-only tests use 2 to 4 Vagrant-managed VMs hosted on the local device (laptop):

@@ -6,8 +6,15 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
+import binascii
+from collections import defaultdict
+import re
 import subprocess
+from typing import Optional, Dict, List, TYPE_CHECKING
+
+# Prevent circular import
+if TYPE_CHECKING:
+    from magma.pipelined.service_manager import Tables
 
 
 class DatapathLookupError(Exception):
@@ -20,6 +27,7 @@ class BridgeTools:
 
     Use ovs-vsctl commands to get bridge info and setup bridges for testing.
     """
+    TABLE_NUM_REGEX = r'table=(\d+)'
 
     @staticmethod
     def get_datapath_id(bridge_name):
@@ -98,8 +106,98 @@ class BridgeTools:
 
     @staticmethod
     def get_flows_for_bridge(bridge_name, table_num=None):
+        """
+        Returns a flow dump of the given bridge from ovs-ofctl. If table_num is
+        specified, then only the flows for the table will be returned.
+        """
         set_cmd = ["ovs-ofctl", "dump-flows", bridge_name]
         if table_num:
             set_cmd.append("table=%s" % table_num)
-        flows = subprocess.check_output(set_cmd).decode('utf-8').split('\n')
+        flows = \
+            subprocess.check_output(set_cmd).decode('utf-8').split('\n')[1:-1]
         return flows
+
+    @staticmethod
+    def _get_annotated_name_by_table_num(
+            table_assignments: 'Dict[str, Tables]') -> Dict[int, str]:
+        annotated_tables = {}
+        # A main table may be used by multiple apps
+        apps_by_main_table_num = defaultdict(list)
+        for name in table_assignments:
+            apps_by_main_table_num[table_assignments[name].main_table].append(
+                name)
+            # Scratch tables are used for only one app
+            for ind, scratch_num in enumerate(
+                    table_assignments[name].scratch_tables):
+                annotated_tables[scratch_num] = '{}(scratch_table_{})'.format(
+                    name,
+                    ind)
+        for table, apps in apps_by_main_table_num.items():
+            annotated_tables[table] = '{}(main_table)'.format(
+                '/'.join(sorted(apps)))
+        return annotated_tables
+
+    @classmethod
+    def get_annotated_flows_for_bridge(cls, bridge_name: str,
+                                       table_assignments: 'Dict[str, Tables]',
+                                       apps: Optional[List[str]] = None
+                                       ) -> List[str]:
+        """
+        Returns an annotated flow dump of the given bridge from ovs-ofctl.
+        table_assignments is used to annotate table number with its
+        corresponding app. If a note exists, the note will be decoded.
+        If apps is not None, then only the flows for the given apps will be
+        returned.
+        """
+        annotated_tables = cls._get_annotated_name_by_table_num(
+            table_assignments)
+
+        def annotated_table_num(num):
+            if int(num) in annotated_tables:
+                return annotated_tables[int(num)]
+            return num
+
+        def parse_resubmit_action(match):
+            """
+            resubmit(port,1) => resubmit(port,app_name(main_table))
+            """
+            resubmit_tokens = match.group(1).split(',')
+            in_port, table = resubmit_tokens[0], resubmit_tokens[1]
+            return 'resubmit({},{})'.format(in_port,
+                                            annotated_table_num(table))
+
+        def parse_flow(flow):
+            sub_rules = [
+                # Annotate table number with app name
+                (cls.TABLE_NUM_REGEX,
+                 lambda match: 'table={}'.format(annotated_table_num(
+                     match.group(1)))),
+                (r'resubmit\((.*)\)', parse_resubmit_action),
+                # Decode the note
+                (r'note:([\d\.a-fA-F]*)',
+                 lambda match: 'note:{}'.format(
+                               str(binascii.unhexlify(match.group(1)
+                                                      .replace('00', '')
+                                                      .replace('.', ''))))),
+            ]
+            for rule in sub_rules:
+                flow = re.sub(rule[0], rule[1], flow)
+            return flow
+
+        def filter_apps(flows):
+            if apps is None:
+                yield from flows
+                return
+
+            selected_tables = []
+            for app in apps:
+                selected_tables.append(table_assignments[app].main_table)
+                selected_tables.extend(table_assignments[app].scratch_tables)
+
+            for flow in flows:
+                table_num = int(re.search(cls.TABLE_NUM_REGEX, flow).group(1))
+                if table_num in selected_tables:
+                    yield flow
+
+        return [parse_flow(flow) for flow in
+                filter_apps(cls.get_flows_for_bridge(bridge_name))]

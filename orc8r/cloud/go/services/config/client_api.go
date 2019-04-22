@@ -27,7 +27,7 @@ import (
 	service_registry "magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config/protos"
-	"magma/orc8r/cloud/go/services/config/storage"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"

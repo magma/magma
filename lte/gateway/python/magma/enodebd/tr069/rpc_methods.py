@@ -165,15 +165,18 @@ class AutoConfigServer(ServiceBase):
 
     # CPE->ACS RPC calls
 
-    @rpc(_returns=Iterable(String),
-         _operation_name="GetRPCMethods")
-    def get_rpc_methods(ctx):
+    @rpc(models.GetRPCMethods,
+         _returns=models.GetRPCMethodsResponse,
+         _body_style="bare",
+         _operation_name="GetRPCMethods",
+         _out_message_name="GetRPCMethodsResponse")
+    def get_rpc_methods(ctx, request):
         """ GetRPCMethods RPC call is terminated here. No need to pass to higher
             layer """
         fill_response_header(ctx)
+        resp = AutoConfigServer._handle_tr069_message(ctx, request)
+        return resp
 
-        for rpc_method in RPC_METHODS:
-            yield '%s' % rpc_method
 
     @rpc(models.Inform,
          _returns=models.InformResponse,

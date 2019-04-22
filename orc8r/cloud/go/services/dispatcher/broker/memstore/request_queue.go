@@ -43,7 +43,7 @@ func NewRequestQueue(queueLen int) *requestQueueImpl {
 	}
 }
 
-// returns new queue to dequeue from, and old queue to clean up
+// InitializeQueue returns a new queue to dequeue from, and the old queue to clean up
 func (queues *requestQueueImpl) InitializeQueue(gwId string) InitializedQueue {
 	queues.Lock()
 	defer queues.Unlock()
@@ -59,7 +59,7 @@ func (queues *requestQueueImpl) InitializeQueue(gwId string) InitializedQueue {
 	return InitializedQueue{newQueue, nil}
 }
 
-// return old queue to clean up
+// CleanupQueue return the old queue to clean up
 func (queues *requestQueueImpl) CleanupQueue(gwId string) chan *protos.SyncRPCRequest {
 	queues.Lock()
 	defer queues.Unlock()
@@ -74,8 +74,8 @@ func (queues *requestQueueImpl) CleanupQueue(gwId string) chan *protos.SyncRPCRe
 	return nil
 }
 
-// Adds a SyncRPCRequest to the queue of gatewayId gwId. gwId cannot be empty string,
-// gwReq or ReqId of gwReq cannot be nil
+// Enqueue adds a SyncRPCRequest to the queue of gatewayId gwId.
+// gwId cannot be empty string, gwReq or ReqId of gwReq cannot be nil.
 // gwId: key of the syncRPCReqQueue map
 // gwReq: to append to []protos.SyncRPCRequest of the syncRPCReqQueue
 func (queues *requestQueueImpl) Enqueue(gwReq *protos.SyncRPCRequest) error {

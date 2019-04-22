@@ -26,46 +26,49 @@ type ResponseTable interface {
 }
 
 type ResponseTableImpl struct {
-	respByReqId *sync.Map // <uint32, chan *protos.GatewayResponse>
-	// strictly increase, making sure all reqIds will be unique.
+	// respChanByReqId is a map: <uint32, chan *protos.GatewayResponse>
+	respChanByReqId *sync.Map
+	// reqIdCounter strictly increases, making sure all reqIds will be unique.
 	reqIdCounter uint32
 	timeout      time.Duration
 }
 
 func NewResponseTable(timeout time.Duration) *ResponseTableImpl {
-	return &ResponseTableImpl{respByReqId: &sync.Map{}, timeout: timeout}
+	return &ResponseTableImpl{respChanByReqId: &sync.Map{}, timeout: timeout}
 }
 
-// create a request id to bind to the GatewayResponse channel, so when SyncRPCResponse comes back,
-// it can be written to the corresponding GatewayResponse channel identified by the request id.
+// InitializeResponse creates a request ID to bind to the GatewayResponse
+// channel, so when SyncRPCResponse comes back, it can be written to the
+// corresponding GatewayResponse channel identified by the request id.
 func (table *ResponseTableImpl) InitializeResponse() (chan *protos.GatewayResponse, uint32) {
 	reqId := generateReqId(&table.reqIdCounter)
 	respChan := make(chan *protos.GatewayResponse)
-	table.respByReqId.Store(reqId, respChan)
+	table.respChanByReqId.Store(reqId, respChan)
 	return respChan, reqId
 }
 
-// send response to the corresponding response channel
+// SendResponse sends the response to the corresponding response channel
 func (table *ResponseTableImpl) SendResponse(resp *protos.SyncRPCResponse) error {
 	if resp == nil {
 		return errors.New("cannot send nil SyncRPCResponse")
 	}
-	respChanVal, ok := table.respByReqId.Load(resp.ReqId)
-	if ok {
-		respChan := respChanVal.(chan *protos.GatewayResponse)
-		if resp.RespBody == nil {
-			glog.Errorf("Nil response body received, forward to httpServer anyways\n")
-		}
-		select {
-		case respChan <- resp.RespBody:
-			return nil
-		case <-time.After(table.timeout):
-			// give up sending, close the channel
-			close(respChan)
-			return errors.New("sendResponse timed out as respChan is not being actively waited on")
-		}
-	} else {
+
+	respChanVal, ok := table.respChanByReqId.Load(resp.ReqId)
+	if !ok {
 		return fmt.Errorf("No response channel found for reqId %v\n", resp.ReqId)
+	}
+	respChan := respChanVal.(chan *protos.GatewayResponse)
+	if resp.RespBody == nil {
+		glog.Errorf("Nil response body received, forward to httpServer anyways\n")
+	}
+	select {
+	case respChan <- resp.RespBody:
+		return nil
+	case <-time.After(table.timeout):
+		// give up sending, close the channel and delete the table entry
+		close(respChan)
+		table.respChanByReqId.Delete(resp.ReqId)
+		return errors.New("sendResponse timed out as respChan is not being actively waited on")
 	}
 }
 
