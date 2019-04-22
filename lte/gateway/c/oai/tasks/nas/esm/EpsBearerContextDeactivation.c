@@ -351,6 +351,18 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
        */
       _pdn_connectivity_delete(ue_context, pid);
     }
+  } else {
+    OAILOG_INFO(
+      LOG_NAS_ESM,
+      "ESM-PROC  - Removing dedicated bearer context "
+      "for UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+      ue_id,
+      ebi);
+
+   ue_mm_context_t *ue_mm_context =
+     PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context);
+   //Remove dedicated bearer context
+   free_wrapper ((void**)&ue_mm_context->bearer_contexts[bid]);
   }
   //Send deactivate_eps_bearer_context to MME APP
   nas_itti_deactivate_eps_bearer_context(
@@ -515,12 +527,12 @@ static int _eps_bearer_deactivate(
    * Notify EMM that a deactivate EPS bearer context request message
    * has to be sent to the UE
    */
-  emm_esm_data_t *emm_esm = &emm_sap.u.emm_esm.u.data;
 
   emm_sap.primitive = EMMESM_DEACTIVATE_BEARER_REQ;
   emm_sap.u.emm_esm.ue_id = ue_id;
   emm_sap.u.emm_esm.ctx = ue_context;
-  emm_esm->msg = *msg;
+  emm_sap.u.emm_esm.u.deactivate_bearer.ebi = ebi;
+  emm_sap.u.emm_esm.u.deactivate_bearer.msg = *msg;
   bstring msg_dup = bstrcpy(*msg);
   *msg = NULL;
   MSC_LOG_TX_MESSAGE(

@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "assertions.h"
 #include "intertask_interface.h"
@@ -485,8 +486,8 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     while (node) {
       num_elements++;
       hashtable_ts_get(
@@ -520,22 +521,6 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
   OAILOG_INFO(LOG_PGW_APP, "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
     itti_s5_actv_ded_bearer_req->mme_teid_S11);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
-}
-
-//--------------------------------------------------------------------------------
-
-uint32_t pgw_handle_activate_ded_bearer_rsp(
-  const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp)
-{
-  uint32_t rc = RETURNok;
-  OAILOG_FUNC_IN(LOG_PGW_APP);
-
-  OAILOG_INFO(LOG_PGW_APP, "Sending Create Bearer Rsp to PCRF with EBI %d\n",
-    act_ded_bearer_rsp->ebi);
-  //Send Create Bearer Rsp to PCRF
-  //TODO-Uncomment once implemented at PCRF
-  //rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 
@@ -583,14 +568,15 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
     &itti_s5_deactv_ded_bearer_req->ebi,
     ebi,
     sizeof(ebi_t));
+  hashtblP = sgw_app.s11_bearer_context_information_hashtable;
 
   //Check if the EBI received == LBI to know if default bearer has to be deactivated
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     while (node) {
       num_elements++;
       hashtable_ts_get(
@@ -600,6 +586,7 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
           (const char *)imsi->digit)) {
           itti_s5_deactv_ded_bearer_req->s11_mme_teid =
             spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
+          OAILOG_INFO(LOG_PGW_APP, "spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11 = %d\n", spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11);
           for (i = 0; i < no_of_bearers; i++) {
             if (ebi[i] == spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
               default_bearer) {
@@ -613,11 +600,41 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
     }
     i++;
   }
+  OAILOG_DEBUG(LOG_SPGW_APP, "pgw_handle_deactivate_ded_bearer_req = s11_mme_teid (%x) (%d) \n",itti_s5_deactv_ded_bearer_req->s11_mme_teid, itti_s5_deactv_ded_bearer_req->s11_mme_teid);
   OAILOG_INFO(LOG_PGW_APP, "Sending S5_DEACTIVATE_DEDICATED_BEARER_REQ to SGW ,"
     "delete_default_bearer %d\n",
     itti_s5_deactv_ded_bearer_req->delete_default_bearer);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
 
+  OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
+}
+//--------------------------------------------------------------------------------
+
+uint32_t pgw_handle_activate_ded_bearer_rsp(
+  const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp)
+{
+  uint32_t rc = RETURNok;
+  OAILOG_FUNC_IN(LOG_PGW_APP);
+
+  OAILOG_INFO(LOG_PGW_APP, "Sending Create Bearer Rsp to PCRF with EBI %d\n",
+    act_ded_bearer_rsp->ebi);
+//Testing
+#if 1
+
+  sleep(3);
+  Imsi_t imsi;
+  ebi_t ebi[] = {5}; /*6*/
+  strcpy((char*)imsi.digit,"001010000000001");
+  imsi.length = 15;
+  uint32_t ret = RETURNerror;
+  ret = pgw_handle_deactivate_ded_bearer_req(&imsi, 1, ebi);
+  if (ret != RETURNok) {
+    OAILOG_DEBUG(LOG_PGW_APP, "Failed to Handle deactivate ded bearer request message\n");
+  }
+#endif
+  //Send Create Bearer Rsp to PCRF
+  //TODO-Uncomment once implemented at PCRF
+  //rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 

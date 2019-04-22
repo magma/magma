@@ -41,4 +41,8 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
   bearer_qos_t *eps_bearer_qos);
 uint32_t pgw_handle_deactivate_ded_bearer_rsp(
   const itti_s5_deactivate_dedicated_bearer_rsp_t *const deact_ded_bearer_rsp);
+uint32_t pgw_handle_deactivate_ded_bearer_req(
+  Imsi_t *imsi,
+  uint32_t no_of_bearers,
+  ebi_t ebi[]);
 #endif /* FILE_PGW_HANDLERS_SEEN */

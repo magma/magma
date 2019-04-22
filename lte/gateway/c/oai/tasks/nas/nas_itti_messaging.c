@@ -847,6 +847,7 @@ void nas_itti_deactivate_eps_bearer_context(
     delete_default_bearer;
   MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).s_gw_teid_s11_s4 =
     s_gw_teid_s11_s4;
+  MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).no_of_bearers = 1;
   MSC_LOG_TX_MESSAGE(
     MSC_NAS_MME,
     MSC_MMEAPP_MME,

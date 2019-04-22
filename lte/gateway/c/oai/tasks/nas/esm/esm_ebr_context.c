@@ -427,13 +427,6 @@ ebi_t esm_ebr_context_release(
         "ESM-PROC  - Release dedicated EPS bearer context "
         "(ebi=%d)\n",
         ebi);
-      (void) esm_ebr_set_status(
-        emm_context,
-        ue_mm_context->bearer_contexts[*bid]->ebi,
-        ESM_EBR_INACTIVE,
-        true);
-
-      free_wrapper ((void**)&ue_mm_context->bearer_contexts[*bid]);
     }
 
 #if 0

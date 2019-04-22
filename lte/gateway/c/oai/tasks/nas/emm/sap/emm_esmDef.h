@@ -98,6 +98,14 @@ typedef struct emm_esm_data_s {
 } emm_esm_data_t;
 
 /*
+ * EMMESM primitive for Deactivate EPS bearer context request
+ */
+typedef struct emm_esm_deactivate_bearer_req_s {
+  ebi_t ebi; /*bearer to de-activate */
+  bstring msg; /* ESM message to be transfered     */
+}emm_esm_deactivate_bearer_req_t;
+
+/*
  * ---------------------------------
  * Structure of EMMESM-SAP primitive
  * ---------------------------------
@@ -111,6 +119,7 @@ typedef struct {
     emm_esm_establish_t establish;
     emm_esm_data_t data;
     emm_esm_activate_bearer_req_t activate_bearer;
+    emm_esm_deactivate_bearer_req_t deactivate_bearer;
   } u;
   /* TODO: complete emm_esm_t structure definition */
 } emm_esm_t;

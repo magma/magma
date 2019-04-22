@@ -78,6 +78,8 @@
 #include "S1ap-CauseProtocol.h"
 #include "S1ap-CauseRadioNetwork.h"
 #include "S1ap-CauseTransport.h"
+#include "S1ap-E-RABItem.h"
+#include "s1ap_mme_handlers.h"
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_ue_message(
@@ -1088,10 +1090,12 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
      */
     e_rabreleasecmdies->mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
     e_rabreleasecmdies->eNB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
-    /*eNB
+    
+   // e_rabreleasecmdies->uEaggregateMaximumBitrate = NULL;
+    /*
      * Fill in the NAS pdu
      */
-    e_rabreleasecmdies->presenceMask = 0;
+      e_rabreleasecmdies->presenceMask |= S1AP_E_RABRELEASECOMMANDIES_NAS_PDU_PRESENT; 
 
     OCTET_STRING_fromBuf(
       &e_rabreleasecmdies->nas_pdu,
@@ -1099,26 +1103,25 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       blength(e_rab_rel_cmd->nas_pdu));
 
 
-    S1ap_E_RABReleaseItemBearerRelComp_t s1ap_E_RABReleaseItemBearerRelComp
-      [e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items];
+    S1ap_E_RABItem_t s1ap_E_RABItemIEs
+            [e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items];
     for (int i = 0; i < e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items;
          i++) {
       memset(
-        &s1ap_E_RABReleaseItemBearerRelComp[i],
+        &s1ap_E_RABItemIEs[i],
         0,
-        sizeof(S1ap_E_RABReleaseItemBearerRelComp_t));
+        sizeof(S1ap_E_RABItem_t));
 
-      s1ap_E_RABReleaseItemBearerRelComp[i].e_RAB_ID =
+      s1ap_E_RABItemIEs[i].e_RAB_ID =
         e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id;
-      //TODO - cause value is not present in s1ap_E_RABReleaseItemBearerRelComp
-      /*s1ap_mme_set_cause(
-        s1ap_E_RABReleaseItemBearerRelComp[i].cause,
+      s1ap_mme_set_cause(
+        &s1ap_E_RABItemIEs[i].cause,
         S1ap_Cause_PR_radioNetwork,
-        S1ap_CauseRadioNetwork_unspecified);*/
+        S1ap_CauseRadioNetwork_unspecified);
 
       ASN_SEQUENCE_ADD(
         &e_rabreleasecmdies->e_RABToBeReleasedList,
-        &s1ap_E_RABReleaseItemBearerRelComp[i]);
+        &s1ap_E_RABItemIEs[i]);
     }
 
     if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
@@ -1128,7 +1131,7 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
 
     OAILOG_NOTICE(
       LOG_S1AP,
-      "Send S1AP E_RABSetup message MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
+      "Send S1AP E_RABRelease Command message MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
       " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
       (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
       (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID);
@@ -1137,7 +1140,7 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       MSC_S1AP_ENB,
       NULL,
       0,
-      "0 E_RABSetup/initiatingMessage mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+      "0 E_RABrelease command/initiatingMessage mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
       " enb_ue_s1ap_id" ENB_UE_S1AP_ID_FMT " nas length %u",
       (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
       (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID,
