@@ -77,3 +77,8 @@ services:
     host: "localhost"
     port: 9100
     proxy_type: "clientcert"
+
+  state:
+    host: "localhost"
+    port: 9105
+    proxy_type: "clientcert"
