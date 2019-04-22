@@ -28,7 +28,7 @@ type SqlQueryable interface {
 }
 
 func NewSqlDb(driver string, source string) (*SqlDb, error) {
-	db, err := sql.Open(driver, source)
+	db, err := sql_utils.Open(driver, source)
 	if err != nil {
 		return nil, err
 	}

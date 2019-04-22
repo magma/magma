@@ -9,13 +9,13 @@
 package blobstore_test
 
 import (
-	"database/sql"
 	"database/sql/driver"
 	"errors"
 	"testing"
 
 	"magma/orc8r/cloud/go/blobstore"
 	magmaerrors "magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/sql_utils"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
@@ -378,7 +378,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 
 func TestSqlBlobStorage_Integration(t *testing.T) {
 	// Use an in-memory sqlite datastore
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sql_utils.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
