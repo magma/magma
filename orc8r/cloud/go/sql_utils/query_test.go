@@ -16,23 +16,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetPlaceholderArgList(t *testing.T) {
+func TestGetPlaceholderArgListWithSuffix(t *testing.T) {
 	testCases := []struct {
 		startIdx int
 		numArgs  int
+		suffix   string
 		expected string
 	}{
-		{1, 3, "($1, $2, $3)"},
-		{1, 1, "($1)"},
-		{1, 0, "()"},
-		{5, 3, "($5, $6, $7)"},
-		{5, 1, "($5)"},
-		{5, 0, "()"},
+		{1, 3, "hello", "($1, $2, $3, hello)"},
+		{1, 3, "", "($1, $2, $3)"},
+		{1, 1, "world", "($1, world)"},
+		{1, 1, "", "($1)"},
+		{1, 0, "", "()"},
+		{1, 0, "foo", "(foo)"},
+		{5, 3, "bar", "($5, $6, $7, bar)"},
+		{5, 3, "", "($5, $6, $7)"},
+		{5, 1, "baz", "($5, baz)"},
+		{5, 1, "", "($5)"},
+		{5, 0, "qux", "(qux)"},
+		{5, 0, "", "()"},
 	}
 
 	for _, testCase := range testCases {
-		actual := sql_utils.GetPlaceholderArgList(testCase.startIdx, testCase.numArgs)
+		actual := sql_utils.GetPlaceholderArgListWithSuffix(testCase.startIdx, testCase.numArgs, testCase.suffix)
 		assert.Equal(t, testCase.expected, actual)
+
+		if testCase.suffix == "" {
+			assert.Equal(t, actual, sql_utils.GetPlaceholderArgList(testCase.startIdx, testCase.numArgs))
+		}
 	}
 }
 
