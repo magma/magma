@@ -8,12 +8,9 @@
  * @format
  */
 
-import bcrypt from 'bcryptjs';
 import passport from 'passport';
-import {Strategy as LocalStrategy} from 'passport-local';
+import OrganizationLocalStrategy from './strategies/OrganizationLocalStrategy';
 import {User} from '@fbcnms/sequelize-models';
-
-import {injectOrganizationParams} from './organization';
 
 import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
 
@@ -29,14 +26,6 @@ type OutputRequest<T> = {
 export type FBCNMSPassportRequest = OutputRequest<Object>;
 
 function use() {
-  const getUserFromRequest = async (
-    req: FBCNMSMiddleWareRequest,
-    email: string,
-  ) => {
-    const where = await injectOrganizationParams(req, {email});
-    return await User.findOne({where});
-  };
-
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
@@ -50,34 +39,7 @@ function use() {
     }
   });
 
-  passport.use(
-    'local',
-    new LocalStrategy(
-      {
-        usernameField: 'email',
-        passwordField: 'password',
-        passReqToCallback: true,
-      },
-      async (req, email, password, done) => {
-        try {
-          const user = await getUserFromRequest(req, email);
-          if (!user) {
-            return done(null, false, {
-              message: 'Username or password invalid!',
-            });
-          }
-
-          if (await bcrypt.compare(password, user.password)) {
-            done(null, user);
-          } else {
-            done(null, false, {message: 'Invalid username or password!'});
-          }
-        } catch (error) {
-          done(error);
-        }
-      },
-    ),
-  );
+  passport.use('local', OrganizationLocalStrategy());
 }
 
 export default {
