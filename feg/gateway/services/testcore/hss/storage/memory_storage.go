@@ -9,14 +9,18 @@ LICENSE file in the root directory of this source tree.
 package storage
 
 import (
+	"sync"
+
 	"magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 )
 
 // MemorySubscriberStore is an in memory implementation of SubscriberStore.
 type MemorySubscriberStore struct {
 	accounts map[string]*protos.SubscriberData
+	mutex    sync.RWMutex
 }
 
 // NewMemorySubscriberStore initializes a MemorySubscriberStore with an empty accounts map.
@@ -35,6 +39,9 @@ func (store *MemorySubscriberStore) AddSubscriber(data *protos.SubscriberData) e
 	if err := validateSubscriberData(data); err != nil {
 		return err
 	}
+
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
 
 	// Check that we are not adding a duplicate subscriber.
 	id := data.GetSid().Id
@@ -56,6 +63,9 @@ func (store *MemorySubscriberStore) UpdateSubscriber(data *protos.SubscriberData
 		return err
 	}
 
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
+
 	id := data.Sid.Id
 	_, exists := store.accounts[id]
 	if !exists {
@@ -76,9 +86,12 @@ func (store *MemorySubscriberStore) GetSubscriberData(id string) (*protos.Subscr
 		return nil, err
 	}
 
+	store.mutex.RLock()
+	defer store.mutex.RUnlock()
+
 	data, exists := store.accounts[id]
 	if exists {
-		return data, nil
+		return proto.Clone(data).(*protos.SubscriberData), nil
 	}
 	glog.Errorf("Subscriber '%s' not found", id)
 	return nil, NewUnknownSubscriberError(id)
@@ -91,6 +104,9 @@ func (store *MemorySubscriberStore) DeleteSubscriber(id string) error {
 	if err := validateSubscriberID(id); err != nil {
 		return err
 	}
+
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
 
 	delete(store.accounts, id)
 	return nil
