@@ -18,17 +18,17 @@ import {access} from './access';
 import {AccessRoles} from './roles';
 import {addQueryParamsToUrl} from './util';
 import EmailValidator from 'email-validator';
+import {User} from '@fbcnms/sequelize-models';
 
 import type {FBCNMSRequest} from './access';
 
 const SALT_GEN_ROUNDS = 10;
 const MIN_PASSWORD_LENGTH = 10;
 
-type Options = {
-  UserModel: any,
+type Options = {|
   loginSuccessUrl: string,
   loginFailureUrl: string,
-};
+|};
 
 const FIELD_MAP = {
   email: 'email',
@@ -40,7 +40,6 @@ const FIELD_MAP = {
 };
 
 function userMiddleware(options: Options): express.Router {
-  const User = options.UserModel;
   const router = express.Router();
 
   async function getPropsToUpdate(

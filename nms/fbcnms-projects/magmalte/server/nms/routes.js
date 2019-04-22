@@ -15,7 +15,6 @@ const path = require('path');
 const fs = require('fs');
 const staticDist = require('fbcnms-webpack-config/staticDist').default;
 const userMiddleware = require('@fbcnms/auth/express').default;
-const {User} = require('@fbcnms/sequelize-models');
 
 import type {NMSRequest} from '../../scripts/server';
 
@@ -41,7 +40,6 @@ router.use('/test', require('../test/routes'));
 router.use(
   '/user',
   userMiddleware({
-    UserModel: User,
     loginSuccessUrl: '/nms/',
     loginFailureUrl: '/nms/user/login',
   }),

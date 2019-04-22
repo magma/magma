@@ -11,11 +11,12 @@
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import {Strategy as LocalStrategy} from 'passport-local';
+import {User} from '@fbcnms/sequelize-models';
 
 import {injectOrganizationParams} from './organization';
 
-import type {StaticUserModel} from '@fbcnms/sequelize-models/models/user';
 import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
+
 type OutputRequest<T> = {
   logIn: (T, (err?: ?Error) => void) => void,
   logOut: () => void,
@@ -27,17 +28,13 @@ type OutputRequest<T> = {
 // User is currently untyped, export as an object.
 export type FBCNMSPassportRequest = OutputRequest<Object>;
 
-type PassportConfig = {
-  UserModel: StaticUserModel,
-};
-
-function use(config: PassportConfig) {
+function use() {
   const getUserFromRequest = async (
     req: FBCNMSMiddleWareRequest,
     email: string,
   ) => {
     const where = await injectOrganizationParams(req, {email});
-    return await config.UserModel.findOne({where});
+    return await User.findOne({where});
   };
 
   passport.serializeUser((user, done) => {
@@ -46,7 +43,7 @@ function use(config: PassportConfig) {
 
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await config.UserModel.findById(id);
+      const user = await User.findById(id);
       done(null, user);
     } catch (error) {
       done(error);

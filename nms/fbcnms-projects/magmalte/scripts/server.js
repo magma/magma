@@ -37,7 +37,7 @@ const passport = require('passport');
 const fbcPassport = require('@fbcnms/auth/passport').default;
 const paths = require('fbcnms-webpack-config/paths');
 const session = require('express-session');
-const {sequelize, User} = require('@fbcnms/sequelize-models');
+const {sequelize} = require('@fbcnms/sequelize-models');
 const {runMigrations} = require('./runMigrations');
 const {access, configureAccess} = require('@fbcnms/auth/access');
 const {
@@ -79,7 +79,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session()); // must be after sessionMiddleware
 
-fbcPassport.use({UserModel: User});
+fbcPassport.use();
 
 // Restrict all endpoints to at least USER level
 app.use(configureAccess({loginUrl: '/nms/user/login'}));
