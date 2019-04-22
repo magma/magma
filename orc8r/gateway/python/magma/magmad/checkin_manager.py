@@ -32,7 +32,6 @@ from orc8r.protos.magmad_pb2 import (
     Route,
 )
 from orc8r.protos.magmad_pb2_grpc import CheckindStub
-
 from magma.common.misc_utils import (
     get_ip_from_if,
     is_interface_up,

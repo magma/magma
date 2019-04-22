@@ -19,7 +19,11 @@ import os
 import pkg_resources
 from orc8r.protos.common_pb2 import LogLevel, Void
 from orc8r.protos.metricsd_pb2 import MetricsContainer
-from orc8r.protos.service303_pb2 import ServiceInfo, ReloadConfigResponse
+from orc8r.protos.service303_pb2 import (
+    ServiceInfo,
+    ReloadConfigResponse,
+    GetOperationalStatesResponse,
+)
 from orc8r.protos.service303_pb2_grpc import (
     Service303Servicer,
     add_Service303Servicer_to_server,
@@ -324,3 +328,10 @@ class MagmaService(Service303Servicer):
         """
         self.reload_config()
         return ReloadConfigResponse(result=ReloadConfigResponse.RELOAD_SUCCESS)
+
+    def GetOperationalStates(self, request, context):
+        """
+        Returns the  operational states of devices managed by this service.
+        """
+        # Not yet implemented
+        return GetOperationalStatesResponse()
