@@ -1,0 +1,61 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# Install Docker based on instructions in:
+# https://docs.docker.com/install/linux/docker-ce/ubuntu
+
+- name: Install packages to allow apt to use a repository over HTTPS
+  apt:
+    name: "{{ packages }}"
+    state: present
+    update_cache: true
+  vars:
+    packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+      - python3-pip
+
+- name: Add Docker’s official GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Verify that you now have the key with the fingerprint
+  apt_key:
+    id: 0EBFCD88
+    state: present
+
+- name: Add the stable repository for Docker
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    state: present
+
+- name: Install the latest version of Docker CE
+  apt:
+    name: docker-ce
+    state: present
+    update_cache: true
+
+- name: Download the lastest version of Docker Compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64"
+    dest: /usr/local/bin/docker-compose
+    mode: +x
+
+- name: Add the user to the docker group
+  user:
+    name: "{{ user }}"
+    group: docker
+    append: yes
+
+- name: Install python docker module
+  pip:
+    name: docker
