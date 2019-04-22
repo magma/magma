@@ -11,7 +11,6 @@
 import bcrypt from 'bcryptjs';
 import passport from 'passport';
 import {Strategy as LocalStrategy} from 'passport-local';
-import {Strategy as FacebookStrategy} from 'passport-facebook';
 
 import {injectOrganizationParams} from './organization';
 
@@ -30,10 +29,6 @@ export type FBCNMSPassportRequest = OutputRequest<Object>;
 
 type PassportConfig = {
   UserModel: StaticUserModel,
-  facebookLogin?: {
-    appId: string,
-    appSecret: string,
-  },
 };
 
 function use(config: PassportConfig) {
@@ -86,36 +81,6 @@ function use(config: PassportConfig) {
       },
     ),
   );
-
-  if (config.facebookLogin && config.facebookLogin.appId) {
-    passport.use(
-      new FacebookStrategy(
-        {
-          clientID: config.facebookLogin.appId,
-          clientSecret: config.facebookLogin.appSecret,
-          callbackURL: '/user/login/facebook/callback',
-          profileFields: ['id', 'emails', 'name'],
-          passReqToCallback: true,
-        },
-        async (req, accessToken, refreshToken, profile, done) => {
-          try {
-            if (!profile.emails?.[0]?.value) {
-              return done(null, false, {message: 'Failed to read user email'});
-            }
-            const email = profile.emails[0].value;
-            const user = await getUserFromRequest(req, email);
-            if (!user) {
-              return done(null, false, {message: 'User not authorized'});
-            }
-
-            done(null, user, {message: 'User logged in'});
-          } catch (e) {
-            done(null, false, {message: 'Failed to login!'});
-          }
-        },
-      ),
-    );
-  }
 }
 
 export default {

@@ -124,20 +124,6 @@ function userMiddleware(options: Options): express.Router {
     });
   });
 
-  router.get(
-    '/login/facebook',
-    passport.authenticate('facebook', {scope: ['email']}),
-  );
-
-  router.get(
-    '/login/facebook/callback',
-    passport.authenticate('facebook', {
-      successRedirect: options.loginSuccessUrl,
-      failureRedirect: options.loginFailureUrl,
-    }),
-    (_req: FBCNMSRequest, res) => res.redirect('/'),
-  );
-
   router.get('/logout', (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       req.logout();
