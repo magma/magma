@@ -42,6 +42,8 @@
 #include "common_defs.h"
 #include "esm_data.h"
 #include "mme_api.h"
+#include "mme_app_desc.h"
+#include "mme_app_apn_selection.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -145,10 +147,12 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   proc_tid_t pti,
   ebi_t ebi,
   const pdn_connectivity_request_msg *msg,
-  ebi_t *new_ebi)
+  ebi_t *new_ebi,
+  bool is_standalone)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int esm_cause = ESM_CAUSE_SUCCESS;
+  pdn_cid_t pdn_cid = 0;
   mme_ue_s1ap_id_t ue_id =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
@@ -325,6 +329,72 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         _esm_data.conf.features);
   }
 
+  if ((is_standalone) &&
+    (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1)) {
+    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+      &mme_app_desc.mme_ue_contexts, ue_id);
+    //Select APN
+    struct apn_configuration_s *apn_config =
+      mme_app_select_apn(
+        ue_mm_context,
+        emm_context->esm_ctx.esm_proc_data->apn);
+    /*
+     * Execute the PDN connectivity procedure requested by the UE
+     */
+    if (!apn_config) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot select APN for ue id %d",ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME);
+    }
+
+    pdn_cid = emm_context->esm_ctx.esm_proc_data->pdn_cid + 1;
+    int pid = esm_proc_pdn_connectivity_request(
+      emm_context,
+      pti,
+      pdn_cid,//Assign new pdn_cid
+      apn_config->context_identifier,
+      emm_context->esm_ctx.esm_proc_data->request_type,
+      esm_data->apn,
+      esm_data->pdn_type,
+      esm_data->pdn_addr,
+      &esm_data->bearer_qos,
+      (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
+        &emm_context->esm_ctx.esm_proc_data->pco :
+        NULL,
+      &esm_cause);
+
+    if (pid != RETURNerror) {
+      /*
+       * Create local default EPS bearer context
+       */
+      pid = emm_context->esm_ctx.esm_proc_data->pdn_cid + 1;
+      int rc = esm_proc_default_eps_bearer_context(
+        emm_context, pti, pdn_cid, new_ebi, esm_data->bearer_qos.qci, &esm_cause);
+
+      if (rc != RETURNerror) {
+        esm_cause = ESM_CAUSE_SUCCESS;
+      }
+    }
+    //Send PDN Connectivity req
+    OAILOG_INFO(
+      LOG_NAS_ESM,
+      "ESM-PROC - Sending pdn_connectivity_req to MME APP for ue %d",ue_id);
+
+    emm_context->esm_ctx.is_standalone = true;
+
+    nas_itti_pdn_connectivity_req(
+      emm_context->esm_ctx.esm_proc_data->pti,
+      ue_id,
+      pdn_cid,
+      &emm_context->_imsi,
+      emm_context->_imeisv,
+      emm_context->esm_ctx.esm_proc_data,
+      emm_context->esm_ctx.esm_proc_data->request_type);
+    unlock_ue_contexts(ue_mm_context);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+  }
+
 #if ORIGINAL_CODE
   /*
    * Execute the PDN connectivity procedure requested by the UE
@@ -332,7 +402,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   int pid = esm_proc_pdn_connectivity_request(
     emm_context,
     pti,
-    request_type,
+    emm_ctx->esm_ctx.esm_proc_data->request_type,
     &esm_data->apn,
     esm_data->pdn_type,
     &esm_data->pdn_addr,

@@ -487,6 +487,11 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 
   memset(&esm_msg, 0, sizeof(ESM_msg));
 
+  if (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) {
+    is_standalone = emm_ctx->esm_ctx.is_standalone;
+    emm_ctx->esm_ctx.is_standalone = false;
+  }
+
   switch (msg_pP->pdn_type) {
     case IPv4:
       OAILOG_INFO(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4\n");
@@ -571,7 +576,7 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
       &rsp,
       triggered_by_ue);
 
-    if (rc != RETURNok) {
+    if ((rc != RETURNok) || (is_standalone)) {
       /*
        * Return indication that ESM procedure failed
        */

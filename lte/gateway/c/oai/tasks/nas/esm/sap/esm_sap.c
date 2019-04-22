@@ -43,6 +43,7 @@
 #include "PdnConnectivityReject.h"
 #include "common_defs.h"
 #include "emm_data.h"
+#include "mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -654,6 +655,15 @@ static int _esm_sap_recv(
           pti,
           ebi,
           is_standalone);
+
+        //Process standalone PDN Connectivity Request if VoLTE is enabled
+        if (mme_config.eps_network_feature_support.
+          ims_voice_over_ps_session_in_s1) {
+          esm_cause = esm_recv_pdn_connectivity_request(
+            emm_context, pti, ebi, &esm_msg.pdn_connectivity_request, &ebi,
+            is_standalone);
+          break;
+        }
         if (is_standalone == true) {
           /* Rejecting PDN Connectivity message as there is no code to handle standalone message yet*/
           if (
@@ -677,7 +687,8 @@ static int _esm_sap_recv(
 
         if (!is_standalone) { // Do not process if its a standalone message
           esm_cause = esm_recv_pdn_connectivity_request(
-            emm_context, pti, ebi, &esm_msg.pdn_connectivity_request, &ebi);
+            emm_context, pti, ebi, &esm_msg.pdn_connectivity_request, &ebi,
+            is_standalone);
         }
 
         if (esm_cause != ESM_CAUSE_SUCCESS) {
