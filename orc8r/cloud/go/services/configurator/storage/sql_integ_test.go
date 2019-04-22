@@ -10,17 +10,17 @@ package storage_test
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	"magma/orc8r/cloud/go/sql_utils"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestSqlConfiguratorStorage_Integration(t *testing.T) {
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sql_utils.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
