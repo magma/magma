@@ -48,7 +48,22 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
         )
         handler.http_version = "1.1"
         handler.request_handler = self  # backpointer for logging
-        handler.run(self.server.get_app())
+
+        # eNodeB will sometimes close connection to enodebd.
+        # The cause of this is unknown, but we can safely ignore the
+        # closed connection, and continue as normal otherwise.
+        #
+        # While this throws a BrokenPipe exception in wsgi server,
+        # it also causes an AttributeError to be raised because of a 
+        # bug in the wsgi server.
+        #
+        # Catch this AttributeError as a proxy for the actual BrokenPipe
+        # exception which we care about.
+        # https://bugs.python.org/issue27682
+        try 
+            handler.run(self.server.get_app())
+        except AttributeError:
+            self.log_error("eNodeB has unexpectedly closed the TCP connection.")
 
     def handle(self):
         self.protocol_version = "HTTP/1.1"
