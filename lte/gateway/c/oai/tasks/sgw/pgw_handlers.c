@@ -608,7 +608,7 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
 
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
-//--------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 uint32_t pgw_handle_activate_ded_bearer_rsp(
   const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp)
@@ -623,13 +623,14 @@ uint32_t pgw_handle_activate_ded_bearer_rsp(
 
   sleep(3);
   Imsi_t imsi;
-  ebi_t ebi[] = {5}; /*6*/
+  ebi_t ebi[] = {6}; /*6*/
   strcpy((char*)imsi.digit,"001010000000001");
   imsi.length = 15;
   uint32_t ret = RETURNerror;
   ret = pgw_handle_deactivate_ded_bearer_req(&imsi, 1, ebi);
   if (ret != RETURNok) {
-    OAILOG_DEBUG(LOG_PGW_APP, "Failed to Handle deactivate ded bearer request message\n");
+    OAILOG_DEBUG(
+      LOG_PGW_APP, "Failed to Handle deactivate ded bearer request message\n");
   }
 #endif
   //Send Create Bearer Rsp to PCRF
@@ -638,7 +639,7 @@ uint32_t pgw_handle_activate_ded_bearer_rsp(
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 
-//--------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 uint32_t pgw_handle_deactivate_ded_bearer_rsp(
   const itti_s5_deactivate_dedicated_bearer_rsp_t *const deact_ded_bearer_rsp)
