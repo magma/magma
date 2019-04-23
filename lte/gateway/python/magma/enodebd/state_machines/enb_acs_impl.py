@@ -87,7 +87,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         try:
             self._read_tr069_msg(message)
             return self._get_tr069_msg()
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             logging.error('Failed to handle tr069 message')
             logging.error(traceback.format_exc())
             self._dump_debug_info()
