@@ -14,3 +14,10 @@ docker-compose run magmalte yarn run setAdminPassword admin@magma.test password1
 # See https://github.com/docker/for-linux/issues/264
 # Add an entry for the host. This is a no-op for Mac.
 docker-compose exec magmalte /bin/sh -c "ip -4 route list match 0/0 | awk '{print \$3 \" host.docker.internal\"}' >> /etc/hosts"
+
+
+# Connect the nms network to the orchestrator network to complete registration
+# This enables name resolution of the orchestrator proxy running in a different
+# docker network - in production, the orchestrator host would be an addressable
+# name.
+docker network connect orc8r_default magmalte_nms

@@ -10,6 +10,7 @@ services:
       POSTGRES_DB: magma_dev
 
   proxy:
+    container_name: orc8r_proxy
     volumes:
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
     ports:

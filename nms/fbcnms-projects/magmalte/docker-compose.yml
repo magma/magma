@@ -20,6 +20,7 @@ services:
     depends_on:
       - magmalte
   magmalte:
+    container_name: magmalte_nms
     build:
       context: ../..
       dockerfile: fbcnms-projects/magmalte/Dockerfile
@@ -36,7 +37,7 @@ services:
     environment:
       API_CERT_FILENAME: /run/secrets/api_cert
       API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
-      API_HOST: ${API_HOST:-host.docker.internal:9443}
+      API_HOST: ${API_HOST:-orc8r_proxy:9443}
       PORT: 8081
       HOST: 0.0.0.0
       MYSQL_HOST: mysql
