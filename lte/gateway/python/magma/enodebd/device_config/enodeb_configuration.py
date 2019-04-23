@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import json
 import logging
 from typing import List, Any
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -136,6 +137,12 @@ class EnodebConfiguration():
         object_name: ParameterName,
     ) -> List[ParameterName]:
         return list(self._numbered_objects[object_name].keys())
+
+    def get_debug_info(self) -> str:
+        debug_info = 'Param values: {}, \n Object values: {}'
+        return debug_info.format(json.dumps(self._param_to_value, indent=2),
+                                 json.dumps(self._numbered_objects,
+                                            indent=2))
 
     def _assert_param_in_model(self, param_name: ParameterName) -> None:
         trparam_model = self.data_model
