@@ -45,7 +45,9 @@ if [ ! -f vpn_ca.key ]; then
         -out vpn_ca.crt -subj "/C=US/CN=vpn.magma.test"
 fi
 
-sleep 3
+echo "Waiting for datastore to come up..."
+timeout 20 bash -c 'until nc -z datastore 5432; do sleep 1; done'
+
 ACCESSC='/var/opt/magma/bin/accessc'
 if [ -f admin_operator.pfx ]; then
   echo "##########################"

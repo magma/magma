@@ -14,6 +14,7 @@ After=docker.service
 Type=simple
 WorkingDirectory={{ working_dir }}
 Environment=DOCKER_REGISTRY={{ registry_url }}
+Environment=IMAGE_VERSION={{ image_version }}
 ExecStartPre=/usr/local/bin/docker-compose rm -fsv
 ExecStart=/usr/local/bin/docker-compose up
 ExecStop=/usr/local/bin/docker-compose down -v

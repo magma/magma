@@ -9,4 +9,15 @@ version: "3.7"
 
 services:
   proxy:
-    image: "${DOCKER_REGISTRY}/proxy"
+    image: "${DOCKER_REGISTRY}/proxy:${IMAGE_VERSION}"
+    volumes:
+      - /var/opt/magma/certs:/var/opt/magma/certs
+      - /var/opt/magma/envdir:/var/opt/magma/envdir
+    ports:
+      - "9443:9443"  # API/controller port
+      - "9444:9444"  # Bootstrapper port
+      # TODO: remove the following bindings after migrating
+      # the existing load balancers
+      - "443:9443"  # API/controller port
+      - "8443:9444"  # Bootstrapper port
+    restart: always
