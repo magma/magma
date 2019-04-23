@@ -82,3 +82,8 @@ services:
     host: "localhost"
     port: 9105
     proxy_type: "clientcert"
+
+  device:
+    host: "localhost"
+    port: 9106
+    proxy_type: "clientcert"
