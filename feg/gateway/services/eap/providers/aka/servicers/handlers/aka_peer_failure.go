@@ -16,6 +16,7 @@ import (
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 )
 
@@ -29,6 +30,7 @@ func init() {
 // see https://tools.ietf.org/html/rfc4187#section-9.5 for details
 func authRejectResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
 	var sid string
+	metrics.PeerAuthReject.Inc()
 
 	if ctx == nil || len(ctx.SessionId) == 0 {
 		log.Printf("WARNING: Missing CTX/Empty Session ID in AKA-Authentication-Reject")
@@ -46,6 +48,7 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap
 		resultErr error
 		errorCode int
 	)
+	metrics.PeerClientError.Inc()
 	if ctx != nil && len(ctx.SessionId) > 0 {
 		sid = ctx.SessionId
 		scanner, err := eap.NewAttributeScanner(req)
@@ -85,7 +88,7 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 		resultErr error
 		errorCode int
 	)
-
+	metrics.PeerNotification.Inc()
 	if ctx == nil || len(ctx.SessionId) == 0 {
 		log.Printf("WARNING: Missing CTX/Empty Session ID in AKA-Notification")
 	} else {
@@ -126,6 +129,7 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 }
 
 func peerFailure(s *servicers.EapAkaSrv, sessionId string, identifier uint8, errorCode int) eap.Packet {
+	metrics.PeerFailures.Inc()
 	if s != nil {
 		imsi := s.RemoveSession(sessionId)
 		if len(imsi) > 0 {

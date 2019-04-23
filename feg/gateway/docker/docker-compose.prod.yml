@@ -1,18 +1,32 @@
 version: "3.7"
 
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: "json-file"
+  options:
+    max-size: "10mb"
+    max-file: "10"
+
+# Use generic go anchor to avoid repetition for go services
+x-goservice: &goservice
+  image: feg_gateway_go
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Use generic python anchor to avoid repetition for python services
+x-pyservice: &pyservice
+  image: feg_gateway_python
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
 services:
   control_proxy:
+    <<: *pyservice
     container_name: control_proxy
-    image: feg_gateway_python
     volumes:
       - ../../../.cache/test_certs:/var/opt/magma/certs
-    logging: &logging_anchor
-      driver: "json-file"
-      options:
-        max-size: "10mb"
-        max-file: "10"
-    restart: always
-    network_mode: host
     extra_hosts: &hosts_anchor
       - controller.magma.test:127.0.0.1
       - bootstrapper-controller.magma.test:127.0.0.1
@@ -21,101 +35,68 @@ services:
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
 
   csfb:
+    <<: *goservice
     container_name: csfb
-    image: feg_gateway_go
     build:
       context: ../../../
       dockerfile: feg/gateway/docker/go/Dockerfile
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
 
   eap_aka:
+    <<: *goservice
     container_name: eap_aka
-    image: feg_gateway_go
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
   eap_router:
+    <<: *goservice
     container_name: eap_router
-    image: feg_gateway_go
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_router -logtostderr=true -v=0
 
   feg_hello:
+    <<: *goservice
     container_name: feg_hello
-    image: feg_gateway_go
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/feg_hello -logtostderr=true -v=0
 
   health:
+    <<: *goservice
     container_name: health
-    image: feg_gateway_go
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
 
   magmad:
+    <<: *pyservice
     container_name: magmad
-    image: feg_gateway_python
     build:
       context: ../../../
       dockerfile: feg/gateway/docker/python/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ../../../.cache/test_certs:/var/opt/magma/certs
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: python3 -m magma.magmad.main
     extra_hosts: *hosts_anchor
 
   metricsd:
+    <<: *pyservice
     container_name: metricsd
-    image: feg_gateway_python
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: python3 -m magma.metricsd.main
 
   session_proxy:
+    <<: *goservice
     container_name: session_proxy
-    image: feg_gateway_go
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 
   swx_proxy:
+    <<: *goservice
     container_name: swx_proxy
-    image: feg_gateway_go
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
 
   s6a_proxy:
+    <<: *goservice
     container_name: s6a_proxy
-    image: feg_gateway_go
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
 
   redis:
+    <<: *pyservice
     container_name: redis
-    image: feg_gateway_python
-    logging: *logging_anchor
-    restart: always
-    network_mode: host
     command: >
       sh -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
              /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&

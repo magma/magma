@@ -13,6 +13,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
+	"magma/orc8r/cloud/go/identity"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -28,7 +29,7 @@ func (srv *EPSAuthServer) PurgeUE(ctx context.Context, purge *protos.PurgeUERequ
 		metrics.InvalidRequests.Inc()
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-	networkID, err := getNetworkID(ctx)
+	networkID, err := identity.GetClientNetworkID(ctx)
 	if err != nil {
 		glog.V(2).Infof("could not lookup networkID: %v", err.Error())
 		metrics.NetworkIDErrors.Inc()

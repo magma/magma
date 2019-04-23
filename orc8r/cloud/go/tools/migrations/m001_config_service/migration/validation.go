@@ -16,6 +16,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"magma/orc8r/cloud/go/sql_utils"
 	"magma/orc8r/cloud/go/tools/migrations"
 
 	"github.com/golang/glog"
@@ -26,7 +27,7 @@ type TypeAndKey struct {
 }
 
 func Validate(dbDriver string, dbSource string) error {
-	db, err := sql.Open(dbDriver, dbSource)
+	db, err := sql_utils.Open(dbDriver, dbSource)
 	if err != nil {
 		return fmt.Errorf("Could not open DB connection: %s", err)
 	}

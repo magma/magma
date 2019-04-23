@@ -13,10 +13,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/go-openapi/strfmt"
+
 	fegprotos "magma/feg/cloud/go/services/controller/protos"
 	"magma/orc8r/cloud/go/protos"
-
-	"github.com/go-openapi/strfmt"
 )
 
 // ConvertibleConfig for user-facing swagger models
@@ -49,6 +49,7 @@ func (m *NetworkFederationConfigs) ToServiceModel() (interface{}, error) {
 	protos.FillIn(m.Gy, magmadConfig.Gy)
 	protos.FillIn(m.Swx, magmadConfig.Swx)
 	protos.FillIn(m.Health, magmadConfig.Health)
+	protos.FillIn(m.EapAka, magmadConfig.EapAka)
 	if err := fegprotos.ValidateNetworkConfig(magmadConfig); err != nil {
 		return nil, err
 	}
@@ -104,12 +105,16 @@ func (m *NetworkFederationConfigs) FromServiceModel(magmadModel interface{}) err
 	if m.Health == nil {
 		m.Health = &NetworkFederationConfigsHealth{}
 	}
+	if m.EapAka == nil {
+		m.EapAka = &NetworkFederationConfigsEapAka{}
+	}
 	protos.FillIn(magmadConfig.S6A, m.S6a)
 	protos.FillIn(magmadConfig.Hss, m.Hss)
 	protos.FillIn(magmadConfig.Gx, m.Gx)
 	protos.FillIn(magmadConfig.Gy, m.Gy)
 	protos.FillIn(magmadConfig.Swx, m.Swx)
 	protos.FillIn(magmadConfig.Health, m.Health)
+	protos.FillIn(magmadConfig.EapAka, m.EapAka)
 	if m.ServedNetworkIds == nil {
 		m.ServedNetworkIds = []string{}
 	}
@@ -135,6 +140,7 @@ func (m *GatewayFegConfigs) ToServiceModel() (interface{}, error) {
 		Swx:              &fegprotos.SwxConfig{Server: &fegprotos.DiamClientConfig{}},
 		ServedNetworkIds: []string{},
 		Health:           &fegprotos.HealthConfig{},
+		EapAka:           &fegprotos.EapAkaConfig{},
 	}
 
 	protos.FillIn(m, magmadConfig)
@@ -144,6 +150,7 @@ func (m *GatewayFegConfigs) ToServiceModel() (interface{}, error) {
 	protos.FillIn(m.Gy, magmadConfig.Gy)
 	protos.FillIn(m.Swx, magmadConfig.Swx)
 	protos.FillIn(m.Health, magmadConfig.Health)
+	protos.FillIn(m.EapAka, magmadConfig.EapAka)
 	if err := fegprotos.ValidateGatewayConfig(magmadConfig); err != nil {
 		return nil, err
 	}
@@ -199,12 +206,16 @@ func (m *GatewayFegConfigs) FromServiceModel(magmadModel interface{}) error {
 	if m.Health == nil {
 		m.Health = &NetworkFederationConfigsHealth{}
 	}
+	if m.EapAka == nil {
+		m.EapAka = &NetworkFederationConfigsEapAka{}
+	}
 	protos.FillIn(magmadConfig.S6A, m.S6a)
 	protos.FillIn(magmadConfig.Hss, m.Hss)
 	protos.FillIn(magmadConfig.Gx, m.Gx)
 	protos.FillIn(magmadConfig.Gy, m.Gy)
 	protos.FillIn(magmadConfig.Swx, m.Swx)
 	protos.FillIn(magmadConfig.Health, m.Health)
+	protos.FillIn(magmadConfig.EapAka, m.EapAka)
 	if m.ServedNetworkIds == nil {
 		m.ServedNetworkIds = []string{}
 	}

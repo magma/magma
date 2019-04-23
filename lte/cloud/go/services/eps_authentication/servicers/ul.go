@@ -16,6 +16,7 @@ import (
 	cellular "magma/lte/cloud/go/services/cellular/protos"
 	"magma/lte/cloud/go/services/eps_authentication/crypto"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
+	"magma/orc8r/cloud/go/identity"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -40,7 +41,7 @@ func (srv *EPSAuthServer) UpdateLocation(ctx context.Context, ulr *protos.Update
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
-	networkID, err := getNetworkID(ctx)
+	networkID, err := identity.GetClientNetworkID(ctx)
 	if err != nil {
 		glog.V(2).Infof("could not lookup networkID: %v", err.Error())
 		metrics.NetworkIDErrors.Inc()

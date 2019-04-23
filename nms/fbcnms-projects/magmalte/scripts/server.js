@@ -26,7 +26,10 @@ logging.configure({
 });
 
 const {
-  middleware: fbcExpressMiddleware,
+  appMiddleware,
+  csrfMiddleware,
+  sessionMiddleware,
+  webpackSmartMiddleware,
 } = require('@fbcnms/express-middleware');
 const connectSession = require('connect-session-sequelize');
 const express = require('express');
@@ -34,7 +37,7 @@ const passport = require('passport');
 const fbcPassport = require('@fbcnms/auth/passport').default;
 const paths = require('fbcnms-webpack-config/paths');
 const session = require('express-session');
-const {sequelize, User} = require('@fbcnms/sequelize-models');
+const {sequelize} = require('@fbcnms/sequelize-models');
 const {runMigrations} = require('./runMigrations');
 const {access, configureAccess} = require('@fbcnms/auth/access');
 const {
@@ -55,28 +58,31 @@ const SessionStore = connectSession(session.Store);
 const sequelizeSessionStore = new SessionStore({db: sequelize});
 
 // FBC express initialization
+app.set('trust proxy', 1);
+app.use(appMiddleware());
 app.use(
-  fbcExpressMiddleware(app, {
+  sessionMiddleware({
     devMode: DEV_MODE,
-    distPath: paths.distPath,
     sessionStore: sequelizeSessionStore,
     sessionToken:
-      process.env.SESSION_TOKEN || 'ikbhlkrllnkjikrbkfelltujnnhdlcvb',
-    devWebpackConfig: require('../config/webpack.config.js'),
+      process.env.SESSION_TOKEN || 'fhcfvugnlkkgntihvlekctunhbbdbjiu',
   }),
 );
-
-// Initialize Passport (must be after session)
-fbcPassport.use({UserModel: User});
+app.use(csrfMiddleware());
+app.use(
+  webpackSmartMiddleware({
+    devMode: DEV_MODE,
+    devWebpackConfig: require('../config/webpack.config.js'),
+    distPath: paths.distPath,
+  }),
+);
 app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.session()); // must be after sessionMiddleware
+
+fbcPassport.use();
 
 // Restrict all endpoints to at least USER level
-app.use(
-  configureAccess({
-    loginUrl: '/nms/user/login',
-  }),
-);
+app.use(configureAccess({loginUrl: '/nms/user/login'}));
 app.use(access(USER));
 
 // Views

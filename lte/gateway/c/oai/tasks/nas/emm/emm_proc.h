@@ -117,6 +117,8 @@ typedef struct emm_attach_request_ies_s {
   nas_message_decode_status_t decode_status;
   MobileStationClassmark2
     *mob_st_clsMark2; /* Mobile station classmark2 provided by the UE */
+  voice_domain_preference_and_ue_usage_setting_t
+    *voicedomainpreferenceandueusagesetting;
 } emm_attach_request_ies_t;
 
 typedef struct emm_detach_request_ies_s {

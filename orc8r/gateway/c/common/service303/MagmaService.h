@@ -152,6 +152,19 @@ class MagmaService final : public Service303::Service {
         ReloadConfigResponse *response) override;
 
     /*
+     * Returns the  operational states of devices managed by this service.
+     *
+     * @param context: the grpc Server context
+     * @param request: Void
+     * @param response (out): a list of states
+     * @return grpc Status instance
+     */
+    Status GetOperationalStates(
+        ServerContext *context,
+        const Void *request,
+        GetOperationalStatesResponse *response) override;
+
+    /*
      * Simple setter function to set the new application health
      *
      * @param newState: the new application health you want to set

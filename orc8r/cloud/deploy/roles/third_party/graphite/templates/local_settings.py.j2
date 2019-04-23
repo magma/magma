@@ -147,16 +147,16 @@ WHISPER_DIR = '/data/graphite/storage/whisper'
 # The default is 'django.db.backends.sqlite3' with file 'graphite.db'
 # located in STORAGE_DIR
 #
-#DATABASES = {
-#    'default': {
-#        'NAME': '/opt/graphite/storage/graphite.db',
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'USER': '',
-#        'PASSWORD': '',
-#        'HOST': '',
-#        'PORT': ''
-#    }
-#}
+DATABASES = {
+    'default': {
+        'NAME': 'graphitedb',
+        'ENGINE': 'django.db.backends.mysql',
+        'USER': '{{ graphite_mysql_user }}',
+        'PASSWORD': '{{ graphite_mysql_password }}',
+        'HOST': 'localhost',
+        'PORT': '3306'
+    }
+}
 #
 
 

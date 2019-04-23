@@ -15,6 +15,7 @@ import (
 	"sync"
 
 	magmaerrors "magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/storage"
 )
 
 type changeType int
@@ -30,12 +31,12 @@ type change struct {
 	blob  Blob
 }
 
-type changesByID map[TypeAndKey]change
+type changesByID map[storage.TypeAndKey]change
 
 // transactionTable maps networkIDs to a map of updates
 type transactionTable map[tNetworkID]changesByID
 
-type blobsByID map[TypeAndKey]Blob
+type blobsByID map[storage.TypeAndKey]Blob
 
 // blobTable maps networkIDs to a map of Blobs
 type blobTable map[tNetworkID]blobsByID
@@ -119,8 +120,8 @@ func (store *memoryBlobStorage) ListKeys(networkID string, typeVal string) ([]st
 	return store.updateKeysWithLocalChangesUnsafe(networkID, typeVal, keySet)
 }
 
-func (store *memoryBlobStorage) Get(networkID string, id TypeAndKey) (Blob, error) {
-	multiRet, err := store.GetMany(networkID, []TypeAndKey{id})
+func (store *memoryBlobStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
+	multiRet, err := store.GetMany(networkID, []storage.TypeAndKey{id})
 	if err != nil {
 		return Blob{}, err
 	}
@@ -132,7 +133,7 @@ func (store *memoryBlobStorage) Get(networkID string, id TypeAndKey) (Blob, erro
 
 // GetMany grabs blobs corresponding to the ids from the shared map, then
 // updates the blobs with changes from the ongoing transaction
-func (store *memoryBlobStorage) GetMany(networkID string, ids []TypeAndKey) ([]Blob, error) {
+func (store *memoryBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error) {
 	store.RLock()
 	defer store.RUnlock()
 
@@ -182,7 +183,7 @@ func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) e
 	return nil
 }
 
-func (store *memoryBlobStorage) Delete(networkID string, ids []TypeAndKey) error {
+func (store *memoryBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	store.Lock()
 	defer store.Unlock()
 
@@ -276,7 +277,7 @@ func (store *memoryBlobStorage) updateKeysWithLocalChangesUnsafe(networkID strin
 // Given a networkID and a list of ids this function looks in the shared map
 // and returns a map of id:blob that match the given ids. Must be called with
 // read lock on the shared table.
-func (store *memoryBlobStorage) getManyFromShared(networkID string, ids []TypeAndKey) blobsByID {
+func (store *memoryBlobStorage) getManyFromShared(networkID string, ids []storage.TypeAndKey) blobsByID {
 	blobSet := blobsByID{}
 
 	master, ok := store.shared.table[networkID]
@@ -298,7 +299,7 @@ func (store *memoryBlobStorage) getManyFromShared(networkID string, ids []TypeAn
 // match the given ids and applies the changes onto the blobs. This function
 // returns a list of blobs from the modified map.
 // Must be called with read lock on change map.
-func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID string, idsToQuery []TypeAndKey, blobsByID blobsByID) ([]Blob, error) {
+func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID string, idsToQuery []storage.TypeAndKey, blobsByID blobsByID) ([]Blob, error) {
 	networkMap, existsInLocal := store.changes[networkID]
 	if !existsInLocal {
 		return blobsByID.toBlobList(), nil
@@ -335,12 +336,12 @@ func (table transactionTable) initializeNetworkTable(networkID tNetworkID) {
 	}
 }
 
-func (blob *Blob) toID() TypeAndKey {
-	return TypeAndKey{Type: blob.Type, Key: blob.Key}
+func (blob *Blob) toID() storage.TypeAndKey {
+	return storage.TypeAndKey{Type: blob.Type, Key: blob.Key}
 }
 
-func blobsToIDs(blobs []Blob) []TypeAndKey {
-	ids := []TypeAndKey{}
+func blobsToIDs(blobs []Blob) []storage.TypeAndKey {
+	ids := []storage.TypeAndKey{}
 	for _, blob := range blobs {
 		ids = append(ids, blob.toID())
 	}

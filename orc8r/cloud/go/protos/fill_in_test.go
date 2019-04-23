@@ -23,30 +23,39 @@ func TestOverlapFillIn(t *testing.T) {
 	}
 
 	type S_A struct {
-		S      string
-		I      int
-		E      Embeded1
-		hidden bool
-		S1     string
-		M      map[string]Embeded1
+		S          string
+		I          int
+		E          Embeded1
+		hidden     bool
+		S1         string
+		MixEdCaSe  string
+		mixEdCaSe1 string
+		MixEdCaSe2 string
+		M          map[string]Embeded1
 	}
 
 	type S_B struct {
-		I      int
-		S1     string
-		hidden bool
-		E      Embeded2
-		M      map[string]*Embeded1
+		I          int
+		S1         string
+		hidden     bool
+		E          Embeded2
+		MiXedCase  string
+		MiXedCase1 string
+		miXedCase2 string
+		M          map[string]*Embeded1
 	}
 
 	a := S_A{"str1", 1, Embeded1{1, 2, 3}, true, "str2",
+		"bla Bla bla", "bla1", "bla2",
 		map[string]Embeded1{}}
 	b := S_B{11, "str3", false, Embeded2{111, 222, 333},
+		"Foo bar", "foo1", "foo2",
 		map[string]*Embeded1{"key": &Embeded1{1, 2, 3}}}
 
 	count := protos.FillIn(&b, &a)
 	if count <= 0 || a.I != b.I || a.S1 != b.S1 || a.S != "str1" || b.I != 11 ||
 		a.hidden == b.hidden || a.E.C != b.E.C || a.E.a != 1 || a.E.B != 2 ||
+		a.MixEdCaSe != b.MiXedCase || a.mixEdCaSe1 == b.MiXedCase1 || a.MixEdCaSe2 == b.miXedCase2 ||
 		len(a.M) != 1 || a.M["key"].C != b.M["key"].C {
 
 		t.Fatalf("Invalid assignment:\n\tcount: %d\n\ta: %+#v\n\tb: %+#v\n",

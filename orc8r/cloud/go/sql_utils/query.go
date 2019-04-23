@@ -13,9 +13,22 @@ import (
 	"strings"
 )
 
-// GetPlaceholderArgList returns a string "($1, $2, ..., $numArgs)" for use
-// in a SELECT ... IN query or INSERT query.
+// GetPlaceholderArgList returns a string
+// "(${startIdx}, ${startIdx+1}, ..., ${startIdx+numArgs-1})"
 func GetPlaceholderArgList(startIdx int, numArgs int) string {
+	return GetPlaceholderArgListWithSuffix(startIdx, numArgs, "")
+}
+
+// GetPlaceholderArgListWithSuffix returns a string
+// "(${startIdx}, ${startIdx+1}, ..., ${startIdx+numArgs-1}, {suffix})"
+//
+// The suffix argument is typically used for a field that's being updated
+// in-place in an UPDATE query.
+func GetPlaceholderArgListWithSuffix(startIdx int, numArgs int, suffix string) string {
+	if numArgs == 0 {
+		return fmt.Sprintf("(%s)", suffix)
+	}
+
 	retBuilder := strings.Builder{}
 	retBuilder.WriteString("(")
 
@@ -25,6 +38,11 @@ func GetPlaceholderArgList(startIdx int, numArgs int) string {
 		if i < endIdx-1 {
 			retBuilder.WriteString(", ")
 		}
+	}
+
+	if suffix != "" {
+		retBuilder.WriteString(", ")
+		retBuilder.WriteString(suffix)
 	}
 	retBuilder.WriteString(")")
 	return retBuilder.String()

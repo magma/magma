@@ -559,6 +559,14 @@ int emm_proc_attach_request(
       ue_id);
     new_emm_ctx->is_dynamic = true;
     new_emm_ctx->emm_cause = EMM_CAUSE_SUCCESS;
+    // Store Voice Domain pref IE to be sent to MME APP
+    if (ies->voicedomainpreferenceandueusagesetting) {
+      memcpy(
+        &new_emm_ctx->volte_params.voice_domain_preference_and_ue_usage_setting,
+        ies->voicedomainpreferenceandueusagesetting,
+        sizeof(voice_domain_preference_and_ue_usage_setting_t));
+      new_emm_ctx->volte_params.presencemask  |= VOICE_DOMAIN_PREF_UE_USAGE_SETTING;
+   }
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
     _emm_proc_create_procedure_attach_request(ue_mm_context, ies);
@@ -2335,7 +2343,10 @@ void free_emm_attach_request_ies(emm_attach_request_ies_t **const ies)
   if ((*ies)->drx_parameter) {
     free_wrapper((void **) &(*ies)->drx_parameter);
   }
-  free_wrapper((void **) ies);
+  if ((*ies)->voicedomainpreferenceandueusagesetting) {
+    free_wrapper((void **) &(*ies)->voicedomainpreferenceandueusagesetting);
+  }
+ free_wrapper((void **) ies);
 }
 
 /*

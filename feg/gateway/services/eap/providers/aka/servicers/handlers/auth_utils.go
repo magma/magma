@@ -15,6 +15,7 @@ import (
 	swx_protos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	"magma/feg/gateway/services/swx_proxy"
 )
@@ -65,6 +66,8 @@ func createChallengeRequest(
 	identifier uint8,
 	resyncInfo []byte) (eap.Packet, error) {
 
+	metrics.SwxRequests.Inc()
+
 	ans, err := swx_proxy.Authenticate(
 		&swx_protos.AuthenticationRequest{
 			UserName:             string(lockedCtx.Imsi),
@@ -75,6 +78,7 @@ func createChallengeRequest(
 		})
 
 	if err != nil {
+		metrics.SwxFailures.Inc()
 		errCode := codes.Internal
 		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 			errCode = se.GRPCStatus().Code()

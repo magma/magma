@@ -368,6 +368,16 @@ int emm_recv_attach_request(
       &mob_stsn_clsMark2,
       sizeof(MobileStationClassmark2));
   }
+  //Voice domain preference should be sent to MME APP
+  if (msg->presencemask & ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT) {
+    params->voicedomainpreferenceandueusagesetting =
+      calloc(1, sizeof(voice_domain_preference_and_ue_usage_setting_t));
+    memcpy(
+      params->voicedomainpreferenceandueusagesetting,
+      &msg->voicedomainpreferenceandueusagesetting,
+      sizeof(voice_domain_preference_and_ue_usage_setting_t));
+  }
+
   /*
    * Execute the requested UE attach procedure
    */

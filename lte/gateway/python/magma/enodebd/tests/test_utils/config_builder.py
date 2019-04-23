@@ -19,18 +19,19 @@ class EnodebConfigBuilder:
     ) -> mconfigs_pb2.EnodebD:
         mconfig = mconfigs_pb2.EnodebD()
         mconfig.bandwidth_mhz = 20
-        mconfig.special_subframe_pattern = 7
         # This earfcndl is actually unused, remove later
         mconfig.earfcndl = 44490
         mconfig.log_level = 1
         mconfig.plmnid_list = "00101"
         mconfig.pci = 260
         mconfig.allow_enodeb_transmit = False
-        mconfig.subframe_assignment = 2
         mconfig.tac = 1
         if device is EnodebDeviceName.BAICELLS_QAFB:
             # fdd config
             mconfig.fdd_config.earfcndl = 9211
+        elif device is EnodebDeviceName.CAVIUM:
+            # fdd config
+            mconfig.fdd_config.earfcndl = 2405
         else:
             # tdd config
             mconfig.tdd_config.earfcndl = 39150

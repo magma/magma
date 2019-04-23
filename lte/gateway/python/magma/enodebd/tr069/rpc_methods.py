@@ -9,10 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from typing import Any
-from spyne.decorator import rpc
-from spyne.model.complex import Iterable, ComplexModelBase
-from spyne.model.primitive import String
-from spyne.service import ServiceBase
+
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import Tr069Error
@@ -20,6 +17,11 @@ from magma.enodebd.state_machines.acs_state_utils import \
     IncorrectDeviceHandlerError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
+from spyne.decorator import rpc
+from spyne.model.complex import ComplexModelBase, Iterable  # pylint: disable=unused-import
+from spyne.model.primitive import String  # pylint: disable=unused-import
+from spyne.service import ServiceBase
+
 from . import models
 
 # Allow methods without 'self' as first input. Required by spyne
@@ -165,15 +167,18 @@ class AutoConfigServer(ServiceBase):
 
     # CPE->ACS RPC calls
 
-    @rpc(_returns=Iterable(String),
-         _operation_name="GetRPCMethods")
-    def get_rpc_methods(ctx):
+    @rpc(models.GetRPCMethods,
+         _returns=models.GetRPCMethodsResponse,
+         _body_style="bare",
+         _operation_name="GetRPCMethods",
+         _out_message_name="GetRPCMethodsResponse")
+    def get_rpc_methods(ctx, request):
         """ GetRPCMethods RPC call is terminated here. No need to pass to higher
             layer """
         fill_response_header(ctx)
+        resp = AutoConfigServer._handle_tr069_message(ctx, request)
+        return resp
 
-        for rpc_method in RPC_METHODS:
-            yield '%s' % rpc_method
 
     @rpc(models.Inform,
          _returns=models.InformResponse,

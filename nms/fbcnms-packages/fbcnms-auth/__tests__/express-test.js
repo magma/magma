@@ -57,7 +57,7 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   const app = express();
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded());
-  fbcPassport.use({UserModel: User});
+  fbcPassport.use();
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(configureAccess({loginUrl: '/user/login'}));
@@ -68,7 +68,6 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   app.use(
     '/user',
     userMiddleware({
-      UserModel: User,
       loginFailureUrl: '/failure',
       loginSuccessUrl: '/success',
     }),

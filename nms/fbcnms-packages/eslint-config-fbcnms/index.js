@@ -3,9 +3,9 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  * @noformat
  */
-'use strict';
 
 const fbStrict = require('eslint-config-fb-strict');
 
@@ -56,6 +56,7 @@ module.exports = Object.assign({}, fbStrict, {
   },
   plugins: [
     'flowtype',
+    'header',
     'import',
     'jest',
     'lint',

@@ -13,35 +13,50 @@
 
 import argparse
 import glob
-import os
-import shutil
 import subprocess
-import yaml
+from collections import namedtuple
 from typing import List
 
-BUILD_CONTEXT = "/tmp/magma_orc8r_build"
-MAGMA_ROOT = "../../../."
-DEFAULT_MODULES_FILE = os.path.join(MAGMA_ROOT, "modules.yml")
-FB_MODULES_FILE = os.path.join(MAGMA_ROOT, "fb/config/modules.yml")
+import os
+import shutil
+import yaml
+
+BUILD_CONTEXT = '/tmp/magma_orc8r_build'
+SRC_ROOT = 'src'
+HOST_MAGMA_ROOT = '../../../.'
+DEFAULT_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'modules.yml')
+FB_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'fb/config/modules.yml')
+
+# Root directory where external modules will be mounted
+GUEST_MODULE_ROOT = 'modules'
+GUEST_MAGMA_ROOT = 'magma'
+
+MagmaModule = namedtuple('MagmaModule', ['is_external', 'host_path', 'name'])
 
 
-def _get_module_dirs() -> List[str]:
-    """ Read the modules config file, and returns the list of module dirs """
-    filename = os.environ.get("MAGMA_MODULES_FILE", DEFAULT_MODULES_FILE)
-    # Use the FB modules file if the file exists
-    if os.path.isfile(FB_MODULES_FILE):
-        filename = FB_MODULES_FILE
-    module_dirs = []
-    with open(filename) as file:
-        conf = yaml.safe_load(file)
-        for module in conf["native_modules"]:
-            module_dirs.append(os.path.join(MAGMA_ROOT, module))
-        for ext_modules in conf["external_modules"]:
-            # NOTE: the external modules need to be relative to
-            # the orc8r/cloud directory
-            module_dirs.append(os.path.join(MAGMA_ROOT, "orc8r", "cloud",
-                                            ext_modules["host_path"]))
-    return module_dirs
+def main() -> None:
+    args = _parse_args()
+    if args.mount:
+        # Mount the source code and run a container with bash shell
+        _run_docker(['run', '--rm'] + _get_mount_volumes() + ['test', 'bash'])
+    elif args.tests:
+        # Run unit tests
+        _create_build_context()
+        _run_docker(['build', 'test'])
+        _run_docker(['run', '--rm', 'test', 'make test'])
+    else:
+        # Build all containers
+        _create_build_context()
+        _run_docker(['build'])
+
+
+def _run_docker(cmd: List[str]) -> None:
+    """ Run the required docker-compose command """
+    print("Running 'docker-compose %s'..." % " ".join(cmd))
+    try:
+        subprocess.run(['docker-compose'] + cmd, check=True)
+    except subprocess.CalledProcessError as err:
+        exit(err.returncode)
 
 
 def _create_build_context() -> None:
@@ -52,35 +67,40 @@ def _create_build_context() -> None:
 
     print("Creating build context in '%s'..." % BUILD_CONTEXT)
     modules = []
-    for module_dir in _get_module_dirs():
-        module = os.path.basename(module_dir)
-        _copy_module(module, module_dir)
-        modules.append(module)
-    print("Context created for modules: %s" % ", ".join(modules))
+    for module in _get_modules():
+        _copy_module(module)
+        modules.append(module.name)
+    print('Context created for modules: %s' % ', '.join(modules))
 
 
-def _copy_module(module: str, src: str) -> None:
+def _copy_module(module: MagmaModule) -> None:
     """ Copy the module dir into the build context  """
-    if not os.path.isdir(src):
-        print("ERROR: '%s' is not a directory!" % src)
-        exit(1)
+    module_dest = _get_module_destination(module)
+    dst = os.path.join(BUILD_CONTEXT, module_dest)
 
-    # Copy the module to the magma directory
-    dst = os.path.join(BUILD_CONTEXT, "magma", module)
-    shutil.copytree(os.path.join(src, "cloud"), os.path.join(dst, "cloud"))
-    # Copy the tools directory if it exists for the module
-    if os.path.isdir(os.path.join(src, "tools")):
-        shutil.copytree(os.path.join(src, "tools"), os.path.join(dst, "tools"))
-
-    # Copy the config to the configs directory
+    # Copy relevant parts of the module to the build context
     shutil.copytree(
-        os.path.join(src, "cloud", "configs"),
-        os.path.join(BUILD_CONTEXT, "configs", module))
+        os.path.join(module.host_path, 'cloud'),
+        os.path.join(dst, 'cloud'),
+    )
+
+    if os.path.isdir(os.path.join(module.host_path, 'tools')):
+        shutil.copytree(
+            os.path.join(module.host_path, 'tools'),
+            os.path.join(dst, 'tools'),
+        )
+
+    shutil.copytree(
+        os.path.join(module.host_path, 'cloud', 'configs'),
+        os.path.join(BUILD_CONTEXT, 'configs', module.name),
+    )
 
     # Copy the go.mod file for caching the go downloads
-    for filename in glob.iglob(dst + "/**/go.mod", recursive=True):
+    # Use module_dest to preserve relative paths between go modules
+    for filename in glob.iglob(dst + '/**/go.mod', recursive=True):
         gomod = filename.replace(
-            dst, os.path.join(BUILD_CONTEXT, "gomod", module))
+            dst, os.path.join(BUILD_CONTEXT, 'gomod', module_dest),
+        )
         os.makedirs(os.path.dirname(gomod))
         shutil.copyfile(filename, gomod)
 
@@ -88,47 +108,77 @@ def _copy_module(module: str, src: str) -> None:
 def _get_mount_volumes() -> List[str]:
     """ Return the volumes argument for docker-compose commands """
     volumes = []
-    cwd = os.getcwd()
-    for module_dir in _get_module_dirs():
-        module = os.path.basename(module_dir)
-        volumes.extend(["-v", "%s/%s:/magma/%s" % (cwd, module_dir, module)])
+    for module in _get_modules():
+        module_mount_path = _get_module_destination(module)
+        dst = os.path.join('/', module_mount_path)
+        volumes.extend(['-v', '%s:%s' % (module.host_path, dst)])
     return volumes
 
 
-def _run_docker(cmd: List[str]) -> None:
-    """ Run the required docker-compose command """
-    print("Running 'docker-compose %s'..." % " ".join(cmd))
-    try:
-        subprocess.run(["docker-compose"] + cmd, check=True)
-    except subprocess.CalledProcessError as err:
-        exit(err.returncode)
+def _get_modules() -> List[MagmaModule]:
+    """
+    Read the modules config file and return all modules specified.
+    """
+    filename = os.environ.get('MAGMA_MODULES_FILE', DEFAULT_MODULES_FILE)
+    # Use the FB modules file if the file exists
+    if os.path.isfile(FB_MODULES_FILE):
+        filename = FB_MODULES_FILE
+    modules = []
+    with open(filename) as file:
+        conf = yaml.safe_load(file)
+        for module in conf['native_modules']:
+            mod_path = os.path.abspath(os.path.join(HOST_MAGMA_ROOT, module))
+            modules.append(
+                MagmaModule(
+                    is_external=False,
+                    host_path=mod_path,
+                    name=os.path.basename(mod_path),
+                ),
+            )
+        for ext_module in conf['external_modules']:
+            # NOTE: host_path for external modules is relative to the
+            # $MAGMA_ROOT/orc8r/cloud directory on the host for legacy reasons.
+            module_abspath = os.path.abspath(
+                os.path.join(HOST_MAGMA_ROOT, 'orc8r', 'cloud',
+                             ext_module['host_path']),
+            )
+            modules.append(
+                MagmaModule(
+                    is_external=True,
+                    host_path=module_abspath,
+                    name=os.path.basename(module_abspath),
+                ),
+            )
+    return modules
+
+
+def _get_module_destination(module: MagmaModule) -> str:
+    """
+    Given a path to a module on the host, return the destination to copy or
+    mount the module to in the build context or container.
+    """
+    # The parent directory of the module should be the same on the host and
+    # the guest for external modules
+    if module.is_external:
+        module_parent_dir = os.path.basename(
+            os.path.abspath(os.path.join(module.host_path, os.path.pardir))
+        )
+        return os.path.join(SRC_ROOT, GUEST_MODULE_ROOT,
+                            module_parent_dir, module.name)
+    # We mount internal modules straight to MAGMA_ROOT as-is
+    else:
+        return os.path.join(SRC_ROOT, GUEST_MAGMA_ROOT, module.name)
 
 
 def _parse_args() -> argparse.Namespace:
     """ Parse the command line args """
-    parser = argparse.ArgumentParser(description="Orc8r build tool")
-    parser.add_argument("--tests", "-t", action="store_true",
+    parser = argparse.ArgumentParser(description='Orc8r build tool')
+    parser.add_argument('--tests', '-t', action='store_true',
                         help="Run unit tests")
-    parser.add_argument("--mount", "-m", action="store_true",
-                        help="Mount the source code and create a bash shell")
+    parser.add_argument('--mount', '-m', action='store_true',
+                        help='Mount the source code and create a bash shell')
     args = parser.parse_args()
     return args
-
-
-def main() -> None:
-    args = _parse_args()
-    if args.mount:
-        # Mount the source code and run a contrainer with bash shell
-        _run_docker(["run", "--rm"] + _get_mount_volumes() + ["test", "bash"])
-    elif args.tests:
-        # Run unit tests
-        _create_build_context()
-        _run_docker(["build", "test"])
-        _run_docker(["run", "--rm", "test", "make test"])
-    else:
-        # Build all containers
-        _create_build_context()
-        _run_docker(["build"])
 
 
 if __name__ == '__main__':

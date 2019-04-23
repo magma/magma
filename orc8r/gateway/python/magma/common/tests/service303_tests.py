@@ -34,11 +34,17 @@ class Service303Tests(TestCase):
         # was manually set
         asyncio.set_event_loop(None)
 
-    def test_service_run(self):
+    @mock.patch('magma.common.service_registry.ServiceRegistry.get_proxy_config')
+    def test_service_run(self, mock_get_proxy_config):
         """
         Test if the service starts and stops gracefully.
         """
         self.assertEqual(self._service.state, ServiceInfo.STARTING)
+
+        mock_get_proxy_config.return_value = {
+            'cloud_address': '127.0.0.1',
+            'proxy_cloud_connections': True
+        }
 
         # Start the service and pause the loop
         self._service.loop.stop()

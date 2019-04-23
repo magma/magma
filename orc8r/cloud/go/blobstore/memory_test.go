@@ -14,6 +14,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -38,14 +39,14 @@ func TestMemoryBlobStorageStorage_CreateOrUpdate(t *testing.T) {
 	// create
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
 
-	blob, err := store.Get(network1, blobstore.TypeAndKey{Type: type1, Key: key1})
+	blob, err := store.Get(network1, storage.TypeAndKey{Type: type1, Key: key1})
 	assert.Equal(t, err, nil)
 	assert.True(t, blobEqual(blob1, blob))
 	version1 := blob.Version
 
 	// update
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob2}))
-	blob, err = store.Get(network1, blobstore.TypeAndKey{Type: type1, Key: key1})
+	blob, err = store.Get(network1, storage.TypeAndKey{Type: type1, Key: key1})
 	assert.Equal(t, err, nil)
 	assert.True(t, blobEqual(blob2, blob))
 	version2 := blob.Version
@@ -66,14 +67,14 @@ func TestMemoryBlobStorage_Rollback(t *testing.T) {
 	// create
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
 
-	_, err = store.Get(network1, blobstore.TypeAndKey{Type: type1, Key: key1})
+	_, err = store.Get(network1, storage.TypeAndKey{Type: type1, Key: key1})
 	assert.Equal(t, err, nil)
 
 	store.Rollback()
 
 	store, err = factory.StartTransaction()
 	assert.NoError(t, err)
-	_, err = store.Get(network1, blobstore.TypeAndKey{type1, key1})
+	_, err = store.Get(network1, storage.TypeAndKey{type1, key1})
 	assert.Equal(t, errors.ErrNotFound, err)
 }
 
@@ -83,7 +84,7 @@ func TestMemoryBlobStorage_Commit(t *testing.T) {
 	key1 := "key1"
 	blob1 := blobstore.Blob{Type: type1, Key: key1, Value: []byte("value1")}
 	network1 := "network1"
-	id1 := blobstore.TypeAndKey{type1, key1}
+	id1 := storage.TypeAndKey{type1, key1}
 
 	store, err := factory.StartTransaction()
 	assert.NoError(t, err)
@@ -119,7 +120,7 @@ func TestMemoryBlobStorage_GetMany(t *testing.T) {
 	blob1 := blobstore.Blob{Type: type1, Key: key1, Value: []byte("value1")}
 	blob2 := blobstore.Blob{Type: type2, Key: key2, Value: []byte("value2")}
 	network1 := "network1"
-	ids := []blobstore.TypeAndKey{
+	ids := []storage.TypeAndKey{
 		{Type: blob1.Type, Key: blob1.Key},
 		{Type: blob2.Type, Key: blob2.Key},
 	}
@@ -138,7 +139,7 @@ func TestMemoryBlobStorage_GetMany(t *testing.T) {
 	assert.True(t, blobEqual(blobs[0], blob2) || blobEqual(blobs[1], blob2))
 
 	// try to look up a non existent blob, this should not fail
-	ids = append(ids, blobstore.TypeAndKey{Type: "type3", Key: "key3"})
+	ids = append(ids, storage.TypeAndKey{Type: "type3", Key: "key3"})
 	blobs, err = store.GetMany(network1, ids)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(blobs))
@@ -150,7 +151,7 @@ func TestMemoryBlobStorage_Delete(t *testing.T) {
 	key1 := "key1"
 	blob1 := blobstore.Blob{Type: type1, Key: key1, Value: []byte("value1")}
 	network1 := "network1"
-	ids := []blobstore.TypeAndKey{
+	ids := []storage.TypeAndKey{
 		{Type: blob1.Type, Key: blob1.Key},
 	}
 
@@ -205,7 +206,7 @@ func TestMemoryBlobStorage_ListKeys(t *testing.T) {
 	assert.Equal(t, []string{key1, key2}, keys)
 
 	// Test locally deleted changes
-	store.Delete(network1, []blobstore.TypeAndKey{{type1, key1}})
+	store.Delete(network1, []storage.TypeAndKey{{type1, key1}})
 	keys, err = store.ListKeys(network1, type1)
 	assert.Equal(t, []string{key2}, keys)
 }

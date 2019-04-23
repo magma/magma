@@ -56,7 +56,7 @@ const RANGE_VALUES: {[TimeRange]: RangeValue} = {
     unit: 'day',
   },
   '30_days': {
-    days: 14,
+    days: 30,
     step: '8h',
     unit: 'day',
   },

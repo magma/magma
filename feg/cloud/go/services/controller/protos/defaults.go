@@ -72,6 +72,16 @@ var defaultConfig = Config{
 			Realm:            "magma.com",
 		},
 		VerifyAuthorization: false,
+		CacheTTLSeconds:     10800,
+	},
+	EapAka: &EapAkaConfig{
+		Timeout: &EapAkaConfig_Timeouts{
+			ChallengeMs:            20000,
+			ErrorNotificationMs:    10000,
+			SessionMs:              43200000,
+			SessionAuthenticatedMs: 5000,
+		},
+		PlmnIds: []string{},
 	},
 	ServedNetworkIds: []string{},
 	Health: &HealthConfig{
