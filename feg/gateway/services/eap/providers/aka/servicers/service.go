@@ -23,6 +23,7 @@ import (
 
 type UserCtx struct {
 	mu         sync.Mutex
+	created    time.Time
 	state      aka.AkaState
 	stateTime  time.Time
 	locked     bool
@@ -250,6 +251,16 @@ func (lockedCtx *UserCtx) SetState(s aka.AkaState) {
 	lockedCtx.state, lockedCtx.stateTime = s, time.Now()
 }
 
+// CreatedTime returns time of CTX creation
+func (lockedCtx *UserCtx) CreatedTime() time.Time {
+	return lockedCtx.created
+}
+
+// Lifetime returns duration in seconds of the CTX existence
+func (lockedCtx *UserCtx) Lifetime() float64 {
+	return time.Since(lockedCtx.created).Seconds()
+}
+
 // InitSession either creates new or updates existing session & user ctx,
 // it session ID into the CTX and initializes session map as well as users map
 // Returns Locked User Ctx
@@ -263,7 +274,8 @@ func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserCont
 	newSession.CleanupTimer = time.AfterFunc(s.SessionTimeout(), func() {
 		sessionTimeoutCleanup(s, sessionId, newSession)
 	})
-	uc := &UserCtx{Imsi: imsi, state: aka.StateCreated, stateTime: time.Now(), locked: true, SessionId: sessionId}
+	t := time.Now()
+	uc := &UserCtx{created: t, Imsi: imsi, state: aka.StateCreated, stateTime: t, locked: true, SessionId: sessionId}
 	uc.mu.Lock()
 
 	s.rwl.Lock()

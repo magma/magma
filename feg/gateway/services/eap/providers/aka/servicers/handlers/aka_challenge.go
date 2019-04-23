@@ -13,6 +13,7 @@ import (
 	"io"
 	"log"
 	"reflect"
+	"time"
 
 	"google.golang.org/grpc/codes"
 
@@ -30,9 +31,15 @@ func init() {
 // challengeResponse implements handler for AKA Challenge Response,
 // see https://tools.ietf.org/html/rfc4187#page-49 for details
 func challengeResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
-	var success bool
+	var (
+		success    bool
+		ctxCreated time.Time
+	)
 	metrics.ChallengeRequests.Inc()
 	defer func() {
+		if !ctxCreated.IsZero() {
+			metrics.AuthLatency.Observe(time.Since(ctxCreated).Seconds())
+		}
 		if !success {
 			metrics.FailedChallengeRequests.Inc()
 		}
@@ -56,6 +63,7 @@ func challengeResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.P
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
 			"No IMSI '%s' found for SessionID: %s", imsi, ctx.SessionId)
 	}
+	ctxCreated = uc.CreatedTime()
 
 	state, _ := uc.State()
 	if state != aka.StateChallenge {
