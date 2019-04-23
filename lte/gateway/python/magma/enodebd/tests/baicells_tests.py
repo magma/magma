@@ -187,6 +187,68 @@ class BaicellsHandlerTests(TestCase):
                         'receiving a RebootResponse')
 
     @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
+    def test_missing_param_during_provisioning(self, _mock_func) -> None:
+        """
+        Test the scenario where:
+        - enodebd is configuring the eNodeB
+        - eNB does not send all parameters due to bug
+        """
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder \
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = Tr069MessageBuilder.get_inform()
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # Send an empty http request to kick off the rest of provisioning
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for an optional parameter, three times
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for read-only params
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_read_only_param_values_response()
+
+        # Send back some typical values
+        # And then SM should request regular parameter values
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+
+        # Send back typical values for the regular parameters
+        # Pretend that here the NumPLMNs was not sent because of a Baicells bug
+        req = Tr069MessageBuilder.\
+            get_regular_param_values_response(admin_state=False,
+                                              earfcndl=39150,
+                                              exclude_num_plmns=True)
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # The state machine will fail and go into an error state.
+        # It will send an empty http response to end the session.
+        # Regularly, the SM should be using info on the number
+        # of PLMNs to figure out which object parameter values
+        # to fetch.
+        self.assertTrue(isinstance(resp, models.DummyInput),
+                        'State machine should be ending session')
+
+    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
     def test_provision_without_invasive_changes(self, _mock_func) -> None:
         """
         Test the scenario where:
