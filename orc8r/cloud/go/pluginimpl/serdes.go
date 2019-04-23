@@ -12,7 +12,7 @@ import (
 	"reflect"
 
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/inventory"
+	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 )
@@ -35,7 +35,7 @@ import (
 type GatewayRecordSerde struct{}
 
 func (*GatewayRecordSerde) GetDomain() string {
-	return inventory.SerdeDomain
+	return device.SerdeDomain
 }
 
 func (*GatewayRecordSerde) GetType() string {
