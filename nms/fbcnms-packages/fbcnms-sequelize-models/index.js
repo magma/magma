@@ -8,6 +8,7 @@
  * @format
  */
 
+import FeatureFlagModel from './models/featureflag';
 import OrganizationModel from './models/organization';
 import UserModel from './models/user';
 import Sequelize from 'sequelize';
@@ -23,6 +24,7 @@ export const sequelize = new Sequelize(
 );
 
 const db = {
+  FeatureFlag: FeatureFlagModel(sequelize, Sequelize),
   Organization: OrganizationModel(sequelize, Sequelize),
   User: UserModel(sequelize, Sequelize),
 };
@@ -33,3 +35,4 @@ Object.keys(db).forEach(
 
 export const Organization = db.Organization;
 export const User = db.User;
+export const FeatureFlag = db.FeatureFlag;
