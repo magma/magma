@@ -40,9 +40,9 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   traffic_flow_template_t *ul_tft,
   traffic_flow_template_t *dl_tft,
   bearer_qos_t *eps_bearer_qos);
-uint32_t pgw_handle_deactivate_ded_bearer_rsp(
-  const itti_s5_deactivate_dedicated_bearer_rsp_t *const deact_ded_bearer_rsp);
-uint32_t pgw_handle_deactivate_ded_bearer_req(
+uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
+  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
+uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   Imsi_t *imsi,
   uint32_t no_of_bearers,
   ebi_t ebi[]);

@@ -278,9 +278,9 @@ void mme_app_handle_erab_rel_cmd(
 void mme_app_handle_e_rab_rel_rsp(
   itti_s1ap_e_rab_rel_rsp_t *const e_rab_rel_rsp);
 
-void mme_app_handle_pcrf_ded_bearer_deactv_req(
-  itti_s11_pcrf_ded_bearer_deactv_request_t
-  *const pcrf_bearer_deactv_req_p);
+void mme_app_handle_nw_init_bearer_deactv_req(
+  itti_s11_nw_init_deactv_bearer_request_t
+  *const nw_init_bearer_deactv_req_p);
 
 void mme_app_handle_delete_dedicated_bearer_rej(
   itti_mme_app_delete_dedicated_bearer_rej_t

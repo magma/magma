@@ -68,9 +68,9 @@ static void *pgw_intertask_interface(void *args_p)
           &received_message_p->ittiMsg.s5_nw_init_actv_bearer_response);
       } break;
 
-      case S5_DEACTIVATE_DEDICATED_BEARER_RSP: {
-        pgw_handle_deactivate_ded_bearer_rsp(
-          &received_message_p->ittiMsg.s5_deactivate_dedicated_bearer_response);
+      case S5_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
+        pgw_handle_nw_init_deactivate_bearer_rsp(
+          &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_response);
       } break;
 
       case TERMINATE_MESSAGE: {

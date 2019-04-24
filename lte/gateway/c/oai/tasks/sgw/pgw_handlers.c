@@ -539,7 +539,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 
 //------------------------------------------------------------------------------
 
-uint32_t pgw_handle_deactivate_ded_bearer_req(
+uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   Imsi_t *imsi,
   uint32_t no_of_bearers,
   ebi_t ebi[])
@@ -552,28 +552,29 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
   hash_node_t *node = NULL;
-  itti_s5_deactivate_dedicated_bearer_req_t *itti_s5_deactv_ded_bearer_req = NULL;
+  itti_s5_nw_init_deactv_bearer_request_t *itti_s5_deactv_ded_bearer_req = NULL;
 
   for (i = 0; i < no_of_bearers; i++) {
-    OAILOG_INFO(LOG_PGW_APP, "Received deactivate dedicated bearer req for bearer %d\n",
+    OAILOG_INFO(LOG_PGW_APP, "Recvd deactv dedicated bearer req for %d\n",
     ebi[i]);
   }
   message_p =
-    itti_alloc_new_message(TASK_SPGW_APP, S5_DEACTIVATE_DEDICATED_BEARER_REQ);
+    itti_alloc_new_message(TASK_SPGW_APP,
+      S5_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   if (message_p == NULL) {
     OAILOG_INFO(
     LOG_PGW_APP,
-    "itti_alloc_new_message failed for S5_DEACTIVATE_DEDICATED_BEARER_REQ\n");
+    "itti_alloc_new_message failed for S5_NW_INITIATED_DEACTIV_BEARER_REQ\n");
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
   itti_s5_deactv_ded_bearer_req =
-    &message_p->ittiMsg.s5_deactivate_dedicated_bearer_request;
+    &message_p->ittiMsg.s5_nw_init_deactv_bearer_request;
   //Send ITTI message to SGW
   memset(
     itti_s5_deactv_ded_bearer_req,
     0,
-    sizeof(itti_s5_deactivate_dedicated_bearer_req_t));
+    sizeof(itti_s5_nw_init_deactv_bearer_request_t));
   itti_s5_deactv_ded_bearer_req->delete_default_bearer = false;
   itti_s5_deactv_ded_bearer_req->no_of_bearers = no_of_bearers;
   memcpy(
@@ -582,7 +583,7 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
     sizeof(ebi_t));
   hashtblP = sgw_app.s11_bearer_context_information_hashtable;
 
-  //Check if the EBI received == LBI to know if default bearer has to be deactivated
+  //Check if EBI recvd == LBI to know if default bearer has to be deactivated
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
@@ -594,14 +595,14 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
       hashtable_ts_get(
         hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
-        if (!strcmp((const char *)spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+        if (!strcmp((const char *)spgw_ctxt_p->
+          sgw_eps_bearer_context_information.imsi.digit,
           (const char *)imsi->digit)) {
           itti_s5_deactv_ded_bearer_req->s11_mme_teid =
             spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-          OAILOG_INFO(LOG_PGW_APP, "spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11 = %d\n", spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11);
           for (i = 0; i < no_of_bearers; i++) {
-            if (ebi[i] == spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
-              default_bearer) {
+            if (ebi[i] == spgw_ctxt_p->sgw_eps_bearer_context_information.
+              pdn_connection.default_bearer) {
               itti_s5_deactv_ded_bearer_req->delete_default_bearer = true;
               break;
             }
@@ -612,8 +613,7 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
     }
     i++;
   }
-  OAILOG_DEBUG(LOG_SPGW_APP, "pgw_handle_deactivate_ded_bearer_req = s11_mme_teid (%x) (%d) \n",itti_s5_deactv_ded_bearer_req->s11_mme_teid, itti_s5_deactv_ded_bearer_req->s11_mme_teid);
-  OAILOG_INFO(LOG_PGW_APP, "Sending S5_DEACTIVATE_DEDICATED_BEARER_REQ to SGW ,"
+  OAILOG_INFO(LOG_PGW_APP, "Sending S5_NW_INITIATED_DEACTV_BEARER_REQ to SGW"
     "delete_default_bearer %d\n",
     itti_s5_deactv_ded_bearer_req->delete_default_bearer);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
@@ -622,14 +622,8 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
 }
 //------------------------------------------------------------------------------
 
-uint32_t pgw_handle_activate_ded_bearer_rsp(
-  const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp)
-=======
-//------------------------------------------------------------------------------
-
 uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp)
->>>>>>> dbbffc8d7a5ac7fc23a371dfefe0b9326829db3a
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
@@ -645,7 +639,7 @@ uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   strcpy((char*)imsi.digit,"001010000000001");
   imsi.length = 15;
   uint32_t ret = RETURNerror;
-  ret = pgw_handle_deactivate_ded_bearer_req(&imsi, 1, ebi);
+  ret = pgw_handle_nw_initiated_bearer_deactv_req(&imsi, 1, ebi);
   if (ret != RETURNok) {
     OAILOG_DEBUG(
       LOG_PGW_APP, "Failed to Handle deactivate ded bearer request message\n");
@@ -660,8 +654,8 @@ uint32_t pgw_handle_nw_init_activate_bearer_rsp(
 
 //------------------------------------------------------------------------------
 
-uint32_t pgw_handle_deactivate_ded_bearer_rsp(
-  const itti_s5_deactivate_dedicated_bearer_rsp_t *const deact_ded_bearer_rsp)
+uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
+  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp)
 {
   uint32_t rc = RETURNok;
   uint32_t i = 0;

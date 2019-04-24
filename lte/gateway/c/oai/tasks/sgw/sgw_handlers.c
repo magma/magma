@@ -1290,7 +1290,7 @@ int sgw_handle_modify_bearer_request(
     qos.mbr.br_dl = 400;
     memset(&tft,0,sizeof(traffic_flow_template_t));
     sleep(5);
-    pgw_handle_dedicated_bearer_actv_req(&imsi,&ue_ip,&tft,&qos);
+    pgw_handle_nw_initiated_bearer_actv_req(&imsi,&ue_ip,&tft,&tft,&qos);
 #endif
       }
     }
@@ -2447,8 +2447,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
 /*
  * Handle PCRF initiated Dedicated Bearer Deactivation from PGW
  */
-int sgw_handle_pcrf_dedicated_bearer_deactv_req(
-  const itti_s5_deactivate_dedicated_bearer_req_t
+int sgw_handle_nw_initiated_deactv_bearer_req(
+  const itti_s5_nw_init_deactv_bearer_request_t
   *const itti_s5_deactiv_ded_bearer_req)
 {
   MessageDef *message_p = NULL;
@@ -2462,10 +2462,11 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_req(
 
   //Send ITTI message to MME APP
   message_p =
-    itti_alloc_new_message(TASK_SPGW_APP, S11_PCRF_BEARER_DEACTV_REQUEST);
+    itti_alloc_new_message(TASK_SPGW_APP,
+      S5_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   if (message_p) {
-    itti_s11_pcrf_ded_bearer_deactv_request_t *s11_pcrf_bearer_deactv_request =
-      &message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_request;
+    itti_s11_nw_init_deactv_bearer_request_t *s11_pcrf_bearer_deactv_request =
+      &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
     s11_pcrf_bearer_deactv_request->no_of_bearers =
       itti_s5_deactiv_ded_bearer_req->no_of_bearers;
     memcpy(
@@ -2487,7 +2488,7 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_req(
   } else {
     OAILOG_ERROR(
       LOG_SPGW_APP,
-      "itti_alloc_new_message failed for S11_PCRF_BEARER_DEACTV_REQUEST\n");
+      "itti_alloc_new_message failed for S5_NW_INITIATED_DEACTV_BEARER_REQ\n");
     rc = RETURNerror;
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
@@ -2498,8 +2499,8 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_req(
  * Handle PCRF initiated Dedicated Bearer Dectivation Rsp from MME
  */
 
-int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
-  const itti_s11_pcrf_ded_bearer_deactv_rsp_t
+int sgw_handle_nw_initiated_deactv_bearer_rsp(
+  const itti_s11_nw_init_deactv_bearer_rsp_t
  *const s11_pcrf_ded_bearer_deactv_rsp)
 {
   uint32_t rc = RETURNok;
@@ -2622,15 +2623,16 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
   //Send DEACTIVATE_DEDICATED_BEARER_RSP to PGW
   MessageDef *message_p = NULL;
   message_p =
-    itti_alloc_new_message(TASK_PGW_APP, S5_DEACTIVATE_DEDICATED_BEARER_RSP);
+    itti_alloc_new_message(TASK_PGW_APP,
+      S5_NW_INITIATED_DEACTIVATE_BEARER_RESP);
   if (message_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "itti_alloc_new_message failed for S5_DEACTIVATE_DEDICATED_BEARER_RSP\n");
+      "itti_alloc_new_message failed for S5_NW_INITIATED_DEACTV_BEARER_RESP\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  itti_s5_deactivate_dedicated_bearer_rsp_t *deact_ded_bearer_rsp =
-    &message_p->ittiMsg.s5_deactivate_dedicated_bearer_response;
+  itti_s5_nw_init_deactv_bearer_rsp_t *deact_ded_bearer_rsp =
+    &message_p->ittiMsg.s5_nw_init_deactv_bearer_response;
   deact_ded_bearer_rsp->no_of_bearers =
     s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.num_bearer_context;
 
@@ -2644,7 +2646,7 @@ int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
 
     OAILOG_INFO(
       LOG_MME_APP,
-      "Sending S5_DEACTIVATE_DEDICATED_BEARER_RSP to PGW with EBI %d\n",
+      "Sending S5_NW_INITIATED_DEACTIVATE_BEARER_RESP to PGW with EBI %d\n",
       deact_ded_bearer_rsp->ebi[i]);
   }
   rc = itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);

@@ -335,7 +335,8 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       pid = RETURNerror;
     }
   }
-  s_gw_teid_s11_s4 = PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
+  s_gw_teid_s11_s4 =
+    PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
     ->pdn_contexts[pid]->s_gw_teid_s11_s4;
 
   //If bid == 0,default bearer is deleted
@@ -460,10 +461,12 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
       }
 
       teid_t s_gw_teid_s11_s4 =
-        PARENT_STRUCT(esm_ebr_timer_data->ctx, struct ue_mm_context_s, emm_context)
-      ->pdn_contexts[pid]->s_gw_teid_s11_s4;
+        PARENT_STRUCT(esm_ebr_timer_data->ctx,
+          struct ue_mm_context_s, emm_context)
+        ->pdn_contexts[pid]->s_gw_teid_s11_s4;
 
-      if (PARENT_STRUCT(esm_ebr_timer_data->ctx, struct ue_mm_context_s, emm_context)
+      if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
+        struct ue_mm_context_s, emm_context)
         ->pdn_contexts[pid]->default_ebi == esm_ebr_timer_data->ebi) {
         delete_default_bearer = true;
         //Release the default bearer

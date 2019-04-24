@@ -154,16 +154,16 @@ static void *sgw_intertask_interface(void *args_p)
           &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp);
       } break;
 
-      case S5_DEACTIVATE_DEDICATED_BEARER_REQ: {
+      case S5_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
         //Handle Dedicated bearer Deactivation Res from PGW
-        sgw_handle_pcrf_dedicated_bearer_deactv_req(
-          &received_message_p->ittiMsg.s5_deactivate_dedicated_bearer_request);
+        sgw_handle_nw_initiated_deactv_bearer_req(
+          &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_request);
       } break;
 
-      case S11_PCRF_DED_BEARER_DEACTV_RESPONSE: {
+      case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer deactivation Rsp from MME
-        sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
-          &received_message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_response);
+        sgw_handle_nw_initiated_deactv_bearer_rsp(
+          &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp);
       } break;
 
       case TERMINATE_MESSAGE: {

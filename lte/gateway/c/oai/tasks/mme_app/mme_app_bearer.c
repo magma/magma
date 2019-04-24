@@ -2798,7 +2798,7 @@ void _send_delete_dedicated_bearer_rsp(
   gtpv2c_cause_value_t cause
   )
 {
-  itti_s11_pcrf_ded_bearer_deactv_rsp_t *s11_deact_ded_bearer_rsp = NULL;
+  itti_s11_nw_init_deactv_bearer_rsp_t *s11_deact_ded_bearer_rsp = NULL;
   MessageDef *message_p = NULL;
   uint32_t i = 0;
 
@@ -2808,18 +2808,19 @@ void _send_delete_dedicated_bearer_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   message_p =
-    itti_alloc_new_message(TASK_MME_APP, S11_PCRF_DED_BEARER_DEACTV_RESPONSE);
+    itti_alloc_new_message(TASK_MME_APP,
+      S11_NW_INITIATED_DEACTIVATE_BEARER_RESP);
   s11_deact_ded_bearer_rsp =
-    &message_p->ittiMsg.s11_pcrf_ded_bearer_deactv_response;
+    &message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp;
 
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
       "itti_alloc_new_message failed for"
-      "S11_PCRF_DED_BEARER_DEACTV_RESPONSE\n");
+      "S11_NW_INITIATED_DEACTIVATE_BEARER_RESP\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   memset(s11_deact_ded_bearer_rsp, 0,
-    sizeof(itti_s11_pcrf_ded_bearer_deactv_rsp_t));
+    sizeof(itti_s11_nw_init_deactv_bearer_rsp_t));
 
   s11_deact_ded_bearer_rsp->delete_default_bearer = delete_default_bearer;
 
@@ -2859,23 +2860,23 @@ void _send_delete_dedicated_bearer_rsp(
  * This Function handles PCRF initiated
  * Dedicated bearer Deactivation Request message from SGW
  */
-void mme_app_handle_pcrf_ded_bearer_deactv_req(
-  itti_s11_pcrf_ded_bearer_deactv_request_t
-  *const pcrf_bearer_deactv_req_p)
+void mme_app_handle_nw_init_bearer_deactv_req(
+  itti_s11_nw_init_deactv_bearer_request_t
+  *const nw_init_bearer_deactv_req_p)
 {
   ue_mm_context_t *ue_context_p = NULL;
   uint32_t i = 0;
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef *message_p = NULL;
 
-  for (i = 0; i< pcrf_bearer_deactv_req_p->no_of_bearers; i++) {
+  for (i = 0; i< nw_init_bearer_deactv_req_p->no_of_bearers; i++) {
     OAILOG_INFO(
       LOG_MME_APP,
       "Received Dedicated bearer deactivation Request from SGW with EBI %d\n",
-      pcrf_bearer_deactv_req_p->ebi[i]);
+      nw_init_bearer_deactv_req_p->ebi[i]);
   }
   ue_context_p = mme_ue_context_exists_s11_teid(
-    &mme_app_desc.mme_ue_contexts, pcrf_bearer_deactv_req_p->s11_mme_teid);
+    &mme_app_desc.mme_ue_contexts, nw_init_bearer_deactv_req_p->s11_mme_teid);
 
   if (ue_context_p == NULL) {
     MSC_LOG_RX_DISCARDED_MESSAGE(
@@ -2884,25 +2885,25 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
       NULL,
       0,
       "0 PCRF initiated Bearer Dectv Req local S11 teid " TEID_FMT " ",
-      pcrf_bearer_deactv_req_p->s11_mme_teid);
+      nw_init_bearer_deactv_req_p->s11_mme_teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
 //Fetch PDN context
   pdn_cid_t cid =
   ue_context_p->bearer_contexts
-    [EBI_TO_INDEX(pcrf_bearer_deactv_req_p->ebi[0])]->pdn_cx_id;
+    [EBI_TO_INDEX(nw_init_bearer_deactv_req_p->ebi[0])]->pdn_cx_id;
   pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
 
   /* If delete_default_bearer is set and this is the only active PDN,
   *  Send Detach Request to UE
   */
-  if ((pcrf_bearer_deactv_req_p->delete_default_bearer) &&
+  if ((nw_init_bearer_deactv_req_p->delete_default_bearer) &&
        (ue_context_p->nb_active_pdn_contexts == 1)) {
     OAILOG_INFO(
       LOG_MME_APP,
       "Send detach to NAS for EBI %d as delete_default_bearer = true\n",
-      pcrf_bearer_deactv_req_p->ebi[0]);
+      nw_init_bearer_deactv_req_p->ebi[0]);
     //Send Deatch Request to NAS
     if (ue_context_p->ecm_state == ECM_CONNECTED) {
       mme_app_send_nas_detach_request(
@@ -2915,25 +2916,28 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
       ue_context_p->emm_context.pcrf_init_bearer_deactv = true;
     }
   } else {
-    //If UE is in connected state send Deactivate Bearer Req + ERAB Rel Cmd to NAS
+    /*If UE is in connected state send Deactivate Bearer Req
+     * + ERAB Rel Cmd to NAS
+     */
     if (ue_context_p->ecm_state == ECM_CONNECTED) {
       message_p =
       itti_alloc_new_message(TASK_MME_APP, MME_APP_DELETE_DEDICATED_BEARER_REQ);
       if (message_p == NULL) {
         OAILOG_INFO(
         LOG_MME_APP,
-        "itti_alloc_new_message failed for MME_APP_CREATE_DEDICATED_BEARER_REQ\n");
+        "itti_alloc_new_message failed for"
+        "MME_APP_DELETE_DEDICATED_BEARER_REQ\n");
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
       MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).delete_default_bearer =
-        pcrf_bearer_deactv_req_p->delete_default_bearer;
+        nw_init_bearer_deactv_req_p->delete_default_bearer;
       MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).ue_id =
         ue_context_p->mme_ue_s1ap_id;
       MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).no_of_bearers =
-        pcrf_bearer_deactv_req_p->no_of_bearers;
+        nw_init_bearer_deactv_req_p->no_of_bearers;
       memcpy(
         &MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).ebi,
-        pcrf_bearer_deactv_req_p->ebi,
+        nw_init_bearer_deactv_req_p->ebi,
         sizeof(ebi_t));
       // Send MME_APP_DELETE_DEDICATED_BEARER_REQ to NAS
       itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
@@ -2941,21 +2945,21 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
       /* If UE is in IDLE state remove bearer context
        * send Create Bearer Rsp to SPGW
        */
-      for (i = 0; i < pcrf_bearer_deactv_req_p->no_of_bearers; i++) {
+      for (i = 0; i < nw_init_bearer_deactv_req_p->no_of_bearers; i++) {
         if ((ue_context_p->bearer_contexts[i]) &&
           (ue_context_p->bearer_contexts[i]->ebi ==
-            pcrf_bearer_deactv_req_p->ebi[i])) {
+            nw_init_bearer_deactv_req_p->ebi[i])) {
           mme_app_free_bearer_context(&ue_context_p->bearer_contexts[i]);
           break;
         }
       }
-      if (i < pcrf_bearer_deactv_req_p->no_of_bearers) {
+      if (i < nw_init_bearer_deactv_req_p->no_of_bearers) {
         //Send delete_dedicated_bearer_rsp to SPGW
         _send_delete_dedicated_bearer_rsp(
           ue_context_p,
-          pcrf_bearer_deactv_req_p->delete_default_bearer,
-          pcrf_bearer_deactv_req_p->ebi,
-          pcrf_bearer_deactv_req_p->no_of_bearers,
+          nw_init_bearer_deactv_req_p->delete_default_bearer,
+          nw_init_bearer_deactv_req_p->ebi,
+          nw_init_bearer_deactv_req_p->no_of_bearers,
           pdn_context->s_gw_teid_s11_s4,
           REQUEST_ACCEPTED);
       } else {
@@ -3018,7 +3022,9 @@ void mme_app_handle_erab_rel_cmd(
       "0 S1AP_E_RAB_REL_CMD ue id " MME_UE_S1AP_ID_FMT
       ue_context_p->mme_ue_s1ap_id,
       itti_erab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id);
-    OAILOG_INFO(LOG_MME_APP,"Sending ERAB REL CMD to S1AP with UE ID %d and EBI %d",
+    OAILOG_INFO(
+      LOG_MME_APP,
+      "Sending ERAB REL CMD to S1AP with UE ID %d and EBI %d",
       itti_erab_rel_cmd->ue_id,itti_erab_rel_cmd->ebi);
     itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   } else {
@@ -3134,5 +3140,4 @@ void mme_app_handle_delete_dedicated_bearer_rej(
 
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
-
 }
