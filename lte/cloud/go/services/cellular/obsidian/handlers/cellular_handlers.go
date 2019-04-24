@@ -29,6 +29,7 @@ const (
 	ConfigKey         = "cellular"
 	NetworkConfigPath = magmad_handlers.ConfigureNetwork + "/" + ConfigKey
 	GatewayConfigPath = magmad_handlers.ConfigureAG + "/" + ConfigKey
+	EnodebListPath    = magmad_handlers.ConfigureNetwork + "/enodeb"
 	EnodebConfigPath  = magmad_handlers.ConfigureNetwork + "/enodeb/:enodeb_id"
 )
 
@@ -55,6 +56,8 @@ func GetObsidianHandlers() []handlers.Handler {
 		obsidian.GetCreateConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
 		obsidian.GetUpdateConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
 		obsidian.GetDeleteConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId),
+		// List all eNodeB devices for a network
+		obsidian.GetReadAllKeysConfigHandler(EnodebListPath, config.CellularEnodebType),
 	}
 	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, config.CellularGatewayType, &models.GatewayCellularConfigs{})...)
 	return ret
