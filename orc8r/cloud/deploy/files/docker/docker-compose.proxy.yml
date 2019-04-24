@@ -21,3 +21,12 @@ services:
       - "443:9443"  # API/controller port
       - "8443:9444"  # Bootstrapper port
     restart: always
+
+  metricsd:
+    # Run metricsd to publish disk metrics
+    image: "${DOCKER_REGISTRY}/controller:${IMAGE_VERSION}"
+    volumes:
+      - /var/opt/magma/configs:/var/opt/magma/configs
+      - /var/opt/magma/envdir:/var/opt/magma/envdir
+    command: /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/metricsd -logtostderr=true -v=0
+    restart: always

@@ -12,6 +12,7 @@ services:
     image: "${DOCKER_REGISTRY}/controller:${IMAGE_VERSION}"
     volumes:
       - /var/opt/magma/certs:/var/opt/magma/certs
+      - /var/opt/magma/configs:/var/opt/magma/configs
       - /var/opt/magma/envdir:/var/opt/magma/envdir
     ports:
       - "8080:8080"
