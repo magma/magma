@@ -14,7 +14,7 @@ from aiohttp import web
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.enodeb_status import get_enodeb_status, \
+from magma.enodebd.enodeb_status import get_enb_status, \
     update_status_metrics
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
@@ -121,7 +121,7 @@ class StatsManager:
             self._prev_rf_tx = rf_tx
 
         # Update status metrics
-        status = get_enodeb_status(handler)
+        status = get_enb_status(handler)
         update_status_metrics(status)
 
     @asyncio.coroutine
