@@ -34,17 +34,15 @@ from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
 from magma.enodebd.state_machines.acs_state_utils import \
      get_all_objects_to_delete, get_all_objects_to_add
 from magma.enodebd.tr069 import models
-from magma.enodebd.stats_manager import StatsManager
 
 
 class CaviumHandler(BasicEnodebAcsStateMachine):
     def __init__(
             self,
             service: MagmaService,
-            stats_mgr: StatsManager,
     ) -> None:
         self._state_map = {}
-        super().__init__(service, stats_mgr)
+        super().__init__(service)
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
