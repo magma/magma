@@ -9,13 +9,15 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from threading import Thread
 from unittest import mock
-from magma.enodebd.enodeb_status import get_status
+from magma.enodebd.enodeb_status import get_status, get_operational_states
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from .rpc_servicer import EnodebdRpcServicer
 from .stats_manager import StatsManager
 from .tr069.server import tr069_server
 from .enodebd_iptables_rules import set_enodebd_iptables_rule
 from magma.common.service import MagmaService
+from orc8r.protos.service303_pb2 import State
+from typing import List
 
 
 def get_context(ip: str):
@@ -52,6 +54,11 @@ def main():
     def get_enodebd_status():
         return get_status(state_machine_manager)
     service.register_get_status_callback(get_enodebd_status)
+
+    # Register a callback function for GetOperationalStates service303 function
+    def get_enodeb_operational_states() -> List[State]:
+        return get_operational_states(state_machine_manager)
+    service.register_operational_states_callback(get_enodeb_operational_states)
 
     # Set eNodeBD iptables rules due to exposing public IP to eNodeB
     service.loop.create_task(set_enodebd_iptables_rule())

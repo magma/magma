@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import grpc
 from typing import Any
-from magma.enodebd.enodeb_status import get_status, get_enb_status
+from magma.enodebd.enodeb_status import get_status, get_single_enb_status
 from lte.protos.enodebd_pb2 import GetParameterResponse
 from lte.protos.enodebd_pb2_grpc import EnodebdServicer, \
     add_EnodebdServicer_to_server
@@ -115,7 +115,7 @@ class EnodebdRpcServicer(EnodebdServicer):
         all_enb_status = AllEnodebStatus()
         serial_list = self.state_machine_manager.get_connected_serial_id_list()
         for enb_serial in serial_list:
-            enb_status = self._get_single_enb_status(enb_serial)
+            enb_status = self.get_single_enb_status(enb_serial)
             all_enb_status.enb_status_list.add(
                 device_serial=enb_status.device_serial,
                 ip_address=enb_status.ip_address,
@@ -138,48 +138,7 @@ class EnodebdRpcServicer(EnodebdServicer):
         request: EnodebIdentity,
         _context=None,
     ) -> SingleEnodebStatus:
-        return self._get_single_enb_status(request.device_serial)
-
-    def _get_single_enb_status(self, device_serial: str) -> SingleEnodebStatus:
-        try:
-            handler = self._get_handler(device_serial)
-        except KeyError:
-            return self._empty_enb_status()
-
-        # This namedtuple is missing IP and serial info
-        status = get_enb_status(handler)
-
-        # Get IP info
-        ip = self.state_machine_manager.get_ip_of_serial(device_serial)
-
-        # Build the message to return through gRPC
-        enb_status = SingleEnodebStatus()
-        enb_status.device_serial = device_serial
-        enb_status.ip_address = ip
-        enb_status.connected = status.enodeb_connected
-        enb_status.configured = status.enodeb_configured
-        enb_status.opstate_enabled = status.opstate_enabled
-        enb_status.rf_tx_on = status.rf_tx_on
-        enb_status.gps_connected = status.gps_connected
-        enb_status.ptp_connected = status.ptp_connected
-        enb_status.mme_connected = status.mme_connected
-        enb_status.gps_longitude = status.gps_longitude
-        enb_status.gps_latitude = status.gps_latitude
-        enb_status.fsm_state = status.enodeb_state
-        return enb_status
-
-    def _empty_enb_status(self) -> SingleEnodebStatus:
-        enb_status = SingleEnodebStatus()
-        enb_status.device_serial = 'N/A'
-        enb_status.ip_address = 'N/A'
-        enb_status.connected = '0'
-        enb_status.configured = '0'
-        enb_status.opstate_enabled = '0'
-        enb_status.rf_tx_on = '0'
-        enb_status.gps_connected = '0'
-        enb_status.ptp_connected = '0'
-        enb_status.mme_connected = '0'
-        enb_status.gps_longitude = '0.0'
-        enb_status.gps_latitude = '0.0'
-        enb_status.fsm_state = 'N/A'
-        return enb_status
+        return get_single_enb_status(
+            request.device_serial,
+            self.state_machine_manager
+        )

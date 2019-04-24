@@ -10,7 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 import os
 from collections import namedtuple
-from typing import Any, Dict
+from typing import Any, Dict, List
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -18,7 +18,9 @@ from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import \
     StateMachineManager
-
+from lte.protos.enodebd_pb2 import SingleEnodebStatus
+from orc8r.protos.service303_pb2 import State
+from google.protobuf.json_format import MessageToJson
 
 # There are 2 levels of caching for GPS coordinates from the enodeB: module
 # variables (in-memory) and on disk. In the event the enodeB stops reporting
@@ -224,6 +226,73 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
                         ptp_connected=ptp_connected,
                         mme_connected=mme_connected,
                         enodeb_state=enodeb.get_state())
+
+
+def get_single_enb_status(
+        device_serial: str,
+        enodeb: EnodebAcsStateMachine
+) -> SingleEnodebStatus:
+    try:
+        handler = enodeb.get_handler_by_serial(device_serial)
+    except KeyError:
+        return _empty_enb_status()
+
+    # This namedtuple is missing IP and serial info
+    status = get_enb_status(handler)
+
+    # Get IP info
+    ip = enodeb.get_ip_of_serial(device_serial)
+
+    # Build the message to return through gRPC
+    enb_status = SingleEnodebStatus()
+    enb_status.device_serial = device_serial
+    enb_status.ip_address = ip
+    enb_status.connected = status.enodeb_connected
+    enb_status.configured = status.enodeb_configured
+    enb_status.opstate_enabled = status.opstate_enabled
+    enb_status.rf_tx_on = status.rf_tx_on
+    enb_status.gps_connected = status.gps_connected
+    enb_status.ptp_connected = status.ptp_connected
+    enb_status.mme_connected = status.mme_connected
+    enb_status.gps_longitude = status.gps_longitude
+    enb_status.gps_latitude = status.gps_latitude
+    enb_status.fsm_state = status.enodeb_state
+    return enb_status
+
+
+def get_operational_states(
+        state_machine_manager: EnodebAcsStateMachine
+) -> List[State]:
+    """
+    Returns: A list of SingleEnodebStatus encoded as JSON into State
+    """
+    states = []
+    for serial_id in state_machine_manager.get_connected_serial_id_list():
+        enb_state = get_single_enb_status(serial_id, state_machine_manager)
+        state = State(
+            type="enodebd",
+            deviceID=serial_id,
+            value=MessageToJson(enb_state).encode('utf-8')
+        )
+        states.append(state)
+    return states
+
+
+def _empty_enb_status() -> SingleEnodebStatus:
+    enb_status = SingleEnodebStatus()
+    enb_status.device_serial = 'N/A'
+    enb_status.ip_address = 'N/A'
+    enb_status.connected = '0'
+    enb_status.configured = '0'
+    enb_status.opstate_enabled = '0'
+    enb_status.rf_tx_on = '0'
+    enb_status.gps_connected = '0'
+    enb_status.ptp_connected = '0'
+    enb_status.mme_connected = '0'
+    enb_status.gps_longitude = '0.0'
+    enb_status.gps_latitude = '0.0'
+    enb_status.fsm_state = 'N/A'
+    return enb_status
 
 
 def _parse_param_as_bool(
