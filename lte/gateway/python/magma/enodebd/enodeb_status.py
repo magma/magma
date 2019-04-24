@@ -154,7 +154,7 @@ def _parse_param_as_bool(
     """
     try:
         param = enodeb.get_parameter(param_name)
-        pval = param.lower().strip()
+        pval = str(param).lower().strip()
         if pval in {'true', '1'}:
             return '1'
         elif pval in {'false', '0'}:
