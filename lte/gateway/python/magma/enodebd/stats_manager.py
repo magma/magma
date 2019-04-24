@@ -17,7 +17,7 @@ from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.enodeb_status import get_enodeb_status, \
     update_status_metrics
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from . import metrics
 
 
@@ -64,13 +64,13 @@ class StatsManager:
     # Check if radio transmit is turned on every 10 seconds.
     CHECK_RF_TX_PERIOD = 10
 
-    def __init__(self, state_machine_pointer: StateMachinePointer):
-        self.state_machine_pointer = state_machine_pointer
+    def __init__(self, enb_acs_manager: StateMachineManager):
+        self.enb_manager = enb_acs_manager
         self.loop = asyncio.get_event_loop()
         self._prev_rf_tx = False
         self.mme_timeout_handler = None
 
-    def run(self):
+    def run(self) -> None:
         """ Create and start HTTP server """
         svc_config = load_service_config("enodebd")
 
@@ -83,6 +83,7 @@ class StatsManager:
             host=get_ip_from_if(svc_config['tr069']['interface']),
             port=svc_config['tr069']['perf_mgmt_port'])
 
+        self._periodic_check_rf_tx()
         self.loop.run_until_complete(create_server_func)
 
     def _periodic_check_rf_tx(self) -> None:
@@ -103,14 +104,14 @@ class StatsManager:
         This method checks the last polled MME connection status, and if
         eNodeB should be connected to MME but it isn't.
         """
-        handler = self.state_machine_pointer.state_machine
-        self._check_rf_tx_for_handler(handler)
+        # Clear stats when eNodeB stops radiating. This is
+        # because eNodeB stops sending performance metrics at this point.
+        serial_list = self.enb_manager.get_connected_serial_id_list()
+        for enb_serial in serial_list:
+            handler = self.enb_manager.get_handler_by_serial(enb_serial)
+            self._check_rf_tx_for_handler(handler)
 
     def _check_rf_tx_for_handler(self, handler: EnodebAcsStateMachine) -> None:
-        """
-        Clear stats when eNodeB stops radiating. This is
-        because eNodeB stops sending performance metrics at this point.
-        """
         if handler.device_cfg.has_parameter(ParameterName.RF_TX_STATUS):
             rf_tx = handler \
                 .device_cfg \
@@ -124,7 +125,7 @@ class StatsManager:
         update_status_metrics(status)
 
     @asyncio.coroutine
-    def _post_handler(self, request):
+    def _post_handler(self, request) -> web.Response:
         """ HTTP POST handler """
         # Read request body and convert to XML tree
         body = yield from request.read()
@@ -135,7 +136,7 @@ class StatsManager:
         # Return success response
         return web.Response()
 
-    def _parse_pm_xml(self, xml_root):
+    def _parse_pm_xml(self, xml_root) -> None:
         """
         Parse performance management XML from eNodeB and populate metrics.
         The schema for this XML document, along with an example, is shown in
@@ -334,7 +335,7 @@ class StatsManager:
 
         return name_index_map
 
-    def _clear_stats(self):
+    def _clear_stats(self) -> None:
         """
         Clear statistics. Called when eNodeB management plane disconnects
         """

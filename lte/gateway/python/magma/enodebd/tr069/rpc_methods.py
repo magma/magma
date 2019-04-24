@@ -8,18 +8,16 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
-from typing import Any
-
+from spyne.decorator import rpc
+from spyne.model.complex import ComplexModelBase
+from spyne.server.wsgi import WsgiMethodContext
+from spyne.service import ServiceBase
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import Tr069Error, \
     IncorrectDeviceHandlerError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
-from spyne.decorator import rpc
-from spyne.model.complex import ComplexModelBase, Iterable  # pylint: disable=unused-import
-from spyne.model.primitive import String  # pylint: disable=unused-import
-from spyne.service import ServiceBase
 
 from . import models
 
@@ -101,7 +99,11 @@ class AutoConfigServer(ServiceBase):
         return acs_state_machine
 
     @classmethod
-    def _handle_tr069_message(cls, ctx: Any, message: ComplexModelBase) -> Any:
+    def _handle_tr069_message(
+        cls,
+        ctx: WsgiMethodContext,
+        message: ComplexModelBase,
+    ) -> ComplexModelBase:
         if not cls.state_machine():
             raise Tr069Error('ACS not given eNB state machine')
 
