@@ -6,15 +6,13 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
+import asyncio
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from unittest import TestCase, mock
 from unittest.mock import Mock, patch
-from magma.enodebd.devices.device_utils import EnodebDeviceName
 from spyne import MethodContext
 from spyne.server import ServerBase
-from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
 from magma.enodebd.tr069 import models
 from magma.enodebd.tr069.rpc_methods import AutoConfigServer
 from magma.enodebd.tr069.spyne_mods import Tr069Application, Tr069Soap11
@@ -28,13 +26,10 @@ class Tr069Test(TestCase):
     cpe_to_acs_queue = None
 
     def setUp(self):
-        # Build the state_machine
-        self.acs_state_machine = EnodebAcsStateMachineBuilder \
-            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
-
         # Set up the ACS
-        state_machine_pointer = StateMachinePointer(self.acs_state_machine)
-        AutoConfigServer.set_state_machine_pointer(state_machine_pointer)
+        self.enb_acs_manager = EnodebAcsStateMachineBuilder.build_acs_manager()
+        self.handler = EnodebAcsStateMachineBuilder.build_acs_state_machine()
+        AutoConfigServer.set_state_machine_manager(self.enb_acs_manager)
 
         def side_effect(*args, **_kwargs):
             msg = args[1]
@@ -51,6 +46,7 @@ class Tr069Test(TestCase):
 
     def tearDown(self):
         self.p.stop()
+        self.handler = None
 
     def _get_mconfig(self):
         return {
@@ -473,15 +469,17 @@ class Tr069Test(TestCase):
 
         request.ParameterKey = 'null'
 
-        def side_effect(*_args, **_kwargs):
-            return request
-
-        AutoConfigServer.state_machine().handle_tr069_message = Mock(
-            side_effect=side_effect)
+        def side_effect(*args, **_kwargs):
+            ctx = args[0]
+            ctx.out_header = models.ID(mustUnderstand='1')
+            ctx.out_header.Data = 'null'
+            ctx.descriptor.out_message.Attributes.sub_name = \
+                request.__class__.__name__
+            return AutoConfigServer._generate_acs_to_cpe_request_copy(request)
 
         self.p.stop()
-        self.p = patch.object(self.acs_state_machine, 'handle_tr069_message',
-                              Mock(side_effect=side_effect))
+        self.p = patch.object(AutoConfigServer, '_handle_tr069_message',
+                              side_effect=side_effect)
         self.p.start()
 
         server = ServerBase(self.app)
@@ -579,14 +577,15 @@ class Tr069Test(TestCase):
 
         request.ParameterKey = 'null'
 
-        def side_effect(*_args, **_kwargs):
+        def side_effect(*args, **_kwargs):
+            ctx = args[0]
+            ctx.out_header = models.ID(mustUnderstand='1')
+            ctx.out_header.Data = 'null'
+            ctx.descriptor.out_message.Attributes.sub_name = request.__class__.__name__
             return request
 
-        AutoConfigServer.state_machine().handle_tr069_message = Mock(
-            side_effect=side_effect)
-
         self.p.stop()
-        self.p = patch.object(self.acs_state_machine, 'handle_tr069_message',
+        self.p = patch.object(AutoConfigServer, '_handle_tr069_message',
                               Mock(side_effect=side_effect))
         self.p.start()
 
