@@ -103,6 +103,11 @@ class Tr069MessageBuilder:
             data=sw_version,
         ))
         val_list.append(cls.get_parameter_value_struct(
+            name='Device.DeviceInfo.SerialNumber',
+            val_type='string',
+            data=enb_serial,
+        ))
+        val_list.append(cls.get_parameter_value_struct(
             name='Device.ManagementServer.ConnectionRequestURL',
             val_type='string',
             data='http://192.168.60.248:7547/25dbc91d31276f0cb03391160531ecae',
