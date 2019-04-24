@@ -20,6 +20,7 @@ import (
 const (
 	CellularNetworkType = "cellular_network"
 	CellularGatewayType = "cellular_gateway"
+	CellularEnodebType  = "cellular_enodeb"
 )
 
 type CellularNetworkConfigManager struct{}
@@ -78,6 +79,36 @@ func (*CellularGatewayConfigManager) Serialize(config interface{}) ([]byte, erro
 
 func (*CellularGatewayConfigManager) Deserialize(message []byte) (interface{}, error) {
 	cfg := &cellular_protos.CellularGatewayConfig{}
+	err := protos.Unmarshal(message, cfg)
+	return cfg, err
+}
+
+type CellularEnodebConfigManager struct{}
+
+func (*CellularEnodebConfigManager) GetDomain() string {
+	return config.SerdeDomain
+}
+
+func (*CellularEnodebConfigManager) GetType() string {
+	return CellularEnodebType
+}
+
+func (*CellularEnodebConfigManager) Serialize(config interface{}) ([]byte, error) {
+	castedConfig, ok := config.(*cellular_protos.CellularEnodebConfig)
+	if !ok {
+		return nil, fmt.Errorf(
+			"Invalid cellular enodeb config type. Expected *CellularEnodebConfig, received %s",
+			reflect.TypeOf(config),
+		)
+	}
+	if err := cellular_protos.ValidateEnodebConfig(castedConfig); err != nil {
+		return nil, fmt.Errorf("Invalid cellular enodeb config: %s", err)
+	}
+	return protos.MarshalIntern(castedConfig)
+}
+
+func (*CellularEnodebConfigManager) Deserialize(message []byte) (interface{}, error) {
+	cfg := &cellular_protos.CellularEnodebConfig{}
 	err := protos.Unmarshal(message, cfg)
 	return cfg, err
 }
