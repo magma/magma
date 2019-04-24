@@ -20,6 +20,7 @@ message CellularGatewayConfig {
     GatewayRANConfig ran = 1;
     GatewayEPCConfig epc = 2;
     GatewayNonEPSConfig non_eps_service = 3;
+    repeated string attached_enodeb_serials = 4;
 }
 
 message GatewayRANConfig {
@@ -133,4 +134,19 @@ message NetworkEPCConfig {
     // If relay_enabled is false, this determines whether cloud subscriberdb
     // or local subscriberdb is used for authentication requests.
     bool cloud_subscriberdb_enabled = 10;
+}
+
+message CellularEnodebConfig {
+    // EARFCN (0-65535)
+    int32 earfcndl = 1;
+    // Subframe Assignment (0-6)
+    int32 subframe_assignment = 2;
+    // Special Subframe Pattern (0-9)
+    int32 special_subframe_pattern = 3;
+    // Physical cell ID (0-504)
+    int32 pci = 4;
+    // Enable eNodeB
+    bool transmit_enabled = 5;
+    // eNodeB device class - limited support
+    string device_class = 6;
 }
