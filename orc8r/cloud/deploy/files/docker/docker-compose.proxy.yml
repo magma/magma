@@ -20,6 +20,10 @@ services:
       # the existing load balancers
       - "443:9443"  # API/controller port
       - "8443:9444"  # Bootstrapper port
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     restart: always
 
   metricsd:
