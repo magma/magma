@@ -2791,32 +2791,44 @@ void _send_delete_dedicated_bearer_rsp(
 
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
-      "itti_alloc_new_message failed for S11_PCRF_DED_BEARER_DEACTV_RESPONSE\n");
+      "itti_alloc_new_message failed for"
+      "S11_PCRF_DED_BEARER_DEACTV_RESPONSE\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  memset(s11_deact_ded_bearer_rsp, 0, sizeof(itti_s11_pcrf_ded_bearer_deactv_rsp_t));
+  memset(s11_deact_ded_bearer_rsp, 0,
+    sizeof(itti_s11_pcrf_ded_bearer_deactv_rsp_t));
 
   s11_deact_ded_bearer_rsp->delete_default_bearer = delete_default_bearer;
 
   if (delete_default_bearer) {
     s11_deact_ded_bearer_rsp->lbi = calloc(1, sizeof(ebi_t));
     *s11_deact_ded_bearer_rsp->lbi = ebi[0];
+    s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[0].
+      cause.cause_value = cause;
+    OAILOG_INFO(
+      LOG_MME_APP,
+      " Sending S11_PCRF_DED_BEARER_DEACTV_RESPONSE to SGW, (ebi = %d)\n",
+      ebi[0]);
   } else {
-    s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context = num_bearer_context;
     for (i = 0; i < num_bearer_context; i++) {
-      s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id =
-        ebi[i];
-      s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].cause.cause_value =
-        cause;
-      OAILOG_DEBUG(
+      s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].
+        eps_bearer_id = ebi[i];
+      s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].
+        cause.cause_value = cause;
+      OAILOG_INFO(
         LOG_MME_APP,
         " Sending S11_PCRF_DED_BEARER_DEACTV_RESPONSE to SGW, (ebi = %d)\n",
-        s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].eps_bearer_id);
+        s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].
+          eps_bearer_id);
     }
   }
+  s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context =
+    num_bearer_context;
   s11_deact_ded_bearer_rsp->imsi = ue_context_p->imsi;
   s11_deact_ded_bearer_rsp->s_gw_teid_s11_s4 = s_gw_teid_s11_s4;
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 
@@ -2832,7 +2844,7 @@ void mme_app_handle_pcrf_ded_bearer_deactv_req(
   uint32_t i = 0;
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef *message_p = NULL;
-  
+
   for (i = 0; i< pcrf_bearer_deactv_req_p->no_of_bearers; i++) {
     OAILOG_INFO(
       LOG_MME_APP,
