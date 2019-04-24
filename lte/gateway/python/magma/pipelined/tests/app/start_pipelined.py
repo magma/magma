@@ -53,6 +53,9 @@ Controller = namedtuple('Controller', ['name', 'app_future'])
 
 
 class PipelinedController(Enum):
+    InOut = Controller(
+        'magma.pipelined.app.inout', 'inout'
+    )
     Enforcement = Controller(
         'magma.pipelined.app.enforcement', 'enforcement'
     )
