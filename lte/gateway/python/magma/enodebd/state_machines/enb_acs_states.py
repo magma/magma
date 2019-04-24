@@ -13,8 +13,6 @@ from typing import Any, Optional
 from abc import ABC, abstractmethod
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
-from magma.enodebd.enodeb_status import get_enodeb_status, \
-    update_status_metrics
 from magma.enodebd.exceptions import ConfigurationError, Tr069Error
 from magma.enodebd.state_machines.acs_state_utils import \
     process_inform_message, get_all_objects_to_delete, \
@@ -369,26 +367,12 @@ class WaitGetTransientParametersState(EnodebAcsState):
                                                           message)
         logging.debug('Fetched Transient Params: %s', str(name_to_val))
 
-        # Clear stats when eNodeB stops radiating. This is
-        # because eNodeB stops sending performance metrics at this point.
-        prev_rf_tx = False
-        if self.acs.device_cfg.has_parameter(ParameterName.RF_TX_STATUS):
-            prev_rf_tx = \
-                self.acs.device_cfg.get_parameter(ParameterName.RF_TX_STATUS)
-        next_rf_tx = name_to_val[ParameterName.RF_TX_STATUS]
-        if prev_rf_tx is True and next_rf_tx is False:
-            self.acs.stats_manager.clear_stats()
-
         # Update device configuration
         for name in name_to_val:
             magma_val = \
                 self.acs.data_model.transform_for_magma(name,
                                                         name_to_val[name])
             self.acs.device_cfg.set_parameter(name, magma_val)
-
-        # Update status metrics
-        status = get_enodeb_status(self.acs)
-        update_status_metrics(status)
 
         return AcsReadMsgResult(True, self.get_next_state())
 
