@@ -13,6 +13,15 @@ error_exit() {
     exit 1
 }
 
+# Install the awscli bundle (https://github.com/aws/aws-cli/issues/3330)
+sudo apt-get remove -y awscli
+if [ ! -f /usr/local/bin/aws ]; then
+    rm -rf /tmp/awscli-bundle
+    curl "https://s3.amazonaws.com/aws-cli/awscli-bundle.zip" -o "/tmp/awscli-bundle.zip"
+    unzip /tmp/awscli-bundle.zip -d /tmp
+    sudo /usr/bin/python3 /tmp/awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+fi
+
 # Get the environment this instance is deploying into
 # CodeDeploy may not have applied tags when we get here, so we just figure out what autoscaling group we're part of and get the tags that will eventually be applied.
 INSTANCE_NAME=$(wget -q -O - http://169.254.169.254/latest/meta-data/instance-id)

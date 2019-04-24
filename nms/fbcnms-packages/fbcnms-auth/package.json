@@ -6,7 +6,6 @@
     "email-validator": "^2.0.4",
     "fbcnms-webpack-config": "^0.1.0",
     "passport": "^0.4.0",
-    "passport-facebook": "^2.1.1",
     "passport-local": "^1.0.0"
   },
   "devDependencies": {

@@ -8,12 +8,10 @@
  * @format
  */
 
+import {Organization} from '@fbcnms/sequelize-models';
 import Sequelize from 'sequelize';
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
-import type {
-  StaticOrganizationModel,
-  OrganizationType,
-} from '@fbcnms/sequelize-models/models/organization';
+import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 
 function getSubdomainList(host: ?string): Array<string> {
   if (!host) {
@@ -26,12 +24,11 @@ function getSubdomainList(host: ?string): Array<string> {
   return subdomainList;
 }
 
-export async function getOrganization(
-  req: {get(field: string): string | void},
-  OrganizationModel: StaticOrganizationModel,
-): Promise<OrganizationType> {
+export async function getOrganization(req: {
+  get(field: string): string | void,
+}): Promise<OrganizationType> {
   const host = req.get('host') || 'UNKNOWN_HOST';
-  let org = await OrganizationModel.findOne({
+  let org = await Organization.findOne({
     where: Sequelize.fn(
       'JSON_CONTAINS',
       Sequelize.col('customDomains'),
@@ -47,7 +44,7 @@ export async function getOrganization(
   if (subDomains.length != 1 && subDomains.length != 2) {
     throw new Error('Invalid organization!');
   }
-  org = await OrganizationModel.findOne({
+  org = await Organization.findOne({
     where: {
       name: subDomains[0],
     },
@@ -65,18 +62,14 @@ export type OrganizationRequestPart = {
 export type OrganizationMiddlewareRequest = ExpressRequest &
   $Shape<OrganizationRequestPart>;
 
-export default function organizationMiddleware({
-  model,
-}: {
-  model: StaticOrganizationModel,
-}) {
+export default function organizationMiddleware() {
   return (
     req: OrganizationMiddlewareRequest,
     res: ExpressResponse,
     next: NextFunction,
   ) => {
     try {
-      req.organization = () => getOrganization(req, model);
+      req.organization = () => getOrganization(req);
       next();
     } catch (err) {
       res.status(404).send();

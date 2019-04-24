@@ -319,8 +319,9 @@ class Tr069MessageBuilder:
     @classmethod
     def get_regular_param_values_response(
         cls,
-        admin_state: bool = False,
-        earfcndl: int = 39250,
+        admin_state: bool=False,
+        earfcndl: int=39250,
+        exclude_num_plmns: bool=False,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -365,11 +366,12 @@ class Tr069MessageBuilder:
             val_type='string',
             data='"192.168.60.142"',
         ))
-        param_val_list.append(cls.get_parameter_value_struct(
-            name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNListNumberOfEntries',
-            val_type='int',
-            data='1'
-        ))
+        if not exclude_num_plmns:
+            param_val_list.append(cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNListNumberOfEntries',
+                val_type='int',
+                data='1'
+            ))
         # perf mgmt enable
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.FAP.PerfMgmt.Config.1.Enable',

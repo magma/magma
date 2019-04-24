@@ -82,11 +82,23 @@ var (
 		Name: "peer_failures_total",
 		Help: "Total number of AKA Errors/Failures originated from peers",
 	})
+
+	// Latencies
+	SWxLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "swx_proxy_lat",
+		Help:       "Latency of SWx Proxy requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	AuthLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "auth_lat",
+		Help:       "Latency of EAP-AKA Authentication round (seconds). Only calculated for completed authentications.",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
 )
 
 func init() {
 	prometheus.MustRegister(Requests, FailedRequests, FailureNotifications,
 		SwxFailures, SessionTimeouts, IdentityRequests, FailedIdentityRequests,
 		ChallengeRequests, FailedChallengeRequests, ResyncRequests, FailedResyncRequests,
-		PeerAuthReject, PeerClientError, PeerNotification, PeerFailures)
+		PeerAuthReject, PeerClientError, PeerNotification, PeerFailures, SWxLatency, AuthLatency)
 }

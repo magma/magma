@@ -8,8 +8,13 @@
  * @format
  */
 
+import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
+import type {UserType} from '@fbcnms/sequelize-models/models/user.js';
+
 import querystring from 'querystring';
 import {format, parse} from 'url';
+import {injectOrganizationParams} from './organization';
+import {User} from '@fbcnms/sequelize-models';
 
 export function addQueryParamsToUrl(
   url: string,
@@ -23,4 +28,12 @@ export function addQueryParamsToUrl(
     });
   }
   return format(parsedUrl);
+}
+
+export async function getUserFromRequest(
+  req: FBCNMSMiddleWareRequest,
+  email: string,
+): Promise<?UserType> {
+  const where = await injectOrganizationParams(req, {email});
+  return await User.findOne({where});
 }

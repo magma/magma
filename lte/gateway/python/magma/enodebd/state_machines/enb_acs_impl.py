@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
+import traceback
 from typing import Any, Dict
 from abc import abstractmethod
 from magma.common.service import MagmaService
@@ -83,8 +84,15 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         # TransferComplete messages come at random times, and we ignore them
         if isinstance(message, models.TransferComplete):
             return models.TransferCompleteResponse()
-        self._read_tr069_msg(message)
-        return self._get_tr069_msg()
+        try:
+            self._read_tr069_msg(message)
+            return self._get_tr069_msg()
+        except Exception:  # pylint: disable=broad-except
+            logging.error('Failed to handle tr069 message')
+            logging.error(traceback.format_exc())
+            self._dump_debug_info()
+            self.transition(self.unexpected_fault_state_name)
+            return self._get_tr069_msg()
 
     def transition(self, next_state: str) -> Any:
         logging.debug('State transition to <%s>', next_state)
@@ -239,6 +247,18 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
                 logging.info('eNodeB has established MME connection.')
                 self.mme_timer = None
             metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
+
+    def _dump_debug_info(self) -> None:
+        if self.device_cfg is not None:
+            logging.error('Device configuration: %s',
+                          self.device_cfg.get_debug_info())
+        else:
+            logging.error('Device configuration: None')
+        if self.desired_cfg is not None:
+            logging.error('Desired configuration: %s',
+                          self.desired_cfg.get_debug_info())
+        else:
+            logging.error('Desired configuration: None')
 
     @abstractmethod
     def _init_state_map(self) -> None:

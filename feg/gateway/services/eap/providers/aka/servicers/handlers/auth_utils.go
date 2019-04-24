@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
+	"time"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -67,6 +69,7 @@ func createChallengeRequest(
 	resyncInfo []byte) (eap.Packet, error) {
 
 	metrics.SwxRequests.Inc()
+	swxStartTime := time.Now()
 
 	ans, err := swx_proxy.Authenticate(
 		&swx_protos.AuthenticationRequest{
@@ -76,6 +79,8 @@ func createChallengeRequest(
 			ResyncInfo:           resyncInfo,
 			RetrieveUserProfile:  true,
 		})
+
+	metrics.SWxLatency.Observe(time.Since(swxStartTime).Seconds())
 
 	if err != nil {
 		metrics.SwxFailures.Inc()

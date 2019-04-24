@@ -63,7 +63,7 @@ FROM ubuntu:xenial
 
 # Install the runtime deps from apt
 RUN apt-get update && \
-    apt-get install -y supervisor daemontools openssl wget unzip
+    apt-get install -y daemontools netcat openssl supervisor wget unzip
 
 # Copy the configs
 COPY configs /etc/magma/configs

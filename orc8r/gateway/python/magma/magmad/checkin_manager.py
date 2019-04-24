@@ -32,7 +32,6 @@ from orc8r.protos.magmad_pb2 import (
     Route,
 )
 from orc8r.protos.magmad_pb2_grpc import CheckindStub
-
 from magma.common.misc_utils import (
     get_ip_from_if,
     is_interface_up,
@@ -323,7 +322,7 @@ class CheckinManager(SDWatchdogTask):
 
     async def _check_kernel_versions(self):
         try:
-            result = await get_kernel_versions_async()
+            result = await get_kernel_versions_async(loop=self._loop)
             result = list(result)[0].kernel_versions_installed
             self._kernel_versions_installed = result
         except Exception as e:

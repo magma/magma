@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"database/sql"
 	"log"
 
 	"magma/orc8r/cloud/go/datastore"
@@ -19,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/services/config/protos"
 	"magma/orc8r/cloud/go/services/config/servicers"
 	"magma/orc8r/cloud/go/services/config/storage"
+	"magma/orc8r/cloud/go/sql_utils"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 		log.Fatalf("Error creating config service: %s", err)
 	}
 
-	db, err := sql.Open(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	db, err := sql_utils.Open(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %s", err)
 	}
