@@ -33,12 +33,12 @@ const useStyles = makeStyles(theme => ({
     },
   },
   selected: {
-    backgroundColor: theme.palette.blue60,
+    backgroundColor: theme.palette.primary.main,
   },
   tooltip: {
     '&&': {
       padding: '8px 12px',
-      backgroundColor: theme.palette.blueGrayDark,
+      backgroundColor: theme.palette.primary.dark,
     },
   },
   arrow: {
@@ -47,7 +47,7 @@ const useStyles = makeStyles(theme => ({
     '&:before': {
       borderBottom: '4px solid transparent',
       borderLeft: '4px solid transparent',
-      borderRight: `4px solid ${theme.palette.blueGrayDark}`,
+      borderRight: `4px solid ${theme.palette.primary.dark}`,
       borderTop: '4px solid transparent',
       top: '-5px',
       content: '""',

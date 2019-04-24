@@ -69,10 +69,10 @@ const useClasses = makeStyles(theme => ({
     padding: '11px',
     '&:hover': {
       padding: '10px',
-      border: `1px solid ${theme.palette.blue30}`,
+      border: `1px solid ${theme.palette.primary.light}`,
     },
     '&openMenu': {
-      border: `1px solid ${theme.palette.blue30}`,
+      border: `1px solid ${theme.palette.primary.light}`,
     },
   },
   popover: {
@@ -104,7 +104,7 @@ const useClasses = makeStyles(theme => ({
   },
   selected: {
     '& $menuItemText': {
-      color: theme.palette.blue60,
+      color: theme.palette.primary.main,
     },
   },
 }));

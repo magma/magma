@@ -31,9 +31,9 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     border: `1px solid ${theme.palette.common.white}`,
     '&:hover, &$openButton': {
-      border: `1px solid ${theme.palette.blue60}`,
+      border: `1px solid ${theme.palette.primary.main}`,
       '& $accountButtonIcon': {
-        fill: theme.palette.blue60,
+        fill: theme.palette.primary.main,
       },
     },
   },
