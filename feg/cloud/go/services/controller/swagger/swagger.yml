@@ -161,6 +161,9 @@ definitions:
             type: object
             additionalProperties:
               $ref: '#/definitions/subscription_profile'
+          stream_subscribers:
+            type: boolean
+            example: false
         x-go-custom-tag: 'magma_alt_name:"HSS"'
       gx:
         type: object

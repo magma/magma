@@ -111,3 +111,10 @@ func (store *MemorySubscriberStore) DeleteSubscriber(id string) error {
 	delete(store.accounts, id)
 	return nil
 }
+
+func (store *MemorySubscriberStore) DeleteAllSubscribers() error {
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
+	store.accounts = make(map[string]*protos.SubscriberData)
+	return nil
+}

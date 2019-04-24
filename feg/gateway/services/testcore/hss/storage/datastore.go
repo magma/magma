@@ -112,3 +112,12 @@ func (store *SubscriberDataStore) DeleteSubscriber(id string) error {
 	}
 	return store.api.Delete(tableName, id)
 }
+
+func (store *SubscriberDataStore) DeleteAllSubscribers() error {
+	subs, err := store.api.ListKeys(tableName)
+	if err != nil {
+		return err
+	}
+	_, err = store.api.DeleteMany(tableName, subs)
+	return err
+}

@@ -35,4 +35,7 @@ type SubscriberStore interface {
 	// If the subscriber is not found, then this call is ignored.
 	// Input: The id of the subscriber to be deleted.
 	DeleteSubscriber(id string) error
+
+	// DeleteAllSubscribers deletes all the data from the store.
+	DeleteAllSubscribers() error
 }
