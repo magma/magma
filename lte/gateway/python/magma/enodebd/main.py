@@ -31,7 +31,7 @@ def main():
     # We incorrectly assume that we are dealing with a Baicells device here.
     # When this assumption is invalidated (after the device reports its
     # make and model, then we recreate a new handler to use
-    acs_state_machine = BaicellsHandler(service, stats_mgr)
+    acs_state_machine = BaicellsHandler(service)
     state_machine_pointer = StateMachinePointer(acs_state_machine)
 
     # Start TR-069 thread

@@ -20,8 +20,6 @@ from magma.enodebd.device_config.enodeb_config_postprocessor import \
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.enodeb_status import update_status_metrics, \
-    get_enodeb_status
 from magma.enodebd.state_machines.acs_state_utils import \
     parse_get_parameter_values_response, get_params_to_get, \
     get_all_objects_to_delete, get_all_objects_to_add, \
@@ -37,17 +35,15 @@ from magma.enodebd.state_machines.enb_acs_states import \
     AcsMsgAndTransition, AcsReadMsgResult, WaitEmptyMessageState, ErrorState, \
     EndSessionState, BaicellsSendRebootState, GetRPCMethodsState
 from magma.enodebd.tr069 import models
-from magma.enodebd.stats_manager import StatsManager
 
 
 class BaicellsQAFBHandler(BasicEnodebAcsStateMachine):
     def __init__(
             self,
             service: MagmaService,
-            stats_mgr: StatsManager,
     ) -> None:
         self._state_map = {}
-        super().__init__(service, stats_mgr)
+        super().__init__(service)
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
@@ -164,25 +160,11 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
                                                           message)
         logging.debug('Received Parameters: %s', str(name_to_val))
 
-        # Clear stats when eNodeB stops radiating. This is
-        # because eNodeB stops sending performance metrics at this point.
-        prev_rf_tx = False
-        if self.acs.device_cfg.has_parameter(ParameterName.RF_TX_STATUS):
-            prev_rf_tx = \
-                self.acs.device_cfg.get_parameter(ParameterName.RF_TX_STATUS)
-        next_rf_tx = name_to_val[ParameterName.RF_TX_STATUS]
-        if prev_rf_tx is True and next_rf_tx is False:
-            self.acs.stats_manager.clear_stats()
-
         # Update device configuration
         for name in name_to_val:
             magma_value = \
                 self.acs.data_model.transform_for_magma(name, name_to_val[name])
             self.acs.device_cfg.set_parameter(name, magma_value)
-
-        # Update status metrics
-        status = get_enodeb_status(self.acs)
-        update_status_metrics(status)
 
         return AcsReadMsgResult(True, self.get_next_state())
 
