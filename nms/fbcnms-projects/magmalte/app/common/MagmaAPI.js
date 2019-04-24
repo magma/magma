@@ -54,8 +54,10 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(
       networkIdOrMatch,
     )}/gateways/${gatewayId}/configs/${type}`,
-  metricsQueryRange: (networkIdOrMatch: string | Match) =>
+  prometheusQueryRange: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/prometheus/query_range`,
+  graphiteQuery: (networkIdOrMatch: string | Match) =>
+    `${MagmaAPIUrls.network(networkIdOrMatch)}/graphite/query`,
   networkTiers: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/tiers`,
   networkTier: (networkIdOrMatch: string | Match, tierId: string) =>

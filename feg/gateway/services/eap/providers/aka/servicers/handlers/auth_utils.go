@@ -9,12 +9,15 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
+	"time"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	swx_protos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	"magma/feg/gateway/services/swx_proxy"
 )
@@ -65,6 +68,9 @@ func createChallengeRequest(
 	identifier uint8,
 	resyncInfo []byte) (eap.Packet, error) {
 
+	metrics.SwxRequests.Inc()
+	swxStartTime := time.Now()
+
 	ans, err := swx_proxy.Authenticate(
 		&swx_protos.AuthenticationRequest{
 			UserName:             string(lockedCtx.Imsi),
@@ -74,7 +80,10 @@ func createChallengeRequest(
 			RetrieveUserProfile:  true,
 		})
 
+	metrics.SWxLatency.Observe(time.Since(swxStartTime).Seconds())
+
 	if err != nil {
+		metrics.SwxFailures.Inc()
 		errCode := codes.Internal
 		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 			errCode = se.GRPCStatus().Code()

@@ -31,8 +31,8 @@ type PrometheusPushExporter struct {
 	exporter       mxd_exp.Exporter
 	Pusher         *push.Pusher
 	exportInterval time.Duration
-	lock           sync.Mutex
 	pushAddress    string
+	sync.Mutex
 }
 
 // NewPrometheusExporter create a new PrometheusExporter with own registry
@@ -58,9 +58,9 @@ func (e *PrometheusPushExporter) Submit(metrics []mxd_exp.MetricAndContext) erro
 	// Unregister All Metrics in PrometheusExporter, then register new registry
 	// with Pusher Before submitting new ones to avoid pushing stale metrics
 
-	e.lock.Lock()
+	e.Lock()
 	err := e.exporter.Submit(metrics)
-	e.lock.Unlock()
+	e.Unlock()
 	if err != nil {
 		return fmt.Errorf("error pushing metrics: %v\n", err)
 	}
@@ -72,14 +72,14 @@ func (e *PrometheusPushExporter) Start() {
 }
 
 func (e *PrometheusPushExporter) Export() error {
-	e.lock.Lock()
 	err := e.Pusher.Push()
 	e.resetMetrics()
-	e.lock.Unlock()
 	return err
 }
 
 func (e *PrometheusPushExporter) resetMetrics() {
+	e.Lock()
+	defer e.Unlock()
 	e.exporter.(*PrometheusExporter).clearRegistry()
 	e.Pusher = push.New(e.pushAddress, PushJob)
 	e.Pusher.Gatherer(e.exporter.(*PrometheusExporter).Registry.(*prometheus.Registry))

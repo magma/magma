@@ -12,8 +12,9 @@ import (
 	"reflect"
 
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/inventory"
+	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/services/state"
 )
 
 // Serdes for user-facing types delegate to swagger's MarshalBinary, which
@@ -34,7 +35,7 @@ import (
 type GatewayRecordSerde struct{}
 
 func (*GatewayRecordSerde) GetDomain() string {
-	return inventory.SerdeDomain
+	return device.SerdeDomain
 }
 
 func (*GatewayRecordSerde) GetType() string {
@@ -59,7 +60,7 @@ func (*GatewayRecordSerde) Deserialize(in []byte) (interface{}, error) {
 type CheckinRequestSerde struct{}
 
 func (*CheckinRequestSerde) GetDomain() string {
-	return "state"
+	return state.SerdeDomain
 }
 
 func (s *CheckinRequestSerde) GetType() string {

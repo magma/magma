@@ -24,11 +24,26 @@ module.exports = {
     '\\.(css|less)$': 'identity-obj-proxy',
   },
   modulePathIgnorePatterns: [],
-  projects: ['<rootDir>'],
+  projects: [
+    {
+      name: 'server',
+      testEnvironment: 'node',
+      testMatch: ['<rootDir>/fbcnms-projects/**/server/**/__tests__/*.js'],
+      transform: {
+        '^.+\\.js$': 'babel-jest',
+      },
+      transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
+    },
+    {
+      name: 'app',
+      testEnvironment: 'jsdom',
+      testMatch: ['<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js'],
+      transform: {
+        '^.+\\.js$': 'babel-jest',
+      },
+      transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
+    },
+  ],
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: ['/node_modules/'],
-  transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
-  transform: {
-    '^.+\\.js$': 'babel-jest',
-  },
 };

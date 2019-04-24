@@ -18,9 +18,11 @@ import (
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
 
 func NewAKANotificationReq(identifier uint8, code uint16) eap.Packet {
+	metrics.FailureNotifications.Inc()
 	return []byte{
 		eap.RequestCode,
 		identifier,

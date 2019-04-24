@@ -20,6 +20,7 @@ import (
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 )
 
@@ -29,6 +30,13 @@ func init() {
 
 // identityResponse implements handler for AKA Challenge, see https://tools.ietf.org/html/rfc4187#page-49 for reference
 func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+	var success bool
+	metrics.IdentityRequests.Inc()
+	defer func() {
+		if !success {
+			metrics.FailedIdentityRequests.Inc()
+		}
+	}()
 	identifier := req.Identifier()
 	if ctx == nil {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, "Nil CTX")
@@ -39,7 +47,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 	}
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
-		s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
+		s.UpdateSessionTimeout(ctx.SessionId, s.NotificationTimeout())
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.Aborted, err.Error())
 	}
 	var a eap.Attribute
@@ -54,6 +62,14 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				} else {
 					imsi = imsi[1:]
 				}
+				if !s.CheckPlmnId(imsi) {
+					s.UpdateSessionTimeout(ctx.SessionId, s.NotificationTimeout())
+					return aka.EapErrorResPacket(
+						identifier,
+						aka.NOTIFICATION_FAILURE,
+						codes.PermissionDenied,
+						"PLMN ID of IMSI: %s is not whitelisted", imsi)
+				}
 				ctx.Imsi = string(imsi)                  // set IMSI
 				uc := s.InitSession(ctx.SessionId, imsi) // we have Locked User Ctx after this call
 				state, t := uc.State()
@@ -65,18 +81,18 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Pa
 				uc.Identity = identity
 				uc.SetState(aka.StateIdentity)
 				p, err := createChallengeRequest(s, uc, identifier, nil)
-				if err == nil {
+				if success = err == nil; success {
 					// Update state
 					uc.SetState(aka.StateChallenge)
-					s.UpdateSessionUnlockCtx(uc, aka.ChallengeTimeout())
+					s.UpdateSessionUnlockCtx(uc, s.ChallengeTimeout())
 				} else {
-					s.UpdateSessionUnlockCtx(uc, aka.NotificationTimeout())
+					s.UpdateSessionUnlockCtx(uc, s.NotificationTimeout())
 				}
 				return p, err
 			}
 		}
 	}
-	s.UpdateSessionTimeout(ctx.SessionId, aka.NotificationTimeout())
+	s.UpdateSessionTimeout(ctx.SessionId, s.NotificationTimeout())
 	if err != nil && err != io.EOF {
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, err.Error())
 	}

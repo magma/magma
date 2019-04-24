@@ -108,6 +108,13 @@ int mme_app_send_s6a_update_location_req(
   } else {
     s6a_ulr_p->skip_subscriber_data = 0;
   }
+
+  //Check if we have voice domain preference IE and send to S6a task
+  if(ue_context_p->emm_context.volte_params.presencemask & VOICE_DOMAIN_PREF_UE_USAGE_SETTING) {
+    s6a_ulr_p->voice_dom_pref_ue_usg_setting =
+      ue_context_p->emm_context.volte_params.voice_domain_preference_and_ue_usage_setting;
+    s6a_ulr_p->presencemask |= S6A_PDN_CONFIG_VOICE_DOM_PREF;
+  }
   MSC_LOG_TX_MESSAGE(
     MSC_MMEAPP_MME,
     MSC_S6A_MME,

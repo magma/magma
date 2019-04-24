@@ -7,6 +7,10 @@
  * @format
  */
 
+// enforces copyright header to be present in every file
+// eslint-disable-next-line max-len
+const openSourcePattern = /\*\n \* Copyright 20\d{2}-present Facebook\. All Rights Reserved\.\n \*\n \* This source code is licensed under the BSD-style license found in the\n \* LICENSE file in the root directory of this source tree\.\n \*\n/;
+
 module.exports.extends = ['eslint-config-fbcnms'];
 module.exports.overrides = [
   {
@@ -21,6 +25,12 @@ module.exports.overrides = [
       node: true,
     },
     files: ['**/__mocks__/**/*.js', '**/__tests__/**/*.js'],
+  },
+  {
+    files: ['fbcnms-packages/**/*.js', 'fbcnms-projects/magmalte/**/*.js'],
+    rules: {
+      'header/header': [2, 'block', {pattern: openSourcePattern}],
+    },
   },
   {
     env: {

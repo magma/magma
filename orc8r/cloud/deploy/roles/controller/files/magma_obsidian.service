@@ -13,6 +13,7 @@ ExecStart=/usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/obsidian -log
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=obsidian
+LimitNOFILE=65536
 Restart=always
 RestartSec=1s
 StartLimitInterval=0

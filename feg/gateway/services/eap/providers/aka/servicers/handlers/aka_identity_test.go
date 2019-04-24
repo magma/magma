@@ -140,7 +140,7 @@ func TestAkaChallenge(t *testing.T) {
 	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
-	akaSrv, _ := servicers.NewEapAkaService()
+	akaSrv, _ := servicers.NewEapAkaService(nil)
 	p, err := identityResponse(akaSrv, &eap_protos.EapContext{}, eap.Packet(testEapIdentityResp))
 
 	if err != nil {

@@ -132,6 +132,13 @@ typedef struct csfb_params_s {
   uint8_t tau_active_flag : 1;
 } csfb_params_t;
 
+typedef struct volte_params_s {
+#define VOICE_DOMAIN_PREF_UE_USAGE_SETTING (1 << 0)
+  uint8_t presencemask;
+  voice_domain_preference_and_ue_usage_setting_t
+    voice_domain_preference_and_ue_usage_setting;
+} volte_params_t;
+
 /*
  * Structure of the EMM context established by the network for a particular UE
  * ---------------------------------------------------------------------------
@@ -335,6 +342,8 @@ typedef struct emm_context_s {
 
   //CSFB related parameters
   csfb_params_t csfbparams;
+  //VOLTE parameters
+  volte_params_t volte_params;
   bool is_imsi_only_detach;
   /* Set the flag if pcrf initiated bearer deact and UE is in Idle state
    *if this flag is set after receving service req, send detach

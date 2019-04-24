@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package identity
 
 import (
+	"context"
+
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 
@@ -111,4 +113,21 @@ func GetStreamGatewayId(stream grpc.ServerStream) (*protos.Identity_Gateway, err
 		return nil, status.Error(codes.PermissionDenied, "Invalid Identity Type")
 	}
 	return gwIdentity, nil
+}
+
+// GetClientNetworkID looks up the Gateway caller retrieved from GRPC/HTTP
+// Context (if present) where it's set by the middleware and returns the
+// NetworkID associated to the gateway.
+// For use by all Gateway facing cloud services.
+func GetClientNetworkID(ctx context.Context) (string, error) {
+	gw := protos.GetClientGateway(ctx)
+	if gw == nil {
+		err := status.Errorf(codes.PermissionDenied, "Missing Gateway Identity")
+		return "", err
+	}
+	if !gw.Registered() {
+		err := status.Errorf(codes.PermissionDenied, "Gateway is not registered")
+		return "", err
+	}
+	return gw.GetNetworkId(), nil
 }

@@ -155,6 +155,14 @@ Status MagmaService::ReloadServiceConfig(
   return Status::OK;
 }
 
+Status MagmaService::GetOperationalStates(
+    ServerContext *context,
+    const Void *request,
+    GetOperationalStatesResponse *response) {
+    // not yet implemented
+    return Status::OK;
+}
+
 void MagmaService::setSharedMetrics() {
   setMetricsUptime();
   setMemoryUsage();
