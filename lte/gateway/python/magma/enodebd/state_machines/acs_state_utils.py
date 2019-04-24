@@ -15,24 +15,12 @@ from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import get_device_name, \
     EnodebDeviceName
-from magma.enodebd.exceptions import ConfigurationError, \
-    IncorrectDeviceHandlerError
+from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.tr069 import models
 
 
-def does_inform_have_event(
-    inform: models.Inform,
-    event_code: str,
-) -> bool:
-    """ True if the Inform message contains the specified event code """
-    for event in inform.Event.EventStruct:
-        if event.EventCode == event_code:
-            return True
-    return False
-
 def process_inform_message(
     inform: Any,
-    device_name: EnodebDeviceName,
     data_model: DataModel,
     device_cfg: EnodebConfiguration,
 ) -> None:
@@ -46,8 +34,22 @@ def process_inform_message(
         inform: Inform Tr069 message
         device_handler: The state machine we are using for our device
     """
-    logging.info('Processing Inform message')
+    param_values_by_path = _get_param_values_by_path(inform)
+    param_name_list = data_model.get_parameter_names()
+    name_to_val = {}
+    for name in param_name_list:
+        path = data_model.get_parameter(name).path
+        if path in param_values_by_path:
+            value = param_values_by_path[path]
+            name_to_val[name] = value
 
+    for name, val in name_to_val.items():
+        device_cfg.set_parameter(name, val)
+
+
+def get_device_name_from_inform(
+    inform: models.Inform,
+) -> EnodebDeviceName:
     def _get_param_value_from_path_suffix(
         suffix: str,
         path_list: List[str],
@@ -58,49 +60,52 @@ def process_inform_message(
                 return param_values_by_path[path]
         raise ConfigurationError('Did not receive expected info in Inform')
 
-    if hasattr(inform, 'ParameterList') and \
-            hasattr(inform.ParameterList, 'ParameterValueStruct'):
-        param_values_by_path = {}
-        for param_value in inform.ParameterList.ParameterValueStruct:
-            path = param_value.Name
-            value = param_value.Value.Data
-            logging.debug('(Inform msg) Received parameter: %s = %s', path,
-                          value)
-            param_values_by_path[path] = value
+    param_values_by_path = _get_param_values_by_path(inform)
 
-        # Check the OUI and version number to see if the data model matches
-        path_list = list(param_values_by_path.keys())
-        sw_version = _get_param_value_from_path_suffix(
-            'DeviceInfo.SoftwareVersion',
+    # Check the OUI and version number to see if the data model matches
+    path_list = list(param_values_by_path.keys())
+    if hasattr(inform, 'DeviceId') and \
+            hasattr(inform.DeviceId, 'OUI'):
+        device_oui = inform.DeviceId.OUI
+    else:
+        device_oui = _get_param_value_from_path_suffix(
+            'DeviceInfo.ManufacturerOUI',
             path_list,
             param_values_by_path,
         )
-        # Check DeviceId struct for OUI first
-        if hasattr(inform, 'DeviceId') and \
-                hasattr(inform.DeviceId, 'OUI'):
-            device_oui = inform.DeviceId.OUI
-        else:
-            device_oui = _get_param_value_from_path_suffix(
-                'DeviceInfo.ManufacturerOUI',
-                path_list,
-                param_values_by_path,
-            )
-        logging.info('OUI: %s, Software: %s', device_oui, sw_version)
-        correct_device_name = get_device_name(device_oui, sw_version)
-        if device_name is not correct_device_name:
-            raise IncorrectDeviceHandlerError(
-                device_name=correct_device_name)
+    sw_version = _get_param_value_from_path_suffix(
+        'DeviceInfo.SoftwareVersion',
+        path_list,
+        param_values_by_path,
+    )
+    return get_device_name(device_oui, sw_version)
 
-        param_name_list = data_model.get_parameter_names()
-        name_to_val = {}
-        for name in param_name_list:
-            path = data_model.get_parameter(name).path
-            if path in param_values_by_path:
-                value = param_values_by_path[path]
-                name_to_val[name] = value
 
-        for name, val in name_to_val.items():
-            device_cfg.set_parameter(name, val)
+def does_inform_have_event(
+    inform: models.Inform,
+    event_code: str,
+) -> bool:
+    """ True if the Inform message contains the specified event code """
+    for event in inform.Event.EventStruct:
+        if event.EventCode == event_code:
+            return True
+    return False
+
+
+def _get_param_values_by_path(
+    inform: models.Inform,
+) -> Dict[str, Any]:
+    if not hasattr(inform, 'ParameterList') or \
+            not hasattr(inform.ParameterList, 'ParameterValueStruct'):
+        raise ConfigurationError('Did not receive ParamterList in Inform')
+    param_values_by_path = {}
+    for param_value in inform.ParameterList.ParameterValueStruct:
+        path = param_value.Name
+        value = param_value.Value.Data
+        logging.debug('(Inform msg) Received parameter: %s = %s', path,
+                      value)
+        param_values_by_path[path] = value
+    return param_values_by_path
 
 
 def are_tr069_params_equal(param_a: Any, param_b: Any, type_: str) -> bool:

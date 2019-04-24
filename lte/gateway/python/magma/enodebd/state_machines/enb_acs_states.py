@@ -116,8 +116,8 @@ class WaitInformState(EnodebAcsState):
         """
         if not isinstance(message, models.Inform):
             return AcsReadMsgResult(False, None)
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
+        process_inform_message(message, self.acs.data_model,
+                               self.acs.device_cfg)
         if does_inform_have_event(message, '1 BOOT'):
             return AcsReadMsgResult(True, self.boot_transition)
         return AcsReadMsgResult(True, None)
@@ -200,8 +200,8 @@ class BaicellsRemWaitState(EnodebAcsState):
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         if not isinstance(message, models.Inform):
             return AcsReadMsgResult(False, None)
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
+        process_inform_message(message, self.acs.data_model,
+                               self.acs.device_cfg)
         return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
@@ -899,8 +899,8 @@ class BaicellsSendRebootState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         elif isinstance(message, models.Inform):
             self.prev_msg_was_inform = True
-            process_inform_message(message, self.acs.device_name,
-                                   self.acs.data_model, self.acs.device_cfg)
+            process_inform_message(message, self.acs.data_model,
+                                   self.acs.device_cfg)
             return AcsReadMsgResult(True, None)
         self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
@@ -939,8 +939,8 @@ class SendRebootState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         elif isinstance(message, models.Inform):
             self.prev_msg_was_inform = True
-            process_inform_message(message, self.acs.device_name,
-                                   self.acs.data_model, self.acs.device_cfg)
+            process_inform_message(message, self.acs.data_model,
+                                   self.acs.device_cfg)
             return AcsReadMsgResult(True, None)
         self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
@@ -1030,8 +1030,8 @@ class WaitInformMRebootState(EnodebAcsState):
         if not does_inform_have_event(message, self.INFORM_EVENT_CODE):
             raise Tr069Error('Did not receive M Reboot event code in '
                              'Inform')
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
+        process_inform_message(message, self.acs.data_model,
+                               self.acs.device_cfg)
         return AcsReadMsgResult(True, self.done_transition)
 
     @classmethod
