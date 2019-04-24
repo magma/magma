@@ -27,6 +27,24 @@ class EnodebAcsStateMachineBuilder:
         return StateMachineManager(service)
 
     @classmethod
+    def build_multi_enb_acs_manager(
+        cls,
+    ) -> StateMachineManager:
+        service = cls.build_multi_enb_magma_service()
+        return StateMachineManager(service)
+
+    @classmethod
+    def build_multi_enb_acs_state_machine(
+        cls,
+        device: EnodebDeviceName = EnodebDeviceName.BAICELLS,
+    ) -> EnodebAcsStateMachine:
+        # Build the state_machine
+        service = cls.build_multi_enb_magma_service()
+        handler_class = get_device_handler_from_name(device)
+        acs_state_machine = handler_class(service)
+        return acs_state_machine
+
+    @classmethod
     def build_acs_state_machine(
         cls,
         device: EnodebDeviceName = EnodebDeviceName.BAICELLS,
@@ -44,6 +62,17 @@ class EnodebAcsStateMachineBuilder:
     ) -> MagmaService:
         event_loop = asyncio.get_event_loop()
         mconfig = EnodebConfigBuilder.get_mconfig(device)
+        service_config = EnodebConfigBuilder.get_service_config()
+        with mock.patch('magma.common.service.MagmaService') as MockService:
+            MockService.config = service_config
+            MockService.mconfig = mconfig
+            MockService.loop = event_loop
+            return MockService
+
+    @classmethod
+    def build_multi_enb_magma_service(cls) -> MagmaService:
+        event_loop = asyncio.get_event_loop()
+        mconfig = EnodebConfigBuilder.get_multi_enb_mconfig()
         service_config = EnodebConfigBuilder.get_service_config()
         with mock.patch('magma.common.service.MagmaService') as MockService:
             MockService.config = service_config

@@ -41,6 +41,59 @@ class EnodebConfigBuilder:
         return mconfig
 
     @classmethod
+    def get_multi_enb_mconfig(
+        cls,
+    ) -> mconfigs_pb2.EnodebD:
+        mconfig = mconfigs_pb2.EnodebD()
+        mconfig.bandwidth_mhz = 20
+        mconfig.special_subframe_pattern = 7
+        # This earfcndl is actually unused, remove later
+        mconfig.earfcndl = 44490
+        mconfig.log_level = 1
+        mconfig.plmnid_list = "00101"
+        mconfig.pci = 260
+        mconfig.allow_enodeb_transmit = False
+        mconfig.subframe_assignment = 2
+        mconfig.tac = 1
+
+        # tdd config, unused because of multi-enb config
+        mconfig.tdd_config.earfcndl = 39150
+        mconfig.tdd_config.subframe_assignment = 2
+        mconfig.tdd_config.special_subframe_pattern = 7
+
+        id1 = '120200002618AGP0003'
+        #enb_conf_1 = mconfigs_pb2.EnodebD.EnodebConfig()
+        mconfig.enb_configs_by_serial[id1]\
+                .earfcndl = 39151
+        mconfig.enb_configs_by_serial[id1]\
+                .subframe_assignment = 2
+        mconfig.enb_configs_by_serial[id1]\
+                .special_subframe_pattern = 7
+        mconfig.enb_configs_by_serial[id1]\
+                .pci = 259
+        mconfig.enb_configs_by_serial[id1]\
+                .transmit_enabled = True
+        mconfig.enb_configs_by_serial[id1]\
+                .device_class = 'Baicells Band 40'
+
+        id2 = '120200002618AGP0004'
+        #enb_conf_2 = mconfigs_pb2.EnodebD.EnodebConfig()
+        mconfig.enb_configs_by_serial[id2]\
+                .earfcndl = 39151
+        mconfig.enb_configs_by_serial[id2]\
+                .subframe_assignment = 2
+        mconfig.enb_configs_by_serial[id2]\
+                .special_subframe_pattern = 7
+        mconfig.enb_configs_by_serial[id2]\
+                .pci = 261
+        mconfig.enb_configs_by_serial[id2]\
+                .transmit_enabled = True
+        mconfig.enb_configs_by_serial[id2]\
+                .device_class = 'Baicells Band 40'
+
+        return mconfig
+
+    @classmethod
     def get_service_config(cls):
         return {
             "tr069": {
