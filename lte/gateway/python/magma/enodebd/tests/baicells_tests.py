@@ -249,6 +249,87 @@ class BaicellsHandlerTests(TestCase):
                         'State machine should be ending session')
 
     @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
+    def test_provision_multi_without_invasive_changes(self, _mock_func) -> None:
+        """
+        Test the scenario where:
+        - eNodeB has already been powered for 10 minutes without configuration
+        - Setting parameters which are 'non-invasive' on the eNodeB
+        - Using enodebd mconfig which has old style config with addition
+          of eNodeB config tied to a serial number
+
+        'Invasive' parameters are those which require special behavior to apply
+        the changes for the eNodeB.
+        """
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder \
+                .build_multi_enb_acs_state_machine(EnodebDeviceName.BAICELLS)
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = Tr069MessageBuilder.get_inform()
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # Send an empty http request to kick off the rest of provisioning
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for an optional parameter, three times
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for read-only params
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_read_only_param_values_response()
+
+        # Send back some typical values
+        # And then SM should request regular parameter values
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+
+        # Send back typical values for the regular parameters
+        req = Tr069MessageBuilder.\
+            get_regular_param_values_response(admin_state=False,
+                                              earfcndl=39150)
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # SM will be requesting object parameter values
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting object param vals')
+
+        # Send back some typical values for object parameters
+        req = Tr069MessageBuilder.get_object_param_values_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # In this scenario, the ACS and thus state machine will not need
+        # to delete or add objects to the eNB configuration.
+        # SM should then just be attempting to set parameter values
+        self.assertTrue(isinstance(resp, models.SetParameterValues),
+                        'State machine should be setting param values')
+
+        isEnablingAdminState = False
+        param = 'Device.Services.FAPService.1.FAPControl.LTE.AdminState'
+        for name_value in resp.ParameterList.ParameterValueStruct:
+            if name_value.Name == param:
+                isEnablingAdminState = True
+        self.assertTrue(isEnablingAdminState,
+                        'eNB config is set to enable transmit, '
+                        'while old enodebd config does not '
+                        'enable transmit. Use eNB config.')
+
+    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
     def test_provision_without_invasive_changes(self, _mock_func) -> None:
         """
         Test the scenario where:

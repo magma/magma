@@ -14,10 +14,13 @@ from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import \
     _set_pci, _set_bandwidth, _set_tdd_subframe_config, \
     _set_management_server, _set_s1_connection, _set_perf_mgmt, \
-    _set_misc_static_params, _set_plmnids_tac, _set_earfcn_freq_band_mode
+    _set_misc_static_params, _set_plmnids_tac, \
+    _set_earfcn_freq_band_mode, _get_enb_config
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.tests.test_utils.config_builder import \
+    EnodebConfigBuilder
 
 
 class EnodebConfigurationFactoryTest(TestCase):
@@ -192,3 +195,16 @@ class EnodebConfigurationFactoryTest(TestCase):
             earfcndl = 0  # Corresponds to FDD
             _set_earfcn_freq_band_mode(self.device_cfg, self.cfg,
                                        self.data_model, earfcndl)
+
+    def test_get_enb_config(self):
+        mconfig = EnodebConfigBuilder.get_mconfig()
+        enb_config = _get_enb_config(mconfig, self.device_cfg)
+        self.assertTrue(enb_config.earfcndl == 39150,
+                        "Should give earfcndl from default eNB config")
+
+        mconfig = EnodebConfigBuilder.get_multi_enb_mconfig()
+        self.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER,
+                                      '120200002618AGP0003')
+        enb_config = _get_enb_config(mconfig, self.device_cfg)
+        self.assertTrue(enb_config.earfcndl == 39151,
+                        "Should give earfcndl from specific eNB config")
