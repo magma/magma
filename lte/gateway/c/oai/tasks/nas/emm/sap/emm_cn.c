@@ -767,10 +767,12 @@ static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
   if (size > 0) {
     nas_emm_attach_proc_t *attach_proc =
       get_nas_specific_procedure_attach(emm_ctx_p);
-    /*
-     * Setup the ESM message container
-     */
-    attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
+    if (attach_proc){
+      /*
+       * Setup the ESM message container
+       */
+      attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
+    }
     increment_counter(
       "ue_attach",
       1,
