@@ -47,6 +47,7 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		&config.CellularNetworkConfigManager{},
 		&config.CellularGatewayConfigManager{},
+		&config.CellularEnodebConfigManager{},
 	}
 }
 
