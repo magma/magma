@@ -1,0 +1,61 @@
+package storage
+
+import (
+	lteprotos "magma/lte/cloud/go/protos"
+	orc8rprotos "magma/orc8r/cloud/go/protos"
+
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
+)
+
+type subscriberListener struct {
+	store SubscriberStore
+}
+
+func NewSubscriberListener(store SubscriberStore) *subscriberListener {
+	return &subscriberListener{store: store}
+}
+
+func (listener *subscriberListener) GetName() string {
+	return "subscriberdb"
+}
+
+func (listener *subscriberListener) ReportError(err error) error {
+	glog.Errorf("hss subscriber stream error: %s", err.Error())
+	return nil
+}
+
+func (listener *subscriberListener) Update(batch *orc8rprotos.DataUpdateBatch) bool {
+	glog.V(2).Infof("streaming %d subscriber update(s)", len(batch.GetUpdates()))
+	store := listener.store
+
+	if batch.GetResync() {
+		err := store.DeleteAllSubscribers()
+		if err != nil {
+			glog.Errorf("failed to clear subscriber database: %s", err.Error())
+		}
+	}
+
+	for _, update := range batch.GetUpdates() {
+		subscriber := &lteprotos.SubscriberData{}
+		if err := proto.Unmarshal(update.GetValue(), subscriber); err != nil {
+			glog.Errorf("failed to unmarshal subscriber update for %s: %s", update.GetKey(), err.Error())
+			continue
+		}
+
+		id := subscriber.GetSid().GetId()
+		oldSub, err := store.GetSubscriberData(id)
+		if err == nil {
+			if oldSub.State != nil {
+				subscriber.State = oldSub.State
+			}
+			err = store.UpdateSubscriber(subscriber)
+			glog.Errorf("failed to update subscriber(%s): %s", id, err.Error())
+		} else {
+			err = store.AddSubscriber(subscriber)
+			glog.Errorf("failed to add subscriber(%s): %s", id, err.Error())
+		}
+	}
+
+	return true
+}

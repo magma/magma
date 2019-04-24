@@ -76,6 +76,7 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 			LteAuthAmf:        hss.GetLteAuthAmf(),
 			DefaultSubProfile: hss.GetDefaultSubProfile().ToMconfig(),
 			SubProfiles:       hssSubProfile,
+			StreamSubscribers: hss.GetStreamSubscribers(),
 		},
 		"swx_proxy": &mconfig.SwxConfig{
 			LogLevel:            protos.LogLevel_INFO,

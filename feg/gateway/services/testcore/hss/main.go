@@ -17,6 +17,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
+	"magma/feg/gateway/streamer"
 	"magma/orc8r/cloud/go/service"
 
 	"github.com/golang/glog"
@@ -31,11 +32,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error getting hss config: %s", err)
 	}
-	servicer, err := servicers.NewHomeSubscriberServer(storage.NewMemorySubscriberStore(), config)
+	store := storage.NewMemorySubscriberStore()
+	servicer, err := servicers.NewHomeSubscriberServer(store, config)
 	if err != nil {
 		log.Fatalf("Error creating home subscriber server: %s", err)
 	}
 	protos.RegisterHSSConfiguratorServer(srv.GrpcServer, servicer)
+
+	if config.StreamSubscribers {
+		streamerClient := streamer.NewStreamerClient(registry.NewCloudRegistry())
+		if err = streamerClient.AddListener(storage.NewSubscriberListener(store)); err != nil {
+			glog.Errorf("Failed to start subscriber streaming: %s", err.Error())
+		}
+	}
 
 	subscribers, err := servicers.GetConfiguredSubscribers()
 	if err != nil {
