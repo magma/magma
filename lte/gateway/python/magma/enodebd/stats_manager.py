@@ -10,11 +10,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 import asyncio
 import logging
 from xml.etree import ElementTree
-
 from aiohttp import web
-
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
+from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.enodeb_status import get_enodeb_status, \
+    update_status_metrics
+from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
+from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
 from . import metrics
 
 
@@ -58,35 +61,81 @@ class StatsManager:
         'PDCP.UpOctDl': metrics.STAT_PDCP_USER_PLANE_BYTES_DL,
     }
 
+    # Check if radio transmit is turned on every 10 seconds.
+    CHECK_RF_TX_PERIOD = 10
+
+    def __init__(self, state_machine_pointer: StateMachinePointer):
+        self.state_machine_pointer = state_machine_pointer
+        self.loop = asyncio.get_event_loop()
+        self._prev_rf_tx = False
+        self.mme_timeout_handler = None
+
     def run(self):
         """ Create and start HTTP server """
         svc_config = load_service_config("enodebd")
 
         app = web.Application()
-        app.router.add_route('POST', "/{something}", self.post_handler)
+        app.router.add_route('POST', "/{something}", self._post_handler)
 
-        loop = asyncio.get_event_loop()
         handler = app.make_handler()
-        create_server_func = loop.create_server(
+        create_server_func = self.loop.create_server(
             handler,
             host=get_ip_from_if(svc_config['tr069']['interface']),
             port=svc_config['tr069']['perf_mgmt_port'])
 
-        loop.run_until_complete(create_server_func)
+        self.loop.run_until_complete(create_server_func)
+
+    def _periodic_check_rf_tx(self) -> None:
+        self._check_rf_tx()
+        self.mme_timeout_handler = self.loop.call_later(
+            self.CHECK_RF_TX_PERIOD,
+            self._check_rf_tx,
+        )
+
+    def _check_rf_tx(self) -> None:
+        """
+        Check if eNodeB should be connected to MME but isn't, and maybe reboot.
+
+        If the eNB doesn't report connection to MME within a timeout period,
+        get it to reboot in the hope that it will fix things.
+
+        Usually, enodebd polls the eNodeB for whether it is connected to MME.
+        This method checks the last polled MME connection status, and if
+        eNodeB should be connected to MME but it isn't.
+        """
+        handler = self.state_machine_pointer.state_machine
+        self._check_rf_tx_for_handler(handler)
+
+    def _check_rf_tx_for_handler(self, handler: EnodebAcsStateMachine) -> None:
+        """
+        Clear stats when eNodeB stops radiating. This is
+        because eNodeB stops sending performance metrics at this point.
+        """
+        if handler.device_cfg.has_parameter(ParameterName.RF_TX_STATUS):
+            rf_tx = handler \
+                .device_cfg \
+                .get_parameter(ParameterName.RF_TX_STATUS)
+            if self._prev_rf_tx is True and rf_tx is False:
+                self._clear_stats()
+            self._prev_rf_tx = rf_tx
+
+        # Update status metrics
+        status = get_enodeb_status(handler)
+        update_status_metrics(status)
 
     @asyncio.coroutine
-    def post_handler(self, request):
+    def _post_handler(self, request):
         """ HTTP POST handler """
         # Read request body and convert to XML tree
         body = yield from request.read()
 
         root = ElementTree.fromstring(body)
-        self.parse_pm_xml(root)
+        self._parse_pm_xml(root)
 
         # Return success response
         return web.Response()
 
-    def parse_pm_xml(self, xml_root):
+    def _parse_pm_xml(self, xml_root):
         """
         Parse performance management XML from eNodeB and populate metrics.
         The schema for this XML document, along with an example, is shown in
@@ -97,7 +146,7 @@ class StatsManager:
             names = measurement.find('PmName')
             data = measurement.find('PmData')
             if object_type == 'EutranCellTdd':
-                self.parse_tdd_counters(names, data)
+                self._parse_tdd_counters(names, data)
             elif object_type == 'ManagedElement':
                 # Currently no counters to parse
                 pass
@@ -105,7 +154,7 @@ class StatsManager:
                 # Currently no counters to parse
                 pass
 
-    def parse_tdd_counters(self, names, data):
+    def _parse_tdd_counters(self, names, data):
         """
         Parse eNodeB performance management counters from TDD structure.
         Most of the logic is just to extract the correct counter based on the
@@ -123,8 +172,8 @@ class StatsManager:
         </CV>
         See tests/stats_manager_tests.py for a more complete example.
         """
-        index_data_map = self.build_index_to_data_map(data)
-        name_index_map = self.build_name_to_index_map(names)
+        index_data_map = self._build_index_to_data_map(data)
+        name_index_map = self._build_name_to_index_map(names)
 
         # For each performance metric, extract value from XML document and set
         # internal metric to that value.
@@ -195,7 +244,7 @@ class StatsManager:
             # Apply new value to metric
             metric.set(value)
 
-    def build_index_to_data_map(self, data_etree):
+    def _build_index_to_data_map(self, data_etree):
         """
         Parse XML ElementTree and build a dict mapping index to data XML
         element. The relevant part of XML schema being parsed is:
@@ -252,7 +301,7 @@ class StatsManager:
 
         return index_data_map
 
-    def build_name_to_index_map(self, name_etree):
+    def _build_name_to_index_map(self, name_etree):
         """
         Parse XML ElementTree and build a dict mapping name to index. The
         relevant part of XML schema being parsed is:
@@ -285,7 +334,7 @@ class StatsManager:
 
         return name_index_map
 
-    def clear_stats(self):
+    def _clear_stats(self):
         """
         Clear statistics. Called when eNodeB management plane disconnects
         """

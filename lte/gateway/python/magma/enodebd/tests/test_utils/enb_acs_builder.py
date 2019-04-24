@@ -13,7 +13,6 @@ from magma.common.service import MagmaService
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
-from magma.enodebd.stats_manager import StatsManager
 from magma.enodebd.tests.test_utils.config_builder import EnodebConfigBuilder
 
 
@@ -24,10 +23,9 @@ class EnodebAcsStateMachineBuilder:
         device: EnodebDeviceName = EnodebDeviceName.BAICELLS,
     ) -> EnodebAcsStateMachine:
         # Build the state_machine
-        stats_mgr = StatsManager()
         service = cls.build_magma_service(device)
         handler_class = get_device_handler_from_name(device)
-        acs_state_machine = handler_class(service, stats_mgr)
+        acs_state_machine = handler_class(service)
         return acs_state_machine
 
     @classmethod

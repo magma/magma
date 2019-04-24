@@ -6,19 +6,20 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import asyncio
+
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from unittest import TestCase, mock
 from unittest.mock import Mock, patch
+from magma.enodebd.devices.device_utils import EnodebDeviceName
 from spyne import MethodContext
 from spyne.server import ServerBase
-from magma.enodebd.devices.baicells import BaicellsHandler
 from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
-from magma.enodebd.stats_manager import StatsManager
 from magma.enodebd.tr069 import models
 from magma.enodebd.tr069.rpc_methods import AutoConfigServer
 from magma.enodebd.tr069.spyne_mods import Tr069Application, Tr069Soap11
+from magma.enodebd.tests.test_utils.enb_acs_builder import \
+    EnodebAcsStateMachineBuilder
 
 
 class Tr069Test(TestCase):
@@ -28,7 +29,8 @@ class Tr069Test(TestCase):
 
     def setUp(self):
         # Build the state_machine
-        self.acs_state_machine = self._build_acs_state_machine()
+        self.acs_state_machine = EnodebAcsStateMachineBuilder \
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Set up the ACS
         state_machine_pointer = StateMachinePointer(self.acs_state_machine)
@@ -46,19 +48,6 @@ class Tr069Test(TestCase):
                                     models.CWMP_NS,
                                     in_protocol=Tr069Soap11(validator='soft'),
                                     out_protocol=Tr069Soap11())
-
-    def _build_acs_state_machine(self) -> BaicellsHandler:
-        # Build the state_machine
-        stats_mgr = StatsManager()
-        event_loop = asyncio.get_event_loop()
-        mconfig = self._get_mconfig()
-        service_config = self._get_service_config()
-        with mock.patch('magma.common.service.MagmaService') as MockService:
-            MockService.config = service_config
-            MockService.mconfig = mconfig
-            MockService.loop = event_loop
-            acs_state_machine = BaicellsHandler(MockService, stats_mgr)
-            return acs_state_machine
 
     def tearDown(self):
         self.p.stop()
