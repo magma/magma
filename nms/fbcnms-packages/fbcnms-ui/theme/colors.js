@@ -13,6 +13,10 @@ export const purple = {
 };
 
 export const black = '#000';
+export const blue05 = '#ecf3ff';
+export const blue30 = '#aac9ff';
+export const blue60 = '#3578e5';
+export const blueGrayDark = '#303846';
 export const brown = '#5d4037';
 export const cherry = '#ad1457';
 export const cyan = '#00acc1';
@@ -41,6 +45,10 @@ export const yellow = '#ffeb3b';
 
 export default {
   black,
+  blue05,
+  blue30,
+  blue60,
+  blueGrayDark,
   brown,
   cherry,
   cyan,
