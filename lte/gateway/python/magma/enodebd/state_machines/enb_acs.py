@@ -42,6 +42,15 @@ class EnodebAcsStateMachine(ABC):
         self._data_model = None
         self._are_invasive_changes_applied = True
 
+    def has_parameter(self, param: ParameterName) -> bool:
+        """
+        Return True if the data model has the parameter
+
+        Raise KeyError if the parameter is optional and we do not know yet
+        if this eNodeB has the parameter
+        """
+        return self.data_model.is_parameter_present(param)
+
     def get_parameter(self, param: ParameterName) -> Any:
         """
         Return the value of the parameter
