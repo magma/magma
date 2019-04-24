@@ -29,17 +29,15 @@ from magma.enodebd.state_machines.enb_acs_states import EnodebAcsState, \
     BaicellsSendRebootState, WaitRebootResponseState, WaitInformMRebootState, \
     CheckOptionalParamsState, WaitEmptyMessageState, ErrorState, \
     EndSessionState, BaicellsRemWaitState
-from magma.enodebd.stats_manager import StatsManager
 
 
 class BaicellsHandler(BasicEnodebAcsStateMachine):
     def __init__(
         self,
         service: MagmaService,
-        stats_mgr: StatsManager,
     ) -> None:
         self._state_map = {}
-        super().__init__(service, stats_mgr)
+        super().__init__(service)
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
