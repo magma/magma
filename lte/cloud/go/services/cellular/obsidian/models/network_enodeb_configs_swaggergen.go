@@ -25,8 +25,7 @@ type NetworkEnodebConfigs struct {
 
 	// earfcndl
 	// Maximum: 65535
-	// Minimum: 0
-	Earfcndl *uint32 `json:"earfcndl,omitempty"`
+	Earfcndl uint32 `json:"earfcndl,omitempty"`
 
 	// pci
 	// Maximum: 503
@@ -34,13 +33,11 @@ type NetworkEnodebConfigs struct {
 
 	// special subframe pattern
 	// Maximum: 9
-	// Minimum: 0
-	SpecialSubframePattern *int64 `json:"special_subframe_pattern,omitempty"`
+	SpecialSubframePattern uint32 `json:"special_subframe_pattern,omitempty"`
 
 	// subframe assignment
 	// Maximum: 6
-	// Minimum: 0
-	SubframeAssignment *int64 `json:"subframe_assignment,omitempty"`
+	SubframeAssignment uint32 `json:"subframe_assignment,omitempty"`
 
 	// transmit enabled
 	TransmitEnabled bool `json:"transmit_enabled,omitempty"`
@@ -131,11 +128,7 @@ func (m *NetworkEnodebConfigs) validateEarfcndl(formats strfmt.Registry) error {
 		return nil
 	}
 
-	if err := validate.MinimumInt("earfcndl", "body", int64(*m.Earfcndl), 0, false); err != nil {
-		return err
-	}
-
-	if err := validate.MaximumInt("earfcndl", "body", int64(*m.Earfcndl), 65535, false); err != nil {
+	if err := validate.MaximumInt("earfcndl", "body", int64(m.Earfcndl), 65535, false); err != nil {
 		return err
 	}
 
@@ -161,11 +154,7 @@ func (m *NetworkEnodebConfigs) validateSpecialSubframePattern(formats strfmt.Reg
 		return nil
 	}
 
-	if err := validate.MinimumInt("special_subframe_pattern", "body", int64(*m.SpecialSubframePattern), 0, false); err != nil {
-		return err
-	}
-
-	if err := validate.MaximumInt("special_subframe_pattern", "body", int64(*m.SpecialSubframePattern), 9, false); err != nil {
+	if err := validate.MaximumInt("special_subframe_pattern", "body", int64(m.SpecialSubframePattern), 9, false); err != nil {
 		return err
 	}
 
@@ -178,11 +167,7 @@ func (m *NetworkEnodebConfigs) validateSubframeAssignment(formats strfmt.Registr
 		return nil
 	}
 
-	if err := validate.MinimumInt("subframe_assignment", "body", int64(*m.SubframeAssignment), 0, false); err != nil {
-		return err
-	}
-
-	if err := validate.MaximumInt("subframe_assignment", "body", int64(*m.SubframeAssignment), 6, false); err != nil {
+	if err := validate.MaximumInt("subframe_assignment", "body", int64(m.SubframeAssignment), 6, false); err != nil {
 		return err
 	}
 

@@ -103,3 +103,21 @@ func (m *GatewayCellularConfigs) FromServiceModel(magmadModel interface{}) error
 	protos.FillIn(magmadModel, m)
 	return nil
 }
+
+func (m *NetworkEnodebConfigs) ValidateModel() error {
+	return nil
+}
+
+func (m *NetworkEnodebConfigs) ToServiceModel() (interface{}, error) {
+	magmadConfig := &cellularprotos.CellularEnodebConfig{}
+	protos.FillIn(m, magmadConfig)
+	if err := cellularprotos.ValidateEnodebConfig(magmadConfig); err != nil {
+		return nil, err
+	}
+	return magmadConfig, nil
+}
+
+func (m *NetworkEnodebConfigs) FromServiceModel(magmadModel interface{}) error {
+	protos.FillIn(magmadModel, m)
+	return nil
+}
