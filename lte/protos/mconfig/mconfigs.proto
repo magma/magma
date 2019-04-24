@@ -31,6 +31,16 @@ message EnodebD {
         // TDD subframe config parameter. See http://niviuk.free.fr/lte_tdd.php
         int32 special_subframe_pattern = 3;
     }
+    message EnodebConfig {
+        // Device-unique serial ID. Used to identify the eNodeB, and ties the
+        // config to that device
+        int32 earfcndl = 1;
+        int32 subframe_assignment = 2;
+        int32 special_subframe_pattern = 3;
+        int32 pci = 4;
+        bool transmit_enabled = 5;
+        string device_class = 6;
+    }
 
     orc8r.LogLevel log_level = 1;
 
@@ -57,6 +67,7 @@ message EnodebD {
     repeated int32 arfcn_2g = 11;
     TDDConfig tdd_config = 12;
     FDDConfig fdd_config = 13;
+    map<string, EnodebConfig> enb_configs_by_serial = 14;
 }
 
 //------------------------------------------------------------------------------
