@@ -23,6 +23,9 @@ type Props = {
 };
 
 const useClasses = makeStyles(theme => ({
+  root: {
+    marginTop: '24px',
+  },
   menuPaper: {
     outline: 'none',
     overflowX: 'visible',
@@ -63,7 +66,6 @@ const useClasses = makeStyles(theme => ({
     color: theme.palette.blue60,
     cursor: 'pointer',
     display: 'inline-flex',
-    marginTop: '8px',
     padding: '11px',
     '&:hover': {
       padding: '10px',
