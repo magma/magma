@@ -16,6 +16,9 @@ import (
 // swagger:model gateway_cellular_configs
 type GatewayCellularConfigs struct {
 
+	// attached enodeb serials
+	AttachedEnodebSerials []string `json:"attached_enodeb_serials"`
+
 	// epc
 	Epc *GatewayEpcConfigs `json:"epc,omitempty"`
 
