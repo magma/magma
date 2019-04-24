@@ -19,11 +19,13 @@ option go_package = "magma/lte/cloud/go/protos";
 // Message Definitions for TR-069 message injection. This is used for manual
 // testing of the TR-069 server.
 // --------------------------------------------------------------------------
-
 message GetParameterRequest {
+  // Serial ID of eNodeB. Uniquely identifies the eNodeB.
+  string device_serial = 1;
+
   // Fully qualified parameter name, e.g:
   // InternetGatewayDevice.LANDevice.1.Hosts.
-  string parameter_name = 1;
+  string parameter_name = 2;
 }
 
 message NameValue {
@@ -33,24 +35,52 @@ message NameValue {
   string value = 2;
 }
 message GetParameterResponse {
-  repeated NameValue parameters = 1;
+  string device_serial = 1;
+  repeated NameValue parameters = 2;
 }
 
 message SetParameterRequest {
+  // Serial ID of eNodeB. Uniquely identifies the eNodeB.
+  string device_serial = 1;
+
   // Fully qualified parameter name, e.g:
   // InternetGatewayDevice.LANDevice.1.Hosts.
-  string parameter_name = 1;
+  string parameter_name = 2;
 
   // Data values for each data type
   oneof value {
-    int32 value_int = 2;
-    string value_string = 3;
-    bool value_bool = 4;
+    int32 value_int = 3;
+    string value_string = 4;
+    bool value_bool = 5;
   }
 
   // Key to be used at ACS discretion to determine when parameter was last
   // updated
-  string parameter_key = 5;
+  string parameter_key = 6;
+}
+
+message EnodebIdentity {
+  // Serial ID of eNodeB. Uniquely identifies the eNodeB.
+  string device_serial = 1;
+}
+
+message AllEnodebStatus {
+  repeated SingleEnodebStatus enb_status_list = 1;
+}
+
+message SingleEnodebStatus {
+  string device_serial = 1;
+  string ip_address = 2;
+  string connected = 3;
+  string configured = 4;
+  string opstate_enabled = 5;
+  string rf_tx_on = 6;
+  string gps_connected = 7;
+  string ptp_connected = 8;
+  string mme_connected = 9;
+  string gps_longitude = 10;
+  string gps_latitude = 11;
+  string fsm_state = 12;
 }
 
 // --------------------------------------------------------------------------
@@ -67,11 +97,17 @@ service Enodebd {
   rpc SetParameter (SetParameterRequest) returns (magma.orc8r.Void);
 
   // Configure eNodeB based on enodebd config file
-  rpc Configure (magma.orc8r.Void) returns (magma.orc8r.Void);
+  rpc Configure (EnodebIdentity) returns (magma.orc8r.Void);
 
   // Reboot eNodeB
-  rpc Reboot (magma.orc8r.Void) returns (magma.orc8r.Void);
+  rpc Reboot (EnodebIdentity) returns (magma.orc8r.Void);
 
   // Get current status
   rpc GetStatus (magma.orc8r.Void) returns (magma.orc8r.ServiceStatus);
+
+  // Get status info for all connected eNodeB devices
+  rpc GetAllEnodebStatus (magma.orc8r.Void) returns (AllEnodebStatus);
+
+  // Get status info of a single connected eNodeB device
+  rpc GetEnodebStatus (EnodebIdentity) returns (SingleEnodebStatus);
 }
