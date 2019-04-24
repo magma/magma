@@ -34,7 +34,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <netinet/in.h>
-#include <unistd.h>
 
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
@@ -1269,7 +1268,7 @@ int sgw_handle_modify_bearer_request(
           }
         }
     // For testing
-#if 1
+#if 0
     Imsi_t imsi;
     ip_address_t ue_ip;
     traffic_flow_template_t tft;
@@ -2463,7 +2462,7 @@ int sgw_handle_nw_initiated_deactv_bearer_req(
   //Send ITTI message to MME APP
   message_p =
     itti_alloc_new_message(TASK_SPGW_APP,
-      S5_NW_INITIATED_DEACTIVATE_BEARER_REQ);
+      S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
   if (message_p) {
     itti_s11_nw_init_deactv_bearer_request_t *s11_pcrf_bearer_deactv_request =
       &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;

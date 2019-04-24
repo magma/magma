@@ -952,21 +952,22 @@ esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
    * Execute the dedicated EPS bearer context deactivation procedure accepted
    * * * * by the UE
    */
-  esm_proc_eps_bearer_context_deactivate_accept(emm_context, ebi, &esm_cause);
+  int pid =
+    esm_proc_eps_bearer_context_deactivate_accept(emm_context, ebi, &esm_cause);
 
-#if 0
-  if (pid != RETURNerror) {
-    /*
-     * Release all the resources reserved for the PDN
-     */
-    ((emm_context->esm_ctx->n_active_ebrs == 0) ||)
-    int rc = esm_proc_pdn_disconnect_accept(emm_context, pid, &esm_cause);
+  if (!mme_config.eps_network_feature_support.
+    ims_voice_over_ps_session_in_s1) {
+    if (pid != RETURNerror) {
+      /*
+       * Release all the resources reserved for the PDN
+       */
+      int rc = esm_proc_pdn_disconnect_accept(emm_context, pid, &esm_cause);
 
-    if (rc != RETURNerror) {
-      esm_cause = ESM_CAUSE_SUCCESS;
+      if (rc != RETURNerror) {
+        esm_cause = ESM_CAUSE_SUCCESS;
+      }
     }
   }
-#endif
   /*
    * Return the ESM cause value
    */

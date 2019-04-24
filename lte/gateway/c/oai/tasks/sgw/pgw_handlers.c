@@ -631,11 +631,11 @@ uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   OAILOG_INFO(LOG_PGW_APP, "Sending Create Bearer Rsp to PCRF with EBI %d\n",
     act_ded_bearer_rsp->ebi);
 //Testing
-#if 1
+#if 0
 
   sleep(3);
   Imsi_t imsi;
-  ebi_t ebi[] = {6}; /*6*/
+  ebi_t ebi[] = {5}; /*6*/
   strcpy((char*)imsi.digit,"001010000000001");
   imsi.length = 15;
   uint32_t ret = RETURNerror;

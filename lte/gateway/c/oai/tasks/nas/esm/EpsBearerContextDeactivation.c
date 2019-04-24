@@ -335,42 +335,46 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       pid = RETURNerror;
     }
   }
-  s_gw_teid_s11_s4 =
-    PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
-    ->pdn_contexts[pid]->s_gw_teid_s11_s4;
 
-  //If bid == 0,default bearer is deleted
-  if (PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
-    ->pdn_contexts[pid]->default_ebi == ebi) {
-    delete_default_bearer = true;
-    //Release the default bearer
-    rc= mme_api_unsubscribe(NULL);
+  if (mme_config.eps_network_feature_support.
+    ims_voice_over_ps_session_in_s1) {
+    s_gw_teid_s11_s4 =
+      PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
+      ->pdn_contexts[pid]->s_gw_teid_s11_s4;
 
-    if (rc != RETURNerror) {
-      /*
-       * Delete the PDN connection entry
-       */
-      _pdn_connectivity_delete(ue_context, pid);
+    //If bid == 0,default bearer is deleted
+    if (PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
+      ->pdn_contexts[pid]->default_ebi == ebi) {
+      delete_default_bearer = true;
+      //Release the default bearer
+      rc= mme_api_unsubscribe(NULL);
+
+      if (rc != RETURNerror) {
+        /*
+         * Delete the PDN connection entry
+         */
+        _pdn_connectivity_delete(ue_context, pid);
+      }
+    } else {
+      OAILOG_INFO(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Removing dedicated bearer context "
+        "for UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+        ue_id,
+        ebi);
+
+      ue_mm_context_t *ue_mm_context =
+        PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context);
+      //Remove dedicated bearer context
+      free_wrapper ((void**)&ue_mm_context->bearer_contexts[bid]);
     }
-  } else {
-    OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Removing dedicated bearer context "
-      "for UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+    //Send deactivate_eps_bearer_context to MME APP
+    nas_itti_deactivate_eps_bearer_context(
       ue_id,
-      ebi);
-
-   ue_mm_context_t *ue_mm_context =
-     PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context);
-   //Remove dedicated bearer context
-   free_wrapper ((void**)&ue_mm_context->bearer_contexts[bid]);
+      ebi,
+      delete_default_bearer,
+      s_gw_teid_s11_s4);
   }
-  //Send deactivate_eps_bearer_context to MME APP
-  nas_itti_deactivate_eps_bearer_context(
-    ue_id,
-    ebi,
-    delete_default_bearer,
-    s_gw_teid_s11_s4);
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
 }
@@ -460,27 +464,30 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           esm_ebr_stop_timer(esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi);
       }
 
-      teid_t s_gw_teid_s11_s4 =
-        PARENT_STRUCT(esm_ebr_timer_data->ctx,
-          struct ue_mm_context_s, emm_context)
-        ->pdn_contexts[pid]->s_gw_teid_s11_s4;
+      //Send bearer_deactivation_reject to MME if VoLTE is supported
+      if (mme_config.eps_network_feature_support.
+        ims_voice_over_ps_session_in_s1) {
+        teid_t s_gw_teid_s11_s4 =
+          PARENT_STRUCT(esm_ebr_timer_data->ctx,
+            struct ue_mm_context_s, emm_context)
+          ->pdn_contexts[pid]->s_gw_teid_s11_s4;
 
-      if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
-        struct ue_mm_context_s, emm_context)
-        ->pdn_contexts[pid]->default_ebi == esm_ebr_timer_data->ebi) {
-        delete_default_bearer = true;
-        //Release the default bearer
-        /*
-         * Delete the PDN connection entry
-         */
-        _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pid);
+        if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
+          struct ue_mm_context_s, emm_context)
+          ->pdn_contexts[pid]->default_ebi == esm_ebr_timer_data->ebi) {
+          delete_default_bearer = true;
+          //Release the default bearer
+          /*
+           * Delete the PDN connection entry
+           */
+          _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pid);
+        }
+        nas_itti_dedicated_eps_bearer_deactivation_reject(
+          esm_ebr_timer_data->ue_id,
+          esm_ebr_timer_data->ebi,
+          delete_default_bearer,
+          s_gw_teid_s11_s4);
       }
-      //Send bearer_deactivation_reject to MME
-      nas_itti_dedicated_eps_bearer_deactivation_reject(
-        esm_ebr_timer_data->ue_id,
-        esm_ebr_timer_data->ebi,
-        delete_default_bearer,
-        s_gw_teid_s11_s4);
     }
     if (esm_ebr_timer_data->msg) {
       bdestroy_wrapper(&esm_ebr_timer_data->msg);
