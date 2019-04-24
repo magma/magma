@@ -69,6 +69,12 @@ parameters:
     description: Edge device ID
     required: true
     type: string
+  enodeb_id:
+    in: path
+    name: enodeb_id
+    description: Enodeb device Serial ID
+    required: true
+    type: string
 
 definitions:
   # Common definitions
@@ -88,6 +94,10 @@ definitions:
     type: string
     pattern: '^(IMSI\d{10,15})$'
     example: IMSI208950000000010
+  enodeb_id:
+    type: string
+    minLength: 1
+    example: 120200002618AGP0003
   error:
     type: object
     required:
