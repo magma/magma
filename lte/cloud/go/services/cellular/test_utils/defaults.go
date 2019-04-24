@@ -97,7 +97,7 @@ func OldFDDNetworkConfig() *protos.CellularNetworkConfig {
 
 func NewDefaultGatewayConfig() *protos.CellularGatewayConfig {
 	return &protos.CellularGatewayConfig{
-        AttachedEnodebSerials: []string{},
+		AttachedEnodebSerials: []string{"enb1"},
 		Ran: &protos.GatewayRANConfig{
 			Pci:             260,
 			TransmitEnabled: true,
@@ -118,12 +118,12 @@ func NewDefaultGatewayConfig() *protos.CellularGatewayConfig {
 }
 
 func NewDefaultEnodebConfig() *protos.CellularEnodebConfig {
-    return &protos.CellularEnodebConfig{
-        Earfcndl: 39150,
-        SubframeAssignment: 2,
-        SpecialSubframePattern: 7,
-        Pci: 260,
-        TransmitEnabled: true,
-        DeviceClass: "Baicells ID TDD/FDD",
-    }
+	return &protos.CellularEnodebConfig{
+		Earfcndl:               39150,
+		SubframeAssignment:     2,
+		SpecialSubframePattern: 7,
+		Pci:                    260,
+		TransmitEnabled:        true,
+		DeviceClass:            "Baicells ID TDD/FDD",
+	}
 }
