@@ -60,7 +60,7 @@ export const access = (level: AccessRoleLevel) => {
       if (domainOrganization.name !== organization) {
         logger.error(
           'Strange bug, please fix! Organizations are Not Equal!! req.user.organization=' +
-            organization,
+            (organization ?? ''),
           ', domainOrganization=' + domainOrganization.name,
         );
         req.logout();

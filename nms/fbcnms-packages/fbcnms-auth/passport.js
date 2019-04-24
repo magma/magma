@@ -13,6 +13,7 @@ import OrganizationLocalStrategy from './strategies/OrganizationLocalStrategy';
 import {User} from '@fbcnms/sequelize-models';
 
 import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
+import type {UserType} from '@fbcnms/sequelize-models/models/user';
 
 type OutputRequest<T> = {
   logIn: (T, (err?: ?Error) => void) => void,
@@ -22,8 +23,7 @@ type OutputRequest<T> = {
   isAuthenticated: () => boolean,
   isUnauthenticated: () => boolean,
 } & FBCNMSMiddleWareRequest;
-// User is currently untyped, export as an object.
-export type FBCNMSPassportRequest = OutputRequest<Object>;
+export type FBCNMSPassportRequest = OutputRequest<UserType>;
 
 function use() {
   passport.serializeUser((user, done) => {
