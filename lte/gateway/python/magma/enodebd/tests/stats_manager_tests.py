@@ -13,10 +13,13 @@ from xml.etree import ElementTree
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
 from magma.enodebd.stats_manager import StatsManager
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
+from magma.enodebd.state_machines.enb_acs_manager import \
+    StateMachineManager
+from magma.enodebd.tests.test_utils.config_builder import \
+    EnodebConfigBuilder
 
 
 class StatsManagerTest(TestCase):
@@ -24,11 +27,9 @@ class StatsManagerTest(TestCase):
     Tests for eNodeB statistics manager
     """
     def setUp(self) -> None:
-        handler = EnodebAcsStateMachineBuilder\
-            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
-        state_machine_pointer = StateMachinePointer
-        state_machine_pointer.state_machine = handler
-        self.mgr = StatsManager(state_machine_pointer)
+        service = EnodebConfigBuilder.get_service_config()
+        self.enb_acs_manager = StateMachineManager(service)
+        self.mgr = StatsManager(self.enb_acs_manager)
         self.is_clear_stats_called = False
 
     def tearDown(self):
@@ -36,7 +37,7 @@ class StatsManagerTest(TestCase):
 
     def test_check_rf_tx(self):
         """ Check that stats are cleared when transmit is disabled on eNB """
-        handler = EnodebAcsStateMachineBuilder \
+        handler = EnodebAcsStateMachineBuilder\
             .build_acs_state_machine(EnodebDeviceName.BAICELLS)
         handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS, True)
         with mock.patch('magma.enodebd.stats_manager.StatsManager'
