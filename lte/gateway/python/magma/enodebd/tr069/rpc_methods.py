@@ -12,8 +12,7 @@ from typing import Any
 
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.exceptions import Tr069Error
-from magma.enodebd.state_machines.acs_state_utils import \
+from magma.enodebd.exceptions import Tr069Error, \
     IncorrectDeviceHandlerError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
