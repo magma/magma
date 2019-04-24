@@ -40,4 +40,7 @@ func main() {
 	}
 	protos.RegisterStateServiceServer(srv.GrpcServer, server)
 	err = srv.Run()
+	if err != nil {
+		glog.Fatalf("Error running service: %s", err)
+	}
 }

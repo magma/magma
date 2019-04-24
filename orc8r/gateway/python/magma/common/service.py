@@ -12,6 +12,7 @@ import logging
 import signal
 import time
 from concurrent import futures
+from typing import List
 
 import functools
 import grpc
@@ -22,6 +23,7 @@ from orc8r.protos.metricsd_pb2 import MetricsContainer
 from orc8r.protos.service303_pb2 import (
     ServiceInfo,
     ReloadConfigResponse,
+    State,
     GetOperationalStatesResponse,
 )
 from orc8r.protos.service303_pb2_grpc import (
@@ -47,6 +49,7 @@ class MagmaService(Service303Servicer):
         self._name = name
         self._port = 0
         self._get_status_callback = None
+        self._get_operational_states_cb = None
 
         # Init logging before doing anything
         logging.basicConfig(
@@ -73,6 +76,9 @@ class MagmaService(Service303Servicer):
         # Load the service config if present
         self._config = None
         self.reload_config()
+
+        # Operational States
+        self._operational_states = []
 
         self._version = '0.0.0'
         # Load the service version if available
@@ -172,6 +178,9 @@ class MagmaService(Service303Servicer):
         except LoadConfigError as e:
             logging.warning(e)
 
+    def add_operational_states(self, states: List[State]):
+        self._operational_states.extend(states)
+
     def run(self):
         """
         Starts the service and runs the event loop until a term signal
@@ -201,6 +210,9 @@ class MagmaService(Service303Servicer):
         """ Register function for getting status.
             Must return a map(string, string)"""
         self._get_status_callback = get_status_callback
+
+    def register_operational_states_callback(self, get_operational_states_cb):
+        self._get_operational_states_cb = get_operational_states_cb
 
     def _stop(self, reason):
         """
@@ -333,5 +345,8 @@ class MagmaService(Service303Servicer):
         """
         Returns the  operational states of devices managed by this service.
         """
-        # Not yet implemented
-        return GetOperationalStatesResponse()
+        res = GetOperationalStatesResponse()
+        if self._get_operational_states_cb is not None:
+            states = self._get_operational_states_cb()
+            res.states.extend(states)
+        return res
