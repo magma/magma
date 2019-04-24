@@ -63,9 +63,9 @@ static void *pgw_intertask_interface(void *args_p)
           &received_message_p->ittiMsg.s5_create_bearer_request);
       } break;
 
-      case S5_ACTIVATE_DEDICATED_BEARER_RSP: {
-        pgw_handle_activate_ded_bearer_rsp(
-          &received_message_p->ittiMsg.s5_activate_dedicated_bearer_response);
+      case S5_NW_INITIATED_ACTIVATE_BEARER_RESP: {
+        pgw_handle_nw_init_activate_bearer_rsp(
+          &received_message_p->ittiMsg.s5_nw_init_actv_bearer_response);
       } break;
 
       case S5_DEACTIVATE_DEDICATED_BEARER_RSP: {

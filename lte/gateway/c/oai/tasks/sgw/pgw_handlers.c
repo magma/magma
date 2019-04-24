@@ -421,12 +421,13 @@ static void get_session_req_data(
   data->qci = qos->qci;
 }
 
-//--------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 
-uint32_t pgw_handle_dedicated_bearer_actv_req(
+uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   Imsi_t *imsi,
   ip_address_t *ue_ip,
-  traffic_flow_template_t *tft,
+  traffic_flow_template_t *ul_tft,
+  traffic_flow_template_t *dl_tft,
   bearer_qos_t *eps_bearer_qos)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
@@ -438,7 +439,9 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
   hash_node_t *node = NULL;
-  itti_s5_activate_dedicated_bearer_request_t *itti_s5_actv_ded_bearer_req = NULL;
+  itti_s5_nw_init_actv_bearer_request_t
+    *itti_s5_actv_bearer_req = NULL;
+  bool lbi_found = false;
 
   OAILOG_INFO(
     LOG_PGW_APP,
@@ -447,33 +450,35 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
 
   teid_t pgw_u_teid = sgw_get_new_s1u_teid();
   message_p =
-    itti_alloc_new_message(TASK_SPGW_APP, S5_ACTIVATE_DEDICATED_BEARER_REQ);
+    itti_alloc_new_message(TASK_SPGW_APP,
+      S5_NW_INITIATED_ACTIVATE_BEARER_REQ);
   if (message_p == NULL) {
-    OAILOG_INFO(
+    OAILOG_ERROR(
     LOG_PGW_APP,
-    "itti_alloc_new_message failed for S5_ACTIVATE_DEDICATED_BEARER_REQ\n");
+    "itti_alloc_new_message failed for"
+    "S5_NW_INITIATED_ACTIVATE_DEDICATED_BEARER_REQ\n");
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
-  itti_s5_actv_ded_bearer_req =
-    &message_p->ittiMsg.s5_activate_dedicated_bearer_request;
+  itti_s5_actv_bearer_req =
+    &message_p->ittiMsg.s5_nw_init_actv_bearer_request;
   //Send ITTI message to SGW
   memset(
-    itti_s5_actv_ded_bearer_req,
+    itti_s5_actv_bearer_req,
     0,
-    sizeof(itti_s5_activate_dedicated_bearer_request_t));
+    sizeof(itti_s5_nw_init_actv_bearer_request_t));
 
   //Copy Bearer QoS
   memcpy(
-    &itti_s5_actv_ded_bearer_req->eps_bearer_qos,
+    &itti_s5_actv_bearer_req->eps_bearer_qos,
     eps_bearer_qos,
     sizeof(bearer_qos_t));
   //Copy TFT
   memcpy(
-    &itti_s5_actv_ded_bearer_req->tft,
-    tft,
+    &itti_s5_actv_bearer_req->tft,
+    ul_tft,
     sizeof(traffic_flow_template_t));
   //Assign TEID
-  itti_s5_actv_ded_bearer_req->S5_U_pgw_teid = pgw_u_teid;
+  itti_s5_actv_bearer_req->S5_U_pgw_teid = pgw_u_teid;
   //Assign LBI
   hashtblP = sgw_app.s11_bearer_context_information_hashtable;
   if (!hashtblP) {
@@ -488,25 +493,31 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
       node = hashtblP->nodes[i];
     }
     pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    while (node) {
+    while ((node) && (!lbi_found)) {
       num_elements++;
       hashtable_ts_get(
         hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
-        if (!strcmp((const char *)spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-          (const char *)imsi->digit)) {
-          itti_s5_actv_ded_bearer_req->mme_teid_S11 =
+        if (!strncmp((const char *)spgw_ctxt_p
+          ->sgw_eps_bearer_context_information.imsi.digit,
+          (const char *)imsi->digit, strlen((const char *)imsi->digit))) {
+          itti_s5_actv_bearer_req->mme_teid_S11 =
             spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
         }
         for (j = 0; j < BEARERS_PER_UE; j++) {
-          if (spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
-            sgw_eps_bearers_array[j]->paa.pdn_type == IPv4) { //TODO - IPv6
-            if ((spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.sgw_eps_bearers_array[j]) &&
+          if ((spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
+            sgw_eps_bearers_array[j]) &&
+            (spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
+            sgw_eps_bearers_array[j]->paa.pdn_type == IPv4)) { //TODO - IPv6
+            if ((spgw_ctxt_p->sgw_eps_bearer_context_information.
+              pdn_connection.sgw_eps_bearers_array[j]) &&
               (spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection.
               sgw_eps_bearers_array[j]->paa.ipv4_address.s_addr ==
               ue_ip->address.ipv4_address.s_addr)) {
-              itti_s5_actv_ded_bearer_req->lbi = spgw_ctxt_p->sgw_eps_bearer_context_information.
+              itti_s5_actv_bearer_req->lbi =
+                spgw_ctxt_p->sgw_eps_bearer_context_information.
                 pdn_connection.default_bearer;
+              lbi_found = true;
               break;
             }
           }
@@ -517,15 +528,16 @@ uint32_t pgw_handle_dedicated_bearer_actv_req(
     i++;
   }
   OAILOG_INFO(LOG_PGW_APP, "LBI for the received Create Bearer Req %d\n",
-    itti_s5_actv_ded_bearer_req->lbi);
-  OAILOG_INFO(LOG_PGW_APP, "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
-    itti_s5_actv_ded_bearer_req->mme_teid_S11);
+    itti_s5_actv_bearer_req->lbi);
+  OAILOG_INFO(LOG_PGW_APP,
+    "Sending S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW with MME TEID %d\n",
+    itti_s5_actv_bearer_req->mme_teid_S11);
   rc = itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 
 
-//--------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 
 uint32_t pgw_handle_deactivate_ded_bearer_req(
   Imsi_t *imsi,
@@ -612,6 +624,12 @@ uint32_t pgw_handle_deactivate_ded_bearer_req(
 
 uint32_t pgw_handle_activate_ded_bearer_rsp(
   const itti_s5_activate_dedicated_bearer_rsp_t *const act_ded_bearer_rsp)
+=======
+//------------------------------------------------------------------------------
+
+uint32_t pgw_handle_nw_init_activate_bearer_rsp(
+  const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp)
+>>>>>>> dbbffc8d7a5ac7fc23a371dfefe0b9326829db3a
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
@@ -635,7 +653,8 @@ uint32_t pgw_handle_activate_ded_bearer_rsp(
 #endif
   //Send Create Bearer Rsp to PCRF
   //TODO-Uncomment once implemented at PCRF
-  //rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi);
+  /*rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi,
+    act_ded_bearer_rsp->cause);*/
   OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
 }
 

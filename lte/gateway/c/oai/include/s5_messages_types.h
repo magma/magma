@@ -35,14 +35,15 @@
   (mSGpTR)->ittiMsg.s5_create_bearer_request
 #define S5_CREATE_BEARER_RESPONSE(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s5_create_bearer_response
-#define S5_ACTIVATE_DEDICATED_BEARER_REQ(mSGpTR)                               \
-  (mSGpTR)->ittiMsg.s5_activate_dedicated_bearer_request
-#define S5_ACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                               \
-  (mSGpTR)->ittiMsg.s5_activate_dedicated_bearer_response
+#define S5_NW_INITIATED_ACTIVATE_BEARER_REQ(mSGpTR)                            \
+  (mSGpTR)->ittiMsg.s5_nw_init_actv_bearer_request
+#define S5_NW_INITIATED_ACTIVATE_BEARER_RESP(mSGpTR)                           \
+  (mSGpTR)->ittiMsg.s5_nw_init_actv_bearer_response
 #define S5_DEACTIVATE_DEDICATED_BEARER_REQ(mSGpTR)                             \
   (mSGpTR)->ittiMsg.s5_deactivate_dedicated_bearer_request
 #define S5_DEACTIVATE_DEDICATED_BEARER_RSP(mSGpTR)                             \
   (mSGpTR)->ittiMsg.s5_deactivate_dedicated_bearer_response
+
 
 typedef struct itti_s5_create_bearer_request_s {
   teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
@@ -60,20 +61,21 @@ typedef struct itti_s5_create_bearer_response_s {
   enum s5_failure_cause failure_cause;
 } itti_s5_create_bearer_response_t;
 
-typedef struct itti_s5_activate_dedicated_bearer_request_s {
+typedef struct itti_s5_nw_init_actv_bearer_request_s {
   ebi_t lbi;///< linked Bearer ID
   teid_t S5_U_pgw_teid;
   teid_t mme_teid_S11;
   bearer_qos_t eps_bearer_qos; ///< Bearer QoS
   traffic_flow_template_t tft; ///< Traffic Flow Template
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
-} itti_s5_activate_dedicated_bearer_request_t;
+} itti_s5_nw_init_actv_bearer_request_t;
 
-typedef struct itti_s5_activate_dedicated_bearer_rsp_s {
+typedef struct itti_s5_nw_init_actv_bearer_rsp_s {
+  gtpv2c_cause_value_t cause;
   ebi_t ebi; ///<EPS Bearer ID
   teid_t S1_U_sgw_teid; ///< S1U sge TEID
   teid_t S1_U_enb_teid; ///< S1U enb TEID
-} itti_s5_activate_dedicated_bearer_rsp_t;
+} itti_s5_nw_init_actv_bearer_rsp_t;
 
 typedef struct itti_s5_deactivate_dedicated_bearer_req_s {
   uint32_t no_of_bearers;
