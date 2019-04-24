@@ -39,11 +39,8 @@ int decode_attach_request(
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length expected for the message.
-  if (buffer == NULL || len < ATTACH_REQUEST_MINIMUM_LENGTH) {
-    OAILOG_WARNING(LOG_NAS, "Got NULL pointer for the payload or buffer len "
-          "is too short, rejecting attach\n");
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_MANDATORY_FIELD_NOT_PRESENT);
-  }
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER_FOR_MANDATORY_IES(
+    buffer, ATTACH_REQUEST_MINIMUM_LENGTH, len)
   /*
    * Decoding mandatory fields
    */
