@@ -40,7 +40,7 @@ func ValidateDeleteStatesRequest(req *protos.DeleteStatesRequest) error {
 func validateStates(req *protos.ReportStatesRequest) error {
 	states := req.GetStates()
 	if states == nil || len(states) == 0 {
-		return errors.New("States type must be specified")
+		return errors.New("States value must be specified and non-empty")
 	}
 	for _, state := range states {
 		_, err := serde.Deserialize(stateservice.SerdeDomain, state.GetType(), state.GetValue())
