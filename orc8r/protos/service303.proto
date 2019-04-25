@@ -33,7 +33,7 @@ message EnodebdStatus {
 
 message ServiceStatus {
   // Metadata from the services that will be sent to the cloud through checkin
-  map<string, string> meta = 1;
+  map<string, string> meta = 2;
 }
 
 message ServiceInfo {
