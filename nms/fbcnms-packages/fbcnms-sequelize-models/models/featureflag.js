@@ -14,14 +14,15 @@ import type {DataTypes, Model} from 'sequelize';
 import type {AssociateProp} from './AssociateTypes.flow';
 
 export type FeatureFlagRawType = {
+  id: number,
   featureId: string,
-  organizationId: number,
+  organization: number,
   enabled: boolean,
 };
 
 type FeatureFlagModel = Model<FeatureFlagRawType>;
 export type StaticFeatureFlagModel = Class<FeatureFlagModel>;
-export type FeatureFlagType = StaticFeatureFlagModel & FeatureFlagRawType;
+export type FeatureFlagType = FeatureFlagModel & FeatureFlagRawType;
 
 export default (
   sequelize: Sequelize,
