@@ -2524,6 +2524,7 @@ void mme_app_handle_create_dedicated_bearer_rsp(
     _send_pcrf_bearer_actv_rsp(
       ue_context_p,create_dedicated_bearer_rsp->ebi,
       REQUEST_ACCEPTED);
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
   // TODO:
@@ -2586,6 +2587,7 @@ void mme_app_handle_create_dedicated_bearer_rej(
     _send_pcrf_bearer_actv_rsp(
       ue_context_p,create_dedicated_bearer_rej->ebi,
       REQUEST_REJECTED);
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
 

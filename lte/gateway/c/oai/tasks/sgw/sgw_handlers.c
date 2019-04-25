@@ -1269,13 +1269,11 @@ int sgw_handle_modify_bearer_request(
     // For testing
 #if 0
     Imsi_t imsi;
-    ip_address_t ue_ip;
     traffic_flow_template_t tft;
     bearer_qos_t qos;
     strcpy((char*)imsi.digit,"001010000000001");
     imsi.length = 15;
-    ue_ip.pdn_type = IPv4;
-    memcpy(&ue_ip.address.ipv4_address.s_addr,&eps_bearer_ctxt_p->paa.ipv4_address.s_addr,4);
+    ebi_t lbi = 5;
     //Fill QoS
     qos.pci = 1;
     qos.pl = 1;
@@ -1287,7 +1285,7 @@ int sgw_handle_modify_bearer_request(
     qos.mbr.br_dl = 400;
     memset(&tft,0,sizeof(traffic_flow_template_t));
     sleep(5);
-    pgw_handle_dedicated_bearer_actv_req(&imsi,&ue_ip,&tft,&qos);
+    pgw_handle_nw_initiated_bearer_actv_req(&imsi, lbi, &tft, &tft, &qos);
 #endif
       }
     }
@@ -2405,7 +2403,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       S5_NW_INITIATED_ACTIVATE_BEARER_RESP);
   if (message_p == NULL) {
     OAILOG_ERROR(
-      LOG_MME_APP,
+      LOG_SPGW_APP,
       "itti_alloc_new_message failed for S5_ACTIVATE_DEDICATED_BEARER_RSP\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
@@ -2433,7 +2431,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       bearer_contexts[msg_bearer_index].s1u_sgw_fteid.teid,
     sizeof(teid_t));
 
-  OAILOG_INFO(LOG_MME_APP,
+  OAILOG_INFO(LOG_SPGW_APP,
     "Sending S5_NW_INIT_ACTIVATE_BEARER_RSP to PGW with EBI %d\n",
     act_ded_bearer_rsp->ebi);
   rc = itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
