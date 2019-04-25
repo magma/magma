@@ -348,7 +348,7 @@ typedef struct emm_context_s {
   /* Set the flag if pcrf initiated bearer deact and UE is in Idle state
    *if this flag is set after receving service req, send detach
    */
-  bool pcrf_init_bearer_deactv;
+  bool nw_init_bearer_deactv;
 } emm_context_t;
 
 /*

@@ -2913,7 +2913,7 @@ void mme_app_handle_nw_init_bearer_deactv_req(
       mme_app_paging_request_helper(
         ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
       // Set the flag and send detach to UE after receiving service req
-      ue_context_p->emm_context.pcrf_init_bearer_deactv = true;
+      ue_context_p->emm_context.nw_init_bearer_deactv = true;
     }
   } else {
     /*If UE is in connected state send Deactivate Bearer Req

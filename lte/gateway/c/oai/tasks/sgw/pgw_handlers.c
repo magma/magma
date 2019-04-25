@@ -553,6 +553,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
   hash_node_t *node = NULL;
   itti_s5_nw_init_deactv_bearer_request_t *itti_s5_deactv_ded_bearer_req = NULL;
+  bool found = false;
 
   for (i = 0; i < no_of_bearers; i++) {
     OAILOG_INFO(LOG_PGW_APP, "Recvd deactv dedicated bearer req for %d\n",
@@ -590,7 +591,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
       node = hashtblP->nodes[i];
     }
     pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    while (node) {
+    while ((node) && (!found)) {
       num_elements++;
       hashtable_ts_get(
         hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
@@ -604,6 +605,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
             if (ebi[i] == spgw_ctxt_p->sgw_eps_bearer_context_information.
               pdn_connection.default_bearer) {
               itti_s5_deactv_ded_bearer_req->delete_default_bearer = true;
+              found = true;
               break;
             }
           }

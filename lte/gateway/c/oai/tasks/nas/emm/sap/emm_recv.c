@@ -782,7 +782,7 @@ int emm_recv_service_request(
     }
   }
   // If PCRF has initiated default bearer deact, send detach
-  if (emm_ctx->pcrf_init_bearer_deactv) {
+  if (emm_ctx->nw_init_bearer_deactv) {
     emm_sap_t emm_sap = {0};
     emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = ue_id;
