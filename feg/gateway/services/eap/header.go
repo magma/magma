@@ -96,7 +96,7 @@ func (p Packet) Len() int {
 	return (int(p[EapMsgLenHigh]) << 8) + int(p[EapMsgLenLow])
 }
 
-// Type returns EAP Method Type or 0 - reserved if not available
+// Identifier returns EAP Message Identifier
 func (p Packet) Identifier() uint8 {
 	return p[EapMsgIdentifier]
 }
