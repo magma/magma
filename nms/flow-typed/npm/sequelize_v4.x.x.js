@@ -3261,9 +3261,9 @@ declare module "sequelize" {
      * @see  {Sequelize#query}
     */
     static findAll<TCustomAttributes>(
-      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<this[]>,
+      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<(this & TAttributes)[]>,
     static all<TCustomAttributes>(
-      optionz?: FindOptions<TAttributes & TCustomAttributes>): Promise<this[]>,
+      optionz?: FindOptions<TAttributes & TCustomAttributes>): Promise<(this & TAttributes)[]>,
 
     /**
      * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
@@ -3271,13 +3271,13 @@ declare module "sequelize" {
      */
     static findById<TCustomAttributes>(
       identifier?: number | string,
-      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?this>,
+      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?(this & TAttributes)>,
     static findByPrimary<TCustomAttributes>(
       identifier?: number | string,
-      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?this>,
+      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?(this & TAttributes)>,
     static findByPk<TCustomAttributes>(
       identifier?: number | string,
-      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?this>,
+      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?(this & TAttributes)>,
 
     /**
      * Search for a single instance. This applies LIMIT 1, so the listener will always be called with a single
@@ -3286,7 +3286,7 @@ declare module "sequelize" {
     static findOne<TCustomAttributes>(
       options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?(this & TAttributes)>,
     static find<TCustomAttributes>(
-      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?this>,
+      options?: FindOptions<TAttributes & TCustomAttributes>): Promise<?(this & TAttributes)>,
 
     /**
      * Run an aggregation method on the specified field
