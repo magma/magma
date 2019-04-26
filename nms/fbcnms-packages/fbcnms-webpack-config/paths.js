@@ -15,10 +15,8 @@ const path = require('path');
 
 const appDirectory = fs.realpathSync(process.cwd());
 
-/* $FlowFixMe - storybook doesn't build if we have flow typing here
- * Need to understand why
- */
-const resolveApp = relativePath => path.resolve(appDirectory, relativePath);
+const resolveApp = (relativePath: string) =>
+  path.resolve(appDirectory, relativePath);
 
 module.exports = {
   appIndexJs: resolveApp('app/main.js'),
