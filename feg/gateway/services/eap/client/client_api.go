@@ -13,6 +13,7 @@ package client
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
@@ -91,4 +92,9 @@ func verifyEapPayload(payload []byte) error {
 
 func unsupportedProviderError(methodType uint8) error {
 	return fmt.Errorf("Unsupported EAP Provider for Method Type: %d", methodType)
+}
+
+// BytesToStr returns Go compatible byte slice string
+func BytesToStr(b []byte) string {
+	return strings.Trim(strings.Replace(fmt.Sprint(b), " ", ", ", -1), "[]")
 }
