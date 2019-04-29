@@ -83,3 +83,15 @@ func GetCloseStatementsDeferFunc(stmts []*sql.Stmt, callsite string) func() {
 		}
 	}
 }
+
+// CloseRowsLogOnError will close the *Rows object and log if an error is
+// returned by Rows.Close(). This function will no-op if rows is nil.
+func CloseRowsLogOnError(rows *sql.Rows, callsite string) {
+	if rows == nil {
+		return
+	}
+
+	if err := rows.Close(); err != nil {
+		glog.Errorf("error closing *Rows in %s: %s", callsite, err)
+	}
+}

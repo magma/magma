@@ -12,6 +12,8 @@ import (
 	"context"
 
 	"magma/orc8r/cloud/go/storage"
+
+	"github.com/thoas/go-funk"
 )
 
 // ConfiguratorStorageFactory creates ConfiguratorStorage implementations bound
@@ -68,19 +70,19 @@ type ConfiguratorStorage interface {
 	// LoadEntities returns a set of entities corresponding to the provided
 	// load criteria. Any entities which aren't found are excluded from the
 	// returned value.
-	LoadEntities(ids []storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
+	LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
 
 	// CreateEntities creates new entities. The created entities are returned,
 	// as well as errors encountered during the operation. The function will
 	// continue processing input after an error is encountered. Errors are
 	// collected and returned at the conclusion of the function.
-	CreateEntities(entities []NetworkEntity) (EntityCreationResult, error)
+	CreateEntities(networkID string, entities []NetworkEntity) (EntityCreationResult, error)
 
 	// UpdateEntities updates a set of entities.
 	// If an error is encountered during the operation, the function will
 	// continue processing the rest of the input. Errors are collected and
 	// returned in FailedOperations at the conclusion of the function.
-	UpdateEntities(updates []EntityUpdateCriteria) (FailedOperations, error)
+	UpdateEntities(networkID string, updates []EntityUpdateCriteria) (FailedOperations, error)
 
 	// =======================================================================
 	// Graph Operations
@@ -89,7 +91,7 @@ type ConfiguratorStorage interface {
 	// LoadGraphForEntity returns the full DAG which contains the requested
 	// entity. The load criteria fields on associations are ignored, and the
 	// returned entities will always have both association fields filled out.
-	LoadGraphForEntity(entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error)
+	LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error)
 }
 
 // A network represents a tenant. Networks can be configured in a hierarchical
@@ -158,9 +160,9 @@ type NetworkUpdateCriteria struct {
 // NetworkEntity is the storage representation of a logical component of a
 // network. Networks are partitioned into DAGs of entities.
 type NetworkEntity struct {
-	// (ID, Type) forms a unique identifier for the network entity within its
+	// (Key, Type) forms a unique identifier for the network entity within its
 	// network.
-	ID   string
+	Key  string
 	Type string
 
 	Name        string
@@ -182,12 +184,15 @@ type NetworkEntity struct {
 	// Associations are the directed edges originating from this entity.
 	Associations []storage.TypeAndKey
 
-	// AssocationsFrom are the directed edges ending at this entity. This is a
-	// read-only field and will be ignored if set during entity creation.
-	AssociationsFrom []storage.TypeAndKey
+	// ParentAssociations are the directed edges ending at this entity.
+	// This is a read-only field and will be ignored if set during entity
+	// creation.
+	ParentAssociations []storage.TypeAndKey
 
 	// Permissions defines the access control for this entity.
 	Permissions []ACL
+
+	Version uint64
 }
 
 // ACL (Access Control List) defines a specific permission for an entity on
@@ -208,6 +213,8 @@ type ACL struct {
 	// An ACL can optionally define access permissions to specific entity IDs
 	// If empty, the ACL will apply to all entities of the specified type.
 	IDFilter []string
+
+	Version uint64
 }
 
 // ACLScope is a oneof to define the scope of an ACL (specific networks or all
@@ -217,12 +224,16 @@ type ACLScope struct {
 	Wildcard   ACLWildcard
 }
 
+var WildcardACLScope = ACLScope{Wildcard: WildcardAll}
+
 // ACLType is a oneof to define the scope of the permissions of an ACL (apply
 // to access on a specific type or all types within the scope).
 type ACLType struct {
 	EntityType string
 	Wildcard   ACLWildcard
 }
+
+var WildcardACLType = ACLType{Wildcard: WildcardAll}
 
 type ACLPermission int32
 
@@ -240,6 +251,28 @@ const (
 	WildcardAll
 )
 
+// EntityLoadFilter specifies which entities to load from storage
+type EntityLoadFilter struct {
+	// If TypeFilter is provided, the query will return all entities matching
+	// the given type.
+	TypeFilter *string
+
+	// If KeyFilter is provided, the query will return all entities matching the
+	// given ID.
+	KeyFilter *string
+
+	// If IDs is provided, the query will return all entities matching the
+	// provided TypeAndKeys. TypeFilter and KeyFilter are ignored if IDs is
+	// provided.
+	IDs []storage.TypeAndKey
+}
+
+// IsLoadAllEntities return true if the EntityLoadFilter is specifying to load
+// all entities in a network, false if there are any filter conditions.
+func (elf EntityLoadFilter) IsLoadAllEntities() bool {
+	return elf.TypeFilter == nil && elf.KeyFilter == nil && funk.IsEmpty(elf.IDs)
+}
+
 // EntityLoadCriteria specifies how much of an entity to load
 type EntityLoadCriteria struct {
 	// Set LoadMetadata to true to load the metadata fields (name, description)
@@ -247,10 +280,19 @@ type EntityLoadCriteria struct {
 
 	LoadConfig bool
 
-	LoadAssocsTo   bool
-	LoadAssocsFrom bool
+	LoadAssocsToThis   bool
+	LoadAssocsFromThis bool
 
 	LoadPermissions bool
+}
+
+// FullEntityLoadCriteria is an EntityLoadCriteria which loads everything
+var FullEntityLoadCriteria = EntityLoadCriteria{
+	LoadMetadata:       true,
+	LoadConfig:         true,
+	LoadAssocsToThis:   true,
+	LoadAssocsFromThis: true,
+	LoadPermissions:    true,
 }
 
 // EntityLoadResult encapsulates the result of a LoadEntities call
@@ -270,7 +312,7 @@ type EntityCreationResult struct {
 	Errors FailedOperations
 }
 
-// EntityUpdateCritiera specifies a patch operation on a network entity.
+// EntityUpdateCriteria specifies a patch operation on a network entity.
 type EntityUpdateCriteria struct {
 	// (ID, Type) of the entity to update
 	ID   string

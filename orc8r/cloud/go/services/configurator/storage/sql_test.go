@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	storage2 "magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
@@ -455,6 +456,367 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 	runCase(t, validationFailure)
 }
 
+func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
+	runFactory := func(networkID string, filter storage.EntityLoadFilter, loadCriteria storage.EntityLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		return func(store storage.ConfiguratorStorage) (interface{}, error) {
+			return store.LoadEntities(networkID, filter, loadCriteria)
+		}
+	}
+
+	// Empty load criteria
+	basicOnly := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			entStmt := m.ExpectPrepare("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities")
+			entStmt.ExpectQuery().
+				WithArgs("network", "bar", "foo").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42"),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "quz", "baz").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("def", "quz", "baz", nil, 1, "42"),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "world", "hello").
+				WillReturnRows(sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}))
+			entStmt.WillBeClosed()
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{
+				IDs: []storage2.TypeAndKey{
+					{Type: "foo", Key: "bar"},
+					{Type: "baz", Key: "quz"},
+					{Type: "hello", Key: "world"},
+				},
+			},
+			storage.EntityLoadCriteria{},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				{Type: "baz", Key: "quz", GraphID: "42", Version: 1},
+				{Type: "foo", Key: "bar", GraphID: "42", Version: 2},
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{{Type: "hello", Key: "world"}},
+		},
+	}
+
+	// Load everything, no assocs
+	// foobar has 2 permissions, bazquz has 1 wildcarded permission
+	loadEverything := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			entStmt := m.ExpectPrepare("SELECT .* FROM cfg_entities")
+			entStmt.ExpectQuery().
+				WithArgs("network", "bar", "foo").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_1", "n1,n2,n3", storage.OwnerPermission, "foo", nil, 1).
+						AddRow("abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_2", "n4", storage.ReadPermission, "baz", nil, 2),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "quz", "baz").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}).
+						AddRow("def", "quz", "baz", nil, 1, "42", "bazquz", "bazquz ent", []byte("bazquz"), "bazquz_acl_1", "*", storage.WritePermission, "*", "1,2,3", 3),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "world", "hello").
+				WillReturnRows(sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}))
+			entStmt.WillBeClosed()
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{
+				IDs: []storage2.TypeAndKey{
+					{Type: "foo", Key: "bar"},
+					{Type: "baz", Key: "quz"},
+					{Type: "hello", Key: "world"},
+				},
+			},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadPermissions: true},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				{
+					Type: "baz", Key: "quz", GraphID: "42", Version: 1,
+					Name:        "bazquz",
+					Description: "bazquz ent",
+					Config:      []byte("bazquz"),
+					Permissions: []storage.ACL{
+						{ID: "bazquz_acl_1", Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, Permission: storage.WritePermission, IDFilter: []string{"1", "2", "3"}, Version: 3},
+					},
+				},
+				{
+					Type: "foo", Key: "bar", GraphID: "42", Version: 2,
+					Name:        "foobar",
+					Description: "foobar ent",
+					Config:      []byte("foobar"),
+					Permissions: []storage.ACL{
+						{ID: "foobar_acl_1", Type: storage.ACLType{EntityType: "foo"}, Scope: storage.ACLScope{NetworkIDs: []string{"n1", "n2", "n3"}}, Permission: storage.OwnerPermission, Version: 1},
+						{ID: "foobar_acl_2", Type: storage.ACLType{EntityType: "baz"}, Scope: storage.ACLScope{NetworkIDs: []string{"n4"}}, Permission: storage.ReadPermission, Version: 2},
+					},
+				},
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{{Type: "hello", Key: "world"}},
+		},
+	}
+
+	// Load assocs to only
+	assocsTo := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			entStmt := m.ExpectPrepare("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities")
+			entStmt.ExpectQuery().
+				WithArgs("network", "bar", "foo").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42"),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "quz", "baz").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("def", "quz", "baz", nil, 1, "42"),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "world", "hello").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("ghi", "world", "hello", nil, 3, "42"),
+				)
+			entStmt.WillBeClosed()
+
+			m.ExpectQuery("SELECT assoc.from_pk, assoc.to_pk FROM cfg_assocs").
+				WithArgs("abc", "def", "ghi").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"from_pk", "to_pk"}).
+						AddRow("abc", "def").
+						AddRow("abc", "ghi").
+						AddRow("ghi", "def"),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{
+				IDs: []storage2.TypeAndKey{
+					{Type: "foo", Key: "bar"},
+					{Type: "baz", Key: "quz"},
+					{Type: "hello", Key: "world"},
+				},
+			},
+			storage.EntityLoadCriteria{LoadAssocsToThis: true},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				{
+					Type: "baz", Key: "quz", GraphID: "42", Version: 1,
+					ParentAssociations: []storage2.TypeAndKey{
+						{Type: "foo", Key: "bar"},
+						{Type: "hello", Key: "world"},
+					},
+				},
+				{Type: "foo", Key: "bar", GraphID: "42", Version: 2},
+				{
+					Type: "hello", Key: "world", GraphID: "42", Version: 3,
+					ParentAssociations: []storage2.TypeAndKey{
+						{Type: "foo", Key: "bar"},
+					},
+				},
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{},
+		},
+	}
+
+	// Load assocs from only
+	assocsFrom := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			entStmt := m.ExpectPrepare("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities")
+			entStmt.ExpectQuery().
+				WithArgs("network", "bar", "foo").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42"),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "quz", "baz").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("def", "quz", "baz", nil, 1, "42"),
+				)
+			entStmt.ExpectQuery().
+				WithArgs("network", "world", "hello").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("ghi", "world", "hello", nil, 3, "42"),
+				)
+			entStmt.WillBeClosed()
+
+			m.ExpectQuery("SELECT assoc.from_pk, assoc.to_pk FROM cfg_assocs").
+				WithArgs("abc", "def", "ghi").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"from_pk", "to_pk"}).
+						AddRow("def", "abc").
+						AddRow("ghi", "abc").
+						AddRow("def", "ghi"),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{
+				IDs: []storage2.TypeAndKey{
+					{Type: "foo", Key: "bar"},
+					{Type: "baz", Key: "quz"},
+					{Type: "hello", Key: "world"},
+				},
+			},
+			storage.EntityLoadCriteria{LoadAssocsFromThis: true},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				{
+					Type: "baz", Key: "quz", GraphID: "42", Version: 1,
+					Associations: []storage2.TypeAndKey{
+						{Type: "foo", Key: "bar"},
+						{Type: "hello", Key: "world"},
+					},
+				},
+				{Type: "foo", Key: "bar", GraphID: "42", Version: 2},
+				{
+					Type: "hello", Key: "world", GraphID: "42", Version: 3,
+					Associations: []storage2.TypeAndKey{
+						{Type: "foo", Key: "bar"},
+					},
+				},
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{},
+		},
+	}
+
+	// Load everything with type filter
+	// (foo, bar) will have 2 permissions and 2 assocs - one to (foo, baz) and one to (bar, baz)
+	// (foo, baz) will have 1 wildcard permission and 1 assoc to (baz, quz)
+	// (hello, world) will have 1 assoc to (foo, bar)
+	// We will only load entities of type foo
+	fullLoadTypeFilter := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery("SELECT .* FROM cfg_entities").
+				WithArgs("network", "foo").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}).
+						// (foo, bar) comes from test case for full load above
+						AddRow("foobar", "bar", "foo", nil, 1, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_1", "n1,n2,n3", storage.OwnerPermission, "foo", nil, 1).
+						AddRow("foobar", "bar", "foo", nil, 1, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_2", "n4", storage.ReadPermission, "baz", nil, 2).
+						AddRow("foobaz", "baz", "foo", nil, 2, "42", "foobaz", "foobaz ent", []byte("foobaz"), "foobaz_acl_1", "*", storage.WritePermission, "*", nil, 3),
+				)
+
+			m.ExpectQuery("SELECT assoc.from_pk, assoc.to_pk FROM cfg_assocs").
+				WithArgs("foobar", "foobaz", "foobar", "foobaz").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"from_pk", "to_pk"}).
+						AddRow("foobar", "foobaz").
+						AddRow("foobar", "barbaz").
+						AddRow("foobaz", "bazquz").
+						AddRow("helloworld", "foobar"),
+				)
+
+			// Since we don't query for (hello, world), we expect a query for its type and key given its PK
+			m.ExpectQuery("SELECT pk, type, key FROM cfg_entities").
+				WithArgs("barbaz", "bazquz", "helloworld").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "type", "key"}).
+						AddRow("barbaz", "bar", "baz").
+						AddRow("bazquz", "baz", "quz").
+						AddRow("helloworld", "hello", "world"),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{
+				TypeFilter: stringPointer("foo"),
+			},
+			storage.FullEntityLoadCriteria,
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				{
+					Type: "foo", Key: "bar", GraphID: "42", Version: 1,
+					Name:        "foobar",
+					Description: "foobar ent",
+					Config:      []byte("foobar"),
+					Permissions: []storage.ACL{
+						{ID: "foobar_acl_1", Type: storage.ACLType{EntityType: "foo"}, Scope: storage.ACLScope{NetworkIDs: []string{"n1", "n2", "n3"}}, Permission: storage.OwnerPermission, Version: 1},
+						{ID: "foobar_acl_2", Type: storage.ACLType{EntityType: "baz"}, Scope: storage.ACLScope{NetworkIDs: []string{"n4"}}, Permission: storage.ReadPermission, Version: 2},
+					},
+					Associations: []storage2.TypeAndKey{
+						{Type: "foo", Key: "baz"},
+						{Type: "bar", Key: "baz"},
+					},
+					ParentAssociations: []storage2.TypeAndKey{
+						{Type: "hello", Key: "world"},
+					},
+				},
+				{
+					Type: "foo", Key: "baz", GraphID: "42", Version: 2,
+					Name:        "foobaz",
+					Description: "foobaz ent",
+					Config:      []byte("foobaz"),
+					Permissions: []storage.ACL{
+						{ID: "foobaz_acl_1", Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, Permission: storage.WritePermission, Version: 3},
+					},
+					Associations: []storage2.TypeAndKey{
+						{Type: "baz", Key: "quz"},
+					},
+					ParentAssociations: []storage2.TypeAndKey{
+						{Type: "foo", Key: "bar"},
+					},
+				},
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{},
+		},
+	}
+
+	// Basic load with type and key filters
+	typeAndKeyFilters := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+				WithArgs("network", "bar", "foo").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42"),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{
+				TypeFilter: stringPointer("foo"),
+				KeyFilter:  stringPointer("bar"),
+			},
+			storage.EntityLoadCriteria{},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				{Type: "foo", Key: "bar", GraphID: "42", Version: 2},
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{},
+		},
+	}
+
+	runCase(t, basicOnly)
+	runCase(t, loadEverything)
+	runCase(t, assocsTo)
+	runCase(t, assocsFrom)
+	runCase(t, fullLoadTypeFilter)
+	runCase(t, typeAndKeyFilters)
+}
+
 type testCase struct {
 	// setup mock expectations. Transaction start is expected on the mock
 	// generically
@@ -502,4 +864,8 @@ func runCase(t *testing.T, test *testCase) {
 	}
 
 	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func stringPointer(val string) *string {
+	return &val
 }

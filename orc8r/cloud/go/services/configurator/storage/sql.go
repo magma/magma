@@ -25,6 +25,14 @@ import (
 const (
 	networksTable      = "cfg_networks"
 	networkConfigTable = "cfg_network_configs"
+
+	entityTable      = "cfg_entities"
+	entityAssocTable = "cfg_assocs"
+	entityAclTable   = "cfg_acls"
+)
+
+const (
+	wildcardAllString = "*"
 )
 
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
@@ -59,9 +67,9 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	networksTableExec := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s
 		(
-			id text PRIMARY KEY,
-			name text,
-			description text,
+			id TEXT PRIMARY KEY,
+			name TEXT,
+			description TEXT,
 			version INTEGER NOT NULL DEFAULT 0
 		)
 	`, networksTable)
@@ -69,21 +77,85 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	networksConfigTableExec := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s
 		(
-			network_id text REFERENCES %s (id) ON DELETE CASCADE,
-			type text NOT NULL,
-			value bytea,
+			network_id TEXT REFERENCES %s (id) ON DELETE CASCADE,
+			type TEXT NOT NULL,
+			value BYTEA,
 
 			PRIMARY KEY (network_id, type)
 		)
 	`, networkConfigTable, networksTable)
+
+	// Create an internal-only primary key (UUID) for entities.
+	// This keeps index size in control and supporting table schemas simpler.
+	entityTableExec := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s
+		(
+			pk TEXT PRIMARY KEY,
+
+			network_id TEXT REFERENCES %s (id) ON DELETE CASCADE,
+			key TEXT NOT NULL,
+			type TEXT NOT NULL,
+
+			graph_id TEXT NOT NULL,
+
+			name TEXT,
+			description TEXT,
+			physical_id TEXT,
+			config BYTEA,
+
+			version INTEGER NOT NULL DEFAULT 0,
+
+			UNIQUE (network_id, key, type)			
+		)
+	`, entityTable, networksTable)
+
+	entityAssocTableExec := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s
+		(
+			from_pk TEXT REFERENCES %s (pk),
+			to_pk TEXT REFERENCES %s (pk),
+
+			PRIMARY KEY (from_pk, to_pk)
+		)
+	`, entityAssocTable, entityTable, entityTable)
+
+	entityAclTableExec := fmt.Sprintf(`
+		CREATE TABLE IF NOT EXISTS %s
+		(
+			id TEXT PRIMARY KEY,
+			entity_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
+
+			scope text NOT NULL,
+			permission INTEGER NOT NULL,
+			type text NOT NULL,
+			id_filter TEXT,
+
+			version INTEGER NOT NULL DEFAULT 0
+		)
+	`, entityAclTable, entityTable)
 
 	// Named return value for err so we can automatically decide to
 	// commit/rollback
 	tablesToCreate := []string{
 		networksTableExec,
 		networksConfigTableExec,
+		entityTableExec,
+		entityAssocTableExec,
+		entityAclTableExec,
 	}
 	for _, execQuery := range tablesToCreate {
+		_, err = tx.Exec(execQuery)
+		if err != nil {
+			return
+		}
+	}
+
+	// Create indexes (index is not implicitly created on a referencing FK)
+	indexesToCreate := []string{
+		fmt.Sprintf("CREATE INDEX IF NOT EXISTS graph_id_idx ON %s (graph_id)", entityTable),
+		fmt.Sprintf("CREATE INDEX IF NOT EXISTS acl_ent_pk_idx ON %s (entity_pk)", entityAclTable),
+	}
+	for _, execQuery := range indexesToCreate {
 		_, err = tx.Exec(execQuery)
 		if err != nil {
 			return
@@ -266,18 +338,60 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	return failures, errors.New("some errors were encountered, see return value for details")
 }
 
-func (store *sqlConfiguratorStorage) LoadEntities(ids []storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityLoadResult, error) {
+func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error) {
+	ret := EntityLoadResult{Entities: []NetworkEntity{}, EntitiesNotFound: []storage.TypeAndKey{}}
+
+	// We load the requested entities in 3 steps:
+	// First, we load the entities and their ACLs
+	// Then, we load assocs if requested by the load criteria. Note that the
+	// load criteria can specify to load edges to and/or from the requested
+	// entities.
+	// For each loaded edge, we need to load the (type, key) corresponding to
+	// to the PK pair that an edge is represented as. These may be already
+	// loaded as part of the first load from the entities table, so we can
+	// be smart here and only load (type, key) for PKs which we don't know.
+	// Finally, we will update the entity objects to return with their edges.
+
+	entsByPk, err := store.loadFromEntitiesTable(networkID, filter, loadCriteria)
+	if err != nil {
+		return ret, err
+	}
+	assocs, allAssocPks, err := store.loadFromAssocsTable(filter, loadCriteria, entsByPk)
+	if err != nil {
+		return ret, err
+	}
+	entTksByPk, err := store.loadEntityTypeAndKeys(allAssocPks, entsByPk)
+	if err != nil {
+		return ret, err
+	}
+
+	entsByPk, err = updateEntitiesWithAssocs(entsByPk, assocs, entTksByPk, loadCriteria)
+	if err != nil {
+		return ret, err
+	}
+
+	for _, ent := range entsByPk {
+		ret.Entities = append(ret.Entities, *ent)
+	}
+	ret.EntitiesNotFound = calculateEntitiesNotFound(entsByPk, filter.IDs)
+
+	// Sort entities for deterministic returns
+	entComparator := func(a, b NetworkEntity) bool {
+		return storage.TypeAndKey{Type: a.Type, Key: a.Key}.String() < storage.TypeAndKey{Type: b.Type, Key: b.Key}.String()
+	}
+	sort.Slice(ret.Entities, func(i, j int) bool { return entComparator(ret.Entities[i], ret.Entities[j]) })
+
+	return ret, nil
+}
+
+func (store *sqlConfiguratorStorage) CreateEntities(networkID string, entities []NetworkEntity) (EntityCreationResult, error) {
 	panic("implement me")
 }
 
-func (store *sqlConfiguratorStorage) CreateEntities(entities []NetworkEntity) (EntityCreationResult, error) {
+func (store *sqlConfiguratorStorage) UpdateEntities(networkID string, updates []EntityUpdateCriteria) (FailedOperations, error) {
 	panic("implement me")
 }
 
-func (store *sqlConfiguratorStorage) UpdateEntities(updates []EntityUpdateCriteria) (FailedOperations, error) {
-	panic("implement me")
-}
-
-func (store *sqlConfiguratorStorage) LoadGraphForEntity(entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
+func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
 	panic("implement me")
 }
