@@ -25,6 +25,11 @@ services:
         soft: 65536
         hard: 65536
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
 
   metricsd:
     # Run metricsd to publish disk metrics
@@ -34,3 +39,8 @@ services:
       - /var/opt/magma/envdir:/var/opt/magma/envdir
     command: /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/metricsd -logtostderr=true -v=0
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"

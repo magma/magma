@@ -22,3 +22,8 @@ services:
         soft: 65536
         hard: 65536
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "10"
