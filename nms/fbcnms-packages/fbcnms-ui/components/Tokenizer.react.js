@@ -122,6 +122,7 @@ type State = {
 };
 
 const BACKSPACE_KEY_CODE = 8;
+const ENTER_KEY_CODE = 13;
 
 class Tokenizer extends React.Component<Props, State> {
   state = {
@@ -183,6 +184,14 @@ class Tokenizer extends React.Component<Props, State> {
             placeholder: '',
             value: searchTerm,
             onKeyDown: e => {
+              if (
+                this.state.searchTerm === '' &&
+                e.keyCode === ENTER_KEY_CODE
+              ) {
+                onBlur && onBlur();
+                return;
+              }
+
               if (
                 this.state.searchTerm !== '' ||
                 e.keyCode !== BACKSPACE_KEY_CODE
