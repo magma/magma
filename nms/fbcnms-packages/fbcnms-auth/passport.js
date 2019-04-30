@@ -9,7 +9,6 @@
  */
 
 import passport from 'passport';
-import OrganizationLocalStrategy from './strategies/OrganizationLocalStrategy';
 import {User} from '@fbcnms/sequelize-models';
 
 import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
@@ -38,8 +37,6 @@ function use() {
       done(error);
     }
   });
-
-  passport.use('local', OrganizationLocalStrategy());
 }
 
 export default {

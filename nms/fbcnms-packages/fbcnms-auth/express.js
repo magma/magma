@@ -12,6 +12,7 @@ import bcrypt from 'bcryptjs';
 import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash-es';
 import express from 'express';
+import logging from '@fbcnms/logging';
 import passport from 'passport';
 import staticDist from 'fbcnms-webpack-config/staticDist';
 import {access} from './access';
@@ -20,11 +21,14 @@ import {addQueryParamsToUrl} from './util';
 import EmailValidator from 'email-validator';
 import {User} from '@fbcnms/sequelize-models';
 
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
 import type {UserRawType} from '@fbcnms/sequelize-models/models/user';
 
 const SALT_GEN_ROUNDS = 10;
 const MIN_PASSWORD_LENGTH = 10;
+
+const logger = logging.getLogger(module);
 
 type Options = {|
   loginSuccessUrl: string,
@@ -38,6 +42,21 @@ const FIELD_MAP = {
   password: 'password',
   superUser: 'role',
 };
+
+export function unprotectedUserRoutes() {
+  const router = express.Router();
+  router.post(
+    '/login/saml/callback',
+    passport.authenticate('saml', {
+      failureRedirect: '/user/login?failure=true',
+    }),
+    (req, res: ExpressResponse) => {
+      const redirectTo = ensureRelativeUrl(req.query.to) || '/';
+      res.redirect(redirectTo);
+    },
+  );
+  return router;
+}
 
 function userMiddleware(options: Options): express.Router {
   const router = express.Router();
@@ -129,20 +148,40 @@ function userMiddleware(options: Options): express.Router {
     })(req, res, next);
   });
 
-  router.get('/login', (req: FBCNMSRequest, res) => {
+  router.get('/login', async (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       res.redirect(ensureRelativeUrl(req.body.to) || '/');
       return;
     }
+
+    let isSSO = false;
+    try {
+      if (req.organization) {
+        const org = await req.organization();
+        isSSO = !!org.ssoEntrypoint;
+      }
+    } catch (e) {
+      logger.error('Error getting organization', e);
+    }
+
     res.render('login', {
       staticDist,
       configJson: JSON.stringify({
         appData: {
           csrfToken: req.csrfToken(),
+          isSSO,
         },
       }),
     });
   });
+
+  router.get(
+    '/login/saml',
+    passport.authenticate('saml', {
+      failureRedirect: options.loginFailureUrl,
+      authnRequestBinding: 'HTTP-Redirect',
+    }),
+  );
 
   router.get('/logout', (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
