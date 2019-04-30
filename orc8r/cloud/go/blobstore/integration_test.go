@@ -22,6 +22,7 @@ import (
 
 func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	// Check the contract for an empty datastore
+	err := fact.InitializeFactory()
 	store, err := fact.StartTransaction()
 	assert.NoError(t, err)
 	listActual, err := store.ListKeys("network", "type")

@@ -76,6 +76,10 @@ func (fact *memoryBlobStoreFactory) StartTransaction() (TransactionalBlobStorage
 		changes:           transactionTable{}}, nil
 }
 
+func (fact *memoryBlobStoreFactory) InitializeFactory() error {
+	return nil
+}
+
 func (store *memoryBlobStorage) Commit() error {
 	store.Lock()
 	defer store.Unlock()
