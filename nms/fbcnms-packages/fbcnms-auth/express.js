@@ -187,7 +187,7 @@ function userMiddleware(options: Options): express.Router {
     if (req.isAuthenticated()) {
       req.logout();
     }
-    res.redirect(options.loginFailureUrl);
+    res.redirect('/');
   });
 
   // User Routes
