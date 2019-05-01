@@ -14,6 +14,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sql_utils"
+	storage2 "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
@@ -116,6 +117,44 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			NetworkIDsNotFound: []string{"n3"},
 		},
 		loadNetworksActual,
+	)
+	assert.NoError(t, store.Commit())
+
+	// Empty datastore contract for entities
+	store, err = factory.StartTransaction(context.Background(), nil)
+
+	actualEntityLoad, err := store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities:         []storage.NetworkEntity{},
+			EntitiesNotFound: []storage2.TypeAndKey{},
+		},
+		actualEntityLoad,
+	)
+
+	actualEntityLoad, err = store.LoadEntities(
+		"n1",
+		storage.EntityLoadFilter{
+			IDs: []storage2.TypeAndKey{
+				{Type: "foo", Key: "bar"},
+				{Type: "baz", Key: "quz"},
+			},
+		},
+		storage.EntityLoadCriteria{},
+	)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{},
+			EntitiesNotFound: []storage2.TypeAndKey{
+				{Type: "foo", Key: "bar"},
+				{Type: "baz", Key: "quz"},
+			},
+		},
+		actualEntityLoad,
 	)
 	assert.NoError(t, store.Commit())
 }
