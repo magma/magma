@@ -26,18 +26,18 @@ import (
 func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
 	// Pointer values because we're modifying entities in-place with ACLs (LEFT JOIN)
 	entsByPk := map[string]*NetworkEntity{}
-	queryString, err := getLoadEntitiesQueryString(filter, criteria)
-	if err != nil {
-		return entsByPk, err
-	}
 
 	// If specific IDs are specified, we have to prepare a query, because
 	// WHERE IN doesn't work with a composite search index
 	if !funk.IsEmpty(filter.IDs) {
-		return store.loadSpecificEntities(queryString, networkID, filter.IDs, criteria)
+		return store.loadSpecificEntities(networkID, filter, criteria)
 	}
 
 	// Otherwise, we just fill in the specified filter fields and query once
+	queryString, err := getLoadEntitiesQueryString(filter, criteria)
+	if err != nil {
+		return entsByPk, err
+	}
 	queryArgs := []interface{}{networkID}
 	if filter.KeyFilter != nil {
 		queryArgs = append(queryArgs, *filter.KeyFilter)
@@ -129,16 +129,24 @@ func getEntityQueryTemplateArgs(filter EntityLoadFilter, criteria EntityLoadCrit
 	return ret
 }
 
-func (store *sqlConfiguratorStorage) loadSpecificEntities(queryString string, networkID string, idsToLoad []storage.TypeAndKey, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
+func (store *sqlConfiguratorStorage) loadSpecificEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
 	// Pointer values because we're modifying entities in-place with ACLs (LEFT JOIN)
 	entsByPk := map[string]*NetworkEntity{}
+	if funk.IsEmpty(filter.IDs) {
+		return entsByPk, nil
+	}
+
+	queryString, err := getLoadEntitiesQueryString(filter, criteria)
+	if err != nil {
+		return entsByPk, err
+	}
 	queryStmt, err := store.tx.Prepare(queryString)
 	if err != nil {
 		return entsByPk, fmt.Errorf("failed to prepare entity query: %s", err)
 	}
 	defer sql_utils.GetCloseStatementsDeferFunc([]*sql.Stmt{queryStmt}, "LoadEntities")()
 
-	for _, requestedID := range idsToLoad {
+	for _, requestedID := range filter.IDs {
 		rows, err := queryStmt.Query(networkID, requestedID.Key, requestedID.Type)
 		if err != nil {
 			return entsByPk, fmt.Errorf("failed to query for entity (%s, %s): %s", requestedID.Type, requestedID.Key, err)
@@ -167,9 +175,10 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 	var config []byte
 	var entVersion uint64
 
-	var aclid, aclscope, acltype string
+	// Nullstrings here in case the entity doesn't have perms
+	var aclid, aclscope, acltype sql.NullString
 	var aclIdFilter sql.NullString
-	var aclPermission, aclVersion uint64
+	var aclPermission, aclVersion sql.NullInt64
 
 	// This corresponds with the order of the columns queried in the SELECT
 	// TODO: make the coupling nicer (construct scanArgs and template fields in the same function)
@@ -204,15 +213,15 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 
 		Version: entVersion,
 	}
-	if criteria.LoadPermissions {
+	if criteria.LoadPermissions && aclid.Valid {
 		ent.Permissions = []ACL{
 			{
-				ID:         aclid,
-				Scope:      deserializeACLScope(aclscope),
-				Permission: ACLPermission(aclPermission),
-				Type:       deserializeACLType(acltype),
+				ID:         aclid.String,
+				Scope:      deserializeACLScope(aclscope.String),
+				Permission: ACLPermission(aclPermission.Int64),
+				Type:       deserializeACLType(acltype.String),
 				IDFilter:   deserializeACLIDFilter(aclIdFilter),
-				Version:    aclVersion,
+				Version:    uint64(aclVersion.Int64),
 			},
 		}
 	}

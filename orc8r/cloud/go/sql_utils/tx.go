@@ -56,6 +56,7 @@ func PrepareStatements(tx *sql.Tx, stmtStrings []string) ([]*sql.Stmt, error) {
 	for _, stmtStr := range stmtStrings {
 		stmt, err := tx.Prepare(stmtStr)
 		if err != nil {
+			GetCloseStatementsDeferFunc(ret, "PrepareStatements")()
 			return nil, fmt.Errorf("error preparing DB statement: %s", err)
 		}
 		ret = append(ret, stmt)

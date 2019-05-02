@@ -28,6 +28,7 @@ require (
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.2.0
+	github.com/google/uuid v1.1.0
 	github.com/gorilla/handlers v1.4.0 // indirect
 	github.com/hpcloud/tail v1.0.0
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

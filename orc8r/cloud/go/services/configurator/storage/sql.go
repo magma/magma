@@ -18,7 +18,7 @@ import (
 	"magma/orc8r/cloud/go/sql_utils"
 	"magma/orc8r/cloud/go/storage"
 
-	"github.com/golang/glog"
+	"github.com/google/uuid"
 	"github.com/thoas/go-funk"
 )
 
@@ -35,14 +35,25 @@ const (
 	wildcardAllString = "*"
 )
 
+type IDGenerator interface {
+	New() string
+}
+
+type DefaultIDGenerator struct{}
+
+func (*DefaultIDGenerator) New() string {
+	return uuid.New().String()
+}
+
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
 // implementation backed by a SQL database.
-func NewSQLConfiguratorStorageFactory(db *sql.DB) ConfiguratorStorageFactory {
-	return &sqlConfiguratorStorageFactory{db}
+func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator) ConfiguratorStorageFactory {
+	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator}
 }
 
 type sqlConfiguratorStorageFactory struct {
-	db *sql.DB
+	db          *sql.DB
+	idGenerator IDGenerator
 }
 
 func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error) {
@@ -93,8 +104,8 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 			pk TEXT PRIMARY KEY,
 
 			network_id TEXT REFERENCES %s (id) ON DELETE CASCADE,
-			key TEXT NOT NULL,
 			type TEXT NOT NULL,
+			key TEXT NOT NULL,
 
 			graph_id TEXT NOT NULL,
 
@@ -180,7 +191,7 @@ func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &sqlConfiguratorStorage{tx: tx}, nil
+	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator}, nil
 }
 
 func getSqlOpts(opts *TxOptions) *sql.TxOptions {
@@ -191,7 +202,8 @@ func getSqlOpts(opts *TxOptions) *sql.TxOptions {
 }
 
 type sqlConfiguratorStorage struct {
-	tx *sql.Tx
+	tx          *sql.Tx
+	idGenerator IDGenerator
 }
 
 func (store *sqlConfiguratorStorage) Commit() error {
@@ -219,12 +231,7 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	if err != nil {
 		return emptyRet, fmt.Errorf("error querying for networks: %s", err)
 	}
-	defer func() {
-		err := rows.Close()
-		if err != nil {
-			glog.Warningf("error while closing *Rows object in LoadNetworks: %s", err)
-		}
-	}()
+	defer sql_utils.CloseRowsLogOnError(rows, "LoadNetworks")
 
 	// Pointer values because we're modifying .Config in-place
 	loadedNetworksByID := map[string]*Network{}
@@ -279,17 +286,17 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	}
 
 	configExec := fmt.Sprintf("INSERT INTO %s (network_id, type, value) VALUES ($1, $2, $3)", networkConfigTable)
-	configInsertStatement, err := store.tx.Prepare(configExec)
+	stmts, err := sql_utils.PrepareStatements(store.tx, []string{configExec})
 	if err != nil {
-		return network, fmt.Errorf("error preparing network configuration insert: %s", err)
+		return network, err
 	}
-	defer sql_utils.GetCloseStatementsDeferFunc([]*sql.Stmt{configInsertStatement}, "CreateNetwork")()
+	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "CreateNetwork")()
 
 	// Sort config keys for deterministic behavior
 	configKeys := funk.Keys(network.Configs).([]string)
 	sort.Strings(configKeys)
 	for _, configKey := range configKeys {
-		_, err := configInsertStatement.Exec(network.ID, configKey, network.Configs[configKey])
+		_, err := stmts[0].Exec(network.ID, configKey, network.Configs[configKey])
 		if err != nil {
 			return network, fmt.Errorf("error inserting config %s: %s", configKey, err)
 		}
@@ -384,8 +391,46 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 	return ret, nil
 }
 
-func (store *sqlConfiguratorStorage) CreateEntities(networkID string, entities []NetworkEntity) (EntityCreationResult, error) {
-	panic("implement me")
+func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error) {
+	exists, err := store.doesEntExist(networkID, entity.GetTypeAndKey())
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+	if exists {
+		return NetworkEntity{}, fmt.Errorf("an entity (%s) already exists", entity.GetTypeAndKey())
+	}
+
+	// First, we insert the entity and its ACLs. We do this first so we have a
+	// pk for the entity to reference in edge creation.
+	// Then we insert the associations as graph edges. This step involves a
+	// lookup of the associated entities to retrieve their PKs (since we don't
+	// expose PK to the world).
+	// Finally, if the created entity "bridges" 1 or more graphs, we merge
+	// those graphs into a single graph.
+	// For simplicity, we don't do any cycle detection at the moment. This
+	// shouldn't be a problem on the load side because we load graphs via
+	// graph ID, not by traversing edges.
+
+	createdEntWithPk, err := store.insertIntoEntityTable(networkID, entity)
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+
+	allAssociatedEntsByTk, err := store.createEdges(networkID, createdEntWithPk)
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+
+	newGraphID, err := store.mergeGraphs(createdEntWithPk, allAssociatedEntsByTk)
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+	createdEntWithPk.GraphID = newGraphID
+
+	// If we were given duplicate edges, get rid of those
+	createdEntWithPk.Associations = funk.Uniq(createdEntWithPk.Associations).([]storage.TypeAndKey)
+
+	return createdEntWithPk.NetworkEntity, nil
 }
 
 func (store *sqlConfiguratorStorage) UpdateEntities(networkID string, updates []EntityUpdateCriteria) (FailedOperations, error) {

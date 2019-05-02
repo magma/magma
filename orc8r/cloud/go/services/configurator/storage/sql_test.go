@@ -817,6 +817,184 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	runCase(t, typeAndKeyFilters)
 }
 
+func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
+	runFactory := func(networkID string, entity storage.NetworkEntity) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		return func(store storage.ConfiguratorStorage) (interface{}, error) {
+			return store.CreateEntity(networkID, entity)
+		}
+	}
+
+	// basic fields
+	basicCase := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+				WithArgs("network", "foo", "bar").
+				WillReturnRows(sqlmock.NewRows([]string{"count"}))
+
+			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
+			m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
+
+			insertStmt.ExpectExec().
+				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
+				WillReturnResult(mockResult)
+		},
+		run: runFactory(
+			"network",
+			storage.NetworkEntity{
+				Type:        "foo",
+				Key:         "bar",
+				Name:        "foobar",
+				Description: "foobar ent",
+			},
+		),
+
+		expectedResult: storage.NetworkEntity{
+			Type:        "foo",
+			Key:         "bar",
+			Name:        "foobar",
+			Description: "foobar ent",
+			GraphID:     "2",
+		},
+	}
+
+	// with permissions
+	withPerms := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+				WithArgs("network", "foo", "bar").
+				WillReturnRows(sqlmock.NewRows([]string{"count"}))
+
+			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
+			aclStmt := m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
+
+			insertStmt.ExpectExec().
+				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
+				WillReturnResult(mockResult)
+			aclStmt.ExpectExec().
+				WithArgs("3", "1", "*", storage.WritePermission, "*", nil).
+				WillReturnResult(mockResult)
+			aclStmt.ExpectExec().
+				WithArgs("4", "1", "n1,n2", storage.ReadPermission, "foo", "foo,bar").
+				WillReturnResult(mockResult)
+		},
+		run: runFactory(
+			"network",
+			storage.NetworkEntity{
+				Type:        "foo",
+				Key:         "bar",
+				Name:        "foobar",
+				Description: "foobar ent",
+				Permissions: []storage.ACL{
+					{ID: "ignore this", Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, Permission: storage.WritePermission},
+					{Type: storage.ACLTypeOf("foo"), Scope: storage.ACLScopeOf([]string{"n1", "n2"}), Permission: storage.ReadPermission, IDFilter: []string{"foo", "bar"}},
+				},
+			},
+		),
+
+		expectedResult: storage.NetworkEntity{
+			Type:        "foo",
+			Key:         "bar",
+			Name:        "foobar",
+			Description: "foobar ent",
+			GraphID:     "2",
+			Permissions: []storage.ACL{
+				{ID: "3", Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, Permission: storage.WritePermission},
+				{ID: "4", Type: storage.ACLTypeOf("foo"), Scope: storage.ACLScopeOf([]string{"n1", "n2"}), Permission: storage.ReadPermission, IDFilter: []string{"foo", "bar"}},
+			},
+		},
+	}
+
+	// merge 2 graphs together
+	mergeGraphs := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+				WithArgs("network", "foo", "bar").
+				WillReturnRows(sqlmock.NewRows([]string{"count"}))
+
+			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
+			m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
+
+			insertStmt.ExpectExec().
+				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
+				WillReturnResult(mockResult)
+
+			queryStmt := m.ExpectPrepare("SELECT .* FROM cfg_entities").WillBeClosed()
+			queryStmt.ExpectQuery().WithArgs("network", "baz", "bar").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("42", "baz", "bar", nil, 1, "aaa"),
+				)
+			queryStmt.ExpectQuery().WithArgs("network", "quz", "baz").
+				WillReturnRows(
+					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("43", "quz", "baz", nil, 2, "zzz"),
+				)
+
+			edgeStmt := m.ExpectPrepare("INSERT INTO cfg_assocs").WillBeClosed()
+			edgeStmt.ExpectExec().WithArgs("1", "42").WillReturnResult(mockResult)
+			edgeStmt.ExpectExec().WithArgs("1", "43").WillReturnResult(mockResult)
+
+			mergeStmt := m.ExpectPrepare("UPDATE cfg_entities").WillBeClosed()
+			mergeStmt.ExpectExec().WithArgs("aaa", "2").WillReturnResult(mockResult)
+			mergeStmt.ExpectExec().WithArgs("aaa", "zzz").WillReturnResult(mockResult)
+		},
+		run: runFactory(
+			"network",
+			storage.NetworkEntity{
+				Type:        "foo",
+				Key:         "bar",
+				Name:        "foobar",
+				Description: "foobar ent",
+				Associations: []storage2.TypeAndKey{
+					{Type: "bar", Key: "baz"},
+					{Type: "baz", Key: "quz"},
+					// Duplicate edge should only be loaded once
+					{Type: "bar", Key: "baz"},
+				},
+			},
+		),
+
+		// We expect "aaa" as the returned graphID since we merged graphs
+		expectedResult: storage.NetworkEntity{
+			Type:        "foo",
+			Key:         "bar",
+			Name:        "foobar",
+			Description: "foobar ent",
+			GraphID:     "aaa",
+			Associations: []storage2.TypeAndKey{
+				{Type: "bar", Key: "baz"},
+				{Type: "baz", Key: "quz"},
+			},
+		},
+	}
+
+	// already exists
+	alreadyExists := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+				WithArgs("network", "foo", "bar").
+				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+		},
+		run: runFactory(
+			"network",
+			storage.NetworkEntity{
+				Type:        "foo",
+				Key:         "bar",
+				Name:        "foobar",
+				Description: "foobar ent",
+			},
+		),
+
+		expectedResult: storage.NetworkEntity{},
+		expectedError:  errors.New("an entity (foo-bar) already exists"),
+	}
+
+	runCase(t, basicCase)
+	runCase(t, withPerms)
+	runCase(t, mergeGraphs)
+	runCase(t, alreadyExists)
+}
+
 type testCase struct {
 	// setup mock expectations. Transaction start is expected on the mock
 	// generically
@@ -845,7 +1023,7 @@ func runCase(t *testing.T, test *testCase) {
 	mock.ExpectBegin()
 	test.setup(mock)
 
-	factory := storage.NewSQLConfiguratorStorageFactory(db)
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{})
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 	actual, err := test.run(store)
