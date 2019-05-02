@@ -39,9 +39,8 @@ int decode_attach_request(
   int decoded_result = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-    buffer, ATTACH_REQUEST_MINIMUM_LENGTH, len);
-
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER_FOR_MANDATORY_IES(
+    buffer, ATTACH_REQUEST_MINIMUM_LENGTH, len)
   /*
    * Decoding mandatory fields
    */
@@ -51,8 +50,7 @@ int decode_attach_request(
        0,
        *(buffer + decoded) & 0x0f,
        len - decoded)) < 0) {
-    //         return decoded_result;
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   }
 
   if (
@@ -61,7 +59,7 @@ int decode_attach_request(
        0,
        *(buffer + decoded) >> 4,
        len - decoded)) < 0) {
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   }
 
   decoded++;
@@ -70,7 +68,7 @@ int decode_attach_request(
     (decoded_result = decode_eps_mobile_identity(
        &attach_request->oldgutiorimsi, 0, buffer + decoded, len - decoded)) <
     0) {
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   } else
     decoded += decoded_result;
 
@@ -80,7 +78,7 @@ int decode_attach_request(
        0,
        buffer + decoded,
        len - decoded)) < 0) {
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   } else
     decoded += decoded_result;
 
@@ -90,7 +88,7 @@ int decode_attach_request(
        0,
        buffer + decoded,
        len - decoded)) < 0) {
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
   } else
     decoded += decoded_result;
 
