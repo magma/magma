@@ -100,7 +100,7 @@ export default createMuiTheme({
     },
     MuiIconButton: {
       root: {
-        color: blue05,
+        color: blue60,
       },
     },
     MuiAvatar: {
