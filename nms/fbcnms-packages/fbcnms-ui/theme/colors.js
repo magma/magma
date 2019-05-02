@@ -37,6 +37,7 @@ export const green = '#66bb6a';
 export const lightBlue = '#42a5f5';
 export const orange = '#f9a825';
 export const pink = '#f48fb1';
+export const primaryText = '#1c1e21';
 export const red = '#e53935';
 export const redwood = '#d45C43';
 export const sea100 = '#6ca0b6';
@@ -69,6 +70,7 @@ export default {
   lightBlue,
   orange,
   pink,
+  primaryText,
   purple,
   red,
   redwood,

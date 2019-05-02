@@ -21,6 +21,7 @@ import {
   white,
   gray00,
   gray50,
+  primaryText,
 } from './colors';
 
 export default createMuiTheme({
@@ -62,6 +63,7 @@ export default createMuiTheme({
     blue60: blue60,
     gray00: gray00,
     gray50: gray50,
+    primaryText: primaryText,
   },
   overrides: {
     MuiAppBar: {

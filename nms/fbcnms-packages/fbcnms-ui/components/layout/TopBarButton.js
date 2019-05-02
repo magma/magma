@@ -13,31 +13,31 @@ import Checkbox from '@material-ui/core/Checkbox';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   /* Styles applied to the root element. */
   root: {
-    color: '#fff',
+    color: theme.palette.primaryText,
   },
   checked: {
-    color: '#fff',
+    color: theme.palette.primaryText,
   },
   colorPrimary: {
     '&$checked': {
-      color: '#fff',
+      color: theme.palette.primaryText,
     },
     '&$disabled': {
-      color: '#fff',
+      color: theme.palette.primaryText,
     },
   },
   colorSecondary: {
     '&$checked': {
-      color: '#fff',
+      color: theme.palette.primaryText,
     },
     '&$disabled': {
-      color: '#fff',
+      color: theme.palette.primaryText,
     },
   },
-});
+}));
 
 type Props = {|
   checked?: boolean | string,
