@@ -196,9 +196,21 @@ func makeGraphiteName(metric *dto.Metric, ctx exporters.MetricsContext) string {
 type TagSet map[string]string
 
 func (s TagSet) Insert(name, value string) {
-	if _, ok := s[name]; !ok {
-		s[name] = value
+	s[name] = value
+}
+
+func (s TagSet) SortedTags() []string {
+	var sortedKeys []string
+	var tagList []string
+
+	for key := range s {
+		sortedKeys = append(sortedKeys, key)
 	}
+	sort.Strings(sortedKeys)
+	for _, key := range sortedKeys {
+		tagList = append(tagList, fmt.Sprintf("%s=%s", key, s[key]))
+	}
+	return tagList
 }
 
 // String prints the tagSet sorted by key in a format that can be appended to
