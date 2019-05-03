@@ -10,6 +10,7 @@ package storage_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
@@ -20,12 +21,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type mockIDGenerator struct {
+	count int
+}
+
+func (g *mockIDGenerator) New() string {
+	g.count++
+	return fmt.Sprintf("%d", g.count)
+}
+
 func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	db, err := sql_utils.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	factory := storage.NewSQLConfiguratorStorageFactory(db)
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{})
 	err = factory.InitializeServiceStorage()
 	assert.NoError(t, err)
 
@@ -157,4 +167,88 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		actualEntityLoad,
 	)
 	assert.NoError(t, store.Commit())
+
+	// Create 3 entities, read them back
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	expectedFoobarEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+		Type: "foo",
+		Key:  "bar",
+
+		Name:        "foobar",
+		Description: "foobar ent",
+
+		PhysicalID: "1",
+
+		Config: []byte("foobar"),
+
+		// should be ignored
+		GraphID: "1",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "2", expectedFoobarEnt.GraphID)
+
+	expectedBarbazEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+		Type: "bar",
+		Key:  "baz",
+
+		Name:        "barbaz",
+		Description: "barbaz ent",
+
+		Config: []byte("barbaz"),
+
+		Permissions: []storage.ACL{
+			{Permission: storage.NoPermissions, Scope: storage.WildcardACLScope, Type: storage.WildcardACLType},
+			{Permission: storage.WritePermission, Scope: storage.ACLScope{NetworkIDs: []string{"n1"}}, Type: storage.ACLType{EntityType: "foo"}},
+		},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "4", expectedBarbazEnt.GraphID)
+	assert.Equal(t, "5", expectedBarbazEnt.Permissions[0].ID)
+	assert.Equal(t, "6", expectedBarbazEnt.Permissions[1].ID)
+
+	// bazquz should link foobar and barbaz into 1 graph
+	// that graph ID should be 2
+	expectedBazquzEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+		Type: "baz",
+		Key:  "quz",
+
+		Name:        "bazquz",
+		Description: "bazquz ent",
+
+		Associations: []storage2.TypeAndKey{
+			{Type: "foo", Key: "bar"},
+			{Type: "bar", Key: "baz"},
+		},
+	})
+	assert.NoError(t, err)
+	assert.NoError(t, store.Commit())
+	assert.Equal(t, "2", expectedBazquzEnt.GraphID)
+
+	expectedFoobarEnt.GraphID = "2"
+	expectedBarbazEnt.GraphID = "2"
+
+	expectedFoobarEnt.ParentAssociations = []storage2.TypeAndKey{
+		{Type: "baz", Key: "quz"},
+	}
+	expectedBarbazEnt.ParentAssociations = []storage2.TypeAndKey{
+		{Type: "baz", Key: "quz"},
+	}
+
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				expectedBarbazEnt,
+				expectedBazquzEnt,
+				expectedFoobarEnt,
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{},
+		},
+		actualEntityLoad,
+	)
 }

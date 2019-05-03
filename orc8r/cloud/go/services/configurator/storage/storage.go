@@ -72,11 +72,9 @@ type ConfiguratorStorage interface {
 	// returned value.
 	LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
 
-	// CreateEntities creates new entities. The created entities are returned,
-	// as well as errors encountered during the operation. The function will
-	// continue processing input after an error is encountered. Errors are
-	// collected and returned at the conclusion of the function.
-	CreateEntities(networkID string, entities []NetworkEntity) (EntityCreationResult, error)
+	// CreateEntity creates a new entity. The created entity is returned
+	// with system-generated fields filled in.
+	CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error)
 
 	// UpdateEntities updates a set of entities.
 	// If an error is encountered during the operation, the function will
@@ -160,10 +158,10 @@ type NetworkUpdateCriteria struct {
 // NetworkEntity is the storage representation of a logical component of a
 // network. Networks are partitioned into DAGs of entities.
 type NetworkEntity struct {
-	// (Key, Type) forms a unique identifier for the network entity within its
+	// (Type, Key) forms a unique identifier for the network entity within its
 	// network.
-	Key  string
 	Type string
+	Key  string
 
 	Name        string
 	Description string
@@ -193,6 +191,24 @@ type NetworkEntity struct {
 	Permissions []ACL
 
 	Version uint64
+}
+
+func (ent NetworkEntity) GetTypeAndKey() storage.TypeAndKey {
+	return storage.TypeAndKey{Type: ent.Type, Key: ent.Key}
+}
+
+func (ent NetworkEntity) GetGraphEdges() []GraphEdge {
+	myTk := ent.GetTypeAndKey()
+	existingAssocs := map[storage.TypeAndKey]struct{}{}
+	ret := make([]GraphEdge, 0, len(ent.Associations))
+	for _, assoc := range ent.Associations {
+		if _, exists := existingAssocs[assoc]; exists {
+			continue
+		}
+		ret = append(ret, GraphEdge{From: myTk, To: assoc})
+		existingAssocs[assoc] = struct{}{}
+	}
+	return ret
 }
 
 // ACL (Access Control List) defines a specific permission for an entity on
@@ -226,6 +242,10 @@ type ACLScope struct {
 
 var WildcardACLScope = ACLScope{Wildcard: WildcardAll}
 
+func ACLScopeOf(networkIDs []string) ACLScope {
+	return ACLScope{NetworkIDs: networkIDs}
+}
+
 // ACLType is a oneof to define the scope of the permissions of an ACL (apply
 // to access on a specific type or all types within the scope).
 type ACLType struct {
@@ -234,6 +254,10 @@ type ACLType struct {
 }
 
 var WildcardACLType = ACLType{Wildcard: WildcardAll}
+
+func ACLTypeOf(t string) ACLType {
+	return ACLType{EntityType: t}
+}
 
 type ACLPermission int32
 
@@ -301,15 +325,6 @@ type EntityLoadResult struct {
 	Entities []NetworkEntity
 	// Entities which were not found
 	EntitiesNotFound []storage.TypeAndKey
-}
-
-// EntityCreationResult encapsulates the result of a CreateEntities call
-type EntityCreationResult struct {
-	// Created entities (system-generated IDs will be filled in)
-	CreatedEntities []NetworkEntity
-
-	// Errors encountered during the operation
-	Errors FailedOperations
 }
 
 // EntityUpdateCriteria specifies a patch operation on a network entity.
