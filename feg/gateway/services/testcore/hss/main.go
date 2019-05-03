@@ -19,8 +19,6 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/feg/gateway/streamer"
 	"magma/orc8r/cloud/go/service"
-
-	"github.com/golang/glog"
 )
 
 func main() {
@@ -42,28 +40,31 @@ func main() {
 	if config.StreamSubscribers {
 		streamerClient := streamer.NewStreamerClient(registry.NewCloudRegistry())
 		if err = streamerClient.AddListener(storage.NewSubscriberListener(store)); err != nil {
-			glog.Errorf("Failed to start subscriber streaming: %s", err.Error())
+			log.Printf("Failed to start subscriber streaming: %s", err.Error())
 		}
 	}
 
 	subscribers, err := servicers.GetConfiguredSubscribers()
 	if err != nil {
-		glog.Errorf("Could not fetch preconfigured subscribers: %s", err)
+		log.Printf("Could not fetch preconfigured subscribers: %s", err)
 	} else {
 		// Add preconfigured subscribers
 		for _, sub := range subscribers {
 			_, err = servicer.AddSubscriber(context.Background(), sub)
 			if err != nil {
-				glog.Errorf("Error adding subscriber: %s", err)
+				log.Printf("Error adding subscriber: %s", err)
 			}
 		}
 	}
 	// Start diameter server
+	startedChan := make(chan struct{}, 1)
 	go func() {
-		glog.V(2).Info("Starting home subscriber server")
-		err := servicer.Start(make(chan struct{})) // blocks
-		glog.Error(err)
+		log.Printf("Starting home subscriber server with configs:\n\t%+v", *servicer.Config)
+		err := servicer.Start(startedChan) // blocks
+		log.Fatal(err)
 	}()
+	<-startedChan
+	log.Printf("Started home subscriber server")
 
 	// Run the service
 	err = srv.Run()
