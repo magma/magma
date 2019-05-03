@@ -70,7 +70,7 @@ app.use(
       process.env.SESSION_TOKEN || 'fhcfvugnlkkgntihvlekctunhbbdbjiu',
   }),
 );
-app.use(csrfMiddleware());
+app.use(csrfMiddleware({devMode: DEV_MODE}));
 app.use(
   webpackSmartMiddleware({
     devMode: DEV_MODE,

@@ -20,11 +20,22 @@ import express from 'express';
 
 import csrf from 'csurf';
 
-export default function csrfMiddleware(): Middleware {
+type CsrfMiddlewareOptions = {
+  devMode: boolean,
+};
+
+export default function csrfMiddleware(
+  options: CsrfMiddlewareOptions,
+): Middleware {
   const router = express.Router();
+  const cookieOptions = {
+    sameSite: true,
+    secure: !options.devMode,
+    httpOnly: true,
+  };
   router.use(
     csrf({
-      cookie: true,
+      cookie: cookieOptions,
       value: (req: ExpressRequest) => req.cookies.csrfToken,
     }),
   );
@@ -34,10 +45,11 @@ export default function csrfMiddleware(): Middleware {
       res: ExpressResponse,
       next: NextFunction,
     ) => {
-      res.cookie('csrfToken', req.csrfToken ? req.csrfToken() : '', {
-        sameSite: true,
-        httpOnly: true,
-      });
+      res.cookie(
+        'csrfToken',
+        req.csrfToken ? req.csrfToken() : '',
+        cookieOptions,
+      );
       next();
     },
   );
