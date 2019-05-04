@@ -76,12 +76,14 @@ The following table list the configurable parameters of the orchestrator chart a
 
 ## Running in Minikube
 - Start Minikube with 8192 MB of memory and 4 CPUs. This example uses Kuberenetes version 1.14.1 and uses [Minikube Hypervisor Driver](https://kubernetes.io/docs/tasks/tools/install-minikube/#install-a-hypervisor):
-  ```bash
-  $ minikube start --vm-driver=hyperkit --memory=8192 --cpus=4 --kubernetes-version=v1.14.1
-  ```
+```bash
+$ minikube start --memory=8192 --cpus=4 --kubernetes-version=v1.14.1
+```
 - Install Helm Tiller:
 ```bash
 $ helm init
+# Wait for tiller to become 'Running'
+$ kubectl get pods -n kube-system | grep tiller
 ```
 - Create a namespace for orchestrator components:
 ```bash
@@ -95,18 +97,28 @@ $ helm install \
     --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql \
     stable/postgresql
 ```
-- Copy orchestrator:
+- Copy orchestrator secrets:
 ```bash
+cd magma/orc8r/cloud/helm/orc8r
+mkdir -p charts/secrets/.secrets/
+# Copy the secrets for the depoyment
 cp -r ~/secrets/* charts/secrets/.secrets/
+# For local testing, you can do the following:
+cp -r ../../../../.cache/test_certs charts/secrets/.secrets/certs
+cp -r ../../deploy/files/envdir charts/secrets/.secrets/envdir
+cd charts/secrets/.secrets/envdir && rm DATABASE_SOURCE PROXY_BACKENDS CONTROLLER_HOSTNAME
 ```
 - Install orchestrator secrets:
 ```bash
+export DOCKER_REGISTRY=<registry>
+export DOCKER_USERNAME=<username>
+export DOCKER_PASSWORD=<password>
 helm template charts/secrets \
     --name orc8r-secrets \
     --namespace magma \
-    --set=docker.registry=docker.io \
-    --set=docker.username=username \
-    --set=docker.password=password \
+    --set=docker.registry=${DOCKER_REGISTRY} \
+    --set=docker.username=${DOCKER_USERNAME} \
+    --set=docker.password=${DOCKER_PASSWORD} \
      | kubectl apply -f -
 ```
 - Install orchestrator chart:
@@ -123,18 +135,23 @@ controller:
   image:
     repository: docker.io/controller
 
-$ helm install --name orc8r --namespace magma orc8r --values=vals.yaml
+$ helm install --name orc8r --namespace magma . --values=vals.yaml
+
+# In the future, if you want to upgrade the helm chart, run:
+$ helm upgrade orc8r . -f --values=vals.yaml
+```
+- Add the admin in the datastore:
+```bash
+kubectl exec -it -n magma \
+    $(kubectl get pod -n magma -l app.kubernetes.io/component=controller -o jsonpath="{.items[0].metadata.name}") -- \
+    /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 - Port forward traffic to orchestrator proxy:
 ```bash
 kubectl port-forward -n magma svc/orc8r-proxy 9443:9443
+
+# If using minikube, run:
+minikube service orc8r-proxy -n magma --https
 ```
 - Orchestrator proxy should be reachable via https://localhost:9443 and
 requires magma client certificate to be installed on browser.
-
-## License
-
-```plain
-Magma is BSD License licensed, as found in the LICENSE file.
-The EPC is OAI is offered under the OAI Apache 2.0 license, as found in the LICENSE file in the OAI directory.
-```
