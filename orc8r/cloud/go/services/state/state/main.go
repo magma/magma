@@ -33,6 +33,10 @@ func main() {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
 	store := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db)
+	err = store.InitializeFactory()
+	if err != nil {
+		glog.Fatalf("Error initializing state database: %s", err)
+	}
 
 	server, err := servicers.NewStateServicer(store)
 	if err != nil {
