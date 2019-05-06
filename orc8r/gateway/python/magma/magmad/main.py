@@ -73,10 +73,10 @@ def main():
     # Schedule periodic checkins
     checkin_manager = CheckinManager(service, service_poller)
 
-    # Create sync rpc client with a timeout of 60 seconds
+    # Create sync rpc client with a heartbeat of 30 seconds (timeout = 60s)
     sync_rpc_client = None
     if service.config.get('enable_sync_rpc', False):
-        sync_rpc_client = SyncRPCClient(service.loop, 60)
+        sync_rpc_client = SyncRPCClient(service.loop, 30)
 
     first_time_bootstrap = True
 
