@@ -115,8 +115,11 @@ int esm_proc_default_eps_bearer_context(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-PROC  - Default EPS bearer context activation "
-    "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d,  QCI %u)\n",
-    ue_id,
+    "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "(pid=%d,  QCI %u)\n",
     pid,
     qci);
   /*
@@ -146,11 +149,12 @@ int esm_proc_default_eps_bearer_context(
       /*
        * No resource available
        */
-      OAILOG_WARNING(
+      OAILOG_ERROR(
         LOG_NAS_ESM,
         "ESM-PROC  - Failed to create new default EPS "
-        "bearer context (ebi=%d)\n",
-        *ebi);
+        "bearer context (ebi=%d) for ue_id (%u)\n",
+        *ebi,
+        ue_id);
       *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
@@ -158,8 +162,9 @@ int esm_proc_default_eps_bearer_context(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
-  OAILOG_WARNING(
-    LOG_NAS_ESM, "ESM-PROC  - Failed to assign new EPS bearer context\n");
+  OAILOG_ERROR(
+    LOG_NAS_ESM, "ESM-PROC  - Failed to assign new EPS bearer context for ue_id (%u)\n",
+    ue_id);
   *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
 }

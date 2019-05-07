@@ -374,6 +374,10 @@ int nas_proc_ul_transfer_ind(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
+  OAILOG_INFO(
+    LOG_NAS,
+   "Received NAS UPLINK DATA IND from S1AP for ue_id = (%u)\n",
+   ue_id);
   if (msg) {
     emm_sap_t emm_sap = {0};
 
@@ -409,6 +413,11 @@ int nas_proc_ul_transfer_ind(
         (char) (originating_tai.mnc_digit3 + 0x30),
       originating_tai.tac);
     rc = emm_sap_send(&emm_sap);
+  } else {
+    OAILOG_WARNING(
+      LOG_NAS,
+      "Received NAS message in uplink is NULL for ue_id = (%u)\n",
+      ue_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -445,6 +454,9 @@ int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *aia)
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context->mme_ue_s1ap_id;
   unlock_ue_contexts(ue_mm_context);
+  OAILOG_INFO(
+    LOG_NAS_EMM, "Received Authentication Information Answer from S6A for ue_id = (%u)\n",
+    mme_ue_s1ap_id);
   if (
     (aia->result.present == S6A_RESULT_BASE) &&
     (aia->result.choice.base == DIAMETER_SUCCESS)) {
@@ -591,6 +603,10 @@ int nas_proc_pdn_config_res(emm_cn_pdn_config_res_t *emm_cn_pdn_config_res)
 
   emm_sap.primitive = EMMCN_PDN_CONFIG_RES;
   emm_sap.u.emm_cn.u.emm_cn_pdn_config_res = emm_cn_pdn_config_res;
+  OAILOG_INFO(
+    LOG_NAS,
+    "Received PDN CONFIG RESPONSE from MME_APP for ue_id = (%u)\n",
+    emm_cn_pdn_config_res->ue_id);
   MSC_LOG_TX_MESSAGE(
     MSC_NAS_MME,
     MSC_NAS_EMM_MME,
@@ -611,6 +627,10 @@ int nas_proc_pdn_connectivity_res(emm_cn_pdn_res_t *emm_cn_pdn_res)
 
   emm_sap.primitive = EMMCN_PDN_CONNECTIVITY_RES;
   emm_sap.u.emm_cn.u.emm_cn_pdn_res = emm_cn_pdn_res;
+  OAILOG_INFO(
+    LOG_NAS,
+    "Received PDN CONNECTIVITY RESPONSE from MME_APP for ue_id = (%u)\n",
+    emm_cn_pdn_res->ue_id);
   MSC_LOG_TX_MESSAGE(
     MSC_NAS_MME,
     MSC_NAS_EMM_MME,
