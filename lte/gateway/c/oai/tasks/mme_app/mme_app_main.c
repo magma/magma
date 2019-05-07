@@ -133,6 +133,9 @@ void *mme_app_thread(void *args)
       } break;
 
       case NAS_PDN_CONFIG_REQ: {
+        OAILOG_INFO(
+          TASK_MME_APP, "Received PDN CONFIG REQ from NAS_MME for ue_id = (%u)\n",
+          received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
         struct ue_mm_context_s *ue_context_p = NULL;
         ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
           &mme_app_desc.mme_ue_contexts,
@@ -140,10 +143,17 @@ void *mme_app_thread(void *args)
         if (ue_context_p) {
           mme_app_send_s6a_update_location_req(ue_context_p);
           unlock_ue_contexts(ue_context_p);
+        } else {
+          OAILOG_ERROR(
+            TASK_MME_APP, "UE context NULL for ue_id = (%u)\n",
+            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
         }
+         
       } break;
 
       case NAS_PDN_CONNECTIVITY_REQ: {
+        OAILOG_INFO(
+          TASK_MME_APP, "Received PDN CONNECTIVITY REQ from NAS_MME\n");
         mme_app_handle_nas_pdn_connectivity_req(
           &received_message_p->ittiMsg.nas_pdn_connectivity_req);
       } break;
@@ -178,6 +188,8 @@ void *mme_app_thread(void *args)
       } break;
 
       case S11_MODIFY_BEARER_RESPONSE: {
+        OAILOG_INFO(
+          TASK_MME_APP, "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
         ue_context_p = mme_ue_context_exists_s11_teid(
           &mme_app_desc.mme_ue_contexts,
           received_message_p->ittiMsg.s11_modify_bearer_response.teid);
@@ -204,6 +216,9 @@ void *mme_app_thread(void *args)
             " IMSI " IMSI_64_FMT " ",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid,
             ue_context_p->emm_context._imsi64);
+            OAILOG_DEBUG(
+              TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
+              received_message_p->ittiMsg.s11_modify_bearer_response.teid);
           /*
            * Updating statistics
            */
@@ -252,6 +267,7 @@ void *mme_app_thread(void *args)
         /*
          * We received the update location answer message from HSS -> Handle it
          */
+        OAILOG_INFO(LOG_MME_APP, "Recieved S6A Update Location Answer from S6A\n");
         mme_app_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);
       } break;
@@ -431,12 +447,16 @@ void *mme_app_thread(void *args)
 
       case NAS_CS_DOMAIN_LOCATION_UPDATE_REQ: {
         /*Received SGS Location Update Request message from NAS task*/
+        OAILOG_INFO(
+          TASK_MME_APP, "Received CS DOMAIN LOCATION UPDATE REQ from NAS\n");
         mme_app_handle_nas_cs_domain_location_update_req(
           &received_message_p->ittiMsg.nas_cs_domain_location_update_req);
       } break;
 
       case SGSAP_LOCATION_UPDATE_ACC: {
         /*Received SGSAP Location Update Accept message from SGS task*/
+        OAILOG_INFO(
+          TASK_MME_APP, "Received SGSAP Location Update Accept from SGS\n");
         mme_app_handle_sgsap_location_update_acc(
           &received_message_p->ittiMsg.sgsap_location_update_acc);
       } break;

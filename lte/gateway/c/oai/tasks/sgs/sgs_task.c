@@ -124,7 +124,7 @@ static void *sgs_thread(void *args_p)
          * * * *      Extended Service Request for MT CSFB in connected mode
          */
         OAILOG_DEBUG(
-          LOG_SGS, "Received SGSAP_UE_ACTIVITY_IND message from NAS \n");
+          LOG_SGS, "Received SGSAP_UE_ACTIVITY_IND message from NAS");
         /* send sgsap ue activity indication message to FeG*/
         send_ue_activity_indication(
           &received_message_p->ittiMsg.sgsap_ue_activity_ind);

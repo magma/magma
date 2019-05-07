@@ -612,7 +612,7 @@ void mme_ue_context_update_coll_keys(
     }
     ue_context_p->enb_s1ap_id_key = enb_s1ap_id_key;
   } else {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_MME_APP,
       "Did not update enb_s1ap_id_key %ld in ue context %p "
       "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
@@ -649,7 +649,7 @@ void mme_ue_context_update_coll_keys(
       ue_context_p->mme_ue_s1ap_id = mme_ue_s1ap_id;
     }
   } else {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_MME_APP,
       "Did not update hashtable  for ue context %p "
       "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
@@ -672,7 +672,7 @@ void mme_ue_context_update_coll_keys(
     h_rc = HASH_TABLE_KEY_NOT_EXISTS;
   }
   if (HASH_TABLE_OK != h_rc) {
-    OAILOG_TRACE(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "Error could not update this ue context %p "
       "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
@@ -700,7 +700,7 @@ void mme_ue_context_update_coll_keys(
   }
 
   if (HASH_TABLE_OK != h_rc) {
-    OAILOG_TRACE(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "Error could not update this ue context %p "
       "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
@@ -743,7 +743,7 @@ void mme_ue_context_update_coll_keys(
       }
 
       if (HASH_TABLE_OK != h_rc) {
-        OAILOG_TRACE(
+        OAILOG_ERROR(
           LOG_MME_APP,
           "Error could not update this ue context %p "
           "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
@@ -963,9 +963,10 @@ void mme_remove_ue_context(
         mme_ue_context_p->imsi_ue_context_htbl,
         (const hash_key_t) ue_context_p->emm_context._imsi64);
       if (HASH_TABLE_OK != hash_rc)
-        OAILOG_DEBUG(
+        OAILOG_ERROR(
           LOG_MME_APP,
-          "UE context enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+	  "UE context not found!\n"
+          " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ", IMSI " IMSI_64_FMT
           "  not in IMSI collection\n",
           ue_context_p->enb_ue_s1ap_id,
@@ -978,11 +979,12 @@ void mme_remove_ue_context(
       mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
       (const hash_key_t) ue_context_p->enb_s1ap_id_key);
     if (HASH_TABLE_OK != hash_rc)
-      OAILOG_DEBUG(
+      OAILOG_ERROR(
         LOG_MME_APP,
-        "UE context enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+	"UE context not found!\n"
+        " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-        ", ENB_UE_S1AP_ID not ENB_UE_S1AP_ID collection",
+        ", ENB_UE_S1AP_ID not in ENB_UE_S1AP_ID collection",
         ue_context_p->enb_ue_s1ap_id,
         ue_context_p->mme_ue_s1ap_id);
 
@@ -992,9 +994,10 @@ void mme_remove_ue_context(
         mme_ue_context_p->tun11_ue_context_htbl,
         (const hash_key_t) ue_context_p->mme_teid_s11);
       if (HASH_TABLE_OK != hash_rc)
-        OAILOG_DEBUG(
+        OAILOG_ERROR(
           LOG_MME_APP,
-          "UE context enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+	  "UE Context not found!\n"
+          " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ", MME S11 TEID  " TEID_FMT
           "  not in S11 collection\n",
           ue_context_p->enb_ue_s1ap_id,
@@ -1015,9 +1018,10 @@ void mme_remove_ue_context(
         (const void *const) & ue_context_p->emm_context._guti,
         sizeof(ue_context_p->emm_context._guti));
       if (HASH_TABLE_OK != hash_rc)
-        OAILOG_DEBUG(
+        OAILOG_ERROR(
           LOG_MME_APP,
-          "UE context enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+	  "UE Context not found!\n"
+          " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
           ", GUTI  not in GUTI collection\n",
           ue_context_p->enb_ue_s1ap_id,
@@ -1031,9 +1035,10 @@ void mme_remove_ue_context(
         (const hash_key_t) ue_context_p->mme_ue_s1ap_id,
         (void **) &ue_context_p);
       if (HASH_TABLE_OK != hash_rc)
-        OAILOG_DEBUG(
+        OAILOG_ERROR(
           LOG_MME_APP,
-          "UE context enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
+	  "UE context not found!\n"
+          "  enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
           " not in MME UE S1AP ID collection",
           ue_context_p->enb_ue_s1ap_id,

@@ -70,6 +70,10 @@ int s1ap_mme_itti_nas_uplink_ind(
 {
   MessageDef *message_p = NULL;
 
+  OAILOG_INFO(
+    LOG_S1AP,
+    "Sending NAS Uplink indication to MME_APP, mme_ue_s1ap_id = (%u) \n",
+    ue_id);
   message_p = itti_alloc_new_message(TASK_S1AP, NAS_UPLINK_DATA_IND);
   NAS_UL_DATA_IND(message_p).ue_id = ue_id;
   NAS_UL_DATA_IND(message_p).nas_msg = *payload;
@@ -136,6 +140,12 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   AssertFatal(
     (nas_msg_length < 1000), "Bad length for NAS message %lu", nas_msg_length);
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
+
+  OAILOG_INFO(
+    LOG_S1AP,
+    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id : " ENB_UE_S1AP_ID_FMT
+    "\n",
+    enb_ue_s1ap_id);
 
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id = assoc_id;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;

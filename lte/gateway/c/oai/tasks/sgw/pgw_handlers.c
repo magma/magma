@@ -269,6 +269,13 @@ int pgw_handle_create_bearer_request(
   s5_response->eps_bearer_id = bearer_req_p->eps_bearer_id;
   s5_response->sgi_create_endpoint_resp = sgi_create_endpoint_resp;
   s5_response->failure_cause = S5_OK;
+  OAILOG_DEBUG(
+    LOG_PGW_APP,
+    "Sending S5 Create Bearer Response to SPGW APP: Context teid %u, S1U-teid = %u,"
+    "EPS Bearer Id = %u\n",
+    s5_response->context_teid,
+    s5_response->S1u_teid,
+    s5_response->eps_bearer_id);
   itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNok);
 }
