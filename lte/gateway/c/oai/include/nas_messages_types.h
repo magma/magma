@@ -257,6 +257,7 @@ typedef struct itti_erab_rel_cmd_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
   ebi_t ebi;              /* EPS bearer id        */
   bstring nas_msg; /* NAS erab bearer context activation message           */
+  ebi_t *bearers_to_be_rel /* Bearers to be released*/
 } itti_erab_rel_cmd_t;
 
 typedef struct itti_nas_attach_req_s {

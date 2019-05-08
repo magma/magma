@@ -2989,6 +2989,7 @@ void mme_app_handle_erab_rel_cmd(
   itti_erab_rel_cmd_t *const itti_erab_rel_cmd)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
+  uint32_t i = 0;
   struct ue_mm_context_s *ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc.mme_ue_contexts, itti_erab_rel_cmd->ue_id);
 
@@ -3019,9 +3020,18 @@ void mme_app_handle_erab_rel_cmd(
     s1ap_e_rab_rel_cmd->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
 
     // E-RAB to Be Setup List
-    s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items = 1;
-    s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
-      bearer_context->ebi;
+    if (itti_erab_rel_cmd->bearers_to_be_rel) {
+      s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items =
+        itti_erab_rel_cmd->n_bearers;
+      for (i = 0; i < itti_erab_rel_cmd->n_bearers; i++) {
+        s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id =
+          itti_erab_rel_cmd->bearers_to_be_rel;
+      }
+    } else {
+      s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items = 1;
+      s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
+        bearer_context->ebi;
+    }
     //s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0; //Pruthvi TDB
     s1ap_e_rab_rel_cmd->nas_pdu =
       itti_erab_rel_cmd->nas_msg;

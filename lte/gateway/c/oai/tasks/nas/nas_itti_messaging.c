@@ -131,6 +131,30 @@ int nas_itti_erab_rel_cmd(
 {
   MessageDef *message_p =
     itti_alloc_new_message(TASK_NAS_MME, NAS_ERAB_REL_CMD);
+
+  if (mme_config.eps_network_feature_support.
+    ims_voice_over_ps_session_in_s1) {
+    ue_mm_context_t *ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+    if (ue_mm_context) {
+      if ((ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) &&
+        ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel) {
+        NAS_ERAB_REL_CMD(message_p).n_bearers =
+          ue_mm_context->emm_context.esm_ctx.n_bearers;
+        NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel =
+          calloc(1, sizeof(ebi_t));
+        memcpy(
+          NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel,
+          ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel,
+          sizeof(ebi_t));
+       // Free bearers_to_be_rel
+       free(ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel);
+       ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel = NULL;
+       ue_mm_context->emm_context.esm_ctx.n_bearers = 0;
+      //Reset PDN disconnect flag
+      }
+    }
+  }
   NAS_ERAB_REL_CMD(message_p).ue_id = ue_id;
   NAS_ERAB_REL_CMD(message_p).ebi = ebi;
   NAS_ERAB_REL_CMD(message_p).nas_msg = nas_msg;

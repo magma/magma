@@ -72,7 +72,9 @@ static void _eps_bearer_deactivate_t3495_handler(void *);
 static int _eps_bearer_deactivate(
   emm_context_t *ue_context,
   ebi_t ebi,
-  STOLEN_REF bstring *msg);
+  STOLEN_REF bstring *msg,
+  int n_bearers,
+  ebi_t *bearers_to_be_rel);
 static int _eps_bearer_release(
   emm_context_t *ue_context,
   ebi_t ebi,
@@ -230,8 +232,7 @@ int esm_proc_eps_bearer_context_deactivate_request(
   emm_context_t *const ue_context,
   const ebi_t ebi,
   STOLEN_REF bstring *msg,
-  const bool ue_triggered,
-  ebi_t *bearers_to_be_rel)
+  const bool ue_triggered)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -249,7 +250,7 @@ int esm_proc_eps_bearer_context_deactivate_request(
    * Send deactivate EPS bearer context request message and
    * * * * start timer T3495
    */
-  rc = _eps_bearer_deactivate(ue_context, ebi, msg, bearers_to_be_rel);
+  rc = _eps_bearer_deactivate(ue_context, ebi, msg);
   msg = NULL;
 
   if (rc != RETURNerror) {
@@ -339,6 +340,27 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
 
   if (mme_config.eps_network_feature_support.
     ims_voice_over_ps_session_in_s1) {
+
+    //Reset is_pdn_disconnect flag
+    if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
+      struct ue_mm_context_s, emm_context)
+        ->emm_context.esm_ctx.is_pdn_disconnect) {
+      PARENT_STRUCT(esm_ebr_timer_data->ctx,
+        struct ue_mm_context_s, emm_context)
+          ->emm_context.esm_ctx.is_pdn_disconnect = false;
+    }
+    //Free bearers_to_be_rel list
+    if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
+      struct ue_mm_context_s, emm_context)
+        ->emm_context.esm_ctx.bearers_to_be_rel) {
+      free(PARENT_STRUCT(esm_ebr_timer_data->ctx,
+        struct ue_mm_context_s, emm_context)
+          ->emm_context.esm_ctx.bearers_to_be_rel);
+        PARENT_STRUCT(esm_ebr_timer_data->ctx,
+          struct ue_mm_context_s, emm_context)
+            ->emm_context.esm_ctx.bearers_to_be_rel = NULL;
+      }
+
     s_gw_teid_s11_s4 =
       PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
       ->pdn_contexts[pid]->s_gw_teid_s11_s4;
@@ -488,6 +510,24 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           esm_ebr_timer_data->ebi,
           delete_default_bearer,
           s_gw_teid_s11_s4);
+        //Reset is_pdn_disconnect flag
+        if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
+          struct ue_mm_context_s, emm_context)
+          ->emm_context.esm_ctx.is_pdn_disconnect) {
+          PARENT_STRUCT(esm_ebr_timer_data->ctx,
+          struct ue_mm_context_s, emm_context)
+          ->emm_context.esm_ctx.is_pdn_disconnect = false;
+        }
+        //Free bearers_to_be_rel list
+        if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
+          struct ue_mm_context_s, emm_context)
+          ->emm_context.esm_ctx.bearers_to_be_rel) {
+          free(PARENT_STRUCT(esm_ebr_timer_data->ctx,
+            struct ue_mm_context_s, emm_context)
+            ->emm_context.esm_ctx.bearers_to_be_rel);
+          PARENT_STRUCT(esm_ebr_timer_data->ctx,
+            struct ue_mm_context_s, emm_context)
+            ->emm_context.esm_ctx.bearers_to_be_rel = NULL;
       }
     }
     if (esm_ebr_timer_data->msg) {
@@ -525,8 +565,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
 static int _eps_bearer_deactivate(
   emm_context_t *ue_context,
   ebi_t ebi,
-  STOLEN_REF bstring *msg,
-  ebi_t *bearers_to_be_rel)
+  STOLEN_REF bstring *msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};

@@ -101,7 +101,7 @@ typedef struct emm_esm_data_s {
  * EMMESM primitive for Deactivate EPS bearer context request
  */
 typedef struct emm_esm_deactivate_bearer_req_s {
-  ebi_t ebi; /*bearer to de-activate */
+  ebi_t   ebi; /*bearer to de-activate */
   bstring msg; /* ESM message to be transfered     */
 }emm_esm_deactivate_bearer_req_t;
 

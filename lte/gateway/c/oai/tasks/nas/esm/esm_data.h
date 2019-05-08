@@ -178,6 +178,8 @@ typedef struct esm_context_s {
   struct nas_timer_s T3489;
   bool is_standalone;
   bool is_pdn_disconnect;
+  uint32_t n_bearers; /*Number of bearers to be released*/
+  ebi_t *bearers_to_be_rel; /* Bearers to be sent in ERAB REL CMD*/
 } esm_context_t;
 
 /*

@@ -1301,7 +1301,7 @@ static int _emm_cn_pdn_disconnect_rsp(
   proc_tid_t pti;
   uint8_t esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
-  ebi_t *bearers_to_be_rel;
+  ebi_t *bearers_to_be_rel = NULL;
 
   ESM_msg esm_msg;
   memset(&esm_msg, 0, sizeof(ESM_msg));
@@ -1337,14 +1337,18 @@ static int _emm_cn_pdn_disconnect_rsp(
     ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
   pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
 
+  ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel =
+    calloc(1, ((pdn_context->esm_data.n_bearers)*(sizeof(ebi_t))));
   //Fill the default bearer ID in 0 index
-  bearers_to_be_rel = calloc(1, ((pdn_context->esm_data.n_bearers)*(sizeof(ebi_t))));
-  bearers_to_be_rel[0] = pdn_context->default_ebi;
-  for (i = 1; i < pdn_context->esm_data.n_bearers; i++) {
+  ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel[0] =
+    pdn_context->default_ebi;
+  for (i = 0; i < pdn_context->esm_data.n_bearers; i++) {
     int idx = ue_mm_context->pdn_contexts[cid]->bearer_contexts[i];
-    bearers_to_be_rel[i] = ue_mm_context->bearer_contexts[idx].ebi;
+    ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel[i+1] =
+      ue_mm_context->bearer_contexts[idx].ebi;
   }
-
+  ue_mm_context->emm_context.esm_ctx.n_bearers =
+    pdn_context->esm_data.n_bearers;
   /*
    * Send the ESM message
    */
@@ -1353,8 +1357,7 @@ static int _emm_cn_pdn_disconnect_rsp(
     ue_mm_context,
     msg->lbi,
     rsp,
-    true/*UE triggered*/
-    bearers_to_be_rel);
+    true/*UE triggered*/);
 
   /*
    * Execute the PDN disconnect procedure requested by the UE
