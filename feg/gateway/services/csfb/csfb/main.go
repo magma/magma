@@ -25,6 +25,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 
 	"github.com/golang/glog"
+	"github.com/ishidawataru/sctp"
 )
 
 const MaxVLRConnectAttempts uint = 200
@@ -40,8 +41,9 @@ func main() {
 		glog.Fatalf("Error creating CSFB service: %s", err)
 	}
 
-	vlrIP, vlrPort := getVLRSCTPAddr()
-	vlrConn, err := servicers.NewSCTPClientConnection(vlrIP, vlrPort)
+	vlrSCTPAddr := getVLRSCTPAddr()
+	localSCTPAddr := getSGsInterfaceAddr()
+	vlrConn, err := servicers.NewSCTPClientConnection(vlrSCTPAddr, localSCTPAddr)
 	if err != nil {
 		glog.Fatalf("Failed to create VLR connection: %s", err)
 	}
@@ -57,6 +59,8 @@ func main() {
 	go func() {
 		for retries := uint(0); retries <= MaxVLRConnectAttempts; retries++ {
 			err := vlrConn.EstablishConn()
+			vlrIP := vlrSCTPAddr.IPAddrs[0].String()
+			vlrPort := vlrSCTPAddr.Port
 			if err != nil {
 				glog.Errorf("Error connecting to VLR Server @ %s:%d; %s; attempt #%d", vlrIP, vlrPort, err, retries)
 				time.Sleep(time.Second * time.Duration(retries))
@@ -110,35 +114,39 @@ func main() {
 	}
 }
 
-func getVLRSCTPAddr() (string, int) {
-	envValue := os.Getenv(servicers.VLRAddrEnv)
-	if len(envValue) == 0 {
-		glog.Infof("Environment variable for VLR address is not found, "+
-			"default address %s:%d is used. ",
-			servicers.DefaultVLRIPAddress,
-			servicers.DefaultVLRPort,
-		)
-		return servicers.DefaultVLRIPAddress, servicers.DefaultVLRPort
+func getAddr(address string, defaultIP string, defaultPort int) (string, int) {
+	if len(address) == 0 {
+		glog.V(2).Infof("Environment variable for address is not found or empty.")
+		return defaultIP, defaultPort
 	}
-	addr := strings.Split(envValue, ":")
+	addr := strings.Split(address, ":")
 	if len(addr) != 2 {
-		glog.Errorf("VLR address should be in the format: 0.0.0.0:1234, "+
-			"default address %s:%d is used. ",
-			servicers.DefaultVLRIPAddress,
-			servicers.DefaultVLRPort,
-		)
-		return servicers.DefaultVLRIPAddress, servicers.DefaultVLRPort
+		glog.Errorf("Address should be in the format: 0.0.0.0:1234.")
+		return defaultIP, defaultPort
 	}
 	port, err := strconv.Atoi(addr[1])
 	if err != nil {
-		glog.Infof("Failed to get port number: %s, "+
-			"default address %s:%d is used. ",
-			err,
-			servicers.DefaultVLRIPAddress,
-			servicers.DefaultVLRPort,
-		)
-		return servicers.DefaultVLRIPAddress, servicers.DefaultVLRPort
+		glog.Errorf("Failed to get port number: %s.", err)
+		return defaultIP, defaultPort
 	}
-	glog.Infof("Using %s as the VLR address. ", envValue)
 	return addr[0], port
+}
+
+func getSGsInterfaceAddr() *sctp.SCTPAddr {
+	localAddr := os.Getenv(servicers.LocalAddrEnv)
+	glog.V(2).Info("Getting local SGs interface adddress.")
+	ip, port := getAddr(localAddr, "", 0)
+	if len(ip) == 0 {
+		glog.V(2).Infof("The local SGs interface address is not specified.")
+	}
+	glog.V(2).Infof("Using %s:%d as the local SGs interface address. ", ip, port)
+	return servicers.ConstructSCTPAddr(ip, port)
+}
+
+func getVLRSCTPAddr() *sctp.SCTPAddr {
+	vlrAddr := os.Getenv(servicers.VLRAddrEnv)
+	glog.V(2).Info("Getting VLR adddress.")
+	ip, port := getAddr(vlrAddr, servicers.DefaultVLRIPAddress, servicers.DefaultVLRPort)
+	glog.V(2).Infof("Using %s:%d as the VLR address. ", ip, port)
+	return servicers.ConstructSCTPAddr(ip, port)
 }
