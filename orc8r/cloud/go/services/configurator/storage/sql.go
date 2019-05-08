@@ -11,7 +11,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"sort"
 
@@ -19,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -416,6 +416,11 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 		return NetworkEntity{}, err
 	}
 
+	err = store.createPermissions(networkID, createdEntWithPk.pk, createdEntWithPk.Permissions)
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+
 	allAssociatedEntsByTk, err := store.createEdges(networkID, createdEntWithPk)
 	if err != nil {
 		return NetworkEntity{}, err
@@ -433,8 +438,49 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	return createdEntWithPk.NetworkEntity, nil
 }
 
-func (store *sqlConfiguratorStorage) UpdateEntities(networkID string, updates []EntityUpdateCriteria) (FailedOperations, error) {
-	panic("implement me")
+func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
+	emptyRet := NetworkEntity{Type: update.Type, Key: update.Key}
+	entToUpdate, err := store.loadEntToUpdate(networkID, update)
+	if err != nil {
+		return emptyRet, errors.Wrap(err, "failed to load entity being updated")
+	}
+
+	if update.DeleteEntity {
+		// Cascading FK relations in the schema will handle the other tables
+		exec := fmt.Sprintf("DELETE FROM %s WHERE (network_id, type, key) = ($1, $2, $3)", entityTable)
+		_, err := store.tx.Exec(exec, networkID, update.Type, update.Key)
+		if err != nil {
+			return emptyRet, errors.Wrapf(err, "failed to delete entity (%s, %s)", update.Type, update.Key)
+		}
+
+		// Deleting a node could partition its graph
+		err = store.fixGraph(entToUpdate.GraphID, &entToUpdate)
+		if err != nil {
+			return emptyRet, errors.Wrap(err, "failed to fix entity graph after deletion")
+		}
+
+		return emptyRet, nil
+	}
+
+	// Then, update the fields on the entity table
+	err = store.processEntityFieldsUpdate(entToUpdate.pk, update, &entToUpdate.NetworkEntity)
+	if err != nil {
+		return entToUpdate.NetworkEntity, errors.WithStack(err)
+	}
+
+	// Next, update permissions
+	err = store.processPermissionUpdates(networkID, entToUpdate.pk, update, &entToUpdate.NetworkEntity)
+	if err != nil {
+		return entToUpdate.NetworkEntity, errors.WithStack(err)
+	}
+
+	// Finally, process edge updates for the graph
+	err = store.processEdgeUpdates(networkID, update, &entToUpdate)
+	if err != nil {
+		return entToUpdate.NetworkEntity, errors.WithStack(err)
+	}
+
+	return entToUpdate.NetworkEntity, nil
 }
 
 func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error) {

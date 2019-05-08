@@ -10,14 +10,18 @@ package storage_test
 
 import (
 	"context"
+	"database/sql/driver"
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	storage2 "magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/thoas/go-funk"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
@@ -832,8 +836,6 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}))
 
 			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
-			m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
-
 			insertStmt.ExpectExec().
 				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
 				WillReturnResult(mockResult)
@@ -857,6 +859,11 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 		},
 	}
 
+	perms := []storage.ACL{
+		{ID: "ignore this", Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, Permission: storage.WritePermission},
+		{Type: storage.ACLTypeOf("foo"), Scope: storage.ACLScopeOf([]string{"n1", "n2"}), Permission: storage.ReadPermission, IDFilter: []string{"foo", "bar"}},
+	}
+
 	// with permissions
 	withPerms := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
@@ -865,17 +872,11 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}))
 
 			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
-			aclStmt := m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
-
 			insertStmt.ExpectExec().
 				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
 				WillReturnResult(mockResult)
-			aclStmt.ExpectExec().
-				WithArgs("3", "1", "*", storage.WritePermission, "*", nil).
-				WillReturnResult(mockResult)
-			aclStmt.ExpectExec().
-				WithArgs("4", "1", "n1,n2", storage.ReadPermission, "foo", "foo,bar").
-				WillReturnResult(mockResult)
+
+			expectPermissionCreation(m, "1", 3, perms...)
 		},
 		run: runFactory(
 			"network",
@@ -884,10 +885,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 				Key:         "bar",
 				Name:        "foobar",
 				Description: "foobar ent",
-				Permissions: []storage.ACL{
-					{ID: "ignore this", Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, Permission: storage.WritePermission},
-					{Type: storage.ACLTypeOf("foo"), Scope: storage.ACLScopeOf([]string{"n1", "n2"}), Permission: storage.ReadPermission, IDFilter: []string{"foo", "bar"}},
-				},
+				Permissions: perms,
 			},
 		),
 
@@ -912,31 +910,18 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}))
 
 			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
-			m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
-
 			insertStmt.ExpectExec().
 				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
 				WillReturnResult(mockResult)
 
-			queryStmt := m.ExpectPrepare("SELECT .* FROM cfg_entities").WillBeClosed()
-			queryStmt.ExpectQuery().WithArgs("network", "baz", "bar").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
-						AddRow("42", "baz", "bar", nil, 1, "aaa"),
-				)
-			queryStmt.ExpectQuery().WithArgs("network", "quz", "baz").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
-						AddRow("43", "quz", "baz", nil, 2, "zzz"),
-				)
-
-			edgeStmt := m.ExpectPrepare("INSERT INTO cfg_assocs").WillBeClosed()
-			edgeStmt.ExpectExec().WithArgs("1", "42").WillReturnResult(mockResult)
-			edgeStmt.ExpectExec().WithArgs("1", "43").WillReturnResult(mockResult)
-
-			mergeStmt := m.ExpectPrepare("UPDATE cfg_entities").WillBeClosed()
-			mergeStmt.ExpectExec().WithArgs("aaa", "2").WillReturnResult(mockResult)
-			mergeStmt.ExpectExec().WithArgs("aaa", "zzz").WillReturnResult(mockResult)
+			assocs := []storage2.TypeAndKey{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}}
+			edgesByTk := map[storage2.TypeAndKey]expectedEntQueryResult{
+				{Type: "bar", Key: "baz"}: {"bar", "baz", "42", "", "aaa", 1},
+				{Type: "baz", Key: "quz"}: {"baz", "quz", "43", "", "zzz", 2},
+			}
+			expectEdgeQueries(m, assocs, edgesByTk)
+			expectEdgeInsertions(m, assocsToEdges("1", assocs, edgesByTk))
+			expectMergeGraphs(m, [][2]string{{"2", "aaa"}, {"zzz", "aaa"}})
 		},
 		run: runFactory(
 			"network",
@@ -995,6 +980,195 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 	runCase(t, alreadyExists)
 }
 
+func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
+	runFactory := func(networkID string, update storage.EntityUpdateCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
+		return func(store storage.ConfiguratorStorage) (interface{}, error) {
+			return store.UpdateEntity(networkID, update)
+		}
+	}
+
+	// Delete entity, TODO: partition graph
+	deleteCase := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			expectBasicEntityQueries(m, expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0})
+			m.ExpectExec("DELETE FROM cfg_entities").WithArgs("network", "foo", "bar").WillReturnResult(mockResult)
+		},
+		run: runFactory("network", storage.EntityUpdateCriteria{Type: "foo", Key: "bar", DeleteEntity: true}),
+
+		expectedResult: storage.NetworkEntity{Type: "foo", Key: "bar"},
+	}
+	runCase(t, deleteCase)
+
+	// Test some permutations of updating basic fields
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type:      "foo",
+				Key:       "bar",
+				NewName:   stringPointer("foobar"),
+				NewConfig: bytesPointer([]byte("foobar config")),
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			nil,
+		),
+	)
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type:           "foo",
+				Key:            "bar",
+				NewDescription: stringPointer("foobar desc"),
+				NewPhysicalID:  stringPointer("phys2"),
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			nil,
+		),
+	)
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type:           "foo",
+				Key:            "bar",
+				NewName:        stringPointer("foobar"),
+				NewDescription: stringPointer("foobar desc"),
+				NewPhysicalID:  stringPointer("phys2"),
+				NewConfig:      bytesPointer([]byte("foobar config")),
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			nil,
+		),
+	)
+
+	// Test cases for permissions
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type: "foo",
+				Key:  "bar",
+				PermissionsToCreate: []storage.ACL{
+					{Permission: storage.WritePermission, Type: storage.WildcardACLType, Scope: storage.ACLScopeOf([]string{"n3"})},
+				},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			nil,
+		),
+	)
+
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type: "foo",
+				Key:  "bar",
+				PermissionsToUpdate: []storage.ACL{
+					{ID: "42", Permission: storage.ReadPermission, Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, IDFilter: []string{"n1", "n2"}},
+					{ID: "43", Permission: storage.WritePermission, Type: storage.ACLTypeOf("bar"), Scope: storage.ACLScopeOf([]string{"n3"})},
+				},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			nil,
+		),
+	)
+
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type:                "foo",
+				Key:                 "bar",
+				PermissionsToDelete: []string{"100", "101"},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			nil,
+		),
+	)
+
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type: "foo",
+				Key:  "bar",
+				PermissionsToCreate: []storage.ACL{
+					{ID: "ignore me", Permission: storage.WritePermission, Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, IDFilter: []string{"n1", "n2"}},
+					{Permission: storage.ReadPermission, Type: storage.ACLTypeOf("foo"), Scope: storage.ACLScopeOf([]string{"n1", "n2"})},
+				},
+				PermissionsToUpdate: []storage.ACL{
+					{ID: "42", Permission: storage.ReadPermission, Type: storage.WildcardACLType, Scope: storage.WildcardACLScope, IDFilter: []string{"n1", "n2"}},
+					{ID: "43", Permission: storage.WritePermission, Type: storage.ACLTypeOf("bar"), Scope: storage.ACLScopeOf([]string{"n3"})},
+				},
+				PermissionsToDelete: []string{"42", "101"},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			nil,
+		),
+	)
+
+	// edges
+
+	// Create edges, merge graphs
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type: "foo",
+				Key:  "bar",
+				AssociationsToAdd: []storage2.TypeAndKey{
+					{Type: "bar", Key: "baz"},
+					{Type: "baz", Key: "quz"},
+				},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g9", 0},
+			[]expectedEntQueryResult{
+				{"bar", "baz", "2", "", "g1", 0},
+				{"baz", "quz", "3", "", "g2", 0},
+			},
+			[2]string{"g9", "g1"},
+			[2]string{"g2", "g1"},
+		),
+	)
+
+	// Create edge to something already in the same graph
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type: "foo",
+				Key:  "bar",
+				AssociationsToAdd: []storage2.TypeAndKey{
+					{Type: "bar", Key: "baz"},
+				},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			[]expectedEntQueryResult{
+				{"bar", "baz", "2", "", "g1", 0},
+			},
+		),
+	)
+
+	// Delete edges, TODO: partition graph
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type: "foo",
+				Key:  "bar",
+				AssociationsToDelete: []storage2.TypeAndKey{
+					{Type: "bar", Key: "baz"},
+				},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			[]expectedEntQueryResult{
+				{"bar", "baz", "2", "", "g1", 0},
+			},
+		),
+	)
+}
+
 type testCase struct {
 	// setup mock expectations. Transaction start is expected on the mock
 	// generically
@@ -1044,6 +1218,256 @@ func runCase(t *testing.T, test *testCase) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
+// this is a lot more coupled to implementation than I like for test code
+// but the alternative of db test fixtures and manually querying/dumping the db
+// isn't much better, if we want true unit tests for the storage impl
+// for now, this is just the happy path
+// TODO: add hooks for non-happy path test cases
+func getTestCaseForEntityUpdate(
+	update storage.EntityUpdateCriteria,
+	entToUpdate expectedEntQueryResult,
+	expectedEdgeLoads []expectedEntQueryResult,
+	expectedGraphMerges ...[2]string,
+) *testCase {
+	expectedResult := storage.NetworkEntity{
+		Type:    entToUpdate.entType,
+		Key:     entToUpdate.key,
+		GraphID: entToUpdate.graphID,
+		Version: entToUpdate.version + 1,
+
+		Name:        stringValue(update.NewName),
+		Description: stringValue(update.NewDescription),
+		Config:      bytesVal(update.NewConfig),
+	}
+	if update.NewPhysicalID != nil {
+		expectedResult.PhysicalID = *update.NewPhysicalID
+	} else {
+		expectedResult.PhysicalID = entToUpdate.physicalID
+	}
+
+	delPermIdsSet := funk.Map(update.PermissionsToDelete, func(i string) (string, bool) { return i, true }).(map[string]bool)
+	permID := 1
+	for _, perm := range update.PermissionsToCreate {
+		perm.ID = fmt.Sprintf("%d", permID)
+		expectedResult.Permissions = append(expectedResult.Permissions, perm)
+		permID++
+	}
+	for _, perm := range update.PermissionsToUpdate {
+		if _, wasDeleted := delPermIdsSet[perm.ID]; !wasDeleted {
+			expectedResult.Permissions = append(expectedResult.Permissions, perm)
+		}
+	}
+
+	edgeLoadsByTk := funk.Map(
+		expectedEdgeLoads,
+		func(e expectedEntQueryResult) (storage2.TypeAndKey, expectedEntQueryResult) {
+			return storage2.TypeAndKey{Type: e.entType, Key: e.key}, e
+		},
+	).(map[storage2.TypeAndKey]expectedEntQueryResult)
+
+	if !funk.IsEmpty(update.AssociationsToAdd) {
+		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToAdd...)
+	}
+
+	if !funk.IsEmpty(expectedGraphMerges) {
+		expectedResult.GraphID = expectedGraphMerges[0][1]
+	}
+
+	return &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			// Basic fields
+			expectBasicEntityQueries(m, entToUpdate)
+			updateWithArgs := []driver.Value{}
+			if update.NewName != nil {
+				updateWithArgs = append(updateWithArgs, update.NewName)
+			}
+			if update.NewDescription != nil {
+				updateWithArgs = append(updateWithArgs, update.NewDescription)
+			}
+			if update.NewPhysicalID != nil {
+				updateWithArgs = append(updateWithArgs, update.NewPhysicalID)
+			}
+			if update.NewConfig != nil {
+				updateWithArgs = append(updateWithArgs, update.NewConfig)
+			}
+			updateWithArgs = append(updateWithArgs, entToUpdate.pk)
+
+			m.ExpectExec("UPDATE cfg_entities").WithArgs(updateWithArgs...).WillReturnResult(mockResult)
+
+			// Permissions
+			if !funk.IsEmpty(update.PermissionsToCreate) {
+				expectPermissionCreation(m, entToUpdate.pk, 1, update.PermissionsToCreate...)
+			}
+			if !funk.IsEmpty(update.PermissionsToUpdate) {
+				m.ExpectQuery(`SELECT COUNT\(\*\) FROM cfg_acls`).WithArgs(funk.Map(update.PermissionsToUpdate, func(acl storage.ACL) driver.Value { return acl.ID }).([]driver.Value)...).
+					WillReturnRows(
+						sqlmock.NewRows([]string{"count"}).
+							AddRow(len(update.PermissionsToUpdate)),
+					)
+				expectPermissionUpdates(m, entToUpdate.pk, update.PermissionsToUpdate...)
+			}
+			if !funk.IsEmpty(update.PermissionsToDelete) {
+				expectPermissionDeletes(m, update.PermissionsToDelete...)
+			}
+
+			// Graph
+			if !funk.IsEmpty(update.AssociationsToAdd) {
+				expectEdgeQueries(m, update.AssociationsToAdd, edgeLoadsByTk)
+				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToAdd, edgeLoadsByTk))
+				if !funk.IsEmpty(expectedGraphMerges) {
+					expectMergeGraphs(m, expectedGraphMerges)
+				}
+			}
+
+			if !funk.IsEmpty(update.AssociationsToDelete) {
+				expectEdgeQueries(m, update.AssociationsToDelete, edgeLoadsByTk)
+				expectEdgeDeletions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToDelete, edgeLoadsByTk))
+			}
+		},
+		run: func(store storage.ConfiguratorStorage) (interface{}, error) {
+			return store.UpdateEntity("network", update)
+		},
+		expectedResult: expectedResult,
+	}
+}
+
+type expectedEntQueryResult struct {
+	entType, key, pk, physicalID, graphID string
+	version                               uint64
+}
+
+func expectBasicEntityQueries(m sqlmock.Sqlmock, expectations ...expectedEntQueryResult) {
+	stmt := m.ExpectPrepare("SELECT .* FROM cfg_entities").WillBeClosed()
+	for _, expect := range expectations {
+		rowValues := make([]driver.Value, 0, 6)
+		rowValues = append(rowValues, expect.pk, expect.key, expect.entType)
+		if expect.physicalID == "" {
+			rowValues = append(rowValues, nil)
+		} else {
+			rowValues = append(rowValues, expect.physicalID)
+		}
+		rowValues = append(rowValues, expect.version, expect.graphID)
+
+		rows := sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+			AddRow(rowValues...)
+		stmt.ExpectQuery().WithArgs("network", expect.key, expect.entType).WillReturnRows(rows)
+	}
+}
+
+// [(old graph ID, new graph ID)]
+func expectMergeGraphs(m sqlmock.Sqlmock, graphIDChanges [][2]string) {
+	mergeStmt := m.ExpectPrepare("UPDATE cfg_entities").WillBeClosed()
+	for _, delta := range graphIDChanges {
+		mergeStmt.ExpectExec().WithArgs(delta[1], delta[0]).WillReturnResult(mockResult)
+	}
+}
+
+func expectEdgeQueries(m sqlmock.Sqlmock, assocs []storage2.TypeAndKey, edgeLoadsByTk map[storage2.TypeAndKey]expectedEntQueryResult) {
+	expectedLoads := funk.Map(
+		assocs,
+		func(tk storage2.TypeAndKey) expectedEntQueryResult { return edgeLoadsByTk[tk] },
+	).([]expectedEntQueryResult)
+	expectBasicEntityQueries(m, expectedLoads...)
+}
+
+// [(from_pk, to_pk)]
+func expectEdgeInsertions(m sqlmock.Sqlmock, newEdges [][2]string) {
+	edgeStmt := m.ExpectPrepare("INSERT INTO cfg_assocs").WillBeClosed()
+	for _, edge := range newEdges {
+		edgeStmt.ExpectExec().WithArgs(edge[0], edge[1]).WillReturnResult(mockResult)
+	}
+}
+
+func expectEdgeDeletions(m sqlmock.Sqlmock, edges [][2]string) {
+	edgeStmt := m.ExpectPrepare("DELETE FROM cfg_assocs").WillBeClosed()
+	for _, edge := range edges {
+		edgeStmt.ExpectExec().WithArgs(edge[0], edge[1]).WillReturnResult(mockResult)
+	}
+}
+
+func expectPermissionCreation(m sqlmock.Sqlmock, entPk string, startId int, perms ...storage.ACL) {
+	aclStmt := m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
+	for _, perm := range perms {
+		exp := getExpectedACLInsert(entPk, &startId, perm)
+		aclStmt.ExpectExec().WithArgs(exp.id, exp.entPk, exp.scope, exp.perm, exp.aclType, exp.filter).WillReturnResult(mockResult)
+		startId++
+	}
+}
+
+func expectPermissionUpdates(m sqlmock.Sqlmock, entPk string, perms ...storage.ACL) {
+	stmt := m.ExpectPrepare("UPDATE cfg_acls").WillBeClosed()
+	for _, perm := range perms {
+		exp := getExpectedACLInsert(entPk, nil, perm)
+		stmt.ExpectExec().WithArgs(exp.scope, exp.perm, exp.aclType, exp.filter, exp.id).WillReturnResult(mockResult)
+	}
+}
+
+func expectPermissionDeletes(m sqlmock.Sqlmock, permIDs ...string) {
+	args := make([]driver.Value, 0, len(permIDs))
+	funk.ConvertSlice(permIDs, &args)
+	m.ExpectExec("DELETE FROM cfg_acls").WithArgs(args...).WillReturnResult(mockResult)
+}
+
+type expectedACLInsert struct {
+	id, entPk, scope, perm, aclType, filter driver.Value
+}
+
+func getExpectedACLInsert(entPk string, idOverride *int, perm storage.ACL) expectedACLInsert {
+	var scope, typeVal, filter driver.Value
+	if perm.Scope.Wildcard == storage.WildcardAll {
+		scope = "*"
+	} else {
+		scope = strings.Join(perm.Scope.NetworkIDs, ",")
+	}
+
+	if perm.Type.Wildcard == storage.WildcardAll {
+		typeVal = "*"
+	} else {
+		typeVal = perm.Type.EntityType
+	}
+
+	if funk.IsEmpty(perm.IDFilter) {
+		filter = nil
+	} else {
+		filter = strings.Join(perm.IDFilter, ",")
+	}
+
+	ret := expectedACLInsert{entPk: entPk, perm: perm.Permission, aclType: typeVal, scope: scope, filter: filter}
+	if idOverride == nil {
+		ret.id = perm.ID
+	} else {
+		ret.id = fmt.Sprintf("%d", *idOverride)
+	}
+	return ret
+}
+
+func assocsToEdges(entPk string, assocs []storage2.TypeAndKey, edgeLoadsByTk map[storage2.TypeAndKey]expectedEntQueryResult) [][2]string {
+	return funk.Map(
+		assocs,
+		func(tk storage2.TypeAndKey) [2]string {
+			return [2]string{entPk, edgeLoadsByTk[tk].pk}
+		},
+	).([][2]string)
+}
+
 func stringPointer(val string) *string {
 	return &val
+}
+
+func stringValue(val *string) string {
+	if val == nil {
+		return ""
+	}
+	return *val
+}
+
+func bytesPointer(val []byte) *[]byte {
+	return &val
+}
+
+func bytesVal(val *[]byte) []byte {
+	if val == nil {
+		return nil
+	}
+	return *val
 }
