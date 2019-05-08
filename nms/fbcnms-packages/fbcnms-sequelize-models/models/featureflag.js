@@ -15,7 +15,7 @@ import type {AssociateProp} from './AssociateTypes.flow';
 
 export type FeatureFlagRawType = {
   featureId: string,
-  organization: number,
+  organization: string,
   enabled: boolean,
 };
 
