@@ -1219,3 +1219,25 @@ int nas_proc_notify_service_reject(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+
+//------------------------------------------------------------------------------
+int nas_proc_pdn_disconnect_rsp(
+  emm_cn_pdn_disconnect_rsp_t *emm_cn_pdn_disconnect_rsp)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNerror;
+  emm_sap_t emm_sap = {0};
+
+  emm_sap.primitive = EMMCN_PDN_DISCONNECT_RES;
+  emm_sap.u.emm_cn.u.emm_cn_pdn_disconnect_rsp = emm_cn_pdn_disconnect_rsp;
+  MSC_LOG_TX_MESSAGE(
+    MSC_NAS_MME,
+    MSC_NAS_EMM_MME,
+    NULL,
+    0,
+    "0 EMMCN_PDN_DISCONNECT_RES ue_id " MME_UE_S1AP_ID_FMT " ",
+    emm_cn_pdn_disconnect_rsp->ue_id);
+  rc = emm_sap_send(&emm_sap);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+

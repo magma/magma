@@ -526,6 +526,11 @@ void *mme_app_thread(void *args)
           &MME_APP_DELETE_DEDICATED_BEARER_REJ(received_message_p));
       } break;
 
+      case MME_APP_PDN_DISCONNECT_REQ: {
+        mme_app_handle_pdn_disconnect_req(
+          &MME_APP_PDN_DISCONNECT_REQ(received_message_p));
+      } break;
+
       case TERMINATE_MESSAGE: {
         /*
        * Termination message received TODO -> release any data allocated

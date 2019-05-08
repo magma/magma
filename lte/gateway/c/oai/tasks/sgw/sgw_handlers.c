@@ -1507,6 +1507,11 @@ int sgw_handle_delete_session_request(
     delete_session_resp_p->trxn = delete_session_req_pP->trxn;
     delete_session_resp_p->peer_ip.s_addr =
       delete_session_req_pP->peer_ip.s_addr;
+
+    if (mme_config.eps_network_feature_support.
+      ims_voice_over_ps_session_in_s1) {
+      delete_session_resp_p->lbi = delete_session_req_pP->lbi;
+    }
     MSC_LOG_TX_MESSAGE(
       MSC_SP_GWAPP_MME,
       MSC_S11_MME,

@@ -89,3 +89,13 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_mme_app_delete_dedicated_bearer_rej_t,
   mme_app_delete_dedicated_bearer_rej)
+MESSAGE_DEF(
+  MME_APP_PDN_DISCONNECT_REQ,
+  MESSAGE_PRIORITY_MED,
+  itti_mme_app_pdn_disconnect_req_t,
+  mme_app_pdn_disconnect_req)
+MESSAGE_DEF(
+  MME_APP_PDN_DISCONNECT_RSP,
+  MESSAGE_PRIORITY_MED,
+  itti_mme_app_pdn_disconnect_rsp_t,
+  mme_app_pdn_disconnect_rsp)

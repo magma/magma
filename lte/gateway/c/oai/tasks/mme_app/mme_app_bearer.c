@@ -910,6 +910,19 @@ void mme_app_handle_delete_session_rsp(
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
 
+  /* If VoLTE is enabled and UE has sent sent PDN Disconnect
+   * send nas_itti_pdn_disconnect_rsp to NAS.
+   * NAS will trigger deactivate Bearer Context Req to UE
+   */
+  if ((mme_config.eps_network_feature_support.
+    ims_voice_over_ps_session_in_s1) &&
+    (emm_context->esm_ctx.is_pdn_disconnect)) {
+    mme_app_itti_pdn_disconnect_rsp(
+      ue_context_p->mme_ue_s1ap_id,
+      delete_sess_resp_pP->lbi);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
   /*
    * If UE is already in idle state, skip asking eNB to release UE context and just clean up locally.
    * This can happen during implicit detach and UE initiated detach when UE sends detach req (type = switch off)
@@ -3093,6 +3106,35 @@ void mme_app_handle_delete_dedicated_bearer_rej(
      delete_dedicated_bearer_rej->no_of_bearers,
      delete_dedicated_bearer_rej->s_gw_teid_s11_s4,
      UE_NOT_RESPONDING);
+
+  unlock_ue_contexts(ue_context_p);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+
+}
+
+//------------------------------------------------------------------------------
+void mme_app_handle_pdn_disconnect_req(
+  itti_mme_app_pdn_disconnect_req_t *const mme_app_pdn_disconnect_req)
+{
+  struct ue_mm_context_s *ue_context_p = NULL;
+
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc.mme_ue_contexts, mme_app_pdn_disconnect_req->ue_id);
+
+  if (ue_context_p == NULL) {
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
+      "\n",
+      mme_app_pdn_disconnect_req->ue_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  //Send Delete Session Req to SGW
+  mme_app_send_delete_session_request(
+    ue_context_p,
+    mme_app_pdn_disconnect_req->lbi,
+    mme_app_pdn_disconnect_req->pid);
 
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);

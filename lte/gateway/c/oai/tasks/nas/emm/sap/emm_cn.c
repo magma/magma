@@ -1238,6 +1238,88 @@ static int _emm_cn_cs_domain_mm_information_req(
 }
 
 //------------------------------------------------------------------------------
+static int _emm_cn_pdn_disconnect_rsp(
+  emm_cn_pdn_disconnect_rsp_t *msg)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNok;
+  proc_tid_t pti;
+  uint8_t esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
+  esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
+  ebi_t *bearers_to_be_rel;
+
+  ESM_msg esm_msg;
+  memset(&esm_msg, 0, sizeof(ESM_msg));
+
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc.mme_ue_contexts, msg->ue_id);
+
+  pti = ue_mm_context->emm_context.esm_ctx.esm_proc_data.pti;
+  /*
+   * Build the ESM message to be sent to UE
+   */
+  rc = esm_send_deactivate_eps_bearer_context_request(
+    pti,
+    msg->lbi,
+    &esm_msg.deactivate_eps_bearer_context_request,
+    ESM_CAUSE_REGULAR_DEACTIVATION);
+
+  /*
+   * Encode the ESM message
+   */
+  int size =
+    esm_msg_encode(&esm_msg, (uint8_t *) esm_sap_buffer, ESM_SAP_BUFFER_SIZE);
+
+  if (size > 0) {
+    rsp = blk2bstr(esm_sap_buffer, size);
+  }
+
+  /*
+   * Populate the bearer ID list to be sent in E-RAB Rel Cmd
+   * to enB
+   */
+  pdn_cid_t cid =
+    ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+  pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
+
+  //Fill the default bearer ID in 0 index
+  bearers_to_be_rel = calloc(1, ((pdn_context->esm_data.n_bearers)*(sizeof(ebi_t))));
+  bearers_to_be_rel[0] = pdn_context->default_ebi;
+  for (i = 1; i < pdn_context->esm_data.n_bearers; i++) {
+    int idx = ue_mm_context->pdn_contexts[cid]->bearer_contexts[i];
+    bearers_to_be_rel[i] = ue_mm_context->bearer_contexts[idx].ebi;
+  }
+
+  /*
+   * Send the ESM message
+   */
+  esm_proc_eps_bearer_context_deactivate_request(
+    true/*standalone*/,
+    ue_mm_context,
+    msg->lbi,
+    rsp,
+    true/*UE triggered*/
+    bearers_to_be_rel);
+
+  /*
+   * Execute the PDN disconnect procedure requested by the UE
+   */
+  int pid = esm_proc_pdn_disconnect_request(
+    &ue_mm_context->emm_context, pti, &esm_cause);
+
+  if (pid != RETURNerror) {
+    /*
+     * Release the associated default EPS bearer context
+     */
+    int bid = 0;
+    int rc = esm_proc_eps_bearer_context_deactivate(
+      &ue_mm_context->emm_context, false, msg->lbi, &pid, &bid, &esm_cause);
+  }
+  unlock_ue_contexts(ue_mm_context);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+//------------------------------------------------------------------------------
 int emm_cn_send(const emm_cn_t *msg)
 {
   int rc = RETURNerror;
@@ -1311,6 +1393,11 @@ int emm_cn_send(const emm_cn_t *msg)
         msg->u.deactivate_dedicated_bearer_req);
       break;
 
+   case EMMCN_PDN_DISCONNECT_RES:
+      rc = _emm_cn_pdn_disconnect_rsp(
+        msg->u.emm_cn_pdn_disconnect_rsp);
+      break;
+
     default:
       /*
      * Other primitives are forwarded to the Access Stratum
@@ -1329,3 +1416,5 @@ int emm_cn_send(const emm_cn_t *msg)
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+
+

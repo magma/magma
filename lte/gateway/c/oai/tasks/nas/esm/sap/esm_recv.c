@@ -497,6 +497,27 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
+  struct esm_proc_data_s *esm_data = emm_context->esm_ctx.esm_proc_data;
+
+  esm_data->pti = pti;
+
+  /* If VoLTE is enabled, send ITTI message to MME APP
+   * MME APP will trigger Delete session towards SGW
+   * to release the session
+   */
+  if (mme_config.eps_network_feature_support.
+      ims_voice_over_ps_session_in_s1) {
+    OAILOG_INFO(
+    LOG_NAS_ESM,
+    "ESM-SAP   - Sending PDN Disconnect Request message "
+    "(ue_id=%d, pid=%d, ebi=%d)\n",
+    ue_id,
+    pid,
+    ebi);
+    nas_itti_pdn_disconnect_req(ue_id, pid, *linked_ebi);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+  }
+
   /*
    * Message processing
    */
