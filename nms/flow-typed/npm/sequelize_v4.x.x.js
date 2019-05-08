@@ -4067,8 +4067,8 @@ declare module "sequelize" {
     update(
       key: $Keys<TAttributes>,
       value: any,
-      options?: InstanceUpdateOptions<TAttributes>): Promise<this>,
-    update(keys: $Shape<TAttributes>, options?: InstanceUpdateOptions<TAttributes>): Promise<this>,
+      options?: InstanceUpdateOptions<TAttributes>): Promise<this & TAttributes>,
+    update(keys: $Shape<TAttributes>, options?: InstanceUpdateOptions<TAttributes>): Promise<this & TAttributes>,
     updateAttributes(
       key: $Keys<TAttributes>,
       value: any,
