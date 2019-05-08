@@ -349,6 +349,25 @@ int decode_attach_request(
         attach_request->presencemask |=
           ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT;
         break;
+
+      case ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI:
+        if (
+          (decoded_result = decode_network_resource_identifier_container_ie(
+             &attach_request->networkresourceidentifiercontainer,
+             true,
+             buffer + decoded,
+             len - decoded)) <= 0) {
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+        }
+
+        decoded += decoded_result;
+        /*
+         * Set corresponding mask to 1 in presencemask
+         */
+        attach_request->presencemask |=
+          ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT;
+	break;
+
       default:
         errorCodeDecoder = TLV_UNEXPECTED_IEI;
         {

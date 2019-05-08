@@ -45,7 +45,7 @@
     "eslint-plugin-react-hooks": "^1.6.0",
     "eslint-plugin-relay": "^1.0.0",
     "jest": "24.3.0",
-    "prettier": "1.16.4",
+    "prettier": "1.17.0",
     "rimraf": "^2.5.4"
   },
   "resolutions": {
