@@ -372,7 +372,7 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 		return ret, err
 	}
 
-	entsByPk, err = updateEntitiesWithAssocs(entsByPk, assocs, entTksByPk, loadCriteria)
+	entsByPk, _, err = updateEntitiesWithAssocs(entsByPk, assocs, entTksByPk, loadCriteria)
 	if err != nil {
 		return ret, err
 	}
@@ -484,5 +484,59 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 }
 
 func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
-	panic("implement me")
+	// Technically you could do this in one DB query with a subquery in the
+	// WHERE when selecting from the entity table.
+	// But until we hit some kind of scaling limit, let's keep the code simple
+	// and delegate to LoadGraph after loading the requested entity.
+
+	// We just care about getting the graph ID off this entity so use an empty
+	// load criteria
+	loadResult, err := store.loadSpecificEntities(networkID, EntityLoadFilter{IDs: []storage.TypeAndKey{entityID}}, EntityLoadCriteria{})
+	if err != nil {
+		return EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
+	}
+
+	var loadedEnt *NetworkEntity
+	for _, ent := range loadResult {
+		loadedEnt = ent
+	}
+	if loadedEnt == nil {
+		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID)
+	}
+
+	internalGraph, err := store.loadGraphInternal(networkID, loadedEnt.GraphID, loadCriteria)
+	if err != nil {
+		return EntityGraph{}, errors.WithStack(err)
+	}
+
+	rootPks := findRootNodes(internalGraph)
+	if funk.IsEmpty(rootPks) {
+		return EntityGraph{}, errors.Errorf("graph does not have root nodes because it is a ring")
+	}
+
+	// Fill entities with assocs. We will always fill out both directions of
+	// associations so we'll alter the load criteria for the helper function.
+	entTksByPk := funk.Map(
+		internalGraph.entsByPk,
+		func(pk string, ent *NetworkEntity) (string, storage.TypeAndKey) { return pk, ent.GetTypeAndKey() },
+	).(map[string]storage.TypeAndKey)
+	loadCriteria.LoadAssocsToThis, loadCriteria.LoadAssocsFromThis = true, true
+	_, edges, err := updateEntitiesWithAssocs(internalGraph.entsByPk, internalGraph.edges, entTksByPk, loadCriteria)
+	if err != nil {
+		return EntityGraph{}, errors.Wrap(err, "failed to construct graph after loading")
+	}
+
+	// To make testing easier, we'll order the returned entities by TK
+	retEnts := funk.Map(internalGraph.entsByPk, func(_ string, ent *NetworkEntity) NetworkEntity { return *ent }).([]NetworkEntity)
+	retRoots := funk.Map(rootPks, func(pk string) storage.TypeAndKey { return entTksByPk[pk] }).([]storage.TypeAndKey)
+	sort.Slice(retEnts, func(i, j int) bool {
+		return storage.IsTKLessThan(retEnts[i].GetTypeAndKey(), retEnts[j].GetTypeAndKey())
+	})
+	sort.Slice(retRoots, func(i, j int) bool { return storage.IsTKLessThan(retRoots[i], retRoots[j]) })
+
+	return EntityGraph{
+		Entities:     retEnts,
+		RootEntities: retRoots,
+		Edges:        edges,
+	}, nil
 }
