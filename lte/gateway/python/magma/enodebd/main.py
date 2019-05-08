@@ -9,7 +9,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from threading import Thread
 from unittest import mock
-from magma.enodebd.enodeb_status import get_status, get_operational_states
+from magma.enodebd.enodeb_status import get_service_status_old, \
+    get_operational_states
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from .rpc_servicer import EnodebdRpcServicer
 from .stats_manager import StatsManager
@@ -52,7 +53,7 @@ def main():
 
     # Register function to get service status
     def get_enodebd_status():
-        return get_status(state_machine_manager)
+        return get_service_status_old(state_machine_manager)
     service.register_get_status_callback(get_enodebd_status)
 
     # Register a callback function for GetOperationalStates service303 function
