@@ -45,6 +45,20 @@ EnodebStatus = namedtuple('EnodebStatus',
                            'opstate_enabled', 'rf_tx_on', 'gps_connected',
                            'ptp_connected', 'mme_connected', 'enodeb_state'])
 
+# TODO: Remove after checkins support multiple eNB status
+MagmaOldEnodebdStatus = namedtuple('MagmaOldEnodebdStatus',
+                                   ['enodeb_serial',
+                                    'enodeb_configured',
+                                    'gps_latitude',
+                                    'gps_longitude',
+                                    'enodeb_connected',
+                                    'opstate_enabled',
+                                    'rf_tx_on',
+                                    'gps_connected',
+                                    'ptp_connected',
+                                    'mme_connected',
+                                    'enodeb_state'])
+
 MagmaEnodebdStatus = namedtuple('MagmaEnodebdStatus',
                                 ['n_enodeb_connected',
                                  'all_enodeb_configured',
@@ -89,7 +103,43 @@ def update_status_metrics(status: EnodebStatus) -> None:
         metric.set(get_metric_value(status, stat_key))
 
 
-def get_status(enb_acs_manager: StateMachineManager) -> Dict[str, Any]:
+# TODO: Remove after checkins support multiple eNB status
+def get_service_status_old(
+    enb_acs_manager: StateMachineManager,
+) -> Dict[str, Any]:
+    """ Get service status compatible with older controller """
+    enb_status_by_serial = get_all_enb_status(enb_acs_manager)
+    # Since we only expect users to plug in a single eNB, generate service
+    # status with the first one we find that is connected
+    for enb_serial, enb_status in enb_status_by_serial.items():
+        if enb_status.enodeb_connected == '1':
+            return MagmaOldEnodebdStatus(
+                enodeb_serial=enb_serial,
+                enodeb_configured=enb_status.enodeb_configured,
+                gps_latitude=enb_status.gps_latitude,
+                gps_longitude=enb_status.gps_longitude,
+                enodeb_connected=enb_status.enodeb_connected,
+                opstate_enabled=enb_status.opstate_enabled,
+                rf_tx_on=enb_status.rf_tx_on,
+                gps_connected=enb_status.gps_connected,
+                ptp_connected=enb_status.ptp_connected,
+                mme_connected=enb_status.mme_connected,
+                enodeb_state=enb_status.enodeb_state)._asdict()
+    return MagmaOldEnodebdStatus(
+        enodeb_serial='N/A',
+        enodeb_configured='0',
+        gps_latitude='0.0',
+        gps_longitude='0.0',
+        enodeb_connected='0',
+        opstate_enabled='0',
+        rf_tx_on='0',
+        gps_connected='0',
+        ptp_connected='0',
+        mme_connected='0',
+        enodeb_state='N/A')._asdict()
+
+
+def get_service_status(enb_acs_manager: StateMachineManager) -> Dict[str, Any]:
     enodebd_status = _get_enodebd_status(enb_acs_manager)
     return enodebd_status._asdict()
 
@@ -229,11 +279,11 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
 
 
 def get_single_enb_status(
-        device_serial: str,
-        enodeb: EnodebAcsStateMachine
+    device_serial: str,
+    state_machine_manager: StateMachineManager
 ) -> SingleEnodebStatus:
     try:
-        handler = enodeb.get_handler_by_serial(device_serial)
+        handler = state_machine_manager.get_handler_by_serial(device_serial)
     except KeyError:
         return _empty_enb_status()
 
@@ -241,7 +291,7 @@ def get_single_enb_status(
     status = get_enb_status(handler)
 
     # Get IP info
-    ip = enodeb.get_ip_of_serial(device_serial)
+    ip = state_machine_manager.get_ip_of_serial(device_serial)
 
     # Build the message to return through gRPC
     enb_status = SingleEnodebStatus()
@@ -261,7 +311,7 @@ def get_single_enb_status(
 
 
 def get_operational_states(
-        state_machine_manager: EnodebAcsStateMachine
+    state_machine_manager: StateMachineManager
 ) -> List[State]:
     """
     Returns: A list of SingleEnodebStatus encoded as JSON into State

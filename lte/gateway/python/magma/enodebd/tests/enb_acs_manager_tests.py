@@ -11,11 +11,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 from unittest import TestCase, mock
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from magma.enodebd.tr069 import models
-from spyne.server.wsgi import WsgiMethodContext
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
 from magma.enodebd.tests.test_utils.tr069_msg_builder import \
     Tr069MessageBuilder
+from magma.enodebd.tests.test_utils.spyne_builder import \
+    get_spyne_context_with_ip
 
 
 class StateMachineManagerTests(TestCase):
@@ -23,7 +24,7 @@ class StateMachineManagerTests(TestCase):
         manager = self._get_manager()
 
         # Send in an Inform message, and we should get an InformResponse
-        ctx = self._get_spyne_context_with_ip()
+        ctx = get_spyne_context_with_ip()
         inform = Tr069MessageBuilder.get_inform()
         req = manager.handle_tr069_message(ctx, inform)
         self.assertTrue(isinstance(req, models.InformResponse),
@@ -32,8 +33,8 @@ class StateMachineManagerTests(TestCase):
 
     def test_handle_two_ips(self):
         manager = self._get_manager()
-        ctx1 = self._get_spyne_context_with_ip("192.168.60.145")
-        ctx2 = self._get_spyne_context_with_ip("192.168.60.99")
+        ctx1 = get_spyne_context_with_ip("192.168.60.145")
+        ctx2 = get_spyne_context_with_ip("192.168.60.99")
 
         ##### Start session for the first IP #####
         # Send an Inform message, wait for an InformResponse
@@ -102,7 +103,7 @@ class StateMachineManagerTests(TestCase):
 
         # Send an Inform
         ip1 = "192.168.60.145"
-        ctx1 = self._get_spyne_context_with_ip(ip1)
+        ctx1 = get_spyne_context_with_ip(ip1)
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
                                                     'BaiBS_RTS_3.1.6',
                                                     '120200002618AGP0003')
@@ -113,7 +114,7 @@ class StateMachineManagerTests(TestCase):
 
         # Send an Inform from the same serial, but different IP
         ip2 = "192.168.60.99"
-        ctx2 = self._get_spyne_context_with_ip(ip2)
+        ctx2 = get_spyne_context_with_ip(ip2)
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
                                                     'BaiBS_RTS_3.1.6',
                                                     '120200002618AGP0003')
@@ -132,7 +133,7 @@ class StateMachineManagerTests(TestCase):
         ip = "192.168.60.145"
 
         # Send an Inform
-        ctx1 = self._get_spyne_context_with_ip(ip)
+        ctx1 = get_spyne_context_with_ip(ip)
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
                                                     'BaiBS_RTS_3.1.6',
                                                     '120200002618AGP0001')
@@ -142,7 +143,7 @@ class StateMachineManagerTests(TestCase):
         handler1 = manager.get_handler_by_ip(ip)
 
         # Send an Inform from the same serial, but different IP
-        ctx2 = self._get_spyne_context_with_ip(ip)
+        ctx2 = get_spyne_context_with_ip(ip)
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
                                                     'BaiBS_RTS_3.1.6',
                                                     '120200002618AGP0002')
@@ -161,7 +162,7 @@ class StateMachineManagerTests(TestCase):
         ip = "192.168.60.145"
 
         # Send an Inform
-        ctx1 = self._get_spyne_context_with_ip(ip)
+        ctx1 = get_spyne_context_with_ip(ip)
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
                                                     'BaiBS_QAFB_v1234',
                                                     '120200002618AGP0001')
@@ -172,13 +173,3 @@ class StateMachineManagerTests(TestCase):
     def _get_manager(self) -> StateMachineManager:
         service = EnodebAcsStateMachineBuilder.build_magma_service()
         return StateMachineManager(service)
-
-    def _get_spyne_context_with_ip(
-        self,
-        req_ip: str = "192.168.60.145",
-    ) -> WsgiMethodContext:
-        with mock.patch('spyne.server.wsgi.WsgiApplication') as MockTransport:
-            MockTransport.req_env = {"REMOTE_ADDR": req_ip}
-            with mock.patch('spyne.server.wsgi.WsgiMethodContext') as MockContext:
-                MockContext.transport = MockTransport
-                return MockContext
