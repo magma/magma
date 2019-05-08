@@ -230,8 +230,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		Description: "bazquz ent",
 
 		Associations: []storage2.TypeAndKey{
-			{Type: "foo", Key: "bar"},
 			{Type: "bar", Key: "baz"},
+			{Type: "foo", Key: "bar"},
 		},
 	})
 	assert.NoError(t, err)
@@ -390,9 +390,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	// Read back the updated ent
 	expectedHelloWorldEnt.Associations = []storage2.TypeAndKey{
-		{Type: "foo", Key: "bar"},
 		{Type: "bar", Key: "baz"},
 		{Type: "baz", Key: "quz"},
+		{Type: "foo", Key: "bar"},
 	}
 	expectedHelloWorldEnt.GraphID = "2"
 	expectedHelloWorldEnt.Permissions = []storage.ACL{
@@ -415,6 +415,138 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 		actualEntityLoad,
 	)
+
+	assert.NoError(t, store.Commit())
+
+	// ========================================================================
+	// Graph load tests
+	// ========================================================================
+
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+
+	// Load a graph directly via ID
+	actualGraph2, err := store.LoadGraphForEntity("n1", storage2.TypeAndKey{Type: "hello", Key: "world"}, storage.EntityLoadCriteria{})
+	assert.NoError(t, err)
+
+	expectedFoobarEnt.ParentAssociations = append(expectedFoobarEnt.ParentAssociations, storage2.TypeAndKey{Type: "hello", Key: "world"})
+	expectedBarbazEnt.ParentAssociations = append(expectedBarbazEnt.ParentAssociations, storage2.TypeAndKey{Type: "hello", Key: "world"})
+	expectedBazquzEnt.ParentAssociations = []storage2.TypeAndKey{{Type: "hello", Key: "world"}}
+
+	expectedFoobarEnt = storage.NetworkEntity{
+		Type:       "foo",
+		Key:        "bar",
+		GraphID:    "2",
+		PhysicalID: "1",
+		ParentAssociations: []storage2.TypeAndKey{
+			{Type: "baz", Key: "quz"},
+			{Type: "hello", Key: "world"},
+		},
+	}
+
+	expectedBarbazEnt = storage.NetworkEntity{
+		Type:    "bar",
+		Key:     "baz",
+		GraphID: "2",
+		ParentAssociations: []storage2.TypeAndKey{
+			{Type: "baz", Key: "quz"},
+			{Type: "hello", Key: "world"},
+		},
+	}
+
+	expectedBazquzEnt = storage.NetworkEntity{
+		Type:    "baz",
+		Key:     "quz",
+		GraphID: "2",
+		ParentAssociations: []storage2.TypeAndKey{
+			{Type: "hello", Key: "world"},
+		},
+		Associations: []storage2.TypeAndKey{
+			{Type: "bar", Key: "baz"},
+			{Type: "foo", Key: "bar"},
+		},
+	}
+
+	expectedHelloWorldEnt = storage.NetworkEntity{
+		Type:       "hello",
+		Key:        "world",
+		GraphID:    "2",
+		PhysicalID: "asdf",
+		Associations: []storage2.TypeAndKey{
+			{Type: "bar", Key: "baz"},
+			{Type: "baz", Key: "quz"},
+			{Type: "foo", Key: "bar"},
+		},
+		Version: 2,
+	}
+
+	expectedGraph2 := storage.EntityGraph{
+		Entities: []storage.NetworkEntity{
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
+			expectedHelloWorldEnt,
+		},
+		RootEntities: []storage2.TypeAndKey{{Type: "hello", Key: "world"}},
+		Edges: []storage.GraphEdge{
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "bar", Key: "baz"}},
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "foo", Key: "bar"}},
+			{From: storage2.TypeAndKey{Type: "hello", Key: "world"}, To: storage2.TypeAndKey{Type: "bar", Key: "baz"}},
+			{From: storage2.TypeAndKey{Type: "hello", Key: "world"}, To: storage2.TypeAndKey{Type: "baz", Key: "quz"}},
+			{From: storage2.TypeAndKey{Type: "hello", Key: "world"}, To: storage2.TypeAndKey{Type: "foo", Key: "bar"}},
+		},
+	}
+	assert.Equal(t, expectedGraph2, actualGraph2)
+
+	// Load a graph from the ID of a node in the middle
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage2.TypeAndKey{Type: "baz", Key: "quz"}, storage.EntityLoadCriteria{})
+	assert.NoError(t, err)
+	assert.Equal(t, expectedGraph2, actualGraph2)
+
+	// Load a graph with full load criteria
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage2.TypeAndKey{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+
+	expectedFoobarEnt.Name = "foobar"
+	expectedFoobarEnt.Description = "foobar ent"
+	expectedFoobarEnt.Config = []byte("foobar")
+
+	expectedBarbazEnt.Name = "barbaz"
+	expectedBarbazEnt.Description = "barbaz ent"
+	expectedBarbazEnt.Config = []byte("barbaz")
+	expectedBarbazEnt.Permissions = []storage.ACL{
+		{ID: "5", Scope: storage.WildcardACLScope, Permission: storage.NoPermissions, Type: storage.WildcardACLType},
+		{ID: "6", Scope: storage.ACLScopeOf([]string{"n1"}), Permission: storage.WritePermission, Type: storage.ACLTypeOf("foo")},
+	}
+
+	expectedBazquzEnt.Name = "bazquz"
+	expectedBazquzEnt.Description = "bazquz ent"
+
+	expectedHelloWorldEnt.Name = "helloworld2"
+	expectedHelloWorldEnt.Description = "helloworld2 ent"
+	expectedHelloWorldEnt.Config = []byte("second config")
+	expectedHelloWorldEnt.Permissions = []storage.ACL{
+		{ID: "11", Scope: storage.WildcardACLScope, Permission: storage.WritePermission, Type: storage.WildcardACLType, Version: 1},
+		{ID: "12", Scope: storage.ACLScopeOf([]string{"n1"}), Permission: storage.WritePermission, Type: storage.ACLTypeOf("foo")},
+	}
+
+	expectedGraph2 = storage.EntityGraph{
+		Entities: []storage.NetworkEntity{
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
+			expectedHelloWorldEnt,
+		},
+		RootEntities: []storage2.TypeAndKey{{Type: "hello", Key: "world"}},
+		Edges: []storage.GraphEdge{
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "bar", Key: "baz"}},
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "foo", Key: "bar"}},
+			{From: storage2.TypeAndKey{Type: "hello", Key: "world"}, To: storage2.TypeAndKey{Type: "bar", Key: "baz"}},
+			{From: storage2.TypeAndKey{Type: "hello", Key: "world"}, To: storage2.TypeAndKey{Type: "baz", Key: "quz"}},
+			{From: storage2.TypeAndKey{Type: "hello", Key: "world"}, To: storage2.TypeAndKey{Type: "foo", Key: "bar"}},
+		},
+	}
+	assert.Equal(t, expectedGraph2, actualGraph2)
 
 	// TODO: orphan some graph nodes (blocked on impl of fixGraph)
 
