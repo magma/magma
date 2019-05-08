@@ -54,7 +54,6 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap
 		scanner, err := eap.NewAttributeScanner(req)
 		if err != nil {
 			resultErr = fmt.Errorf("Malformed AKA-Client-Error Packet %v", err)
-			log.Printf("WARNING: %v", resultErr)
 		} else {
 			var a eap.Attribute
 			for a, err = scanner.Next(); err == nil; a, err = scanner.Next() {
@@ -70,14 +69,15 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap
 			if err != nil {
 				resultErr = fmt.Errorf(
 					"AKA-Client-Error Packet for Session ID %s does not include AT_CLIENT_ERROR_CODE", sid)
-				log.Printf("WARNING: %v", resultErr)
 			}
 		}
 	} else {
 		resultErr = fmt.Errorf("Missing CTX/Empty Session ID in AKA-Client-Error")
+	}
+	if resultErr != nil {
 		log.Printf("WARNING: %v", resultErr)
 	}
-	return peerFailure(s, sid, req.Identifier(), errorCode), resultErr
+	return peerFailure(s, sid, req.Identifier(), errorCode), nil
 }
 
 // notificationResponse implements handler for EAP-Response/AKA-Notification
@@ -96,12 +96,10 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 	}
 	if len(req) < 12 { // min Notification packet len
 		resultErr = fmt.Errorf("Session AKA-Notification for session ID %s is too short: %x", sid, req)
-		log.Printf("WARNING: %v", resultErr)
 	} else {
 		scanner, err := eap.NewAttributeScanner(req)
 		if err != nil {
 			resultErr = fmt.Errorf("Malformed Session AKA-Notification for session ID %s: %x", sid, req)
-			log.Printf("WARNING: %v", resultErr)
 		} else {
 			var a eap.Attribute
 			for a, err = scanner.Next(); err == nil; a, err = scanner.Next() {
@@ -112,7 +110,6 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 							errorCode = int((uint16(cb[1]) << 8) + uint16(cb[0]))
 							resultErr = fmt.Errorf("AKA-Notification S bit is set for Session ID: %s, code: %d",
 								sid, errorCode)
-							log.Printf("ERROR: %v", resultErr)
 						}
 					}
 					break
@@ -121,11 +118,13 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 			if err != nil {
 				resultErr = fmt.Errorf("AKA-Notification Packet for Session ID %s does not include AT_NOTIFICATION",
 					sid)
-				log.Printf("WARNING: %v", resultErr)
 			}
 		}
 	}
-	return peerFailure(s, sid, req.Identifier(), errorCode), resultErr
+	if resultErr != nil {
+		log.Printf("WARNING: %v", resultErr)
+	}
+	return peerFailure(s, sid, req.Identifier(), errorCode), nil
 }
 
 func peerFailure(s *servicers.EapAkaSrv, sessionId string, identifier uint8, errorCode int) eap.Packet {
@@ -137,5 +136,5 @@ func peerFailure(s *servicers.EapAkaSrv, sessionId string, identifier uint8, err
 				sessionId, imsi, errorCode)
 		}
 	}
-	return []byte{eap.FailureCode, identifier + 1, 0, 4}
+	return []byte{eap.FailureCode, identifier, 0, 4}
 }
