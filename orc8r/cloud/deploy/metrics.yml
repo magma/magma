@@ -12,5 +12,5 @@
   become: yes
 
   roles:
-    - { role: prometheus }
+    - { role: prometheus, vars: {prometheus_cache_binary_dir: '/var/opt/prometheus/bin'}}
     - { role: graphite, vars: {graphite_cache_graphite_url: 'http://127.0.0.1:8080'}}

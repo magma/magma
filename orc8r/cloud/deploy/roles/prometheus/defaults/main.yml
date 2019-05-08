@@ -15,12 +15,10 @@ prometheus_config_path: /etc/prometheus
 prometheus_db_path: /data/prometheus/data
 prometheus_download_path: /tmp
 
-pushgateway_version: 0.7.0
-pushgateway_install_path: /opt/prometheus/pushgateway
-pushgateway_subdir: "{{ pushgateway_install_path }}/pushgateway-{{ pushgateway_version }}.{{ prometheus_platform_suffix }}"
+prometheus_cache_binary_dir: /opt/prometheus
+prometheus_cache_queue_capacity: 5
 
 prometheus_port: 9090
-pushgateway_port: 9091
+prometheus_cache_port: 9091
 
 magma_metrics_endpoint: "{{ lookup('env', 'MAGMA_METRICS_ENDPOINT') }}"
-
