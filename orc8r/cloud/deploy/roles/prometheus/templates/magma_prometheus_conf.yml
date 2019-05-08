@@ -21,5 +21,7 @@ scrape_configs:
     metric_relabel_configs:
       - regex: 'job'
         action: labeldrop
+      - regex: 'instance'
+        action: labeldrop
     static_configs:
       - targets: ['localhost:{{ prometheus_cache_port }}']

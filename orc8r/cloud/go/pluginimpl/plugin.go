@@ -115,13 +115,12 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	}
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
 
-	prometheusPushAddress := metricsConfig.GetRequiredStringParam(confignames.PrometheusPushgatewayAddress)
-	prometheusPushExporter := promo_exp.NewPrometheusPushExporter(prometheusPushAddress)
 	// Prometheus profile - Exports all service metric to Prometheus
+	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(metricsConfig.GetRequiredStringParam(confignames.PrometheusCustomPushAddress))
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{prometheusPushExporter},
+		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
 	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
@@ -131,13 +130,13 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	graphiteProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameGraphite,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{},
+		Exporters:  []exporters.Exporter{graphiteExporter},
 	}
 
 	defaultProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameDefault,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{graphiteExporter, prometheusPushExporter},
+		Exporters:  []exporters.Exporter{prometheusCustomPushExporter, graphiteExporter},
 	}
 
 	return []metricsd.MetricsProfile{
