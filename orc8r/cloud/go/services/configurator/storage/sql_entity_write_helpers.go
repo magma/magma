@@ -328,7 +328,11 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	// we need to do a connected component search. If we come up with multiple
 	// components, then each new component needs to be updated with a new
 	// graph ID.
-	err = store.fixGraph(newGraphID, entToUpdateOut)
+	if funk.IsEmpty(update.AssociationsToDelete) {
+		return nil
+	}
+
+	err = store.fixGraph(networkID, newGraphID, entToUpdateOut)
 	if err != nil {
 		return errors.WithStack(err)
 	}
