@@ -108,6 +108,8 @@ func (swxCache *Impl) Put(ans *protos.AuthenticationAnswer) *protos.Authenticati
 	if ans == nil || len(ans.UserName) == 0 {
 		return ans
 	}
+	swxCache.mu.Lock()
+	defer swxCache.mu.Unlock()
 	// delete old cache if present
 	ent, found := swxCache.data.vectors[ans.UserName]
 	if found {

@@ -9,6 +9,7 @@
     "eslint-plugin-babel": "5.1.0",
     "eslint-plugin-eslint-comments": "^3.0.1",
     "eslint-plugin-flowtype": "2.43.0",
+    "eslint-plugin-header": "^3.0.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-jest": "22.3.0",
     "eslint-plugin-jsx-a11y": "6.0.3",

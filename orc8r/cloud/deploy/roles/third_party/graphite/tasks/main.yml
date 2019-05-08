@@ -22,6 +22,9 @@
   environment:
     PYTHONPATH: "{{ graphite_install_path }}/lib:{{ graphite_install_path }}/webapp"
 
+- name: Install MySQL
+  include: mysql.yml
+
 - name: Setup graphite with pip
   pip:
     name: "graphite-web=={{ graphite_version }}"

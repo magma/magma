@@ -75,6 +75,11 @@ typedef struct s6a_update_location_req_s {
 
   // missing                           // destination host
   // missing                           // destination realm
+  uint8_t presencemask;
+#define S6A_PDN_CONFIG_VOICE_DOM_PREF (1 << 0)
+#define HOMOGENEOUS_IMS_VOICE_OVER_PS_SUPPORTED (0x1)
+  voice_domain_preference_and_ue_usage_setting_t
+    voice_dom_pref_ue_usg_setting;
 } s6a_update_location_req_t;
 
 typedef struct s6a_update_location_ans_s {

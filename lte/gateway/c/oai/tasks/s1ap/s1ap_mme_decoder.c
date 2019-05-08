@@ -177,6 +177,11 @@ static int s1ap_mme_decode_successfull_outcome(
         &message->msg.s1ap_E_RABSetupResponseIEs, &successfullOutcome_p->value);
     } break;
 
+    case S1ap_ProcedureCode_id_E_RABRelease: {
+      ret = s1ap_decode_s1ap_e_rabreleaseresponseies(
+        &message->msg.s1ap_E_RABReleaseResponseIEs, &successfullOutcome_p->value);
+    } break;
+
     default: {
       OAILOG_ERROR(
         LOG_S1AP,

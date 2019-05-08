@@ -37,7 +37,7 @@ func TestAkaChallengeResp(t *testing.T) {
 	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
-	akaSrv, _ := servicers.NewEapAkaService()
+	akaSrv, _ := servicers.NewEapAkaService(nil)
 	eapCtx := &eap_protos.EapContext{}
 	// Initialize CTX
 	p, err := identityResponse(akaSrv, eapCtx, eap.Packet(testEapIdentityResp))

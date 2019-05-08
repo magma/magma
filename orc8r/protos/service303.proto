@@ -84,6 +84,17 @@ message ReloadConfigResponse {
   ReloadConfigResult result = 1;
 }
 
+message State {
+    // Type determines how the value is deserialized and validated on the cloud service side
+    string type = 1;
+    string deviceID = 2;
+    // Value contains the operational state json-serialized.
+    bytes value = 3;
+}
+
+message GetOperationalStatesResponse {
+  repeated State states = 1;
+}
 
 // --------------------------------------------------------------------------
 // Service303 interface definition.
@@ -115,4 +126,7 @@ service Service303 {
 
   // Requests service reloads config files loaded on startup (<servicename>.yml)
   rpc ReloadServiceConfig (Void) returns (ReloadConfigResponse) {}
+
+  // Returns the  operational states of devices managed by this service.
+  rpc GetOperationalStates (Void) returns (GetOperationalStatesResponse) {}
 }

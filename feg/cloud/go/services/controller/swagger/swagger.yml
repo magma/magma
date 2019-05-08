@@ -196,6 +196,19 @@ definitions:
             default: 10800
             example: 10800
         x-go-custom-tag: 'magma_alt_name:"SWX"'
+      eap_aka:
+        type: object
+        properties:
+          timeout:
+            $ref: '#/definitions/eap_aka_timeouts'
+          plmn_ids:
+            type: array
+            items:
+              type: string
+              minLength: 5
+              maxLength: 6
+              pattern: '^(\d{5,6})$'
+              example: '123456'
       served_network_ids:
         type: array
         items:
@@ -248,6 +261,33 @@ definitions:
             format: float
             example: 0.90
         x-go-custom-tag: 'magma_alt_name:"HEALTH"'
+  eap_aka_timeouts:
+    type: object
+    properties:
+      challenge_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 20000
+        example: 20000
+      error_notification_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 10000
+        example: 10000
+      session_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 43200000
+        example: 43200000
+      session_authenticated_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 5000
+        example: 5000
   diameter_client_configs:
     description: Diameter Configuration of The Client
     type: object

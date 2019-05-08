@@ -13,7 +13,6 @@ replace (
 
 require (
 	github.com/aws/aws-sdk-go v1.16.19
-	github.com/fiorix/go-diameter v3.0.2+incompatible
 	github.com/go-openapi/errors v0.18.0
 	github.com/go-openapi/strfmt v0.18.0
 	github.com/go-openapi/swag v0.18.0

@@ -20,6 +20,9 @@ import (
 // swagger:model network_federation_configs
 type NetworkFederationConfigs struct {
 
+	// eap aka
+	EapAka *NetworkFederationConfigsEapAka `json:"eap_aka,omitempty"`
+
 	// gx
 	Gx *NetworkFederationConfigsGx `json:"gx,omitempty"`
 
@@ -45,6 +48,10 @@ type NetworkFederationConfigs struct {
 // Validate validates this network federation configs
 func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateEapAka(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateGx(formats); err != nil {
 		res = append(res, err)
@@ -73,6 +80,24 @@ func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkFederationConfigs) validateEapAka(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.EapAka) { // not required
+		return nil
+	}
+
+	if m.EapAka != nil {
+		if err := m.EapAka.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_aka")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -195,6 +220,96 @@ func (m *NetworkFederationConfigs) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *NetworkFederationConfigs) UnmarshalBinary(b []byte) error {
 	var res NetworkFederationConfigs
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkFederationConfigsEapAka network federation configs eap aka
+// swagger:model NetworkFederationConfigsEapAka
+type NetworkFederationConfigsEapAka struct {
+
+	// plmn ids
+	PlmnIds []string `json:"plmn_ids"`
+
+	// timeout
+	Timeout *EapAkaTimeouts `json:"timeout,omitempty"`
+}
+
+// Validate validates this network federation configs eap aka
+func (m *NetworkFederationConfigsEapAka) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validatePlmnIds(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTimeout(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkFederationConfigsEapAka) validatePlmnIds(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.PlmnIds) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.PlmnIds); i++ {
+
+		if err := validate.MinLength("eap_aka"+"."+"plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), 5); err != nil {
+			return err
+		}
+
+		if err := validate.MaxLength("eap_aka"+"."+"plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), 6); err != nil {
+			return err
+		}
+
+		if err := validate.Pattern("eap_aka"+"."+"plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), `^(\d{5,6})$`); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigsEapAka) validateTimeout(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Timeout) { // not required
+		return nil
+	}
+
+	if m.Timeout != nil {
+		if err := m.Timeout.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_aka" + "." + "timeout")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkFederationConfigsEapAka) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkFederationConfigsEapAka) UnmarshalBinary(b []byte) error {
+	var res NetworkFederationConfigsEapAka
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

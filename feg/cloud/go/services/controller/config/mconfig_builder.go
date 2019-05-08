@@ -36,6 +36,7 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 	gyc := gwConfig.GetGy()
 	hss := gwConfig.GetHss()
 	swxc := gwConfig.GetSwx()
+	eapAka := gwConfig.GetEapAka()
 
 	hssSubProfile := map[string]*mconfig.HSSConfig_SubscriptionProfile{}
 	for imsi, profile := range hss.GetSubProfiles() {
@@ -82,27 +83,47 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 			VerifyAuthorization: swxc.GetVerifyAuthorization(),
 			CacheTTLSeconds:     swxc.GetCacheTTLSeconds(),
 		},
+		"eap_aka": &mconfig.EapAkaConfig{
+			LogLevel: protos.LogLevel_INFO,
+			Timeout:  eapAka.GetTimeout().ToMconfig(),
+			PlmnIds:  eapAka.GetPlmnIds(),
+		},
 	}, nil
 }
 
 // GetGatewayConfig returns the specified GW's configs. gatewayId is Logical GW ID
 func GetGatewayConfig(networkId string, gatewayId string) (*config_protos.Config, error) {
-
+	var (
+		networkCfg *config_protos.Config
+		ok         bool
+	)
+	// Get Network configs to fill in GW configs or return
+	netCfg, nerr := config.GetConfig(networkId, FegNetworkType, networkId)
+	if nerr == nil && netCfg != nil {
+		networkCfg, ok = netCfg.(*config_protos.Config)
+		if !ok {
+			nerr = fmt.Errorf(
+				"received unexpected type for network record. Expected *Config but got %T", netCfg)
+			networkCfg = nil
+		}
+	}
+	// Check if there are GW configs
 	cfg, err := config.GetConfig(networkId, FegGatewayType, gatewayId)
 	if err != nil {
 		return nil, err
 	}
-	// If GW config is not set, use network cfg instead
 	if cfg == nil {
-		cfg, err = config.GetConfig(networkId, FegNetworkType, networkId)
-	}
-	if err != nil || cfg == nil {
-		return nil, err
+		return networkCfg, nerr
 	}
 	gatewayConfigs, ok := cfg.(*config_protos.Config)
 	if !ok {
 		return nil, fmt.Errorf(
 			"received unexpected type for gateway record. Expected *Config but got %T", cfg)
+	}
+	// If there are network & gateway configs, blend them together with GW values overwriting network values
+	if networkCfg != nil {
+		protos.FillIn(gatewayConfigs, networkCfg)
+		return networkCfg, nerr
 	}
 	return gatewayConfigs, nil
 }

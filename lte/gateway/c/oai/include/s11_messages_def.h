@@ -104,23 +104,22 @@ MESSAGE_DEF(
   itti_s11_modify_ue_ambr_request_t,
   s11_modify_ue_ambr_request)
 MESSAGE_DEF(
-  S11_PCRF_BEARER_ACTV_REQUEST,
+  S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST,
   MESSAGE_PRIORITY_MED,
-  itti_s11_pcrf_ded_bearer_actv_request_t,
-  s11_pcrf_bearer_actv_request)
+  itti_s11_nw_init_actv_bearer_request_t,
+  s11_nw_init_actv_bearer_request)
 MESSAGE_DEF(
-  S11_PCRF_BEARER_ACTV_RSP,
+  S11_NW_INITIATED_ACTIVATE_BEARER_RESP,
   MESSAGE_PRIORITY_MED,
-  itti_s11_pcrf_ded_bearer_actv_rsp_t,
-  s11_pcrf_ded_bearer_actv_rsp)
+  itti_s11_nw_init_actv_bearer_rsp_t,
+  s11_nw_init_actv_bearer_rsp)
 MESSAGE_DEF(
-  S11_PCRF_BEARER_DEACTV_REQUEST,
+  S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST,
   MESSAGE_PRIORITY_MED,
-  itti_s11_pcrf_ded_bearer_deactv_request_t,
-  s11_pcrf_ded_bearer_deactv_request)
+  itti_s11_nw_init_deactv_bearer_request_t,
+  s11_nw_init_deactv_bearer_request)
 MESSAGE_DEF(
-  S11_PCRF_DED_BEARER_DEACTV_RESPONSE,
+  S11_NW_INITIATED_DEACTIVATE_BEARER_RESP,
   MESSAGE_PRIORITY_MED,
-  itti_s11_pcrf_ded_bearer_deactv_rsp_t,
-  s11_pcrf_ded_bearer_deactv_response)
-
+  itti_s11_nw_init_deactv_bearer_rsp_t,
+  s11_nw_init_deactv_bearer_rsp)

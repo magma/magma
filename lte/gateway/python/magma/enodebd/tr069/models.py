@@ -37,6 +37,17 @@ class Tr069ComplexModel(ComplexModel):
         in CWMP XSD file. """
     __namespace__ = CWMP_NS
 
+    def as_dict(self):
+        """
+        Overriding default implementation to fix memory leak. Can remove if
+        or after https://github.com/arskom/spyne/pull/579 lands.
+        """
+        flat_type_info = self.get_flat_type_info(self.__class__)
+        return dict((
+            (k, getattr(self, k)) for k in flat_type_info
+            if getattr(self, k) is not None
+        ))
+
 
 class anySimpleType(Tr069ComplexModel):
     """ Type used to transfer simple data of various types. Data type is
@@ -107,20 +118,6 @@ class DeviceIdStruct(Tr069ComplexModel):
     _type_info["OUI"] = String(length=6)
     _type_info["ProductClass"] = String(max_length=64)
     _type_info["SerialNumber"] = String(max_length=64)
-
-    def as_dict(self):
-        """
-        Overriding default implementation to fix memory leak. Can remove if
-        or after https://github.com/arskom/spyne/pull/579 lands.
-
-        Only patching it for this model because it's the only place in enodebd
-        where we call this method.
-        """
-        flat_type_info = self.get_flat_type_info(self.__class__)
-        return dict((
-            (k, getattr(self, k)) for k in flat_type_info
-            if getattr(self, k) is not None
-        ))
 
 
 class EventStruct(Tr069ComplexModel):

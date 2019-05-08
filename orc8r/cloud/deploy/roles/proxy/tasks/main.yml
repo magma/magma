@@ -54,6 +54,11 @@
   file: path='/var/log/nghttpx.log' state=touch mode=0644
   when: full_provision
 
+- name: Stop the current running magma services
+  when: full_provision and restart_controller
+  systemd: name=magma@* state=stopped
+  ignore_errors: yes
+
 - name: Start the nghttpx service
   systemd: name=nghttpx@{{item}} state=restarted daemon_reload=yes enabled=yes
   with_items: "{{ nghttpx_units }}"

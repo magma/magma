@@ -38,6 +38,7 @@
 #include "esm_cause.h"
 #include "esm_proc.h"
 #include "dynamic_memory_check.h"
+#include "mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -351,6 +352,12 @@ ebi_t esm_ebr_context_release(
       ebi);
 
     /*
+     * Delete the TFT
+     */
+    // TODO Look at "free_traffic_flow_template"
+    //free_traffic_flow_template(&pdn->bearer[*bid]->tft);
+
+    /*
      * Release the specified EPS bearer data
      */
     //  "free pdn->bearer"
@@ -383,6 +390,12 @@ ebi_t esm_ebr_context_release(
             ue_mm_context->bearer_contexts[idx]->ebi);
 
           /*
+           * Delete the TFT
+           */
+          // TODO Look at "free_traffic_flow_template"
+          //free_traffic_flow_template(&pdn->bearer[i]->tft);
+
+          /*
            * Set the EPS bearer context state to INACTIVE
            */
           (void) esm_ebr_set_status(
@@ -399,7 +412,10 @@ ebi_t esm_ebr_context_release(
           /*
            * Release dedicated EPS bearer data
            */
-          free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
+          if (mme_config.eps_network_feature_support.
+            ims_voice_over_ps_session_in_s1) {
+            free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
+          }
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection
@@ -420,31 +436,26 @@ ebi_t esm_ebr_context_release(
       if (pdn->is_emergency) {
         pdn->is_emergency = false;
       }
-      ue_mm_context->pdn_contexts[*pid]->is_active = false;
+
+      if (mme_config.eps_network_feature_support.
+        ims_voice_over_ps_session_in_s1) {
+        ue_mm_context->pdn_contexts[*pid]->is_active = false;
+      }
     } else {
       OAILOG_INFO(
         LOG_NAS_ESM,
         "ESM-PROC  - Release dedicated EPS bearer context "
         "(ebi=%d)\n",
         ebi);
-      (void) esm_ebr_set_status(
-        emm_context,
-        ue_mm_context->bearer_contexts[*bid]->ebi,
-        ESM_EBR_INACTIVE,
-        true);
-
-      free_wrapper ((void**)&ue_mm_context->bearer_contexts[*bid]);
     }
 
-#if 0
-    if (pdn->n_bearers == 0) {
+    //if (pdn->n_bearers == 0) {
     /*
        * : Release the PDN connection and marked the UE as inactive
        * * * * in the network for EPS services (is_attached = false)
        */
-       esm_proc_pdn_disconnect_accept(emm_context, *pid, &esm_cause);
-    }
-#endif
+    //}
+
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ebi);
   }
 

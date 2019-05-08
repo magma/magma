@@ -56,7 +56,7 @@ type Config = {
 const CHART_CONFIGS: Config[] = [
   {
     id: 'enodeb_rf_tx_enabled',
-    filters: ['service="enodebd"'],
+    filters: ['service=enodebd'],
     label: 'E-Node B Status',
     metric: 'enodeb_rf_tx_enabled',
   },
@@ -68,7 +68,7 @@ const CHART_CONFIGS: Config[] = [
   },
   {
     id: 'download_throughput',
-    filters: ['service="enodebd"'],
+    filters: ['service=enodebd'],
     label: 'Download Throughput',
     metric: 'pdcp_user_plane_bytes_dl',
     // 'transform' => 'formula(* $1 26.667)',
@@ -76,7 +76,7 @@ const CHART_CONFIGS: Config[] = [
   },
   {
     id: 'upload_throughput',
-    filters: ['service="enodebd"'],
+    filters: ['service=enodebd'],
     label: 'Upload Throughput',
     metric: 'pdcp_user_plane_bytes_ul',
     // 'transform' => 'formula(* $1 26.667)',
@@ -84,35 +84,35 @@ const CHART_CONFIGS: Config[] = [
   },
   {
     id: 'latency',
-    filters: ['service="magmad"'],
+    filters: ['service=magmad'],
     label: 'Latency',
     metric: 'magmad_ping_rtt_ms_8_8_8_8_metric_rtt_ms',
     unit: ' ms',
   },
   {
     id: 'gateway_cpu',
-    filters: ['service="magmad"'],
+    filters: ['service=magmad'],
     label: 'Gateway CPU (%)',
     metric: 'cpu_percent',
     unit: '%',
   },
   {
     id: 'temperature_coretemp_0',
-    filters: ['__name__=~"temperature_.+_coretemp_0"', 'service="magmad"'],
+    filters: ['service=magmad'],
     label: 'Temperature (℃)',
-    metric: '',
+    metric: 'temperature_.+_coretemp_0',
     unit: '℃',
   },
   {
     id: 'disk',
-    filters: ['service="magmad"'],
+    filters: ['service=magmad'],
     label: 'Disk (%)',
     metric: 'disk_percent',
     unit: '%',
   },
   {
     id: 's6a_auth_success',
-    filters: ['service="subscriberdb"'],
+    filters: ['service=subscriberdb'],
     label: 's6a Auth Success',
     metric: 's6a_auth_success',
     // 'transform' => 'rate(1m, duration=900)',
@@ -120,7 +120,7 @@ const CHART_CONFIGS: Config[] = [
   },
   {
     id: 's6a_auth_failure_code_ResultCode_DIAMETER_AUTHORIZATION_REJECTED',
-    filters: ['service="subscriberdb"'],
+    filters: ['service=subscriberdb'],
     label: 's6a Auth Failure',
     metric: 's6a_auth_failure',
     // 'transform' => 'rate(1m, duration=900)',
@@ -129,8 +129,8 @@ const CHART_CONFIGS: Config[] = [
 ];
 
 function resolveQuery(config: Config, gatewayId: string) {
-  const filters = [...config.filters, `gateway="${gatewayId}"`].join(',');
-  return `${config.metric}{${filters}}`;
+  const filters = [...config.filters, `gatewayID=${gatewayId}`].join(',');
+  return `${config.metric},${filters}`;
 }
 
 function Metrics() {

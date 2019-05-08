@@ -32,8 +32,9 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
 # This step would allow us to cache the downloads in a layer, and prevent
 # reaching out to the internet unless any of the go.mod file is changed.
 COPY gomod /gomod
+RUN mkdir -p /gomod/src/modules
 RUN for module in `ls -d /gomod/src/magma/**`; do cd ${module}/cloud/go && go mod download; done
-RUN for module in `find /gomod/src/modules -maxdepth 2 -mindepth 2 -type d` do cd ${module}/cloud/go && go mod download; done
+RUN find /gomod/src/modules -maxdepth 2 -mindepth 2 -type d -exec bash -c "cd {}/cloud/go && go mod download" \;
 
 # Copy the configs
 COPY configs /etc/magma/configs
@@ -41,6 +42,7 @@ COPY configs /etc/magma/configs
 # Copy the code
 ENV MAGMA_ROOT /src/magma
 COPY src /src
+RUN mkdir -p /src/modules
 WORKDIR /src/magma/orc8r/cloud
 RUN echo export INTERNAL_MAGMA_MODULES="\"`ls -d /src/magma/** | tr '\n' ' '`\"" >> /etc/profile.d/env.sh
 RUN echo export EXTERNAL_MAGMA_MODULES="\"`find /src/modules -maxdepth 2 -mindepth 2 -type d | tr '\n' ' '`\"" >> /etc/profile.d/env.sh
@@ -61,7 +63,7 @@ FROM ubuntu:xenial
 
 # Install the runtime deps from apt
 RUN apt-get update && \
-    apt-get install -y supervisor daemontools openssl wget unzip
+    apt-get install -y daemontools netcat openssl supervisor wget unzip
 
 # Copy the configs
 COPY configs /etc/magma/configs

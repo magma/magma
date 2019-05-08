@@ -50,6 +50,7 @@
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_29.274.h"
+#include "3gpp_24.301.h"
 #include "mme_app_ue_context.h"
 #include "emm_cn.h"
 #include "emm_sap.h"
@@ -122,6 +123,7 @@ static const char *_emm_cn_primitive_str[] = {
   "EMMCN_CS_DOMAIN_LOCATION_UPDT_ACC",
   "EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL",
   "EMMCN_MM_INFORMATION_REQUEST",
+  "EMMCN_DEACTIVATE_BEARER_REQ",
 };
 
 //------------------------------------------------------------------------------
@@ -227,6 +229,48 @@ static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id)
   emm_proc_detach_request(ue_id, params);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+//------------------------------------------------------------------------------
+void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
+{
+  ESM_msg esm_msg = {.header = {0}};
+  struct emm_context_s *emm_ctx = NULL;
+  uint8_t emm_cn_sap_buffer[EMM_CN_SAP_BUFFER_SIZE];
+
+  if (ue_context == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  /*Setup ESM message*/
+  emm_ctx = &ue_context->emm_context;
+  esm_send_pdn_connectivity_reject(
+    emm_ctx->esm_ctx.esm_proc_data->pti,
+    &esm_msg.pdn_connectivity_reject,
+    ESM_CAUSE_REQUESTED_APN_NOT_SUPPORTED_IN_CURRENT_RAT);
+
+  int size =
+    esm_msg_encode(&esm_msg, emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
+  OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
+
+  if (size > 0) {
+    nas_emm_attach_proc_t *attach_proc =
+      get_nas_specific_procedure_attach(emm_ctx);
+    /*
+     * Setup the ESM message container
+     */
+    attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
+    increment_counter(
+      "ue_attach",
+      1,
+      2,
+      "result",
+      "failure",
+      "cause",
+      "pdn_connection_estb_failed");
+    emm_proc_attach_reject(ue_context->mme_ue_s1ap_id, EMM_CAUSE_ESM_FAILURE);
+  }
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
 
 //------------------------------------------------------------------------------
 static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
@@ -270,6 +314,13 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       LOG_NAS_ESM,
       "No suitable APN found ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       ue_mm_context->mme_ue_s1ap_id);
+    if (!emm_ctx->esm_ctx.esm_proc_data->apn) {
+      /*
+       * If there is a mismatch between the APN sent by UE and the APN provided by HSS,
+       * send Attach Reject to UE
+       */
+       _handle_apn_mismatch(ue_mm_context);
+    }
     return RETURNerror;
   }
 
@@ -311,6 +362,10 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
     emm_ctx->esm_ctx.esm_proc_data->bearer_qos.gbr.br_dl = 0;
     emm_ctx->esm_ctx.esm_proc_data->bearer_qos.mbr.br_ul = 0;
     emm_ctx->esm_ctx.esm_proc_data->bearer_qos.mbr.br_dl = 0;
+    //If UE has not sent APN, use the default APN sent by HSS
+    if (emm_ctx->esm_ctx.esm_proc_data->apn == NULL) {
+        emm_ctx->esm_ctx.esm_proc_data->apn = bfromcstr((const char *)apn_config->service_selection);
+    }
     // TODO  "Better to throw emm_ctx->esm_ctx.esm_proc_data as a parameter or as a hidden parameter ?"
     rc = esm_proc_pdn_connectivity_request(
       emm_ctx,
@@ -525,10 +580,10 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
   qos.bitRatesExtPresent = 0;
   //#pragma message "Some work to do here about qos"
   qos.qci = msg_pP->qci;
-  qos.bitRates.maxBitRateForUL = 0;  //msg_pP->qos.mbrUL;
-  qos.bitRates.maxBitRateForDL = 0;  //msg_pP->qos.mbrDL;
-  qos.bitRates.guarBitRateForUL = 0; //msg_pP->qos.gbrUL;
-  qos.bitRates.guarBitRateForDL = 0; //msg_pP->qos.gbrDL;
+  qos.bitRates.maxBitRateForUL = msg_pP->qos.mbrUL;
+  qos.bitRates.maxBitRateForDL = msg_pP->qos.mbrDL;
+  qos.bitRates.guarBitRateForUL = msg_pP->qos.gbrUL;
+  qos.bitRates.guarBitRateForDL = msg_pP->qos.gbrDL;
   qos.bitRatesExt.maxBitRateForUL = 0;
   qos.bitRatesExt.maxBitRateForDL = 0;
   qos.bitRatesExt.guarBitRateForUL = 0;

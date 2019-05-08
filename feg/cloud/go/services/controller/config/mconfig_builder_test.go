@@ -108,6 +108,16 @@ func TestControllerBuilder_Build(t *testing.T) {
 				Host:             "magma-fedgw.magma.com",
 			},
 			VerifyAuthorization: false,
+			CacheTTLSeconds:     10800,
+		},
+		"eap_aka": &mconfig.EapAkaConfig{LogLevel: 1,
+			Timeout: &mconfig.EapAkaConfig_Timeouts{
+				ChallengeMs:            20000,
+				ErrorNotificationMs:    10000,
+				SessionMs:              43200000,
+				SessionAuthenticatedMs: 5000,
+			},
+			PlmnIds: []string{},
 		},
 		"health": &mconfig.GatewayHealthConfig{
 			RequiredServices:          []string{"S6A_PROXY", "SESSION_PROXY"},
@@ -116,6 +126,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 			CloudDisconnectPeriodSecs: 10,
 			LocalDisconnectPeriodSecs: 1,
 		},
+		//L (log_level:INFO timeout:<ChallengeMs:20000 ErrorNotificationMs:10000 SessionMs:43200000 SessionAuthenticatedMs:5000 > )
 	}
 
 	actual, err = builder.Build("network", "feg1")

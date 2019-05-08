@@ -8,42 +8,35 @@
  * @format
  */
 
-import {getOrganization} from '@fbcnms/express-middleware/organization';
-import {find} from 'lodash-es';
-
-import type {StaticOrganizationModel} from '@fbcnms/sequelize-models/models/organization';
+import {getOrganization} from '@fbcnms/express-middleware/organizationMiddleware';
+import {Organization} from '@fbcnms/sequelize-models';
 
 const ORGS = [
   {
     id: '1',
     name: 'custom_domain_org',
     customDomains: ['subdomain.localtest.me'],
+    networkIDs: [],
   },
   {
     id: '2',
     name: 'subdomain',
     customDomains: [],
+    networkIDs: [],
   },
 ];
 
-// $FlowIgnore We know this is wrong, but don't want to deal with it.
-const MockOrganization: StaticOrganizationModel = {
-  findOne: ({where}) => {
-    if (where.name) {
-      return find(ORGS, where);
-    }
-
-    return find(ORGS, {customDomains: [JSON.parse(where.args[1])]});
-  },
-};
-
 describe('organization tests', () => {
+  beforeEach(async () => {
+    ORGS.forEach(async organization => await Organization.create(organization));
+  });
+
   it('should allow custom domain', async () => {
     const request = {
       get: () => 'subdomain.localtest.me',
     };
 
-    const org = await getOrganization(request, MockOrganization);
+    const org = await getOrganization(request);
     expect(org.name).toBe(ORGS[0].name);
   });
 
@@ -52,7 +45,7 @@ describe('organization tests', () => {
       get: () => 'subdomain.phbcloud.io',
     };
 
-    const org = await getOrganization(request, MockOrganization);
+    const org = await getOrganization(request);
     expect(org.name).toBe(ORGS[1].name);
   });
 
@@ -61,6 +54,6 @@ describe('organization tests', () => {
       get: () => 'unknowndomain.com',
     };
 
-    await expect(getOrganization(request, MockOrganization)).rejects.toThrow();
+    await expect(getOrganization(request)).rejects.toThrow();
   });
 });

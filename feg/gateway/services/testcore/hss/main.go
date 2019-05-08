@@ -52,7 +52,7 @@ func main() {
 	// Start diameter server
 	go func() {
 		glog.V(2).Info("Starting home subscriber server")
-		err := servicer.Start() // blocks
+		err := servicer.Start(make(chan struct{})) // blocks
 		glog.Error(err)
 	}()
 

@@ -87,6 +87,7 @@ static const char *_emm_as_primitive_str[] = {
   "EMMAS_DATA_IND",
   "EMMAS_PAGE_IND",
   "EMMAS_STATUS_IND",
+  "EMMAS_ERAB_REL_CMD",
 };
 
 /*

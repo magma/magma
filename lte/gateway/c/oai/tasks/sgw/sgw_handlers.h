@@ -65,16 +65,17 @@ int sgw_handle_modify_ue_ambr_request(
   teid_t teid,
   bitrate_t mbr_ul,
   bitrate_t mbr_dl);
-int sgw_handle_dedicated_bearer_actv_req(
-  const itti_s5_activate_dedicated_bearer_request_t
-  *const itti_s5_activ_dedicated_bearer_req);
-int sgw_handle_pcrf_dedicated_bearer_actv_rsp(
-  const itti_s11_pcrf_ded_bearer_actv_rsp_t
- *const s11_pcrf_ded_bearer_actv_rsp);
-int sgw_handle_pcrf_dedicated_bearer_deactv_req(
-  const itti_s5_deactivate_dedicated_bearer_req_t
+int sgw_handle_nw_initiated_actv_bearer_req(
+  const itti_s5_nw_init_actv_bearer_request_t
+  *const itti_s5_actv_bearer_req);
+int sgw_handle_nw_initiated_actv_bearer_rsp(
+  const itti_s11_nw_init_actv_bearer_rsp_t
+ *const s11_actv_bearer_rsp);
+int sgw_handle_nw_initiated_deactv_bearer_req(
+  const itti_s5_nw_init_deactv_bearer_request_t
   *const itti_s5_deactiv_ded_bearer_req);
-int sgw_handle_pcrf_dedicated_bearer_deactv_rsp(
-  const itti_s11_pcrf_ded_bearer_deactv_rsp_t
+int sgw_handle_nw_initiated_deactv_bearer_rsp(
+  const itti_s11_nw_init_deactv_bearer_rsp_t
  *const s11_pcrf_ded_bearer_deactv_rsp);
+
 #endif /* FILE_SGW_HANDLERS_SEEN */
