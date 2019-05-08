@@ -49,7 +49,7 @@ func (nghttpxlogger *NghttpxLogger) Run(filepath string) {
 }
 
 func (nghttpxlogger *NghttpxLogger) tail(filepath string) {
-	t, err := tail.TailFile(filepath, tail.Config{Follow: true})
+	t, err := tail.TailFile(filepath, tail.Config{Poll: true, Follow: true})
 	if err != nil {
 		glog.Errorf("Error opening file %v for tailing: %v\n", filepath, err)
 		return

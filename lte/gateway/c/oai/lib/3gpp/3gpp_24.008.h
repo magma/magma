@@ -50,13 +50,14 @@
 //******************************************************************************
 
 typedef enum common_ie_e {
-  C_MOBILE_STATION_CLASSMARK_2_IEI = 0x11,    /* 0x11 = 17  */
-  C_LOCATION_AREA_IDENTIFICATION_IEI = 0x13,  /* 0x13 = 19 */
-  C_MOBILE_STATION_CLASSMARK_3_IEI = 0x20,    /* 0x20 = 32  */
-  C_MOBILE_IDENTITY_IEI = 0x23,               /* 0x23 = 35 */
-  C_PLMN_LIST_IEI = 0x4A,                     /* 0x4A = 74 */
-  C_CIPHERING_KEY_SEQUENCE_NUMBER_IEI = 0x80, /* 0x80 = 128 */
-  C_MS_NETWORK_FEATURE_SUPPORT_IEI = 0xC0,    /* 0xC- = 192-  */
+  C_MOBILE_STATION_CLASSMARK_2_IEI = 0x11,            /* 0x11 = 17   */
+  C_LOCATION_AREA_IDENTIFICATION_IEI = 0x13,          /* 0x13 = 19   */
+  C_MOBILE_STATION_CLASSMARK_3_IEI = 0x20,            /* 0x20 = 32   */
+  C_MOBILE_IDENTITY_IEI = 0x23,                       /* 0x23 = 35   */
+  C_PLMN_LIST_IEI = 0x4A,                             /* 0x4A = 74   */
+  C_CIPHERING_KEY_SEQUENCE_NUMBER_IEI = 0x80,         /* 0x80 = 128  */
+  C_MS_NETWORK_FEATURE_SUPPORT_IEI = 0xC0,            /* 0xC- = 192- */
+  C_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI = 0x10, /* 0x10 = 16   */
 } common_ie_t;
 
 //------------------------------------------------------------------------------
@@ -363,6 +364,27 @@ int encode_ms_network_feature_support_ie(
   const uint32_t len);
 int decode_ms_network_feature_support_ie(
   ms_network_feature_support_t *msnetworkfeaturesupport,
+  const bool iei_present,
+  uint8_t *buffer,
+  const uint32_t len);
+//------------------------------------------------------------------------------
+// 10.5.5.31 Network Resource Identifier Container
+//------------------------------------------------------------------------------
+#define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_TYPE 4
+#define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MIN_LENGTH 4 //TODO
+#define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MAX_LENGTH 4
+
+typedef struct network_resource_identifier_container_s {
+  uint8_t byte[32]; //TODO
+} network_resource_identifier_container_t;
+
+int encode_network_resource_identifier_container_ie(
+  network_resource_identifier_container_t *networkresourceidentifiercontainer,
+  const bool iei_present,
+  uint8_t *buffer,
+  const uint32_t len);
+int decode_network_resource_identifier_container_ie(
+  network_resource_identifier_container_t *networkresourceidentifiercontainer,
   const bool iei_present,
   uint8_t *buffer,
   const uint32_t len);
