@@ -1,30 +1,114 @@
 version: "3.7"
 
+# Standard logging for each service
+x-logging: &logging_anchor
+  driver: "json-file"
+  options:
+    max-size: "10mb"
+    max-file: "10"
+
+# Use generic go anchor to avoid repetition for go services
+x-goservice: &goservice
+  image: feg_gateway_go
+  volumes:
+    - ../../../.cache/test_certs/rootCA.pem:/var/opt/magma/certs/rootCA.pem
+    - gwcerts:/var/opt/magma/certs
+    - gwconfigs:/var/opt/magma/configs
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
+# Use generic python anchor to avoid repetition for python services
+x-pyservice: &pyservice
+  image: feg_gateway_python
+  volumes:
+    - ../../../.cache/test_certs/rootCA.pem:/var/opt/magma/certs/rootCA.pem
+    - gwcerts:/var/opt/magma/certs
+    - gwconfigs:/var/opt/magma/configs
+  logging: *logging_anchor
+  restart: always
+  network_mode: host
+
 services:
-  feg:
-    container_name: feg
-    image: feg_gateway_go_base
+  csfb:
+    <<: *goservice
+    container_name: csfb
     build:
-      target: base
       context: ../../../
       dockerfile: feg/gateway/docker/go/Dockerfile
-    volumes:
-      - ../../../:/magma
-      - ../configs:/etc/configs
-      - ../configs:/etc/magma
-      - ../../../orc8r/gateway/configs/templates:/etc/magma/templates
-      - ../deploy/envdir:/var/opt/magma/envdir
-      - ../../../.cache/test_certs:/var/opt/magma/certs
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10mb"
-        max-file: "10"
-    network_mode: host
-    cap_add:
-      - SYS_ADMIN
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
+
+  eap_aka:
+    <<: *goservice
+    container_name: eap_aka
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
+
+  eap_router:
+    <<: *goservice
+    container_name: eap_router
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_router -logtostderr=true -v=0
+
+  feg_hello:
+    <<: *goservice
+    container_name: feg_hello
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/feg_hello -logtostderr=true -v=0
+
+  health:
+    <<: *goservice
+    container_name: health
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
+
+  session_proxy:
+    <<: *goservice
+    container_name: session_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
+
+  swx_proxy:
+    <<: *goservice
+    container_name: swx_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
+
+  s6a_proxy:
+    <<: *goservice
+    container_name: s6a_proxy
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
+
+  control_proxy:
+    <<: *pyservice
+    container_name: control_proxy
     extra_hosts:
       - controller.magma.test:127.0.0.1
       - bootstrapper-controller.magma.test:127.0.0.1
-    command: /sbin/init && tail -f /dev/null
+    command: >
+      sh -c "/usr/local/bin/generate_nghttpx_config.py &&
+             /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+
+  magmad:
+    <<: *pyservice
+    container_name: magmad
+    build:
+      context: ../../../
+      dockerfile: feg/gateway/docker/python/Dockerfile
+    volumes:
+      - ../../../.cache/test_certs/rootCA.pem:/var/opt/magma/certs/rootCA.pem
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gwcerts:/var/opt/magma/certs
+      - gwconfigs:/var/opt/magma/configs
+    command: python3 -m magma.magmad.main
+
+  metricsd:
+    <<: *pyservice
+    container_name: metricsd
+    command: python3 -m magma.metricsd.main
+
+  redis:
+    <<: *pyservice
+    container_name: redis
+    command: >
+      sh -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+             /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
+
+volumes:
+  gwcerts:
+  gwconfigs:

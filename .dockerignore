@@ -1,10 +1,14 @@
 *
+!.cache/test_certs
+!fb/config/
+
 !feg/cloud/
 !feg/gateway/configs/
 !feg/gateway/deploy/roles/feg_dev/files
 !feg/gateway/deploy/roles/feg_services/files
 !feg/gateway/diameter/
 !feg/gateway/deploy/envdir
+!feg/gateway/docker/configs
 !feg/gateway/mconfig/
 !feg/gateway/object_store/
 !feg/gateway/policydb/

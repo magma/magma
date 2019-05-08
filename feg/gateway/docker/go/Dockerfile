@@ -112,4 +112,10 @@ COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
-COPY feg/gateway/deploy/envdir /var/opt/magma/envdir
+# Add docker config overrides
+COPY feg/gateway/docker/configs /etc/magma
+
+# Create empty envdir directory
+RUN mkdir -p /var/opt/magma/envdir
+
+RUN mkdir -p /var/opt/magma/configs
