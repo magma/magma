@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
+	checkindserde "magma/orc8r/cloud/go/services/checkind/serde"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
@@ -55,6 +56,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
 		&CheckinRequestSerde{},
+		&checkindserde.GatewayStatusSerde{},
 
 		// Inventory service serdes
 		&GatewayRecordSerde{},

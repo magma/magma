@@ -78,8 +78,9 @@ class StateReporter(SDWatchdogTask):
             result = await self._get_state(service=service)
             if result is not None:
                 states.extend(result)
-        checkin_req_state = self._get_checkin_request_as_state()
-        states.append(checkin_req_state)
+        gw_state = self._get_gw_state()
+        if gw_state is not None:
+            states.append(gw_state)
         if len(states) == 0:
             return None
         return ReportStatesRequest(
@@ -102,7 +103,16 @@ class StateReporter(SDWatchdogTask):
                 ),
                 self._loop)
         except Exception as err:
-            logging.info("Failed to make a ReportStates request: %s", err)
+            logging.error("Failed to make a ReportStates request: %s", err)
+
+    def _get_gw_state(self) -> Optional[State]:
+        gw_state = self._checkin_manager.get_latest_gw_state()
+        if gw_state is not None:
+            state = State(type="gw_state",
+                          deviceID=snowflake.snowflake(),
+                          value=gw_state.encode('utf-8'))
+            return state
+        return None
 
     def _get_checkin_request_as_state(self) -> State:
         request = self._checkin_manager.get_latest_checkin_request()
