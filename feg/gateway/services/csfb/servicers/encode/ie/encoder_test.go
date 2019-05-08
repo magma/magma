@@ -55,23 +55,15 @@ func TestEncodeMMEName(t *testing.T) {
 	encodedMMEName, err := ie.EncodeMMEName(mmeName)
 	assert.NoError(t, err)
 
-	encodedMMEName2, err := ie.EncodeFixedLengthIE(
+	expectedEncodedMMEName, err := ie.EncodeFixedLengthIE(
 		decode.IEIMMEName,
 		decode.IELengthMMEName,
-		[]byte(mmeName),
+		[]byte("mmec01.mmegi0001.mme.EPC.mnc001.mcc001.3gppnetwork.org "),
 	)
+	// replace the ending space with 0x00
+	expectedEncodedMMEName[len(expectedEncodedMMEName)-1] = byte(0x00)
 
-	// replace dots with length labels
-	encodedMMEName2[2] = byte(0x06)
-	encodedMMEName2[9] = byte(0x09)
-	encodedMMEName2[19] = byte(0x03)
-	encodedMMEName2[23] = byte(0x03)
-	encodedMMEName2[27] = byte(0x06)
-	encodedMMEName2[34] = byte(0x06)
-	encodedMMEName2[41] = byte(0x0b)
-	encodedMMEName2[53] = byte(0x03)
-
-	assert.Equal(t, encodedMMEName, encodedMMEName2)
+	assert.Equal(t, expectedEncodedMMEName, encodedMMEName)
 }
 
 func TestEncodeFixedLengthIE(t *testing.T) {
