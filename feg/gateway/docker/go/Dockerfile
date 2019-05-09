@@ -68,7 +68,6 @@ COPY feg/cloud/go/go.* $MAGMA_ROOT/feg/cloud/go/
 COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
 COPY feg/gateway/go.* $MAGMA_ROOT/feg/gateway/
 COPY feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/go.* $MAGMA_ROOT/feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/
-COPY feg/gateway/services/eap/client/go.* $MAGMA_ROOT/feg/gateway/services/eap/client/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 WORKDIR $MAGMA_ROOT/feg/gateway
 RUN go mod download
