@@ -41,11 +41,21 @@ func main() {
 }
 
 func (s *eapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
-	return client.HandleIdentityResponse(uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
+	resp, err := client.HandleIdentityResponse(uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
+	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
+		log.Printf("HandleIdentity Error: %v", err)
+		err = nil
+	}
+	return resp, err
 }
 
 func (s *eapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
-	return client.Handle(in)
+	resp, err := client.Handle(in)
+	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
+		log.Printf("Handle Error: %v", err)
+		err = nil
+	}
+	return resp, err
 }
 
 func (s *eapRouter) SupportedMethods(ctx context.Context, in *protos.Void) (*protos.MethodList, error) {
