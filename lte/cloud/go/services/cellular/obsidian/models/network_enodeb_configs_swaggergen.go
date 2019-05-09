@@ -19,9 +19,13 @@ import (
 // swagger:model network_enodeb_configs
 type NetworkEnodebConfigs struct {
 
-	// device class
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
-	DeviceClass string `json:"device_class,omitempty"`
+	// bandwidth mhz
+	// Enum: [3 5 10 15 20]
+	BandwidthMhz uint32 `json:"bandwidth_mhz,omitempty"`
+
+	// cell id
+	// Maximum: 2.68435455e+08
+	CellID uint32 `json:"cell_id,omitempty"`
 
 	// earfcndl
 	// Maximum: 65535
@@ -39,6 +43,10 @@ type NetworkEnodebConfigs struct {
 	// Maximum: 6
 	SubframeAssignment uint32 `json:"subframe_assignment,omitempty"`
 
+	// tac
+	// Maximum: 65535
+	Tac uint32 `json:"tac,omitempty"`
+
 	// transmit enabled
 	TransmitEnabled bool `json:"transmit_enabled,omitempty"`
 }
@@ -47,7 +55,11 @@ type NetworkEnodebConfigs struct {
 func (m *NetworkEnodebConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateDeviceClass(formats); err != nil {
+	if err := m.validateBandwidthMhz(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateCellID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -67,55 +79,57 @@ func (m *NetworkEnodebConfigs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateTac(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
 }
 
-var networkEnodebConfigsTypeDeviceClassPropEnum []interface{}
+var networkEnodebConfigsTypeBandwidthMhzPropEnum []interface{}
 
 func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE"]`), &res); err != nil {
+	var res []uint32
+	if err := json.Unmarshal([]byte(`[3,5,10,15,20]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
-		networkEnodebConfigsTypeDeviceClassPropEnum = append(networkEnodebConfigsTypeDeviceClassPropEnum, v)
+		networkEnodebConfigsTypeBandwidthMhzPropEnum = append(networkEnodebConfigsTypeBandwidthMhzPropEnum, v)
 	}
 }
 
-const (
-
-	// NetworkEnodebConfigsDeviceClassBaicellsNova233G2ODFDD captures enum value "Baicells Nova-233 G2 OD FDD"
-	NetworkEnodebConfigsDeviceClassBaicellsNova233G2ODFDD string = "Baicells Nova-233 G2 OD FDD"
-
-	// NetworkEnodebConfigsDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
-	NetworkEnodebConfigsDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
-
-	// NetworkEnodebConfigsDeviceClassBaicellsIDTDDFDD captures enum value "Baicells ID TDD/FDD"
-	NetworkEnodebConfigsDeviceClassBaicellsIDTDDFDD string = "Baicells ID TDD/FDD"
-
-	// NetworkEnodebConfigsDeviceClassNuRANCaviumOCLTE captures enum value "NuRAN Cavium OC-LTE"
-	NetworkEnodebConfigsDeviceClassNuRANCaviumOCLTE string = "NuRAN Cavium OC-LTE"
-)
-
 // prop value enum
-func (m *NetworkEnodebConfigs) validateDeviceClassEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, networkEnodebConfigsTypeDeviceClassPropEnum); err != nil {
+func (m *NetworkEnodebConfigs) validateBandwidthMhzEnum(path, location string, value uint32) error {
+	if err := validate.Enum(path, location, value, networkEnodebConfigsTypeBandwidthMhzPropEnum); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *NetworkEnodebConfigs) validateDeviceClass(formats strfmt.Registry) error {
+func (m *NetworkEnodebConfigs) validateBandwidthMhz(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.DeviceClass) { // not required
+	if swag.IsZero(m.BandwidthMhz) { // not required
 		return nil
 	}
 
 	// value enum
-	if err := m.validateDeviceClassEnum("device_class", "body", m.DeviceClass); err != nil {
+	if err := m.validateBandwidthMhzEnum("bandwidth_mhz", "body", m.BandwidthMhz); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEnodebConfigs) validateCellID(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.CellID) { // not required
+		return nil
+	}
+
+	if err := validate.MaximumInt("cell_id", "body", int64(m.CellID), 2.68435455e+08, false); err != nil {
 		return err
 	}
 
@@ -168,6 +182,19 @@ func (m *NetworkEnodebConfigs) validateSubframeAssignment(formats strfmt.Registr
 	}
 
 	if err := validate.MaximumInt("subframe_assignment", "body", int64(m.SubframeAssignment), 6, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEnodebConfigs) validateTac(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Tac) { // not required
+		return nil
+	}
+
+	if err := validate.MaximumInt("tac", "body", int64(m.Tac), 65535, false); err != nil {
 		return err
 	}
 
