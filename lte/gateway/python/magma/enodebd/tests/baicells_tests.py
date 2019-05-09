@@ -557,3 +557,29 @@ class BaicellsHandlerTests(TestCase):
                         'enodebd should be requesting params')
         self.assertTrue(len(resp.ParameterNames.string) > 1,
                         'Should be requesting transient params.')
+
+    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
+    def test_missing_mme_timeout_handler(self, _mock_func) -> None:
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder \
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
+                                                    'BaiBS_RTS_3.1.6',
+                                                    '120200002618AGP0003',
+                                                    ['2 PERIODIC'])
+        acs_state_machine.handle_tr069_message(inform_msg)
+        # Send an empty http request to kick off the rest of provisioning
+        req = models.DummyInput()
+        acs_state_machine.handle_tr069_message(req)
+
+        acs_state_machine.mme_timeout_handler.cancel()
+        acs_state_machine.mme_timeout_handler = None
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
+                                                    'BaiBS_RTS_3.1.6',
+                                                    '120200002618AGP0003',
+                                                    ['2 PERIODIC'])
+        acs_state_machine.handle_tr069_message(inform_msg)
