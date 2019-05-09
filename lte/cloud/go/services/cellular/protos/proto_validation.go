@@ -195,6 +195,16 @@ func ValidateEnodebConfig(config *CellularEnodebConfig) error {
 	if config.Tac < 0 || config.Tac > 65535 {
 		return errors.New("TAC must be within 0-65535")
 	}
+	switch config.DeviceClass {
+	case
+		"Baicells Nova-233 G2 OD FDD",
+		"Baicells Nova-243 OD TDD",
+		"Baicells ID TDD/FDD",
+		"NuRAN Cavium OC-LTE":
+		break
+	default:
+		return errors.New("Invalid eNodeB device class")
+	}
 	switch config.BandwidthMhz {
 	case
 		3,
