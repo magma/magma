@@ -51,7 +51,7 @@ type Props = {
   projects?: ProjectLink[],
 };
 
-export default function AppDrawer(props: Props) {
+export default function AppSideBar(props: Props) {
   const {user} = props;
   const classes = useStyles();
   const projects = props.projects || [];
