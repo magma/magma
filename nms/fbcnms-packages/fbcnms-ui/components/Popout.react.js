@@ -17,6 +17,7 @@ type Props = {
   children: React.Element<any> | string,
   onOpen?: () => void,
   onClose?: () => void,
+  open?: boolean,
 };
 
 const useClasses = makeStyles(theme => ({
@@ -87,8 +88,7 @@ export default function Popout(props: Props) {
       <div
         className={classes.buttonContainer}
         onClick={() => {
-          togglePopout(true);
-          onOpen && onOpen();
+          onOpen ? onOpen() : togglePopout(true);
         }}>
         {children}
       </div>
@@ -113,10 +113,9 @@ export default function Popout(props: Props) {
         }}
         PaperProps={{className: classes.menuPaper}}
         id="navigation-menu"
-        open={open}
+        open={props.open !== undefined ? props.open : open}
         onClose={() => {
-          togglePopout(false);
-          onClose && onClose();
+          onClose ? onClose() : togglePopout(false);
         }}>
         {content}
       </Popover>
