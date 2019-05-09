@@ -919,7 +919,7 @@ void mme_app_handle_delete_session_rsp(
    */
   if ((mme_config.eps_network_feature_support.
     ims_voice_over_ps_session_in_s1) &&
-    (emm_context->esm_ctx.is_pdn_disconnect)) {
+    (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
     mme_app_itti_pdn_disconnect_rsp(
       ue_context_p->mme_ue_s1ap_id,
       delete_sess_resp_pP->lbi);
@@ -3025,7 +3025,7 @@ void mme_app_handle_erab_rel_cmd(
         itti_erab_rel_cmd->n_bearers;
       for (i = 0; i < itti_erab_rel_cmd->n_bearers; i++) {
         s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id =
-          itti_erab_rel_cmd->bearers_to_be_rel;
+          itti_erab_rel_cmd->bearers_to_be_rel[i];
       }
     } else {
       s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items = 1;

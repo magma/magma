@@ -1298,10 +1298,12 @@ static int _emm_cn_pdn_disconnect_rsp(
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
+  uint32_t i = 0;
   proc_tid_t pti;
+  #define ESM_SAP_BUFFER_SIZE 4096
   uint8_t esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
-  ebi_t *bearers_to_be_rel = NULL;
+  bstring rsp = NULL;
 
   ESM_msg esm_msg;
   memset(&esm_msg, 0, sizeof(ESM_msg));
@@ -1309,7 +1311,8 @@ static int _emm_cn_pdn_disconnect_rsp(
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc.mme_ue_contexts, msg->ue_id);
 
-  pti = ue_mm_context->emm_context.esm_ctx.esm_proc_data.pti;
+
+  pti = ue_mm_context->emm_context.esm_ctx.esm_proc_data->pti;
   /*
    * Build the ESM message to be sent to UE
    */
@@ -1334,8 +1337,8 @@ static int _emm_cn_pdn_disconnect_rsp(
    * to enB
    */
   pdn_cid_t cid =
-    ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
-  pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
+    ue_mm_context->bearer_contexts[EBI_TO_INDEX(msg->lbi)]->pdn_cx_id;
+  pdn_context_t *pdn_context = ue_mm_context->pdn_contexts[cid];
 
   ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel =
     calloc(1, ((pdn_context->esm_data.n_bearers)*(sizeof(ebi_t))));
@@ -1345,7 +1348,7 @@ static int _emm_cn_pdn_disconnect_rsp(
   for (i = 0; i < pdn_context->esm_data.n_bearers; i++) {
     int idx = ue_mm_context->pdn_contexts[cid]->bearer_contexts[i];
     ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel[i+1] =
-      ue_mm_context->bearer_contexts[idx].ebi;
+      ue_mm_context->bearer_contexts[idx]->ebi;
   }
   ue_mm_context->emm_context.esm_ctx.n_bearers =
     pdn_context->esm_data.n_bearers;
@@ -1354,9 +1357,9 @@ static int _emm_cn_pdn_disconnect_rsp(
    */
   esm_proc_eps_bearer_context_deactivate_request(
     true/*standalone*/,
-    ue_mm_context,
+    &ue_mm_context->emm_context,
     msg->lbi,
-    rsp,
+    &rsp,
     true/*UE triggered*/);
 
   /*
@@ -1370,7 +1373,7 @@ static int _emm_cn_pdn_disconnect_rsp(
      * Release the associated default EPS bearer context
      */
     int bid = 0;
-    int rc = esm_proc_eps_bearer_context_deactivate(
+    esm_proc_eps_bearer_context_deactivate(
       &ue_mm_context->emm_context, false, msg->lbi, &pid, &bid, &esm_cause);
   }
   unlock_ue_contexts(ue_mm_context);

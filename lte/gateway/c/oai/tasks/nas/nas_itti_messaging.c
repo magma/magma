@@ -147,11 +147,6 @@ int nas_itti_erab_rel_cmd(
           NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel,
           ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel,
           sizeof(ebi_t));
-       // Free bearers_to_be_rel
-       free(ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel);
-       ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel = NULL;
-       ue_mm_context->emm_context.esm_ctx.n_bearers = 0;
-      //Reset PDN disconnect flag
       }
     }
   }

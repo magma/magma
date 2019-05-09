@@ -72,9 +72,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *);
 static int _eps_bearer_deactivate(
   emm_context_t *ue_context,
   ebi_t ebi,
-  STOLEN_REF bstring *msg,
-  int n_bearers,
-  ebi_t *bearers_to_be_rel);
+  STOLEN_REF bstring *msg);
 static int _eps_bearer_release(
   emm_context_t *ue_context,
   ebi_t ebi,
@@ -342,24 +340,14 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     ims_voice_over_ps_session_in_s1) {
 
     //Reset is_pdn_disconnect flag
-    if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
-      struct ue_mm_context_s, emm_context)
-        ->emm_context.esm_ctx.is_pdn_disconnect) {
-      PARENT_STRUCT(esm_ebr_timer_data->ctx,
-        struct ue_mm_context_s, emm_context)
-          ->emm_context.esm_ctx.is_pdn_disconnect = false;
+    if (ue_context->esm_ctx.is_pdn_disconnect) {
+      ue_context->esm_ctx.is_pdn_disconnect = false;
     }
     //Free bearers_to_be_rel list
-    if (PARENT_STRUCT(esm_ebr_timer_data->ctx,
-      struct ue_mm_context_s, emm_context)
-        ->emm_context.esm_ctx.bearers_to_be_rel) {
-      free(PARENT_STRUCT(esm_ebr_timer_data->ctx,
-        struct ue_mm_context_s, emm_context)
-          ->emm_context.esm_ctx.bearers_to_be_rel);
-        PARENT_STRUCT(esm_ebr_timer_data->ctx,
-          struct ue_mm_context_s, emm_context)
-            ->emm_context.esm_ctx.bearers_to_be_rel = NULL;
-      }
+    if (ue_context->esm_ctx.bearers_to_be_rel) {
+      free_wrapper((void **) &ue_context->esm_ctx.bearers_to_be_rel);
+      ue_context->esm_ctx.bearers_to_be_rel = NULL;
+    }
 
     s_gw_teid_s11_s4 =
       PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
@@ -528,6 +516,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           PARENT_STRUCT(esm_ebr_timer_data->ctx,
             struct ue_mm_context_s, emm_context)
             ->emm_context.esm_ctx.bearers_to_be_rel = NULL;
+        }
       }
     }
     if (esm_ebr_timer_data->msg) {

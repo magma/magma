@@ -68,6 +68,7 @@
 #include "sgw_config.h"
 #include "pgw_handlers.h"
 #include "conversions.h"
+#include "mme_config.h"
 
 extern sgw_app_t sgw_app;
 extern spgw_config_t spgw_config;
