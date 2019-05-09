@@ -451,6 +451,9 @@ class BaicellsHandlerTests(TestCase):
         acs_state_machine = \
             EnodebAcsStateMachineBuilder\
             .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+        # Since the test utils pretend the eNB is set to 20MHz, we force this
+        # to 10 MHz, so the state machine sets this value.
+        acs_state_machine.mconfig.bandwidth_mhz = 10
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
