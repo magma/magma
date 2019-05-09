@@ -22,7 +22,7 @@ type AxiosResponse<T, R> = {
 };
 
 export default function useAxios<T, R>(
-  config: AxiosXHRConfig<T, R>,
+  config: {onResponse?: ($AxiosXHR<T, R>) => void} & AxiosXHRConfig<T, R>,
 ): AxiosResponse<T, R> {
   const [error, setError] = useState(null);
   const [response, setResponse] = useState(null);
@@ -43,6 +43,7 @@ export default function useAxios<T, R>(
       .then(res => {
         setIsLoading(false);
         setResponse(res);
+        config.onResponse && config.onResponse(res);
         setLoadedUrl(config.url);
       })
       .catch(error => {
