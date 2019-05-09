@@ -14,21 +14,19 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/middleware/unary/interceptors/tests"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 	"magma/orc8r/cloud/go/services/state"
 	test_service "magma/orc8r/cloud/go/services/state/test_init"
+	"magma/orc8r/cloud/go/services/state/test_utils"
 
 	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -59,10 +57,7 @@ func TestStateService(t *testing.T) {
 	magmad.RegisterGateway(
 		networkID,
 		&magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "Test GW Name"})
-	csn := tests.StartMockGwAccessControl(t, []string{testAgHwId})
-	ctx := metadata.NewOutgoingContext(
-		context.Background(),
-		metadata.Pairs(identity.CLIENT_CERT_SN_KEY, csn[0]))
+	ctx := test_utils.GetContextWithCertificate(t, testAgHwId)
 
 	// Create States, IDs, values
 	value0 := Name{Name: "name0"}
@@ -77,7 +72,6 @@ func TestStateService(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Check contract for empty network
-	//response, err := client.GetStates(ctx, makeGetStatesRequest(networkID, bundle0))
 	states, err := state.GetStates(networkID, []state.StateID{bundle0.ID})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(states))

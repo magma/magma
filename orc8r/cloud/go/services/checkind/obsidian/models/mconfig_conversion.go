@@ -91,17 +91,21 @@ func (mstatus *GatewayStatus) FromMconfig(pm proto.Message) error {
 
 			// Populate deprecated fields to support API backwards compatibility
 			// TODO: Remove this and related tests when deprecated fields are no longer used
-			mstatus.VpnIP = mstatus.PlatformInfo.VpnIP
-			mstatus.KernelVersion = mstatus.PlatformInfo.KernelVersion
-			mstatus.KernelVersionsInstalled = mstatus.PlatformInfo.KernelVersionsInstalled
-			for _, mPackage := range mstatus.PlatformInfo.Packages {
-				if mPackage.Name == "magma" {
-					mstatus.Version = mPackage.Version
-				}
-			}
+			mstatus.FillDeprecatedFields()
 		}
 	}
 	return nil
+}
+
+func (status *GatewayStatus) FillDeprecatedFields() {
+	status.VpnIP = status.PlatformInfo.VpnIP
+	status.KernelVersion = status.PlatformInfo.KernelVersion
+	status.KernelVersionsInstalled = status.PlatformInfo.KernelVersionsInstalled
+	for _, mPackage := range status.PlatformInfo.Packages {
+		if mPackage.Name == "magma" {
+			status.Version = mPackage.Version
+		}
+	}
 }
 
 // GatewayStatus is read only (GET) property, ToMconfig should not be used and
