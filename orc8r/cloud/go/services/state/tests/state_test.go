@@ -39,14 +39,14 @@ const (
 type stateBundle struct {
 	value interface{}
 	state *protos.State
-	ID    *protos.StateID
+	ID    state.StateID
 }
 
 func makeStateBundle(typeVal string, key string, value interface{}) stateBundle {
 	marshaledValue, _ := json.Marshal(value)
-	ID := protos.StateID{Type: typeVal, DeviceID: key}
+	ID := state.StateID{Type: typeVal, DeviceID: key}
 	state := protos.State{Type: typeVal, DeviceID: key, Value: marshaledValue}
-	return stateBundle{state: &state, ID: &ID, value: value}
+	return stateBundle{state: &state, ID: ID, value: value}
 }
 
 func TestStateService(t *testing.T) {
@@ -75,35 +75,34 @@ func TestStateService(t *testing.T) {
 	test_service.StartTestService(t)
 	err = serde.RegisterSerdes(&Serde{})
 	assert.NoError(t, err)
-	client, conn, err := getClient()
-	defer conn.Close()
 
 	// Check contract for empty network
-	response, err := client.GetStates(ctx, makeGetStatesRequest(networkID, bundle0))
+	//response, err := client.GetStates(ctx, makeGetStatesRequest(networkID, bundle0))
+	states, err := state.GetStates(networkID, []state.StateID{bundle0.ID})
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(response.States))
+	assert.Equal(t, 0, len(states))
 
 	// Report and read back
-	_, err = client.ReportStates(ctx, makeReportStatesRequest(bundle0, bundle1))
+	err = reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
-	response, err = client.GetStates(ctx, makeGetStatesRequest(networkID, bundle0, bundle1))
+	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
 	assert.NoError(t, err)
-	testGetStatesResponse(t, response, bundle0, bundle1)
+	testGetStatesResponse(t, states, bundle0, bundle1)
 
 	// Report a state with fields the corresponding serde does not expect
-	_, err = client.ReportStates(ctx, makeReportStatesRequest(bundle2))
+	err = reportStates(ctx, bundle2)
 	assert.NoError(t, err)
-	response, err = client.GetStates(ctx, makeGetStatesRequest(networkID, bundle2))
+	states, err = state.GetStates(networkID, []state.StateID{bundle2.ID})
 	assert.NoError(t, err)
-	testGetStatesResponse(t, response, bundle2)
+	testGetStatesResponse(t, states, bundle2)
 
 	// Delete and read back
-	_, err = client.DeleteStates(ctx, makeDeleteStatesRequest(networkID, bundle0, bundle2))
+	err = state.DeleteStates(networkID, []state.StateID{bundle0.ID, bundle2.ID})
 	assert.NoError(t, err)
-	response, err = client.GetStates(ctx, makeGetStatesRequest(networkID, bundle0, bundle1, bundle2))
+	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID, bundle2.ID})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(response.States))
-	testGetStatesResponse(t, response, bundle1)
+	assert.Equal(t, 1, len(states))
+	testGetStatesResponse(t, states, bundle1)
 }
 
 type NameAndAge struct {
@@ -150,38 +149,26 @@ func getClient() (protos.StateServiceClient, *grpc.ClientConn, error) {
 	return protos.NewStateServiceClient(conn), conn, err
 }
 
-func testGetStatesResponse(t *testing.T, response *protos.GetStatesResponse, bundles ...stateBundle) {
-	keyToValue := map[string][]byte{}
-	states := response.States
-	for _, state := range states {
-		keyToValue[state.DeviceID] = state.Value
+func reportStates(ctx context.Context, bundles ...stateBundle) error {
+	client, conn, err := getClient()
+	if err != nil {
+		return err
 	}
+	defer conn.Close()
+	_, err = client.ReportStates(ctx, makeReportStatesRequest(bundles))
+	return err
+}
+
+func testGetStatesResponse(t *testing.T, states map[state.StateID]state.StateValue, bundles ...stateBundle) {
 	for _, bundle := range bundles {
-		value := keyToValue[bundle.ID.DeviceID]
-		assert.Equal(t, bundle.state.Value, value)
+		value := states[bundle.ID]
+		assert.Equal(t, bundle.state.Value, value.ReportedValue)
 	}
 }
 
-func makeGetStatesRequest(networkID string, bundles ...stateBundle) *protos.GetStatesRequest {
-	res := protos.GetStatesRequest{}
-	res.NetworkID = networkID
-	res.Ids = []*protos.StateID{}
-	for _, bundle := range bundles {
-		res.Ids = append(res.Ids, bundle.ID)
-	}
-	return &res
-}
-
-func makeReportStatesRequest(bundles ...stateBundle) *protos.ReportStatesRequest {
+func makeReportStatesRequest(bundles []stateBundle) *protos.ReportStatesRequest {
 	res := protos.ReportStatesRequest{}
 	res.States = makeStates(bundles)
-	return &res
-}
-
-func makeDeleteStatesRequest(networkID string, bundles ...stateBundle) *protos.DeleteStatesRequest {
-	res := protos.DeleteStatesRequest{}
-	res.NetworkID = networkID
-	res.Ids = makeIDs(bundles)
 	return &res
 }
 
@@ -191,12 +178,4 @@ func makeStates(bundles []stateBundle) []*protos.State {
 		states = append(states, bundle.state)
 	}
 	return states
-}
-
-func makeIDs(bundles []stateBundle) []*protos.StateID {
-	IDs := []*protos.StateID{}
-	for _, bundle := range bundles {
-		IDs = append(IDs, bundle.ID)
-	}
-	return IDs
 }
