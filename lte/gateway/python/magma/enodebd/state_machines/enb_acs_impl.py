@@ -102,15 +102,16 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         """ Clean up anything the state machine is tracking or doing """
         self.state.exit()
         if self.timeout_handler is not None:
-            self.mme_timeout_handler.cancel()
             self.timeout_handler.cancel()
+            self.timeout_handler = None
+        if self.mme_timeout_handler is not None:
+            self.mme_timeout_handler.cancel()
+            self.mme_timeout_handler = None
         self._service = None
         self._desired_cfg = None
         self._device_cfg = None
         self._data_model = None
 
-        self.timeout_handler = None
-        self.mme_timeout_handler = None
         self.mme_timer = None
 
     def _start_state_machine(
@@ -163,11 +164,11 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         been disconnected.
         """
         if isinstance(message, models.Inform):
-            logging.debug('ACS in (%s) state. Received an Inform message',
+            logging.warning('ACS in (%s) state. Received an Inform message',
                           self.state.state_description())
             self._reset_state_machine(self.service)
         elif isinstance(message, models.Fault):
-            logging.debug('ACS in (%s) state. Received a Fault <%s>',
+            logging.warning('ACS in (%s) state. Received a Fault <%s>',
                           self.state.state_description(), message.FaultString)
             self.transition(self.unexpected_fault_state_name)
         else:
