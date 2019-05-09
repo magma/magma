@@ -210,8 +210,7 @@ class BaicellsTrDataModel(DataModel):
         ParameterName.UL_BANDWIDTH: transform_for_enb.bandwidth
     }
     TRANSFORMS_FOR_MAGMA = {
-        ParameterName.DL_BANDWIDTH: transform_for_magma.bandwidth,
-        ParameterName.UL_BANDWIDTH: transform_for_magma.bandwidth,
+        # For DL_BANDWIDTH and UL_BANDWIDTH, we read in values as MHz, not RBs
         # We don't set GPS, so we don't need transform for enb
         ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
         ParameterName.GPS_LONG: transform_for_magma.gps_tr181

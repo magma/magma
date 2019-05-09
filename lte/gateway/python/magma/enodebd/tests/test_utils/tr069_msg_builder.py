@@ -268,7 +268,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
@@ -288,7 +288,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         # MME IP
         param_val_list.append(cls.get_parameter_value_struct(
@@ -392,7 +392,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
@@ -412,7 +412,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.X_BAICELLS_COM_LTE.EARFCNDLInUse',
@@ -536,7 +536,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
@@ -556,7 +556,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.X_BAICELLS_COM_LTE.EARFCNDLInUse',
