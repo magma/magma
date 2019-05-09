@@ -31,6 +31,7 @@ import (
 	graphite_exp "magma/orc8r/cloud/go/services/metricsd/graphite/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -89,6 +90,7 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
 		hello.GetObsidianHandlers(),
+		stateh.GetObsidianHandlers(),
 	)
 }
 
