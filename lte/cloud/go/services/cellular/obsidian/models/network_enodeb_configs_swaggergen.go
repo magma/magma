@@ -27,6 +27,10 @@ type NetworkEnodebConfigs struct {
 	// Maximum: 2.68435455e+08
 	CellID uint32 `json:"cell_id,omitempty"`
 
+	// device class
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
+	DeviceClass string `json:"device_class,omitempty"`
+
 	// earfcndl
 	// Maximum: 65535
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
@@ -60,6 +64,10 @@ func (m *NetworkEnodebConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateCellID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateDeviceClass(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -130,6 +138,55 @@ func (m *NetworkEnodebConfigs) validateCellID(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MaximumInt("cell_id", "body", int64(m.CellID), 2.68435455e+08, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var networkEnodebConfigsTypeDeviceClassPropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		networkEnodebConfigsTypeDeviceClassPropEnum = append(networkEnodebConfigsTypeDeviceClassPropEnum, v)
+	}
+}
+
+const (
+
+	// NetworkEnodebConfigsDeviceClassBaicellsNova233G2ODFDD captures enum value "Baicells Nova-233 G2 OD FDD"
+	NetworkEnodebConfigsDeviceClassBaicellsNova233G2ODFDD string = "Baicells Nova-233 G2 OD FDD"
+
+	// NetworkEnodebConfigsDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
+	NetworkEnodebConfigsDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
+
+	// NetworkEnodebConfigsDeviceClassBaicellsIDTDDFDD captures enum value "Baicells ID TDD/FDD"
+	NetworkEnodebConfigsDeviceClassBaicellsIDTDDFDD string = "Baicells ID TDD/FDD"
+
+	// NetworkEnodebConfigsDeviceClassNuRANCaviumOCLTE captures enum value "NuRAN Cavium OC-LTE"
+	NetworkEnodebConfigsDeviceClassNuRANCaviumOCLTE string = "NuRAN Cavium OC-LTE"
+)
+
+// prop value enum
+func (m *NetworkEnodebConfigs) validateDeviceClassEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, networkEnodebConfigsTypeDeviceClassPropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *NetworkEnodebConfigs) validateDeviceClass(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DeviceClass) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateDeviceClassEnum("device_class", "body", m.DeviceClass); err != nil {
 		return err
 	}
 

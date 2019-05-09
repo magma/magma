@@ -127,5 +127,6 @@ func NewDefaultEnodebConfig() *protos.CellularEnodebConfig {
 		Tac:                    15000,
 		BandwidthMhz:           3,
 		TransmitEnabled:        true,
+		DeviceClass:            "Baicells ID TDD/FDD",
 	}
 }

@@ -274,6 +274,11 @@ func TestValidateEnodebConfig(t *testing.T) {
 	assert.Error(t, err)
 
 	config = test_utils.NewDefaultEnodebConfig()
+	config.DeviceClass = "Some unsupported device"
+	err = protos.ValidateEnodebConfig(config)
+	assert.Error(t, err)
+
+	config = test_utils.NewDefaultEnodebConfig()
 	config.CellId = 268435456
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
