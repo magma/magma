@@ -40,6 +40,9 @@ message EnodebD {
         int32 pci = 4;
         bool transmit_enabled = 5;
         string device_class = 6;
+        int32 bandwidth_mhz = 7;
+        int32 tac = 8;
+        int32 cell_id = 9;
     }
 
     orc8r.LogLevel log_level = 1;
