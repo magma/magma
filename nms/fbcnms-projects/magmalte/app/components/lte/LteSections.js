@@ -14,12 +14,14 @@ import React from 'react';
 import BarChartIcon from '@material-ui/icons/BarChart';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Configure from '../network/Configure';
+import Enodebs from './Enodebs';
 import Gateways from '../Gateways';
 import Insights from '../insights/Insights';
 import Metrics from '../insights/Metrics';
 import PeopleIcon from '@material-ui/icons/People';
 import PublicIcon from '@material-ui/icons/Public';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
+import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Subscribers from '../Subscribers';
 
 export function getLteSections(): Section[] {
@@ -47,6 +49,12 @@ export function getLteSections(): Section[] {
       label: 'Gateways',
       icon: <CellWifiIcon />,
       component: Gateways,
+    },
+    {
+      path: 'enodebs',
+      label: 'eNodeB Devices',
+      icon: <SettingsInputAntennaIcon />,
+      component: Enodebs,
     },
     {
       path: 'configure',
