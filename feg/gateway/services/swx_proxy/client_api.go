@@ -97,6 +97,22 @@ func Register(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, erro
 	return cli.Register(context.Background(), req)
 }
 
+// Deregister sends SAR (Code 301) over diameter connection with ServerAssignmentType
+// set to USER_DEREGISTRATION, waits (blocks) for SAA & returns its RPC representation
+func Deregister(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, error) {
+	err := verifyRegistrationRequest(req)
+	if err != nil {
+		errMsg := fmt.Errorf("Invalid RegistrationRequest provided: %s", err)
+		return nil, errors.New(errMsg.Error())
+	}
+	cli, err := getSwxProxyClient()
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Cleanup()
+	return cli.Deregister(context.Background(), req)
+}
+
 // AuthenticateRemote sends MAR (code 303) to a remote swx_proxy service,
 // waits (blocks) for MAA & returns its RPC representation
 func AuthenticateRemote(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
