@@ -58,72 +58,75 @@ export function unprotectedUserRoutes() {
   return router;
 }
 
-function userMiddleware(options: Options): express.Router {
-  const router = express.Router();
+export async function getPropsToUpdate(
+  allowedProps: $Keys<typeof FIELD_MAP>[],
+  body: {[string]: mixed},
+  organizationInjector: ({[string]: any}) => Promise<{
+    [string]: any,
+    organization?: string,
+  }>,
+): Promise<$Shape<UserRawType>> {
+  allowedProps = allowedProps.filter(prop =>
+    User.rawAttributes.hasOwnProperty(FIELD_MAP[prop]),
+  );
+  const userProperties = {};
+  for (const prop of allowedProps) {
+    if (body.hasOwnProperty(prop)) {
+      switch (prop) {
+        case 'email':
+          const emailUnsafe = body[prop];
+          if (
+            typeof emailUnsafe !== 'string' ||
+            !EmailValidator.validate(body.email)
+          ) {
+            throw new Error('Please enter a valid email');
+          }
+          const email = emailUnsafe.toLowerCase();
 
-  async function getPropsToUpdate(
-    req: FBCNMSRequest,
-    allowedProps: $Keys<typeof FIELD_MAP>[],
-    body: {[string]: mixed},
-  ): Promise<$Shape<UserRawType>> {
-    allowedProps = allowedProps.filter(prop =>
-      User.rawAttributes.hasOwnProperty(FIELD_MAP[prop]),
-    );
-    const userProperties = {};
-    for (const prop of allowedProps) {
-      if (body.hasOwnProperty(prop)) {
-        switch (prop) {
-          case 'email':
-            const emailUnsafe = body[prop];
-            if (
-              typeof emailUnsafe !== 'string' ||
-              !EmailValidator.validate(body.email)
-            ) {
-              throw new Error('Please enter a valid email');
-            }
-            const email = emailUnsafe.toLowerCase();
-
-            // Check if user exists
-            const where = await injectOrganizationParams(req, {email});
-            if (await User.findOne({where})) {
-              throw new Error(`${email} already exists`);
-            }
-            userProperties[prop] = email;
+          // Check if user exists
+          const where = await organizationInjector({email});
+          if (await User.findOne({where})) {
+            throw new Error(`${email} already exists`);
+          }
+          userProperties[prop] = email;
+          break;
+        case 'password':
+          userProperties[prop] = await validateAndHashPassword(body[prop]);
+          break;
+        case 'superUser':
+          userProperties.role =
+            body[prop] == true ? AccessRoles.SUPERUSER : AccessRoles.USER;
+          break;
+        case 'networkIDs':
+          const networkIDsunsafe = body[prop];
+          if (Array.isArray(networkIDsunsafe)) {
+            const networkIDs: Array<string> = networkIDsunsafe.map(it => {
+              if (typeof it !== 'string') {
+                throw new Error('Please enter valid network IDs');
+              }
+              return it;
+            });
+            userProperties[prop] = networkIDs;
             break;
-          case 'password':
-            userProperties[prop] = await validateAndHashPassword(body[prop]);
-            break;
-          case 'superUser':
-            userProperties.role =
-              body[prop] == true ? AccessRoles.SUPERUSER : AccessRoles.USER;
-            break;
-          case 'networkIDs':
-            const networkIDsunsafe = body[prop];
-            if (Array.isArray(networkIDsunsafe)) {
-              const networkIDs: Array<string> = networkIDsunsafe.map(it => {
-                if (typeof it !== 'string') {
-                  throw new Error('Please enter valid network IDs');
-                }
-                return it;
-              });
-              userProperties[prop] = networkIDs;
-              break;
-            }
-            throw new Error('Please enter valid network IDs');
-          case 'organization':
-            if (typeof body[prop] !== 'string') {
-              throw new Error('Invalid Organization!');
-            }
-            userProperties[prop] = body[prop];
-            break;
-          default:
-            userProperties[prop] = body[prop];
-            break;
-        }
+          }
+          throw new Error('Please enter valid network IDs');
+        case 'organization':
+          if (typeof body[prop] !== 'string') {
+            throw new Error('Invalid Organization!');
+          }
+          userProperties[prop] = body[prop];
+          break;
+        default:
+          userProperties[prop] = body[prop];
+          break;
       }
     }
-    return userProperties;
   }
+  return userProperties;
+}
+
+function userMiddleware(options: Options): express.Router {
+  const router = express.Router();
 
   // Login / Logout Routes
   router.post('/login', (req: FBCNMSRequest, res, next) => {
@@ -225,7 +228,11 @@ function userMiddleware(options: Options): express.Router {
         }
 
         const allowedProps = ['email', 'networkIDs', 'password', 'superUser'];
-        let userProperties = await getPropsToUpdate(req, allowedProps, body);
+        let userProperties = await getPropsToUpdate(
+          allowedProps,
+          body,
+          params => injectOrganizationParams(req, params),
+        );
         userProperties = await injectOrganizationParams(req, userProperties);
         const user = await User.create(userProperties);
 
@@ -255,9 +262,9 @@ function userMiddleware(options: Options): express.Router {
         const allowedProps = ['networkIDs', 'password', 'superUser'];
 
         const userProperties = await getPropsToUpdate(
-          req,
           allowedProps,
           req.body,
+          params => injectOrganizationParams(req, params),
         );
         if (isEmpty(userProperties)) {
           throw new Error('No valid properties to edit!');
