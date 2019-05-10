@@ -336,15 +336,6 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	return nil
 }
 
-// fixGraph will load a a graph which may have been partitioned, do a connected
-// component search on it, and relabel components if a partition is detected.
-// entToUpdateOut is an output parameter
-func (store *sqlConfiguratorStorage) fixGraph(graphID string, entToUpdateOut *entWithPk) error {
-	// TODO: implement after LoadGraphForEntity
-
-	return nil
-}
-
 type updateEntityExecTemplateArgs struct {
 	TableName, Fields, FieldsPlaceholder, ConditionPlaceholder string
 }

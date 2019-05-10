@@ -10,6 +10,7 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	"magma/orc8r/cloud/go/storage"
 
@@ -289,12 +290,15 @@ type EntityLoadFilter struct {
 	// provided TypeAndKeys. TypeFilter and KeyFilter are ignored if IDs is
 	// provided.
 	IDs []storage.TypeAndKey
+
+	// Unexported for internal use
+	graphID *string
 }
 
 // IsLoadAllEntities return true if the EntityLoadFilter is specifying to load
 // all entities in a network, false if there are any filter conditions.
 func (elf EntityLoadFilter) IsLoadAllEntities() bool {
-	return elf.TypeFilter == nil && elf.KeyFilter == nil && funk.IsEmpty(elf.IDs)
+	return elf.TypeFilter == nil && elf.KeyFilter == nil && elf.graphID == nil && funk.IsEmpty(elf.IDs)
 }
 
 // EntityLoadCriteria specifies how much of an entity to load
@@ -364,12 +368,11 @@ func (euc EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
 
 // EntityGraph represents a DAG of associated network entities.
 type EntityGraph struct {
-	// All nodes in the graph, arbitrarily ordered.
-	Entities []*NetworkEntity
+	// All nodes in the graph
+	Entities []NetworkEntity
 
-	// All nodes in the graph topologically sorted and organized by level
-	// (i.e. number of hops from an entry/root node).
-	EntitiesByLevel [][]*NetworkEntity
+	// All nodes in the graph which don't have any edges terminating at them.
+	RootEntities []storage.TypeAndKey
 
 	// All edges in the graph.
 	Edges []GraphEdge
@@ -378,4 +381,8 @@ type EntityGraph struct {
 // GraphEdge represents a directed edge within a graph
 type GraphEdge struct {
 	To, From storage.TypeAndKey
+}
+
+func (edge GraphEdge) String() string {
+	return fmt.Sprintf("%s, %s", edge.From, edge.To)
 }
