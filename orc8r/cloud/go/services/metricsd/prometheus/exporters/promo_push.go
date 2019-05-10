@@ -16,7 +16,6 @@ import (
 	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
 
 	"github.com/golang/glog"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/push"
 )

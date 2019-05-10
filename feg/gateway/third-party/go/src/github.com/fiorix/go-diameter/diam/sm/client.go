@@ -319,7 +319,11 @@ func (cli *Client) makeDWR(osid uint32) *diam.Message {
 }
 
 func getLocalAddresses(c diam.Conn) ([]datatype.Address, error) {
-	addr, _, err := net.SplitHostPort(c.LocalAddr().String())
+	var addrStr string
+	if c.LocalAddr() != nil {
+		addrStr = c.LocalAddr().String()
+	}
+	addr, _, err := net.SplitHostPort(addrStr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse local ip %q: %s", c.LocalAddr(), err)
 	}

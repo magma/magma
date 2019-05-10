@@ -35,6 +35,8 @@ const connectSession = require('connect-session-sequelize');
 const express = require('express');
 const passport = require('passport');
 const fbcPassport = require('@fbcnms/auth/passport').default;
+const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationLocalStrategy')
+  .default;
 const paths = require('fbcnms-webpack-config/paths');
 const session = require('express-session');
 const {sequelize} = require('@fbcnms/sequelize-models');
@@ -68,7 +70,7 @@ app.use(
       process.env.SESSION_TOKEN || 'fhcfvugnlkkgntihvlekctunhbbdbjiu',
   }),
 );
-app.use(csrfMiddleware());
+app.use(csrfMiddleware({devMode: DEV_MODE}));
 app.use(
   webpackSmartMiddleware({
     devMode: DEV_MODE,
@@ -80,6 +82,7 @@ app.use(passport.initialize());
 app.use(passport.session()); // must be after sessionMiddleware
 
 fbcPassport.use();
+passport.use(OrganizationLocalStrategy());
 
 // Restrict all endpoints to at least USER level
 app.use(configureAccess({loginUrl: '/nms/user/login'}));

@@ -52,6 +52,45 @@ func mockKeyGetter(_ echo.Context) (string, *echo.HTTPError) {
 	return "key", nil
 }
 
+func TestReadAllKeysConfigHandler(t *testing.T) {
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	assert.NoError(t, err)
+	obisidan_config.TLS = false // To bypass access control
+
+	config_test_init.StartTestService(t)
+
+	e := echo.New()
+	req := httptest.NewRequest(echo.GET, "/", nil)
+	rec := httptest.NewRecorder()
+
+	c := e.NewContext(req, rec)
+	c.SetParamNames("network_id")
+	c.SetParamValues("network1")
+
+	// 404
+	actual := &fooConfig{}
+	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
+
+	// Happy path
+	a_config := &fooConfig{Foo: "foo", Bar: "bar"}
+	err = config.CreateConfig("network1", "foo", "key", a_config)
+	assert.NoError(t, err)
+
+	actual_keys := &[]string{}
+	expected := &[]string{"key"}
+	err = obsidian.GetReadAllKeysConfigHandler("google.com", "foo").HandlerFunc(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	err = json.Unmarshal(rec.Body.Bytes(), actual_keys)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual_keys)
+
+	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+}
+
 func TestGetConfigHandler(t *testing.T) {
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
 	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})

@@ -88,4 +88,5 @@ RUN echo false > /var/opt/magma/envdir/SHOULD_INIT_METERING_TABLES && \
 
 # Copy the supervisor configs
 COPY src/magma/orc8r/cloud/deploy/roles/controller/files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY src/magma/orc8r/cloud/scripts/supervisor_logger.py /usr/local/lib/python2.7/dist-packages/supervisor_logger.py
 CMD ["/usr/bin/supervisord"]

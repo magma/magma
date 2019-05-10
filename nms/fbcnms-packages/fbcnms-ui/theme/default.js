@@ -10,22 +10,26 @@
 
 import {createMuiTheme} from '@material-ui/core/styles';
 import {
+  blueGrayDark,
+  fadedBlue,
   gray0,
-  sea100,
-  sea200,
-  sea300,
+  blue05,
+  blue30,
+  blue60,
   red,
   redwood,
   white,
-  fadedBlue,
+  gray00,
+  gray50,
+  primaryText,
 } from './colors';
 
 export default createMuiTheme({
   palette: {
     primary: {
-      light: sea100,
-      main: sea200,
-      dark: sea300,
+      light: blue30,
+      main: blue60,
+      dark: blueGrayDark,
     },
     secondary: {
       main: '#606770',
@@ -53,11 +57,18 @@ export default createMuiTheme({
     redwood: redwood,
     dark: '#1d2129',
     fadedBlue: fadedBlue,
+    blueGrayDark: blueGrayDark,
+    blue05: blue05,
+    blue30: blue30,
+    blue60: blue60,
+    gray00: gray00,
+    gray50: gray50,
+    primaryText: primaryText,
   },
   overrides: {
     MuiAppBar: {
       colorPrimary: {
-        backgroundColor: sea200,
+        backgroundColor: blue60,
         color: white,
       },
     },
@@ -73,29 +84,29 @@ export default createMuiTheme({
       '&$selected': {
         boxShadow: 'none',
         borderRadius: 4,
-        border: `1px solid ${sea200}`,
+        border: `1px solid ${blue60}`,
       },
     },
     MuiToggleButton: {
       root: {
-        color: sea200,
+        color: blue60,
         backgroundColor: white,
         textTransform: 'none',
         '&$selected': {
           color: white,
-          backgroundColor: sea200,
+          backgroundColor: blue60,
         },
       },
     },
     MuiIconButton: {
       root: {
-        color: sea100,
+        color: blue60,
       },
     },
     MuiAvatar: {
       colorDefault: {
         backgroundColor: '#e4f0f6',
-        color: sea200,
+        color: blue60,
       },
     },
     MuiInputLabel: {

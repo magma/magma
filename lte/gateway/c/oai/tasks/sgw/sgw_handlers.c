@@ -1624,12 +1624,30 @@ int sgw_handle_release_access_bearers_request(
       ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
     release_access_bearers_resp_p->trxn = release_access_bearers_req_pP->trxn;
     //#pragma message  "TODO Here the release (sgw_handle_release_access_bearers_request)"
+    /*
+     * Release the tunnels so that in idle state, DL packets are not sent
+     * towards eNB.
+     * These tunnels will be added again when UE moves back to connected mode.
+     */
     // TODO iterator
     for (int ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
       sgw_eps_bearer_ctxt_t *eps_bearer_ctxt =
         ctx_p->sgw_eps_bearer_context_information.pdn_connection
           .sgw_eps_bearers_array[ebx];
       if (eps_bearer_ctxt) {
+        rv = gtp_tunnel_ops->del_tunnel(
+          eps_bearer_ctxt->paa.ipv4_address,
+          eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
+          eps_bearer_ctxt->enb_teid_S1u,
+          NULL);
+        if (rv < 0) {
+          OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "ERROR in deleting TUNNEL " TEID_FMT
+            " (eNB) <-> (SGW) " TEID_FMT "\n",
+            eps_bearer_ctxt->enb_teid_S1u,
+            eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up);
+        }
         sgw_release_all_enb_related_information(eps_bearer_ctxt);
       }
     }

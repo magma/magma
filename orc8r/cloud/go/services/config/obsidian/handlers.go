@@ -100,6 +100,39 @@ func GetCRUDGatewayConfigHandlers(
 	}
 }
 
+// GetReadAllKeysConfigHandler returns an obsidian handler for reading all
+// keys of a type using the config service.
+// The returned Handler will have Methods set to GET.
+//
+// path is the URI for the handler to serve.
+func GetReadAllKeysConfigHandler(
+	path string,
+	configType string,
+) handlers.Handler {
+	return handlers.Handler{
+		Path:    path,
+		Methods: handlers.GET,
+		HandlerFunc: func(c echo.Context) error {
+			networkID, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+			return handleGetAllKeys(c, networkID, configType)
+		},
+	}
+}
+
+func handleGetAllKeys(c echo.Context, networkID string, configType string) error {
+	keysArr, err := config.ListKeysForType(networkID, configType)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	if keysArr == nil {
+		return handlers.HttpError(errors.New("Keys not found"), http.StatusNotFound)
+	}
+	return c.JSON(http.StatusOK, keysArr)
+}
+
 // GetReadConfigHandler returns an obsidian handler for getting a config
 // from the config service. The returned Handler will have Methods set to GET.
 //

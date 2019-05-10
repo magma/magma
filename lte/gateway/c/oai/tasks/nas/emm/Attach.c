@@ -622,6 +622,13 @@ int emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause)
       emm_sap.u.emm_reg.free_proc = true;
       emm_sap.u.emm_reg.u.attach.proc = attach_proc;
       rc = emm_sap_send(&emm_sap);
+    } else {
+      nas_emm_attach_proc_t no_attach_proc = {0};
+      no_attach_proc.ue_id = ue_id;
+      no_attach_proc.emm_cause = emm_cause;
+      no_attach_proc.esm_msg_out = NULL;
+      rc = _emm_attach_reject(
+      &ue_mm_context->emm_context, (struct nas_base_proc_s *) &no_attach_proc);
     }
     unlock_ue_contexts(ue_mm_context);
   }

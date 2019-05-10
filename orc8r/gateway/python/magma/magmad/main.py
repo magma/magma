@@ -26,6 +26,7 @@ from .config_manager import CONFIG_STREAM_NAME, ConfigManager
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
 from .rpc_servicer import MagmadRpcServicer
 from .service_manager import ServiceManager
+from .state_reporter import StateReporter
 from .service_poller import ServicePoller
 from .sync_rpc_client import SyncRPCClient
 
@@ -72,10 +73,10 @@ def main():
     # Schedule periodic checkins
     checkin_manager = CheckinManager(service, service_poller)
 
-    # Create sync rpc client with a timeout of 60 seconds
+    # Create sync rpc client with a heartbeat of 30 seconds (timeout = 60s)
     sync_rpc_client = None
     if service.config.get('enable_sync_rpc', False):
-        sync_rpc_client = SyncRPCClient(service.loop, 60)
+        sync_rpc_client = SyncRPCClient(service.loop, 30)
 
     first_time_bootstrap = True
 
@@ -105,6 +106,10 @@ def main():
 
     # Start bootstrap_manager after checkin_manager's callback is set
     bootstrap_manager.start_bootstrap_manager()
+
+    # Schedule periodic state reporting
+    state_manager = StateReporter(service, checkin_manager)
+    state_manager.start()
 
     # Start all services when magmad comes up
     service.loop.create_task(service_manager.start_services())

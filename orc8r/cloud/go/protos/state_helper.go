@@ -20,12 +20,12 @@ func BlobsToStates(blobs []blobstore.Blob) []*State {
 	return states
 }
 
-func StatesToBlobs(states []*State) []blobstore.Blob {
-	blobs := []blobstore.Blob{}
-	for _, state := range states {
-		blobs = append(blobs, blobstore.Blob{Type: state.GetType(), Key: state.GetDeviceID(), Value: state.GetValue()})
+func (state *State) ToBlob() blobstore.Blob {
+	return blobstore.Blob{
+		Type:  state.GetType(),
+		Key:   state.GetDeviceID(),
+		Value: state.GetValue(),
 	}
-	return blobs
 }
 
 func StateIDsToTKs(IDs []*StateID) []storage.TypeAndKey {

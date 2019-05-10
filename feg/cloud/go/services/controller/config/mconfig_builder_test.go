@@ -63,7 +63,8 @@ func TestControllerBuilder_Build(t *testing.T) {
 				MaxUlBitRate: 100000000, // 100 Mbps
 				MaxDlBitRate: 200000000, // 200 Mbps
 			},
-			SubProfiles: make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
+			SubProfiles:       make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
+			StreamSubscribers: false,
 		},
 		"session_proxy": &mconfig.SessionProxyConfig{
 			LogLevel: 1,

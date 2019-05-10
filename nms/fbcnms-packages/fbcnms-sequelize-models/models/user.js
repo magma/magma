@@ -16,16 +16,22 @@ import {AccessRoles} from '@fbcnms/auth/roles';
 import type {DataTypes, Model} from 'sequelize';
 import type {AssociateProp} from './AssociateTypes.flow';
 
-export type UserRawType = {
+// This is the type required for creation
+type UserRawInitType = {
   email: string,
   organization?: string,
   password: string,
   role: number,
   networkIDs?: Array<string>,
-  isSuperUser?: boolean,
 };
 
-type UserModel = Model<UserRawType>;
+// This is the type read back
+export type UserRawType = {
+  networkIDs: Array<string>,
+  isSuperUser: boolean,
+} & UserRawInitType;
+
+type UserModel = Model<UserRawType, UserRawInitType>;
 export type StaticUserModel = Class<UserModel>;
 export type UserType = UserModel & UserRawType;
 

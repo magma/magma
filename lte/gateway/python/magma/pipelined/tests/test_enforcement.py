@@ -28,7 +28,7 @@ from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     PktsToSend, SubTest, create_service_manager, start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send
+    stop_ryu_app_thread, wait_after_send, SnapshotVerifier
 
 
 class EnforcementTableTest(unittest.TestCase):
@@ -49,8 +49,8 @@ class EnforcementTableTest(unittest.TestCase):
         super(EnforcementTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls._static_rule_dict = {}
-        service_manager = create_service_manager([PipelineD.ENFORCEMENT])
-        cls._tbl_num = service_manager.get_table_num(
+        cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
+        cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
 
         enforcement_controller_reference = Future()
@@ -73,7 +73,7 @@ class EnforcementTableTest(unittest.TestCase):
             },
             mconfig=None,
             loop=None,
-            service_manager=service_manager,
+            service_manager=cls.service_manager,
             integ_test=False
         )
 
@@ -140,8 +140,10 @@ class EnforcementTableTest(unittest.TestCase):
                      pkts_sent),
             FlowTest(flow_query, pkts_matched)
         ], lambda: wait_after_send(self.testing_controller))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
 
-        with isolator, sub_context, flow_verifier:
+        with isolator, sub_context, flow_verifier, snapshot_verifier:
             pkt_sender.send(packet)
 
         flow_verifier.verify()
@@ -170,8 +172,10 @@ class EnforcementTableTest(unittest.TestCase):
         )
         flow_query = FlowQuery(self._tbl_num, self.testing_controller)
         num_flows_start = len(flow_query.lookup())
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
 
-        with isolator, invalid_sub_context:
+        with isolator, invalid_sub_context, snapshot_verifier:
             wait_after_send(self.testing_controller)
             num_flows_final = len(flow_query.lookup())
 
@@ -233,8 +237,10 @@ class EnforcementTableTest(unittest.TestCase):
                      pkts_sent),
             FlowTest(flow_query, pkts_sent)
         ], lambda: wait_after_send(self.testing_controller))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
 
-        with isolator, sub_context, flow_verifier:
+        with isolator, sub_context, flow_verifier, snapshot_verifier:
             pkt_sender.send(packet, pkts_sent)
 
         flow_verifier.verify()
@@ -319,8 +325,11 @@ class EnforcementTableTest(unittest.TestCase):
             s1.flowtest_list,
             s2.flowtest_list
         ], lambda: wait_after_send(self.testing_controller))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
 
-        with s1.isolator, s1.context, s2.isolator, s2.context, flow_verifier:
+        with s1.isolator, s1.context, s2.isolator, s2.context, flow_verifier, \
+             snapshot_verifier:
             for pkt in pkts_to_send:
                 pkt_sender.send(pkt.pkt, pkt.num)
 

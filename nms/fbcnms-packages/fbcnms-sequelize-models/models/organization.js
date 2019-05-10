@@ -18,6 +18,9 @@ export type OrganizationRawType = {
   tabs?: Array<string>,
   customDomains?: Array<string>,
   networkIDs: Array<string>,
+  ssoCert: string,
+  ssoEntrypoint: string,
+  ssoIssuer: string,
 };
 
 type OrganizationGetters = {
@@ -60,6 +63,21 @@ export default (
         type: types.JSON,
         allowNull: false,
         defaultValue: [],
+      },
+      ssoCert: {
+        type: types.TEXT,
+        allowNull: false,
+        defaultValue: '',
+      },
+      ssoEntrypoint: {
+        type: types.STRING,
+        allowNull: false,
+        defaultValue: '',
+      },
+      ssoIssuer: {
+        type: types.STRING,
+        allowNull: false,
+        defaultValue: '',
       },
     },
     {

@@ -48,7 +48,11 @@ function mockOrgMiddleware(orgName: string) {
 function mockUserMiddleware(where) {
   return async (req: FBCNMSRequest, _res, next) => {
     req.isAuthenticated = () => true;
-    req.user = await User.findOne({where});
+    const user = await User.findOne({where});
+    if (!user) {
+      throw new Error('Could not find a user');
+    }
+    req.user = user;
     next();
   };
 }

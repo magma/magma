@@ -159,5 +159,15 @@ attrLoop:
 	uc.Unlock()
 	s.ResetSessionTimeout(sessionId, s.SessionAuthenticatedTimeout())
 
-	return []byte{eap.SuccessCode, identifier, 0, 4}, nil
+	// RFC 3748 p4.2 EAP Success packet
+	//  0                   1                   2                   3
+	//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	// |     Code      |  Identifier   |            Length             |
+	// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	return []byte{
+			eap.SuccessCode, // Code
+			identifier,      // Identifier
+			0, 4},           // Length
+		nil
 }

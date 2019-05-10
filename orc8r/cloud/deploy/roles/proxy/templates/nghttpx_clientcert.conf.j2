@@ -46,4 +46,8 @@ backend={{ backend }},{{obsidian_port}};;no-tls;dns
 {% endfor -%}
 
 # Proxy configs
+{% if docker_enabled is defined and docker_enabled is sameas true %}
+{% include './nghttpx_common_docker.conf.j2' %}
+{% else %}
 {% include './nghttpx_common.conf.j2' %}
+{% endif %}

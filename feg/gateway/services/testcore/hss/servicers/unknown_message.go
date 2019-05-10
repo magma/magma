@@ -9,12 +9,13 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"log"
+
 	"github.com/fiorix/go-diameter/diam"
-	"github.com/golang/glog"
 )
 
 // handleUnknownMessage is called when a diameter message is received with a
 // code that we have not registered a handler for.
 func handleUnknownMessage(_ diam.Conn, msg *diam.Message) {
-	glog.V(2).Infof("Unhandled diameter message with command code: %v", msg.Header.CommandCode)
+	log.Printf("Unhandled diameter message with command code: %v", msg.Header.CommandCode)
 }

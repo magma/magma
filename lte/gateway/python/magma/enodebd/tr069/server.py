@@ -15,7 +15,7 @@ from wsgiref.simple_server import ServerHandler, WSGIRequestHandler, \
 from spyne.server.wsgi import WsgiApplication
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
-from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from .models import CWMP_NS
 from .rpc_methods import AutoConfigServer
 from .spyne_mods import Tr069Application, Tr069Soap11
@@ -95,7 +95,7 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
         logging.warning("%s - %s", self.client_address[0], format % args)
 
 
-def tr069_server(state_machine_pointer: StateMachinePointer) -> None:
+def tr069_server(state_machine_manager: StateMachineManager) -> None:
     """
     TR-069 server
     Inputs:
@@ -106,7 +106,7 @@ def tr069_server(state_machine_pointer: StateMachinePointer) -> None:
     """
     config = load_service_config("enodebd")
 
-    AutoConfigServer.set_state_machine_pointer(state_machine_pointer)
+    AutoConfigServer.set_state_machine_manager(state_machine_manager)
 
     app = Tr069Application([AutoConfigServer], CWMP_NS,
                            in_protocol=Tr069Soap11(validator='soft'),

@@ -99,6 +99,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.playbook = "deploy/metrics.dev.yml"
       ansible.verbose = true
     end
+
+    metrics.vm.synced_folder "../../../magma", "/home/vagrant/magma"
+
     metrics.vm.provider "virtualbox" do |v|
       v.memory = 2048
       v.cpus = 1

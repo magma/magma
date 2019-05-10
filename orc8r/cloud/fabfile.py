@@ -118,6 +118,9 @@ def _package_vagrant_zip(service, folder, cloud_host, commit_hash):
 
     # Build Go binaries and plugins
     build()
+    if service == "metrics":
+        run("make -C magma/orc8r/cloud/go/services/metricsd/prometheus/prometheus-cache build")
+
     run('cp -pr go/plugins %s' % folder)
     _copy_go_binaries(service, folder)
 
@@ -165,6 +168,8 @@ def _copy_go_binaries(service, folder):
         run('cp go/bin/logger %s/bin/.' % folder)
     if service == 'controller':
         run('cp -pr go/bin %s' % folder)
+    if service == 'metrics':
+        run('cp -pr go/bin/prometheus-cache %s/bin/.' % folder)
 
 
 def _push_archive_to_s3(service, folder, zip_name):

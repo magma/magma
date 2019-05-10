@@ -115,6 +115,7 @@ static int s1ap_generate_s1_setup_response(
   enb_description_t *enb_association);
 
 static int s1ap_mme_generate_ue_context_release_command(
+  s1ap_state_t *state,
   ue_description_t *ue_ref_p,
   enum s1cause);
 
@@ -1033,6 +1034,7 @@ int s1ap_mme_handle_ue_context_release_request(
 
 //------------------------------------------------------------------------------
 static int s1ap_mme_generate_ue_context_release_command(
+  s1ap_state_t *state,
   ue_description_t *ue_ref_p,
   enum s1cause cause)
 {
@@ -1043,7 +1045,6 @@ static int s1ap_mme_generate_ue_context_release_command(
   int rc = RETURNok;
   S1ap_Cause_PR cause_type;
   long cause_value;
-  s1ap_timer_arg_t timer_arg = {0};
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (ue_ref_p == NULL) {
@@ -1127,29 +1128,9 @@ static int s1ap_mme_generate_ue_context_release_command(
 
   // Start timer to track UE context release complete from eNB
 
-  timer_arg.timer_class = S1AP_UE_TIMER;
-  timer_arg.instance_id = ue_ref_p->mme_ue_s1ap_id;
-  if (
-    timer_setup(
-      ue_ref_p->s1ap_ue_context_rel_timer.sec,
-      0,
-      TASK_S1AP,
-      INSTANCE_DEFAULT,
-      TIMER_ONE_SHOT,
-      (void *) &timer_arg,
-      sizeof(s1ap_timer_arg_t),
-      &(ue_ref_p->s1ap_ue_context_rel_timer.id)) < 0) {
-    OAILOG_ERROR(
-      LOG_S1AP,
-      "Failed to start UE context release complete timer for UE id %d \n",
-      ue_ref_p->mme_ue_s1ap_id);
-    ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
-  } else {
-    OAILOG_DEBUG(
-      LOG_S1AP,
-      "Started S1AP UE context release timer for UE id  %d \n",
-      ue_ref_p->mme_ue_s1ap_id);
-  }
+  // We can safely remove UE context now, no need for timer
+  s1ap_mme_release_ue_context(state, ue_ref_p);
+
   free_s1ap_uecontextreleasecommand(ueContextReleaseCommandIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
@@ -1304,7 +1285,7 @@ int s1ap_handle_ue_context_release_command(
       s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(
-        ue_ref_p, ue_context_release_command_pP->cause);
+        state, ue_ref_p, ue_context_release_command_pP->cause);
     }
   }
 
@@ -1354,7 +1335,6 @@ int s1ap_mme_handle_ue_context_release_complete(
 {
   S1ap_UEContextReleaseCompleteIEs_t *ueContextReleaseComplete_p = NULL;
   ue_description_t *ue_ref_p = NULL;
-  MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   ueContextReleaseComplete_p = &message->msg.s1ap_UEContextReleaseCompleteIEs;
@@ -1373,13 +1353,13 @@ int s1ap_mme_handle_ue_context_release_complete(
     (ue_ref_p = s1ap_state_get_ue_mmeid(
        state, ueContextReleaseComplete_p->mme_ue_s1ap_id)) == NULL) {
     /*
-     * MME doesn't know the MME UE S1AP ID provided.
-     * This implies that UE context has already been deleted on the expiry of timer
+     * The UE context has already been deleted when the UE context release
+     * command was sent
      * Ignore this message.
      */
     OAILOG_DEBUG(
       LOG_S1AP,
-      " UE Context Release commplete:No S1 context. Ignore the message for "
+      " UE Context Release commplete: S1 context cleared. Ignore message for "
       "ueid " MME_UE_S1AP_ID_FMT "\n",
       (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
     MSC_LOG_EVENT(
@@ -1389,32 +1369,18 @@ int s1ap_mme_handle_ue_context_release_complete(
       ueContextReleaseComplete_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
-
-  /*
-   * eNB has sent a release complete message. We can safely remove UE context.
-   * TODO: inform NAS and remove e-RABS.
-   */
-  message_p =
-    itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
-    ue_ref_p->mme_ue_s1ap_id;
-  MSC_LOG_TX_MESSAGE(
-    MSC_S1AP_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 S1AP_UE_CONTEXT_RELEASE_COMPLETE mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
-    S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id);
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
-  s1ap_remove_ue(state, ue_ref_p);
-  OAILOG_DEBUG(
-    LOG_S1AP,
-    "Removed UE " MME_UE_S1AP_ID_FMT "\n",
-    (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
-  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-}
+  else{
+    /* This is an error scenario, the S1 UE context should have been deleted
+     * when UE context release command was sent
+     */
+    OAILOG_ERROR(
+      LOG_S1AP,
+      " UE Context Release commplete: S1 context should have been cleared for "
+      "ueid " MME_UE_S1AP_ID_FMT "\n",
+      (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+ }
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_context_setup_failure(
@@ -2200,6 +2166,48 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
   s1ap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
+
+//------------------------------------------------------------------------------
+void s1ap_mme_release_ue_context(
+  s1ap_state_t *state,
+  ue_description_t *ue_ref_p)
+{
+  MessageDef *message_p = NULL;
+  OAILOG_FUNC_IN(LOG_S1AP);
+  DevAssert(ue_ref_p != NULL);
+  OAILOG_DEBUG(
+    LOG_S1AP,
+    "Releasing UE Context for UE id  %d \n",
+    ue_ref_p->mme_ue_s1ap_id);
+  /*
+   * Remove UE context and inform MME_APP.
+   */
+  message_p =
+    itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
+  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
+  memset(
+    (void *) &message_p->ittiMsg.s1ap_ue_context_release_complete,
+    0,
+    sizeof(itti_s1ap_ue_context_release_complete_t));
+  S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
+    ue_ref_p->mme_ue_s1ap_id;
+  MSC_LOG_TX_MESSAGE(
+    MSC_S1AP_MME,
+    MSC_MMEAPP_MME,
+    NULL,
+    0,
+    "0 S1AP_UE_CONTEXT_RELEASE_COMPLETE mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ",
+    S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
+  OAILOG_DEBUG(
+    LOG_S1AP,
+    "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
+    (uint32_t) ue_ref_p->mme_ue_s1ap_id);
+  s1ap_remove_ue(state, ue_ref_p);
+  OAILOG_FUNC_OUT(LOG_S1AP);
+}
+
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_error_ind_message(
   s1ap_state_t *state,

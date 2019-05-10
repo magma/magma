@@ -29,6 +29,8 @@ const (
 	ConfigKey         = "cellular"
 	NetworkConfigPath = magmad_handlers.ConfigureNetwork + "/" + ConfigKey
 	GatewayConfigPath = magmad_handlers.ConfigureAG + "/" + ConfigKey
+	EnodebListPath    = magmad_handlers.ConfigureNetwork + "/enodeb"
+	EnodebConfigPath  = magmad_handlers.ConfigureNetwork + "/enodeb/:enodeb_id"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for the cellular service
@@ -50,9 +52,25 @@ func GetObsidianHandlers() []handlers.Handler {
 				return defaultUpdateHandler.HandlerFunc(cc)
 			},
 		},
+		obsidian.GetReadConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		obsidian.GetCreateConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		obsidian.GetUpdateConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		obsidian.GetDeleteConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId),
+		// List all eNodeB devices for a network
+		obsidian.GetReadAllKeysConfigHandler(EnodebListPath, config.CellularEnodebType),
 	}
 	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, config.CellularGatewayType, &models.GatewayCellularConfigs{})...)
 	return ret
+}
+
+func getEnodebId(c echo.Context) (string, *echo.HTTPError) {
+	operID := c.Param("enodeb_id")
+	if operID == "" {
+		return operID, handlers.HttpError(
+			fmt.Errorf("Invalid/Missing Enodeb ID"),
+			http.StatusBadRequest)
+	}
+	return operID, nil
 }
 
 func getNetworkConfigFromRequest(c echo.Context) (echo.Context, error) {

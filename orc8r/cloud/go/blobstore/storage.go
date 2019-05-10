@@ -9,8 +9,6 @@
 package blobstore
 
 import (
-	"fmt"
-
 	"magma/orc8r/cloud/go/storage"
 )
 
@@ -24,6 +22,7 @@ type Blob struct {
 
 // BlobStorageFactory is an API to create a storage API bound to a transaction.
 type BlobStorageFactory interface {
+	InitializeFactory() error
 	// StartTransaction opens a transaction for all following blob storage
 	// operations, and returns a TransactionalBlobStorage instance tied to the
 	// opened transaction.
@@ -63,11 +62,6 @@ type TransactionalBlobStorage interface {
 
 	// Delete deletes specified blobs from storage.
 	Delete(networkID string, ids []storage.TypeAndKey) error
-}
-
-// GetTableName returns the full table name for a networkID and a base table
-func GetTableName(networkID string, baseTableName string) string {
-	return fmt.Sprintf("%s_%s", networkID, baseTableName)
 }
 
 // GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of

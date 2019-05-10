@@ -22,6 +22,8 @@ class ParameterName():
     GPS_LONG = 'GPS long'
     SW_VERSION = 'SW version'
 
+    SERIAL_NUMBER = 'Serial number'
+
     # Capabilities
     DUPLEX_MODE_CAPABILITY = 'Duplex mode capability'
     BAND_CAPABILITY = 'Band capability'

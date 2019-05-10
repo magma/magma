@@ -17,12 +17,18 @@ const ORGS = [
     name: 'custom_domain_org',
     customDomains: ['subdomain.localtest.me'],
     networkIDs: [],
+    ssoCert: '',
+    ssoEntrypoint: '',
+    ssoIssuer: '',
   },
   {
     id: '2',
     name: 'subdomain',
     customDomains: [],
     networkIDs: [],
+    ssoCert: '',
+    ssoEntrypoint: '',
+    ssoIssuer: '',
   },
 ];
 
