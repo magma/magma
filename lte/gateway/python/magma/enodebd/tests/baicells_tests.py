@@ -583,3 +583,72 @@ class BaicellsHandlerTests(TestCase):
                                                     '120200002618AGP0003',
                                                     ['2 PERIODIC'])
         acs_state_machine.handle_tr069_message(inform_msg)
+
+    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
+    def test_fault_after_set_parameters(self, _mock_func) -> None:
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder \
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
+                                                    'BaiBS_RTS_3.1.6',
+                                                    '120200002618AGP0003',
+                                                    ['2 PERIODIC'])
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # Send an empty http request to kick off the rest of provisioning
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for an optional parameter, three times
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # Expect a request for read-only params
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+        req = Tr069MessageBuilder.get_read_only_param_values_response()
+
+        # Send back some typical values
+        # And then SM should request regular parameter values
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param values')
+
+        # Send back typical values for the regular parameters
+        req = Tr069MessageBuilder.get_regular_param_values_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # SM will be requesting object parameter values
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting object param vals')
+
+        # Send back some typical values for object parameters
+        req = Tr069MessageBuilder.get_object_param_values_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # In this scenario, the ACS and thus state machine will not need
+        # to delete or add objects to the eNB configuration.
+        # SM should then just be attempting to set parameter values
+        self.assertTrue(isinstance(resp, models.SetParameterValues),
+                        'State machine should be setting param values')
+
+        req = models.Fault()
+        req.FaultCode = 12345
+        req.FaultString = 'Test FaultString'
+        acs_state_machine.handle_tr069_message(req)
+        self.assertTrue('Error' in acs_state_machine.get_state(),
+                        'Should be in error state')

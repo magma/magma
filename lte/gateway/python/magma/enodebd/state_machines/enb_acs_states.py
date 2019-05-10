@@ -821,15 +821,14 @@ class WaitSetParameterValuesState(EnodebAcsState):
                 return AcsReadMsgResult(True, self.apply_invasive_transition)
             return AcsReadMsgResult(True, self.done_transition)
         elif type(message) == models.Fault:
-            logging.error('Received Fault in response to SetParameterValues')
+            logging.error('Received Fault in response to SetParameterValues, '
+                          'Code (%s), Message (%s)', message.FaultCode,
+                          message.FaultString)
             if message.SetParameterValuesFault is not None:
                 for fault in message.SetParameterValuesFault:
                     logging.error('SetParameterValuesFault Param: %s, '
                                   'Code: %s, String: %s', fault.ParameterName,
                                   fault.FaultCode, fault.FaultString)
-                logging.error('Received Fault in response to '
-                              'SetParameterValues (faultstring = %s)',
-                              message.FaultString)
         return AcsReadMsgResult(False, None)
 
     def _mark_as_configured(self) -> None:
