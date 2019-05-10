@@ -14,6 +14,8 @@ const (
 	// 3GPP 29.273 8.2.3.12:
 	// register AAA server serving authenticated user to HSS
 	ServerAssignmentType_REGISTRATION = 1
+	// de-register AAA server serving authenticated user to HSS
+	ServerAssignnmentType_USER_DEREGISTRATION = 5
 	// request user profile from HSS
 	ServerAssignmentType_AAA_USER_DATA_REQUEST = 12
 
