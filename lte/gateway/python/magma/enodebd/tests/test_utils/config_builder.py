@@ -72,9 +72,15 @@ class EnodebConfigBuilder:
         mconfig.enb_configs_by_serial[id1]\
                 .pci = 259
         mconfig.enb_configs_by_serial[id1]\
-                .transmit_enabled = True
+                .bandwidth_mhz = 20
+        mconfig.enb_configs_by_serial[id1] \
+            .tac = 1
+        mconfig.enb_configs_by_serial[id1] \
+            .cell_id = 0
         mconfig.enb_configs_by_serial[id1]\
-                .device_class = 'Baicells Band 40'
+            .transmit_enabled = True
+        mconfig.enb_configs_by_serial[id1]\
+            .device_class = 'Baicells Band 40'
 
         id2 = '120200002618AGP0004'
         #enb_conf_2 = mconfigs_pb2.EnodebD.EnodebConfig()
@@ -86,6 +92,12 @@ class EnodebConfigBuilder:
                 .special_subframe_pattern = 7
         mconfig.enb_configs_by_serial[id2]\
                 .pci = 261
+        mconfig.enb_configs_by_serial[id2] \
+            .bandwidth_mhz = 20
+        mconfig.enb_configs_by_serial[id2] \
+            .tac = 1
+        mconfig.enb_configs_by_serial[id2] \
+            .cell_id = 0
         mconfig.enb_configs_by_serial[id2]\
                 .transmit_enabled = True
         mconfig.enb_configs_by_serial[id2]\
