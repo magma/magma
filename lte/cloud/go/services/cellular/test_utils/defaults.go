@@ -123,9 +123,9 @@ func NewDefaultEnodebConfig() *protos.CellularEnodebConfig {
 		SubframeAssignment:     2,
 		SpecialSubframePattern: 7,
 		Pci:                    260,
-		CellId:                 505,
+		CellId:                 138777000,
 		Tac:                    15000,
-		BandwidthMhz:           3,
+		BandwidthMhz:           20,
 		TransmitEnabled:        true,
 		DeviceClass:            "Baicells ID TDD/FDD",
 	}

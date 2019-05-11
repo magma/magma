@@ -204,6 +204,9 @@ func getEnodebConfig(
 		Pci:                    cellularEnbConfig.GetPci(),
 		TransmitEnabled:        cellularEnbConfig.GetTransmitEnabled(),
 		DeviceClass:            cellularEnbConfig.GetDeviceClass(),
+		BandwidthMhz:           cellularEnbConfig.GetBandwidthMhz(),
+		Tac:                    cellularEnbConfig.GetTac(),
+		CellId:                 cellularEnbConfig.GetCellId(),
 	}, nil
 }
 
