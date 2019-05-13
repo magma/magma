@@ -8,50 +8,14 @@
  * @format
  */
 
-import type {
-  ExpressRequest,
-  ExpressResponse,
-  Middleware,
-  NextFunction,
-} from 'express';
-import type {FBCNMSMiddleWareRequest} from './index';
+import type {Middleware} from 'express';
 
 import express from 'express';
 
 import csrf from 'csurf';
 
-type CsrfMiddlewareOptions = {
-  devMode: boolean,
-};
-
-export default function csrfMiddleware(
-  options: CsrfMiddlewareOptions,
-): Middleware {
+export default function csrfMiddleware(): Middleware {
   const router = express.Router();
-  const cookieOptions = {
-    sameSite: true,
-    secure: !options.devMode,
-    httpOnly: true,
-  };
-  router.use(
-    csrf({
-      cookie: cookieOptions,
-      value: (req: ExpressRequest) => req.cookies.csrfToken,
-    }),
-  );
-  router.use(
-    (
-      req: FBCNMSMiddleWareRequest,
-      res: ExpressResponse,
-      next: NextFunction,
-    ) => {
-      res.cookie(
-        'csrfToken',
-        req.csrfToken ? req.csrfToken() : '',
-        cookieOptions,
-      );
-      next();
-    },
-  );
+  router.use(csrf());
   return router;
 }
