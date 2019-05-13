@@ -7,7 +7,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-# This script generates certs for testing the magma and cloud VM.
+# This script generates rooCA.pem needed for cloud and gateway communication
 
 set -e
 
@@ -19,9 +19,11 @@ fi
 
 cd "$1"
 
-echo "#################"
-echo "Creating VPN CA.."
-echo "#################"
-openssl genrsa -out vpn_ca.key 2048
-openssl req -x509 -new -nodes -key vpn_ca.key -sha256 -days 365000 -out vpn_ca.crt \
-       -subj "/C=US/CN=vpn.magma.test"
+if [ ! -f rootCA.pem ]; then
+  echo "#################"
+  echo "Creating root CA.."
+  echo "#################"
+  openssl genrsa -out rootCA.key 2048
+  openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 -out rootCA.pem \
+         -subj "/C=US/CN=rootca.magma.test"
+fi

@@ -20,28 +20,25 @@ DIR='/var/opt/magma/certs'
 mkdir -p ${DIR}
 cd ${DIR}
 
-# If the certs are already present (when a volume is mounted), we reuse
-# the certs instead of generating it everytime.
-if [ -f rootCA.pem ]; then
-  echo "rootCA.pem already exists!"
-  exit 0
+if [ ! -f rootCA.pem ]; then
+  echo "##################"
+  echo "Creating root CA.."
+  echo "##################"
+  openssl genrsa -out rootCA.key 2048
+  openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 \
+        -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
 fi
 
-echo "##################"
-echo "Creating root CA.."
-echo "##################"
-openssl genrsa -out rootCA.key 2048
-openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 \
-      -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
-
-echo "##########################"
-echo "Creating controller cert.."
-echo "##########################"
-openssl genrsa -out controller.key 2048
-openssl req -new -key controller.key -out controller.csr \
-      -subj "/C=US/CN=*.magma.test"
-openssl x509 -req -in controller.csr -CA rootCA.pem -CAkey rootCA.key \
-      -CAcreateserial -out controller.crt -days 36400 -sha256
+if [ ! -f controller.crt ]; then
+  echo "##########################"
+  echo "Creating controller cert.."
+  echo "##########################"
+  openssl genrsa -out controller.key 2048
+  openssl req -new -key controller.key -out controller.csr \
+        -subj "/C=US/CN=*.magma.test"
+  openssl x509 -req -in controller.csr -CA rootCA.pem -CAkey rootCA.key \
+        -CAcreateserial -out controller.crt -days 36400 -sha256
+fi
 
 if [ ! -f certifier.key ]; then
   echo "#######################"
