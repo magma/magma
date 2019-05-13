@@ -25,7 +25,7 @@
     "bcryptjs": "^2.4.3",
     "chart.js": "^2.7.3",
     "classnames": "^2.2.5",
-    "connect-session-sequelize": "^5.2.2",
+    "connect-session-sequelize": "^6.0.0",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "express-http-proxy": "^1.5.1",
@@ -40,7 +40,7 @@
     "react-router-dom": "^4.4.0-beta.6",
     "react-test-renderer": "^16.6.3",
     "rimraf": "^2.6.3",
-    "sequelize": "^4.38.0",
+    "sequelize": "^5.8.5",
     "umzug": "^2.1.0",
     "url": "^0.11.0"
   },
