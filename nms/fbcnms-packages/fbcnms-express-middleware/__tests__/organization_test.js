@@ -9,7 +9,7 @@
  */
 
 import {getOrganization} from '@fbcnms/express-middleware/organizationMiddleware';
-import {Organization} from '@fbcnms/sequelize-models';
+import {sequelize, Organization} from '@fbcnms/sequelize-models';
 
 const ORGS = [
   {
@@ -34,6 +34,7 @@ const ORGS = [
 
 describe('organization tests', () => {
   beforeEach(async () => {
+    await sequelize.sync({force: true});
     ORGS.forEach(async organization => await Organization.create(organization));
   });
 
@@ -43,7 +44,7 @@ describe('organization tests', () => {
     };
 
     const org = await getOrganization(request);
-    expect(org.name).toBe(ORGS[0].name);
+    expect(org.name).toBe('custom_domain_org');
   });
 
   it('should allow org by subdomain', async () => {
@@ -52,7 +53,7 @@ describe('organization tests', () => {
     };
 
     const org = await getOrganization(request);
-    expect(org.name).toBe(ORGS[1].name);
+    expect(org.name).toBe('subdomain');
   });
 
   it('should throw an exception when no org is found', async () => {

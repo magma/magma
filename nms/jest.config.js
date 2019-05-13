@@ -31,6 +31,7 @@ module.exports = {
       testEnvironment: 'node',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/server/**/__tests__/*.js',
+        '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-i18n/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
         '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
