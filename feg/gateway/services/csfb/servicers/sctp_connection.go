@@ -16,6 +16,7 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/golang/glog"
 	"github.com/ishidawataru/sctp"
 )
 
@@ -39,6 +40,7 @@ func NewSCTPClientConnection(vlrIP string, vlrPort int) (*SCTPClientConnection, 
 }
 
 func (conn *SCTPClientConnection) EstablishConn() error {
+	glog.V(2).Infof("Establishing SCTP connection with %s", conn.vlrSCTPAddr)
 	sendConn, err := sctp.DialSCTP(
 		"sctp",
 		nil,
@@ -47,12 +49,14 @@ func (conn *SCTPClientConnection) EstablishConn() error {
 	if err != nil {
 		return err
 	}
+	glog.V(2).Info("SCTP connection with VLR established")
 	conn.sendConn = sendConn
 
 	return nil
 }
 
 func (conn *SCTPClientConnection) CloseConn() error {
+	glog.V(2).Info("Closing SCTP connection with VLR")
 	if conn.sendConn == nil {
 		return errors.New("connection to VLR not established")
 	}
@@ -62,11 +66,13 @@ func (conn *SCTPClientConnection) CloseConn() error {
 	if err != nil {
 		return err
 	}
+	glog.V(2).Info("SCTP connection with VLR closed successfully")
 
 	return nil
 }
 
 func (conn *SCTPClientConnection) Send(message []byte) error {
+	glog.V(2).Info("Sending message to VLR through SCTP")
 	if conn.sendConn == nil {
 		return errors.New("connection to VLR not established")
 	}
@@ -83,6 +89,7 @@ func (conn *SCTPClientConnection) Send(message []byte) error {
 	if err != nil {
 		return err
 	}
+	glog.V(2).Info("Message sent successfully to VLR")
 
 	return nil
 }
