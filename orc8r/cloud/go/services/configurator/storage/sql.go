@@ -123,8 +123,8 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	entityAssocTableExec := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s
 		(
-			from_pk TEXT REFERENCES %s (pk),
-			to_pk TEXT REFERENCES %s (pk),
+			from_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
+			to_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
 
 			PRIMARY KEY (from_pk, to_pk)
 		)
@@ -454,7 +454,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 		}
 
 		// Deleting a node could partition its graph
-		err = store.fixGraph(entToUpdate.GraphID, &entToUpdate)
+		err = store.fixGraph(networkID, entToUpdate.GraphID, &entToUpdate)
 		if err != nil {
 			return emptyRet, errors.Wrap(err, "failed to fix entity graph after deletion")
 		}

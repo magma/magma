@@ -31,7 +31,9 @@ func (g *mockIDGenerator) New() string {
 }
 
 func TestSqlConfiguratorStorage_Integration(t *testing.T) {
-	db, err := sql_utils.Open("sqlite3", ":memory:")
+	// sqlite's default behavior is to disable foreign keys (wat): https://www.sqlite.org/draft/pragma.html#pragma_foreign_keys
+	// thankfully the sqlite3 driver supports the apporpriate pragma: https://github.com/mattn/go-sqlite3/issues/255
+	db, err := sql_utils.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
@@ -547,8 +549,131 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expectedGraph2, actualGraph2)
+	assert.NoError(t, store.Commit())
 
 	// TODO: orphan some graph nodes (blocked on impl of fixGraph)
+	// As a reminder, this is the current state of the graph:
+	//                                 (hello, world)
+	//                               /       |        \
+	//                              /        |         \
+	//                             /         |          \
+	//                            /          |           \
+	//                           /           v            \
+	//                          /        (baz, quz)        \
+	//                         /            /  \            \
+	//                        |            /    \            |
+	//                        |           /      \           |
+	//                        v          /        \          v
+	//                      (foo, bar)  <          >  (bar, baz)
 
-	// delete assoc to foobar, helloworld's graph ID should still be 2
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+
+	// delete assocs to foobar and barbaz, helloworld's graph ID should still be 2
+	_, err = store.UpdateEntity(
+		"n1",
+		storage.EntityUpdateCriteria{
+			Type: "hello", Key: "world",
+			AssociationsToDelete: []storage2.TypeAndKey{
+				{"foo", "bar"},
+				{"bar", "baz"},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	expectedHelloWorldEnt.Associations = []storage2.TypeAndKey{{Type: "baz", Key: "quz"}}
+	expectedHelloWorldEnt.Version = 3
+	expectedFoobarEnt.ParentAssociations = []storage2.TypeAndKey{{Type: "baz", Key: "quz"}}
+	expectedBarbazEnt.ParentAssociations = []storage2.TypeAndKey{{Type: "baz", Key: "quz"}}
+
+	expectedGraph2 = storage.EntityGraph{
+		Entities: []storage.NetworkEntity{
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
+			expectedHelloWorldEnt,
+		},
+		RootEntities: []storage2.TypeAndKey{{Type: "hello", Key: "world"}},
+		Edges: []storage.GraphEdge{
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "bar", Key: "baz"}},
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "foo", Key: "bar"}},
+			{From: storage2.TypeAndKey{Type: "hello", Key: "world"}, To: storage2.TypeAndKey{Type: "baz", Key: "quz"}},
+		},
+	}
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage2.TypeAndKey{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedGraph2, actualGraph2)
+
+	// delete assoc to bazquz, helloworld should have a new graph ID
+	_, err = store.UpdateEntity(
+		"n1",
+		storage.EntityUpdateCriteria{
+			Type: "hello", Key: "world",
+			AssociationsToDelete: []storage2.TypeAndKey{
+				{"baz", "quz"},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	expectedHelloWorldEnt.Associations = nil
+	expectedHelloWorldEnt.Version = 4
+	expectedHelloWorldEnt.GraphID = "13"
+	expectedBazquzEnt.ParentAssociations = nil
+
+	// first, check graph of foobar which should be unchanged
+	expectedGraph2 = storage.EntityGraph{
+		Entities: []storage.NetworkEntity{
+			expectedBarbazEnt,
+			expectedBazquzEnt,
+			expectedFoobarEnt,
+		},
+		RootEntities: []storage2.TypeAndKey{{Type: "baz", Key: "quz"}},
+		Edges: []storage.GraphEdge{
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "bar", Key: "baz"}},
+			{From: storage2.TypeAndKey{Type: "baz", Key: "quz"}, To: storage2.TypeAndKey{Type: "foo", Key: "bar"}},
+		},
+	}
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage2.TypeAndKey{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedGraph2, actualGraph2)
+
+	// helloworld should be in its own graph now. ID generator was at 13
+	expectedGraph13 := storage.EntityGraph{
+		Entities: []storage.NetworkEntity{
+			expectedHelloWorldEnt,
+		},
+		RootEntities: []storage2.TypeAndKey{{Type: "hello", Key: "world"}},
+		Edges:        []storage.GraphEdge{},
+	}
+	actualGraph13, err := store.LoadGraphForEntity("n1", storage2.TypeAndKey{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedGraph13, actualGraph13)
+
+	// now, delete bazquz. this should partition the network into 3 different
+	// graphs each with a single element
+	_, err = store.UpdateEntity("n1", storage.EntityUpdateCriteria{Type: "baz", Key: "quz", DeleteEntity: true})
+	assert.NoError(t, err)
+
+	allEnts, err := store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.NotNil(t, allEnts)
+
+	expectedBarbazEnt.ParentAssociations = nil
+	expectedFoobarEnt.GraphID = "14"
+	expectedFoobarEnt.ParentAssociations = nil
+
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []storage.NetworkEntity{
+				expectedBarbazEnt,
+				expectedFoobarEnt,
+				expectedHelloWorldEnt,
+			},
+			EntitiesNotFound: []storage2.TypeAndKey{},
+		},
+		allEnts,
+	)
 }
