@@ -43,10 +43,11 @@ func TestSend(t *testing.T) {
 	}()
 
 	// Send message to the mocked server
-	vlrConn, err := servicers.NewSCTPClientConnection(
+	vlrSCTPAddr := servicers.ConstructSCTPAddr(
 		servicers.DefaultVLRIPAddress,
 		port,
 	)
+	vlrConn, err := servicers.NewSCTPClientConnection(vlrSCTPAddr, nil)
 	assert.NoError(t, err)
 
 	err = vlrConn.EstablishConn()
@@ -87,10 +88,11 @@ func TestReceive(t *testing.T) {
 	}()
 
 	// Receive message from the mocked server
-	vlrConn, err := servicers.NewSCTPClientConnection(
+	vlrSCTPAddr := servicers.ConstructSCTPAddr(
 		servicers.DefaultVLRIPAddress,
 		port,
 	)
+	vlrConn, err := servicers.NewSCTPClientConnection(vlrSCTPAddr, nil)
 	assert.NoError(t, err)
 
 	err = vlrConn.EstablishConn()
@@ -118,10 +120,11 @@ func TestServerReceiveAndReply(t *testing.T) {
 	// Client sends and receives message
 	clientReadyToReceive := make(chan bool)
 	go func() {
-		vlrConn, err := servicers.NewSCTPClientConnection(
+		vlrSCTPAddr := servicers.ConstructSCTPAddr(
 			servicers.DefaultVLRIPAddress,
 			portNumber,
 		)
+		vlrConn, err := servicers.NewSCTPClientConnection(vlrSCTPAddr, nil)
 		assert.NoError(t, err)
 
 		err = vlrConn.EstablishConn()
