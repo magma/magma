@@ -23,7 +23,6 @@ module.exports = {
   loginJs: resolveApp('app/login.js'),
   appSrc: resolveApp('app'),
   distPath: resolveApp('static/dist'),
-  // relative path to application directory
   packagesDir: resolveApp('../../fbcnms-packages'),
   resolveApp,
 };
