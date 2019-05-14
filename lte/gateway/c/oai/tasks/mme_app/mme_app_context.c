@@ -965,7 +965,7 @@ void mme_remove_ue_context(
       if (HASH_TABLE_OK != hash_rc)
         OAILOG_ERROR(
           LOG_MME_APP,
-	  "UE context not found!\n"
+          "UE context not found!\n"
           " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ", IMSI " IMSI_64_FMT
           "  not in IMSI collection\n",
@@ -981,7 +981,7 @@ void mme_remove_ue_context(
     if (HASH_TABLE_OK != hash_rc)
       OAILOG_ERROR(
         LOG_MME_APP,
-	"UE context not found!\n"
+        "UE context not found!\n"
         " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
         ", ENB_UE_S1AP_ID not in ENB_UE_S1AP_ID collection",
@@ -996,7 +996,7 @@ void mme_remove_ue_context(
       if (HASH_TABLE_OK != hash_rc)
         OAILOG_ERROR(
           LOG_MME_APP,
-	  "UE Context not found!\n"
+          "UE Context not found!\n"
           " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ", MME S11 TEID  " TEID_FMT
           "  not in S11 collection\n",
@@ -1020,7 +1020,7 @@ void mme_remove_ue_context(
       if (HASH_TABLE_OK != hash_rc)
         OAILOG_ERROR(
           LOG_MME_APP,
-	  "UE Context not found!\n"
+          "UE Context not found!\n"
           " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
           ", GUTI  not in GUTI collection\n",
@@ -1037,7 +1037,7 @@ void mme_remove_ue_context(
       if (HASH_TABLE_OK != hash_rc)
         OAILOG_ERROR(
           LOG_MME_APP,
-	  "UE context not found!\n"
+          "UE context not found!\n"
           "  enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
           ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
           " not in MME UE S1AP ID collection",

@@ -549,7 +549,7 @@ void mme_app_handle_initial_ue_message(
             OAILOG_ERROR(
               LOG_MME_APP,
               " Sending UE Context Release to S1AP for ue_id =(%u)\n",
-	      ue_context_p->mme_ue_s1ap_id);
+              ue_context_p->mme_ue_s1ap_id);
             mme_app_itti_ue_context_release(
               ue_context_p, ue_context_p->ue_context_rel_cause);
             hashtable_uint64_ts_remove(

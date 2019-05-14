@@ -181,18 +181,18 @@ int emm_proc_authentication_ksi(
       if (emm_specific_proc) {
         if (EMM_SPEC_PROC_TYPE_ATTACH == emm_specific_proc->type) {
           auth_proc->is_cause_is_attach = true;
-	  OAILOG_DEBUG(
-	    LOG_NAS_EMM,
-	    "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for ue_id (%u)\n",
-	    emm_specific_proc->type,
-	    ue_id);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for ue_id (%u)\n",
+            emm_specific_proc->type,
+            ue_id);
         } else if (EMM_SPEC_PROC_TYPE_TAU == emm_specific_proc->type) {
           auth_proc->is_cause_is_attach = false;
-	  OAILOG_DEBUG(
-	    LOG_NAS_EMM,
-	    "Auth proc cause is EMM_SPEC_PROC_TYPE_TAU (%d) for ue_id (%u)\n",
-	    emm_specific_proc->type,
-	    ue_id);
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "Auth proc cause is EMM_SPEC_PROC_TYPE_TAU (%d) for ue_id (%u)\n",
+            emm_specific_proc->type,
+            ue_id);
         }
       }
       // Set the RAND value
@@ -1306,7 +1306,7 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
       OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE MM context NULL for ue_id = (%u)!\n",
-       	auth_proc->ue_id);
+        auth_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
     /*

@@ -772,7 +772,7 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
       OAILOG_ERROR(
         LOG_NAS_EMM,
         "UE MM Context NULL! for ue_id = (%u)\n", 
-	smc_proc->ue_id);
+        smc_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
 

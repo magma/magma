@@ -407,7 +407,7 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
             LOG_NAS_ESM,
             "Failed to Allocate resources required for activation"
             " of a default EPS bearer context for (ue_id =" MME_UE_S1AP_ID_FMT ")\n",
-	    ue_mm_context->mme_ue_s1ap_id);
+            ue_mm_context->mme_ue_s1ap_id);
         }
       }
 

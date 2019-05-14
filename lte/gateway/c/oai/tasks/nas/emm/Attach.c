@@ -441,7 +441,7 @@ int emm_proc_attach_request(
           // Clean up new UE context that was created to handle new attach request
           OAILOG_DEBUG(
             LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
-	    ue_id);
+            ue_id);
           nas_itti_detach_req(ue_id);
           unlock_ue_contexts(ue_mm_context);
           unlock_ue_contexts(imsi_ue_mm_ctx);
@@ -491,7 +491,7 @@ int emm_proc_attach_request(
           // Clean up new UE context that was created to handle new attach request
           OAILOG_DEBUG(
             LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
-	    ue_id);
+            ue_id);
           nas_itti_detach_req(ue_id);
           OAILOG_WARNING(
             LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
@@ -794,7 +794,7 @@ int emm_proc_attach_complete(
       OAILOG_INFO(
         LOG_NAS_EMM,
         " Sending EMM INFORMATION for ue_id = (%u)\n",
-	ue_id);
+        ue_id);
       emm_proc_emm_informtion(ue_mm_context);
       increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
     }
@@ -1123,7 +1123,7 @@ static int _emm_attach_run_procedure(emm_context_t *emm_context)
         if (rc != RETURNok) {
           OAILOG_ERROR(
             LOG_NAS_EMM, "Failed to start attach authentication procedure!\n");
-	}
+        }
       } else {
         // force identification, even if not necessary
         rc = emm_proc_identification(

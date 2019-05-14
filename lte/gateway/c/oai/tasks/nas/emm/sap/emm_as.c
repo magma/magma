@@ -725,7 +725,7 @@ static int _emm_as_data_ind(emm_as_data_t *msg, int *emm_cause)
           OAILOG_WARNING(
             LOG_NAS_EMM,
             "EMMAS-SAP - UE MM Context is NULL...\n");
-	}
+        }
 
         int bytes = nas_message_decrypt(
           msg->nas_msg->data,
@@ -887,8 +887,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
       memcpy(&originating_tai, msg->tai, sizeof(originating_tai));
       OAILOG_INFO(
         LOG_NAS_EMM, "EMMAS-SAP - Message Type = ATTACH_REQUEST(0x%x) for (ue_id = %u)\n",
-	emm_msg->header.message_type,
-	msg->ue_id);
+        emm_msg->header.message_type,
+        msg->ue_id);
       rc = emm_recv_attach_request(
         msg->ue_id,
         &originating_tai,
@@ -903,8 +903,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
     case DETACH_REQUEST:
       OAILOG_INFO(
         LOG_NAS_EMM, "EMMAS-SAP - Message Type = DETACH_REQUEST(0x%x) for (ue_id = %u)\n",
-	emm_msg->header.message_type,
-	msg->ue_id);
+        emm_msg->header.message_type,
+        msg->ue_id);
       if (emm_ctx == NULL) {
         /*
        * This means UE context is not present and this UE is not known in the EPC.
@@ -950,8 +950,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
       OAILOG_INFO(
         LOG_NAS_EMM, "EMMAS-SAP - Message Type = TRACKING_AREA_UPDATE_REQUEST(0x%x)"
         "for (ue_id = %u)\n",
-	emm_msg->header.message_type,
-	msg->ue_id);
+        emm_msg->header.message_type,
+        msg->ue_id);
       // Check for emm_ctx and integrity verification
       if (
         (emm_ctx == NULL) ||
@@ -989,7 +989,7 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
       increment_counter("service_request", 1, NO_LABELS);
       OAILOG_INFO(
         LOG_NAS_EMM, "EMMAS-SAP - Message Type = SERVICE_REQUEST(0x%x) for (ue_id = %u)\n",
-	emm_msg->header.message_type,
+        emm_msg->header.message_type,
         msg->ue_id);
       if (
         (emm_ctx == NULL) ||
@@ -1026,8 +1026,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
       /* Requirement MME24.301R10_4.4.4.3_1 */
       OAILOG_INFO(
         LOG_NAS_EMM, "EMMAS-SAP - Message Type = EXTENDED_SERVICE_REQUEST(0x%x) for (ue_id = %u)\n",
-	emm_msg->header.message_type,
-	msg->ue_id);
+        emm_msg->header.message_type,
+        msg->ue_id);
       if (
         (0 == decode_status.security_context_available) ||
         (0 == decode_status.integrity_protected_message) ||
@@ -1063,7 +1063,7 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
         "EMMAS-SAP - Initial NAS message 0x%x is "
         "not valid (ue_id = %u)\n",
         emm_msg->header.message_type,
-	msg->ue_id);
+        msg->ue_id);
       *emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE;
       break;
   }
