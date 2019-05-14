@@ -426,41 +426,82 @@ void mme_app_handle_conn_est_cnf(
       bstrcpy(ue_context_p->ue_radio_capability);
   }
 
-  int j = 0;
-  for (int i = 0; i < BEARERS_PER_UE; i++) {
-    bearer_context_t *bc = ue_context_p->bearer_contexts[i];
-    if (bc) {
-      if (BEARER_STATE_SGW_CREATED & bc->bearer_state) {
-        establishment_cnf_p->e_rab_id[j] =
-          bc->ebi; //+ EPS_BEARER_IDENTITY_FIRST;
-        establishment_cnf_p->e_rab_level_qos_qci[j] = bc->qci;
-        establishment_cnf_p->e_rab_level_qos_priority_level[j] =
-          bc->priority_level;
-        establishment_cnf_p->e_rab_level_qos_preemption_capability[j] =
-          bc->preemption_capability;
-        establishment_cnf_p->e_rab_level_qos_preemption_vulnerability[j] =
-          bc->preemption_vulnerability;
-        establishment_cnf_p->transport_layer_address[j] =
-          fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
-        establishment_cnf_p->gtp_teid[j] = bc->s_gw_fteid_s1u.teid;
-        if (!j) {
-          establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_pP->nas_msg;
-          nas_conn_est_cnf_pP->nas_msg = NULL;
+  if (!(mme_config.eps_network_feature_support.
+    ims_voice_over_ps_session_in_s1)) {
+    int j = 0;
+    for (int i = 0; i < BEARERS_PER_UE; i++) {
+      bearer_context_t *bc = ue_context_p->bearer_contexts[i];
+      if (bc) {
+        if (BEARER_STATE_SGW_CREATED & bc->bearer_state) {
+          establishment_cnf_p->e_rab_id[j] =
+            bc->ebi; //+ EPS_BEARER_IDENTITY_FIRST;
+          establishment_cnf_p->e_rab_level_qos_qci[j] = bc->qci;
+          establishment_cnf_p->e_rab_level_qos_priority_level[j] =
+            bc->priority_level;
+          establishment_cnf_p->e_rab_level_qos_preemption_capability[j] =
+            bc->preemption_capability;
+          establishment_cnf_p->e_rab_level_qos_preemption_vulnerability[j] =
+            bc->preemption_vulnerability;
+          establishment_cnf_p->transport_layer_address[j] =
+            fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
+          establishment_cnf_p->gtp_teid[j] = bc->s_gw_fteid_s1u.teid;
+          if (!j) {
+            establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_pP->nas_msg;
+            nas_conn_est_cnf_pP->nas_msg = NULL;
 #if DEBUG_IS_ON
-          if (!establishment_cnf_p->nas_pdu[j]) {
-            OAILOG_ERROR(
-              LOG_MME_APP,
-              "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
-              nas_conn_est_cnf_pP->ue_id);
-          }
+            if (!establishment_cnf_p->nas_pdu[j]) {
+              OAILOG_ERROR(
+                LOG_MME_APP,
+                "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
+                nas_conn_est_cnf_pP->ue_id);
+            }
 #endif
+          }
+          j = j + 1;
         }
-        j = j + 1;
+      }
+    }
+    establishment_cnf_p->no_of_e_rabs = j;
+  } else {
+    uint32_t j = 0;
+    uint32_t idx = 0;
+    for (int cid = 0; cid < ue_context_p->nb_active_pdn_contexts; cid++) {
+      idx = ue_context_p->pdn_contexts[cid]->esm_data.n_bearers;
+      for (int i = 0; i < idx; i++) {
+        bearer_context_t *bc = ue_context_p->bearer_contexts[i];
+        if (bc) {
+          if (BEARER_STATE_SGW_CREATED & bc->bearer_state) {
+            establishment_cnf_p->e_rab_id[i] =
+              bc->ebi; //+ EPS_BEARER_IDENTITY_FIRST;
+            establishment_cnf_p->e_rab_level_qos_qci[i] = bc->qci;
+            establishment_cnf_p->e_rab_level_qos_priority_level[i] =
+              bc->priority_level;
+            establishment_cnf_p->e_rab_level_qos_preemption_capability[i] =
+              bc->preemption_capability;
+            establishment_cnf_p->e_rab_level_qos_preemption_vulnerability[i] =
+              bc->preemption_vulnerability;
+            establishment_cnf_p->transport_layer_address[i] =
+              fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
+            establishment_cnf_p->gtp_teid[i] = bc->s_gw_fteid_s1u.teid;
+            if (nas_conn_est_cnf_pP->nas_msg) {
+              establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_pP->nas_msg;
+              nas_conn_est_cnf_pP->nas_msg = NULL;
+#if DEBUG_IS_ON
+              if (!establishment_cnf_p->nas_pdu[0]) {
+                OAILOG_ERROR(
+                  LOG_MME_APP,
+                  "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
+                  nas_conn_est_cnf_pP->ue_id);
+              }
+#endif
+            }
+            j = j + 1;
+          }
+        }
+        establishment_cnf_p->no_of_e_rabs ++;
       }
     }
   }
-  establishment_cnf_p->no_of_e_rabs = j;
-
   //#pragma message  "Check ue_context_p ambr"
   establishment_cnf_p->ue_ambr.br_ul = ue_context_p->subscribed_ue_ambr.br_ul;
   establishment_cnf_p->ue_ambr.br_dl = ue_context_p->subscribed_ue_ambr.br_dl;
