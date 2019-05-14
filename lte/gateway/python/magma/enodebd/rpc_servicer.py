@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import grpc
 from typing import Any
-from magma.enodebd.enodeb_status import get_status, get_single_enb_status
+from magma.enodebd.enodeb_status import get_service_status, get_single_enb_status
 from lte.protos.enodebd_pb2 import GetParameterResponse
 from lte.protos.enodebd_pb2_grpc import EnodebdServicer, \
     add_EnodebdServicer_to_server
@@ -106,7 +106,7 @@ class EnodebdRpcServicer(EnodebdServicer):
         Note: input variable defaults used so this can be either called locally
         or as an RPC.
         """
-        status = dict(get_status(self.state_machine_manager))
+        status = dict(get_service_status(self.state_machine_manager))
         status_message = ServiceStatus()
         status_message.meta.update(status)
         return status_message
@@ -115,7 +115,8 @@ class EnodebdRpcServicer(EnodebdServicer):
         all_enb_status = AllEnodebStatus()
         serial_list = self.state_machine_manager.get_connected_serial_id_list()
         for enb_serial in serial_list:
-            enb_status = self.get_single_enb_status(enb_serial)
+            enb_status = get_single_enb_status(enb_serial,
+                                               self.state_machine_manager)
             all_enb_status.enb_status_list.add(
                 device_serial=enb_status.device_serial,
                 ip_address=enb_status.ip_address,

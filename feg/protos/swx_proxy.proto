@@ -24,6 +24,8 @@ service SwxProxy {
     rpc Authenticate (AuthenticationRequest) returns (AuthenticationAnswer) {}
     // Register the AAA server serving a user to the HSS using SAR/SAA
     rpc Register (RegistrationRequest) returns (RegistrationAnswer) {}
+    // Deregister the AAA server serving a user to the HSS using SAR/SAA
+    rpc Deregister (RegistrationRequest) returns (RegistrationAnswer) {}
 }
 
 // AuthenticationRequest (Section 8.2.2.1)
@@ -80,13 +82,13 @@ message AuthenticationAnswer {
 }
 
 // RegistrationRequest:
-// ServerAssignmentRequest with ServerAssignmentType set to REGISTRATION (Section 8.2.2.3)
+// ServerAssignmentRequest with ServerAssignmentType set to (DE)/REGISTRATION (Section 8.2.2.3)
 message RegistrationRequest {
     // Subscriber identifier
     string user_name = 1;
 }
 
 // RegistrationAnswer:
-// ServerAssignmentAnswer with ServerAssignmentType set to REGISTRATION (Section 8.2.2.3)
+// ServerAssignmentAnswer with ServerAssignmentType set to (DE)/REGISTRATION (Section 8.2.2.3)
 message RegistrationAnswer {}
 

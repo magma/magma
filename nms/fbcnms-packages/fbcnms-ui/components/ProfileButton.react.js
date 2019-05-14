@@ -75,12 +75,13 @@ type Props = {
 const ProfileButton = (props: Props) => {
   const {user} = props;
   const {email, isSuperUser} = user;
-  const {relativeUrl} = useRouter();
+  const {relativeUrl, history} = useRouter();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
 
   return (
     <Popout
+      open={isProfileMenuOpen}
       content={
         <List component="nav" className={classes.profileList}>
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
@@ -90,7 +91,10 @@ const ProfileButton = (props: Props) => {
             <ListItem
               classes={{gutters: classes.itemGutters}}
               button
-              href={relativeUrl('/settings')}
+              onClick={() => {
+                toggleProfileMenu(false);
+                history.push(relativeUrl('/settings'));
+              }}
               component="a">
               <Typography className={classes.profileItemText}>
                 Settings

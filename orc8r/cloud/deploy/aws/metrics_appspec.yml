@@ -13,7 +13,7 @@ files:
   - source: ansible
     destination: /var/opt/magma/ansible
   - source: bin
-    destination: /var/opt/magma/bin
+    destination: /var/opt/prometheus/bin
 hooks:
   BeforeInstall:
     - location: scripts/prepare_metrics_server

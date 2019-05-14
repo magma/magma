@@ -18,7 +18,7 @@ const ManifestPlugin = require('webpack-manifest-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 
 type Options = {
-  projectName: string,
+  projectName?: string,
   extraPaths?: string[],
 };
 
@@ -147,7 +147,9 @@ function createProductionWebpackConfig(options: Options) {
       filename: '[name].[chunkhash].js',
       path: paths.distPath,
       pathinfo: true,
-      publicPath: `/${options.projectName}/static/dist/`,
+      publicPath: options.projectName
+        ? `/${options.projectName}/static/dist/`
+        : '/static/dist/',
     },
     plugins: [
       new ManifestPlugin(),

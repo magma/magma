@@ -144,7 +144,16 @@ func (s *swxProxy) Register(
 	ctx context.Context,
 	req *protos.RegistrationRequest,
 ) (*protos.RegistrationAnswer, error) {
-	return s.RegisterImpl(req)
+	return s.RegisterImpl(req, ServerAssignmentType_REGISTRATION)
+}
+
+// Deregister sends SAR (code 301) over diameter connection,
+// waits (blocks) for SAA & returns its RPC representation
+func (s *swxProxy) Deregister(
+	ctx context.Context,
+	req *protos.RegistrationRequest,
+) (*protos.RegistrationAnswer, error) {
+	return s.RegisterImpl(req, ServerAssignnmentType_USER_DEREGISTRATION)
 }
 
 func (s *swxProxy) genSID() string {

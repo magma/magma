@@ -25,7 +25,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	orcprotos "magma/orc8r/cloud/go/protos"
-	mw_tests "magma/orc8r/cloud/go/service/middleware/unary/interceptors/tests"
+	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
@@ -62,7 +62,7 @@ func TestMeteringdRecords(t *testing.T) {
 	restPort := tests.StartObsidian(t)
 
 	hwId := "TestAGHwId00003"
-	csn := mw_tests.StartMockGwAccessControl(t, []string{hwId})
+	csn := test_utils.StartMockGwAccessControl(t, []string{hwId})
 
 	testUrlRoot := fmt.Sprintf(
 		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)

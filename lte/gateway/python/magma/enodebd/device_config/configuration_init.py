@@ -31,7 +31,8 @@ SingleEnodebConfig = namedtuple('SingleEnodebConfig',
                                 ['earfcndl', 'subframe_assignment',
                                  'special_subframe_pattern',
                                  'pci', 'plmnid_list', 'tac',
-                                 'bandwidth_mhz', 'allow_enodeb_transmit'])
+                                 'bandwidth_mhz', 'cell_id',
+                                 'allow_enodeb_transmit'])
 
 
 def config_assert(condition: bool, message: str = None) -> None:
@@ -76,6 +77,7 @@ def build_desired_config(
     _set_pci(cfg_desired, enb_config.pci)
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
+    _set_cell_id(cfg_desired, enb_config.cell_id)
     _set_s1_connection(
         cfg_desired, get_ip_from_if(service_config['s1_interface']))
     _set_perf_mgmt(
@@ -106,6 +108,9 @@ def _get_enb_config(
             earfcndl = enb_config.earfcndl
             pci = enb_config.pci
             allow_enodeb_transmit = enb_config.transmit_enabled
+            tac = enb_config.tac
+            bandwidth_mhz = enb_config.bandwidth_mhz
+            cell_id = enb_config.cell_id
             duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
             subframe_assignment = None
             special_subframe_pattern = None
@@ -119,6 +124,9 @@ def _get_enb_config(
     else:
         pci = mconfig.pci
         allow_enodeb_transmit = mconfig.allow_enodeb_transmit
+        tac = mconfig.tac
+        bandwidth_mhz = mconfig.bandwidth_mhz
+        cell_id = 0
         if mconfig.tdd_config is not None and str(mconfig.tdd_config) != '':
             earfcndl = mconfig.tdd_config.earfcndl
             subframe_assignment = mconfig.tdd_config.subframe_assignment
@@ -135,8 +143,6 @@ def _get_enb_config(
 
     # And now the rest of the fields
     plmnid_list = mconfig.plmnid_list
-    tac = mconfig.tac
-    bandwidth_mhz = mconfig.bandwidth_mhz
 
     single_enodeb_config = SingleEnodebConfig(
         earfcndl=earfcndl,
@@ -146,6 +152,7 @@ def _get_enb_config(
         plmnid_list=plmnid_list,
         tac=tac,
         bandwidth_mhz=bandwidth_mhz,
+        cell_id=cell_id,
         allow_enodeb_transmit=allow_enodeb_transmit)
     return single_enodeb_config
 
@@ -176,6 +183,17 @@ def _set_bandwidth(
     cfg.set_parameter(ParameterName.DL_BANDWIDTH, bandwidth_mhz)
     _set_param_if_present(cfg, data_model, ParameterName.UL_BANDWIDTH,
                           bandwidth_mhz)
+
+
+def _set_cell_id(
+    cfg: EnodebConfiguration,
+    cell_id: int,
+) -> None:
+    config_assert(
+        cell_id in range(0, 268435456),
+        'Cell Identity should be from 0 - (2^28 - 1)'
+    )
+    cfg.set_parameter(ParameterName.CELL_ID, cell_id)
 
 
 def _set_tdd_subframe_config(

@@ -17,12 +17,14 @@ import (
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers"
 	"magma/feg/gateway/services/eap/providers/registry"
 )
 
 const (
 	// EAP Related Consts
 	EapMethodIdentity = uint8(protos.EapType_Identity)
+	EapMethodNak      = uint8(protos.EapType_Legacy_Nak)
 	EapCodeResponse   = uint8(protos.EapCode_Response)
 )
 
@@ -35,18 +37,24 @@ func HandleIdentityResponse(providerType uint8, msg *protos.Eap) (*protos.Eap, e
 	}
 	err := verifyEapPayload(msg.Payload)
 	if err != nil {
-		return nil, err
+		return newFailureMsg(msg), err
 	}
 	if msg.Payload[eap.EapMsgMethodType] != EapMethodIdentity {
-		return nil, fmt.Errorf(
+		return newFailureMsg(msg), fmt.Errorf(
 			"Invalid EAP Method Type for Identity Response: %d. Expecting EAP Identity (%d)",
 			msg.Payload[eap.EapMsgMethodType], EapMethodIdentity)
 	}
+	if msg.Ctx != nil {
+		td := eap.Packet(msg.Payload).TypeData()
+		if len(td) > 0 {
+			msg.Ctx.Identity = string(td)
+		}
+	}
 	p := registry.GetProvider(providerType)
 	if p == nil {
-		return nil, unsupportedProviderError(providerType)
+		return newFailureMsg(msg), unsupportedProviderError(providerType)
 	}
-	return p.Handle(&protos.Eap{Payload: msg.Payload})
+	return p.Handle(msg)
 }
 
 // SupportedTypes returns sorted list (ascending, by type) of registered EAP Providers
@@ -63,13 +71,54 @@ func Handle(msg *protos.Eap) (*protos.Eap, error) {
 	}
 	err := verifyEapPayload(msg.Payload)
 	if err != nil {
-		return nil, err
+		return newFailureMsg(msg), err
 	}
-	p := registry.GetProvider(msg.Payload[eap.EapMsgMethodType])
+	method := msg.Payload[eap.EapMsgMethodType]
+	var p providers.Method
+	// Legacy Nak Based Auth Method Discovery
+	// If the method is Nak, try to find a replacement handle (if specified by the Nak)
+	if method == EapMethodNak {
+		// Get Nak's desired auth types array. If the peer did not provide desired auth types
+		// or none of the types is supported - return EAP Failure
+		td := eap.Packet(msg.Payload).TypeDataUnsafe()
+		for _, method = range td {
+			// Find first supported desired auth type
+			p = registry.GetProvider(method)
+			if p != nil {
+				// a matching handler is found, call it with a simulated EAP Identity (1) Request,
+				// use previously saved identity (if any) to create the request
+				identity := []byte{EapMethodIdentity}
+				if msg.Ctx != nil {
+					identity = append(identity, []byte(msg.Ctx.Identity)...)
+				}
+				// Create new EAP request with the simulated EAP Identity packet
+				msg = &protos.Eap{
+					Payload: eap.NewPacket(eap.ResponseCode, msg.Payload[eap.EapMsgIdentifier], identity),
+					Ctx:     msg.Ctx,
+				}
+				break // first found provider
+			}
+		}
+	} else {
+		p = registry.GetProvider(method)
+	}
 	if p == nil {
-		return nil, unsupportedProviderError(msg.Payload[eap.EapMsgMethodType])
+		feap := newFailureMsg(msg)
+		return feap, unsupportedProviderError(method)
 	}
 	return p.Handle(msg)
+}
+
+// newFailureMsg returns a new *protos.Eap with Payload set to EAP Failure packet
+func newFailureMsg(msg *protos.Eap) *protos.Eap {
+	var (
+		ctx     *protos.EapContext
+		payload eap.Packet
+	)
+	if msg != nil {
+		ctx, payload = msg.Ctx, eap.Packet(msg.Payload)
+	}
+	return &protos.Eap{Payload: payload.Failure(), Ctx: ctx}
 }
 
 // verifyEapPayload checks validity of EAP message & it's length

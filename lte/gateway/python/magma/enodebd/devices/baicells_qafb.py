@@ -349,6 +349,7 @@ class BaicellsQAFBTrDataModel(DataModel):
         ParameterName.DL_BANDWIDTH: TrParam(DEVICE_PATH + 'Services.RfConfig.1.RfCarrierCommon.carrierBwMhz', True, TrParameterType.INT, False),
         ParameterName.SUBFRAME_ASSIGNMENT: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.PHY.TDDFrame.SubFrameAssignment', True, 'bool', False),
         ParameterName.SPECIAL_SUBFRAME_PATTERN: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns', True, TrParameterType.INT, False),
+        ParameterName.CELL_ID: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.RAN.Common.CellIdentity', True, TrParameterType.UNSIGNED_INT, False),
 
         # Other LTE parameters
         ParameterName.ADMIN_STATE: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.AdminState', False, TrParameterType.STRING, False),

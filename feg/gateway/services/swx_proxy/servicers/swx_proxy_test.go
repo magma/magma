@@ -219,11 +219,21 @@ func swxStandardTest(t *testing.T, client protos.SwxProxyClient) {
 		// Only must verify that request was successful (no error) to ensure user
 		// is registered
 		if err != nil {
-			t.Fatalf("GRPC SAR Error: %v", err)
+			t.Fatalf("GRPC SAR Register Error: %v", err)
 			complChan <- err
 			return
 		}
-		t.Logf("GRPC SAA: %#+v", *regRes)
+		t.Logf("GRPC SAA Register: %#+v", *regRes)
+
+		unregRes, err := client.Deregister(context.Background(), regReq)
+		// Only must verify that request was successful (no error) to ensure user
+		// is de-registered
+		if err != nil {
+			t.Fatalf("GRPC SAR De-register Error: %v", err)
+			complChan <- err
+			return
+		}
+		t.Logf("GRPC SAA De-register: %#+v", *unregRes)
 		complChan <- nil
 	}
 	go testHappyPath(uint32(rand.Intn(100)))

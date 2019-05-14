@@ -79,20 +79,33 @@ func (queues *requestQueueImpl) CleanupQueue(gwId string) chan *protos.SyncRPCRe
 // gwId: key of the syncRPCReqQueue map
 // gwReq: to append to []protos.SyncRPCRequest of the syncRPCReqQueue
 func (queues *requestQueueImpl) Enqueue(gwReq *protos.SyncRPCRequest) error {
+	const (
+		totalQueuingTimeout = time.Second
+		minQueuingTimeout   = time.Millisecond * 700
+		waitIncrement       = time.Millisecond * 10
+	)
 	if gwReq == nil || gwReq.ReqId <= 0 || gwReq.ReqBody == nil || len(gwReq.ReqBody.GwId) == 0 {
 		return errors.New("SyncRPCRequest cannot be nil and gwId of ReqBody has to be valid")
 	}
+	queueingTimeout := totalQueuingTimeout
 	gwId := gwReq.ReqBody.GwId
 	queues.RLock()
-	defer queues.RUnlock()
 	reqQueue, ok := queues.reqQueueByGwId[gwId]
-	if !ok {
-		return fmt.Errorf("Queue does not exist for gwId %v\n", gwId)
+	for !ok {
+		queues.RUnlock()
+		if queueingTimeout < minQueuingTimeout {
+			return fmt.Errorf("Queue does not exist for gwId %v\n", gwId)
+		}
+		time.Sleep(waitIncrement)
+		queueingTimeout -= waitIncrement
+		queues.RLock()
+		reqQueue, ok = queues.reqQueueByGwId[gwId]
 	}
+	defer queues.RUnlock()
 	select {
 	case reqQueue <- gwReq:
 		return nil
-	case <-time.After(time.Second):
+	case <-time.After(queueingTimeout):
 		return fmt.Errorf("Failed to enqueue %v because queue for gwId %v is full\n", gwReq, gwId)
 	}
 }

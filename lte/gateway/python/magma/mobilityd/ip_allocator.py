@@ -325,8 +325,14 @@ class IPAllocator():
             if sid in self._sid_ips_map:
                 old_ip = self._sid_ips_map[sid][0]
                 if self._test_ip_state(old_ip, IPState.ALLOCATED):
-                    raise DuplicatedIPAllocationError(
-                        "An IP has been allocated for this IMSI")
+                    # MME state went out of sync with mobilityd!
+                    # Recover gracefully by allocating the same IP
+                    logging.warn("Re-allocate IP %s for sid %s without "
+                                 "MME releasing it first", old_ip, sid)
+                    # TODO: enable strict checking after root causing the
+                    # issue in MME
+                    # raise DuplicatedIPAllocationError(
+                    #     "An IP has been allocated for this IMSI")
                 elif self._test_ip_state(old_ip, IPState.RELEASED):
                     ip_desc = self._mark_ip_state(old_ip, IPState.ALLOCATED)
                     ip_desc.sid = sid

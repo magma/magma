@@ -12,16 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/cloud/go/protos/mconfig"
-
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/client"
 	eap_protos "magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	eap_test "magma/feg/gateway/services/eap/test"
@@ -128,17 +125,24 @@ func TestEAPClientApi(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Second Test Challenge EAP within Auth timeout window: %v", err)
 	}
+	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(eap_test.SuccessEAP)) {
+		t.Fatalf(
+			"Unexpected Challenge Response EAP\n\tReceived: %.3v\n\tExpected: %.3v",
+			peap.GetPayload(), []byte(eap_test.SuccessEAP))
+	}
 
 	time.Sleep(servicer.SessionAuthenticatedTimeout() + time.Millisecond*10)
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
-	if err == nil {
-		t.Fatalf("Expected Error for removed Session ID: %s", eapCtx.SessionId)
+	if err != nil {
+		t.Fatalf("Unexpected Error for removed Session ID: %s - %v", eapCtx.SessionId, err)
 	}
-	grpcCode := status.Convert(err).Code()
-	if grpcCode != codes.FailedPrecondition {
-		t.Fatalf("Unexpected Error Copde: %d", grpcCode)
+	notifAkaEap := aka.NewAKANotificationReq(eap.Packet(tst.EapChallengeResp).Identifier(), aka.NOTIFICATION_FAILURE)
+	if !reflect.DeepEqual(peap.GetPayload(), []byte(notifAkaEap)) {
+		t.Fatalf(
+			"Unexpected Challenge Response for removed Session\n\tReceived: %.3v\n\tExpected: %.3v",
+			peap.GetPayload(), notifAkaEap)
 	}
 
 	// Test timeout
@@ -152,8 +156,14 @@ func TestEAPClientApi(t *testing.T) {
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
-	if err == nil {
-		t.Fatalf("Expected Error for timed out Session ID: %s", eapCtx.SessionId)
+	if err != nil {
+		t.Fatalf("Unxpected Error for timed out Session ID: %s - %v", eapCtx.SessionId, err)
+	}
+	notifAkaEap = aka.NewAKANotificationReq(eap.Packet(tst.EapChallengeResp).Identifier(), aka.NOTIFICATION_FAILURE)
+	if !reflect.DeepEqual(peap.GetPayload(), []byte(notifAkaEap)) {
+		t.Fatalf(
+			"Unexpected Challenge Response for timed out Session\n\tReceived: %.3v\n\tExpected: %.3v",
+			peap.GetPayload(), notifAkaEap)
 	}
 }
 

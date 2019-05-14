@@ -67,6 +67,7 @@ export type Gateway = {
   checkinTimeout: ?number,
   tier: ?string,
   autoupgradeEnabled: boolean,
+  attachedEnodebSerials: Array<string>,
   ran: {pci: ?number, transmitEnabled: boolean},
   epc: {ipBlock: string, natEnabled: boolean},
   nonEPSService: {

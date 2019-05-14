@@ -64,6 +64,12 @@ func (s SwxProxy) Register(_ context.Context, _ *protos.RegistrationRequest) (*p
 	return &protos.RegistrationAnswer{}, nil
 }
 
+// Deregister sends SAR (code 301) over diameter connection,
+// waits (blocks) for SAA & returns its RPC representation
+func (s SwxProxy) Deregister(_ context.Context, _ *protos.RegistrationRequest) (*protos.RegistrationAnswer, error) {
+	return &protos.RegistrationAnswer{}, nil
+}
+
 // NoUseSwxProxy - a dummu SwxProxy implementation which always retuns an error & should not be called
 type NoUseSwxProxy struct{}
 
@@ -85,4 +91,13 @@ func (s NoUseSwxProxy) Register(
 	req *protos.RegistrationRequest,
 ) (*protos.RegistrationAnswer, error) {
 	return &protos.RegistrationAnswer{}, fmt.Errorf("Register is NOT IMPLEMENTED")
+}
+
+// Deregister sends SAR (code 301) over diameter connection,
+// waits (blocks) for SAA & returns its RPC representation
+func (s NoUseSwxProxy) Deregister(
+	ctx context.Context,
+	req *protos.RegistrationRequest,
+) (*protos.RegistrationAnswer, error) {
+	return &protos.RegistrationAnswer{}, fmt.Errorf("Deregister is NOT IMPLEMENTED")
 }

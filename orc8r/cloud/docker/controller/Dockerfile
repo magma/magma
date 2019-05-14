@@ -65,21 +65,23 @@ FROM ubuntu:xenial
 RUN apt-get update && \
     apt-get install -y daemontools netcat openssl supervisor wget unzip
 
-# Copy the configs
-COPY configs /etc/magma/configs
+ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 
 # Setup Swagger UI
-COPY src/magma/orc8r/cloud/deploy/files/scripts/setup_swagger_ui /usr/local/bin/setup_swagger_ui
+COPY ${CNTLR_FILES}/setup_swagger_ui /usr/local/bin/setup_swagger_ui
 RUN /usr/local/bin/setup_swagger_ui
+
+# Copy the configs
+COPY configs /etc/magma/configs
 
 # Copy the build artifacts
 COPY --from=builder /build/bin /var/opt/magma/bin
 COPY --from=builder /build/plugins /var/opt/magma/plugins
-COPY --from=builder /src/magma/orc8r/cloud/deploy/files/static/apidocs /var/opt/magma/static/apidocs
+COPY --from=builder /${CNTLR_FILES}/apidocs /var/opt/magma/static/apidocs
 
 # Copy the scripts from the context
-COPY src/magma/orc8r/cloud/deploy/files/envdir /var/opt/magma/envdir
-COPY src/magma/orc8r/cloud/scripts/create_test_controller_certs /usr/local/bin/create_test_controller_certs
+COPY ${CNTLR_FILES}/../envdir /var/opt/magma/envdir
+COPY ${CNTLR_FILES}/create_test_controller_certs /usr/local/bin/create_test_controller_certs
 
 # Override the dev environments to suit Docker
 # TODO: Remove this step after removing vagrant
@@ -87,6 +89,6 @@ RUN echo false > /var/opt/magma/envdir/SHOULD_INIT_METERING_TABLES && \
     echo "dbname=magma_dev user=magma_dev password=magma_dev host=datastore sslmode=disable" > /var/opt/magma/envdir/DATABASE_SOURCE
 
 # Copy the supervisor configs
-COPY src/magma/orc8r/cloud/deploy/roles/controller/files/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY src/magma/orc8r/cloud/scripts/supervisor_logger.py /usr/local/lib/python2.7/dist-packages/supervisor_logger.py
+COPY ${CNTLR_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY ${CNTLR_FILES}/supervisor_logger.py /usr/local/lib/python2.7/dist-packages/supervisor_logger.py
 CMD ["/usr/bin/supervisord"]

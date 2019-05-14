@@ -16,7 +16,7 @@ import (
 	"magma/lte/cloud/go/services/meteringd_records"
 	meteringd_test_init "magma/lte/cloud/go/services/meteringd_records/test_init"
 	orcprotos "magma/orc8r/cloud/go/protos"
-	mw_tests "magma/orc8r/cloud/go/service/middleware/unary/interceptors/tests"
+	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
@@ -54,7 +54,7 @@ func UpdateFlowsTest(csn string, tbl *protos.FlowTable) error {
 func TestMeteringdRecordsControllerClientMethods(t *testing.T) {
 	magmad_test_init.StartTestService(t)
 	meteringd_test_init.StartTestService(t)
-	csns := mw_tests.StartMockGwAccessControl(t, []string{testAgHwId1, testAgHwId2})
+	csns := test_utils.StartMockGwAccessControl(t, []string{testAgHwId1, testAgHwId2})
 
 	//
 	// Build fake network

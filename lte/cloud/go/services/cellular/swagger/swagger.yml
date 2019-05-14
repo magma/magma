@@ -239,6 +239,26 @@ definitions:
         format: uint32
         maximum: 503
         example: 260
+      cell_id:
+        type: integer
+        format: uint32
+        maximum: 268435455
+        example: 138777000
+      bandwidth_mhz:
+        type: integer
+        format: uint32
+        example: 20
+        enum:
+        - 3
+        - 5
+        - 10
+        - 15
+        - 20
+      tac:
+        type: integer
+        format: uint32
+        maximum: 65535
+        example: 15000
       transmit_enabled:
         type: boolean
         example: true

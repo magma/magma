@@ -16,7 +16,7 @@ services:
       - /var/opt/magma/envdir:/var/opt/magma/envdir
     ports:
       - "8080:8080"
-      - "9079-9104:9079-9104"
+      - "9079-9106:9079-9106"
     ulimits:
       nofile:
         soft: 65536

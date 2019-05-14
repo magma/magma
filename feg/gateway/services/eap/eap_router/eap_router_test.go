@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"magma/feg/gateway/services/eap"
+	"magma/feg/gateway/services/eap/providers/aka"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -35,10 +36,20 @@ type testEapRouter struct {
 }
 
 func (s *testEapRouter) HandleIdentity(ctx context.Context, in *eap_protos.EapIdentity) (*eap_protos.Eap, error) {
-	return eap_client.HandleIdentityResponse(uint8(in.GetMethod()), &eap_protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
+	resp, err := eap_client.HandleIdentityResponse(
+		uint8(in.GetMethod()), &eap_protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
+	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
+		err = nil
+	}
+	return resp, err
 }
 func (s *testEapRouter) Handle(ctx context.Context, in *eap_protos.Eap) (*eap_protos.Eap, error) {
-	return eap_client.Handle(in)
+	resp, err := eap_client.Handle(in)
+	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
+		err = nil
+	}
+	return resp, err
+
 }
 func (s *testEapRouter) SupportedMethods(ctx context.Context, in *eap_protos.Void) (*eap_protos.MethodList, error) {
 	return &eap_protos.MethodList{Methods: s.supportedMethods}, nil
@@ -56,6 +67,10 @@ type testEapServiceClient struct {
 
 func (c testEapServiceClient) Handle(in *eap_protos.Eap) (*eap_protos.Eap, error) {
 	return c.EapRouterClient.Handle(context.Background(), in)
+}
+
+func (c testEapServiceClient) HandleIdentity(in *eap_protos.EapIdentity) (*eap_protos.Eap, error) {
+	return c.EapRouterClient.HandleIdentity(context.Background(), in)
 }
 
 func newTestEapClient(t *testing.T, addr string) testEapServiceClient {
@@ -104,6 +119,54 @@ func TestEapAkaConcurent(t *testing.T) {
 	<-done // wait for test 1 & 2 to complete
 }
 
+func TestEAPPeerNak(t *testing.T) {
+	failureEAP := []byte{4, 237, 0, 4}
+	akaPrimeIdentity := eap.NewPacket(
+		eap.ResponseCode, 236,
+		append([]byte{eap_client.EapMethodIdentity}, []byte("6001010000000091@wlan.mnc001.mcc001.3gppnetwork.org")...))
+	permIdReq := []byte{0x01, 237, 0x00, 0x0c, 0x17, 0x05, 0x00, 0x00, 0x0a, 0x01, 0x00, 0x00}
+	akaPrimeNak := []byte{0x02, 237, 0x00, 0x06, 0x03, 50}
+	akaAkaPrimeNak := []byte{0x02, 236, 0x00, 0x07, 0x03, 50, 23}
+
+	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
+	servicer, err := servicers.NewEapAkaService(nil)
+	if err != nil {
+		t.Fatalf("failed to create EAP AKA Service: %v", err)
+		return
+	}
+	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	go eapSrv.RunTest(eapLis)
+
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
+	eap_protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	go rtrSrv.RunTest(rtrLis)
+
+	client := newTestEapClient(t, rtrLis.Addr().String())
+	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
+
+	peap, err := client.HandleIdentity(&eap_protos.EapIdentity{Payload: akaPrimeIdentity, Ctx: eapCtx, Method: 23})
+	if err != nil {
+		t.Fatalf("Unexpected Error: %v", err)
+	}
+	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
+		t.Fatalf("Unexpected Identity Responsen\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
+	}
+	peap, err = client.Handle(&eap_protos.Eap{Payload: akaPrimeNak, Ctx: peap.Ctx})
+	if err != nil {
+		t.Fatalf("Unexpected Error: %v", err)
+	}
+	if !reflect.DeepEqual([]byte(peap.GetPayload()), failureEAP) {
+		t.Fatalf("Unexpected AKA' Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), failureEAP)
+	}
+	peap, err = client.Handle(&eap_protos.Eap{Payload: akaAkaPrimeNak, Ctx: eapCtx})
+	if err != nil {
+		t.Fatalf("Unexpected Error: %v", err)
+	}
+	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
+		t.Fatalf("Unexpected AKA['] Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
+	}
+}
+
 func TestEAPAkaWrongPlmnId(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.NoUseSwxProxy
@@ -127,9 +190,15 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 
 	tst := eap_test.Units[eap_test.IMSI1]
 	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
-	_, err = client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
-	if err == nil {
-		t.Fatalf("Expected Error Handling Filtered PLMN ID")
+	peap, err := client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	if err != nil {
+		t.Fatalf("Error Handling Test EAP: %v", err)
+	}
+	notifAkaEap := aka.NewAKANotificationReq(eap.Packet(tst.EapIdentityResp).Identifier(), aka.NOTIFICATION_FAILURE)
+	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(notifAkaEap)) {
+		t.Fatalf(
+			"Unexpected identityResponse Notification\n\tReceived: %.3v\n\tExpected: %.3v",
+			peap.GetPayload(), notifAkaEap)
 	}
 }
 

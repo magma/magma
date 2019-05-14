@@ -11,7 +11,6 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"sort"
 
@@ -19,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -123,8 +123,8 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	entityAssocTableExec := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s
 		(
-			from_pk TEXT REFERENCES %s (pk),
-			to_pk TEXT REFERENCES %s (pk),
+			from_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
+			to_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
 
 			PRIMARY KEY (from_pk, to_pk)
 		)
@@ -372,7 +372,7 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 		return ret, err
 	}
 
-	entsByPk, err = updateEntitiesWithAssocs(entsByPk, assocs, entTksByPk, loadCriteria)
+	entsByPk, _, err = updateEntitiesWithAssocs(entsByPk, assocs, entTksByPk, loadCriteria)
 	if err != nil {
 		return ret, err
 	}
@@ -416,6 +416,11 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 		return NetworkEntity{}, err
 	}
 
+	err = store.createPermissions(networkID, createdEntWithPk.pk, createdEntWithPk.Permissions)
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+
 	allAssociatedEntsByTk, err := store.createEdges(networkID, createdEntWithPk)
 	if err != nil {
 		return NetworkEntity{}, err
@@ -433,10 +438,105 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	return createdEntWithPk.NetworkEntity, nil
 }
 
-func (store *sqlConfiguratorStorage) UpdateEntities(networkID string, updates []EntityUpdateCriteria) (FailedOperations, error) {
-	panic("implement me")
+func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
+	emptyRet := NetworkEntity{Type: update.Type, Key: update.Key}
+	entToUpdate, err := store.loadEntToUpdate(networkID, update)
+	if err != nil {
+		return emptyRet, errors.Wrap(err, "failed to load entity being updated")
+	}
+
+	if update.DeleteEntity {
+		// Cascading FK relations in the schema will handle the other tables
+		exec := fmt.Sprintf("DELETE FROM %s WHERE (network_id, type, key) = ($1, $2, $3)", entityTable)
+		_, err := store.tx.Exec(exec, networkID, update.Type, update.Key)
+		if err != nil {
+			return emptyRet, errors.Wrapf(err, "failed to delete entity (%s, %s)", update.Type, update.Key)
+		}
+
+		// Deleting a node could partition its graph
+		err = store.fixGraph(networkID, entToUpdate.GraphID, &entToUpdate)
+		if err != nil {
+			return emptyRet, errors.Wrap(err, "failed to fix entity graph after deletion")
+		}
+
+		return emptyRet, nil
+	}
+
+	// Then, update the fields on the entity table
+	err = store.processEntityFieldsUpdate(entToUpdate.pk, update, &entToUpdate.NetworkEntity)
+	if err != nil {
+		return entToUpdate.NetworkEntity, errors.WithStack(err)
+	}
+
+	// Next, update permissions
+	err = store.processPermissionUpdates(networkID, entToUpdate.pk, update, &entToUpdate.NetworkEntity)
+	if err != nil {
+		return entToUpdate.NetworkEntity, errors.WithStack(err)
+	}
+
+	// Finally, process edge updates for the graph
+	err = store.processEdgeUpdates(networkID, update, &entToUpdate)
+	if err != nil {
+		return entToUpdate.NetworkEntity, errors.WithStack(err)
+	}
+
+	return entToUpdate.NetworkEntity, nil
 }
 
 func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
-	panic("implement me")
+	// Technically you could do this in one DB query with a subquery in the
+	// WHERE when selecting from the entity table.
+	// But until we hit some kind of scaling limit, let's keep the code simple
+	// and delegate to LoadGraph after loading the requested entity.
+
+	// We just care about getting the graph ID off this entity so use an empty
+	// load criteria
+	loadResult, err := store.loadSpecificEntities(networkID, EntityLoadFilter{IDs: []storage.TypeAndKey{entityID}}, EntityLoadCriteria{})
+	if err != nil {
+		return EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
+	}
+
+	var loadedEnt *NetworkEntity
+	for _, ent := range loadResult {
+		loadedEnt = ent
+	}
+	if loadedEnt == nil {
+		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID)
+	}
+
+	internalGraph, err := store.loadGraphInternal(networkID, loadedEnt.GraphID, loadCriteria)
+	if err != nil {
+		return EntityGraph{}, errors.WithStack(err)
+	}
+
+	rootPks := findRootNodes(internalGraph)
+	if funk.IsEmpty(rootPks) {
+		return EntityGraph{}, errors.Errorf("graph does not have root nodes because it is a ring")
+	}
+
+	// Fill entities with assocs. We will always fill out both directions of
+	// associations so we'll alter the load criteria for the helper function.
+	entTksByPk := funk.Map(
+		internalGraph.entsByPk,
+		func(pk string, ent *NetworkEntity) (string, storage.TypeAndKey) { return pk, ent.GetTypeAndKey() },
+	).(map[string]storage.TypeAndKey)
+	loadCriteria.LoadAssocsToThis, loadCriteria.LoadAssocsFromThis = true, true
+	_, edges, err := updateEntitiesWithAssocs(internalGraph.entsByPk, internalGraph.edges, entTksByPk, loadCriteria)
+	if err != nil {
+		return EntityGraph{}, errors.Wrap(err, "failed to construct graph after loading")
+	}
+
+	// To make testing easier, we'll order the returned entities by TK
+	retEnts := funk.Map(internalGraph.entsByPk, func(_ string, ent *NetworkEntity) NetworkEntity { return *ent }).([]NetworkEntity)
+	retRoots := funk.Map(rootPks, func(pk string) storage.TypeAndKey { return entTksByPk[pk] }).([]storage.TypeAndKey)
+	sort.Slice(retEnts, func(i, j int) bool {
+		return storage.IsTKLessThan(retEnts[i].GetTypeAndKey(), retEnts[j].GetTypeAndKey())
+	})
+	sort.Slice(retRoots, func(i, j int) bool { return storage.IsTKLessThan(retRoots[i], retRoots[j]) })
+
+	return EntityGraph{
+		Entities:     retEnts,
+		RootEntities: retRoots,
+		Edges:        edges,
+	}, nil
 }

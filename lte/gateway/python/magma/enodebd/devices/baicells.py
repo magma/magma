@@ -66,7 +66,11 @@ class BaicellsHandler(BasicEnodebAcsStateMachine):
             'end_session': EndSessionState(self),
             'reboot': BaicellsSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
-            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_rem', when_timeout='wait_inform'),
+            'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_rem_post_reboot', when_timeout='wait_inform_post_reboot'),
+            # After rebooting, we don't need to query optional params again.
+            'wait_inform_post_reboot': WaitInformState(self, when_done='wait_empty_post_reboot', when_boot='wait_rem_post_reboot'),
+            'wait_rem_post_reboot': BaicellsRemWaitState(self, when_done='wait_inform_post_reboot'),
+            'wait_empty_post_reboot': WaitEmptyMessageState(self, when_done='get_transient_params'),
             # The states below are entered when an unexpected message type is
             # received
             'unexpected_fault': ErrorState(self),
@@ -146,6 +150,7 @@ class BaicellsTrDataModel(DataModel):
         ParameterName.SPECIAL_SUBFRAME_PATTERN: TrParam(
             FAPSERVICE_PATH
             + 'CellConfig.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns', True, TrParameterType.INT, False),
+        ParameterName.CELL_ID: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity', True, TrParameterType.UNSIGNED_INT, False),
 
         # Other LTE parameters
         ParameterName.ADMIN_STATE: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.AdminState', False, TrParameterType.BOOLEAN, False),
