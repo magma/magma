@@ -288,7 +288,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
-            data='20',
+            data='n100',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Common.CellIdentity',
@@ -397,7 +397,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
             val_type='string',
-            data='20',
+            data='n100',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
