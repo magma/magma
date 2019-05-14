@@ -1,13 +1,13 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 // package interceptors implements all cloud service framework unary interceptors
-package interceptors
+package unary
 
 import (
 	"log"
@@ -70,38 +70,13 @@ func init() {
 	prometheus.MustRegister(gwExpiringCert)
 }
 
-type identityDecorator struct {
-}
-
-func NewIdentityDecorator() identityDecorator {
-	return identityDecorator{} // return by value, it's as 'big' as a pointer
-}
-
-func (_ identityDecorator) Handle(
-	ctx context.Context, req interface{}, info *grpc.UnaryServerInfo) (
-	context.Context, interface{}, interface{}, error) {
-	return SetIdentityFromContext(ctx, req, info)
-}
-
-func (_ identityDecorator) Name() string {
-	return "Unary Identity Decorator"
-}
-
-func (_ identityDecorator) Description() string {
-	return "Identity Decorator injects protos.Identity instance into RPC context"
-}
-
 // SetIdentityFromContext finds Identity associated with caller's Client
 // Certificate Serial Number (if present), makes sure that the found Identity
 // is of a Gateway & fills in all available Gateway Identity information
 // SetIdentityFromContext will bypass the Identity checks for local callers
 // (other services on the cloud) and whitelisted RPCs (methods in
 // identityDecoratorBypassList)
-func SetIdentityFromContext(
-	ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-) (newCtx context.Context, newReq interface{}, resp interface{}, err error) {
+func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.UnaryServerInfo) (newCtx context.Context, newReq interface{}, resp interface{}, err error) {
 	//
 	// There are 5 possible outcomes:
 	// 1. !ok -> type assertion: mdIncomingKey{} is present, but it's not of MD type
@@ -317,13 +292,3 @@ func ensureLocalPeer(ctx context.Context) error {
 	}
 	return nil
 }
-
-/*
-func (SetIdentityFromContext) Name() string {
-	return "Identity Injector From HTTP CTX"
-}
-
-func (SetIdentityFromContext) Description() string {
-	return "iulivubgjilkjrgfruvddbukvjtjutefifgnlfiflefdcdulknuvgtdiiitbjitkIdentity Injector From HTTP CTX"
-}
-*/

@@ -1,12 +1,12 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
-
-package interceptors
+package unary
 
 // Identity decorator bypass list is a map of RPC methods which are allowed to
 // bypass Identity verification checks. For now, the only service in this category

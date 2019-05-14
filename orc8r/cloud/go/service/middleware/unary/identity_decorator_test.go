@@ -1,12 +1,12 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
-
-package tests
+package unary_test
 
 import (
 	"net"
@@ -16,7 +16,7 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/service/middleware/unary"
+	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	"magma/orc8r/cloud/go/services/checkind"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
@@ -91,7 +91,6 @@ func (srv *testCheckindServer) List(
 
 func TestIdentityInjector(t *testing.T) {
 	magmad_test_init.StartTestService(t)
-	t.Logf("Registered Unary Interceptors: %s", unary.ListAllInterceptors())
 	// Make sure to "share" in memory magmad DBs with interceptors
 
 	testNetworkId, err := magmad.RegisterNetwork(
@@ -143,7 +142,7 @@ func TestIdentityInjector(t *testing.T) {
 		},
 	}
 
-	csn := StartMockGwAccessControl(t, []string{testAgHwId})
+	csn := test_utils.StartMockGwAccessControl(t, []string{testAgHwId})
 	magmaCheckindClient := protos.NewCheckindClient(conn)
 
 	ctx := metadata.NewOutgoingContext(

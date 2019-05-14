@@ -9,7 +9,7 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	middlewareTests "magma/orc8r/cloud/go/service/middleware/unary/interceptors/tests"
+	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
@@ -41,7 +41,7 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *checkind_models
 }
 
 func GetContextWithCertificate(t *testing.T, hwID string) context.Context {
-	csn := middlewareTests.StartMockGwAccessControl(t, []string{hwID})
+	csn := test_utils.StartMockGwAccessControl(t, []string{hwID})
 	return metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs(identity.CLIENT_CERT_SN_KEY, csn[0]))
