@@ -6,9 +6,9 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
+import logging
 import textwrap
-from typing import Optional
+from typing import Optional, Union
 from magma.enodebd.exceptions import ConfigurationError
 
 
@@ -25,6 +25,8 @@ BANDWIDTH_RBS_TO_MHZ_MAP = {
     'n75': 15,
     'n100': 20,
 }
+
+BANDWIDTH_MHZ_LIST = {1.4, 3, 5, 10, 15, 20}
 
 
 def duplex_mode(value: str) -> Optional[str]:
@@ -52,9 +54,8 @@ def gps_tr181(value: str) -> str:
         return value
 
 
-def bandwidth(bandwidth_rbs: str) -> float:
+def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
     """
-
     Map bandwidth in number of RBs to MHz
     TODO: TR-196 spec says this should be '6' rather than 'n6', but
     BaiCells eNodeB uses 'n6'. Need to resolve this.
@@ -64,7 +65,19 @@ def bandwidth(bandwidth_rbs: str) -> float:
     Returns:
         str: Bandwidth in MHz
     """
-    if bandwidth_rbs not in BANDWIDTH_RBS_TO_MHZ_MAP:
-        raise ConfigurationError('Unknown bandwidth_rbs (%s)' %
-                                 str(bandwidth_rbs))
-    return BANDWIDTH_RBS_TO_MHZ_MAP[bandwidth_rbs]
+    if bandwidth_rbs in BANDWIDTH_RBS_TO_MHZ_MAP:
+        return BANDWIDTH_RBS_TO_MHZ_MAP[bandwidth_rbs]
+
+    logging.debug('Unknown bandwidth_rbs (%s)', str(bandwidth_rbs))
+    if bandwidth_rbs in BANDWIDTH_MHZ_LIST:
+        return bandwidth_rbs
+    elif isinstance(bandwidth_rbs, str):
+        mhz = None
+        if bandwidth_rbs.isdigit():
+            mhz = int(bandwidth_rbs)
+        elif bandwidth_rbs.replace('.', '', 1).isdigit():
+            mhz = float(bandwidth_rbs)
+        if mhz in BANDWIDTH_MHZ_LIST:
+            return mhz
+    raise ConfigurationError('Unknown bandwidth specification (%s)' %
+                             str(bandwidth_rbs))
