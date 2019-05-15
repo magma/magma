@@ -23,8 +23,9 @@ import (
 )
 
 const (
-	alertConfigPart = "alert_config"
-	AlertConfigURL  = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertConfigPart
+	alertConfigPart     = "alert_config"
+	AlertConfigURL      = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertConfigPart
+	AlertNameQueryParam = "alert_name"
 )
 
 func GetConfigurePrometheusAlertHandler(webServerURL string) func(c echo.Context) error {
@@ -35,6 +36,17 @@ func GetConfigurePrometheusAlertHandler(webServerURL string) func(c echo.Context
 		}
 		url := webServerURL + "/" + networkID
 		return configurePrometheusAlert(c, url, networkID)
+	}
+}
+
+func GetRetrieveAlertRuleHandler(webServerURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID, nerr := handlers.GetNetworkId(c)
+		if nerr != nil {
+			return nerr
+		}
+		url := webServerURL + "/" + networkID
+		return retrieveAlertRule(c, url)
 	}
 }
 
@@ -80,6 +92,35 @@ func sendConfigToPrometheusServer(payload rulefmt.Rule, url string) error {
 		return handlers.HttpError(fmt.Errorf("server error: %v, code: %v", body.Message, body.Internal), http.StatusInternalServerError)
 	}
 	return nil
+}
+
+func retrieveAlertRule(c echo.Context, url string) error {
+	alertName := c.QueryParam(AlertNameQueryParam)
+	if alertName != "" {
+		url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, alertName)
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return handlers.HttpError(fmt.Errorf("alert server responded with error"), resp.StatusCode)
+	}
+
+	var rules []alert.RuleJSONWrapper
+	err = json.NewDecoder(resp.Body).Decode(&rules)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding server response: %v", err))
+	}
+	return c.JSON(http.StatusOK, rules)
 }
 
 func buildRuleFromContext(c echo.Context) (rulefmt.Rule, error) {

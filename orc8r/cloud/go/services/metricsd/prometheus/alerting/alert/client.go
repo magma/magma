@@ -67,6 +67,25 @@ func (c *Client) WriteAlert(rule rulefmt.Rule, networkID string) error {
 	return nil
 }
 
+func (c *Client) ReadRules(ruleName string, networkID string) ([]rulefmt.Rule, error) {
+	filename := makeFilename(networkID, c.rulesDir)
+	c.fileLocks.RLock(filename)
+	defer c.fileLocks.RUnlock(filename)
+
+	ruleFile, err := c.readRuleFile(makeFilename(networkID, c.rulesDir))
+	if err != nil {
+		return []rulefmt.Rule{}, err
+	}
+	if ruleName == "" {
+		return ruleFile.Rules(), nil
+	}
+	foundRule, err := ruleFile.GetRule(ruleName)
+	if err != nil {
+		return nil, err
+	}
+	return []rulefmt.Rule{*foundRule}, nil
+}
+
 func (c *Client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
 	err = ioutil.WriteFile(filename, yamlFile, 0660)

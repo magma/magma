@@ -125,6 +125,27 @@ paths:
           description: Created
         default:
           $ref: './swagger.yml#/responses/UnexpectedError'
+    get:
+      summary: Retrive alerting rule configurations
+      description: If no query parameters are included, all alerting rules for the given network are returned.
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger.yml#/parameters/network_id'
+        - in: query
+          name: alert_name
+          description: Name of alert to be retrieved
+          required: false
+          type: string
+      responses:
+        '200':
+          description: List of alert configurations
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prom_alert_config'
+        default:
+          $ref: './swagger.yml#/responses/UnexpectedError'
 
 definitions:
   graphite_return_object:

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
 
@@ -15,6 +16,7 @@ import (
 
 const (
 	prometheusReloadPath = "/-/reload"
+	ruleNameQueryParam   = "alert_name"
 )
 
 // GetPostHandler returns a handler that calls the client method WriteAlert() to
@@ -35,6 +37,23 @@ func GetPostHandler(client *alert.Client, prometheusURL string) func(c echo.Cont
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		return c.NoContent(http.StatusOK)
+	}
+}
+
+func GetGetHandler(client *alert.Client) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		ruleName := c.QueryParam(ruleNameQueryParam)
+		networkID := getNetworkID(c)
+		rules, err := client.ReadRules(ruleName, networkID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+
+		jsonRules, err := rulesToJSON(rules)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		return c.JSON(http.StatusOK, jsonRules)
 	}
 }
 
@@ -61,4 +80,33 @@ func reloadPrometheus(url string) error {
 
 func getNetworkID(c echo.Context) string {
 	return c.Param("network_id")
+}
+
+func rulesToJSON(rules []rulefmt.Rule) ([]alert.RuleJSONWrapper, error) {
+	ret := make([]alert.RuleJSONWrapper, 0)
+
+	for _, rule := range rules {
+		jsonRule, err := rulefmtToJSON(rule)
+		if err != nil {
+			return ret, err
+		}
+		ret = append(ret, *jsonRule)
+	}
+	return ret, nil
+}
+
+func rulefmtToJSON(rule rulefmt.Rule) (*alert.RuleJSONWrapper, error) {
+	duration, err := time.ParseDuration(rule.For.String())
+	if err != nil {
+		return nil, err
+	}
+	return &alert.RuleJSONWrapper{
+		Record:      rule.Record,
+		Alert:       rule.Alert,
+		Expr:        rule.Expr,
+		For:         duration.String(),
+		Labels:      rule.Labels,
+		Annotations: rule.Annotations,
+	}, nil
+
 }

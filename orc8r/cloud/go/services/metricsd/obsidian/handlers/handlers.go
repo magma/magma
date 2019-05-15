@@ -55,7 +55,10 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 	}
 
 	alertConfigWebServerURL := configMap.GetRequiredStringParam(confignames.AlertConfigWebServerURL)
-	ret = append(ret, handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(alertConfigWebServerURL)})
+	ret = append(ret,
+		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(alertConfigWebServerURL)},
+		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRuleHandler(alertConfigWebServerURL)},
+	)
 
 	return ret
 }

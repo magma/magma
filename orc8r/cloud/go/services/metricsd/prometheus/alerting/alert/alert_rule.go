@@ -9,6 +9,8 @@
 package alert
 
 import (
+	"fmt"
+
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
@@ -33,13 +35,13 @@ func (f *File) Rules() []rulefmt.Rule {
 }
 
 // GetRule returns the specific rule by name, nil if it doesn't exist in the file
-func (f *File) GetRule(rulename string) *rulefmt.Rule {
+func (f *File) GetRule(rulename string) (*rulefmt.Rule, error) {
 	for _, rule := range f.RuleGroups[0].Rules {
 		if rule.Alert == rulename {
-			return &rule
+			return &rule, nil
 		}
 	}
-	return nil
+	return &rulefmt.Rule{}, fmt.Errorf("could not find rule: %s", rulename)
 }
 
 // AddRule appends a new rule to the list of rules in this file
