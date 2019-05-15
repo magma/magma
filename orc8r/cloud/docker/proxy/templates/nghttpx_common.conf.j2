@@ -4,13 +4,8 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
-#
 
-# Set the limit for number of open files
-rlimit-nofile=65536
-
-errorlog-file=/dev/stderr
-accesslog-file=/var/log/nghttpx.log
+accesslog-file=/dev/stdout
 # !!! If change the format below, need to change nghttpx_parser.Parse() as well.
 accesslog-format=${time_iso8601}@|@${remote_addr}@|@${http_host}@|@${server_port}@|@${request}@|@${status}@|@${body_bytes_sent}@|@${request_time}@|@${alpn}@|@${tls_client_serial}@|@${tls_client_subject_name}@|@${tls_session_reused}@|@${tls_sni}@|@${tls_protocol}@|@${tls_cipher}@|@${backend_host}@|@${backend_port}
 

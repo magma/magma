@@ -18,19 +18,17 @@ RUN apt-get update && \
 # Install python3 deps from pip
 RUN pip3 install PyYAML jinja2
 
+# Create an empty envdir for overriding in production
+RUN mkdir -p /var/opt/magma/envdir
+
 ARG PROXY_FILES=src/magma/orc8r/cloud/docker/proxy
 
 # Copy the scripts and configs from the context
 COPY configs /etc/magma/configs
-COPY ${PROXY_FILES}/../envdir /var/opt/magma/envdir
 COPY ${PROXY_FILES}/templates /etc/magma/templates
 COPY ${PROXY_FILES}/magma_headers.rb /etc/nghttpx/magma_headers.rb
 COPY ${PROXY_FILES}/run_nghttpx.py /usr/local/bin/run_nghttpx.py
 COPY ${PROXY_FILES}/create_test_proxy_certs /usr/local/bin/create_test_proxy_certs
-
-# Override the dev environments to suit Docker
-# TODO: Remove this step after removing vagrant
-RUN echo "controller" > /var/opt/magma/envdir/PROXY_BACKENDS
 
 # Copy the supervisor configs
 COPY ${PROXY_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
