@@ -87,6 +87,7 @@
 #define LOG_FUNC_INDENT_SPACES 3
 #define LOG_LEVEL_NAME_MAX_LENGTH 10
 
+#define LOG_MAGMA_REPO_ROOT "/oai/"
 //-------------------------------
 
 typedef unsigned long log_message_number_t;
@@ -1349,7 +1350,10 @@ void log_message_start_async(
     (*messageP)->u_app_log.log.log_level = log_levelP;
     shared_log_get_elapsed_time_since_start(&elapsed_time);
 
-    filename_length = strlen(source_fileP);
+    // get the short file name to use for printing in log
+    const char *const short_source_fileP = get_short_file_name(source_fileP);
+
+    filename_length = strlen(short_source_fileP);
     if (g_oai_log.is_ansi_codes) {
       rv = bformata(
         (*messageP)->bstr, "%s", &g_oai_log.log_level2ansi[log_levelP][0]);
@@ -1370,7 +1374,8 @@ void log_message_start_async(
         &g_oai_log.log_proto2str[protoP][0],
         LOG_DISPLAYED_FILENAME_MAX_LENGTH,
         LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-        &source_fileP[filename_length - LOG_DISPLAYED_FILENAME_MAX_LENGTH],
+        &short_source_fileP
+          [filename_length - LOG_DISPLAYED_FILENAME_MAX_LENGTH],
         line_numP,
         thread_ctxt->indent,
         " ");
@@ -1390,7 +1395,7 @@ void log_message_start_async(
         &g_oai_log.log_proto2str[protoP][0],
         LOG_DISPLAYED_FILENAME_MAX_LENGTH,
         LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-        source_fileP,
+        short_source_fileP,
         line_numP,
         thread_ctxt->indent,
         " ");
@@ -1575,8 +1580,12 @@ void log_message_int(
   log_get_elapsed_time_since_start(&elapsed_time);
 #endif
   time_t cur_time;
+
+  // get the short file name to use for printing in log
+  const char *const short_source_fileP = get_short_file_name(source_fileP);
+
   filename_length =
-    MIN((strlen(source_fileP) - LOG_DISPLAYED_FILENAME_MAX_LENGTH), (0));
+    MIN((strlen(short_source_fileP) - LOG_DISPLAYED_FILENAME_MAX_LENGTH), (0));
   if (!(g_oai_log.is_async)) {
     sync_context_p = (log_queue_item_t **) contextP;
     rv = bformata(
@@ -1593,7 +1602,7 @@ void log_message_int(
       &g_oai_log.log_proto2str[protoP][0],
       LOG_DISPLAYED_FILENAME_MAX_LENGTH,
       LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-      &source_fileP[filename_length],
+      &short_source_fileP[filename_length],
       line_numP,
       thread_ctxt->indent,
       " ");
@@ -1627,7 +1636,7 @@ void log_message_int(
       &g_oai_log.log_proto2str[protoP][0],
       LOG_DISPLAYED_FILENAME_MAX_LENGTH,
       LOG_DISPLAYED_FILENAME_MAX_LENGTH,
-      &source_fileP[filename_length],
+      &short_source_fileP[filename_length],
       line_numP,
       thread_ctxt->indent,
       " ");
@@ -1655,4 +1664,24 @@ error_event:
   } else {
     _LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
+}
+
+//------------------------------------------------------------------------------
+//Get the short source file name to print in the log line
+//Chop off the prefix string appearing before ROOT (Ex: /oai/) and print
+//Ex:
+//    input: /home/vagrant/magma/lte/gateway/c/oai/tasks/nas/emm/sap/emm_cn.c
+//           Assume root is /oai/
+//    output: tasks/nas/emm/sap/emm_cn.c
+const char *const get_short_file_name(const char *const source_file_nameP)
+{
+  if (!source_file_nameP)
+    return source_file_nameP;
+
+  char *root_startP = strstr(source_file_nameP,LOG_MAGMA_REPO_ROOT);
+
+  if (!root_startP)
+    return source_file_nameP; // root pattern not found
+
+  return root_startP+strlen(LOG_MAGMA_REPO_ROOT);
 }
