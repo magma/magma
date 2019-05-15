@@ -49,6 +49,17 @@ func (f *File) AddRule(rule rulefmt.Rule) {
 	f.RuleGroups[0].Rules = append(f.RuleGroups[0].Rules, rule)
 }
 
+func (f *File) DeleteRule(name string) error {
+	rules := f.RuleGroups[0].Rules
+	for idx, rule := range rules {
+		if rule.Alert == name {
+			f.RuleGroups[0].Rules = append(rules[:idx], rules[idx+1:]...)
+			return nil
+		}
+	}
+	return fmt.Errorf("alert with name %s not found", name)
+}
+
 // SecureRule attaches a label for networkID to the given alert expression to
 // to ensure that only metrics owned by this network can be alerted on
 func SecureRule(rule *rulefmt.Rule, networkID string) error {

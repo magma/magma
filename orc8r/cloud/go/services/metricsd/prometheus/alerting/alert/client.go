@@ -16,6 +16,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 
+	"github.com/labstack/echo"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"
 )
@@ -84,6 +85,25 @@ func (c *Client) ReadRules(ruleName string, networkID string) ([]rulefmt.Rule, e
 		return nil, err
 	}
 	return []rulefmt.Rule{*foundRule}, nil
+}
+
+func (c *Client) DeleteRule(ruleName string, networkID string) error {
+	filename := makeFilename(networkID, c.rulesDir)
+	c.fileLocks.Lock(filename)
+	defer c.fileLocks.Unlock(filename)
+
+	ruleFile, err := c.readRuleFile(filename)
+
+	err = ruleFile.DeleteRule(ruleName)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err)
+	}
+
+	err = c.writeRuleFile(ruleFile, filename)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (c *Client) writeRuleFile(ruleFile *File, filename string) error {

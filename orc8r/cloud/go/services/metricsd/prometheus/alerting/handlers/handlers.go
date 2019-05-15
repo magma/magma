@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -54,6 +55,25 @@ func GetGetHandler(client *alert.Client) func(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError, err)
 		}
 		return c.JSON(http.StatusOK, jsonRules)
+	}
+}
+
+func GetDeleteHandler(client *alert.Client, prometheusURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		ruleName := c.QueryParam(ruleNameQueryParam)
+		networkID := getNetworkID(c)
+		if ruleName == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, errors.New("No rule name provided"))
+		}
+		err := client.DeleteRule(ruleName, networkID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		err = reloadPrometheus(prometheusURL)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		return c.JSON(http.StatusOK, nil)
 	}
 }
 

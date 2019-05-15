@@ -98,8 +98,7 @@ paths:
         required: false
       responses:
         '200':
-          description:
-            List of PromQL metrics results
+          description: List of PromQL metrics results
           schema:
             type: array
             items:
@@ -146,6 +145,23 @@ paths:
               $ref: '#/definitions/prom_alert_config'
         default:
           $ref: './swagger.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete an alerting rule
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger.yml#/parameters/network_id'
+        - in: query
+          name: alert_name
+          description: Name of alert to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Deleted
+        default:
+          $ref: './swagger.yml#/responses/UnexpectedError'
+
 
 definitions:
   graphite_return_object:

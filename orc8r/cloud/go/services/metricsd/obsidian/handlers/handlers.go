@@ -58,6 +58,7 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 	ret = append(ret,
 		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(alertConfigWebServerURL)},
 		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRuleHandler(alertConfigWebServerURL)},
+		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.DELETE, HandlerFunc: promH.GetDeleteAlertRuleHandler(alertConfigWebServerURL)},
 	)
 
 	return ret

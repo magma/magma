@@ -33,6 +33,7 @@ func main() {
 
 	e.POST(rootPath, handlers.GetPostHandler(client, *prometheusURL))
 	e.GET(rootPath, handlers.GetGetHandler(client))
+	e.DELETE(rootPath, handlers.GetDeleteHandler(client, *prometheusURL))
 
 	glog.Infof("Alertconfig server listening on Port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
