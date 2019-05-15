@@ -101,13 +101,6 @@ typedef struct task_info_s {
   const char *const name;
 } task_info_t;
 
-/** \brief Update the itti LTE time reference for messages
- \param current seconds
- \param current micro seconds
- @returns < 0 on failure, 0 otherwise
- **/
-void itti_update_lte_time(__time_t seconds, __suseconds_t useconds);
-
 /** \brief Send a broadcast message to every task
  \param message_p Pointer to the message to send
  @returns < 0 on failure, 0 otherwise
@@ -152,12 +145,6 @@ int itti_get_events(task_id_t task_id, struct epoll_event **events);
  **/
 void itti_receive_msg(task_id_t task_id, MessageDef **received_msg);
 
-/** \brief Try to retrieves a message in the queue associated to task_id.
- \param task_id Task ID of the receiving task
- \param received_msg Pointer to the allocated message
- **/
-void itti_poll_msg(task_id_t task_id, MessageDef **received_msg);
-
 /** \brief Start thread associated to the task
  * \param task_id task to start
  * \param start_routine entry point for the task
@@ -169,18 +156,6 @@ int itti_create_task(
   void *(*start_routine)(void *),
   void *args_p);
 
-//#ifdef RTAI
-/** \brief Mark the task as a real time task
- * \param task_id task to mark as real time
- **/
-void itti_set_task_real_time(task_id_t task_id);
-//#endif
-
-/** \brief Indicates to ITTI if newly created tasks should wait for all tasks to be ready
- * \param wait_tasks non 0 to make new created tasks to wait, 0 to let created tasks to run
- **/
-void itti_wait_ready(int wait_tasks);
-
 /** \brief Mark the task as in ready state
  * \param task_id task to mark as ready
  **/
@@ -189,11 +164,6 @@ void itti_mark_task_ready(task_id_t task_id);
 /** \brief Exit the current task.
  **/
 void itti_exit_task(void);
-
-/** \brief Indicate that the task is completed and initiate termination of all tasks.
- * \param task_id task that is completed
- **/
-void itti_terminate_tasks(task_id_t task_id);
 
 /** \brief Return the printable string associated with the message
  * \param message_id Id of the message

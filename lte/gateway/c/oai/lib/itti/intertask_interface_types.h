@@ -126,10 +126,6 @@ typedef union msg_s {
 
 typedef uint16_t MessageHeaderSize;
 
-typedef struct itti_lte_time_s {
-  struct timeval time;
-} itti_lte_time_t;
-
 /** @struct MessageHeader
  *  @brief Message Header structure for inter-task communication.
  */
@@ -143,8 +139,6 @@ typedef struct MessageHeader_s {
 
   MessageHeaderSize
     ittiMsgSize; /**< Message size (not including header size) */
-
-  itti_lte_time_t lte_time; /**< Reference LTE time */
 } MessageHeader;
 
 /** @struct MessageDef
