@@ -78,7 +78,7 @@ COPY feg/gateway/deploy/roles/feg_services/files/magma_*.service /etc/systemd/sy
 COPY lte/gateway/deploy/roles/magma/files/systemd/magma_magmad.service /etc/systemd/system/
 COPY orc8r/tools/ansible/roles/gateway_services/files/magma.service /etc/systemd/system/magma@.service
 COPY orc8r/tools/ansible/roles/gateway_services/files/magma_control_proxy.service /etc/systemd/system/
-COPY orc8r/cloud/deploy/roles/proxy/files/magma_headers.rb /etc/nghttpx/magma_headers.rb
+COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 
 # Rename configs to start with 'magma@' instead of 'magma_'.
 RUN for f in /etc/systemd/system/magma_*.service; do mv $f $(echo $f | sed s/magma_/magma@/); done

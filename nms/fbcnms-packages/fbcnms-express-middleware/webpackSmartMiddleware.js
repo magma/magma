@@ -56,7 +56,9 @@ export default function webpackSmartMiddleware(
   const {devMode, devWebpackConfig, distPath} = options;
 
   const router = express.Router();
-  if (devMode) {
+  if (process.env.NODE_ENV === 'test') {
+    // Do nothing
+  } else if (devMode) {
     router.use(webpackDevMiddleware({devWebpackConfig, distPath}));
   } else {
     // serve built resources from static/dist/ folder

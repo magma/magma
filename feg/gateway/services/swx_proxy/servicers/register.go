@@ -30,13 +30,13 @@ import (
 
 // RegisterImpl sends SAR (code 301) over diameter
 // waits (blocks) for SAA and returns its RPC representation
-func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, error) {
+func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest, serverAssignmentType uint32) (*protos.RegistrationAnswer, error) {
 	res := &protos.RegistrationAnswer{}
 	err := validateRegistrationRequest(req)
 	if err != nil {
 		return res, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-	_, err = s.sendSAR(req.GetUserName(), ServerAssignmentType_REGISTRATION)
+	_, err = s.sendSAR(req.GetUserName(), serverAssignmentType)
 	return res, err
 }
 

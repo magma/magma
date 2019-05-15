@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -38,17 +39,22 @@ func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, fil
 	if err != nil {
 		return entsByPk, err
 	}
-	queryArgs := []interface{}{networkID}
-	if filter.KeyFilter != nil {
-		queryArgs = append(queryArgs, *filter.KeyFilter)
-	}
-	if filter.TypeFilter != nil {
-		queryArgs = append(queryArgs, *filter.TypeFilter)
+	var queryArgs []interface{}
+	if filter.graphID != nil {
+		queryArgs = append(queryArgs, *filter.graphID)
+	} else {
+		queryArgs = append(queryArgs, networkID)
+		if filter.KeyFilter != nil {
+			queryArgs = append(queryArgs, *filter.KeyFilter)
+		}
+		if filter.TypeFilter != nil {
+			queryArgs = append(queryArgs, *filter.TypeFilter)
+		}
 	}
 
 	rows, err := store.tx.Query(queryString, queryArgs...)
 	if err != nil {
-		return entsByPk, fmt.Errorf("error querying for entities: %s", err)
+		return entsByPk, errors.Wrap(err, "error querying for entities")
 	}
 	defer func() {
 		if err := rows.Close(); err != nil {
@@ -112,17 +118,25 @@ func getEntityQueryTemplateArgs(filter EntityLoadFilter, criteria EntityLoadCrit
 	}
 	ret.Fields = strings.Join(fields, ", ")
 
-	whereFields := []string{"ent.network_id"}
-	if !funk.IsEmpty(filter.IDs) {
-		whereFields = append(whereFields, "ent.key", "ent.type")
+	var whereFields []string
+	// Internally-used graph load
+	if filter.graphID != nil {
+		whereFields = append(whereFields, "ent.graph_id")
 	} else {
-		if filter.KeyFilter != nil {
-			whereFields = append(whereFields, "ent.key")
-		}
-		if filter.TypeFilter != nil {
-			whereFields = append(whereFields, "ent.type")
+		// Public load
+		whereFields = append(whereFields, "ent.network_id")
+		if !funk.IsEmpty(filter.IDs) {
+			whereFields = append(whereFields, "ent.key", "ent.type")
+		} else {
+			if filter.KeyFilter != nil {
+				whereFields = append(whereFields, "ent.key")
+			}
+			if filter.TypeFilter != nil {
+				whereFields = append(whereFields, "ent.type")
+			}
 		}
 	}
+
 	ret.WhereCondition = strings.Join(whereFields, ", ")
 	ret.WhereArgList = sql_utils.GetPlaceholderArgList(1, len(whereFields))
 
@@ -275,7 +289,7 @@ func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter
 
 	queryString, err := getLoadAssocsQueryString(filter, criteria, len(entsByPk))
 	if err != nil {
-		return ret, []string{}, err
+		return ret, []string{}, errors.WithStack(err)
 	}
 
 	entPks := funk.Keys(entsByPk).([]string)
@@ -291,7 +305,7 @@ func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter
 
 	assocRows, err := store.tx.Query(queryString, queryArgs...)
 	if err != nil {
-		return ret, []string{}, fmt.Errorf("error querying for associations: %s", err)
+		return ret, []string{}, errors.Wrap(err, "error querying for associations")
 	}
 	defer func() {
 		if err := assocRows.Close(); err != nil {
@@ -302,7 +316,7 @@ func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter
 		var fromPk, toPk string
 		err := assocRows.Scan(&fromPk, &toPk)
 		if err != nil {
-			return ret, []string{}, fmt.Errorf("error scanning association row: %s", err)
+			return ret, []string{}, errors.Wrap(err, "error scanning association row")
 		}
 
 		ret = append(ret, loadedAssoc{fromPk: fromPk, toPk: toPk})
@@ -326,9 +340,9 @@ func getLoadAssocsQueryString(filter EntityLoadFilter, criteria EntityLoadCriter
 	// OR assoc.to_pk IN ($4, $5, $6, ...)
 	queryTemplate := template.Must(template.New("ent_assoc_query").Parse(`
 		SELECT assoc.from_pk, assoc.to_pk FROM {{.TableName}} as assoc
-		WHERE {{.WhereClause}} = {{.WhereArgs}}
+		WHERE {{.WhereClause}} {{.WhereOperator}} {{.WhereArgs}}
 		{{if .HasOr}}
-			OR {{.OrWhereClause}} = {{.OrWhereArgs}}
+			OR {{.OrWhereClause}} {{.OrWhereOperator}} {{.OrWhereArgs}}
 		{{end}}
 	`))
 	tmplArgs := getLoadAssocsQueryTemplateArgs(filter, criteria, numLoadedEntities)
@@ -336,37 +350,37 @@ func getLoadAssocsQueryString(filter EntityLoadFilter, criteria EntityLoadCriter
 	buf := new(bytes.Buffer)
 	err := queryTemplate.Execute(buf, tmplArgs)
 	if err != nil {
-		return "", fmt.Errorf("failed to format assoc query: %s", err)
+		return "", errors.Wrap(err, "failed to format assoc query")
 	}
 	return buf.String(), nil
 }
 
 type assocsQueryTemplateArgs struct {
-	TableName, WhereClause, WhereArgs, OrWhereClause, OrWhereArgs string
-	HasOr                                                         bool
+	TableName, WhereClause, WhereArgs, WhereOperator, OrWhereClause, OrWhereOperator, OrWhereArgs string
+	HasOr                                                                                         bool
 }
 
 func getLoadAssocsQueryTemplateArgs(filter EntityLoadFilter, criteria EntityLoadCriteria, numLoadedEntities int) assocsQueryTemplateArgs {
 	ret := assocsQueryTemplateArgs{TableName: entityAssocTable}
 
 	whereClauses := getLoadAssocWhereClausesAndArgStrings(filter, criteria, numLoadedEntities)
-	ret.WhereClause, ret.WhereArgs = whereClauses[0].clause, whereClauses[0].arg
+	ret.WhereClause, ret.WhereOperator, ret.WhereArgs = whereClauses[0].clause, whereClauses[0].operator, whereClauses[0].arg
 
 	ret.HasOr = len(whereClauses) > 1
 	if ret.HasOr {
-		ret.OrWhereClause, ret.OrWhereArgs = whereClauses[1].clause, whereClauses[1].arg
+		ret.OrWhereClause, ret.OrWhereOperator, ret.OrWhereArgs = whereClauses[1].clause, whereClauses[1].operator, whereClauses[1].arg
 	}
 
 	return ret
 }
 
-type clauseAndArg struct{ clause, arg string }
+type clauseAndArg struct{ clause, operator, arg string }
 
 func getLoadAssocWhereClausesAndArgStrings(filter EntityLoadFilter, criteria EntityLoadCriteria, numLoadedEntities int) []clauseAndArg {
 	// If we load all entities, the WHERE clause should just evaluate to true,
 	// so make it 1=1
 	if filter.IsLoadAllEntities() {
-		return []clauseAndArg{{clause: "1", arg: "1"}}
+		return []clauseAndArg{{clause: "1", operator: "=", arg: "1"}}
 	}
 
 	ret := []clauseAndArg{}
@@ -375,15 +389,17 @@ func getLoadAssocWhereClausesAndArgStrings(filter EntityLoadFilter, criteria Ent
 	// The IN (...) list for the query needs a placeholder for each loaded entity
 	if criteria.LoadAssocsFromThis {
 		ret = append(ret, clauseAndArg{
-			clause: "assoc.from_pk",
-			arg:    sql_utils.GetPlaceholderArgList(argStartIdx, numLoadedEntities),
+			clause:   "assoc.from_pk",
+			operator: "IN",
+			arg:      sql_utils.GetPlaceholderArgList(argStartIdx, numLoadedEntities),
 		})
 		argStartIdx += numLoadedEntities
 	}
 	if criteria.LoadAssocsToThis {
 		ret = append(ret, clauseAndArg{
-			clause: "assoc.to_pk",
-			arg:    sql_utils.GetPlaceholderArgList(argStartIdx, numLoadedEntities),
+			clause:   "assoc.to_pk",
+			operator: "IN",
+			arg:      sql_utils.GetPlaceholderArgList(argStartIdx, numLoadedEntities),
 		})
 		argStartIdx += numLoadedEntities
 	}
@@ -410,14 +426,14 @@ func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedE
 	rows, err := store.tx.Query(query, pksToLoad...)
 	defer sql_utils.CloseRowsLogOnError(rows, "LoadEntities")
 	if err != nil {
-		return ret, fmt.Errorf("failed to query for entity IDs: %s", err)
+		return ret, errors.Wrap(err, "failed to query for entity IDs")
 	}
 
 	for rows.Next() {
 		var pk, t, k string
 		err := rows.Scan(&pk, &t, &k)
 		if err != nil {
-			return ret, fmt.Errorf("error scanning entity ID: %s", err)
+			return ret, errors.Wrap(err, "failed to scan entity ID")
 		}
 		ret[pk] = storage.TypeAndKey{Type: t, Key: k}
 	}
@@ -426,14 +442,16 @@ func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedE
 }
 
 // entsByPkOut is an output parameter but will also be returned
-func updateEntitiesWithAssocs(entsByPkOut map[string]*NetworkEntity, assocs []loadedAssoc, entTksByPk map[string]storage.TypeAndKey, loadCriteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
+func updateEntitiesWithAssocs(entsByPkOut map[string]*NetworkEntity, assocs []loadedAssoc, entTksByPk map[string]storage.TypeAndKey, loadCriteria EntityLoadCriteria) (map[string]*NetworkEntity, []GraphEdge, error) {
+	retEdges := make([]GraphEdge, 0, len(assocs))
 	for _, assoc := range assocs {
 		fromTk, fromTkExists := entTksByPk[assoc.fromPk]
 		toTk, toTkExists := entTksByPk[assoc.toPk]
 
 		if !fromTkExists && !toTkExists {
-			return entsByPkOut, fmt.Errorf("one end of assoc from %s to %s does not exist", assoc.fromPk, assoc.toPk)
+			return entsByPkOut, retEdges, errors.Errorf("one end of assoc from %s to %s does not exist", assoc.fromPk, assoc.toPk)
 		}
+		retEdges = append(retEdges, GraphEdge{From: fromTk, To: toTk})
 
 		// We could load assocs to/from entities that weren't selected for loading
 		if loadCriteria.LoadAssocsFromThis {
@@ -449,7 +467,17 @@ func updateEntitiesWithAssocs(entsByPkOut map[string]*NetworkEntity, assocs []lo
 			}
 		}
 	}
-	return entsByPkOut, nil
+
+	sort.Slice(retEdges, func(i, j int) bool { return retEdges[i].String() < retEdges[j].String() })
+	for _, ent := range entsByPkOut {
+		if loadCriteria.LoadAssocsFromThis {
+			sort.Slice(ent.Associations, func(i, j int) bool { return storage.IsTKLessThan(ent.Associations[i], ent.Associations[j]) })
+		}
+		if loadCriteria.LoadAssocsToThis {
+			sort.Slice(ent.ParentAssociations, func(i, j int) bool { return storage.IsTKLessThan(ent.ParentAssociations[i], ent.ParentAssociations[j]) })
+		}
+	}
+	return entsByPkOut, retEdges, nil
 }
 
 func calculateEntitiesNotFound(entsByPk map[string]*NetworkEntity, requestedIDs []storage.TypeAndKey) []storage.TypeAndKey {

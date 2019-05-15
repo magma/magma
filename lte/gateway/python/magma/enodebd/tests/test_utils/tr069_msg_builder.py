@@ -288,7 +288,12 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
-            data='20',
+            data='n100',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Common.CellIdentity',
+            val_type='int',
+            data='0',
         ))
         # MME IP
         param_val_list.append(cls.get_parameter_value_struct(
@@ -392,7 +397,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
             val_type='string',
-            data='20',
+            data='n100',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
@@ -423,6 +428,11 @@ class Tr069MessageBuilder:
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns',
             val_type='int',
             data='7',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Common.CellIdentity',
+            val_type='int',
+            data='0',
         ))
         # MME IP
         param_val_list.append(cls.get_parameter_value_struct(
@@ -557,6 +567,11 @@ class Tr069MessageBuilder:
             name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
             data='20',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
+            val_type='int',
+            data='1',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.X_BAICELLS_COM_LTE.EARFCNDLInUse',

@@ -328,19 +328,14 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	// we need to do a connected component search. If we come up with multiple
 	// components, then each new component needs to be updated with a new
 	// graph ID.
-	err = store.fixGraph(newGraphID, entToUpdateOut)
+	if funk.IsEmpty(update.AssociationsToDelete) {
+		return nil
+	}
+
+	err = store.fixGraph(networkID, newGraphID, entToUpdateOut)
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
-	return nil
-}
-
-// fixGraph will load a a graph which may have been partitioned, do a connected
-// component search on it, and relabel components if a partition is detected.
-// entToUpdateOut is an output parameter
-func (store *sqlConfiguratorStorage) fixGraph(graphID string, entToUpdateOut *entWithPk) error {
-	// TODO: implement after LoadGraphForEntity
 
 	return nil
 }

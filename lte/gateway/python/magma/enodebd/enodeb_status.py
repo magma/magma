@@ -84,7 +84,7 @@ def update_status_metrics(status: EnodebStatus) -> None:
         'mme_connected': metrics.STAT_MME_CONNECTED,
     }
 
-    def get_metric_value(enodeb_status, key):
+    def get_metric_value(enodeb_status: Dict[str, str], key: str):
         # Metrics are "sticky" when synced to the cloud - if we don't
         # receive a status update from enodeb, set the metric to 0
         # to explicitly indicate that it was not received, otherwise the
@@ -100,7 +100,7 @@ def update_status_metrics(status: EnodebStatus) -> None:
             return 0
 
     for stat_key, metric in metrics_by_stat_key.items():
-        metric.set(get_metric_value(status, stat_key))
+        metric.set(get_metric_value(status._asdict(), stat_key))
 
 
 # TODO: Remove after checkins support multiple eNB status

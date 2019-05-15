@@ -153,7 +153,7 @@ def _package_docker_zip(service, folder, commit_hash, version):
     local('mkdir -p %s/plugins' % folder)
     local('mkdir -p %s/configs' % folder)
     local('mkdir -p %s/apidocs' % folder)
-    local('cp -pr deploy/files/scripts/setup_swagger_ui %s/scripts/.' % folder)
+    local('cp -pr docker/controller/setup_swagger_ui %s/scripts/.' % folder)
 
     pkg_name = "magmadocker_%s_%s" % (service, commit_hash)
     with lcd(folder):

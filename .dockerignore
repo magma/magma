@@ -34,6 +34,7 @@
 !orc8r/cloud/configs/
 !orc8r/cloud/go/
 !orc8r/cloud/deploy/roles/proxy/files
+!orc8r/cloud/docker/
 !orc8r/cloud/scripts/
 !orc8r/cloud/Makefile
 !orc8r/gateway/configs/

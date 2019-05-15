@@ -33,6 +33,10 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(networkIdOrMatch)}/policies/rules`,
   networkPolicyRule: (networkIdOrMatch: string | Match, ruleId: string) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/policies/rules/${ruleId}`,
+  enodeb: (networkIdOrMatch: string | Match, enodebId: string) =>
+    `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/enodeb/${enodebId}`,
+  enodebs: (networkIdOrMatch: string | Match) =>
+    `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/enodeb`,
   gateway: (networkIdOrMatch: string | Match, gatewayId: string) => {
     return `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways/${gatewayId}`;
   },

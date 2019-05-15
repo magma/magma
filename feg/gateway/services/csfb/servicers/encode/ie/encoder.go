@@ -84,19 +84,11 @@ func EncodeMMEName(mmeName string) ([]byte, error) {
 	encodedMMEName := constructMessage(
 		decode.IEIMMEName,
 		lengthIndicator,
-		[]byte(mmeName),
+		[]byte(mmeName[1:]),
 	)
 
-	// replace dots with length labels
-	charCounter := 0
-	for idx := len(encodedMMEName) - 1; idx > 1; idx-- {
-		if encodedMMEName[idx] == byte('.') {
-			encodedMMEName[idx] = byte(charCounter)
-			charCounter = 0
-		} else {
-			charCounter++
-		}
-	}
+	// H-core MSC needs a 0x00 at the end of MME name
+	encodedMMEName = append(encodedMMEName, byte(0x00))
 
 	return encodedMMEName, nil
 }

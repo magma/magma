@@ -20,3 +20,7 @@ type TypeAndKey struct {
 func (tk TypeAndKey) String() string {
 	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
 }
+
+func IsTKLessThan(a TypeAndKey, b TypeAndKey) bool {
+	return a.String() < b.String()
+}

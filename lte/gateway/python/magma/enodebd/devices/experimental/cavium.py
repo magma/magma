@@ -290,6 +290,7 @@ class CaviumTrDataModel(DataModel):
         ParameterName.PCI: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.PhyCellID', True, TrParameterType.STRING, False),
         ParameterName.DL_BANDWIDTH: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.DLBandwidth', True, TrParameterType.STRING, False),
         ParameterName.UL_BANDWIDTH: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ULBandwidth', True, TrParameterType.STRING, False),
+        ParameterName.CELL_ID: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity', True, TrParameterType.UNSIGNED_INT, False),
 
         # Other LTE parameters
         ParameterName.ADMIN_STATE: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.AdminState', False, TrParameterType.BOOLEAN, False),
@@ -364,6 +365,8 @@ class CaviumTrDataModel(DataModel):
         ParameterName.UL_BANDWIDTH: transform_for_enb.bandwidth
     }
     TRANSFORMS_FOR_MAGMA = {
+        ParameterName.DL_BANDWIDTH: transform_for_magma.bandwidth,
+        ParameterName.UL_BANDWIDTH: transform_for_magma.bandwidth,
         # We don't set GPS, so we don't need transform for enb
         ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
         ParameterName.GPS_LONG: transform_for_magma.gps_tr181

@@ -1,3 +1,0 @@
-#Direction,Tenant,Category,Subject,ActivationTime,RatingPlanId,RatesFallbackSubject,CdrStatQueueIds
-*out,cgrates.org,data,*any,2012-01-01T00:00:00Z,RP_DATA1,,
-*out,cgrates.org,data_free,*any,2012-01-01T00:00:00Z,RP_DATA_FREE,,

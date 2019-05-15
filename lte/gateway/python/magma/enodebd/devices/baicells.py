@@ -150,6 +150,7 @@ class BaicellsTrDataModel(DataModel):
         ParameterName.SPECIAL_SUBFRAME_PATTERN: TrParam(
             FAPSERVICE_PATH
             + 'CellConfig.LTE.RAN.PHY.TDDFrame.SpecialSubframePatterns', True, TrParameterType.INT, False),
+        ParameterName.CELL_ID: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity', True, TrParameterType.UNSIGNED_INT, False),
 
         # Other LTE parameters
         ParameterName.ADMIN_STATE: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.AdminState', False, TrParameterType.BOOLEAN, False),
@@ -214,7 +215,8 @@ class BaicellsTrDataModel(DataModel):
         ParameterName.UL_BANDWIDTH: transform_for_enb.bandwidth
     }
     TRANSFORMS_FOR_MAGMA = {
-        # For DL_BANDWIDTH and UL_BANDWIDTH, we read in values as MHz, not RBs
+        ParameterName.DL_BANDWIDTH: transform_for_magma.bandwidth,
+        ParameterName.UL_BANDWIDTH: transform_for_magma.bandwidth,
         # We don't set GPS, so we don't need transform for enb
         ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
         ParameterName.GPS_LONG: transform_for_magma.gps_tr181

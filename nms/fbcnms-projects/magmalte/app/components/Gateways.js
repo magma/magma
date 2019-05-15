@@ -249,12 +249,15 @@ class Gateways extends React.Component<Props, State> {
     }
 
     let ipBlock, natEnabled;
+    let attachedEnodebSerials = [];
     let pci, transmitEnabled;
     let control, csfbRAT, csfbMCC, csfbMNC, lac;
     if (gateway.config && gateway.config.cellular_gateway) {
       const {cellular_gateway: cellularGateway} = gateway.config;
       ipBlock = (cellularGateway.epc || {}).ip_block;
       natEnabled = (cellularGateway.epc || {}).nat_enabled;
+
+      attachedEnodebSerials = cellularGateway.attached_enodeb_serials || [];
 
       pci = myInt((cellularGateway.ran || {}).pci);
       transmitEnabled = (cellularGateway.ran || {}).transmit_enabled || false;
@@ -287,6 +290,7 @@ class Gateways extends React.Component<Props, State> {
       checkinTimeout,
       tier,
       autoupgradeEnabled: !!autoupgradeEnabled,
+      attachedEnodebSerials,
       ran: {
         pci,
         transmitEnabled: !!transmitEnabled,

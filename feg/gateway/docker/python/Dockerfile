@@ -78,6 +78,6 @@ COPY feg/gateway/configs /etc/magma
 COPY feg/gateway/docker/configs /etc/magma
 
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-COPY orc8r/cloud/deploy/roles/proxy/files/magma_headers.rb /etc/nghttpx/magma_headers.rb
+COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 
 RUN mkdir -p /var/opt/magma/configs

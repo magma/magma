@@ -58,6 +58,15 @@ func (s testSwxProxy) Register(
 	return &protos.RegistrationAnswer{}, nil
 }
 
+// Deregister sends SAR (code 301) over diameter connection,
+// waits (blocks) for SAA & returns its RPC representation
+func (s testSwxProxy) Deregister(
+	ctx context.Context,
+	req *protos.RegistrationRequest,
+) (*protos.RegistrationAnswer, error) {
+	return &protos.RegistrationAnswer{}, nil
+}
+
 const (
 	testEapIdentityResp = "\x02\x01\x00\x40\x17\x05\x00\x00\x0e\x0e\x00\x33\x30\x30\x30\x31" +
 		"\x30\x31\x30\x30\x30\x30\x30\x30\x30\x30\x35\x35\x40\x77\x6c\x61" +
