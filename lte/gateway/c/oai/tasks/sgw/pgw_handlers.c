@@ -445,7 +445,6 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     "Received Create Bearer Req from PCRF with IMSI %s\n",
     imsi->digit);
 
-  teid_t pgw_u_teid = sgw_get_new_s1u_teid();
   message_p =
     itti_alloc_new_message(TASK_SPGW_APP,
       S5_NW_INITIATED_ACTIVATE_BEARER_REQ);
@@ -474,8 +473,6 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     &itti_s5_actv_bearer_req->tft,
     ul_tft,
     sizeof(traffic_flow_template_t));
-  //Assign TEID
-  itti_s5_actv_bearer_req->S5_U_pgw_teid = pgw_u_teid;
   //Assign LBI
   hashtblP = sgw_app.s11_bearer_context_information_hashtable;
   if (!hashtblP) {
@@ -483,7 +480,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
-  //Fetch the EBI of default bearer and S11 MME TEID using UE IP
+  //Fetch S11 MME TEID using IMSI and LBI
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
@@ -513,12 +510,12 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   }
   if (i >= hashtblP->size) {
     OAILOG_ERROR(LOG_PGW_APP, "Could not find LBI/IMSI in SPGW context\n");
-    //Send Rsp to PCRF with cause = REJECTED
+    //TODO-Send Rsp to PCRF with cause = REJECTED
     /*rc = send_dedicated_bearer_actv_rsp(lbi,
     REQUEST_REJECTED);*/
     OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
   }
-  //Send S5_ACTIVATE_DEDICATED_BEARER_REQ to MME APP
+  //Send S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW APP
   OAILOG_INFO(LOG_PGW_APP, "LBI for the received Create Bearer Req %d\n",
     itti_s5_actv_bearer_req->lbi);
   OAILOG_INFO(LOG_PGW_APP,

@@ -2240,7 +2240,7 @@ int sgw_handle_modify_ue_ambr_request(
 }
 
 /*
- * Handle PGW initiated Dedicated Bearer Activation from PGW
+ * Handle NW initiated Dedicated Bearer Activation from PGW
  */
 int sgw_handle_nw_initiated_actv_bearer_req(
   const itti_s5_nw_init_actv_bearer_request_t

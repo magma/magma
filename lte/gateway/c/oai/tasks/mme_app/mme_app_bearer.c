@@ -2674,7 +2674,7 @@ void mme_app_handle_modify_ue_ambr_request(
 }
 
 /**
- * This Function handles PCRF initiated
+ * This Function handles NW initiated
  * Dedicated bearer activation Request message from SGW
  */
 void mme_app_handle_nw_init_ded_bearer_actv_req(
@@ -2694,14 +2694,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     &mme_app_desc.mme_ue_contexts, nw_init_bearer_actv_req_p->s11_mme_teid);
 
   if (ue_context_p == NULL) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 PCRF initiated Bearer Actv Req local S11 teid " TEID_FMT " ",
-      mme_teid_S11->teid);
-
     OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this teid in list of UE: %08x\n",
@@ -2712,15 +2704,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
   bearer_context_t *linked_bc =
     mme_app_get_bearer_context(ue_context_p, linked_eps_bearer_id);
   if (!linked_bc) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 CREATE_BEARERS_REQUEST ue id " MME_UE_S1AP_ID_FMT
-      " local S11 teid " TEID_FMT " ",
-      ue_context_p->mme_ue_s1ap_id,
-      nw_init_bearer_actv_req_p->teid);
     OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find the linked bearer id %" PRIu8
