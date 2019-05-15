@@ -25,3 +25,12 @@ scrape_configs:
         action: labeldrop
     static_configs:
       - targets: ['localhost:{{ prometheus_cache_port }}']
+
+rule_files:
+  - '{{ alert_rules_subdir }}/*_rules.yml'
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets: ['localhost:{{ alertmanager_port }}']

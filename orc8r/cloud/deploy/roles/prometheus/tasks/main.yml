@@ -21,6 +21,9 @@
 - name: install prometheus-cache
   include: install-prometheus-cache.yml
 
+- name: install alertmanager
+  include: install-alertmanager.yml
+
 - name: Copy prometheus service file
   template:
     src: 'prometheus.service'
@@ -30,6 +33,11 @@
   template:
     src: 'prometheus-cache.service'
     dest: '/etc/systemd/system/prometheus-cache.service'
+
+- name: Copy alertmanager service file
+  template:
+    src: 'alertmanager.service'
+    dest: '/etc/systemd/system/alertmanager.service'
 
 - name: Start the prometheus service
   systemd:
@@ -41,6 +49,13 @@
 - name: Start the prometheus-cache service
   systemd:
     name: prometheus-cache
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+- name: Start the alertmanager service
+  systemd:
+    name: alertmanager
     state: restarted
     daemon_reload: yes
     enabled: yes

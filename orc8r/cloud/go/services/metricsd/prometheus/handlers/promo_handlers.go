@@ -16,14 +16,13 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 
-	"github.com/prometheus/common/model"
-
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 )
 
 const (
