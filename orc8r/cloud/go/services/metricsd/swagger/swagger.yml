@@ -111,7 +111,7 @@ paths:
       tags:
         - Metrics
       parameters:
-        - $ref: './swagger.yml#/parameters/network_id'
+        - $ref: './swagger-common.yml#/parameters/network_id'
         - in: body
           name: alert_config
           description: Alerting rule that is to be added
@@ -123,14 +123,14 @@ paths:
         '201':
           description: Created
         default:
-          $ref: './swagger.yml#/responses/UnexpectedError'
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
     get:
       summary: Retrive alerting rule configurations
       description: If no query parameters are included, all alerting rules for the given network are returned.
       tags:
         - Metrics
       parameters:
-        - $ref: './swagger.yml#/parameters/network_id'
+        - $ref: './swagger-common.yml#/parameters/network_id'
         - in: query
           name: alert_name
           description: Name of alert to be retrieved
@@ -144,13 +144,13 @@ paths:
             items:
               $ref: '#/definitions/prom_alert_config'
         default:
-          $ref: './swagger.yml#/responses/UnexpectedError'
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
     delete:
       summary: Delete an alerting rule
       tags:
         - Metrics
       parameters:
-        - $ref: './swagger.yml#/parameters/network_id'
+        - $ref: './swagger-common.yml#/parameters/network_id'
         - in: query
           name: alert_name
           description: Name of alert to be deleted
@@ -160,7 +160,7 @@ paths:
         '200':
           description: Deleted
         default:
-          $ref: './swagger.yml#/responses/UnexpectedError'
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
 
 
 definitions:
