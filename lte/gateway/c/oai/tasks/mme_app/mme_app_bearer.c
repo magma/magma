@@ -465,8 +465,15 @@ void mme_app_handle_conn_est_cnf(
   } else {
     uint32_t j = 0;
     uint32_t idx = 0;
-    for (int cid = 0; cid < ue_context_p->nb_active_pdn_contexts; cid++) {
+    OAILOG_INFO(
+      LOG_MME_APP,
+      "No. of active PDNs to be sent in ICS %d\n",
+      ue_context_p->emm_context.esm_ctx.n_pdns);
+    for (int cid = 0; cid < ue_context_p->emm_context.esm_ctx.n_pdns; cid++) {
       idx = ue_context_p->pdn_contexts[cid]->esm_data.n_bearers;
+      OAILOG_DEBUG(
+        LOG_MME_APP,
+        "No. of active bearers for cid[%d] %d\n",cid,idx);
       for (int i = 0; i < idx; i++) {
         bearer_context_t *bc = ue_context_p->bearer_contexts[i];
         if (bc) {
