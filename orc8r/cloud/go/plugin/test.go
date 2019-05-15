@@ -31,6 +31,7 @@ var testMetricsConfigMap = &config.ConfigMap{
 		confignames.GraphiteAddress:             "",
 		confignames.GraphiteReceivePort:         0,
 		confignames.GraphiteQueryPort:           0,
+		confignames.AlertConfigWebServerURL:     "",
 	},
 }
 

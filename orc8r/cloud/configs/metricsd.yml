@@ -13,3 +13,5 @@ prometheusCustomPushAddress: "http://192.168.80.50:9091/metrics"
 graphiteAddress: "192.168.80.50"
 graphiteReceivePort: 2003
 graphiteQueryPort: 8080
+
+alertConfigWebServerURL: "http://192.168.80.50:9093"

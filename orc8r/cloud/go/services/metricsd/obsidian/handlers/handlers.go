@@ -53,6 +53,10 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 			handlers.Handler{Path: graphiteH.QueryURL, Methods: handlers.GET, HandlerFunc: graphiteH.GetQueryHandler(graphiteClient)},
 		)
 	}
+
+	alertConfigWebServerURL := configMap.GetRequiredStringParam(confignames.AlertConfigWebServerURL)
+	ret = append(ret, handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(alertConfigWebServerURL)})
+
 	return ret
 }
 

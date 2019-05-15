@@ -106,6 +106,25 @@ paths:
               $ref: '#/definitions/promql_return_object'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+  /networks/{network_id}/prometheus/alert_config:
+    post:
+      summary: Create new alerting rule
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger.yml#/parameters/network_id'
+        - in: body
+          name: alert_config
+          description: Alerting rule that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/prom_alert_config'
+
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: './swagger.yml#/responses/UnexpectedError'
 
 definitions:
   graphite_return_object:
@@ -191,12 +210,10 @@ definitions:
       job: "sample_service"
       host: "magma_controller_a"
 
-
   metric_datapoints:
     type: array
     items:
       $ref: '#/definitions/metric_datapoint'
-
   metric_datapoint:
     type: array
     items:
@@ -204,3 +221,37 @@ definitions:
     minItems: 2
     maxItems: 2
     example: [1548439790.115,"1"]
+
+  prom_alert_config:
+    type: object
+    required:
+      - alert
+      - expr
+      - labels
+      - for
+      - annotations
+    properties:
+      alert:
+        type: string
+      expr:
+        type: string
+      labels:
+        $ref: '#/definitions/prom_alert_labels'
+      for:
+        type: string
+      annotations:
+        $ref: '#/definitions/prom_alert_annotation'
+  prom_alert_labels:
+    type: object
+    additionalProperties:
+      type: string
+  prom_alert_annotation:
+    type: object
+    required:
+      - summary
+      - description
+    properties:
+      summary:
+        type: string
+      description:
+        type: string

@@ -14,9 +14,8 @@ import (
 	"net/http"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
-
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 

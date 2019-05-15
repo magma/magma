@@ -17,4 +17,6 @@ const (
 	GraphiteAddress     = "graphiteAddress"
 	GraphiteReceivePort = "graphiteReceivePort"
 	GraphiteQueryPort   = "graphiteQueryPort"
+
+	AlertConfigWebServerURL = "alertConfigWebServerURL"
 )
