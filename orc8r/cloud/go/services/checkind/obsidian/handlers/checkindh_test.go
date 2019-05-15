@@ -53,9 +53,10 @@ func TestCheckind(t *testing.T) {
 	assert.NotEqual(t, logicalID, "")
 
 	ctx := stateTestUtils.GetContextWithCertificate(t, testAgHwId)
+
 	// put one checkin state into state service
-	checkinRequest := test_utils.GetCheckinRequestProtoFixture(testAgHwId)
-	stateTestUtils.ReportCheckin(t, ctx, checkinRequest)
+	gwStatus := test_utils.GetGatewayStatusSwaggerFixture(testAgHwId)
+	stateTestUtils.ReportGatewayStatus(t, ctx, gwStatus)
 
 	getGWStatusNoError(t, restPort, testNetworkID, logicalID)
 	getGWStatusNotFoundError(t, restPort, testNetworkID)
