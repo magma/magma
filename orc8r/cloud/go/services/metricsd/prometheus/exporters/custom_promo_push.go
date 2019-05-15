@@ -23,9 +23,7 @@ import (
 )
 
 const (
-	gatewayLabelName = "gatewayID"
-	networkLabelName = "networkID"
-	pushInterval     = time.Second * 30
+	pushInterval = time.Second * 30
 )
 
 // CustomPushExporter pushes metrics to a custom prometheus pushgateway
@@ -70,8 +68,8 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 func addContextLabelsToMetric(metric *io_prometheus_client.Metric, ctx mxd_exp.MetricsContext) {
 	metric.Label = append(
 		metric.Label,
-		&io_prometheus_client.LabelPair{Name: makeStringPointer(gatewayLabelName), Value: &ctx.GatewayID},
-		&io_prometheus_client.LabelPair{Name: makeStringPointer(networkLabelName), Value: &ctx.NetworkID},
+		&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelGateway), Value: &ctx.GatewayID},
+		&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelNetwork), Value: &ctx.NetworkID},
 	)
 }
 

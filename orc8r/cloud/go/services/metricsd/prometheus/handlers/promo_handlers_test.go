@@ -22,6 +22,6 @@ func TestPreprocessQuery(t *testing.T) {
 	networkID := "network1"
 	preprocessedQuery, err := preprocessQuery(testQuery, networkID)
 	assert.NoError(t, err)
-	expectedQuery := fmt.Sprintf("%s{%s=\"%s\"}", testQuery, exporters.NetworkLabelInstance, networkID)
+	expectedQuery := fmt.Sprintf("%s{%s=\"%s\"}", testQuery, exporters.NetworkLabelNetwork, networkID)
 	assert.Equal(t, expectedQuery, preprocessedQuery)
 }

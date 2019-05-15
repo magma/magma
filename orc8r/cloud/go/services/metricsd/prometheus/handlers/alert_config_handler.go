@@ -44,9 +44,14 @@ func configurePrometheusAlert(c echo.Context, url, networkID string) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = alert.SecureRule(rule, networkID)
+	err = alert.SecureRule(&rule, networkID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	errs := rule.Validate()
+	if len(errs) != 0 {
+		return handlers.HttpError(fmt.Errorf("Invalid rule: %v\n", errs), http.StatusBadRequest)
 	}
 
 	err = sendConfigToPrometheusServer(rule, url)

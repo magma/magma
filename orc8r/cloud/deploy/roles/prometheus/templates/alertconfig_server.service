@@ -1,0 +1,15 @@
+[Unit]
+Description=Magma alertconfig server service
+
+[Service]
+Type=simple
+ExecStart="{{ alertconfig_binary_dir }}/alerting" -port={{ alertconfig_server_port }} -rules-dir={{ alert_rules_dir }}
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=alertconfig server
+Restart=always
+RestartSec=1s
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

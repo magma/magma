@@ -27,10 +27,12 @@ func NewFile(networkID string) *File {
 	}
 }
 
+// Rules returns the rule configs from this file
 func (f *File) Rules() []rulefmt.Rule {
 	return f.RuleGroups[0].Rules
 }
 
+// GetRule returns the specific rule by name, nil if it doesn't exist in the file
 func (f *File) GetRule(rulename string) *rulefmt.Rule {
 	for _, rule := range f.RuleGroups[0].Rules {
 		if rule.Alert == rulename {
@@ -40,12 +42,15 @@ func (f *File) GetRule(rulename string) *rulefmt.Rule {
 	return nil
 }
 
+// AddRule appends a new rule to the list of rules in this file
 func (f *File) AddRule(rule rulefmt.Rule) {
 	f.RuleGroups[0].Rules = append(f.RuleGroups[0].Rules, rule)
 }
 
-func SecureRule(rule rulefmt.Rule, networkID string) error {
-	networkLabels := map[string]string{exporters.NetworkLabelInstance: networkID}
+// SecureRule attaches a label for networkID to the given alert expression to
+// to ensure that only metrics owned by this network can be alerted on
+func SecureRule(rule *rulefmt.Rule, networkID string) error {
+	networkLabels := map[string]string{exporters.NetworkLabelNetwork: networkID}
 	restrictor := security.NewQueryRestrictor(networkLabels)
 
 	restrictedExpression, err := restrictor.RestrictQuery(rule.Expr)

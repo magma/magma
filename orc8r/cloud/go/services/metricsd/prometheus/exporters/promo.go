@@ -128,7 +128,7 @@ func (e *PrometheusExporter) makeNetworkLabels(networkID, gatewayID string, metr
 			break
 		}
 	}
-	labels := prometheus.Labels{NetworkLabelInstance: networkID, NetworkLabelGateway: gatewayID, NetworkLabelService: serviceName}
+	labels := prometheus.Labels{NetworkLabelNetwork: networkID, NetworkLabelGateway: gatewayID, NetworkLabelService: serviceName}
 
 	if e.config.UseHostLabel {
 		hostName, err := os.Hostname()

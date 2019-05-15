@@ -55,5 +55,5 @@
 
   roles:
     - { role: golang }
-    - { role: prometheus, vars: {prometheus_cache_binary_dir: '/home/{{ user }}/go/bin'} }
+    - { role: prometheus, vars: {prometheus_cache_binary_dir: '/home/{{ user }}/go/bin', alertconfig_binary_dir: "/home/{{ user }}/go/bin"} }
     - { role: 'third_party/graphite', vars: {graphite_cache_graphite_url: 'http://127.0.0.1:8080'}}

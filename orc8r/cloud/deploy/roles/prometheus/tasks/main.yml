@@ -15,6 +15,9 @@
     - "{{ prometheus_install_path }}"
     - "{{ prometheus_config_path }}"
 
+- name: install alertconfig server
+  include: install-alertconfig-server.yml
+
 - name: install prometheus
   include: install-prometheus.yml
 
@@ -39,6 +42,11 @@
     src: 'alertmanager.service'
     dest: '/etc/systemd/system/alertmanager.service'
 
+- name: Copy alertconfig service file
+  template:
+    src: 'alertconfig_server.service'
+    dest: '/etc/systemd/system/alertconfig_server.service'
+
 - name: Start the prometheus service
   systemd:
     name: prometheus
@@ -56,6 +64,13 @@
 - name: Start the alertmanager service
   systemd:
     name: alertmanager
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+- name: Start the alertconfig server service
+  systemd:
+    name: alertconfig_server
     state: restarted
     daemon_reload: yes
     enabled: yes

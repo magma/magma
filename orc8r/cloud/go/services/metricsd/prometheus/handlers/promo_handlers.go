@@ -113,7 +113,7 @@ func preparePrometheusQuery(c echo.Context) (string, error) {
 }
 
 func preprocessQuery(query, networkID string) (string, error) {
-	restrictedLabels := map[string]string{exporters.NetworkLabelInstance: networkID}
+	restrictedLabels := map[string]string{exporters.NetworkLabelNetwork: networkID}
 	restrictor := security.NewQueryRestrictor(restrictedLabels)
 	return restrictor.RestrictQuery(query)
 }

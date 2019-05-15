@@ -24,10 +24,12 @@ alertmanager_subdir: "{{ alertmanager_install_path }}/alertmanager-{{ alertmanag
 alertmanager_db_path: /data/prometheus/alertmanager_data/data
 alert_rules_subdir: alert_rules
 alert_rules_dir: "{{ prometheus_subdir }}/{{ alert_rules_subdir }}"
+alertconfig_binary_dir: /opt/alertconfig
 
 prometheus_port:   9090
 pushgateway_port:  9091
 prometheus_cache_port: 9091
 alertmanager_port: 9092
+alertconfig_server_port: 9093
 
 magma_metrics_endpoint: "{{ lookup('env', 'MAGMA_METRICS_ENDPOINT') }}"
