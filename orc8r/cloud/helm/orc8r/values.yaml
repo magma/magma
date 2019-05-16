@@ -18,7 +18,6 @@ secrets:
 secret:
   certs: orc8r-secrets-certs
   configs: orc8r-secrets-configs
-  envdir: orc8r-secrets-envdir
 
 proxy:
   # Service configuration.
