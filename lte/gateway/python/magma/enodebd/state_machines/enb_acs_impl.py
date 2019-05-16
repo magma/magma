@@ -164,11 +164,11 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         been disconnected.
         """
         if isinstance(message, models.Inform):
-            logging.warning('ACS in (%s) state. Received an Inform message',
+            logging.debug('ACS in (%s) state. Received an Inform message',
                           self.state.state_description())
             self._reset_state_machine(self.service)
         elif isinstance(message, models.Fault):
-            logging.warning('ACS in (%s) state. Received a Fault <%s>',
+            logging.debug('ACS in (%s) state. Received a Fault <%s>',
                           self.state.state_description(), message.FaultString)
             self.transition(self.unexpected_fault_state_name)
         else:
