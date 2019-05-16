@@ -23,7 +23,7 @@ type PromAlertConfig struct {
 
 	// annotations
 	// Required: true
-	Annotations *PromAlertAnnotation `json:"annotations"`
+	Annotations PromAlertLabels `json:"annotations"`
 
 	// expr
 	// Required: true
@@ -79,17 +79,11 @@ func (m *PromAlertConfig) validateAlert(formats strfmt.Registry) error {
 
 func (m *PromAlertConfig) validateAnnotations(formats strfmt.Registry) error {
 
-	if err := validate.Required("annotations", "body", m.Annotations); err != nil {
-		return err
-	}
-
-	if m.Annotations != nil {
-		if err := m.Annotations.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("annotations")
-			}
-			return err
+	if err := m.Annotations.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("annotations")
 		}
+		return err
 	}
 
 	return nil

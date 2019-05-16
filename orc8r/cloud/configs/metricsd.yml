@@ -15,3 +15,4 @@ graphiteReceivePort: 2003
 graphiteQueryPort: 8080
 
 alertConfigWebServerURL: "http://192.168.80.50:9093"
+alertmanagerApiURL: "http://192.168.80.50:9092/api/v2/alerts"

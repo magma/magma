@@ -23,6 +23,10 @@ import (
 	"github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
+const (
+	firingAlertURL = handlers.NETWORKS_ROOT + handlers.URL_SEP + ":network_id" + handlers.URL_SEP + "alerts"
+)
+
 // GetObsidianHandlers returns all obsidian handlers for metricsd
 func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 	var ret []handlers.Handler
@@ -55,10 +59,13 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 	}
 
 	alertConfigWebServerURL := configMap.GetRequiredStringParam(confignames.AlertConfigWebServerURL)
+	alertmanagerURL := configMap.GetRequiredStringParam(confignames.AlertmanagerApiURL)
 	ret = append(ret,
 		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(alertConfigWebServerURL)},
 		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRuleHandler(alertConfigWebServerURL)},
 		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.DELETE, HandlerFunc: promH.GetDeleteAlertRuleHandler(alertConfigWebServerURL)},
+
+		handlers.Handler{Path: firingAlertURL, Methods: handlers.GET, HandlerFunc: promH.GetViewFiringAlertHandler(alertmanagerURL)},
 	)
 
 	return ret

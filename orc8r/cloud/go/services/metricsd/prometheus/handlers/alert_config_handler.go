@@ -16,8 +16,10 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/labstack/echo"
+	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
@@ -58,6 +60,16 @@ func GetDeleteAlertRuleHandler(webServerURL string) func(c echo.Context) error {
 		}
 		url := webServerURL + "/" + networkID
 		return deleteAlertRule(c, url)
+	}
+}
+
+func GetViewFiringAlertHandler(alertmanagerURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID, nerr := handlers.GetNetworkId(c)
+		if nerr != nil {
+			return nerr
+		}
+		return viewFiringAlerts(c, networkID, alertmanagerURL)
 	}
 }
 
@@ -157,6 +169,35 @@ func deleteAlertRule(c echo.Context, url string) error {
 		return handlers.HttpError(fmt.Errorf("alert server responded with error"), resp.StatusCode)
 	}
 	return c.JSON(http.StatusOK, nil)
+}
+
+func viewFiringAlerts(c echo.Context, networkID, alertmanagerApiURL string) error {
+	client := &http.Client{}
+	resp, err := client.Get(alertmanagerApiURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	var alerts []models.GettableAlert
+	err = json.NewDecoder(resp.Body).Decode(&alerts)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding alertmanager response: %v", err))
+	}
+	networkAlerts := getAlertsForNetwork(networkID, alerts)
+	return c.JSON(http.StatusOK, networkAlerts)
+}
+
+func getAlertsForNetwork(networkID string, alerts []models.GettableAlert) []models.GettableAlert {
+	networkAlerts := make([]models.GettableAlert, 0)
+	for _, alert := range alerts {
+		if labelVal, ok := alert.Labels[exporters.NetworkLabelNetwork]; ok {
+			if labelVal == networkID {
+				networkAlerts = append(networkAlerts, alert)
+			}
+		}
+	}
+	return networkAlerts
 }
 
 func buildRuleFromContext(c echo.Context) (rulefmt.Rule, error) {
