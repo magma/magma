@@ -79,6 +79,8 @@ spec:
                 secretKeyRef:
                   name: {{ $serviceName }}
                   key: postgres.connstr
+            - name: SQL_DRIVER
+              value: postgres
           livenessProbe:
             tcpSocket:
               port: 9081
