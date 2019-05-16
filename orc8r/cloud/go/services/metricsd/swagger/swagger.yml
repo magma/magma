@@ -105,6 +105,23 @@ paths:
               $ref: '#/definitions/promql_return_object'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+  /networks/{network_id}/alerts:
+    get:
+      summary: View currently firing alerts
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of currently firing alerts
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prom_firing_alert'
+        'default':
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/prometheus/alert_config:
     post:
       summary: Create new alerting rule
@@ -277,18 +294,84 @@ definitions:
       for:
         type: string
       annotations:
-        $ref: '#/definitions/prom_alert_annotation'
+        $ref: '#/definitions/prom_alert_labels'
   prom_alert_labels:
     type: object
     additionalProperties:
       type: string
-  prom_alert_annotation:
+
+  alert_receiver_config:
     type: object
     required:
-      - summary
-      - description
+      - name
     properties:
-      summary:
+      name:
         type: string
-      description:
+      slack_configs:
+        type: array
+        items:
+          $ref: '#/definitions/slack_receiver'
+
+  slack_receiver:
+    type: object
+    required:
+      - api_url
+      - channel
+      - username
+    properties:
+      api_url:
+        type: string
+      channel:
+        type: string
+      username:
+        type: string
+
+  prom_firing_alert:
+    type: object
+    required:
+      - annotations
+      - endsAt
+      - fingerprint
+      - receivers
+      - startsAt
+      - status
+      - updatedAt
+      - generatorURL
+      - labels
+    properties:
+      annotations:
+        $ref: '#/definitions/prom_alert_labels'
+      endsAt:
+        type: string
+      fingerprint:
+        type: string
+      receivers:
+        $ref: '#/definitions/alert_receiver_config'
+      startsAt:
+        type: string
+      status:
+        $ref: '#/definitions/prom_alert_status'
+      updatedAt:
+        type: string
+      generatorURL:
+        type: string
+      labels:
+        $ref: '#/definitions/prom_alert_labels'
+
+  prom_alert_status:
+    type: object
+    required:
+      - inhibitedBy
+      - silencedBy
+      - state
+    properties:
+      inhibitedBy:
+        type: array
+        items:
+          type: string
+      silencedBy:
+        type: array
+        items:
+          type: string
+      state:
         type: string

@@ -19,4 +19,5 @@ const (
 	GraphiteQueryPort   = "graphiteQueryPort"
 
 	AlertConfigWebServerURL = "alertConfigWebServerURL"
+	AlertmanagerApiURL      = "alertmanagerApiURL"
 )
