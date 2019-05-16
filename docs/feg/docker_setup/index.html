@@ -51,12 +51,11 @@
               }
             });
         </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><h1><a class="anchor" aria-hidden="true" id="feg-docker-setup"></a><a href="#feg-docker-setup" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>FeG Docker Setup</h1>
-<p><em>NOTE: Docker support for FeG is not yet official</em></p>
-<p>The FeG can be run in two different modes: development or production.
-The development mode is setup to make tests easy to run and it runs all of the
-services in one container. On the other hand, in the production environment,
-each service runs in its own container. In production, containers are optimized
-for size and so many utilities are removed.</p>
+<p>The FeG runs each service in its own Docker container.
+Production services are defined in <code>docker-compose.yml</code>.
+Development services are defined in <code>docker-compose.override.yml</code>.
+The development <code>test</code> service is used to run unit tests and regenerate Swagger/Protobuf code.
+The development <code>test</code> service can also be used to perform other development-related procedures.</p>
 <h2><a class="anchor" aria-hidden="true" id="requirements"></a><a href="#requirements" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Requirements</h2>
 <p>To run the FeG with docker, both docker and docker compose must be installed.</p>
 <ul>
@@ -67,41 +66,39 @@ for size and so many utilities are removed.</p>
 limit of the docker daemon to at least 4GB to build the images. Otherwise,
 when building the Go image, you may see an error message similar to this:
 <code>/usr/local/go/pkg/tool/linux_amd64/link: signal: killed</code>.</p>
-<p>The certificates (eg. rootCA.key) are expected to be in the <code>.cache/test_certs</code>
-folder. That folder is mounted into the appropriate containers.</p>
+<p>The <code>rootCA.pem</code> certificate must be located in the <code>.cache/test_certs</code> folder,
+so that it can be mounted into the appropriate containers from there.</p>
 <h2><a class="anchor" aria-hidden="true" id="development"></a><a href="#development" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Development</h2>
-<p>Follow these steps to run the FeG in a docker container for development:</p>
+<p>Follow these steps to run the FeG services:</p>
 <ol>
 <li><code>cd magma/feg/gateway/docker</code></li>
+<li><code>docker-compose build</code></li>
 <li><code>docker-compose up -d</code></li>
-<li><code>docker exec -ti feg /bin/bash</code></li>
 </ol>
-<p>Now, your shell should be inside a container with the source code
-and configs mounted. The code can be changed externally, and commands such as
-<code>make gen build test precommit run</code> should succeed.
-Please run <code>make precommit</code> in this container before submitting a patch.</p>
-<p>The development environment has a single container, <code>feg</code>, which is used to
-run all of the magma services. Systemd is used for managing the services,
-and so it should be set as the init system in <code>magmad.yml</code>.</p>
-<h2><a class="anchor" aria-hidden="true" id="production"></a><a href="#production" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Production</h2>
-<p>Follow these steps to run the FeG in docker containers for production:</p>
+<p>Each service should now be running in each of its containers.
+By default, both production and development services should be running.
+To place a shell into the test container, run the command:</p>
+<p><code>docker-compose exec test bin/bash</code></p>
+<p>The test container contains the mounted source code and configuration settings.
+The mounted source code and configuration settings can be changed externally
+and the changes will be reflected inside the test container.
+Run the command <code>make precommit</code> in the container before submitting a patch.</p>
+<p>To make changes to currently running FeG services, the containers must be rebuilt and restarted:</p>
 <ol>
-<li><code>cd magma/feg/gateway/docker</code></li>
-<li><code>docker-compose -f docker-compose.prod.yml up -d</code></li>
+<li><code>docker-compose down</code></li>
+<li><code>docker-compose build</code></li>
+<li><code>docker-compose up -d</code></li>
 </ol>
-<p>Each service should now be running in its own docker container. Docker is used
-to manage the services, and so it should be set as the init system in
-<code>magmad.yml</code>. Also, ensure that <code>enable_systemd_tailer = False</code> in <code>magmad.yml</code>.</p>
-<p>To manage the containers the following commands are useful:</p>
+<p>To manage the containers, the following commands are useful:</p>
 <ul>
-<li><code>docker-compose -f docker-compose.prod.yml ps</code> (get status of each container)</li>
-<li><code>docker-compose -f docker-compose.prod.yml logs -f</code> (tail logs of all containers)</li>
-<li><code>docker logs -f &lt;service name&gt;</code> (tail logs of a particular service)</li>
-<li><code>docker-compose -f docker-compose.prod.yml down</code> (stop all services)</li>
+<li><code>docker-compose ps</code> (get status of each container)</li>
+<li><code>docker-compose logs -f</code> (tail logs of all containers)</li>
+<li><code>docker-compose logs -f &lt;service name&gt;</code> (tail logs of a particular service)</li>
+<li><code>docker-compose down</code> (stop all services)</li>
 </ul>
 <h2><a class="anchor" aria-hidden="true" id="publishing-the-images"></a><a href="#publishing-the-images" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Publishing the images</h2>
-<p>To push the production images to a private docker registry, use the following script:</p>
+<p>To push production images to a private docker registry, use the following script:</p>
 <pre><code class="hljs">[<span class="hljs-regexp">/magma/</span>feg<span class="hljs-regexp">/gateway/</span>docker]$ ..<span class="hljs-regexp">/../</span>..<span class="hljs-regexp">/orc8r/</span>tools<span class="hljs-regexp">/docker/</span>publish.sh -r &lt;REGISTRY&gt; -i gateway_python
 [<span class="hljs-regexp">/magma/</span>feg<span class="hljs-regexp">/gateway/</span>docker]$ ..<span class="hljs-regexp">/../</span>..<span class="hljs-regexp">/orc8r/</span>tools<span class="hljs-regexp">/docker/</span>publish.sh -r &lt;REGISTRY&gt; -i gateway_go
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/feg/faq"><span class="arrow-prev">← </span><span>FAQ</span></a><a class="docs-next button" href="/magma/docs/feg/vagrant_setup"><span class="function-name-prevnext">FeG Vagrant Setup</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a></li><li><a href="#development">Development</a></li><li><a href="#production">Production</a></li><li><a href="#publishing-the-images">Publishing the images</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Deployment_Guide_Installing_Magma_V2.pdf">Magma Install Guide</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Network_Management_System.pdf">Magma Network Management System</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://groups.google.com/forum/#!forum/magma-dev">Forum</a><a href="http://stackoverflow.com/questions/tagged/" target="_blank" rel="noreferrer noopener">Stack Overflow</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2019 Facebook</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/feg/faq"><span class="arrow-prev">← </span><span>FAQ</span></a><a class="docs-next button" href="/magma/docs/feg/vagrant_setup"><span class="function-name-prevnext">FeG Vagrant Setup</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#requirements">Requirements</a></li><li><a href="#development">Development</a></li><li><a href="#publishing-the-images">Publishing the images</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Deployment_Guide_Installing_Magma_V2.pdf">Magma Install Guide</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Network_Management_System.pdf">Magma Network Management System</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://groups.google.com/forum/#!forum/magma-dev">Forum</a><a href="http://stackoverflow.com/questions/tagged/" target="_blank" rel="noreferrer noopener">Stack Overflow</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2019 Facebook</section></footer></div></body></html>
