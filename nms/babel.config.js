@@ -31,6 +31,8 @@ module.exports = {
           node: 'current',
           chrome: '58',
         },
+        corejs: 3,
+        useBuiltIns: 'entry',
       },
     ],
     '@babel/preset-flow',
