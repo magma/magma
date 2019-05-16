@@ -47,11 +47,17 @@ export default function useAxios<T, R>(
         setLoadedUrl(config.url);
       })
       .catch(error => {
-        setIsLoading(false);
-        axios.isCancel(error) || setError(error);
-        setLoadedUrl(config.url);
+        if (!axios.isCancel(error)) {
+          setIsLoading(false);
+          setError(error);
+          setLoadedUrl(config.url);
+        }
       });
-    return () => source.cancel();
+    return () => {
+      source.cancel();
+      setIsLoading(false);
+      setLoadedUrl(config.url);
+    };
   }, [stringConfig]);
   return {
     error,
