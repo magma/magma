@@ -90,7 +90,7 @@ class StatsManager:
         self._check_rf_tx()
         self.mme_timeout_handler = self.loop.call_later(
             self.CHECK_RF_TX_PERIOD,
-            self._check_rf_tx,
+            self._periodic_check_rf_tx,
         )
 
     def _check_rf_tx(self) -> None:
