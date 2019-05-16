@@ -46,6 +46,9 @@ spec:
         - name: certs
           secret:
             secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        - name: envdir
+          secret:
+            secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
         - name: configs
           {{- if .Values.secret.configs }}
           secret:
@@ -58,7 +61,7 @@ spec:
           image: {{ required "controller.image.repository must be provided" .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}
           imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
           volumeMounts:
-            {{- range tuple "certs" "configs" }}
+            {{- range tuple "certs" "envdir" "configs" }}
             - name: {{ . }}
               mountPath: /var/opt/magma/{{ . }}
               readOnly: true
@@ -76,8 +79,6 @@ spec:
                 secretKeyRef:
                   name: {{ $serviceName }}
                   key: postgres.connstr
-            - name: SQL_DRIVER
-              value: postgres
           livenessProbe:
             tcpSocket:
               port: 9081

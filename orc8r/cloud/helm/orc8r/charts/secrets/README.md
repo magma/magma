@@ -26,7 +26,7 @@ The secrets are expected to be provided as files and placed under
 secrets subchart root.
 ```bash
 $ ls charts/secrets/.secrets
-certs  configs
+certs  configs envdir
 $ pwd
 magma/orc8r/cloud/helm/orc8r
 ```
@@ -45,6 +45,7 @@ docker credentials and their default values.
 | `create` | Set to ``true`` to create orc8r secrets. | `false` |
 | `secret.certs` | Root relative certs directory. | `.secrets/certs` |
 | `secret.configs` | Root relative configs directory. | `.secrets/configs` |
+| `secret.envdir` | Root relative envdir directory. | `.secrets/envdir` |
 | `docker.registry` | Docker registry. | `""` |
 | `docker.username` | Docker registry username. | `""` |
 | `docker.password` | Docker registry password. | `""` |

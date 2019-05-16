@@ -34,6 +34,7 @@ The following table list the configurable parameters of the orchestrator chart a
 | `secrets.create` | Create orchestrator secrets. See charts/secrets subchart. | `false` |
 | `secret.certs` | Secret name containing orchestrator certs. | `orc8r-secrets-certs` |
 | `secret.configs` | Secret name containing orchestrator configs. | `orc8r-secrets-configs` |
+| `secret.envdir` | Secret name containing orchestrator envdir. | `orc8r-secrets-envdir` |
 | `proxy.service.annotations` | Annotations to be added to the proxy service. | `{}` |
 | `proxy.service.labels` | Proxy service labels. | `{}` |
 | `proxy.service.type` | Proxy service type. | `ClusterIP` |
@@ -99,14 +100,13 @@ $ helm install \
 - Copy orchestrator secrets:
 ```bash
 cd magma/orc8r/cloud/helm/orc8r
-mkdir -p charts/secrets/.secrets/certs
-# You need to add the following files to the certs directory:
-#   bootstrapper.key certifier.key certifier.pem vpn_ca.crt vpn_ca.key
-#   controller.crt controller.key rootCA.pem
-# The controller.crt, controller.key and rootCA.pem are the certificate info
-# for your public domain name.
-# For local testing, you can do the following after running Orc8r using docker:
-cp -r ../../../../.cache/test_certs/* charts/secrets/.secrets/certs/.
+mkdir -p charts/secrets/.secrets/
+# Copy the secrets for the depoyment
+cp -r ~/secrets/* charts/secrets/.secrets/
+# For local testing, you can do the following:
+cp -r ../../../../.cache/test_certs charts/secrets/.secrets/certs
+cp -r ../../deploy/files/envdir charts/secrets/.secrets/envdir
+cd charts/secrets/.secrets/envdir && rm DATABASE_SOURCE PROXY_BACKENDS CONTROLLER_HOSTNAME
 ```
 - Install orchestrator secrets:
 ```bash
