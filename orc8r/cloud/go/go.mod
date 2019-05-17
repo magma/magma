@@ -12,7 +12,6 @@ require (
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
 	github.com/go-graphite/carbonapi v0.0.0-20190205122054-b49de85f729f
-	github.com/go-kit/kit v0.8.0
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.18.0
@@ -39,7 +38,6 @@ require (
 	github.com/lib/pq v1.0.0
 	github.com/marpaia/graphite-golang v0.0.0-20171231172105-134b9af18cf3
 	github.com/mattn/go-sqlite3 v1.10.0
-	github.com/matttproud/golang_protobuf_extensions v1.0.1
 	github.com/opentracing/opentracing-go v1.0.2 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/alertmanager v0.17.0
