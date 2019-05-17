@@ -338,34 +338,31 @@ void *mme_app_thread(void *args)
             ue_context_p->ulr_response_timer.id) {
             mme_app_handle_ulr_timer_expiry(ue_context_p);
           } else if (
-            (ue_context_p->sgs_context != NULL) &&
-            (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-             ue_context_p->sgs_context->ts6_1_timer.id)) {
-            mme_app_handle_ts6_1_timer_expiry(ue_context_p);
-          } else if (
             received_message_p->ittiMsg.timer_has_expired.timer_id ==
             ue_context_p->ue_context_modification_timer.id) {
             // UE Context modification Timer expiry handler
             increment_counter(
               "ue_context_modification_timer expired", 1, NO_LABELS);
             mme_app_handle_ue_context_modification_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts8_timer.id) {
-            mme_app_handle_sgs_eps_detach_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts9_timer.id) {
-            mme_app_handle_sgs_imsi_detach_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts10_timer.id) {
-            mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts13_timer.id) {
-            mme_app_handle_sgs_implicit_eps_detach_timer_expiry(ue_context_p);
-          } else {
+          } else if (ue_context_p->sgs_context != NULL){
+              if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                  ue_context_p->sgs_context->ts6_1_timer.id) {
+                  mme_app_handle_ts6_1_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts8_timer.id) {
+                mme_app_handle_sgs_eps_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts9_timer.id) {
+                mme_app_handle_sgs_imsi_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts10_timer.id) {
+                mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts13_timer.id) {
+                mme_app_handle_sgs_implicit_eps_detach_timer_expiry(ue_context_p);
+              }
+          }
+          else {
             OAILOG_WARNING(
               LOG_MME_APP,
               "Timer expired but no associated timer_id for UE "
