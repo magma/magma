@@ -81,6 +81,11 @@ spec:
                   key: postgres.connstr
             - name: SQL_DRIVER
               value: postgres
+            # Hostname override for dispatcher
+            - name: SERVICE_HOST_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           livenessProbe:
             tcpSocket:
               port: 9081
