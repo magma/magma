@@ -425,27 +425,40 @@ int mme_app_handle_s6a_cancel_location_req(
    * connected mode and then send Detach Request
    */
   if (ue_context_p->ecm_state == ECM_IDLE) {
-    // Initiate Implicit Detach for the UE
-    // Stop Mobile reachability timer,if running
-    if (
-      ue_context_p->mobile_reachability_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Mobile Reachability timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
+
+    if (!mme_config.eps_network_feature_support.
+      ims_voice_over_ps_session_in_s1) {
+      // Initiate Implicit Detach for the UE
+      // Stop Mobile reachability timer,if running
+      if (
+        ue_context_p->mobile_reachability_timer.id != MME_APP_TIMER_INACTIVE_ID) {
+        if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "Failed to stop Mobile Reachability timer for UE id  %d \n",
+            ue_context_p->mme_ue_s1ap_id);
+        }
+        ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
       }
-      ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    }
-    // Stop Implicit detach timer,if running
-    if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(ue_context_p->implicit_detach_timer.id, NULL)) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Implicit Detach timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
+      // Stop Implicit detach timer,if running
+      if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
+        if (timer_remove(ue_context_p->implicit_detach_timer.id, NULL)) {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "Failed to stop Implicit Detach timer for UE id  %d \n",
+            ue_context_p->mme_ue_s1ap_id);
+        }
+        ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
       }
-      ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
+    } else {
+      /* Page the UE to bring it back to connected mode
+       * and then send Detach Request
+      */
+      mme_app_paging_request_helper(
+        ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
+      // Set the flag and send detach to UE after receiving service req
+      ue_context_p->emm_context.nw_init_bearer_deactv = true;
+
     }
     // Send Implicit Detach Ind to NAS
     message_p =
