@@ -16,19 +16,18 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "UPGRADE"
 
-func getUpgradeServiceClient() (upgrade_protos.UpgradeServiceClient, *grpc.ClientConn, error) {
+func getUpgradeServiceClient() (upgrade_protos.UpgradeServiceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return upgrade_protos.NewUpgradeServiceClient(conn), conn, err
+	return upgrade_protos.NewUpgradeServiceClient(conn), err
 }
 
 // A channel in this context is a way to partition released packages
@@ -39,11 +38,10 @@ func getUpgradeServiceClient() (upgrade_protos.UpgradeServiceClient, *grpc.Clien
 
 // Create a new global release channel.
 func CreateReleaseChannel(channelName string, channel *upgrade_protos.ReleaseChannel) error {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.CreateOrUpdateReleaseChannelRequest{
 		ChannelName: channelName,
@@ -54,11 +52,10 @@ func CreateReleaseChannel(channelName string, channel *upgrade_protos.ReleaseCha
 }
 
 func GetReleaseChannel(channel string) (*upgrade_protos.ReleaseChannel, error) {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.GetReleaseChannelRequest{ChannelName: channel}
 	res, err := client.GetReleaseChannel(context.Background(), req)
@@ -69,11 +66,10 @@ func GetReleaseChannel(channel string) (*upgrade_protos.ReleaseChannel, error) {
 }
 
 func ListReleaseChannels() ([]string, error) {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	req := &protos.Void{}
 	res, err := client.ListReleaseChannels(context.Background(), req)
@@ -84,11 +80,10 @@ func ListReleaseChannels() ([]string, error) {
 }
 
 func UpdateReleaseChannel(channelName string, updatedChannel *upgrade_protos.ReleaseChannel) error {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.CreateOrUpdateReleaseChannelRequest{
 		ChannelName: channelName,
@@ -99,11 +94,10 @@ func UpdateReleaseChannel(channelName string, updatedChannel *upgrade_protos.Rel
 }
 
 func DeleteReleaseChannel(channel string) error {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.DeleteReleaseChannelRequest{ChannelName: channel}
 	_, err = client.DeleteReleaseChannel(context.Background(), req)
@@ -120,11 +114,10 @@ func DeleteReleaseChannel(channel string) error {
 // If any non-existent tiers are provided in the filter parameter, an
 // error will be returned.
 func GetTiers(networkId string, tierFilter []string) (map[string]*upgrade_protos.TierInfo, error) {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return map[string]*upgrade_protos.TierInfo{}, err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.GetTiersRequest{NetworkId: networkId, TierFilter: tierFilter}
 	res, err := client.GetTiers(context.Background(), req)
@@ -135,11 +128,10 @@ func GetTiers(networkId string, tierFilter []string) (map[string]*upgrade_protos
 }
 
 func CreateTier(networkId string, tierId string, tierInfo *upgrade_protos.TierInfo) error {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.CreateTierRequest{
 		NetworkId: networkId,
@@ -151,11 +143,10 @@ func CreateTier(networkId string, tierId string, tierInfo *upgrade_protos.TierIn
 }
 
 func UpdateTier(networkId string, tierId string, tierInfo *upgrade_protos.TierInfo) error {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.UpdateTierRequest{
 		NetworkId:   networkId,
@@ -167,11 +158,10 @@ func UpdateTier(networkId string, tierId string, tierInfo *upgrade_protos.TierIn
 }
 
 func DeleteTier(networkId string, tierId string) error {
-	client, conn, err := getUpgradeServiceClient()
+	client, err := getUpgradeServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &upgrade_protos.DeleteTierRequest{
 		NetworkId:      networkId,

@@ -17,21 +17,20 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "LOGGER"
 
 // getLoggerClient is a utility function to get a RPC connection to the
 // loggingService service
-func getLoggerClient() (protos.LoggingServiceClient, *grpc.ClientConn, error) {
+func getLoggerClient() (protos.LoggingServiceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewLoggingServiceClient(conn), conn, err
+	return protos.NewLoggingServiceClient(conn), err
 
 }
 
@@ -44,11 +43,10 @@ func shouldLog(samplingRate float64) bool {
 // User call this directly to log //
 ////////////////////////////////////
 func LogEntriesToDest(entries []*protos.LogEntry, destination protos.LoggerDestination, samplingRate float64) error {
-	lg, conn, err := getLoggerClient()
+	lg, err := getLoggerClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	if !shouldLog(samplingRate) {
 		return nil
 	}

@@ -21,30 +21,28 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "MAGMAD"
 
 // getMagmadClient is a utility function to get a RPC connection to the
 // magmad service
-func getMagmadClient() (mdprotos.MagmadConfiguratorClient, *grpc.ClientConn, error) {
+func getMagmadClient() (mdprotos.MagmadConfiguratorClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return mdprotos.NewMagmadConfiguratorClient(conn), conn, err
+	return mdprotos.NewMagmadConfiguratorClient(conn), err
 }
 
 // ListNetworks returns an array of all registered network IDs
 func ListNetworks() ([]string, error) {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	idsList, err := md.ListNetworks(context.Background(), &protos.Void{})
 	ids := idsList.GetList()
 	res := make([]string, len(ids))
@@ -56,21 +54,19 @@ func ListNetworks() ([]string, error) {
 
 // Returns the network record for a network ID
 func GetNetwork(networkId string) (*mdprotos.MagmadNetworkRecord, error) {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	return md.GetNetwork(context.Background(), identity.NewNetwork(networkId))
 }
 
 // Update a network record
 func UpdateNetwork(networkId string, record *mdprotos.MagmadNetworkRecord) error {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = md.UpdateNetwork(context.Background(), &mdprotos.NetworkRecordRequest{Id: networkId, Record: record})
 	return err
 }
@@ -79,11 +75,10 @@ func UpdateNetwork(networkId string, record *mdprotos.MagmadNetworkRecord) error
 // will return error if the network already exist
 // returns a new unique network ID
 func RegisterNetwork(record *mdprotos.MagmadNetworkRecord, requestedId string) (string, error) {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
 	req := &mdprotos.NetworkRecordRequest{Record: record, Id: requestedId}
 	id, err := md.RegisterNetwork(context.Background(), req)
 	return id.GetNetwork(), err
@@ -91,11 +86,10 @@ func RegisterNetwork(record *mdprotos.MagmadNetworkRecord, requestedId string) (
 
 // Deletes given network if its Gateway & Subscriber tables are empty
 func RemoveNetwork(networkId string) error {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = md.RemoveNetwork(context.Background(), identity.NewNetwork(networkId))
 	if err != nil {
 		return err
@@ -107,11 +101,10 @@ func RemoveNetwork(networkId string) error {
 
 // Deletes given network and its Gateway & Subscriber tables
 func ForceRemoveNetwork(networkId string) error {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = md.ForceRemoveNetwork(
 		context.Background(), identity.NewNetwork(networkId))
 	return err
@@ -130,11 +123,10 @@ func RegisterGatewayWithId(networkId string, record *mdprotos.AccessGatewayRecor
 	if record == nil {
 		return "", errors.New("Invalid Request: Nil Gateway Record")
 	}
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
 	req := &mdprotos.GatewayRecordRequest{
 		GatewayId: identity.NewGateway(record.GetHwId().GetId(), networkId, requestedId),
 		Record:    record}
@@ -148,11 +140,10 @@ func RegisterGatewayWithId(networkId string, record *mdprotos.AccessGatewayRecor
 
 // Lists all registered logical device IDs
 func ListGateways(networkId string) ([]string, error) {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	idsList, err :=
 		md.ListGateways(context.Background(), identity.NewNetwork(networkId))
 	if err != nil {
@@ -168,11 +159,10 @@ func ListGateways(networkId string) ([]string, error) {
 
 // FindGatewayId returns logical AG Id for the given registered HW Id
 func FindGatewayId(networkId string, hwId string) (string, error) {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
 	gwId := identity.NewGateway(hwId, networkId, "")
 
 	gwId, err = md.FindGatewayId(context.Background(), gwId)
@@ -184,12 +174,10 @@ func FindGatewayId(networkId string, hwId string) (string, error) {
 
 // FindGatewayRecord returns AG Record for a given registered logical ID
 func FindGatewayRecord(networkId string, gatewayId string) (*mdprotos.AccessGatewayRecord, error) {
-
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	gwId := identity.NewGateway("", networkId, gatewayId)
 	return md.FindGatewayRecord(context.Background(), gwId)
 }
@@ -216,11 +204,10 @@ func FindGatewayRecordWithHwId(hwId string) (*mdprotos.AccessGatewayRecord, erro
 // Finds and Updates the GW record, the record's HwId must be either omitted
 // or must match the GW's registered HW ID, the HwId is not mutable
 func UpdateGatewayRecord(networkId string, gatewayId string, record *mdprotos.AccessGatewayRecord) error {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	req := &mdprotos.GatewayRecordRequest{
 		GatewayId: identity.NewGateway("", networkId, gatewayId),
 		Record:    record}
@@ -231,11 +218,10 @@ func UpdateGatewayRecord(networkId string, gatewayId string, record *mdprotos.Ac
 // FindGatewayNetworkId returns Network Id of the network, the Gatway HW ID
 // is registered on
 func FindGatewayNetworkId(hwId string) (string, error) {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
 	netIdentity, err := md.FindGatewayNetworkId(
 		context.Background(), identity.NewGateway(hwId, "", ""))
 	return netIdentity.GetNetwork(), err
@@ -244,11 +230,10 @@ func FindGatewayNetworkId(hwId string) (string, error) {
 // RemoveGateway deletes all logical device & corresponding HW ID records &
 // configs and effectively performs de-registration of the AG with the cloud
 func RemoveGateway(networkId string, gatewayId string) error {
-	md, conn, err := getMagmadClient()
+	md, err := getMagmadClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = md.RemoveGateway(context.Background(), identity.NewGateway("", networkId, gatewayId))
 	if err != nil {
 		return err

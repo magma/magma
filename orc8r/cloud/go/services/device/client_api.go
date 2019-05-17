@@ -16,36 +16,33 @@ import (
 	"magma/orc8r/cloud/go/services/device/protos"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
-func getDeviceClient() (protos.DeviceClient, *grpc.ClientConn, error) {
+func getDeviceClient() (protos.DeviceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewDeviceClient(conn), conn, err
+	return protos.NewDeviceClient(conn), err
 }
 
 func RegisterDevices(networkID string, entities []*protos.PhysicalEntity) error {
-	client, conn, err := getDeviceClient()
+	client, err := getDeviceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	req := &protos.RegisterDevicesRequest{NetworkID: networkID, Entities: entities}
 	_, err = client.RegisterDevices(context.Background(), req)
 	return err
 }
 
 func DeleteDevices(networkID string, deviceIDs []*protos.DeviceID) error {
-	client, conn, err := getDeviceClient()
+	client, err := getDeviceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &protos.DeleteDevicesRequest{NetworkID: networkID, DeviceIDs: deviceIDs}
 	_, err = client.DeleteDevices(context.Background(), req)
@@ -53,11 +50,10 @@ func DeleteDevices(networkID string, deviceIDs []*protos.DeviceID) error {
 }
 
 func GetDeviceInfo(networkID string, deviceIDs []*protos.DeviceID) (map[string]*protos.PhysicalEntity, error) {
-	client, conn, err := getDeviceClient()
+	client, err := getDeviceClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	req := &protos.GetDeviceInfoRequest{NetworkID: networkID, DeviceIDs: deviceIDs}
 	res, err := client.GetDeviceInfo(context.Background(), req)
 	if err != nil {

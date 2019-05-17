@@ -20,35 +20,33 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "POLICYDB"
 
 // Utility function to get a RPC connection to the policydb service
 func getPolicydbClient() (
-	protos.PolicyDBControllerClient, *grpc.ClientConn, error) {
+	protos.PolicyDBControllerClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		glog.Errorf("Policydb client initialization error: %s", err)
-		return nil, nil, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"Policydb client initialization error: %s", err)
 	}
-	return protos.NewPolicyDBControllerClient(conn), conn, err
+	return protos.NewPolicyDBControllerClient(conn), err
 }
 
-// Add a new rule.
+// AddRule add a new rule.
 // The rule must not be existing already.
 func AddRule(networkId string, rule *protos.PolicyRule) error {
 	ruleData := &protos.PolicyRuleData{
 		NetworkId: &orcprotos.NetworkID{Id: networkId},
 		Rule:      rule,
 	}
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	if _, err = client.AddRule(context.Background(), ruleData); err != nil {
 		glog.Errorf("[Network: %s] AddRule error: %s", networkId, err)
@@ -57,14 +55,13 @@ func AddRule(networkId string, rule *protos.PolicyRule) error {
 	return nil
 }
 
-// Get the rule data.
+// GetRule get the rule data.
 func GetRule(networkId string, ruleId string) (
 	*protos.PolicyRule, error) {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	lookup := &protos.PolicyRuleLookup{
 		NetworkId: &orcprotos.NetworkID{Id: networkId},
@@ -78,13 +75,12 @@ func GetRule(networkId string, ruleId string) (
 	return data, nil
 }
 
-// Delete the rule.
+// DeleteRule delete the rule.
 func DeleteRule(networkId string, ruleId string) error {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	lookup := &protos.PolicyRuleLookup{
 		NetworkId: &orcprotos.NetworkID{Id: networkId},
@@ -97,17 +93,16 @@ func DeleteRule(networkId string, ruleId string) error {
 	return nil
 }
 
-// Update the policy rule.
+// UpdateRule update the policy rule.
 func UpdateRule(networkId string, rule *protos.PolicyRule) error {
 	ruleData := &protos.PolicyRuleData{
 		NetworkId: &orcprotos.NetworkID{Id: networkId},
 		Rule:      rule,
 	}
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	if _, err = client.UpdateRule(context.Background(), ruleData); err != nil {
 		glog.Errorf("[Network: %s] UpdateRule error: %s", networkId, err)
@@ -116,13 +111,12 @@ func UpdateRule(networkId string, rule *protos.PolicyRule) error {
 	return nil
 }
 
-// Get all policy rule objects
+// GetAllRules get all policy rule objects
 func GetAllRules(networkId string) ([]*protos.PolicyRule, error) {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	ruleSet, err := client.ListRules(
 		context.Background(),
@@ -134,7 +128,7 @@ func GetAllRules(networkId string) ([]*protos.PolicyRule, error) {
 	return ruleSet.GetRules(), nil
 }
 
-// Get all policy rule objects
+// ListRuleIds get all policy rule objects
 func ListRuleIds(networkId string) ([]string, error) {
 	rules, err := GetAllRules(networkId)
 	if err != nil {
@@ -154,11 +148,10 @@ func ListRuleIds(networkId string) ([]string, error) {
 // an existing RecordCorresponding to the given network & base name
 // Returns the the existing base name record if present
 func AddBaseName(networkId, baseName string, ruleNames []string) ([]string, error) {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	old, err := client.AddBaseName(
 		context.Background(),
@@ -180,25 +173,23 @@ func AddBaseName(networkId, baseName string, ruleNames []string) ([]string, erro
 
 // DeleteBaseName deletes an existing Charging Rule Base Name Record
 func DeleteBaseName(networkId, baseName string) error {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err == nil {
 		_, err = client.DeleteBaseName(
 			context.Background(),
 			&protos.ChargingRuleBaseNameLookup{
 				NetworkID: &orcprotos.NetworkID{Id: networkId},
 				Name:      baseName})
-		conn.Close()
 	}
 	return err
 }
 
 // GetBaseName returns the Charging Rule Name List corresponding to the given base name on the given network
 func GetBaseName(networkId, baseName string) ([]string, error) {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	ruleNamesSet, err := client.GetBaseName(
 		context.Background(),
 		&protos.ChargingRuleBaseNameLookup{
@@ -214,22 +205,20 @@ func GetBaseName(networkId, baseName string) ([]string, error) {
 // ListBaseNames returns a list of all Base Names for the network, the Rule Name Lists
 // associated with each base name can be retrieved using separate GetBaseName() call
 func ListBaseNames(networkId string) ([]string, error) {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return nil, err
 	}
 	baseNamesSet, err := client.ListBaseNames(context.Background(), &orcprotos.NetworkID{Id: networkId})
-	conn.Close()
 	return baseNamesSet.RuleNames, err
 }
 
 // GetAllBaseNames returns a list of all Base Names Records for the network
 func GetAllBaseNames(networkId string) ([]*protos.ChargingRuleBaseNameRecord, error) {
-	client, conn, err := getPolicydbClient()
+	client, err := getPolicydbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	ctx := context.Background()
 	baseNamesSet, err := client.ListBaseNames(ctx, &orcprotos.NetworkID{Id: networkId})

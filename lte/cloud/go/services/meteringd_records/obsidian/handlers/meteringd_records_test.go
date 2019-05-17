@@ -37,11 +37,10 @@ import (
 // NOTE: This endpoint exists for testing ONLY
 // Real clients will use gRPC directly
 func UpdateFlowsTest(csn string, tbl *protos.FlowTable) error {
-	client, conn, err := meteringd_records.GetMeteringdRecordsClient()
+	client, err := meteringd_records.GetMeteringdRecordsClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	// Hack in the identity context
 	ctx := metadata.NewOutgoingContext(

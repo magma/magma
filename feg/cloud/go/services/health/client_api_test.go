@@ -197,7 +197,6 @@ func updateHealth(t *testing.T, req *protos.HealthRequest) (*protos.HealthRespon
 	}
 	conn, err := registry.GetConnection(health.ServiceName)
 	assert.NoError(t, err)
-	defer conn.Close()
 
 	client := protos.NewHealthClient(conn)
 	return client.UpdateHealth(context.Background(), req)
