@@ -14,7 +14,15 @@ import (
 	"strings"
 	"sync"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+
+	"github.com/prometheus/alertmanager/config"
+
 	"gopkg.in/yaml.v2"
+)
+
+const (
+	networkBaseRoutePostfix = "network_base_route"
 )
 
 // Client provides methods to create and read receiver configurations
@@ -67,6 +75,58 @@ func (c *Client) GetReceivers(networkID string) ([]Receiver, error) {
 	return recs, nil
 }
 
+// ModifyNetworkRoute takes a new route for a network and replaces the old one,
+// ensuring that receivers are properly named and the resulting config is valid.
+// Creates a new one if it doesn't already exist
+func (c *Client) ModifyNetworkRoute(route *config.Route, networkID string) error {
+	c.Lock()
+	defer c.Unlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return err
+	}
+	// ensure base route is valid base route for this network
+	route.Receiver = makeBaseRouteName(networkID)
+	route.Match = map[string]string{exporters.NetworkLabelNetwork: networkID}
+	for _, childRoute := range route.Routes {
+		secureRoute(childRoute, networkID)
+	}
+
+	networkRouteIdx := conf.GetRouteIdx(makeBaseRouteName(networkID))
+	if networkRouteIdx < 0 {
+		err := conf.initializeNetworkBaseRoute(route, networkID)
+		if err != nil {
+			return err
+		}
+	} else {
+		conf.Route.Routes[networkRouteIdx] = route
+	}
+
+	err = conf.Validate()
+	if err != nil {
+		return err
+	}
+	return c.writeConfigFile(conf)
+}
+
+// GetRoute returns the base route for the given networkID
+func (c *Client) GetRoute(networkID string) (*config.Route, error) {
+	c.RLock()
+	defer c.RUnlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return &config.Route{}, err
+	}
+
+	routeIdx := conf.GetRouteIdx(makeBaseRouteName(networkID))
+	if routeIdx >= 0 {
+		route := conf.Route.Routes[routeIdx]
+		unsecureRoute(route, networkID)
+		return route, nil
+	}
+	return nil, fmt.Errorf("Route for network %s does not exist", networkID)
+}
+
 func (c *Client) readConfigFile() (*Config, error) {
 	configFile := Config{}
 	file, err := ioutil.ReadFile(c.configPath)
@@ -86,6 +146,38 @@ func (c *Client) writeConfigFile(conf *Config) error {
 	return nil
 }
 
+// secureRoute ensure that all receivers in the route have the
+// proper networkID-prefixed receiver name
+func secureRoute(route *config.Route, networkID string) {
+	route.Receiver = secureReceiverName(route.Receiver, networkID)
+	for _, childRoute := range route.Routes {
+		secureRoute(childRoute, networkID)
+	}
+}
+
+// unsecureRoute traverses a routing tree and reverts receiver
+// names to their non-prefixed original names
+func unsecureRoute(route *config.Route, networkID string) {
+	route.Receiver = unsecureReceiverName(route.Receiver, networkID)
+	for _, childRoute := range route.Routes {
+		unsecureRoute(childRoute, networkID)
+	}
+}
+
 func receiverNetworkPrefix(networkID string) string {
 	return strings.Replace(networkID, "_", "", -1) + "_"
+}
+
+func (c *Client) getBaseRouteForNetwork(networkID string, conf *Config) (*config.Route, error) {
+	baseRouteName := makeBaseRouteName(networkID)
+	for _, route := range conf.Route.Routes {
+		if route.Receiver == baseRouteName {
+			return route, nil
+		}
+	}
+	return nil, fmt.Errorf("base route for %s not found", networkID)
+}
+
+func makeBaseRouteName(networkID string) string {
+	return fmt.Sprintf("%s_%s", networkID, networkBaseRoutePostfix)
 }

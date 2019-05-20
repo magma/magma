@@ -68,6 +68,8 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 		handlers.Handler{Path: firingAlertURL, Methods: handlers.GET, HandlerFunc: promH.GetViewFiringAlertHandler(alertmanagerURL)},
 		handlers.Handler{Path: promH.AlertReceiverConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigureAlertReceiverHandler(alertConfigWebServerURL)},
 		handlers.Handler{Path: promH.AlertReceiverConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertReceiverHandler(alertConfigWebServerURL)},
+		handlers.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertConfigWebServerURL)},
+		handlers.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: handlers.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertConfigWebServerURL)},
 	)
 
 	return ret

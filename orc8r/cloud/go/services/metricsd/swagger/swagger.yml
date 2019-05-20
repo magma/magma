@@ -211,6 +211,35 @@ paths:
               $ref: '#/definitions/alert_receiver_config'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+  /networks/{network_id}/prometheus/alert_receiver/route:
+    get:
+      summary: Retrieve alert routing tree
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Alerting tree
+          schema:
+            $ref: '#/definitions/alert_routing_tree'
+    post:
+      summary: Modify alert routing tree
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: route
+          description: Alert routing tree to be used
+          required: true
+          schema:
+            $ref: '#/definitions/alert_routing_tree'
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
   graphite_return_object:
@@ -406,4 +435,42 @@ definitions:
         items:
           type: string
       state:
+        type: string
+
+  alert_routing_tree:
+    type: object
+    required:
+      - receiver
+    properties:
+      receiver:
+        type: string
+      group_by:
+        type: array
+        items:
+          type: string
+      match:
+        type: object
+        properties:
+          label:
+            type: string
+          value:
+            type: string
+      match_re:
+        type: object
+        properties:
+          label:
+            type: string
+          value:
+            type: string
+      continue:
+        type: boolean
+      routes:
+        type: array
+        items:
+          $ref: '#/definitions/alert_routing_tree'
+      group_wait:
+        type: string
+      group_interval:
+        type: string
+      repeat_interval:
         type: string

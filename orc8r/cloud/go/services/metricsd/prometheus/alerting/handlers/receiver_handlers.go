@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
 
 	"github.com/labstack/echo"
+	"github.com/prometheus/alertmanager/config"
 )
 
 const (
@@ -58,6 +59,32 @@ func GetGetReceiversHandler(client *receivers.Client) func(c echo.Context) error
 	}
 }
 
+func GetGetRouteHandler(client *receivers.Client) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID := getNetworkID(c)
+		route, err := client.GetRoute(networkID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err)
+		}
+		return c.JSON(http.StatusOK, route)
+	}
+}
+
+func GetUpdateRouteHandler(client *receivers.Client) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID := getNetworkID(c)
+		newRoute, err := decodeRoutePostRequest(c)
+		if err != nil {
+			return err
+		}
+		err = client.ModifyNetworkRoute(&newRoute, networkID)
+		if err != nil {
+			return err
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
 func decodeReceiverPostResponse(c echo.Context) (receivers.Receiver, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
@@ -69,6 +96,19 @@ func decodeReceiverPostResponse(c echo.Context) (receivers.Receiver, error) {
 		return receivers.Receiver{}, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 	return receiver, nil
+}
+
+func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
+	body, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return config.Route{}, fmt.Errorf("error reading request body: %v", err)
+	}
+	route := config.Route{}
+	err = json.Unmarshal(body, &route)
+	if err != nil {
+		return config.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
+	}
+	return route, nil
 }
 
 func reloadAlertmanager(url string) error {

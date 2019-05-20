@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"strings"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+
 	"github.com/prometheus/alertmanager/config"
 )
 
@@ -35,8 +37,32 @@ func (c *Config) GetReceiver(name string) *Receiver {
 	return nil
 }
 
+func (c *Config) GetRouteIdx(name string) int {
+	for idx, route := range c.Route.Routes {
+		if route.Receiver == name {
+			return idx
+		}
+	}
+	return -1
+}
+
+func (c *Config) initializeNetworkBaseRoute(route *config.Route, networkID string) error {
+	baseRouteName := makeBaseRouteName(networkID)
+	if c.GetReceiver(baseRouteName) != nil {
+		return fmt.Errorf("Base route for network %s already exists", networkID)
+	}
+
+	c.Receivers = append(c.Receivers, &Receiver{Name: baseRouteName})
+	route.Receiver = baseRouteName
+	route.Match = map[string]string{exporters.NetworkLabelNetwork: networkID}
+
+	c.Route.Routes = append(c.Route.Routes, route)
+
+	return c.Validate()
+}
+
 // Validate makes sure that the config is properly formed. Have to do this here
-// since alertmanager only does validation during Unmarshaling
+// since alertmanager only does validation during unmarshaling
 func (c *Config) Validate() error {
 	receiverNames := map[string]struct{}{}
 
