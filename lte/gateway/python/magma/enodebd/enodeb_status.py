@@ -10,7 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 import os
 from collections import namedtuple
-from typing import Any, Dict, List
+from typing import Any, Dict, List, NamedTuple
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -39,11 +39,17 @@ CACHED_GPS_COORD_FILE_PATH = os.path.join(
 _gps_lat_cached = None
 _gps_lon_cached = None
 
-EnodebStatus = namedtuple('EnodebStatus',
-                          ['enodeb_configured', 'gps_latitude',
-                           'gps_longitude', 'enodeb_connected',
-                           'opstate_enabled', 'rf_tx_on', 'gps_connected',
-                           'ptp_connected', 'mme_connected', 'enodeb_state'])
+EnodebStatus = NamedTuple('EnodebStatus',
+                          [('enodeb_configured', str),
+                           ('gps_latitude', str),
+                           ('gps_longitude', str),
+                           ('enodeb_connected', str),
+                           ('opstate_enabled', str),
+                           ('rf_tx_on', str),
+                           ('gps_connected', str),
+                           ('ptp_connected', str),
+                           ('mme_connected', str),
+                           ('enodeb_state', str)])
 
 # TODO: Remove after checkins support multiple eNB status
 MagmaOldEnodebdStatus = namedtuple('MagmaOldEnodebdStatus',
@@ -59,16 +65,16 @@ MagmaOldEnodebdStatus = namedtuple('MagmaOldEnodebdStatus',
                                     'mme_connected',
                                     'enodeb_state'])
 
-MagmaEnodebdStatus = namedtuple('MagmaEnodebdStatus',
-                                ['n_enodeb_connected',
-                                 'all_enodeb_configured',
-                                 'all_enodeb_opstate_enabled',
-                                 'all_enodeb_rf_tx_on',
-                                 'any_enodeb_gps_connected',
-                                 'all_enodeb_ptp_connected',
-                                 'all_enodeb_mme_connected',
-                                 'gateway_gps_longitude',
-                                 'gateway_gps_latitude'])
+MagmaEnodebdStatus = NamedTuple('MagmaEnodebdStatus',
+                                [('n_enodeb_connected', str),
+                                 ('all_enodeb_configured', str),
+                                 ('all_enodeb_opstate_enabled', str),
+                                 ('all_enodeb_rf_tx_on', str),
+                                 ('any_enodeb_gps_connected', str),
+                                 ('all_enodeb_ptp_connected', str),
+                                 ('all_enodeb_mme_connected', str),
+                                 ('gateway_gps_longitude', str),
+                                 ('gateway_gps_latitude', str)])
 
 
 def update_status_metrics(status: EnodebStatus) -> None:
