@@ -148,27 +148,36 @@ int esm_proc_pdn_connectivity_request(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-PROC  - PDN connectivity requested by the UE "
-    "(ue_id=" MME_UE_S1AP_ID_FMT
-    ", pti=%d) PDN type = %s, APN = %s pdn addr = %s pdn id %d\n",
-    ue_id,
+    "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "PDN connectivity request :pti= %d PDN type = %s, APN = %s pdn addr = %s pdn id %d for (ue_id = %u)\n",
     pti,
     (pdn_type == ESM_PDN_TYPE_IPV4) ?
       "IPv4" :
       (pdn_type == ESM_PDN_TYPE_IPV6) ? "IPv6" : "IPv4v6",
     (apn) ? (char *) bdata(apn) : "null",
     (pdn_addr) ? (char *) bdata(pdn_addr) : "null",
-    pdn_cid);
+    pdn_cid,
+    ue_id);
 
   /*
    * Check network IP capabilities
    */
   *esm_cause = ESM_CAUSE_SUCCESS;
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "ESM-PROC  - _esm_data.conf.features %08x\n",
-    _esm_data.conf.features);
+    "ESM-PROC  - _esm_data.conf.features %08x for (ue_id = %u)\n",
+    _esm_data.conf.features,
+    ue_id);
 
   int is_emergency = (request_type == ESM_PDN_REQUEST_EMERGENCY);
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "ESM-PROC  - is_emergency = (%d) for (ue_id = %u)\n",
+    is_emergency,
+    ue_id);
 
   /*
    * Create new PDN connection
@@ -186,7 +195,8 @@ int esm_proc_pdn_connectivity_request(
 
   if (rc < 0) {
     OAILOG_WARNING(
-      LOG_NAS_ESM, "ESM-PROC  - Failed to create PDN connection\n");
+      LOG_NAS_ESM, "ESM-PROC  - Failed to create PDN connection for ue_id (%u)\n",
+      ue_id);
     *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   }
 
@@ -365,12 +375,13 @@ static int _pdn_connectivity_create(
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "ESM-PROC  - Create new PDN connection (pti=%d) APN = %s, IP address = %s "
+    "ESM-PROC  - Create new PDN connection (pti=%d), APN = %s, pdn_type = %d, IP address = %s "
     "PDN id %d (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
     pti,
     bdata(apn),
+    pdn_type,
     (pdn_type == ESM_PDN_TYPE_IPV4) ?
       esm_data_get_ipv4_addr(pdn_addr) :
       (pdn_type == ESM_PDN_TYPE_IPV6) ? esm_data_get_ipv6_addr(pdn_addr) :
@@ -407,11 +418,21 @@ static int _pdn_connectivity_create(
           clear_protocol_configuration_options(pdn_context->pco);
         }
         copy_protocol_configuration_options(pdn_context->pco, pco);
+      } else {
+        OAILOG_WARNING(
+          LOG_NAS_ESM,
+          "ESM-PROC  - PCO is NULL for ue_id (%u)\n",
+          ue_mm_context->mme_ue_s1ap_id);
       }
 
       /*
        * Setup the IP address allocated by the network
        */
+    OAILOG_DEBUG(
+      LOG_NAS_ESM,
+      "PDN TYPE = %d for (ue_id = %u)\n",
+      pdn_type,
+      ue_mm_context->mme_ue_s1ap_id);
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {
         pdn_context->paa.pdn_type = pdn_type;
@@ -438,15 +459,17 @@ static int _pdn_connectivity_create(
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
     }
 
-    OAILOG_WARNING(
+    OAILOG_ERROR(
       LOG_NAS_ESM,
-      "ESM-PROC  - Failed to create new PDN connection (pdn_cid=%d)\n",
-      pdn_cid);
+      "ESM-PROC  - Failed to create new PDN connection (pdn_cid=%d) for (ue_id = %u)\n",
+      pdn_cid,
+      ue_mm_context->mme_ue_s1ap_id);
   } else {
     OAILOG_WARNING(
       LOG_NAS_ESM,
-      "ESM-PROC  - PDN connection already exist (pdn_cid=%d)\n",
-      pdn_cid);
+      "ESM-PROC  - PDN connection already exist (pdn_cid=%d) for (ue_id = %u)\n",
+      pdn_cid,
+      ue_mm_context->mme_ue_s1ap_id);
     // already created
     pdn_context_t *pdn_context = ue_mm_context->pdn_contexts[pdn_cid];
 
@@ -466,6 +489,11 @@ static int _pdn_connectivity_create(
           clear_protocol_configuration_options(pdn_context->pco);
         }
         copy_protocol_configuration_options(pdn_context->pco, pco);
+      } else {
+        OAILOG_WARNING(
+          LOG_NAS_ESM,
+          "ESM-PROC  - PCO is NULL for ue_id (%u)\n",
+          ue_mm_context->mme_ue_s1ap_id);
       }
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {

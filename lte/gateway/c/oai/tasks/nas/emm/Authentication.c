@@ -167,7 +167,7 @@ int emm_proc_authentication_ksi(
     OAILOG_INFO(
       LOG_NAS_EMM,
       "ue_id=" MME_UE_S1AP_ID_FMT
-      " EMM-PROC  - Initiate authentication KSI = %d\n",
+      " EMM-PROC  - Initiate Authentication KSI = %d\n",
       ue_id,
       ksi);
 
@@ -181,10 +181,21 @@ int emm_proc_authentication_ksi(
       if (emm_specific_proc) {
         if (EMM_SPEC_PROC_TYPE_ATTACH == emm_specific_proc->type) {
           auth_proc->is_cause_is_attach = true;
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for ue_id (%u)\n",
+            emm_specific_proc->type,
+            ue_id);
         } else if (EMM_SPEC_PROC_TYPE_TAU == emm_specific_proc->type) {
           auth_proc->is_cause_is_attach = false;
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "Auth proc cause is EMM_SPEC_PROC_TYPE_TAU (%d) for ue_id (%u)\n",
+            emm_specific_proc->type,
+            ue_id);
         }
       }
+      // Set the RAND value
       auth_proc->ksi = ksi;
       if (rand) {
         memcpy(auth_proc->rand, rand, AUTH_RAND_SIZE);
@@ -468,20 +479,20 @@ static int _auth_info_proc_success_cb(struct emm_context_s *emm_ctx)
         auth_info_proc->vector[i]->xres.size);
       emm_ctx->_vector[destination_index].xres_size =
         auth_info_proc->vector[i]->xres.size;
-      OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - Received Vector %u:\n", i);
-      OAILOG_INFO(
+      OAILOG_DEBUG(LOG_NAS_EMM, "EMM-PROC  - Received Vector %u:\n", i);
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received XRES ..: " XRES_FORMAT "\n",
         XRES_DISPLAY(emm_ctx->_vector[destination_index].xres));
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received RAND ..: " RAND_FORMAT "\n",
         RAND_DISPLAY(emm_ctx->_vector[destination_index].rand));
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received AUTN ..: " AUTN_FORMAT "\n",
         AUTN_DISPLAY(emm_ctx->_vector[destination_index].autn));
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received KASME .: " KASME_FORMAT " " KASME_FORMAT "\n",
         KASME_DISPLAY_1(emm_ctx->_vector[destination_index].kasme),
@@ -943,10 +954,8 @@ int emm_proc_authentication_complete(
 
   OAILOG_INFO(
     LOG_NAS_EMM,
-    "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT
-    ", cause=%d)\n",
-    ue_id,
-    emm_cause);
+    "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    ue_id);
   emm_ctx = &ue_mm_context->emm_context;
   nas_emm_auth_proc_t *auth_proc =
     get_nas_common_procedure_authentication(emm_ctx);
@@ -1294,6 +1303,10 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
     } else {
+      OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "UE MM context NULL for ue_id = (%u)!\n",
+        auth_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
     /*

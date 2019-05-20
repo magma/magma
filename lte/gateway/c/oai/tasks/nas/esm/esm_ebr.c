@@ -140,10 +140,11 @@ int esm_ebr_assign(emm_context_t *emm_context)
 
   bearer_context->ebi = INDEX_TO_EBI(i);
   esm_ebr_context_init(&bearer_context->esm_ebr_context);
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "ESM-FSM - EPS bearer context %d assigned\n",
-    bearer_context->ebi);
+    "ESM-FSM - EPS bearer identity = %d assigned for (ue_id = %u)\n",
+    bearer_context->ebi,
+    ue_context->mme_ue_s1ap_id);
   free_wrapper((void **) &bearer_context);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, INDEX_TO_EBI(i));
 }
@@ -272,6 +273,10 @@ int esm_ebr_start_timer(
 
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+  if (ue_mm_context == NULL) {
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-FSM   - ue mme context null..\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+  }
   /*
    * Get EPS bearer context data
    */
@@ -508,15 +513,27 @@ int esm_ebr_set_status(
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   if (emm_context == NULL) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-FSM   - emm context null... \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
   if ((ebi < ESM_EBI_MIN) || (ebi > ESM_EBI_MAX)) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-FSM   - Invalid EPS bearer identity range ebi= (%d) \n",
+      ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+  if ( ue_mm_context == NULL ) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-FSM   - ue mme context null... \n");
+  }
   /*
    * Get EPS bearer context data
    */
