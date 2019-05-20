@@ -51,8 +51,21 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 
 	timeStamp := time.Now().Unix() * 1000
 	for _, metricAndContext := range metrics {
-		familyName := metricAndContext.Family.GetName()
+		// Don't register family if it has 0 metrics. Would cause prometheus scrape
+		// to fail.
+		if len(metricAndContext.Family.Metric) == 0 {
+			continue
+		}
+		familyName := metricAndContext.Context.MetricName
 		for _, metric := range metricAndContext.Family.Metric {
+			metricType := getMetricType(metric)
+			familyType := *metricAndContext.Family.Type
+			// Metrics must be of the same type as their family. Otherwise prometheus
+			// scrape fails.
+			if metricType != familyType {
+				glog.Errorf("metric type %s not same as family %s: %s\n", metricType, familyType, familyName)
+				continue
+			}
 			addContextLabelsToMetric(metric, metricAndContext.Context)
 			metric.TimestampMs = &timeStamp
 		}
@@ -88,6 +101,19 @@ func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 	return buf.String(), nil
 }
 
+func getMetricType(metric *io_prometheus_client.Metric) io_prometheus_client.MetricType {
+	if metric.Counter != nil {
+		return io_prometheus_client.MetricType_COUNTER
+	} else if metric.Gauge != nil {
+		return io_prometheus_client.MetricType_GAUGE
+	} else if metric.Summary != nil {
+		return io_prometheus_client.MetricType_SUMMARY
+	} else if metric.Histogram != nil {
+		return io_prometheus_client.MetricType_HISTOGRAM
+	}
+	return io_prometheus_client.MetricType_UNTYPED
+}
+
 // Start runs exportEvery() in a goroutine to continuously push metrics at every
 // push interval
 func (e *CustomPushExporter) Start() {
@@ -105,11 +131,8 @@ func (e *CustomPushExporter) exportEvery() {
 
 func (e *CustomPushExporter) export() error {
 	err := e.pushFamilies()
-	if err != nil {
-		return err
-	}
 	e.resetFamilies()
-	return nil
+	return err
 }
 
 func (e *CustomPushExporter) pushFamilies() error {
