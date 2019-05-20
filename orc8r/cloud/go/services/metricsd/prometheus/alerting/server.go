@@ -46,6 +46,9 @@ func main() {
 	e.POST(receiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
 	e.GET(receiverPath, handlers.GetGetReceiversHandler(receiverClient))
 
+	e.POST(receiverPath+"/route", handlers.GetUpdateRouteHandler(receiverClient))
+	e.GET(receiverPath+"/route", handlers.GetGetRouteHandler(receiverClient))
+
 	glog.Infof("Alertconfig server listening on Port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
 }
