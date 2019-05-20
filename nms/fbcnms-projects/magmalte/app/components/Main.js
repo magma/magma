@@ -95,7 +95,13 @@ function Main() {
   }
 
   return (
-    <SnackbarProvider maxSnack={3} autoHideDuration={10000}>
+    <SnackbarProvider
+      maxSnack={3}
+      autoHideDuration={10000}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'right',
+      }}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
           <AppContext.Provider value={appContext}>
