@@ -178,7 +178,39 @@ paths:
           description: Deleted
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
-
+  /networks/{network_id}/prometheus/alert_receiver:
+    post:
+      summary: Create new alert receiver
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: receiver_config
+          description: Alert receiver that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/alert_receiver_config'
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+    get:
+      summary: Retrive alert receivers
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of alert receivers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/alert_receiver_config'
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
   graphite_return_object:

@@ -34,14 +34,14 @@ func (f *File) Rules() []rulefmt.Rule {
 	return f.RuleGroups[0].Rules
 }
 
-// GetRule returns the specific rule by name, nil if it doesn't exist in the file
+// GetRule returns the specific rule by name
 func (f *File) GetRule(rulename string) (*rulefmt.Rule, error) {
 	for _, rule := range f.RuleGroups[0].Rules {
 		if rule.Alert == rulename {
 			return &rule, nil
 		}
 	}
-	return &rulefmt.Rule{}, fmt.Errorf("could not find rule: %s", rulename)
+	return nil, fmt.Errorf("could not find rule: %s", rulename)
 }
 
 // AddRule appends a new rule to the list of rules in this file
@@ -71,6 +71,7 @@ func SecureRule(rule *rulefmt.Rule, networkID string) error {
 		return err
 	}
 	rule.Expr = restrictedExpression
+	rule.Labels[exporters.NetworkLabelNetwork] = networkID
 	return nil
 }
 

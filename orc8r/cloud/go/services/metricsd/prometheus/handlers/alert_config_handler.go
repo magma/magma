@@ -26,8 +26,11 @@ import (
 
 const (
 	alertConfigPart     = "alert_config"
-	AlertConfigURL      = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertConfigPart
+	alertReceiverPart   = "alert_receiver"
 	AlertNameQueryParam = "alert_name"
+
+	AlertConfigURL         = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertConfigPart
+	AlertReceiverConfigURL = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertReceiverPart
 )
 
 func GetConfigurePrometheusAlertHandler(webServerURL string) func(c echo.Context) error {
@@ -89,14 +92,14 @@ func configurePrometheusAlert(c echo.Context, url, networkID string) error {
 		return handlers.HttpError(fmt.Errorf("Invalid rule: %v\n", errs), http.StatusBadRequest)
 	}
 
-	err = sendConfigToPrometheusServer(rule, url)
+	err = sendConfig(rule, url)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)
 }
 
-func sendConfigToPrometheusServer(payload rulefmt.Rule, url string) error {
+func sendConfig(payload interface{}, url string) error {
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
 		return err
