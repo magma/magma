@@ -309,15 +309,13 @@ func tailGatewayLogs(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 
-	stream, conn, err := magmad.TailGatewayLogs(networkId, gatewayId, request.Service)
+	stream, err := magmad.TailGatewayLogs(networkId, gatewayId, request.Service)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	defer conn.Close()
 
 	go func() {
 		<-c.Request().Context().Done()
-		conn.Close()
 	}()
 	// https://echo.labstack.com/cookbook/streaming-response
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)

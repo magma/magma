@@ -20,32 +20,30 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "SUBSCRIBERDB"
 
 // Utility function to get a RPC connection to the subscriberdb service
 func getSubscriberdbClient() (
-	lteprotos.SubscriberDBControllerClient, *grpc.ClientConn, error) {
+	lteprotos.SubscriberDBControllerClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		glog.Errorf("Subscriberdb client initialization error: %s", err)
-		return nil, nil, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"Subscriberdb client initialization error: %s", err)
 	}
-	return lteprotos.NewSubscriberDBControllerClient(conn), conn, err
+	return lteprotos.NewSubscriberDBControllerClient(conn), err
 }
 
-// Add a new subscriber.
+// AddSubscriber add a new subscriber.
 // The subscriber must not be existing already.
 func AddSubscriber(networkId string, sd *lteprotos.SubscriberData) error {
 	sd.NetworkId = &protos.NetworkID{Id: networkId}
-	client, conn, err := getSubscriberdbClient()
+	client, err := getSubscriberdbClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	if _, err = client.AddSubscriber(context.Background(), sd); err != nil {
 		glog.Errorf("[Network: %s] AddSubscriber error: %s", networkId, err)
@@ -54,14 +52,13 @@ func AddSubscriber(networkId string, sd *lteprotos.SubscriberData) error {
 	return nil
 }
 
-// Get the subscriber data.
+// GetSubscriber get the subscriber data.
 func GetSubscriber(networkId string, subscriberId string) (
 	*lteprotos.SubscriberData, error) {
-	client, conn, err := getSubscriberdbClient()
+	client, err := getSubscriberdbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	lookup := &lteprotos.SubscriberLookup{
 		NetworkId: &protos.NetworkID{Id: networkId},
@@ -75,14 +72,13 @@ func GetSubscriber(networkId string, subscriberId string) (
 	return data, nil
 }
 
-// Update the subscriber info.
+// UpdateSubscriber update the subscriber info.
 func UpdateSubscriber(networkId string, sd *lteprotos.SubscriberData) error {
 	sd.NetworkId = &protos.NetworkID{Id: networkId}
-	client, conn, err := getSubscriberdbClient()
+	client, err := getSubscriberdbClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	if _, err = client.UpdateSubscriber(context.Background(), sd); err != nil {
 		glog.Errorf("[Network: %s] UpdateSubscriber error: %s", networkId, err)
@@ -91,13 +87,12 @@ func UpdateSubscriber(networkId string, sd *lteprotos.SubscriberData) error {
 	return nil
 }
 
-// Delete the subscriber.
+// DeleteSubscriber delete the subscriber.
 func DeleteSubscriber(networkId string, subscriberId string) error {
-	client, conn, err := getSubscriberdbClient()
+	client, err := getSubscriberdbClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	lookup := &lteprotos.SubscriberLookup{
 		NetworkId: &protos.NetworkID{Id: networkId},
@@ -110,14 +105,13 @@ func DeleteSubscriber(networkId string, subscriberId string) error {
 	return nil
 }
 
-// List all existing subscribers.
+// ListSubscribers list all existing subscribers.
 // Returns an array of subscriber ids.
 func ListSubscribers(networkId string) ([]string, error) {
-	client, conn, err := getSubscriberdbClient()
+	client, err := getSubscriberdbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	subs, err := client.ListSubscribers(
 		context.Background(),
@@ -134,12 +128,12 @@ func ListSubscribers(networkId string) ([]string, error) {
 	return ret, nil
 }
 
+// GetAllSubscriberData returns all subscribers' data.
 func GetAllSubscriberData(networkId string) ([]*lteprotos.SubscriberData, error) {
-	client, conn, err := getSubscriberdbClient()
+	client, err := getSubscriberdbClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	response, err := client.GetAllSubscriberData(context.Background(), &protos.NetworkID{Id: networkId})
 	if err != nil {

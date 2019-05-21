@@ -15,7 +15,6 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
@@ -27,25 +26,23 @@ const ServiceName = "ACCESSD"
 
 // getAccessbClient is a utility function to get a RPC connection to the
 // accessd service
-func getAccessdClient() (accessprotos.AccessControlManagerClient, *grpc.ClientConn, error) {
+func getAccessdClient() (accessprotos.AccessControlManagerClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return accessprotos.NewAccessControlManagerClient(conn), conn, err
+	return accessprotos.NewAccessControlManagerClient(conn), err
 }
 
 // SetOperator overwrites Permissions to operator Identity to manage/monitor
 // entities
 func SetOperator(operator *protos.Identity, entities []*accessprotos.AccessControl_Entity) error {
-
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	_, err = client.SetOperator(context.Background(), &accessprotos.AccessControl_ListRequest{Operator: operator, Entities: entities})
 	if err != nil {
@@ -59,12 +56,10 @@ func SetOperator(operator *protos.Identity, entities []*accessprotos.AccessContr
 // UpdateOperator adds Permissions to operator Identity to manage/monitor
 // entities
 func UpdateOperator(operator *protos.Identity, entities []*accessprotos.AccessControl_Entity) error {
-
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = client.UpdateOperator(
 		context.Background(),
 		&accessprotos.AccessControl_ListRequest{Operator: operator, Entities: entities})
@@ -79,11 +74,10 @@ func UpdateOperator(operator *protos.Identity, entities []*accessprotos.AccessCo
 
 // Removes all operator's permissions (the entire operator's ACL)
 func DeleteOperator(operator *protos.Identity) error {
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = client.DeleteOperator(context.Background(), operator)
 	if err != nil {
 		errMsg := fmt.Sprintf("Revoke Permissions for Operator %s error: %s",
@@ -98,12 +92,10 @@ func DeleteOperator(operator *protos.Identity) error {
 func GetOperatorACL(
 	operator *protos.Identity,
 ) (map[string]*accessprotos.AccessControl_Entity, error) {
-
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	resp, err := client.GetOperatorACL(context.Background(), operator)
 	if err != nil {
 		errMsg := fmt.Sprintf("Get Permissions for Operator %s error: %s",
@@ -116,11 +108,10 @@ func GetOperatorACL(
 
 // GetOperatorsACLs returns the operators' Identities permission lists
 func GetOperatorsACLs(operators []*protos.Identity) ([]*accessprotos.AccessControl_List, error) {
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	resp, err := client.GetOperatorsACLs(context.Background(), &protos.Identity_List{List: operators})
 	if err != nil || resp == nil {
 		errMsg := fmt.Sprintf("Get Permissions for Operators %v error: %s", operators, err)
@@ -135,12 +126,10 @@ func GetPermissions(
 	operator *protos.Identity,
 	entity *protos.Identity,
 ) (accessprotos.AccessControl_Permission, error) {
-
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return accessprotos.AccessControl_NONE, err
 	}
-	defer conn.Close()
 	resp, err := client.GetPermissions(
 		context.Background(),
 		&accessprotos.AccessControl_PermissionsRequest{Operator: operator, Entity: entity})
@@ -174,11 +163,10 @@ func CheckWritePermission(operator *protos.Identity, ents ...*protos.Identity) e
 }
 
 func CheckPermissions(operator *protos.Identity, ents ...*accessprotos.AccessControl_Entity) error {
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = client.CheckPermissions(
 		context.Background(), &accessprotos.AccessControl_ListRequest{Operator: operator, Entities: ents})
 	return err
@@ -186,11 +174,10 @@ func CheckPermissions(operator *protos.Identity, ents ...*accessprotos.AccessCon
 
 // List all Operator Identities in accessd database
 func ListOperators() ([]*protos.Identity, error) {
-	client, conn, err := getAccessdClient()
+	client, err := getAccessdClient()
 	if err != nil {
 		return []*protos.Identity{}, err
 	}
-	defer conn.Close()
 	opslist, err := client.ListOperators(context.Background(), &protos.Void{})
 	if err != nil || opslist == nil {
 		return []*protos.Identity{}, err

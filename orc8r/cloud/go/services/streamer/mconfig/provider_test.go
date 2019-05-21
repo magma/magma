@@ -121,7 +121,6 @@ func TestMconfigStreamer(t *testing.T) {
 	// Assert value
 	updateBatch, err := streamerClient.Recv()
 	assert.NoError(t, err)
-	conn.Close()
 	assert.Equal(t, 1, len(updateBatch.Updates))
 	assert.Equal(t, gwId1, updateBatch.GetUpdates()[0].GetKey())
 	assert.Equal(t, expectedMarshaled, updateBatch.GetUpdates()[0].GetValue(), expectedMarshaled)

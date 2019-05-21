@@ -92,5 +92,4 @@ func sendReset(hwId string, req *protos.ResetRequest) {
 		diamErrName, _ := protos.ErrorCode_name[int32(ans.ErrorCode)]
 		glog.Errorf("Reset Diameter error %d (%s) for gateway Hw ID: %s.", ans.ErrorCode, diamErrName, hwId)
 	}
-	conn.Close()
 }

@@ -75,6 +75,5 @@ func (providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Handle(context.Background(), msg)
 }

@@ -32,7 +32,6 @@ func (srv *FegToGwRelayServer) VLRResetAckUnverified(
 	req *fegprotos.ResetAck,
 ) (*protos.Void, error) {
 	connList, ctxList, err := getAllGWSGSServiceConnCtx(ctx)
-	defer closeAllConnection(connList)
 	if err != nil {
 		return &protos.Void{}, err
 	}
@@ -66,7 +65,6 @@ func (srv *FegToGwRelayServer) VLRResetIndicationUnverified(
 	req *fegprotos.ResetIndication,
 ) (*protos.Void, error) {
 	connList, ctxList, err := getAllGWSGSServiceConnCtx(ctx)
-	defer closeAllConnection(connList)
 	if err != nil {
 		glog.Errorf("Failed to getAllGWSGSServiceConnCtx(ctx): %s", err)
 		return &protos.Void{}, err
@@ -100,7 +98,6 @@ func (srv *FegToGwRelayServer) VLRStatusUnverified(
 	req *fegprotos.Status,
 ) (*protos.Void, error) {
 	connList, ctxList, err := getAllGWSGSServiceConnCtx(ctx)
-	defer closeAllConnection(connList)
 	if err != nil {
 		return &protos.Void{}, err
 	}
