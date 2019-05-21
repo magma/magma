@@ -81,7 +81,7 @@ controller:
     targetPort: 8080
     # port range exposed by controller
     portStart: 9079
-    portEnd: 9104
+    portEnd: 9108
 
   # proxy image
   image:

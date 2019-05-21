@@ -59,7 +59,7 @@ The following table list the configurable parameters of the orchestrator chart a
 | `controller.service.port` | Controller web service external port. | `8080` |
 | `controller.service.targetPort` | Controller web service internal port. | `8080` |
 | `controller.service.portStart` | Controller service port range start. | `9079` |
-| `controller.service.portEnd` | Controller service inclusive port range end. | `9104` |
+| `controller.service.portEnd` | Controller service inclusive port range end. | `9108` |
 | `controller.image.repository` | Repository for orchestrator controller image. | `nil` |
 | `controller.image.tag` | Tag for orchestrator controller image. | `latest` |
 | `controller.image.pullPolicy` | Pull policy for orchestrator controller image. | `IfNotPresent` |

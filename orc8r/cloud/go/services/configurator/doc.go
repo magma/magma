@@ -9,3 +9,8 @@
 // Package configurator contains the Configurator service which manages
 // configuration of and relationships between logical network entities.
 package configurator
+
+const (
+	// ServiceName is the name of this service
+	ServiceName = "CONFIGURATOR"
+)
