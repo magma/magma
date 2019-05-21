@@ -112,9 +112,3 @@ func getAllGWSGSServiceConnCtx(ctx context.Context) ([]*grpc.ClientConn, []conte
 
 	return connList, ctxList, nil
 }
-
-func closeAllConnection(allConn []*grpc.ClientConn) {
-	for _, conn := range allConn {
-		conn.Close()
-	}
-}

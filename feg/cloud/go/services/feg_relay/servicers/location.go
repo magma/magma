@@ -34,7 +34,6 @@ func (srv *FegToGwRelayServer) LocationUpdateAcceptUnverified(
 	if err != nil {
 		return &protos.Void{}, err
 	}
-	defer conn.Close()
 	client := fegprotos.NewCSFBGatewayServiceClient(conn)
 	return client.LocationUpdateAcc(ctx, req)
 }
@@ -58,7 +57,6 @@ func (srv *FegToGwRelayServer) LocationUpdateRejectUnverified(
 	if err != nil {
 		return &protos.Void{}, err
 	}
-	defer conn.Close()
 	client := fegprotos.NewCSFBGatewayServiceClient(conn)
 	return client.LocationUpdateRej(ctx, req)
 }

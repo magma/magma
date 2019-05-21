@@ -34,6 +34,5 @@ func (srv *FegToGwRelayServer) PolicyReAuth(
 		return &protos.PolicyReAuthAnswer{Result: protos.ReAuthResult_OTHER_FAILURE},
 			fmt.Errorf("unable to get connection to the gateway ID: %s", hwID)
 	}
-	defer conn.Close()
 	return protos.NewSessionProxyResponderClient(conn).PolicyReAuth(ctx, req)
 }

@@ -26,7 +26,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -133,22 +132,21 @@ func (*Serde) Deserialize(message []byte) (interface{}, error) {
 	return res, err
 }
 
-func getClient() (protos.StateServiceClient, *grpc.ClientConn, error) {
+func getClient() (protos.StateServiceClient, error) {
 	conn, err := registry.GetConnection(state.ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, state.ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewStateServiceClient(conn), conn, err
+	return protos.NewStateServiceClient(conn), err
 }
 
 func reportStates(ctx context.Context, bundles ...stateBundle) error {
-	client, conn, err := getClient()
+	client, err := getClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = client.ReportStates(ctx, makeReportStatesRequest(bundles))
 	return err
 }

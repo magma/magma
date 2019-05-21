@@ -34,7 +34,6 @@ func (srv *FegToGwRelayServer) PagingRequestUnverified(
 	if err != nil {
 		return &protos.Void{}, err
 	}
-	defer conn.Close()
 	client := fegprotos.NewCSFBGatewayServiceClient(conn)
 	return client.PagingReq(ctx, req)
 }

@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// Registry for Magma microservices
+// Package registry for Magma microservices
 package registry
 
 import (
@@ -36,10 +36,14 @@ const (
 
 type serviceRegistry struct {
 	sync.RWMutex
-	serviceLocations map[string]ServiceLocation
+	serviceConnections map[string]*grpc.ClientConn
+	serviceLocations   map[string]ServiceLocation
 }
 
-var registry = &serviceRegistry{serviceLocations: map[string]ServiceLocation{}}
+var registry = &serviceRegistry{
+	serviceConnections: map[string]*grpc.ClientConn{},
+	serviceLocations:   map[string]ServiceLocation{},
+}
 
 // AddServices adds new services to the registry.
 // If any services already exist, their locations will be overwritten
@@ -51,7 +55,7 @@ func AddServices(locations ...ServiceLocation) {
 	}
 }
 
-// Add a new service.
+// AddService add a new service.
 // If the service already exists, overwrites the service config.
 func AddService(location ServiceLocation) {
 	registry.Lock()
@@ -61,9 +65,10 @@ func AddService(location ServiceLocation) {
 
 func addUnsafe(location ServiceLocation) {
 	registry.serviceLocations[location.Name] = location
+	delete(registry.serviceConnections, location.Name)
 }
 
-// Returns the RPC address of the service.
+// GetServiceAddress returns the RPC address of the service.
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
 	registry.RLock()
@@ -79,7 +84,7 @@ func GetServiceAddress(service string) (string, error) {
 	return fmt.Sprintf("%s:%d", location.Host, location.Port), nil
 }
 
-// GetServiceProxyAliases Returns the proxy_aliases, if any, of the service.
+// GetServiceProxyAliases returns the proxy_aliases, if any, of the service.
 // The service needs to be added to the registry before this.
 func GetServiceProxyAliases(service string) (map[string]int, error) {
 	registry.RLock()
@@ -91,7 +96,7 @@ func GetServiceProxyAliases(service string) (map[string]int, error) {
 	return location.ProxyAliases, nil
 }
 
-// Returns the listening port for the RPC service.
+// GetServicePort returns the listening port for the RPC service.
 // The service needs to be added to the registry before this.
 func GetServicePort(service string) (int, error) {
 	registry.RLock()
@@ -107,9 +112,11 @@ func GetServicePort(service string) (int, error) {
 	return location.Port, nil
 }
 
-// Provides a gRPC connection to a service in the registry.
-// TODO: implement connection reuse, and support concurrency
+// GetConnection provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
+	if conn, ok := registry.serviceConnections[service]; ok && conn != nil {
+		return conn, nil
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), GrpxMaxTimeoutSec*time.Second)
 	defer cancel()
 	return getConnection(
@@ -125,14 +132,22 @@ func getConnection(ctx context.Context, service string, opts ...grpc.DialOption)
 	if err != nil {
 		return nil, err
 	}
-	conn, err := GetClientConnection(ctx, addr, opts...)
+	registry.Lock()
+	defer registry.Unlock()
+	conn, ok := registry.serviceConnections[service]
+	if ok && conn != nil {
+		return conn, nil
+	}
+	conn, err = GetClientConnection(ctx, addr, opts...)
 	if err != nil {
 		err = fmt.Errorf("Service %v connection error: %s", service, err)
+	} else {
+		registry.serviceConnections[service] = conn
 	}
 	return conn, err
 }
 
-// Provides a gRPC connection to a service on the address addr.
+// GetClientConnection provides a gRPC connection to a service on the address addr.
 func GetClientConnection(ctx context.Context, addr string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	opts = append(opts, grpc.WithInsecure())
 	conn, err := grpc.DialContext(ctx, addr, opts...)
@@ -144,6 +159,7 @@ func GetClientConnection(ctx context.Context, addr string, opts ...grpc.DialOpti
 	return conn, nil
 }
 
+// ListAllServices lists all services' name.
 func ListAllServices() []string {
 	registry.RLock()
 	defer registry.RUnlock()
