@@ -12,7 +12,7 @@ To develop and manage a Magma VM, you must have the following applications insta
 * Vagrant
 * Ansible
 
-To setup a Federated Gateway (FeG), you must also have Orchestrator (orc8r) installed. To install and build Orchestrator (orc8r), follow the instructions at facebookincubator (https://github.com/facebookincubator)/magma (https://github.com/facebookincubator/magma).
+To setup a Federated Gateway (FeG), you must also have Orchestrator (orc8r) installed. To install and build Orchestrator (orc8r), follow the instructions at facebookincubator (https://github.com/facebookincubator/magma).
 
 A production Magma system requires an access gateway. However, for FeG development, you do not need an access gateway VM. You only need the following VMs:
 
