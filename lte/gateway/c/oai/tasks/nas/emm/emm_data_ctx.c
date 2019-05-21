@@ -657,7 +657,7 @@ struct emm_context_s *emm_context_get(
     if (ue_mm_context) {
       emm_context_p = &ue_mm_context->emm_context;
     }
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "EMM-CTX - get UE id " MME_UE_S1AP_ID_FMT " context %p\n",
       ue_id,

@@ -1,0 +1,10 @@
+---
+# Install Prometheus Cache Service
+
+- name: mkdir for binary
+  file:
+    path: "{{ prometheus_cache_binary_dir }}"
+    state: directory
+    owner: "{{ promo_user }}"
+    group: "{{ promo_group }}"
+    mode: "u=rwx,g=rx,o="

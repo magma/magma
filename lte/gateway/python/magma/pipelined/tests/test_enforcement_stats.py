@@ -32,7 +32,8 @@ from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import FlowVerifier, \
     create_service_manager, get_enforcement_stats, start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send, wait_for_enforcement_stats, FlowTest
+    stop_ryu_app_thread, wait_after_send, wait_for_enforcement_stats, \
+    FlowTest, SnapshotVerifier
 from scapy.all import IP
 
 
@@ -195,8 +196,10 @@ class EnforcementStatsTest(unittest.TestCase):
 
         # =========================== Verification ===========================
         flow_verifier = FlowVerifier([], self._wait_func(enf_stat_name))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
         """ Send packets, wait until pkts are received by ovs and enf stats """
-        with isolator, sub_context, flow_verifier:
+        with isolator, sub_context, flow_verifier, snapshot_verifier:
             pkt_sender.send(packet1)
             pkt_sender.send(packet2)
 
@@ -268,8 +271,10 @@ class EnforcementStatsTest(unittest.TestCase):
 
         # =========================== Verification ===========================
         flow_verifier = FlowVerifier([], self._wait_func([stat_name]))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
         """ Send packet, wait until pkts are received by ovs and enf stats """
-        with isolator, sub_context, flow_verifier:
+        with isolator, sub_context, flow_verifier, snapshot_verifier:
             pkt_sender.send(packet)
 
         stats = get_enforcement_stats(
@@ -332,8 +337,10 @@ class EnforcementStatsTest(unittest.TestCase):
             FlowTest(enf_query, 0, flow_count=1),
             FlowTest(es_query, 0, flow_count=2),
         ], lambda: None)
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
 
-        with sub_context, flow_verifier:
+        with sub_context, flow_verifier, snapshot_verifier:
             pass
 
         flow_verifier.verify()
@@ -406,13 +413,15 @@ class EnforcementStatsTest(unittest.TestCase):
         verify_enforcement = FlowVerifier([
             FlowTest(enf_query, 0, flow_count=0),
         ], lambda: None)
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
 
         """
         Send packets, wait until packet is received by ovs and enf stats and
         then deactivate the rule in enforcement controller. This emulates the
         case where there is unreported traffic after rule deactivation.
         """
-        with isolator, sub_context, verify_enforcement:
+        with isolator, sub_context, verify_enforcement, snapshot_verifier:
             with verify_enforcement_stats:
                 self.enforcement_stats_controller._report_usage.reset_mock()
                 pkt_sender.send(packet)
@@ -511,12 +520,14 @@ class EnforcementStatsTest(unittest.TestCase):
             FlowTest(es_new_version_query, num_pkts_tx_match, flow_count=2),
             FlowTest(enf_query, num_pkts_tx_match, flow_count=1),
         ], self._wait_func([enf_stat_name]))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
 
         """
         Send a packet, then deactivate and reactivate the same rule and send a
         packet. Wait until it is received by ovs and enf stats.
         """
-        with isolator, sub_context, verifier:
+        with isolator, sub_context, verifier, snapshot_verifier:
             with packet_wait:
                 self.enforcement_stats_controller._report_usage.reset_mock()
                 pkt_sender.send(packet)

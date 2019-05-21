@@ -12,14 +12,18 @@ package servicers
 import (
 	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
 
 type UserCtx struct {
 	mu         sync.Mutex
+	created    time.Time
 	state      aka.AkaState
 	stateTime  time.Time
 	locked     bool
@@ -35,77 +39,121 @@ type UserCtx struct {
 }
 
 type SessionCtx struct {
-	Imsi         aka.IMSI
+	*UserCtx
 	CleanupTimer *time.Timer
 }
 
-type EapAkaSrv struct {
-	rwl   sync.RWMutex // R/W lock synchronizing maps access
-	users map[aka.IMSI]*UserCtx
+type touts struct {
+	challengeTimeout,
+	errorNotificationTimeout,
+	sessionTimeout,
+	sessionAuthenticatedTimeout time.Duration
+}
 
-	// Map of UE Sessions to IMSIs
+type plmnIdVal struct {
+	l5 bool
+	b6 byte
+}
+
+type EapAkaSrv struct {
+	rwl sync.RWMutex // R/W lock synchronizing maps access
+	// Map of UE Sessions keyed by sessionId
 	sessions map[string]*SessionCtx
+
+	// PLMN IDs map, if not empty -> serve only IMSIs with specified PLMN IDs - Read Only
+	plmnIds map[string]plmnIdVal
+
+	timeouts touts
+}
+
+var defaultTimeouts = touts{
+	challengeTimeout:            aka.DefaultChallengeTimeout,
+	errorNotificationTimeout:    aka.DefaultErrorNotificationTimeout,
+	sessionTimeout:              aka.DefaultSessionTimeout,
+	sessionAuthenticatedTimeout: aka.DefaultSessionAuthenticatedTimeout,
+}
+
+func (s *EapAkaSrv) ChallengeTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.challengeTimeout)))
+}
+
+func (s *EapAkaSrv) SetChallengeTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&s.timeouts.challengeTimeout), int64(tout))
+}
+
+func (s *EapAkaSrv) NotificationTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.errorNotificationTimeout)))
+}
+
+func (s *EapAkaSrv) SetNotificationTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&s.timeouts.errorNotificationTimeout), int64(tout))
+}
+
+func (s *EapAkaSrv) SessionTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.sessionTimeout)))
+}
+
+func (s *EapAkaSrv) SetSessionTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&s.timeouts.sessionTimeout), int64(tout))
+}
+
+func (s *EapAkaSrv) SessionAuthenticatedTimeout() time.Duration {
+	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.sessionAuthenticatedTimeout)))
+}
+
+func (s *EapAkaSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
+	atomic.StoreInt64((*int64)(&s.timeouts.sessionAuthenticatedTimeout), int64(tout))
 }
 
 // NewEapAkaService creates new Aka Service 'object'
-func NewEapAkaService() (*EapAkaSrv, error) {
-	return &EapAkaSrv{users: map[aka.IMSI]*UserCtx{}, sessions: map[string]*SessionCtx{}}, nil
+func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
+	service := &EapAkaSrv{
+		sessions: map[string]*SessionCtx{},
+		plmnIds:  map[string]plmnIdVal{},
+		timeouts: defaultTimeouts,
+	}
+	if config != nil {
+		if config.Timeout != nil {
+			if config.Timeout.ChallengeMs > 0 {
+				service.SetChallengeTimeout(time.Millisecond * time.Duration(config.Timeout.ChallengeMs))
+			}
+			if config.Timeout.ErrorNotificationMs > 0 {
+				service.SetNotificationTimeout(time.Millisecond * time.Duration(config.Timeout.ErrorNotificationMs))
+			}
+			if config.Timeout.SessionMs > 0 {
+				service.SetSessionTimeout(time.Millisecond * time.Duration(config.Timeout.SessionMs))
+			}
+			if config.Timeout.SessionAuthenticatedMs > 0 {
+				service.SetSessionAuthenticatedTimeout(
+					time.Millisecond * time.Duration(config.Timeout.SessionAuthenticatedMs))
+			}
+		}
+		for _, plmnid := range config.PlmnIds {
+			l := len(plmnid)
+			switch l {
+			case 5:
+				service.plmnIds[plmnid] = plmnIdVal{l5: true}
+			case 6:
+				plmnid5 := plmnid[:5]
+				val, _ := service.plmnIds[plmnid5]
+				val.b6 = plmnid[5]
+				service.plmnIds[plmnid5] = val
+			}
+		}
+	}
+	return service, nil
 }
 
-// GetLockedUserCtx finds, locks & returns the CTX associated with given IMSI, creates the new state if needed
-func (s *EapAkaSrv) GetLockedUserCtx(imsi aka.IMSI) *UserCtx {
-	var res *UserCtx
-	s.rwl.RLock()
-	if res, ok := s.users[imsi]; ok {
-		res.mu.Lock()
-		s.rwl.RUnlock()
-		if res.locked {
-			panic("Expected unlocked")
-		}
-		if res.Imsi != imsi {
-			panic("IMSI Mismatch")
-		}
-		res.locked = true
-		return res
+// CheckPlmnId returns true either if there is no PLMN ID filters (whitelist) configured or
+// one the configured PLMN IDs matches passed IMSI
+func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {
+	if len(s.plmnIds) == 0 {
+		return true
 	}
-	s.rwl.RUnlock()
-	s.rwl.Lock()
-	// check again after locking
-	if res, ok := s.users[imsi]; ok {
-		res.mu.Lock()
-		s.rwl.Unlock()
-		if res.locked {
-			panic("Expected unlocked")
-		}
-		res.locked = true
-		return res
+	if val, ok := s.plmnIds[string(imsi)[:5]]; ok && (val.l5 || (len(imsi) > 5 && val.b6 == imsi[6])) {
+		return true
 	}
-	res = &UserCtx{Imsi: imsi, state: aka.StateCreated, stateTime: time.Now(), locked: true}
-	res.mu.Lock()
-	if s.users == nil {
-		s.users = map[aka.IMSI]*UserCtx{}
-	}
-	s.users[imsi] = res
-	s.rwl.Unlock()
-	return res
-}
-
-// FindLockedUserCtx finds, locks & returns the CTX associated with given IMSI
-func (s *EapAkaSrv) FindLockedUserCtx(imsi aka.IMSI) *UserCtx {
-	s.rwl.RLock()
-	defer s.rwl.RUnlock()
-	if res, ok := s.users[imsi]; ok {
-		res.mu.Lock()
-		if res.locked {
-			panic("Expected unlocked")
-		}
-		if res.Imsi != imsi {
-			panic("IMSI Mismatch")
-		}
-		res.locked = true
-		return res
-	}
-	return nil
+	return false
 }
 
 // Unlock - unlocks the CTX
@@ -115,17 +163,6 @@ func (lockedCtx *UserCtx) Unlock() {
 	}
 	lockedCtx.locked = false
 	lockedCtx.mu.Unlock()
-}
-
-// DeleteUserCtx deletes unlocked CTX
-func (s *EapAkaSrv) DeleteUserCtx(imsi aka.IMSI) bool {
-	s.rwl.Lock()
-	_, ok := s.users[imsi]
-	if ok {
-		delete(s.users, imsi)
-	}
-	s.rwl.Unlock()
-	return ok
 }
 
 // State returns current CTX state (CTX must be locked)
@@ -144,33 +181,40 @@ func (lockedCtx *UserCtx) SetState(s aka.AkaState) {
 	lockedCtx.state, lockedCtx.stateTime = s, time.Now()
 }
 
+// CreatedTime returns time of CTX creation
+func (lockedCtx *UserCtx) CreatedTime() time.Time {
+	return lockedCtx.created
+}
+
+// Lifetime returns duration in seconds of the CTX existence
+func (lockedCtx *UserCtx) Lifetime() float64 {
+	return time.Since(lockedCtx.created).Seconds()
+}
+
 // InitSession either creates new or updates existing session & user ctx,
 // it session ID into the CTX and initializes session map as well as users map
 // Returns Locked User Ctx
 func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserContext *UserCtx) {
 	var (
 		oldSessionTimer *time.Timer
-		oldImsi         aka.IMSI
 	)
 	// create new session with long session wide timeout
-	newSession := &SessionCtx{Imsi: imsi}
-	newSession.CleanupTimer = time.AfterFunc(aka.SessionTimeout(), func() {
+	t := time.Now()
+	newSession := &SessionCtx{UserCtx: &UserCtx{
+		created: t, Imsi: imsi, state: aka.StateCreated, stateTime: t, locked: true, SessionId: sessionId}}
+
+	newSession.mu.Lock()
+
+	newSession.CleanupTimer = time.AfterFunc(s.SessionTimeout(), func() {
 		sessionTimeoutCleanup(s, sessionId, newSession)
 	})
-	uc := &UserCtx{Imsi: imsi, state: aka.StateCreated, stateTime: time.Now(), locked: true, SessionId: sessionId}
-	uc.mu.Lock()
+	uc := newSession.UserCtx
 
 	s.rwl.Lock()
-
 	if oldSession, ok := s.sessions[sessionId]; ok && oldSession != nil {
-		oldSessionTimer, oldImsi, oldSession.CleanupTimer = oldSession.CleanupTimer, oldSession.Imsi, nil
+		oldSessionTimer, oldSession.CleanupTimer = oldSession.CleanupTimer, nil
 	}
-	if len(oldImsi) > 0 && oldImsi != imsi {
-		delete(s.users, oldImsi)
-	}
-	s.users[imsi] = uc // overwrite previous ctx on session init
 	s.sessions[sessionId] = newSession
-
 	s.rwl.Unlock()
 
 	if oldSessionTimer != nil {
@@ -189,8 +233,7 @@ func (s *EapAkaSrv) UpdateSessionUnlockCtx(lockedCtx *UserCtx, timeout time.Dura
 		exist                  bool
 		oldTimer               *time.Timer
 	)
-	newSession = &SessionCtx{Imsi: lockedCtx.Imsi}
-	oldSid := lockedCtx.SessionId
+	newSession = &SessionCtx{UserCtx: lockedCtx}
 	sessionId := lockedCtx.SessionId
 	lockedCtx.Unlock()
 
@@ -199,13 +242,14 @@ func (s *EapAkaSrv) UpdateSessionUnlockCtx(lockedCtx *UserCtx, timeout time.Dura
 	})
 
 	s.rwl.Lock()
+
 	oldSession, exist = s.sessions[sessionId]
 	s.sessions[sessionId] = newSession
-	if len(oldSid) > 0 && oldSid != sessionId {
-		delete(s.sessions, oldSid)
-	}
-	if exist && oldSession != nil && oldSession.CleanupTimer != nil {
-		oldTimer, oldSession.CleanupTimer = oldSession.CleanupTimer, nil
+	if exist && oldSession != nil {
+		oldSession.UserCtx = nil
+		if oldSession.CleanupTimer != nil {
+			oldTimer, oldSession.CleanupTimer = oldSession.CleanupTimer, nil
+		}
 	}
 	s.rwl.Unlock()
 
@@ -231,7 +275,7 @@ func (s *EapAkaSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration
 			exist = false
 		} else {
 			oldTimer, oldSession.CleanupTimer = oldSession.CleanupTimer, nil
-			newSession = &SessionCtx{Imsi: oldSession.Imsi}
+			newSession, oldSession.UserCtx = &SessionCtx{UserCtx: oldSession.UserCtx}, nil
 			s.sessions[sessionId] = newSession
 			newSession.CleanupTimer = time.AfterFunc(timeout, func() {
 				sessionTimeoutCleanup(s, sessionId, newSession)
@@ -247,15 +291,14 @@ func (s *EapAkaSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration
 }
 
 func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *SessionCtx) {
+	metrics.SessionTimeouts.Inc()
 	if s == nil {
 		log.Printf("ERROR: Nil EAP-AKA Server for session ID: %s", sessionId)
 		return
 	}
 	var (
-		imsi  aka.IMSI
-		state aka.AkaState
-		uc    *UserCtx
-		ok    bool
+		imsi aka.IMSI
+		uc   *UserCtx
 	)
 
 	s.rwl.Lock()
@@ -264,10 +307,8 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 		if sessionCtx != nil {
 			imsi = sessionCtx.Imsi
 			if sessionCtx == mySessionCtx {
-				if uc, ok = s.users[imsi]; ok {
-					delete(s.users, imsi)
-				}
 				delete(s.sessions, sessionId)
+				uc = sessionCtx.UserCtx
 			}
 		} else {
 			exist = false
@@ -275,13 +316,13 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 	}
 	s.rwl.Unlock()
 
-	if uc != nil {
+	if exist && uc != nil {
 		uc.mu.Lock()
-		state = uc.state
+		state := uc.state
 		uc.mu.Unlock()
-	}
-	if exist && state != aka.StateAuthenticated {
-		log.Printf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
+		if state != aka.StateAuthenticated {
+			log.Printf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
+		}
 	}
 }
 
@@ -291,20 +332,19 @@ func (s *EapAkaSrv) FindSession(sessionId string) (aka.IMSI, *UserCtx, bool) {
 	var (
 		imsi      aka.IMSI
 		lockedCtx *UserCtx
-		ok        bool
 		timer     *time.Timer
 	)
 	s.rwl.RLock()
 	sessionCtx, exist := s.sessions[sessionId]
 	if exist && sessionCtx != nil {
-		imsi, timer, sessionCtx.CleanupTimer = sessionCtx.Imsi, sessionCtx.CleanupTimer, nil
-		lockedCtx, ok = s.users[imsi]
+		lockedCtx, timer, sessionCtx.CleanupTimer = sessionCtx.UserCtx, sessionCtx.CleanupTimer, nil
 	}
 	s.rwl.RUnlock()
 
-	if ok && lockedCtx != nil {
+	if lockedCtx != nil {
 		lockedCtx.mu.Lock()
 		lockedCtx.SessionId = sessionId // just in case - should always match
+		imsi = lockedCtx.Imsi
 		lockedCtx.locked = true
 	}
 
@@ -327,8 +367,8 @@ func (s *EapAkaSrv) RemoveSession(sessionId string) aka.IMSI {
 	if exist {
 		delete(s.sessions, sessionId)
 		if sessionCtx != nil {
-			imsi, timer, sessionCtx.CleanupTimer = sessionCtx.Imsi, sessionCtx.CleanupTimer, nil
-			delete(s.users, imsi)
+			imsi, timer, sessionCtx.CleanupTimer, sessionCtx.UserCtx =
+				sessionCtx.Imsi, sessionCtx.CleanupTimer, nil, nil
 		}
 	}
 	s.rwl.Unlock()

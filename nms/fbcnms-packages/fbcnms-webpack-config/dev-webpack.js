@@ -15,7 +15,7 @@ const paths = require('./paths');
 const webpack = require('webpack');
 
 type Options = {
-  projectName: string,
+  projectName?: string,
   extraPaths?: string[],
 };
 
@@ -45,7 +45,9 @@ function createDevWebpackConfig(options: Options) {
       path: paths.distPath,
       filename: '[name].js',
       chunkFilename: 'static/js/[name].chunk.js',
-      publicPath: `/${options.projectName}/static/dist/`,
+      publicPath: options.projectName
+        ? `/${options.projectName}/static/dist/`
+        : '/static/dist/',
     },
     plugins: [
       new webpack.HotModuleReplacementPlugin(),

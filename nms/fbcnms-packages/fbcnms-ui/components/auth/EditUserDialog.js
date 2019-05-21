@@ -94,7 +94,7 @@ export default function EditUserDialog(props: Props) {
       email,
       password,
       superUser: isSuperUser,
-      networkIDs: Array.from(networkIds),
+      networkIDs: isSuperUser ? [] : Array.from(networkIds),
     };
 
     // remove the password field if we are editing a user and the password isn't
@@ -139,11 +139,22 @@ export default function EditUserDialog(props: Props) {
           onChange={({target}) => setConfirmPassword(target.value)}
           className={classes.input}
         />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isSuperUser}
+              onChange={({target}) => setIsSuperUser(target.checked)}
+              color="primary"
+            />
+          }
+          label="Super User"
+        />
         {props.allNetworkIDs && (
           <FormControl className={classes.input}>
             <InputLabel htmlFor="network_ids">Accessible Networks</InputLabel>
             <Select
               multiple
+              disabled={isSuperUser}
               value={Array.from(networkIds)}
               onChange={({target}) => setNetworkIds(new Set(target.value))}
               renderValue={renderList}
@@ -157,16 +168,6 @@ export default function EditUserDialog(props: Props) {
             </Select>
           </FormControl>
         )}
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={isSuperUser}
-              onChange={({target}) => setIsSuperUser(target.checked)}
-              color="primary"
-            />
-          }
-          label="Super User"
-        />
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose} color="primary">

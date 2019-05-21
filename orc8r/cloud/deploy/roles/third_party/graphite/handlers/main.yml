@@ -11,3 +11,6 @@
 - name: restart uwsgi
   service: name=uwsgi state=restarted
   when: graphite_enable_uwsgi
+
+- name: Restart MySQL
+  service: name=mysql state=restarted

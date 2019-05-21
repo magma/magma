@@ -54,6 +54,7 @@ extern int _pdn_connectivity_delete(emm_context_t *ctx, int pid);
 
 static int _esm_sap_recv(
   int msg_type,
+  unsigned int ue_id,
   bool is_standalone,
   emm_context_t *emm_context,
   const_bstring req,
@@ -163,6 +164,7 @@ int esm_sap_send(esm_sap_t *msg)
       increment_counter("ue_pdn_connection", 1, NO_LABELS);
       rc = _esm_sap_recv(
         PDN_CONNECTIVITY_REQUEST,
+        msg->ue_id,
         msg->is_standalone,
         msg->ctx,
         msg->recv,
@@ -202,6 +204,7 @@ int esm_sap_send(esm_sap_t *msg)
      */
       rc = _esm_sap_recv(
         ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT,
+        msg->ue_id,
         msg->is_standalone,
         msg->ctx,
         msg->recv,
@@ -222,6 +225,7 @@ int esm_sap_send(esm_sap_t *msg)
      */
       rc = _esm_sap_recv(
         ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT,
+        msg->ue_id,
         msg->is_standalone,
         msg->ctx,
         msg->recv,
@@ -299,7 +303,7 @@ int esm_sap_send(esm_sap_t *msg)
 
     case ESM_UNITDATA_IND:
       rc = _esm_sap_recv(
-        -1, msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
+        -1, msg->ue_id, msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
       break;
 
     default: break;
@@ -372,6 +376,7 @@ static int _reject_standalone_pdn_conn_req(
  **      returned including the value of the ESM cause code.       **
  **                                                                        **
  ** Inputs:  msg_type:  Expected type of the received ESM message  **
+ **      ue_id:      UE identifier within the MME               **
  **      is_standalone: Indicates whether the ESM message has been **
  **             received standalone or together within EMM **
  **             attach related message                     **
@@ -387,6 +392,7 @@ static int _reject_standalone_pdn_conn_req(
  ***************************************************************************/
 static int _esm_sap_recv(
   int msg_type,
+  unsigned int ue_id,
   bool is_standalone,
   emm_context_t *emm_context,
   const_bstring req,
@@ -405,6 +411,9 @@ static int _esm_sap_recv(
    * Decode the received ESM message
    */
 
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "ESM-SAP   - Decoding ESM Message \n");
   decoder_rc = esm_msg_decode(&esm_msg, (uint8_t *) bdata(req), blength(req));
 
   /*
@@ -507,9 +516,16 @@ static int _esm_sap_recv(
           ebi,
           &esm_msg.activate_default_eps_bearer_context_accept);
 
-        if (
-          (esm_cause == ESM_CAUSE_INVALID_PTI_VALUE) ||
-          (esm_cause == ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY)) {
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
+       if (
+         (esm_cause == ESM_CAUSE_INVALID_PTI_VALUE) ||
+         (esm_cause == ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY)) {
           /*
          * 3GPP TS 24.301, section 7.3.1, case f
          * * * * Ignore ESM message received with reserved PTI value
@@ -533,6 +549,13 @@ static int _esm_sap_recv(
           pti,
           ebi,
           &esm_msg.activate_default_eps_bearer_context_reject);
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
 
         if (
           (esm_cause == ESM_CAUSE_INVALID_PTI_VALUE) ||
@@ -559,6 +582,14 @@ static int _esm_sap_recv(
         esm_cause = esm_recv_deactivate_eps_bearer_context_accept(
           emm_context, pti, ebi, &esm_msg.deactivate_eps_bearer_context_accept);
 
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
+
         if (
           (esm_cause == ESM_CAUSE_INVALID_PTI_VALUE) ||
           (esm_cause == ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY)) {
@@ -584,6 +615,13 @@ static int _esm_sap_recv(
           pti,
           ebi,
           &esm_msg.activate_dedicated_eps_bearer_context_accept);
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
 
         if (
           (esm_cause == ESM_CAUSE_INVALID_PTI_VALUE) ||
@@ -610,6 +648,13 @@ static int _esm_sap_recv(
           pti,
           ebi,
           &esm_msg.activate_dedicated_eps_bearer_context_reject);
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
 
         if (
           (esm_cause == ESM_CAUSE_INVALID_PTI_VALUE) ||
@@ -666,11 +711,22 @@ static int _esm_sap_recv(
           esm_cause = esm_recv_pdn_connectivity_request(
             emm_context, pti, ebi, &esm_msg.pdn_connectivity_request, &ebi);
         }
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = PDN_CONNECTIVITY_REQUEST(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
 
         if (esm_cause != ESM_CAUSE_SUCCESS) {
           /*
            * Return reject message
            */
+         OAILOG_ERROR(
+           LOG_NAS_ESM,
+           "ESM-SAP   - Sending PDN connectivity reject for ue_id = (%u)\n",
+           ue_id);
           rc = esm_send_pdn_connectivity_reject(
             pti, &esm_msg.pdn_connectivity_reject, esm_cause);
           /*
@@ -779,6 +835,13 @@ static int _esm_sap_recv(
        */
         esm_cause = esm_recv_pdn_disconnect_request(
           emm_context, pti, ebi, &esm_msg.pdn_disconnect_request, &ebi);
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = PDN_DISCONNECT_REQUEST(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
 
         if (esm_cause != ESM_CAUSE_SUCCESS) {
           /*
@@ -820,6 +883,13 @@ static int _esm_sap_recv(
       case ESM_INFORMATION_RESPONSE:
         esm_cause = esm_recv_information_response(
           emm_context, pti, ebi, &esm_msg.esm_information_response);
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = ESM_INFORMATION_RESPONSE(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
         break;
 
       case ESM_STATUS:
@@ -827,14 +897,22 @@ static int _esm_sap_recv(
        * Process received ESM status message
        */
         esm_cause = esm_recv_status(emm_context, pti, ebi, &esm_msg.esm_status);
+       OAILOG_DEBUG(
+         LOG_NAS_ESM,
+         "ESM-SAP   - ESM Message type = ESM_STATUS(0x%x)"
+         "(ESM Cause = %d) for (ue_id = %u)\n",
+         esm_msg.header.message_type,
+         esm_cause,
+         ue_id);
         break;
 
       default:
         OAILOG_WARNING(
           LOG_NAS_ESM,
           "ESM-SAP   - Received unexpected ESM message "
-          "0x%x\n",
-          esm_msg.header.message_type);
+          "0x%x for (ue_id = %u)\n",
+          esm_msg.header.message_type,
+          ue_id);
         esm_cause = ESM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED;
         break;
     }
@@ -851,8 +929,9 @@ static int _esm_sap_recv(
       OAILOG_WARNING(
         LOG_NAS_ESM,
         "ESM-SAP   - Received ESM message is not valid "
-        "(cause=%d)\n",
-        esm_cause);
+        "(cause=%d) for (ue_id = %u)\n",
+        esm_cause,
+        ue_id);
       /*
        * Return an ESM status message
        */

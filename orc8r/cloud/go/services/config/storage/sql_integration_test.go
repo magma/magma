@@ -9,10 +9,10 @@ LICENSE file in the root directory of this source tree.
 package storage_test
 
 import (
-	"database/sql"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/config/storage"
+	"magma/orc8r/cloud/go/sql_utils"
 	mstore "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -24,7 +24,7 @@ import (
 // Note this test does not run on sandcastle
 func TestSqlConfigStorage_Integration(t *testing.T) {
 	// Use an in-memory sqlite datastore
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sql_utils.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}

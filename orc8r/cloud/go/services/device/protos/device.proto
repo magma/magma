@@ -1,0 +1,53 @@
+// Copyright (c) 2018-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.orc8r.device;
+option go_package = "protos";
+
+message PhysicalEntity {
+    // Globally unique identifier per type (MAC/SN)
+    string deviceID = 1;
+    // Used to deserialize info
+    string type = 2;
+    // Any other information (manufacturer, location, owner, etc)
+    bytes info = 3;
+}
+
+message RegisterDevicesRequest {
+    string networkID = 1;
+    repeated PhysicalEntity entities = 2;
+}
+
+message DeviceID {
+    string deviceID = 1;
+    string type = 2;
+}
+
+message GetDeviceInfoRequest {
+    string networkID = 1;
+    repeated DeviceID deviceIDs = 2;
+}
+
+message GetDeviceInfoResponse {
+    // A map of device IDs to corresponding PhysicalEntity structure
+    map<string, PhysicalEntity> deviceMap = 1;
+}
+
+message DeleteDevicesRequest {
+    string networkID = 1;
+    repeated DeviceID deviceIDs = 2;
+}
+
+service Device {
+    rpc RegisterDevices(RegisterDevicesRequest) returns (magma.orc8r.Void) {}
+    rpc GetDeviceInfo(GetDeviceInfoRequest) returns (GetDeviceInfoResponse) {}
+    rpc DeleteDevices(DeleteDevicesRequest) returns (magma.orc8r.Void) {}
+}
+

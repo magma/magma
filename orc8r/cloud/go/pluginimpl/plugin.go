@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
+	checkindserde "magma/orc8r/cloud/go/services/checkind/serde"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
@@ -30,6 +31,7 @@ import (
 	graphite_exp "magma/orc8r/cloud/go/services/metricsd/graphite/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -55,6 +57,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
 		&CheckinRequestSerde{},
+		&checkindserde.GatewayStatusSerde{},
 
 		// Inventory service serdes
 		&GatewayRecordSerde{},
@@ -87,6 +90,7 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
 		hello.GetObsidianHandlers(),
+		stateh.GetObsidianHandlers(),
 	)
 }
 
@@ -113,13 +117,12 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	}
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
 
-	prometheusPushAddress := metricsConfig.GetRequiredStringParam(confignames.PrometheusPushgatewayAddress)
-	prometheusPushExporter := promo_exp.NewPrometheusPushExporter(prometheusPushAddress)
 	// Prometheus profile - Exports all service metric to Prometheus
+	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(metricsConfig.GetRequiredStringParam(confignames.PrometheusCustomPushAddress))
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{prometheusPushExporter},
+		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
 	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
@@ -129,13 +132,13 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	graphiteProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameGraphite,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{},
+		Exporters:  []exporters.Exporter{graphiteExporter},
 	}
 
 	defaultProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameDefault,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{graphiteExporter, prometheusPushExporter},
+		Exporters:  []exporters.Exporter{prometheusCustomPushExporter, graphiteExporter},
 	}
 
 	return []metricsd.MetricsProfile{

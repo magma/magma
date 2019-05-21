@@ -402,6 +402,7 @@ typedef struct ue_security_capability_s {
 #define ESM_CAUSE_BEARER_HANDLING_NOT_SUPPORTED 60
 #define ESM_CAUSE_INVALID_PTI_VALUE 81
 #define ESM_CAUSE_APN_RESTRICTION_VALUE_NOT_COMPATIBLE 112
+#define ESM_CAUSE_REQUESTED_APN_NOT_SUPPORTED_IN_CURRENT_RAT 66
 
 //------------------------------------------------------------------------------
 // B.2 Protocol errors (e.g., unknown message) class

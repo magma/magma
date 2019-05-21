@@ -56,7 +56,7 @@ const RANGE_VALUES: {[TimeRange]: RangeValue} = {
     unit: 'day',
   },
   '30_days': {
-    days: 14,
+    days: 30,
     step: '8h',
     unit: 'day',
   },
@@ -73,13 +73,13 @@ function Progress() {
   );
 }
 
-function getStartEndStep(timeRange: TimeRange) {
-  const {days, step} = RANGE_VALUES[timeRange];
+function getStartEnd(timeRange: TimeRange) {
+  const {days} = RANGE_VALUES[timeRange];
   const end = moment().toISOString();
   const start = moment()
     .subtract({days})
     .toISOString();
-  return {start, end, step};
+  return {start, end};
 }
 
 function getUnit(timeRange: TimeRange) {
@@ -92,16 +92,16 @@ function getColorForIndex(index: number) {
 
 export default function AsyncMetric(props: Props) {
   const {match} = useRouter();
-  const startEndStep = useMemo(() => getStartEndStep(props.timeRange), [
+  const startEnd = useMemo(() => getStartEnd(props.timeRange), [
     props.timeRange,
   ]);
 
   const {error, isLoading, response} = useAxios({
     method: 'get',
-    url: MagmaAPIUrls.metricsQueryRange(match),
+    url: MagmaAPIUrls.graphiteQuery(match),
     params: {
       query: props.query,
-      ...startEndStep,
+      ...startEnd,
     },
   });
 
@@ -119,8 +119,9 @@ export default function AsyncMetric(props: Props) {
         unit: props.unit || '',
         fill: false,
         lineTension: 0,
-        pointRadius: 4,
+        pointRadius: 0,
         borderColor: getColorForIndex(index),
+        borderWidth: 2,
         backgroundColor: 'transparent',
         data: it.values.map(i => ({
           t: i[0] * 1000,

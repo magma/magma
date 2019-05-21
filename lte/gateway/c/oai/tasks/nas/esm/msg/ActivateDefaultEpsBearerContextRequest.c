@@ -416,7 +416,7 @@ int encode_activate_default_eps_bearer_context_request(
       encoded += encode_result;
   }
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_NAS_ESM, "ESM  ENCODED activate_default_eps_bearer_context_request\n");
   return encoded;
 }

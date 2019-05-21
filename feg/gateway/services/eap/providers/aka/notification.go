@@ -13,14 +13,16 @@ import (
 	"fmt"
 	"log"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func NewAKANotificationReq(identifier uint8, code uint16) eap.Packet {
+	metrics.FailureNotifications.Inc()
 	return []byte{
 		eap.RequestCode,
 		identifier,
@@ -34,7 +36,8 @@ func NewAKANotificationReq(identifier uint8, code uint16) eap.Packet {
 }
 
 func EapErrorResPacket(id uint8, code uint16, rpcCode codes.Code, f string, a ...interface{}) (eap.Packet, error) {
-	return NewAKANotificationReq(id, code), Errorf(rpcCode, f, a...)
+	Errorf(rpcCode, f, a...) // log only
+	return NewAKANotificationReq(id, code), nil
 }
 
 func EapErrorResPacketWithMac(id uint8, code uint16, K_aut []byte, rpcCode codes.Code, f string, a ...interface{}) (eap.Packet, error) {
@@ -43,7 +46,8 @@ func EapErrorResPacketWithMac(id uint8, code uint16, K_aut []byte, rpcCode codes
 	if err != nil {
 		panic(err) // should never happen
 	}
-	return p, Errorf(rpcCode, f, a...)
+	Errorf(rpcCode, f, a...) // log only
+	return p, nil
 }
 
 func EapErrorRes(
@@ -52,7 +56,8 @@ func EapErrorRes(
 	ctx *protos.EapContext,
 	f string, a ...interface{}) (*protos.Eap, error) {
 
-	return &protos.Eap{Payload: NewAKANotificationReq(id, code), Ctx: ctx}, Errorf(rpcCode, f, a...)
+	Errorf(rpcCode, f, a...) // log only
+	return &protos.Eap{Payload: NewAKANotificationReq(id, code), Ctx: ctx}, nil
 }
 
 func Errorf(code codes.Code, format string, a ...interface{}) error {

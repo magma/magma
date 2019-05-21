@@ -51,7 +51,66 @@ class Tr069MessageBuilder:
         return msg
 
     @classmethod
-    def get_baicells_qafb_inform(cls) -> models.Inform:
+    def get_qafb_inform(
+        cls,
+        oui: str = '48BF74',
+        sw_version: str = 'BaiBS_QAFB_1.6.4',
+        enb_serial: str = '1202000181186TB0006',
+        event_codes: Optional[List[str]] = None,
+    ) -> models.Inform:
+        if event_codes is None:
+            event_codes = []
+        msg = models.Inform()
+
+        # DeviceId
+        device_id = models.DeviceIdStruct()
+        device_id.Manufacturer = 'Unused'
+        device_id.OUI = oui
+        device_id.ProductClass = 'Unused'
+        device_id.SerialNumber = enb_serial
+        msg.DeviceId = device_id
+
+        # Event
+        msg.Event = models.EventList()
+        event_list = []
+        for code in event_codes:
+            event = models.EventStruct()
+            event.EventCode = code
+            event.CommandKey = ''
+            event_list.append(event)
+        msg.Event.EventStruct = event_list
+
+        # ParameterList
+        val_list = []
+        val_list.append(cls.get_parameter_value_struct(
+            name='InternetGatewayDevice.DeviceInfo.HardwareVersion',
+            val_type='string',
+            data='VER.C',
+        ))
+        val_list.append(cls.get_parameter_value_struct(
+            name='InternetGatewayDevice.DeviceInfo.ManufacturerOUI',
+            val_type='string',
+            data=oui,
+        ))
+        val_list.append(cls.get_parameter_value_struct(
+            name='InternetGatewayDevice.DeviceInfo.SoftwareVersion',
+            val_type='string',
+            data=sw_version,
+        ))
+        val_list.append(cls.get_parameter_value_struct(
+            name='InternetGatewayDevice.DeviceInfo.SerialNumber',
+            val_type='string',
+            data=enb_serial,
+        ))
+        val_list.append(cls.get_parameter_value_struct(
+            name='InternetGatewayDevice.ManagementServer.ConnectionRequestURL',
+            val_type='string',
+            data='http://192.168.60.248:7547/25dbc91d31276f0cb03391160531ecae',
+        ))
+        msg.ParameterList = models.ParameterValueList()
+        msg.ParameterList.ParameterValueStruct = val_list
+
+        return msg
 
         pass
 
@@ -101,6 +160,11 @@ class Tr069MessageBuilder:
             name='Device.DeviceInfo.SoftwareVersion',
             val_type='string',
             data=sw_version,
+        ))
+        val_list.append(cls.get_parameter_value_struct(
+            name='Device.DeviceInfo.SerialNumber',
+            val_type='string',
+            data=enb_serial,
         ))
         val_list.append(cls.get_parameter_value_struct(
             name='Device.ManagementServer.ConnectionRequestURL',
@@ -204,7 +268,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
@@ -225,6 +289,11 @@ class Tr069MessageBuilder:
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
             data='n100',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Common.CellIdentity',
+            val_type='int',
+            data='0',
         ))
         # MME IP
         param_val_list.append(cls.get_parameter_value_struct(
@@ -319,8 +388,9 @@ class Tr069MessageBuilder:
     @classmethod
     def get_regular_param_values_response(
         cls,
-        admin_state: bool = False,
-        earfcndl: int = 39250,
+        admin_state: bool=False,
+        earfcndl: int=39250,
+        exclude_num_plmns: bool=False,
     ) -> models.GetParameterValuesResponse:
         msg = models.GetParameterValuesResponse()
         param_val_list = []
@@ -347,7 +417,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.X_BAICELLS_COM_LTE.EARFCNDLInUse',
@@ -359,17 +429,23 @@ class Tr069MessageBuilder:
             val_type='int',
             data='7',
         ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Common.CellIdentity',
+            val_type='int',
+            data='0',
+        ))
         # MME IP
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.FAPControl.LTE.Gateway.S1SigLinkServerList',
             val_type='string',
             data='"192.168.60.142"',
         ))
-        param_val_list.append(cls.get_parameter_value_struct(
-            name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNListNumberOfEntries',
-            val_type='int',
-            data='1'
-        ))
+        if not exclude_num_plmns:
+            param_val_list.append(cls.get_parameter_value_struct(
+                name='Device.Services.FAPService.1.CellConfig.LTE.EPC.PLMNListNumberOfEntries',
+                val_type='int',
+                data='1'
+            ))
         # perf mgmt enable
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.FAP.PerfMgmt.Config.1.Enable',
@@ -470,7 +546,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.DLBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.FreqBandIndicator',
@@ -490,7 +566,12 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
             val_type='string',
-            data='n100',
+            data='20',
+        ))
+        param_val_list.append(cls.get_parameter_value_struct(
+            name='InternetGatewayDevice.Services.FAPService.1.CellConfig.LTE.RAN.RF.ULBandwidth',
+            val_type='int',
+            data='1',
         ))
         param_val_list.append(cls.get_parameter_value_struct(
             name='InternetGatewayDevice.Services.FAPService.1.X_BAICELLS_COM_LTE.EARFCNDLInUse',

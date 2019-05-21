@@ -47,7 +47,9 @@ DEFAULT_PROXY = "$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
 
 # Look for keys as specified in our ~/.ssh/config
 env.use_ssh_config = True
-
+# Disable ssh known hosts to resolve key errors
+# with multiple vagrant boxes in use.
+env.disable_known_hosts = True
 
 def dev():
     env.debug_mode = True
@@ -77,8 +79,8 @@ def package(vcs='hg', all_deps="False",
         print("Building magma package, picking up commit %s..." % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
-        run('./release/build-magma.sh -h %s -t %s --cert %s --proxy %s' % (hash,
-          build_type, cert_file, proxy_config))
+        run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s' %
+            (hash, build_type, cert_file, proxy_config))
 
         # Generate magma dependency packages
         print("Generating magma dependency packages")

@@ -10,8 +10,11 @@ package storage
 
 import (
 	"context"
+	"fmt"
 
 	"magma/orc8r/cloud/go/storage"
+
+	"github.com/thoas/go-funk"
 )
 
 // ConfiguratorStorageFactory creates ConfiguratorStorage implementations bound
@@ -68,19 +71,17 @@ type ConfiguratorStorage interface {
 	// LoadEntities returns a set of entities corresponding to the provided
 	// load criteria. Any entities which aren't found are excluded from the
 	// returned value.
-	LoadEntities(ids []storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
+	LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
 
-	// CreateEntities creates new entities. The created entities are returned,
-	// as well as errors encountered during the operation. The function will
-	// continue processing input after an error is encountered. Errors are
-	// collected and returned at the conclusion of the function.
-	CreateEntities(entities []NetworkEntity) (EntityCreationResult, error)
+	// CreateEntity creates a new entity. The created entity is returned
+	// with system-generated fields filled in.
+	CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error)
 
-	// UpdateEntities updates a set of entities.
-	// If an error is encountered during the operation, the function will
-	// continue processing the rest of the input. Errors are collected and
-	// returned in FailedOperations at the conclusion of the function.
-	UpdateEntities(updates []EntityUpdateCriteria) (FailedOperations, error)
+	// UpdateEntity updates an entity.
+	// The updates to the specified entity will be returned as a NetworkEntity
+	// object. Apart from identity fields, only fields which were updated will
+	// be filled out, with system-generated IDs included.
+	UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error)
 
 	// =======================================================================
 	// Graph Operations
@@ -89,7 +90,7 @@ type ConfiguratorStorage interface {
 	// LoadGraphForEntity returns the full DAG which contains the requested
 	// entity. The load criteria fields on associations are ignored, and the
 	// returned entities will always have both association fields filled out.
-	LoadGraphForEntity(entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error)
+	LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error)
 }
 
 // A network represents a tenant. Networks can be configured in a hierarchical
@@ -105,11 +106,16 @@ type Network struct {
 	// configuration value. The type value will point to the Serde
 	// implementation which can deserialize the associated value.
 	Configs map[string][]byte
+
+	Version uint64
 }
 
 // InternalNetworkID is the ID of the network under which all non-tenant
 // entities are organized under.
 const InternalNetworkID = "network_magma_internal"
+
+const internalNetworkName = "Internal Magma Network"
+const internalNetworkDescription = "Internal network to hold non-network entities"
 
 // NetworkLoadCriteria specifies how much of a network to load
 type NetworkLoadCriteria struct {
@@ -118,6 +124,9 @@ type NetworkLoadCriteria struct {
 
 	LoadConfigs bool
 }
+
+// FullNetworkLoadCriteria is a utility variable to specify a full network load
+var FullNetworkLoadCriteria = NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}
 
 type NetworkLoadResult struct {
 	Networks           []Network
@@ -134,6 +143,9 @@ type NetworkUpdateCriteria struct {
 	// Set DeleteNetwork to true to delete the network
 	DeleteNetwork bool
 
+	// Set NewName or NewDescription to nil to indicate that no update is
+	// desired. To clear the value of name or description, set these fields to
+	// a pointer to an empty string.
 	NewName        *string
 	NewDescription *string
 
@@ -147,10 +159,10 @@ type NetworkUpdateCriteria struct {
 // NetworkEntity is the storage representation of a logical component of a
 // network. Networks are partitioned into DAGs of entities.
 type NetworkEntity struct {
-	// (ID, Type) forms a unique identifier for the network entity within its
+	// (Type, Key) forms a unique identifier for the network entity within its
 	// network.
-	ID   string
 	Type string
+	Key  string
 
 	Name        string
 	Description string
@@ -171,12 +183,33 @@ type NetworkEntity struct {
 	// Associations are the directed edges originating from this entity.
 	Associations []storage.TypeAndKey
 
-	// AssocationsFrom are the directed edges ending at this entity. This is a
-	// read-only field and will be ignored if set during entity creation.
-	AssociationsFrom []storage.TypeAndKey
+	// ParentAssociations are the directed edges ending at this entity.
+	// This is a read-only field and will be ignored if set during entity
+	// creation.
+	ParentAssociations []storage.TypeAndKey
 
 	// Permissions defines the access control for this entity.
 	Permissions []ACL
+
+	Version uint64
+}
+
+func (ent NetworkEntity) GetTypeAndKey() storage.TypeAndKey {
+	return storage.TypeAndKey{Type: ent.Type, Key: ent.Key}
+}
+
+func (ent NetworkEntity) GetGraphEdges() []GraphEdge {
+	myTk := ent.GetTypeAndKey()
+	existingAssocs := map[storage.TypeAndKey]struct{}{}
+	ret := make([]GraphEdge, 0, len(ent.Associations))
+	for _, assoc := range ent.Associations {
+		if _, exists := existingAssocs[assoc]; exists {
+			continue
+		}
+		ret = append(ret, GraphEdge{From: myTk, To: assoc})
+		existingAssocs[assoc] = struct{}{}
+	}
+	return ret
 }
 
 // ACL (Access Control List) defines a specific permission for an entity on
@@ -197,6 +230,8 @@ type ACL struct {
 	// An ACL can optionally define access permissions to specific entity IDs
 	// If empty, the ACL will apply to all entities of the specified type.
 	IDFilter []string
+
+	Version uint64
 }
 
 // ACLScope is a oneof to define the scope of an ACL (specific networks or all
@@ -206,11 +241,23 @@ type ACLScope struct {
 	Wildcard   ACLWildcard
 }
 
+var WildcardACLScope = ACLScope{Wildcard: WildcardAll}
+
+func ACLScopeOf(networkIDs []string) ACLScope {
+	return ACLScope{NetworkIDs: networkIDs}
+}
+
 // ACLType is a oneof to define the scope of the permissions of an ACL (apply
 // to access on a specific type or all types within the scope).
 type ACLType struct {
 	EntityType string
 	Wildcard   ACLWildcard
+}
+
+var WildcardACLType = ACLType{Wildcard: WildcardAll}
+
+func ACLTypeOf(t string) ACLType {
+	return ACLType{EntityType: t}
 }
 
 type ACLPermission int32
@@ -229,6 +276,31 @@ const (
 	WildcardAll
 )
 
+// EntityLoadFilter specifies which entities to load from storage
+type EntityLoadFilter struct {
+	// If TypeFilter is provided, the query will return all entities matching
+	// the given type.
+	TypeFilter *string
+
+	// If KeyFilter is provided, the query will return all entities matching the
+	// given ID.
+	KeyFilter *string
+
+	// If IDs is provided, the query will return all entities matching the
+	// provided TypeAndKeys. TypeFilter and KeyFilter are ignored if IDs is
+	// provided.
+	IDs []storage.TypeAndKey
+
+	// Unexported for internal use
+	graphID *string
+}
+
+// IsLoadAllEntities return true if the EntityLoadFilter is specifying to load
+// all entities in a network, false if there are any filter conditions.
+func (elf EntityLoadFilter) IsLoadAllEntities() bool {
+	return elf.TypeFilter == nil && elf.KeyFilter == nil && elf.graphID == nil && funk.IsEmpty(elf.IDs)
+}
+
 // EntityLoadCriteria specifies how much of an entity to load
 type EntityLoadCriteria struct {
 	// Set LoadMetadata to true to load the metadata fields (name, description)
@@ -236,10 +308,19 @@ type EntityLoadCriteria struct {
 
 	LoadConfig bool
 
-	LoadAssocsTo   bool
-	LoadAssocsFrom bool
+	LoadAssocsToThis   bool
+	LoadAssocsFromThis bool
 
 	LoadPermissions bool
+}
+
+// FullEntityLoadCriteria is an EntityLoadCriteria which loads everything
+var FullEntityLoadCriteria = EntityLoadCriteria{
+	LoadMetadata:       true,
+	LoadConfig:         true,
+	LoadAssocsToThis:   true,
+	LoadAssocsFromThis: true,
+	LoadPermissions:    true,
 }
 
 // EntityLoadResult encapsulates the result of a LoadEntities call
@@ -250,20 +331,11 @@ type EntityLoadResult struct {
 	EntitiesNotFound []storage.TypeAndKey
 }
 
-// EntityCreationResult encapsulates the result of a CreateEntities call
-type EntityCreationResult struct {
-	// Created entities (system-generated IDs will be filled in)
-	CreatedEntities []NetworkEntity
-
-	// Errors encountered during the operation
-	Errors FailedOperations
-}
-
-// EntityUpdateCritiera specifies a patch operation on a network entity.
+// EntityUpdateCriteria specifies a patch operation on a network entity.
 type EntityUpdateCriteria struct {
-	// (ID, Type) of the entity to update
-	ID   string
+	// (Type, Key) of the entity to update
 	Type string
+	Key  string
 
 	// Set DeleteEntity to true to mark the entity for deletion
 	DeleteEntity bool
@@ -273,25 +345,34 @@ type EntityUpdateCriteria struct {
 
 	NewPhysicalID *string
 
-	NewConfig []byte
+	// A nil value here indicates no update.
+	NewConfig *[]byte
 
 	AssociationsToAdd    []storage.TypeAndKey
 	AssociationsToDelete []storage.TypeAndKey
 
 	// New ACLs to add. ACL IDs are ignored and generated by the system.
-	PermissionsToAdd []ACL
+	PermissionsToCreate []ACL
+
+	// ACLs to change. The ACL IDs are important here - make sure to provide
+	// the same ID returned from loading the entity.
+	PermissionsToUpdate []ACL
+
 	// ACL IDs to delete
 	PermissionsToDelete []string
 }
 
+func (euc EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
+	return storage.TypeAndKey{Type: euc.Type, Key: euc.Key}
+}
+
 // EntityGraph represents a DAG of associated network entities.
 type EntityGraph struct {
-	// All nodes in the graph, arbitrarily ordered.
-	Entities []*NetworkEntity
+	// All nodes in the graph
+	Entities []NetworkEntity
 
-	// All nodes in the graph topologically sorted and organized by level
-	// (i.e. number of hops from an entry/root node).
-	EntitiesByLevel [][]*NetworkEntity
+	// All nodes in the graph which don't have any edges terminating at them.
+	RootEntities []storage.TypeAndKey
 
 	// All edges in the graph.
 	Edges []GraphEdge
@@ -300,4 +381,8 @@ type EntityGraph struct {
 // GraphEdge represents a directed edge within a graph
 type GraphEdge struct {
 	To, From storage.TypeAndKey
+}
+
+func (edge GraphEdge) String() string {
+	return fmt.Sprintf("%s, %s", edge.From, edge.To)
 }

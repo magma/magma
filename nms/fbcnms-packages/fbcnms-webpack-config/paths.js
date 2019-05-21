@@ -14,6 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 const appDirectory = fs.realpathSync(process.cwd());
+
 const resolveApp = (relativePath: string) =>
   path.resolve(appDirectory, relativePath);
 
@@ -22,7 +23,6 @@ module.exports = {
   loginJs: resolveApp('app/login.js'),
   appSrc: resolveApp('app'),
   distPath: resolveApp('static/dist'),
-  // relative path to application directory
   packagesDir: resolveApp('../../fbcnms-packages'),
   resolveApp,
 };

@@ -67,6 +67,9 @@ static void mme_app_send_sgs_eps_detach_indication(
   MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+  OAILOG_INFO(LOG_MME_APP, "Send SGSAP_EPS_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
+    detach_type,
+    ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_EPS_DETACH_IND);
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   memset(
@@ -249,6 +252,9 @@ void mme_app_send_sgs_imsi_detach_indication(
   MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+  OAILOG_INFO(LOG_MME_APP, "Send SGSAP_IMSI_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
+    detach_type,
+    ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_IMSI_DETACH_IND);
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   memset(
@@ -462,6 +468,8 @@ void mme_app_handle_sgs_detach_req(
     evnt.ue_id = ue_context->mme_ue_s1ap_id;
     evnt.ctx = ue_context->sgs_context;
     /* check the SGS state and if it is null then do not send te Detach towards SGS*/
+    OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %d )\n",
+      sgs_detach_req_p->detach_type);
     if (sgs_fsm_get_status(evnt.ue_id, evnt.ctx) != SGS_NULL) {
       switch (sgs_detach_req_p->detach_type) {
           /*
@@ -653,12 +661,6 @@ int mme_app_handle_sgs_imsi_detach_ack(
        if the ue requested for combined EPS/IMSI detach
        if the ue is in idle state and requested for IMSI detach
       */
-      OAILOG_DEBUG(
-        LOG_MME_APP,
-        "************Before Sending UE Context Release Cmd to S1ap %d cause "
-        "%d\n",
-        ue_context_p->detach_type,
-        ue_context_p->ue_context_rel_cause);
       if (
         (ue_context_p->detach_type ==
          SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) &&
@@ -670,8 +672,6 @@ int mme_app_handle_sgs_imsi_detach_ack(
       } else if (
         ue_context_p->detach_type ==
         SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) {
-        OAILOG_DEBUG(
-          LOG_MME_APP, "************Sending UE Context Release Cmd to S1ap\n");
         mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;

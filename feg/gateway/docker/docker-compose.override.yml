@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+  test:
+    container_name: test
+    image: feg_gateway_go_base
+    build:
+      target: base
+      context: ../../../
+      dockerfile: feg/gateway/docker/go/Dockerfile
+    volumes:
+      - ../../../:/magma
+      - ../configs:/etc/magma
+      - gwcerts:/var/opt/magma/certs
+      - gwconfigs:/var/opt/magma/configs
+    network_mode: host
+    command: 
+      - /bin/bash
+      - -c
+      - |
+         mkdir -p ../../.cache/feg/
+         touch ../../.cache/feg/snowflake
+         tail -f /dev/null
+
+  hss:
+    container_name: hss
+    image: feg_gateway_go
+    volumes:
+      - ../configs:/etc/magma
+      - gwcerts:/var/opt/magma/certs
+      - gwconfigs:/var/opt/magma/configs
+    restart: always
+    network_mode: host
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=0
+
+  control_proxy:
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+    depends_on:
+      - test
+
+  magmad:
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+    depends_on:
+      - test
+
+volumes:
+  gwcerts:
+  gwconfigs:

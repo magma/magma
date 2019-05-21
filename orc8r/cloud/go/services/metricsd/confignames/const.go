@@ -10,11 +10,14 @@ package confignames
 
 // Constants to represent the keys in the metricsd.yml config file
 const (
-	Profile                      = "profile"
-	PrometheusAddress            = "prometheusAddress"
-	PrometheusPushgatewayAddress = "prometheusPushgatewayAddress"
+	Profile                     = "profile"
+	PrometheusAddress           = "prometheusAddress"
+	PrometheusCustomPushAddress = "prometheusCustomPushAddress"
 
 	GraphiteAddress     = "graphiteAddress"
 	GraphiteReceivePort = "graphiteReceivePort"
 	GraphiteQueryPort   = "graphiteQueryPort"
+
+	AlertConfigWebServerURL = "alertConfigWebServerURL"
+	AlertmanagerApiURL      = "alertmanagerApiURL"
 )

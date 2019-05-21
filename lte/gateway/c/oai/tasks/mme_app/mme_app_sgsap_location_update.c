@@ -496,11 +496,11 @@ int mme_app_handle_nas_cs_domain_location_update_req(
       }
     }
     /*Send SGSAP Location Update Request message to SGS task*/
-    send_itti_sgsap_location_update_req(ue_context);
-    OAILOG_DEBUG(
+    OAILOG_INFO(
       LOG_MME_APP,
       "Sending Location Update message to SGS task with IMSI" IMSI_64_FMT "\n",
       ue_context->imsi);
+    send_itti_sgsap_location_update_req(ue_context);
   } else if(ue_context->sgs_context->ts6_1_timer.id !=
             MME_APP_TIMER_INACTIVE_ID) {
     //Ignore the the messae as Location Update procedure is already triggered

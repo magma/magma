@@ -38,10 +38,10 @@ RUN apt-get update && apt-get install -y \
     vim \
     virtualenv
 
-# Install Golang 1.11.
+# Install Golang 1.12.
 WORKDIR /usr/local
-RUN curl https://dl.google.com/go/go1.11.linux-amd64.tar.gz -O && \
-    tar xvf go1.11.linux-amd64.tar.gz && \
+RUN curl https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz -O && \
+    tar xvf go1.12.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
 # Install protobuf compiler.
@@ -68,7 +68,6 @@ COPY feg/cloud/go/go.* $MAGMA_ROOT/feg/cloud/go/
 COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
 COPY feg/gateway/go.* $MAGMA_ROOT/feg/gateway/
 COPY feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/go.* $MAGMA_ROOT/feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/
-COPY feg/gateway/services/eap/client/go.* $MAGMA_ROOT/feg/gateway/services/eap/client/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 WORKDIR $MAGMA_ROOT/feg/gateway
 RUN go mod download
@@ -79,7 +78,7 @@ COPY feg/gateway/deploy/roles/feg_services/files/magma_*.service /etc/systemd/sy
 COPY lte/gateway/deploy/roles/magma/files/systemd/magma_magmad.service /etc/systemd/system/
 COPY orc8r/tools/ansible/roles/gateway_services/files/magma.service /etc/systemd/system/magma@.service
 COPY orc8r/tools/ansible/roles/gateway_services/files/magma_control_proxy.service /etc/systemd/system/
-COPY orc8r/cloud/deploy/roles/proxy/files/magma_headers.rb /etc/nghttpx/magma_headers.rb
+COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 
 # Rename configs to start with 'magma@' instead of 'magma_'.
 RUN for f in /etc/systemd/system/magma_*.service; do mv $f $(echo $f | sed s/magma_/magma@/); done
@@ -112,4 +111,10 @@ COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
-COPY feg/gateway/deploy/envdir /var/opt/magma/envdir
+# Add docker config overrides
+COPY feg/gateway/docker/configs /etc/magma
+
+# Create empty envdir directory
+RUN mkdir -p /var/opt/magma/envdir
+
+RUN mkdir -p /var/opt/magma/configs

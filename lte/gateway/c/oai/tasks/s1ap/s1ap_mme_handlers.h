@@ -146,6 +146,10 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
   s1ap_state_t *state,
   ue_description_t *ue_ref_p);
 
+void s1ap_mme_release_ue_context(
+  s1ap_state_t *state,
+  ue_description_t *ue_ref_p);
+
 int s1ap_mme_handle_error_ind_message(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,

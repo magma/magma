@@ -77,6 +77,9 @@ message HSSConfig {
 
     // If an IMSI if not found in sub_profiles, the default profile is used instead.
     SubscriptionProfile default_sub_profile = 5;
+
+    // Whether to stream subscribers from the cloud subscriberdb service.
+    bool stream_subscribers = 6;
 }
 
 message HealthConfig {
@@ -100,6 +103,17 @@ message HealthConfig {
     float memory_available_threshold = 9;
 }
 
+message EapAkaConfig {
+    message Timeouts {
+        uint32 ChallengeMs = 1;
+        uint32 ErrorNotificationMs = 2;
+        uint32 SessionMs = 3;
+        uint32 SessionAuthenticatedMs = 4;
+    }
+    Timeouts timeout = 1;
+    repeated string PlmnIds = 2;
+}
+
 message Config {
     // FeG config params
     S6aConfig s6a = 4;
@@ -109,4 +123,5 @@ message Config {
     HSSConfig hss = 8;
     SwxConfig swx = 9;
     HealthConfig health = 10;
+    EapAkaConfig eap_aka = 11;
 }

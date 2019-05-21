@@ -61,5 +61,8 @@ orc8r/cloud/deploy/files/static/apidocs/temp
 *.plan
 aws_keys.tfvars
 
+# Helm
+orc8r/cloud/helm/**/.secrets/
+
 # Certs for accessing the cloud
 .certs

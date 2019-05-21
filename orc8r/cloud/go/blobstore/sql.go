@@ -21,13 +21,13 @@ import (
 
 // NewSQLBlobStorageFactory returns a BlobStorageFactory implementation which
 // will return storage APIs backed by SQL.
-func NewSQLBlobStorageFactory(baseTableName string, db *sql.DB) BlobStorageFactory {
-	return &sqlBlobStoreFactory{baseTableName: baseTableName, db: db}
+func NewSQLBlobStorageFactory(tableName string, db *sql.DB) BlobStorageFactory {
+	return &sqlBlobStoreFactory{tableName: tableName, db: db}
 }
 
 type sqlBlobStoreFactory struct {
-	baseTableName string
-	db            *sql.DB
+	tableName string
+	db        *sql.DB
 }
 
 func (fact *sqlBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, error) {
@@ -35,12 +35,25 @@ func (fact *sqlBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, e
 	if err != nil {
 		return nil, err
 	}
-	return &sqlBlobStorage{baseTableName: fact.baseTableName, tx: tx}, nil
+	return &sqlBlobStorage{tableName: fact.tableName, tx: tx}, nil
+}
+
+func (fact *sqlBlobStoreFactory) InitializeFactory() error {
+	tx, err := fact.db.Begin()
+	if err != nil {
+		return err
+	}
+	err = initTable(tx, fact.tableName)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit()
 }
 
 type sqlBlobStorage struct {
-	baseTableName string
-	tx            *sql.Tx
+	tableName string
+	tx        *sql.Tx
 }
 
 func (store *sqlBlobStorage) Commit() error {
@@ -69,13 +82,10 @@ func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]strin
 		return ret, err
 	}
 
-	tableName := GetTableName(networkID, store.baseTableName)
-	if err := store.initTable(tableName); err != nil {
-		return ret, err
-	}
-
-	queryFormat := "SELECT key FROM %s WHERE type = $1"
-	rows, err := store.tx.Query(fmt.Sprintf(queryFormat, tableName), typeVal)
+	queryFormat := "SELECT key FROM %s WHERE (network_id = $1 AND type = $2)"
+	rows, err := store.tx.Query(
+		fmt.Sprintf(queryFormat, store.tableName), networkID, typeVal,
+	)
 	if err != nil {
 		return ret, err
 	}
@@ -110,15 +120,10 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 		return emptyRet, err
 	}
 
-	tableName := GetTableName(networkID, store.baseTableName)
-	if err := store.initTable(tableName); err != nil {
-		return emptyRet, err
-	}
-
 	query := fmt.Sprintf(
 		"SELECT type, key, value, version FROM %s WHERE %s",
-		tableName,
-		getCompositeWhereInArgList(1, len(ids)),
+		store.tableName,
+		getCompositeWhereInArgList(networkID, len(ids), 1),
 	)
 	rows, err := store.tx.Query(query, typeAndKeysToArgs(ids)...)
 	if err != nil {
@@ -147,16 +152,25 @@ func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) erro
 	if err != nil {
 		return fmt.Errorf("Error reading existing blobs: %s", err)
 	}
-	tableName := GetTableName(networkID, store.baseTableName)
 	blobsToCreateAndChange := partitionBlobsToCreateAndChange(blobs, existingBlobs)
 
 	if len(blobsToCreateAndChange.blobsToChange) > 0 {
-		if err := store.updateExistingBlobs(tableName, blobsToCreateAndChange.blobsToChange); err != nil {
+		err := store.updateExistingBlobs(
+			store.tableName,
+			networkID,
+			blobsToCreateAndChange.blobsToChange,
+		)
+		if err != nil {
 			return err
 		}
 	}
 	if len(blobsToCreateAndChange.blobsToCreate) > 0 {
-		if err := store.insertNewBlobs(tableName, blobsToCreateAndChange.blobsToCreate); err != nil {
+		err := store.insertNewBlobs(
+			store.tableName,
+			networkID,
+			blobsToCreateAndChange.blobsToCreate,
+		)
+		if err != nil {
 			return err
 		}
 	}
@@ -169,15 +183,10 @@ func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) 
 		return err
 	}
 
-	tableName := GetTableName(networkID, store.baseTableName)
-	if err := store.initTable(tableName); err != nil {
-		return err
-	}
-
 	query := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s",
-		tableName,
-		getCompositeWhereInArgList(1, len(ids)),
+		store.tableName,
+		getCompositeWhereInArgList(networkID, len(ids), 1),
 	)
 	_, err := store.tx.Exec(query, typeAndKeysToArgs(ids)...)
 	return err
@@ -190,42 +199,48 @@ func (store *sqlBlobStorage) validateTx() error {
 	return nil
 }
 
-func (store *sqlBlobStorage) initTable(fullTableName string) error {
+func initTable(tx *sql.Tx, tableName string) error {
 	queryFormat := `
 		CREATE TABLE IF NOT EXISTS %s
 		(
+			network_id text NOT NULL,
 			type text NOT NULL,
 			key text NOT NULL,
 			value bytea,
 			version INTEGER NOT NULL DEFAULT 0,
-			PRIMARY KEY (type, key)
+			PRIMARY KEY (network_id, type, key)
 		)
 	`
-	_, err := store.tx.Exec(fmt.Sprintf(queryFormat, fullTableName))
+	_, err := tx.Exec(fmt.Sprintf(queryFormat, tableName))
 	return err
 }
 
-func (store *sqlBlobStorage) updateExistingBlobs(tableName string, blobsToChange map[storage.TypeAndKey]blobChange) error {
-	updateQuery := fmt.Sprintf("UPDATE %s SET value = $1, version = $2 WHERE type = $3 AND key = $4", tableName)
+func (store *sqlBlobStorage) updateExistingBlobs(
+	tableName string,
+	networkID string,
+	blobsToChange map[storage.TypeAndKey]blobChange,
+) error {
+	queryFormat := "UPDATE %s SET value = $1, version = $2 WHERE network_id = $3 AND type = $4 AND key = $5"
+	updateQuery := fmt.Sprintf(queryFormat, tableName)
 	updateStmt, err := store.tx.Prepare(updateQuery)
 	if err != nil {
 		return fmt.Errorf("Error preparing update statement: %s", err)
 	}
 	defer updateStmt.Close()
-
 	// Sort keys for deterministic behavior in tests
 	for _, blobID := range getSortedTypeAndKeys(blobsToChange) {
 		change := blobsToChange[blobID]
-		_, err := updateStmt.Exec(change.new.Value, change.old.Version+1, blobID.Type, blobID.Key)
+		_, err := updateStmt.Exec(change.new.Value, change.old.Version+1, networkID, blobID.Type, blobID.Key)
 		if err != nil {
-			return fmt.Errorf("Error updating blob (%s, %s): %s", blobID.Type, blobID.Key, err)
+			return fmt.Errorf("Error updating blob (%s, %s, %s): %s", networkID, blobID.Type, blobID.Key, err)
 		}
 	}
 	return nil
 }
 
-func (store *sqlBlobStorage) insertNewBlobs(tableName string, blobs []Blob) error {
-	insertQuery := fmt.Sprintf("INSERT INTO %s (type, key, value) VALUES($1, $2, $3)", tableName)
+func (store *sqlBlobStorage) insertNewBlobs(tableName string, networkID string, blobs []Blob) error {
+	queryFormat := "INSERT INTO %s (network_id, type, key, value) VALUES($1, $2, $3, $4)"
+	insertQuery := fmt.Sprintf(queryFormat, tableName)
 	insertStmt, err := store.tx.Prepare(insertQuery)
 	if err != nil {
 		return fmt.Errorf("Error preparing insert statement: %s", err)
@@ -233,21 +248,22 @@ func (store *sqlBlobStorage) insertNewBlobs(tableName string, blobs []Blob) erro
 	defer insertStmt.Close()
 
 	for _, blob := range blobs {
-		_, err := insertStmt.Exec(blob.Type, blob.Key, blob.Value)
+		_, err := insertStmt.Exec(networkID, blob.Type, blob.Key, blob.Value)
 		if err != nil {
-			return fmt.Errorf("Error creating blob (%s, %s): %s", blob.Type, blob.Key, err)
+			return fmt.Errorf("Error creating blob (%s, %s, %s): %s", networkID, blob.Type, blob.Key, err)
 		}
 	}
 	return nil
 }
 
-func getCompositeWhereInArgList(startIdx int, numArgs int) string {
+func getCompositeWhereInArgList(networkID string, numArgs int, startIdx int) string {
 	retBuilder := strings.Builder{}
 	retBuilder.WriteString("(")
 
 	endIdx := startIdx + (2 * numArgs)
 	for i := startIdx; i < endIdx; i += 2 {
-		retBuilder.WriteString(fmt.Sprintf("(type = $%d AND key = $%d)", i, i+1))
+		queryFormat := "(network_id = '%s' AND type = $%d AND key = $%d)"
+		retBuilder.WriteString(fmt.Sprintf(queryFormat, networkID, i, i+1))
 		if i < endIdx-2 {
 			retBuilder.WriteString(" OR ")
 		}

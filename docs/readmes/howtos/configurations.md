@@ -47,3 +47,10 @@ The configs can be modified in both `/etc/magma/configs/` and `/var/opt/magma/co
 the latter takes priority over the other.
 
 Restart the service to see the the changes reflected.
+
+#### How to Modify Log Level
+Log level can be modified using the `log_level` field in the configs. Alternatively,
+there is a CLI to change the log level:
+```bash
+venvsudo magma/orc8r/gateway/python/scripts/config_cli.py set_log_level {SERVICE_NAME} {LOG_LEVEL}
+```

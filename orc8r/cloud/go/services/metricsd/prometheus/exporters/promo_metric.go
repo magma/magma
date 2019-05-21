@@ -18,10 +18,10 @@ import (
 )
 
 const (
-	NetworkLabelInstance = "instance"
-	NetworkLabelGateway  = "gateway"
-	NetworkLabelService  = "service"
-	NetworkLabelHost     = "host"
+	NetworkLabelNetwork = "networkID"
+	NetworkLabelGateway = "gatewayID"
+	NetworkLabelService = "service"
+	NetworkLabelHost    = "host"
 
 	MetricPostfixCount  = "__count"
 	MetricPostfixBucket = "__bucket"

@@ -15,7 +15,7 @@ from wsgiref.simple_server import ServerHandler, WSGIRequestHandler, \
 from spyne.server.wsgi import WsgiApplication
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
-from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from .models import CWMP_NS
 from .rpc_methods import AutoConfigServer
 from .spyne_mods import Tr069Application, Tr069Soap11
@@ -48,7 +48,19 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
         )
         handler.http_version = "1.1"
         handler.request_handler = self  # backpointer for logging
-        handler.run(self.server.get_app())
+
+        # eNodeB will sometimes close connection to enodebd.
+        # The cause of this is unknown, but we can safely ignore the
+        # closed connection, and continue as normal otherwise.
+        #
+        # While this throws a BrokenPipe exception in wsgi server,
+        # it also causes an AttributeError to be raised because of a
+        # bug in the wsgi server.
+        # https://bugs.python.org/issue27682
+        try:
+            handler.run(self.server.get_app())
+        except BrokenPipeError:
+            self.log_error("eNodeB has unexpectedly closed the TCP connection.")
 
     def handle(self):
         self.protocol_version = "HTTP/1.1"
@@ -83,7 +95,7 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
         logging.warning("%s - %s", self.client_address[0], format % args)
 
 
-def tr069_server(state_machine_pointer: StateMachinePointer) -> None:
+def tr069_server(state_machine_manager: StateMachineManager) -> None:
     """
     TR-069 server
     Inputs:
@@ -94,7 +106,7 @@ def tr069_server(state_machine_pointer: StateMachinePointer) -> None:
     """
     config = load_service_config("enodebd")
 
-    AutoConfigServer.set_state_machine_pointer(state_machine_pointer)
+    AutoConfigServer.set_state_machine_manager(state_machine_manager)
 
     app = Tr069Application([AutoConfigServer], CWMP_NS,
                            in_protocol=Tr069Soap11(validator='soft'),

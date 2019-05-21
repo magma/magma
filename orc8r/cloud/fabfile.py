@@ -36,7 +36,8 @@ def build():
     run("make -C magma/orc8r/cloud build")
 
 
-def package(service, cloud_host=None, vcs="hg", force=False):
+def package(service, cloud_host="", vcs="hg", force="False",
+            docker="False", version="latest"):
     """
     Create deploy package and push to S3. This defaults to running on local
     vagrant cloud VM machines, but can also be pointed to an arbitrary host
@@ -49,23 +50,43 @@ def package(service, cloud_host=None, vcs="hg", force=False):
     vcs: version control system used, "hg" or "git".
 
     force: Bypass local commits or changes check if set to True.
+
+    docker: Build package for deploying using docker
+
+    version: Package version (used for docker pull)
     """
     # Check that we have no local changes or commits at this point
-    if not force and pkg.check_commit_changes():
+    if force != "True" and pkg.check_commit_changes():
         abort("Local changes or commits not allowed")
 
     _validate_service(service)
 
-    if cloud_host:
+    # Use same temp folder name for local and VM operations
+    folder = "/tmp/magmadeploy_%s" % service
+    commit_hash = pkg.get_commit_hash(vcs)
+    local("rm -rf %s" % folder)
+    local("mkdir -p %s" % folder)
+
+    if docker == "True":
+        zip_name = _package_docker_zip(service, folder,
+                                       commit_hash, version)
+    else:
+        zip_name = _package_vagrant_zip(service, folder,
+                                        cloud_host, commit_hash)
+
+    # Push the zip archive to s3
+    _push_archive_to_s3(service, folder, zip_name)
+    local('rm -rf %s' % folder)
+    return zip_name
+
+
+def _package_vagrant_zip(service, folder, cloud_host, commit_hash):
+    if cloud_host != "":
         env.host_string = cloud_host
         (env.user, _, _) = split_hoststring(cloud_host)
     else:
         _vagrant()
 
-    # Use same temp folder name for local and VM operations
-    folder = "/tmp/magmadeploy_%s" % service
-    local("rm -rf %s" % folder)
-    local("mkdir -p %s" % folder)
     run("rm -rf %s" % folder)
     run("mkdir -p %s" % folder)
 
@@ -81,7 +102,6 @@ def package(service, cloud_host=None, vcs="hg", force=False):
         if service == "metrics":
             run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
             run('cp -pr roles/third_party/graphite %s/ansible/roles.' % folder)
-            run('mkdir -p %s/bin' % folder)  # To make CodeDeploy happy
         else:
             run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
 
@@ -97,14 +117,46 @@ def package(service, cloud_host=None, vcs="hg", force=False):
 
     # Build Go binaries and plugins
     build()
+    if service == "metrics":
+        run("make -C magma/orc8r/cloud/go/services/metricsd/prometheus/prometheus-cache build")
+
     run('cp -pr go/plugins %s' % folder)
     _copy_go_binaries(service, folder)
 
-    # Zip and push to s3
-    pkg_name = "magma_%s_%s" % (service, pkg.get_commit_hash(vcs))
-    _push_archive_to_s3(service, folder, pkg_name)
+    pkg_name = "magma_%s_%s" % (service, commit_hash)
+    with cd(folder):
+        run('zip -r %s *' % (pkg_name))
+    get('%s/%s.zip' % (folder, pkg_name), '%s/%s.zip' % (folder, pkg_name))
     run('rm -rf %s' % folder)
-    local('rm -rf %s' % folder)
+    return "%s.zip" % pkg_name
+
+
+def _package_docker_zip(service, folder, commit_hash, version):
+    local("mkdir -p %s/ansible/roles" % folder)
+    with lcd('../tools/ansible'):
+        local('cp -pr roles/docker %s/ansible/roles/.' % folder)
+    with lcd('deploy'):
+        local('cp -pr aws/%s_appspec.yml %s/appspec.yml' % (service, folder))
+        local('cp -pr aws/scripts %s/.' % folder)
+        local('cp -pr %s_docker.yml %s/ansible/main.yml' % (service, folder))
+        local('cp -pr roles/aws_setup %s/ansible/roles/.' % folder)
+        local('cp -pr roles/osquery %s/ansible/roles/.' % folder)
+        local('cp -pr files/docker %s/ansible/roles/docker/files' % (folder))
+    # Set the docker image version that needs to be used
+    local('echo "%s" > %s/ansible/roles/docker/files/image_version' %
+          (version, folder))
+
+    # Add empty folders and files to make codedeploy happy.
+    # TODO: Remove the following once the vagrant option is deleted
+    local('mkdir -p %s/bin' % folder)
+    local('mkdir -p %s/plugins' % folder)
+    local('mkdir -p %s/configs' % folder)
+    local('mkdir -p %s/apidocs' % folder)
+    local('cp -pr docker/controller/setup_swagger_ui %s/scripts/.' % folder)
+
+    pkg_name = "magmadocker_%s_%s" % (service, commit_hash)
+    with lcd(folder):
+        local('zip -r %s *' % (pkg_name))
     return "%s.zip" % pkg_name
 
 
@@ -115,17 +167,18 @@ def _copy_go_binaries(service, folder):
         run('cp go/bin/logger %s/bin/.' % folder)
     if service == 'controller':
         run('cp -pr go/bin %s' % folder)
+    if service == 'metrics':
+        run('mkdir -p %s/bin' % folder)
+        run('cp -pr go/bin/prometheus-cache %s/bin/.' % folder)
+        run('cp -pr go/bin/alerting %s/bin/.' % folder)
 
 
-def _push_archive_to_s3(service, folder, pkg_name):
-    with cd(folder):
-        run('zip -r %s *' % (pkg_name))
-    get('%s/%s.zip' % (folder, pkg_name), '%s/%s.zip' % (folder, pkg_name))
+def _push_archive_to_s3(service, folder, zip_name):
     with lcd(folder):
-        local('aws s3 cp %s.zip s3://magma-images/cloud/' % pkg_name)
-    puts("Deployment bundle: s3://magma-images/cloud/%s.zip" % pkg_name)
-    puts("To deploy, use 'fab staging deploy:%s,%s.zip'"
-         % (service, pkg_name))
+        local('aws s3 cp %s s3://magma-images/cloud/' % zip_name)
+    puts("Deployment bundle: s3://magma-images/cloud/%s" % zip_name)
+    puts("To deploy, use 'fab staging deploy:%s,%s'"
+         % (service, zip_name))
 
 
 def _validate_service(service):

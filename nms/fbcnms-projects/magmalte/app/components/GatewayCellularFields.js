@@ -53,6 +53,7 @@ type Props = ContextRouter &
 type State = {
   natEnabled: boolean,
   ipBlock: string,
+  attachedEnodebSerials: Array<string>,
   pci: string,
   transmitEnabled: boolean,
   nonEPSServiceControl: number,
@@ -66,6 +67,7 @@ class GatewayCellularFields extends React.Component<Props, State> {
   state = {
     natEnabled: this.props.gateway.epc.natEnabled,
     ipBlock: this.props.gateway.epc.ipBlock,
+    attachedEnodebSerials: this.props.gateway.attachedEnodebSerials,
     pci: toString(this.props.gateway.ran.pci),
     transmitEnabled: this.props.gateway.ran.transmitEnabled,
     nonEPSServiceControl: this.props.gateway.nonEPSService.control,
@@ -105,6 +107,14 @@ class GatewayCellularFields extends React.Component<Props, State> {
           <Typography className={this.props.classes.title} variant="h6">
             RAN Configs
           </Typography>
+          <FormField label="Registered eNB IDs">
+            <Input
+              className={this.props.classes.input}
+              value={this.state.attachedEnodebSerials.toString()}
+              onChange={this.attachedEnodebSerialsChanged}
+              placeholder="E.g. 123, 456"
+            />
+          </FormField>
           <FormField label="PCI">
             <Input
               className={this.props.classes.input}
@@ -208,6 +218,8 @@ class GatewayCellularFields extends React.Component<Props, State> {
         },
       },
     );
+    // Override the registered eNodeB devices with new values
+    data['attached_enodeb_serials'] = this.state.attachedEnodebSerials;
 
     const {match} = this.props;
     axios
@@ -227,6 +239,11 @@ class GatewayCellularFields extends React.Component<Props, State> {
   mccChanged = ({target}) => this.setState({mcc: target.value});
   mncChanged = ({target}) => this.setState({mnc: target.value});
   lacChanged = ({target}) => this.setState({lac: target.value});
+  attachedEnodebSerialsChanged = ({target}) => {
+    this.setState({
+      attachedEnodebSerials: target.value.replace(' ', '').split(','),
+    });
+  };
 }
 
 export default withStyles(styles)(withRouter(GatewayCellularFields));

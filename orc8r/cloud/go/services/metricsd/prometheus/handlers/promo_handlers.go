@@ -14,16 +14,14 @@ import (
 	"net/http"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
-
-	"github.com/prometheus/common/model"
-
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 )
 
 const (
@@ -115,7 +113,7 @@ func preparePrometheusQuery(c echo.Context) (string, error) {
 }
 
 func preprocessQuery(query, networkID string) (string, error) {
-	restrictedLabels := map[string]string{exporters.NetworkLabelInstance: networkID}
+	restrictedLabels := map[string]string{exporters.NetworkLabelNetwork: networkID}
 	restrictor := security.NewQueryRestrictor(restrictedLabels)
 	return restrictor.RestrictQuery(query)
 }

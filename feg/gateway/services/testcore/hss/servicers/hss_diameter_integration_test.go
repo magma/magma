@@ -130,8 +130,9 @@ func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	result := make(chan error)
 	hss := test.NewTestHomeSubscriberServer(t)
 	serverCfg := hss.Config.Server
+	started := make(chan struct{})
 	go func() {
-		err := hss.Start()
+		err := hss.Start(started)
 		if err != nil {
 			fmt.Printf("getConnectionToTestHSS Error: %v for address: %s\n", err, serverCfg.Address)
 			result <- err
@@ -143,11 +144,7 @@ func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	case err := <-result:
 		assert.Fail(t, "%v", err)
 		return nil
-	case <-time.After(time.Millisecond * 30):
-		// Assume the server has started up after waiting for enough time
-		// and not seeing it return with an error. If the server has not
-		// started up by this time, then the client will fail to connect to
-		// it next.
+	case <-started:
 	}
 	return hss
 }

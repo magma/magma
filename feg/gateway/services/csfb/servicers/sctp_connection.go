@@ -16,6 +16,7 @@ import (
 	"strings"
 	"unsafe"
 
+	"github.com/golang/glog"
 	"github.com/ishidawataru/sctp"
 )
 
@@ -23,36 +24,42 @@ const (
 	VLRAddrEnv          = "VLR_ADDR"
 	DefaultVLRIPAddress = "127.0.0.1"
 	DefaultVLRPort      = 1357
+	LocalAddrEnv        = "SGS_ADDR"
 	LocalIPAddress      = "127.0.0.1"
 	LocalPort           = 0
 )
 
 type SCTPClientConnection struct {
-	sendConn    *sctp.SCTPConn
-	vlrSCTPAddr *sctp.SCTPAddr
+	sendConn     *sctp.SCTPConn
+	vlrSCTPAddr  *sctp.SCTPAddr
+	localSGsAddr *sctp.SCTPAddr
 }
 
-func NewSCTPClientConnection(vlrIP string, vlrPort int) (*SCTPClientConnection, error) {
+func NewSCTPClientConnection(vlrSCTPAddr *sctp.SCTPAddr, localSGsAddr *sctp.SCTPAddr) (*SCTPClientConnection, error) {
 	return &SCTPClientConnection{
-		vlrSCTPAddr: ParseAddr(vlrIP, vlrPort),
+		vlrSCTPAddr:  vlrSCTPAddr,
+		localSGsAddr: localSGsAddr, // nil when it's not specified
 	}, nil
 }
 
 func (conn *SCTPClientConnection) EstablishConn() error {
+	glog.V(2).Infof("Establishing SCTP connection with %s", conn.vlrSCTPAddr)
 	sendConn, err := sctp.DialSCTP(
 		"sctp",
-		nil,
+		conn.localSGsAddr,
 		conn.vlrSCTPAddr,
 	)
 	if err != nil {
 		return err
 	}
+	glog.V(2).Info("SCTP connection with VLR established")
 	conn.sendConn = sendConn
 
 	return nil
 }
 
 func (conn *SCTPClientConnection) CloseConn() error {
+	glog.V(2).Info("Closing SCTP connection with VLR")
 	if conn.sendConn == nil {
 		return errors.New("connection to VLR not established")
 	}
@@ -62,11 +69,13 @@ func (conn *SCTPClientConnection) CloseConn() error {
 	if err != nil {
 		return err
 	}
+	glog.V(2).Info("SCTP connection with VLR closed successfully")
 
 	return nil
 }
 
 func (conn *SCTPClientConnection) Send(message []byte) error {
+	glog.V(2).Info("Sending message to VLR through SCTP")
 	if conn.sendConn == nil {
 		return errors.New("connection to VLR not established")
 	}
@@ -83,6 +92,7 @@ func (conn *SCTPClientConnection) Send(message []byte) error {
 	if err != nil {
 		return err
 	}
+	glog.V(2).Info("Message sent successfully to VLR")
 
 	return nil
 }
@@ -115,7 +125,7 @@ func NewSCTPServerConnection() (*SCTPServerConnection, error) {
 }
 
 func (conn *SCTPServerConnection) StartListener(ipAddr string, port PortNumber) (PortNumber, error) {
-	ln, err := sctp.ListenSCTP("sctp", ParseAddr(ipAddr, port))
+	ln, err := sctp.ListenSCTP("sctp", ConstructSCTPAddr(ipAddr, port))
 	if err != nil {
 		return -1, err
 	}
@@ -208,7 +218,7 @@ func (conn *SCTPServerConnection) SendFromServer(msg []byte) error {
 	return nil
 }
 
-func ParseAddr(ip string, port int) *sctp.SCTPAddr {
+func ConstructSCTPAddr(ip string, port int) *sctp.SCTPAddr {
 	ips := []net.IPAddr{}
 	for _, i := range strings.Split(ip, ",") {
 		if a, err := net.ResolveIPAddr("ip", i); err == nil {

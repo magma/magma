@@ -59,7 +59,8 @@ var defaultConfig = Config{
 			MaxUlBitRate: 100000000, // 100 Mbps
 			MaxDlBitRate: 200000000, // 200 Mbps
 		},
-		SubProfiles: make(map[string]*HSSConfig_SubscriptionProfile),
+		SubProfiles:       make(map[string]*HSSConfig_SubscriptionProfile),
+		StreamSubscribers: false,
 	},
 	Swx: &SwxConfig{
 		Server: &DiamClientConfig{
@@ -72,6 +73,16 @@ var defaultConfig = Config{
 			Realm:            "magma.com",
 		},
 		VerifyAuthorization: false,
+		CacheTTLSeconds:     10800,
+	},
+	EapAka: &EapAkaConfig{
+		Timeout: &EapAkaConfig_Timeouts{
+			ChallengeMs:            20000,
+			ErrorNotificationMs:    10000,
+			SessionMs:              43200000,
+			SessionAuthenticatedMs: 5000,
+		},
+		PlmnIds: []string{},
 	},
 	ServedNetworkIds: []string{},
 	Health: &HealthConfig{

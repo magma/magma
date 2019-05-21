@@ -105,5 +105,4 @@ UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
   }
   return ret;
 }
-
 } // namespace magma

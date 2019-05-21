@@ -98,6 +98,7 @@ int sgw_handle_create_session_request(
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   increment_counter("spgw_create_session", 1, NO_LABELS);
+  OAILOG_INFO(LOG_SPGW_APP, "Received S11 CREATE SESSION REQUEST from MME_APP\n");
   /*
    * Upon reception of create session request from MME,
    * * * * S-GW should create UE, eNB and MME contexts and forward message to P-GW.
@@ -328,10 +329,16 @@ int sgw_handle_create_session_request(
       message_p->ittiMsg.s5_create_bearer_request.eps_bearer_id =
         session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id;
+      OAILOG_DEBUG(
+        LOG_SPGW_APP, "Sending S5 Create Bearer Request to PGW_APP, local_teid = %u,"
+        "S1U_teid = %u,ebi = %u \n",
+        message_p->ittiMsg.s5_create_bearer_request.context_teid,
+        message_p->ittiMsg.s5_create_bearer_request.S1u_teid,
+        message_p->ittiMsg.s5_create_bearer_request.eps_bearer_id);
       itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
     }
   } else {
-    OAILOG_WARNING(
+    OAILOG_ERROR(
       LOG_SPGW_APP,
       "Could not create new transaction for SESSION_CREATE message\n");
     free_wrapper((void **) &new_endpoint_p);
@@ -1208,6 +1215,9 @@ int sgw_handle_modify_bearer_request(
         itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
       if (!message_p) {
+        OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Received message pointer null...\n");
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
       }
 
@@ -1614,12 +1624,30 @@ int sgw_handle_release_access_bearers_request(
       ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
     release_access_bearers_resp_p->trxn = release_access_bearers_req_pP->trxn;
     //#pragma message  "TODO Here the release (sgw_handle_release_access_bearers_request)"
+    /*
+     * Release the tunnels so that in idle state, DL packets are not sent
+     * towards eNB.
+     * These tunnels will be added again when UE moves back to connected mode.
+     */
     // TODO iterator
     for (int ebx = 0; ebx < BEARERS_PER_UE; ebx++) {
       sgw_eps_bearer_ctxt_t *eps_bearer_ctxt =
         ctx_p->sgw_eps_bearer_context_information.pdn_connection
           .sgw_eps_bearers_array[ebx];
       if (eps_bearer_ctxt) {
+        rv = gtp_tunnel_ops->del_tunnel(
+          eps_bearer_ctxt->paa.ipv4_address,
+          eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
+          eps_bearer_ctxt->enb_teid_S1u,
+          NULL);
+        if (rv < 0) {
+          OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "ERROR in deleting TUNNEL " TEID_FMT
+            " (eNB) <-> (SGW) " TEID_FMT "\n",
+            eps_bearer_ctxt->enb_teid_S1u,
+            eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up);
+        }
         sgw_release_all_enb_related_information(eps_bearer_ctxt);
       }
     }
@@ -1764,6 +1792,10 @@ int sgw_handle_s5_create_bearer_response(
     create_session_response_p->trxn =
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.trxn;
   }
+  OAILOG_DEBUG(
+    LOG_SPGW_APP,
+    "Sending S11 Create Session Response to MME, MME S11 teid = %u\n",
+    create_session_response_p->teid);
   rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }

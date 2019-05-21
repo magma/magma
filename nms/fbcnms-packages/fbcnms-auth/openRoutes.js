@@ -20,8 +20,8 @@ export default [
   /^\/([a-z_-]+\/)?static\/fonts/,
   /^\/([a-z_-]+\/)?static\/images/,
   /^\/([a-z_-]+\/)?user\/login(\?.*)?$/,
-  /^\/([a-z_-]+\/)?user\/login\/facebook$/,
-  /^\/([a-z_-]+\/)?user\/login\/facebook\/callback/,
+  /^\/([a-z_-]+\/)?user\/login\/saml$/,
+  /^\/([a-z_-]+\/)?user\/login\/saml\/callback/,
   /^\/([a-z_-]+\/)?user\/logout$/,
   /^\/([a-z_-]+\/)?__webpack_hmr.js/,
 ];

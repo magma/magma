@@ -78,6 +78,17 @@ message SwxConfig {
     bool verify_authorization = 3;
     uint32 CacheTTLSeconds = 4;
 }
+message EapAkaConfig {
+    orc8r.LogLevel log_level = 1;
+    message Timeouts {
+        uint32 ChallengeMs = 1;
+        uint32 ErrorNotificationMs = 2;
+        uint32 SessionMs = 3;
+        uint32 SessionAuthenticatedMs = 4;
+    }
+    Timeouts timeout = 2;
+    repeated string PlmnIds = 3;
+}
 
 message GatewayHealthConfig {
     repeated string required_services = 1;
@@ -107,5 +118,8 @@ message HSSConfig {
 
     // If an IMSI if not found in sub_profiles, the default profile is used instead.
     SubscriptionProfile default_sub_profile = 5;
+
+    // Whether to stream subscribers from the cloud subscriberdb service.
+    bool stream_subscribers = 6;
 }
 

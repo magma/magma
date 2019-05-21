@@ -11,6 +11,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 
 	"magma/lte/cloud/go/protos/mconfig"
@@ -63,6 +64,12 @@ func (builder *CellularBuilder) Build(networkId string, gatewayId string) (map[s
 		return nil, err
 	}
 
+	enbSerialArr := cellularGwConfig.GetAttachedEnodebSerials()
+	enodebConfigsBySerial, err := getEnodebConfigsBySerial(networkId, enbSerialArr)
+	if err != nil {
+		enodebConfigsBySerial = map[string]*mconfig.EnodebD_EnodebConfig{}
+	}
+
 	// All guaranteed non-nil by the above check, except gwNonEpsService
 	gwRan := cellularGwConfig.GetRan()
 	gwEpc := cellularGwConfig.GetEpc()
@@ -92,6 +99,7 @@ func (builder *CellularBuilder) Build(networkId string, gatewayId string) (map[s
 			PlmnidList:             fmt.Sprintf("%s%s", nwEpc.GetMcc(), nwEpc.GetMnc()),
 			CsfbRat:                nonEPSServiceMconfig.csfbRat,
 			Arfcn_2G:               nonEPSServiceMconfig.arfcn_2g,
+			EnbConfigsBySerial:     enodebConfigsBySerial,
 		},
 		"mobilityd": &mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
@@ -156,6 +164,50 @@ func getTddConfig(tddConfig *cellular_protos.NetworkRANConfig_TDDConfig) *mconfi
 		}
 	}
 	return nil
+}
+
+func getEnodebConfigsBySerial(
+	networkID string,
+	enbSerialArr []string,
+) (map[string]*mconfig.EnodebD_EnodebConfig, error) {
+	nEnb := len(enbSerialArr)
+	enbConfigMap := make(map[string]*mconfig.EnodebD_EnodebConfig, nEnb)
+	for i := 0; i < nEnb; i++ {
+		enbSerial := enbSerialArr[i]
+		enbConfig, err := getEnodebConfig(networkID, enbSerial)
+		if err != nil {
+			// Just exclude the config if we cannot fetch it, probably because it is missing
+			log.Printf("Missing config for eNB serial %s", enbSerial)
+		} else {
+			enbConfigMap[enbSerial] = enbConfig
+		}
+	}
+	return enbConfigMap, nil
+}
+
+func getEnodebConfig(
+	networkID string,
+	enbSerialID string,
+) (*mconfig.EnodebD_EnodebConfig, error) {
+	cellularEnbConfigStruct, err := config.GetConfig(networkID, CellularEnodebType, enbSerialID)
+	if err != nil {
+		return nil, err
+	}
+	if cellularEnbConfigStruct == nil {
+		return nil, fmt.Errorf("Missing config for network %s, serial %s", networkID, enbSerialID)
+	}
+	cellularEnbConfig := cellularEnbConfigStruct.(*cellular_protos.CellularEnodebConfig)
+	return &mconfig.EnodebD_EnodebConfig{
+		Earfcndl:               cellularEnbConfig.GetEarfcndl(),
+		SubframeAssignment:     cellularEnbConfig.GetSubframeAssignment(),
+		SpecialSubframePattern: cellularEnbConfig.GetSpecialSubframePattern(),
+		Pci:                    cellularEnbConfig.GetPci(),
+		TransmitEnabled:        cellularEnbConfig.GetTransmitEnabled(),
+		DeviceClass:            cellularEnbConfig.GetDeviceClass(),
+		BandwidthMhz:           cellularEnbConfig.GetBandwidthMhz(),
+		Tac:                    cellularEnbConfig.GetTac(),
+		CellId:                 cellularEnbConfig.GetCellId(),
+	}, nil
 }
 
 func getCellularNetworkConfig(networkId string) (*cellular_protos.CellularNetworkConfig, error) {

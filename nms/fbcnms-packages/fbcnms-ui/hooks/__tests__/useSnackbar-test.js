@@ -3,6 +3,7 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  * @flow
  * @format
  */
@@ -17,7 +18,13 @@ jest.mock('@material-ui/core/Slide', () => () => <div />);
 
 it('renders without crashing', () => {
   const tree = renderer.create(
-    <SnackbarProvider maxSnack={3} autoHideDuration={10000}>
+    <SnackbarProvider
+      maxSnack={3}
+      autoHideDuration={10000}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'right',
+      }}>
       <Test />
     </SnackbarProvider>,
   );

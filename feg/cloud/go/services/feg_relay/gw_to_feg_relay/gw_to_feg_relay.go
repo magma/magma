@@ -25,7 +25,7 @@ import (
 	lte_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/orc8r/cloud/go/http2"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/service/middleware/unary/interceptors"
+	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/cloud/go/services/magmad"
@@ -236,7 +236,7 @@ func getGatewayIdentity(headers http.Header) (*protos.Identity_Gateway, error) {
 		md[ClientCertCnKeyHttpHeader] = cnKeys[0]
 	}
 	ctx := metadata.NewIncomingContext(context.Background(), metadata.New(md))
-	newCtx, _, _, err := interceptors.SetIdentityFromContext(ctx, nil, nil)
+	newCtx, _, _, err := unary.SetIdentityFromContext(ctx, nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("error getting gateway identity. err: %v\n", err)
 	}

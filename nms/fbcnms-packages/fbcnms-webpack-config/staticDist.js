@@ -24,11 +24,15 @@ if (fs.existsSync(MANIFEST_FILE)) {
   manifest = JSON.parse(manifestRaw);
 }
 export default function staticDist(
-  projectName: string,
   filename: string,
+  projectName: string,
 ): ?string {
   if (DEV_MODE || !manifest) {
-    return '/' + projectName + '/static/dist/' + filename;
+    const path = '/static/dist/' + filename;
+    if (typeof projectName === 'string') {
+      return '/' + projectName + path;
+    }
+    return path;
   }
   return manifest[filename] || '/dev/null/' + filename;
 }

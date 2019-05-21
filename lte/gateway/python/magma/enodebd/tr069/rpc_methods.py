@@ -8,18 +8,11 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
-from typing import Any
 from spyne.decorator import rpc
-from spyne.model.complex import Iterable, ComplexModelBase
-from spyne.model.primitive import String
+from spyne.model.complex import ComplexModelBase
+from spyne.server.wsgi import WsgiMethodContext
 from spyne.service import ServiceBase
-from magma.enodebd.devices.device_map import get_device_handler_from_name
-from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.exceptions import Tr069Error
-from magma.enodebd.state_machines.acs_state_utils import \
-    IncorrectDeviceHandlerError
-from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_pointer import StateMachinePointer
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from . import models
 
 # Allow methods without 'self' as first input. Required by spyne
@@ -78,47 +71,27 @@ class AutoConfigServer(ServiceBase):
     _max_envelopes = 1
 
     @classmethod
-    def set_state_machine_pointer(
+    def set_state_machine_manager(
         cls,
-        state_machine_pointer: StateMachinePointer
+        state_machine_manager: StateMachineManager
     ) -> None:
-        cls.state_machine_pointer = state_machine_pointer
+        cls.state_machine_manager = state_machine_manager
 
     @classmethod
-    def get_new_state_machine(
+    def _handle_tr069_message(
         cls,
-        device_name: EnodebDeviceName,
-    ) -> EnodebAcsStateMachine:
-        """
-        Create a new state machine because the previous used data model was
-        incorrect
-        """
-        device_handler_class = get_device_handler_from_name(device_name)
-        service = cls.state_machine().service
-        stats_mgr = cls.state_machine().stats_manager
-        acs_state_machine = device_handler_class(service, stats_mgr)
-        return acs_state_machine
-
-    @classmethod
-    def _handle_tr069_message(cls, ctx: Any, message: ComplexModelBase) -> Any:
-        if not cls.state_machine():
-            raise Tr069Error('ACS not given eNB state machine')
-
+        ctx: WsgiMethodContext,
+        message: ComplexModelBase,
+    ) -> ComplexModelBase:
         # Log incoming msg
         if hasattr(message, 'as_dict'):
             logging.debug('Handling TR069 message: %s', str(type(message)))
         else:
             logging.debug('Handling TR069 message.')
 
-        try:
-            req = cls.state_machine().handle_tr069_message(message)
-        except IncorrectDeviceHandlerError as err:
-            logging.warning('Incorrect device_handler! Switching to : %s',
-                            str(err.device_name))
-            cls.set_state_machine(
-                cls.get_new_state_machine(err.device_name))
-            # Retry with the new state machine
-            req = cls.state_machine().handle_tr069_message(message)
+        # The manager will route the request to the state machine handling
+        # the specific eNodeB.
+        req = cls.state_machine_manager.handle_tr069_message(ctx, message)
 
         # Log outgoing msg
         if hasattr(req, 'as_dict'):
@@ -153,15 +126,6 @@ class AutoConfigServer(ServiceBase):
                 # respond with an error message
                 pass
         return request_out
-
-    @classmethod
-    def state_machine(cls) -> EnodebAcsStateMachine:
-        return cls.state_machine_pointer.state_machine
-
-    @classmethod
-    def set_state_machine(cls, state_machine: EnodebAcsStateMachine) -> None:
-        cls.state_machine_pointer.state_machine = state_machine
-
 
     # CPE->ACS RPC calls
 

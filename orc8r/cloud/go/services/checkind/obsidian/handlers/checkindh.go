@@ -11,11 +11,12 @@ package handlers
 import (
 	"net/http"
 
+	"magma/orc8r/cloud/go/services/magmad"
+	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
+
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/checkind"
-	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 )
 
 const AgStatusUrl = handlers.NETWORKS_ROOT + "/:network_id/gateways/:logical_ag_id/status"
@@ -33,17 +34,17 @@ func GetObsidianHandlers() []handlers.Handler {
 				}
 
 				lid := c.Param("logical_ag_id")
-				status, err := checkind.GetStatus(network_id, lid)
+
+				gwRecord, err := magmad.FindGatewayRecord(network_id, lid)
 				if err != nil {
 					return handlers.HttpError(err, http.StatusNotFound)
 				}
-
-				gwStatusModel := checkind_models.GatewayStatus{}
-				err = gwStatusModel.FromMconfig(status)
+				hwid := gwRecord.HwId.Id
+				gwStatus, err := stateh.GetGWStatus(network_id, hwid)
 				if err != nil {
-					return handlers.HttpError(err, http.StatusInternalServerError)
+					return handlers.HttpError(err, http.StatusNotFound)
 				}
-				return c.JSON(http.StatusOK, &gwStatusModel)
+				return c.JSON(http.StatusOK, &gwStatus)
 			},
 		},
 	}

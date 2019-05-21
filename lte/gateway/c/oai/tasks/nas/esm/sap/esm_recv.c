@@ -169,8 +169,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      * 3GPP TS 24.301, section 7.3.1, case a
      * * * * Reserved or unassigned PTI value
      */
-    OAILOG_WARNING(
-      LOG_NAS_ESM, "ESM-SAP   - Invalid PTI value (pti=%d)\n", pti);
+    OAILOG_ERROR(
+      LOG_NAS_ESM, "ESM-SAP   - Invalid PTI value (pti=%d) for (ue_id = %u) \n",
+      pti,
+      ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_PTI_VALUE);
   }
   /*
@@ -181,8 +183,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      * 3GPP TS 24.301, section 7.3.2, case a
      * * * * Reserved or assigned EPS bearer identity value
      */
-    OAILOG_WARNING(
-      LOG_NAS_ESM, "ESM-SAP   - Invalid EPS bearer identity (ebi=%d)\n", ebi);
+    OAILOG_ERROR(
+      LOG_NAS_ESM, "ESM-SAP   - Invalid EPS bearer identity (ebi=%d) for (ue_id = %u)\n",
+      ebi,
+      ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
@@ -203,6 +207,11 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   /*
    * Get the PDN connectivity request type
    */
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "ESM-SAP   - PDN Connectivity Request Type = (%d) for (ue_id = %u)\n ",
+    msg->requesttype,
+    ue_id);
 
   if (msg->requesttype == REQUEST_TYPE_INITIAL_REQUEST) {
     esm_data->request_type = ESM_PDN_REQUEST_INITIAL;
@@ -217,13 +226,17 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     esm_data->request_type = -1;
     OAILOG_ERROR(
       LOG_NAS_ESM,
-      "ESM-SAP   - Invalid PDN request type (INITIAL/HANDOVER/EMERGENCY)\n");
+      "ESM-SAP   - Invalid PDN request type (INITIAL/HANDOVER/EMERGENCY) for (ue_id = %u)\n",
+      ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_MANDATORY_INFO);
   }
 
   /*
    * Get the value of the PDN type indicator
    */
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "ESM-SAP   - PDN Type = (%d) for (ue_id = %u)\n ", msg->pdntype, ue_id);
   if (msg->pdntype == PDN_TYPE_IPV4) {
     esm_data->pdn_type = ESM_PDN_TYPE_IPV4;
   } else if (msg->pdntype == PDN_TYPE_IPV6) {
@@ -234,7 +247,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     /*
      * Unkown PDN type
      */
-    OAILOG_ERROR(LOG_NAS_ESM, "ESM-SAP   - Invalid PDN type\n");
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-SAP   - Invalid PDN type for (ue_id = %u)\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_PDN_TYPE);
   }
 
@@ -279,10 +292,11 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     }
   }
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "ESM-PROC  - _esm_data.conf.features %08x\n",
-    _esm_data.conf.features);
+    "ESM-PROC  - _esm_data.conf.features %08x, esm pdn type = %d\n",
+    _esm_data.conf.features,
+    esm_data->pdn_type);
   emm_context->emm_cause = ESM_CAUSE_SUCCESS;
   switch (_esm_data.conf.features & (MME_API_IPV4 | MME_API_IPV6)) {
     case (MME_API_IPV4 | MME_API_IPV6):
@@ -321,8 +335,9 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       OAILOG_ERROR(
         LOG_NAS_ESM,
         "ESM-PROC  - _esm_data.conf.features incorrect value (no IPV4 or IPV6 "
-        ") %X\n",
-        _esm_data.conf.features);
+        ") %X for (ue_id = %u)\n",
+        _esm_data.conf.features,
+        ue_id);
   }
 
 #if ORIGINAL_CODE

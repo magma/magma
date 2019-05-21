@@ -48,7 +48,11 @@ function mockOrgMiddleware(orgName: string) {
 function mockUserMiddleware(where) {
   return async (req: FBCNMSRequest, _res, next) => {
     req.isAuthenticated = () => true;
-    req.user = await User.findOne({where});
+    const user = await User.findOne({where});
+    if (!user) {
+      throw new Error('Could not find a user');
+    }
+    req.user = user;
     next();
   };
 }
@@ -57,7 +61,7 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   const app = express();
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded());
-  fbcPassport.use({UserModel: User});
+  fbcPassport.use();
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(configureAccess({loginUrl: '/user/login'}));
@@ -68,7 +72,6 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   app.use(
     '/user',
     userMiddleware({
-      UserModel: User,
       loginFailureUrl: '/failure',
       loginSuccessUrl: '/success',
     }),

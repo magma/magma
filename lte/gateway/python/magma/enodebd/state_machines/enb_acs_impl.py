@@ -8,18 +8,18 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
+import traceback
 from typing import Any, Dict
 from abc import abstractmethod
 from magma.common.service import MagmaService
 from magma.enodebd import metrics
+from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
-from magma.enodebd.enodeb_status import get_enodeb_status
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_states import EnodebAcsState
 from magma.enodebd.state_machines.timer import StateMachineTimer
-from magma.enodebd.stats_manager import StatsManager
 from magma.enodebd.tr069 import models
 from magma.enodebd.tr069.models import Tr069ComplexModel
 
@@ -53,14 +53,13 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
     def __init__(
             self,
             service: MagmaService,
-            stats_mgr: StatsManager,
     ) -> None:
         super().__init__()
         self.state = None
         self.timeout_handler = None
         self.mme_timeout_handler = None
         self.mme_timer = None
-        self._start_state_machine(service, stats_mgr)
+        self._start_state_machine(service)
 
     def get_state(self) -> str:
         if self.state is None:
@@ -83,8 +82,15 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         # TransferComplete messages come at random times, and we ignore them
         if isinstance(message, models.TransferComplete):
             return models.TransferCompleteResponse()
-        self._read_tr069_msg(message)
-        return self._get_tr069_msg()
+        try:
+            self._read_tr069_msg(message)
+            return self._get_tr069_msg()
+        except Exception:  # pylint: disable=broad-except
+            logging.error('Failed to handle tr069 message')
+            logging.error(traceback.format_exc())
+            self._dump_debug_info()
+            self.transition(self.unexpected_fault_state_name)
+            return self._get_tr069_msg()
 
     def transition(self, next_state: str) -> Any:
         logging.debug('State transition to <%s>', next_state)
@@ -96,25 +102,23 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         """ Clean up anything the state machine is tracking or doing """
         self.state.exit()
         if self.timeout_handler is not None:
-            self.mme_timeout_handler.cancel()
             self.timeout_handler.cancel()
+            self.timeout_handler = None
+        if self.mme_timeout_handler is not None:
+            self.mme_timeout_handler.cancel()
+            self.mme_timeout_handler = None
         self._service = None
-        self._stats_manager = None
         self._desired_cfg = None
         self._device_cfg = None
         self._data_model = None
 
-        self.timeout_handler = None
-        self.mme_timeout_handler = None
         self.mme_timer = None
 
     def _start_state_machine(
             self,
             service: MagmaService,
-            stats_mgr: StatsManager,
     ):
         self.service = service
-        self.stats_manager = stats_mgr
         self.data_model = self.data_model_class()
         # The current known device config has few known parameters
         # The desired configuration depends on what the current configuration
@@ -130,10 +134,9 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
     def _reset_state_machine(
         self,
         service: MagmaService,
-        stats_mgr: StatsManager,
     ):
         self.stop_state_machine()
-        self._start_state_machine(service, stats_mgr)
+        self._start_state_machine(service)
 
     def _read_tr069_msg(self, message: Any) -> None:
         """ Process incoming message and maybe transition state """
@@ -163,7 +166,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         if isinstance(message, models.Inform):
             logging.debug('ACS in (%s) state. Received an Inform message',
                           self.state.state_description())
-            self._reset_state_machine(self.service, self.stats_manager)
+            self._reset_state_machine(self.service)
         elif isinstance(message, models.Fault):
             logging.debug('ACS in (%s) state. Received a Fault <%s>',
                           self.state.state_description(), message.FaultString)
@@ -201,14 +204,18 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         This method checks the last polled MME connection status, and if
         eNodeB should be connected to MME but it isn't.
         """
-        status = get_enodeb_status(self)
+        if self.device_cfg.has_parameter(ParameterName.MME_STATUS) and \
+                self.device_cfg.get_parameter(ParameterName.MME_STATUS):
+            is_mme_connected = 1
+        else:
+            is_mme_connected = 0
 
         # True if we would expect MME to be connected, but it isn't
         is_mme_unexpectedly_dc = \
             self.is_enodeb_connected() \
             and self.is_enodeb_configured() \
             and self.mconfig.allow_enodeb_transmit \
-            and not status['mme_connected'] == '1'
+            and not is_mme_connected
 
         if is_mme_unexpectedly_dc:
             logging.warning('eNodeB is connected to AGw, is configured, '
@@ -239,6 +246,18 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
                 logging.info('eNodeB has established MME connection.')
                 self.mme_timer = None
             metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
+
+    def _dump_debug_info(self) -> None:
+        if self.device_cfg is not None:
+            logging.error('Device configuration: %s',
+                          self.device_cfg.get_debug_info())
+        else:
+            logging.error('Device configuration: None')
+        if self.desired_cfg is not None:
+            logging.error('Desired configuration: %s',
+                          self.desired_cfg.get_debug_info())
+        else:
+            logging.error('Desired configuration: None')
 
     @abstractmethod
     def _init_state_map(self) -> None:

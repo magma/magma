@@ -1,3 +1,0 @@
----
-cgrates_version: cgrates_0.9.1~rc8_amd64.deb
-cgrates_url: http://www.cgrates.org/tmp_pkg/{{ cgrates_version }}

@@ -17,6 +17,11 @@ graphite_admin_last_login: "2014-07-21T10:11:17.464"
 graphite_admin_username: admin
 graphite_admin_password: admin
 
+graphite_db_name: graphitedb
+graphite_mysql_user: graphite_user
+graphite_mysql_password: graphitepass
+mysql_root_pass: mypassword
+
 graphite_service_carbon_open_files_limit: 4096
 
 graphite_storage_schemas_default_retentions: "1m:14d,15m:180d,1h:2y"
@@ -44,9 +49,9 @@ graphite_cache_log_updates: false
 graphite_cache_log_creates: false
 graphite_cache_enable_manhole: false
 graphite_cache_max_cache_size: inf
-graphite_cache_max_creates_per_minute: 100
-graphite_cache_max_updates_per_second: 500
-graphite_cache_max_updates_per_second_on_shutdown: 1000
+graphite_cache_max_creates_per_minute: 1000
+graphite_cache_max_updates_per_second: 2000
+graphite_cache_max_updates_per_second_on_shutdown: 5000
 graphite_cache_min_timestamp_resolution: 1
 graphite_cache_pickle_receiver_port: 0
 graphite_cache_graphite_url: false  # Set to http://my-graphite-url:port

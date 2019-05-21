@@ -1,10 +1,14 @@
 *
+!.cache/test_certs
+!fb/config/
+
 !feg/cloud/
 !feg/gateway/configs/
 !feg/gateway/deploy/roles/feg_dev/files
 !feg/gateway/deploy/roles/feg_services/files
 !feg/gateway/diameter/
 !feg/gateway/deploy/envdir
+!feg/gateway/docker/configs
 !feg/gateway/mconfig/
 !feg/gateway/object_store/
 !feg/gateway/policydb/
@@ -30,6 +34,7 @@
 !orc8r/cloud/configs/
 !orc8r/cloud/go/
 !orc8r/cloud/deploy/roles/proxy/files
+!orc8r/cloud/docker/
 !orc8r/cloud/scripts/
 !orc8r/cloud/Makefile
 !orc8r/gateway/configs/

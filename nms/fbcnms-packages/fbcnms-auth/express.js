@@ -12,23 +12,28 @@ import bcrypt from 'bcryptjs';
 import {injectOrganizationParams} from './organization';
 import {isEmpty} from 'lodash-es';
 import express from 'express';
+import logging from '@fbcnms/logging';
 import passport from 'passport';
 import staticDist from 'fbcnms-webpack-config/staticDist';
 import {access} from './access';
 import {AccessRoles} from './roles';
 import {addQueryParamsToUrl} from './util';
 import EmailValidator from 'email-validator';
+import {User} from '@fbcnms/sequelize-models';
 
+import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from './access';
+import type {UserRawType} from '@fbcnms/sequelize-models/models/user';
 
 const SALT_GEN_ROUNDS = 10;
 const MIN_PASSWORD_LENGTH = 10;
 
-type Options = {
-  UserModel: any,
+const logger = logging.getLogger(module);
+
+type Options = {|
   loginSuccessUrl: string,
   loginFailureUrl: string,
-};
+|};
 
 const FIELD_MAP = {
   email: 'email',
@@ -36,55 +41,92 @@ const FIELD_MAP = {
   organization: 'organization',
   password: 'password',
   superUser: 'role',
-  verificationType: 'verificationType',
 };
 
-function userMiddleware(options: Options): express.Router {
-  const User = options.UserModel;
+export function unprotectedUserRoutes() {
   const router = express.Router();
+  router.post(
+    '/login/saml/callback',
+    passport.authenticate('saml', {
+      failureRedirect: '/user/login?failure=true',
+    }),
+    (req, res: ExpressResponse) => {
+      const redirectTo = ensureRelativeUrl(req.query.to) || '/';
+      res.redirect(redirectTo);
+    },
+  );
+  return router;
+}
 
-  async function getPropsToUpdate(
-    req: FBCNMSRequest,
-    allowedProps: string[],
-    body: {[string]: string},
-  ) {
-    allowedProps = allowedProps.filter(prop =>
-      User.rawAttributes.hasOwnProperty(FIELD_MAP[prop]),
-    );
-    const userProperties = {};
-    for (const prop of allowedProps) {
-      if (body.hasOwnProperty(prop)) {
-        switch (prop) {
-          case 'email':
-            const email = body[prop].toLowerCase();
+export async function getPropsToUpdate(
+  allowedProps: $Keys<typeof FIELD_MAP>[],
+  body: {[string]: mixed},
+  organizationInjector: ({[string]: any}) => Promise<{
+    [string]: any,
+    organization?: string,
+  }>,
+): Promise<$Shape<UserRawType>> {
+  allowedProps = allowedProps.filter(prop =>
+    User.rawAttributes.hasOwnProperty(FIELD_MAP[prop]),
+  );
+  const userProperties = {};
+  for (const prop of allowedProps) {
+    if (body.hasOwnProperty(prop)) {
+      switch (prop) {
+        case 'email':
+          const emailUnsafe = body[prop];
+          if (
+            typeof emailUnsafe !== 'string' ||
+            !EmailValidator.validate(body.email)
+          ) {
+            throw new Error('Please enter a valid email');
+          }
+          const email = emailUnsafe.toLowerCase();
 
-            if (!EmailValidator.validate(body.email)) {
-              throw new Error('Please enter a valid email');
-            }
-
-            // Check if user exists
-            const where = await injectOrganizationParams(req, {email});
-            if (await User.findOne({where})) {
-              throw new Error(`${email} already exists`);
-            }
-            userProperties[prop] = email;
+          // Check if user exists
+          const where = await organizationInjector({email});
+          if (await User.findOne({where})) {
+            throw new Error(`${email} already exists`);
+          }
+          userProperties[prop] = email;
+          break;
+        case 'password':
+          userProperties[prop] = await validateAndHashPassword(body[prop]);
+          break;
+        case 'superUser':
+          userProperties.role =
+            body[prop] == true ? AccessRoles.SUPERUSER : AccessRoles.USER;
+          break;
+        case 'networkIDs':
+          const networkIDsunsafe = body[prop];
+          if (Array.isArray(networkIDsunsafe)) {
+            const networkIDs: Array<string> = networkIDsunsafe.map(it => {
+              if (typeof it !== 'string') {
+                throw new Error('Please enter valid network IDs');
+              }
+              return it;
+            });
+            userProperties[prop] = networkIDs;
             break;
-          case 'password':
-            userProperties[prop] = await validateAndHashPassword(body[prop]);
-            break;
-          case 'superUser':
-            userProperties.role = body[prop]
-              ? AccessRoles.SUPERUSER
-              : AccessRoles.USER;
-            break;
-          default:
-            userProperties[prop] = body[prop];
-            break;
-        }
+          }
+          throw new Error('Please enter valid network IDs');
+        case 'organization':
+          if (typeof body[prop] !== 'string') {
+            throw new Error('Invalid Organization!');
+          }
+          userProperties[prop] = body[prop];
+          break;
+        default:
+          userProperties[prop] = body[prop];
+          break;
       }
     }
-    return userProperties;
   }
+  return userProperties;
+}
+
+function userMiddleware(options: Options): express.Router {
+  const router = express.Router();
 
   // Login / Logout Routes
   router.post('/login', (req: FBCNMSRequest, res, next) => {
@@ -109,40 +151,46 @@ function userMiddleware(options: Options): express.Router {
     })(req, res, next);
   });
 
-  router.get('/login', (req: FBCNMSRequest, res) => {
+  router.get('/login', async (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       res.redirect(ensureRelativeUrl(req.body.to) || '/');
       return;
     }
+
+    let isSSO = false;
+    try {
+      if (req.organization) {
+        const org = await req.organization();
+        isSSO = !!org.ssoEntrypoint;
+      }
+    } catch (e) {
+      logger.error('Error getting organization', e);
+    }
+
     res.render('login', {
       staticDist,
       configJson: JSON.stringify({
         appData: {
           csrfToken: req.csrfToken(),
+          isSSO,
         },
       }),
     });
   });
 
   router.get(
-    '/login/facebook',
-    passport.authenticate('facebook', {scope: ['email']}),
-  );
-
-  router.get(
-    '/login/facebook/callback',
-    passport.authenticate('facebook', {
-      successRedirect: options.loginSuccessUrl,
+    '/login/saml',
+    passport.authenticate('saml', {
       failureRedirect: options.loginFailureUrl,
+      authnRequestBinding: 'HTTP-Redirect',
     }),
-    (_req: FBCNMSRequest, res) => res.redirect('/'),
   );
 
   router.get('/logout', (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       req.logout();
     }
-    res.redirect(options.loginFailureUrl);
+    res.redirect('/');
   });
 
   // User Routes
@@ -179,14 +227,12 @@ function userMiddleware(options: Options): express.Router {
           throw new Error('Email not included!');
         }
 
-        const allowedProps = [
-          'email',
-          'networkIDs',
-          'password',
-          'superUser',
-          'verificationType',
-        ];
-        let userProperties = await getPropsToUpdate(req, allowedProps, body);
+        const allowedProps = ['email', 'networkIDs', 'password', 'superUser'];
+        let userProperties = await getPropsToUpdate(
+          allowedProps,
+          body,
+          params => injectOrganizationParams(req, params),
+        );
         userProperties = await injectOrganizationParams(req, userProperties);
         const user = await User.create(userProperties);
 
@@ -213,17 +259,12 @@ function userMiddleware(options: Options): express.Router {
         }
 
         // Create object to pass into update()
-        const allowedProps = [
-          'networkIDs',
-          'password',
-          'superUser',
-          'verificationType',
-        ];
+        const allowedProps = ['networkIDs', 'password', 'superUser'];
 
         const userProperties = await getPropsToUpdate(
-          req,
           allowedProps,
           req.body,
+          params => injectOrganizationParams(req, params),
         );
         if (isEmpty(userProperties)) {
           throw new Error('No valid properties to edit!');
@@ -274,7 +315,11 @@ function userMiddleware(options: Options): express.Router {
 }
 
 async function validateAndHashPassword(password) {
-  if (!password || password.length < MIN_PASSWORD_LENGTH) {
+  if (
+    typeof password !== 'string' ||
+    password === '' ||
+    password.length < MIN_PASSWORD_LENGTH
+  ) {
     throw new Error(
       'Password must contain at least ' + MIN_PASSWORD_LENGTH + ' characters',
     );

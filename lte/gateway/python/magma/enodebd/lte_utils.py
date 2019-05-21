@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from enum import Enum
+from typing import Optional
 
 
 class DuplexMode(Enum):
@@ -65,6 +66,7 @@ class LTEBandInfo:
             self.earfcnul = None
             self.freq_mhz_ul = None
 
+
 # See, for example, http://niviuk.free.fr/lte_band.php for LTE band info
 LTE_BAND_INFO = {
     # FDD bands
@@ -84,6 +86,17 @@ LTE_BAND_INFO = {
     48: LTEBandInfo(DuplexMode.TDD, range(55240, 56740), 3550),
 }
 # TODO - add remaining LTE bands
+
+
+def map_earfcndl_to_duplex_mode(earfcndl: int) -> Optional[DuplexMode]:
+    """
+    Returns None if we do not support the EARFCNDL
+    """
+    for band in LTE_BAND_INFO.keys():
+        if earfcndl in LTE_BAND_INFO[band].earfcndl:
+            return LTE_BAND_INFO[band].duplex_mode
+    return None
+
 
 def map_earfcndl_to_band_earfcnul_mode(earfcndl):
     """ Inputs:

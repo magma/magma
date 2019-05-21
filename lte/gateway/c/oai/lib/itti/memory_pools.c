@@ -43,13 +43,6 @@ const static int mp_debug = 0;
     fflush(stdout);                                                            \
   } while (0)
 
-#define VCD_SIGNAL_DUMPER_DUMP_VARIABLE_BY_NAME(...)
-#define VCD_SIGNAL_DUMPER_DUMP_FUNCTION_BY_NAME(...)
-#define VCD_SIGNAL_DUMPER_FUNCTIONS_ITTI_ENQUEUE_MESSAGE(...)
-
-uint64_t vcd_mp_alloc;
-uint64_t vcd_mp_free;
-
 /*------------------------------------------------------------------------------*/
 #define CHARS_TO_UINT32(c1, c2, c3, c4)                                        \
   (((c1) << 24) | ((c2) << 16) | ((c3) << 8) | (c4))
@@ -538,9 +531,6 @@ memory_pool_item_handle_t memory_pools_allocate(
   pool_id_t pool;
   items_group_index_t item_index = ITEMS_GROUP_INDEX_INVALID;
 
-  VCD_SIGNAL_DUMPER_DUMP_VARIABLE_BY_NAME(
-    VCD_SIGNAL_DUMPER_VARIABLE_MP_ALLOC,
-    __sync_or_and_fetch(&vcd_mp_alloc, 1L << info_0));
   /*
    * Recover memory_pools
    */
@@ -615,9 +605,6 @@ memory_pool_item_handle_t memory_pools_allocate(
       item_size);
   }
 
-  VCD_SIGNAL_DUMPER_DUMP_VARIABLE_BY_NAME(
-    VCD_SIGNAL_DUMPER_VARIABLE_MP_ALLOC,
-    __sync_and_and_fetch(&vcd_mp_alloc, ~(1L << info_0)));
   return memory_pool_item_handle;
 }
 
@@ -655,9 +642,7 @@ int memory_pools_free(
     "Failed to retrieve memory pool item for handle %p!\n",
     memory_pool_item_handle);
   info_1 = memory_pool_item->start.info[1];
-  VCD_SIGNAL_DUMPER_DUMP_VARIABLE_BY_NAME(
-    VCD_SIGNAL_DUMPER_VARIABLE_MP_FREE,
-    __sync_or_and_fetch(&vcd_mp_free, 1L << info_1));
+
   /*
    * Recover pool index
    */
@@ -722,10 +707,8 @@ int memory_pools_free(
     "Failed to free memory pool item (pool %u, item %d)!\n",
     pool,
     item_index);
-  VCD_SIGNAL_DUMPER_DUMP_VARIABLE_BY_NAME(
-    VCD_SIGNAL_DUMPER_VARIABLE_MP_FREE,
-    __sync_and_and_fetch(&vcd_mp_free, ~(1L << info_1)));
-  return (result);
+
+  return result;
 }
 
 //------------------------------------------------------------------------------

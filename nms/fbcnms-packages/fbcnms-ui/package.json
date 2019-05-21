@@ -10,8 +10,8 @@
     "notistack": "^0.4.1",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
-    "relay-runtime": "^3.0.0",
-    "react-perfect-scrollbar": "^1.4.4"
+    "react-perfect-scrollbar": "^1.4.4",
+    "relay-runtime": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.3.4",

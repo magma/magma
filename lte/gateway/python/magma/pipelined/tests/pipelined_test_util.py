@@ -419,3 +419,39 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
         fail('\n'.join(list(unified_diff(prev_snapshot, current_snapshot,
                                          fromfile='previous snapshot',
                                          tofile='current snapshot'))))
+
+
+class SnapshotVerifier:
+    """
+    SnapshotVerifier is a context wrapper for verifying bridge snapshots.
+    """
+
+    def __init__(self, test_case: TestCase, bridge_name: str,
+                 service_manager: ServiceManager,
+                 snapshot_name: Optional[str] = None):
+        """
+        These arguments are used to call assert_bridge_snapshot_match on exit.
+
+        Args:
+            test_case: Test case instance of the current test
+            bridge_name: Name of the bridge
+            service_manager: Service manager instance used to obtain the app to
+                table number mapping
+            snapshot_name: Name of the snapshot. For tests with multiple snapshots,
+                this is used to distinguish the snapshots
+        """
+        self._test_case = test_case
+        self._bridge_name = bridge_name
+        self._service_manager = service_manager
+        self._snapshot_name = snapshot_name
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, type, value, traceback):
+        """
+        Runs after finishing 'with' (Verify snapshot)
+        """
+        assert_bridge_snapshot_match(self._test_case, self._bridge_name,
+                                     self._service_manager,
+                                     self._snapshot_name)

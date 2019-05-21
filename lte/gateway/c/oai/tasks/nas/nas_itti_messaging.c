@@ -181,6 +181,10 @@ void nas_itti_pdn_config_req(
   AssertFatal(imsi_pP != NULL, "imsi_pP param is NULL");
   AssertFatal(proc_data_pP != NULL, "proc_data_pP param is NULL");
 
+  OAILOG_INFO(
+    LOG_NAS_EMM, "Sending PDN CONFIG REQ to MME_APP , (ue_idP = %u) \n",
+    ue_idP);
+
   message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_PDN_CONFIG_REQ);
 
   hexa_to_ascii(
@@ -194,6 +198,11 @@ void nas_itti_pdn_config_req(
   bassign(NAS_PDN_CONFIG_REQ(message_p).apn, proc_data_pP->apn);
   bassign(NAS_PDN_CONFIG_REQ(message_p).pdn_addr, proc_data_pP->pdn_addr);
 
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "PDN Type = (%d) for (ue_id = %u)\n ",
+    proc_data_pP->pdn_type,
+    ue_idP);
   switch (proc_data_pP->pdn_type) {
     case ESM_PDN_TYPE_IPV4:
       NAS_PDN_CONFIG_REQ(message_p).pdn_type = IPv4;
@@ -295,6 +304,10 @@ void nas_itti_pdn_connectivity_req(
     ue_idP,
     NAS_PDN_CONNECTIVITY_REQ(message_p).imsi);
 
+  OAILOG_INFO(
+    LOG_NAS_ESM,
+    "Sending PDN CONNECTIVITY REQ to MME_APP for ue id " MME_UE_S1AP_ID_FMT " \n",
+    ue_idP);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -312,6 +325,10 @@ void nas_itti_auth_info_req(
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef *message_p = NULL;
   s6a_auth_info_req_t *auth_info_req = NULL;
+
+  OAILOG_INFO(
+    LOG_NAS_EMM, " Sending Authentication Information Request message to S6A for ue_id = (%u) \n",
+    ue_idP);
 
   message_p = itti_alloc_new_message(TASK_NAS_MME, S6A_AUTH_INFO_REQ);
   auth_info_req = &message_p->ittiMsg.s6a_auth_info_req;
@@ -471,7 +488,14 @@ void nas_itti_establish_cnf(
       selected_integrity_algorithmP);
 
     unlock_ue_contexts(ue_mm_context);
+    OAILOG_INFO(LOG_NAS_EMM, "Sending NAS Connection Establishment confirm for ue_id "MME_UE_S1AP_ID_FMT"\n",
+      ue_idP);
     itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  } else {
+    OAILOG_WARNING(
+      LOG_NAS_EMM,
+      "UE MM context NULL! for ue_id = (%u)\n",
+      ue_idP);
   }
 
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -505,6 +529,10 @@ void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type)
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef *message_p;
 
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Send SGS Detach Request to MME for ue_id = %u\n",
+    ue_idP);
   message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_SGS_DETACH_REQ);
   memset(
     &message_p->ittiMsg.nas_sgs_detach_req,

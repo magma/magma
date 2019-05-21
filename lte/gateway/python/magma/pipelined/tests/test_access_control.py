@@ -27,7 +27,7 @@ from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
     stop_ryu_app_thread, FlowTest, wait_after_send, FlowVerifier, \
-    create_service_manager
+    create_service_manager, assert_bridge_snapshot_match
 from ryu.lib.packet import ether_types
 
 
@@ -51,8 +51,8 @@ class AccessControlTest(unittest.TestCase):
         """
         super(AccessControlTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        service_manager = create_service_manager([])
-        cls._tbl_num = service_manager.get_table_num(
+        cls.service_manager = create_service_manager([])
+        cls._tbl_num = cls.service_manager.get_table_num(
             AccessControlController.APP_NAME)
 
         access_control_controller_reference = Future()
@@ -90,7 +90,7 @@ class AccessControlTest(unittest.TestCase):
             },
             mconfig=None,
             loop=None,
-            service_manager=service_manager,
+            service_manager=cls.service_manager,
             integ_test=False,
         )
 
@@ -160,6 +160,9 @@ class AccessControlTest(unittest.TestCase):
                 pkt_sender.send(packet)
 
         flow_verifier.verify()
+        assert_bridge_snapshot_match(self,
+                                     self.BRIDGE,
+                                     self.service_manager)
 
     def test_outbound_ip_match(self):
         """
@@ -215,6 +218,9 @@ class AccessControlTest(unittest.TestCase):
                 pkt_sender.send(packet)
 
         flow_verifier.verify()
+        assert_bridge_snapshot_match(self,
+                                     self.BRIDGE,
+                                     self.service_manager)
 
     def test_no_match(self):
         """
@@ -271,6 +277,9 @@ class AccessControlTest(unittest.TestCase):
                 pkt_sender.send(packet)
 
         flow_verifier.verify()
+        assert_bridge_snapshot_match(self,
+                                     self.BRIDGE,
+                                     self.service_manager)
 
     def _build_default_ip_packet(self, dst, src):
         return IPPacketBuilder() \

@@ -359,3 +359,23 @@ class BaicellsOldHandlerTests(TestCase):
                         'After receiving a post-reboot Inform, enodebd '
                         'should end TR-069 sessions for 10 minutes to wait '
                         'for REM process to finish.')
+
+        # Pretend that we have waited, and now we are in normal operation again
+        acs_state_machine.transition('wait_inform_post_reboot')
+        req = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003',
+                                           ['2 PERIODIC'])
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'After receiving a post-reboot Inform, enodebd '
+                        'should end TR-069 sessions for 10 minutes to wait '
+                        'for REM process to finish.')
+
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'enodebd should be requesting params')
+        self.assertTrue(len(resp.ParameterNames.string) > 1,
+                        'Should be requesting transient params.')

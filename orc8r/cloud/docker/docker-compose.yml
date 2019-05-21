@@ -3,19 +3,30 @@ version: "3.7"
 services:
   datastore:
     image: postgres
-    restart: always
+    volumes:
+      - $PWD/../../../.cache/orc8r/pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: magma_dev
       POSTGRES_PASSWORD: magma_dev
       POSTGRES_DB: magma_dev
+    restart: always
 
   proxy:
-    volumes:
-      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
     ports:
       - 9443:9443/tcp  # API/controller port
       - 9444:9444/tcp  # Bootstrapper port
+    volumes:
+      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
+    environment:
+      CONTROLLER_HOSTNAME: controller.magma.test
+      PROXY_BACKENDS: controller  # Uses Docker internal DNS for controller
+    restart: always
 
   controller:
     volumes:
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
+    environment:
+      SQL_DRIVER: postgres
+      DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=datastore sslmode=disable"
+      TEST_MODE: 1  # Used to run dev scripts on startup
+    restart: always

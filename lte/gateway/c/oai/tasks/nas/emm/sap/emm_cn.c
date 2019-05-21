@@ -50,6 +50,7 @@
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_29.274.h"
+#include "3gpp_24.301.h"
 #include "mme_app_ue_context.h"
 #include "emm_cn.h"
 #include "emm_sap.h"
@@ -227,6 +228,48 @@ static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id)
   emm_proc_detach_request(ue_id, params);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+//------------------------------------------------------------------------------
+void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
+{
+  ESM_msg esm_msg = {.header = {0}};
+  struct emm_context_s *emm_ctx = NULL;
+  uint8_t emm_cn_sap_buffer[EMM_CN_SAP_BUFFER_SIZE];
+
+  if (ue_context == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  /*Setup ESM message*/
+  emm_ctx = &ue_context->emm_context;
+  esm_send_pdn_connectivity_reject(
+    emm_ctx->esm_ctx.esm_proc_data->pti,
+    &esm_msg.pdn_connectivity_reject,
+    ESM_CAUSE_REQUESTED_APN_NOT_SUPPORTED_IN_CURRENT_RAT);
+
+  int size =
+    esm_msg_encode(&esm_msg, emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
+  OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
+
+  if (size > 0) {
+    nas_emm_attach_proc_t *attach_proc =
+      get_nas_specific_procedure_attach(emm_ctx);
+    /*
+     * Setup the ESM message container
+     */
+    attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
+    increment_counter(
+      "ue_attach",
+      1,
+      2,
+      "result",
+      "failure",
+      "cause",
+      "pdn_connection_estb_failed");
+    emm_proc_attach_reject(ue_context->mme_ue_s1ap_id, EMM_CAUSE_ESM_FAILURE);
+  }
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
 
 //------------------------------------------------------------------------------
 static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
@@ -244,6 +287,11 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
+  } else {
+    OAILOG_WARNING(
+      LOG_NAS_EMM,
+      "EMMCN-SAP  - ue_mm_context Null for ue_id (%u)\n",
+      msg_pP->ue_id);
   }
 
   if (emm_ctx == NULL) {
@@ -266,10 +314,17 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
     /*
      * Unfortunately we didn't find our default APN...
      */
-    OAILOG_INFO(
+    OAILOG_ERROR(
       LOG_NAS_ESM,
       "No suitable APN found ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       ue_mm_context->mme_ue_s1ap_id);
+    if (!emm_ctx->esm_ctx.esm_proc_data->apn) {
+      /*
+       * If there is a mismatch between the APN sent by UE and the APN provided by HSS,
+       * send Attach Reject to UE
+       */
+       _handle_apn_mismatch(ue_mm_context);
+    }
     return RETURNerror;
   }
 
@@ -311,6 +366,10 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
     emm_ctx->esm_ctx.esm_proc_data->bearer_qos.gbr.br_dl = 0;
     emm_ctx->esm_ctx.esm_proc_data->bearer_qos.mbr.br_ul = 0;
     emm_ctx->esm_ctx.esm_proc_data->bearer_qos.mbr.br_dl = 0;
+    //If UE has not sent APN, use the default APN sent by HSS
+    if (emm_ctx->esm_ctx.esm_proc_data->apn == NULL) {
+        emm_ctx->esm_ctx.esm_proc_data->apn = bfromcstr((const char *)apn_config->service_selection);
+    }
     // TODO  "Better to throw emm_ctx->esm_ctx.esm_proc_data as a parameter or as a hidden parameter ?"
     rc = esm_proc_pdn_connectivity_request(
       emm_ctx,
@@ -343,12 +402,24 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
           &new_ebi,
           emm_ctx->esm_ctx.esm_proc_data->bearer_qos.qci,
           &esm_cause);
+        if ( rc < 0 ) {
+          OAILOG_WARNING(
+            LOG_NAS_ESM,
+            "Failed to Allocate resources required for activation"
+            " of a default EPS bearer context for (ue_id =" MME_UE_S1AP_ID_FMT ")\n",
+            ue_mm_context->mme_ue_s1ap_id);
+        }
       }
 
       if (rc != RETURNerror) {
         esm_cause = ESM_CAUSE_SUCCESS;
       }
     } else {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "Failed to Perform PDN connectivity procedure requested by ue"
+        "for (ue_id =" MME_UE_S1AP_ID_FMT ")\n",
+        ue_mm_context->mme_ue_s1ap_id);
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
@@ -454,6 +525,7 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
       }
     }
   }
+  OAILOG_DEBUG(LOG_NAS_EMM, "is_csfb_enabled = False\n");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
@@ -474,6 +546,10 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
+  } else {
+    OAILOG_WARNING(
+      LOG_NAS_EMM,
+      "EMMCN-SAP  - ue mm context null ..\n");
   }
 
   if (emm_ctx == NULL) {
@@ -489,41 +565,41 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 
   switch (msg_pP->pdn_type) {
     case IPv4:
-      OAILOG_INFO(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4\n");
+      OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4\n");
       esm_pdn_type = ESM_PDN_TYPE_IPV4;
       break;
 
     case IPv6:
-      OAILOG_INFO(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV6\n");
+      OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV6\n");
       esm_pdn_type = ESM_PDN_TYPE_IPV6;
       break;
 
     case IPv4_AND_v6:
-      OAILOG_INFO(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4V6\n");
+      OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4V6\n");
       esm_pdn_type = ESM_PDN_TYPE_IPV4V6;
       break;
 
     default:
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4 (forced to default)\n");
       esm_pdn_type = ESM_PDN_TYPE_IPV4;
   }
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMM  -  qci       = %u \n", msg_pP->qci);
-  OAILOG_INFO(LOG_NAS_EMM, "EMM  -  qos.qci   = %u \n", msg_pP->qos.qci);
-  OAILOG_INFO(LOG_NAS_EMM, "EMM  -  qos.mbrUL = %u \n", msg_pP->qos.mbrUL);
-  OAILOG_INFO(LOG_NAS_EMM, "EMM  -  qos.mbrDL = %u \n", msg_pP->qos.mbrDL);
-  OAILOG_INFO(LOG_NAS_EMM, "EMM  -  qos.gbrUL = %u \n", msg_pP->qos.gbrUL);
-  OAILOG_INFO(LOG_NAS_EMM, "EMM  -  qos.gbrDL = %u \n", msg_pP->qos.gbrDL);
+  OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qci       = %u \n", msg_pP->qci);
+  OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.qci   = %u \n", msg_pP->qos.qci);
+  OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.mbrUL = %u \n", msg_pP->qos.mbrUL);
+  OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.mbrDL = %u \n", msg_pP->qos.mbrDL);
+  OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.gbrUL = %u \n", msg_pP->qos.gbrUL);
+  OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.gbrDL = %u \n", msg_pP->qos.gbrDL);
   qos.bitRatesPresent = 0;
   qos.bitRatesExtPresent = 0;
   //#pragma message "Some work to do here about qos"
   qos.qci = msg_pP->qci;
-  qos.bitRates.maxBitRateForUL = 0;  //msg_pP->qos.mbrUL;
-  qos.bitRates.maxBitRateForDL = 0;  //msg_pP->qos.mbrDL;
-  qos.bitRates.guarBitRateForUL = 0; //msg_pP->qos.gbrUL;
-  qos.bitRates.guarBitRateForDL = 0; //msg_pP->qos.gbrDL;
+  qos.bitRates.maxBitRateForUL = msg_pP->qos.mbrUL;
+  qos.bitRates.maxBitRateForDL = msg_pP->qos.mbrDL;
+  qos.bitRates.guarBitRateForUL = msg_pP->qos.gbrUL;
+  qos.bitRates.guarBitRateForDL = msg_pP->qos.gbrDL;
   qos.bitRatesExt.maxBitRateForUL = 0;
   qos.bitRatesExt.maxBitRateForDL = 0;
   qos.bitRatesExt.guarBitRateForUL = 0;
@@ -555,7 +631,7 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
     int size = esm_msg_encode(
       &esm_msg, (uint8_t *) emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
 
-    OAILOG_INFO(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
+    OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
     if (size > 0) {
       rsp = blk2bstr(emm_cn_sap_buffer, size);
@@ -579,7 +655,7 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   } else {
-    OAILOG_INFO(
+    OAILOG_ERROR(
       LOG_NAS_EMM,
       "ESM send activate_default_eps_bearer_context_request failed\n");
   }
@@ -713,10 +789,12 @@ static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
   if (size > 0) {
     nas_emm_attach_proc_t *attach_proc =
       get_nas_specific_procedure_attach(emm_ctx_p);
-    /*
-     * Setup the ESM message container
-     */
-    attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
+    if (attach_proc){
+      /*
+       * Setup the ESM message container
+       */
+      attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
+    }
     increment_counter(
       "ue_attach",
       1,

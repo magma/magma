@@ -60,6 +60,7 @@ export type WifiConfig = {
 };
 
 export type CellularConfig = {
+  attached_enodeb_serials: Array<string>,
   epc: {
     nat_enabled: boolean,
     ip_block: string,

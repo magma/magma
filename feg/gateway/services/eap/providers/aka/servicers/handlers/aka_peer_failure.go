@@ -16,6 +16,7 @@ import (
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 )
 
@@ -29,6 +30,7 @@ func init() {
 // see https://tools.ietf.org/html/rfc4187#section-9.5 for details
 func authRejectResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
 	var sid string
+	metrics.PeerAuthReject.Inc()
 
 	if ctx == nil || len(ctx.SessionId) == 0 {
 		log.Printf("WARNING: Missing CTX/Empty Session ID in AKA-Authentication-Reject")
@@ -46,12 +48,12 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap
 		resultErr error
 		errorCode int
 	)
+	metrics.PeerClientError.Inc()
 	if ctx != nil && len(ctx.SessionId) > 0 {
 		sid = ctx.SessionId
 		scanner, err := eap.NewAttributeScanner(req)
 		if err != nil {
 			resultErr = fmt.Errorf("Malformed AKA-Client-Error Packet %v", err)
-			log.Printf("WARNING: %v", resultErr)
 		} else {
 			var a eap.Attribute
 			for a, err = scanner.Next(); err == nil; a, err = scanner.Next() {
@@ -67,14 +69,15 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap
 			if err != nil {
 				resultErr = fmt.Errorf(
 					"AKA-Client-Error Packet for Session ID %s does not include AT_CLIENT_ERROR_CODE", sid)
-				log.Printf("WARNING: %v", resultErr)
 			}
 		}
 	} else {
 		resultErr = fmt.Errorf("Missing CTX/Empty Session ID in AKA-Client-Error")
+	}
+	if resultErr != nil {
 		log.Printf("WARNING: %v", resultErr)
 	}
-	return peerFailure(s, sid, req.Identifier(), errorCode), resultErr
+	return peerFailure(s, sid, req.Identifier(), errorCode), nil
 }
 
 // notificationResponse implements handler for EAP-Response/AKA-Notification
@@ -85,7 +88,7 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 		resultErr error
 		errorCode int
 	)
-
+	metrics.PeerNotification.Inc()
 	if ctx == nil || len(ctx.SessionId) == 0 {
 		log.Printf("WARNING: Missing CTX/Empty Session ID in AKA-Notification")
 	} else {
@@ -93,12 +96,10 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 	}
 	if len(req) < 12 { // min Notification packet len
 		resultErr = fmt.Errorf("Session AKA-Notification for session ID %s is too short: %x", sid, req)
-		log.Printf("WARNING: %v", resultErr)
 	} else {
 		scanner, err := eap.NewAttributeScanner(req)
 		if err != nil {
 			resultErr = fmt.Errorf("Malformed Session AKA-Notification for session ID %s: %x", sid, req)
-			log.Printf("WARNING: %v", resultErr)
 		} else {
 			var a eap.Attribute
 			for a, err = scanner.Next(); err == nil; a, err = scanner.Next() {
@@ -109,7 +110,6 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 							errorCode = int((uint16(cb[1]) << 8) + uint16(cb[0]))
 							resultErr = fmt.Errorf("AKA-Notification S bit is set for Session ID: %s, code: %d",
 								sid, errorCode)
-							log.Printf("ERROR: %v", resultErr)
 						}
 					}
 					break
@@ -118,14 +118,17 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req ea
 			if err != nil {
 				resultErr = fmt.Errorf("AKA-Notification Packet for Session ID %s does not include AT_NOTIFICATION",
 					sid)
-				log.Printf("WARNING: %v", resultErr)
 			}
 		}
 	}
-	return peerFailure(s, sid, req.Identifier(), errorCode), resultErr
+	if resultErr != nil {
+		log.Printf("WARNING: %v", resultErr)
+	}
+	return peerFailure(s, sid, req.Identifier(), errorCode), nil
 }
 
 func peerFailure(s *servicers.EapAkaSrv, sessionId string, identifier uint8, errorCode int) eap.Packet {
+	metrics.PeerFailures.Inc()
 	if s != nil {
 		imsi := s.RemoveSession(sessionId)
 		if len(imsi) > 0 {
@@ -133,5 +136,14 @@ func peerFailure(s *servicers.EapAkaSrv, sessionId string, identifier uint8, err
 				sessionId, imsi, errorCode)
 		}
 	}
-	return []byte{eap.FailureCode, identifier + 1, 0, 4}
+	// Return RFC 3748 p4.2 EAP Failure packet
+	//  0                   1                   2                   3
+	//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+	// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	// |     Code      |  Identifier   |            Length             |
+	// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+	return []byte{
+		eap.FailureCode, // Code
+		identifier,      // Identifier
+		0, 4}            // Length
 }

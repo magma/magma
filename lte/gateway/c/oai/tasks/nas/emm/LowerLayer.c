@@ -481,7 +481,7 @@ void emm_as_set_security_data(
      * * * * NAS signalling messages with the selected NAS ciphering and
      * * * * NAS integrity algorithms
      */
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "EPS security context exists is new %u KSI %u SQN %u count %u\n",
       is_new,
@@ -533,7 +533,7 @@ void emm_as_set_security_data(
       memcpy(data->knas_enc, context->knas_enc, sizeof(data->knas_enc));
     }
   } else {
-    OAILOG_DEBUG(LOG_NAS_EMM, "NO Valid Security Context Available\n");
+    OAILOG_WARNING(LOG_NAS_EMM, "NO Valid Security Context Available\n");
     /*
      * No valid EPS security context exists
      */

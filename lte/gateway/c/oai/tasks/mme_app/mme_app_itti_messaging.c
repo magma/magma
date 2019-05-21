@@ -72,6 +72,12 @@ void mme_app_itti_ue_context_release(
   message_p =
     itti_alloc_new_message(TASK_MME_APP, S1AP_UE_CONTEXT_RELEASE_COMMAND);
 
+  OAILOG_INFO(
+    LOG_MME_APP, "Sending UE Context Release Cmd to S1ap for (ue_id = %u)\n"
+    "UE Context Release Cause = (%d)\n",
+    ue_context_p->mme_ue_s1ap_id,
+    cause);
+
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).mme_ue_s1ap_id =
     ue_context_p->mme_ue_s1ap_id;
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).enb_ue_s1ap_id =
@@ -268,6 +274,11 @@ int mme_app_send_s11_create_session_req(
   /*
    * Set PDN type for pdn_type and PAA even if this IE is redundant
    */
+  OAILOG_DEBUG(
+    LOG_MME_APP,
+    "selected apn config PDN Type = %d for (ue_id = %u)\n",
+    selected_apn_config_p->pdn_type,
+    ue_mm_context->mme_ue_s1ap_id);
   session_request_p->pdn_type = selected_apn_config_p->pdn_type;
   session_request_p->paa.pdn_type = selected_apn_config_p->pdn_type;
 
@@ -328,6 +339,9 @@ int mme_app_send_s11_create_session_req(
     0,
     "0 S11_CREATE_SESSION_REQUEST imsi " IMSI_64_FMT,
     ue_mm_context->emm_context._imsi64);
+  OAILOG_INFO(
+    TASK_MME_APP, "Sending S11 CREATE SESSION REQ message to SPGW for (ue_id = %u)\n",
+    ue_mm_context->mme_ue_s1ap_id);
   rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

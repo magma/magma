@@ -14,7 +14,6 @@ import sys
 import time
 import asyncio
 import netifaces
-
 import grpc
 import psutil
 import snowflake
@@ -32,7 +31,6 @@ from orc8r.protos.magmad_pb2 import (
     Route,
 )
 from orc8r.protos.magmad_pb2_grpc import CheckindStub
-
 from magma.common.misc_utils import (
     get_ip_from_if,
     is_interface_up,
@@ -40,6 +38,7 @@ from magma.common.misc_utils import (
     get_if_mac_address,
     IpPreference,
 )
+from magma.magmad.gateway_status import GatewayStatusNative
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service_registry import ServiceRegistry
@@ -85,7 +84,6 @@ class CheckinManager(SDWatchdogTask):
 
         # One time status info
         self._boot_time = psutil.boot_time()
-        self._kernel_name = platform.system()
         self._kernel_version = platform.uname().release
         cpu_info = get_cpu_info()
         if cpu_info.error is not None:
@@ -96,10 +94,13 @@ class CheckinManager(SDWatchdogTask):
             architecture=cpu_info.architecture,
             model_name=cpu_info.model_name,
         )
+        self.native_gw_status_generator = GatewayStatusNative(service)
 
         self._kernel_versions_installed = []
         self._periodically_check_kernel_versions = \
             service.config.get('enable_kernel_version_checking', False)
+        # Save for the state manager to also send to the state service
+        self.gw_status_json = None
         # set initial checkin timeout to "large" since no checkins occur until
         #   bootstrap succeeds.
         self.set_timeout(60 * 60 * 2)
@@ -157,6 +158,9 @@ class CheckinManager(SDWatchdogTask):
     def set_failure_cb(self, checkin_failure_cb):
         self._checkin_failure_cb = checkin_failure_cb
 
+    def get_latest_gw_state(self) -> str:
+        return self.gw_status_json
+
     async def _run(self):
         """
         This functions gets run in a loop in job.py
@@ -188,6 +192,10 @@ class CheckinManager(SDWatchdogTask):
 
         for statusmeta in service_statusmeta.values():
             request.status.meta.update(statusmeta)
+
+        # Save for the state manager to also send to the state service
+        self.gw_status_json = self.native_gw_status_generator.make_status(
+            service_statusmeta, self._kernel_versions_installed)
 
         try:
             await grpc_async_wrapper(
@@ -323,7 +331,7 @@ class CheckinManager(SDWatchdogTask):
 
     async def _check_kernel_versions(self):
         try:
-            result = await get_kernel_versions_async()
+            result = await get_kernel_versions_async(loop=self._loop)
             result = list(result)[0].kernel_versions_installed
             self._kernel_versions_installed = result
         except Exception as e:

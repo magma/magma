@@ -111,11 +111,11 @@ class RyuRPCSubscriberContext(SubscriberContext):
     def __init__(self, imsi, ip, pipelined_stub, table_id=5):
         self.cfg = SubContextConfig(imsi, ip, table_id)
         self._dynamic_rules = []
-        self._static_rule_names = set()
+        self._static_rule_names = []
         self._pipelined_stub = pipelined_stub
 
     def add_static_rule(self, id):
-        self._static_rule_names.add(id)
+        self._static_rule_names.append(id)
         return self
 
     def add_dynamic_rule(self, policy_rule):
@@ -147,12 +147,12 @@ class RyuDirectSubscriberContext(SubscriberContext):
                  enforcement_stats_controller=None):
         self.cfg = SubContextConfig(imsi, ip, table_id)
         self._dynamic_rules = []
-        self._static_rule_names = set()
+        self._static_rule_names = []
         self._ec = enforcement_controller
         self._esc = enforcement_stats_controller
 
     def add_static_rule(self, id):
-        self._static_rule_names.add(id)
+        self._static_rule_names.append(id)
         return self
 
     def add_dynamic_rule(self, policy_rule):
