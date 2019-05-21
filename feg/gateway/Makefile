@@ -53,4 +53,4 @@ build_only:
 run_local_hss:
 	sudo service magma@hss start
 
-precommit: fmt gen build_only test vet
+precommit: fmt test vet
