@@ -33,7 +33,6 @@
 
 #include "dynamic_memory_check.h"
 #include "assertions.h"
-#include "msc.h"
 #include "intertask_interface.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_itti_messaging.h"
@@ -85,14 +84,6 @@ static void mme_app_send_sgs_eps_detach_indication(
     (uint8_t) strlen(SGSAP_IMSI_DETACH_IND(message_p).imsi);
 
   SGSAP_EPS_DETACH_IND(message_p).eps_detach_type = detach_type;
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_SGS_MME,
-    NULL,
-    0,
-    "0 SGS_EPS_DETACH_INDICATION imsi " IMSI_64_FMT,
-    ue_context_p->imsi);
 
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
 
@@ -268,14 +259,6 @@ void mme_app_send_sgs_imsi_detach_indication(
   SGSAP_IMSI_DETACH_IND(message_p).imsi_length =
     (uint8_t) strlen(SGSAP_IMSI_DETACH_IND(message_p).imsi);
   SGSAP_IMSI_DETACH_IND(message_p).noneps_detach_type = detach_type;
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_SGS_MME,
-    NULL,
-    0,
-    "0 SGS_IMSI_DETACH_INDICATION imsi " IMSI_64_FMT,
-    ue_context_p->imsi);
 
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
   if (detach_type == SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) {

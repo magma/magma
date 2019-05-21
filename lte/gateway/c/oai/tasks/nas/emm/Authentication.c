@@ -26,7 +26,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "common_types.h"
@@ -236,13 +235,6 @@ int emm_proc_authentication_ksi(
       /*
        * Notify EMM that common procedure has been initiated
        */
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "EMMREG_COMMON_PROC_REQ (AUTH) ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
       emm_sap_t emm_sap = {0};
 
       emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
@@ -678,10 +670,6 @@ int emm_proc_authentication_failure(
        *  Ask for a new vector.
        */
         REQUIREMENT_3GPP_24_301(R10_5_4_2_4__3);
-        MSC_LOG_EVENT(
-          MSC_NAS_EMM_MME,
-          " SQN SYNCH_FAILURE ue id " MME_UE_S1AP_ID_FMT " ",
-          ue_mm_context->mme_ue_s1ap_id);
 
         auth_proc->sync_fail_count += 1;
         if (EMM_AUTHENTICATION_SYNC_FAILURE_MAX > auth_proc->sync_fail_count) {
@@ -1031,13 +1019,6 @@ int emm_proc_authentication_complete(
     /*
    * Notify EMM that the authentication procedure successfully completed
    */
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "EMMREG_COMMON_PROC_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     OAILOG_DEBUG(
       LOG_NAS_EMM,
       "EMM-PROC  - Notify EMM that the authentication procedure successfully "
@@ -1315,13 +1296,6 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
     emm_as_set_security_data(
       &emm_sap.u.emm_as.u.security.sctx, &emm_ctx->_security, false, true);
     REQUIREMENT_3GPP_24_301(R10_5_4_2_2);
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "EMMAS_SECURITY_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-      auth_proc->ue_id);
     rc = emm_sap_send(&emm_sap);
 
     if (rc != RETURNerror) {
@@ -1415,13 +1389,6 @@ static int _authentication_ll_failure(
     nas_emm_auth_proc_t *auth_proc = (nas_emm_auth_proc_t *) emm_proc;
     emm_sap_t emm_sap = {0};
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0 EMMREG_PROC_ABORT ue id " MME_UE_S1AP_ID_FMT " ",
-      auth_proc->ue_id);
     emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
     emm_sap.u.emm_reg.ue_id = auth_proc->ue_id;
     emm_sap.u.emm_reg.ctx = emm_context;

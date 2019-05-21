@@ -36,10 +36,8 @@
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
-#include "msc.h"
 
 #include "NwGtpv2c.h"
 #include "NwGtpv2cIe.h"
@@ -102,13 +100,6 @@ int s11_mme_release_access_bearers_request(
 
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
   DevAssert(NW_OK == rc);
-  MSC_LOG_TX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 RELEASE_ACCESS_BEARERS_REQUEST local S11 teid " TEID_FMT " ",
-    req_p->local_teid);
   return RETURNok;
 }
 
@@ -155,8 +146,11 @@ int s11_mme_handle_release_access_bearer_response(
   /*
    * Recovery IE
    */
-  /*rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_RECOVERY, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_OPTIONAL, s11_fteid_ie_get,
-		  &resp_p->recovery);
+  /*rc = nwGtpv2cMsgParserAddIe (
+      pMsgParser, NW_GTPV2C_IE_RECOVERY,
+      NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_OPTIONAL,
+      s11_fteid_ie_get, &resp_p->recovery);
   DevAssert (NW_OK == rc);*/
 
   /*
@@ -170,13 +164,6 @@ int s11_mme_handle_release_access_bearer_response(
     &offendingIeLength);
 
   if (rc != NW_OK) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_S11_MME,
-      MSC_SGW,
-      NULL,
-      0,
-      "0 RELEASE_ACCESS_BEARERS_RESPONSE local S11 teid " TEID_FMT " ",
-      resp_p->teid);
     /*
      * TODO: handle this case
      */
@@ -188,15 +175,6 @@ int s11_mme_handle_release_access_bearer_response(
     DevAssert(NW_OK == rc);
     return RETURNerror;
   }
-
-  MSC_LOG_RX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 RELEASE_ACCESS_BEARERS_RESPONSE local S11 teid " TEID_FMT " cause %u",
-    resp_p->teid,
-    resp_p->cause);
 
   rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
   DevAssert(NW_OK == rc);
@@ -261,15 +239,6 @@ int s11_mme_modify_bearer_request(
     DevAssert(NW_OK == rc);
   }
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 MODIFY_BEARER_REQUEST local S11 teid " TEID_FMT " num bearers ctx %u",
-    req_p->local_teid,
-    req_p->bearer_contexts_to_be_modified.num_bearer_context);
-
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
   DevAssert(NW_OK == rc);
   return RETURNok;
@@ -331,15 +300,6 @@ int s11_mme_create_bearer_response(
     DevAssert(NW_OK == rc);
   }
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 CREATE_BEARER_RESPONSE S11 teid " TEID_FMT " num bearers ctx %u",
-    response_p->teid,
-    response_p->bearer_contexts.num_bearer_context);
-
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
   DevAssert(NW_OK == rc);
   return RETURNok;
@@ -387,8 +347,10 @@ int s11_mme_handle_modify_bearer_response(
   /*
    * Recovery IE
    */
-  /*rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_RECOVERY, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_OPTIONAL, s11_fteid_ie_get,
-		  &resp_p->recovery);
+  /*rc = nwGtpv2cMsgParserAddIe (
+      pMsgParser, NW_GTPV2C_IE_RECOVERY,
+      NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_OPTIONAL, s11_fteid_ie_get, &resp_p->recovery);
   DevAssert (NW_OK == rc);*/
 
   /*
@@ -402,13 +364,6 @@ int s11_mme_handle_modify_bearer_response(
     &offendingIeLength);
 
   if (rc != NW_OK) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_S11_MME,
-      MSC_SGW,
-      NULL,
-      0,
-      "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT " ",
-      resp_p->teid);
     /*
      * TODO: handle this case
      */
@@ -421,14 +376,6 @@ int s11_mme_handle_modify_bearer_response(
     return RETURNerror;
   }
 
-  MSC_LOG_RX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT " cause %u",
-    resp_p->teid,
-    resp_p->cause);
   rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
@@ -506,13 +453,6 @@ int s11_mme_handle_create_bearer_request(
       &offendingIeLength);
 
     if (rc != NW_OK) {
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_S11_MME,
-        MSC_SGW,
-        NULL,
-        0,
-        "0 CREATE_BEARER_REQUEST local S11 teid " TEID_FMT " ",
-        req_p->teid);
       /*
        * TODO: handle this case
        */
@@ -525,14 +465,6 @@ int s11_mme_handle_create_bearer_request(
       return RETURNerror;
     }
 
-    MSC_LOG_RX_MESSAGE(
-      MSC_S11_MME,
-      MSC_SGW,
-      NULL,
-      0,
-      "0 CREATE_BEARER_REQUEST local S11 teid " TEID_FMT " lebi %u",
-      req_p->teid,
-      req_p->linked_eps_bearer_id);
     rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
     DevAssert(NW_OK == rc);
     rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));

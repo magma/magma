@@ -40,7 +40,6 @@
 #include "common_defs.h"
 #include "emm_esmDef.h"
 #include "esm_msg.h"
-#include "msc.h"
 #include "nas_timer.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -277,14 +276,6 @@ static int _esm_information(
   emm_sap.u.emm_esm.ctx = ue_context;
   emm_esm->msg = bstrcpy(data->msg);
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMESM_UNITDATA_REQ (ESM_INFORMATION_REQUEST) ue id " MME_UE_S1AP_ID_FMT
-    " ",
-    ue_id);
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
@@ -297,8 +288,6 @@ static int _esm_information(
       0 /*usec*/,
       _esm_information_t3489_handler,
       data);
-    MSC_LOG_EVENT(
-      MSC_NAS_EMM_MME, "T3489 started UE " MME_UE_S1AP_ID_FMT " ", ue_id);
 
     OAILOG_INFO(
       LOG_NAS_EMM,

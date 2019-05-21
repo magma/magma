@@ -39,7 +39,6 @@
 #include "assertions.h"
 #include "hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "mme_config.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"

@@ -35,7 +35,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "conversions.h"
 #include "intertask_interface.h"
@@ -78,14 +77,6 @@ int nas_itti_dl_data_req(
   NAS_DL_DATA_REQ(message_p).nas_msg = nas_msg;
   nas_msg = NULL;
   NAS_DL_DATA_REQ(message_p).transaction_status = transaction_status;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_S1AP_MME,
-    NULL,
-    0,
-    "0 NAS_DOWNLINK_DATA_REQ ue id " MME_UE_S1AP_ID_FMT " len %u",
-    ue_id,
-    blength(nas_msg));
   // make a long way by MME_APP instead of S1AP to retrieve the sctp_association_id key.
   return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
@@ -110,15 +101,6 @@ int nas_itti_erab_setup_req(
   NAS_ERAB_SETUP_REQ(message_p).gbr_ul = gbr_ul;
   NAS_ERAB_SETUP_REQ(message_p).nas_msg = nas_msg;
   nas_msg = NULL;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 NAS_ERAB_SETUP_REQ ue id " MME_UE_S1AP_ID_FMT " ebi %u len %u",
-    ue_id,
-    ebi,
-    blength(NAS_ERAB_SETUP_REQ(message_p).nas_msg));
   // make a long way by MME_APP instead of S1AP to retrieve the sctp_association_id key.
   return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
@@ -133,14 +115,6 @@ void nas_itti_dedicated_eps_bearer_complete(
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_CREATE_DEDICATED_BEARER_RSP);
   MME_APP_CREATE_DEDICATED_BEARER_RSP(message_p).ue_id = ue_idP;
   MME_APP_CREATE_DEDICATED_BEARER_RSP(message_p).ebi = ebiP;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 MME_APP_CREATE_DEDICATED_BEARER_RSP ue id " MME_UE_S1AP_ID_FMT " ebi %u",
-    ue_idP,
-    ebiP);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -155,14 +129,6 @@ void nas_itti_dedicated_eps_bearer_reject(
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_CREATE_DEDICATED_BEARER_REJ);
   MME_APP_CREATE_DEDICATED_BEARER_REJ(message_p).ue_id = ue_idP;
   MME_APP_CREATE_DEDICATED_BEARER_REJ(message_p).ebi = ebiP;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 MME_APP_CREATE_DEDICATED_BEARER_REJ ue id " MME_UE_S1AP_ID_FMT " ebi %u",
-    ue_idP,
-    ebiP);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -220,15 +186,6 @@ void nas_itti_pdn_config_req(
   }
 
   NAS_PDN_CONFIG_REQ(message_p).request_type = request_typeP;
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "NAS_PDN_CONFIG_REQ ue id " MME_UE_S1AP_ID_FMT " IMSI %X",
-    ue_idP,
-    NAS_PDN_CONFIG_REQ(message_p).imsi);
 
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -295,15 +252,6 @@ void nas_itti_pdn_connectivity_req(
   copy_protocol_configuration_options(
     &NAS_PDN_CONNECTIVITY_REQ(message_p).pco, &proc_data_pP->pco);
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "NAS_PDN_CONNECTIVITY_REQ ue id " MME_UE_S1AP_ID_FMT " IMSI %X",
-    ue_idP,
-    NAS_PDN_CONNECTIVITY_REQ(message_p).imsi);
-
   OAILOG_INFO(
     LOG_NAS_ESM,
     "Sending PDN CONNECTIVITY REQ to MME_APP for ue id " MME_UE_S1AP_ID_FMT " \n",
@@ -357,16 +305,6 @@ void nas_itti_auth_info_req(
       sizeof auth_info_req->resync_param);
   }
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_S6A_MME,
-    NULL,
-    0,
-    "0 S6A_AUTH_INFO_REQ IMSI " IMSI_64_FMT " visited_plmn " PLMN_FMT
-    " re_sync %u",
-    auth_info_req->imsi,
-    PLMN_ARG(visited_plmnP),
-    auth_info_req->re_synchronization);
   itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -400,16 +338,6 @@ void nas_itti_establish_rej(
 
   NAS_AUTHENTICATION_PARAM_REQ(message_p).initial_req = initial_reqP;
   NAS_AUTHENTICATION_PARAM_REQ(message_p).ue_id = ue_idP;
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "NAS_AUTHENTICATION_PARAM_REQ ue id " MME_UE_S1AP_ID_FMT
-    " IMSI %s (establish reject)",
-    ue_idP,
-    NAS_AUTHENTICATION_PARAM_REQ(message_p).imsi);
 
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -475,18 +403,6 @@ void nas_itti_establish_cnf(
         (emm_ctx->_security.kenb_ul_count.overflow << 8),
       NAS_CONNECTION_ESTABLISHMENT_CNF(message_p).kenb);
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_MME,
-      MSC_MMEAPP_MME,
-      NULL,
-      0,
-      "NAS_CONNECTION_ESTABLISHMENT_CNF ue id " MME_UE_S1AP_ID_FMT
-      " len %u sea %x sia %x ",
-      ue_idP,
-      blength(msgP),
-      selected_encryption_algorithmP,
-      selected_integrity_algorithmP);
-
     unlock_ue_contexts(ue_mm_context);
     OAILOG_INFO(LOG_NAS_EMM, "Sending NAS Connection Establishment confirm for ue_id "MME_UE_S1AP_ID_FMT"\n",
       ue_idP);
@@ -511,14 +427,6 @@ void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP)
 
   NAS_DETACH_REQ(message_p).ue_id = ue_idP;
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 NAS_DETACH_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_idP);
-
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -541,14 +449,6 @@ void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type)
 
   NAS_SGS_DETACH_REQ(message_p).ue_id = ue_idP;
   NAS_SGS_DETACH_REQ(message_p).detach_type = detach_type;
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 NAS_SGS_DETACH_REQ ue id %06" PRIX32 " ",
-    ue_idP);
 
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);

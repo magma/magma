@@ -577,10 +577,6 @@ void log_configure(const log_config_t *const config)
     (MIN_LOG_LEVEL <= config->util_log_level))
     g_oai_log.log_level[LOG_UTIL] = config->util_log_level;
   if (
-    (MAX_LOG_LEVEL > config->msc_log_level) &&
-    (MIN_LOG_LEVEL <= config->msc_log_level))
-    g_oai_log.log_level[LOG_MSC] = config->msc_log_level;
-  if (
     (MAX_LOG_LEVEL > config->itti_log_level) &&
     (MIN_LOG_LEVEL <= config->itti_log_level))
     g_oai_log.log_level[LOG_ITTI] = config->itti_log_level;
@@ -767,8 +763,6 @@ int log_init(
     &g_oai_log.log_proto2str[LOG_CONFIG][0],
     LOG_MAX_PROTO_NAME_LENGTH,
     "CONFIG");
-  snprintf(
-    &g_oai_log.log_proto2str[LOG_MSC][0], LOG_MAX_PROTO_NAME_LENGTH, "MSC");
   snprintf(
     &g_oai_log.log_proto2str[LOG_ITTI][0], LOG_MAX_PROTO_NAME_LENGTH, "ITTI");
 

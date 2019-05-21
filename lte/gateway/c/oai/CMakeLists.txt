@@ -64,7 +64,6 @@ set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBI
 add_boolean_option(DAEMONIZE                       False    "Fork executable if true")
 add_boolean_option(DISPLAY_LICENCE_INFO            False    "If a module has a licence banner to show")
 add_integer_option(ITTI_TASK_STACK_SIZE            0        "pthread allocated stack size in bytes of an ITTI task, if 0, use default stack size ")
-add_boolean_option(MESSAGE_CHART_GENERATOR         False    "For generating sequence diagrams")
 
 ################################################################
 # NAS LAYER OPTIONS

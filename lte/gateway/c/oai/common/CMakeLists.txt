@@ -35,7 +35,7 @@ endif (LOG_OAI)
 add_library(COMMON ${COMMON_SRC})
 target_link_libraries (COMMON
   lfds710
-  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_MSC LIB_ITTI
+  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI
 )
 target_include_directories(COMMON PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}

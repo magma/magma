@@ -44,7 +44,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "common_defs.h"
 #include "3gpp_24.007.h"
@@ -702,14 +701,6 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
         emm_sap.u.emm_reg.ue_id = msg_pP->ue_id;
         emm_sap.u.emm_reg.ctx = emm_ctx;
 
-        MSC_LOG_TX_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "0 EMMREG_COMMON_PROC_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-          msg_pP->ue_id);
-
         rc = emm_sap_send(&emm_sap);
       }
     }
@@ -844,16 +835,6 @@ static int _emm_cn_activate_dedicated_bearer_req(
   esm_sap.data.eps_dedicated_bearer_context_activate.pco = msg->pco;
   // stole ref if any
   msg->pco = NULL;
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_ESM_MME,
-    NULL,
-    0,
-    "0 ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REQ ue id " MME_UE_S1AP_ID_FMT
-    " ebi %u",
-    esm_sap.ue_id,
-    esm_sap.data.eps_dedicated_bearer_context_activate.ebi);
 
   rc = esm_sap_send(&esm_sap);
 

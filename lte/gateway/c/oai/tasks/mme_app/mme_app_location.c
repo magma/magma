@@ -35,7 +35,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "common_types.h"
 #include "conversions.h"
@@ -130,13 +129,6 @@ int mme_app_send_s6a_update_location_req(
       ue_context_p->emm_context.volte_params.voice_domain_preference_and_ue_usage_setting;
     s6a_ulr_p->presencemask |= S6A_PDN_CONFIG_VOICE_DOM_PREF;
   }
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S6A_MME,
-    NULL,
-    0,
-    "0 S6A_UPDATE_LOCATION_REQ imsi %s",
-    s6a_ulr_p->imsi);
   OAILOG_DEBUG(
     LOG_MME_APP,
     "0 S6A_UPDATE_LOCATION_REQ imsi %s with length %d for (ue_id = %u)\n",
@@ -234,10 +226,6 @@ int mme_app_handle_s6a_update_location_ans(
        &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "That's embarrassing as we don't know this IMSI\n");
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      "0 S6A_UPDATE_LOCATION unknown imsi " IMSI_64_FMT " ",
-      imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ula_pP->result.present == S6A_RESULT_BASE) {
@@ -362,16 +350,16 @@ int mme_app_handle_s6a_update_location_ans(
     MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 60;
 
   /*
-   * Set the flag: send_ue_purge_request to indicate that 
-   * Update Location procedure is completed. 
-   * During UE initiated detach/Implicit detach this MME would send PUR to hss, 
+   * Set the flag: send_ue_purge_request to indicate that
+   * Update Location procedure is completed.
+   * During UE initiated detach/Implicit detach this MME would send PUR to hss,
    * if this flag is true.
   */
   ue_mm_context->send_ue_purge_request = true;
   /*
-   * Set the flag: location_info_confirmed_in_hss to false to indicate that 
-   * Update Location procedure is completed. 
-   * During HSS Reset 
+   * Set the flag: location_info_confirmed_in_hss to false to indicate that
+   * Update Location procedure is completed.
+   * During HSS Reset
    * if this flag is true.
   */
   if (ue_mm_context->location_info_confirmed_in_hss == true) {
@@ -380,14 +368,6 @@ int mme_app_handle_s6a_update_location_ans(
 
   nas_pdn_config_rsp = &message_p->ittiMsg.nas_pdn_config_rsp;
   nas_pdn_config_rsp->ue_id = ue_mm_context->mme_ue_s1ap_id;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "0 NAS_PDN_CONFIG_RESP imsi %s",
-    ula_pP->imsi);
-
   OAILOG_INFO(LOG_MME_APP, "Sending PDN CONFIG RSP to NAS for (ue_id = %u)\n",
     nas_pdn_config_rsp->ue_id);
   rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
@@ -442,8 +422,8 @@ int mme_app_handle_s6a_cancel_location_req(
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  /* 
-   * set the flag: hss_initiated_detach to indicate that, 
+  /*
+   * set the flag: hss_initiated_detach to indicate that,
    * hss has initiated detach and MME shall not send PUR to hss
    */
   ue_context_p->hss_initiated_detach = true;
@@ -529,8 +509,6 @@ int mme_app_send_s6a_cancel_location_ans(
 
   s6a_cla_p->result = cla_result;
   s6a_cla_p->msg_cla_p = msg_cla_p;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME, MSC_S6A_MME, NULL, 0, "0 S6A_CANCEL_LOCATION_ANS ");
   rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

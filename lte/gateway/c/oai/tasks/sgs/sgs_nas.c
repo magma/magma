@@ -29,7 +29,6 @@
 #define SGS_NAS_C
 
 #include "log.h"
-#include "msc.h"
 #include "intertask_interface.h"
 #include "sgs_messages.h"
 #include "assertions.h"

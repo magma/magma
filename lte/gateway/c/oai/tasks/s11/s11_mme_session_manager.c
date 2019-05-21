@@ -36,11 +36,9 @@
 #include "hashtable.h"
 #include "obj_hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "hashtable.h"
-#include "msc.h"
 
 #include "NwGtpv2c.h"
 #include "NwGtpv2cIe.h"
@@ -124,14 +122,6 @@ int s11_mme_create_session_request(
   }
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
   DevAssert(NW_OK == rc);
-  MSC_LOG_TX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 CREATE_SESSION_REQUEST local S11 teid " TEID_FMT " num bearers ctx %u",
-    req_p->sender_fteid_for_cp.teid,
-    req_p->bearer_contexts_to_be_created.num_bearer_context);
 
   hashtable_rc_t hash_rc = hashtable_ts_insert(
     s11_mme_teid_2_gtv2c_teid_handle,
@@ -264,13 +254,6 @@ int s11_mme_handle_create_session_response(
     &offendingIeLength);
 
   if (rc != NW_OK) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_S11_MME,
-      MSC_SGW,
-      NULL,
-      0,
-      "0 CREATE_SESSION_RESPONSE local S11 teid " TEID_FMT " ",
-      resp_p->teid);
     /*
      * TODO: handle this case
      */
@@ -288,14 +271,6 @@ int s11_mme_handle_create_session_response(
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
 
-  MSC_LOG_RX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 CREATE_SESSION_RESPONSE local S11 teid " TEID_FMT " num bearer ctxt %u",
-    resp_p->teid,
-    resp_p->bearer_contexts_created.num_bearer_context);
   return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
@@ -356,13 +331,6 @@ int s11_mme_delete_session_request(
 
   rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
   DevAssert(NW_OK == rc);
-  MSC_LOG_TX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 DELETE_SESSION_REQUEST local S11 teid " TEID_FMT " ",
-    req_p->local_teid);
 
   return RETURNok;
 }
@@ -410,8 +378,11 @@ int s11_mme_handle_delete_session_response(
   /*
    * Recovery IE
    */
-  /* TODO rc = nwGtpv2cMsgParserAddIe (pMsgParser, NW_GTPV2C_IE_RECOVERY, NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL, s11_fteid_ie_get,
-		  &resp_p->recovery);
+  /* TODO rc = nwGtpv2cMsgParserAddIe (
+      pMsgParser, NW_GTPV2C_IE_RECOVERY,
+      NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
+      s11_fteid_ie_get, &resp_p->recovery);
   DevAssert (NW_OK == rc); */
   /*
    * PCO IE
@@ -436,13 +407,6 @@ int s11_mme_handle_delete_session_response(
     &offendingIeLength);
 
   if (rc != NW_OK) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_S11_MME,
-      MSC_SGW,
-      NULL,
-      0,
-      "0 DELETE_SESSION_RESPONSE local S11 teid " TEID_FMT " ",
-      resp_p->teid);
     /*
      * TODO: handle this case
      */
@@ -460,14 +424,6 @@ int s11_mme_handle_delete_session_response(
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
 
-  MSC_LOG_RX_MESSAGE(
-    MSC_S11_MME,
-    MSC_SGW,
-    NULL,
-    0,
-    "0 DELETE_SESSION_RESPONSE local S11 teid " TEID_FMT " ",
-    resp_p->teid);
-
   // delete local tunnel
   nw_gtpv2c_ulp_api_t ulp_req;
   memset(&ulp_req, 0, sizeof(nw_gtpv2c_ulp_api_t));
@@ -481,12 +437,9 @@ int s11_mme_handle_delete_session_response(
       LOG_S11,
       "Could not get GTPv2-C hTunnel for local teid %X\n",
       resp_p->teid);
-    MSC_LOG_EVENT(
-      MSC_S11_MME, "Failed to deleted teid " TEID_FMT "", resp_p->teid);
   } else {
     rc = nwGtpv2cProcessUlpReq(*stack_p, &ulp_req);
     DevAssert(NW_OK == rc);
-    MSC_LOG_EVENT(MSC_S11_MME, "Deleted teid " TEID_FMT "", resp_p->teid);
   }
 
   hash_rc = hashtable_ts_free(

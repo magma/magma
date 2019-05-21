@@ -37,7 +37,6 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "intertask_interface_init.h"
 #include "spgw_config.h"
 #include "udp_primitives_server.h"
@@ -89,7 +88,6 @@ int main(int argc, char *argv[])
     NULL));
   OAILOG_LOG_CONFIGURE(&spgw_config.sgw_config.log_config);
 
-  MSC_INIT(MSC_SP_GW, THREAD_MAX + TASK_MAX);
   CHECK_INIT_RETURN(service303_init(&(spgw_config.service303_config)));
 
   // Initialize grpc clients

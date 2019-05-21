@@ -24,7 +24,6 @@
 #include <stdlib.h>
 
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
@@ -160,8 +159,6 @@ ebi_t esm_ebr_context_create(
     }
 
     if (bearer_context) {
-      MSC_LOG_EVENT(
-        MSC_NAS_ESM_MME, "0 Create Bearer ebi %u cid %u pti %u", ebi, pid, pti);
       bearer_context->transaction_identifier = pti;
       /*
        * Increment the total number of active EPS bearers

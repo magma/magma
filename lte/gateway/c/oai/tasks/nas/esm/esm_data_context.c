@@ -33,7 +33,6 @@
 #include "mme_app_ue_context.h"
 #include "mme_config.h"
 #include "3gpp_36.401.h"
-#include "msc.h"
 
 // free allocated structs
 //------------------------------------------------------------------------------
@@ -100,8 +99,6 @@ void nas_stop_T3489(esm_context_t *const esm_ctx)
     esm_ctx->T3489.id =
       nas_timer_stop(esm_ctx->T3489.id, (void **) &nas_timer_callback_args);
     if (NAS_TIMER_INACTIVE_ID == esm_ctx->T3489.id) {
-      MSC_LOG_EVENT(
-        MSC_NAS_EMM_MME, "0 T3489 stopped UE " MME_UE_S1AP_ID_FMT " ", ue_id);
       OAILOG_INFO(
         LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
     } else {

@@ -35,7 +35,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
@@ -194,30 +193,14 @@ void *mme_app_thread(void *args)
           received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
         if (ue_context_p == NULL) {
-          MSC_LOG_RX_DISCARDED_MESSAGE(
-            MSC_MMEAPP_MME,
-            MSC_S11_MME,
-            NULL,
-            0,
-            "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT " ",
-            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
           OAILOG_WARNING(
             LOG_MME_APP,
             "We didn't find this teid in list of UE: %08x\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
         } else {
-          MSC_LOG_RX_MESSAGE(
-            MSC_MMEAPP_MME,
-            MSC_S11_MME,
-            NULL,
-            0,
-            "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT
-            " IMSI " IMSI_64_FMT " ",
-            received_message_p->ittiMsg.s11_modify_bearer_response.teid,
-            ue_context_p->emm_context._imsi64);
-            OAILOG_DEBUG(
-              TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
-              received_message_p->ittiMsg.s11_modify_bearer_response.teid);
+          OAILOG_DEBUG(
+            TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
+            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
           /*
            * Updating statistics
            */

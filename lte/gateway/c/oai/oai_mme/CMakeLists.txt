@@ -4,7 +4,6 @@ set (  DISPLAY_LICENCE_INFO            False )
 set (  ITTI_TASK_STACK_SIZE            2097152 )
 set (  LOG_OAI                         True )
 set (  LOG_OAI_CLEAN_HARD              False )
-set (  MESSAGE_CHART_GENERATOR         True )
 set (  MEMORY_CHECK                    False )
 set (  MME_BUILD                       True )
 set (  S1AP_DEBUG_LIST                 False )
@@ -56,7 +55,7 @@ target_link_libraries(mme
         LIB_HASHTABLE LIB_S6A_PROXY
         TASK_S1AP TASK_SCTP_SERVER TASK_UDP_SERVER TASK_SGS_SERVICE TASK_SGS
         TASK_S6A TASK_MME_APP TASK_S6A_SERVICE TASK_NAS
-        ${MSC_LIB} ${ITTI_LIB} ${GCOV_LIB}
+        ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls fdproto fdcore prometheus-cpp

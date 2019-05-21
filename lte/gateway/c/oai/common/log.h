@@ -52,7 +52,6 @@ extern int fd_g_debug_lvl;
 #include <pthread.h>
 
 #include "bstrlib.h"
-#include "msc.h"
 
 struct shared_log_queue_item_s;
 
@@ -230,8 +229,6 @@ typedef struct log_config_s {
     secu_log_level; /*!< \brief LTE security log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
     util_log_level; /*!< \brief Misc utilities log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  log_level_t
-    msc_log_level; /*!< \brief MSC utility log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
     async_system_log_level; /*!< \brief async system log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t

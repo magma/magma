@@ -249,9 +249,6 @@ int shared_log_init(const int max_threadsP)
 #if LOG_OAI
   g_shared_log.logger_callback[SH_TS_LOG_TXT] = log_flush_message;
 #endif
-#if MESSAGE_CHART_GENERATOR
-  g_shared_log.logger_callback[SH_TS_LOG_MSC] = msc_flush_message;
-#endif
 
   bstring b = bfromcstr("Logging thread context hashtable");
   g_shared_log.thread_context_htbl =

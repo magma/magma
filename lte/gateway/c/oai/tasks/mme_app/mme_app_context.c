@@ -44,7 +44,6 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "conversions.h"
 #include "intertask_interface.h"
@@ -2174,11 +2173,6 @@ void mme_app_handle_s1ap_ue_context_release_complete(
     s1ap_ue_context_release_complete->mme_ue_s1ap_id);
 
   if (!ue_context_p) {
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      "0 S1AP_UE_CONTEXT_RELEASE_COMPLETE Unknown mme_ue_s1ap_id 0x%06" PRIX32
-      " ",
-      s1ap_ue_context_release_complete->mme_ue_s1ap_id);
     OAILOG_ERROR(
       LOG_MME_APP,
       "UE context doesn't exist for enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT

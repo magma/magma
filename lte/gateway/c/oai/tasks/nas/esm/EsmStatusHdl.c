@@ -35,7 +35,6 @@
 #include "EsmCause.h"
 #include "emm_data.h"
 #include "emm_esmDef.h"
-#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -179,13 +178,6 @@ int esm_proc_status(
   emm_sap.u.emm_esm.ctx = emm_context;
   emm_sap.u.emm_esm.u.data.msg = *msg;
   *msg = NULL;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "EMMESM_UNITDATA_REQ  (STATUS) ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }

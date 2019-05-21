@@ -3,7 +3,6 @@ set(BYTE_ORDER=LITTLE_ENDIAN)
 set(DISPLAY_LICENCE_INFO            True)
 set(GTPV1U_LINEAR_TEID_ALLOCATION   False)
 set(LOG_OAI                         True)
-set(MESSAGE_CHART_GENERATOR         True)
 set(MEMORY_CHECK                    False)
 set(NW_GTPV2C_DISPLAY_LICENCE_INFO  True)
 set(S1AP_DEBUG_LIST                 True)
@@ -26,7 +25,7 @@ if (NOT EMBEDDED_SGW)
       lfds710 COMMON
       LIB_BSTR LIB_HASHTABLE LIB_OPENFLOW LIB_GTPV2C LIB_RPC_CLIENT
       TASK_SGW TASK_S11_SGW TASK_UDP_SERVER TASK_GTPV1U
-      ${MSC_LIB} ${ITTI_LIB} ${GCOV_LIB}
+      ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     pthread m rt ${GTPNL_LIBRARIES} ${CONFIG_LIBRARIES}
   )

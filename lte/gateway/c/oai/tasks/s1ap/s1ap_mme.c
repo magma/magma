@@ -42,7 +42,6 @@
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "mme_app_statistics.h"
 #include "s1ap_mme_decoder.h"
@@ -545,11 +544,6 @@ ue_description_t *s1ap_new_ue(
     free_wrapper((void **) &ue_ref);
     return NULL;
   }
-  MSC_LOG_EVENT(
-    MSC_S1AP_MME,
-    " Associating ue  (enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT ") to eNB %s",
-    ue_ref->mme_ue_s1ap_id,
-    enb_ref->enb_name);
   // Increment number of UE
   enb_ref->nb_ue_associated++;
   return ue_ref;

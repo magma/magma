@@ -41,7 +41,6 @@
 #include "common_defs.h"
 #include "emm_esmDef.h"
 #include "esm_data.h"
-#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -587,13 +586,6 @@ static int _default_eps_bearer_activate(
    * Notify EMM that an activate default EPS bearer context request message
    * has to be sent to the UE
    */
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMESM_UNITDATA_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_id);
   emm_esm_data_t *emm_esm = &emm_sap.u.emm_esm.u.data;
 
   emm_sap.primitive = EMMESM_UNITDATA_REQ;

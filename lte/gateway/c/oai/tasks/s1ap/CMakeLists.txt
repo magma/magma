@@ -46,7 +46,7 @@ add_library(LIB_S1AP
     s1ap_common.c
 )
 target_link_libraries(LIB_S1AP
-    LIB_BSTR LIB_HASHTABLE LIB_MSC
+    LIB_BSTR LIB_HASHTABLE
 )
 target_include_directories(LIB_S1AP PUBLIC
     ${S1AP_C_DIR}

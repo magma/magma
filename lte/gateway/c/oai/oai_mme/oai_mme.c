@@ -32,7 +32,6 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "mme_config.h"
 #include "daemonize.h"
 #include "shared_ts_log.h"
@@ -104,7 +103,6 @@ int main(int argc, char *argv[])
    */
   // Intialize loggers and configured log levels.
   OAILOG_LOG_CONFIGURE(&mme_config.log_config);
-  MSC_INIT(MSC_MME, THREAD_MAX + TASK_MAX);
   CHECK_INIT_RETURN(service303_init(&(mme_config.service303_config)));
 
   // Service started, but not healthy yet

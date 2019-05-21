@@ -42,7 +42,6 @@
 #include "common_defs.h"
 #include "emm_esmDef.h"
 #include "esm_data.h"
-#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -538,14 +537,6 @@ static int _dedicated_eps_bearer_activate(
 
   bstring msg_dup = bstrcpy(*msg);
   *msg = NULL;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMESM_ACTIVATE_BEARER_REQ ue id " MME_UE_S1AP_ID_FMT " ebi %u",
-    ue_id,
-    ebi);
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
