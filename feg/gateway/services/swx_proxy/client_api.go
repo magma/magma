@@ -24,17 +24,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Wrapper for GRPC Client to extend it with Cleanup
+// Wrapper for GRPC Client
 // functionality
 type swxProxyClient struct {
 	protos.SwxProxyClient
 	cc *grpc.ClientConn
-}
-
-func (cl *swxProxyClient) Cleanup() {
-	if cl != nil && cl.cc != nil {
-		cl.cc.Close()
-	}
 }
 
 // getSwxProxyClient is a utility function to get a RPC connection to the
@@ -77,7 +71,6 @@ func Authenticate(req *protos.AuthenticationRequest) (*protos.AuthenticationAnsw
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Authenticate(context.Background(), req)
 }
 
@@ -93,7 +86,6 @@ func Register(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, erro
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Register(context.Background(), req)
 }
 
@@ -109,7 +101,6 @@ func Deregister(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, er
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Deregister(context.Background(), req)
 }
 
@@ -125,7 +116,6 @@ func AuthenticateRemote(req *protos.AuthenticationRequest) (*protos.Authenticati
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Authenticate(context.Background(), req)
 }
 
@@ -141,7 +131,6 @@ func RegisterRemote(req *protos.RegistrationRequest) (*protos.RegistrationAnswer
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Register(context.Background(), req)
 }
 
