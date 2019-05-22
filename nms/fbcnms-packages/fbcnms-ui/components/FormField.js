@@ -34,12 +34,12 @@ class FormField extends React.Component<Props> {
     return (
       <div>
         <Grid container spacing={16}>
-          <Grid item xs={6}>
+          <Grid item xs={4}>
             <Typography className={classes.labelName} variant="body2">
               {label}:
             </Typography>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item xs={8}>
             <Typography variant="body2" color="secondary">
               {value}
             </Typography>
