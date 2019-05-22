@@ -1,0 +1,70 @@
+---
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+- name: Get OVS v2.8.1 Tarball
+  get_url:
+    url: 'https://www.openvswitch.org/releases/openvswitch-2.8.1.tar.gz'
+    dest: /tmp
+
+- name: Install OVS Dependencies for Ubuntu
+  package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  with_items:
+    - graphviz
+    - autoconf
+    - automake
+    - bzip2
+    - debhelper
+    - dh-autoreconf
+    - libssl-dev
+    - libtool
+    - openssl
+    - procps
+    - python-all
+    - python-twisted-conch
+    - python-zopeinterface
+    - python-six
+    - build-essential
+    - fakeroot
+
+- name: Creates OVS unarchive directory
+  file:
+    path: /tmp/ovs
+    state: directory
+
+- name: Unarchive OVS tarball
+  unarchive:
+    src: /tmp/openvswitch-2.8.1.tar.gz
+    dest: /tmp/ovs/
+    remote_src: yes
+  become: true
+
+- name: Build OVS debian packages
+  command: fakeroot ./debian/rules binary
+  args:
+    chdir: /tmp/ovs/openvswitch-2.8.1
+  environment:
+    DEB_BUILD_OPTIONS: 'parallel=8 nocheck'
+  become: true
+
+- name: Install OVS debian packages
+  apt:
+    deb: "{{ item }}"
+  with_items:
+    - "/tmp/ovs/libopenvswitch_2.8.1-1_amd64.deb"
+    - "/tmp/ovs/openvswitch-common_2.8.1-1_amd64.deb"
+    - "/tmp/ovs/openvswitch-switch_2.8.1-1_amd64.deb"
+    - "/tmp/ovs/python-openvswitch_2.8.1-1_all.deb"
+  become: true
+
+- name: Start OVS
+  service:
+    name: openvswitch-switch
+    state: started
+    enabled: yes
+  become: true
