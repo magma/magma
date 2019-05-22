@@ -47,6 +47,10 @@ services:
     depends_on:
       - test
 
+  metricsd:
+    depends_on:
+      - test
+
 volumes:
   gwcerts:
   gwconfigs:
