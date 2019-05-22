@@ -42,10 +42,6 @@ message UpdateNetworksRequest {
     repeated NetworkUpdateCriteria updates = 1;
 }
 
-message UpdateNetworksResponse {
-    map<string, Network> updatedNetworks = 1;
-}
-
 message NetworkLoadCriteria {
     bool loadMetadata = 1;
     bool loadConfigs = 2;
@@ -131,8 +127,8 @@ service NorthboundConfigurator {
     rpc ListNetworks (magma.orc8r.Void) returns (ListNetworksResponse) {}
     // CreateNetworks registers the given list of Networks and returns the created Networks
     rpc CreateNetworks (CreateNetworksRequest) returns (CreateNetworksResponse) {}
-    // UpdateNetworks updates the given list of registered Networks and returns the updated Networks
-    rpc UpdateNetworks (UpdateNetworksRequest) returns (UpdateNetworksResponse) {}
+    // UpdateNetworks updates the given list of registered Networks
+    rpc UpdateNetworks (UpdateNetworksRequest) returns (magma.orc8r.Void) {}
     // DeleteNetworks deletes the given list of registered Networks
     rpc DeleteNetworks (DeleteNetworksRequest) returns (magma.orc8r.Void) {}
     // LoadNetworks fetches the set of Networks specified by the request
