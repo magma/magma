@@ -73,24 +73,11 @@ WORKDIR $MAGMA_ROOT/feg/gateway
 RUN go mod download
 
 # Copy the configs.
-COPY feg/gateway/deploy/roles/feg_dev/files/magma_*.service  /etc/systemd/system/
-COPY feg/gateway/deploy/roles/feg_services/files/magma_*.service /etc/systemd/system/
-COPY lte/gateway/deploy/roles/magma/files/systemd/magma_magmad.service /etc/systemd/system/
-COPY orc8r/tools/ansible/roles/gateway_services/files/magma.service /etc/systemd/system/magma@.service
-COPY orc8r/tools/ansible/roles/gateway_services/files/magma_control_proxy.service /etc/systemd/system/
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
-
-# Rename configs to start with 'magma@' instead of 'magma_'.
-RUN for f in /etc/systemd/system/magma_*.service; do mv $f $(echo $f | sed s/magma_/magma@/); done
 
 # Symlink python scripts.
 RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
 RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
-
-# -----------------------------------------------------------------------------
-# Builder image with binaries and plugins
-# -----------------------------------------------------------------------------
-FROM base as builder
 
 # Build the code.
 COPY feg $MAGMA_ROOT/feg
@@ -107,7 +94,7 @@ FROM ubuntu:xenial AS gateway_go
 RUN apt-get -y update && apt-get -y install daemontools
 
 # Copy the build artifacts.
-COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin
+COPY --from=base /var/opt/magma/bin /var/opt/magma/bin
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
