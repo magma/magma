@@ -10,8 +10,7 @@
 # This script generates certs for the controller tier for dev and testing
 set -e
 
-TEST_MODE=$(cat /var/opt/magma/envdir/TEST_MODE || echo 0)
-if [ "${TEST_MODE}" != "1" ]; then
+if [ "$TEST_MODE" != "1" ]; then
   echo "Not running in test mode!"
   exit 0
 fi
