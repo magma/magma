@@ -86,6 +86,11 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            # Hostname override for metricsd
+            - name: HOST_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           livenessProbe:
             tcpSocket:
               port: 9081

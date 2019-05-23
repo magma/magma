@@ -69,6 +69,11 @@ spec:
               value: {{ print .Release.Name "-controller" | quote }}
             - name: CONTROLLER_HOSTNAME
               value: {{ required "proxy.spec.hostname must be provided" .Values.proxy.spec.hostname | quote }}
+            # Hostname override for metricsd
+            - name: HOST_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
           livenessProbe:
             tcpSocket:
               port: clientcert
