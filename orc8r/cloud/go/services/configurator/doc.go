@@ -13,4 +13,5 @@ package configurator
 const (
 	// ServiceName is the name of this service
 	ServiceName = "CONFIGURATOR"
+	SerdeDomain = "configurator"
 )

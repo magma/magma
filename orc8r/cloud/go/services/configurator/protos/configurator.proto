@@ -22,7 +22,7 @@ message Network {
     string name = 10;
     string description = 11;
 
-    repeated NetworkConfig configs = 20;
+    map<string, bytes>  configs = 20;
 }
 
 // The network entity is the core entity managed by configurator. A network
