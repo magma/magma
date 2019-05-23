@@ -141,3 +141,25 @@ func LoadEntities(networkID string, typeFilter *string, keyFilter *string, ids [
 	}
 	return resp.Entities, resp.NotFound, err
 }
+
+func LoadAllEntitiesInNetwork(networkID string, typeVal string, criteria *protos.EntityLoadCriteria) ([]*protos.NetworkEntity, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.LoadEntities(
+		context.Background(),
+		&protos.LoadEntitiesRequest{
+			NetworkID:  networkID,
+			TypeFilter: protos.GetStringWrapper(&typeVal),
+			KeyFilter:  nil,
+			EntityIDs:  nil,
+			Criteria:   criteria,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Entities, err
+}

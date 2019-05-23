@@ -96,6 +96,13 @@ func TestConfiguratorService(t *testing.T) {
 		PhysicalId:  "5678",
 		Config:      []byte("bye"),
 	}
+	fullEntityLoadCriteria := &protos.EntityLoadCriteria{
+		LoadMetadata:    true,
+		LoadAssocsTo:    true,
+		LoadAssocsFrom:  true,
+		LoadConfig:      true,
+		LoadPermissions: true,
+	}
 
 	// Create, Load
 	_, err = configurator.CreateEntities(networkID1, []*protos.NetworkEntity{entity1, entity2})
@@ -103,9 +110,9 @@ func TestConfiguratorService(t *testing.T) {
 
 	entities, entitiesNotFound, err := configurator.LoadEntities(
 		networkID1,
-		strPointer("foo"),
 		nil,
 		nil,
+		[]*protos.EntityID{entityID1, entityID2},
 		&protos.EntityLoadCriteria{
 			LoadMetadata: true,
 		},
@@ -116,6 +123,14 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, "foobar", entities[0].Name)
 	assert.Equal(t, "fooboo", entities[1].Name)
 
+	// LoadAllPerType
+	entities, err = configurator.LoadAllEntitiesInNetwork(networkID1, "foo", fullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(entities))
+	assert.Equal(t, "foobar", entities[0].Name)
+	assert.Equal(t, "fooboo", entities[1].Name)
+
+	// Update, Load
 	entityUpdateCriteria := &protos.EntityUpdateCriteria{
 		Type:              entityID1.Type,
 		Key:               entityID1.Id,
@@ -123,7 +138,6 @@ func TestConfiguratorService(t *testing.T) {
 		AssociationsToAdd: []*protos.EntityID{entityID2},
 	}
 
-	// Update, Load
 	_, err = configurator.UpdateEntities(networkID1, []*protos.EntityUpdateCriteria{entityUpdateCriteria})
 	assert.NoError(t, err)
 	entities, entitiesNotFound, err = configurator.LoadEntities(
@@ -131,11 +145,7 @@ func TestConfiguratorService(t *testing.T) {
 		strPointer("foo"),
 		nil,
 		nil,
-		&protos.EntityLoadCriteria{
-			LoadMetadata:   true,
-			LoadAssocsTo:   true,
-			LoadAssocsFrom: true,
-		},
+		fullEntityLoadCriteria,
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
