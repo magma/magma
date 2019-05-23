@@ -10,36 +10,22 @@ package configurator
 
 import (
 	"context"
-	"sync"
 
 	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
-var connSingleton = (*grpc.ClientConn)(nil)
-var connGuard = sync.Mutex{}
-
-// Todo use grpc conn from registry once it's landed
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
-	if connSingleton == nil {
-		connGuard.Lock()
-		if connSingleton == nil {
-			conn, err := registry.GetConnection(ServiceName)
-			if err != nil {
-				initErr := errors.NewInitError(err, ServiceName)
-				glog.Error(initErr)
-				connGuard.Unlock()
-				return nil, initErr
-			}
-			connSingleton = conn
-		}
-		connGuard.Unlock()
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := errors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
 	}
-	return protos.NewNorthboundConfiguratorClient(connSingleton), nil
+	return protos.NewNorthboundConfiguratorClient(conn), err
 }
 
 // CreateNetworks registers the given list of Networks and returns the created networks
