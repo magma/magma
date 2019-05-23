@@ -55,6 +55,9 @@ type ConfiguratorStorage interface {
 	// returned value.
 	LoadNetworks(ids []string, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error)
 
+	// LoadAllNetworks returns all networks registered
+	LoadAllNetworks(loadCriteria NetworkLoadCriteria) ([]Network, error)
+
 	// CreateNetwork creates a new network. The created network is returned.
 	CreateNetwork(network Network) (Network, error)
 

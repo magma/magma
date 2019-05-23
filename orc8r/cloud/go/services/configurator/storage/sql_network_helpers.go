@@ -46,6 +46,26 @@ func getNetworkQuery(ids []string, criteria NetworkLoadCriteria) (string, error)
 	return buf.String(), nil
 }
 
+func getAllNetworksQuery(criteria NetworkLoadCriteria, idsToExlude []string) (string, error) {
+	// SELECT cfg_networks.id, cfg_networks.name, cfg_networks.description cfg_network_configs.type, cfg_network_configs.value
+	// FROM cfg_networks
+	// [[ LEFT JOIN cfg_network_configs ON cfg_networks.id = cfg_network_configs.network_id ]]
+	// WHERE cfg_networks.id NOT IN (id list)
+	queryTemplate := template.Must(template.New("nw_query").Parse(
+		"SELECT {{.Fields}} FROM {{.TableName}} " +
+			"{{.JoinQuery}} " +
+			"WHERE {{.TableName}}.id NOT IN {{.IdList}}",
+	))
+
+	args := getNetworkQueryArgs(idsToExlude, criteria)
+	buf := new(bytes.Buffer)
+	err := queryTemplate.Execute(buf, args)
+	if err != nil {
+		return "", fmt.Errorf("failed to format network query: %s", err)
+	}
+	return buf.String(), nil
+}
+
 func getNetworkQueryArgs(ids []string, criteria NetworkLoadCriteria) networkQueryArgs {
 	ret := networkQueryArgs{
 		TableName: networksTable,
