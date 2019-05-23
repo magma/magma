@@ -56,40 +56,53 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 		if len(metricAndContext.Family.Metric) == 0 {
 			continue
 		}
-		familyName := metricAndContext.Context.MetricName
-		for _, metric := range metricAndContext.Family.Metric {
-			metricType := getMetricType(metric)
-			familyType := *metricAndContext.Family.Type
-			// Metrics must be of the same type as their family. Otherwise prometheus
-			// scrape fails.
-			if metricType != familyType {
-				glog.Errorf("metric type %s not same as family %s: %s\n", metricType, familyType, familyName)
-				continue
+		originalFamily := metricAndContext.Family
+		originalFamily.Name = makeStringPointer(metricAndContext.Context.MetricName)
+		// Convert all families to gauges to avoid name collisions of different
+		// types.
+		convertedFamilies := convertFamilyToGauges(originalFamily)
+		for _, fam := range convertedFamilies {
+			familyName := fam.GetName()
+			for _, metric := range fam.Metric {
+				addContextLabelsToMetric(metric, metricAndContext.Context)
+				metric.TimestampMs = &timeStamp
 			}
-			addContextLabelsToMetric(metric, metricAndContext.Context)
-			metric.TimestampMs = &timeStamp
-		}
-		if baseFamily, ok := e.familiesByName[familyName]; ok {
-			addMetricsToFamily(baseFamily, metricAndContext.Family)
-		} else {
-			e.familiesByName[familyName] = metricAndContext.Family
+			if baseFamily, ok := e.familiesByName[familyName]; ok {
+				addMetricsToFamily(baseFamily, fam)
+			} else {
+				e.familiesByName[familyName] = fam
+			}
 		}
 	}
 	return nil
 }
 
 func addContextLabelsToMetric(metric *io_prometheus_client.Metric, ctx mxd_exp.MetricsContext) {
-	metric.Label = append(
-		metric.Label,
-		&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelGateway), Value: &ctx.GatewayID},
-		&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelNetwork), Value: &ctx.NetworkID},
-	)
+	networkAdded, gatewayAdded := false, false
+	for _, label := range metric.Label {
+		if label.GetName() == NetworkLabelNetwork {
+			label.Value = makeStringPointer(ctx.NetworkID)
+			networkAdded = true
+		}
+		if label.GetName() == NetworkLabelGateway {
+			label.Value = makeStringPointer(ctx.GatewayID)
+			gatewayAdded = true
+		}
+	}
+	if !networkAdded {
+		metric.Label = append(metric.Label,
+			&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelNetwork), Value: &ctx.NetworkID},
+		)
+	}
+	if !gatewayAdded {
+		metric.Label = append(metric.Label,
+			&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelGateway), Value: &ctx.GatewayID},
+		)
+	}
 }
 
 func addMetricsToFamily(baseFamily *io_prometheus_client.MetricFamily, newFamily *io_prometheus_client.MetricFamily) {
-	for _, metric := range newFamily.GetMetric() {
-		baseFamily.Metric = append(baseFamily.Metric, metric)
-	}
+	baseFamily.Metric = append(baseFamily.Metric, newFamily.Metric...)
 }
 
 func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
@@ -99,19 +112,6 @@ func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 		return "", fmt.Errorf("error writing family string: %v", err)
 	}
 	return buf.String(), nil
-}
-
-func getMetricType(metric *io_prometheus_client.Metric) io_prometheus_client.MetricType {
-	if metric.Counter != nil {
-		return io_prometheus_client.MetricType_COUNTER
-	} else if metric.Gauge != nil {
-		return io_prometheus_client.MetricType_GAUGE
-	} else if metric.Summary != nil {
-		return io_prometheus_client.MetricType_SUMMARY
-	} else if metric.Histogram != nil {
-		return io_prometheus_client.MetricType_HISTOGRAM
-	}
-	return io_prometheus_client.MetricType_UNTYPED
 }
 
 // Start runs exportEvery() in a goroutine to continuously push metrics at every

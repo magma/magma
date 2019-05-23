@@ -9,6 +9,7 @@
 package exporters
 
 import (
+	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
@@ -24,7 +25,10 @@ var (
 	sampleHardwareID = "12345"
 	sampleEntity     = "sampleNetwork.sampleGateway"
 	sampleMetricName = "metric_A"
-	sampleLabels     = []*dto.LabelPair{{Name: tests.MakeStringPointer("networkID"), Value: tests.MakeStringPointer(sampleNetworkID)}}
+	sampleLabels     = []*dto.LabelPair{
+		{Name: tests.MakeStringPointer(NetworkLabelNetwork), Value: tests.MakeStringPointer(sampleNetworkID)},
+		{Name: tests.MakeStringPointer("testLabel"), Value: tests.MakeStringPointer("testValue")},
+	}
 
 	sampleContext = exporters.MetricsContext{
 		NetworkID:         sampleNetworkID,
@@ -34,30 +38,105 @@ var (
 		DecodedName:       sampleMetricName,
 		MetricName:        sampleMetricName,
 	}
-
-	testPushAddress = ""
 )
 
 func TestCustomPushExporter_Submit(t *testing.T) {
-	testSubmitType(t, dto.MetricType_GAUGE)
-	testSubmitType(t, dto.MetricType_COUNTER)
-	testSubmitType(t, dto.MetricType_HISTOGRAM)
-	testSubmitType(t, dto.MetricType_SUMMARY)
+	testSubmitCounter(t)
+	testSubmitGauge(t)
+	testSubmitHistogram(t)
+	testSubmitSummary(t)
 
 	testSubmitInvalidMetrics(t)
 }
 
-func testSubmitType(t *testing.T, mtype dto.MetricType) {
+func testSubmitGauge(t *testing.T) {
 	exp := makeTestCustomPushExporter()
-	mc := exporters.MetricAndContext{
-		Family:  tests.MakeTestMetricFamily(mtype, 1, sampleLabels),
-		Context: sampleContext,
-	}
-	metrics := []exporters.MetricAndContext{mc}
-
-	err := exp.Submit(metrics)
+	err := submitNewMetric(&exp, dto.MetricType_GAUGE)
 	assert.NoError(t, err)
+	assert.Equal(t, 1, totalMetricCount(&exp))
+
+	err = submitNewMetric(&exp, dto.MetricType_GAUGE)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, totalMetricCount(&exp))
+
 	assert.Equal(t, len(exp.familiesByName), 1)
+	for _, fam := range exp.familiesByName {
+		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
+		for _, metric := range fam.Metric {
+			assert.True(t, hasLabel(metric.Label, NetworkLabelNetwork, sampleNetworkID))
+			assert.True(t, hasLabel(metric.Label, NetworkLabelGateway, sampleGatewayID))
+			assert.True(t, hasLabel(metric.Label, "testLabel", "testValue"))
+		}
+	}
+}
+
+func testSubmitCounter(t *testing.T) {
+	exp := makeTestCustomPushExporter()
+	err := submitNewMetric(&exp, dto.MetricType_COUNTER)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, totalMetricCount(&exp))
+
+	err = submitNewMetric(&exp, dto.MetricType_COUNTER)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, totalMetricCount(&exp))
+
+	assert.Equal(t, len(exp.familiesByName), 1)
+	for _, fam := range exp.familiesByName {
+		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
+		for _, metric := range fam.Metric {
+			assert.True(t, hasLabel(metric.Label, NetworkLabelNetwork, sampleNetworkID))
+			assert.True(t, hasLabel(metric.Label, NetworkLabelGateway, sampleGatewayID))
+			assert.True(t, hasLabel(metric.Label, "testLabel", "testValue"))
+		}
+	}
+}
+
+func testSubmitHistogram(t *testing.T) {
+	exp := makeTestCustomPushExporter()
+	err := submitNewMetric(&exp, dto.MetricType_HISTOGRAM)
+	assert.NoError(t, err)
+	assert.Equal(t, 5, totalMetricCount(&exp))
+
+	err = submitNewMetric(&exp, dto.MetricType_HISTOGRAM)
+	assert.NoError(t, err)
+	assert.Equal(t, 10, totalMetricCount(&exp))
+
+	assert.Equal(t, len(exp.familiesByName), 3)
+	for name, fam := range exp.familiesByName {
+		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
+		for _, metric := range fam.Metric {
+			assert.True(t, hasLabel(metric.Label, NetworkLabelNetwork, sampleNetworkID))
+			assert.True(t, hasLabel(metric.Label, NetworkLabelGateway, sampleGatewayID))
+			assert.True(t, hasLabel(metric.Label, "testLabel", "testValue"))
+			if strings.HasSuffix(name, bucketPostfix) {
+				assert.True(t, hasLabelName(metric.Label, histogramBucketLabelName))
+			}
+		}
+	}
+}
+
+func testSubmitSummary(t *testing.T) {
+	exp := makeTestCustomPushExporter()
+	err := submitNewMetric(&exp, dto.MetricType_SUMMARY)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, totalMetricCount(&exp))
+
+	err = submitNewMetric(&exp, dto.MetricType_SUMMARY)
+	assert.NoError(t, err)
+	assert.Equal(t, 6, totalMetricCount(&exp))
+
+	assert.Equal(t, len(exp.familiesByName), 3)
+	for name, fam := range exp.familiesByName {
+		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
+		for _, metric := range fam.Metric {
+			assert.True(t, hasLabel(metric.Label, NetworkLabelNetwork, sampleNetworkID))
+			assert.True(t, hasLabel(metric.Label, NetworkLabelGateway, sampleGatewayID))
+			assert.True(t, hasLabel(metric.Label, "testLabel", "testValue"))
+			if name == sampleMetricName {
+				assert.True(t, hasLabelName(metric.Label, summaryQuantileLabelName))
+			}
+		}
+	}
 }
 
 func testSubmitInvalidMetrics(t *testing.T) {
@@ -73,29 +152,47 @@ func testSubmitInvalidMetrics(t *testing.T) {
 	err := exp.Submit(metrics)
 	assert.NoError(t, err)
 	assert.Equal(t, len(exp.familiesByName), 0)
+}
 
-	// Submitting a metric with differing type than its family should not register
-	// that metric
-	exp = makeTestCustomPushExporter()
-	badMetricFamily := tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 0, sampleLabels)
-	counter := tests.MakePromoCounter(0)
-	badMetricFamily.Metric = append(badMetricFamily.Metric, &counter)
-	mc = exporters.MetricAndContext{
-		Family:  badMetricFamily,
+func totalMetricCount(exp *CustomPushExporter) int {
+	total := 0
+	for _, fam := range exp.familiesByName {
+		total += len(fam.Metric)
+	}
+	return total
+}
+
+func submitNewMetric(exp *CustomPushExporter, mtype dto.MetricType) error {
+	mc := exporters.MetricAndContext{
+		Family:  tests.MakeTestMetricFamily(mtype, 1, sampleLabels),
 		Context: sampleContext,
 	}
-	metrics = []exporters.MetricAndContext{mc}
+	metrics := []exporters.MetricAndContext{mc}
+	return exp.Submit(metrics)
+}
 
-	err = exp.Submit(metrics)
-	assert.NoError(t, err)
-	assert.Equal(t, len(exp.familiesByName), 1)
-	assert.Equal(t, len(exp.familiesByName[sampleMetricName].Metric), 1)
+func hasLabelName(labels []*dto.LabelPair, name string) bool {
+	for _, label := range labels {
+		if label.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
+func hasLabel(labels []*dto.LabelPair, name, value string) bool {
+	for _, label := range labels {
+		if label.GetName() == name {
+			return label.GetValue() == value
+		}
+	}
+	return false
 }
 
 func makeTestCustomPushExporter() CustomPushExporter {
 	return CustomPushExporter{
 		familiesByName: make(map[string]*dto.MetricFamily),
 		exportInterval: pushInterval,
-		pushAddress:    testPushAddress,
+		pushAddress:    "",
 	}
 }
