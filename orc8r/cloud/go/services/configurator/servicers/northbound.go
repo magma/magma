@@ -95,7 +95,6 @@ func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *
 		}
 		updates = append(updates, pUpdate.ToNetworkUpdateCriteria())
 	}
-
 	_, err = store.UpdateNetworks(updates)
 	if err != nil {
 		store.Rollback()
@@ -105,7 +104,22 @@ func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *
 }
 
 func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *protos.DeleteNetworksRequest) (*commonProtos.Void, error) {
-	return &commonProtos.Void{}, fmt.Errorf("Not yet implemented")
+	void := &commonProtos.Void{}
+	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	if err != nil {
+		return void, err
+	}
+
+	deleteRequests := []storage.NetworkUpdateCriteria{}
+	for _, networkID := range req.NetworkIDs {
+		deleteRequests = append(deleteRequests, storage.NetworkUpdateCriteria{ID: networkID, DeleteNetwork: true})
+	}
+	_, err = store.UpdateNetworks(deleteRequests)
+	if err != nil {
+		store.Rollback()
+		return void, err
+	}
+	return void, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *protos.LoadEntitiesRequest) (*protos.LoadEntitiesResponse, error) {
@@ -175,7 +189,25 @@ func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *
 }
 
 func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *protos.DeleteEntitiesRequest) (*commonProtos.Void, error) {
-	return &commonProtos.Void{}, fmt.Errorf("Not yet implemented")
+	void := &commonProtos.Void{}
+	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	if err != nil {
+		return void, err
+	}
+
+	for _, entityID := range req.ID {
+		request := storage.EntityUpdateCriteria{
+			Type:         entityID.Type,
+			Key:          entityID.Id,
+			DeleteEntity: true,
+		}
+		_, err = store.UpdateEntity(req.NetworkID, request)
+		if err != nil {
+			store.Rollback()
+			return void, err
+		}
+	}
+	return void, store.Commit()
 }
 
 func networkConfigsAreValid(configs map[string][]byte) error {

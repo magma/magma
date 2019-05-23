@@ -53,6 +53,16 @@ func UpdateNetworks(updates []*protos.NetworkUpdateCriteria) error {
 	return err
 }
 
+// DeleteNetwork deletes the network specified by networkID
+func DeleteNetworks(networkIDs []string) error {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.DeleteNetworks(context.Background(), &protos.DeleteNetworksRequest{NetworkIDs: networkIDs})
+	return err
+}
+
 // LoadNetworks loads networks specified by networks according to criteria specified and
 // returns the result
 func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) (map[string]*protos.Network, []string, error) {
@@ -102,6 +112,22 @@ func UpdateEntities(networkID string, updates []*protos.EntityUpdateCriteria) (m
 		return nil, err
 	}
 	return response.UpdatedEntities, err
+}
+
+// DeleteEntity deletes the entity specified by networkID, type, key
+func DeleteEntities(networkID string, ids []*protos.EntityID) error {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.DeleteEntities(
+		context.Background(),
+		&protos.DeleteEntitiesRequest{
+			NetworkID: networkID,
+			ID:        ids,
+		},
+	)
+	return err
 }
 
 // LoadEntities loads entities specified by the parameters.
