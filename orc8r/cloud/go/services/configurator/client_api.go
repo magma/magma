@@ -12,6 +12,7 @@ import (
 	"context"
 
 	"magma/orc8r/cloud/go/errors"
+	commonProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 
@@ -97,6 +98,19 @@ func CreateEntities(networkID string, entities []*protos.NetworkEntity) ([]*prot
 		return nil, err
 	}
 	return response.CreatedEntities, err
+}
+
+// ListNetworkIDs loads a list of all networkIDs registered
+func ListNetworkIDs() ([]string, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+	idsWrapper, err := client.ListNetworkIDs(context.Background(), &commonProtos.Void{})
+	if err != nil {
+		return nil, err
+	}
+	return idsWrapper.NetworkIDs, nil
 }
 
 // UpdateEntities updates the registered entities and returns the updated entities

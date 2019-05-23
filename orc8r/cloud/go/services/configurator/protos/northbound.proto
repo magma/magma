@@ -15,8 +15,8 @@ import "configurator.proto";
 package magma.orc8r.configurator;
 option go_package = "protos";
 
-message ListNetworksResponse {
-    repeated string networkID = 1;
+message ListNetworkIDsResponse {
+    repeated string networkIDs = 1;
 }
 
 message CreateNetworksRequest {
@@ -123,8 +123,8 @@ message LoadEntitiesResponse {
 }
 
 service NorthboundConfigurator {
-    // ListNetworks fetches the list of networkIDs registered
-    rpc ListNetworks (magma.orc8r.Void) returns (ListNetworksResponse) {}
+    // ListNetworkIDs fetches the list of networkIDs registered
+    rpc ListNetworkIDs (magma.orc8r.Void) returns (ListNetworkIDsResponse) {}
     // CreateNetworks registers the given list of Networks and returns the created Networks
     rpc CreateNetworks (CreateNetworksRequest) returns (CreateNetworksResponse) {}
     // UpdateNetworks updates the given list of registered Networks

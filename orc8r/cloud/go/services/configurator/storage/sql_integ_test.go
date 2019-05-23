@@ -95,6 +95,17 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// ========================================================================
+	// LoadAll networks tests
+	// ========================================================================
+
+	store, err = factory.StartTransaction(context.Background(), nil)
+	loadedNetworks, err := store.LoadAllNetworks(storage.FullNetworkLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(t, "n1", loadedNetworks[0].ID)
+	assert.Equal(t, "n2", loadedNetworks[1].ID)
+	store.Commit()
+
+	// ========================================================================
 	// Update network tests
 	// ========================================================================
 

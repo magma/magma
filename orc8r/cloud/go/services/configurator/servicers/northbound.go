@@ -31,10 +31,6 @@ func NewNorthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactor
 	return &nbConfiguratorServicer{factory}, nil
 }
 
-func (srv *nbConfiguratorServicer) ListNetworks(context context.Context, void *commonProtos.Void) (*protos.ListNetworksResponse, error) {
-	return &protos.ListNetworksResponse{}, fmt.Errorf("Not yet implemented")
-}
-
 func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *protos.LoadNetworksRequest) (*protos.LoadNetworksResponse, error) {
 	res := &protos.LoadNetworksResponse{}
 	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: true})
@@ -54,6 +50,25 @@ func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *pr
 		res.Networks[network.ID] = pNetwork
 	}
 	res.NotFound = result.NetworkIDsNotFound
+	return res, store.Commit()
+}
+
+func (srv *nbConfiguratorServicer) ListNetworkIDs(context context.Context, void *commonProtos.Void) (*protos.ListNetworkIDsResponse, error) {
+	res := &protos.ListNetworkIDsResponse{}
+	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return res, err
+	}
+
+	networks, err := store.LoadAllNetworks(storage.FullNetworkLoadCriteria)
+	if err != nil {
+		store.Rollback()
+		return res, err
+	}
+	res.NetworkIDs = []string{}
+	for _, network := range networks {
+		res.NetworkIDs = append(res.NetworkIDs, network.ID)
+	}
 	return res, store.Commit()
 }
 

@@ -87,6 +87,12 @@ func TestConfiguratorService(t *testing.T) {
 	_, err = configurator.CreateNetworks([]*protos.Network{network2})
 	assert.NoError(t, err)
 
+	networkIDs, err := configurator.ListNetworkIDs()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(networkIDs))
+	assert.Equal(t, networkID2, networkIDs[1])
+
+	// Create, Delete, Load
 	err = configurator.DeleteNetworks([]string{network2.Id})
 	assert.NoError(t, err)
 

@@ -233,12 +233,57 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	}
 	defer sql_utils.CloseRowsLogOnError(rows, "LoadNetworks")
 
+	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
+	if err != nil {
+		return emptyRet, err
+	}
+
+	ret := NetworkLoadResult{
+		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, ids),
+		Networks:           make([]Network, 0, len(loadedNetworksByID)),
+	}
+	for _, nid := range loadedNetworkIDs {
+		ret.Networks = append(ret.Networks, *loadedNetworksByID[nid])
+	}
+	return ret, nil
+}
+
+func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCriteria) ([]Network, error) {
+	emptyNetworks := []Network{}
+	idsToExclude := []string{InternalNetworkID}
+	query, err := getAllNetworksQuery(loadCriteria, idsToExclude)
+	if err != nil {
+		return emptyNetworks, err
+	}
+
+	queryArgs := make([]interface{}, 0, len(idsToExclude))
+	funk.ConvertSlice(idsToExclude, &queryArgs)
+
+	rows, err := store.tx.Query(query, queryArgs...)
+	if err != nil {
+		return emptyNetworks, fmt.Errorf("error querying for networks: %s", err)
+	}
+	defer sql_utils.CloseRowsLogOnError(rows, "LoadAllNetworks")
+
+	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
+	if err != nil {
+		return emptyNetworks, err
+	}
+
+	networks := make([]Network, 0, len(loadedNetworksByID))
+	for _, nid := range loadedNetworkIDs {
+		networks = append(networks, *loadedNetworksByID[nid])
+	}
+	return networks, nil
+}
+
+func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[string]*Network, []string, error) {
 	// Pointer values because we're modifying .Config in-place
 	loadedNetworksByID := map[string]*Network{}
 	for rows.Next() {
 		nwResult, err := scanNextNetworkRow(rows, loadCriteria)
 		if err != nil {
-			return emptyRet, err
+			return nil, nil, err
 		}
 
 		existingNetwork, wasLoaded := loadedNetworksByID[nwResult.ID]
@@ -254,15 +299,7 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	// Sort map keys so we return deterministically
 	loadedNetworkIDs := funk.Keys(loadedNetworksByID).([]string)
 	sort.Strings(loadedNetworkIDs)
-
-	ret := NetworkLoadResult{
-		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, ids),
-		Networks:           make([]Network, 0, len(loadedNetworksByID)),
-	}
-	for _, nid := range loadedNetworkIDs {
-		ret.Networks = append(ret.Networks, *loadedNetworksByID[nid])
-	}
-	return ret, nil
+	return loadedNetworksByID, loadedNetworkIDs, nil
 }
 
 func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, error) {
