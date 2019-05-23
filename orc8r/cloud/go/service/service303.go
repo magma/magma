@@ -67,8 +67,8 @@ func (service *Service) ReloadServiceConfig(ctx context.Context, void *protos.Vo
 	return &res, fmt.Errorf("method ReloadServiceConfig  not implemented\n")
 }
 
-// GetOperationalStates not currently implemented for cloud services
+// GetOperationalStates not currently implemented for go services
 func (service *Service) GetOperationalStates(ctx context.Context, void *protos.Void) (*protos.GetOperationalStatesResponse, error) {
 	res := protos.GetOperationalStatesResponse{}
-	return &res, fmt.Errorf("GetOperationalStates not implemented on cloud side")
+	return &res, nil
 }
