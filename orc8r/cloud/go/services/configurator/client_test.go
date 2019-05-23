@@ -23,6 +23,7 @@ import (
 
 const (
 	networkID1 = "network_id_1"
+	networkID2 = "network_id_2"
 )
 
 func TestConfiguratorService(t *testing.T) {
@@ -76,6 +77,23 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, newDesc, networks[networkID1].Description)
 	assert.Equal(t, []byte(nil), networks[networkID1].Configs["foo"])
 	assert.Equal(t, serializedBarConfig, networks[networkID1].Configs["bar"])
+
+	// Create, Delete, Load
+	network2 := &protos.Network{
+		Id:          networkID2,
+		Name:        "test_network2",
+		Description: "description2",
+	}
+	_, err = configurator.CreateNetworks([]*protos.Network{network2})
+	assert.NoError(t, err)
+
+	err = configurator.DeleteNetworks([]string{network2.Id})
+	assert.NoError(t, err)
+
+	networks, notFound, err = configurator.LoadNetworks([]string{networkID2}, true, true)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(networks))
+	assert.Equal(t, 1, len(notFound))
 
 	// Test Basic Entity Interface
 	entityID1 := &protos.EntityID{Type: "foo", Id: "bar"}
@@ -155,6 +173,21 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, "4321", entities[0].PhysicalId)
 	assert.Equal(t, 1, len(entities[0].Assocs))
 	assert.Equal(t, entityID2.Id, entities[0].Assocs[0].Id)
+
+	// Delete, Load
+	err = configurator.DeleteEntities(networkID1, []*protos.EntityID{entityID2})
+	assert.NoError(t, err)
+	entities, entitiesNotFound, err = configurator.LoadEntities(
+		networkID1,
+		strPointer("foo"),
+		nil,
+		nil,
+		fullEntityLoadCriteria,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(entities))
+	assert.Equal(t, 0, len(entitiesNotFound))
+	assert.Equal(t, "foobar", entities[0].Name)
 }
 
 func strToStringValue(str string) *wrappers.StringValue {
