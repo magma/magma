@@ -49,21 +49,35 @@ spec:
         - name: envdir
           secret:
             secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
-        - name: configs
-          {{- if .Values.secret.configs }}
+        {{- if .Values.secret.configs }}
+        {{- range $module, $secretName := .Values.secret.configs }}
+        - name: {{ $secretName }}
           secret:
-            secretName: {{ .Values.secret.configs }}
-          {{- else }}
+            secretName: {{ $secretName }}
+        {{- end }}
+        {{- else }}
+        - name: "empty-configs"
           emptyDir: {}
-          {{- end }}
+        {{- end }}
       containers:
         - name: {{ $serviceName }}
           image: {{ required "controller.image.repository must be provided" .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}
           imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
           volumeMounts:
-            {{- range tuple "certs" "envdir" "configs" }}
+            {{- range tuple "certs" "envdir" }}
             - name: {{ . }}
               mountPath: /var/opt/magma/{{ . }}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.secret.configs }}
+            {{- range $module, $secretName := .Values.secret.configs }}
+            - name: {{ $secretName }}
+              mountPath: {{ print "/var/opt/magma/configs/" $module }}
+              readOnly: true
+            {{- end }}
+            {{- else }}
+            - name: "empty-configs"
+              mountPath: /var/opt/magma/configs
               readOnly: true
             {{- end }}
           ports:

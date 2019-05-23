@@ -17,7 +17,8 @@ secrets:
 # Define which secrets should be mounted by pods.
 secret:
   certs: orc8r-secrets-certs
-  configs: orc8r-secrets-configs
+  configs:
+    orc8r: orc8r-secrets-configs-orc8r
   envdir: orc8r-secrets-envdir
 
 proxy:
