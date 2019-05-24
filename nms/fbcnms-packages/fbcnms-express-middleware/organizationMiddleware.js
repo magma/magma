@@ -8,8 +8,7 @@
  * @format
  */
 
-import {Organization} from '@fbcnms/sequelize-models';
-import Sequelize from 'sequelize';
+import {Organization, jsonArrayContains} from '@fbcnms/sequelize-models';
 import type {ExpressRequest, ExpressResponse, NextFunction} from 'express';
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 
@@ -28,12 +27,9 @@ export async function getOrganization(req: {
   get(field: string): string | void,
 }): Promise<OrganizationType> {
   const host = req.get('host') || 'UNKNOWN_HOST';
+
   let org = await Organization.findOne({
-    where: Sequelize.fn(
-      'JSON_CONTAINS',
-      Sequelize.col('customDomains'),
-      `"${host}"`,
-    ),
+    where: jsonArrayContains('customDomains', host),
   });
 
   if (org) {

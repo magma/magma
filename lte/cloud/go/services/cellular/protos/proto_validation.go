@@ -172,3 +172,49 @@ func validateTDDConfig(band *utils.LTEBand, tddConfig *NetworkRANConfig_TDDConfi
 	}
 	return nil
 }
+
+func ValidateEnodebConfig(config *CellularEnodebConfig) error {
+	if config == nil {
+		return errors.New("Gateway config is nil")
+	}
+	if config.Earfcndl < 0 || config.Earfcndl > 65535 {
+		return errors.New("EARFCNDL must be within 0-65535")
+	}
+	if config.SubframeAssignment < 0 || config.SubframeAssignment > 6 {
+		return errors.New("Subframe assignment must be within 0-6")
+	}
+	if config.SpecialSubframePattern < 0 || config.SpecialSubframePattern > 9 {
+		return errors.New("Special subframe pattern must be within 0-9")
+	}
+	if config.Pci < 0 || config.Pci > 504 {
+		return errors.New("PCI must be within 0-504")
+	}
+	if config.CellId < 0 || config.CellId > 268435455 {
+		return errors.New("Cell ID must be within 0-268435455")
+	}
+	if config.Tac < 0 || config.Tac > 65535 {
+		return errors.New("TAC must be within 0-65535")
+	}
+	switch config.DeviceClass {
+	case
+		"Baicells Nova-233 G2 OD FDD",
+		"Baicells Nova-243 OD TDD",
+		"Baicells ID TDD/FDD",
+		"NuRAN Cavium OC-LTE":
+		break
+	default:
+		return errors.New("Invalid eNodeB device class")
+	}
+	switch config.BandwidthMhz {
+	case
+		3,
+		5,
+		10,
+		15,
+		20:
+		break
+	default:
+		return errors.New("Invalid eNodeB bandwidth option")
+	}
+	return nil
+}

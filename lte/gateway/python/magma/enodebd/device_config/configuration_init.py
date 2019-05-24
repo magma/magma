@@ -8,6 +8,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
+from collections import namedtuple
+from lte.protos.mconfig import mconfigs_pb2
 from typing import Any, Union
 from magma.common.misc_utils import get_ip_from_if
 from magma.enodebd.data_models.data_model import DataModel
@@ -17,12 +19,20 @@ from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.exceptions import ConfigurationError
-from magma.enodebd.lte_utils import map_earfcndl_to_band_earfcnul_mode, \
-    DuplexMode
+from magma.enodebd.lte_utils import DuplexMode, \
+    map_earfcndl_to_duplex_mode, map_earfcndl_to_band_earfcnul_mode
 
 
 # LTE constants
 DEFAULT_S1_PORT = 36412
+
+
+SingleEnodebConfig = namedtuple('SingleEnodebConfig',
+                                ['earfcndl', 'subframe_assignment',
+                                 'special_subframe_pattern',
+                                 'pci', 'plmnid_list', 'tac',
+                                 'bandwidth_mhz', 'cell_id',
+                                 'allow_enodeb_transmit'])
 
 
 def config_assert(condition: bool, message: str = None) -> None:
@@ -55,25 +65,19 @@ def build_desired_config(
 
     # Determine configuration parameters
     _set_management_server(cfg_desired)
-    if mconfig.tdd_config is not None and str(mconfig.tdd_config) != '':
-        _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
-                                   mconfig.tdd_config.earfcndl)
-        _set_tdd_subframe_config(device_config, cfg_desired,
-            mconfig.tdd_config.subframe_assignment,
-            mconfig.tdd_config.special_subframe_pattern)
-    elif mconfig.fdd_config is not None and str(mconfig.fdd_config) != '':
-        _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
-                                    mconfig.fdd_config.earfcndl)
-    else:
-        # back-compat: use legacy fields if tdd/fdd aren't set
-        _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
-                                   mconfig.earfcndl)
-        _set_tdd_subframe_config(device_config, cfg_desired,
-            mconfig.subframe_assignment, mconfig.special_subframe_pattern)
 
-    _set_pci(cfg_desired, mconfig.pci)
-    _set_plmnids_tac(cfg_desired, mconfig.plmnid_list, mconfig.tac)
-    _set_bandwidth(cfg_desired, data_model, mconfig.bandwidth_mhz)
+    enb_config = _get_enb_config(mconfig, device_config)
+
+    _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
+                               enb_config.earfcndl)
+    if enb_config.subframe_assignment is not None:
+        _set_tdd_subframe_config(device_config, cfg_desired,
+            enb_config.subframe_assignment,
+            enb_config.special_subframe_pattern)
+    _set_pci(cfg_desired, enb_config.pci)
+    _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
+    _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
+    _set_cell_id(cfg_desired, enb_config.cell_id)
     _set_s1_connection(
         cfg_desired, get_ip_from_if(service_config['s1_interface']))
     _set_perf_mgmt(
@@ -84,10 +88,73 @@ def build_desired_config(
 
     # Enable LTE if we should
     cfg_desired.set_parameter(ParameterName.ADMIN_STATE,
-                              mconfig.allow_enodeb_transmit)
+                              enb_config.allow_enodeb_transmit)
 
     post_processor.postprocess(cfg_desired)
     return cfg_desired
+
+
+def _get_enb_config(
+    mconfig: mconfigs_pb2.EnodebD,
+    device_config: EnodebConfiguration,
+) -> SingleEnodebConfig:
+    # For fields that are specified per eNB
+    if mconfig.enb_configs_by_serial is not None and \
+            len(mconfig.enb_configs_by_serial) > 0:
+        enb_serial =\
+            device_config.get_parameter(ParameterName.SERIAL_NUMBER)
+        if enb_serial in mconfig.enb_configs_by_serial:
+            enb_config = mconfig.enb_configs_by_serial[enb_serial]
+            earfcndl = enb_config.earfcndl
+            pci = enb_config.pci
+            allow_enodeb_transmit = enb_config.transmit_enabled
+            tac = enb_config.tac
+            bandwidth_mhz = enb_config.bandwidth_mhz
+            cell_id = enb_config.cell_id
+            duplex_mode = map_earfcndl_to_duplex_mode(earfcndl)
+            subframe_assignment = None
+            special_subframe_pattern = None
+            if duplex_mode == DuplexMode.TDD:
+                subframe_assignment = enb_config.subframe_assignment
+                special_subframe_pattern = \
+                    enb_config.special_subframe_pattern
+        else:
+            raise ConfigurationError('Could not construct desired config '
+                                     'for eNB')
+    else:
+        pci = mconfig.pci
+        allow_enodeb_transmit = mconfig.allow_enodeb_transmit
+        tac = mconfig.tac
+        bandwidth_mhz = mconfig.bandwidth_mhz
+        cell_id = 0
+        if mconfig.tdd_config is not None and str(mconfig.tdd_config) != '':
+            earfcndl = mconfig.tdd_config.earfcndl
+            subframe_assignment = mconfig.tdd_config.subframe_assignment
+            special_subframe_pattern = \
+                mconfig.tdd_config.special_subframe_pattern
+        elif mconfig.fdd_config is not None and str(mconfig.fdd_config) != '':
+            earfcndl = mconfig.fdd_config.earfcndl
+            subframe_assignment = None
+            special_subframe_pattern = None
+        else:
+            earfcndl = mconfig.earfcndl
+            subframe_assignment = mconfig.subframe_assignment
+            special_subframe_pattern = mconfig.special_subframe_pattern
+
+    # And now the rest of the fields
+    plmnid_list = mconfig.plmnid_list
+
+    single_enodeb_config = SingleEnodebConfig(
+        earfcndl=earfcndl,
+        subframe_assignment=subframe_assignment,
+        special_subframe_pattern=special_subframe_pattern,
+        pci=pci,
+        plmnid_list=plmnid_list,
+        tac=tac,
+        bandwidth_mhz=bandwidth_mhz,
+        cell_id=cell_id,
+        allow_enodeb_transmit=allow_enodeb_transmit)
+    return single_enodeb_config
 
 
 def _set_pci(
@@ -116,6 +183,17 @@ def _set_bandwidth(
     cfg.set_parameter(ParameterName.DL_BANDWIDTH, bandwidth_mhz)
     _set_param_if_present(cfg, data_model, ParameterName.UL_BANDWIDTH,
                           bandwidth_mhz)
+
+
+def _set_cell_id(
+    cfg: EnodebConfiguration,
+    cell_id: int,
+) -> None:
+    config_assert(
+        cell_id in range(0, 268435456),
+        'Cell Identity should be from 0 - (2^28 - 1)'
+    )
+    cfg.set_parameter(ParameterName.CELL_ID, cell_id)
 
 
 def _set_tdd_subframe_config(

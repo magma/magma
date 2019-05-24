@@ -102,7 +102,6 @@ def _package_vagrant_zip(service, folder, cloud_host, commit_hash):
         if service == "metrics":
             run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
             run('cp -pr roles/third_party/graphite %s/ansible/roles.' % folder)
-            run('mkdir -p %s/bin' % folder)  # To make CodeDeploy happy
         else:
             run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
 
@@ -118,6 +117,9 @@ def _package_vagrant_zip(service, folder, cloud_host, commit_hash):
 
     # Build Go binaries and plugins
     build()
+    if service == "metrics":
+        run("make -C magma/orc8r/cloud/go/services/metricsd/prometheus/prometheus-cache build")
+
     run('cp -pr go/plugins %s' % folder)
     _copy_go_binaries(service, folder)
 
@@ -150,7 +152,7 @@ def _package_docker_zip(service, folder, commit_hash, version):
     local('mkdir -p %s/plugins' % folder)
     local('mkdir -p %s/configs' % folder)
     local('mkdir -p %s/apidocs' % folder)
-    local('cp -pr deploy/files/scripts/setup_swagger_ui %s/scripts/.' % folder)
+    local('cp -pr docker/controller/setup_swagger_ui %s/scripts/.' % folder)
 
     pkg_name = "magmadocker_%s_%s" % (service, commit_hash)
     with lcd(folder):
@@ -165,6 +167,10 @@ def _copy_go_binaries(service, folder):
         run('cp go/bin/logger %s/bin/.' % folder)
     if service == 'controller':
         run('cp -pr go/bin %s' % folder)
+    if service == 'metrics':
+        run('mkdir -p %s/bin' % folder)
+        run('cp -pr go/bin/prometheus-cache %s/bin/.' % folder)
+        run('cp -pr go/bin/alerting %s/bin/.' % folder)
 
 
 def _push_archive_to_s3(service, folder, zip_name):

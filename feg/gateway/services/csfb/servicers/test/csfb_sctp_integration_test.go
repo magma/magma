@@ -62,10 +62,11 @@ func TestCsfbServer_EPSDetach_Integration(t *testing.T) {
 	}()
 
 	// wait for initialization of mock listener
-	vlrConn, err := servicers.NewSCTPClientConnection(
+	vlrSCTPAddr := servicers.ConstructSCTPAddr(
 		servicers.DefaultVLRIPAddress,
 		<-port,
 	)
+	vlrConn, err := servicers.NewSCTPClientConnection(vlrSCTPAddr, nil)
 	assert.NoError(t, err)
 	err = vlrConn.EstablishConn()
 	defer vlrConn.CloseConn()

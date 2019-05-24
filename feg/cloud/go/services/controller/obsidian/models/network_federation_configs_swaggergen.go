@@ -594,6 +594,9 @@ type NetworkFederationConfigsHss struct {
 	// server
 	Server *DiameterServerConfigs `json:"server,omitempty"`
 
+	// stream subscribers
+	StreamSubscribers bool `json:"stream_subscribers,omitempty"`
+
 	// sub profiles
 	SubProfiles map[string]SubscriptionProfile `json:"sub_profiles,omitempty"`
 }

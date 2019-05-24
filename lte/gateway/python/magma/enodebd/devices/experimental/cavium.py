@@ -34,17 +34,15 @@ from magma.enodebd.state_machines.enb_acs_states import WaitInformState, \
 from magma.enodebd.state_machines.acs_state_utils import \
      get_all_objects_to_delete, get_all_objects_to_add
 from magma.enodebd.tr069 import models
-from magma.enodebd.stats_manager import StatsManager
 
 
 class CaviumHandler(BasicEnodebAcsStateMachine):
     def __init__(
             self,
             service: MagmaService,
-            stats_mgr: StatsManager,
     ) -> None:
         self._state_map = {}
-        super().__init__(service, stats_mgr)
+        super().__init__(service)
 
     def reboot_asap(self) -> None:
         self.transition('reboot')
@@ -278,6 +276,7 @@ class CaviumTrDataModel(DataModel):
         ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'FAP.GPS.LockedLatitude', True, TrParameterType.INT, False),
         ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'FAP.GPS.LockedLongitude', True, TrParameterType.INT, False),
         ParameterName.SW_VERSION: TrParam(DEVICE_PATH + 'DeviceInfo.SoftwareVersion', True, TrParameterType.STRING, False),
+        ParameterName.SERIAL_NUMBER: TrParam(DEVICE_PATH + 'DeviceInfo.SerialNumber', True, TrParameterType.STRING, False),
 
         # Capabilities
         ParameterName.DUPLEX_MODE_CAPABILITY: TrParam(
@@ -291,6 +290,7 @@ class CaviumTrDataModel(DataModel):
         ParameterName.PCI: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.PhyCellID', True, TrParameterType.STRING, False),
         ParameterName.DL_BANDWIDTH: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.DLBandwidth', True, TrParameterType.STRING, False),
         ParameterName.UL_BANDWIDTH: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.RF.ULBandwidth', True, TrParameterType.STRING, False),
+        ParameterName.CELL_ID: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.RAN.Common.CellIdentity', True, TrParameterType.UNSIGNED_INT, False),
 
         # Other LTE parameters
         ParameterName.ADMIN_STATE: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.AdminState', False, TrParameterType.BOOLEAN, False),

@@ -11,7 +11,6 @@ PROJECT(SessionManager)
 
 add_compile_options(-std=c++14)
 
-include_directories("/usr/local/include/prometheus")
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")

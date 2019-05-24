@@ -77,6 +77,9 @@ message HSSConfig {
 
     // If an IMSI if not found in sub_profiles, the default profile is used instead.
     SubscriptionProfile default_sub_profile = 5;
+
+    // Whether to stream subscribers from the cloud subscriberdb service.
+    bool stream_subscribers = 6;
 }
 
 message HealthConfig {

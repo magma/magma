@@ -17,8 +17,7 @@ import unittest
 import time
 
 from magma.mobilityd.ip_allocator import IPAllocator, IPBlockNotFoundError, \
-    NoAvailableIPError, IPNotInUseError, MappingNotFoundError, \
-    DuplicatedIPAllocationError
+    NoAvailableIPError, IPNotInUseError, MappingNotFoundError
 
 
 @unittest.skip("temporarily disabled for hack t23793559")
@@ -143,11 +142,10 @@ class IPAllocatorTests(unittest.TestCase):
             self._allocator.get_sid_for_ip(ipaddress.ip_address('1.1.1.1')))
 
     def test_allocate_allocate(self):
-        """ Duplicated IP requests for the same UE raise
-        DuplicatedIPAllocationError """
-        self._allocator.alloc_ip_address('SID0')
-        with self.assertRaises(DuplicatedIPAllocationError):
-            self._allocator.alloc_ip_address('SID0')
+        """ Duplicated IP requests for the same UE returns same IP """
+        ip0 = self._allocator.alloc_ip_address('SID0')
+        ip1 = self._allocator.alloc_ip_address('SID0')
+        self.assertEqual(ip0, ip1)
 
     def test_allocated_release_allocate(self):
         """ Immediate allocation after releasing get the same IP """

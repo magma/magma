@@ -33,6 +33,10 @@ func main() {
 	}
 
 	store := blobstore.NewSQLBlobStorageFactory(device.DBTableName, db)
+	err = store.InitializeFactory()
+	if err != nil {
+		glog.Fatalf("Failed to initialize device database: %s", err)
+	}
 	// Add servicers to the service
 	deviceServicer, err := servicers.NewDeviceServicer(store)
 	if err != nil {

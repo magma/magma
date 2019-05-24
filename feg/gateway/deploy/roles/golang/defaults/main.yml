@@ -5,8 +5,8 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree. An additional grant
 
-  golang_tar: go1.11.linux-amd64.tar.gz
-  golang_tar_checksum: 'sha256:b3fcf280ff86558e0559e185b601c9eade0fd24c900b4c63cd14d1d38613e499'
+  golang_tar: go1.12.4.linux-amd64.tar.gz
+  golang_tar_checksum: 'sha256:d7d1f1f88ddfe55840712dc1747f37a790cbcaa448f6c9cf51bbe10aa65442f5'
   go_install_path: /usr/local
   gopath: '/home/{{ user }}/go'
   gobin: '/home/{{ user }}/go/bin'

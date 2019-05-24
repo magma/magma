@@ -1,0 +1,123 @@
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: orc8r-secrets-registry
+
+# secrets subchart configuration.
+secrets:
+  create: false
+
+# Define which secrets should be mounted by pods.
+secret:
+  certs: orc8r-secrets-certs
+  configs: orc8r-secrets-configs
+  envdir: orc8r-secrets-envdir
+
+proxy:
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    port:
+      clientcert:
+        port: 9443
+        targetPort: 9443
+        nodePort: ""
+      open:
+        port: 9444
+        targetPort: 9444
+        nodePort: ""
+
+  # proxy image
+  image:
+    repository:
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Settings affecting proxy application
+  spec:
+    # magma controller domain name
+    hostname: ""
+
+  # Number of proxy replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+controller:
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+    # port range exposed by controller
+    portStart: 9079
+    portEnd: 9104
+
+  # proxy image
+  image:
+    repository:
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  spec:
+    # Postgres configuration
+    postgres:
+      db: magma
+      host: postgresql
+      port: 5432
+      user: postgres
+      pass: postgres
+
+  # Number of controller replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}

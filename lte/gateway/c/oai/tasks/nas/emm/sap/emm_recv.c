@@ -175,6 +175,11 @@ int emm_recv_attach_request(
     /*
      * Requirement MME24.301R10_5.5.1.2.7_b Protocol error
      */
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = (%d)\n",
+      ue_id,
+      *emm_cause);
     rc = emm_proc_attach_reject(ue_id, *emm_cause);
     *emm_cause = EMM_CAUSE_SUCCESS;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -214,6 +219,8 @@ int emm_recv_attach_request(
     /*
      * Get the GUTI
      */
+    OAILOG_DEBUG(LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_GUTI  (%d)\n",
+      msg->oldgutiorimsi.guti.typeofidentity);
     params->guti = calloc(1, sizeof(guti_t));
     params->guti->gummei.plmn.mcc_digit1 = msg->oldgutiorimsi.guti.mcc_digit1;
     params->guti->gummei.plmn.mcc_digit2 = msg->oldgutiorimsi.guti.mcc_digit2;
@@ -229,6 +236,8 @@ int emm_recv_attach_request(
     /*
      * Get the IMSI
      */
+    OAILOG_DEBUG(LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_IMSI  (%d)\n",
+      msg->oldgutiorimsi.imsi.typeofidentity);
     params->imsi = calloc(1, sizeof(imsi_t));
     params->imsi->u.num.digit1 = msg->oldgutiorimsi.imsi.identity_digit1;
     params->imsi->u.num.digit2 = msg->oldgutiorimsi.imsi.identity_digit2;
@@ -252,6 +261,8 @@ int emm_recv_attach_request(
     /*
      * Get the IMEI
      */
+    OAILOG_DEBUG(LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_IMEI  (%d)\n",
+      msg->oldgutiorimsi.imei.typeofidentity);
     params->imei = calloc(1, sizeof(imei_t));
     params->imei->u.num.tac1 = msg->oldgutiorimsi.imei.identity_digit1;
     params->imei->u.num.tac2 = msg->oldgutiorimsi.imei.identity_digit2;
@@ -305,6 +316,11 @@ int emm_recv_attach_request(
     (msg->naskeysetidentifier.tsc != NAS_KEY_SET_IDENTIFIER_MAPPED);
   params->ksi = msg->naskeysetidentifier.naskeysetidentifier;
   params->is_native_guti = (msg->oldgutitype != GUTI_MAPPED);
+
+  OAILOG_DEBUG(LOG_NAS_EMM, "NAS Key set ID:TSC - (%d) KSI - (%d)\n",
+    params->is_native_sc,
+    params->ksi);
+
   if (originating_tai) {
     params->originating_tai = calloc(1, sizeof(tai_t));
     memcpy(params->originating_tai, originating_tai, sizeof(tai_t));
@@ -409,7 +425,8 @@ int emm_recv_attach_complete(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Complete message\n");
+  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Complete message for ue_id = (%u)\n",
+    ue_id);
   /*
    * Execute the attach procedure completion
    */
@@ -750,8 +767,12 @@ int emm_recv_service_request(
 
   OAILOG_INFO(
     LOG_NAS_EMM,
-    "EMMAS-SAP - Received Service Request message, Security context %s "
-    "Integrity protected %s MAC matched %s Ciphered %s\n",
+    "EMMAS-SAP - Received Service Request message for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "Service Request message for (ue_id = %u)\n"
+    "(Security context %s) (Integrity protected %s) (MAC matched %s) (Ciphered %s)\n",
+    ue_id,
     (decode_status->security_context_available) ? "yes" : "no",
     (decode_status->integrity_protected_message) ? "yes" : "no",
     (decode_status->mac_matched) ? "yes" : "no",

@@ -1124,3 +1124,41 @@ int encode_ms_network_feature_support_ie(
   encoded++;
   return encoded;
 }
+
+//------------------------------------------------------------------------------
+// 10.5.5.31 Network Resource Identifier Container
+//------------------------------------------------------------------------------
+
+int decode_network_resource_identifier_container_ie(
+  network_resource_identifier_container_t *networkresourceidentifiercontainer,
+  const bool iei_present,
+  uint8_t *buffer,
+  const uint32_t len)
+{
+  //AssertFatal(false, "TODO");
+  //Temporary fix so that we decode other IEs
+  int decoded = 0;
+  uint8_t ielen = 0;
+
+  if (iei_present > 0) {
+    CHECK_IEI_DECODER(C_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI, *buffer);
+    decoded++;
+  }
+
+  ielen = *(buffer + decoded);
+  decoded++;
+
+  decoded += ielen;
+  return decoded;
+}
+
+//------------------------------------------------------------------------------
+int encode_network_resource_identifier_container_ie(
+  network_resource_identifier_container_t *networkresourceidentifiercontainer,
+  const bool iei_present,
+  uint8_t *buffer,
+  const uint32_t len)
+{
+  //AssertFatal(false, "TODO");
+  return 0;
+}

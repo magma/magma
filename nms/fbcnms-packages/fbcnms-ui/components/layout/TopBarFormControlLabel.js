@@ -15,7 +15,7 @@ import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   label: {
-    color: '#fff',
+    color: theme.palette.primaryText,
   },
   root: theme.mixins.toolbar,
 }));

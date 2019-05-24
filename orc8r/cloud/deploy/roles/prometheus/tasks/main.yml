@@ -15,21 +15,37 @@
     - "{{ prometheus_install_path }}"
     - "{{ prometheus_config_path }}"
 
+- name: install alertconfig server
+  include: install-alertconfig-server.yml
+
 - name: install prometheus
   include: install-prometheus.yml
 
-- name: install pushgateway
-  include: install-prometheus-pushgateway.yml
+- name: install prometheus-cache
+  include: install-prometheus-cache.yml
+
+- name: install alertmanager
+  include: install-alertmanager.yml
 
 - name: Copy prometheus service file
   template:
     src: 'prometheus.service'
     dest: '/etc/systemd/system/prometheus.service'
 
-- name: Copy pushgateway service file
+- name: Copy prometheus-cache service file
   template:
-    src: 'pushgateway.service'
-    dest: '/etc/systemd/system/pushgateway.service'
+    src: 'prometheus-cache.service'
+    dest: '/etc/systemd/system/prometheus-cache.service'
+
+- name: Copy alertmanager service file
+  template:
+    src: 'alertmanager.service'
+    dest: '/etc/systemd/system/alertmanager.service'
+
+- name: Copy alertconfig service file
+  template:
+    src: 'alertconfig_server.service'
+    dest: '/etc/systemd/system/alertconfig_server.service'
 
 - name: Start the prometheus service
   systemd:
@@ -38,9 +54,23 @@
     daemon_reload: yes
     enabled: yes
 
-- name: Start the pushgateway service
+- name: Start the prometheus-cache service
   systemd:
-    name: pushgateway
+    name: prometheus-cache
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+- name: Start the alertmanager service
+  systemd:
+    name: alertmanager
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+
+- name: Start the alertconfig server service
+  systemd:
+    name: alertconfig_server
     state: restarted
     daemon_reload: yes
     enabled: yes

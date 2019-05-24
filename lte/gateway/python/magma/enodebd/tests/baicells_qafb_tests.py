@@ -37,10 +37,10 @@ class BaicellsQAFBHandlerTests(TestCase):
 
         # And now the Inform message arrives from the eNodeB
         inform_msg = \
-            Tr069MessageBuilder.get_inform('48BF74',
-                                           'BaiBS_QAFBv123',
-                                           '120200002618AGP0003',
-                                           ['2 PERIODIC'])
+            Tr069MessageBuilder.get_qafb_inform('48BF74',
+                                                'BaiBS_QAFBv123',
+                                                '1202000181186TB0006',
+                                                ['2 PERIODIC'])
         resp = acs_state_machine.handle_tr069_message(inform_msg)
         self.assertTrue(isinstance(resp, models.InformResponse),
                         'In reboot sequence, state machine should still '
@@ -70,10 +70,10 @@ class BaicellsQAFBHandlerTests(TestCase):
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \
-            Tr069MessageBuilder.get_inform('48BF74',
-                                           'BaiBS_QAFBv123',
-                                           '120200002618AGP0003',
-                                           ['2 PERIODIC'])
+            Tr069MessageBuilder.get_qafb_inform('48BF74',
+                                                'BaiBS_QAFBv123',
+                                                '1202000181186TB0006',
+                                                ['2 PERIODIC'])
         resp = acs_state_machine.handle_tr069_message(inform_msg)
         self.assertTrue(isinstance(resp, models.InformResponse),
                         'Should respond with an InformResponse')
@@ -108,10 +108,10 @@ class BaicellsQAFBHandlerTests(TestCase):
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \
-            Tr069MessageBuilder.get_inform('48BF74',
-                                           'BaiBS_QAFBv123',
-                                           '120200002618AGP0003',
-                                           ['2 PERIODIC'])
+            Tr069MessageBuilder.get_qafb_inform('48BF74',
+                                                'BaiBS_QAFBv123',
+                                                '1202000181186TB0006',
+                                                ['2 PERIODIC'])
         resp = acs_state_machine.handle_tr069_message(inform_msg)
         self.assertTrue(isinstance(resp, models.InformResponse),
                         'Should respond with an InformResponse')

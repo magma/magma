@@ -80,7 +80,7 @@
   when: full_provision
 
 - name: Generate the cloud VM's certs if they are not already generated
-  command: '{{ magma_root }}/orc8r/cloud/scripts/create_test_certs {{ magma_root }}/.cache/test_certs'
+  command: '{{ magma_root }}/orc8r/tools/ansible/roles/gateway_dev/files/create_rootca {{ magma_root }}/.cache/test_certs'
   args:
     creates: '{{ magma_root }}/.cache/test_certs/rootCA.pem'
   when: full_provision

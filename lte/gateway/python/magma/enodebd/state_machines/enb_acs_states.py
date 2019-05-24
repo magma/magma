@@ -13,8 +13,6 @@ from typing import Any, Optional
 from abc import ABC, abstractmethod
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
-from magma.enodebd.enodeb_status import get_enodeb_status, \
-    update_status_metrics
 from magma.enodebd.exceptions import ConfigurationError, Tr069Error
 from magma.enodebd.state_machines.acs_state_utils import \
     process_inform_message, get_all_objects_to_delete, \
@@ -118,8 +116,8 @@ class WaitInformState(EnodebAcsState):
         """
         if not isinstance(message, models.Inform):
             return AcsReadMsgResult(False, None)
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
+        process_inform_message(message, self.acs.data_model,
+                               self.acs.device_cfg)
         if does_inform_have_event(message, '1 BOOT'):
             return AcsReadMsgResult(True, self.boot_transition)
         return AcsReadMsgResult(True, None)
@@ -202,8 +200,8 @@ class BaicellsRemWaitState(EnodebAcsState):
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         if not isinstance(message, models.Inform):
             return AcsReadMsgResult(False, None)
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
+        process_inform_message(message, self.acs.data_model,
+                               self.acs.device_cfg)
         return AcsReadMsgResult(True, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
@@ -369,26 +367,12 @@ class WaitGetTransientParametersState(EnodebAcsState):
                                                           message)
         logging.debug('Fetched Transient Params: %s', str(name_to_val))
 
-        # Clear stats when eNodeB stops radiating. This is
-        # because eNodeB stops sending performance metrics at this point.
-        prev_rf_tx = False
-        if self.acs.device_cfg.has_parameter(ParameterName.RF_TX_STATUS):
-            prev_rf_tx = \
-                self.acs.device_cfg.get_parameter(ParameterName.RF_TX_STATUS)
-        next_rf_tx = name_to_val[ParameterName.RF_TX_STATUS]
-        if prev_rf_tx is True and next_rf_tx is False:
-            self.acs.stats_manager.clear_stats()
-
         # Update device configuration
         for name in name_to_val:
             magma_val = \
                 self.acs.data_model.transform_for_magma(name,
                                                         name_to_val[name])
             self.acs.device_cfg.set_parameter(name, magma_val)
-
-        # Update status metrics
-        status = get_enodeb_status(self.acs)
-        update_status_metrics(status)
 
         return AcsReadMsgResult(True, self.get_next_state())
 
@@ -837,15 +821,14 @@ class WaitSetParameterValuesState(EnodebAcsState):
                 return AcsReadMsgResult(True, self.apply_invasive_transition)
             return AcsReadMsgResult(True, self.done_transition)
         elif type(message) == models.Fault:
-            logging.error('Received Fault in response to SetParameterValues')
+            logging.error('Received Fault in response to SetParameterValues, '
+                          'Code (%s), Message (%s)', message.FaultCode,
+                          message.FaultString)
             if message.SetParameterValuesFault is not None:
                 for fault in message.SetParameterValuesFault:
                     logging.error('SetParameterValuesFault Param: %s, '
                                   'Code: %s, String: %s', fault.ParameterName,
                                   fault.FaultCode, fault.FaultString)
-                logging.error('Received Fault in response to '
-                              'SetParameterValues (faultstring = %s)',
-                              message.FaultString)
         return AcsReadMsgResult(False, None)
 
     def _mark_as_configured(self) -> None:
@@ -915,8 +898,8 @@ class BaicellsSendRebootState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         elif isinstance(message, models.Inform):
             self.prev_msg_was_inform = True
-            process_inform_message(message, self.acs.device_name,
-                                   self.acs.data_model, self.acs.device_cfg)
+            process_inform_message(message, self.acs.data_model,
+                                   self.acs.device_cfg)
             return AcsReadMsgResult(True, None)
         self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
@@ -955,8 +938,8 @@ class SendRebootState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         elif isinstance(message, models.Inform):
             self.prev_msg_was_inform = True
-            process_inform_message(message, self.acs.device_name,
-                                   self.acs.data_model, self.acs.device_cfg)
+            process_inform_message(message, self.acs.data_model,
+                                   self.acs.device_cfg)
             return AcsReadMsgResult(True, None)
         self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
@@ -1046,8 +1029,8 @@ class WaitInformMRebootState(EnodebAcsState):
         if not does_inform_have_event(message, self.INFORM_EVENT_CODE):
             raise Tr069Error('Did not receive M Reboot event code in '
                              'Inform')
-        process_inform_message(message, self.acs.device_name,
-                               self.acs.data_model, self.acs.device_cfg)
+        process_inform_message(message, self.acs.data_model,
+                               self.acs.device_cfg)
         return AcsReadMsgResult(True, self.done_transition)
 
     @classmethod

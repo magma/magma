@@ -8,6 +8,8 @@
  * @format
  */
 
+require('@fbcnms/babel-register');
+
 const path = require('path');
 
 module.exports = {

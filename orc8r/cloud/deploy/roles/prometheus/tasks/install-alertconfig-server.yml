@@ -1,0 +1,16 @@
+---
+# Install AlertConfig Server.
+
+- name: mkdir for binary
+  file:
+    path: "{{ alertconfig_binary_dir }}"
+    state: directory
+    owner: "{{ promo_user }}"
+    group: "{{ promo_group }}"
+    mode: "u=rwx,g=rx,o="
+
+- name: Install prereqs for dev environment
+  apt: pkg={{ item }} state=present update_cache=true
+  with_items:
+    - bzr
+  when: preburn

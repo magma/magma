@@ -122,6 +122,10 @@ func (srv *HomeSubscriberServer) Start(started chan struct{}) error {
 	// If the port is 0 or not specified, overwriting the config allows the
 	// chosen port to be known by the application.
 	serverCfg.Address = listener.Addr().String()
-	started <- struct{}{}
+	if cap(started) > len(started) {
+		started <- struct{}{}
+	} else {
+		go func() { started <- struct{}{} }() // non-buffered/full chan -> use a dedicated routine, it may block
+	}
 	return server.Serve(listener)
 }

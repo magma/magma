@@ -38,8 +38,9 @@ const (
 )
 
 var (
-	hssDefaultLteAuthAmf = []byte("\x80\x00")
-	hssDefaultLteAuthOp  = []byte("\xcd\xc2\x02\xd5\x12> \xf6+mgj\xc7,\xb3\x18")
+	hssDefaultLteAuthAmf  = []byte("\x80\x00")
+	hssDefaultLteAuthOp   = []byte("\xcd\xc2\x02\xd5\x12> \xf6+mgj\xc7,\xb3\x18")
+	streamSubscribersFlag = flag.Bool("stream_subscribers", false, "Whether to stream subscribers from the cloud")
 )
 
 func init() {
@@ -75,7 +76,8 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 				MaxUlBitRate: diameter.GetValueUint64(maxUlBitRateFlag, defaultMaxUlBitRate),
 				MaxDlBitRate: diameter.GetValueUint64(maxDlBitRateFlag, defaultMaxDlBitRate),
 			},
-			SubProfiles: make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
+			SubProfiles:       make(map[string]*mconfig.HSSConfig_SubscriptionProfile),
+			StreamSubscribers: *streamSubscribersFlag,
 		}, err
 	}
 
@@ -94,7 +96,8 @@ func GetHSSConfig() (*mconfig.HSSConfig, error) {
 			MaxUlBitRate: diameter.GetValueUint64(maxUlBitRateFlag, configsPtr.DefaultSubProfile.MaxUlBitRate),
 			MaxDlBitRate: diameter.GetValueUint64(maxDlBitRateFlag, configsPtr.DefaultSubProfile.MaxDlBitRate),
 		},
-		SubProfiles: configsPtr.SubProfiles,
+		SubProfiles:       configsPtr.SubProfiles,
+		StreamSubscribers: configsPtr.StreamSubscribers || *streamSubscribersFlag,
 	}, nil
 }
 

@@ -21,6 +21,18 @@
     http_proxy: "{{ http_proxy | default('') }}"
     https_proxy: "{{ https_proxy | default('') }}"
 
+- name: Install prereqs for development
+  hosts: all
+  gather_facts: False
+  become: yes
+  tasks:
+    - name: install packages with apt
+      apt: pkg={{ item }} state=present update_cache=true
+      with_items:
+        - vim
+        - build-essential
+        - bzr
+
   vars:
     user: "{{ ansible_user }}"
     magma_root: "/home/{{ user }}/magma"
@@ -37,10 +49,11 @@
 
     # Set both variables below to true to provision from a blank box
     # Set preburn to true if you want to run the preburn tasks
-    preburn: false
+    preburn: true
     # Set full_provision to true if you want to run the post-preburn tasks
     full_provision: true
 
   roles:
-    - { role: prometheus }
+    - { role: golang }
+    - { role: prometheus, vars: {prometheus_cache_binary_dir: '/home/{{ user }}/go/bin', alertconfig_binary_dir: "/home/{{ user }}/go/bin"} }
     - { role: 'third_party/graphite', vars: {graphite_cache_graphite_url: 'http://127.0.0.1:8080'}}

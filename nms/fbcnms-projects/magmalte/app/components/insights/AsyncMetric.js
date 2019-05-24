@@ -119,8 +119,9 @@ export default function AsyncMetric(props: Props) {
         unit: props.unit || '',
         fill: false,
         lineTension: 0,
-        pointRadius: 4,
+        pointRadius: 0,
         borderColor: getColorForIndex(index),
+        borderWidth: 2,
         backgroundColor: 'transparent',
         data: it.values.map(i => ({
           t: i[0] * 1000,

@@ -11,9 +11,9 @@ html
     meta(name="description", content="Magma NMS")
     meta(name="viewport", content="width=device-width, initial-scale=1")
     link(rel="shortcut icon" type="image/png" href="/nms/static/images/favicon.png")
-    script(src=staticDist("nms", "vendor.js"))
+    script(src=staticDist("vendor.js", "nms"))
     script.
       var CONFIG = !{configJson};
   body
     div(id="root")
-    script(src=staticDist("nms", "login.js"))
+    script(src=staticDist("login.js", "nms"))

@@ -9,13 +9,17 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/protos"
+	stateservice "magma/orc8r/cloud/go/services/state"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type stateServicer struct {
@@ -54,11 +58,23 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 		return nil, err
 	}
 
-	networkID, err := identity.GetClientNetworkID(context)
+	// Get gateway information from context
+	gw := protos.GetClientGateway(context)
+	if gw == nil {
+		return ret, status.Errorf(codes.PermissionDenied, "Missing Gateway Identity")
+	}
+	if !gw.Registered() {
+		return ret, status.Errorf(codes.PermissionDenied, "Gateway is not registered")
+	}
+	hwID := gw.HardwareId
+	networkID := gw.NetworkId
+	certExpiry := protos.GetClientCertExpiration(context)
+	time := uint64(time.Now().UnixNano()) / uint64(time.Millisecond)
+
+	states, err := addWrapperAndMakeBlobs(req.States, hwID, time, certExpiry)
 	if err != nil {
 		return nil, err
 	}
-	states := protos.StatesToBlobs(req.GetStates())
 
 	store, err := srv.factory.StartTransaction()
 	if err != nil {
@@ -91,4 +107,27 @@ func (srv *stateServicer) DeleteStates(context context.Context, req *protos.Dele
 		return ret, err
 	}
 	return ret, store.Commit()
+}
+
+func addAdditionalInfo(state *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
+	wrap := stateservice.StateValue{
+		ReporterID:         hwID,
+		Time:               time,
+		CertExpirationTime: certExpiry,
+		ReportedValue:      state.Value,
+	}
+	return json.Marshal(wrap)
+}
+
+func addWrapperAndMakeBlobs(states []*protos.State, hwID string, time uint64, certExpiry int64) ([]blobstore.Blob, error) {
+	blobs := []blobstore.Blob{}
+	for _, state := range states {
+		wrappedValue, err := addAdditionalInfo(state, hwID, time, certExpiry)
+		if err != nil {
+			return nil, err
+		}
+		state.Value = wrappedValue
+		blobs = append(blobs, state.ToBlob())
+	}
+	return blobs, nil
 }

@@ -74,5 +74,10 @@ COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
+# Add docker config overrides
+COPY feg/gateway/docker/configs /etc/magma
+
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-COPY orc8r/cloud/deploy/roles/proxy/files/magma_headers.rb /etc/nghttpx/magma_headers.rb
+COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
+
+RUN mkdir -p /var/opt/magma/configs

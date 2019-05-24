@@ -117,6 +117,25 @@ func (suite *SubscriberStoreTestSuite) TestDeleteSubscriber() {
 	suite.Exactly(NewUnknownSubscriberError("1"), err)
 }
 
+func (suite *SubscriberStoreTestSuite) TestDeleteAllSubscribers() {
+	store := suite.store
+
+	err := store.AddSubscriber(&protos.SubscriberData{Sid: &protos.SubscriberID{Id: "1"}})
+	suite.NoError(err)
+
+	err = store.AddSubscriber(&protos.SubscriberData{Sid: &protos.SubscriberID{Id: "2"}})
+	suite.NoError(err)
+
+	err = store.DeleteAllSubscribers()
+	suite.NoError(err)
+
+	_, err = store.GetSubscriberData("1")
+	suite.Exactly(NewUnknownSubscriberError("1"), err)
+
+	_, err = store.GetSubscriberData("2")
+	suite.Exactly(NewUnknownSubscriberError("2"), err)
+}
+
 func (suite *SubscriberStoreTestSuite) TestRaceCondition() {
 	store := suite.store
 	sub := &protos.SubscriberData{

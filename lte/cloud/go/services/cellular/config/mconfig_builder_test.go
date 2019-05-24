@@ -40,6 +40,8 @@ func TestCellularBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	err = config.CreateConfig("network", dnsd_config.DnsdNetworkType, "network", &dnsd_protos.NetworkDNSConfig{EnableCaching: false, LocalTTL: 0})
 	assert.NoError(t, err)
+	err = config.CreateConfig("network", cellular_config.CellularEnodebType, "enb1", test_utils.NewDefaultEnodebConfig())
+	assert.NoError(t, err)
 	err = config.CreateConfig("network", cellular_config.CellularGatewayType, "gw1", test_utils.NewDefaultGatewayConfig())
 	assert.NoError(t, err)
 
@@ -64,6 +66,19 @@ func TestCellularBuilder_Build(t *testing.T) {
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
 			Arfcn_2G:            []int32{},
+			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
+				"enb1": &mconfig.EnodebD_EnodebConfig{
+					Earfcndl:               39150,
+					SubframeAssignment:     2,
+					SpecialSubframePattern: 7,
+					Pci:                    260,
+					TransmitEnabled:        true,
+					DeviceClass:            "Baicells ID TDD/FDD",
+					BandwidthMhz:           20,
+					Tac:                    15000,
+					CellId:                 138777000,
+				},
+			},
 		},
 		"mobilityd": &mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
@@ -148,6 +163,7 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 			PlmnidList:          "00101",
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
 			Arfcn_2G:            []int32{},
+			EnbConfigsBySerial:  map[string]*mconfig.EnodebD_EnodebConfig{},
 		},
 		"mobilityd": &mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,

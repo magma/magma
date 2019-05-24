@@ -36,3 +36,19 @@ Object.keys(db).forEach(
 export const Organization = db.Organization;
 export const User = db.User;
 export const FeatureFlag = db.FeatureFlag;
+
+export function jsonArrayContains(column: string, value: string) {
+  if (sequelize.getDialect() === 'mysql') {
+    return Sequelize.fn('JSON_CONTAINS', Sequelize.col(column), `"${value}"`);
+  } else {
+    // sqlite
+    const escapedColumn = sequelize
+      .getQueryInterface()
+      .quoteIdentifier(column, true);
+    const innerQuery = Sequelize.literal(
+      `(SELECT 1 FROM json_each(${escapedColumn})` +
+        `WHERE json_each.value = ${sequelize.escape(value)})`,
+    );
+    return Sequelize.where(innerQuery, 'IS', Sequelize.literal('NOT NULL'));
+  }
+}

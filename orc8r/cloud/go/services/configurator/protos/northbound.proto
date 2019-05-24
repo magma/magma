@@ -1,0 +1,148 @@
+// Copyright (c) 2018-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "orc8r/protos/common.proto";
+import "google/protobuf/wrappers.proto";
+
+import "configurator.proto";
+
+package magma.orc8r.configurator;
+option go_package = "protos";
+
+message ListNetworksResponse {
+    repeated string networkID = 1;
+}
+
+message CreateNetworksRequest {
+    repeated Network networks = 1;
+}
+
+message CreateNetworksResponse {
+    repeated Network createdNetworks = 1;
+}
+
+// NetworkUpdateCriteria specifies information needed to update a network
+message NetworkUpdateCriteria {
+    string id = 1;
+
+    google.protobuf.StringValue newName = 10;
+    google.protobuf.StringValue newDescription = 11;
+
+    map<string, bytes> configsToAddOrUpdate = 20;
+    repeated string configsToDelete = 21;
+}
+
+message UpdateNetworksRequest {
+    repeated NetworkUpdateCriteria updates = 1;
+}
+
+message UpdateNetworksResponse {
+    map<string, Network> updatedNetworks = 1;
+}
+
+message NetworkLoadCriteria {
+    bool loadMetadata = 1;
+    bool loadConfigs = 2;
+}
+
+message LoadNetworksRequest {
+    repeated string networks = 1;
+    NetworkLoadCriteria criteria = 2;
+}
+
+message LoadNetworksResponse {
+    map<string, Network> networks = 1;
+    repeated string notFound = 2;
+}
+
+message DeleteNetworksRequest {
+    repeated string networkIDs = 1;
+}
+
+message CreateEntitiesRequest {
+    string networkID = 1;
+    repeated NetworkEntity entities = 2;
+}
+
+message CreateEntitiesResponse {
+    repeated NetworkEntity createdEntities = 1;
+}
+
+message EntityUpdateCriteria {
+    string key = 1;
+    string type = 2;
+
+    google.protobuf.StringValue newName = 10;
+    google.protobuf.StringValue newDescription = 11;
+    google.protobuf.StringValue newPhysicalID = 12;
+    google.protobuf.BytesValue newConfig = 13;
+
+    repeated EntityID associationsToAdd = 20;
+    repeated EntityID associationsToDelete = 21;
+
+    repeated ACL permissionsToCreate = 30;
+    repeated ACL permissionsToUpdate = 31;
+    repeated string permissionsToDelete = 32;
+}
+
+message UpdateEntitiesRequest {
+    string networkID = 1;
+    repeated EntityUpdateCriteria updates = 2;
+}
+
+message UpdateEntitiesResponse {
+    map<string, NetworkEntity> updatedEntities = 1;
+}
+
+message DeleteEntitiesRequest {
+    string networkID = 1;
+    repeated EntityID ID = 2;
+}
+
+message EntityLoadCriteria {
+    bool loadMetadata = 1;
+    bool loadConfig = 2;
+    bool loadAssocsTo = 3;
+    bool loadAssocsFrom = 4;
+    bool loadPermissions =5 ;
+}
+
+message LoadEntitiesRequest {
+    string networkID = 1;
+    google.protobuf.StringValue TypeFilter = 2;
+    google.protobuf.StringValue KeyFilter = 3;
+    repeated EntityID entityIDs = 4;
+    EntityLoadCriteria criteria = 5;
+}
+
+message LoadEntitiesResponse {
+    repeated NetworkEntity entities = 1;
+    repeated EntityID notFound = 2;
+}
+
+service NorthboundConfigurator {
+    // ListNetworks fetches the list of networkIDs registered
+    rpc ListNetworks (magma.orc8r.Void) returns (ListNetworksResponse) {}
+    // CreateNetworks registers the given list of Networks and returns the created Networks
+    rpc CreateNetworks (CreateNetworksRequest) returns (CreateNetworksResponse) {}
+    // UpdateNetworks updates the given list of registered Networks and returns the updated Networks
+    rpc UpdateNetworks (UpdateNetworksRequest) returns (UpdateNetworksResponse) {}
+    // DeleteNetworks deletes the given list of registered Networks
+    rpc DeleteNetworks (DeleteNetworksRequest) returns (magma.orc8r.Void) {}
+    // LoadNetworks fetches the set of Networks specified by the request
+    rpc LoadNetworks (LoadNetworksRequest) returns (LoadNetworksResponse) {}
+    // CreateEntities registers the given list of Entities and returns the created Entities
+    rpc CreateEntities (CreateEntitiesRequest) returns (CreateEntitiesResponse) {}
+    // UpdateEntities updates the given list of registered Entities and returns the updated Entities
+    rpc UpdateEntities (UpdateEntitiesRequest) returns (UpdateEntitiesResponse) {}
+    // DeleteEntities deletes the set of Entities registered
+    rpc DeleteEntities (DeleteEntitiesRequest) returns (magma.orc8r.Void) {}
+    // LoadEntities fetches the set of Entities specified by the request
+    rpc LoadEntities (LoadEntitiesRequest) returns (LoadEntitiesResponse) {}
+}

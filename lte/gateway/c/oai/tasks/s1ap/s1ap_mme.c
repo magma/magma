@@ -388,7 +388,7 @@ int s1ap_mme_init(void)
     return RETURNerror;
   }
 
-  if (itti_create_task(TASK_S1AP, &s1ap_mme_thread, NULL) < 0) {
+  if (itti_create_task(TASK_S1AP, &s1ap_mme_thread, NULL) == RETURNerror) {
     OAILOG_ERROR(LOG_S1AP, "Error while creating S1AP task\n");
     return RETURNerror;
   }

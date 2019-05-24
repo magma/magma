@@ -49,8 +49,8 @@ func newConnection(client *sm.Client, server *DiameterServerConfig) *Connection 
 		_, _, err := conn.getDiamConnection() // attempt to establish connection at start
 		if err != nil {
 			glog.Errorf(
-				"Failed to establish new %s diameter connection to %s; error: %v, will retry upon first request.",
-				server.Protocol, server.Addr, err)
+				"Failed to establish new %s diameter connection from '%s' to '%s'; error: %v, will retry later.",
+				server.Protocol, server.LocalAddr, server.Addr, err)
 		}
 	}()
 	return conn

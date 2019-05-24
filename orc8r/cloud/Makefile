@@ -13,7 +13,7 @@ MAGMA_ROOT := /home/$(USER)/magma
 endif
 export MAGMA_ROOT
 
-SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/deploy/files/static/apidocs
+SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/apidocs
 SWAGGER_YML := $(SWAGGER_ROOT)/swagger.yml
 SWAGGER_TEMPLATE :=$(SWAGGER_ROOT)/swagger-template.yml
 SWAGGER_TEMP_GEN := $(SWAGGER_ROOT)/temp

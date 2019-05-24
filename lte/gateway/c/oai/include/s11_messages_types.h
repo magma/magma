@@ -67,10 +67,10 @@
   (mSGpTR)->ittiMsg.s11_suspend_acknowledge
 #define S11_MODIFY_UE_AMBR_REQUEST(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.s11_modify_ue_ambr_request
-#define S11_NW_INITIATED_BEARER_ACTV_REQ(mSGpTR)                               \
-  (mSGpTR)->ittiMsg.s11_nw_initiated_ded_bearer_actv_request
-#define S11_NW_INITIATED_BEARER_ACTV_RESP(mSGpTR)                              \
-  (mSGpTR)->ittiMsg.s11_nw_init_ded_bearer_actv_rsp
+#define S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST(mSGpTR)                       \
+  (mSGpTR)->ittiMsg.s11_nw_init_actv_bearer_request
+#define S11_NW_INITIATED_ACTIVATE_BEARER_RESP(mSGpTR)                          \
+  (mSGpTR)->ittiMsg.s11_nw_init_actv_bearer_rsp
 #define S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST(mSGpTR)                     \
   (mSGpTR)->ittiMsg.s11_nw_init_deactv_bearer_request
 #define S11_NW_INITIATED_DEACTIVATE_BEARER_RESP(mSGpTR)                        \

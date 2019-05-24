@@ -36,7 +36,7 @@ uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   Imsi_t *imsi,
-  ip_address_t *ue_ip,
+  ebi_t lbi,
   traffic_flow_template_t *ul_tft,
   traffic_flow_template_t *dl_tft,
   bearer_qos_t *eps_bearer_qos);

@@ -18,7 +18,6 @@ from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.acs_state_utils import are_tr069_params_equal
-from magma.enodebd.stats_manager import StatsManager
 
 
 class EnodebAcsStateMachine(ABC):
@@ -38,11 +37,19 @@ class EnodebAcsStateMachine(ABC):
 
     def __init__(self) -> None:
         self._service = None
-        self._stats_manager = None
         self._desired_cfg = None
         self._device_cfg = None
         self._data_model = None
         self._are_invasive_changes_applied = True
+
+    def has_parameter(self, param: ParameterName) -> bool:
+        """
+        Return True if the data model has the parameter
+
+        Raise KeyError if the parameter is optional and we do not know yet
+        if this eNodeB has the parameter
+        """
+        return self.data_model.is_parameter_present(param)
 
     def get_parameter(self, param: ParameterName) -> Any:
         """
@@ -122,14 +129,6 @@ class EnodebAcsStateMachine(ABC):
     @property
     def service_config(self) -> Any:
         return self._service.config
-
-    @property
-    def stats_manager(self) -> StatsManager:
-        return self._stats_manager
-
-    @stats_manager.setter
-    def stats_manager(self, val: StatsManager) -> None:
-        self._stats_manager = val
 
     @property
     def desired_cfg(self) -> EnodebConfiguration:

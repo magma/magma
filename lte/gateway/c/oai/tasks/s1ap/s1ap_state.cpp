@@ -36,6 +36,7 @@ extern "C" {
 #include "bstrlib.h"
 
 #include "assertions.h"
+#include "common_defs.h"
 #include "dynamic_memory_check.h"
 
 #include "mme_config.h"
@@ -44,6 +45,8 @@ extern "C" {
 using magma::lte::gateway::s1ap::EnbDescription;
 using magma::lte::gateway::s1ap::S1apState;
 using magma::lte::gateway::s1ap::UeDescription;
+
+#define S1AP_STATE_TABLE "s1ap_state"
 
 s1ap_state_t *s1ap_state_new(void);
 void s1ap_state_free(s1ap_state_t *state);
@@ -77,20 +80,25 @@ s1ap_state_t *state_cache = NULL;
 
 int s1ap_state_init(void)
 {
-  magma::ServiceConfigLoader loader;
-
-  auto config = loader.load_service_config("redis");
-  auto port = config["port"].as<uint32_t>();
-
-  client = std::make_shared<cpp_redis::client>();
-  client->connect("127.0.0.1", port, nullptr);
-
-  if (!client->is_connected()) return -1;
-
   in_use = false;
-  state_cache = s1ap_state_from_redis();
 
-  return 0;
+  if (mme_config.use_stateless) {
+    magma::ServiceConfigLoader loader;
+
+    auto config = loader.load_service_config("redis");
+    auto port = config["port"].as<uint32_t>();
+
+    client = std::make_shared<cpp_redis::client>();
+    client->connect("127.0.0.1", port, nullptr);
+
+    if (!client->is_connected()) return RETURNerror;
+
+    state_cache = s1ap_state_from_redis();
+  }
+
+  if (state_cache == NULL) state_cache = s1ap_state_new();
+
+  return state_cache != NULL ? RETURNok : RETURNerror;
 }
 
 void s1ap_state_exit(void)
@@ -119,7 +127,9 @@ void s1ap_state_put(s1ap_state_t *state)
 
   state_cache = state;
 
-  s1ap_state_to_redis(state_cache);
+  if (mme_config.use_stateless) {
+    s1ap_state_to_redis(state);
+  }
 
   in_use = false;
 }
@@ -204,7 +214,27 @@ s1ap_state_t *s1ap_state_new(void)
 
 void s1ap_state_free(s1ap_state_t *state)
 {
-  // TODO leaks memory hard. need to free enb_desc's, ue_desc's, and ue_coll's
+  int i;
+  hashtable_rc_t ht_rc;
+  hashtable_key_array_t *keys;
+  sctp_assoc_id_t assoc_id;
+  enb_description_t *enb;
+
+  keys = hashtable_ts_get_keys(&state->enbs);
+  AssertFatal(keys != NULL, "failed to get keys for enbs");
+  for (i = 0; i < keys->num_keys; i++) {
+    assoc_id = (sctp_assoc_id_t) keys->keys[i];
+    ht_rc =
+      hashtable_ts_get(&state->enbs, (hash_key_t) assoc_id, (void **) &enb);
+    AssertFatal(ht_rc == HASH_TABLE_OK, "enbueid not in assoc_id");
+
+    if (hashtable_ts_destroy(&enb->ue_coll) != HASH_TABLE_OK) {
+      OAI_FPRINTF_ERR("An error occured while destroying UE coll hash table");
+    }
+  }
+  free(keys->keys);
+  free(keys);
+
   if (hashtable_ts_destroy(&state->enbs) != HASH_TABLE_OK) {
     OAI_FPRINTF_ERR("An error occured while destroying s1 eNB hash table");
   }
@@ -216,14 +246,43 @@ void s1ap_state_free(s1ap_state_t *state)
 
 s1ap_state_t *s1ap_state_from_redis(void)
 {
-  // todo implement me
-  return s1ap_state_new();
+  s1ap_state_t *state;
+  S1apState proto;
+
+  auto fut = client->get(S1AP_STATE_TABLE);
+  client->sync_commit();
+  auto reply = fut.get();
+
+  if (reply.is_null() || reply.is_error() || !reply.is_string()) return NULL;
+
+  if (!proto.ParseFromString(reply.as_string())) return NULL;
+
+  state = s1ap_state_new();
+  if (state == NULL) return NULL;
+
+  proto2state(state, &proto);
+
+  return state;
 }
 
 void s1ap_state_to_redis(s1ap_state_t *state)
 {
-  // todo implement me
-  return;
+  S1apState proto;
+  std::string serialized_state;
+
+  state2proto(&proto, state);
+
+  if (!proto.SerializeToString(&serialized_state)) {
+    Fatal("Failed to serialize state");
+  }
+
+  auto fut = client->set(S1AP_STATE_TABLE, serialized_state);
+  client->sync_commit();
+  auto reply = fut.get();
+
+  if (reply.is_error()) {
+    Fatal("Failed to write to redis");
+  }
 }
 
 void state2proto(S1apState *proto, s1ap_state_t *state)

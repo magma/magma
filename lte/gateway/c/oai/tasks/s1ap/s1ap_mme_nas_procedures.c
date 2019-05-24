@@ -144,8 +144,8 @@ int s1ap_mme_handle_initial_ue_message(
       // If we failed to allocate a new UE return -1
       OAILOG_ERROR(
         LOG_S1AP,
-        "S1AP:Initial UE Message- Failed to allocate S1AP UE Context, "
-        "eNBUeS1APId:" ENB_UE_S1AP_ID_FMT "\n",
+        "Initial UE Message- Failed to allocate S1AP UE Context, "
+        "eNB UE S1AP ID:" ENB_UE_S1AP_ID_FMT "\n",
         enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
@@ -255,8 +255,8 @@ int s1ap_mme_handle_initial_ue_message(
   } else {
     OAILOG_ERROR(
       LOG_S1AP,
-      "S1AP:Initial UE Message- Duplicate ENB_UE_S1AP_ID. Ignoring the "
-      "message, eNBUeS1APId:" ENB_UE_S1AP_ID_FMT "\n",
+      "Initial UE Message- Duplicate ENB_UE_S1AP_ID. Ignoring the "
+      "message, eNB UE S1AP ID:" ENB_UE_S1AP_ID_FMT "\n",
       enb_ue_s1ap_id);
   }
 
@@ -783,6 +783,10 @@ void s1ap_handle_conn_est_cnf(
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(conn_est_cnf_pP != NULL);
 
+  OAILOG_INFO(
+    LOG_S1AP,
+    "Received Connection Establishment Confirm from MME_APP for ue_id = %u\n",
+    conn_est_cnf_pP->ue_id);
   ue_ref = s1ap_state_get_ue_mmeid(state, conn_est_cnf_pP->ue_id);
   if (!ue_ref) {
     OAILOG_ERROR(
@@ -952,7 +956,9 @@ void s1ap_handle_conn_est_cnf(
     free_s1ap_initialcontextsetuprequest(initialContextSetupRequest_p);
     // TODO: handle something
     OAILOG_ERROR(
-      LOG_S1AP, "Failed to encode initial context setup request message\n");
+      LOG_S1AP, "Failed to encode initial context setup request message for "
+      "ue_id " MME_UE_S1AP_ID_FMT "\n",
+      ue_ref->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 

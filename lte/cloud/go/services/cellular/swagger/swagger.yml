@@ -5,7 +5,90 @@ info:
   description: Magma REST APIs
   version: 1.0.0
 
+tags:
+- name: Enodeb
+  description: eNodeB devices attached to the network
+
 paths:
+  /networks/{network_id}/configs/enodeb:
+    get:
+      summary: List all eNodeB serial IDs
+      tags:
+      - Enodeb
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      responses:
+        "200":
+          description: List of eNodeB serial IDs
+          schema:
+            items:
+              $ref: './swagger-common.yml#/definitions/enodeb_id'
+            type: array
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+  /networks/{network_id}/configs/enodeb/{enodeb_id}:
+    post:
+      summary: Create eNodeB Config
+      tags:
+      - Enodeb
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      - $ref: './swagger-common.yml#/parameters/enodeb_id'
+      - in: body
+        name: config
+        description: New eNodeB config
+        required: true
+        schema:
+          $ref: '#/definitions/network_enodeb_configs'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+    get:
+      summary: Retrieve eNodeB Configs
+      tags:
+      - Enodeb
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      - $ref: './swagger-common.yml#/parameters/enodeb_id'
+      responses:
+        '200':
+          description: Retrieved eNodeB Configs
+          schema:
+            $ref: '#/definitions/network_enodeb_configs'
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify eNodeB Configs
+      tags:
+      - Enodeb
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      - $ref: './swagger-common.yml#/parameters/enodeb_id'
+      - in: body
+        name: config
+        description: Updated config
+        required: true
+        schema:
+          $ref: '#/definitions/network_enodeb_configs'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete eNodeB Configs
+      tags:
+      - Enodeb
+      parameters:
+      - $ref: './swagger-common.yml#/parameters/network_id'
+      - $ref: './swagger-common.yml#/parameters/enodeb_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
   /networks/{network_id}/configs/cellular:
     post:
       summary: Create Network Cellular Configs
@@ -131,6 +214,62 @@ paths:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
+  network_enodeb_configs:
+    description: eNodeB configuration for a network
+    type: object
+    minLength: 1
+    properties:
+      earfcndl:
+        type: integer
+        format: uint32
+        maximum: 65535
+        example: 39150
+      subframe_assignment:
+        type: integer
+        format: uint32
+        maximum: 6
+        example: 2
+      special_subframe_pattern:
+        type: integer
+        format: uint32
+        maximum: 9
+        example: 7
+      pci:
+        type: integer
+        format: uint32
+        maximum: 503
+        example: 260
+      cell_id:
+        type: integer
+        format: uint32
+        maximum: 268435455
+        example: 138777000
+      bandwidth_mhz:
+        type: integer
+        format: uint32
+        example: 20
+        enum:
+        - 3
+        - 5
+        - 10
+        - 15
+        - 20
+      tac:
+        type: integer
+        format: uint32
+        maximum: 65535
+        example: 15000
+      transmit_enabled:
+        type: boolean
+        example: true
+      device_class:
+        type: string
+        example: 'Baicells ID TDD/FDD'
+        enum:
+        - 'Baicells Nova-233 G2 OD FDD'
+        - 'Baicells Nova-243 OD TDD'
+        - 'Baicells ID TDD/FDD'
+        - 'NuRAN Cavium OC-LTE'
   network_cellular_configs:
     description: Cellular configuration for a network
     type: object
@@ -276,6 +415,10 @@ definitions:
         $ref: '#/definitions/gateway_epc_configs'
       non_eps_service:
         $ref: '#/definitions/gateway_non_eps_service_configs'
+      attached_enodeb_serials:
+        type: array
+        items:
+          type: string
   gateway_ran_configs:
     description: RAN (radio access network) configuration for a gateway
     type: object

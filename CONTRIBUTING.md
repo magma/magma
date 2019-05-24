@@ -2,9 +2,6 @@
 We want to make contributing to this project as easy and transparent as
 possible.
 
-## Our Development Process
-... (in particular how this is synced with internal changes to the project)
-
 ## Pull Requests
 We actively welcome your pull requests.
 
@@ -32,7 +29,6 @@ outlined on that page and do not file a public issue.
 ## Coding Style  
 * 2 spaces for indentation rather than tabs
 * 80 character line length
-* ...
 
 ## License
 By contributing to Magma, you agree that your contributions will be licensed

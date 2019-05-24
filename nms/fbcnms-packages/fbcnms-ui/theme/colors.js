@@ -13,6 +13,10 @@ export const purple = {
 };
 
 export const black = '#000';
+export const blue05 = '#ecf3ff';
+export const blue30 = '#aac9ff';
+export const blue60 = '#3578e5';
+export const blueGrayDark = '#303846';
 export const brown = '#5d4037';
 export const cherry = '#ad1457';
 export const cyan = '#00acc1';
@@ -22,15 +26,18 @@ export const darkPurple = '#673ab7';
 export const fadedBlue = 'rgba(53, 135, 229, 0.1)';
 export const fadedSea = '#7cc8d0';
 export const gray0 = '#f2f3f5';
+export const gray00 = '#f5f6f7';
 export const gray1 = '#979797';
 export const gray2 = '#4d4d4e';
 export const gray3 = '#dadde1';
 export const gray4 = 'rgba(0,0,0,0.5)';
 export const gray5 = 'rgba(0,0,0,0.3)';
+export const gray50 = '#b3b3b3';
 export const green = '#66bb6a';
 export const lightBlue = '#42a5f5';
 export const orange = '#f9a825';
 export const pink = '#f48fb1';
+export const primaryText = '#1c1e21';
 export const red = '#e53935';
 export const redwood = '#d45C43';
 export const sea100 = '#6ca0b6';
@@ -41,6 +48,10 @@ export const yellow = '#ffeb3b';
 
 export default {
   black,
+  blue05,
+  blue30,
+  blue60,
+  blueGrayDark,
   brown,
   cherry,
   cyan,
@@ -49,6 +60,7 @@ export default {
   darkPurple,
   fadedSea,
   gray0,
+  gray00,
   gray1,
   gray2,
   gray3,
@@ -58,6 +70,7 @@ export default {
   lightBlue,
   orange,
   pink,
+  primaryText,
   purple,
   red,
   redwood,

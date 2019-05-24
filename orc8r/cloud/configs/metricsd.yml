@@ -8,8 +8,11 @@
 
 profile: "default"
 prometheusAddress: "http://192.168.80.50:9090"
-prometheusPushgatewayAddress: "http://192.168.80.50:9091"
+prometheusCustomPushAddress: "http://192.168.80.50:9091/metrics"
 
 graphiteAddress: "192.168.80.50"
 graphiteReceivePort: 2003
 graphiteQueryPort: 8080
+
+alertConfigWebServerURL: "http://192.168.80.50:9093"
+alertmanagerApiURL: "http://192.168.80.50:9092/api/v2/alerts"

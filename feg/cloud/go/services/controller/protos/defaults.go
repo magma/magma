@@ -59,7 +59,8 @@ var defaultConfig = Config{
 			MaxUlBitRate: 100000000, // 100 Mbps
 			MaxDlBitRate: 200000000, // 200 Mbps
 		},
-		SubProfiles: make(map[string]*HSSConfig_SubscriptionProfile),
+		SubProfiles:       make(map[string]*HSSConfig_SubscriptionProfile),
+		StreamSubscribers: false,
 	},
 	Swx: &SwxConfig{
 		Server: &DiamClientConfig{

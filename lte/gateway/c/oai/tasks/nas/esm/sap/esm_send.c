@@ -249,6 +249,9 @@ int esm_send_activate_default_eps_bearer_context_request(
   int esm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+  OAILOG_INFO(
+    LOG_NAS_ESM,
+    "ESM-SAP   - Send Activate Default EPS Bearer Context Request message\n");
   /*
    * Mandatory - ESM message header
    */
@@ -256,58 +259,62 @@ int esm_send_activate_default_eps_bearer_context_request(
   msg->epsbeareridentity = ebi;
   msg->messagetype = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST;
   msg->proceduretransactionidentity = pti;
+  OAILOG_DEBUG(
+    LOG_NAS_ESM, "Activate default EPS bearer context (pti=%d, ebi=%d) \n",
+    msg->proceduretransactionidentity,
+    msg->epsbeareridentity);
   /*
    * Mandatory - EPS QoS
    */
   msg->epsqos = *qos;
-  OAILOG_INFO(LOG_NAS_ESM, "ESM-SAP   - epsqos  qci:  %u\n", qos->qci);
+  OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  qci:  %u\n", qos->qci);
 
   if (qos->bitRatesPresent) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  maxBitRateForUL:  %u\n",
       qos->bitRates.maxBitRateForUL);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  maxBitRateForDL:  %u\n",
       qos->bitRates.maxBitRateForDL);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  guarBitRateForUL: %u\n",
       qos->bitRates.guarBitRateForUL);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  guarBitRateForDL: %u\n",
       qos->bitRates.guarBitRateForDL);
   } else {
-    OAILOG_INFO(LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates defined\n");
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates defined\n");
   }
 
   if (qos->bitRatesExtPresent) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  maxBitRateForUL  Ext: %u\n",
       qos->bitRatesExt.maxBitRateForUL);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  maxBitRateForDL  Ext: %u\n",
       qos->bitRatesExt.maxBitRateForDL);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  guarBitRateForUL Ext: %u\n",
       qos->bitRatesExt.guarBitRateForUL);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_ESM,
       "ESM-SAP   - epsqos  guarBitRateForDL Ext: %u\n",
       qos->bitRatesExt.guarBitRateForDL);
   } else {
-    OAILOG_INFO(LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates ext defined\n");
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - epsqos  no bit rates ext defined\n");
   }
 
   if (apn == NULL) {
     OAILOG_WARNING(LOG_NAS_ESM, "ESM-SAP   - apn is NULL!\n");
   } else {
-    OAILOG_INFO(LOG_NAS_ESM, "ESM-SAP   - apn is %s\n", bdata(apn));
+    OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - apn is %s\n", bdata(apn));
   }
   /*
    * Mandatory - Access Point Name
@@ -316,7 +323,7 @@ int esm_send_activate_default_eps_bearer_context_request(
   /*
    * Mandatory - PDN address
    */
-  OAILOG_INFO(LOG_NAS_ESM, "ESM-SAP   - pdn_type is %u\n", pdn_type);
+  OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - pdn_type is %u\n", pdn_type);
   msg->pdnaddress.pdntypevalue = pdn_type;
   OAILOG_STREAM_HEX(
     OAILOG_LEVEL_DEBUG,
@@ -343,7 +350,7 @@ int esm_send_activate_default_eps_bearer_context_request(
       &msg->protocolconfigurationoptions, pco);
   }
   //#pragma message  "TEST LG FORCE APN-AMBR"
-  OAILOG_INFO(LOG_NAS_ESM, "ESM-SAP   - FORCE APN-AMBR\n");
+  OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - FORCE APN-AMBR\n");
   msg->presencemask |=
     ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT;
   // APN AMBR is hardcoded to DL AMBR = 200 Mbps and UL APN MBR = 100 Mbps - Which is ok for now for TDD 20 MHz

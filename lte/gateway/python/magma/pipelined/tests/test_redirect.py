@@ -29,7 +29,7 @@ from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
-    wait_after_send
+    wait_after_send, assert_bridge_snapshot_match
 
 
 class RedirectTest(unittest.TestCase):
@@ -51,8 +51,8 @@ class RedirectTest(unittest.TestCase):
         """
         super(RedirectTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        service_manager = create_service_manager([PipelineD.ENFORCEMENT])
-        cls._tbl_num = service_manager.get_table_num(
+        cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
+        cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
 
         enforcement_controller_reference = Future()
@@ -75,7 +75,7 @@ class RedirectTest(unittest.TestCase):
             },
             mconfig=None,
             loop=None,
-            service_manager=service_manager,
+            service_manager=cls.service_manager,
             integ_test=False,
         )
 
@@ -171,6 +171,8 @@ class RedirectTest(unittest.TestCase):
 
         with isolator, sub_context, flow_verifier:
             pkt_sender.send(packet)
+            assert_bridge_snapshot_match(self, self.BRIDGE,
+                                         self.service_manager)
 
         flow_verifier.verify()
 
@@ -245,6 +247,8 @@ class RedirectTest(unittest.TestCase):
 
         with isolator, sub_context, flow_verifier:
             pkt_sender.send(packet)
+            assert_bridge_snapshot_match(self, self.BRIDGE,
+                                         self.service_manager)
 
         flow_verifier.verify()
 

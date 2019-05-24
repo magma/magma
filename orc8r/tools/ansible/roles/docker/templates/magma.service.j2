@@ -19,7 +19,8 @@ ExecStartPre=/usr/local/bin/docker-compose rm -fsv
 ExecStart=/usr/local/bin/docker-compose up
 ExecStop=/usr/local/bin/docker-compose down -v
 Restart=always
-StandardOutput=syslog
+# Use docker logging framework for the container logs
+StandardOutput=null
 StandardError=syslog
 SyslogIdentifier=%i
 

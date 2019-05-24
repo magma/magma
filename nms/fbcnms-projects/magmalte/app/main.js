@@ -9,7 +9,8 @@
  */
 'use strict';
 
-import 'babel-polyfill';
+import '@fbcnms/babel-register/polyfill';
+
 import {BrowserRouter} from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import React from 'react';
