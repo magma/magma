@@ -15,3 +15,11 @@ registry_username: "{{ lookup('env','DOCKER_USERNAME') }}"
 registry_password: "{{ lookup('env','DOCKER_PASSWORD') }}"
 
 image_version: "{{ lookup('file','image_version') }}"
+
+systemd_stdout: null
+systemd_stderr: syslog
+systemd_stop_args: ""
+# override this in your vars config to supply raw content to systemd service definition
+systemd_extra: |
+  # see orc8r/tools/ansible/roles/docker/defaults/main.yml
+  # to add more systemd directives here (should mostly be environment variables)

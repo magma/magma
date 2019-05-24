@@ -15,13 +15,16 @@ Type=simple
 WorkingDirectory={{ working_dir }}
 Environment=DOCKER_REGISTRY={{ registry_url }}
 Environment=IMAGE_VERSION={{ image_version }}
+
+{{ systemd_extra }}
+
 ExecStartPre=/usr/local/bin/docker-compose rm -fsv
 ExecStart=/usr/local/bin/docker-compose up
-ExecStop=/usr/local/bin/docker-compose down -v
+ExecStop=/usr/local/bin/docker-compose down {{ systemd_stop_args }}
 Restart=always
 # Use docker logging framework for the container logs
-StandardOutput=null
-StandardError=syslog
+StandardOutput={{ systemd_stdout }}
+StandardError={{ systemd_stderr }}
 SyslogIdentifier=%i
 
 [Install]

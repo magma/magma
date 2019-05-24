@@ -10,5 +10,6 @@
     - role: docker
       vars:
         systemd_service: magma@proxy
+        systemd_stop_args: -v
         image_names: [proxy]
         compose_file: docker/docker-compose.proxy.yml
