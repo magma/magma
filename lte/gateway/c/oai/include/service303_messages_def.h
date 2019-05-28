@@ -22,11 +22,11 @@
 
 MESSAGE_DEF(
   APPLICATION_HEALTHY_MSG,
-  MESSAGE_PRIORITY_MED,
+
   application_healthy_msg_t,
   application_healthy_msg)
 MESSAGE_DEF(
   APPLICATION_UNHEALTHY_MSG,
-  MESSAGE_PRIORITY_MED,
+
   application_unhealthy_msg_t,
   application_unhealthy_msg)

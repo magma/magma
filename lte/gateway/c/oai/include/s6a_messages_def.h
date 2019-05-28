@@ -36,42 +36,42 @@
 
 MESSAGE_DEF(
   S6A_UPDATE_LOCATION_REQ,
-  MESSAGE_PRIORITY_MED,
+
   s6a_update_location_req_t,
   s6a_update_location_req)
 MESSAGE_DEF(
   S6A_UPDATE_LOCATION_ANS,
-  MESSAGE_PRIORITY_MED,
+
   s6a_update_location_ans_t,
   s6a_update_location_ans)
 MESSAGE_DEF(
   S6A_AUTH_INFO_REQ,
-  MESSAGE_PRIORITY_MED,
+
   s6a_auth_info_req_t,
   s6a_auth_info_req)
 MESSAGE_DEF(
   S6A_AUTH_INFO_ANS,
-  MESSAGE_PRIORITY_MED,
+
   s6a_auth_info_ans_t,
   s6a_auth_info_ans)
 MESSAGE_DEF(
   S6A_CANCEL_LOCATION_REQ,
-  MESSAGE_PRIORITY_MED,
+
   s6a_cancel_location_req_t,
   s6a_cancel_location_req)
 MESSAGE_DEF(
   S6A_CANCEL_LOCATION_ANS,
-  MESSAGE_PRIORITY_MED,
+
   s6a_cancel_location_ans_t,
   s6a_cancel_location_ans)
 MESSAGE_DEF(
   S6A_PURGE_UE_REQ,
-  MESSAGE_PRIORITY_MED,
+
   s6a_purge_ue_req_t,
   s6a_purge_ue_req)
 MESSAGE_DEF(
   S6A_PURGE_UE_ANS,
-  MESSAGE_PRIORITY_MED,
+
   s6a_purge_ue_ans_t,
   s6a_purge_ue_ans)
-MESSAGE_DEF(S6A_RESET_REQ, MESSAGE_PRIORITY_MED, s6a_reset_req_t, s6a_reset_req)
+MESSAGE_DEF(S6A_RESET_REQ,  s6a_reset_req_t, s6a_reset_req)
