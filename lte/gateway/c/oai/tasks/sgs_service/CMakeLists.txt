@@ -1,5 +1,4 @@
 find_package(Protobuf REQUIRED)
-add_compile_options(-std=c++14)
 
 # compile the needed protos
 set(SGSSRV_FEG_CPP_PROTOS csfb)
