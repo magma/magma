@@ -39,11 +39,12 @@ set(SMGR_ORC8R_CPP_PROTOS common)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager meteringd subscriberdb policydb pipelined mconfig/mconfigs)
+set(SMGR_LTE_CPP_PROTOS session_manager meteringd subscriberdb policydb
+  pipelined pgw mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
-set(SMGR_GRPC_PROTOS session_manager pipelined)
+set(SMGR_GRPC_PROTOS session_manager pipelined pgw)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
@@ -75,10 +76,12 @@ add_library(SESSION_MANAGER
     SessionID.cpp
     SessionID.h
     ServiceAction.h
+    PgwClient.cpp
+    PgwClient.h
     PipelinedClient.cpp
     PipelinedClient.h
-    SessionRules.h
     SessionRules.cpp
+    SessionRules.h
     CreditPool.cpp
     CreditPool.h
     SessionProxyResponderHandler.cpp
