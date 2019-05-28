@@ -81,7 +81,8 @@ $ minikube start --memory=8192 --cpus=4 --kubernetes-version=v1.14.1
 ```
 - Install Helm Tiller:
 ```bash
-$ helm init
+$ kubectl apply -f tiller-rbac-config.yaml
+$ helm init --service-account tiller --history-max 200
 # Wait for tiller to become 'Running'
 $ kubectl get pods -n kube-system | grep tiller
 ```
@@ -101,7 +102,7 @@ $ helm install \
 ```bash
 cd magma/orc8r/cloud/helm/orc8r
 mkdir -p charts/secrets/.secrets/certs
-# You need to add the following files to the certs directory:a
+# You need to add the following files to the certs directory:
 #   bootstrapper.key certifier.key certifier.pem vpn_ca.crt vpn_ca.key
 #   controller.crt controller.key rootCA.pem
 # The controller.crt, controller.key and rootCA.pem are the certificate info
