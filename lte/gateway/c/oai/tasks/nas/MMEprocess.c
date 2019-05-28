@@ -37,19 +37,19 @@
 
  *****************************************************************************/
 
-#include "nas/commonDef.h"
 #include "log.h"
+#include "nas/commonDef.h"
 #include "nas_timer.h"
 
-#include "network_api.h"
 #include "nas_network.h"
 #include "nas_parser.h"
+#include "network_api.h"
 
-#include <stdlib.h> // exit
-#include <poll.h>   // poll
-#include <string.h> // memset
-#include <signal.h> // sigaction
+#include <poll.h> // poll
 #include <pthread.h>
+#include <signal.h> // sigaction
+#include <stdlib.h> // exit
+#include <string.h> // memset
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

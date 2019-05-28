@@ -27,13 +27,13 @@
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class DeleteSubscriberRequest;
 class DeleteSubscriberResponse;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;

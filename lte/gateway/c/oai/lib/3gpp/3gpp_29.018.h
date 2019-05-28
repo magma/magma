@@ -68,5 +68,4 @@ typedef enum sgsap_message_types_e {
   SGS_UE_UNREACHABLE = 0x1F,
 } sgsap_message_types_t;
 
-
 #endif /* FILE_3GPP_29_018_SEEN */

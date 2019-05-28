@@ -43,7 +43,6 @@
 #include "common_defs.h"
 #include "common_types.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_desc.h"
 #include "nas_messages_types.h"
 #include "sgs_messages_types.h"
@@ -167,7 +166,7 @@ int mme_app_notify_service_reject_to_nas(
 
   OAILOG_INFO(
     LOG_MME_APP, " Send Notify service reject to NAS for UE-id :%u \n", ue_id);
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

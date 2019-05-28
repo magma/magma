@@ -48,7 +48,6 @@
 #include "common_defs.h"
 #include "async_system_messages_types.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 
 //-------------------------------
 void async_system_exit(void);
@@ -148,7 +147,7 @@ int async_system_command(
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   ASYNC_SYSTEM_COMMAND(message_p).system_command = bstr;
   ASYNC_SYSTEM_COMMAND(message_p).is_abort_on_error = is_abort_on_error;
-  rv = itti_send_msg_to_task(TASK_ASYNC_SYSTEM, INSTANCE_DEFAULT, message_p);
+  rv = itti_send_msg_to_task(TASK_ASYNC_SYSTEM, message_p);
   return rv;
 }
 

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -26,31 +26,30 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <inttypes.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <pthread.h>
-#include <inttypes.h>
-#include <stdint.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
-#include "dynamic_memory_check.h"
 #include "assertions.h"
-#include "queue.h"
-#include "log.h"
 #include "conversions.h"
+#include "dynamic_memory_check.h"
 #include "intertask_interface.h"
-#include "udp_primitives_server.h"
-#include "itti_free_defined_msg.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "itti_free_defined_msg.h"
+#include "log.h"
+#include "queue.h"
 #include "udp_messages_types.h"
+#include "udp_primitives_server.h"
 
 struct udp_socket_desc_s {
   uint8_t buffer[4096];
@@ -235,7 +234,7 @@ static void udp_server_receive_and_process(
          (struct sockaddr *) &addr,
          &from_len)) <= 0) {
       OAILOG_ERROR(LOG_UDP, "Recvfrom failed %s\n", strerror(errno));
-      //break;
+      // break;
     } else {
       MessageDef *message_p = NULL;
       udp_data_ind_t *udp_data_ind_p;
@@ -261,24 +260,22 @@ static void udp_server_receive_and_process(
         inet_ntoa(addr.sin_addr),
         ntohs(addr.sin_port));
 
-      if (
-        itti_send_msg_to_task(
-          udp_sock_pP->task_id, INSTANCE_DEFAULT, message_p) < 0) {
+      if (itti_send_msg_to_task(udp_sock_pP->task_id, message_p) < 0) {
         OAILOG_DEBUG(
           LOG_UDP,
           "Failed to send message %d to task %d\n",
           UDP_DATA_IND,
           udp_sock_pP->task_id);
-        //break;
+        // break;
       }
     }
   }
-  //close(udp_sock_pP->sd);
-  //udp_sock_pP->sd = -1;
-  //pthread_mutex_lock(&udp_socket_list_mutex);
-  //STAILQ_REMOVE(&udp_socket_list, udp_sock_pP, udp_socket_desc_s, entries);
-  //pthread_mutex_unlock(&udp_socket_list_mutex);
-  //return NULL;
+  // close(udp_sock_pP->sd);
+  // udp_sock_pP->sd = -1;
+  // pthread_mutex_lock(&udp_socket_list_mutex);
+  // STAILQ_REMOVE(&udp_socket_list, udp_sock_pP, udp_socket_desc_s, entries);
+  // pthread_mutex_unlock(&udp_socket_list_mutex);
+  // return NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -325,9 +322,10 @@ static void *udp_intertask_interface(void *args_p)
           struct sockaddr_in peer_addr;
 
           udp_data_req_p = &received_message_p->ittiMsg.udp_data_req;
-          //UDP_DEBUG("-- UDP_DATA_REQ -----------------------------------------------------\n%s :\n",
+          // UDP_DEBUG("-- UDP_DATA_REQ
+          // -----------------------------------------------------\n%s :\n",
           //        __FUNCTION__);
-          //udp_print_hex_octets(&udp_data_req_p->buffer[udp_data_req_p->buffer_offset],
+          // udp_print_hex_octets(&udp_data_req_p->buffer[udp_data_req_p->buffer_offset],
           //        udp_data_req_p->buffer_length);
           memset(&peer_addr, 0, sizeof(struct sockaddr_in));
           peer_addr.sin_family = AF_INET;

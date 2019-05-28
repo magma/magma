@@ -30,7 +30,6 @@
 #include "service303.h"
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "timer_messages_types.h"
 
 static long service303_epc_stats_timer_id;
@@ -91,7 +90,7 @@ static void *service303_message_task(void *args)
         EPC_STATS_TIMER_VALUE,
         0,
         TASK_SERVICE303,
-        INSTANCE_DEFAULT,
+
         TIMER_PERIODIC,
         NULL,
         0,

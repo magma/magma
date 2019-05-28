@@ -19,8 +19,8 @@
  *      contact@openairinterface.org
  */
 
-#include <string.h>    // memcpy
-#include <stdlib.h>    // free
+#include <string.h> // memcpy
+#include <stdlib.h> // free
 #include <stdint.h>
 #include <stdbool.h>
 #include <netinet/in.h>

@@ -229,7 +229,9 @@ int emm_send_attach_accept(
   mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message, ue_id = (%u)\n",
+  OAILOG_INFO(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Send Attach Accept message, ue_id = (%u)\n",
     msg->ue_id);
   OAILOG_DEBUG(
     LOG_NAS_EMM, "EMMAS-SAP - size = EMM_HEADER_MAXIMUM_LENGTH(%d)\n", size);
@@ -253,7 +255,9 @@ int emm_send_attach_accept(
     ue_id);
   switch (emm_ctx->attach_type) {
     case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
-      OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Combined EPS/IMSI attach for (ue_id = %u)\n",
+      OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Combined EPS/IMSI attach for (ue_id = %u)\n",
         ue_id);
       /* It is observed that UE/Handest (with usage setting = voice centric and voice domain preference = CS voice only) sends detach after
      * successful attach .UEs with such settings sends attach type = combined EPS and IMSI attach as attach_type in
@@ -265,7 +269,7 @@ int emm_send_attach_accept(
      * sending detach so that such UEs can remain attached in the n/w and should be able to get data service from the n/w.
      */
 
-     /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails
+      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails
      *  or Network Access mode received as PACKET_ONLY from HSS in ULS message send
      *  epsattachresult to EPS_ATTACH_RESULT_EPS. If is it successful set epsattachresult
      *  to EPS_ATTACH_RESULT_EPS_IMSI
@@ -274,7 +278,7 @@ int emm_send_attach_accept(
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
         ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
+         is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -283,17 +287,20 @@ int emm_send_attach_accept(
     case EMM_ATTACH_TYPE_RESERVED:
     default:
       OAILOG_DEBUG(
-        LOG_NAS_EMM, "EMMAS-SAP - Unused attach type defaults to EPS attach for (ue_id = %u)\n",
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Unused attach type defaults to EPS attach for (ue_id = "
+        "%u)\n",
         ue_id);
     case EMM_ATTACH_TYPE_EPS:
       emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
-      OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - EPS attach for (ue_id = %u)\n",
-      ue_id);
+      OAILOG_DEBUG(
+        LOG_NAS_EMM, "EMMAS-SAP - EPS attach for (ue_id = %u)\n", ue_id);
       break;
     case EMM_ATTACH_TYPE_EMERGENCY: // We should not reach here
       OAILOG_ERROR(
         LOG_NAS_EMM,
-        "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id = %u)\n",
+        "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id = "
+        "%u)\n",
         ue_id);
       emm_context_unlock(emm_ctx);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0); // TODO: fix once supported
@@ -403,7 +410,8 @@ int emm_send_attach_accept(
       ue_id);
   }
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of GUTI for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_EMM, "EMMAS-SAP - Out of GUTI for (ue_id = %u)\n", ue_id);
   /*
    * Optional - LAI
    */
@@ -444,7 +452,8 @@ int emm_send_attach_accept(
         &msg->ms_identity->tmsi,
         sizeof(emm_msg->msidentity.tmsi));
       OAILOG_DEBUG(
-        LOG_NAS_EMM, "TMSI  digit1 %d\n"
+        LOG_NAS_EMM,
+        "TMSI  digit1 %d\n"
         "TMSI  digit2 %d\n"
         "TMSI  digit3 %d\n"
         "TMSI  digit4 %d\n",
@@ -462,7 +471,10 @@ int emm_send_attach_accept(
     emm_msg->emmcause = emm_ctx->emm_cause;
   }
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of Mobile Identity for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Out of Mobile Identity for (ue_id = %u)\n",
+    ue_id);
   /*
    * Optional - Additional Update Result
    */
@@ -472,18 +484,25 @@ int emm_send_attach_accept(
     emm_msg->additionalupdateresult = *msg->additional_update_result;
   }
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of Additional Update Result for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Out of Additional Update Result for (ue_id = %u)\n",
+    ue_id);
   /*
    * CSFB -Optional - Send failure cause
    */
 
-  if ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-     (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
+  if (
+    (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+    (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = emm_ctx->emm_cause;
   }
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of Send failure cause for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Out of Send failure cause for (ue_id = %u)\n",
+    ue_id);
 
   /*
    * Optional - T3402
@@ -583,7 +602,7 @@ int emm_send_attach_accept_dl_nas(
         ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
          (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
         ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
+         is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -758,7 +777,7 @@ int emm_send_attach_accept_dl_nas(
    */
 
   if (
-     ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+    ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
      is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) &&
     (msg->emm_cause)) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
@@ -1324,7 +1343,9 @@ int emm_send_identity_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Identity Request message for ue_id = (%u)\n",
+  OAILOG_INFO(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Send Identity Request message for ue_id = (%u)\n",
     msg->ue_id);
   /*
    * Mandatory - Message type
@@ -1375,7 +1396,9 @@ int emm_send_authentication_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Authentication Request message for ue_id = (%u)\n",
+  OAILOG_INFO(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Send Authentication Request message for ue_id = (%u)\n",
     msg->ue_id);
   /*
    * Mandatory - Message type
@@ -1491,7 +1514,9 @@ int emm_send_security_mode_command(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Security Mode Command message for ue_id = (%u)\n",
+  OAILOG_INFO(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Send Security Mode Command message for ue_id = (%u)\n",
     msg->ue_id);
   /*
    * Mandatory - Message type

@@ -40,7 +40,6 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 
@@ -77,7 +76,7 @@ int mme_app_send_s6a_purge_ue_req(struct ue_mm_context_s *const ue_context_pP)
   OAILOG_INFO(
     LOG_MME_APP, "Sent PUR to S6a TASK for IMSI " IMSI_64_FMT "\n", imsi);
 
-  rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_S6A, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

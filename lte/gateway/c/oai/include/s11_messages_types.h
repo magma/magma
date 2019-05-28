@@ -1101,7 +1101,7 @@ typedef struct itti_s11_release_access_bearers_request_s {
                   ///< released.
   node_type_t
     originating_node; ///< This IE shall be sent on S11 interface, if ISR is active in the MME.
-    ///< This IE shall be sent on S4 interface, if ISR is active in the SGSN
+  ///< This IE shall be sent on S4 interface, if ISR is active in the SGSN
   // Private Extension Private Extension ///< optional
   /* GTPv2-C specific parameters */
   void *trxn;

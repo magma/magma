@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -351,7 +351,7 @@ int s11_sgw_handle_create_session_request(
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
-  return itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_SPGW_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -592,7 +592,7 @@ int s11_sgw_handle_delete_session_request(
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
-  return itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_SPGW_APP, message_p);
 }
 
 //------------------------------------------------------------------------------

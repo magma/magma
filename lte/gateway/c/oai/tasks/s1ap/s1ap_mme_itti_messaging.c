@@ -58,7 +58,7 @@ int s1ap_mme_itti_send_sctp_request(
   SCTP_DATA_REQ(message_p).assoc_id = assoc_id;
   SCTP_DATA_REQ(message_p).stream = stream;
   SCTP_DATA_REQ(message_p).mme_ue_s1ap_id = ue_id;
-  return itti_send_msg_to_task(TASK_SCTP, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_SCTP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ int s1ap_mme_itti_nas_uplink_ind(
   NAS_UL_DATA_IND(message_p).tai = *tai;
   NAS_UL_DATA_IND(message_p).cgi = *cgi;
 
-  return itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_NAS_MME, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -113,7 +113,7 @@ int s1ap_mme_itti_nas_downlink_cnf(
       "ERROR: Failed to send S1AP message to eNB. mme_ue_s1ap_id =  %d \n",
       ue_id);
   }
-  return itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_NAS_MME, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -143,8 +143,8 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
 
   OAILOG_INFO(
     LOG_S1AP,
-    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id : " ENB_UE_S1AP_ID_FMT
-    "\n",
+    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id "
+    ": " ENB_UE_S1AP_ID_FMT "\n",
     enb_ue_s1ap_id);
 
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id = assoc_id;
@@ -180,7 +180,7 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
     enb_ue_s1ap_id;
   S1AP_INITIAL_UE_MESSAGE(message_p).transparent.e_utran_cgi = *ecgi;
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -233,6 +233,6 @@ void s1ap_mme_itti_nas_non_delivery_ind(
 
   // should be sent to MME_APP, but this one would forward it to NAS_MME, so send it directly to NAS_MME
   // but let's see
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_NAS_MME, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }

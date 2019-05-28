@@ -41,9 +41,9 @@ using grpc::Status;
 using magma::AllocateIPRequest;
 using magma::IPAddress;
 using magma::IPBlock;
-using magma::lte::MobilityService;
 using magma::MobilityServiceClient;
 using magma::ReleaseIPRequest;
+using magma::lte::MobilityService;
 using magma::lte::SubscriberID;
 using magma::orc8r::Void;
 

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -19,21 +19,21 @@
  *      contact@openairinterface.org
  */
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
-#include "mme_config.h"
 #include "assertions.h"
-#include "intertask_interface.h"
-#include "s6a_defs.h"
-#include "s6a_messages.h"
-#include "log.h"
-#include "common_defs.h"
 #include "bstrlib.h"
+#include "common_defs.h"
 #include "common_types.h"
+#include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
+#include "log.h"
+#include "mme_config.h"
+#include "s6a_defs.h"
+#include "s6a_messages.h"
 #include "s6a_messages_types.h"
 
 struct avp;
@@ -116,7 +116,8 @@ int s6a_pua_cb(
     if (avp_p) {
       /*
        * The procedure has failed within the HSS.
-       * * * * NOTE: contrary to result-code, the experimental-result is a grouped
+       * * * * NOTE: contrary to result-code, the experimental-result is a
+       * grouped
        * * * * AVP and requires parsing its childs to get the code back.
        */
       s6a_purge_ue_ans_p->result.present = S6A_RESULT_EXPERIMENTAL;
@@ -146,10 +147,10 @@ int s6a_pua_cb(
 
     /*
      * 0th bit, when set, shall indicate to the MME that the M-TMSI
-     * * * * needs to be frozen 
+     * * * * needs to be frozen
      * 1st bit, when set, shall indicate to the SGSN that the P-TMSI
      * * * * needs to be frozen
-     * * * * Currently ULA flags are not used 
+     * * * * Currently ULA flags are not used
      */
     if (FLAG_IS_SET(hdr_p->avp_value->u32, PUA_FREEZE_M_TMSI)) {
       s6a_purge_ue_ans_p->freeze_m_tmsi = true;
@@ -172,7 +173,7 @@ int s6a_pua_cb(
 
 err:
   ans_p = NULL;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_DEBUG(LOG_S6A, "Sending S6A_PURGE_UE_ANS to task MME_APP\n");
   return RETURNok;
 }

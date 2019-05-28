@@ -725,7 +725,7 @@ void s1ap_handle_conn_est_cnf(
    * Start the outcome response timer.
    * * * * When time is reached, MME consider that procedure outcome has failed.
    */
-  //     timer_setup(mme_config.s1ap_config.outcome_drop_timer_sec, 0, TASK_S1AP, INSTANCE_DEFAULT,
+  //     timer_setup(mme_config.s1ap_config.outcome_drop_timer_sec, 0, TASK_S1AP,
   //                 TIMER_ONE_SHOT,
   //                 NULL,
   //                 &ue_ref->outcome_response_timer_id);
@@ -879,7 +879,8 @@ void s1ap_handle_conn_est_cnf(
     free_s1ap_initialcontextsetuprequest(initialContextSetupRequest_p);
     // TODO: handle something
     OAILOG_ERROR(
-      LOG_S1AP, "Failed to encode initial context setup request message for "
+      LOG_S1AP,
+      "Failed to encode initial context setup request message for "
       "ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_ref->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_S1AP);

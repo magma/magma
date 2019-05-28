@@ -19,7 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
 #include <stdint.h>
 #include <string.h>
 #include <iostream>
@@ -42,7 +41,7 @@ void convert_proto_msg_to_itti_s6a_auth_info_ans(
 {
   if (msg.eutran_vectors_size() > MAX_EPS_AUTH_VECTORS) {
     std::cout << "[ERROR] Number of eutran auth vectors received is:"
-                 << msg.eutran_vectors_size() << std::endl;
+              << msg.eutran_vectors_size() << std::endl;
     return;
   }
   itti_msg->auth_info.nb_of_vectors = msg.eutran_vectors_size();
@@ -73,8 +72,8 @@ void convert_proto_msg_to_itti_s6a_auth_info_ans(
         eutran_vector.autn().c_str(),
         eutran_vector.autn().length());
     } else {
-      std::cout << "[ERROR] Invalid AUTN length " << eutran_vector.autn().length()
-                   << std::endl;
+      std::cout << "[ERROR] Invalid AUTN length "
+                << eutran_vector.autn().length() << std::endl;
       return;
     }
     if (eutran_vector.kasme().length() == KASME_LENGTH_OCTETS) {
@@ -83,8 +82,8 @@ void convert_proto_msg_to_itti_s6a_auth_info_ans(
         eutran_vector.kasme().c_str(),
         eutran_vector.kasme().length());
     } else {
-      std::cout << "[ERROR] Invalid KASME length " << eutran_vector.kasme().length()
-                   << std::endl;
+      std::cout << "[ERROR] Invalid KASME length "
+                << eutran_vector.kasme().length() << std::endl;
       return;
     }
     ++idx;
@@ -120,11 +119,13 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
   itti_msg->subscription_data.access_restriction =
     ARD_HO_TO_NON_3GPP_NOT_ALLOWED;
 
-  if (msg.network_access_mode()
-      == UpdateLocationAnswer_NetworkAccessMode_PACKET_AND_CIRCUIT) {
+  if (
+    msg.network_access_mode() ==
+    UpdateLocationAnswer_NetworkAccessMode_PACKET_AND_CIRCUIT) {
     itti_msg->subscription_data.access_mode = NAM_PACKET_AND_CIRCUIT;
-  } else if (msg.network_access_mode()
-      == UpdateLocationAnswer_NetworkAccessMode_RESERVED) {
+  } else if (
+    msg.network_access_mode() ==
+    UpdateLocationAnswer_NetworkAccessMode_RESERVED) {
     itti_msg->subscription_data.access_mode = NAM_RESERVED;
   } else {
     itti_msg->subscription_data.access_mode = NAM_ONLY_PACKET;

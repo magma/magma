@@ -19,7 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
 #include "itti_msg_to_proto_msg.h"
 #include "security_types.h"
 
@@ -64,7 +63,7 @@ convert_itti_s6a_authentication_info_req_to_proto_msg(
    * Re-synchronization information containing the AUTS computed at USIM
    */
 
-  if (msg->re_synchronization){
+  if (msg->re_synchronization) {
     ret.set_resync_info(msg->resync_param, (RAND_LENGTH_OCTETS + AUTS_LENGTH));
   }
 

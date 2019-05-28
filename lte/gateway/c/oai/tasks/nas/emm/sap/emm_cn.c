@@ -322,7 +322,7 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
        * If there is a mismatch between the APN sent by UE and the APN provided by HSS,
        * send Attach Reject to UE
        */
-       _handle_apn_mismatch(ue_mm_context);
+      _handle_apn_mismatch(ue_mm_context);
     }
     return RETURNerror;
   }
@@ -367,7 +367,8 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
     emm_ctx->esm_ctx.esm_proc_data->bearer_qos.mbr.br_dl = 0;
     //If UE has not sent APN, use the default APN sent by HSS
     if (emm_ctx->esm_ctx.esm_proc_data->apn == NULL) {
-        emm_ctx->esm_ctx.esm_proc_data->apn = bfromcstr((const char *)apn_config->service_selection);
+      emm_ctx->esm_ctx.esm_proc_data->apn =
+        bfromcstr((const char *) apn_config->service_selection);
     }
     // TODO  "Better to throw emm_ctx->esm_ctx.esm_proc_data as a parameter or as a hidden parameter ?"
     rc = esm_proc_pdn_connectivity_request(
@@ -401,11 +402,12 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
           &new_ebi,
           emm_ctx->esm_ctx.esm_proc_data->bearer_qos.qci,
           &esm_cause);
-        if ( rc < 0 ) {
+        if (rc < 0) {
           OAILOG_WARNING(
             LOG_NAS_ESM,
             "Failed to Allocate resources required for activation"
-            " of a default EPS bearer context for (ue_id =" MME_UE_S1AP_ID_FMT ")\n",
+            " of a default EPS bearer context for (ue_id =" MME_UE_S1AP_ID_FMT
+            ")\n",
             ue_mm_context->mme_ue_s1ap_id);
         }
       }
@@ -507,20 +509,20 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
     if (
       !(strcmp(non_eps_service_control, "SMS")) ||
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
-      if(is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
-         emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
-    } else {
-      OAILOG_DEBUG(
-        LOG_NAS_EMM, " Sending CS Domain Location Update Request to MME APP");
+      if (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
+        emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
+      } else {
+        OAILOG_DEBUG(
+          LOG_NAS_EMM, " Sending CS Domain Location Update Request to MME APP");
         nas_emm_attach_proc_t *attach_proc =
-      get_nas_specific_procedure_attach(emm_ctx_p);
-      nas_itti_cs_domain_location_update_req(
-        attach_proc->ue_id, ATTACH_REQUEST);
-      /* Store ESM message Activate Default EPS bearer to be sent in Attach Accept triggered after receiving
+          get_nas_specific_procedure_attach(emm_ctx_p);
+        nas_itti_cs_domain_location_update_req(
+          attach_proc->ue_id, ATTACH_REQUEST);
+        /* Store ESM message Activate Default EPS bearer to be sent in Attach Accept triggered after receiving
        * Location Update Accept
        */
-      emm_ctx_p->csfbparams.esm_data = esm_data;
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+        emm_ctx_p->csfbparams.esm_data = esm_data;
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
     }
   }
@@ -546,9 +548,7 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
-    OAILOG_WARNING(
-      LOG_NAS_EMM,
-      "EMMCN-SAP  - ue mm context null ..\n");
+    OAILOG_WARNING(LOG_NAS_EMM, "EMMCN-SAP  - ue mm context null ..\n");
   }
 
   if (emm_ctx == NULL) {
@@ -739,9 +739,7 @@ static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
     case CAUSE_SERVICE_NOT_SUPPORTED:
       esm_cause = ESM_CAUSE_SERVICE_OPTION_NOT_SUPPORTED;
       break;
-    case CAUSE_SYSTEM_FAILURE:
-      esm_cause = ESM_CAUSE_NETWORK_FAILURE;
-      break;
+    case CAUSE_SYSTEM_FAILURE: esm_cause = ESM_CAUSE_NETWORK_FAILURE; break;
     case CAUSE_NO_RESOURCES_AVAILABLE:
       esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
       increment_counter(
@@ -780,7 +778,7 @@ static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
   if (size > 0) {
     nas_emm_attach_proc_t *attach_proc =
       get_nas_specific_procedure_attach(emm_ctx_p);
-    if (attach_proc){
+    if (attach_proc) {
       /*
        * Setup the ESM message container
        */
@@ -1005,7 +1003,7 @@ static int _emm_cn_cs_domain_loc_updt_acc(
     if ((_handle_cs_domain_loc_updt_acc(
            emm_cn_sgs_location_updt_acc.ue_id, emm_ctx_p) == RETURNok))
       emm_context_unlock(emm_ctx_p);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   //Store LAI to be sent in Attach Accept/TAU Accept
   emm_ctx_p->csfbparams.presencemask |= LAI_CSFB;

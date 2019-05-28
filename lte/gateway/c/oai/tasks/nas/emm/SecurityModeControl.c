@@ -192,9 +192,7 @@ int emm_proc_security_mode_control(
     ksi);
 
   if (!(emm_ctx)) {
-    OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "Emm Context NULL!\n");
+    OAILOG_ERROR(LOG_NAS_EMM, "Emm Context NULL!\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -341,14 +339,20 @@ int emm_proc_security_mode_control(
      * Set the EPS encryption algorithms selected to the UE
      */
     smc_proc->selected_eea = emm_ctx->_security.selected_algorithms.encryption;
-    OAILOG_DEBUG(LOG_NAS_EMM, "EPS encryption algorithm selected is (%d) for ue_id (%u)\n",
-      smc_proc->selected_eea, ue_id);
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "EPS encryption algorithm selected is (%d) for ue_id (%u)\n",
+      smc_proc->selected_eea,
+      ue_id);
     /*
      * Set the EPS integrity algorithms selected to the UE
      */
     smc_proc->selected_eia = emm_ctx->_security.selected_algorithms.integrity;
-    OAILOG_DEBUG(LOG_NAS_EMM, "EPS integrity algorithm selected is (%d) for ue_id (%u)\n",
-      smc_proc->selected_eia, ue_id);
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "EPS integrity algorithm selected is (%d) for ue_id (%u)\n",
+      smc_proc->selected_eia,
+      ue_id);
 
     smc_proc->is_new = security_context_is_new;
 
@@ -741,9 +745,7 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
       emm_ctx = &ue_mm_context->emm_context;
     } else {
       OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "UE MM Context NULL! for ue_id = (%u)\n",
-        smc_proc->ue_id);
+        LOG_NAS_EMM, "UE MM Context NULL! for ue_id = (%u)\n", smc_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
 

@@ -171,7 +171,7 @@ void *shared_log_task(__attribute__((unused)) void *args_p)
     LOG_FLUSH_PERIOD_SEC,
     LOG_FLUSH_PERIOD_MICRO_SEC,
     TASK_SHARED_TS_LOG,
-    INSTANCE_DEFAULT,
+
     TIMER_ONE_SHOT,
     NULL,
     0,
@@ -188,7 +188,7 @@ void *shared_log_task(__attribute__((unused)) void *args_p)
             LOG_FLUSH_PERIOD_SEC,
             LOG_FLUSH_PERIOD_MICRO_SEC,
             TASK_SHARED_TS_LOG,
-            INSTANCE_DEFAULT,
+
             TIMER_ONE_SHOT,
             NULL,
             0,

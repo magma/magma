@@ -177,7 +177,8 @@ void mme_app_handle_suspend_acknowledge(
   const itti_s11_suspend_acknowledge_t *const suspend_acknowledge);
 
 int mme_app_send_s11_suspend_notification(
-  struct ue_mm_context_s *const ue_context_pP, const pdn_cid_t cid);
+  struct ue_mm_context_s *const ue_context_pP,
+  const pdn_cid_t cid);
 
 int mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP);
 
@@ -262,7 +263,7 @@ void mme_app_handle_modify_ue_ambr_request(
   const itti_s11_modify_ue_ambr_request_t *const modify_ue_ambr_request_p);
 
 int mme_app_handle_sgs_status_message(
-    itti_sgsap_status_t *const sgsap_status_pP);
+  itti_sgsap_status_t *const sgsap_status_pP);
 
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)

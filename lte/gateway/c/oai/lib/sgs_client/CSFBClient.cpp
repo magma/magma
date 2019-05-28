@@ -19,7 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
 #include <grpcpp/impl/codegen/async_unary_call.h>
 #include <thread> // std::thread
 #include <utility>
@@ -32,7 +31,7 @@
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 

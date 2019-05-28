@@ -45,17 +45,19 @@ void send_alert_reject(const itti_sgsap_alert_reject_t *msg)
 void send_location_update_request(const itti_sgsap_location_update_req_t *msg)
 {
   std::cout << "[DEBUG] Sending LOCATION_UDPATE_REQUEST with IMSI: "
-               << std::string(msg->imsi) << std::endl;
+            << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::location_update_request(
     msg,
     [imsiStr = std::string(msg->imsi)](
       grpc::Status status, magma::Void void_response) {
       if (status.ok()) {
-        std::cout << "[DEBUG] Successfully sent LOCATION_UDPATE_REQUEST with IMSI: "
-                     << imsiStr << std::endl;
+        std::cout
+          << "[DEBUG] Successfully sent LOCATION_UDPATE_REQUEST with IMSI: "
+          << imsiStr << std::endl;
       } else {
-        std::cout << "[ERROR] Failed to send LOCATION_UDPATE_REQUEST with IMSI: "
-                     << imsiStr << "; Status: " << status.error_message() << std::endl;
+        std::cout
+          << "[ERROR] Failed to send LOCATION_UDPATE_REQUEST with IMSI: "
+          << imsiStr << "; Status: " << status.error_message() << std::endl;
       }
       return;
     });
@@ -65,18 +67,19 @@ void send_tmsi_reallocation_complete(
   const itti_sgsap_tmsi_reallocation_comp_t *msg)
 {
   std::cout << "[DEBUG] Sending TMSI_REALLOCATION_COMPLETE with IMSI: "
-               << std::string(msg->imsi) << std::endl;
+            << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::tmsi_reallocation_complete(
     msg,
     [imsiStr = std::string(msg->imsi)](
       grpc::Status status, magma::Void void_response) {
       if (status.ok()) {
         std::cout << "[DEBUG] "
-          << "Successfully sent TMSI_REALLOCATION_COMPLETE with IMSI: "
-          << imsiStr << std::endl;
+                  << "Successfully sent TMSI_REALLOCATION_COMPLETE with IMSI: "
+                  << imsiStr << std::endl;
       } else {
-        std::cout << "[ERROR] Failed to send TMSI_REALLOCATION_COMPLETE with IMSI: "
-                     << imsiStr << "; Status: " << status.error_message() << std::endl;
+        std::cout
+          << "[ERROR] Failed to send TMSI_REALLOCATION_COMPLETE with IMSI: "
+          << imsiStr << "; Status: " << status.error_message() << std::endl;
       }
       return;
     });
@@ -100,7 +103,7 @@ void send_paging_reject(const itti_sgsap_paging_reject_t *msg)
 void send_service_request(const itti_sgsap_service_request_t *msg)
 {
   std::cout << "[DEBUG] Sending SERVICE REQUEST with IMSI: "
-               << std::string(msg->imsi) << std::endl;
+            << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::service_request(msg, empty_callback);
 }
 

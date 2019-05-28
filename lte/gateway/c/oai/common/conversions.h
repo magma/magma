@@ -451,12 +451,17 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
     while ((l_i < IMSI_BCD8_SIZE) && (l_j < MaXlEn - 1)) {                     \
       if ((((iMsI_t_PtR)->u.value[l_i] & 0xf0) >> 4) > 9) break;               \
       snprintf(                                                                \
-        ((iMsI_sTr) + l_j), (MaXlEn - l_j), "%u",                          \
-            (((iMsI_t_PtR)->u.value[l_i] & 0xf0) >> 4));                       \
+        ((iMsI_sTr) + l_j),                                                    \
+        (MaXlEn - l_j),                                                        \
+        "%u",                                                                  \
+        (((iMsI_t_PtR)->u.value[l_i] & 0xf0) >> 4));                           \
       l_j++;                                                                   \
       if (((iMsI_t_PtR)->u.value[l_i] & 0xf) > 9 || (l_j >= MaXlEn - 1))       \
         break;                                                                 \
-      snprintf(((iMsI_sTr) + l_j), (MaXlEn - l_j), "%u",                   \
+      snprintf(                                                                \
+        ((iMsI_sTr) + l_j),                                                    \
+        (MaXlEn - l_j),                                                        \
+        "%u",                                                                  \
         ((iMsI_t_PtR)->u.value[l_i] & 0xf));                                   \
       l_j++;                                                                   \
       l_i++;                                                                   \
@@ -514,8 +519,8 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
     }                                                                          \
     (aSN)->buf = calloc(len, sizeof(uint8_t));                                 \
     for (idx = 0; idx < (len); idx++) {                                        \
-      ((aSN)->buf)[idx] = (iMsI_sTr[2 * idx] & 0x0f)                           \
-      | ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0);                               \
+      ((aSN)->buf)[idx] =                                                      \
+        (iMsI_sTr[2 * idx] & 0x0f) | ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0);  \
     }                                                                          \
     if ((iMsI_len % 2) != 0) {                                                 \
       ((aSN)->buf)[idx - 1] |= 0xf0;                                           \
@@ -672,7 +677,6 @@ imsi64_t imsi_to_imsi64(const imsi_t *const imsi);
          }\
          OAILOG_DEBUG(LOG_MME_APP, "numOfValidImsiDigits %d \n",mObId_PtR->numOfValidImsiDigits);\
         } \*/
-
 
 void hexa_to_ascii(uint8_t *from, char *to, size_t length);
 

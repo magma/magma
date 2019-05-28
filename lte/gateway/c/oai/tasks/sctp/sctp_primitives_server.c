@@ -53,7 +53,6 @@
 #include "bstrlib.h"
 #include "common_types.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_default_values.h"
 #include "sctp_messages_types.h"
 
@@ -750,7 +749,7 @@ static void *sctp_intertask_interface(__attribute__((unused)) void *args_p)
           itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
         SCTP_MME_SERVER_INITIALIZED(message_p).successful = true;
         AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-        itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+        itti_send_msg_to_task(TASK_MME_APP, message_p);
       } break;
 
       case SCTP_CLOSE_ASSOCIATION: {

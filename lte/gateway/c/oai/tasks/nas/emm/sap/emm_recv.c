@@ -177,7 +177,8 @@ int emm_recv_attach_request(
      */
     OAILOG_ERROR(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = (%d)\n",
+      "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
+      "(%d)\n",
       ue_id,
       *emm_cause);
     rc = emm_proc_attach_reject(ue_id, *emm_cause);
@@ -219,7 +220,9 @@ int emm_recv_attach_request(
     /*
      * Get the GUTI
      */
-    OAILOG_DEBUG(LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_GUTI  (%d)\n",
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "Type of identity is EPS_MOBILE_IDENTITY_GUTI  (%d)\n",
       msg->oldgutiorimsi.guti.typeofidentity);
     params->guti = calloc(1, sizeof(guti_t));
     params->guti->gummei.plmn.mcc_digit1 = msg->oldgutiorimsi.guti.mcc_digit1;
@@ -236,7 +239,9 @@ int emm_recv_attach_request(
     /*
      * Get the IMSI
      */
-    OAILOG_DEBUG(LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_IMSI  (%d)\n",
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "Type of identity is EPS_MOBILE_IDENTITY_IMSI  (%d)\n",
       msg->oldgutiorimsi.imsi.typeofidentity);
     params->imsi = calloc(1, sizeof(imsi_t));
     params->imsi->u.num.digit1 = msg->oldgutiorimsi.imsi.identity_digit1;
@@ -261,7 +266,9 @@ int emm_recv_attach_request(
     /*
      * Get the IMEI
      */
-    OAILOG_DEBUG(LOG_NAS_EMM, "Type of identity is EPS_MOBILE_IDENTITY_IMEI  (%d)\n",
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "Type of identity is EPS_MOBILE_IDENTITY_IMEI  (%d)\n",
       msg->oldgutiorimsi.imei.typeofidentity);
     params->imei = calloc(1, sizeof(imei_t));
     params->imei->u.num.tac1 = msg->oldgutiorimsi.imei.identity_digit1;
@@ -317,7 +324,9 @@ int emm_recv_attach_request(
   params->ksi = msg->naskeysetidentifier.naskeysetidentifier;
   params->is_native_guti = (msg->oldgutitype != GUTI_MAPPED);
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "NAS Key set ID:TSC - (%d) KSI - (%d)\n",
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "NAS Key set ID:TSC - (%d) KSI - (%d)\n",
     params->is_native_sc,
     params->ksi);
 
@@ -385,7 +394,9 @@ int emm_recv_attach_request(
       sizeof(MobileStationClassmark2));
   }
   //Voice domain preference should be sent to MME APP
-  if (msg->presencemask & ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT) {
+  if (
+    msg->presencemask &
+    ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT) {
     params->voicedomainpreferenceandueusagesetting =
       calloc(1, sizeof(voice_domain_preference_and_ue_usage_setting_t));
     memcpy(
@@ -425,7 +436,9 @@ int emm_recv_attach_complete(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Complete message for ue_id = (%u)\n",
+  OAILOG_INFO(
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Received Attach Complete message for ue_id = (%u)\n",
     ue_id);
   /*
    * Execute the attach procedure completion
@@ -767,11 +780,13 @@ int emm_recv_service_request(
 
   OAILOG_INFO(
     LOG_NAS_EMM,
-    "EMMAS-SAP - Received Service Request message for (ue_id = %u)\n", ue_id);
+    "EMMAS-SAP - Received Service Request message for (ue_id = %u)\n",
+    ue_id);
   OAILOG_DEBUG(
     LOG_NAS_EMM,
     "Service Request message for (ue_id = %u)\n"
-    "(Security context %s) (Integrity protected %s) (MAC matched %s) (Ciphered %s)\n",
+    "(Security context %s) (Integrity protected %s) (MAC matched %s) (Ciphered "
+    "%s)\n",
     ue_id,
     (decode_status->security_context_available) ? "yes" : "no",
     (decode_status->integrity_protected_message) ? "yes" : "no",
@@ -784,17 +799,17 @@ int emm_recv_service_request(
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
     emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
   }
-  if(PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
-     ->sgs_context) {
+  if (PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
+        ->sgs_context) {
     service_type = PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
-                   ->sgs_context->csfb_service_type;
+                     ->sgs_context->csfb_service_type;
     /*
      * if service request is received for either MO SMS or PS data,
      * and if neaf flag is true then send the itti message to SGS
      * For triggering SGS ue activity indication message towards MSC.
      */
     if (mme_ue_context_get_ue_sgs_neaf(ue_id) == true) {
-      if(service_type != CSFB_SERVICE_MT_SMS) {
+      if (service_type != CSFB_SERVICE_MT_SMS) {
         char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
         IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
         nas_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));

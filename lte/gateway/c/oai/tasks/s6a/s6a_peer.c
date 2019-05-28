@@ -27,21 +27,20 @@
 */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "bstrlib.h"
-#include "log.h"
-#include "intertask_interface.h"
-#include "common_defs.h"
-#include "s6a_defs.h"
 #include "assertions.h"
+#include "bstrlib.h"
+#include "common_defs.h"
 #include "dynamic_memory_check.h"
-#include "mme_config.h"
+#include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
+#include "log.h"
+#include "mme_config.h"
+#include "s6a_defs.h"
 
 #define NB_MAX_TRIES (8)
 
@@ -61,9 +60,9 @@ void s6a_peer_connected_cb(struct peer_info *info, void *arg)
     send_activate_messages();
   }
 
-  /*
-   * For test
-   */
+/*
+ * For test
+ */
 #if 0
   s6a_auth_info_req_t                     s6a_air;
 
@@ -203,9 +202,9 @@ void send_activate_messages(void)
   MessageDef *message_p;
   message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
 
   message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_S1AP, message_p);
 }

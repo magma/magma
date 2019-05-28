@@ -243,11 +243,11 @@ void mme_app_handle_conn_est_cnf(
     * send IMSI Detach towads UE to re-attach for non-eps services
     * otherwise send itti SGS Service request message to SGS
     */
-  OAILOG_DEBUG(
-    LOG_MME_APP,
-    "CSFB Service Type = (%d) for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
-    ue_context_p->sgs_context->csfb_service_type,
-    nas_conn_est_cnf_pP->ue_id);
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "CSFB Service Type = (%d) for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
+      ue_context_p->sgs_context->csfb_service_type,
+      nas_conn_est_cnf_pP->ue_id);
     if (ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MT_SMS) {
       /* send SGS SERVICE request message to SGS */
       if (
@@ -265,7 +265,8 @@ void mme_app_handle_conn_est_cnf(
       //Send itti detach request message to NAS to trigger N/W initiated imsi detach request towards UE
       OAILOG_DEBUG(
         LOG_MME_APP,
-        "Sending itti detach request to NAS-MME (ue_id = " MME_UE_S1AP_ID_FMT ")\n"
+        "Sending itti detach request to NAS-MME (ue_id = " MME_UE_S1AP_ID_FMT
+        ")\n"
         "csfb service type = CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI\n",
         ue_context_p->mme_ue_s1ap_id);
 
@@ -280,8 +281,8 @@ void mme_app_handle_conn_est_cnf(
   if (
     (((nas_conn_est_cnf_pP->presencemask) & SERVICE_TYPE_PRESENT) ==
      SERVICE_TYPE_PRESENT) &&
-   ((nas_conn_est_cnf_pP->service_type == MO_CS_FB) ||
-    (nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL))) {
+    ((nas_conn_est_cnf_pP->service_type == MO_CS_FB) ||
+     (nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL))) {
     if (ue_context_p->sgs_context != NULL) {
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
     } else {
@@ -296,8 +297,8 @@ void mme_app_handle_conn_est_cnf(
         INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
-    if(nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL){
-     ue_context_p->sgs_context->is_emergency_call = true;
+    if (nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL) {
+      ue_context_p->sgs_context->is_emergency_call = true;
     }
   }
   if (
@@ -332,16 +333,17 @@ void mme_app_handle_conn_est_cnf(
     ((ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MT_CALL) ||
      (ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MO_CALL))) {
     establishment_cnf_p->presencemask |= S1AP_CSFB_INDICATOR_PRESENT;
-    if (ue_context_p->sgs_context->is_emergency_call == true){
-      establishment_cnf_p->cs_fallback_indicator   = CSFB_HIGH_PRIORITY;
+    if (ue_context_p->sgs_context->is_emergency_call == true) {
+      establishment_cnf_p->cs_fallback_indicator = CSFB_HIGH_PRIORITY;
       ue_context_p->sgs_context->is_emergency_call = false;
     } else {
-      establishment_cnf_p->cs_fallback_indicator      = CSFB_REQUIRED;
+      establishment_cnf_p->cs_fallback_indicator = CSFB_REQUIRED;
     }
   }
   OAILOG_DEBUG(
     LOG_MME_APP,
-    "CSFB Fallback indicator = (%d)\n",establishment_cnf_p->cs_fallback_indicator );
+    "CSFB Fallback indicator = (%d)\n",
+    establishment_cnf_p->cs_fallback_indicator);
   // Copy UE radio capabilities into message if it exists
   OAILOG_DEBUG(
     LOG_MME_APP,
@@ -405,7 +407,7 @@ void mme_app_handle_conn_est_cnf(
     "security_capabilities_integrity_algorithms  0x%04X\n",
     establishment_cnf_p->ue_security_capabilities_integrity_algorithms);
 
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_S1AP, message_p);
 
   /*
    * Move the UE to ECM Connected State.However if S1-U bearer establishment fails then we need to move the UE to idle.
@@ -441,7 +443,7 @@ void mme_app_handle_conn_est_cnf(
       ue_context_p->initial_context_setup_rsp_timer.sec,
       0,
       TASK_MME_APP,
-      INSTANCE_DEFAULT,
+
       TIMER_ONE_SHOT,
       (void *) &(ue_context_p->mme_ue_s1ap_id),
       sizeof(mme_ue_s1ap_id_t),
@@ -651,10 +653,12 @@ void mme_app_handle_initial_ue_message(
     ue_context_p->mme_ue_s1ap_id,
     ue_context_p->enb_ue_s1ap_id);
   OAILOG_DEBUG(
-    LOG_MME_APP, "Is S-TMSI Valid - (%d)\n",initial_pP->is_s_tmsi_valid);
+    LOG_MME_APP, "Is S-TMSI Valid - (%d)\n", initial_pP->is_s_tmsi_valid);
 
-  OAILOG_INFO(LOG_MME_APP, "Sending NAS Establishment Indication to NAS for ue_id = (%d)\n",
-    ue_context_p->mme_ue_s1ap_id );
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Sending NAS Establishment Indication to NAS for ue_id = (%d)\n",
+    ue_context_p->mme_ue_s1ap_id);
   nas_proc_establish_ind(
     ue_context_p->mme_ue_s1ap_id,
     is_mm_ctx_new,
@@ -741,7 +745,7 @@ void mme_app_handle_erab_setup_req(
       itti_erab_setup_req->nas_msg;
     itti_erab_setup_req->nas_msg = NULL;
 
-    itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_S1AP, message_p);
   } else {
     OAILOG_DEBUG(
       LOG_MME_APP,
@@ -878,7 +882,8 @@ int mme_app_handle_create_sess_resp(
   }
 
   OAILOG_DEBUG(
-    LOG_MME_APP, "MME S11 teid = %u, cause = %d, ue_id = %u\n",
+    LOG_MME_APP,
+    "MME S11 teid = %u, cause = %d, ue_id = %u\n",
     create_sess_resp_pP->teid,
     create_sess_resp_pP->cause.cause_value,
     ue_context_p->mme_ue_s1ap_id);
@@ -898,7 +903,8 @@ int mme_app_handle_create_sess_resp(
     // Send PDN CONNECTIVITY FAIL message  to NAS layer
     increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "failure");
     OAILOG_DEBUG(
-      LOG_MME_APP, "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
+      LOG_MME_APP,
+      "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
       create_sess_resp_pP->cause.cause_value,
       ue_context_p->mme_ue_s1ap_id);
     message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONNECTIVITY_FAIL);
@@ -919,13 +925,14 @@ int mme_app_handle_create_sess_resp(
     nas_pdn_connectivity_fail->cause =
       (pdn_conn_rsp_cause_t)(create_sess_resp_pP->cause.cause_value);
     OAILOG_ERROR(
-      LOG_MME_APP, "Sending NAS PDN connectivity failure for ue_id = (%u)"
+      LOG_MME_APP,
+      "Sending NAS PDN connectivity failure for ue_id = (%u)"
       ", bearer id = (%d)"
       ", pti = (%d)\n",
       ue_context_p->mme_ue_s1ap_id,
       bearer_id,
       transaction_identifier);
-    rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
@@ -1072,11 +1079,12 @@ int mme_app_handle_create_sess_resp(
 
   //Send PDN Connectivity Rsp to NAS
   OAILOG_INFO(
-    TASK_MME_APP, "Sending PDN CONNECTIVITY RESPONSE to NAS for ue_id = (%d)\n"
+    TASK_MME_APP,
+    "Sending PDN CONNECTIVITY RESPONSE to NAS for ue_id = (%d)\n"
     " bearer ID = (%d)\n",
     ue_context_p->mme_ue_s1ap_id,
     bearer_id);
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -1090,7 +1098,8 @@ void mme_app_handle_initial_context_setup_rsp(
   MessageDef *message_p = NULL;
 
   OAILOG_INFO(
-    LOG_MME_APP, "Received MME_APP_INITIAL_CONTEXT_SETUP_RSP from S1AP for ue_id = (%u)\n",
+    LOG_MME_APP,
+    "Received MME_APP_INITIAL_CONTEXT_SETUP_RSP from S1AP for ue_id = (%u)\n",
     initial_ctxt_setup_rsp_pP->ue_id);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc.mme_ue_contexts, initial_ctxt_setup_rsp_pP->ue_id);
@@ -1198,9 +1207,11 @@ void mme_app_handle_initial_context_setup_rsp(
    */
   s11_modify_bearer_request->trxn = NULL;
   OAILOG_INFO(
-    TASK_MME_APP, "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
-    initial_ctxt_setup_rsp_pP->ue_id, s11_modify_bearer_request->teid);
-  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+    TASK_MME_APP,
+    "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
+    initial_ctxt_setup_rsp_pP->ue_id,
+    s11_modify_bearer_request->teid);
+  itti_send_msg_to_task(TASK_SPGW, message_p);
   /*
    * During Service request procedure,after initial context setup response
    * Send ULR, when UE moved from Idle to Connected and
@@ -1354,7 +1365,7 @@ void mme_app_handle_s11_create_bearer_req(
         MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).pco, &msg_bc->pco);
     }
 
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_NAS_MME, message_p);
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -1501,7 +1512,7 @@ void mme_app_handle_e_rab_setup_rsp(
       }
     }
 
-    itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_S11, message_p);
   } else {
     // not send S11 response
     // TODO create a procedure with bearers to receive a response from NAS
@@ -1529,7 +1540,7 @@ void mme_app_handle_mobile_reachability_timer_expiry(
       ue_context_p->implicit_detach_timer.sec,
       0,
       TASK_MME_APP,
-      INSTANCE_DEFAULT,
+
       TIMER_ONE_SHOT,
       (void *) &(ue_context_p->mme_ue_s1ap_id),
       sizeof(mme_ue_s1ap_id_t),
@@ -1569,7 +1580,7 @@ void mme_app_handle_implicit_detach_timer_expiry(
   DevAssert(message_p != NULL);
   message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
     ue_context_p->mme_ue_s1ap_id;
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_NAS_MME, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -1598,7 +1609,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
     DevAssert(message_p != NULL);
     message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
       ue_context_p->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_NAS_MME, message_p);
     increment_counter(
       "ue_attach",
       1,
@@ -1674,7 +1685,7 @@ void mme_app_handle_initial_context_setup_failure(
     DevAssert(message_p != NULL);
     message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
       ue_context_p->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_NAS_MME, message_p);
     increment_counter(
       "ue_attach",
       1,
@@ -1787,7 +1798,7 @@ static void notify_s1ap_new_ue_mme_s1ap_id_association(
   notification_p->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
   notification_p->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
 
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_S1AP, message_p);
   OAILOG_DEBUG(
     LOG_MME_APP,
     " Sent MME_APP_S1AP_MME_UE_ID_NOTIFICATION to S1AP for (ue_id = %u)\n",
@@ -1842,7 +1853,7 @@ int mme_app_paging_request_helper(
   }
   paging_request->domain_indicator = domain_indicator;
 
-  rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_S1AP, message_p);
 
   if (!set_timer) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -1851,7 +1862,7 @@ int mme_app_paging_request_helper(
     ue_context_p->paging_response_timer.sec,
     0,
     TASK_MME_APP,
-    INSTANCE_DEFAULT,
+
     TIMER_ONE_SHOT,
     (void *) &(ue_context_p->mme_ue_s1ap_id),
     sizeof(mme_ue_s1ap_id_t),
@@ -1916,7 +1927,7 @@ void mme_app_handle_ulr_timer_expiry(ue_mm_context_t *ue_context_p)
       break;
     }
   }
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_NAS_MME, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -1959,13 +1970,14 @@ int mme_app_send_s11_suspend_notification(
   /* lbi: currently one default bearer, fill lbi from UE context
    * TODO for multiple PDN support, get lbi from PDN context
   */
-  suspend_notification_p->lbi = ue_context_pP->pdn_contexts[pdn_index]->default_ebi;
+  suspend_notification_p->lbi =
+    ue_context_pP->pdn_contexts[pdn_index]->default_ebi;
 
   OAILOG_INFO(
     LOG_MME_APP,
     "Send Suspend Notification for IMSI = " IMSI_64_FMT "\n",
     ue_context_pP->imsi);
-  rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_SPGW, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -2149,8 +2161,10 @@ int mme_app_handle_nas_extended_service_req(
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
         /* send Service Reject to UE */
-        mme_app_notify_service_reject_to_nas(ue_context_p->mme_ue_s1ap_id, EMM_CAUSE_CONGESTION,
-             UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
+        mme_app_notify_service_reject_to_nas(
+          ue_context_p->mme_ue_s1ap_id,
+          EMM_CAUSE_CONGESTION,
+          UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
       }
       break;
     /* packet service via s1 */
@@ -2294,7 +2308,7 @@ int mme_app_notify_service_reject_to_nas(
   itti_nas_notify_service_reject_p->emm_cause = emm_cause;
   itti_nas_notify_service_reject_p->failed_procedure = failed_procedure;
 
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 //------------------------------------------------------------------------------
@@ -2428,7 +2442,7 @@ void mme_app_handle_modify_ue_ambr_request(
       modify_ue_ambr_request_p->ue_ambr.br_ul;
     S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).ue_ambr.br_dl =
       modify_ue_ambr_request_p->ue_ambr.br_dl;
-    itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_S1AP, message_p);
     OAILOG_DEBUG(
       LOG_MME_APP,
       "MME APP :Sent UE context modification request \

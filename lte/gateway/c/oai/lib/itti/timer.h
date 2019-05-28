@@ -58,7 +58,6 @@ int timer_handle_signal(siginfo_t *info);
  *  \param interval_sec timer interval in seconds
  *  \param interval_us  timer interval in micro seconds
  *  \param task_id      task id of the task requesting the timer
- *  \param instance     instance of the task requesting the timer
  *  \param type         timer type
  *  \param timer_arg    extra data to save with the timer
  *  \param arg_size     size of the data you are saving
@@ -69,7 +68,6 @@ int timer_setup(
   uint32_t interval_sec,
   uint32_t interval_us,
   task_id_t task_id,
-  int32_t instance,
   timer_type_t type,
   void *timer_arg,
   size_t arg_size,

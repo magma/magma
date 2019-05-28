@@ -112,12 +112,19 @@ struct gtp_tunnel_ops {
     uint32_t o_tei,
     Imsi_t imsi,
     struct ipv4flow_dl *flow_dl);
-  int (*del_tunnel)(struct in_addr ue, uint32_t i_tei,
-      uint32_t o_tei, struct ipv4flow_dl *flow_dl);
-  int (*discard_data_on_tunnel)(struct in_addr ue,
-      uint32_t i_tei, struct ipv4flow_dl *flow_dl);
-  int (*forward_data_on_tunnel)(struct in_addr ue,
-      uint32_t i_tei, struct ipv4flow_dl *flow_dl);
+  int (*del_tunnel)(
+    struct in_addr ue,
+    uint32_t i_tei,
+    uint32_t o_tei,
+    struct ipv4flow_dl *flow_dl);
+  int (*discard_data_on_tunnel)(
+    struct in_addr ue,
+    uint32_t i_tei,
+    struct ipv4flow_dl *flow_dl);
+  int (*forward_data_on_tunnel)(
+    struct in_addr ue,
+    uint32_t i_tei,
+    struct ipv4flow_dl *flow_dl);
 };
 
 uint32_t gtpv1u_new_teid(void);

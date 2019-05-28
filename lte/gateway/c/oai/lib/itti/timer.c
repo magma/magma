@@ -50,7 +50,6 @@ int timer_handle_signal(siginfo_t *info);
 
 struct timer_elm_s {
   task_id_t task_id; ///< Task ID which has requested the timer
-  int32_t instance;  ///< Instance of the task which has requested the timer
   timer_t timer;     ///< Unique timer id
   timer_type_t type; ///< Timer type
   void *timer_arg; ///< Optional argument that will be passed when timer expires
@@ -82,7 +81,6 @@ int timer_handle_signal(siginfo_t *info)
   MessageDef *message_p;
   timer_has_expired_t *timer_expired_p;
   task_id_t task_id;
-  int32_t instance;
 
   /*
    * Get back pointer to timer list element
@@ -91,7 +89,6 @@ int timer_handle_signal(siginfo_t *info)
   // LG: To many traces for msc timer:
   // TMR_DEBUG("Timer with id 0x%lx has expired", (long)timer_p->timer);
   task_id = timer_p->task_id;
-  instance = timer_p->instance;
   message_p = itti_alloc_new_message(TASK_TIMER, TIMER_HAS_EXPIRED);
   timer_expired_p = &message_p->ittiMsg.timer_has_expired;
   timer_expired_p->timer_id = (long) timer_p->timer;
@@ -100,7 +97,7 @@ int timer_handle_signal(siginfo_t *info)
   /*
    * Notify task of timer expiry
    */
-  if (itti_send_msg_to_task(task_id, instance, message_p) < 0) {
+  if (itti_send_msg_to_task(task_id, message_p) < 0) {
     OAILOG_DEBUG(
       LOG_ITTI, "Failed to send msg TIMER_HAS_EXPIRED to task %u\n", task_id);
     itti_free(TASK_TIMER, message_p);
@@ -114,7 +111,6 @@ int timer_setup(
   uint32_t interval_sec,
   uint32_t interval_us,
   task_id_t task_id,
-  int32_t instance,
   timer_type_t type,
   void *timer_arg,
   size_t arg_size,
@@ -147,7 +143,6 @@ int timer_setup(
   memset(&timer, 0, sizeof(timer_t));
   memset(&se, 0, sizeof(struct sigevent));
   timer_p->task_id = task_id;
-  timer_p->instance = instance;
   timer_p->type = type;
   // copy timer_arg if it exists
   if (timer_arg != NULL) {

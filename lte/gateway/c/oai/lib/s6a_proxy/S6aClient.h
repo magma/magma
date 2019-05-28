@@ -36,14 +36,14 @@ extern "C" {
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace feg {
 class AuthenticationInformationAnswer;
 class PurgeUEAnswer;
 class UpdateLocationAnswer;
-}  // namespace feg
-}  // namespace magma
+} // namespace feg
+} // namespace magma
 }
 
 using grpc::Status;

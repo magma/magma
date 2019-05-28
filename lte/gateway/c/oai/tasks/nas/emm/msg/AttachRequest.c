@@ -366,7 +366,7 @@ int decode_attach_request(
          */
         attach_request->presencemask |=
           ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT;
-	break;
+        break;
 
       default:
         errorCodeDecoder = TLV_UNEXPECTED_IEI;

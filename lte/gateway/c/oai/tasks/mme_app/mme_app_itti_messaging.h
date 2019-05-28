@@ -38,7 +38,6 @@
 #include "common_types.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_ue_context.h"
 #include "s1ap_messages_types.h"
 
@@ -80,19 +79,19 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
     S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).presencemask |=
       S1AP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT;
     if (ue_context_p->sgs_context->is_emergency_call == true) {
-      S1AP_UE_CONTEXT_MODIFICATION_REQUEST (message_p).cs_fallback_indicator =
-      CSFB_HIGH_PRIORITY;
+      S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).cs_fallback_indicator =
+        CSFB_HIGH_PRIORITY;
       ue_context_p->sgs_context->is_emergency_call = false;
     } else {
-      S1AP_UE_CONTEXT_MODIFICATION_REQUEST (message_p).cs_fallback_indicator =
-      CSFB_REQUIRED;
+      S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).cs_fallback_indicator =
+        CSFB_REQUIRED;
     }
   }
   OAILOG_INFO(
     LOG_MME_APP,
     "Sent S1AP_UE_CONTEXT_MODIFICATION_REQUEST mme_ue_s1ap_id %06" PRIX32 " \n",
     S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id);
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_S1AP, message_p);
 
   /* Start timer to wait for UE Context Modification from eNB
    * If timer expires treat this as failure of ongoing procedure and abort corresponding NAS procedure
@@ -103,7 +102,7 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
       ue_context_p->ue_context_modification_timer.sec,
       0,
       TASK_MME_APP,
-      INSTANCE_DEFAULT,
+
       TIMER_ONE_SHOT,
       (void *) &(ue_context_p->mme_ue_s1ap_id),
       sizeof(mme_ue_s1ap_id_t),

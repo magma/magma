@@ -438,11 +438,12 @@ static void nas_delete_common_procedures(struct emm_context_s *emm_context)
           }
         } break;
         case EMM_COMM_PROC_SMC: {
-          nas_emm_smc_proc_t *smc_proc = (nas_emm_smc_proc_t *)(p1->proc);
-          nas_stop_T3460( smc_proc->ue_id, &smc_proc->T3460, NULL);
+          nas_emm_smc_proc_t *smc_proc = (nas_emm_smc_proc_t *) (p1->proc);
+          nas_stop_T3460(smc_proc->ue_id, &smc_proc->T3460, NULL);
         } break;
         case EMM_COMM_PROC_IDENT: {
-          nas_emm_ident_proc_t *ident_proc = (nas_emm_ident_proc_t *)(p1->proc);
+          nas_emm_ident_proc_t *ident_proc =
+            (nas_emm_ident_proc_t *) (p1->proc);
           nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470, NULL);
         } break;
         case EMM_COMM_PROC_INFO: break;

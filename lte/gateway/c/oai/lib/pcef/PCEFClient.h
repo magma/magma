@@ -31,15 +31,15 @@
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class LocalCreateSessionRequest;
 class LocalCreateSessionResponse;
 class LocalEndSessionResponse;
 class SubscriberID;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::Status;
 

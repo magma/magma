@@ -35,7 +35,6 @@
 #include "mme_app_apn_selection.h"
 #include "emm_data.h"
 
-
 //------------------------------------------------------------------------------
 struct apn_configuration_s *mme_app_select_apn(
   ue_mm_context_t *const ue_context,

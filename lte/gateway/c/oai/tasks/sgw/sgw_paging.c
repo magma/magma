@@ -30,7 +30,6 @@
 #include "rpc_client.h"
 #include "sgw_paging.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "s11_messages_types.h"
 
 int sgw_send_paging_request(const struct in_addr *dest_ip)
@@ -54,6 +53,6 @@ int sgw_send_paging_request(const struct in_addr *dest_ip)
   paging_request_p->imsi = strdup(imsi);
   free(imsi);
 
-  ret = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  ret = itti_send_msg_to_task(TASK_MME_APP, message_p);
   return ret;
 }

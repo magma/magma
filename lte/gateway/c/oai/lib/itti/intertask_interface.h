@@ -44,7 +44,6 @@
 
 #include "intertask_interface_conf.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 
 struct epoll_event;
 
@@ -52,7 +51,6 @@ struct epoll_event;
 #define ITTI_MSG_ORIGIN_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.originTaskId)
 #define ITTI_MSG_DESTINATION_ID(mSGpTR)                                        \
   ((mSGpTR)->ittiMsgHeader.destinationTaskId)
-#define ITTI_MSG_INSTANCE(mSGpTR) ((mSGpTR)->ittiMsgHeader.instance)
 #define ITTI_MSG_NAME(mSGpTR) itti_get_message_name(ITTI_MSG_ID(mSGpTR))
 #define ITTI_MSG_ORIGIN_NAME(mSGpTR)                                           \
   itti_get_task_name(ITTI_MSG_ORIGIN_ID(mSGpTR))
@@ -109,14 +107,10 @@ int itti_send_broadcast_message(MessageDef *message_p);
 
 /** \brief Send a message to a task (could be itself)
  \param task_id Task ID
- \param instance Instance of the task used for virtualization
  \param message Pointer to the message to send
  @returns -1 on failure, 0 otherwise
  **/
-int itti_send_msg_to_task(
-  task_id_t task_id,
-  instance_t instance,
-  MessageDef *message);
+int itti_send_msg_to_task(task_id_t task_id, MessageDef *message);
 
 /** \brief Add a new fd to monitor.
  * NOTE: it is up to the user to read data associated with the fd

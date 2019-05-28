@@ -310,8 +310,7 @@ int itti_send_broadcast_message(MessageDef *message_p)
         new_message_p = itti_malloc(origin_task_id, destination_task_id, size);
         AssertFatal(new_message_p != NULL, "New message allocation failed!\n");
         memcpy(new_message_p, message_p, size);
-        result = itti_send_msg_to_task(
-          destination_task_id, INSTANCE_DEFAULT, new_message_p);
+        result = itti_send_msg_to_task(destination_task_id, new_message_p);
         AssertFatal(
           result >= 0,
           "Failed to send message %d to thread %d (task %d)!\n",
@@ -368,10 +367,7 @@ MessageDef *itti_alloc_new_message(
     origin_task_id, message_id, itti_desc.messages_info[message_id].size);
 }
 
-int itti_send_msg_to_task(
-  task_id_t destination_task_id,
-  instance_t instance,
-  MessageDef *message)
+int itti_send_msg_to_task(task_id_t destination_task_id, MessageDef *message)
 {
   thread_id_t destination_thread_id;
   task_id_t origin_task_id;
@@ -388,7 +384,6 @@ int itti_send_msg_to_task(
     itti_desc.task_max);
   destination_thread_id = TASK_GET_THREAD_ID(destination_task_id);
   message->ittiMsgHeader.destinationTaskId = destination_task_id;
-  message->ittiMsgHeader.instance = instance;
   message_id = message->ittiMsgHeader.messageId;
   AssertFatal(
     message_id < itti_desc.messages_id_max,

@@ -1710,7 +1710,7 @@ void mme_ue_context_update_ue_sig_connection_state(
           ue_context_p->mobile_reachability_timer.sec,
           0,
           TASK_MME_APP,
-          INSTANCE_DEFAULT,
+
           TIMER_ONE_SHOT,
           (void *) &(ue_context_p->mme_ue_s1ap_id),
           sizeof(mme_ue_s1ap_id_t),
@@ -2135,7 +2135,7 @@ void mme_app_handle_enb_reset_req(
   reset_ack->sctp_stream_id = enb_reset_req->sctp_stream_id;
   reset_ack->num_ue = enb_reset_req->num_ue;
 
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, msg);
+  itti_send_msg_to_task(TASK_S1AP, msg);
 
   OAILOG_DEBUG(
     LOG_MME_APP,
@@ -2392,16 +2392,18 @@ static void _mme_app_handle_s1ap_ue_context_release(
     DevAssert(message_p != NULL);
     message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
       ue_mm_context->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_NAS_MME, message_p);
   } else {
     if (cause == S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS) {
       for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
         if (ue_mm_context->pdn_contexts[i]) {
-          if((mme_app_send_s11_suspend_notification(ue_mm_context, i))
-             != RETURNok) {
+          if (
+            (mme_app_send_s11_suspend_notification(ue_mm_context, i)) !=
+            RETURNok) {
             OAILOG_ERROR(
               LOG_MME_APP,
-              "Failed to send S11 Suspend Notification for imsi " IMSI_64_FMT "\n",
+              "Failed to send S11 Suspend Notification for imsi " IMSI_64_FMT
+              "\n",
               ue_mm_context->imsi);
           }
         }
@@ -2419,21 +2421,20 @@ static void _mme_app_handle_s1ap_ue_context_release(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-bool is_mme_ue_context_network_access_mode_packet_only (
-  ue_mm_context_t       *ue_context_p)
+bool is_mme_ue_context_network_access_mode_packet_only(
+  ue_mm_context_t *ue_context_p)
 {
   // Function is used to check the UE's Network Access Mode received in ULA from HSS
 
-  OAILOG_FUNC_IN (LOG_MME_APP);
+  OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_p == NULL) {
-    OAILOG_CRITICAL (LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
-    OAILOG_FUNC_RETURN (LOG_MME_APP, RETURNerror);
+    OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  if (ue_context_p->network_access_mode == NAM_ONLY_PACKET)
-  {
-    OAILOG_FUNC_RETURN (LOG_MME_APP, true);
+  if (ue_context_p->network_access_mode == NAM_ONLY_PACKET) {
+    OAILOG_FUNC_RETURN(LOG_MME_APP, true);
   } else {
-    OAILOG_FUNC_RETURN (LOG_MME_APP, false);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
 }
 

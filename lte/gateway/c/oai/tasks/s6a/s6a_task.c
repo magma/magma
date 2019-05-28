@@ -26,16 +26,15 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdio.h>
-#include <stdint.h>
 #include <gnutls/gnutls.h>
 #include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
-#include "bstrlib.h"
 #include "3gpp_23.003.h"
+#include "bstrlib.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "s6a_messages_types.h"
 #include "service303.h"
 #include "timer_messages_types.h"
@@ -45,17 +44,17 @@
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 
-#include "log.h"
 #include "assertions.h"
+#include "common_defs.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
-#include "common_defs.h"
+#include "log.h"
+#include "mme_config.h"
+#include "s6a_client_api.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
-#include "mme_config.h"
-#include "timer.h"
 #include "s6a_service.h"
-#include "s6a_client_api.h"
+#include "timer.h"
 
 #define S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC (0)
 #define S6A_PEER_CONNECT_TIMEOUT_SEC (1)
@@ -158,16 +157,16 @@ void *s6a_thread(void *args)
           break;
         }
         /*
-         * Trying to connect to peers
-         */
+       * Trying to connect to peers
+       */
         timer_id = 0;
         if (s6a_fd_new_peer() != RETURNok) {
           /*
-           * On failure, reschedule timer.
-           * * Preferred over TIMER_PERIODIC because if s6a_fd_new_peer takes
-           * * longer to return than the period, the timer will schedule while
-           * * the previous one is active, causing a seg fault.
-           */
+         * On failure, reschedule timer.
+         * * Preferred over TIMER_PERIODIC because if s6a_fd_new_peer takes
+         * * longer to return than the period, the timer will schedule while
+         * * the previous one is active, causing a seg fault.
+         */
           increment_counter(
             "s6a_subscriberdb_connection_failure", 1, NO_LABELS);
           OAILOG_ERROR(
@@ -179,7 +178,7 @@ void *s6a_thread(void *args)
             S6A_PEER_CONNECT_TIMEOUT_SEC,
             S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
             TASK_S6A,
-            INSTANCE_DEFAULT,
+
             TIMER_ONE_SHOT,
             NULL,
             0,
@@ -262,7 +261,8 @@ int s6a_init(const mme_config_t *mme_config_p)
 
   /*
    * if (strcmp(fd_core_version(), free_wrapper_DIAMETER_MINIMUM_VERSION) ) {
-   * S6A_ERROR("Freediameter version %s found, expecting %s\n", fd_core_version(),
+   * S6A_ERROR("Freediameter version %s found, expecting %s\n",
+   * fd_core_version(),
    * free_wrapper_DIAMETER_MINIMUM_VERSION);
    * return RETURNerror;
    * } else {
@@ -292,7 +292,8 @@ int s6a_init(const mme_config_t *mme_config_p)
   if (ret) {
     OAILOG_ERROR(
       LOG_S6A,
-      "An error occurred during freeDiameter core library initialization: %d\n",
+      "An error occurred during freeDiameter core library "
+      "initialization: %d\n",
       ret);
     return ret;
   } else {
@@ -361,7 +362,7 @@ int s6a_init(const mme_config_t *mme_config_p)
     S6A_PEER_CONNECT_TIMEOUT_SEC,
     S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
     TASK_S6A,
-    INSTANCE_DEFAULT,
+
     TIMER_ONE_SHOT,
     NULL,
     0,
@@ -387,7 +388,8 @@ static void s6a_exit(void)
     OAI_FPRINTF_ERR("An error occurred during fd_core_shutdown().\n");
   }
 
-  /* Wait for the shutdown to be complete -- this should always be called after fd_core_shutdown */
+  /* Wait for the shutdown to be complete -- this should always be called after
+   * fd_core_shutdown */
   rv = fd_core_wait_shutdown_complete();
   if (rv) {
     OAI_FPRINTF_ERR(

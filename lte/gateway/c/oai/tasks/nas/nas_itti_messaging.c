@@ -78,7 +78,7 @@ int nas_itti_dl_data_req(
   nas_msg = NULL;
   NAS_DL_DATA_REQ(message_p).transaction_status = transaction_status;
   // make a long way by MME_APP instead of S1AP to retrieve the sctp_association_id key.
-  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ int nas_itti_erab_setup_req(
   NAS_ERAB_SETUP_REQ(message_p).nas_msg = nas_msg;
   nas_msg = NULL;
   // make a long way by MME_APP instead of S1AP to retrieve the sctp_association_id key.
-  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -115,7 +115,7 @@ void nas_itti_dedicated_eps_bearer_complete(
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_CREATE_DEDICATED_BEARER_RSP);
   MME_APP_CREATE_DEDICATED_BEARER_RSP(message_p).ue_id = ue_idP;
   MME_APP_CREATE_DEDICATED_BEARER_RSP(message_p).ebi = ebiP;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
@@ -129,7 +129,7 @@ void nas_itti_dedicated_eps_bearer_reject(
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_CREATE_DEDICATED_BEARER_REJ);
   MME_APP_CREATE_DEDICATED_BEARER_REJ(message_p).ue_id = ue_idP;
   MME_APP_CREATE_DEDICATED_BEARER_REJ(message_p).ebi = ebiP;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
@@ -148,7 +148,8 @@ void nas_itti_pdn_config_req(
   AssertFatal(proc_data_pP != NULL, "proc_data_pP param is NULL");
 
   OAILOG_INFO(
-    LOG_NAS_EMM, "Sending PDN CONFIG REQ to MME_APP , (ue_idP = %u) \n",
+    LOG_NAS_EMM,
+    "Sending PDN CONFIG REQ to MME_APP , (ue_idP = %u) \n",
     ue_idP);
 
   message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_PDN_CONFIG_REQ);
@@ -187,7 +188,7 @@ void nas_itti_pdn_config_req(
 
   NAS_PDN_CONFIG_REQ(message_p).request_type = request_typeP;
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
@@ -254,9 +255,10 @@ void nas_itti_pdn_connectivity_req(
 
   OAILOG_INFO(
     LOG_NAS_ESM,
-    "Sending PDN CONNECTIVITY REQ to MME_APP for ue id " MME_UE_S1AP_ID_FMT " \n",
+    "Sending PDN CONNECTIVITY REQ to MME_APP for ue id " MME_UE_S1AP_ID_FMT
+    " \n",
     ue_idP);
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -275,7 +277,9 @@ void nas_itti_auth_info_req(
   s6a_auth_info_req_t *auth_info_req = NULL;
 
   OAILOG_INFO(
-    LOG_NAS_EMM, " Sending Authentication Information Request message to S6A for ue_id = (%u) \n",
+    LOG_NAS_EMM,
+    " Sending Authentication Information Request message to S6A for ue_id = "
+    "(%u) \n",
     ue_idP);
 
   message_p = itti_alloc_new_message(TASK_NAS_MME, S6A_AUTH_INFO_REQ);
@@ -305,7 +309,7 @@ void nas_itti_auth_info_req(
       sizeof auth_info_req->resync_param);
   }
 
-  itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_S6A, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -339,7 +343,7 @@ void nas_itti_establish_rej(
   NAS_AUTHENTICATION_PARAM_REQ(message_p).initial_req = initial_reqP;
   NAS_AUTHENTICATION_PARAM_REQ(message_p).ue_id = ue_idP;
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
@@ -404,14 +408,15 @@ void nas_itti_establish_cnf(
       NAS_CONNECTION_ESTABLISHMENT_CNF(message_p).kenb);
 
     unlock_ue_contexts(ue_mm_context);
-    OAILOG_INFO(LOG_NAS_EMM, "Sending NAS Connection Establishment confirm for ue_id "MME_UE_S1AP_ID_FMT"\n",
+    OAILOG_INFO(
+      LOG_NAS_EMM,
+      "Sending NAS Connection Establishment confirm for "
+      "ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_idP);
-    itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+    itti_send_msg_to_task(TASK_MME_APP, message_p);
   } else {
     OAILOG_WARNING(
-      LOG_NAS_EMM,
-      "UE MM context NULL! for ue_id = (%u)\n",
-      ue_idP);
+      LOG_NAS_EMM, "UE MM context NULL! for ue_id = (%u)\n", ue_idP);
   }
 
   OAILOG_FUNC_OUT(LOG_NAS);
@@ -427,7 +432,7 @@ void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP)
 
   NAS_DETACH_REQ(message_p).ue_id = ue_idP;
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
@@ -438,9 +443,7 @@ void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type)
   MessageDef *message_p;
 
   OAILOG_INFO(
-    LOG_MME_APP,
-    "Send SGS Detach Request to MME for ue_id = %u\n",
-    ue_idP);
+    LOG_MME_APP, "Send SGS Detach Request to MME for ue_id = %u\n", ue_idP);
   message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_SGS_DETACH_REQ);
   memset(
     &message_p->ittiMsg.nas_sgs_detach_req,
@@ -450,7 +453,7 @@ void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type)
   NAS_SGS_DETACH_REQ(message_p).ue_id = ue_idP;
   NAS_SGS_DETACH_REQ(message_p).detach_type = detach_type;
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
@@ -522,7 +525,7 @@ void nas_itti_extended_service_req(
     LOG_MME_APP,
     "Send NAS_EXTENDED_SERVICE_REQ from Nas to Mme-app for ue_id :%u\n",
     ue_id);
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -603,7 +606,7 @@ void nas_itti_sgsap_uplink_unitdata(
       UPLINK_UNITDATA_ECGI_PARAMETER_PRESENT;
   }
 
-  itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_SGS, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -623,7 +626,7 @@ void nas_itti_sgsap_tmsi_reallocation_comp(
   memcpy(SGSAP_TMSI_REALLOC_COMP(message_p).imsi, imsi, imsi_len);
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi[imsi_len] = '\0';
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi_length = imsi_len;
-  itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_SGS, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -686,7 +689,7 @@ void nas_itti_cs_domain_location_update_req(
     emm_ctx->additional_update_type;
 
   emm_context_unlock(emm_ctx);
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
   OAILOG_INFO(
     LOG_NAS_EMM, " Sent CS Domain Location Update Request to MME APP\n");
 
@@ -705,7 +708,7 @@ void nas_itti_tau_complete(unsigned int ue_idP)
 
   NAS_TAU_COMPLETE(message_p).ue_id = ue_idP;
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -725,7 +728,7 @@ void nas_itti_sgsap_ue_activity_ind(
   memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
   SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
-  itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_SGS, message_p);
   OAILOG_DEBUG(
     LOG_NAS,
     " Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : %s \n",

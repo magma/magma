@@ -32,7 +32,7 @@
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::Status;
 #define MME_SERVICE "mme"
@@ -46,7 +46,8 @@ static bool read_mme_cloud_subscriberdb_enabled(void);
 
 static const bool relay_enabled = read_mme_relay_enabled();
 
-static const bool cloud_subscriberdb_enabled = read_mme_cloud_subscriberdb_enabled();
+static const bool cloud_subscriberdb_enabled =
+  read_mme_cloud_subscriberdb_enabled();
 
 // Relay enabled must be controlled by mconfigs in ONE place
 // and mme app should be restarted on the config changes.
@@ -71,7 +72,8 @@ static bool read_mme_relay_enabled(void)
   magma::MConfigLoader loader;
 
   if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
-    std::cout << "[INFO] Unable to load mconfig for mme, S6a relay is disabled" << std::endl;
+    std::cout << "[INFO] Unable to load mconfig for mme, S6a relay is disabled"
+              << std::endl;
     return false; // default is - relay disabled
   }
   return mconfig.relay_enabled();
@@ -83,7 +85,9 @@ static bool read_mme_cloud_subscriberdb_enabled(void)
   magma::MConfigLoader loader;
 
   if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
-    std::cout << "[INFO] Unable to load mconfig for mme, cloud subscriberdb is disabled" << std::endl;
+    std::cout
+      << "[INFO] Unable to load mconfig for mme, cloud subscriberdb is disabled"
+      << std::endl;
     return false; // default is - cloud subscriberdb disabled
   }
   return mconfig.cloud_subscriberdb_enabled();
@@ -97,10 +101,10 @@ S6aClient &S6aClient::get_instance()
 
 S6aClient::S6aClient()
 {
-   // Create channel based on relay_enabled and cloud_subscriberdb_enabled
-   // flags. If relay_enabled is true, then create a channel towards the FeG.
-   // Otherwise, create a channel towards either local or cloud-based
-   // subscriberdb.
+  // Create channel based on relay_enabled and cloud_subscriberdb_enabled
+  // flags. If relay_enabled is true, then create a channel towards the FeG.
+  // Otherwise, create a channel towards either local or cloud-based
+  // subscriberdb.
   if (get_s6a_relay_enabled() == true) {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "s6a_proxy", ServiceRegistrySingleton::CLOUD);

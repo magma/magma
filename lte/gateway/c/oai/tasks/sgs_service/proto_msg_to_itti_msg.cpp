@@ -19,17 +19,16 @@
  *      contact@openairinterface.org
  */
 
-
 #include "proto_msg_to_itti_msg.h"
 
+#include <iostream>
 #include <stdint.h>
 #include <string.h>
-#include <iostream>
 #include <string>
 
-#include "bstrlib.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
+#include "bstrlib.h"
 #include "common_ies.h"
 #include "feg/protos/csfb.pb.h"
 
@@ -84,9 +83,9 @@ void convert_proto_msg_to_itti_sgsap_location_update_accept(
     auto new_tmsi = msg->new_tmsi();
     if (new_tmsi.length() != TMSI_SIZE) {
       std::cout << "[MWARNING] "
-        << "Expected length of new TMSI in Location Update Accept: "
-        << new_tmsi.length() << ", got " << TMSI_SIZE
-        << " instead. Ignoring the TMSI" << std::endl;
+                << "Expected length of new TMSI in Location Update Accept: "
+                << new_tmsi.length() << ", got " << TMSI_SIZE
+                << " instead. Ignoring the TMSI" << std::endl;
       itti_msg->presencemask = 0;
       return;
     }
@@ -253,7 +252,8 @@ void convert_proto_msg_to_itti_sgsap_alert_request(
 }
 
 void convert_proto_msg_to_itti_sgsap_service_abort_req(
-  const ServiceAbortRequest* msg, itti_sgsap_service_abort_req_t *itti_msg)
+  const ServiceAbortRequest *msg,
+  itti_sgsap_service_abort_req_t *itti_msg)
 {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();

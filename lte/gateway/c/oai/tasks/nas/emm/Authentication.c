@@ -182,7 +182,8 @@ int emm_proc_authentication_ksi(
           auth_proc->is_cause_is_attach = true;
           OAILOG_DEBUG(
             LOG_NAS_EMM,
-            "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for ue_id (%u)\n",
+            "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for ue_id "
+            "(%u)\n",
             emm_specific_proc->type,
             ue_id);
         } else if (EMM_SPEC_PROC_TYPE_TAU == emm_specific_proc->type) {

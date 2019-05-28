@@ -31,7 +31,7 @@
 
 namespace grpc {
 class Channel;
-}  // namespace grpc
+} // namespace grpc
 
 // TODO: MobilityService IP:port config (t14002037)
 #define MOBILITYD_ENDPOINT "localhost:60051"

@@ -29,14 +29,13 @@
 #include <string.h>
 
 #include "assertions.h"
+#include "common_types.h"
 #include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "log.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
 #include "s6a_messages_types.h"
-#include "log.h"
-#include "common_types.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
 
 struct avp;
 struct msg;
@@ -144,7 +143,7 @@ int s6a_clr_cb(
       s6a_cancel_location_req_p->imsi_length = imsi_len;
       s6a_cancel_location_req_p->cancellation_type = SUBSCRIPTION_WITHDRAWL;
       s6a_cancel_location_req_p->msg_cla_p = msg_p;
-      itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+      itti_send_msg_to_task(TASK_MME_APP, message_p);
       OAILOG_DEBUG(
         LOG_S6A, "Sending S6A_CANCEL_LOCATION_REQ to task MME_APP\n");
       result_code = DIAMETER_SUCCESS;
@@ -238,9 +237,9 @@ int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP)
     return -1;
   }
   ans_p = *msg_p; /* Get the received CLA */
-  /*
-   * Append the result code to the answer
-   */
+                  /*
+                   * Append the result code to the answer
+                   */
   CHECK_FCT(
     s6a_add_result_code(ans_p, failed_avp_p, result_code, experimental));
   CHECK_FCT(fd_msg_send(msg_p, NULL, NULL));

@@ -78,7 +78,7 @@ scan_oai:
 
 format_oai:
 	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
-	clang-format --style=file -i {} \;
+	clang-format-7 --style=file -i {} \;
 
 test_python: stop
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all

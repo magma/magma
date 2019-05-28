@@ -242,8 +242,8 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow)
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
   dl_flow.ip_proto = 6; //TCP
-  dl_flow.set_params = SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT |
-    TCP_DST_PORT | IP_PROTO;
+  dl_flow.set_params =
+    SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   AddGTPTunnelEvent add_tunnel(ue_ip, enb_ip, in_tei, out_tei, imsi, &dl_flow);
   // Uplink
@@ -293,8 +293,8 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlow)
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
   dl_flow.ip_proto = 6; //TCP
-  dl_flow.set_params = SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT |
-    TCP_DST_PORT | IP_PROTO;
+  dl_flow.set_params =
+    SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   DeleteGTPTunnelEvent del_tunnel(ue_ip, in_tei, &dl_flow);
   // Uplink

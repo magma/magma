@@ -27,7 +27,7 @@
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace feg {
 class AlertRequest;
@@ -43,11 +43,11 @@ class ResetAck;
 class ResetIndication;
 class ServiceAbortRequest;
 class Status;
-}  // namespace feg
+} // namespace feg
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 
 using grpc::ServerContext;
 
@@ -220,7 +220,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
 
   /*
    * Sent from the VLR to the MME to indicate that a failure in the VLR has
-       occurred and all the SGs associations to the VLR are be marked as invalid.
+       occurred and all the SGs associations to the VLR are be marked as
+   invalid.
    *
    * @param context: the grpc Server context
    * @param request: ResetIndication, contains VLR name

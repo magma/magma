@@ -323,8 +323,8 @@ int nas_proc_ul_transfer_ind(
 
   OAILOG_INFO(
     LOG_NAS,
-   "Received NAS UPLINK DATA IND from S1AP for ue_id = (%u)\n",
-   ue_id);
+    "Received NAS UPLINK DATA IND from S1AP for ue_id = (%u)\n",
+    ue_id);
   if (msg) {
     emm_sap_t emm_sap = {0};
 
@@ -382,7 +382,8 @@ int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *aia)
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context->mme_ue_s1ap_id;
   unlock_ue_contexts(ue_mm_context);
   OAILOG_INFO(
-    LOG_NAS_EMM, "Received Authentication Information Answer from S6A for ue_id = (%u)\n",
+    LOG_NAS_EMM,
+    "Received Authentication Information Answer from S6A for ue_id = (%u)\n",
     mme_ue_s1ap_id);
   if (
     (aia->result.present == S6A_RESULT_BASE) &&
@@ -622,8 +623,8 @@ int nas_proc_downlink_unitdata(itti_sgsap_downlink_unitdata_t *dl_unitdata)
   /*
    * Set the UE identifier
    */
-  emm_as->ue_id = PARENT_STRUCT(ctxt,  struct ue_mm_context_s, emm_context)
-                  ->mme_ue_s1ap_id;
+  emm_as->ue_id =
+    PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id;
   /*
    * Setup EPS NAS security data
    */
@@ -849,8 +850,8 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
     (sgs_release_req->opt_cause ==
      SGS_CAUSE_IMSI_DETACHED_FOR_NONEPS_SERVICE)) {
     // NAS trigger UE to re-attach for non-EPS services.
-    mme_ue_s1ap_id_t ue_id = PARENT_STRUCT(ctxt, struct ue_mm_context_s,
-                             emm_context)->mme_ue_s1ap_id;
+    mme_ue_s1ap_id_t ue_id =
+      PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context)->mme_ue_s1ap_id;
     // update the ue context vlr_reliable flag to false
     mme_ue_context_update_ue_sgs_vlr_reliable(ue_id, false);
     emm_sap_t emm_sap = {0};

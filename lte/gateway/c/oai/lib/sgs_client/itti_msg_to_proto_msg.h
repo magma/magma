@@ -19,7 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
 #pragma once
 
 #include <gmp.h>

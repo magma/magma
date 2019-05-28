@@ -42,9 +42,9 @@ int openflow_controller_add_gtp_tunnel(
   struct ipv4flow_dl *flow_dl);
 
 int openflow_controller_del_gtp_tunnel(
-    struct in_addr ue,
-    uint32_t i_tei,
-    struct ipv4flow_dl *flow_dl);
+  struct in_addr ue,
+  uint32_t i_tei,
+  struct ipv4flow_dl *flow_dl);
 int openflow_controller_discard_data_on_tunnel(
   struct in_addr ue,
   uint32_t i_tei,

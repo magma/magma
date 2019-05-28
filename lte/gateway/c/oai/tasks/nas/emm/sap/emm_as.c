@@ -338,7 +338,8 @@ static int _emm_as_recv(
   if (decode_status) {
     OAILOG_DEBUG(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Received EMM message (length=%lu)\n integrity protected %d \n"
+      "EMMAS-SAP - Received EMM message (length=%lu)\n integrity protected %d "
+      "\n"
       " ciphered %d \n mac matched %d \n security context %d\n",
       len,
       decode_status->integrity_protected_message,
@@ -369,8 +370,7 @@ static int _emm_as_recv(
       }
     }
   } else {
-    OAILOG_WARNING(
-      LOG_NAS_EMM, "EMMAS-SAP - UE MM Context NULL...\n");
+    OAILOG_WARNING(LOG_NAS_EMM, "EMMAS-SAP - UE MM Context NULL...\n");
   }
 
   /*
@@ -721,9 +721,7 @@ static int _emm_as_data_ind(emm_as_data_t *msg, int *emm_cause)
             }
           }
         } else {
-          OAILOG_WARNING(
-            LOG_NAS_EMM,
-            "EMMAS-SAP - UE MM Context is NULL...\n");
+          OAILOG_WARNING(LOG_NAS_EMM, "EMMAS-SAP - UE MM Context is NULL...\n");
         }
 
         int bytes = nas_message_decrypt(
@@ -848,7 +846,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
    * Decode initial NAS message
    */
   OAILOG_DEBUG(
-    LOG_NAS_EMM, "EMMAS-SAP - Decoding Initial NAS message for ue_id = (%u)\n",
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Decoding Initial NAS message for ue_id = (%u)\n",
     msg->ue_id);
   decoder_rc = nas_message_decode(
     msg->nas_msg->data,
@@ -885,7 +884,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
     case ATTACH_REQUEST:
       memcpy(&originating_tai, msg->tai, sizeof(originating_tai));
       OAILOG_INFO(
-        LOG_NAS_EMM, "EMMAS-SAP - Message Type = ATTACH_REQUEST(0x%x) for (ue_id = %u)\n",
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Message Type = ATTACH_REQUEST(0x%x) for (ue_id = %u)\n",
         emm_msg->header.message_type,
         msg->ue_id);
       rc = emm_recv_attach_request(
@@ -901,7 +901,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
 
     case DETACH_REQUEST:
       OAILOG_INFO(
-        LOG_NAS_EMM, "EMMAS-SAP - Message Type = DETACH_REQUEST(0x%x) for (ue_id = %u)\n",
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Message Type = DETACH_REQUEST(0x%x) for (ue_id = %u)\n",
         emm_msg->header.message_type,
         msg->ue_id);
       if (emm_ctx == NULL) {
@@ -947,7 +948,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
     case TRACKING_AREA_UPDATE_REQUEST:
       increment_counter("tracking_area_update", 1, NO_LABELS);
       OAILOG_INFO(
-        LOG_NAS_EMM, "EMMAS-SAP - Message Type = TRACKING_AREA_UPDATE_REQUEST(0x%x)"
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Message Type = TRACKING_AREA_UPDATE_REQUEST(0x%x)"
         "for (ue_id = %u)\n",
         emm_msg->header.message_type,
         msg->ue_id);
@@ -987,7 +989,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
       // Requirement MME24.301R10_4.4.4.3_1
       increment_counter("service_request", 1, NO_LABELS);
       OAILOG_INFO(
-        LOG_NAS_EMM, "EMMAS-SAP - Message Type = SERVICE_REQUEST(0x%x) for (ue_id = %u)\n",
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Message Type = SERVICE_REQUEST(0x%x) for (ue_id = %u)\n",
         emm_msg->header.message_type,
         msg->ue_id);
       if (
@@ -1024,7 +1027,9 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
     case EXTENDED_SERVICE_REQUEST:
       /* Requirement MME24.301R10_4.4.4.3_1 */
       OAILOG_INFO(
-        LOG_NAS_EMM, "EMMAS-SAP - Message Type = EXTENDED_SERVICE_REQUEST(0x%x) for (ue_id = %u)\n",
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Message Type = EXTENDED_SERVICE_REQUEST(0x%x) for (ue_id "
+        "= %u)\n",
         emm_msg->header.message_type,
         msg->ue_id);
       if (
@@ -1558,10 +1563,8 @@ static int _emm_as_data_req(
         nas_msg.header.sequence_number);
     } else {
       OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "Security context is NULL for UE -> %d\n",
-        msg->ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM,RETURNerror);
+        LOG_NAS_EMM, "Security context is NULL for UE -> %d\n", msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
 
     if (!is_encoded) {
@@ -1842,8 +1845,7 @@ static int _emm_as_security_req(
       }
     } else {
       OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "UE MM context NULL for ue_id = (%u)\n",msg->ue_id);
+        LOG_NAS_EMM, "UE MM context NULL for ue_id = (%u)\n", msg->ue_id);
     }
 
     /*
@@ -2091,7 +2093,8 @@ static int _emm_as_establish_cnf(
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(
-    LOG_NAS_EMM, "EMMAS-SAP - Send AS connection establish confirmation for (ue_id = %d)\n",
+    LOG_NAS_EMM,
+    "EMMAS-SAP - Send AS connection establish confirmation for (ue_id = %d)\n",
     msg->ue_id);
   nas_message_t nas_msg = {.security_protected.header = {0},
                            .security_protected.plain.emm.header = {0},
@@ -2142,7 +2145,7 @@ static int _emm_as_establish_cnf(
     }
   } else {
     OAILOG_WARNING(LOG_NAS_EMM, "EMMAS-SAP - EMM Context is NULL...!");
-    }
+  }
   switch (msg->nas_info) {
     case EMM_AS_NAS_INFO_ATTACH:
       /*

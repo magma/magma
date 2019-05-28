@@ -39,14 +39,14 @@
 #include "socket.h"
 #include "nas/commonDef.h"
 
-#include <stdlib.h> // malloc, free, atoi
-#include <string.h> // memset
-#include <unistd.h> // close
-#include <errno.h>  // EINTR
-#include <sys/types.h>
-#include <sys/socket.h> // socket, setsockopt, connect, bind, recv, send
-#include <netdb.h>      // getaddrinfo
 #include "dynamic_memory_check.h"
+#include <errno.h>      // EINTR
+#include <netdb.h>      // getaddrinfo
+#include <stdlib.h>     // malloc, free, atoi
+#include <string.h>     // memset
+#include <sys/socket.h> // socket, setsockopt, connect, bind, recv, send
+#include <sys/types.h>
+#include <unistd.h> // close
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
@@ -150,7 +150,8 @@ void *socket_udp_open(int type, const char *host, const char *port)
      * Setup socket address options at the client side
      */
     socket_info.ai_family = AF_INET; /* Any address family   */
-    //         socket_info.ai_flags |= AI_V4MAPPED; /* IPv4-mapped IPv6 address */
+    //         socket_info.ai_flags |= AI_V4MAPPED; /* IPv4-mapped IPv6 address
+    //         */
   }
 
   /*
@@ -448,7 +449,8 @@ static int _socket_set_option(int sfd)
    * * * * -------------------------
    * * * * When option is set to true, the socket is restricted to sending and
    * * * * receiving IPv6 packets only.
-   * * * * When option is set to false, the socket can be used to send and receive
+   * * * * When option is set to false, the socket can be used to send and
+   * receive
    * * * * packets to and from an IPv6 address or an IPv4-mapped IPv6 address.
    */
   optval = false;
