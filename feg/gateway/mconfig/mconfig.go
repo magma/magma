@@ -10,7 +10,7 @@ LICENSE file in the root directory of this source tree.
 package mconfig
 
 import (
-	"errors"
+	"fmt"
 
 	"magma/orc8r/cloud/go/protos"
 
@@ -22,7 +22,9 @@ func GetServiceConfigs(service string, result proto.Message) error {
 	current := localConfig.Load().(*protos.GatewayConfigs)
 	anyCfg, found := current.ConfigsByKey[service]
 	if !found {
-		return errors.New("No configs found for service: " + service)
+		cfgMu.Lock()
+		defer cfgMu.Unlock()
+		return fmt.Errorf("No configs found for service: '%s' in %s", service, lastFilePath)
 	}
 	return ptypes.UnmarshalAny(anyCfg, result)
 }

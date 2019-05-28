@@ -27,11 +27,11 @@ import (
 	_ "magma/orc8r/cloud/go/protos/mconfig"
 )
 
-var localConfig atomic.Value // always *mconfig.GatewayConfigs, never should be nil
-
 var (
+	localConfig   atomic.Value // always *mconfig.GatewayConfigs, never should be nil
 	cfgMu         sync.Mutex
 	lastFileInfo  os.FileInfo
+	lastFilePath  string
 	refreshTicker *time.Ticker
 )
 
@@ -59,8 +59,10 @@ func init() {
 // refreshConfigs is thread safe and can be safely called while current configs are in use by
 // other threads/routines
 func refreshConfigs() error {
-	err := refreshConfigsFrom(configFilePath())
+	dynamicConfigPath := configFilePath()
+	err := refreshConfigsFrom(dynamicConfigPath)
 	if err != nil {
+		log.Printf("Cannot load configs from %s: %v", dynamicConfigPath, err)
 		err = refreshConfigsFrom(defaultConfigFilePath())
 	}
 	return err
@@ -82,6 +84,7 @@ func refreshConfigsFrom(mcpath string) error {
 		return fmt.Errorf("Error Loading Managed Config File '%s': %v", mcpath, err)
 	}
 	lastFileInfo = fi
+	lastFilePath = mcpath
 	return nil
 }
 

@@ -28,7 +28,7 @@ func main() {
 	}
 	config, err := servicers.GetHSSConfig()
 	if err != nil {
-		log.Fatalf("Error getting hss config: %s", err)
+		log.Printf("Error getting hss config: %s", err)
 	}
 	store := storage.NewMemorySubscriberStore()
 	servicer, err := servicers.NewHomeSubscriberServer(store, config)
