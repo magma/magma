@@ -12,6 +12,8 @@ package magma.lte;
 import "lte/protos/subscriberdb.proto";
 import "lte/protos/policydb.proto";
 
+option go_package = "magma/lte/cloud/go/protos";
+
 message CreateBearerRequest {
     SubscriberID sid = 1;
     string ip_addr = 2;
