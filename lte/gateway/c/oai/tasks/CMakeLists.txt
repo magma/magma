@@ -10,7 +10,3 @@ add_subdirectory(service303) # TASK_SERVICE303
 add_subdirectory(sgs) # TASK_SGS
 add_subdirectory(sgs_service) # TASK_SGS_SERVICE
 add_subdirectory(sgw) # TASK_SGW
-
-if (NOT EMBEDDED_SGW)
-  add_subdirectory(s11) # TASK_S11_MME, TASK_S11_SGW
-endif (NOT EMBEDDED_SGW)
