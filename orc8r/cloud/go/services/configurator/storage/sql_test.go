@@ -425,23 +425,17 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// Empty load criteria
 	basicOnly := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			entStmt := m.ExpectPrepare("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities")
-			entStmt.ExpectQuery().
-				WithArgs("network", "bar", "foo").
+			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+				WithArgs(
+					"network", "bar", "foo",
+					"network", "quz", "baz",
+					"network", "world", "hello",
+				).
 				WillReturnRows(
 					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
-						AddRow("abc", "bar", "foo", nil, 2, "42"),
-				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "quz", "baz").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42").
 						AddRow("def", "quz", "baz", nil, 1, "42"),
 				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "world", "hello").
-				WillReturnRows(sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}))
-			entStmt.WillBeClosed()
 		},
 		run: runFactory(
 			"network",
@@ -468,24 +462,18 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// foobar has 2 permissions, bazquz has 1 wildcarded permission
 	loadEverything := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			entStmt := m.ExpectPrepare("SELECT .* FROM cfg_entities")
-			entStmt.ExpectQuery().
-				WithArgs("network", "bar", "foo").
+			m.ExpectQuery("SELECT .* FROM cfg_entities").
+				WithArgs(
+					"network", "bar", "foo",
+					"network", "quz", "baz",
+					"network", "world", "hello",
+				).
 				WillReturnRows(
 					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}).
 						AddRow("abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_1", "n1,n2,n3", storage.OwnerPermission, "foo", nil, 1).
-						AddRow("abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_2", "n4", storage.ReadPermission, "baz", nil, 2),
-				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "quz", "baz").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_2", "n4", storage.ReadPermission, "baz", nil, 2).
 						AddRow("def", "quz", "baz", nil, 1, "42", "bazquz", "bazquz ent", []byte("bazquz"), "bazquz_acl_1", "*", storage.WritePermission, "*", "1,2,3", 3),
 				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "world", "hello").
-				WillReturnRows(sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}))
-			entStmt.WillBeClosed()
 		},
 		run: runFactory(
 			"network",
@@ -528,26 +516,18 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// Load assocs to only
 	assocsTo := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			entStmt := m.ExpectPrepare("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities")
-			entStmt.ExpectQuery().
-				WithArgs("network", "bar", "foo").
+			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+				WithArgs(
+					"network", "bar", "foo",
+					"network", "quz", "baz",
+					"network", "world", "hello",
+				).
 				WillReturnRows(
 					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
-						AddRow("abc", "bar", "foo", nil, 2, "42"),
-				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "quz", "baz").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
-						AddRow("def", "quz", "baz", nil, 1, "42"),
-				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "world", "hello").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42").
+						AddRow("def", "quz", "baz", nil, 1, "42").
 						AddRow("ghi", "world", "hello", nil, 3, "42"),
 				)
-			entStmt.WillBeClosed()
 
 			expectAssocQuery(
 				m, []driver.Value{"abc", "def", "ghi"},
@@ -592,26 +572,18 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// Load assocs from only
 	assocsFrom := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			entStmt := m.ExpectPrepare("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities")
-			entStmt.ExpectQuery().
-				WithArgs("network", "bar", "foo").
+			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+				WithArgs(
+					"network", "bar", "foo",
+					"network", "quz", "baz",
+					"network", "world", "hello",
+				).
 				WillReturnRows(
 					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
-						AddRow("abc", "bar", "foo", nil, 2, "42"),
-				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "quz", "baz").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
-						AddRow("def", "quz", "baz", nil, 1, "42"),
-				)
-			entStmt.ExpectQuery().
-				WithArgs("network", "world", "hello").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).
+						AddRow("abc", "bar", "foo", nil, 2, "42").
+						AddRow("def", "quz", "baz", nil, 1, "42").
 						AddRow("ghi", "world", "hello", nil, 3, "42"),
 				)
-			entStmt.WillBeClosed()
 
 			expectAssocQuery(
 				m,
@@ -1561,10 +1533,11 @@ type expectedEntQueryResult struct {
 }
 
 func expectBasicEntityQueries(m sqlmock.Sqlmock, expectations ...expectedEntQueryResult) {
-	stmt := m.ExpectPrepare("SELECT .* FROM cfg_entities").WillBeClosed()
+	args := make([]driver.Value, 0, len(expectations)*3)
 	for _, expect := range expectations {
-		stmt.ExpectQuery().WithArgs("network", expect.key, expect.entType).WillReturnRows(expectedEntQueriesToRows(expect))
+		args = append(args, "network", expect.key, expect.entType)
 	}
+	m.ExpectQuery("SELECT .* FROM cfg_entities").WithArgs(args...).WillReturnRows(expectedEntQueriesToRows(expectations...))
 }
 
 func expectBulkEntityQuery(m sqlmock.Sqlmock, queryArgs []driver.Value, expectations ...expectedEntQueryResult) {

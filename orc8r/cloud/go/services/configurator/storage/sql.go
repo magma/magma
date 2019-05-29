@@ -514,7 +514,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 
 	// We just care about getting the graph ID off this entity so use an empty
 	// load criteria
-	loadResult, err := store.loadSpecificEntities(networkID, EntityLoadFilter{IDs: []storage.TypeAndKey{entityID}}, EntityLoadCriteria{})
+	loadResult, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: []storage.TypeAndKey{entityID}}, EntityLoadCriteria{})
 	if err != nil {
 		return EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
 	}

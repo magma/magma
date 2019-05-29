@@ -158,7 +158,7 @@ func (store *sqlConfiguratorStorage) loadEntsWithPksByTK(networkID string, tksTo
 	}
 
 	uniqTksToLoad := funk.Uniq(tksToLoad).([]storage.TypeAndKey)
-	loadedEntsByPk, err := store.loadSpecificEntities(networkID, EntityLoadFilter{IDs: uniqTksToLoad}, EntityLoadCriteria{})
+	loadedEntsByPk, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: uniqTksToLoad}, EntityLoadCriteria{})
 	if err != nil {
 		return ret, errors.WithStack(err)
 	}
@@ -221,7 +221,7 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 }
 
 func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update EntityUpdateCriteria) (entWithPk, error) {
-	loadedEntByPk, err := store.loadSpecificEntities(
+	loadedEntByPk, err := store.loadFromEntitiesTable(
 		networkID,
 		EntityLoadFilter{IDs: []storage.TypeAndKey{update.GetTypeAndKey()}},
 		EntityLoadCriteria{},
