@@ -22,10 +22,11 @@
 #include <string.h>
 
 #include "assertions.h"
-#include "common_defs.h"
 #include "intertask_interface.h"
-#include "intertask_interface_types.h"
 #include "log.h"
+#include "common_defs.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
 #include "sgs_messages_types.h"
 
 static void _sgs_send_sgsap_vlr_reset_ack(void);
@@ -53,7 +54,7 @@ int handle_sgs_location_update_accept(
     LOG_SGS,
     "Received SGS Location Update Acc message from FedGW with IMSI %s\n",
     itti_sgsap_location_update_acc_p->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -82,7 +83,7 @@ int handle_sgs_location_update_reject(
     itti_sgsap_loc_updt_rej_p,
     sizeof(itti_sgsap_location_update_rej_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -104,7 +105,7 @@ int handle_sgs_eps_detach_ack(
     sgsap_eps_detach_ack_p,
     sizeof(itti_sgsap_eps_detach_ack_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -127,7 +128,7 @@ int handle_sgs_imsi_detach_ack(
     sgsap_imsi_detach_ack_p,
     sizeof(itti_sgsap_imsi_detach_ack_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -150,7 +151,7 @@ int handle_sgs_downlink_unitdata(
     sgs_dl_unitdata_p,
     sizeof(itti_sgsap_downlink_unitdata_t));
   // send it to NAS module for further processing
-  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -168,11 +169,10 @@ int handle_sgs_release_req(const itti_sgsap_release_req_t *sgs_release_req_p)
   OAILOG_DEBUG(LOG_SGS, "Received SGS Release Request message from FedGW\n");
   memcpy(sgs_rel_req_p, sgs_release_req_p, sizeof(itti_sgsap_release_req_t));
   // send it to NAS module for further processing
-  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
-/* Fed GW calls below function, on reception of MM Information Request from
- * MSC/VLR
+/* Fed GW calls below function, on reception of MM Information Request from MSC/VLR
  */
 
 int handle_sgs_mm_information_request(
@@ -188,8 +188,7 @@ int handle_sgs_mm_information_request(
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_MM_INFORMATION_REQ);
   AssertFatal(
     message_p,
-    "itti_alloc_new_message Failed while handling MM "
-    "Information Request from "
+    "itti_alloc_new_message Failed while handling MM Information Request from "
     "MSC/VLR");
   itti_sgsap_mm_information_req_t *mm_information_req_p =
     &message_p->ittiMsg.sgsap_mm_information_req;
@@ -206,7 +205,7 @@ int handle_sgs_mm_information_request(
     "Imsi :%s \n",
     mm_information_req_p->imsi);
 
-  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -238,7 +237,7 @@ int handle_sgs_service_abort_req(
     itti_sgsap_service_abort_req_p,
     sizeof(itti_sgsap_service_abort_req_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -259,8 +258,7 @@ int handle_sgs_paging_request(
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_PAGING_REQUEST);
   AssertFatal(
     message_p,
-    "itti_alloc_new_message Failed while handling Paging "
-    "Request from MSC/VLR");
+    "itti_alloc_new_message Failed while handling Paging Request from MSC/VLR");
 
   itti_sgsap_paging_request_t *sgs_paging_req_p =
     &message_p->ittiMsg.sgsap_paging_request;
@@ -273,12 +271,11 @@ int handle_sgs_paging_request(
 
   OAILOG_DEBUG(
     LOG_SGS,
-    "Received SGS Paging Request message from FedGW and "
-    "send Paging request to "
+    "Received SGS Paging Request message from FedGW and send Paging request to "
     "MME app"
     "for Imsi :%s \n",
     sgs_paging_req_p->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -319,7 +316,9 @@ int handle_sgs_vlr_reset_indication(
     "Indication to MME app"
     "for vlr name :%s \n",
     sgs_vlr_reset_ind_p->vlr_name);
-  if ((rc = itti_send_msg_to_task(TASK_MME_APP, message_p)) != RETURNok) {
+  if (
+    (rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p)) !=
+    RETURNok) {
     OAILOG_ERROR(
       LOG_SGS,
       "Failed to send SGSAP_VLR_RESET_INDICATION for vlr_name :%s \n",
@@ -334,8 +333,8 @@ int handle_sgs_vlr_reset_indication(
  * Is function invoked by FedGW on reception of Sgs Status message from MSC/VLR
  */
 
-int handle_sgs_status_message(const itti_sgsap_status_t *sgs_status_pP)
-{
+int handle_sgs_status_message(
+    const itti_sgsap_status_t *sgs_status_pP) {
   MessageDef *message_p = NULL;
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_SGS);
@@ -344,22 +343,18 @@ int handle_sgs_status_message(const itti_sgsap_status_t *sgs_status_pP)
    * send it to MME App for further processing
   */
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_STATUS);
-  AssertFatal(
-    message_p,
-    "itti_alloc_new_message Failed while handling "
-    "SGS Status message from MSC/VLR \n");
+  AssertFatal(message_p, "itti_alloc_new_message Failed while handling "
+             "SGS Status message from MSC/VLR \n");
 
   itti_sgsap_status_t *sgs_status_p = &message_p->ittiMsg.sgsap_status;
-  memset((void *) sgs_status_p, 0, sizeof(itti_sgsap_status_t));
-  memcpy(
-    (void *) sgs_status_p, (void *) sgs_status_pP, sizeof(itti_sgsap_status_t));
-  OAILOG_DEBUG(
-    LOG_SGS,
-    "Received SGS Status message from FedGW "
-    "and send sgs status message to MME app for Imsi :%s \n",
-    sgs_status_p->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  memset((void *)sgs_status_p, 0, sizeof(itti_sgsap_status_t));
+  memcpy((void *)sgs_status_p, (void *)sgs_status_pP,
+         sizeof(itti_sgsap_status_t));
+  OAILOG_DEBUG(LOG_SGS, "Received SGS Status message from FedGW "
+              "and send sgs status message to MME app for Imsi :%s \n",
+               sgs_status_p->imsi);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN (LOG_NAS_EMM, rc);
 }
 
 /****************************************************************************/
@@ -384,9 +379,8 @@ static void _sgs_send_sgsap_vlr_reset_ack(void)
   /* Should  fill mme_name in sgs_service */
   OAILOG_INFO(LOG_SGS, "Send SGSAP-Reset Ack to SGS Service \n");
   /* send Reset Ack message to FeG */
-  /* Below line should be un-commented, once fed GW or MSC supports VLR failure
-   * procedure */
-  // send_reset_ack(sgsap_reset_ack_pP);
+  /* Below line should be un-commented, once fed GW or MSC supports VLR failure procedure */
+  //send_reset_ack(sgsap_reset_ack_pP);
 
   OAILOG_FUNC_OUT(LOG_SGS);
 }
@@ -404,8 +398,7 @@ int handle_sgsap_alert_request(
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_ALERT_REQUEST);
   AssertFatal(
     message_p,
-    "itti_alloc_new_message Failed while handling Alert "
-    "Request from MSC/VLR");
+    "itti_alloc_new_message Failed while handling Alert Request from MSC/VLR");
 
   memset(
     (void *) &message_p->ittiMsg.sgsap_alert_request,
@@ -423,7 +416,7 @@ int handle_sgsap_alert_request(
     "MME app"
     "for Imsi :%s \n",
     sgsap_alert_request->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

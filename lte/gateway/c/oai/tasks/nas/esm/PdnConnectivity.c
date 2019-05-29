@@ -151,8 +151,7 @@ int esm_proc_pdn_connectivity_request(
     ue_id);
   OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "PDN connectivity request :pti= %d PDN type = %s, APN = %s pdn addr = %s "
-    "pdn id %d for (ue_id = %u)\n",
+    "PDN connectivity request :pti= %d PDN type = %s, APN = %s pdn addr = %s pdn id %d for (ue_id = %u)\n",
     pti,
     (pdn_type == ESM_PDN_TYPE_IPV4) ?
       "IPv4" :
@@ -195,8 +194,7 @@ int esm_proc_pdn_connectivity_request(
 
   if (rc < 0) {
     OAILOG_WARNING(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Failed to create PDN connection for ue_id (%u)\n",
+      LOG_NAS_ESM, "ESM-PROC  - Failed to create PDN connection for ue_id (%u)\n",
       ue_id);
     *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   }
@@ -370,8 +368,7 @@ static int _pdn_connectivity_create(
 
   OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "ESM-PROC  - Create new PDN connection (pti=%d), APN = %s, pdn_type = %d, "
-    "IP address = %s "
+    "ESM-PROC  - Create new PDN connection (pti=%d), APN = %s, pdn_type = %d, IP address = %s "
     "PDN id %d (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
     pti,
     bdata(apn),
@@ -422,11 +419,11 @@ static int _pdn_connectivity_create(
       /*
        * Setup the IP address allocated by the network
        */
-      OAILOG_DEBUG(
-        LOG_NAS_ESM,
-        "PDN TYPE = %d for (ue_id = %u)\n",
-        pdn_type,
-        ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_DEBUG(
+      LOG_NAS_ESM,
+      "PDN TYPE = %d for (ue_id = %u)\n",
+      pdn_type,
+      ue_mm_context->mme_ue_s1ap_id);
       pdn_context->pdn_type = pdn_type;
       if (pdn_addr) {
         pdn_context->paa.pdn_type = pdn_type;
@@ -455,15 +452,13 @@ static int _pdn_connectivity_create(
 
     OAILOG_ERROR(
       LOG_NAS_ESM,
-      "ESM-PROC  - Failed to create new PDN connection (pdn_cid=%d) for (ue_id "
-      "= %u)\n",
+      "ESM-PROC  - Failed to create new PDN connection (pdn_cid=%d) for (ue_id = %u)\n",
       pdn_cid,
       ue_mm_context->mme_ue_s1ap_id);
   } else {
     OAILOG_WARNING(
       LOG_NAS_ESM,
-      "ESM-PROC  - PDN connection already exist (pdn_cid=%d) for (ue_id = "
-      "%u)\n",
+      "ESM-PROC  - PDN connection already exist (pdn_cid=%d) for (ue_id = %u)\n",
       pdn_cid,
       ue_mm_context->mme_ue_s1ap_id);
     // already created

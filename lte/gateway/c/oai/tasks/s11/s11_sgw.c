@@ -155,7 +155,7 @@ static nw_rc_t s11_sgw_send_udp_msg(
   udp_data_req_p->peer_port = peerPort;
   udp_data_req_p->buffer = buffer;
   udp_data_req_p->buffer_length = buffer_len;
-  ret = itti_send_msg_to_task(TASK_UDP, message_p);
+  ret = itti_send_msg_to_task(TASK_UDP, INSTANCE_DEFAULT, message_p);
   return ret == 0 ? NW_OK : NW_FAILURE;
 }
 
@@ -188,7 +188,7 @@ static nw_rc_t s11_sgw_start_timer_wrapper(
       timeoutSec,
       timeoutUsec,
       TASK_S11,
-
+      INSTANCE_DEFAULT,
       TIMER_PERIODIC,
       timeoutArg,
       timeoutArgSize,
@@ -198,7 +198,7 @@ static nw_rc_t s11_sgw_start_timer_wrapper(
       timeoutSec,
       timeoutUsec,
       TASK_S11,
-
+      INSTANCE_DEFAULT,
       TIMER_ONE_SHOT,
       timeoutArg,
       timeoutArgSize,
@@ -355,7 +355,7 @@ static int s11_send_init_udp(struct in_addr *address, uint16_t port_number)
     "Tx UDP_INIT IP addr %s:%" PRIu16 "\n",
     ipv4,
     message_p->ittiMsg.udp_init.port);
-  return itti_send_msg_to_task(TASK_UDP, message_p);
+  return itti_send_msg_to_task(TASK_UDP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------

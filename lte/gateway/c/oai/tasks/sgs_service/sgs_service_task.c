@@ -23,13 +23,13 @@
 
 #include <stddef.h>
 
-#include "bstrlib.h"
-#include "common_defs.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
 #include "log.h"
-#include "mme_default_values.h"
+#include "intertask_interface.h"
+#include "common_defs.h"
 #include "sgs_service.h"
+#include "bstrlib.h"
+#include "intertask_interface_types.h"
+#include "mme_default_values.h"
 
 static void *sgs_service_server_task(void *args)
 {

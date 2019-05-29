@@ -27,16 +27,16 @@
    \email:
 */
 
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 
-#include "assertions.h"
-#include "conversions.h"
 #include "intertask_interface.h"
 #include "log.h"
 #include "sgs_defs.h"
-#include "sgs_messages.h"
+#include "assertions.h"
 #include "sgs_messages_types.h"
+#include "sgs_messages.h"
+#include "conversions.h"
 
 int sgs_send_service_request(
   itti_sgsap_service_request_t *const sgs_service_request_p)

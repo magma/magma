@@ -133,8 +133,7 @@ void *mme_app_thread(void *args)
 
       case NAS_PDN_CONFIG_REQ: {
         OAILOG_INFO(
-          TASK_MME_APP,
-          "Received PDN CONFIG REQ from NAS_MME for ue_id = (%u)\n",
+          TASK_MME_APP, "Received PDN CONFIG REQ from NAS_MME for ue_id = (%u)\n",
           received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
         struct ue_mm_context_s *ue_context_p = NULL;
         ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
@@ -145,8 +144,7 @@ void *mme_app_thread(void *args)
           unlock_ue_contexts(ue_context_p);
         } else {
           OAILOG_ERROR(
-            TASK_MME_APP,
-            "UE context NULL for ue_id = (%u)\n",
+            TASK_MME_APP, "UE context NULL for ue_id = (%u)\n",
             received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
         }
       } break;
@@ -201,8 +199,7 @@ void *mme_app_thread(void *args)
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
         } else {
           OAILOG_DEBUG(
-            TASK_MME_APP,
-            "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
+            TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
           /*
            * Updating statistics
@@ -252,8 +249,7 @@ void *mme_app_thread(void *args)
         /*
          * We received the update location answer message from HSS -> Handle it
          */
-        OAILOG_INFO(
-          LOG_MME_APP, "Received S6A Update Location Answer from S6A\n");
+        OAILOG_INFO(LOG_MME_APP, "Received S6A Update Location Answer from S6A\n");
         mme_app_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);
       } break;
@@ -346,30 +342,25 @@ void *mme_app_thread(void *args)
             increment_counter(
               "ue_context_modification_timer expired", 1, NO_LABELS);
             mme_app_handle_ue_context_modification_timer_expiry(ue_context_p);
-          } else if (ue_context_p->sgs_context != NULL) {
-            if (
-              received_message_p->ittiMsg.timer_has_expired.timer_id ==
-              ue_context_p->sgs_context->ts6_1_timer.id) {
-              mme_app_handle_ts6_1_timer_expiry(ue_context_p);
-            } else if (
-              received_message_p->ittiMsg.timer_has_expired.timer_id ==
-              ue_context_p->sgs_context->ts8_timer.id) {
-              mme_app_handle_sgs_eps_detach_timer_expiry(ue_context_p);
-            } else if (
-              received_message_p->ittiMsg.timer_has_expired.timer_id ==
-              ue_context_p->sgs_context->ts9_timer.id) {
-              mme_app_handle_sgs_imsi_detach_timer_expiry(ue_context_p);
-            } else if (
-              received_message_p->ittiMsg.timer_has_expired.timer_id ==
-              ue_context_p->sgs_context->ts10_timer.id) {
-              mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
-                ue_context_p);
-            } else if (
-              received_message_p->ittiMsg.timer_has_expired.timer_id ==
-              ue_context_p->sgs_context->ts13_timer.id) {
-              mme_app_handle_sgs_implicit_eps_detach_timer_expiry(ue_context_p);
-            }
-          } else {
+          } else if (ue_context_p->sgs_context != NULL){
+              if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                  ue_context_p->sgs_context->ts6_1_timer.id) {
+                  mme_app_handle_ts6_1_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts8_timer.id) {
+                mme_app_handle_sgs_eps_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts9_timer.id) {
+                mme_app_handle_sgs_imsi_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts10_timer.id) {
+                mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts13_timer.id) {
+                mme_app_handle_sgs_implicit_eps_detach_timer_expiry(ue_context_p);
+              }
+          }
+          else {
             OAILOG_WARNING(
               LOG_MME_APP,
               "Timer expired but no associated timer_id for UE "
@@ -587,7 +578,7 @@ int mme_app_init(const mme_config_t *mme_config_p)
       mme_config_p->mme_statistic_timer,
       0,
       TASK_MME_APP,
-
+      INSTANCE_DEFAULT,
       TIMER_PERIODIC,
       NULL,
       0,

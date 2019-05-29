@@ -271,13 +271,12 @@ int pgw_handle_create_bearer_request(
   s5_response->failure_cause = S5_OK;
   OAILOG_DEBUG(
     LOG_PGW_APP,
-    "Sending S5 Create Bearer Response to SPGW APP: Context teid %u, S1U-teid "
-    "= %u,"
+    "Sending S5 Create Bearer Response to SPGW APP: Context teid %u, S1U-teid = %u,"
     "EPS Bearer Id = %u\n",
     s5_response->context_teid,
     s5_response->S1u_teid,
     s5_response->eps_bearer_id);
-  itti_send_msg_to_task(TASK_SPGW_APP, message_p);
+  itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNok);
 }
 
@@ -414,11 +413,7 @@ static void get_session_req_data(
 
   memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
 
-  inet_ntop(
-    AF_INET,
-    &sgw_app.sgw_ip_address_S1u_S12_S4_up,
-    data->sgw_ip,
-    INET_ADDRSTRLEN);
+  inet_ntop(AF_INET, &sgw_app.sgw_ip_address_S1u_S12_S4_up, data->sgw_ip, INET_ADDRSTRLEN);
 
   // QoS Info
   data->ambr_dl = saved_req->ambr.br_dl;

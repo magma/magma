@@ -36,14 +36,15 @@
 
 *****************************************************************************/
 
-#include <stdlib.h> // malloc, free
-#include <string.h> // memset
+#include <string.h>   // memset
+#include <stdlib.h>   // malloc, free
 
+#include "timer.h"
+#include "nas_timer.h"
 #include "common_defs.h"
 #include "dynamic_memory_check.h"
 #include "intertask_interface_types.h"
-#include "nas_timer.h"
-#include "timer.h"
+#include "itti_types.h"
 
 //------------------------------------------------------------------------------
 int nas_timer_init(void)
@@ -78,7 +79,7 @@ long int nas_timer_start(
       sec,
       usec,
       TASK_NAS_MME,
-
+      INSTANCE_DEFAULT,
       TIMER_ONE_SHOT,
       &cb,
       sizeof(cb),
@@ -108,7 +109,7 @@ long int nas_timer_stop(long int timer_id, void **nas_timer_callback_arg)
     *nas_timer_callback_arg = NULL;
   }
   return (NAS_TIMER_INACTIVE_ID);
-        */
+	*/
 }
 
 //------------------------------------------------------------------------------

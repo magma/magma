@@ -72,8 +72,7 @@ void mme_app_itti_ue_context_release(
     itti_alloc_new_message(TASK_MME_APP, S1AP_UE_CONTEXT_RELEASE_COMMAND);
 
   OAILOG_INFO(
-    LOG_MME_APP,
-    "Sending UE Context Release Cmd to S1ap for (ue_id = %u)\n"
+    LOG_MME_APP, "Sending UE Context Release Cmd to S1ap for (ue_id = %u)\n"
     "UE Context Release Cause = (%d)\n",
     ue_context_p->mme_ue_s1ap_id,
     cause);
@@ -83,7 +82,7 @@ void mme_app_itti_ue_context_release(
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).enb_ue_s1ap_id =
     ue_context_p->enb_ue_s1ap_id;
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = cause;
-  itti_send_msg_to_task(TASK_S1AP, message_p);
+  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -114,7 +113,7 @@ int mme_app_send_s11_release_access_bearers_req(
 
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
 
-  rc = itti_send_msg_to_task(TASK_SPGW, message_p);
+  rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -319,9 +318,8 @@ int mme_app_send_s11_create_session_req(
     ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   OAILOG_INFO(
-    TASK_MME_APP,
-    "Sending S11 CREATE SESSION REQ message to SPGW for (ue_id = %u)\n",
+    TASK_MME_APP, "Sending S11 CREATE SESSION REQ message to SPGW for (ue_id = %u)\n",
     ue_mm_context->mme_ue_s1ap_id);
-  rc = itti_send_msg_to_task(TASK_SPGW, message_p);
+  rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

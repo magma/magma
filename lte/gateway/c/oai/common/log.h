@@ -339,7 +339,8 @@ void log_message(
   char *format,
   ...) __attribute__((format(printf, 6, 7)));
 
-const char *const get_short_file_name(const char *const source_file_nameP);
+const char *const get_short_file_name(
+  const char *const source_file_nameP);
 
 #define OAILOG_LOG_CONFIGURE log_configure
 #define OAILOG_LEVEL_STR2INT log_level_str2int

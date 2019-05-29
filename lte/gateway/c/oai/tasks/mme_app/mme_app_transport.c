@@ -87,10 +87,10 @@ int mme_app_handle_nas_dl_req(itti_nas_dl_data_req_t *const nas_dl_req_pP)
       (ue_context->sgs_context->ts9_timer.id != MME_APP_TIMER_INACTIVE_ID)) {
       ue_context->sgs_context->message_p = message_p;
     } else { /* Send the S1AP NAS DL DATA REQ to S1AP */
-      rc = itti_send_msg_to_task(TASK_S1AP, message_p);
+      rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
     }
   } else {
-    rc = itti_send_msg_to_task(TASK_S1AP, message_p);
+    rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   }
 
   /*

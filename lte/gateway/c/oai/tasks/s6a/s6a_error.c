@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
+ * The OpenAirInterface Software Alliance licenses this file to You under 
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
+ * except in compliance with the License.  
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -26,13 +26,13 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <errno.h>
-#include <stdint.h>
 #include <string.h>
+#include <stdint.h>
+#include <errno.h>
 
-#include "assertions.h"
-#include "common_defs.h"
 #include "common_types.h"
+#include "common_defs.h"
+#include "assertions.h"
 #include "log.h"
 #include "s6a_defs.h"
 
@@ -93,9 +93,9 @@ int s6a_parse_experimental_result(
 char *experimental_retcode_2_string(uint32_t ret_code)
 {
   switch (ret_code) {
-    /*
- * Experimental-Result-Codes
- */
+      /*
+     * Experimental-Result-Codes
+     */
     case DIAMETER_ERROR_USER_UNKNOWN: return "DIAMETER_ERROR_USER_UNKNOWN";
 
     case DIAMETER_ERROR_ROAMING_NOT_ALLOWED:

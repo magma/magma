@@ -327,7 +327,7 @@ static void *log_task(__attribute__((unused)) void *args_p)
     LOG_FLUSH_PERIOD_SEC,
     LOG_FLUSH_PERIOD_MICRO_SEC,
     TASK_LOG,
-
+    INSTANCE_DEFAULT,
     TIMER_ONE_SHOT,
     NULL,
     0,
@@ -350,7 +350,7 @@ static void *log_task(__attribute__((unused)) void *args_p)
               LOG_CONNECT_PERIOD_SEC,
               LOG_CONNECT_PERIOD_MICRO_SEC,
               TASK_LOG,
-
+              INSTANCE_DEFAULT,
               TIMER_ONE_SHOT,
               NULL,
               0,
@@ -361,7 +361,7 @@ static void *log_task(__attribute__((unused)) void *args_p)
               LOG_FLUSH_PERIOD_SEC,
               LOG_FLUSH_PERIOD_MICRO_SEC,
               TASK_LOG,
-
+              INSTANCE_DEFAULT,
               TIMER_ONE_SHOT,
               NULL,
               0,
@@ -376,7 +376,8 @@ static void *log_task(__attribute__((unused)) void *args_p)
           log_exit();
           MessageDef *terminate_message_p =
             itti_alloc_new_message(TASK_LOG, TERMINATE_MESSAGE);
-          rc = itti_send_msg_to_task(TASK_SHARED_TS_LOG, terminate_message_p);
+          rc = itti_send_msg_to_task(
+            TASK_SHARED_TS_LOG, INSTANCE_DEFAULT, terminate_message_p);
           itti_exit_task();
         } break;
 
@@ -1668,11 +1669,13 @@ error_event:
 //    output: tasks/nas/emm/sap/emm_cn.c
 const char *const get_short_file_name(const char *const source_file_nameP)
 {
-  if (!source_file_nameP) return source_file_nameP;
+  if (!source_file_nameP)
+    return source_file_nameP;
 
-  char *root_startP = strstr(source_file_nameP, LOG_MAGMA_REPO_ROOT);
+  char *root_startP = strstr(source_file_nameP,LOG_MAGMA_REPO_ROOT);
 
-  if (!root_startP) return source_file_nameP; // root pattern not found
+  if (!root_startP)
+    return source_file_nameP; // root pattern not found
 
-  return root_startP + strlen(LOG_MAGMA_REPO_ROOT);
+  return root_startP+strlen(LOG_MAGMA_REPO_ROOT);
 }

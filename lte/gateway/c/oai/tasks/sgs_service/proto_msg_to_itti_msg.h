@@ -19,6 +19,7 @@
  *      contact@openairinterface.org
  */
 
+
 #pragma once
 
 #include <gmp.h>
@@ -42,8 +43,8 @@ class PagingRequest;
 class ReleaseRequest;
 class ResetIndication;
 class Status;
-} // namespace feg
-} // namespace magma
+}  // namespace feg
+}  // namespace magma
 }
 
 namespace magma {
@@ -90,8 +91,7 @@ void convert_proto_msg_to_itti_sgsap_alert_request(
   itti_sgsap_alert_request_t *itti_msg);
 
 void convert_proto_msg_to_itti_sgsap_service_abort_req(
-  const ServiceAbortRequest *msg,
-  itti_sgsap_service_abort_req_t *itti_msg);
+    const ServiceAbortRequest* msg, itti_sgsap_service_abort_req_t *itti_msg);
 
 void convert_proto_msg_to_itti_sgsap_mm_information_req(
   const MMInformationRequest *msg,

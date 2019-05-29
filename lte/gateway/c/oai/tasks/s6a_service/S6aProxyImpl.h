@@ -27,15 +27,15 @@
 
 namespace grpc {
 class ServerContext;
-} // namespace grpc
+}  // namespace grpc
 namespace magma {
 namespace feg {
 class CancelLocationAnswer;
 class CancelLocationRequest;
 class ResetAnswer;
 class ResetRequest;
-} // namespace feg
-} // namespace magma
+}  // namespace feg
+}  // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;

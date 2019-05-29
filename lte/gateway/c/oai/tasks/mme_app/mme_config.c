@@ -1605,8 +1605,7 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
   return 0;
 }
 
-static bool parse_bool(const char *str)
-{
+static bool parse_bool(const char *str) {
   if (strcasecmp(str, "yes") == 0) return true;
   if (strcasecmp(str, "true") == 0) return true;
   if (strcasecmp(str, "no") == 0) return false;

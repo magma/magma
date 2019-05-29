@@ -19,6 +19,7 @@
  *      contact@openairinterface.org
  */
 
+
 #pragma once
 
 #include <gmp.h>
@@ -34,8 +35,8 @@ namespace magma {
 namespace feg {
 class AuthenticationInformationAnswer;
 class UpdateLocationAnswer;
-} // namespace feg
-} // namespace magma
+}  // namespace feg
+}  // namespace magma
 }
 
 namespace magma {

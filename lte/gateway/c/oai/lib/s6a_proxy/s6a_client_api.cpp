@@ -32,6 +32,7 @@
 #include "feg/protos/s6a_proxy.pb.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
+#include "itti_types.h"
 
 extern "C" {
 }
@@ -58,10 +59,9 @@ bool s6a_purge_ue(const char *imsi)
         log_level = "INFO";
       }
       // For now, do nothing, just log
-      std::cout << "[" << log_level
-                << "] PurgeUE Response for IMSI: " << imsiStr
-                << "; Status: " << status.error_message()
-                << "; ErrorCode: " << response.error_code() << std::endl;
+      std::cout << "[" << log_level << "] PurgeUE Response for IMSI: " << imsiStr
+                      << "; Status: " << status.error_message()
+                      << "; ErrorCode: " << response.error_code() << std::endl;
       return;
     });
 }
@@ -83,9 +83,9 @@ static void _s6a_handle_authentication_info_ans(
   if (status.ok()) {
     if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
       std::cout << "[ERROR] "
-                << "Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: "
-                << imsi << "; Status: " << status.error_message()
-                << "; ErrorCode: " << response.error_code() << std::endl;
+        << "Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: " << imsi
+        << "; Status: " << status.error_message()
+        << "; ErrorCode: " << response.error_code() << std::endl;
 
       itti_msg->result.present = S6A_RESULT_BASE;
       itti_msg->result.choice.base = DIAMETER_SUCCESS;
@@ -96,25 +96,23 @@ static void _s6a_handle_authentication_info_ans(
         (s6a_experimental_result_t) response.error_code();
     }
   } else {
-    std::cout << "[ERROR] " << status.error_code() << ": "
-              << status.error_message() << std::endl;
-    std::cout
-      << "[ERROR] Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: "
-      << imsi << "; Status: " << status.error_message()
-      << "; ErrorCode: " << response.error_code() << std::endl;
+    std::cout << "[ERROR] " << status.error_code() << ": " << status.error_message()
+                 << std::endl;
+    std::cout << "[ERROR] Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: "
+                 << imsi << "; Status: " << status.error_message()
+                 << "; ErrorCode: " << response.error_code() << std::endl;
     itti_msg->result.present = S6A_RESULT_BASE;
     itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
   }
-  itti_send_msg_to_task(TASK_NAS_MME, message_p);
+  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   return;
 }
 
 bool s6a_authentication_info_req(const s6a_auth_info_req_t *const air_p)
 {
   auto imsi_len = air_p->imsi_length;
-  std::cout
-    << "[INFO] Sending S6A-AUTHENTICATION_INFORMATION_REQUEST with IMSI: "
-    << std::string(air_p->imsi) << std::endl;
+  std::cout << "[INFO] Sending S6A-AUTHENTICATION_INFORMATION_REQUEST with IMSI: "
+              << std::string(air_p->imsi) << std::endl;
 
   magma::S6aClient::authentication_info_req(
     air_p,
@@ -143,8 +141,8 @@ static void _s6a_handle_update_location_ans(
   if (status.ok()) {
     if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
       std::cout << "[ERROR] Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
-                << imsi << "; Status: " << status.error_message()
-                << "; ErrorCode: " << response.error_code() << std::endl;
+                      << imsi << "; Status: " << status.error_message()
+                      << "; ErrorCode: " << response.error_code() << std::endl;
 
       itti_msg->result.present = S6A_RESULT_BASE;
       itti_msg->result.choice.base = DIAMETER_SUCCESS;
@@ -156,18 +154,18 @@ static void _s6a_handle_update_location_ans(
         (s6a_experimental_result_t) response.error_code();
     }
   } else {
-    std::cout << "[ERROR] " << status.error_code() << ": "
-              << status.error_message() << std::endl;
-    std::cout << "[ERROR]  Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
-              << imsi << "; Status: " << status.error_message()
-              << "; ErrorCode: " << response.error_code() << std::endl;
+    std::cout << "[ERROR] " << status.error_code() << ": " << status.error_message()
+                 << std::endl;
+    std::cout << "[ERROR]  Received S6A-LOCATION-UPDATE_ANSWER for IMSI: " << imsi
+                 << "; Status: " << status.error_message()
+                 << "; ErrorCode: " << response.error_code() << std::endl;
 
     itti_msg->result.present = S6A_RESULT_BASE;
     itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
   }
   std::cout << "[INFO] sent itti S6A-LOCATION-UPDATE_ANSWER for IMSI: " << imsi
-            << std::endl;
-  itti_send_msg_to_task(TASK_MME_APP, message_p);
+                  << std::endl;
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   return;
 }
 
@@ -175,7 +173,7 @@ bool s6a_update_location_req(const s6a_update_location_req_t *const ulr_p)
 {
   auto imsi_len = ulr_p->imsi_length;
   std::cout << "[DEBUG] Sending S6A-UPDATE_LOCATION_REQUEST with IMSI: "
-            << std::string(ulr_p->imsi) << std::endl;
+               << std::string(ulr_p->imsi) << std::endl;
 
   magma::S6aClient::update_location_request(
     ulr_p,

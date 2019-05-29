@@ -25,6 +25,7 @@
 
 #include "assertions.h"
 #include "intertask_interface.h"
+#include "itti_types.h"
 
 int send_app_health_to_service303(task_id_t origin_id, bool healthy)
 {
@@ -35,5 +36,5 @@ int send_app_health_to_service303(task_id_t origin_id, bool healthy)
     message_p = itti_alloc_new_message(origin_id, APPLICATION_UNHEALTHY_MSG);
   }
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  return itti_send_msg_to_task(TASK_SERVICE303, message_p);
+  return itti_send_msg_to_task(TASK_SERVICE303, INSTANCE_DEFAULT, message_p);
 }

@@ -34,7 +34,7 @@ namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-} // namespace grpc
+}  // namespace grpc
 
 using grpc::Channel;
 using grpc::ClientContext;

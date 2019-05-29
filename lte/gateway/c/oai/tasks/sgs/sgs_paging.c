@@ -27,15 +27,15 @@
    \email:
 */
 
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 
-#include "assertions.h"
-#include "conversions.h"
 #include "intertask_interface.h"
 #include "log.h"
-#include "sgs_messages.h"
+#include "assertions.h"
 #include "sgs_messages_types.h"
+#include "sgs_messages.h"
+#include "conversions.h"
 
 int sgs_send_paging_reject(
   itti_sgsap_paging_reject_t *const sgs_paging_reject_p)

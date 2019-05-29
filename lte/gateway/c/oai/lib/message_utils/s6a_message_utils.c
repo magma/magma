@@ -25,11 +25,12 @@
 
 #include "assertions.h"
 #include "intertask_interface.h"
+#include "itti_types.h"
 
 int send_start_s6a_server(task_id_t origin_id)
 {
   MessageDef *message_p;
   message_p = itti_alloc_new_message(origin_id, APPLICATION_HEALTHY_MSG);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  return itti_send_msg_to_task(TASK_S6A_SERVICE, message_p);
+  return itti_send_msg_to_task(TASK_S6A_SERVICE, INSTANCE_DEFAULT, message_p);
 }

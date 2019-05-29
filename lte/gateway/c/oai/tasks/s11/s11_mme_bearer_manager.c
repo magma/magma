@@ -180,7 +180,7 @@ int s11_mme_handle_release_access_bearer_response(
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
-  return itti_send_msg_to_task(TASK_MME_APP, message_p);
+  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -380,7 +380,7 @@ int s11_mme_handle_modify_bearer_response(
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
-  return itti_send_msg_to_task(TASK_MME_APP, message_p);
+  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -469,7 +469,7 @@ int s11_mme_handle_create_bearer_request(
     DevAssert(NW_OK == rc);
     rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
     DevAssert(NW_OK == rc);
-    return itti_send_msg_to_task(TASK_MME_APP, message_p);
+    return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   }
   return RETURNerror;
 }

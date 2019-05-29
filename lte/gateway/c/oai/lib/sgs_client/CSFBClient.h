@@ -37,12 +37,12 @@ extern "C" {
 
 namespace grpc {
 class Status;
-} // namespace grpc
+}  // namespace grpc
 namespace magma {
 namespace orc8r {
 class Void;
-} // namespace orc8r
-} // namespace magma
+}  // namespace orc8r
+}  // namespace magma
 }
 
 namespace magma {

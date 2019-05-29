@@ -27,71 +27,55 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
-#ifndef TIMER_H_
-#define TIMER_H_
+/** @brief Intertask Interface common types
+ * Contains type definitions used for generating and parsing ITTI messages.
+ * @author Laurent Winckel <laurent.winckel@eurecom.fr>
+ */
 
-#include <signal.h>
-#include <stdbool.h>
-#include <stddef.h>
+#ifndef _ITTI_TYPES_H_
+#define _ITTI_TYPES_H_
+
 #include <stdint.h>
-#include <sys/types.h>
 
-#include "intertask_interface_types.h"
+#define CHARS_TO_UINT32(c1, c2, c3, c4)                                        \
+  (((c4) << 24) | ((c3) << 16) | ((c2) << 8) | (c1))
 
-#define SIGTIMER SIGRTMIN
+#define MESSAGE_NUMBER_CHAR_FORMAT "%11u"
 
-typedef enum timer_type_s {
-  TIMER_PERIODIC,
-  TIMER_ONE_SHOT,
-  TIMER_TYPE_MAX,
-} timer_type_t;
+/* Intertask message types */
+enum itti_message_types_e {
+  ITTI_DUMP_XML_DEFINITION = CHARS_TO_UINT32('\n', 'I', 'x', 'd'),
+  ITTI_DUMP_XML_DEFINITION_END = CHARS_TO_UINT32('i', 'X', 'D', '\n'),
 
-typedef enum {
-  TIMER_OK = 0,
-  TIMER_NOT_FOUND = -1,
-  TIMER_ERR = -2,
-} timer_result_t;
+  ITTI_DUMP_MESSAGE_TYPE = CHARS_TO_UINT32('\n', 'I', 'm', 's'),
+  ITTI_DUMP_MESSAGE_TYPE_END = CHARS_TO_UINT32('i', 'M', 'S', '\n'),
 
-int timer_handle_signal(siginfo_t *info);
+  ITTI_STATISTIC_MESSAGE_TYPE = CHARS_TO_UINT32('\n', 'I', 's', 't'),
+  ITTI_STATISTIC_MESSAGE_TYPE_END = CHARS_TO_UINT32('i', 'S', 'T', '\n'),
 
-/** \brief Request a new timer
- *  \param interval_sec timer interval in seconds
- *  \param interval_us  timer interval in micro seconds
- *  \param task_id      task id of the task requesting the timer
- *  \param instance     instance of the task requesting the timer
- *  \param type         timer type
- *  \param timer_arg    extra data to save with the timer
- *  \param arg_size     size of the data you are saving
- *  \param timer_id     unique timer identifier
- *  @returns -1 on failure, 0 otherwise
- **/
-int timer_setup(
-  uint32_t interval_sec,
-  uint32_t interval_us,
-  task_id_t task_id,
-  int32_t instance,
-  timer_type_t type,
-  void *timer_arg,
-  size_t arg_size,
-  long *timer_id);
+  /* This signal is not meant to be used by remote analyzer */
+  ITTI_DUMP_EXIT_SIGNAL = CHARS_TO_UINT32('e', 'X', 'I', 'T'),
+};
 
-int timer_handle_expired(long timer_id);
+typedef uint32_t itti_message_types_t;
 
-bool timer_exists(long timer_id);
+/* Message header is the common part that should never change between
+ * remote process and this one.
+ */
+typedef struct {
+  /* The size of this structure */
+  uint32_t message_size;
+  itti_message_types_t message_type;
+} itti_socket_header_t;
 
-/** \brief Remove the timer from list
- *  \param timer_id unique timer id
- *  @returns -1 on failure, 0 otherwise
- **/
+typedef struct {
+  char message_number_char
+    [12]; /* 9 chars are needed to store an unsigned 32 bits value in decimal, but must be a multiple of 32 bits to avoid alignment issues */
+} itti_signal_header_t;
 
-int timer_remove(long timer_id, void **arg);
+#define INSTANCE_DEFAULT (UINT16_MAX - 1)
+#define INSTANCE_ALL (UINT16_MAX)
 
-#define timer_stop timer_remove
-
-/** \brief Initialize timer task and its API
- *  \param mme_config MME common configuration
- *  @returns -1 on failure, 0 otherwise
- **/
-int timer_init(void);
+typedef uint16_t instance_t;
 
 #endif

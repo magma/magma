@@ -34,12 +34,12 @@
 
 namespace grpc {
 class Status;
-} // namespace grpc
+}  // namespace grpc
 namespace magma {
 namespace lte {
 class SubscriberID;
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma
 
 #define CAPTIVE_PORTAL_SERVICE "captive_portal"
 #define MAGMAD_SERVICE "magmad"
@@ -51,8 +51,7 @@ static bool captive_portal_enabled()
   magma::mconfig::MagmaD mconfig;
   magma::MConfigLoader loader;
   if (!loader.load_service_mconfig(MAGMAD_SERVICE, &mconfig)) {
-    std::cout << "[ERROR] Unable to load mconfig for mme, using default"
-              << std::endl;
+    std::cout << "[ERROR] Unable to load mconfig for mme, using default" << std::endl;
     return false;
   }
   for (int i = 0; i < mconfig.dynamic_services_size(); ++i) {

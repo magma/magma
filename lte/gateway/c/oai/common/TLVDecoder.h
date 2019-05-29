@@ -75,11 +75,11 @@ void tlv_decode_perror(void);
   }
 
 #define CHECK_PDU_POINTER_AND_LENGTH_DECODER_FOR_MANDATORY_IES(                \
-  bUFFER, mINIMUMlENGTH, lENGTH)                                               \
+      bUFFER, mINIMUMlENGTH, lENGTH)                                           \
   if (bUFFER == NULL) {                                                        \
     OAILOG_WARNING(LOG_NAS, "Got NULL pointer for the payload\n");             \
-    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                        \
-    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                    \
+    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                                        \
+    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                                    \
   }                                                                            \
   if (lENGTH < mINIMUMlENGTH) {                                                \
     OAILOG_WARNING(                                                            \
@@ -87,8 +87,8 @@ void tlv_decode_perror(void);
       "Expecting at least %d bytes, got %d\n",                                 \
       mINIMUMlENGTH,                                                           \
       lENGTH);                                                                 \
-    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                        \
-    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                    \
+    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                                   \
+    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                               \
   }
 
 #define CHECK_LENGTH_DECODER(bUFFERlENGTH, lENGTH)                             \

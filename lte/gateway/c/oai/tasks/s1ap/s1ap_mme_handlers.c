@@ -690,7 +690,7 @@ int s1ap_mme_handle_ue_cap_indication(
       ue_cap_ind_p->radio_capabilities,
       ue_cap_p->ueRadioCapability.buf,
       ue_cap_ind_p->radio_capabilities_length);
-    rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+    rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -780,7 +780,7 @@ int s1ap_mme_handle_initial_context_setup_response(
         eRABSetupItemCtxtSURes_p->transportLayerAddress.size);
   }
   // TODO num items
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -919,7 +919,7 @@ int s1ap_mme_handle_ue_context_release_request(
       S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = s1_release_cause;
       S1AP_UE_CONTEXT_RELEASE_REQ(message_p).cause =
         ueContextReleaseRequest_p->cause;
-      rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+      rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1213,7 +1213,8 @@ int s1ap_mme_handle_ue_context_release_complete(
       "ueid " MME_UE_S1AP_ID_FMT "\n",
       (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-  } else {
+  }
+  else{
     /* This is an error scenario, the S1 UE context should have been deleted
      * when UE context release command was sent
      */
@@ -1224,7 +1225,7 @@ int s1ap_mme_handle_ue_context_release_complete(
       (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-}
+ }
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_context_setup_failure(
@@ -1339,7 +1340,7 @@ int s1ap_mme_handle_initial_context_setup_failure(
     sizeof(itti_mme_app_initial_context_setup_failure_t));
   MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(message_p).mme_ue_s1ap_id =
     ue_ref_p->mme_ue_s1ap_id;
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -1392,7 +1393,7 @@ int s1ap_mme_handle_ue_context_modification_response(
         ue_ref_p->mme_ue_s1ap_id;
       S1AP_UE_CONTEXT_MODIFICATION_RESPONSE(message_p).enb_ue_s1ap_id =
         ue_ref_p->enb_ue_s1ap_id;
-      rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+      rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1513,7 +1514,7 @@ int s1ap_mme_handle_ue_context_modification_failure(
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).enb_ue_s1ap_id =
         ue_ref_p->enb_ue_s1ap_id;
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).cause = cause_value;
-      rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+      rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1622,7 +1623,7 @@ static bool s1ap_send_enb_deregistered_ind(
     if (arg->current_ue_index == 0 && arg->handled_ues > 0) {
       S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
         S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE;
-      itti_send_msg_to_task(TASK_MME_APP, arg->message_p);
+      itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, arg->message_p);
       arg->message_p = NULL;
     }
 
@@ -1746,7 +1747,7 @@ int s1ap_handle_sctp_disconnection(
       0;
   }
   S1AP_ENB_DEREGISTERED_IND(message_p).enb_id = enb_association->enb_id;
-  itti_send_msg_to_task(TASK_MME_APP, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   message_p = NULL;
 
   // Mark the eNB's s1 state as appopriate, the eNB will be deleted or moved to init state when the last UE's s1
@@ -1769,7 +1770,7 @@ int s1ap_handle_sctp_disconnection(
         enb_association->s1ap_enb_assoc_clean_up_timer.sec,
         0,
         TASK_S1AP,
-
+        INSTANCE_DEFAULT,
         TIMER_ONE_SHOT,
         (void *) &(timer_arg),
         sizeof(s1ap_timer_arg_t),
@@ -1892,7 +1893,7 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
     sizeof(itti_s1ap_ue_context_release_complete_t));
   S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
     ue_ref_p->mme_ue_s1ap_id;
-  itti_send_msg_to_task(TASK_MME_APP, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
   OAILOG_DEBUG(
     LOG_S1AP,
@@ -1926,7 +1927,7 @@ void s1ap_mme_release_ue_context(
     sizeof(itti_s1ap_ue_context_release_complete_t));
   S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
     ue_ref_p->mme_ue_s1ap_id;
-  itti_send_msg_to_task(TASK_MME_APP, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
   OAILOG_DEBUG(
     LOG_S1AP,
@@ -1944,8 +1945,8 @@ int s1ap_mme_handle_error_ind_message(
   struct s1ap_message_s *message)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
-  OAILOG_WARNING(
-    LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n", stream);
+  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n",
+                  stream);
   increment_counter("s1ap_error_ind_rcvd", 1, NO_LABELS);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
@@ -2037,7 +2038,7 @@ int s1ap_mme_handle_erab_setup_response(
     }
   }
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, message_p);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -2259,7 +2260,7 @@ int s1ap_mme_handle_enb_reset(
       }
   }
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, msg);
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, msg);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 //------------------------------------------------------------------------------

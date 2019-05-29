@@ -196,7 +196,9 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
     const struct in_addr ue_ip,
     const uint32_t in_tei,
     const struct ipv4flow_dl *dl_flow);
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei);
+  DeleteGTPTunnelEvent(
+    const struct in_addr ue_ip,
+    const uint32_t in_tei);
 
   const struct in_addr &get_ue_ip() const;
   const uint32_t get_in_tei() const;

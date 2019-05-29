@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
+ * The OpenAirInterface Software Alliance licenses this file to You under 
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
+ * except in compliance with the License.  
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -31,6 +31,7 @@
 
 #include "intertask_interface.h"
 #include "sctp_itti_messaging.h"
+#include "itti_types.h"
 #include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
@@ -50,7 +51,7 @@ int sctp_itti_send_lower_layer_conf(
   sctp_p->stream = stream;
   sctp_p->mme_ue_s1ap_id = mme_ue_s1ap_id;
   sctp_p->is_success = is_success;
-  return itti_send_msg_to_task(origin_task_id, message_p);
+  return itti_send_msg_to_task(origin_task_id, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -67,7 +68,7 @@ int sctp_itti_send_new_association(
   sctp_new_peer_p->assoc_id = assoc_id;
   sctp_new_peer_p->instreams = instreams;
   sctp_new_peer_p->outstreams = outstreams;
-  return itti_send_msg_to_task(TASK_S1AP, message_p);
+  return itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +87,7 @@ int sctp_itti_send_new_message_ind(
     SCTP_DATA_IND(message_p).assoc_id = assoc_id;
     SCTP_DATA_IND(message_p).instreams = instreams;
     SCTP_DATA_IND(message_p).outstreams = outstreams;
-    return itti_send_msg_to_task(TASK_S1AP, message_p);
+    return itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   }
   return RETURNerror;
 }
@@ -101,5 +102,5 @@ int sctp_itti_send_com_down_ind(const sctp_assoc_id_t assoc_id, bool reset)
   sctp_close_association_p = &message_p->ittiMsg.sctp_close_association;
   sctp_close_association_p->assoc_id = assoc_id;
   sctp_close_association_p->reset = reset;
-  return itti_send_msg_to_task(TASK_S1AP, message_p);
+  return itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 }

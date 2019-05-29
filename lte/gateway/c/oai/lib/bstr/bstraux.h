@@ -116,7 +116,7 @@ void *bwsClose(struct bwriteStream *stream);
 #define bSecureWriteProtect(t)                                                 \
   {                                                                            \
     if ((t).mlen >= 0) {                                                       \
-      if ((t).mlen > (t).slen))                                                \
+      if ((t).mlen > (t).slen))                                              \
         {                                                                      \
           (void) memset((t).data + (t).slen, 0, (size_t)(t).mlen - (t).slen);  \
         }                                                                      \

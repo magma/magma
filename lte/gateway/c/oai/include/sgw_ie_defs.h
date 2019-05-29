@@ -334,17 +334,17 @@ typedef struct bearer_context_to_be_created_s {
     s4u_sgsn_fteid; ///< S4-U SGSN F-TEID, Conditional CSR, This IE shall be included on the S4 interface if the S4-U interface is used.
   fteid_t
     s5_s8_u_sgw_fteid; ///< S5/S8-U SGW F-TEID, Conditional CSR, This IE shall be included on the S5/S8 interface for an "eUTRAN Initial Attach",
-  ///  a "PDP Context Activation" or a "UE Requested PDN Connectivity".
+    ///  a "PDP Context Activation" or a "UE Requested PDN Connectivity".
   fteid_t
     s5_s8_u_pgw_fteid; ///< S5/S8-U PGW F-TEID, Conditional CSR, This IE shall be included on the S4 and S11 interfaces for the TAU/RAU/Handover
                        /// cases when the GTP-based S5/S8 is used.
   fteid_t
     s12_rnc_fteid; ///< S12 RNC F-TEID, Conditional Optional CSR, This IE shall be included on the S4 interface if the S12
-  /// interface is used in the Enhanced serving RNS relocation with SGW relocation procedure.
+    /// interface is used in the Enhanced serving RNS relocation with SGW relocation procedure.
   fteid_t
     s2b_u_epdg_fteid; ///< S2b-U ePDG F-TEID, Conditional CSR, This IE shall be included on the S2b interface for an Attach
-  /// with GTP on S2b, a UE initiated Connectivity to Additional PDN with GTP on S2b and a Handover to Untrusted Non-
-  /// 3GPP IP Access with GTP on S2b.
+    /// with GTP on S2b, a UE initiated Connectivity to Additional PDN with GTP on S2b and a Handover to Untrusted Non-
+    /// 3GPP IP Access with GTP on S2b.
   /* This parameter is received only if the QoS parameters have been modified */
   bearer_qos_t bearer_level_qos; ///< Bearer QoS, Mandatory CSR
 } bearer_context_to_be_created_t;

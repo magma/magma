@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
+ * The OpenAirInterface Software Alliance licenses this file to You under 
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
+ * except in compliance with the License.  
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -25,25 +25,25 @@
   \company Eurecom
 */
 
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 
-#include "3gpp_23.003.h"
-#include "3gpp_33.401.h"
-#include "assertions.h"
 #include "bstrlib.h"
-#include "common_defs.h"
-#include "common_types.h"
-#include "conversions.h"
 #include "dynamic_memory_check.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "log.h"
 #include "mme_config.h"
+#include "assertions.h"
+#include "conversions.h"
+#include "common_types.h"
+#include "common_defs.h"
+#include "intertask_interface.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
+#include "3gpp_23.003.h"
+#include "3gpp_33.401.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
 
@@ -150,8 +150,8 @@ static inline int s6a_parse_e_utran_vector(
 
       default:
         /*
-     * Unexpected AVP
-     */
+       * Unexpected AVP
+       */
         OAILOG_ERROR(
           LOG_S6A, "Unexpected AVP with code %d, moving on\n", hdr->avp_code);
         break;
@@ -208,8 +208,8 @@ static inline int s6a_parse_authentication_info_avp(
 
       default:
         /*
-     * We should only receive E-UTRAN-Vectors
-     */
+       * We should only receive E-UTRAN-Vectors
+       */
         OAILOG_ERROR(LOG_S6A, "Unexpected AVP with code %d\n", hdr->avp_code);
         return RETURNerror;
     }
@@ -298,8 +298,7 @@ int s6a_aia_cb(
     if (avp) {
       /*
        * The procedure has failed within the HSS.
-       * * * * NOTE: contrary to result-code, the experimental-result is a
-       * grouped
+       * * * * NOTE: contrary to result-code, the experimental-result is a grouped
        * * * * AVP and requires parsing its childs to get the code back.
        */
       s6a_auth_info_ans_p->result.present = S6A_RESULT_EXPERIMENTAL;
@@ -333,7 +332,7 @@ int s6a_aia_cb(
     }
   }
 
-  itti_send_msg_to_task(TASK_NAS_MME, message_p);
+  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
 err:
   return RETURNok;
 }

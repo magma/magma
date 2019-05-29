@@ -1292,8 +1292,8 @@ typedef struct traffic_flow_template_s {
   packet_filter_list_t packetfilterlist;
   parameters_list_t
     parameterslist; // The parameters list contains a variable number of parameters that may be
-  // transferred. If the parameters list is included, the E bit is set to 1; otherwise, the E bit
-  // is set to 0.
+    // transferred. If the parameters list is included, the E bit is set to 1; otherwise, the E bit
+    // is set to 0.
 } traffic_flow_template_t;
 
 #define TFT_ENCODE_IEI_TRUE true

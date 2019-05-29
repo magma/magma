@@ -504,7 +504,9 @@ int esm_ebr_set_status(
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   if (emm_context == NULL) {
-    OAILOG_ERROR(LOG_NAS_ESM, "ESM-FSM   - emm context null... \n");
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-FSM   - emm context null... \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
 
@@ -518,8 +520,10 @@ int esm_ebr_set_status(
 
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
-  if (ue_mm_context == NULL) {
-    OAILOG_ERROR(LOG_NAS_ESM, "ESM-FSM   - ue mme context null... \n");
+  if ( ue_mm_context == NULL ) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-FSM   - ue mme context null... \n");
   }
   /*
    * Get EPS bearer context data

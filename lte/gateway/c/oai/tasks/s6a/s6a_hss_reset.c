@@ -28,12 +28,13 @@
 #include <stdio.h>
 
 #include "assertions.h"
-#include "common_types.h"
 #include "intertask_interface.h"
-#include "intertask_interface_types.h"
-#include "log.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
+#include "log.h"
+#include "common_types.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
 
 struct avp;
 struct msg;
@@ -55,7 +56,7 @@ int s6a_rsr_cb(
   int result_code = ER_DIAMETER_SUCCESS;
   int experimental = 0;
   MessageDef *message_p = NULL;
-  // s6a_reset_req_t                        *s6a_reset_req_p = NULL;
+  //s6a_reset_req_t                        *s6a_reset_req_p = NULL;
 
   DevAssert(msg_p);
   OAILOG_DEBUG(LOG_S6A, "Sending S6A_RESET_REQ to task MME_APP\n");
@@ -98,8 +99,8 @@ int s6a_rsr_cb(
   CHECK_FCT(fd_msg_avp_hdr(origin_realm_p, &origin_realm_hdr));
   // Send it to MME module for further processing
   message_p = itti_alloc_new_message(TASK_S6A, S6A_RESET_REQ);
-  // s6a_reset_req_p->msg_rsa_p = msg_p;
-  itti_send_msg_to_task(TASK_MME_APP, message_p);
+  //s6a_reset_req_p->msg_rsa_p = msg_p;
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_DEBUG(LOG_S6A, "Sending S6A_RESET_REQ to task MME_APP\n");
   result_code = DIAMETER_SUCCESS;
   return 0;

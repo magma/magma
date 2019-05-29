@@ -170,8 +170,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      * * * * Reserved or unassigned PTI value
      */
     OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Invalid PTI value (pti=%d) for (ue_id = %u) \n",
+      LOG_NAS_ESM, "ESM-SAP   - Invalid PTI value (pti=%d) for (ue_id = %u) \n",
       pti,
       ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_PTI_VALUE);
@@ -185,8 +184,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      * * * * Reserved or assigned EPS bearer identity value
      */
     OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Invalid EPS bearer identity (ebi=%d) for (ue_id = %u)\n",
+      LOG_NAS_ESM, "ESM-SAP   - Invalid EPS bearer identity (ebi=%d) for (ue_id = %u)\n",
       ebi,
       ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
@@ -228,8 +226,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     esm_data->request_type = -1;
     OAILOG_ERROR(
       LOG_NAS_ESM,
-      "ESM-SAP   - Invalid PDN request type (INITIAL/HANDOVER/EMERGENCY) for "
-      "(ue_id = %u)\n",
+      "ESM-SAP   - Invalid PDN request type (INITIAL/HANDOVER/EMERGENCY) for (ue_id = %u)\n",
       ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_MANDATORY_INFO);
   }
@@ -239,9 +236,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
    */
   OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "ESM-SAP   - PDN Type = (%d) for (ue_id = %u)\n ",
-    msg->pdntype,
-    ue_id);
+    "ESM-SAP   - PDN Type = (%d) for (ue_id = %u)\n ", msg->pdntype, ue_id);
   if (msg->pdntype == PDN_TYPE_IPV4) {
     esm_data->pdn_type = ESM_PDN_TYPE_IPV4;
   } else if (msg->pdntype == PDN_TYPE_IPV6) {
@@ -252,8 +247,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     /*
      * Unkown PDN type
      */
-    OAILOG_ERROR(
-      LOG_NAS_ESM, "ESM-SAP   - Invalid PDN type for (ue_id = %u)\n", ue_id);
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-SAP   - Invalid PDN type for (ue_id = %u)\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_PDN_TYPE);
   }
 

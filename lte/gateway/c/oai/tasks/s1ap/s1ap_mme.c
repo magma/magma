@@ -112,7 +112,7 @@ static int s1ap_send_init_sctp(void)
    */
   message_p->ittiMsg.sctpInit.nb_ipv6_addr = 0;
   message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
-  return itti_send_msg_to_task(TASK_SCTP, message_p);
+  return itti_send_msg_to_task(TASK_SCTP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------

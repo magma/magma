@@ -28,13 +28,13 @@
 
 #ifndef FILE_SGS_SEEN
 #define FILE_SGS_SEEN
-#include "bstrlib.h"
-#include "common_types.h"
-#include "hashtable.h"
-#include "nas/commonDef.h"
-#include "queue.h"
-#include <netinet/in.h>
 #include <stdint.h>
+#include <netinet/in.h>
+#include "bstrlib.h"
+#include "hashtable.h"
+#include "queue.h"
+#include "nas/commonDef.h"
+#include "common_types.h"
 
 int sgs_init(const mme_config_t *mme_config);
 

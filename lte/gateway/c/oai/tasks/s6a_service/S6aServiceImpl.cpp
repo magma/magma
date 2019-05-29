@@ -31,7 +31,7 @@ extern "C" {
 namespace grpc {
 class Channel;
 class ServerContext;
-} // namespace grpc
+}  // namespace grpc
 
 using grpc::Channel;
 using grpc::ServerContext;

@@ -28,6 +28,7 @@
 #include "rpc_client.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
+#include "itti_types.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 
@@ -60,7 +61,7 @@ static void create_session_response(
     release_ipv4_address(imsi.c_str(), &sgi_response.paa.ipv4_address);
     s5_response->failure_cause = PCEF_FAILURE;
   }
-  itti_send_msg_to_task(TASK_SPGW_APP, message_p);
+  itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
 }
 
 static void pcef_fill_create_session_req(

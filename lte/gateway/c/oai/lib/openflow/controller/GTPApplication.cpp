@@ -149,9 +149,8 @@ void GTPApplication::delete_uplink_tunnel_flow(
 /*
  * Helper method to add matching for adding/deleting the downlink flow
  */
-static void add_downlink_match(
-  of13::FlowMod &downlink_fm,
-  const struct in_addr &ue_ip)
+static void add_downlink_match(of13::FlowMod &downlink_fm,
+    const struct in_addr &ue_ip)
 {
   // Set match on uplink port and IP eth type
   of13::InPort uplink_port_match(of13::OFPP_LOCAL);
@@ -164,9 +163,8 @@ static void add_downlink_match(
   downlink_fm.add_oxm_field(ip_match);
 }
 
-static void add_ded_brr_dl_match(
-  of13::FlowMod &downlink_fm,
-  const struct ipv4flow_dl &flow)
+static void add_ded_brr_dl_match(of13::FlowMod &downlink_fm,
+    const struct ipv4flow_dl &flow)
 {
   // Set match on uplink port and IP eth type
   of13::InPort uplink_port_match(of13::OFPP_LOCAL);
@@ -264,6 +262,7 @@ void GTPApplication::delete_downlink_tunnel_flow(
     add_downlink_match(downlink_fm, ev.get_ue_ip());
   }
 
+
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
 
@@ -302,6 +301,7 @@ void GTPApplication::discard_downlink_tunnel_flow(
     add_downlink_match(downlink_fm, ev.get_ue_ip());
   }
 
+
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
 
@@ -339,6 +339,7 @@ void GTPApplication::forward_downlink_tunnel_flow(
   } else {
     add_downlink_match(downlink_fm, ev.get_ue_ip());
   }
+
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }

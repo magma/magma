@@ -260,8 +260,7 @@ int esm_send_activate_default_eps_bearer_context_request(
   msg->messagetype = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST;
   msg->proceduretransactionidentity = pti;
   OAILOG_DEBUG(
-    LOG_NAS_ESM,
-    "Activate default EPS bearer context (pti=%d, ebi=%d) \n",
+    LOG_NAS_ESM, "Activate default EPS bearer context (pti=%d, ebi=%d) \n",
     msg->proceduretransactionidentity,
     msg->epsbeareridentity);
   /*

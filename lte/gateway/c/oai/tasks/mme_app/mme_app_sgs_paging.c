@@ -47,6 +47,7 @@
 #include "common_types.h"
 #include "emm_data.h"
 #include "intertask_interface_types.h"
+#include "itti_types.h"
 #include "mme_app_desc.h"
 #include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
@@ -306,7 +307,7 @@ int mme_app_send_nas_detach_request(mme_ue_s1ap_id_t ue_id, uint8_t detach_type)
 
   sgsap_nas_detach_pP->ue_id = ue_id;
   sgsap_nas_detach_pP->detach_type = detach_type;
-  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -616,7 +617,7 @@ int mme_app_send_sgsap_service_request(
     LOG_MME_APP,
     "Send SGSAP-Service Request for IMSI " IMSI_64_FMT "\n",
     ue_context_p->imsi);
-  rc = itti_send_msg_to_task(TASK_SGS, message_p);
+  rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -658,7 +659,7 @@ int mme_app_send_nas_cs_service_notification(
     LOG_MME_APP,
     "Send NAS CS Service Notification from MME app for ue_id:%u \n",
     ue_id);
-  rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
+  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -713,7 +714,7 @@ int mme_app_send_sgsap_paging_reject(
       "Send SGSAP-Paging Reject with sgs-cause :%d \n",
       (int) sgs_cause);
   }
-  rc = itti_send_msg_to_task(TASK_SGS, message_p);
+  rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -813,7 +814,7 @@ static int _mme_app_send_sgsap_ue_unreachable(
     "Send SGSAP-UE-unreachable for IMSI" IMSI_64_FMT " with sgs-cause :%d \n",
     ue_context_p->imsi,
     (int) sgs_cause);
-  rc = itti_send_msg_to_task(TASK_SGS, message_p);
+  rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -862,7 +863,7 @@ static int _sgsap_handle_paging_request_without_lai(
       ue_context_p->mme_ue_s1ap_id;
     message_p->ittiMsg.nas_nw_initiated_detach_ue_req.detach_type =
       SGS_INITIATED_IMSI_DETACH;
-    rc = itti_send_msg_to_task(TASK_NAS_MME, message_p);
+    rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   } else if (ue_context_p->ecm_state == ECM_IDLE) {
     /* While UE is in ECM_IDLE and mobile reachability timer is still running
      * The value of ppf-paging proceeding flag will be "true"
