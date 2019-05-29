@@ -26,28 +26,13 @@
  * of the authors and should not be interpreted as representing official policies,
  * either expressed or implied, of the FreeBSD Project.
  */
+/*! \file udp_messages_def.h
+  \brief
+  \author Sebastien ROUX, Lionel Gauthier
+  \company Eurecom
+  \email: lionel.gauthier@eurecom.fr
+*/
 
-#ifndef FILE_MESSAGES_TYPES_SEEN
-#define FILE_MESSAGES_TYPES_SEEN
-
-#include "intertask_messages_types.h"
-#include "timer_messages_types.h"
-
-#include "security_types.h"
-
-#include "gtpv1_u_messages_types.h"
-#include "ip_forward_messages_types.h"
-#include "s11_messages_types.h"
-#include "s5_messages_types.h"
-#include "s1ap_messages_types.h"
-#include "nas_messages_types.h"
-#include "s6a_messages_types.h"
-#include "sctp_messages_types.h"
-#include "sgw_messages_types.h"
-#include "udp_messages_types.h"
-#include "mme_app_messages_types.h"
-#include "service303_messages_types.h"
-#include "sgs_messages_types.h"
-#include "async_system_messages_types.h"
-
-#endif /* FILE_MESSAGES_TYPES_SEEN */
+MESSAGE_DEF(UDP_INIT, MESSAGE_PRIORITY_MED, udp_init_t, udp_init)
+MESSAGE_DEF(UDP_DATA_REQ, MESSAGE_PRIORITY_MED, udp_data_req_t, udp_data_req)
+MESSAGE_DEF(UDP_DATA_IND, MESSAGE_PRIORITY_MED, udp_data_ind_t, udp_data_ind)

@@ -26,28 +26,40 @@
  * of the authors and should not be interpreted as representing official policies,
  * either expressed or implied, of the FreeBSD Project.
  */
+/*! \file udp_messages_types.h
+  \brief
+  \author Sebastien ROUX, Lionel Gauthier
+  \company Eurecom
+  \email: lionel.gauthier@eurecom.fr
+*/
+#ifndef FILE_UDP_MESSAGES_TYPES_SEEN
+#define FILE_UDP_MESSAGES_TYPES_SEEN
 
-#ifndef FILE_MESSAGES_TYPES_SEEN
-#define FILE_MESSAGES_TYPES_SEEN
+#include <stdint.h>
+#include <netinet/in.h>
 
-#include "intertask_messages_types.h"
-#include "timer_messages_types.h"
+#define UDP_INIT(msg_ptr) (msg_ptr)->ittiMsg.udp_init
+#define UDP_DATA_REQ(msg_ptr) (msg_ptr)->ittiMsg.udp_data_req
+#define UDP_DATA_IND(msg_ptr) (msg_ptr)->ittiMsg.udp_data_ind
 
-#include "security_types.h"
+typedef struct udp_init {
+  struct in_addr address;
+  uint16_t port;
+} udp_init_t;
 
-#include "gtpv1_u_messages_types.h"
-#include "ip_forward_messages_types.h"
-#include "s11_messages_types.h"
-#include "s5_messages_types.h"
-#include "s1ap_messages_types.h"
-#include "nas_messages_types.h"
-#include "s6a_messages_types.h"
-#include "sctp_messages_types.h"
-#include "sgw_messages_types.h"
-#include "udp_messages_types.h"
-#include "mme_app_messages_types.h"
-#include "service303_messages_types.h"
-#include "sgs_messages_types.h"
-#include "async_system_messages_types.h"
+typedef struct udp_data_req {
+  uint8_t *buffer;
+  uint32_t buffer_length;
+  uint32_t buffer_offset;
+  struct in_addr peer_address;
+  uint16_t peer_port;
+} udp_data_req_t;
 
-#endif /* FILE_MESSAGES_TYPES_SEEN */
+typedef struct udp_data_ind {
+  uint8_t *buffer;
+  uint32_t buffer_length;
+  struct in_addr peer_address;
+  uint16_t peer_port;
+} udp_data_ind_t;
+
+#endif /* FILE_UDP_MESSAGES_TYPES_SEEN */

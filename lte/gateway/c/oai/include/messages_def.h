@@ -40,6 +40,7 @@
 #include "sctp_messages_def.h"
 #include "sgw_messages_def.h"
 #include "s5_messages_def.h"
+#include "udp_messages_def.h"
 #include "mme_app_messages_def.h"
 #include "service303_messages_def.h"
 #include "sgs_messages_def.h"

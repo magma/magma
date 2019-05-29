@@ -231,6 +231,11 @@ void itti_free_msg_content(MessageDef *const message_p)
       // DO nothing
       break;
 
+    case UDP_INIT:
+    case UDP_DATA_REQ:
+    case UDP_DATA_IND:
+      // TODO
+      break;
     default:;
   }
 }
