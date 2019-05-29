@@ -28,31 +28,31 @@
  */
 MESSAGE_DEF(
   SGI_CREATE_ENDPOINT_REQUEST,
-
+  MESSAGE_PRIORITY_MED,
   itti_sgi_create_end_point_request_t,
   sgi_create_end_point_request)
 MESSAGE_DEF(
   SGI_CREATE_ENDPOINT_RESPONSE,
-
+  MESSAGE_PRIORITY_MED,
   itti_sgi_create_end_point_response_t,
   sgi_create_end_point_response)
 MESSAGE_DEF(
   SGI_UPDATE_ENDPOINT_REQUEST,
-
+  MESSAGE_PRIORITY_MED,
   itti_sgi_update_end_point_request_t,
   sgi_update_end_point_request)
 MESSAGE_DEF(
   SGI_UPDATE_ENDPOINT_RESPONSE,
-
+  MESSAGE_PRIORITY_MED,
   itti_sgi_update_end_point_response_t,
   sgi_update_end_point_response)
 MESSAGE_DEF(
   SGI_DELETE_ENDPOINT_REQUEST,
-
+  MESSAGE_PRIORITY_MED,
   itti_sgi_delete_end_point_request_t,
   sgi_delete_end_point_request)
 MESSAGE_DEF(
   SGI_DELETE_ENDPOINT_RESPONSE,
-
+  MESSAGE_PRIORITY_MED,
   itti_sgi_delete_end_point_response_t,
   sgi_delete_end_point_response)

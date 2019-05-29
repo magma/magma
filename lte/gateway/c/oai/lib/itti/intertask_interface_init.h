@@ -51,11 +51,11 @@
 
 /* Map task id to printable name. */
 const task_info_t tasks_info[] = {
-  {0, TASK_UNKNOWN, 0, "TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD, qUEUEsIZE)                                    \
-  {tHREADiD##_THREAD, TASK_UNKNOWN, qUEUEsIZE, #tHREADiD},
+  {0, TASK_UNKNOWN, 0, 0, "TASK_UNKNOWN"},
+#define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE)                                    \
+  {tHREADiD##_THREAD, TASK_UNKNOWN, pRIO, qUEUEsIZE, #tHREADiD},
 #define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE)                           \
-  {sUBtASKiD##_THREAD, tHREADiD##_THREAD, qUEUEsIZE, #sUBtASKiD},
+  {sUBtASKiD##_THREAD, tHREADiD##_THREAD, 0, qUEUEsIZE, #sUBtASKiD},
 #include <tasks_def.h>
 #undef SUB_TASK_DEF
 #undef TASK_DEF
@@ -63,8 +63,8 @@ const task_info_t tasks_info[] = {
 
 /* Map message id to message information */
 const message_info_t messages_info[] = {
-#define MESSAGE_DEF(iD, sTRUCT, fIELDnAME)                               \
-  {iD, sizeof(sTRUCT), #iD},
+#define MESSAGE_DEF(iD, pRIO, sTRUCT, fIELDnAME)                               \
+  {iD, pRIO, sizeof(sTRUCT), #iD},
 #include <messages_def.h>
 #undef MESSAGE_DEF
 };

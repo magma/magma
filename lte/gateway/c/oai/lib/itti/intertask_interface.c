@@ -94,6 +94,7 @@ typedef struct message_list_s {
   MessageDef *msg; ///< Pointer to the message
 
   message_number_t message_number; ///< Unique message number
+  uint32_t message_priority;       ///< Message priority
 } message_list_t;
 
 typedef struct thread_desc_s {
@@ -219,6 +220,16 @@ static inline message_number_t itti_increment_message_number(void)
    * * * This can be done without mutex.
    */
   return __sync_fetch_and_add(&itti_desc.message_number, 1);
+}
+
+static inline uint32_t itti_get_message_priority(MessagesIds message_id)
+{
+  AssertFatal(
+    message_id < itti_desc.messages_id_max,
+    "Message id (%d) is out of range (%d)!\n",
+    message_id,
+    itti_desc.messages_id_max);
+  return (itti_desc.messages_info[message_id].priority);
 }
 
 const char *itti_get_message_name(MessagesIds message_id)
@@ -365,6 +376,7 @@ int itti_send_msg_to_task(
   thread_id_t destination_thread_id;
   task_id_t origin_task_id;
   message_list_t *new;
+  uint32_t priority;
   message_number_t message_number;
   uint32_t message_id;
 
@@ -384,6 +396,7 @@ int itti_send_msg_to_task(
     message_id,
     itti_desc.messages_id_max);
   origin_task_id = ITTI_MSG_ORIGIN_ID(message);
+  priority = itti_get_message_priority(message_id);
   /*
    * Increment the global message number
    */
@@ -397,10 +410,11 @@ int itti_send_msg_to_task(
       itti_desc.threads[destination_thread_id].task_state == TASK_STATE_ENDED) {
       ITTI_DEBUG(
         ITTI_DEBUG_ISSUES,
-        " Message %s, number %lu can not be sent from %s to "
+        " Message %s, number %lu with priority %d can not be sent from %s to "
         "queue (%u:%s), ended destination task!\n",
         itti_desc.messages_info[message_id].name,
         message_number,
+        priority,
         itti_get_task_name(origin_task_id),
         destination_task_id,
         itti_get_task_name(destination_task_id));
@@ -430,6 +444,7 @@ int itti_send_msg_to_task(
        */
       new->msg = message;
       new->message_number = message_number;
+      new->message_priority = priority;
       /*
        * Enqueue message in destination task queue
        */
@@ -460,10 +475,11 @@ int itti_send_msg_to_task(
 
       ITTI_DEBUG(
         ITTI_DEBUG_SEND,
-        " Message %s, number %lu successfully sent from %s to "
+        " Message %s, number %lu with priority %d successfully sent from %s to "
         "queue (%u:%s)\n",
         itti_desc.messages_info[message_id].name,
         message_number,
+        priority,
         itti_get_task_name(origin_task_id),
         destination_task_id,
         itti_get_task_name(destination_task_id));

@@ -72,7 +72,7 @@
 
 /* This enum defines messages ids. Each one is unique. */
 typedef enum {
-#define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) iD,
+#define MESSAGE_DEF(iD, pRIO, sTRUCT, fIELDnAME) iD,
 #include <messages_def.h>
 #undef MESSAGE_DEF
 
@@ -83,7 +83,7 @@ typedef enum {
 typedef enum {
   THREAD_NULL = 0,
 
-#define TASK_DEF(tHREADiD, qUEUEsIZE) THREAD_##tHREADiD,
+#define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE) THREAD_##tHREADiD,
 #define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE)
 #include <tasks_def.h>
 #undef SUB_TASK_DEF
@@ -95,7 +95,7 @@ typedef enum {
 
 //! Sub-tasks id, to defined offset form thread id
 typedef enum {
-#define TASK_DEF(tHREADiD, qUEUEsIZE)                                    \
+#define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE)                                    \
   tHREADiD##_THREAD = THREAD_##tHREADiD,
 #define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE)                           \
   sUBtASKiD##_THREAD = THREAD_##tHREADiD,
@@ -108,7 +108,7 @@ typedef enum {
 typedef enum {
   TASK_UNKNOWN = 0,
 
-#define TASK_DEF(tHREADiD, qUEUEsIZE) tHREADiD,
+#define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE) tHREADiD,
 #define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE) sUBtASKiD,
 #include <tasks_def.h>
 #undef SUB_TASK_DEF
@@ -119,7 +119,7 @@ typedef enum {
 } task_id_t;
 
 typedef union msg_s {
-#define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) sTRUCT fIELDnAME;
+#define MESSAGE_DEF(iD, pRIO, sTRUCT, fIELDnAME) sTRUCT fIELDnAME;
 #include <messages_def.h>
 #undef MESSAGE_DEF
 } msg_t;

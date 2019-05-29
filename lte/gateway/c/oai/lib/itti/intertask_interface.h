@@ -63,17 +63,39 @@ struct epoll_event;
 typedef unsigned long message_number_t;
 #define MESSAGE_NUMBER_SIZE (sizeof(unsigned long))
 
+typedef enum message_priorities_e {
+  MESSAGE_PRIORITY_MAX = 100,
+  MESSAGE_PRIORITY_MAX_LEAST = 85,
+  MESSAGE_PRIORITY_MED_PLUS = 70,
+  MESSAGE_PRIORITY_MED = 55,
+  MESSAGE_PRIORITY_MED_LEAST = 40,
+  MESSAGE_PRIORITY_MIN_PLUS = 25,
+  MESSAGE_PRIORITY_MIN = 10,
+} message_priorities_t;
+
 typedef struct message_info_s {
   task_id_t id;
+  message_priorities_t priority;
   /* Message payload size */
   MessageHeaderSize size;
   /* Printable name */
   const char *const name;
 } message_info_t;
 
+typedef enum task_priorities_e {
+  TASK_PRIORITY_MAX = 100,
+  TASK_PRIORITY_MAX_LEAST = 85,
+  TASK_PRIORITY_MED_PLUS = 70,
+  TASK_PRIORITY_MED = 55,
+  TASK_PRIORITY_MED_LEAST = 40,
+  TASK_PRIORITY_MIN_PLUS = 25,
+  TASK_PRIORITY_MIN = 10,
+} task_priorities_t;
+
 typedef struct task_info_s {
   thread_id_t thread;
   task_id_t parent_task;
+  task_priorities_t priority;
   unsigned int queue_size;
   /* Printable name */
   const char *const name;
