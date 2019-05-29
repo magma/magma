@@ -351,7 +351,7 @@ int s11_sgw_handle_create_session_request(
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
-  return itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_SPGW_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -592,7 +592,7 @@ int s11_sgw_handle_delete_session_request(
   DevAssert(NW_OK == rc);
   rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
   DevAssert(NW_OK == rc);
-  return itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_SPGW_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
