@@ -148,15 +148,8 @@ int _send_pcrf_bearer_actv_rsp(
         sizeof(bearer_qos_t));
     }
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 S11_PCRF_BEARER_ACTV_RSP teid %u",
-    s11_nw_init_actv_bearer_rsp->teid);
-
-  OAILOG_INFO(LOG_MME_APP,"Sending create_dedicated_bearer_rsp to SGW with EBI %d %d\n",
+  OAILOG_INFO(
+    LOG_MME_APP,"Sending create_dedicated_bearer_rsp to SGW with EBI %d %d\n",
     ebi,s11_nw_init_actv_bearer_rsp->bearer_contexts
         .bearer_contexts[msg_bearer_index]
         .eps_bearer_id);
@@ -2804,18 +2797,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
       &nw_init_bearer_actv_req_p->pco);
   }
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "0 MME_APP_CREATE_DEDICATED_BEARER_REQ mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-    " qci %u ebi %u cid %u",
-    MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).ue_id,
-    dedicated_bc->qci,
-    dedicated_bc->ebi,
-    cid);
-
   OAILOG_INFO(
     LOG_MME_APP,
     "Sending MME_APP_CREATE_DEDICATED_BEARER_REQ to NAS with UE ID"
@@ -2896,7 +2877,7 @@ void _send_delete_dedicated_bearer_rsp(
 
 
 /**
- * This Function handles PCRF initiated
+ * This Function handles NW initiated
  * Dedicated bearer Deactivation Request message from SGW
  */
 void mme_app_handle_nw_init_bearer_deactv_req(
@@ -3053,14 +3034,6 @@ void mme_app_handle_erab_rel_cmd(
       itti_erab_rel_cmd->nas_msg;
     itti_erab_rel_cmd->nas_msg = NULL;
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S1AP_MME,
-      NULL,
-      0,
-      "0 S1AP_E_RAB_REL_CMD ue id " MME_UE_S1AP_ID_FMT
-      ue_context_p->mme_ue_s1ap_id,
-      itti_erab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id);
     OAILOG_INFO(
       LOG_MME_APP,
       "Sending ERAB REL CMD to S1AP with UE ID %d and EBI %d",
@@ -3088,7 +3061,7 @@ void mme_app_handle_e_rab_rel_rsp(
     &mme_app_desc.mme_ue_contexts, e_rab_rel_rsp->mme_ue_s1ap_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",
@@ -3127,7 +3100,7 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
     &mme_app_desc.mme_ue_contexts, delete_dedicated_bearer_rsp->ue_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",
@@ -3160,7 +3133,7 @@ void mme_app_handle_delete_dedicated_bearer_rej(
     &mme_app_desc.mme_ue_contexts, delete_dedicated_bearer_rej->ue_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",

@@ -2790,7 +2790,7 @@ int s1ap_mme_handle_erab_rel_response(
     (ue_ref_p = s1ap_state_get_ue_mmeid(
        state, (uint32_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id)) ==
     NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
       (mme_ue_s1ap_id_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id);
@@ -2798,8 +2798,9 @@ int s1ap_mme_handle_erab_rel_response(
   }
 
   if (
-    ue_ref_p->enb_ue_s1ap_id != s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID) {
-    OAILOG_DEBUG(
+    ue_ref_p->enb_ue_s1ap_id !=
+      s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID) {
+    OAILOG_ERROR(
       LOG_S1AP,
       "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
       ", received: " ENB_UE_S1AP_ID_FMT "\n",
@@ -2853,13 +2854,6 @@ int s1ap_mme_handle_erab_rel_response(
         1;
     }
   }
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_S1AP_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 S1AP_E_RAB_SETUP_RSP mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " ");
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }

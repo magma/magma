@@ -876,14 +876,6 @@ void nas_itti_deactivate_eps_bearer_context(
   MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).s_gw_teid_s11_s4 =
     s_gw_teid_s11_s4;
   MME_APP_DELETE_DEDICATED_BEARER_RSP(message_p).no_of_bearers = 1;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 MME_APP_CREATE_DEDICATED_BEARER_RSP ue id " MME_UE_S1AP_ID_FMT " ebi %u",
-    ue_idP,
-    ebiP);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
@@ -905,14 +897,6 @@ void nas_itti_dedicated_eps_bearer_deactivation_reject(
     delete_default_bearer;
   MME_APP_DELETE_DEDICATED_BEARER_REJ(message_p).s_gw_teid_s11_s4 =
     s_gw_teid_s11_s4;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_MME,
-    MSC_MMEAPP_MME,
-    NULL,
-    0,
-    "0 MME_APP_DELETE_DEDICATED_BEARER_REJ ue id " MME_UE_S1AP_ID_FMT " ebi %u",
-    ue_idP,
-    ebiP);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }

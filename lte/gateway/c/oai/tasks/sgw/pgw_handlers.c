@@ -560,7 +560,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     itti_alloc_new_message(TASK_SPGW_APP,
       S5_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   if (message_p == NULL) {
-    OAILOG_INFO(
+    OAILOG_ERROR(
     LOG_PGW_APP,
     "itti_alloc_new_message failed for S5_NW_INITIATED_DEACTIV_BEARER_REQ\n");
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);

@@ -1045,15 +1045,6 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
   const enb_ue_s1ap_id_t enb_ue_s1ap_id = e_rab_rel_cmd->enb_ue_s1ap_id;
   const mme_ue_s1ap_id_t ue_id = e_rab_rel_cmd->mme_ue_s1ap_id;
 
-  /*hashtable_ts_get(
-    &g_s1ap_mme_id2assoc_id_coll, (const hash_key_t) ue_id, (void **) &id);
-  if (id) {
-    sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
-    enb_description_t *enb_ref = s1ap_is_enb_assoc_id_in_list(sctp_assoc_id);
-    if (enb_ref) {
-      ue_ref = s1ap_is_ue_enb_id_in_list(enb_ref, enb_ue_s1ap_id);
-    }
-  }*/
   hashtable_ts_get(
     &state->mmeid2associd, (const hash_key_t) ue_id, (void **) &id);
   if (id) {
@@ -1063,17 +1054,15 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       ue_ref = s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
     }
   }
-  // TODO remove soon:
   if (!ue_ref) {
     ue_ref = s1ap_state_get_ue_mmeid(state, ue_id);
   }
-  // finally!
   if (!ue_ref) {
     /*
      * If the UE-associated logical S1-connection is not established,
-     * * * * the MME shall allocate a unique MME UE S1AP ID to be used for the UE.
+     * the MME shall allocate a unique MME UE S1AP ID to be used for the UE.
      */
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_S1AP,
       "Unknown UE MME ID " MME_UE_S1AP_ID_FMT
       ", This case is not handled right now\n",
@@ -1096,12 +1085,12 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
      */
     e_rabreleasecmdies->mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
     e_rabreleasecmdies->eNB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
-    
-   // e_rabreleasecmdies->uEaggregateMaximumBitrate = NULL;
+    // e_rabreleasecmdies->uEaggregateMaximumBitrate = NULL;
     /*
      * Fill in the NAS pdu
      */
-      e_rabreleasecmdies->presenceMask |= S1AP_E_RABRELEASECOMMANDIES_NAS_PDU_PRESENT; 
+    e_rabreleasecmdies->presenceMask |=
+      S1AP_E_RABRELEASECOMMANDIES_NAS_PDU_PRESENT;
 
     OCTET_STRING_fromBuf(
       &e_rabreleasecmdies->nas_pdu,
@@ -1141,16 +1130,6 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
       (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
       (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID);
-    MSC_LOG_TX_MESSAGE(
-      MSC_S1AP_MME,
-      MSC_S1AP_ENB,
-      NULL,
-      0,
-      "0 E_RABrelease command/initiatingMessage mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-      " enb_ue_s1ap_id" ENB_UE_S1AP_ID_FMT " nas length %u",
-      (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
-      (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID,
-      length);
     bstring b = blk2bstr(buffer_p, length);
     s1ap_mme_itti_send_sctp_request(
       &b,

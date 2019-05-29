@@ -888,16 +888,6 @@ static int _emm_cn_deactivate_dedicated_bearer_req(
     msg->ebi,
     sizeof(ebi_t));
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_ESM_MME,
-    NULL,
-    0,
-    "0 ESM_DEDICATED_EPS_BEARER_CONTEXT_DEACTIVATE_REQ ue id " MME_UE_S1AP_ID_FMT
-    " ebi %u",
-    esm_sap.ue_id,
-    esm_sap.data.eps_dedicated_bearer_context_deactivate.ebi);
-
   rc = esm_sap_send(&esm_sap);
 
   unlock_ue_contexts(ue_mm_context);

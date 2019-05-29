@@ -460,7 +460,8 @@ int mme_app_handle_s6a_cancel_location_req(
       // Initiate Implicit Detach for the UE
       // Stop Mobile reachability timer,if running
       if (
-        ue_context_p->mobile_reachability_timer.id != MME_APP_TIMER_INACTIVE_ID) {
+        ue_context_p->mobile_reachability_timer.id !=
+          MME_APP_TIMER_INACTIVE_ID) {
         if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
           OAILOG_ERROR(
             LOG_MME_APP,

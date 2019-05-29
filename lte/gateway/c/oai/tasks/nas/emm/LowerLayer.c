@@ -463,15 +463,6 @@ int lowerlayer_deactivate_bearer_req(
    */
   emm_as_set_security_data(
     &emm_sap.u.emm_as.u.deactivate_bearer_context_req.sctx, sctx, false, true);
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "EMMAS_ERAB_SETUP_REQ  (STATUS) ue id " MME_UE_S1AP_ID_FMT
-    " ebi %u gbr_dl %" PRIu64 " gbr_ul %" PRIu64 " ",
-    ue_id,
-    ebi);
   rc = emm_sap_send(&emm_sap);
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
