@@ -2,6 +2,7 @@ include_directories("${PROJECT_BINARY_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}/service303")
 
 find_package(Protobuf REQUIRED)
+add_compile_options(-std=c++11)
 
 # compile the needed protos
 set(S303_ORC8R_CPP_PROTOS service303 common metricsd)

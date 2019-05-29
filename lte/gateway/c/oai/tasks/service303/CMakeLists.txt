@@ -1,4 +1,5 @@
 find_package(Protobuf REQUIRED)
+add_compile_options(-std=c++11)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
