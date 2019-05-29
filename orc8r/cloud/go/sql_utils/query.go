@@ -10,8 +10,35 @@ package sql_utils
 
 import (
 	"fmt"
+	"os"
 	"strings"
+
+	"github.com/Masterminds/squirrel"
 )
+
+const (
+	postgresDialect = "psql"
+	mysqlDialect    = "mysql"
+)
+
+// GetSqlBuilder returns a squirrel Builder for the configured SQL dialect as
+// found in the SQL_DIALECT env var.
+func GetSqlBuilder() squirrel.StatementBuilderType {
+	dialect, envFound := os.LookupEnv("SQL_DIALECT")
+	// Default to postgresql
+	if !envFound {
+		return squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	}
+
+	switch dialect {
+	case postgresDialect:
+		return squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
+	case mysqlDialect:
+		return squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)
+	default:
+		panic(fmt.Sprintf("unsupported sql dialect %s", dialect))
+	}
+}
 
 // GetPlaceholderArgList returns a string
 // "(${startIdx}, ${startIdx+1}, ..., ${startIdx+numArgs-1})"

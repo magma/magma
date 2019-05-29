@@ -8,6 +8,7 @@ module magma/orc8r/cloud/go
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
+	github.com/Masterminds/squirrel v1.1.0
 	github.com/aws/aws-sdk-go v1.16.19
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142

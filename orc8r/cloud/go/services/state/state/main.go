@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/servicers"
+	"magma/orc8r/cloud/go/sql_utils"
 
 	"github.com/golang/glog"
 )
@@ -32,7 +33,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-	store := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db)
+	store := blobstore.NewSQLBlobStorageFactory(state.DBTableName, db, sql_utils.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing state database: %s", err)
