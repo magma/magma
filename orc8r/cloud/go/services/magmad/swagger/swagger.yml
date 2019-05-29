@@ -368,6 +368,13 @@ definitions:
         minLength: 1
         example: SampleNetwork
         x-nullable: false
+      features:
+        type: object
+        additionalProperties:
+          type: string
+        example:
+          featureName1: featureProp1
+          featureName2: featureProp2
   hw_gateway_id:
     type: object
     required:
