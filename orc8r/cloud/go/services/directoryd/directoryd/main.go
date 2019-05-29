@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
+	"magma/orc8r/cloud/go/sql_utils"
 
 	"github.com/golang/glog"
 )
@@ -29,7 +30,7 @@ func main() {
 	glog.V(2).Info("Init Directory Service...")
 
 	// Init Datastore
-	db, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	db, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sql_utils.GetSqlBuilder())
 	if err != nil {
 		glog.Errorf("Failed to initialize datastore: %s", err)
 	}

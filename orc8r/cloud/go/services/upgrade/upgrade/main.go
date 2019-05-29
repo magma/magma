@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/protos"
 	"magma/orc8r/cloud/go/services/upgrade/servicers"
+	"magma/orc8r/cloud/go/sql_utils"
 )
 
 func main() {
@@ -27,7 +28,7 @@ func main() {
 	}
 
 	// Init the Datastore
-	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sql_utils.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}

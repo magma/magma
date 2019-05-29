@@ -27,6 +27,7 @@ import (
 	"magma/orc8r/cloud/go/services/checkind/metrics"
 	"magma/orc8r/cloud/go/services/checkind/servicers"
 	"magma/orc8r/cloud/go/services/checkind/store"
+	"magma/orc8r/cloud/go/sql_utils"
 )
 
 const (
@@ -43,7 +44,7 @@ func main() {
 
 	// Init the Datastore
 	ds, err :=
-		datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+		datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sql_utils.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}
