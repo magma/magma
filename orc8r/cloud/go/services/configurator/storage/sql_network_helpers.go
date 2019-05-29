@@ -214,13 +214,18 @@ func getNetworkExecTemplateArgs(update NetworkUpdateCriteria) networkExecTemplat
 	}
 	fields = append(fields, "version")
 
-	ret.Fields = fmt.Sprintf("(%s)", strings.Join(fields, ", "))
+	if len(fields) > 1 {
+		ret.Fields = fmt.Sprintf("(%s)", strings.Join(fields, ", "))
+	} else {
+		ret.Fields = fmt.Sprintf("%s", strings.Join(fields, ", "))
+	}
+
 	ret.FieldsPlaceholder = sql_utils.GetPlaceholderArgListWithSuffix(
 		1,
 		len(fields)-1,
 		fmt.Sprintf("%s.version + 1", networksTable),
 	)
-	ret.IDPlaceholder = fmt.Sprintf("$%d", len(fields)+1)
+	ret.IDPlaceholder = fmt.Sprintf("$%d", len(fields))
 
 	return ret
 }

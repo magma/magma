@@ -393,7 +393,7 @@ func getUpdateEntityExecTemplateArgsAndSQLArgs(pk string, update EntityUpdateCri
 		len(fields)-1,
 		"version + 1",
 	)
-	tmplArgs.ConditionPlaceholder = fmt.Sprintf("$%d", len(fields)+1)
+	tmplArgs.ConditionPlaceholder = fmt.Sprintf("$%d", len(fields))
 
 	args = append(args, pk)
 	return tmplArgs, args
