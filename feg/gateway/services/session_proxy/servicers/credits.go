@@ -239,7 +239,7 @@ func addMissingResponses(
 	for _, ccr := range leftoverRequests {
 		responses = append(responses, &protos.CreditUpdateResponse{
 			Success:     false,
-			Sid:         addPrefix(ccr.IMSI),
+			Sid:         addSidPrefix(ccr.IMSI),
 			ChargingKey: ccr.Credits[0].RatingGroup,
 		})
 		metrics.UpdateGyRecentRequestMetrics(fmt.Errorf("Gy update failure"))
@@ -253,7 +253,7 @@ func getSingleCreditResponsesFromCCA(
 	request *gy.CreditControlRequest,
 ) *protos.CreditUpdateResponse {
 	success := answer.ResultCode == diameter.SuccessCode
-	imsi := addPrefix(request.IMSI)
+	imsi := addSidPrefix(request.IMSI)
 	if len(answer.Credits) == 0 {
 		return &protos.CreditUpdateResponse{
 			Success: false,
@@ -283,7 +283,7 @@ func getInitialCreditResponsesFromCCA(
 		success := credit.ResultCode == diameter.SuccessCode || credit.ResultCode == 0
 		response := &protos.CreditUpdateResponse{
 			Success:     success,
-			Sid:         addPrefix(request.IMSI),
+			Sid:         addSidPrefix(request.IMSI),
 			ChargingKey: credit.RatingGroup,
 			Credit:      getSingleChargingCreditFromCCA(credit),
 		}
@@ -313,7 +313,7 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 		requests = append(requests, &gy.CreditControlRequest{
 			SessionID:     update.SessionId,
 			RequestNumber: update.RequestNumber,
-			IMSI:          stripPrefix(update.Sid),
+			IMSI:          removeSidPrefix(update.Sid),
 			Msisdn:        update.Msisdn,
 			UeIPV4:        update.UeIpv4,
 			SpgwIPV4:      update.SpgwIpv4,
@@ -348,7 +348,7 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 	}
 	return &gy.CreditControlRequest{
 		SessionID:     termination.SessionId,
-		IMSI:          stripPrefix(termination.Sid),
+		IMSI:          removeSidPrefix(termination.Sid),
 		Apn:           termination.Apn,
 		RequestNumber: termination.RequestNumber,
 		Credits:       usedCredits,
@@ -362,10 +362,10 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 	}
 }
 
-func stripPrefix(imsi string) string {
+func removeSidPrefix(imsi string) string {
 	return strings.TrimPrefix(imsi, "IMSI")
 }
 
-func addPrefix(imsi string) string {
+func addSidPrefix(imsi string) string {
 	return "IMSI" + imsi
 }

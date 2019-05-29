@@ -75,7 +75,7 @@ func (srv *CentralSessionController) CreateSession(
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
-	imsi := stripPrefix(request.Subscriber.Id)
+	imsi := removeSidPrefix(request.Subscriber.Id)
 	sessionID := request.SessionId
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)
@@ -195,7 +195,7 @@ func (srv *CentralSessionController) TerminateSession(
 	go func() {
 		defer wg.Done()
 		_, err := srv.sendTerminationGxRequest(
-			stripPrefix(request.Sid),
+			removeSidPrefix(request.Sid),
 			request.SessionId,
 			request.UeIpv4,
 			request.RequestNumber,
