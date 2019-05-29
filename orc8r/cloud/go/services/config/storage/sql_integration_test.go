@@ -30,7 +30,7 @@ func TestSqlConfigStorage_Integration(t *testing.T) {
 	}
 
 	// Check the contract for an empty datastore
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 	networkKeys, err := store.ListKeysForType("network", "network")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{}, networkKeys)

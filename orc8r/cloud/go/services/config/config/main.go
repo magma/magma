@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %s", err)
 	}
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	servicer := servicers.NewConfigService(store)
 	protos.RegisterConfigServiceServer(srv.GrpcServer, servicer)

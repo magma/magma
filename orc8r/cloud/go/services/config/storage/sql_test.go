@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/config/storage"
+	"magma/orc8r/cloud/go/sql_utils"
 	mstore "magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
@@ -38,7 +39,7 @@ func TestSqlConfigStorage_GetConfig(t *testing.T) {
 		)
 	mock.ExpectCommit()
 
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 	actual, err := store.GetConfig("network", "type", "key")
 	assert.NoError(t, err)
 	assert.Equal(t, &storage.ConfigValue{Value: []byte("value"), Version: 42}, actual)
@@ -64,7 +65,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 	defer db.Close()
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	// no filter
 	_, err = store.GetConfigs("network", &storage.FilterCriteria{})
@@ -154,7 +155,7 @@ func TestSqlConfigStorage_ListKeysForType(t *testing.T) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 	defer db.Close()
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	// happy path
 	mock.ExpectBegin()
@@ -189,7 +190,7 @@ func TestSqlConfigStorage_CreateConfig(t *testing.T) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 	defer db.Close()
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	// config exists already
 	mock.ExpectBegin()
@@ -252,7 +253,7 @@ func TestSqlConfigStorage_UpdateConfig(t *testing.T) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 	defer db.Close()
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	// config DNE
 	mock.ExpectBegin()
@@ -316,7 +317,7 @@ func TestSqlConfigStorage_DeleteConfig(t *testing.T) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 	defer db.Close()
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	// config DNE
 	mock.ExpectBegin()
@@ -379,7 +380,7 @@ func TestSqlConfigStorage_DeleteConfigs(t *testing.T) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 	defer db.Close()
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	// no filter
 	_, err = store.GetConfigs("network", &storage.FilterCriteria{})
@@ -440,10 +441,9 @@ func TestSqlConfigStorage_DeleteConfigsForNetwork(t *testing.T) {
 		t.Fatalf("Error opening stub DB conn: %s", err)
 	}
 	defer db.Close()
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
 
 	mock.ExpectBegin()
-	expectCreateTable(mock)
 	mock.ExpectExec("DROP TABLE IF EXISTS network_configurations").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
