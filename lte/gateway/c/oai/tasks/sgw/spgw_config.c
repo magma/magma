@@ -58,6 +58,12 @@ void spgw_config_init(spgw_config_t *config_pP)
 //------------------------------------------------------------------------------
 static int spgw_config_process(spgw_config_t *config_pP)
 {
+#if (!EMBEDDED_SGW)
+  async_system_command(
+    TASK_ASYNC_SYSTEM, SPGW_WARN_ON_ERROR, "sysctl -w net.ipv4.ip_forward=1");
+  async_system_command(TASK_ASYNC_SYSTEM, SPGW_WARN_ON_ERROR, "sync");
+#endif
+
   if (RETURNok != sgw_config_process(&config_pP->sgw_config)) {
     return RETURNerror;
   }

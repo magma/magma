@@ -93,6 +93,9 @@ typedef struct sgw_config_s {
   uint16_t udp_port_S1u_S12_S4_up;
 
   bool local_to_eNB;
+#if (!EMBEDDED_SGW)
+  log_config_t log_config;
+#endif
 
   bstring config_file;
   ovs_config_t ovs_config;

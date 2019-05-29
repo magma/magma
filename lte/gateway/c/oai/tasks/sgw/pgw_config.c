@@ -69,6 +69,18 @@ void pgw_config_init(pgw_config_t *config_pP)
 //------------------------------------------------------------------------------
 int pgw_config_process(pgw_config_t *config_pP)
 {
+#if (!EMBEDDED_SGW)
+  async_system_command(
+    TASK_ASYNC_SYSTEM, PGW_ABORT_ON_ERROR, "iptables -t mangle -F OUTPUT");
+  async_system_command(
+    TASK_ASYNC_SYSTEM, PGW_ABORT_ON_ERROR, "iptables -t mangle -F POSTROUTING");
+
+  if (config_pP->masquerade_SGI) {
+    async_system_command(
+      TASK_ASYNC_SYSTEM, PGW_ABORT_ON_ERROR, "iptables -t nat -F PREROUTING");
+  }
+#endif
+
   // Get ipv4 address
   char str[INET_ADDRSTRLEN];
   char str_sgi[INET_ADDRSTRLEN];
@@ -163,6 +175,45 @@ int pgw_config_process(pgw_config_t *config_pP)
         LOG_SPGW_APP, "ERROR in getting assigned IP block from mobilityd\n");
       return -1;
     }
+
+#if (!EMBEDDED_SGW)
+    if (config_pP->masquerade_SGI) {
+      async_system_command(
+        TASK_ASYNC_SYSTEM,
+        PGW_ABORT_ON_ERROR,
+        "iptables -t nat -I POSTROUTING -s %s/%d -o %s  ! --protocol sctp -j "
+        "SNAT --to-source %s",
+        inet_ntoa(netaddr),
+        netmask,
+        bdata(config_pP->ipv4.if_name_SGI),
+        str_sgi);
+    }
+
+    uint32_t min_mtu = config_pP->ipv4.mtu_SGI;
+    // 36 = GTPv1-U min header size
+    if ((config_pP->ipv4.mtu_S5_S8 - 36) < min_mtu) {
+      min_mtu = config_pP->ipv4.mtu_S5_S8 - 36;
+    }
+    if (config_pP->ue_tcp_mss_clamp) {
+      async_system_command(
+        TASK_ASYNC_SYSTEM,
+        PGW_ABORT_ON_ERROR,
+        "iptables -t mangle -I FORWARD -s %s/%d   -p tcp --tcp-flags SYN,RST "
+        "SYN -j TCPMSS --set-mss %u",
+        inet_ntoa(netaddr),
+        netmask,
+        min_mtu - 40);
+
+      async_system_command(
+        TASK_ASYNC_SYSTEM,
+        PGW_ABORT_ON_ERROR,
+        "iptables -t mangle -I FORWARD -d %s/%d -p tcp --tcp-flags SYN,RST SYN "
+        "-j TCPMSS --set-mss %u",
+        inet_ntoa(netaddr),
+        netmask,
+        min_mtu - 40);
+    }
+#endif
   }
 
   // TODO: Fix me: Add tc support
