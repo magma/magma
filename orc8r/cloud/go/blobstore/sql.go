@@ -24,14 +24,14 @@ import (
 
 // NewSQLBlobStorageFactory returns a BlobStorageFactory implementation which
 // will return storage APIs backed by SQL.
-func NewSQLBlobStorageFactory(tableName string, db *sql.DB, sqlBuilder sq.StatementBuilderType) BlobStorageFactory {
+func NewSQLBlobStorageFactory(tableName string, db *sql.DB, sqlBuilder sql_utils.StatementBuilder) BlobStorageFactory {
 	return &sqlBlobStoreFactory{tableName: tableName, db: db, builder: sqlBuilder}
 }
 
 type sqlBlobStoreFactory struct {
 	tableName string
 	db        *sql.DB
-	builder   sq.StatementBuilderType
+	builder   sql_utils.StatementBuilder
 }
 
 func (fact *sqlBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, error) {
@@ -61,7 +61,7 @@ func (fact *sqlBlobStoreFactory) InitializeFactory() error {
 type sqlBlobStorage struct {
 	tableName string
 	tx        *sql.Tx
-	builder   sq.StatementBuilderType
+	builder   sql_utils.StatementBuilder
 }
 
 func (store *sqlBlobStorage) Commit() error {

@@ -23,10 +23,10 @@ import (
 
 type sqlConfigStorage struct {
 	db      *sql.DB
-	builder sq.StatementBuilderType
+	builder sql_utils.StatementBuilder
 }
 
-func NewSqlConfigurationStorage(db *sql.DB, sqlBuilder sq.StatementBuilderType) ConfigurationStorage {
+func NewSqlConfigurationStorage(db *sql.DB, sqlBuilder sql_utils.StatementBuilder) ConfigurationStorage {
 	return &sqlConfigStorage{db: db, builder: sqlBuilder}
 }
 

@@ -23,10 +23,10 @@ import (
 
 type SqlDb struct {
 	db      *sql.DB
-	builder sq.StatementBuilderType
+	builder sql_utils.StatementBuilder
 }
 
-func NewSqlDb(driver string, source string, sqlBuilder sq.StatementBuilderType) (*SqlDb, error) {
+func NewSqlDb(driver string, source string, sqlBuilder sql_utils.StatementBuilder) (*SqlDb, error) {
 	db, err := sql_utils.Open(driver, source)
 	if err != nil {
 		return nil, err
