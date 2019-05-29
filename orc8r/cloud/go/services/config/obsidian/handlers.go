@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/config"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
@@ -243,6 +244,7 @@ func GetCreateGatewayConfigHandler(path string, configType string, userModel Con
 
 func handleCreateConfig(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
 	userModel = instantiateNewConvertibleUserModel(userModel)
+	glog.Errorf("Type of userMode %T value of usermodel %v", userModel, userModel)
 	if err := c.Bind(userModel); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}

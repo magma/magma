@@ -1,0 +1,152 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
+package handlers
+
+import (
+	"net/http"
+	"path"
+	"reflect"
+
+	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/protos"
+
+	"github.com/labstack/echo"
+)
+
+func instantiateUnderlyingModel(serde serde.Serde) interface{} {
+	model, _ := serde.Deserialize(nil)
+	modelType := reflect.TypeOf(model)
+	return reflect.New(modelType).Elem()
+}
+
+// GetCRUDNetworkConfigHandlers returns 4 Handlers which implement CRUD for
+// a network config.
+// Path should look like '/magma/configurator/networks/:network_id/configs/{config_type}'
+// Serde is used to serialize/deserialize the config stored
+func GetCRUDNetworkConfigHandlers(path string, serde serde.Serde) []handlers.Handler {
+	return []handlers.Handler{
+		GetCreateNetworkConfigHandler(path, serde),
+		GetReadNetworkConfigHandler(path, serde),
+		GetUpdateNetworkConfigHandler(path, serde),
+		GetDeleteNetworkConfigHandler(path),
+	}
+}
+
+func getNetworkIDAndConfigType(c echo.Context, url string) (string, string, error) {
+	networkID, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return "", "", nerr
+	}
+	configType := path.Base(url)
+	return networkID, configType, nil
+}
+
+func GetReadNetworkConfigHandler(path string, serde serde.Serde) handlers.Handler {
+	return handlers.Handler{
+		Path:    path,
+		Methods: handlers.GET,
+		HandlerFunc: func(c echo.Context) error {
+			networkID, configType, err := getNetworkIDAndConfigType(c, path)
+			if err != nil {
+				return err
+			}
+			serializedConfig, err := configurator.GetNetworkConfigsByType(networkID, configType)
+			if err != nil {
+				return handlers.HttpError(err, http.StatusBadRequest)
+			}
+			model, err := serde.Deserialize(serializedConfig)
+			if err != nil {
+				return handlers.HttpError(err, http.StatusBadRequest)
+			}
+			return c.JSON(http.StatusOK, model)
+		},
+	}
+}
+
+func GetCreateNetworkConfigHandler(path string, serde serde.Serde) handlers.Handler {
+	return handlers.Handler{
+		Path:    path,
+		Methods: handlers.POST,
+		HandlerFunc: func(c echo.Context) error {
+			return createOrUpdateNetworkConfig(c, path, serde)
+		},
+	}
+}
+
+func GetUpdateNetworkConfigHandler(path string, serde serde.Serde) handlers.Handler {
+	return handlers.Handler{
+		Path:    path,
+		Methods: handlers.PUT,
+		HandlerFunc: func(c echo.Context) error {
+			return createOrUpdateNetworkConfig(c, path, serde)
+		},
+	}
+}
+
+func GetDeleteNetworkConfigHandler(path string) handlers.Handler {
+	return handlers.Handler{
+		Path:    path,
+		Methods: handlers.DELETE,
+		HandlerFunc: func(c echo.Context) error {
+			networkID, configType, err := getNetworkIDAndConfigType(c, path)
+			if err != nil {
+				return err
+			}
+			updateCriteria := &protos.NetworkUpdateCriteria{
+				Id:              networkID,
+				ConfigsToDelete: []string{configType},
+			}
+			err = configurator.UpdateNetworks(
+				[]*protos.NetworkUpdateCriteria{updateCriteria},
+			)
+			if err != nil {
+				return handlers.HttpError(err, http.StatusBadRequest)
+			}
+			return c.NoContent(http.StatusNoContent)
+		},
+	}
+}
+
+func createOrUpdateNetworkConfig(c echo.Context, path string, serde serde.Serde) error {
+	networkID, configType, err := getNetworkIDAndConfigType(c, path)
+	if err != nil {
+		return err
+	}
+
+	configMap, err := createConfigMap(c, serde, configType)
+	if err != nil {
+		return err
+	}
+	updateCriteria := &protos.NetworkUpdateCriteria{
+		Id:                   networkID,
+		ConfigsToAddOrUpdate: configMap,
+	}
+	err = configurator.UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
+	if err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+	return c.JSON(http.StatusOK, "Created Config")
+}
+
+func createConfigMap(c echo.Context, serde serde.Serde, configType string) (map[string][]byte, error) {
+	model := instantiateUnderlyingModel(serde)
+	err := c.Bind(&model)
+	if err != nil {
+		return nil, handlers.HttpError(err, http.StatusBadRequest)
+	}
+	serializedConfig, err := serde.Serialize(model)
+	if err != nil {
+		return nil, handlers.HttpError(err, http.StatusBadRequest)
+	}
+	configMap := map[string][]byte{}
+	configMap[configType] = serializedConfig
+	return configMap, nil
+}

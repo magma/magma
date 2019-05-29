@@ -231,6 +231,16 @@ func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {
 	return operId, nil
 }
 
+func GetConfigType(c echo.Context) (string, *echo.HTTPError) {
+	configType := c.Param("config_type")
+	if configType == "" {
+		return configType, HttpError(
+			fmt.Errorf("Invalid/Missing Config Type"),
+			http.StatusBadRequest)
+	}
+	return configType, nil
+}
+
 func NetworkIdHttpErr() *echo.HTTPError {
 	return HttpError(fmt.Errorf("Missing Network ID"), http.StatusBadRequest)
 }

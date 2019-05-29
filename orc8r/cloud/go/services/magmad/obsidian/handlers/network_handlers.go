@@ -9,12 +9,11 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
@@ -63,15 +62,9 @@ func registerNetwork(c echo.Context) error {
 
 	var networkId string
 	requestedId := c.QueryParam("requested_id")
-	if len(requestedId) > 0 {
-		r, _ := regexp.Compile("^[a-z_][0-9a-z_]+$")
-		if !r.MatchString(requestedId) {
-			return handlers.HttpError(
-				fmt.Errorf("Network ID '%s' is not allowed. Network ID can only contain "+
-					"lowercase alphanumeric characters and underscore, and should start with a letter or underscore.", requestedId),
-				http.StatusBadRequest,
-			)
-		}
+	err = configuratorh.VerifyNetworkIDFormat(requestedId)
+	if err != nil {
+		return err
 	}
 	networkId, err = magmad.RegisterNetwork(magmadRecord, requestedId)
 

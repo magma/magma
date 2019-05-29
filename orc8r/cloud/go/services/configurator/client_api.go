@@ -10,6 +10,7 @@ package configurator
 
 import (
 	"context"
+	"fmt"
 
 	"magma/orc8r/cloud/go/errors"
 	commonProtos "magma/orc8r/cloud/go/protos"
@@ -83,6 +84,17 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) (map[s
 		return nil, nil, err
 	}
 	return result.Networks, result.NotFound, nil
+}
+
+func GetNetworkConfigsByType(networkID string, configType string) ([]byte, error) {
+	networks, _, err := LoadNetworks([]string{networkID}, false, true)
+	if err != nil {
+		return nil, err
+	}
+	if len(networks) == 0 {
+		return nil, fmt.Errorf("Network %s not found", networkID)
+	}
+	return networks[networkID].Configs[configType], nil
 }
 
 // CreateEntities registers the given entities and returns the created network entities

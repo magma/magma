@@ -78,7 +78,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, []byte(nil), networks[networkID1].Configs["foo"])
 	assert.Equal(t, serializedBarConfig, networks[networkID1].Configs["bar"])
 
-	// Create, Delete, Load
+	// Create, Load
 	network2 := &protos.Network{
 		Id:          networkID2,
 		Name:        "test_network2",
@@ -92,7 +92,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, 2, len(networkIDs))
 	assert.Equal(t, networkID2, networkIDs[1])
 
-	// Create, Delete, Load
+	// Delete, Load
 	err = configurator.DeleteNetworks([]string{network2.Id})
 	assert.NoError(t, err)
 
@@ -120,7 +120,7 @@ func TestConfiguratorService(t *testing.T) {
 		PhysicalId:  "5678",
 		Config:      []byte("bye"),
 	}
-	fullEntityLoadCriteria := &protos.EntityLoadCriteria{
+	fullEntityLoad := &protos.EntityLoadCriteria{
 		LoadMetadata:    true,
 		LoadAssocsTo:    true,
 		LoadAssocsFrom:  true,
@@ -137,9 +137,7 @@ func TestConfiguratorService(t *testing.T) {
 		nil,
 		nil,
 		[]*protos.EntityID{entityID1, entityID2},
-		&protos.EntityLoadCriteria{
-			LoadMetadata: true,
-		},
+		fullEntityLoad,
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
@@ -148,7 +146,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, "fooboo", entities[1].Name)
 
 	// LoadAllPerType
-	entities, err = configurator.LoadAllEntitiesInNetwork(networkID1, "foo", fullEntityLoadCriteria)
+	entities, err = configurator.LoadAllEntitiesInNetwork(networkID1, "foo", fullEntityLoad)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, "foobar", entities[0].Name)
@@ -169,7 +167,7 @@ func TestConfiguratorService(t *testing.T) {
 		strPointer("foo"),
 		nil,
 		nil,
-		fullEntityLoadCriteria,
+		fullEntityLoad,
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entities))
@@ -188,7 +186,7 @@ func TestConfiguratorService(t *testing.T) {
 		strPointer("foo"),
 		nil,
 		nil,
-		fullEntityLoadCriteria,
+		fullEntityLoad,
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(entities))

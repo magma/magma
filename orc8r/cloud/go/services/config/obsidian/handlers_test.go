@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -175,6 +176,7 @@ func TestCreateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &fooConfig{Foo: "foo", Bar: "bar"}, actual)
 
+	glog.Errorf("IGNORE REST")
 	// Validate (convert) error
 	post = `{"Val": 1}`
 	req = httptest.NewRequest(echo.PUT, "/", strings.NewReader(post))
