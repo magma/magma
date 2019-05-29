@@ -143,8 +143,15 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
           &ue_ctx_p->originating_tai,
           &ue_ctx_p->ecgi);
       } else {
-        // NAS trigger UE to re-attach for non-EPS services.
-        emm_proc_nw_initiated_detach_request(ue_id, NW_DETACH_TYPE_IMSI_DETACH);
+          if (ue_ctx_p->is_imsi_only_detach == true) {
+            OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "Already triggred Detach Request for the UE (ue_id="
+            MME_UE_S1AP_ID_FMT ") \n", ue_id);
+          } else {
+            // NAS trigger UE to re-attach for non-EPS services.
+            emm_proc_nw_initiated_detach_request(ue_id, NW_DETACH_TYPE_IMSI_DETACH);
+         }
       }
     }
     emm_context_unlock(ue_ctx_p);

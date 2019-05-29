@@ -380,6 +380,7 @@ void mme_app_handle_sgs_imsi_detach_timer_expiry(ue_mm_context_t *ue_context_p)
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->imsi);
+    free_wrapper((void **) &(ue_context_p->sgs_context));
     increment_counter(
       "sgs_imsi_detach_timer_expired",
       1,
@@ -578,6 +579,7 @@ int mme_app_handle_sgs_eps_detach_ack(
     if (ue_context_p->sgs_context != NULL) {
       // free the sgs context
       mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context, imsi64);
+      free_wrapper((void **) &(ue_context_p->sgs_context));
     }
   } else {
     OAILOG_ERROR(
@@ -636,9 +638,18 @@ int mme_app_handle_sgs_imsi_detach_ack(
        SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
       (ue_context_p->detach_type ==
        SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
-      rc = itti_send_msg_to_task(
-        TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
-      ue_context_p->sgs_context->message_p = NULL;
+       if (NULL == ue_context_p->sgs_context->message_p) {
+         OAILOG_DEBUG(
+           LOG_MME_APP,
+           "Detach Accept has been sent already after ts9 timer expired for "
+           "UE id %d, ignore the IMSI detach Ack \n",
+           ue_context_p->mme_ue_s1ap_id);
+           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+       } else {
+         rc = itti_send_msg_to_task(
+           TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
+         ue_context_p->sgs_context->message_p = NULL;
+       }
       /*
        Notify S1AP to send UE Context Release Command to eNB or free s1 context locally,
        if the ue requested for combined EPS/IMSI detach
@@ -663,11 +674,12 @@ int mme_app_handle_sgs_imsi_detach_ack(
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->imsi);
+    free_wrapper((void **) &(ue_context_p->sgs_context));
   } else {
     OAILOG_ERROR(
       LOG_MME_APP,
       "SGS context not found in mme_app_handle_sgs_imsi_detach_ack\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    rc = RETURNerror;
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

@@ -1558,10 +1558,9 @@ static int _emm_as_data_req(
         nas_msg.header.sequence_number);
     } else {
       OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "Security context is NULL for UE -> %d\n",
-        msg->ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM,RETURNerror);
+        LOG_NAS_EMM, "Security context is NULL for UE -> %d\n", msg->ue_id);
+      unlock_ue_contexts(ue_mm_context);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
 
     if (!is_encoded) {
@@ -1603,9 +1602,11 @@ static int _emm_as_data_req(
       */
       if (
         (msg->nas_info == EMM_AS_NAS_DATA_TAU) &&
-        !(emm_ctx->csfbparams.newTmsiAllocated)) {
-        as_msg->err_code = AS_TERMINATED_NAS;
-      } else {
+        !(emm_ctx->csfbparams.newTmsiAllocated) &&
+        !(emm_ctx->csfbparams.tau_active_flag)) {
+          as_msg->err_code = AS_TERMINATED_NAS;
+      }
+      else {
         as_msg->err_code = AS_SUCCESS;
       }
       unlock_ue_contexts(ue_mm_context);
