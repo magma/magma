@@ -9,82 +9,60 @@
 package storage
 
 import (
-	"bytes"
 	"database/sql"
-	"errors"
 	"fmt"
 	"sort"
-	"strings"
-	"text/template"
 
 	"magma/orc8r/cloud/go/sql_utils"
 
+	sq "github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
-type networkQueryArgs struct {
-	Fields, TableName, JoinQuery, IdList string
-}
-
-func getNetworkQuery(ids []string, criteria NetworkLoadCriteria) (string, error) {
-	// SELECT cfg_networks.id, cfg_networks.name, cfg_networks.description cfg_network_configs.type, cfg_network_configs.value
-	// FROM cfg_networks
-	// [[ LEFT JOIN cfg_network_configs ON cfg_networks.id = cfg_network_configs.network_id ]]
-	// WHERE cfg_networks.id IN (id list)
-	queryTemplate := template.Must(template.New("nw_query").Parse(
-		"SELECT {{.Fields}} FROM {{.TableName}} " +
-			"{{.JoinQuery}} " +
-			"WHERE {{.TableName}}.id IN {{.IdList}}",
-	))
-	args := getNetworkQueryArgs(ids, criteria)
-
-	buf := new(bytes.Buffer)
-	err := queryTemplate.Execute(buf, args)
-	if err != nil {
-		return "", fmt.Errorf("failed to format network query: %s", err)
-	}
-	return buf.String(), nil
-}
-
-func getAllNetworksQuery(criteria NetworkLoadCriteria, idsToExlude []string) (string, error) {
-	// SELECT cfg_networks.id, cfg_networks.name, cfg_networks.description cfg_network_configs.type, cfg_network_configs.value
-	// FROM cfg_networks
-	// [[ LEFT JOIN cfg_network_configs ON cfg_networks.id = cfg_network_configs.network_id ]]
-	// WHERE cfg_networks.id NOT IN (id list)
-	queryTemplate := template.Must(template.New("nw_query").Parse(
-		"SELECT {{.Fields}} FROM {{.TableName}} " +
-			"{{.JoinQuery}} " +
-			"WHERE {{.TableName}}.id NOT IN {{.IdList}}",
-	))
-
-	args := getNetworkQueryArgs(idsToExlude, criteria)
-	buf := new(bytes.Buffer)
-	err := queryTemplate.Execute(buf, args)
-	if err != nil {
-		return "", fmt.Errorf("failed to format network query: %s", err)
-	}
-	return buf.String(), nil
-}
-
-func getNetworkQueryArgs(ids []string, criteria NetworkLoadCriteria) networkQueryArgs {
-	ret := networkQueryArgs{
-		TableName: networksTable,
-		Fields:    fmt.Sprintf("%s.id", networksTable),
-		IdList:    sql_utils.GetPlaceholderArgList(1, len(ids)),
-	}
-
+func getNetworkQueryColumns(criteria NetworkLoadCriteria) []string {
+	ret := []string{fmt.Sprintf("%s.id", networksTable)}
 	if criteria.LoadMetadata {
-		ret.Fields += fmt.Sprintf(", %s.name, %s.description", networksTable, networksTable)
+		ret = append(
+			ret,
+			fmt.Sprintf("%s.name", networksTable),
+			fmt.Sprintf("%s.description", networksTable),
+		)
 	}
-
 	if criteria.LoadConfigs {
-		ret.Fields += fmt.Sprintf(", %s.type, %s.value", networkConfigTable, networkConfigTable)
-		ret.JoinQuery = fmt.Sprintf("LEFT JOIN %s ON %s.network_id = %s.id", networkConfigTable, networkConfigTable, networksTable)
+		ret = append(
+			ret,
+			fmt.Sprintf("%s.type", networkConfigTable),
+			fmt.Sprintf("%s.value", networkConfigTable),
+		)
+	}
+	ret = append(ret, fmt.Sprintf("%s.version", networksTable))
+	return ret
+}
+
+func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[string]*Network, []string, error) {
+	// Pointer values because we're modifying .Config in-place
+	loadedNetworksByID := map[string]*Network{}
+	for rows.Next() {
+		nwResult, err := scanNextNetworkRow(rows, loadCriteria)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		existingNetwork, wasLoaded := loadedNetworksByID[nwResult.ID]
+		if wasLoaded {
+			for k, v := range nwResult.Configs {
+				existingNetwork.Configs[k] = v
+			}
+		} else {
+			loadedNetworksByID[nwResult.ID] = &nwResult
+		}
 	}
 
-	ret.Fields += fmt.Sprintf(", %s.version", networksTable)
-
-	return ret
+	// Sort map keys so we return deterministically
+	loadedNetworkIDs := funk.Keys(loadedNetworksByID).([]string)
+	sort.Strings(loadedNetworkIDs)
+	return loadedNetworksByID, loadedNetworkIDs, nil
 }
 
 func scanNextNetworkRow(rows *sql.Rows, criteria NetworkLoadCriteria) (Network, error) {
@@ -149,97 +127,58 @@ func validateNetworkUpdates(updates []NetworkUpdateCriteria) error {
 	return nil
 }
 
-func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria, upsertConfigStmt *sql.Stmt, deleteConfigStmt *sql.Stmt) error {
-	updNetworkQuery, updNetworkArgs, err := getNetworkUpdateExec(update)
+func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria, stmtCache *sq.StmtCache) error {
+	// Update the network table first
+	updateBuilder := store.builder.Update(networksTable).Where(sq.Eq{"id": update.ID})
+	if update.NewName != nil {
+		updateBuilder = updateBuilder.Set("name", stringPtrToVal(update.NewName))
+	}
+	if update.NewDescription != nil {
+		updateBuilder = updateBuilder.Set("description", stringPtrToVal(update.NewDescription))
+	}
+	updateBuilder = updateBuilder.Set("version", sq.Expr(fmt.Sprintf("%s.version+1", networksTable)))
+	_, err := updateBuilder.RunWith(stmtCache).Exec()
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "error updating network %s", update.ID)
 	}
 
-	_, err = store.tx.Exec(updNetworkQuery, updNetworkArgs...)
-	if err != nil {
-		return fmt.Errorf("error updating network %s: %s", update.ID, err)
-	}
-
-	// Sort config keys for deterministic behavior
+	// Sort config keys for deterministic behavior on upserts
 	configUpdateTypes := funk.Keys(update.ConfigsToAddOrUpdate).([]string)
 	sort.Strings(configUpdateTypes)
 	for _, configType := range configUpdateTypes {
 		configValue := update.ConfigsToAddOrUpdate[configType]
-		_, err := upsertConfigStmt.Exec(update.ID, configType, configValue, configValue)
+
+		// INSERT INTO %s (network_id, type, value) VALUES ($1, $2, $3)
+		// ON CONFLICT (network_id, type) DO UPDATE SET value = $4
+		_, err := store.builder.Insert(networkConfigTable).
+			Columns("network_id", "type", "value").
+			Values(update.ID, configType, configValue).
+			OnConflict(
+				[]sql_utils.UpsertValue{{Column: "value", Value: configValue}},
+				"network_id", "type",
+			).
+			RunWith(stmtCache).
+			Exec()
 		if err != nil {
-			return fmt.Errorf("error updating config %s on network %s: %s", configType, update.ID, err)
+			return errors.Wrapf(err, "error updating config %s on network %s", configType, update.ID)
 		}
 	}
+
+	// Finally delete configs
+	if funk.IsEmpty(update.ConfigsToDelete) {
+		return nil
+	}
+
+	orClause := make(sq.Or, 0, len(update.ConfigsToDelete))
 	for _, configType := range update.ConfigsToDelete {
-		_, err := deleteConfigStmt.Exec(update.ID, configType)
-		if err != nil {
-			return fmt.Errorf("error deleting config %s on network %s: %s", configType, update.ID, err)
-		}
+		orClause = append(orClause, sq.Eq{"network_id": update.ID, "type": configType})
+	}
+	_, err = store.builder.Delete(networkConfigTable).Where(orClause).RunWith(store.tx).Exec()
+	if err != nil {
+		return errors.Wrapf(err, "failed to delete configs for network %s", update.ID)
 	}
 
 	return nil
-}
-
-func getNetworkUpdateExec(update NetworkUpdateCriteria) (string, []interface{}, error) {
-	// UPDATE cfg_networks SET (name, description, version) = ($1, $2, cfg_networks.version + 1) WHERE id = $3
-	networkExecTemplate := template.Must(template.New("nw_upd_exec").Parse(
-		"UPDATE {{.TableName}} SET {{.Fields}} = {{.FieldsPlaceholder}} " +
-			"WHERE {{.TableName}}.id = {{.IDPlaceholder}}",
-	))
-	templateArgs := getNetworkExecTemplateArgs(update)
-
-	buf := new(bytes.Buffer)
-	err := networkExecTemplate.Execute(buf, templateArgs)
-	if err != nil {
-		return "", []interface{}{}, fmt.Errorf("failed to format network update query: %s", err)
-	}
-	return buf.String(), getNetworkExecQueryArgs(update), nil
-}
-
-type networkExecTemplateArgs struct {
-	TableName, Fields, FieldsPlaceholder, IDPlaceholder string
-}
-
-func getNetworkExecTemplateArgs(update NetworkUpdateCriteria) networkExecTemplateArgs {
-	ret := networkExecTemplateArgs{
-		TableName: networksTable,
-	}
-
-	fields := []string{}
-	if update.NewName != nil {
-		fields = append(fields, "name")
-	}
-	if update.NewDescription != nil {
-		fields = append(fields, "description")
-	}
-	fields = append(fields, "version")
-
-	if len(fields) > 1 {
-		ret.Fields = fmt.Sprintf("(%s)", strings.Join(fields, ", "))
-	} else {
-		ret.Fields = fmt.Sprintf("%s", strings.Join(fields, ", "))
-	}
-
-	ret.FieldsPlaceholder = sql_utils.GetPlaceholderArgListWithSuffix(
-		1,
-		len(fields)-1,
-		fmt.Sprintf("%s.version + 1", networksTable),
-	)
-	ret.IDPlaceholder = fmt.Sprintf("$%d", len(fields))
-
-	return ret
-}
-
-func getNetworkExecQueryArgs(update NetworkUpdateCriteria) []interface{} {
-	ret := []interface{}{}
-	if update.NewName != nil {
-		ret = append(ret, stringPtrToVal(update.NewName))
-	}
-	if update.NewDescription != nil {
-		ret = append(ret, stringPtrToVal(update.NewDescription))
-	}
-	ret = append(ret, update.ID)
-	return ret
 }
 
 func stringPtrToVal(in *string) interface{} {

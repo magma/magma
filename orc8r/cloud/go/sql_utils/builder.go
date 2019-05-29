@@ -16,6 +16,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
 )
 
@@ -253,6 +254,13 @@ func (mib mysqlInsertBuilder) SetMap(clauses map[string]interface{}) InsertBuild
 func (mib mysqlInsertBuilder) Select(sb squirrel.SelectBuilder) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Select(sb)
 	return mysqlInsertBuilder{newDelegate}
+}
+
+func ClearStatementCacheLogOnError(cache *squirrel.StmtCache) {
+	err := cache.Clear()
+	if err != nil {
+		glog.Errorf("error clearing statement cache in UpdateNetworks: %s", err)
+	}
 }
 
 func setValuesToUpsertClause(setValues []UpsertValue, writeSet bool) (string, []interface{}) {

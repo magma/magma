@@ -62,10 +62,7 @@ type ConfiguratorStorage interface {
 	CreateNetwork(network Network) (Network, error)
 
 	// UpdateNetworks updates a set of networks.
-	// If an error is encountered during the operation, the function will
-	// continue processing the rest of the input. Errors are collected and
-	// returned in FailedOperations at the conclusion of the function.
-	UpdateNetworks(updates []NetworkUpdateCriteria) (FailedOperations, error)
+	UpdateNetworks(updates []NetworkUpdateCriteria) error
 
 	// =======================================================================
 	// Entity Operations

@@ -110,7 +110,7 @@ func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *
 		}
 		updates = append(updates, pUpdate.ToNetworkUpdateCriteria())
 	}
-	_, err = store.UpdateNetworks(updates)
+	err = store.UpdateNetworks(updates)
 	if err != nil {
 		store.Rollback()
 		return void, err
@@ -129,7 +129,7 @@ func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *
 	for _, networkID := range req.NetworkIDs {
 		deleteRequests = append(deleteRequests, storage.NetworkUpdateCriteria{ID: networkID, DeleteNetwork: true})
 	}
-	_, err = store.UpdateNetworks(deleteRequests)
+	err = store.UpdateNetworks(deleteRequests)
 	if err != nil {
 		store.Rollback()
 		return void, err

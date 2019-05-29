@@ -37,7 +37,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{})
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sql_utils.GetSqlBuilder())
 	err = factory.InitializeServiceStorage()
 	assert.NoError(t, err)
 
@@ -103,7 +103,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "n1", loadedNetworks[0].ID)
 	assert.Equal(t, "n2", loadedNetworks[1].ID)
-	store.Commit()
+	err = store.Commit()
+	assert.NoError(t, err)
 
 	// ========================================================================
 	// Update network tests
@@ -130,9 +131,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedn2.Configs = map[string][]byte{"baz": []byte("quz")}
 	expectedn2.Version = 1
 
-	failures, err := store.UpdateNetworks(updates)
+	err = store.UpdateNetworks(updates)
 	assert.NoError(t, err)
-	assert.Equal(t, storage.FailedOperations{}, failures)
 	assert.NoError(t, store.Commit())
 
 	store, err = factory.StartTransaction(context.Background(), &storage.TxOptions{ReadOnly: true})

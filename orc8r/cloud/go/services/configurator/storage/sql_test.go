@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	"magma/orc8r/cloud/go/sql_utils"
 	storage2 "magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
@@ -243,10 +244,12 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WithArgs("n3", "hello", "world").
 				WillReturnResult(mockResult)
 
-			configStmt := m.ExpectPrepare("INSERT INTO cfg_network_configs")
-			configStmt.ExpectExec().WithArgs("n3", "baz", []byte("quz")).WillReturnResult(mockResult)
-			configStmt.ExpectExec().WithArgs("n3", "foo", []byte("bar")).WillReturnResult(mockResult)
-			configStmt.WillBeClosed()
+			m.ExpectExec("INSERT INTO cfg_network_configs").
+				WithArgs(
+					"n3", "baz", []byte("quz"),
+					"n3", "foo", []byte("bar"),
+				).
+				WillReturnResult(mockResult)
 		},
 		run: runFactory(everythingNw),
 
@@ -286,15 +289,17 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WithArgs("n5", "", "").
 				WillReturnResult(mockResult)
 
-			configStmt := m.ExpectPrepare("INSERT INTO cfg_network_configs")
-			configStmt.ExpectExec().WithArgs("n5", "baz", []byte("quz")).
+			m.ExpectExec("INSERT INTO cfg_network_configs").
+				WithArgs(
+					"n5", "baz", []byte("quz"),
+					"n5", "foo", []byte("bar"),
+				).
 				WillReturnError(errors.New("mock exec error"))
-			configStmt.WillBeClosed()
 		},
 		run: runFactory(configTableErrNw),
 
 		expectedResult: configTableErrNw,
-		expectedError:  errors.New("error inserting config baz: mock exec error"),
+		expectedError:  errors.New("error inserting network configs: mock exec error"),
 	}
 
 	networkExists := &testCase{
@@ -320,7 +325,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 	runFactory := func(updates []storage.NetworkUpdateCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.UpdateNetworks(updates)
+			return nil, store.UpdateNetworks(updates)
 		}
 	}
 
@@ -328,33 +333,28 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 	// Update only metadata of another (n2)
 	// Update and delete configs of another (n3)
 	// Fill out all fields of the update criteria (n4)
+	// Prepared statements should be cached and closed on exit
 	names := []string{"should be ignored", "name2", "name4"}
 	descs := []string{"should be ignored", "desc2", ""}
 	happyPath := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			deleteStmt := m.ExpectPrepare("DELETE FROM cfg_networks")
-			upsertStmt := m.ExpectPrepare("INSERT INTO cfg_network_configs")
-			deleteConfigStmt := m.ExpectPrepare("DELETE FROM cfg_network_configs")
+			prepWithNameAndDesc := m.ExpectPrepare("UPDATE cfg_networks").WillBeClosed()
+			prepWithNameAndDesc.ExpectExec().WithArgs(names[1], descs[1], "n2").WillReturnResult(mockResult)
 
-			deleteStmt.ExpectExec().WithArgs("n1").WillReturnResult(mockResult)
+			prepWithOnlyVersion := m.ExpectPrepare("UPDATE cfg_networks").WillBeClosed()
+			prepWithOnlyVersion.ExpectExec().WithArgs("n3").WillReturnResult(mockResult)
 
-			m.ExpectExec("UPDATE cfg_networks").WithArgs(names[1], descs[1], "n2").WillReturnResult(mockResult)
-
-			m.ExpectExec("UPDATE cfg_networks").WithArgs("n3").WillReturnResult(mockResult)
+			upsertStmt := m.ExpectPrepare("INSERT INTO cfg_network_configs").WillBeClosed()
 			upsertStmt.ExpectExec().WithArgs("n3", "baz", []byte("quz"), []byte("quz")).WillReturnResult(mockResult)
 			upsertStmt.ExpectExec().WithArgs("n3", "foo", []byte("bar"), []byte("bar")).WillReturnResult(mockResult)
-			deleteConfigStmt.ExpectExec().WithArgs("n3", "hello").WillReturnResult(mockResult)
-			deleteConfigStmt.ExpectExec().WithArgs("n3", "world").WillReturnResult(mockResult)
+			m.ExpectExec("DELETE FROM cfg_network_configs").WithArgs("n3", "hello", "n3", "world").WillReturnResult(mockResult)
 
-			m.ExpectExec("UPDATE cfg_networks").WithArgs(names[2], nil, "n4").WillReturnResult(mockResult)
+			prepWithNameAndDesc.ExpectExec().WithArgs(names[2], nil, "n4").WillReturnResult(mockResult)
 			upsertStmt.ExpectExec().WithArgs("n4", "baz", []byte("quz"), []byte("quz")).WillReturnResult(mockResult)
 			upsertStmt.ExpectExec().WithArgs("n4", "foo", []byte("bar"), []byte("bar")).WillReturnResult(mockResult)
-			deleteConfigStmt.ExpectExec().WithArgs("n4", "hello").WillReturnResult(mockResult)
-			deleteConfigStmt.ExpectExec().WithArgs("n4", "world").WillReturnResult(mockResult)
+			m.ExpectExec("DELETE FROM cfg_network_configs").WithArgs("n4", "hello", "n4", "world").WillReturnResult(mockResult)
 
-			deleteStmt.WillBeClosed()
-			upsertStmt.WillBeClosed()
-			deleteConfigStmt.WillBeClosed()
+			m.ExpectExec("DELETE FROM cfg_networks").WithArgs("n1").WillReturnResult(mockResult)
 		},
 		run: runFactory(
 			[]storage.NetworkUpdateCriteria{
@@ -380,66 +380,21 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 				},
 			},
 		),
-
-		expectedResult: storage.FailedOperations{},
 	}
 
-	// Error in 1 network should not block other networks (try with 3 networks/2 errors)
 	errorCase := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			deleteStmt := m.ExpectPrepare("DELETE FROM cfg_networks")
-			upsertStmt := m.ExpectPrepare("INSERT INTO cfg_network_configs")
-			deleteConfigStmt := m.ExpectPrepare("DELETE FROM cfg_network_configs")
-
-			deleteStmt.ExpectExec().WithArgs("n1").WillReturnError(errors.New("n1 delete error"))
-
-			m.ExpectExec("UPDATE cfg_networks").WithArgs(names[1], descs[1], "n2").WillReturnError(errors.New("n2 update error"))
-
-			m.ExpectExec("UPDATE cfg_networks").WithArgs("n3").WillReturnResult(mockResult)
-			upsertStmt.ExpectExec().WithArgs("n3", "baz", []byte("quz"), []byte("quz")).WillReturnResult(mockResult)
-			upsertStmt.ExpectExec().WithArgs("n3", "foo", []byte("bar"), []byte("bar")).WillReturnError(errors.New("n3foo update error"))
-
-			m.ExpectExec("UPDATE cfg_networks").WithArgs(names[2], nil, "n4").WillReturnResult(mockResult)
-			upsertStmt.ExpectExec().WithArgs("n4", "baz", []byte("quz"), []byte("quz")).WillReturnResult(mockResult)
-			upsertStmt.ExpectExec().WithArgs("n4", "foo", []byte("bar"), []byte("bar")).WillReturnResult(mockResult)
-			deleteConfigStmt.ExpectExec().WithArgs("n4", "hello").WillReturnResult(mockResult)
-			deleteConfigStmt.ExpectExec().WithArgs("n4", "world").WillReturnResult(mockResult)
-
-			deleteStmt.WillBeClosed()
-			upsertStmt.WillBeClosed()
-			deleteConfigStmt.WillBeClosed()
+			updateStmt := m.ExpectPrepare("UPDATE cfg_networks").WillBeClosed()
+			updateStmt.ExpectExec().WithArgs("name2", "desc2", "n2").WillReturnError(errors.New("mock update error"))
 		},
 		run: runFactory(
 			[]storage.NetworkUpdateCriteria{
 				{ID: "n1", DeleteNetwork: true},
 				{ID: "n2", NewName: &names[1], NewDescription: &descs[1]},
-				{
-					ID:              "n3",
-					ConfigsToDelete: []string{"hello", "world"},
-					ConfigsToAddOrUpdate: map[string][]byte{
-						"foo": []byte("bar"),
-						"baz": []byte("quz"),
-					},
-				},
-				{
-					ID:              "n4",
-					NewName:         &names[2],
-					NewDescription:  &descs[2],
-					ConfigsToDelete: []string{"hello", "world"},
-					ConfigsToAddOrUpdate: map[string][]byte{
-						"foo": []byte("bar"),
-						"baz": []byte("quz"),
-					},
-				},
 			},
 		),
 
-		expectedResult: storage.FailedOperations{
-			"n1": errors.New("error deleting network n1: n1 delete error"),
-			"n2": errors.New("error updating network n2: n2 update error"),
-			"n3": errors.New("error updating config foo on network n3: n3foo update error"),
-		},
-		expectedError: errors.New("some errors were encountered, see return value for details"),
+		expectedError: errors.New("error updating network n2: mock update error"),
 	}
 
 	validationFailure := &testCase{
@@ -1463,7 +1418,7 @@ func runCase(t *testing.T, test *testCase) {
 	mock.ExpectBegin()
 	test.setup(mock)
 
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{})
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sql_utils.GetSqlBuilder())
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 	actual, err := test.run(store)

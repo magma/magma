@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/sql_utils"
 	"magma/orc8r/cloud/go/storage"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -47,13 +48,14 @@ func (*DefaultIDGenerator) New() string {
 
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
 // implementation backed by a SQL database.
-func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator) ConfiguratorStorageFactory {
-	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator}
+func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator, sqlBuilder sql_utils.StatementBuilder) ConfiguratorStorageFactory {
+	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder}
 }
 
 type sqlConfiguratorStorageFactory struct {
 	db          *sql.DB
 	idGenerator IDGenerator
+	builder     sql_utils.StatementBuilder
 }
 
 func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error) {
@@ -174,10 +176,12 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	}
 
 	// Create internal network(s)
-	_, err = tx.Exec(
-		fmt.Sprintf("INSERT INTO %s (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING", networksTable),
-		InternalNetworkID, internalNetworkName, internalNetworkDescription,
-	)
+	_, err = fact.builder.Insert(networksTable).
+		Columns("id", "name", "description").
+		Values(InternalNetworkID, internalNetworkName, internalNetworkDescription).
+		OnConflict(nil, "id").
+		RunWith(tx).
+		Exec()
 	if err != nil {
 		err = fmt.Errorf("error creating internal networks: %s", err)
 		return
@@ -191,7 +195,7 @@ func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator}, nil
+	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator, builder: fact.builder}, nil
 }
 
 func getSqlOpts(opts *TxOptions) *sql.TxOptions {
@@ -204,6 +208,7 @@ func getSqlOpts(opts *TxOptions) *sql.TxOptions {
 type sqlConfiguratorStorage struct {
 	tx          *sql.Tx
 	idGenerator IDGenerator
+	builder     sql_utils.StatementBuilder
 }
 
 func (store *sqlConfiguratorStorage) Commit() error {
@@ -220,14 +225,20 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 		return emptyRet, nil
 	}
 
-	query, err := getNetworkQuery(ids, loadCriteria)
-	if err != nil {
-		return emptyRet, err
+	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
+		From(networksTable).
+		Where(sq.Eq{
+			fmt.Sprintf("%s.id", networksTable): ids,
+		})
+	if loadCriteria.LoadConfigs {
+		selectBuilder = selectBuilder.LeftJoin(
+			fmt.Sprintf(
+				"%s ON %s.network_id = %s.id",
+				networkConfigTable, networkConfigTable, networksTable,
+			),
+		)
 	}
-	queryArgs := make([]interface{}, 0, len(ids))
-	funk.ConvertSlice(ids, &queryArgs)
-
-	rows, err := store.tx.Query(query, queryArgs...)
+	rows, err := selectBuilder.RunWith(store.tx).Query()
 	if err != nil {
 		return emptyRet, fmt.Errorf("error querying for networks: %s", err)
 	}
@@ -251,15 +262,21 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCriteria) ([]Network, error) {
 	emptyNetworks := []Network{}
 	idsToExclude := []string{InternalNetworkID}
-	query, err := getAllNetworksQuery(loadCriteria, idsToExclude)
-	if err != nil {
-		return emptyNetworks, err
+
+	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
+		From(networksTable).
+		Where(sq.NotEq{
+			fmt.Sprintf("%s.id", networksTable): idsToExclude,
+		})
+	if loadCriteria.LoadConfigs {
+		selectBuilder = selectBuilder.LeftJoin(
+			fmt.Sprintf(
+				"%s ON %s.network_id = %s.id",
+				networkConfigTable, networkConfigTable, networksTable,
+			),
+		)
 	}
-
-	queryArgs := make([]interface{}, 0, len(idsToExclude))
-	funk.ConvertSlice(idsToExclude, &queryArgs)
-
-	rows, err := store.tx.Query(query, queryArgs...)
+	rows, err := selectBuilder.RunWith(store.tx).Query()
 	if err != nil {
 		return emptyNetworks, fmt.Errorf("error querying for networks: %s", err)
 	}
@@ -277,31 +294,6 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCri
 	return networks, nil
 }
 
-func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[string]*Network, []string, error) {
-	// Pointer values because we're modifying .Config in-place
-	loadedNetworksByID := map[string]*Network{}
-	for rows.Next() {
-		nwResult, err := scanNextNetworkRow(rows, loadCriteria)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		existingNetwork, wasLoaded := loadedNetworksByID[nwResult.ID]
-		if wasLoaded {
-			for k, v := range nwResult.Configs {
-				existingNetwork.Configs[k] = v
-			}
-		} else {
-			loadedNetworksByID[nwResult.ID] = &nwResult
-		}
-	}
-
-	// Sort map keys so we return deterministically
-	loadedNetworkIDs := funk.Keys(loadedNetworksByID).([]string)
-	sort.Strings(loadedNetworkIDs)
-	return loadedNetworksByID, loadedNetworkIDs, nil
-}
-
 func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, error) {
 	exists, err := store.doesNetworkExist(network.ID)
 	if err != nil {
@@ -311,9 +303,11 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 		return network, fmt.Errorf("a network with ID %s already exists", network.ID)
 	}
 
-	// Insert the network, then insert its configs
-	exec := fmt.Sprintf("INSERT INTO %s (id, name, description) VALUES ($1, $2, $3)", networksTable)
-	_, err = store.tx.Exec(exec, network.ID, network.Name, network.Description)
+	_, err = store.builder.Insert(networksTable).
+		Columns("id", "name", "description").
+		Values(network.ID, network.Name, network.Description).
+		RunWith(store.tx).
+		Exec()
 	if err != nil {
 		return network, fmt.Errorf("error inserting network: %s", err)
 	}
@@ -322,64 +316,56 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 		return network, nil
 	}
 
-	configExec := fmt.Sprintf("INSERT INTO %s (network_id, type, value) VALUES ($1, $2, $3)", networkConfigTable)
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{configExec})
-	if err != nil {
-		return network, err
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "CreateNetwork")()
-
 	// Sort config keys for deterministic behavior
 	configKeys := funk.Keys(network.Configs).([]string)
 	sort.Strings(configKeys)
+	insertBuilder := store.builder.Insert(networkConfigTable).
+		Columns("network_id", "type", "value")
 	for _, configKey := range configKeys {
-		_, err := stmts[0].Exec(network.ID, configKey, network.Configs[configKey])
-		if err != nil {
-			return network, fmt.Errorf("error inserting config %s: %s", configKey, err)
-		}
+		insertBuilder = insertBuilder.Values(network.ID, configKey, network.Configs[configKey])
+	}
+	_, err = insertBuilder.RunWith(store.tx).Exec()
+	if err != nil {
+		return network, errors.Wrap(err, "error inserting network configs")
 	}
 
 	return network, nil
 }
 
-func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCriteria) (FailedOperations, error) {
-	failures := FailedOperations{}
+func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCriteria) error {
 	if err := validateNetworkUpdates(updates); err != nil {
-		return failures, err
+		return err
 	}
 
-	// Prepare statements
-	deleteExec := fmt.Sprintf("DELETE FROM %s WHERE id = $1", networksTable)
-	upsertConfigExec := fmt.Sprintf(`
-		INSERT INTO %s (network_id, type, value) VALUES ($1, $2, $3)
-		ON CONFLICT (network_id, type) DO UPDATE SET value = $4
-	`, networkConfigTable)
-	deleteConfigExec := fmt.Sprintf("DELETE FROM %s WHERE (network_id, type) = ($1, $2)", networkConfigTable)
-	statements, err := sql_utils.PrepareStatements(store.tx, []string{deleteExec, upsertConfigExec, deleteConfigExec})
-	if err != nil {
-		return failures, err
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(statements, "UpdateNetworks")()
-
-	deleteStmt, upsertConfigStmt, deleteConfigStmt := statements[0], statements[1], statements[2]
+	networksToDelete := []string{}
+	networksToUpdate := []NetworkUpdateCriteria{}
 	for _, update := range updates {
 		if update.DeleteNetwork {
-			_, err := deleteStmt.Exec(update.ID)
-			if err != nil {
-				failures[update.ID] = fmt.Errorf("error deleting network %s: %s", update.ID, err)
-			}
+			networksToDelete = append(networksToDelete, update.ID)
 		} else {
-			err := store.updateNetwork(update, upsertConfigStmt, deleteConfigStmt)
-			if err != nil {
-				failures[update.ID] = err
-			}
+			networksToUpdate = append(networksToUpdate, update)
 		}
 	}
 
-	if funk.IsEmpty(failures) {
-		return failures, nil
+	stmtCache := sq.NewStmtCache(store.tx)
+	defer sql_utils.ClearStatementCacheLogOnError(stmtCache)
+
+	// Update networks first
+	for _, update := range networksToUpdate {
+		err := store.updateNetwork(update, stmtCache)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 	}
-	return failures, errors.New("some errors were encountered, see return value for details")
+
+	// Then delete all networks requested for deletion
+	_, err := store.builder.Delete(networksTable).Where(sq.Eq{"id": networksToDelete}).
+		RunWith(store.tx).
+		Exec()
+	if err != nil {
+		return errors.Wrap(err, "failed to delete networks")
+	}
+	return nil
 }
 
 func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error) {

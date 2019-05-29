@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/servicers"
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	"magma/orc8r/cloud/go/sql_utils"
 
 	"github.com/golang/glog"
 )
@@ -38,7 +39,7 @@ func main() {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
 
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &storage.DefaultIDGenerator{})
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &storage.DefaultIDGenerator{}, sql_utils.GetSqlBuilder())
 	err = factory.InitializeServiceStorage()
 
 	nbServicer, err := servicers.NewNorthboundConfiguratorServicer(factory)

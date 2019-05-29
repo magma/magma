@@ -26,7 +26,7 @@ func StartTestService(t *testing.T) {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
 	idGenerator := storage.DefaultIDGenerator{}
-	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator)
+	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sql_utils.GetSqlBuilder())
 	storageFactory.InitializeServiceStorage()
 
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, configurator.ServiceName)
