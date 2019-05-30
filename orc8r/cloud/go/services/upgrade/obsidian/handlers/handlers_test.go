@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
 
@@ -131,6 +132,7 @@ func TestTiers(t *testing.T) {
 	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
+	configurator_test_init.StartTestService(t)
 	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
 	registerNetworkTestCase := tests.Testcase{

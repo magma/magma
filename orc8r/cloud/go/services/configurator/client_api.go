@@ -65,6 +65,17 @@ func DeleteNetworks(networkIDs []string) error {
 	return err
 }
 
+func NetworkExists(networkID string) (bool, error) {
+	loaded, _, err := LoadNetworks([]string{networkID}, true, false)
+	if err != nil {
+		return false, err
+	}
+	if _, ok := loaded[networkID]; !ok {
+		return false, nil
+	}
+	return true, nil
+}
+
 // LoadNetworks loads networks specified by networks according to criteria specified and
 // returns the result
 func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) (map[string]*protos.Network, []string, error) {
