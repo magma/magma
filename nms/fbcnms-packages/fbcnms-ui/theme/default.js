@@ -16,6 +16,7 @@ import {
   blue05,
   blue30,
   blue60,
+  blue80,
   red,
   redwood,
   white,
@@ -29,7 +30,7 @@ export default createMuiTheme({
     primary: {
       light: blue30,
       main: blue60,
-      dark: blueGrayDark,
+      dark: blue80,
     },
     secondary: {
       main: '#606770',
