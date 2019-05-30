@@ -1008,12 +1008,17 @@ void itti_wait_tasks_end(void)
     free_wrapper((void **) &statistics);
   }
 
-  for (thread_id = THREAD_FIRST; thread_id < itti_desc.thread_max;
-       thread_id++) {
+  for (task_id = TASK_FIRST; task_id < itti_desc.task_max; task_id++) {
+    free_wrapper((void **) &itti_desc.tasks[task_id].qbmme);
+  }
+
+  for (thread_id = THREAD_FIRST; thread_id < itti_desc.thread_max; thread_id++) {
     free_wrapper((void **) &itti_desc.threads[thread_id].events);
   }
+
   free_wrapper((void **) &itti_desc.tasks);
   free_wrapper((void **) &itti_desc.threads);
+
   if (ready_tasks > 0) {
     ITTI_DEBUG(
       ITTI_DEBUG_ISSUES, " Some threads are still running, force exit\n");
