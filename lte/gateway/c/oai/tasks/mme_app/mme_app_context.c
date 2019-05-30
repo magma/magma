@@ -1994,7 +1994,7 @@ void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context_p)
 
 //------------------------------------------------------------------------------
 void mme_app_handle_s1ap_ue_context_release_req(
-  const itti_s1ap_ue_context_release_req_t const *s1ap_ue_context_release_req)
+  const itti_s1ap_ue_context_release_req_t* const s1ap_ue_context_release_req)
 
 {
   _mme_app_handle_s1ap_ue_context_release(
@@ -2005,7 +2005,7 @@ void mme_app_handle_s1ap_ue_context_release_req(
 }
 
 void mme_app_handle_s1ap_ue_context_modification_fail(
-  const itti_s1ap_ue_context_mod_resp_fail_t const *s1ap_ue_context_mod_fail)
+  const itti_s1ap_ue_context_mod_resp_fail_t *const s1ap_ue_context_mod_fail)
 //------------------------------------------------------------------------------
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -2051,7 +2051,7 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
 }
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
-  const itti_s1ap_ue_context_mod_resp_t const *s1ap_ue_context_mod_resp)
+  const itti_s1ap_ue_context_mod_resp_t *const s1ap_ue_context_mod_resp)
 //------------------------------------------------------------------------------
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -2091,7 +2091,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
 }
 //------------------------------------------------------------------------------
 void mme_app_handle_enb_deregister_ind(
-  const itti_s1ap_eNB_deregistered_ind_t const *eNB_deregistered_ind)
+  const itti_s1ap_eNB_deregistered_ind_t *const eNB_deregistered_ind)
 {
   for (int i = 0; i < eNB_deregistered_ind->nb_ue_to_deregister; i++) {
     _mme_app_handle_s1ap_ue_context_release(
