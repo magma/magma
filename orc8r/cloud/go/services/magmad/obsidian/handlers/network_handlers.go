@@ -9,11 +9,14 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
@@ -67,12 +70,28 @@ func registerNetwork(c echo.Context) error {
 		return err
 	}
 	networkId, err = magmad.RegisterNetwork(magmadRecord, requestedId)
-
 	if err != nil {
 		return handlers.HttpError(err, http.StatusConflict)
 	}
 
+	_, err = multiplexCreateNetworkIntoConfigurator(networkId, swaggerRecord)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex into configurator: %v", err), http.StatusInternalServerError)
+	}
+
 	return c.JSON(http.StatusCreated, networkId)
+}
+
+func multiplexCreateNetworkIntoConfigurator(requestedID string, swaggerRecord *magmad_models.NetworkRecord) (string, error) {
+	network := &protos.Network{
+		Name: swaggerRecord.Name,
+		Id:   requestedID,
+	}
+	createdNetworks, err := configurator.CreateNetworks([]*protos.Network{network})
+	if err != nil {
+		return "", err
+	}
+	return createdNetworks[0].Id, nil
 }
 
 func getNetwork(c echo.Context) error {
@@ -102,7 +121,29 @@ func updateNetwork(c echo.Context) error {
 	if err := swaggerRecord.ValidateModel(); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
+
+	err := multiplexUpdateNetworkIntoConfigurator(networkId, swaggerRecord)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex into configurator: %v", err), http.StatusInternalServerError)
+	}
+
 	return magmad.UpdateNetwork(networkId, swaggerRecord.ToProto())
+}
+
+func multiplexUpdateNetworkIntoConfigurator(networkID string, record *magmad_models.NetworkRecord) error {
+	exists, err := configurator.NetworkExists(networkID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		_, err := multiplexCreateNetworkIntoConfigurator(networkID, record)
+		return err
+	}
+	updateCriteria := &protos.NetworkUpdateCriteria{
+		Id:      networkID,
+		NewName: protos.GetStringWrapper(&record.Name),
+	}
+	return configurator.UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
 }
 
 func deleteNetwork(c echo.Context) error {
@@ -124,5 +165,12 @@ func deleteNetwork(c echo.Context) error {
 		// TODO: conversion based on grpc code
 		return handlers.HttpError(err, status)
 	}
+
+	// multiplex delete network into configurator
+	err = configurator.DeleteNetworks([]string{networkId})
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex into configurator: %v", err), http.StatusInternalServerError)
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }

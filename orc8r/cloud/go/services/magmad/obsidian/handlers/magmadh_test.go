@@ -18,6 +18,8 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
@@ -28,6 +30,8 @@ import (
 func TestMagmad(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 

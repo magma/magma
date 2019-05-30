@@ -20,12 +20,14 @@ import (
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 )
 
 func TestBaseNames(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	configurator_test_init.StartTestService(t)
 	magmad_test_init.StartTestService(t)
 	policydb_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
