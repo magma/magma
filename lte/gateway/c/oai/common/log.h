@@ -336,7 +336,7 @@ void log_message(
   const log_proto_t protoP,
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   ...) __attribute__((format(printf, 6, 7)));
 
 const char *const get_short_file_name(

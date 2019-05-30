@@ -176,7 +176,7 @@ void log_message_int(
   void **contextP, // Out parameter
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   va_list args);
 static void log_connect_to_server(void);
 static void log_message_finish_sync(log_queue_item_t *messageP);
@@ -1509,7 +1509,7 @@ void log_message(
   const log_proto_t protoP,
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   ...)
 {
   va_list args;
@@ -1554,7 +1554,7 @@ void log_message_int(
   void **contextP, // Out parameter
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   va_list args)
 {
   int rv = 0;
