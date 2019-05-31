@@ -36,6 +36,7 @@ require (
 	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/labstack/gommon v0.2.8 // indirect
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.0.0
 	github.com/marpaia/graphite-golang v0.0.0-20171231172105-134b9af18cf3
 	github.com/mattn/go-sqlite3 v1.10.0
