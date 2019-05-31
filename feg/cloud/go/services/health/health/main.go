@@ -20,7 +20,7 @@ import (
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 const (
@@ -35,7 +35,7 @@ func main() {
 	}
 
 	// Init the Datastore
-	healthDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sql_utils.GetSqlBuilder())
+	healthDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}
@@ -45,7 +45,7 @@ func main() {
 		log.Fatalf("Failed to initialize health store: %s", err)
 	}
 
-	clusterDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sql_utils.GetSqlBuilder())
+	clusterDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}

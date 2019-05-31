@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strings"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
@@ -235,7 +235,7 @@ func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter
 	if err != nil {
 		return ret, []string{}, errors.Wrap(err, "error querying for associations")
 	}
-	defer sql_utils.CloseRowsLogOnError(assocRows, "LoadEntities")
+	defer sqorc.CloseRowsLogOnError(assocRows, "LoadEntities")
 
 	for assocRows.Next() {
 		var fromPk, toPk string
@@ -274,7 +274,7 @@ func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedE
 		Where(sq.Eq{"pk": pksToLoad}).
 		RunWith(store.tx).
 		Query()
-	defer sql_utils.CloseRowsLogOnError(rows, "LoadEntities")
+	defer sqorc.CloseRowsLogOnError(rows, "LoadEntities")
 	if err != nil {
 		return ret, errors.Wrap(err, "failed to query for entity IDs")
 	}

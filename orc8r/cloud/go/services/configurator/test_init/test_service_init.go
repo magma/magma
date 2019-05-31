@@ -16,17 +16,17 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/servicers"
 	"magma/orc8r/cloud/go/services/configurator/storage"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
 func StartTestService(t *testing.T) {
-	db, err := sql_utils.Open("sqlite3", ":memory:")
+	db, err := sqorc.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
 	idGenerator := storage.DefaultIDGenerator{}
-	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sql_utils.GetSqlBuilder())
+	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sqorc.GetSqlBuilder())
 	storageFactory.InitializeServiceStorage()
 
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, configurator.ServiceName)

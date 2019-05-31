@@ -12,7 +12,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 
 	sq "github.com/Masterminds/squirrel"
 	_ "github.com/lib/pq"
@@ -23,11 +23,11 @@ import (
 
 type SqlDb struct {
 	db      *sql.DB
-	builder sql_utils.StatementBuilder
+	builder sqorc.StatementBuilder
 }
 
-func NewSqlDb(driver string, source string, sqlBuilder sql_utils.StatementBuilder) (*SqlDb, error) {
-	db, err := sql_utils.Open(driver, source)
+func NewSqlDb(driver string, source string, sqlBuilder sqorc.StatementBuilder) (*SqlDb, error) {
+	db, err := sqorc.Open(driver, source)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +42,10 @@ func (store *SqlDb) getInitFn(table string) func(*sql.Tx) error {
 	return func(tx *sql.Tx) error {
 		_, err := store.builder.CreateTable(table).
 			IfNotExists().
-			Column("key").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
-			Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
-			Column("generation_number").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
-			Column("deleted").Type(sql_utils.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
+			Column("key").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+			Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
+			Column("generation_number").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+			Column("deleted").Type(sqorc.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -85,7 +85,7 @@ func (store *SqlDb) Put(table string, key string, value []byte) error {
 				Exec()
 		}
 	}
-	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return err
 }
 
@@ -112,31 +112,20 @@ func (store *SqlDb) PutMany(table string, valuesToPut map[string][]byte) (map[st
 			}
 		}
 
+		// Let squirrel cache prepared statements for us on update
+		sc := sq.NewStmtCache(tx)
+		defer sqorc.ClearStatementCacheLogOnError(sc, "PutMany")
+
 		// Update existing rows
-		if !funk.IsEmpty(rowsToUpdate) {
-			// mock values for the update because we just want the sql string to
-			// prepare with the Tx
-			updateQuery, _, err := store.builder.Update(table).
-				Set("value", "?").
-				Set("generation_number", "?").
-				Where(sq.Eq{"key": "?"}).
-				ToSql()
+		for _, row := range rowsToUpdate {
+			_, err := store.builder.Update(table).
+				Set("value", row[0]).
+				Set("generation_number", row[1]).
+				Where(sq.Eq{"key": row[2]}).
+				RunWith(sc).
+				Exec()
 			if err != nil {
-				return ret, errors.Wrap(err, "failed to build update query")
-			}
-
-			stmts, err := sql_utils.PrepareStatements(tx, []string{updateQuery})
-			if err != nil {
-				return ret, errors.Wrap(err, "failed to prepare update statement")
-			}
-			defer sql_utils.GetCloseStatementsDeferFunc(stmts, "PutMany")()
-
-			updateStmt := stmts[0]
-			for _, row := range rowsToUpdate {
-				_, err := updateStmt.Exec(row[0], row[1], row[2])
-				if err != nil {
-					ret[row[2].(string)] = err
-				}
+				ret[row[2].(string)] = err
 			}
 		}
 
@@ -160,7 +149,7 @@ func (store *SqlDb) PutMany(table string, valuesToPut map[string][]byte) (map[st
 		}
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.(map[string]error), err
 }
 
@@ -179,7 +168,7 @@ func (store *SqlDb) Get(table string, key string) ([]byte, uint64, error) {
 		return ValueWrapper{Value: value, Generation: generationNumber}, err
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -191,7 +180,7 @@ func (store *SqlDb) GetMany(table string, keys []string) (map[string]ValueWrappe
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return store.getMany(tx, table, keys)
 	}
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.(map[string]ValueWrapper), err
 }
 
@@ -199,7 +188,7 @@ func (store *SqlDb) Delete(table string, key string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return store.builder.Delete(table).Where(sq.Eq{"key": key}).RunWith(tx).Exec()
 	}
-	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return err
 }
 
@@ -207,7 +196,7 @@ func (store *SqlDb) DeleteMany(table string, keys []string) (map[string]error, e
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return store.builder.Delete(table).Where(sq.Eq{"key": keys}).RunWith(tx).Exec()
 	}
-	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return map[string]error{}, err
 }
 
@@ -217,7 +206,7 @@ func (store *SqlDb) ListKeys(table string) ([]string, error) {
 		if err != nil {
 			return []string{}, errors.Wrap(err, "failed to query for keys")
 		}
-		defer sql_utils.CloseRowsLogOnError(rows, "ListKeys")
+		defer sqorc.CloseRowsLogOnError(rows, "ListKeys")
 
 		keys := []string{}
 		for rows.Next() {
@@ -230,7 +219,7 @@ func (store *SqlDb) ListKeys(table string) ([]string, error) {
 		return keys, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.([]string), err
 }
 
@@ -239,7 +228,7 @@ func (store *SqlDb) DeleteTable(table string) error {
 		return tx.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
 	}
 	// No initFn param because why would we create a table that we're dropping
-	_, err := sql_utils.ExecInTx(store.db, func(*sql.Tx) error { return nil }, txFn)
+	_, err := sqorc.ExecInTx(store.db, func(*sql.Tx) error { return nil }, txFn)
 	return err
 }
 
@@ -259,7 +248,7 @@ func (store *SqlDb) DoesKeyExist(table string, key string) (bool, error) {
 		}
 		return true, nil
 	}
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.(bool), err
 }
 
@@ -277,7 +266,7 @@ func (store *SqlDb) getMany(tx *sql.Tx, table string, keys []string) (map[string
 	if err != nil {
 		return valuesByKey, err
 	}
-	defer sql_utils.CloseRowsLogOnError(rows, "getMany")
+	defer sqorc.CloseRowsLogOnError(rows, "getMany")
 	return getSqlRowsAsMap(rows)
 }
 

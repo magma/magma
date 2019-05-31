@@ -15,7 +15,7 @@ import (
 	"sort"
 	"strings"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
@@ -195,7 +195,7 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 
 	// let squirrel cache prepared statements for us (there should only be 1)
 	sc := sq.NewStmtCache(store.tx)
-	defer sql_utils.ClearStatementCacheLogOnError(sc, "mergeGraphs")
+	defer sqorc.ClearStatementCacheLogOnError(sc, "mergeGraphs")
 
 	for _, oldGraphID := range graphIDsToChange {
 		_, err := store.builder.Update(entityTable).
@@ -362,7 +362,7 @@ func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions
 	// We'll let squirrel cache prepared statements for us (there should only
 	// be 1 in the current impl because update is all-or-nothing)
 	sc := sq.NewStmtCache(store.tx)
-	defer sql_utils.ClearStatementCacheLogOnError(sc, "updatePermissions")
+	defer sqorc.ClearStatementCacheLogOnError(sc, "updatePermissions")
 
 	for _, acl := range permissions {
 		scopeVal, err := serializeACLScope(acl.Scope)

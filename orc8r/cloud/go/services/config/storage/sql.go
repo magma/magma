@@ -14,7 +14,7 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/datastore"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
@@ -23,10 +23,10 @@ import (
 
 type sqlConfigStorage struct {
 	db      *sql.DB
-	builder sql_utils.StatementBuilder
+	builder sqorc.StatementBuilder
 }
 
-func NewSqlConfigurationStorage(db *sql.DB, sqlBuilder sql_utils.StatementBuilder) ConfigurationStorage {
+func NewSqlConfigurationStorage(db *sql.DB, sqlBuilder sqorc.StatementBuilder) ConfigurationStorage {
 	return &sqlConfigStorage{db: db, builder: sqlBuilder}
 }
 
@@ -42,10 +42,10 @@ func GetConfigTableName(networkId string) string {
 func (store *sqlConfigStorage) initTable(tx *sql.Tx, table string) error {
 	_, err := store.builder.CreateTable(table).
 		IfNotExists().
-		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("key").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
-		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("key").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		PrimaryKey("type", "key").
 		RunWith(tx).
 		Exec()
@@ -64,7 +64,7 @@ func (store *sqlConfigStorage) GetConfig(networkId string, configType string, ke
 		return &ConfigValue{Value: value, Version: version}, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 		if err != nil {
 			return nil, err
 		}
-		defer sql_utils.CloseRowsLogOnError(rows, "GetConfigs")
+		defer sqorc.CloseRowsLogOnError(rows, "GetConfigs")
 
 		scannedRows := map[storage.TypeAndKey]*ConfigValue{}
 		for rows.Next() {
@@ -105,7 +105,7 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 		return scannedRows, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +123,7 @@ func (store *sqlConfigStorage) ListKeysForType(networkId string, configType stri
 		if err != nil {
 			return nil, err
 		}
-		defer sql_utils.CloseRowsLogOnError(rows, "ListKeysForType")
+		defer sqorc.CloseRowsLogOnError(rows, "ListKeysForType")
 
 		scannedRows := make([]string, 0)
 		for rows.Next() {
@@ -137,7 +137,7 @@ func (store *sqlConfigStorage) ListKeysForType(networkId string, configType stri
 		return scannedRows, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +165,7 @@ func (store *sqlConfigStorage) CreateConfig(networkId string, configType string,
 		return nil, err
 	}
 
-	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -190,7 +190,7 @@ func (store *sqlConfigStorage) UpdateConfig(networkId string, configType string,
 		return nil, err
 	}
 
-	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -211,7 +211,7 @@ func (store *sqlConfigStorage) DeleteConfig(networkId string, configType string,
 		return nil, err
 	}
 
-	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -229,7 +229,7 @@ func (store *sqlConfigStorage) DeleteConfigs(networkId string, criteria *FilterC
 		return nil, err
 	}
 
-	_, err = sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
+	_, err = sqorc.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -240,7 +240,7 @@ func (store *sqlConfigStorage) DeleteConfigsForNetwork(networkId string) error {
 		return nil, err
 	}
 
-	_, err := sql_utils.ExecInTx(store.db, func(*sql.Tx) error { return nil }, txFn)
+	_, err := sqorc.ExecInTx(store.db, func(*sql.Tx) error { return nil }, txFn)
 	return err
 }
 

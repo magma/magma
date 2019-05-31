@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
@@ -48,14 +48,14 @@ func (*DefaultIDGenerator) New() string {
 
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
 // implementation backed by a SQL database.
-func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator, sqlBuilder sql_utils.StatementBuilder) ConfiguratorStorageFactory {
+func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator, sqlBuilder sqorc.StatementBuilder) ConfiguratorStorageFactory {
 	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder}
 }
 
 type sqlConfiguratorStorageFactory struct {
 	db          *sql.DB
 	idGenerator IDGenerator
-	builder     sql_utils.StatementBuilder
+	builder     sqorc.StatementBuilder
 }
 
 func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error) {
@@ -82,10 +82,10 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 
 	_, err = fact.builder.CreateTable(networksTable).
 		IfNotExists().
-		Column("id").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
-		Column("name").Type(sql_utils.ColumnTypeText).EndColumn().
-		Column("description").Type(sql_utils.ColumnTypeText).EndColumn().
-		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Column("id").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column("name").Type(sqorc.ColumnTypeText).EndColumn().
+		Column("description").Type(sqorc.ColumnTypeText).EndColumn().
+		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -95,9 +95,9 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 
 	_, err = fact.builder.CreateTable(networkConfigTable).
 		IfNotExists().
-		Column("network_id").Type(sql_utils.ColumnTypeText).References(networksTable, "id").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
-		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
+		Column("network_id").Type(sqorc.ColumnTypeText).References(networksTable, "id").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
+		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
 		PrimaryKey("network_id", "type").
 		RunWith(tx).
 		Exec()
@@ -110,16 +110,16 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	// This keeps index size in control and supporting table schemas simpler.
 	_, err = fact.builder.CreateTable(entityTable).
 		IfNotExists().
-		Column("pk").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
-		Column("network_id").Type(sql_utils.ColumnTypeText).References(networksTable, "id").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
-		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("key").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("graph_id").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("name").Type(sql_utils.ColumnTypeText).EndColumn().
-		Column("description").Type(sql_utils.ColumnTypeText).EndColumn().
-		Column("physical_id").Type(sql_utils.ColumnTypeText).EndColumn().
-		Column("config").Type(sql_utils.ColumnTypeBytes).EndColumn().
-		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Column("pk").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column("network_id").Type(sqorc.ColumnTypeText).References(networksTable, "id").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
+		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("key").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("graph_id").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("name").Type(sqorc.ColumnTypeText).EndColumn().
+		Column("description").Type(sqorc.ColumnTypeText).EndColumn().
+		Column("physical_id").Type(sqorc.ColumnTypeText).EndColumn().
+		Column("config").Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		Unique("network_id", "key", "type").
 		RunWith(tx).
 		Exec()
@@ -129,8 +129,8 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	}
 
 	_, err = fact.builder.CreateTable(entityAssocTable).
-		Column("from_pk").Type(sql_utils.ColumnTypeText).References(entityTable, "pk").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
-		Column("to_pk").Type(sql_utils.ColumnTypeText).References(entityTable, "pk").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
+		Column("from_pk").Type(sqorc.ColumnTypeText).References(entityTable, "pk").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
+		Column("to_pk").Type(sqorc.ColumnTypeText).References(entityTable, "pk").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
 		PrimaryKey("from_pk", "to_pk").
 		RunWith(tx).
 		Exec()
@@ -140,13 +140,13 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	}
 
 	_, err = fact.builder.CreateTable(entityAclTable).
-		Column("id").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
-		Column("entity_pk").Type(sql_utils.ColumnTypeText).References(entityTable, "pk").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
-		Column("scope").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("permission").Type(sql_utils.ColumnTypeInt).NotNull().EndColumn().
-		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("id_filter").Type(sql_utils.ColumnTypeText).EndColumn().
-		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Column("id").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column("entity_pk").Type(sqorc.ColumnTypeText).References(entityTable, "pk").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
+		Column("scope").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("permission").Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
+		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("id_filter").Type(sqorc.ColumnTypeText).EndColumn().
+		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -210,7 +210,7 @@ func getSqlOpts(opts *TxOptions) *sql.TxOptions {
 type sqlConfiguratorStorage struct {
 	tx          *sql.Tx
 	idGenerator IDGenerator
-	builder     sql_utils.StatementBuilder
+	builder     sqorc.StatementBuilder
 }
 
 func (store *sqlConfiguratorStorage) Commit() error {
@@ -244,7 +244,7 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	if err != nil {
 		return emptyRet, fmt.Errorf("error querying for networks: %s", err)
 	}
-	defer sql_utils.CloseRowsLogOnError(rows, "LoadNetworks")
+	defer sqorc.CloseRowsLogOnError(rows, "LoadNetworks")
 
 	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
 	if err != nil {
@@ -282,7 +282,7 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCri
 	if err != nil {
 		return emptyNetworks, fmt.Errorf("error querying for networks: %s", err)
 	}
-	defer sql_utils.CloseRowsLogOnError(rows, "LoadAllNetworks")
+	defer sqorc.CloseRowsLogOnError(rows, "LoadAllNetworks")
 
 	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
 	if err != nil {
@@ -350,7 +350,7 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	}
 
 	stmtCache := sq.NewStmtCache(store.tx)
-	defer sql_utils.ClearStatementCacheLogOnError(stmtCache, "UpdateNetworks")
+	defer sqorc.ClearStatementCacheLogOnError(stmtCache, "UpdateNetworks")
 
 	// Update networks first
 	for _, update := range networksToUpdate {

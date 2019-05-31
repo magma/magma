@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -33,11 +33,11 @@ func (g *mockIDGenerator) New() string {
 func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// sqlite's default behavior is to disable foreign keys (wat): https://www.sqlite.org/draft/pragma.html#pragma_foreign_keys
 	// thankfully the sqlite3 driver supports the apporpriate pragma: https://github.com/mattn/go-sqlite3/issues/255
-	db, err := sql_utils.Open("sqlite3", ":memory:?_foreign_keys=1")
+	db, err := sqorc.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sql_utils.GetSqlBuilder())
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder())
 	err = factory.InitializeServiceStorage()
 	assert.NoError(t, err)
 

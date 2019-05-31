@@ -18,7 +18,7 @@ import (
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/services/device/servicers"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/golang/glog"
 )
@@ -33,7 +33,7 @@ func main() {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
 
-	store := blobstore.NewSQLBlobStorageFactory(device.DBTableName, db, sql_utils.GetSqlBuilder())
+	store := blobstore.NewSQLBlobStorageFactory(device.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Failed to initialize device database: %s", err)

@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
@@ -1387,7 +1387,7 @@ func runCase(t *testing.T, test *testCase) {
 	mock.ExpectBegin()
 	test.setup(mock)
 
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sql_utils.GetSqlBuilder())
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder())
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 	actual, err := test.run(store)

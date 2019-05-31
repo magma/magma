@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
@@ -156,7 +156,7 @@ func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria,
 			Columns("network_id", "type", "value").
 			Values(update.ID, configType, configValue).
 			OnConflict(
-				[]sql_utils.UpsertValue{{Column: "value", Value: configValue}},
+				[]sqorc.UpsertValue{{Column: "value", Value: configValue}},
 				"network_id", "type",
 			).
 			RunWith(stmtCache).

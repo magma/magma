@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations"
 
 	"github.com/golang/glog"
@@ -77,7 +77,7 @@ var newGatewayTypesByOldKey = map[string]string{
 // Entry point for the migration. Everything runs in 1 serializable postgres
 // transaction so we don't end up in some weird half-migrated state.
 func Migrate(dbDriver string, dbSource string) error {
-	db, err := sql_utils.Open(dbDriver, dbSource)
+	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
 		return fmt.Errorf("Could not open DB connection: %s", err)
 	}
