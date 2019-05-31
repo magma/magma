@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"log"
 
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
@@ -28,7 +28,7 @@ func init() {
 
 // authRejectResponse implements handler for EAP-Response/AKA-Authentication-Reject,
 // see https://tools.ietf.org/html/rfc4187#section-9.5 for details
-func authRejectResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+func authRejectResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packet) (eap.Packet, error) {
 	var sid string
 	metrics.PeerAuthReject.Inc()
 
@@ -42,7 +42,7 @@ func authRejectResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.
 
 // string implements handler for EAP-Response/AKA-Client-Error,
 // see https://tools.ietf.org/html/rfc4187#section-9.9 for details
-func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packet) (eap.Packet, error) {
 	var (
 		sid       string
 		resultErr error
@@ -82,7 +82,7 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap
 
 // notificationResponse implements handler for EAP-Response/AKA-Notification
 // see https://tools.ietf.org/html/rfc4187#section-9.11 for details
-func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packet) (eap.Packet, error) {
 	var (
 		sid       string
 		resultErr error

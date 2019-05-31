@@ -11,4 +11,5 @@ services:
     - s6a_proxy
     - swx_proxy
     - eap_aka
+    - aaa_server
     - csfb

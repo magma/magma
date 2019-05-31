@@ -113,7 +113,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 	}
 	rawMap, ok := subscribers.(map[interface{}]interface{})
 	if !ok {
-		return nil, fmt.Errorf("Unable to convert map %v", rawMap)
+		return nil, fmt.Errorf("Unable to convert %T to map %v", subscribers, rawMap)
 	}
 	var subscriberData []*protos.SubscriberData
 	for k, v := range rawMap {

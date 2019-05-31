@@ -14,8 +14,8 @@ import (
 
 	"google.golang.org/grpc/codes"
 
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
@@ -27,7 +27,7 @@ func init() {
 
 // resyncResponse implements handler for EAP-Response/AKA-Synchronization-Failure,
 // see https://tools.ietf.org/html/rfc4187#section-9.6 for details
-func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error) {
+func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packet) (eap.Packet, error) {
 	var success bool
 	metrics.ResyncRequests.Inc()
 	defer func() {

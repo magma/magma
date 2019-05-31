@@ -23,7 +23,7 @@ magma_services:
   - health
   - swx_proxy
   - eap_aka
-  - eap_router
+  - aaa_server
 
 # List of services that don't provide service303 interface
 non_service303_services:

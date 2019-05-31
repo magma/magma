@@ -18,7 +18,8 @@ import (
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/aaa/protos"
+	eapp "magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers"
 )
 
@@ -32,7 +33,7 @@ func New() providers.Method {
 // Wrapper to provide a wrapper for GRPC Client to extend it with Cleanup
 // functionality
 type akaClient struct {
-	protos.EapServiceClient
+	eapp.EapServiceClient
 	cc *grpc.ClientConn
 }
 
@@ -51,7 +52,7 @@ func getAKAClient() (*akaClient, error) {
 		return nil, errors.New(errMsg)
 	}
 	return &akaClient{
-		protos.NewEapServiceClient(conn),
+		eapp.NewEapServiceClient(conn),
 		conn,
 	}, err
 }
