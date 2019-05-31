@@ -107,11 +107,13 @@ func getNetworkIDsNotFound(networksByID map[string]*Network, queriedIDs []string
 }
 
 func (store *sqlConfiguratorStorage) doesNetworkExist(id string) (bool, error) {
-	query := fmt.Sprintf("SELECT count(1) FROM %s WHERE id = $1", networksTable)
-	row := store.tx.QueryRow(query, id)
-
 	var count int
-	err := row.Scan(&count)
+	err := store.builder.Select("COUNT(1)").
+		From(networksTable).
+		Where(sq.Eq{"id": id}).
+		RunWith(store.tx).
+		QueryRow().
+		Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("error checking if network id %s exists: %s", id, err)
 	}
