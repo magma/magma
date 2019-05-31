@@ -8,7 +8,7 @@ LICENSE file in the root directory of this source tree.
 
 // Package eap (EAP Authenticator) provides interface to supported & registered EAP Authenticator Providers
 //
-//go:generate protoc --go_out=plugins=grpc,paths=source_relative:. protos/eap_auth.proto
+//go:generate protoc -I. -I ../aaa/protos --go_out=plugins=grpc,paths=source_relative:. protos/eap_auth.proto
 //
 package eap
 

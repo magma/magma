@@ -52,10 +52,10 @@ services:
     container_name: eap_aka
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
-  eap_router:
+  aaa_server:
     <<: *goservice
-    container_name: eap_router
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_router -logtostderr=true -v=0
+    container_name: aaa_server
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
 
   feg_hello:
     <<: *goservice

@@ -11,6 +11,7 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -87,7 +88,7 @@ func (cfgMap *ConfigMap) GetBoolParam(key string) (bool, error) {
 	return param, nil
 }
 
-func getServiceConfigImpl(moduleName string, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
+func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
 	// Filenames should be lower case
 	moduleName = strings.ToLower(moduleName)
 	serviceName = strings.ToLower(serviceName)
@@ -100,19 +101,21 @@ func getServiceConfigImpl(moduleName string, serviceName, configDir, oldConfigDi
 
 	config, err := loadYamlFile(configFileName)
 	if err != nil {
-		return config, err
+		// If error - try Override cfg
+		config = &ConfigMap{RawMap: map[interface{}]interface{}{}}
+		log.Printf("Error Loading %s configs from '%s': %v", serviceName, configFileName, err)
 	}
 
-	overrideFileName := filepath.Join(configOverrideDir, moduleName,
-		fmt.Sprintf("%s.yml", serviceName))
-	if fi, err := os.Stat(overrideFileName); err == nil && !fi.IsDir() {
-		overrides, err := loadYamlFile(overrideFileName)
-		if err != nil {
+	overrideFileName := filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
+	if fi, serr := os.Stat(overrideFileName); serr == nil && !fi.IsDir() {
+		overrides, oerr := loadYamlFile(overrideFileName)
+		if oerr != nil {
+			log.Printf("Error Loading %s Override configs from '%s': %v", serviceName, overrideFileName, oerr)
 			return config, err
 		}
 		config = updateMap(config, overrides)
 	}
-	return config, nil
+	return config, err
 }
 
 func updateMap(baseMap, overrides *ConfigMap) *ConfigMap {

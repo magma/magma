@@ -31,12 +31,12 @@ import (
 	"magma/orc8r/cloud/go/test_utils"
 )
 
-// Test EAP Router Service
-type testEapRouter struct {
+// Test AAA EAP Service
+type testAuthenticator struct {
 	supportedMethods []byte
 }
 
-func (s *testEapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
+func (s *testAuthenticator) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
 	resp, err := eap_client.HandleIdentityResponse(
 		uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
@@ -44,7 +44,7 @@ func (s *testEapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdenti
 	}
 	return resp, err
 }
-func (s *testEapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
+func (s *testAuthenticator) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
 	resp, err := eap_client.Handle(in)
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
 		err = nil
@@ -52,7 +52,7 @@ func (s *testEapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap
 	return resp, err
 
 }
-func (s *testEapRouter) SupportedMethods(ctx context.Context, in *protos.Void) (*protos.EapMethodList, error) {
+func (s *testAuthenticator) SupportedMethods(ctx context.Context, in *protos.Void) (*protos.EapMethodList, error) {
 	return &protos.EapMethodList{Methods: s.supportedMethods}, nil
 }
 
@@ -63,15 +63,15 @@ var (
 )
 
 type testEapServiceClient struct {
-	protos.EapRouterClient
+	protos.AuthenticatorClient
 }
 
 func (c testEapServiceClient) Handle(in *protos.Eap) (*protos.Eap, error) {
-	return c.EapRouterClient.Handle(context.Background(), in)
+	return c.AuthenticatorClient.Handle(context.Background(), in)
 }
 
 func (c testEapServiceClient) HandleIdentity(in *protos.EapIdentity) (*protos.Eap, error) {
-	return c.EapRouterClient.HandleIdentity(context.Background(), in)
+	return c.AuthenticatorClient.HandleIdentity(context.Background(), in)
 }
 
 func newTestEapClient(t *testing.T, addr string) testEapServiceClient {
@@ -82,7 +82,7 @@ func newTestEapClient(t *testing.T, addr string) testEapServiceClient {
 	if err != nil {
 		t.Fatalf("Client dial error: %v", err)
 	}
-	return testEapServiceClient{protos.NewEapRouterClient(conn)}
+	return testEapServiceClient{protos.NewAuthenticatorClient(conn)}
 }
 
 // TestEapAkaConcurent tests EAP AKA Provider
@@ -107,8 +107,8 @@ func TestEapAkaConcurent(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
@@ -138,8 +138,8 @@ func TestEAPPeerNak(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
@@ -183,8 +183,8 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
@@ -220,8 +220,8 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
@@ -255,8 +255,8 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())

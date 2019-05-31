@@ -45,12 +45,11 @@
     force: yes
   when: full_provision
 
-- name: Create a symlink for the envdir
+- name: Create envdir
   file:
-    src: "{{ magma_root }}/orc8r/cloud/deploy/files/envdir"
     path: /var/opt/magma/envdir
-    state: link
-    force: yes
+    state: directory
+    owner: "{{ user }}"
   when: full_provision
 
 #################################

@@ -16,21 +16,21 @@ import (
 	"testing"
 	"time"
 
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
 	eap_client "magma/feg/gateway/services/eap/client"
-	eap_protos "magma/feg/gateway/services/eap/protos"
 )
 
 // EapClient is a test EAP Client interface
 type EapClient interface {
-	Handle(msg *eap_protos.Eap) (*eap_protos.Eap, error)
+	Handle(msg *protos.Eap) (*protos.Eap, error)
 }
 
 // Auth runs EAP-AKA auth sequence for a given IMSI & sends the result on 'done' chan if not nil
 func Auth(t *testing.T, client EapClient, imsi string, iter int, done chan error) {
 	var (
 		err  error
-		peap *eap_protos.Eap
+		peap *protos.Eap
 	)
 	defer func() {
 		if done != nil {
@@ -48,8 +48,8 @@ func Auth(t *testing.T, client EapClient, imsi string, iter int, done chan error
 	}
 
 	for i := 0; i < iter; i++ {
-		eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
-		peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+		eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
+		peap, err = client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 		if err != nil {
 			err = fmt.Errorf("Error Handling Test EAP: %v", err)
 			return
@@ -61,7 +61,7 @@ func Auth(t *testing.T, client EapClient, imsi string, iter int, done chan error
 		}
 		time.Sleep(time.Duration(rand.Int63n(int64(time.Millisecond * 10))))
 		eapCtx = peap.GetCtx()
-		peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
+		peap, err = client.Handle(&protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
 		if err != nil {
 			err = fmt.Errorf("Error Handling Test Challenge EAP: %v", err)
 			return

@@ -11,10 +11,10 @@ import (
 	"reflect"
 	"testing"
 
-	"magma/feg/cloud/go/protos"
+	cp "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	eap_protos "magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	"magma/orc8r/cloud/go/test_utils"
 )
@@ -34,11 +34,11 @@ var (
 func TestAkaChallengeResp(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service testSwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	akaSrv, _ := servicers.NewEapAkaService(nil)
-	eapCtx := &eap_protos.EapContext{}
+	eapCtx := &protos.Context{}
 	// Initialize CTX
 	p, err := identityResponse(akaSrv, eapCtx, eap.Packet(testEapIdentityResp))
 	if err != nil {

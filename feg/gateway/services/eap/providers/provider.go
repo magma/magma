@@ -14,7 +14,7 @@ package providers
 import (
 	"fmt"
 
-	"magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/aaa/protos"
 )
 
 // Method is the Interface for Eap Provider
