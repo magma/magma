@@ -44,7 +44,6 @@
 #include "s6a_messages_types.h"
 #include "sctp_messages_types.h"
 #include "sgw_messages_types.h"
-#include "udp_messages_types.h"
 #include "mme_app_messages_types.h"
 #include "service303_messages_types.h"
 #include "sgs_messages_types.h"

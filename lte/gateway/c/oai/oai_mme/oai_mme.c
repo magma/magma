@@ -38,7 +38,6 @@
 
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
-#include "udp_primitives_server.h"
 #include "s1ap_mme.h"
 #include "mme_app_extern.h"
 #include "nas_defs.h"
@@ -111,7 +110,6 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
   CHECK_INIT_RETURN(nas_init(&mme_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
-  CHECK_INIT_RETURN(udp_init());
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(sgw_init(&spgw_config));
   CHECK_INIT_RETURN(pgw_init(&spgw_config));

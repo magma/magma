@@ -125,7 +125,6 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(common)
 add_subdirectory(lib)
 add_subdirectory(oai_mme)
-add_subdirectory(oai_sgw)
 add_subdirectory(tasks)
 
 if (BUILD_TESTS)
