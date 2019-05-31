@@ -43,8 +43,8 @@ func GetSqlBuilder() StatementBuilder {
 // StatementBuilder is an interface which tracks squirrel's
 // StatementBuilderType with the difference that Insert returns this package's
 // InsertBuilder interface type.
-// This interface exists to support building table creation DDL commands and
-// upsert statements for multiple dialects.
+// This interface exists to support building DDL commands and upsert statements
+// for multiple dialects.
 type StatementBuilder interface {
 	Select(columns ...string) squirrel.SelectBuilder
 	Insert(into string) InsertBuilder
@@ -60,6 +60,13 @@ type StatementBuilder interface {
 	// RunWith on this StatementBuilder due to a reflection bug that's
 	// tricky to chase down.
 	CreateTable(name string) CreateTableBuilder
+
+	// CreateIndex returns a CreateIndexBuilder for building index creation
+	// statements.
+	// IMPORTANT: the returned builder will NOT respect the runner set via
+	// RunWith on this StatementBuilder due to a reflection bug that's
+	// tricky to chase down.
+	CreateIndex(name string) CreateIndexBuilder
 }
 
 // NewPostgresStatementBuilder returns an implementation of StatementBuilder
@@ -95,6 +102,12 @@ func (psb postgresStatementBuilder) CreateTable(name string) CreateTableBuilder 
 		Name(name)
 }
 
+func (psb postgresStatementBuilder) CreateIndex(name string) CreateIndexBuilder {
+	// see comment in CreateTable about EmptyBuilder initializer
+	return CreateIndexBuilder(builder.EmptyBuilder).
+		Name(name)
+}
+
 type mysqlStatementBuilder struct {
 	squirrel.StatementBuilderType
 }
@@ -108,6 +121,12 @@ func (msb mysqlStatementBuilder) CreateTable(name string) CreateTableBuilder {
 	// see comment on the postgres builder about the EmptyBuilder
 	return CreateTableBuilder(builder.EmptyBuilder).
 		columnTypeNames(mysqlColumnTypeMap).
+		Name(name)
+}
+
+func (msb mysqlStatementBuilder) CreateIndex(name string) CreateIndexBuilder {
+	// see comment on postgres builder CreateTable about EmptyBuilder
+	return CreateIndexBuilder(builder.EmptyBuilder).
 		Name(name)
 }
 

@@ -22,6 +22,7 @@ import (
 func init() {
 	builder.Register(ColumnBuilder{}, createColumnData{})
 	builder.Register(CreateTableBuilder{}, createTableData{})
+	builder.Register(CreateIndexBuilder{}, createIndexData{})
 }
 
 /*
@@ -66,6 +67,10 @@ const (
 	ColumnTypeBytes
 	// Fill in other types as needed
 )
+
+//=============================================================================
+// Tables
+//=============================================================================
 
 // CreateTableBuilder is a builder for DDL table creation statements.
 // This builder is immutable and all operations will return a new instance
@@ -128,6 +133,10 @@ func (b CreateTableBuilder) ToSql() (string, []interface{}, error) {
 func (b CreateTableBuilder) columnTypeNames(m map[ColumnType]string) CreateTableBuilder {
 	return builder.Set(b, "ColumnTypeNames", m).(CreateTableBuilder)
 }
+
+//=============================================================================
+// Columns
+//=============================================================================
 
 // ColumnBuilder is a builder for columns within a table creation statement
 // This builder is immutable and all methods will return a new instance of the
@@ -193,6 +202,54 @@ func (b ColumnBuilder) parentBuilder(pb *CreateTableBuilder) ColumnBuilder {
 func (b ColumnBuilder) columnTypeNames(m map[ColumnType]string) ColumnBuilder {
 	return builder.Set(b, "ColumnTypeNames", m).(ColumnBuilder)
 }
+
+//=============================================================================
+// Indexes
+//=============================================================================
+
+// CreateIndexBuilder is a builder for CREATE INDEX statements
+type CreateIndexBuilder builder.Builder
+
+// Name sets the name of the index
+func (b CreateIndexBuilder) Name(name string) CreateIndexBuilder {
+	return builder.Set(b, "Name", name).(CreateIndexBuilder)
+}
+
+// IfNotExists sets the index creation to run only if it doesn't already exist
+func (b CreateIndexBuilder) IfNotExists() CreateIndexBuilder {
+	return builder.Set(b, "IfNotExists", true).(CreateIndexBuilder)
+}
+
+// On sets the table for the index
+func (b CreateIndexBuilder) On(table string) CreateIndexBuilder {
+	return builder.Set(b, "Table", table).(CreateIndexBuilder)
+}
+
+// Columns sets the columns the index is on
+func (b CreateIndexBuilder) Columns(columns ...string) CreateIndexBuilder {
+	return builder.Set(b, "Columns", columns).(CreateIndexBuilder)
+}
+
+// RunWith sets the runner to Exec the statement with
+func (b CreateIndexBuilder) RunWith(runner squirrel.BaseRunner) CreateIndexBuilder {
+	return builder.Set(b, "RunWith", runner).(CreateIndexBuilder)
+}
+
+// Exec runs the statement using the set runner
+func (b CreateIndexBuilder) Exec() (sql.Result, error) {
+	d := builder.GetStruct(b).(createIndexData)
+	return d.Exec()
+}
+
+// ToSql returns the sql string and args for to the statement
+func (b CreateIndexBuilder) ToSql() (string, []interface{}, error) {
+	d := builder.GetStruct(b).(createIndexData)
+	return d.ToSql()
+}
+
+//=============================================================================
+// Builder data types
+//=============================================================================
 
 type createTableData struct {
 	RunWith squirrel.BaseRunner
@@ -317,4 +374,45 @@ func (d createColumnData) ToSql() (string, error) {
 		}
 	}
 	return sb.String(), nil
+}
+
+type createIndexData struct {
+	RunWith squirrel.BaseRunner
+
+	Name        string
+	IfNotExists bool
+	Table       string
+	Columns     []string
+}
+
+func (d createIndexData) Exec() (sql.Result, error) {
+	if d.RunWith == nil {
+		return nil, squirrel.RunnerNotSet
+	}
+	return squirrel.ExecWith(d.RunWith, d)
+}
+
+func (d createIndexData) ToSql() (string, []interface{}, error) {
+	if funk.IsEmpty(d.Name) {
+		return "", nil, errors.New("index name must be specified")
+	}
+	if funk.IsEmpty(d.Table) {
+		return "", nil, errors.New("index table must be specified")
+	}
+	if funk.IsEmpty(d.Columns) {
+		return "", nil, errors.New("index columns must be specified")
+	}
+
+	sb := strings.Builder{}
+	sb.WriteString("CREATE INDEX ")
+	if d.IfNotExists {
+		sb.WriteString("IF NOT EXISTS ")
+	}
+	sb.WriteString(d.Name)
+	sb.WriteString(" ON ")
+	sb.WriteString(d.Table)
+	sb.WriteString(" (")
+	sb.WriteString(strings.Join(d.Columns, ", "))
+	sb.WriteString(")")
+	return sb.String(), []interface{}{}, nil
 }
