@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package gx
 
 import (
-	"fmt"
 	"time"
 
 	"magma/feg/gateway/policydb"
@@ -20,6 +19,10 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 )
+
+var eventTriggerConversionMap = map[EventTrigger]protos.EventTrigger{
+	RevalidationTimeout: protos.EventTrigger_REVALIDATION_TIMEOUT,
+}
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
 	monitoringKey := ""
@@ -120,12 +123,16 @@ func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.Poli
 		rar.RulesToInstall,
 	)
 
+	eventTriggers, revalidationTime := GetEventTriggersRelatedInfo(rar.EventTriggers, rar.RevalidationTime)
+
 	return &protos.PolicyReAuthRequest{
 		SessionId:             sid,
 		Imsi:                  imsi,
 		RulesToRemove:         rulesToRemove,
 		RulesToInstall:        staticRulesToInstall,
 		DynamicRulesToInstall: dynamicRulesToInstall,
+		EventTriggers:         eventTriggers,
+		RevalidationTime:      revalidationTime,
 	}
 }
 
@@ -142,15 +149,16 @@ func (raa *ReAuthAnswer) FromProto(sessionID string, answer *protos.PolicyReAuth
 	return raa
 }
 
-func ConvertToProtoTimestamp(unixTime *time.Time) (*timestamp.Timestamp, error) {
+func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 	if unixTime == nil {
-		return nil, nil
+		return nil
 	}
 	protoTimestamp, err := ptypes.TimestampProto(*unixTime)
 	if err != nil {
-		return nil, err
+		glog.Errorf("Unable to convert time.Time to google.protobuf.Timestamp: %s", err)
+		return nil
 	}
-	return protoTimestamp, nil
+	return protoTimestamp
 }
 
 func ParseRuleInstallAVPs(
@@ -160,19 +168,8 @@ func ParseRuleInstallAVPs(
 	staticRulesToInstall := make([]*protos.StaticRuleInstall, 0, len(ruleInstalls))
 	dynamicRulesToInstall := make([]*protos.DynamicRuleInstall, 0, len(ruleInstalls))
 	for _, ruleInstall := range ruleInstalls {
-		activationTime, err := ConvertToProtoTimestamp(ruleInstall.RuleActivationTime)
-		if err != nil {
-			errMsg := fmt.Sprintf("Cannot convert time.Time to "+
-				"google.protobuf.Timestamp for rule activation time: %s", err)
-			glog.Error(errMsg)
-		}
-
-		deactivationTime, err := ConvertToProtoTimestamp(ruleInstall.RuleDeactivationTime)
-		if err != nil {
-			errMsg := fmt.Sprintf("Cannot convert time.Time to "+
-				"google.protobuf.Timestamp for rule deactivation time: %s", err)
-			glog.Error(errMsg)
-		}
+		activationTime := ConvertToProtoTimestamp(ruleInstall.RuleActivationTime)
+		deactivationTime := ConvertToProtoTimestamp(ruleInstall.RuleDeactivationTime)
 
 		for _, staticRuleName := range ruleInstall.RuleNames {
 			staticRulesToInstall = append(
@@ -211,4 +208,23 @@ func ParseRuleInstallAVPs(
 		}
 	}
 	return staticRulesToInstall, dynamicRulesToInstall
+}
+
+func GetEventTriggersRelatedInfo(
+	eventTriggers []EventTrigger,
+	revalidationTime *time.Time,
+) ([]protos.EventTrigger, *timestamp.Timestamp) {
+	protoEventTriggers := make([]protos.EventTrigger, 0, len(eventTriggers))
+	var protoRevalidationTime *timestamp.Timestamp
+	for _, eventTrigger := range eventTriggers {
+		if convertedEventTrigger, ok := eventTriggerConversionMap[eventTrigger]; ok {
+			protoEventTriggers = append(protoEventTriggers, convertedEventTrigger)
+			if eventTrigger == RevalidationTimeout {
+				protoRevalidationTime = ConvertToProtoTimestamp(revalidationTime)
+			}
+		} else {
+			protoEventTriggers = append(protoEventTriggers, protos.EventTrigger_UNSUPPORTED)
+		}
+	}
+	return protoEventTriggers, protoRevalidationTime
 }

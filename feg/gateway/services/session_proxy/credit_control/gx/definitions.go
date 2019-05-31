@@ -24,7 +24,7 @@ const (
 type EventTrigger uint32
 
 const (
-	// USAGE_REPORT
+	RevalidationTimeout      EventTrigger = 17
 	UsageReportTrigger       EventTrigger = 33
 	PCRF91UsageReportTrigger EventTrigger = 26
 )
@@ -179,11 +179,13 @@ type CCADiameterMessage struct {
 //					*[ Route-Record ]
 //					*[ AVP ]
 type ReAuthRequest struct {
-	SessionID      string                 `avp:"Session-Id"`
-	RulesToRemove  []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
-	RulesToInstall []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
-	Qos            *QosInformation        `avp:"QoS-Information"`
-	UsageMonitors  []*UsageMonitoringInfo `avp:"Usage-Monitoring-Information"`
+	SessionID        string                 `avp:"Session-Id"`
+	RulesToRemove    []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
+	RulesToInstall   []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
+	Qos              *QosInformation        `avp:"QoS-Information"`
+	UsageMonitors    []*UsageMonitoringInfo `avp:"Usage-Monitoring-Information"`
+	EventTriggers    []EventTrigger         `avp:"Event-Trigger"`
+	RevalidationTime *time.Time             `avp:"Revalidation-Time"`
 }
 
 //<RA-Answer> ::= 	< Diameter Header: 258, PXY >

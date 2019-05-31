@@ -12,12 +12,14 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"time"
 
 	"magma/feg/gateway/policydb/mocks"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,6 +27,9 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
 	monitoringKey := "monitor"
 	var ratingGroup uint32 = 42
+	currentTime := time.Now()
+	protoTimestamp, err := ptypes.TimestampProto(currentTime)
+	assert.NoError(t, err)
 	in := &gx.ReAuthRequest{
 		SessionID: "IMSI001010000000001-1234",
 		RulesToRemove: []*gx.RuleRemoveAVP{
@@ -45,6 +50,8 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			{RuleNames: []string{"install3"}, RuleBaseNames: []string{}},
 			{RuleNames: []string{}, RuleBaseNames: []string{"baseInstall2", "baseInstall3"}},
 		},
+		EventTriggers:    []gx.EventTrigger{gx.UsageReportTrigger, gx.RevalidationTimeout},
+		RevalidationTime: &currentTime,
 	}
 	policyClient := &mocks.PolicyDBClient{}
 	policyClient.On("GetRuleIDsForBaseNames", []string{"baseRemove1", "baseRemove2", "baseRemove3"}).
@@ -87,6 +94,11 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				},
 			},
 		},
+		EventTriggers: []protos.EventTrigger{
+			protos.EventTrigger_UNSUPPORTED,
+			protos.EventTrigger_REVALIDATION_TIMEOUT,
+		},
+		RevalidationTime: protoTimestamp,
 	}
 	assert.Equal(t, expected, actual)
 	policyClient.AssertExpectations(t)
