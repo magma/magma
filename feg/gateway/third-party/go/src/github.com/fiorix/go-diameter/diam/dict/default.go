@@ -1083,35 +1083,38 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
                 <rule avp="Charging-Rule-Remove" required="false"/>
                 <rule avp="Usage-Monitoring-Information" required="false"/>
                 <rule avp="Event-Trigger" required="false"/>
+                <rule avp="Revalidation-Time" required="false"/>
             </answer>
         </command>
 
-		    <command code="258" short="RA" name="Re-Auth">
-			      <request>
-				        <rule avp="Session-Id" required="true" max="1"/>
-				        <rule avp="Origin-Host" required="true" max="1"/>
-				        <rule avp="Origin-Realm" required="true" max="1"/>
-				        <rule avp="Destination-Realm" required="true" max="1"/>
-				        <rule avp="Destination-Host" required="true" max="1"/>
-				        <rule avp="Auth-Application-Id" required="true" max="1"/>
-				        <rule avp="Re-Auth-Request-Type" required="true" max="1"/>
+        <command code="258" short="RA" name="Re-Auth">
+            <request>
+                <rule avp="Session-Id" required="true" max="1"/>
+                <rule avp="Origin-Host" required="true" max="1"/>
+                <rule avp="Origin-Realm" required="true" max="1"/>
+                <rule avp="Destination-Realm" required="true" max="1"/>
+                <rule avp="Destination-Host" required="true" max="1"/>
+                <rule avp="Auth-Application-Id" required="true" max="1"/>
+                <rule avp="Re-Auth-Request-Type" required="true" max="1"/>
                 <rule avp="QoS-Information" required="false" max="1"/>
-				        <rule avp="Origin-State-Id" required="false" max="1"/>
-				        <rule avp="Proxy-Info" required="false"/>
-				        <rule avp="Route-Record" required="false"/>
-			      </request>
-			      <answer>
-				        <rule avp="Session-Id" required="true" max="1"/>
-				        <rule avp="Result-Code" required="true" max="1"/>
-				        <rule avp="Origin-Host" required="true" max="1"/>
-				        <rule avp="Origin-Realm" required="true" max="1"/>
-				        <rule avp="Origin-State-Id" required="false" max="1"/>
-				        <rule avp="Error-Message" required="false" max="1"/>
-				        <rule avp="Error-Reporting-Host" required="false" max="1"/>
-				        <rule avp="Failed-AVP" required="false" max="1"/>
-				        <rule avp="Proxy-Info" required="false"/>
-			      </answer>
-		    </command>
+                <rule avp="Origin-State-Id" required="false" max="1"/>
+                <rule avp="Proxy-Info" required="false"/>
+                <rule avp="Route-Record" required="false"/>
+                <rule avp="Event-Trigger" required="false"/>
+                <rule avp="Revalidation-Time" required="false"/>
+            </request>
+            <answer>
+                <rule avp="Session-Id" required="true" max="1"/>
+                <rule avp="Result-Code" required="true" max="1"/>
+                <rule avp="Origin-Host" required="true" max="1"/>
+                <rule avp="Origin-Realm" required="true" max="1"/>
+                <rule avp="Origin-State-Id" required="false" max="1"/>
+                <rule avp="Error-Message" required="false" max="1"/>
+                <rule avp="Error-Reporting-Host" required="false" max="1"/>
+                <rule avp="Failed-AVP" required="false" max="1"/>
+                <rule avp="Proxy-Info" required="false"/>
+            </answer>
+        </command>
 
         <avp name="Flow-Description" code="507" must="M,V" may="P" may-encrypt="y" vendor-id="10415">
             <!-- 3GPP 29.212 -->
@@ -1199,6 +1202,11 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
             </data>
         </avp>
 
+        <avp name="Revalidation-Time" code="1042" must="M,V" may="P" may-encrypt="y" vendor-id="10415">
+            <!-- 3GPP 29.212  Section 5.3.41 -->
+            <data type="Time"/>
+        </avp>
+
         <avp name="Precedence" code="1010" must="M,V" may="P" may-encrypt="y" vendor-id="10415">
             <!-- 3GPP 29.212 -->
             <data type="Unsigned32"/>
@@ -1246,16 +1254,16 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
         </avp>
 
         <avp name="Flow-Information" code="1058" must="V" must-not="M" may="P" may-encryp="y" vendor-id="10415">
-          <!-- 3GPP 29.212 Section 5.3.53 -->
-          <data type="Grouped">
-            <rule avp="Flow-Description" required="false" max="1"/>
-            <rule avp="Packet-Filter-Identifier" required="false" max="1"/>
-            <rule avp="Packet-Filter-Usage" required="false" max="1"/>
-            <rule avp="ToS-Traffic-Class" required="false" max="1"/>
-            <rule avp="Security-Parameter-Index" required="false" max="1"/>
-            <rule avp="Flow-Label" required="false" max="1"/>
-            <rule avp="Flow-Direction" required="false" max="1"/>
-          </data>
+            <!-- 3GPP 29.212 Section 5.3.53 -->
+            <data type="Grouped">
+                <rule avp="Flow-Description" required="false" max="1"/>
+                <rule avp="Packet-Filter-Identifier" required="false" max="1"/>
+                <rule avp="Packet-Filter-Usage" required="false" max="1"/>
+                <rule avp="ToS-Traffic-Class" required="false" max="1"/>
+                <rule avp="Security-Parameter-Index" required="false" max="1"/>
+                <rule avp="Flow-Label" required="false" max="1"/>
+                <rule avp="Flow-Direction" required="false" max="1"/>
+            </data>
         </avp>
 
         <avp name="Packet-Filter-Identifier" code="1060" must="V" must-not="M" may="P" may-encrypt="y" vendor-id="10415">
@@ -1271,10 +1279,10 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
         <avp name="Usage-Monitoring-Information" code="1067" must="V" may="P" must-not="M,V" may-encrypt="y" vendor-id="10415">
             <!-- 3GPP 29.212 -->
             <data type="Grouped">
-              <rule avp="Monitoring-Key" required="false" max="1"/>
-              <rule avp="Granted-Service-Unit" required="false" max="2"/>
-              <rule avp="Used-Service-Unit" required="false" max="2"/>
-              <rule avp="Usage-Monitoring-Level" required="false" max="1"/>
+                <rule avp="Monitoring-Key" required="false" max="1"/>
+                <rule avp="Granted-Service-Unit" required="false" max="2"/>
+                <rule avp="Used-Service-Unit" required="false" max="2"/>
+                <rule avp="Usage-Monitoring-Level" required="false" max="1"/>
             </data>
         </avp>
 
