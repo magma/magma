@@ -74,24 +74,24 @@ func registerNetwork(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusConflict)
 	}
 
-	_, err = multiplexCreateNetworkIntoConfigurator(networkId, swaggerRecord)
+	err = multiplexCreateNetworkIntoConfigurator(networkId, swaggerRecord)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to multiplex into configurator: %v", err), http.StatusInternalServerError)
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex create into configurator: %v", err), http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusCreated, networkId)
 }
 
-func multiplexCreateNetworkIntoConfigurator(requestedID string, swaggerRecord *magmad_models.NetworkRecord) (string, error) {
+func multiplexCreateNetworkIntoConfigurator(requestedID string, swaggerRecord *magmad_models.NetworkRecord) error {
 	network := &protos.Network{
 		Name: swaggerRecord.Name,
 		Id:   requestedID,
 	}
-	createdNetworks, err := configurator.CreateNetworks([]*protos.Network{network})
+	_, err := configurator.CreateNetworks([]*protos.Network{network})
 	if err != nil {
-		return "", err
+		return err
 	}
-	return createdNetworks[0].Id, nil
+	return nil
 }
 
 func getNetwork(c echo.Context) error {
@@ -124,7 +124,7 @@ func updateNetwork(c echo.Context) error {
 
 	err := multiplexUpdateNetworkIntoConfigurator(networkId, swaggerRecord)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to multiplex into configurator: %v", err), http.StatusInternalServerError)
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex update into configurator: %v", err), http.StatusInternalServerError)
 	}
 
 	return magmad.UpdateNetwork(networkId, swaggerRecord.ToProto())
@@ -136,8 +136,7 @@ func multiplexUpdateNetworkIntoConfigurator(networkID string, record *magmad_mod
 		return err
 	}
 	if !exists {
-		_, err := multiplexCreateNetworkIntoConfigurator(networkID, record)
-		return err
+		return multiplexCreateNetworkIntoConfigurator(networkID, record)
 	}
 	updateCriteria := &protos.NetworkUpdateCriteria{
 		Id:      networkID,
@@ -169,7 +168,7 @@ func deleteNetwork(c echo.Context) error {
 	// multiplex delete network into configurator
 	err = configurator.DeleteNetworks([]string{networkId})
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to multiplex into configurator: %v", err), http.StatusInternalServerError)
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex delete into configurator: %v", err), http.StatusInternalServerError)
 	}
 
 	return c.NoContent(http.StatusNoContent)
