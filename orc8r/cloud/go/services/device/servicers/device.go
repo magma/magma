@@ -27,6 +27,7 @@ func NewDeviceServicer(factory blobstore.BlobStorageFactory) (protos.DeviceServe
 	}
 	return &deviceServicer{factory: factory}, nil
 }
+
 func (srv *deviceServicer) RegisterDevices(ctx context.Context, req *protos.RegisterDevicesRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
 	if err := ValidateRegisterDevicesRequest(req); err != nil {
