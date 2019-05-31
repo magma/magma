@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	storage2 "magma/orc8r/cloud/go/storage"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )

@@ -83,8 +83,8 @@ func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, 
 func (store *sqlConfiguratorStorage) updateGraphID(pksToUpdate []string, newGraphID string) error {
 	sort.Strings(pksToUpdate)
 	_, err := store.builder.Update(entityTable).
-		Set("graph_id", newGraphID).
-		Where(sq.Eq{"pk": pksToUpdate}).
+		Set(entGidCol, newGraphID).
+		Where(sq.Eq{entPkCol: pksToUpdate}).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {

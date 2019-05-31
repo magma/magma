@@ -11,6 +11,7 @@ package sqorc
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -43,7 +44,8 @@ var postgresColumnTypeMap = map[ColumnType]string{
 }
 
 var mariaColumnTypeMap = map[ColumnType]string{
-	ColumnTypeText: "TEXT",
+	// Mysql won't index TEXT columns, so choose VARCHAR(255) for text type
+	ColumnTypeText: "VARCHAR(255)",
 	ColumnTypeInt:  "INT",
 	// LONGBLOB stores up to 4GB and the cost is a flat extra 2 bytes of
 	// storage over BLOB, which is limited to 64KB
@@ -56,7 +58,8 @@ var mariaColumnTypeMap = map[ColumnType]string{
 type ColumnOnDeleteOption uint8
 
 const (
-	ColumnOnDeleteCascade ColumnOnDeleteOption = iota
+	ColumnOnDeleteDoNothing ColumnOnDeleteOption = iota
+	ColumnOnDeleteCascade
 	// Fill in other behaviors as needed
 )
 
@@ -96,6 +99,14 @@ func (b CreateTableBuilder) IfNotExists() CreateTableBuilder {
 // primary key constraints, so avoid specifying PKs in multiple places.
 func (b CreateTableBuilder) PrimaryKey(columns ...string) CreateTableBuilder {
 	return builder.Set(b, "PrimaryKey", columns).(CreateTableBuilder)
+}
+
+// ForeignKey adds a foreign key constraint on a table. Note that the column
+// builder also supports foreign key constraints for individual columns for
+// engines which support it.
+// TODO: pull this into a builder
+func (b CreateTableBuilder) ForeignKey(on string, columnMap map[string]string, onDelete ColumnOnDeleteOption) CreateTableBuilder {
+	return builder.Append(b, "ForeignKeys", foreignKey{Table: on, ColumnMapping: columnMap, OnDelete: onDelete}).(CreateTableBuilder)
 }
 
 // Unique adds a unique constraint on a set of columns.
@@ -254,6 +265,12 @@ func (b CreateIndexBuilder) ToSql() (string, []interface{}, error) {
 // Builder data types
 //=============================================================================
 
+type foreignKey struct {
+	Table         string
+	ColumnMapping map[string]string
+	OnDelete      ColumnOnDeleteOption
+}
+
 type createTableData struct {
 	RunWith squirrel.BaseRunner
 	// this should be set by the statement builder entry point
@@ -264,8 +281,9 @@ type createTableData struct {
 	Columns     []*ColumnBuilder
 
 	// Constraints
-	PrimaryKey []string
-	Unique     [][]string
+	PrimaryKey  []string
+	ForeignKeys []foreignKey
+	Unique      [][]string
 }
 
 func (d createTableData) Exec() (sql.Result, error) {
@@ -308,6 +326,31 @@ func (d createTableData) ToSql() (string, []interface{}, error) {
 		sb.WriteString(",\n")
 		sb.WriteString(fmt.Sprintf("PRIMARY KEY (%s)", strings.Join(d.PrimaryKey, ", ")))
 	}
+
+	for _, fk := range d.ForeignKeys {
+		fkCols := funk.Keys(fk.ColumnMapping).([]string)
+		sort.Strings(fkCols)
+		refdCols := funk.Map(fkCols, func(s string) string { return fk.ColumnMapping[s] }).([]string)
+
+		sb.WriteString(",\n")
+		sb.WriteString("FOREIGN KEY (")
+		sb.WriteString(strings.Join(fkCols, ", "))
+		sb.WriteString(") REFERENCES ")
+		sb.WriteString(fk.Table)
+		sb.WriteString(" (")
+		sb.WriteString(strings.Join(refdCols, ", "))
+		sb.WriteString(")")
+
+		switch fk.OnDelete {
+		case ColumnOnDeleteDoNothing:
+			break
+		case ColumnOnDeleteCascade:
+			sb.WriteString(" ON DELETE CASCADE")
+		default:
+			return "", nil, errors.Errorf("unrecognized on delete behavior %v", fk.OnDelete)
+		}
+	}
+
 	for _, uniqConstr := range d.Unique {
 		sb.WriteString(",\n")
 		sb.WriteString(fmt.Sprintf("UNIQUE (%s)", strings.Join(uniqConstr, ", ")))

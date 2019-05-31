@@ -15,10 +15,19 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 
 	sq "github.com/Masterminds/squirrel"
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
+)
+
+const (
+	// escaped for mysql compat
+	keyCol     = "\"key\""
+	valueCol   = "value"
+	genCol     = "generation_number"
+	deletedCol = "deleted"
 )
 
 type SqlDb struct {
@@ -42,10 +51,11 @@ func (store *SqlDb) getInitFn(table string) func(*sql.Tx) error {
 	return func(tx *sql.Tx) error {
 		_, err := store.builder.CreateTable(table).
 			IfNotExists().
-			Column("key").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-			Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
-			Column("generation_number").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-			Column("deleted").Type(sqorc.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
+			// table builder escapes all columns by default
+			Column(keyCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+			Column(valueCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+			Column(genCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+			Column(deletedCol).Type(sqorc.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -59,9 +69,9 @@ func (store *SqlDb) Put(table string, key string, value []byte) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		// Check if the data is already present and query for its generation number
 		var generationNumber uint64
-		err := store.builder.Select("generation_number").
+		err := store.builder.Select(genCol).
 			From(table).
-			Where(sq.Eq{"key": key}).
+			Where(sq.Eq{keyCol: key}).
 			RunWith(tx).
 			QueryRow().
 			Scan(&generationNumber)
@@ -72,14 +82,14 @@ func (store *SqlDb) Put(table string, key string, value []byte) error {
 		rowExists := err == nil
 		if rowExists {
 			return store.builder.Update(table).
-				Set("value", value).
-				Set("generation_number", generationNumber+1).
-				Where(sq.Eq{"key": key}).
+				Set(valueCol, value).
+				Set(genCol, generationNumber+1).
+				Where(sq.Eq{keyCol: key}).
 				RunWith(tx).
 				Exec()
 		} else {
 			return store.builder.Insert(table).
-				Columns("key", "value").
+				Columns(keyCol, valueCol).
 				Values(key, value).
 				RunWith(tx).
 				Exec()
@@ -119,9 +129,9 @@ func (store *SqlDb) PutMany(table string, valuesToPut map[string][]byte) (map[st
 		// Update existing rows
 		for _, row := range rowsToUpdate {
 			_, err := store.builder.Update(table).
-				Set("value", row[0]).
-				Set("generation_number", row[1]).
-				Where(sq.Eq{"key": row[2]}).
+				Set(valueCol, row[0]).
+				Set(genCol, row[1]).
+				Where(sq.Eq{keyCol: row[2]}).
 				RunWith(sc).
 				Exec()
 			if err != nil {
@@ -132,7 +142,7 @@ func (store *SqlDb) PutMany(table string, valuesToPut map[string][]byte) (map[st
 		// Insert fresh rows
 		if !funk.IsEmpty(rowsToInsert) {
 			insertBuilder := store.builder.Insert(table).
-				Columns("key", "value")
+				Columns(keyCol, valueCol)
 			for _, row := range rowsToInsert {
 				insertBuilder = insertBuilder.Values(row[0], row[1])
 			}
@@ -157,9 +167,9 @@ func (store *SqlDb) Get(table string, key string) ([]byte, uint64, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		var value []byte
 		var generationNumber uint64
-		err := store.builder.Select("value", "generation_number").
+		err := store.builder.Select(valueCol, genCol).
 			From(table).
-			Where(sq.Eq{"key": key}).
+			Where(sq.Eq{keyCol: key}).
 			RunWith(tx).
 			QueryRow().Scan(&value, &generationNumber)
 		if err == sql.ErrNoRows {
@@ -186,7 +196,7 @@ func (store *SqlDb) GetMany(table string, keys []string) (map[string]ValueWrappe
 
 func (store *SqlDb) Delete(table string, key string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		return store.builder.Delete(table).Where(sq.Eq{"key": key}).RunWith(tx).Exec()
+		return store.builder.Delete(table).Where(sq.Eq{keyCol: key}).RunWith(tx).Exec()
 	}
 	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return err
@@ -194,7 +204,7 @@ func (store *SqlDb) Delete(table string, key string) error {
 
 func (store *SqlDb) DeleteMany(table string, keys []string) (map[string]error, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		return store.builder.Delete(table).Where(sq.Eq{"key": keys}).RunWith(tx).Exec()
+		return store.builder.Delete(table).Where(sq.Eq{keyCol: keys}).RunWith(tx).Exec()
 	}
 	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return map[string]error{}, err
@@ -202,7 +212,7 @@ func (store *SqlDb) DeleteMany(table string, keys []string) (map[string]error, e
 
 func (store *SqlDb) ListKeys(table string) ([]string, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		rows, err := store.builder.Select("key").From(table).RunWith(tx).Query()
+		rows, err := store.builder.Select(keyCol).From(table).RunWith(tx).Query()
 		if err != nil {
 			return []string{}, errors.Wrap(err, "failed to query for keys")
 		}
@@ -236,7 +246,7 @@ func (store *SqlDb) DoesKeyExist(table string, key string) (bool, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		var placeHolder uint64
 		err := store.builder.Select("1").From(table).
-			Where(sq.Eq{"key": key}).
+			Where(sq.Eq{keyCol: key}).
 			Limit(1).
 			RunWith(tx).
 			QueryRow().Scan(&placeHolder)
@@ -258,9 +268,9 @@ func (store *SqlDb) getMany(tx *sql.Tx, table string, keys []string) (map[string
 		return valuesByKey, nil
 	}
 
-	rows, err := store.builder.Select("key", "value", "generation_number").
+	rows, err := store.builder.Select(keyCol, valueCol, genCol).
 		From(table).
-		Where(sq.Eq{"key": keys}).
+		Where(sq.Eq{keyCol: keys}).
 		RunWith(tx).
 		Query()
 	if err != nil {

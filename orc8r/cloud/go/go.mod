@@ -24,6 +24,7 @@ require (
 	github.com/go-openapi/strfmt v0.18.0
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-openapi/validate v0.18.0
+	github.com/go-sql-driver/mysql v1.4.0
 	github.com/go-swagger/go-swagger v0.18.0
 	github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013 // indirect
 	github.com/godbus/dbus v0.0.0-20181101234600-2ff6f7ffd60f // indirect

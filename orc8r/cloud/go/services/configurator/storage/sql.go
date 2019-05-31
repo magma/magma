@@ -34,6 +34,37 @@ const (
 
 const (
 	wildcardAllString = "*"
+
+	nwIDCol   = "id"
+	nwNameCol = "name"
+	nwDescCol = "description"
+	nwVerCol  = "version"
+
+	nwcIDCol   = "network_id"
+	nwcTypeCol = "type"
+	nwcValCol  = "value"
+
+	entPkCol   = "pk"
+	entNidCol  = "network_id"
+	entTypeCol = "type"
+	entKeyCol  = "\"key\""
+	entGidCol  = "graph_id"
+	entNameCol = "name"
+	entDescCol = "description"
+	entPidCol  = "physical_id"
+	entConfCol = "config"
+	entVerCol  = "version"
+
+	aFrCol = "from_pk"
+	aToCol = "to_pk"
+
+	aclIdCol       = "id"
+	aclEntCol      = "entity_pk"
+	aclScopeCol    = "scope"
+	aclPermCol     = "permission"
+	aclTypeCol     = "type"
+	aclIdFilterCol = "id_filter"
+	aclVerCol      = "version"
 )
 
 type IDGenerator interface {
@@ -82,10 +113,10 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 
 	_, err = fact.builder.CreateTable(networksTable).
 		IfNotExists().
-		Column("id").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column("name").Type(sqorc.ColumnTypeText).EndColumn().
-		Column("description").Type(sqorc.ColumnTypeText).EndColumn().
-		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Column(nwIDCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(nwNameCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(nwDescCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(nwVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -95,10 +126,11 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 
 	_, err = fact.builder.CreateTable(networkConfigTable).
 		IfNotExists().
-		Column("network_id").Type(sqorc.ColumnTypeText).References(networksTable, "id").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
-		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
-		PrimaryKey("network_id", "type").
+		Column(nwcIDCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(nwcTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(nwcValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		PrimaryKey(nwcIDCol, nwcTypeCol).
+		ForeignKey(networksTable, map[string]string{nwcIDCol: nwIDCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -110,17 +142,18 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	// This keeps index size in control and supporting table schemas simpler.
 	_, err = fact.builder.CreateTable(entityTable).
 		IfNotExists().
-		Column("pk").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column("network_id").Type(sqorc.ColumnTypeText).References(networksTable, "id").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
-		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("key").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("graph_id").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("name").Type(sqorc.ColumnTypeText).EndColumn().
-		Column("description").Type(sqorc.ColumnTypeText).EndColumn().
-		Column("physical_id").Type(sqorc.ColumnTypeText).EndColumn().
-		Column("config").Type(sqorc.ColumnTypeBytes).EndColumn().
-		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		Unique("network_id", "key", "type").
+		Column(entPkCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(entNidCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(entKeyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(entGidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(entNameCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entDescCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entPidCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entConfCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column(entVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Unique(entNidCol, entKeyCol, entTypeCol).
+		ForeignKey(networksTable, map[string]string{entNidCol: nwIDCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -129,9 +162,12 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	}
 
 	_, err = fact.builder.CreateTable(entityAssocTable).
-		Column("from_pk").Type(sqorc.ColumnTypeText).References(entityTable, "pk").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
-		Column("to_pk").Type(sqorc.ColumnTypeText).References(entityTable, "pk").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
-		PrimaryKey("from_pk", "to_pk").
+		IfNotExists().
+		Column(aFrCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(aToCol).Type(sqorc.ColumnTypeText).EndColumn().
+		PrimaryKey(aFrCol, aToCol).
+		ForeignKey(entityTable, map[string]string{aFrCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
+		ForeignKey(entityTable, map[string]string{aToCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -140,13 +176,15 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	}
 
 	_, err = fact.builder.CreateTable(entityAclTable).
-		Column("id").Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column("entity_pk").Type(sqorc.ColumnTypeText).References(entityTable, "pk").OnDelete(sqorc.ColumnOnDeleteCascade).EndColumn().
-		Column("scope").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("permission").Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
-		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("id_filter").Type(sqorc.ColumnTypeText).EndColumn().
-		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		IfNotExists().
+		Column(aclIdCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(aclEntCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(aclScopeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(aclPermCol).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
+		Column(aclTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(aclIdFilterCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(aclVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		ForeignKey(entityTable, map[string]string{aclEntCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -158,7 +196,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	_, err = fact.builder.CreateIndex("graph_id_idx").
 		IfNotExists().
 		On(entityTable).
-		Columns("graph_id").
+		Columns(entGidCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -169,7 +207,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	_, err = fact.builder.CreateIndex("acl_ent_pk_idx").
 		IfNotExists().
 		On(entityAclTable).
-		Columns("entity_pk").
+		Columns(aclEntCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -179,9 +217,9 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 
 	// Create internal network(s)
 	_, err = fact.builder.Insert(networksTable).
-		Columns("id", "name", "description").
+		Columns(nwIDCol, nwNameCol, nwDescCol).
 		Values(InternalNetworkID, internalNetworkName, internalNetworkDescription).
-		OnConflict(nil, "id").
+		OnConflict(nil, nwIDCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -230,13 +268,13 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
 		From(networksTable).
 		Where(sq.Eq{
-			fmt.Sprintf("%s.id", networksTable): ids,
+			fmt.Sprintf("%s.%s", networksTable, nwIDCol): ids,
 		})
 	if loadCriteria.LoadConfigs {
 		selectBuilder = selectBuilder.LeftJoin(
 			fmt.Sprintf(
-				"%s ON %s.network_id = %s.id",
-				networkConfigTable, networkConfigTable, networksTable,
+				"%s ON %s.%s = %s.%s",
+				networkConfigTable, networkConfigTable, nwcIDCol, networksTable, nwIDCol,
 			),
 		)
 	}
@@ -268,13 +306,13 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCri
 	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
 		From(networksTable).
 		Where(sq.NotEq{
-			fmt.Sprintf("%s.id", networksTable): idsToExclude,
+			fmt.Sprintf("%s.%s", networksTable, nwIDCol): idsToExclude,
 		})
 	if loadCriteria.LoadConfigs {
 		selectBuilder = selectBuilder.LeftJoin(
 			fmt.Sprintf(
-				"%s ON %s.network_id = %s.id",
-				networkConfigTable, networkConfigTable, networksTable,
+				"%s ON %s.%s = %s.%s",
+				networkConfigTable, networkConfigTable, nwcIDCol, networksTable, nwIDCol,
 			),
 		)
 	}
@@ -306,7 +344,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	}
 
 	_, err = store.builder.Insert(networksTable).
-		Columns("id", "name", "description").
+		Columns(nwIDCol, nwNameCol, nwDescCol).
 		Values(network.ID, network.Name, network.Description).
 		RunWith(store.tx).
 		Exec()
@@ -322,7 +360,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	configKeys := funk.Keys(network.Configs).([]string)
 	sort.Strings(configKeys)
 	insertBuilder := store.builder.Insert(networkConfigTable).
-		Columns("network_id", "type", "value")
+		Columns(nwcIDCol, nwcTypeCol, nwcValCol)
 	for _, configKey := range configKeys {
 		insertBuilder = insertBuilder.Values(network.ID, configKey, network.Configs[configKey])
 	}
@@ -361,7 +399,7 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	}
 
 	// Then delete all networks requested for deletion
-	_, err := store.builder.Delete(networksTable).Where(sq.Eq{"id": networksToDelete}).
+	_, err := store.builder.Delete(networksTable).Where(sq.Eq{nwIDCol: networksToDelete}).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
@@ -474,9 +512,9 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 		// Cascading FK relations in the schema will handle the other tables
 		_, err := store.builder.Delete(entityTable).
 			Where(sq.And{
-				sq.Eq{"network_id": networkID},
-				sq.Eq{"type": update.Type},
-				sq.Eq{"key": update.Key},
+				sq.Eq{entNidCol: networkID},
+				sq.Eq{entTypeCol: update.Type},
+				sq.Eq{entKeyCol: update.Key},
 			}).
 			RunWith(store.tx).
 			Exec()

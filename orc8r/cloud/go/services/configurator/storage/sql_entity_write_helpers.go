@@ -33,9 +33,9 @@ func (store *sqlConfiguratorStorage) doesEntExist(networkID string, tk storage.T
 	err := store.builder.Select("COUNT(1)").
 		From(entityTable).
 		Where(sq.And{
-			sq.Eq{"network_id": networkID},
-			sq.Eq{"type": tk.Type},
-			sq.Eq{"key": tk.Key},
+			sq.Eq{entNidCol: networkID},
+			sq.Eq{entTypeCol: tk.Type},
+			sq.Eq{entKeyCol: tk.Key},
 		}).
 		RunWith(store.tx).
 		QueryRow().Scan(&count)
@@ -56,7 +56,7 @@ func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, ent
 	entity.GraphID = graphID
 
 	_, err := store.builder.Insert(entityTable).
-		Columns("pk", "network_id", "type", "key", "graph_id", "name", "description", "physical_id", "config").
+		Columns(entPkCol, entNidCol, entTypeCol, entKeyCol, entGidCol, entNameCol, entDescCol, entPidCol, entConfCol).
 		Values(pk, networkID, entity.Type, entity.Key, entity.GraphID, toNullable(entity.Name), toNullable(entity.Description), toNullable(entity.PhysicalID), toNullable(entity.Config)).
 		RunWith(store.tx).
 		Exec()
@@ -74,7 +74,7 @@ func (store *sqlConfiguratorStorage) createPermissions(networkID string, pk stri
 	}
 
 	insertBuilder := store.builder.Insert(entityAclTable).
-		Columns("id", "entity_pk", "scope", "permission", "type", "id_filter")
+		Columns(aclIdCol, aclEntCol, aclScopeCol, aclPermCol, aclTypeCol, aclIdFilterCol)
 
 	aclIDs := make([]string, 0, len(acls))
 	for _, acl := range acls {
@@ -116,8 +116,8 @@ func (store *sqlConfiguratorStorage) createEdges(networkID string, entity entWit
 	}
 
 	insertBuilder := store.builder.Insert(entityAssocTable).
-		Columns("from_pk", "to_pk").
-		OnConflict(nil, "from_pk", "to_pk")
+		Columns(aFrCol, aToCol).
+		OnConflict(nil, aFrCol, aToCol)
 	for _, edge := range entity.GetGraphEdges() {
 		fromPk := entsByTk[edge.From].pk
 		toPk := entsByTk[edge.To].pk
@@ -199,8 +199,8 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 
 	for _, oldGraphID := range graphIDsToChange {
 		_, err := store.builder.Update(entityTable).
-			Set("graph_id", targetGraphID).
-			Where(sq.Eq{"graph_id": oldGraphID}).
+			Set(entGidCol, targetGraphID).
+			Where(sq.Eq{entGidCol: oldGraphID}).
 			RunWith(sc).
 			Exec()
 		if err != nil {
@@ -332,20 +332,20 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 func (store *sqlConfiguratorStorage) getEntityUpdateQueryBuilder(pk string, update EntityUpdateCriteria) sq.UpdateBuilder {
 	// UPDATE cfg_entities SET (name, description, physical_id, config, version) = ($1, $2, $3, $4, cfg_entities.version + 1)
 	// WHERE pk = $5
-	updateBuilder := store.builder.Update(entityTable).Where(sq.Eq{"pk": pk})
+	updateBuilder := store.builder.Update(entityTable).Where(sq.Eq{entPkCol: pk})
 	if update.NewName != nil {
-		updateBuilder = updateBuilder.Set("name", *update.NewName)
+		updateBuilder = updateBuilder.Set(entNameCol, *update.NewName)
 	}
 	if update.NewDescription != nil {
-		updateBuilder = updateBuilder.Set("description", *update.NewDescription)
+		updateBuilder = updateBuilder.Set(entDescCol, *update.NewDescription)
 	}
 	if update.NewPhysicalID != nil {
-		updateBuilder = updateBuilder.Set("physical_id", *update.NewPhysicalID)
+		updateBuilder = updateBuilder.Set(entPidCol, *update.NewPhysicalID)
 	}
 	if update.NewConfig != nil {
-		updateBuilder = updateBuilder.Set("config", *update.NewConfig)
+		updateBuilder = updateBuilder.Set(entConfCol, *update.NewConfig)
 	}
-	updateBuilder = updateBuilder.Set("version", sq.Expr("version+1"))
+	updateBuilder = updateBuilder.Set(entVerCol, sq.Expr(fmt.Sprintf("%s+1", entVerCol)))
 	return updateBuilder
 }
 
@@ -377,12 +377,12 @@ func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions
 		// UPDATE cfg_acls SET (scope, permission, type, id_filter, version) = ($1, $2, $3, $4, cfg_acls.version+1)
 		// WHERE cfg_acls.id = $5
 		_, err = store.builder.Update(entityAclTable).
-			Set("scope", scopeVal).
-			Set("permission", acl.Permission).
-			Set("type", typeVal).
-			Set("id_filter", serializeACLIDFilter(acl.IDFilter)).
-			Set("version", sq.Expr("version+1")).
-			Where(sq.Eq{"id": acl.ID}).
+			Set(aclScopeCol, scopeVal).
+			Set(aclPermCol, acl.Permission).
+			Set(aclTypeCol, typeVal).
+			Set(aclIdFilterCol, serializeACLIDFilter(acl.IDFilter)).
+			Set(aclVerCol, sq.Expr(fmt.Sprintf("%s+1", aclVerCol))).
+			Where(sq.Eq{aclIdCol: acl.ID}).
 			RunWith(sc).
 			Exec()
 		if err != nil {
@@ -400,7 +400,7 @@ func (store *sqlConfiguratorStorage) doAllACLsExist(acls []ACL) (bool, error) {
 
 	err := store.builder.Select("COUNT(*)").
 		From(entityAclTable).
-		Where(sq.Eq{"id": aclIDs}).
+		Where(sq.Eq{aclIdCol: aclIDs}).
 		RunWith(store.tx).
 		QueryRow().Scan(&count)
 	if err == sql.ErrNoRows {
@@ -418,7 +418,7 @@ func (store *sqlConfiguratorStorage) deletePermissions(aclIDs []string, entOut *
 	funk.ConvertSlice(funk.UniqString(aclIDs), &ids)
 
 	_, err := store.builder.Delete(entityAclTable).
-		Where(sq.Eq{"id": aclIDs}).
+		Where(sq.Eq{aclIdCol: aclIDs}).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
@@ -452,8 +452,8 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 	orClause := make(sq.Or, 0, len(edgesToDelete))
 	for _, edge := range edgesToDelete {
 		orClause = append(orClause, sq.And{
-			sq.Eq{"from_pk": entToUpdateOut.pk},
-			sq.Eq{"to_pk": loadedEntsByTk[edge].pk},
+			sq.Eq{aFrCol: entToUpdateOut.pk},
+			sq.Eq{aToCol: loadedEntsByTk[edge].pk},
 		})
 	}
 

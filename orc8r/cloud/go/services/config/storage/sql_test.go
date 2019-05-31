@@ -74,7 +74,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 	// happy path type only
 	mock.ExpectBegin()
 	expectCreateTable(mock)
-	mock.ExpectQuery("SELECT type, key, value, version FROM network_configurations").
+	mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_configurations").
 		WithArgs("type").
 		WillReturnRows(
 			sqlmock.NewRows([]string{"type", "key", "value", "version"}).
@@ -96,7 +96,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 	// happy path key only
 	mock.ExpectBegin()
 	expectCreateTable(mock)
-	mock.ExpectQuery("SELECT type, key, value, version FROM network_configurations").
+	mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_configurations").
 		WithArgs("key").
 		WillReturnRows(
 			sqlmock.NewRows([]string{"type", "key", "value", "version"}).
@@ -118,7 +118,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 	// happy path type and key
 	mock.ExpectBegin()
 	expectCreateTable(mock)
-	mock.ExpectQuery("SELECT type, key, value, version FROM network_configurations").
+	mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_configurations").
 		WithArgs("type", "key").
 		WillReturnRows(
 			sqlmock.NewRows([]string{"type", "key", "value", "version"}).
@@ -138,7 +138,7 @@ func TestSqlConfigStorage_GetConfigs(t *testing.T) {
 	// Error query
 	mock.ExpectBegin()
 	expectCreateTable(mock)
-	mock.ExpectQuery("SELECT type, key, value, version FROM network_configurations").
+	mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_configurations").
 		WithArgs("type", "key").
 		WillReturnError(errors.New("Mock query error"))
 	mock.ExpectRollback()
@@ -160,7 +160,7 @@ func TestSqlConfigStorage_ListKeysForType(t *testing.T) {
 	// happy path
 	mock.ExpectBegin()
 	expectCreateTable(mock)
-	mock.ExpectQuery("SELECT key FROM network_configurations").
+	mock.ExpectQuery("SELECT \"key\" FROM network_configurations").
 		WithArgs("type").
 		WillReturnRows(
 			sqlmock.NewRows([]string{"key"}).AddRow("key1").AddRow("key2"),
@@ -175,7 +175,7 @@ func TestSqlConfigStorage_ListKeysForType(t *testing.T) {
 	// error
 	mock.ExpectBegin()
 	expectCreateTable(mock)
-	mock.ExpectQuery("SELECT key FROM network_configurations").
+	mock.ExpectQuery("SELECT \"key\" FROM network_configurations").
 		WithArgs("type").
 		WillReturnError(errors.New("Mock query error"))
 	mock.ExpectRollback()

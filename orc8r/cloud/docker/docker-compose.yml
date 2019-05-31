@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  datastore:
+  postgres:
     image: postgres
     volumes:
       - $PWD/../../../.cache/orc8r/pgdata:/var/lib/postgresql/data
@@ -9,6 +9,19 @@ services:
       POSTGRES_USER: magma_dev
       POSTGRES_PASSWORD: magma_dev
       POSTGRES_DB: magma_dev
+    restart: always
+
+  maria:
+    image: mariadb:10.2
+    volumes:
+      - $PWD/../../../.cache/orc8r/mariadata:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: magma
+      MYSQL_DATABASE: magma_dev
+      MYSQL_USER: magma_dev
+      MYSQL_PASSWORD: magma_dev
+      SQL_MODE: ANSI_QUOTES
+    command: mysqld --sql_mode="ANSI_QUOTES"
     restart: always
 
   proxy:
@@ -20,14 +33,19 @@ services:
     environment:
       CONTROLLER_HOSTNAME: controller.magma.test
       PROXY_BACKENDS: controller  # Uses Docker internal DNS for controller
-      TEST_MODE: 1  # Used to run dev scripts on startup
+      TEST_MODE: "1"  # Used to run dev scripts on startup
     restart: always
 
   controller:
     volumes:
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
     environment:
-      SQL_DRIVER: postgres
-      DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=datastore sslmode=disable"
-      TEST_MODE: 1  # Used to run dev scripts on startup
+      TEST_MODE: "1"  # Used to run dev scripts on startup
+       SQL_DRIVER: postgres
+       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
+       SQL_DIALECT: psql
+      # To use MariaDB, use these connection parameters instead:
+#      SQL_DRIVER: mysql
+#      DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
+#      SQL_DIALECT: maria
     restart: always
