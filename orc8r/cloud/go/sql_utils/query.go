@@ -13,11 +13,6 @@ import (
 	"strings"
 )
 
-const (
-	postgresDialect = "psql"
-	mysqlDialect    = "mysql"
-)
-
 // GetPlaceholderArgList returns a string
 // "(${startIdx}, ${startIdx+1}, ..., ${startIdx+numArgs-1})"
 func GetPlaceholderArgList(startIdx int, numArgs int) string {

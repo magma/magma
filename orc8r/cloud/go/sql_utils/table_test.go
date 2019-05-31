@@ -51,8 +51,8 @@ func TestColumnBuilder_ToSql(t *testing.T) {
 	expected = "version INTEGER NOT NULL DEFAULT 0"
 	assert.Equal(t, expected, actual)
 
-	// mysql
-	actual, err = columnBuilder(mysqlColumnTypeMap).
+	// maria
+	actual, err = columnBuilder(mariaColumnTypeMap).
 		Name("pk").
 		Type(ColumnTypeText).
 		PrimaryKey().
@@ -65,7 +65,7 @@ func TestColumnBuilder_ToSql(t *testing.T) {
 	expected = "pk TEXT PRIMARY KEY NOT NULL DEFAULT \"hello world\" REFERENCES foo (bar) ON DELETE CASCADE"
 	assert.Equal(t, expected, actual)
 
-	actual, err = columnBuilder(mysqlColumnTypeMap).
+	actual, err = columnBuilder(mariaColumnTypeMap).
 		Name("foo").
 		Type(ColumnTypeBytes).
 		ToSql()
@@ -73,7 +73,7 @@ func TestColumnBuilder_ToSql(t *testing.T) {
 	expected = "foo LONGBLOB"
 	assert.Equal(t, expected, actual)
 
-	actual, err = columnBuilder(mysqlColumnTypeMap).
+	actual, err = columnBuilder(mariaColumnTypeMap).
 		Name("version").
 		Type(ColumnTypeInt).
 		NotNull().
@@ -178,8 +178,8 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 		")"
 	assert.Equal(t, expected, actual)
 
-	// mysql
-	actual, _, err = tableBuilder(mysqlColumnTypeMap).
+	// maria
+	actual, _, err = tableBuilder(mariaColumnTypeMap).
 		Name("foobar").
 		IfNotExists().
 		Column("pk").
@@ -209,7 +209,7 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 		")"
 	assert.Equal(t, expected, actual)
 
-	actual, _, err = tableBuilder(mysqlColumnTypeMap).
+	actual, _, err = tableBuilder(mariaColumnTypeMap).
 		Name("foobar").
 		Column("pk").
 		Type(ColumnTypeText).

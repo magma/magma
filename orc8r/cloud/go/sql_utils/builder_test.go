@@ -61,7 +61,7 @@ func TestPostgresInsertBuilder_OnConflict(t *testing.T) {
 }
 
 func TestMysqlInsertBuilder_OnConflict(t *testing.T) {
-	ib := mysqlStatementBuilder{squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)}.Insert("table")
+	ib := mariaDBStatementBuilder{squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)}.Insert("table")
 
 	cases := []testCase{
 		{
