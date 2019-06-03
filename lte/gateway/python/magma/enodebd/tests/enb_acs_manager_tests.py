@@ -163,9 +163,9 @@ class StateMachineManagerTests(TestCase):
 
         # Send an Inform
         ctx1 = get_spyne_context_with_ip(ip)
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_QAFB_v1234',
-                                                    '120200002618AGP0001')
+        inform_msg = Tr069MessageBuilder.get_qafb_inform('48BF74',
+                                                         'BaiBS_QAFB_v1234',
+                                                         '120200002618AGP0001')
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
         self.assertTrue(isinstance(resp1, models.InformResponse),
                         'Should respond with an InformResponse')
