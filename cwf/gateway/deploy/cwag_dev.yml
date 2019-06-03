@@ -10,11 +10,25 @@
   vars:
     - magma_root: /home/{{ ansible_user }}/magma
     - user: vagrant
+    - full_provision: true
   roles:
     - role: ovs
+    - role: golang
 
   tasks:
     # Only run installation for docker
     - include_role:
         name: docker
         tasks_from: install
+
+    - name: Create snowflake file
+      copy:
+        content: ""
+        dest: /etc/snowflake
+
+    # Required by some go libraries
+    - name: Install bzr dependency
+      apt:
+        name: bzr
+        state: present
+

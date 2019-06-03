@@ -2,6 +2,11 @@
 !.cache/test_certs
 !fb/config/
 
+
+!cwf/cloud/
+!cwf/gateway/configs/
+!cwf/gateway/Makefile
+
 !feg/cloud/
 !feg/gateway/configs/
 !feg/gateway/deploy/roles/feg_dev/files

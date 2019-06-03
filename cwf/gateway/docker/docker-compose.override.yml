@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  control_proxy:
+    extra_hosts:
+      - controller.magma.test:10.0.2.2
+      - bootstrapper-controller.magma.test:10.0.2.2
+
+  magmad:
+    extra_hosts:
+      - controller.magma.test:10.0.2.2
+      - bootstrapper-controller.magma.test:10.0.2.2
