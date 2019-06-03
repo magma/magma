@@ -10,14 +10,20 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/configurator"
+	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
+	configuratorp "magma/orc8r/cloud/go/services/configurator/protos"
 	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	"magma/orc8r/cloud/go/services/upgrade/protos"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
@@ -87,8 +93,27 @@ func createReleaseChannelHandler(c echo.Context) error {
 		return handlers.HttpError(err)
 	}
 
+	err = multiplexCreateReleaseChannelIntoConfigurator(restChannel)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex create into configurator : %v", err))
+	}
+
 	// Return the ID of the created channel
 	return c.JSON(http.StatusCreated, restChannel.Name)
+}
+
+func multiplexCreateReleaseChannelIntoConfigurator(channel *models.ReleaseChannel) error {
+	serializedReleaseChannel, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.ReleaseChannelType, channel.SupportedVersions)
+	if err != nil {
+		return err
+	}
+	entity := &configuratorp.NetworkEntity{
+		Id:     channel.Name,
+		Type:   upgrade_client.ReleaseChannelType,
+		Config: serializedReleaseChannel,
+	}
+	_, err = configurator.CreateInternalEntities([]*configuratorp.NetworkEntity{entity})
+	return err
 }
 
 func updateReleaseChannelHandler(c echo.Context) error {
@@ -116,7 +141,31 @@ func updateReleaseChannelHandler(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err)
 	}
+
+	err = multiplexUpdateReleaseChannelIntoConfigurator(restChannel)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex update into configurator : %v", err))
+	}
+
 	return c.NoContent(http.StatusOK)
+}
+
+func multiplexUpdateReleaseChannelIntoConfigurator(channel *models.ReleaseChannel) error {
+	err := configurator_utils.CreateInternalNetworkEntityIfNotExists(upgrade_client.ReleaseChannelType, channel.Name)
+	if err != nil {
+		return err
+	}
+	serializedReleaseChannel, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.ReleaseChannelType, channel.SupportedVersions)
+	if err != nil {
+		return err
+	}
+	update := &configuratorp.EntityUpdateCriteria{
+		Key:       channel.Name,
+		Type:      upgrade_client.ReleaseChannelType,
+		NewConfig: configuratorp.GetBytesWrapper(serializedReleaseChannel),
+	}
+	_, err = configurator.UpdateInternalEntity([]*configuratorp.EntityUpdateCriteria{update})
+	return err
 }
 
 func deleteReleaseChannelHandler(c echo.Context) error {
@@ -129,6 +178,13 @@ func deleteReleaseChannelHandler(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
+
+	// multiplex delete into configurator
+	err = configurator.DeleteInternalEntities([]*configuratorp.EntityID{{Id: channelId, Type: upgrade_client.ReleaseChannelType}})
+	if err != nil {
+		glog.Errorf("Failed to multiplex delete into configurator: %v", err)
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -191,8 +247,27 @@ func createTierHandler(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
+
+	err = multiplexCreateTierIntoConfigurator(networkId, restTier)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex create into configurator : %v", err))
+	}
 	// Return the ID of the created tier
 	return c.JSON(http.StatusCreated, restTier.ID)
+}
+
+func multiplexCreateTierIntoConfigurator(networkID string, tier *models.Tier) error {
+	serializedTier, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.NetworkTierType, tier)
+	if err != nil {
+		return err
+	}
+	entity := &configuratorp.NetworkEntity{
+		Type:   upgrade_client.NetworkTierType,
+		Id:     tier.ID,
+		Config: serializedTier,
+	}
+	_, err = configurator.CreateEntities(networkID, []*configuratorp.NetworkEntity{entity})
+	return err
 }
 
 func getTierHandler(c echo.Context) error {
@@ -252,7 +327,31 @@ func updateTierHandler(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
+
+	err = multiplexUpdateTierIntoConfigurator(networkId, tierId, restTier)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex update into configurator : %v", err))
+	}
+
 	return c.NoContent(http.StatusOK)
+}
+
+func multiplexUpdateTierIntoConfigurator(networkID, tierID string, tier *models.Tier) error {
+	err := configurator_utils.CreateNetworkEntityIfNotExists(networkID, upgrade_client.NetworkTierType, tierID)
+	if err != nil {
+		return err
+	}
+	serializedTier, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.NetworkTierType, tier)
+	if err != nil {
+		return err
+	}
+	entity := &configuratorp.EntityUpdateCriteria{
+		Type:      upgrade_client.NetworkTierType,
+		Key:       tierID,
+		NewConfig: configuratorp.GetBytesWrapper(serializedTier),
+	}
+	_, err = configurator.UpdateEntities(networkID, []*configuratorp.EntityUpdateCriteria{entity})
+	return err
 }
 
 func deleteTierHandler(c echo.Context) error {
@@ -268,6 +367,11 @@ func deleteTierHandler(c echo.Context) error {
 	err := upgrade_client.DeleteTier(networkId, tierId)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	err = configurator.DeleteEntities(networkId, []*configuratorp.EntityID{{Type: upgrade_client.NetworkTierType, Id: tierId}})
+	if err != nil {
+		glog.Errorf("Failed to multiplex delete into configurator: %v", err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

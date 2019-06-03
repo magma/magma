@@ -37,6 +37,7 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
+	upgradeserde "magma/orc8r/cloud/go/services/upgrade/serde"
 )
 
 // BaseOrchestratorPlugin is the OrchestratorPlugin for the orc8r module
@@ -62,6 +63,10 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		// Inventory service serdes
 		&GatewayRecordSerde{},
+
+		// Configurator service serdes
+		&upgradeserde.ReleaseChannelVersionsManager{},
+		&upgradeserde.NetworkTierConfigManager{},
 
 		// Config manager serdes
 		&magmadconfig.MagmadGatewayConfigManager{},

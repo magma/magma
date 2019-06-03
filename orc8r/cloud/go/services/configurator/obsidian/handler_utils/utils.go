@@ -11,6 +11,7 @@ package handler_utils
 import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/configurator/storage"
 )
 
 // Create an empty network if it doesn't exist already. If the network already
@@ -62,4 +63,8 @@ func CreateNetworkEntityIfNotExists(networkID, entityType, entityID string) erro
 		return err
 	}
 	return nil
+}
+
+func CreateInternalNetworkEntityIfNotExists(entityType, entityID string) error {
+	return CreateNetworkEntityIfNotExists(storage.InternalNetworkID, entityType, entityID)
 }

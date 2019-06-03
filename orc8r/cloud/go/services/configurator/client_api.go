@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/configurator/storage"
 
 	"github.com/golang/glog"
 )
@@ -29,6 +30,31 @@ func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
 		return nil, initErr
 	}
 	return protos.NewNorthboundConfiguratorClient(conn), err
+}
+
+// ListNetworkIDs loads a list of all networkIDs registered
+func ListNetworkIDs() ([]string, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+	idsWrapper, err := client.ListNetworkIDs(context.Background(), &commonProtos.Void{})
+	if err != nil {
+		return nil, err
+	}
+	return idsWrapper.NetworkIDs, nil
+}
+
+// DoesNetworkExist returns a boolean that indicates whether the networkID
+func DoesNetworkExist(networkID string) (bool, error) {
+	loaded, _, err := LoadNetworks([]string{networkID}, true, false)
+	if err != nil {
+		return false, err
+	}
+	if _, ok := loaded[networkID]; !ok {
+		return false, nil
+	}
+	return true, nil
 }
 
 // CreateNetworks registers the given list of Networks and returns the created networks
@@ -56,28 +82,6 @@ func UpdateNetworks(updates []*protos.NetworkUpdateCriteria) error {
 	return err
 }
 
-func UpdateNetworkConfig(networkID, configType string, config interface{}) error {
-	serializedConfig, err := serde.Serialize(SerdeDomain, configType, config)
-	if err != nil {
-		return err
-	}
-	configMap := map[string][]byte{}
-	configMap[configType] = serializedConfig
-	updateCriteria := &protos.NetworkUpdateCriteria{
-		Id:                   networkID,
-		ConfigsToAddOrUpdate: configMap,
-	}
-	return UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
-}
-
-func DeleteNetworkConfig(networkID, configType string) error {
-	updateCriteria := &protos.NetworkUpdateCriteria{
-		Id:              networkID,
-		ConfigsToDelete: []string{configType},
-	}
-	return UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
-}
-
 // DeleteNetwork deletes the network specified by networkID
 func DeleteNetworks(networkIDs []string) error {
 	client, err := getNBConfiguratorClient()
@@ -86,18 +90,6 @@ func DeleteNetworks(networkIDs []string) error {
 	}
 	_, err = client.DeleteNetworks(context.Background(), &protos.DeleteNetworksRequest{NetworkIDs: networkIDs})
 	return err
-}
-
-// DoesNetworkExist returns a boolean that indicates whether the networkID
-func DoesNetworkExist(networkID string) (bool, error) {
-	loaded, _, err := LoadNetworks([]string{networkID}, true, false)
-	if err != nil {
-		return false, err
-	}
-	if _, ok := loaded[networkID]; !ok {
-		return false, nil
-	}
-	return true, nil
 }
 
 // LoadNetworks loads networks specified by networks according to criteria specified and
@@ -119,6 +111,28 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) (map[s
 		return nil, nil, err
 	}
 	return result.Networks, result.NotFound, nil
+}
+
+func UpdateNetworkConfig(networkID, configType string, config interface{}) error {
+	serializedConfig, err := serde.Serialize(SerdeDomain, configType, config)
+	if err != nil {
+		return err
+	}
+	configMap := map[string][]byte{}
+	configMap[configType] = serializedConfig
+	updateCriteria := &protos.NetworkUpdateCriteria{
+		Id:                   networkID,
+		ConfigsToAddOrUpdate: configMap,
+	}
+	return UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
+}
+
+func DeleteNetworkConfig(networkID, configType string) error {
+	updateCriteria := &protos.NetworkUpdateCriteria{
+		Id:              networkID,
+		ConfigsToDelete: []string{configType},
+	}
+	return UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
 }
 
 func GetNetworkConfigsByType(networkID string, configType string) (interface{}, error) {
@@ -152,17 +166,10 @@ func CreateEntities(networkID string, entities []*protos.NetworkEntity) ([]*prot
 	return response.CreatedEntities, err
 }
 
-// ListNetworkIDs loads a list of all networkIDs registered
-func ListNetworkIDs() ([]string, error) {
-	client, err := getNBConfiguratorClient()
-	if err != nil {
-		return nil, err
-	}
-	idsWrapper, err := client.ListNetworkIDs(context.Background(), &commonProtos.Void{})
-	if err != nil {
-		return nil, err
-	}
-	return idsWrapper.NetworkIDs, nil
+// CreateInternalEntity is a loose wrapper around CreateEntities to create an
+// entity in the internal network structure
+func CreateInternalEntities(entities []*protos.NetworkEntity) ([]*protos.NetworkEntity, error) {
+	return CreateEntities(storage.InternalNetworkID, entities)
 }
 
 // UpdateEntities updates the registered entities and returns the updated entities
@@ -180,6 +187,11 @@ func UpdateEntities(networkID string, updates []*protos.EntityUpdateCriteria) (m
 	return response.UpdatedEntities, err
 }
 
+// UpdateInternalEntity is a loose wrapper around UpdateEntities to update an
+// entity in the internal network structure
+func UpdateInternalEntity(updates []*protos.EntityUpdateCriteria) (map[string]*protos.NetworkEntity, error) {
+	return UpdateEntities(storage.InternalNetworkID, updates)
+}
 func UpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}) error {
 	serializedConfig, err := serde.Serialize(SerdeDomain, entityType, config)
 	if err != nil {
@@ -218,6 +230,12 @@ func DeleteEntities(networkID string, ids []*protos.EntityID) error {
 		},
 	)
 	return err
+}
+
+// DeleteInternalEntity is a loose wrapper around DeleteEntities to delete an
+// entity in the internal network structure
+func DeleteInternalEntities(ids []*protos.EntityID) error {
+	return DeleteEntities(storage.InternalNetworkID, ids)
 }
 
 // GetPhysicalIDOfEntity gets the physicalID associated with the entity

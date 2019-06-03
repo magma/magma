@@ -17,8 +17,10 @@ import (
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	upgrade_serde "magma/orc8r/cloud/go/services/upgrade/serde"
 	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
 
 	"github.com/stretchr/testify/assert"
@@ -27,8 +29,10 @@ import (
 // Obsidian integration test for release channel API endpoints
 func TestReleaseChannels(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	serde.RegisterSerdes(&upgrade_serde.ReleaseChannelVersionsManager{})
 	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, handlers.REST_ROOT)
 
@@ -129,6 +133,7 @@ func TestReleaseChannels(t *testing.T) {
 
 func TestTiers(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	serde.RegisterSerdes(&upgrade_serde.NetworkTierConfigManager{})
 	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
