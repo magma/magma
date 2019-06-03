@@ -65,7 +65,8 @@ func DeleteNetworks(networkIDs []string) error {
 	return err
 }
 
-func NetworkExists(networkID string) (bool, error) {
+// DoesNetworkExist returns a boolean that indicates whether the networkID
+func DoesNetworkExist(networkID string) (bool, error) {
 	loaded, _, err := LoadNetworks([]string{networkID}, true, false)
 	if err != nil {
 		return false, err
@@ -167,6 +168,29 @@ func DeleteEntities(networkID string, ids []*protos.EntityID) error {
 	return err
 }
 
+// GetPhysicalIDOfEntity gets the physicalID associated with the entity
+// identified by (networkID, entityType, entityKey)
+func GetPhysicalIDOfEntity(networkID, entityType, entityKey string) (string, error) {
+	entities, _, err := LoadEntities(
+		networkID,
+		nil,
+		nil,
+		[]*protos.EntityID{
+			{
+				Type: entityType,
+				Id:   entityKey,
+			},
+		},
+		&protos.EntityLoadCriteria{
+			LoadMetadata: true,
+		},
+	)
+	if err != nil || len(entities) != 1 {
+		return "", err
+	}
+	return entities[0].PhysicalId, nil
+}
+
 // LoadEntities loads entities specified by the parameters.
 func LoadEntities(networkID string, typeFilter *string, keyFilter *string, ids []*protos.EntityID,
 	criteria *protos.EntityLoadCriteria) ([]*protos.NetworkEntity, []*protos.EntityID, error) {
@@ -191,7 +215,29 @@ func LoadEntities(networkID string, typeFilter *string, keyFilter *string, ids [
 	return resp.Entities, resp.NotFound, err
 }
 
-func LoadAllEntitiesInNetwork(networkID string, typeVal string, criteria *protos.EntityLoadCriteria) ([]*protos.NetworkEntity, error) {
+// DoesEntityExist returns a boolean that indicated whether the entity specified
+// exists in the network
+func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
+	found, _, err := LoadEntities(
+		networkID,
+		nil,
+		nil,
+		[]*protos.EntityID{
+			{Type: entityType, Id: entityKey},
+		},
+		&protos.EntityLoadCriteria{LoadMetadata: true},
+	)
+	if err != nil {
+		return false, err
+	}
+	if len(found) != 1 {
+		return false, nil
+	}
+	return true, nil
+}
+
+// LoadAllEntitiesInNetwork fetches all entities of specified type in a network
+func LoadAllEntitiesInNetwork(networkID string, entityType string, criteria *protos.EntityLoadCriteria) ([]*protos.NetworkEntity, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
@@ -201,7 +247,7 @@ func LoadAllEntitiesInNetwork(networkID string, typeVal string, criteria *protos
 		context.Background(),
 		&protos.LoadEntitiesRequest{
 			NetworkID:  networkID,
-			TypeFilter: protos.GetStringWrapper(&typeVal),
+			TypeFilter: protos.GetStringWrapper(&entityType),
 			KeyFilter:  nil,
 			EntityIDs:  nil,
 			Criteria:   criteria,

@@ -131,7 +131,7 @@ func updateNetwork(c echo.Context) error {
 }
 
 func multiplexUpdateNetworkIntoConfigurator(networkID string, record *magmad_models.NetworkRecord) error {
-	exists, err := configurator.NetworkExists(networkID)
+	exists, err := configurator.DoesNetworkExist(networkID)
 	if err != nil {
 		return err
 	}

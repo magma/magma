@@ -18,11 +18,16 @@ import (
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/configurator"
+	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/device"
+	deviceprotos "magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
@@ -102,7 +107,50 @@ func registerGateway(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusConflict)
 	}
+
+	err = multiplexGatewayCreateIntoDeviceAndConfigurator(networkId, gatewayId, swaggerRecord)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex write into configurator/device %v", err), http.StatusInternalServerError)
+	}
+
 	return c.JSON(http.StatusCreated, gatewayId)
+}
+
+func createNetworkIfNecessary(networkID string) error {
+	exists, err := configurator.DoesNetworkExist(networkID)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		err := multiplexCreateNetworkIntoConfigurator(networkID, &magmad_models.NetworkRecord{})
+		return err
+	}
+	return nil
+}
+
+func multiplexGatewayCreateIntoDeviceAndConfigurator(networkID, gatewayID string, gwRecord *magmad_models.AccessGatewayRecord) error {
+	err := createNetworkIfNecessary(networkID)
+	if err != nil {
+		return err
+	}
+
+	if device.DoesDeviceExist(networkID, device.GatewayInfoType, gwRecord.HwID.ID) {
+		return fmt.Errorf("Hwid is already registered %s", gwRecord.HwID.ID)
+	}
+	// write into configurator
+	gwEntity := &configuratorprotos.NetworkEntity{
+		Name:       gwRecord.Name,
+		Type:       configurator.GatewayEntityType,
+		Id:         gatewayID,
+		PhysicalId: gwRecord.HwID.ID,
+	}
+	_, err = configurator.CreateEntities(networkID, []*configuratorprotos.NetworkEntity{gwEntity})
+	if err != nil {
+		return err
+	}
+
+	// write into device
+	return device.CreateOrUpdate(networkID, device.GatewayInfoType, gwRecord.HwID.ID, gwRecord)
 }
 
 func getGateway(c echo.Context) error {
@@ -114,17 +162,25 @@ func getGateway(c echo.Context) error {
 	if gerr != nil {
 		return gerr
 	}
-
-	record, err := magmad.FindGatewayRecord(networkId, lid)
+	swaggerRecord, err := getSwaggerGWRecordFromMagmad(networkId, lid)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return err
+	}
+
+	return c.JSON(http.StatusOK, swaggerRecord)
+}
+
+func getSwaggerGWRecordFromMagmad(networkID, logicalID string) (*magmad_models.AccessGatewayRecord, error) {
+	record, err := magmad.FindGatewayRecord(networkID, logicalID)
+	if err != nil {
+		return nil, handlers.HttpError(err, http.StatusNotFound)
 	}
 	swaggerRecord := magmad_models.AccessGatewayRecord{}
 	err = swaggerRecord.FromMconfig(record)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusUnsupportedMediaType)
+		return nil, handlers.HttpError(err, http.StatusUnsupportedMediaType)
 	}
-	return c.JSON(http.StatusOK, &swaggerRecord)
+	return &swaggerRecord, nil
 }
 
 func updateGateway(c echo.Context) error {
@@ -155,7 +211,62 @@ func updateGateway(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusConflict)
 	}
+
+	err = multiplexGatewayUpdateIntoDeviceAndConfigurator(networkId, lid, &swaggerRecord)
+	if err != nil {
+		return handlers.HttpError(fmt.Errorf("Failed to multiplex update into configurator/device %v", err), http.StatusInternalServerError)
+	}
+
 	return c.NoContent(http.StatusOK)
+}
+
+func multiplexGatewayUpdateIntoDeviceAndConfigurator(networkID, gatewayID string, updateRecord *magmad_models.MutableGatewayRecord) error {
+	entityExists, err := configurator.DoesEntityExist(networkID, configurator.GatewayEntityType, gatewayID)
+	if err != nil {
+		return err
+	}
+	if !entityExists {
+		// fetch the existing gw record from magmad to get the HWID since it is needed for the device service
+		storedRecord, err := getSwaggerGWRecordFromMagmad(networkID, gatewayID)
+		if err != nil {
+			return err
+		}
+		storedRecord.Name = updateRecord.Name
+		storedRecord.Key = updateRecord.Key
+		return multiplexGatewayCreateIntoDeviceAndConfigurator(networkID, gatewayID, storedRecord)
+	}
+	err = updateChallengeKey(networkID, gatewayID, updateRecord.Key)
+	if err != nil {
+		return err
+	}
+	return updateGatewayName(networkID, gatewayID, updateRecord.Name)
+}
+
+func updateChallengeKey(networkID, gatewayID string, challengeKey *magmad_models.ChallengeKey) error {
+	deviceID, err := configurator.GetPhysicalIDOfEntity(networkID, configurator.GatewayEntityType, gatewayID)
+	if err != nil {
+		return err
+	}
+	iRecord, err := device.GetDevice(networkID, device.GatewayInfoType, deviceID)
+	if err != nil {
+		return err
+	}
+	record, ok := iRecord.(*magmad_models.AccessGatewayRecord)
+	if !ok {
+		return fmt.Errorf("Info stored in deviceID %s is not of type AccessGatewayRecord", deviceID)
+	}
+	record.Key = challengeKey
+	return device.CreateOrUpdate(networkID, device.GatewayInfoType, deviceID, record)
+}
+
+func updateGatewayName(networkID, gatewayID, name string) error {
+	updateRequest := &configuratorprotos.EntityUpdateCriteria{
+		Key:     gatewayID,
+		Type:    configurator.GatewayEntityType,
+		NewName: configuratorprotos.GetStringWrapper(&name),
+	}
+	_, err := configurator.UpdateEntities(networkID, []*configuratorprotos.EntityUpdateCriteria{updateRequest})
+	return err
 }
 
 func deleteGateway(c echo.Context) error {
@@ -173,7 +284,24 @@ func deleteGateway(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusNotFound)
 	}
 
+	err = multiplexGatewayDeleteIntoDeviceAndConfigurator(networkId, lid)
+	if err != nil {
+		glog.Errorf("Failed to multiplex delete into configurator/device %v", err)
+	}
+
 	return c.NoContent(http.StatusNoContent)
+}
+
+func multiplexGatewayDeleteIntoDeviceAndConfigurator(networkID, gatewayID string) error {
+	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, configurator.GatewayEntityType, gatewayID)
+	if err != nil {
+		return err
+	}
+	err = device.DeleteDevices(networkID, []*deviceprotos.DeviceID{{DeviceID: physicalID, Type: device.GatewayInfoType}})
+	if err != nil {
+		return err
+	}
+	return configurator.DeleteEntities(networkID, []*configuratorprotos.EntityID{{Id: gatewayID, Type: configurator.GatewayEntityType}})
 }
 
 func rebootGateway(c echo.Context) error {
