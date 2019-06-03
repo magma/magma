@@ -16,7 +16,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/protos"
 
 	"github.com/labstack/echo"
 )
@@ -34,13 +33,13 @@ func instantiateUnderlyingModel(serde serde.Serde) interface{} {
 func GetCRUDNetworkConfigHandlers(path string, serde serde.Serde) []handlers.Handler {
 	return []handlers.Handler{
 		GetCreateNetworkConfigHandler(path, serde),
-		GetReadNetworkConfigHandler(path, serde),
+		GetReadNetworkConfigHandler(path),
 		GetUpdateNetworkConfigHandler(path, serde),
 		GetDeleteNetworkConfigHandler(path),
 	}
 }
 
-func getNetworkIDAndConfigType(c echo.Context, url string) (string, string, error) {
+func getNetworkIDAndConfigType(c echo.Context, url string) (string, string, *echo.HTTPError) {
 	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return "", "", nerr
@@ -49,24 +48,20 @@ func getNetworkIDAndConfigType(c echo.Context, url string) (string, string, erro
 	return networkID, configType, nil
 }
 
-func GetReadNetworkConfigHandler(path string, serde serde.Serde) handlers.Handler {
+func GetReadNetworkConfigHandler(path string) handlers.Handler {
 	return handlers.Handler{
 		Path:    path,
 		Methods: handlers.GET,
 		HandlerFunc: func(c echo.Context) error {
-			networkID, configType, err := getNetworkIDAndConfigType(c, path)
+			networkID, configType, nerr := getNetworkIDAndConfigType(c, path)
+			if nerr != nil {
+				return nerr
+			}
+			iConfig, err := configurator.GetNetworkConfigsByType(networkID, configType)
 			if err != nil {
 				return err
 			}
-			serializedConfig, err := configurator.GetNetworkConfigsByType(networkID, configType)
-			if err != nil {
-				return handlers.HttpError(err, http.StatusBadRequest)
-			}
-			model, err := serde.Deserialize(serializedConfig)
-			if err != nil {
-				return handlers.HttpError(err, http.StatusBadRequest)
-			}
-			return c.JSON(http.StatusOK, model)
+			return c.JSON(http.StatusOK, iConfig)
 		},
 	}
 }
@@ -96,17 +91,11 @@ func GetDeleteNetworkConfigHandler(path string) handlers.Handler {
 		Path:    path,
 		Methods: handlers.DELETE,
 		HandlerFunc: func(c echo.Context) error {
-			networkID, configType, err := getNetworkIDAndConfigType(c, path)
-			if err != nil {
-				return err
+			networkID, configType, nerr := getNetworkIDAndConfigType(c, path)
+			if nerr != nil {
+				return nerr
 			}
-			updateCriteria := &protos.NetworkUpdateCriteria{
-				Id:              networkID,
-				ConfigsToDelete: []string{configType},
-			}
-			err = configurator.UpdateNetworks(
-				[]*protos.NetworkUpdateCriteria{updateCriteria},
-			)
+			err := configurator.DeleteNetworkConfig(networkID, configType)
 			if err != nil {
 				return handlers.HttpError(err, http.StatusBadRequest)
 			}
@@ -116,37 +105,26 @@ func GetDeleteNetworkConfigHandler(path string) handlers.Handler {
 }
 
 func createOrUpdateNetworkConfig(c echo.Context, path string, serde serde.Serde) error {
-	networkID, configType, err := getNetworkIDAndConfigType(c, path)
+	networkID, configType, nerr := getNetworkIDAndConfigType(c, path)
+	if nerr != nil {
+		return nerr
+	}
+	config, err := getConfigFromContext(c, serde)
 	if err != nil {
-		return err
+		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-
-	configMap, err := createConfigMap(c, serde, configType)
-	if err != nil {
-		return err
-	}
-	updateCriteria := &protos.NetworkUpdateCriteria{
-		Id:                   networkID,
-		ConfigsToAddOrUpdate: configMap,
-	}
-	err = configurator.UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
+	err = configurator.UpdateNetworkConfig(networkID, configType, config)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 	return c.JSON(http.StatusOK, "Created Config")
 }
 
-func createConfigMap(c echo.Context, serde serde.Serde, configType string) (map[string][]byte, error) {
+func getConfigFromContext(c echo.Context, serde serde.Serde) (interface{}, error) {
 	model := instantiateUnderlyingModel(serde)
 	err := c.Bind(&model)
 	if err != nil {
 		return nil, handlers.HttpError(err, http.StatusBadRequest)
 	}
-	serializedConfig, err := serde.Serialize(model)
-	if err != nil {
-		return nil, handlers.HttpError(err, http.StatusBadRequest)
-	}
-	configMap := map[string][]byte{}
-	configMap[configType] = serializedConfig
-	return configMap, nil
+	return model, nil
 }

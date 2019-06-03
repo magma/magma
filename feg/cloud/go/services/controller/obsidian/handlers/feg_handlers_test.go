@@ -19,6 +19,7 @@ import (
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/protos"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
@@ -29,9 +30,9 @@ import (
 func TestGetNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
-
 	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
 
 	// Happy path
@@ -57,6 +58,7 @@ func TestGetNetworkConfigs(t *testing.T) {
 func TestSetNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
@@ -116,6 +118,7 @@ func TestSetNetworkConfigs(t *testing.T) {
 func TestGetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
@@ -145,6 +148,7 @@ func TestGetGatewayConfigs(t *testing.T) {
 func TestSetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 

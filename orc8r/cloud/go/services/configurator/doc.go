@@ -14,7 +14,6 @@ const (
 	// ServiceName is the name of this service
 	ServiceName = "CONFIGURATOR"
 	// SerdeDomain is the name of this service's serde domain
-	SerdeDomain = "configurator"
-
+	SerdeDomain       = "config_manager"
 	GatewayEntityType = "gateway"
 )

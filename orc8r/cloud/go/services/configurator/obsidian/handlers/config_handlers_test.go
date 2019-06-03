@@ -67,7 +67,7 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	assertConfigExists(t, &fooSerde, networkID, fooSerdeType, config)
+	assertConfigExists(t, networkID, fooSerdeType, config)
 
 	// Test GetReadNetworkConfigsHandler
 	req = httptest.NewRequest(echo.GET, "/", nil)
@@ -77,7 +77,7 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 
 	// Success
 	url = getURL(restPort, networkID, fooSerdeType)
-	err = configuratorh.GetReadNetworkConfigHandler(url, &fooSerde).HandlerFunc(c)
+	err = configuratorh.GetReadNetworkConfigHandler(url).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	actual := FooConfigs{}
@@ -105,7 +105,7 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	assertConfigExists(t, &fooSerde, networkID, fooSerdeType, updatedConfig)
+	assertConfigExists(t, networkID, fooSerdeType, updatedConfig)
 
 	// TestGetDeleteConfigHandler
 	req = httptest.NewRequest(echo.DELETE, "/", nil)
@@ -128,11 +128,12 @@ func addParametersToContext(c echo.Context, networkID string, configType string)
 	return c
 }
 
-func assertConfigExists(t *testing.T, serde serde.Serde, networkID string, configType string, config interface{}) {
+func assertConfigExists(t *testing.T, networkID string, configType string, config interface{}) {
 	networks, notFound, err := configurator.LoadNetworks([]string{networkID}, true, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
-	retrievedConfig, err := serde.Deserialize(networks[networkID].Configs[configType])
+	retrievedConfig, err := serde.Deserialize(configurator.SerdeDomain, configType, networks[networkID].Configs[configType])
+	assert.NoError(t, err)
 	assert.Equal(t, config, retrievedConfig)
 }
 

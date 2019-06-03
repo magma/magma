@@ -168,6 +168,14 @@ func GetStringWrapper(pStr *string) *wrappers.StringValue {
 	return &wrappers.StringValue{Value: *pStr}
 }
 
+// GetStringWrapper wraps a pointer string value into protobuf StringValue
+func GetBytesWrapper(bytes []byte) *wrappers.BytesValue {
+	if bytes == nil {
+		return nil
+	}
+	return &wrappers.BytesValue{Value: bytes}
+}
+
 func (acl *ACL) toACL() storage.ACL {
 	return storage.ACL{
 		ID:         acl.Id,

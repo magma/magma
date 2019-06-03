@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
@@ -32,6 +33,7 @@ func TestGetNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
@@ -71,6 +73,7 @@ func TestSetTDDNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	testSetNetworkConfigs(t, test_utils.NewDefaultTDDNetworkConfig(), test_utils.NewDefaultTDDNetworkConfig())
 }
 
@@ -78,6 +81,7 @@ func TestSetFDDNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	testSetNetworkConfigs(t, test_utils.NewDefaultFDDNetworkConfig(), test_utils.NewDefaultFDDNetworkConfig())
 }
 
@@ -85,6 +89,7 @@ func TestSetOldTddNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	testSetNetworkConfigs(t, test_utils.OldTDDNetworkConfig(), test_utils.NewDefaultTDDNetworkConfig())
 }
 
@@ -92,6 +97,7 @@ func TestSetOldFddNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	testSetNetworkConfigs(t, test_utils.OldFDDNetworkConfig(), test_utils.NewDefaultFDDNetworkConfig())
 }
 
@@ -99,6 +105,7 @@ func TestSetBadNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
@@ -191,6 +198,7 @@ func TestSetBadOldConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
@@ -222,6 +230,7 @@ func TestGetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
@@ -262,6 +271,7 @@ func TestSetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 

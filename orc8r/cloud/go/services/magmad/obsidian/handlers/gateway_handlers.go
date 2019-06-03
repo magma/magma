@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
 	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/device"
 	deviceprotos "magma/orc8r/cloud/go/services/device/protos"
@@ -116,20 +117,8 @@ func registerGateway(c echo.Context) error {
 	return c.JSON(http.StatusCreated, gatewayId)
 }
 
-func createNetworkIfNecessary(networkID string) error {
-	exists, err := configurator.DoesNetworkExist(networkID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		err := multiplexCreateNetworkIntoConfigurator(networkID, &magmad_models.NetworkRecord{})
-		return err
-	}
-	return nil
-}
-
 func multiplexGatewayCreateIntoDeviceAndConfigurator(networkID, gatewayID string, gwRecord *magmad_models.AccessGatewayRecord) error {
-	err := createNetworkIfNecessary(networkID)
+	err := configurator_utils.CreateNetworkIfNotExists(networkID)
 	if err != nil {
 		return err
 	}

@@ -22,6 +22,9 @@ import (
 	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/protos"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -155,6 +158,7 @@ func TestCreateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
+	configurator_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
 
 	e := echo.New()
@@ -175,6 +179,9 @@ func TestCreateConfigHandler(t *testing.T) {
 	actual, err := config.GetConfig("network1", "foo", "key")
 	assert.NoError(t, err)
 	assert.Equal(t, &fooConfig{Foo: "foo", Bar: "bar"}, actual)
+
+	// Test changes are properly reflected in configurator
+	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 
 	glog.Errorf("IGNORE REST")
 	// Validate (convert) error
@@ -212,6 +219,7 @@ func TestUpdateConfigHandler(t *testing.T) {
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 	assert.NoError(t, err)
 
@@ -231,6 +239,9 @@ func TestUpdateConfigHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 	actualFoo, err := config.GetConfig("network1", "foo", "key")
 	assert.Equal(t, &fooConfig{Foo: "bar", Bar: "foo"}, actualFoo)
+
+	// Test changes are properly reflected in configurator
+	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "bar", Bar: "foo"})
 
 	// Validate (convert) error
 	post = `{"Value": 1}`
@@ -267,6 +278,8 @@ func TestDeleteConfigHandler(t *testing.T) {
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
 	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 	assert.NoError(t, err)
 
@@ -283,6 +296,9 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
+	/// Test changes are properly reflected in configurator
+	testEntityConfigsNotInConfigurator(t, "network1", "foo", "key")
+
 	// Config service error - deleting nonexistent config
 	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
 	assert.Error(t, err)
@@ -290,6 +306,37 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.Contains(t, err.Error(), "Deleting nonexistent config")
 
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+}
+
+func testEntityConfigsInConfigurator(t *testing.T, networkID, entityType, entityID string, expectedConfig interface{}) {
+	entities, entitiesNotFound, err := configurator.LoadEntities(
+		networkID,
+		nil,
+		nil,
+		[]*protos.EntityID{{Type: entityType, Id: entityID}},
+		&protos.EntityLoadCriteria{LoadConfig: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(entities))
+	assert.Equal(t, 0, len(entitiesNotFound))
+	actualConfig, err := serde.Deserialize(config.SerdeDomain, entityType, entities[0].Config)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedConfig, actualConfig)
+}
+
+func testEntityConfigsNotInConfigurator(t *testing.T, networkID, entityType, entityID string) {
+	entityTK := protos.EntityID{Type: entityType, Id: entityID}
+	entities, entitiesNotFound, err := configurator.LoadEntities(
+		networkID,
+		nil,
+		nil,
+		[]*protos.EntityID{&entityTK},
+		&protos.EntityLoadCriteria{LoadConfig: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(entities))
+	assert.Equal(t, 0, len(entitiesNotFound))
+	assert.Equal(t, []byte(nil), entities[0].Config)
 }
 
 // Interface implementations for test configs
