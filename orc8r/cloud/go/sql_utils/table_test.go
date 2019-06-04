@@ -255,6 +255,27 @@ func TestCreateTableBuilder_Exec(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestCreateIndexBuilder_ToSql(t *testing.T) {
+	actual, _, err := CreateIndexBuilder(builder.EmptyBuilder).
+		Name("foo").
+		IfNotExists().
+		On("foobar").
+		Columns("bar", "baz").
+		ToSql()
+	assert.NoError(t, err)
+	expected := "CREATE INDEX IF NOT EXISTS foo ON foobar (bar, baz)"
+	assert.Equal(t, expected, actual)
+
+	actual, _, err = CreateIndexBuilder(builder.EmptyBuilder).
+		Name("foo").
+		On("foobar").
+		Columns("bar").
+		ToSql()
+	assert.NoError(t, err)
+	expected = "CREATE INDEX foo ON foobar (bar)"
+	assert.Equal(t, expected, actual)
+}
+
 func columnBuilder(mapping map[ColumnType]string) ColumnBuilder {
 	return ColumnBuilder(builder.EmptyBuilder).columnTypeNames(mapping)
 }
