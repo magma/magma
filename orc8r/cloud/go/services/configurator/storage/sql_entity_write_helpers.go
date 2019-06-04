@@ -9,17 +9,16 @@
 package storage
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"reflect"
 	"sort"
 	"strings"
-	"text/template"
 
 	"magma/orc8r/cloud/go/sql_utils"
 	"magma/orc8r/cloud/go/storage"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -30,10 +29,16 @@ type entWithPk struct {
 }
 
 func (store *sqlConfiguratorStorage) doesEntExist(networkID string, tk storage.TypeAndKey) (bool, error) {
-	query := fmt.Sprintf("SELECT count(1) FROM %s WHERE (network_id, type, key) = ($1, $2, $3)", entityTable)
-	row := store.tx.QueryRow(query, networkID, tk.Type, tk.Key)
 	var count uint64
-	err := row.Scan(&count)
+	err := store.builder.Select("COUNT(1)").
+		From(entityTable).
+		Where(sq.And{
+			sq.Eq{"network_id": networkID},
+			sq.Eq{"type": tk.Type},
+			sq.Eq{"key": tk.Key},
+		}).
+		RunWith(store.tx).
+		QueryRow().Scan(&count)
 	if err == sql.ErrNoRows {
 		return false, nil
 	}
@@ -45,27 +50,19 @@ func (store *sqlConfiguratorStorage) doesEntExist(networkID string, tk storage.T
 }
 
 func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, entity NetworkEntity) (entWithPk, error) {
-	insertQuery := fmt.Sprintf(`
-		INSERT INTO %s (pk, network_id, type, key, graph_id, name, description, physical_id, config)
-		VALUES %s
-	`, entityTable, sql_utils.GetPlaceholderArgList(1, 9))
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{insertQuery})
-	if err != nil {
-		return entWithPk{}, err
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "CreateEntities")()
-	insertStmt := stmts[0]
-
 	pk := store.idGenerator.New()
 	// On create, we'll generate a new graph ID for the entity temporarily
 	graphID := store.idGenerator.New()
 	entity.GraphID = graphID
 
-	_, err = insertStmt.Exec(pk, networkID, entity.Type, entity.Key, entity.GraphID, toNullable(entity.Name), toNullable(entity.Description), toNullable(entity.PhysicalID), toNullable(entity.Config))
+	_, err := store.builder.Insert(entityTable).
+		Columns("pk", "network_id", "type", "key", "graph_id", "name", "description", "physical_id", "config").
+		Values(pk, networkID, entity.Type, entity.Key, entity.GraphID, toNullable(entity.Name), toNullable(entity.Description), toNullable(entity.PhysicalID), toNullable(entity.Config)).
+		RunWith(store.tx).
+		Exec()
 	if err != nil {
 		return entWithPk{}, fmt.Errorf("failed to create entity %s: %s", entity.GetTypeAndKey(), err)
 	}
-
 	return entWithPk{pk: pk, NetworkEntity: entity}, nil
 }
 
@@ -76,15 +73,11 @@ func (store *sqlConfiguratorStorage) createPermissions(networkID string, pk stri
 		return nil
 	}
 
-	aclInsertQuery := fmt.Sprintf("INSERT INTO %s (id, entity_pk, scope, permission, type, id_filter) VALUES %s", entityAclTable, sql_utils.GetPlaceholderArgList(1, 6))
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{aclInsertQuery})
-	if err != nil {
-		return errors.Wrap(err, "failed to prepare permission insert")
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "createPermissions")()
+	insertBuilder := store.builder.Insert(entityAclTable).
+		Columns("id", "entity_pk", "scope", "permission", "type", "id_filter")
 
-	aclStmt := stmts[0]
-	for i, acl := range acls {
+	aclIDs := make([]string, 0, len(acls))
+	for _, acl := range acls {
 		aclID := store.idGenerator.New()
 		scopeVal, err := serializeACLScope(acl.Scope)
 		if err != nil {
@@ -95,15 +88,18 @@ func (store *sqlConfiguratorStorage) createPermissions(networkID string, pk stri
 			return err
 		}
 
-		_, err = aclStmt.Exec(aclID, pk, scopeVal, acl.Permission, typeVal, serializeACLIDFilter(acl.IDFilter))
-		if err != nil {
-			return errors.Wrapf(err, "failed to create permission %s", aclID)
-		}
-		// `acl` in this context is a new variable allocation (copy-on-write),
-		// so use the array index to modify the permission
-		acls[i].ID = aclID
+		insertBuilder = insertBuilder.Values(aclID, pk, scopeVal, acl.Permission, typeVal, serializeACLIDFilter(acl.IDFilter))
+		aclIDs = append(aclIDs, aclID)
 	}
 
+	_, err := insertBuilder.RunWith(store.tx).Exec()
+	if err != nil {
+		return errors.Wrap(err, "failed to create permissions")
+	}
+
+	for i, aclID := range aclIDs {
+		acls[i].ID = aclID
+	}
 	return nil
 }
 
@@ -119,24 +115,18 @@ func (store *sqlConfiguratorStorage) createEdges(networkID string, entity entWit
 		return entsByTk, err
 	}
 
-	assocInsertQuery := fmt.Sprintf("INSERT INTO %s (from_pk, to_pk) VALUES ($1, $2) ON CONFLICT DO NOTHING", entityAssocTable)
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{assocInsertQuery})
-	if err != nil {
-		return entsByTk, err
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "CreateEntities")()
-	assocStmt := stmts[0]
-
+	insertBuilder := store.builder.Insert(entityAssocTable).
+		Columns("from_pk", "to_pk").
+		OnConflict(nil, "from_pk", "to_pk")
 	for _, edge := range entity.GetGraphEdges() {
 		fromPk := entsByTk[edge.From].pk
 		toPk := entsByTk[edge.To].pk
-
-		_, err := assocStmt.Exec(fromPk, toPk)
-		if err != nil {
-			return entsByTk, fmt.Errorf("error creating assoc (%s, %s): %s", edge.From, edge.To, err)
-		}
+		insertBuilder = insertBuilder.Values(fromPk, toPk)
 	}
-
+	_, err = insertBuilder.RunWith(store.tx).Exec()
+	if err != nil {
+		return entsByTk, errors.Wrap(err, "error creating assocs")
+	}
 	return entsByTk, nil
 }
 
@@ -203,17 +193,18 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 		graphIDsToChange = append(graphIDsToChange, oldGraphID)
 	}
 
-	graphUpdateQuery := fmt.Sprintf("UPDATE %s SET graph_id = $1 WHERE graph_id = $2", entityTable)
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{graphUpdateQuery})
-	if err != nil {
-		return "", err
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "CreateEntity")()
+	// let squirrel cache prepared statements for us (there should only be 1)
+	sc := sq.NewStmtCache(store.tx)
+	defer sql_utils.ClearStatementCacheLogOnError(sc, "mergeGraphs")
 
 	for _, oldGraphID := range graphIDsToChange {
-		_, err := stmts[0].Exec(targetGraphID, oldGraphID)
+		_, err := store.builder.Update(entityTable).
+			Set("graph_id", targetGraphID).
+			Where(sq.Eq{"graph_id": oldGraphID}).
+			RunWith(sc).
+			Exec()
 		if err != nil {
-			return "", fmt.Errorf("error updating entity graphs: %s", err)
+			return "", errors.Wrap(err, "error updating entity graphs")
 		}
 	}
 
@@ -240,11 +231,9 @@ func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update En
 
 // entOut is an output parameter
 func (store *sqlConfiguratorStorage) processEntityFieldsUpdate(pk string, update EntityUpdateCriteria, entOut *NetworkEntity) error {
-	exec, args, err := getUpdateEntityExec(pk, update)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	_, err = store.tx.Exec(exec, args...)
+	_, err := store.getEntityUpdateQueryBuilder(pk, update).
+		RunWith(store.tx).
+		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to update entity fields")
 	}
@@ -340,63 +329,24 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	return nil
 }
 
-type updateEntityExecTemplateArgs struct {
-	TableName, Fields, FieldsPlaceholder, ConditionPlaceholder string
-}
-
-func getUpdateEntityExec(pk string, update EntityUpdateCriteria) (string, []interface{}, error) {
+func (store *sqlConfiguratorStorage) getEntityUpdateQueryBuilder(pk string, update EntityUpdateCriteria) sq.UpdateBuilder {
 	// UPDATE cfg_entities SET (name, description, physical_id, config, version) = ($1, $2, $3, $4, cfg_entities.version + 1)
 	// WHERE pk = $5
-	tmpl := template.Must(template.New("update_ent_exec").Parse(`
-		UPDATE {{.TableName}} SET {{.Fields}} = {{.FieldsPlaceholder}}
-		WHERE pk = {{.ConditionPlaceholder}}
-	`))
-	tmplArgs, sqlArgs := getUpdateEntityExecTemplateArgsAndSQLArgs(pk, update)
-
-	buf := new(bytes.Buffer)
-	err := tmpl.Execute(buf, tmplArgs)
-	if err != nil {
-		return "", []interface{}{}, errors.Wrap(err, "failed to format entity update query")
-	}
-	return buf.String(), sqlArgs, nil
-}
-
-func getUpdateEntityExecTemplateArgsAndSQLArgs(pk string, update EntityUpdateCriteria) (updateEntityExecTemplateArgs, []interface{}) {
-	tmplArgs := updateEntityExecTemplateArgs{
-		TableName: entityTable,
-	}
-	args := []interface{}{}
-
-	fields := []string{}
+	updateBuilder := store.builder.Update(entityTable).Where(sq.Eq{"pk": pk})
 	if update.NewName != nil {
-		fields = append(fields, "name")
-		args = append(args, *update.NewName)
+		updateBuilder = updateBuilder.Set("name", *update.NewName)
 	}
 	if update.NewDescription != nil {
-		fields = append(fields, "description")
-		args = append(args, *update.NewDescription)
+		updateBuilder = updateBuilder.Set("description", *update.NewDescription)
 	}
 	if update.NewPhysicalID != nil {
-		fields = append(fields, "physical_id")
-		args = append(args, *update.NewPhysicalID)
+		updateBuilder = updateBuilder.Set("physical_id", *update.NewPhysicalID)
 	}
 	if update.NewConfig != nil {
-		fields = append(fields, "config")
-		args = append(args, *update.NewConfig)
+		updateBuilder = updateBuilder.Set("config", *update.NewConfig)
 	}
-	fields = append(fields, "version")
-
-	tmplArgs.Fields = fmt.Sprintf("(%s)", strings.Join(fields, ", "))
-	tmplArgs.FieldsPlaceholder = sql_utils.GetPlaceholderArgListWithSuffix(
-		1,
-		// -1 here because version is set in-place
-		len(fields)-1,
-		"version + 1",
-	)
-	tmplArgs.ConditionPlaceholder = fmt.Sprintf("$%d", len(fields))
-
-	args = append(args, pk)
-	return tmplArgs, args
+	updateBuilder = updateBuilder.Set("version", sq.Expr("version+1"))
+	return updateBuilder
 }
 
 // entOut is an output parameter
@@ -409,17 +359,11 @@ func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions
 		return errors.New("not all ACLs being updated exist")
 	}
 
-	updateExec := fmt.Sprintf(`
-		UPDATE %s SET (scope, permission, type, id_filter, version) = ($1, $2, $3, $4, %s.version + 1)
-		WHERE %s.id = $5
-	`, entityAclTable, entityAclTable, entityAclTable)
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{updateExec})
-	if err != nil {
-		return errors.Wrap(err, "failed to prepare ACl update statement")
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "updatePermissions")()
+	// We'll let squirrel cache prepared statements for us (there should only
+	// be 1 in the current impl because update is all-or-nothing)
+	sc := sq.NewStmtCache(store.tx)
+	defer sql_utils.ClearStatementCacheLogOnError(sc, "updatePermissions")
 
-	updateStmt := stmts[0]
 	for _, acl := range permissions {
 		scopeVal, err := serializeACLScope(acl.Scope)
 		if err != nil {
@@ -430,7 +374,17 @@ func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions
 			return err
 		}
 
-		_, err = updateStmt.Exec(scopeVal, acl.Permission, typeVal, serializeACLIDFilter(acl.IDFilter), acl.ID)
+		// UPDATE cfg_acls SET (scope, permission, type, id_filter, version) = ($1, $2, $3, $4, cfg_acls.version+1)
+		// WHERE cfg_acls.id = $5
+		_, err = store.builder.Update(entityAclTable).
+			Set("scope", scopeVal).
+			Set("permission", acl.Permission).
+			Set("type", typeVal).
+			Set("id_filter", serializeACLIDFilter(acl.IDFilter)).
+			Set("version", sq.Expr("version+1")).
+			Where(sq.Eq{"id": acl.ID}).
+			RunWith(sc).
+			Exec()
 		if err != nil {
 			return errors.Wrapf(err, "failed to update permission %s", acl.ID)
 		}
@@ -441,16 +395,14 @@ func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions
 }
 
 func (store *sqlConfiguratorStorage) doAllACLsExist(acls []ACL) (bool, error) {
-	countPermsQuery := fmt.Sprintf(
-		"SELECT COUNT(*) FROM %s WHERE id IN %s",
-		entityAclTable,
-		sql_utils.GetPlaceholderArgList(1, len(acls)),
-	)
 	aclIDs := funk.Map(acls, func(acl ACL) interface{} { return acl.ID }).([]interface{})
-	row := store.tx.QueryRow(countPermsQuery, aclIDs...)
-
 	var count uint64
-	err := row.Scan(&count)
+
+	err := store.builder.Select("COUNT(*)").
+		From(entityAclTable).
+		Where(sq.Eq{"id": aclIDs}).
+		RunWith(store.tx).
+		QueryRow().Scan(&count)
 	if err == sql.ErrNoRows {
 		return false, errors.New("no ACLs found matching ACLs to update")
 	}
@@ -465,8 +417,10 @@ func (store *sqlConfiguratorStorage) deletePermissions(aclIDs []string, entOut *
 	ids := make([]interface{}, 0, len(aclIDs))
 	funk.ConvertSlice(funk.UniqString(aclIDs), &ids)
 
-	delExec := fmt.Sprintf("DELETE FROM %s WHERE id IN %s", entityAclTable, sql_utils.GetPlaceholderArgList(1, len(ids)))
-	_, err := store.tx.Exec(delExec, ids...)
+	_, err := store.builder.Delete(entityAclTable).
+		Where(sq.Eq{"id": aclIDs}).
+		RunWith(store.tx).
+		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to delete ACLs")
 	}
@@ -475,7 +429,7 @@ func (store *sqlConfiguratorStorage) deletePermissions(aclIDs []string, entOut *
 		return nil
 	}
 
-	idsSet := funk.Map(ids, func(i interface{}) (string, struct{}) { return i.(string), struct{}{} }).(map[string]struct{})
+	idsSet := funk.Map(aclIDs, func(i string) (string, bool) { return i, true }).(map[string]bool)
 	entOut.Permissions = funk.Filter(entOut.Permissions, func(acl ACL) bool {
 		_, deleted := idsSet[acl.ID]
 		return !deleted
@@ -495,19 +449,20 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 		return errors.Wrap(err, "could not load entities matching associations to delete")
 	}
 
-	deleteEdgeExec := fmt.Sprintf("DELETE FROM %s WHERE (from_pk, to_pk) = ($1, $2)", entityAssocTable)
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{deleteEdgeExec})
-	if err != nil {
-		return errors.Wrap(err, "failed to prepare assoc delete statement")
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "deleteEdges")()
-
-	deleteStmt := stmts[0]
+	orClause := make(sq.Or, 0, len(edgesToDelete))
 	for _, edge := range edgesToDelete {
-		_, err = deleteStmt.Exec(entToUpdateOut.pk, loadedEntsByTk[edge].pk)
-		if err != nil {
-			return errors.Wrapf(err, "failed to delete assoc to %s", edge)
-		}
+		orClause = append(orClause, sq.And{
+			sq.Eq{"from_pk": entToUpdateOut.pk},
+			sq.Eq{"to_pk": loadedEntsByTk[edge].pk},
+		})
+	}
+
+	_, err = store.builder.Delete(entityAssocTable).
+		Where(orClause).
+		RunWith(store.tx).
+		Exec()
+	if err != nil {
+		return errors.Wrap(err, "failed to delete assocs")
 	}
 
 	if funk.IsEmpty(entToUpdateOut.Associations) {

@@ -9,11 +9,9 @@
 package storage
 
 import (
-	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
-
+	sq "github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -84,13 +82,11 @@ func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, 
 
 func (store *sqlConfiguratorStorage) updateGraphID(pksToUpdate []string, newGraphID string) error {
 	sort.Strings(pksToUpdate)
-	args := make([]interface{}, len(pksToUpdate)+1)
-	args[0] = newGraphID
-	fillSlice := args[1:1] // 1:1 because ConvertSlice expects a slice with len of 0
-	funk.ConvertSlice(pksToUpdate, &fillSlice)
-
-	updateExec := fmt.Sprintf("UPDATE %s SET graph_id = $1 WHERE pk IN %s", entityTable, sql_utils.GetPlaceholderArgList(2, len(pksToUpdate)))
-	_, err := store.tx.Exec(updateExec, args...)
+	_, err := store.builder.Update(entityTable).
+		Set("graph_id", newGraphID).
+		Where(sq.Eq{"pk": pksToUpdate}).
+		RunWith(store.tx).
+		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to update graph ID")
 	}
