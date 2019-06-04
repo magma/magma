@@ -17,6 +17,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
+	"github.com/lann/builder"
 	"github.com/thoas/go-funk"
 )
 
@@ -42,15 +43,23 @@ func GetSqlBuilder() StatementBuilder {
 // StatementBuilder is an interface which tracks squirrel's
 // StatementBuilderType with the difference that Insert returns this package's
 // InsertBuilder interface type.
-// This interface exists to support building upsert statements for different
-// SQL dialects.
+// This interface exists to support building table creation DDL commands and
+// upsert statements for multiple dialects.
 type StatementBuilder interface {
 	Select(columns ...string) squirrel.SelectBuilder
 	Insert(into string) InsertBuilder
 	Update(table string) squirrel.UpdateBuilder
 	Delete(from string) squirrel.DeleteBuilder
+
 	PlaceholderFormat(f squirrel.PlaceholderFormat) squirrel.StatementBuilderType
 	RunWith(runner squirrel.BaseRunner) squirrel.StatementBuilderType
+
+	// CreateTable returns a CreateTableBuilder for building DDL table creation
+	// statements.
+	// IMPORTANT: the returned builder will NOT respect the runner set via
+	// RunWith on this StatementBuilder due to a reflection bug that's
+	// tricky to chase down.
+	CreateTable(name string) CreateTableBuilder
 }
 
 // NewPostgresStatementBuilder returns an implementation of StatementBuilder
@@ -76,6 +85,16 @@ func (psb postgresStatementBuilder) Insert(into string) InsertBuilder {
 	return postgresInsertBuilder{baseInsertBuilder}
 }
 
+func (psb postgresStatementBuilder) CreateTable(name string) CreateTableBuilder {
+	// If we use psb.StatementBuilderType as the arg to CreateTableBuilder,
+	// we get the following panic:
+	// panic: reflect: call of reflect.Value.Set on zero Value
+	// This is hard to track down so just pass builder.EmptyBuilder
+	return CreateTableBuilder(builder.EmptyBuilder).
+		columnTypeNames(postgresColumnTypeMap).
+		Name(name)
+}
+
 type mysqlStatementBuilder struct {
 	squirrel.StatementBuilderType
 }
@@ -83,6 +102,13 @@ type mysqlStatementBuilder struct {
 func (msb mysqlStatementBuilder) Insert(into string) InsertBuilder {
 	baseInsertBuilder := msb.StatementBuilderType.Insert(into)
 	return mysqlInsertBuilder{baseInsertBuilder}
+}
+
+func (msb mysqlStatementBuilder) CreateTable(name string) CreateTableBuilder {
+	// see comment on the postgres builder about the EmptyBuilder
+	return CreateTableBuilder(builder.EmptyBuilder).
+		columnTypeNames(mysqlColumnTypeMap).
+		Name(name)
 }
 
 // InsertBuilder is an interface which tracks squirrel's InsertBuilder
