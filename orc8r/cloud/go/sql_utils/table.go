@@ -39,6 +39,7 @@ var postgresColumnTypeMap = map[ColumnType]string{
 	ColumnTypeInt:  "INTEGER",
 	// BYTEA is effectively limited to 1GB
 	ColumnTypeBytes: "BYTEA",
+	ColumnTypeBool:  "BOOLEAN",
 }
 
 var mysqlColumnTypeMap = map[ColumnType]string{
@@ -47,6 +48,7 @@ var mysqlColumnTypeMap = map[ColumnType]string{
 	// LONGBLOB stores up to 4GB and the cost is a flat extra 2 bytes of
 	// storage over BLOB, which is limited to 64KB
 	ColumnTypeBytes: "LONGBLOB",
+	ColumnTypeBool:  "BOOLEAN",
 }
 
 // ColumnOnDeleteOption is an enum type to specify ON DELETE behavior for
@@ -65,6 +67,7 @@ const (
 	ColumnTypeText ColumnType = iota
 	ColumnTypeInt
 	ColumnTypeBytes
+	ColumnTypeBool
 	// Fill in other types as needed
 )
 
@@ -105,11 +108,11 @@ func (b CreateTableBuilder) RunWith(runner squirrel.BaseRunner) CreateTableBuild
 	return builder.Set(b, "RunWith", runner).(CreateTableBuilder)
 }
 
-// StartColumn returns a ColumnBuilder to build a column for the table. The
-// returned ColumnBuilder will have a reference back to this CreateTableBuilder
-// which will be returned when EndColumn() is called so you can chain column
-// creation into table creation.
-func (b CreateTableBuilder) StartColumn(name string) ColumnBuilder {
+// Column returns a ColumnBuilder to build a column for the table. The returned
+// ColumnBuilder will have a reference back to this CreateTableBuilder which
+// will be returned when EndColumn() is called so you can chain column creation
+// into table creation.
+func (b CreateTableBuilder) Column(name string) ColumnBuilder {
 	val, _ := builder.Get(b, "ColumnTypeNames")
 	return ColumnBuilder(builder.EmptyBuilder).
 		parentBuilder(&b).

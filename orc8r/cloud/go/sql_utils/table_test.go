@@ -138,17 +138,17 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 	actual, _, err := tableBuilder(postgresColumnTypeMap).
 		Name("foobar").
 		IfNotExists().
-		StartColumn("pk").
+		Column("pk").
 		Type(ColumnTypeText).
 		PrimaryKey().
 		EndColumn().
-		StartColumn("foo").
+		Column("foo").
 		Type(ColumnTypeBytes).
 		NotNull().
 		References("barbaz", "bites").
 		OnDelete(ColumnOnDeleteCascade).
 		EndColumn().
-		StartColumn("bar").
+		Column("bar").
 		Type(ColumnTypeInt).
 		Default(42).
 		EndColumn().
@@ -167,7 +167,7 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 
 	actual, _, err = tableBuilder(postgresColumnTypeMap).
 		Name("foobar").
-		StartColumn("pk").
+		Column("pk").
 		Type(ColumnTypeText).
 		PrimaryKey().
 		EndColumn().
@@ -182,17 +182,17 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 	actual, _, err = tableBuilder(mysqlColumnTypeMap).
 		Name("foobar").
 		IfNotExists().
-		StartColumn("pk").
+		Column("pk").
 		Type(ColumnTypeText).
 		PrimaryKey().
 		EndColumn().
-		StartColumn("foo").
+		Column("foo").
 		Type(ColumnTypeBytes).
 		NotNull().
 		References("barbaz", "bites").
 		OnDelete(ColumnOnDeleteCascade).
 		EndColumn().
-		StartColumn("bar").
+		Column("bar").
 		Type(ColumnTypeInt).
 		Default(42).
 		EndColumn().
@@ -211,7 +211,7 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 
 	actual, _, err = tableBuilder(mysqlColumnTypeMap).
 		Name("foobar").
-		StartColumn("pk").
+		Column("pk").
 		Type(ColumnTypeText).
 		PrimaryKey().
 		EndColumn().
@@ -246,7 +246,7 @@ func TestCreateTableBuilder_Exec(t *testing.T) {
 
 	_, err = NewPostgresStatementBuilder().CreateTable("foobar").
 		IfNotExists().
-		StartColumn("pk").
+		Column("pk").
 		Type(ColumnTypeText).
 		PrimaryKey().
 		EndColumn().

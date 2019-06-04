@@ -39,18 +39,16 @@ func GetConfigTableName(networkId string) string {
 // This is a mega-hack before our inter-service streaming architecture is in
 // place. Execute a CREATE TABLE IF NOT EXISTS on every query so we don't
 // query a non-existent table.
-func initTable(tx *sql.Tx, table string) error {
-	queryFormat := `
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			type text NOT NULL,
-			key text NOT NULL,
-			value bytea,
-			version INTEGER NOT NULL DEFAULT 0,
-			PRIMARY KEY (type, key)
-		)
-	`
-	_, err := tx.Exec(fmt.Sprintf(queryFormat, table))
+func (store *sqlConfigStorage) initTable(tx *sql.Tx, table string) error {
+	_, err := store.builder.CreateTable(table).
+		IfNotExists().
+		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("key").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
+		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		PrimaryKey("type", "key").
+		RunWith(tx).
+		Exec()
 	return err
 }
 
@@ -66,7 +64,7 @@ func (store *sqlConfigStorage) GetConfig(networkId string, configType string, ke
 		return &ConfigValue{Value: value, Version: version}, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(networkId), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +105,7 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 		return scannedRows, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(networkId), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +137,7 @@ func (store *sqlConfigStorage) ListKeysForType(networkId string, configType stri
 		return scannedRows, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(networkId), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +165,7 @@ func (store *sqlConfigStorage) CreateConfig(networkId string, configType string,
 		return nil, err
 	}
 
-	_, err := sql_utils.ExecInTx(store.db, getInitFn(networkId), txFn)
+	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -192,7 +190,7 @@ func (store *sqlConfigStorage) UpdateConfig(networkId string, configType string,
 		return nil, err
 	}
 
-	_, err := sql_utils.ExecInTx(store.db, getInitFn(networkId), txFn)
+	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -213,7 +211,7 @@ func (store *sqlConfigStorage) DeleteConfig(networkId string, configType string,
 		return nil, err
 	}
 
-	_, err := sql_utils.ExecInTx(store.db, getInitFn(networkId), txFn)
+	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -231,7 +229,7 @@ func (store *sqlConfigStorage) DeleteConfigs(networkId string, criteria *FilterC
 		return nil, err
 	}
 
-	_, err = sql_utils.ExecInTx(store.db, getInitFn(networkId), txFn)
+	_, err = sql_utils.ExecInTx(store.db, store.getInitFn(networkId), txFn)
 	return err
 }
 
@@ -279,9 +277,9 @@ func (store *sqlConfigStorage) getConfig(tx *sql.Tx, networkId string, configTyp
 	return value, version, err
 }
 
-func getInitFn(networkID string) func(*sql.Tx) error {
+func (store *sqlConfigStorage) getInitFn(networkID string) func(*sql.Tx) error {
 	return func(tx *sql.Tx) error {
-		return initTable(tx, GetConfigTableName(networkID))
+		return store.initTable(tx, GetConfigTableName(networkID))
 	}
 }
 

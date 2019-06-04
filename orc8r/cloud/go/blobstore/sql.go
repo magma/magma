@@ -47,7 +47,7 @@ func (fact *sqlBlobStoreFactory) InitializeFactory() error {
 	if err != nil {
 		return err
 	}
-	err = initTable(tx, fact.tableName)
+	err = fact.initTable(tx, fact.tableName)
 	if err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			glog.Errorf("error rolling back transaction initializing blobstore factory: %s", err)
@@ -56,6 +56,20 @@ func (fact *sqlBlobStoreFactory) InitializeFactory() error {
 		return err
 	}
 	return tx.Commit()
+}
+
+func (fact *sqlBlobStoreFactory) initTable(tx *sql.Tx, tableName string) error {
+	_, err := fact.builder.CreateTable(tableName).
+		IfNotExists().
+		Column("network_id").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("key").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
+		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		PrimaryKey("network_id", "type", "key").
+		RunWith(tx).
+		Exec()
+	return err
 }
 
 type sqlBlobStorage struct {
@@ -194,22 +208,6 @@ func (store *sqlBlobStorage) validateTx() error {
 		return errors.New("No transaction is available")
 	}
 	return nil
-}
-
-func initTable(tx *sql.Tx, tableName string) error {
-	queryFormat := `
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			network_id text NOT NULL,
-			type text NOT NULL,
-			key text NOT NULL,
-			value bytea,
-			version INTEGER NOT NULL DEFAULT 0,
-			PRIMARY KEY (network_id, type, key)
-		)
-	`
-	_, err := tx.Exec(fmt.Sprintf(queryFormat, tableName))
-	return err
 }
 
 func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange map[storage.TypeAndKey]blobChange) error {
