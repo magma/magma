@@ -22,6 +22,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	nidCol  = "network_id"
+	typeCol = "type"
+	keyCol  = "\"key\""
+	valCol  = "value"
+	verCol  = "version"
+)
+
 // NewSQLBlobStorageFactory returns a BlobStorageFactory implementation which
 // will return storage APIs backed by SQL.
 func NewSQLBlobStorageFactory(tableName string, db *sql.DB, sqlBuilder sqorc.StatementBuilder) BlobStorageFactory {
@@ -61,12 +69,12 @@ func (fact *sqlBlobStoreFactory) InitializeFactory() error {
 func (fact *sqlBlobStoreFactory) initTable(tx *sql.Tx, tableName string) error {
 	_, err := fact.builder.CreateTable(tableName).
 		IfNotExists().
-		Column("network_id").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("key").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
-		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		PrimaryKey("network_id", "type", "key").
+		Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(typeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(keyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(valCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column(verCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		PrimaryKey(nidCol, typeCol, keyCol).
 		RunWith(tx).
 		Exec()
 	return err
@@ -104,8 +112,8 @@ func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]strin
 		return ret, err
 	}
 
-	rows, err := store.builder.Select("key").From(store.tableName).
-		Where(sq.Eq{"network_id": networkID, "type": typeVal}).
+	rows, err := store.builder.Select(keyCol).From(store.tableName).
+		Where(sq.Eq{nidCol: networkID, typeCol: typeVal}).
 		RunWith(store.tx).
 		Query()
 	if err != nil {
@@ -142,7 +150,7 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 	}
 
 	whereCondition := getWhereCondition(networkID, ids)
-	rows, err := sq.Select("type", "key", "value", "version").From(store.tableName).
+	rows, err := sq.Select(typeCol, keyCol, valCol, verCol).From(store.tableName).
 		Where(whereCondition).
 		RunWith(store.tx).
 		Query()
@@ -219,14 +227,14 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 	for _, blobID := range getSortedTypeAndKeys(blobsToChange) {
 		change := blobsToChange[blobID]
 		_, err := store.builder.Update(store.tableName).
-			Set("value", change.new.Value).
-			Set("version", change.old.Version+1).
+			Set(valCol, change.new.Value).
+			Set(verCol, change.old.Version+1).
 			Where(
 				// Use explicit sq.And to preserve ordering of WHERE clause items
 				sq.And{
-					sq.Eq{"network_id": networkID},
-					sq.Eq{"type": blobID.Type},
-					sq.Eq{"key": blobID.Key},
+					sq.Eq{nidCol: networkID},
+					sq.Eq{typeCol: blobID.Type},
+					sq.Eq{keyCol: blobID.Key},
 				},
 			).
 			RunWith(sc).
@@ -240,7 +248,7 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 
 func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs []Blob) error {
 	insertBuilder := store.builder.Insert(store.tableName).
-		Columns("network_id", "type", "key", "value")
+		Columns(nidCol, typeCol, keyCol, valCol)
 	for _, blob := range blobs {
 		insertBuilder = insertBuilder.Values(networkID, blob.Type, blob.Key, blob.Value)
 	}
@@ -256,9 +264,9 @@ func getWhereCondition(networkID string, ids []storage.TypeAndKey) sq.Or {
 	for _, id := range ids {
 		// Use explicit sq.And to preserve ordering of clauses for testing
 		whereConditions = append(whereConditions, sq.And{
-			sq.Eq{"network_id": networkID},
-			sq.Eq{"type": id.Type},
-			sq.Eq{"key": id.Key},
+			sq.Eq{nidCol: networkID},
+			sq.Eq{typeCol: id.Type},
+			sq.Eq{keyCol: id.Key},
 		})
 	}
 	return whereConditions

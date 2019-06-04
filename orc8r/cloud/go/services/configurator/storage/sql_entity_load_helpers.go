@@ -56,7 +56,7 @@ func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID stri
 	selectBuilder := store.builder.Select(getLoadEntitiesColumns(criteria)...).
 		From(fmt.Sprintf("%s AS ent", entityTable))
 	if criteria.LoadPermissions {
-		selectBuilder = selectBuilder.LeftJoin(fmt.Sprintf("%s AS acl ON acl.entity_pk = ent.pk", entityAclTable))
+		selectBuilder = selectBuilder.LeftJoin(fmt.Sprintf("%s AS acl ON acl.%s = ent.%s", entityAclTable, aclEntCol, entPkCol))
 	}
 
 	// The WHERE has ORs if specific IDs are provided
@@ -64,22 +64,22 @@ func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID stri
 		orClause := make(sq.Or, 0, len(filter.IDs))
 		funk.ForEach(filter.IDs, func(tk storage.TypeAndKey) {
 			orClause = append(orClause, sq.And{
-				sq.Eq{"ent.network_id": networkID},
-				sq.Eq{"ent.key": tk.Key},
-				sq.Eq{"ent.type": tk.Type},
+				sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID},
+				sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): tk.Key},
+				sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): tk.Type},
 			})
 		})
 		selectBuilder = selectBuilder.Where(orClause)
 	} else {
 		if filter.graphID != nil {
-			selectBuilder = selectBuilder.Where(sq.Eq{"ent.graph_id": *filter.graphID})
+			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): *filter.graphID})
 		} else {
-			andClause := sq.And{sq.Eq{"ent.network_id": networkID}}
+			andClause := sq.And{sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID}}
 			if filter.KeyFilter != nil {
-				andClause = append(andClause, sq.Eq{"ent.key": *filter.KeyFilter})
+				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): *filter.KeyFilter})
 			}
 			if filter.TypeFilter != nil {
-				andClause = append(andClause, sq.Eq{"ent.type": *filter.TypeFilter})
+				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): *filter.TypeFilter})
 			}
 			selectBuilder = selectBuilder.Where(andClause)
 		}
@@ -89,15 +89,30 @@ func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID stri
 }
 
 func getLoadEntitiesColumns(criteria EntityLoadCriteria) []string {
-	fields := []string{"ent.pk", "ent.key", "ent.type", "ent.physical_id", "ent.version", "ent.graph_id"}
+	fields := []string{
+		fmt.Sprintf("ent.%s", entPkCol),
+		fmt.Sprintf("ent.%s", entKeyCol),
+		fmt.Sprintf("ent.%s", entTypeCol),
+		fmt.Sprintf("ent.%s", entPidCol),
+		fmt.Sprintf("ent.%s", entVerCol),
+		fmt.Sprintf("ent.%s", entGidCol),
+	}
 	if criteria.LoadMetadata {
-		fields = append(fields, "ent.name", "ent.description")
+		fields = append(fields, fmt.Sprintf("ent.%s", entNameCol), fmt.Sprintf("ent.%s", entDescCol))
 	}
 	if criteria.LoadConfig {
-		fields = append(fields, "ent.config")
+		fields = append(fields, fmt.Sprintf("ent.%s", entConfCol))
 	}
 	if criteria.LoadPermissions {
-		fields = append(fields, "acl.id", "acl.scope", "acl.permission", "acl.type", "acl.id_filter", "acl.version")
+		fields = append(
+			fields,
+			fmt.Sprintf("acl.%s", aclIdCol),
+			fmt.Sprintf("acl.%s", aclScopeCol),
+			fmt.Sprintf("acl.%s", aclPermCol),
+			fmt.Sprintf("acl.%s", aclTypeCol),
+			fmt.Sprintf("acl.%s", aclIdFilterCol),
+			fmt.Sprintf("acl.%s", aclVerCol),
+		)
 	}
 	return fields
 }
@@ -216,10 +231,10 @@ func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter
 	// OR assoc.to_pk IN ($4, $5, $6, ...)
 	orClause := sq.Or{}
 	if criteria.LoadAssocsFromThis {
-		orClause = append(orClause, sq.Eq{"assoc.from_pk": entPks})
+		orClause = append(orClause, sq.Eq{fmt.Sprintf("assoc.%s", aFrCol): entPks})
 	}
 	if criteria.LoadAssocsToThis {
-		orClause = append(orClause, sq.Eq{"assoc.to_pk": entPks})
+		orClause = append(orClause, sq.Eq{fmt.Sprintf("assoc.%s", aToCol): entPks})
 	}
 	// if we loaded all entities, save some network traffic and just load the
 	// entire assocs table
@@ -227,7 +242,7 @@ func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter
 		orClause = sq.Or{sq.Eq{"1": 1}}
 	}
 
-	assocRows, err := store.builder.Select("assoc.from_pk", "assoc.to_pk").
+	assocRows, err := store.builder.Select(fmt.Sprintf("assoc.%s", aFrCol), fmt.Sprintf("assoc.%s", aToCol)).
 		From("cfg_assocs AS assoc").
 		Where(orClause).
 		RunWith(store.tx).
@@ -269,9 +284,9 @@ func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedE
 	if len(pksToLoad) == 0 {
 		return ret, nil
 	}
-	rows, err := store.builder.Select("pk", "type", "key").
+	rows, err := store.builder.Select(entPkCol, entTypeCol, entKeyCol).
 		From(entityTable).
-		Where(sq.Eq{"pk": pksToLoad}).
+		Where(sq.Eq{entPkCol: pksToLoad}).
 		RunWith(store.tx).
 		Query()
 	defer sqorc.CloseRowsLogOnError(rows, "LoadEntities")

@@ -25,7 +25,7 @@ import (
 func TestSqlBlobStorage_ListKeys(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT key FROM network_table").
+			mock.ExpectQuery("SELECT \"key\" FROM network_table").
 				WithArgs("network", "type").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"key"}).AddRow("key1").AddRow("key2"),
@@ -40,7 +40,7 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT key FROM network_table").
+			mock.ExpectQuery("SELECT \"key\" FROM network_table").
 				WithArgs("network", "type").
 				WillReturnError(errors.New("Mock query error"))
 		},
@@ -58,7 +58,7 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 func TestSqlBlobStorage_Get(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
+			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 				WithArgs("network", "t1", "k1").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}).
@@ -75,7 +75,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 	}
 	dneCase := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
+			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 				WithArgs("network", "t2", "k2").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}),
@@ -92,7 +92,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 	}
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
+			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 				WithArgs("network", "t3", "k3").
 				WillReturnError(errors.New("Mock query error"))
 		},
@@ -112,7 +112,7 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 func TestSqlBlobStorage_GetMany(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
+			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 				WithArgs("network", "t1", "k1", "network", "t2", "k2").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}).
@@ -134,7 +134,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
+			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 				WithArgs("network", "t1", "k1", "network", "t2", "k2").
 				WillReturnError(errors.New("Mock query error"))
 		},
@@ -435,7 +435,7 @@ func expectGetMany(mock sqlmock.Sqlmock, args []driver.Value, blobs []blobstore.
 		rows.AddRow(blob.Type, blob.Key, blob.Value, blob.Version)
 	}
 
-	mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
+	mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 		WithArgs(args...).
 		WillReturnRows(rows)
 }

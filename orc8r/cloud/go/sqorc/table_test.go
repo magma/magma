@@ -62,7 +62,7 @@ func TestColumnBuilder_ToSql(t *testing.T) {
 		OnDelete(ColumnOnDeleteCascade).
 		ToSql()
 	assert.NoError(t, err)
-	expected = "pk TEXT PRIMARY KEY NOT NULL DEFAULT \"hello world\" REFERENCES foo (bar) ON DELETE CASCADE"
+	expected = "pk VARCHAR(255) PRIMARY KEY NOT NULL DEFAULT \"hello world\" REFERENCES foo (bar) ON DELETE CASCADE"
 	assert.Equal(t, expected, actual)
 
 	actual, err = columnBuilder(mariaColumnTypeMap).
@@ -126,9 +126,9 @@ func TestColumnBuilder_ToSql_Errors(t *testing.T) {
 		Name("foo").
 		Type(ColumnTypeBytes).
 		References("bar", "baz").
-		OnDelete(ColumnOnDeleteCascade + 100).
+		OnDelete(ColumnOnDeleteOption(255)).
 		ToSql()
-	assert.EqualError(t, err, "unrecognized on delete option 100")
+	assert.EqualError(t, err, "unrecognized on delete option 255")
 }
 
 func TestCreateTableBuilder_ToSql(t *testing.T) {
@@ -138,22 +138,13 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 	actual, _, err := tableBuilder(postgresColumnTypeMap).
 		Name("foobar").
 		IfNotExists().
-		Column("pk").
-		Type(ColumnTypeText).
-		PrimaryKey().
-		EndColumn().
-		Column("foo").
-		Type(ColumnTypeBytes).
-		NotNull().
-		References("barbaz", "bites").
-		OnDelete(ColumnOnDeleteCascade).
-		EndColumn().
-		Column("bar").
-		Type(ColumnTypeInt).
-		Default(42).
-		EndColumn().
+		Column("pk").Type(ColumnTypeText).PrimaryKey().EndColumn().
+		Column("foo").Type(ColumnTypeBytes).NotNull().References("barbaz", "bites").OnDelete(ColumnOnDeleteCascade).EndColumn().
+		Column("bar").Type(ColumnTypeInt).Default(42).EndColumn().
 		PrimaryKey("pk", "foo").
 		Unique("foo", "bar").
+		ForeignKey("othert", map[string]string{"foo": "ofoo", "bar": "obar"}, ColumnOnDeleteDoNothing).
+		ForeignKey("othert", map[string]string{"bar": "zbar"}, ColumnOnDeleteCascade).
 		ToSql()
 	assert.NoError(t, err)
 	expected := "CREATE TABLE IF NOT EXISTS foobar (\n" +
@@ -161,6 +152,8 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 		"foo BYTEA NOT NULL REFERENCES barbaz (bites) ON DELETE CASCADE,\n" +
 		"bar INTEGER DEFAULT 42,\n" +
 		"PRIMARY KEY (pk, foo),\n" +
+		"FOREIGN KEY (bar, foo) REFERENCES othert (obar, ofoo),\n" +
+		"FOREIGN KEY (bar) REFERENCES othert (zbar) ON DELETE CASCADE,\n" +
 		"UNIQUE (foo, bar)\n" +
 		")"
 	assert.Equal(t, expected, actual)
@@ -182,29 +175,22 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 	actual, _, err = tableBuilder(mariaColumnTypeMap).
 		Name("foobar").
 		IfNotExists().
-		Column("pk").
-		Type(ColumnTypeText).
-		PrimaryKey().
-		EndColumn().
-		Column("foo").
-		Type(ColumnTypeBytes).
-		NotNull().
-		References("barbaz", "bites").
-		OnDelete(ColumnOnDeleteCascade).
-		EndColumn().
-		Column("bar").
-		Type(ColumnTypeInt).
-		Default(42).
-		EndColumn().
+		Column("pk").Type(ColumnTypeText).PrimaryKey().EndColumn().
+		Column("foo").Type(ColumnTypeBytes).NotNull().References("barbaz", "bites").OnDelete(ColumnOnDeleteCascade).EndColumn().
+		Column("bar").Type(ColumnTypeInt).Default(42).EndColumn().
 		PrimaryKey("pk", "foo").
 		Unique("foo", "bar").
+		ForeignKey("othert", map[string]string{"foo": "ofoo", "bar": "obar"}, ColumnOnDeleteDoNothing).
+		ForeignKey("othert", map[string]string{"bar": "zbar"}, ColumnOnDeleteCascade).
 		ToSql()
 	assert.NoError(t, err)
 	expected = "CREATE TABLE IF NOT EXISTS foobar (\n" +
-		"pk TEXT PRIMARY KEY,\n" +
+		"pk VARCHAR(255) PRIMARY KEY,\n" +
 		"foo LONGBLOB NOT NULL REFERENCES barbaz (bites) ON DELETE CASCADE,\n" +
 		"bar INT DEFAULT 42,\n" +
 		"PRIMARY KEY (pk, foo),\n" +
+		"FOREIGN KEY (bar, foo) REFERENCES othert (obar, ofoo),\n" +
+		"FOREIGN KEY (bar) REFERENCES othert (zbar) ON DELETE CASCADE,\n" +
 		"UNIQUE (foo, bar)\n" +
 		")"
 	assert.Equal(t, expected, actual)
@@ -218,7 +204,7 @@ func TestCreateTableBuilder_ToSql(t *testing.T) {
 		ToSql()
 	assert.NoError(t, err)
 	expected = "CREATE TABLE foobar (\n" +
-		"pk TEXT PRIMARY KEY\n" +
+		"pk VARCHAR(255) PRIMARY KEY\n" +
 		")"
 	assert.Equal(t, expected, actual)
 }

@@ -425,7 +425,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// Empty load criteria
 	basicOnly := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+			m.ExpectQuery("SELECT ent.pk, ent.\"key\", ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
 				WithArgs(
 					"network", "bar", "foo",
 					"network", "quz", "baz",
@@ -516,7 +516,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// Load assocs to only
 	assocsTo := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+			m.ExpectQuery("SELECT ent.pk, ent.\"key\", ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
 				WithArgs(
 					"network", "bar", "foo",
 					"network", "quz", "baz",
@@ -572,7 +572,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// Load assocs from only
 	assocsFrom := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+			m.ExpectQuery("SELECT ent.pk, ent.\"key\", ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
 				WithArgs(
 					"network", "bar", "foo",
 					"network", "quz", "baz",
@@ -653,7 +653,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 			)
 
 			// Since we don't query for (hello, world), we expect a query for its type and key given its PK
-			m.ExpectQuery("SELECT pk, type, key FROM cfg_entities").
+			m.ExpectQuery("SELECT pk, type, \"key\" FROM cfg_entities").
 				WithArgs("barbaz", "bazquz", "helloworld").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"pk", "type", "key"}).
@@ -712,7 +712,7 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 	// Basic load with type and key filters
 	typeAndKeyFilters := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
+			m.ExpectQuery("SELECT ent.pk, ent.\"key\", ent.type, ent.physical_id, ent.version, ent.graph_id FROM cfg_entities").
 				WithArgs("network", "bar", "foo").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"pk", "key", "type", "physical_id", "version", "graph_id"}).

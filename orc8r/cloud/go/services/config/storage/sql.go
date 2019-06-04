@@ -30,7 +30,13 @@ func NewSqlConfigurationStorage(db *sql.DB, sqlBuilder sqorc.StatementBuilder) C
 	return &sqlConfigStorage{db: db, builder: sqlBuilder}
 }
 
-const tableName = "configurations"
+const (
+	tableName = "configurations"
+	typeCol   = "type"
+	keyCol    = "\"key\""
+	valCol    = "value"
+	verCol    = "version"
+)
 
 func GetConfigTableName(networkId string) string {
 	return datastore.GetTableName(networkId, tableName)
@@ -42,11 +48,11 @@ func GetConfigTableName(networkId string) string {
 func (store *sqlConfigStorage) initTable(tx *sql.Tx, table string) error {
 	_, err := store.builder.CreateTable(table).
 		IfNotExists().
-		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("key").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
-		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		PrimaryKey("type", "key").
+		Column(typeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(keyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(valCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column(verCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		PrimaryKey(typeCol, keyCol).
 		RunWith(tx).
 		Exec()
 	return err
@@ -80,7 +86,7 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		tableName := GetConfigTableName(networkId)
 
-		rows, err := store.builder.Select("type", "key", "value", "version").
+		rows, err := store.builder.Select(typeCol, keyCol, valCol, verCol).
 			From(tableName).
 			Where(getWhereConditionFromFilterCriteria(criteria)).
 			RunWith(tx).
@@ -115,9 +121,9 @@ func (store *sqlConfigStorage) GetConfigs(networkId string, criteria *FilterCrit
 func (store *sqlConfigStorage) ListKeysForType(networkId string, configType string) ([]string, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		tableName := GetConfigTableName(networkId)
-		rows, err := store.builder.Select("key").
+		rows, err := store.builder.Select(keyCol).
 			From(tableName).
-			Where(sq.Eq{"type": configType}).
+			Where(sq.Eq{typeCol: configType}).
 			RunWith(tx).
 			Query()
 		if err != nil {
@@ -158,7 +164,7 @@ func (store *sqlConfigStorage) CreateConfig(networkId string, configType string,
 		}
 
 		_, err = store.builder.Insert(tableName).
-			Columns("type", "key", "value").
+			Columns(typeCol, keyCol, valCol).
 			Values(configType, key, value).
 			RunWith(tx).
 			Exec()
@@ -182,8 +188,8 @@ func (store *sqlConfigStorage) UpdateConfig(networkId string, configType string,
 		}
 
 		_, err = store.builder.Update(tableName).
-			Set("value", newValue).
-			Set("version", version+1).
+			Set(valCol, newValue).
+			Set(verCol, version+1).
 			Where(getExactWhereCondition(configType, key)).
 			RunWith(tx).
 			Exec()
@@ -249,7 +255,7 @@ func (store *sqlConfigStorage) doesConfigExist(tx *sql.Tx, networkId string, con
 
 	var result uint64
 	err := store.builder.Select("1").From(tableName).
-		Where(sq.And{sq.Eq{"type": configType}, sq.Eq{"key": key}}).
+		Where(sq.And{sq.Eq{typeCol: configType}, sq.Eq{keyCol: key}}).
 		RunWith(tx).
 		QueryRow().Scan(&result)
 	if err != nil {
@@ -269,9 +275,9 @@ func (store *sqlConfigStorage) getConfig(tx *sql.Tx, networkId string, configTyp
 	var version uint64
 
 	// Explicit sq.And to preserve ordering of Eq clauses
-	err := store.builder.Select("value", "version").
+	err := store.builder.Select(valCol, verCol).
 		From(tableName).
-		Where(sq.And{sq.Eq{"type": configType}, sq.Eq{"key": key}}).
+		Where(sq.And{sq.Eq{typeCol: configType}, sq.Eq{keyCol: key}}).
 		RunWith(tx).
 		QueryRow().Scan(&value, &version)
 	return value, version, err
@@ -286,16 +292,16 @@ func (store *sqlConfigStorage) getInitFn(networkID string) func(*sql.Tx) error {
 func getWhereConditionFromFilterCriteria(criteria *FilterCriteria) sq.And {
 	andClause := sq.And{}
 	if !funk.IsEmpty(criteria.Type) {
-		andClause = append(andClause, sq.Eq{"type": criteria.Type})
+		andClause = append(andClause, sq.Eq{typeCol: criteria.Type})
 	}
 	if !funk.IsEmpty(criteria.Key) {
-		andClause = append(andClause, sq.Eq{"key": criteria.Key})
+		andClause = append(andClause, sq.Eq{keyCol: criteria.Key})
 	}
 	return andClause
 }
 
 func getExactWhereCondition(configType string, key string) sq.And {
-	return sq.And{sq.Eq{"type": configType}, sq.Eq{"key": key}}
+	return sq.And{sq.Eq{typeCol: configType}, sq.Eq{keyCol: key}}
 }
 
 func validateFilterCriteria(criteria *FilterCriteria) error {
