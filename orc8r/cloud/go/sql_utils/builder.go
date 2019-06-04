@@ -21,6 +21,11 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+const (
+	postgresDialect = "psql"
+	mariaDialect    = "maria"
+)
+
 // GetSqlBuilder returns a squirrel Builder for the configured SQL dialect as
 // found in the SQL_DIALECT env var.
 func GetSqlBuilder() StatementBuilder {
@@ -33,8 +38,8 @@ func GetSqlBuilder() StatementBuilder {
 	switch dialect {
 	case postgresDialect:
 		return NewPostgresStatementBuilder()
-	case mysqlDialect:
-		return NewMysqlStatementBuilder()
+	case mariaDialect:
+		return NewMariaDBStatementBuilder()
 	default:
 		panic(fmt.Sprintf("unsupported sql dialect %s", dialect))
 	}
@@ -76,11 +81,11 @@ func NewPostgresStatementBuilder() StatementBuilder {
 	return postgresStatementBuilder{StatementBuilderType: baseBuilder}
 }
 
-// NewMysqlStatementBuilder returns an implementation of StatementBuilder for
-// MySQL dialect.
-func NewMysqlStatementBuilder() StatementBuilder {
+// NewMariaDBStatementBuilder returns an implementation of StatementBuilder for
+// MariaDB dialect.
+func NewMariaDBStatementBuilder() StatementBuilder {
 	baseBuilder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Question)
-	return mysqlStatementBuilder{StatementBuilderType: baseBuilder}
+	return mariaDBStatementBuilder{StatementBuilderType: baseBuilder}
 }
 
 type postgresStatementBuilder struct {
@@ -108,23 +113,23 @@ func (psb postgresStatementBuilder) CreateIndex(name string) CreateIndexBuilder 
 		Name(name)
 }
 
-type mysqlStatementBuilder struct {
+type mariaDBStatementBuilder struct {
 	squirrel.StatementBuilderType
 }
 
-func (msb mysqlStatementBuilder) Insert(into string) InsertBuilder {
+func (msb mariaDBStatementBuilder) Insert(into string) InsertBuilder {
 	baseInsertBuilder := msb.StatementBuilderType.Insert(into)
-	return mysqlInsertBuilder{baseInsertBuilder}
+	return mariaInsertBuilder{baseInsertBuilder}
 }
 
-func (msb mysqlStatementBuilder) CreateTable(name string) CreateTableBuilder {
+func (msb mariaDBStatementBuilder) CreateTable(name string) CreateTableBuilder {
 	// see comment on the postgres builder about the EmptyBuilder
 	return CreateTableBuilder(builder.EmptyBuilder).
-		columnTypeNames(mysqlColumnTypeMap).
+		columnTypeNames(mariaColumnTypeMap).
 		Name(name)
 }
 
-func (msb mysqlStatementBuilder) CreateIndex(name string) CreateIndexBuilder {
+func (msb mariaDBStatementBuilder) CreateIndex(name string) CreateIndexBuilder {
 	// see comment on postgres builder CreateTable about EmptyBuilder
 	return CreateIndexBuilder(builder.EmptyBuilder).
 		Name(name)
@@ -235,70 +240,70 @@ func (pib postgresInsertBuilder) Select(sb squirrel.SelectBuilder) InsertBuilder
 	return postgresInsertBuilder{newDelegate}
 }
 
-type mysqlInsertBuilder struct {
+type mariaInsertBuilder struct {
 	squirrel.InsertBuilder
 }
 
-func (mib mysqlInsertBuilder) OnConflict(setValues []UpsertValue, columns ...string) InsertBuilder {
+func (mib mariaInsertBuilder) OnConflict(setValues []UpsertValue, columns ...string) InsertBuilder {
 	if funk.IsEmpty(setValues) {
 		newDelegate := mib.InsertBuilder.Options("IGNORE")
-		return mysqlInsertBuilder{newDelegate}
+		return mariaInsertBuilder{newDelegate}
 	}
 
 	suffixFormat := "ON DUPLICATE KEY %s"
 	updateStr, updateArgs := setValuesToUpsertClause(setValues, false)
 	newDelegate := mib.InsertBuilder.Suffix(fmt.Sprintf(suffixFormat, updateStr), updateArgs...)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) PlaceholderFormat(f squirrel.PlaceholderFormat) InsertBuilder {
+func (mib mariaInsertBuilder) PlaceholderFormat(f squirrel.PlaceholderFormat) InsertBuilder {
 	newDelegate := mib.InsertBuilder.PlaceholderFormat(f)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) RunWith(runner squirrel.BaseRunner) InsertBuilder {
+func (mib mariaInsertBuilder) RunWith(runner squirrel.BaseRunner) InsertBuilder {
 	newDelegate := mib.InsertBuilder.RunWith(runner)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) Prefix(sql string, args ...interface{}) InsertBuilder {
+func (mib mariaInsertBuilder) Prefix(sql string, args ...interface{}) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Prefix(sql, args...)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) Options(options ...string) InsertBuilder {
+func (mib mariaInsertBuilder) Options(options ...string) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Options(options...)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) Into(from string) InsertBuilder {
+func (mib mariaInsertBuilder) Into(from string) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Into(from)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) Columns(columns ...string) InsertBuilder {
+func (mib mariaInsertBuilder) Columns(columns ...string) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Columns(columns...)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) Values(values ...interface{}) InsertBuilder {
+func (mib mariaInsertBuilder) Values(values ...interface{}) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Values(values...)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
+func (mib mariaInsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Suffix(sql, args...)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) SetMap(clauses map[string]interface{}) InsertBuilder {
+func (mib mariaInsertBuilder) SetMap(clauses map[string]interface{}) InsertBuilder {
 	newDelegate := mib.InsertBuilder.SetMap(clauses)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
-func (mib mysqlInsertBuilder) Select(sb squirrel.SelectBuilder) InsertBuilder {
+func (mib mariaInsertBuilder) Select(sb squirrel.SelectBuilder) InsertBuilder {
 	newDelegate := mib.InsertBuilder.Select(sb)
-	return mysqlInsertBuilder{newDelegate}
+	return mariaInsertBuilder{newDelegate}
 }
 
 func ClearStatementCacheLogOnError(cache *squirrel.StmtCache, callsite string) {

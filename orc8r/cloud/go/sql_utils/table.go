@@ -42,7 +42,7 @@ var postgresColumnTypeMap = map[ColumnType]string{
 	ColumnTypeBool:  "BOOLEAN",
 }
 
-var mysqlColumnTypeMap = map[ColumnType]string{
+var mariaColumnTypeMap = map[ColumnType]string{
 	ColumnTypeText: "TEXT",
 	ColumnTypeInt:  "INT",
 	// LONGBLOB stores up to 4GB and the cost is a flat extra 2 bytes of
