@@ -12,6 +12,7 @@ replace (
 )
 
 require (
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	google.golang.org/grpc v1.17.0
 	magma/orc8r/cloud/go v0.0.0
 )
