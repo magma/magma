@@ -197,7 +197,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 
 	idOnly := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_networks`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_networks`).
 				WithArgs("n1").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
@@ -212,7 +212,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 
 	allMetadata := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_networks`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_networks`).
 				WithArgs("n2").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
@@ -236,7 +236,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 	}
 	everything := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_networks`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_networks`).
 				WithArgs("n3").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
@@ -258,7 +258,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 
 	networkTableError := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_networks`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_networks`).
 				WithArgs("n4").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
@@ -281,7 +281,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 	}
 	configTableError := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_networks`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_networks`).
 				WithArgs("n5").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
@@ -304,7 +304,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 
 	networkExists := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_networks`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_networks`).
 				WithArgs("n5").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 		},
@@ -754,12 +754,11 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 	// basic fields
 	basicCase := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_entities`).
 				WithArgs("network", "foo", "bar").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}))
 
-			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
-			insertStmt.ExpectExec().
+			m.ExpectExec("INSERT INTO cfg_entities").
 				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
 				WillReturnResult(mockResult)
 		},
@@ -790,12 +789,11 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 	// with permissions
 	withPerms := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_entities`).
 				WithArgs("network", "foo", "bar").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}))
 
-			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
-			insertStmt.ExpectExec().
+			m.ExpectExec("INSERT INTO cfg_entities").
 				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
 				WillReturnResult(mockResult)
 
@@ -828,12 +826,11 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 	// merge 2 graphs together
 	mergeGraphs := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_entities`).
 				WithArgs("network", "foo", "bar").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}))
 
-			insertStmt := m.ExpectPrepare("INSERT INTO cfg_entities").WillBeClosed()
-			insertStmt.ExpectExec().
+			m.ExpectExec("INSERT INTO cfg_entities").
 				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
 				WillReturnResult(mockResult)
 
@@ -879,7 +876,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 	// already exists
 	alreadyExists := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT count\(1\) FROM cfg_entities`).
+			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_entities`).
 				WithArgs("network", "foo", "bar").
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 		},
@@ -1587,26 +1584,29 @@ func expectEdgeQueries(m sqlmock.Sqlmock, assocs []storage2.TypeAndKey, edgeLoad
 
 // [(from_pk, to_pk)]
 func expectEdgeInsertions(m sqlmock.Sqlmock, newEdges [][2]string) {
-	edgeStmt := m.ExpectPrepare("INSERT INTO cfg_assocs").WillBeClosed()
+	args := make([]driver.Value, 0, len(newEdges)*2)
 	for _, edge := range newEdges {
-		edgeStmt.ExpectExec().WithArgs(edge[0], edge[1]).WillReturnResult(mockResult)
+		args = append(args, edge[0], edge[1])
 	}
+	m.ExpectExec("INSERT INTO cfg_assocs").WithArgs(args...).WillReturnResult(mockResult)
 }
 
 func expectEdgeDeletions(m sqlmock.Sqlmock, edges [][2]string) {
-	edgeStmt := m.ExpectPrepare("DELETE FROM cfg_assocs").WillBeClosed()
+	args := make([]driver.Value, 0, len(edges)*2)
 	for _, edge := range edges {
-		edgeStmt.ExpectExec().WithArgs(edge[0], edge[1]).WillReturnResult(mockResult)
+		args = append(args, edge[0], edge[1])
 	}
+	m.ExpectExec("DELETE FROM cfg_assocs").WithArgs(args...).WillReturnResult(mockResult)
 }
 
 func expectPermissionCreation(m sqlmock.Sqlmock, entPk string, startId int, perms ...storage.ACL) {
-	aclStmt := m.ExpectPrepare("INSERT INTO cfg_acls").WillBeClosed()
+	args := make([]driver.Value, 0, len(perms)*6)
 	for _, perm := range perms {
 		exp := getExpectedACLInsert(entPk, &startId, perm)
-		aclStmt.ExpectExec().WithArgs(exp.id, exp.entPk, exp.scope, exp.perm, exp.aclType, exp.filter).WillReturnResult(mockResult)
+		args = append(args, exp.id, exp.entPk, exp.scope, exp.perm, exp.aclType, exp.filter)
 		startId++
 	}
+	m.ExpectExec("INSERT INTO cfg_acls").WillReturnResult(mockResult)
 }
 
 func expectPermissionUpdates(m sqlmock.Sqlmock, entPk string, perms ...storage.ACL) {

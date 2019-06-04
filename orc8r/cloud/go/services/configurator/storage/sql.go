@@ -348,7 +348,7 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	}
 
 	stmtCache := sq.NewStmtCache(store.tx)
-	defer sql_utils.ClearStatementCacheLogOnError(stmtCache)
+	defer sql_utils.ClearStatementCacheLogOnError(stmtCache, "UpdateNetworks")
 
 	// Update networks first
 	for _, update := range networksToUpdate {
@@ -470,8 +470,14 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 
 	if update.DeleteEntity {
 		// Cascading FK relations in the schema will handle the other tables
-		exec := fmt.Sprintf("DELETE FROM %s WHERE (network_id, type, key) = ($1, $2, $3)", entityTable)
-		_, err := store.tx.Exec(exec, networkID, update.Type, update.Key)
+		_, err := store.builder.Delete(entityTable).
+			Where(sq.And{
+				sq.Eq{"network_id": networkID},
+				sq.Eq{"type": update.Type},
+				sq.Eq{"key": update.Key},
+			}).
+			RunWith(store.tx).
+			Exec()
 		if err != nil {
 			return emptyRet, errors.Wrapf(err, "failed to delete entity (%s, %s)", update.Type, update.Key)
 		}

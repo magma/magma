@@ -256,10 +256,10 @@ func (mib mysqlInsertBuilder) Select(sb squirrel.SelectBuilder) InsertBuilder {
 	return mysqlInsertBuilder{newDelegate}
 }
 
-func ClearStatementCacheLogOnError(cache *squirrel.StmtCache) {
+func ClearStatementCacheLogOnError(cache *squirrel.StmtCache, callsite string) {
 	err := cache.Clear()
 	if err != nil {
-		glog.Errorf("error clearing statement cache in UpdateNetworks: %s", err)
+		glog.Errorf("error clearing statement cache in %s: %s", callsite, err)
 	}
 }
 
