@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package sql_utils
+package sqorc
 
 import (
 	"context"
@@ -35,7 +35,7 @@ func GetSqlBuilder() StatementBuilder {
 		return NewPostgresStatementBuilder()
 	}
 
-	switch dialect {
+	switch strings.ToLower(dialect) {
 	case postgresDialect:
 		return NewPostgresStatementBuilder()
 	case mariaDialect:

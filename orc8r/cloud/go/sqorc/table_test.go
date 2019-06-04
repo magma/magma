@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package sql_utils
+package sqorc
 
 import (
 	"log"

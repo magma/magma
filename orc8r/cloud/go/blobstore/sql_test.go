@@ -15,7 +15,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	magmaerrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
@@ -370,11 +370,11 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 
 func TestSqlBlobStorage_Integration(t *testing.T) {
 	// Use an in-memory sqlite datastore
-	db, err := sql_utils.Open("sqlite3", ":memory:")
+	db, err := sqorc.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	fact := blobstore.NewSQLBlobStorageFactory("network_table", db, sql_utils.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
 	integration(t, fact)
 }
 
@@ -397,7 +397,7 @@ func runCase(t *testing.T, test *testCase) {
 	}
 	defer db.Close()
 
-	factory := blobstore.NewSQLBlobStorageFactory("network_table", db, sql_utils.GetSqlBuilder())
+	factory := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
 	expectCreateTable(mock)
 	err = factory.InitializeFactory()
 	assert.NoError(t, err)

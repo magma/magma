@@ -14,7 +14,7 @@ import (
 	"sort"
 
 	magmaerrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
@@ -24,14 +24,14 @@ import (
 
 // NewSQLBlobStorageFactory returns a BlobStorageFactory implementation which
 // will return storage APIs backed by SQL.
-func NewSQLBlobStorageFactory(tableName string, db *sql.DB, sqlBuilder sql_utils.StatementBuilder) BlobStorageFactory {
+func NewSQLBlobStorageFactory(tableName string, db *sql.DB, sqlBuilder sqorc.StatementBuilder) BlobStorageFactory {
 	return &sqlBlobStoreFactory{tableName: tableName, db: db, builder: sqlBuilder}
 }
 
 type sqlBlobStoreFactory struct {
 	tableName string
 	db        *sql.DB
-	builder   sql_utils.StatementBuilder
+	builder   sqorc.StatementBuilder
 }
 
 func (fact *sqlBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, error) {
@@ -61,11 +61,11 @@ func (fact *sqlBlobStoreFactory) InitializeFactory() error {
 func (fact *sqlBlobStoreFactory) initTable(tx *sql.Tx, tableName string) error {
 	_, err := fact.builder.CreateTable(tableName).
 		IfNotExists().
-		Column("network_id").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("key").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
-		Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
-		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Column("network_id").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("type").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("key").Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column("value").Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column("version").Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		PrimaryKey("network_id", "type", "key").
 		RunWith(tx).
 		Exec()
@@ -75,7 +75,7 @@ func (fact *sqlBlobStoreFactory) initTable(tx *sql.Tx, tableName string) error {
 type sqlBlobStorage struct {
 	tableName string
 	tx        *sql.Tx
-	builder   sql_utils.StatementBuilder
+	builder   sqorc.StatementBuilder
 }
 
 func (store *sqlBlobStorage) Commit() error {
@@ -111,7 +111,7 @@ func (store *sqlBlobStorage) ListKeys(networkID string, typeVal string) ([]strin
 	if err != nil {
 		return ret, err
 	}
-	defer sql_utils.CloseRowsLogOnError(rows, "ListKeys")
+	defer sqorc.CloseRowsLogOnError(rows, "ListKeys")
 
 	for rows.Next() {
 		var key string
@@ -149,7 +149,7 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 	if err != nil {
 		return emptyRet, err
 	}
-	defer sql_utils.CloseRowsLogOnError(rows, "GetMany")
+	defer sqorc.CloseRowsLogOnError(rows, "GetMany")
 
 	scannedRows := []Blob{}
 	for rows.Next() {
@@ -211,30 +211,26 @@ func (store *sqlBlobStorage) validateTx() error {
 }
 
 func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange map[storage.TypeAndKey]blobChange) error {
-	// Mock out the values since we just want the string query to prepare
-	updateQuery, _, err := store.builder.Update(store.tableName).
-		Set("value", "?").
-		Set("version", "?").
-		Where(
-			// Use explicit sq.And to preserve ordering of WHERE clause items
-			sq.And{
-				sq.Eq{"network_id": "?"},
-				sq.Eq{"type": "?"},
-				sq.Eq{"key": "?"},
-			},
-		).
-		ToSql()
-	stmts, err := sql_utils.PrepareStatements(store.tx, []string{updateQuery})
-	if err != nil {
-		return fmt.Errorf("Error preparing update statement: %s", err)
-	}
-	defer sql_utils.GetCloseStatementsDeferFunc(stmts, "updateExistingBlobs")()
+	// Let squirrel cache prepared statements for us (there should only be 1)
+	sc := sq.NewStmtCache(store.tx)
+	defer sqorc.ClearStatementCacheLogOnError(sc, "updateExistingBlobs")
 
 	// Sort keys for deterministic behavior in tests
-	updateStmt := stmts[0]
 	for _, blobID := range getSortedTypeAndKeys(blobsToChange) {
 		change := blobsToChange[blobID]
-		_, err := updateStmt.Exec(change.new.Value, change.old.Version+1, networkID, blobID.Type, blobID.Key)
+		_, err := store.builder.Update(store.tableName).
+			Set("value", change.new.Value).
+			Set("version", change.old.Version+1).
+			Where(
+				// Use explicit sq.And to preserve ordering of WHERE clause items
+				sq.And{
+					sq.Eq{"network_id": networkID},
+					sq.Eq{"type": blobID.Type},
+					sq.Eq{"key": blobID.Key},
+				},
+			).
+			RunWith(sc).
+			Exec()
 		if err != nil {
 			return fmt.Errorf("Error updating blob (%s, %s, %s): %s", networkID, blobID.Type, blobID.Key, err)
 		}

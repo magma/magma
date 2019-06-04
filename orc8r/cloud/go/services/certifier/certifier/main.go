@@ -21,7 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// Init the datastore
-	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sql_utils.GetSqlBuilder())
+	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}

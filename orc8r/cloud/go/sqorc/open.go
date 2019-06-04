@@ -1,4 +1,4 @@
-package sql_utils
+package sqorc
 
 import (
 	"database/sql"
