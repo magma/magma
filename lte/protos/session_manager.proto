@@ -29,6 +29,10 @@ message RuleRecordTable {
 ///////////////////
 // LocalSessionManager service
 ///////////////////
+enum RATType {
+  TGPP_LTE = 0;  // will map to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
+  TGPP_WLAN = 1; // will map to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
+}
 
 message LocalCreateSessionRequest {
   SubscriberID sid = 1;
@@ -40,7 +44,9 @@ message LocalCreateSessionRequest {
   string imsi_plmn_id = 8;
   bytes user_location = 9;
   QosInformationRequest qos_info = 10;
-  bytes  msisdn = 11;
+  bytes msisdn = 11;
+  RATType rat_type = 12;
+  bytes hardware_addr = 13; // MAC Address for WLAN
 }
 
 message LocalCreateSessionResponse {
@@ -256,6 +262,8 @@ message CreditUsageUpdate {
   string plmn_id = 10;
   string imsi_plmn_id = 11;
   bytes user_location = 12;
+  RATType rat_type = 13;
+  bytes hardware_addr = 14; // MAC Address for WLAN
 }
 
 message CreditUpdateResponse {
@@ -339,6 +347,8 @@ message CreateSessionRequest {
   QosInformationRequest qos_info = 11;
   bytes  msisdn = 12;
   string gc_id = 13;
+  RATType rat_type = 14;
+  bytes hardware_addr = 15; // MAC Address for WLAN
 }
 
 message CreateSessionResponse {
@@ -390,6 +400,8 @@ message SessionTerminateRequest {
   string plmn_id = 11;
   string imsi_plmn_id = 12;
   bytes user_location = 13;
+  RATType rat_type = 14;
+  bytes hardware_addr = 15; // MAC Address for WLAN
 }
 
 service CentralSessionController {
