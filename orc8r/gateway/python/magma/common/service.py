@@ -45,7 +45,7 @@ class MagmaService(Service303Servicer):
     entities to interact with the service.
     """
 
-    def __init__(self, name, loop=None):
+    def __init__(self, name, empty_mconfig, loop=None):
         self._name = name
         self._port = 0
         self._get_status_callback = None
@@ -60,7 +60,7 @@ class MagmaService(Service303Servicer):
         self._set_grpc_poll_strategy()
 
         # Load the managed config if present
-        self._mconfig = None
+        self._mconfig = empty_mconfig
         self._mconfig_metadata = None
         self._mconfig_manager = get_mconfig_manager()
         self.reload_mconfig()
@@ -172,6 +172,7 @@ class MagmaService(Service303Servicer):
             self._mconfig_manager = get_mconfig_manager()
             self._mconfig = self._mconfig_manager.load_service_mconfig(
                 self._name,
+                self._mconfig,
             )
             self._mconfig_metadata = \
                 self._mconfig_manager.load_mconfig_metadata()

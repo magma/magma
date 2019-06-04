@@ -11,11 +11,12 @@ import logging
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
 from .streamer_callback import PolicyDBStreamerCallback
+from lte.protos.mconfig import mconfigs_pb2
 
 
 def main():
     """ main() for subscriberdb """
-    service = MagmaService('policydb')
+    service = MagmaService('policydb', mconfigs_pb2.PolicyDB())
     # Start a background thread to stream updates from the cloud
     if service.config['enable_streaming']:
         callback = PolicyDBStreamerCallback(service.loop)

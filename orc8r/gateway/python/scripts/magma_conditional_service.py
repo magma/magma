@@ -13,7 +13,7 @@ import shlex
 import time
 
 import os
-from magma.configuration.mconfig_managers import load_service_mconfig
+from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 
 
 def create_parser():
@@ -64,7 +64,7 @@ def main():
         level=logging.INFO,
         format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
 
-    mconfig = load_service_mconfig(args.service)
+    mconfig = load_service_mconfig_as_json(args.service)
 
     var = getattr(mconfig, args.variable)
 

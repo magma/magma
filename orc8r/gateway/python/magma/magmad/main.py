@@ -19,6 +19,7 @@ from magma.magmad.logging.systemd_tailer import start_systemd_tailer
 from magma.magmad.generic_command.command_executor import \
     get_command_executor_impl
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
+from orc8r.protos.mconfig import mconfigs_pb2
 
 from .bootstrap_manager import BootstrapManager
 from .checkin_manager import CheckinManager
@@ -35,7 +36,7 @@ def main():
     """
     Main magmad function
     """
-    service = MagmaService('magmad')
+    service = MagmaService('magmad', mconfigs_pb2.MagmaD())
 
     logging.info('Starting magmad for UUID: %s', snowflake.make_snowflake())
 

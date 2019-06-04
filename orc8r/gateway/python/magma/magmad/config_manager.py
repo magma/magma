@@ -16,6 +16,7 @@ from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManager, \
     load_service_mconfig
 from magma.magmad.service_manager import ServiceManager
+from orc8r.protos.mconfig import mconfigs_pb2
 
 CONFIG_STREAM_NAME = 'configs'
 
@@ -94,7 +95,8 @@ class ConfigManager(StreamerClient.Callback):
         if did_mconfig_change('magmad'):
             self._loop.create_task(
                 self._service_manager.update_dynamic_services(
-                    load_service_mconfig('magmad').dynamic_services,
+                    load_service_mconfig('magmad', mconfigs_pb2.MagmaD())
+                    .dynamic_services,
                 )
             )
 

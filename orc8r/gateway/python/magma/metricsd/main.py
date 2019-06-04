@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from magma.common.service import MagmaService
 from .metrics_collector import MetricsCollector
+from orc8r.protos.mconfig import mconfigs_pb2
 
 
 def main():
@@ -17,7 +18,7 @@ def main():
     :return: None
     """
     # Get service config
-    service = MagmaService('metricsd')
+    service = MagmaService('metricsd', mconfigs_pb2.MetricsD())
     services = service.config['services']
     collect_interval = service.config['collect_interval']
     sync_interval = service.config['sync_interval']
