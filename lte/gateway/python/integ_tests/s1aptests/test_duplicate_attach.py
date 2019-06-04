@@ -72,6 +72,8 @@ class TestDuplicateAttach(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t)
 
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
         print("************************* Running UE detach")
         # Now detach the UE
         self._s1ap_wrapper._s1_util.detach(req.ue_id,

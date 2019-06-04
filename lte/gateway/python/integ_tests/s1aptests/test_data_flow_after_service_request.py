@@ -12,7 +12,7 @@ import unittest
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-
+import time
 
 class TestDataFlowAfterServiceRequest(unittest.TestCase):
 
@@ -38,6 +38,8 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
                 req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t)
+            # Wait on EMM Information from MME
+            self._s1ap_wrapper._s1_util.receive_emm_info()
 
         dl_reqs = reqs[::2]
         ul_reqs = reqs[1::2]
