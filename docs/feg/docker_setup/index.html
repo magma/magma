@@ -84,7 +84,7 @@ so that it can be mounted into the appropriate containers from there.</p>
 <p>Each service should now be running in each of its containers.
 By default, both production and development services should be running.
 To place a shell into the test container, run the command:</p>
-<p><code>docker-compose exec test bin/bash</code></p>
+<p><code>docker-compose exec test /bin/bash</code></p>
 <p>The test container contains the mounted source code and configuration settings.
 The mounted source code and configuration settings can be changed externally
 and the changes will be reflected inside the test container.
