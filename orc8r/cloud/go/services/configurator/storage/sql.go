@@ -77,102 +77,104 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		}
 	}()
 
-	networksTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			id TEXT PRIMARY KEY,
-			name TEXT,
-			description TEXT,
-			version INTEGER NOT NULL DEFAULT 0
-		)
-	`, networksTable)
+	// Named return values below so we can automatically decide tx commit/
+	// rollback in deferred function
 
-	networksConfigTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			network_id TEXT REFERENCES %s (id) ON DELETE CASCADE,
-			type TEXT NOT NULL,
-			value BYTEA,
+	_, err = fact.builder.CreateTable(networksTable).
+		IfNotExists().
+		Column("id").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
+		Column("name").Type(sql_utils.ColumnTypeText).EndColumn().
+		Column("description").Type(sql_utils.ColumnTypeText).EndColumn().
+		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create networks table")
+		return
+	}
 
-			PRIMARY KEY (network_id, type)
-		)
-	`, networkConfigTable, networksTable)
+	_, err = fact.builder.CreateTable(networkConfigTable).
+		IfNotExists().
+		Column("network_id").Type(sql_utils.ColumnTypeText).References(networksTable, "id").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
+		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
+		PrimaryKey("network_id", "type").
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create network configs table")
+		return
+	}
 
 	// Create an internal-only primary key (UUID) for entities.
 	// This keeps index size in control and supporting table schemas simpler.
-	entityTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			pk TEXT PRIMARY KEY,
-
-			network_id TEXT REFERENCES %s (id) ON DELETE CASCADE,
-			type TEXT NOT NULL,
-			key TEXT NOT NULL,
-
-			graph_id TEXT NOT NULL,
-
-			name TEXT,
-			description TEXT,
-			physical_id TEXT,
-			config BYTEA,
-
-			version INTEGER NOT NULL DEFAULT 0,
-
-			UNIQUE (network_id, key, type)			
-		)
-	`, entityTable, networksTable)
-
-	entityAssocTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			from_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
-			to_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
-
-			PRIMARY KEY (from_pk, to_pk)
-		)
-	`, entityAssocTable, entityTable, entityTable)
-
-	entityAclTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			id TEXT PRIMARY KEY,
-			entity_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
-
-			scope text NOT NULL,
-			permission INTEGER NOT NULL,
-			type text NOT NULL,
-			id_filter TEXT,
-
-			version INTEGER NOT NULL DEFAULT 0
-		)
-	`, entityAclTable, entityTable)
-
-	// Named return value for err so we can automatically decide to
-	// commit/rollback
-	tablesToCreate := []string{
-		networksTableExec,
-		networksConfigTableExec,
-		entityTableExec,
-		entityAssocTableExec,
-		entityAclTableExec,
+	_, err = fact.builder.CreateTable(entityTable).
+		IfNotExists().
+		Column("pk").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
+		Column("network_id").Type(sql_utils.ColumnTypeText).References(networksTable, "id").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
+		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("key").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("graph_id").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("name").Type(sql_utils.ColumnTypeText).EndColumn().
+		Column("description").Type(sql_utils.ColumnTypeText).EndColumn().
+		Column("physical_id").Type(sql_utils.ColumnTypeText).EndColumn().
+		Column("config").Type(sql_utils.ColumnTypeBytes).EndColumn().
+		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Unique("network_id", "key", "type").
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create entities table")
+		return
 	}
-	for _, execQuery := range tablesToCreate {
-		_, err = tx.Exec(execQuery)
-		if err != nil {
-			return
-		}
+
+	_, err = fact.builder.CreateTable(entityAssocTable).
+		Column("from_pk").Type(sql_utils.ColumnTypeText).References(entityTable, "pk").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
+		Column("to_pk").Type(sql_utils.ColumnTypeText).References(entityTable, "pk").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
+		PrimaryKey("from_pk", "to_pk").
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create entity assoc table")
+		return
+	}
+
+	_, err = fact.builder.CreateTable(entityAclTable).
+		Column("id").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
+		Column("entity_pk").Type(sql_utils.ColumnTypeText).References(entityTable, "pk").OnDelete(sql_utils.ColumnOnDeleteCascade).EndColumn().
+		Column("scope").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("permission").Type(sql_utils.ColumnTypeInt).NotNull().EndColumn().
+		Column("type").Type(sql_utils.ColumnTypeText).NotNull().EndColumn().
+		Column("id_filter").Type(sql_utils.ColumnTypeText).EndColumn().
+		Column("version").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create entity acl table")
+		return
 	}
 
 	// Create indexes (index is not implicitly created on a referencing FK)
-	indexesToCreate := []string{
-		fmt.Sprintf("CREATE INDEX IF NOT EXISTS graph_id_idx ON %s (graph_id)", entityTable),
-		fmt.Sprintf("CREATE INDEX IF NOT EXISTS acl_ent_pk_idx ON %s (entity_pk)", entityAclTable),
+	_, err = fact.builder.CreateIndex("graph_id_idx").
+		IfNotExists().
+		On(entityTable).
+		Columns("graph_id").
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create graph ID index")
+		return
 	}
-	for _, execQuery := range indexesToCreate {
-		_, err = tx.Exec(execQuery)
-		if err != nil {
-			return
-		}
+
+	_, err = fact.builder.CreateIndex("acl_ent_pk_idx").
+		IfNotExists().
+		On(entityAclTable).
+		Columns("entity_pk").
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create acl ent PK index")
+		return
 	}
 
 	// Create internal network(s)
@@ -183,7 +185,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = fmt.Errorf("error creating internal networks: %s", err)
+		err = errors.Wrap(err, "error creating internal networks")
 		return
 	}
 

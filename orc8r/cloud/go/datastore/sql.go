@@ -38,18 +38,16 @@ func NewSqlDb(driver string, source string, sqlBuilder sql_utils.StatementBuilde
 	}, nil
 }
 
-func getInitFn(table string) func(*sql.Tx) error {
+func (store *SqlDb) getInitFn(table string) func(*sql.Tx) error {
 	return func(tx *sql.Tx) error {
-		_, err := tx.Exec(
-			fmt.Sprintf(
-				`CREATE TABLE IF NOT EXISTS %s (
-				key text PRIMARY KEY,
-				value bytea,
-				generation_number INTEGER NOT NULL DEFAULT 0,
-				deleted BOOLEAN NOT NULL DEFAULT FALSE
-			)`, table,
-			),
-		)
+		_, err := store.builder.CreateTable(table).
+			IfNotExists().
+			Column("key").Type(sql_utils.ColumnTypeText).PrimaryKey().EndColumn().
+			Column("value").Type(sql_utils.ColumnTypeBytes).EndColumn().
+			Column("generation_number").Type(sql_utils.ColumnTypeInt).NotNull().Default(0).EndColumn().
+			Column("deleted").Type(sql_utils.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
+			RunWith(tx).
+			Exec()
 		if err != nil {
 			return errors.Wrap(err, "failed to init table")
 		}
@@ -87,7 +85,7 @@ func (store *SqlDb) Put(table string, key string, value []byte) error {
 				Exec()
 		}
 	}
-	_, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return err
 }
 
@@ -162,7 +160,7 @@ func (store *SqlDb) PutMany(table string, valuesToPut map[string][]byte) (map[st
 		}
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.(map[string]error), err
 }
 
@@ -181,7 +179,7 @@ func (store *SqlDb) Get(table string, key string) ([]byte, uint64, error) {
 		return ValueWrapper{Value: value, Generation: generationNumber}, err
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -193,7 +191,7 @@ func (store *SqlDb) GetMany(table string, keys []string) (map[string]ValueWrappe
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return store.getMany(tx, table, keys)
 	}
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.(map[string]ValueWrapper), err
 }
 
@@ -201,7 +199,7 @@ func (store *SqlDb) Delete(table string, key string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return store.builder.Delete(table).Where(sq.Eq{"key": key}).RunWith(tx).Exec()
 	}
-	_, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return err
 }
 
@@ -209,7 +207,7 @@ func (store *SqlDb) DeleteMany(table string, keys []string) (map[string]error, e
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		return store.builder.Delete(table).Where(sq.Eq{"key": keys}).RunWith(tx).Exec()
 	}
-	_, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	_, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return map[string]error{}, err
 }
 
@@ -232,7 +230,7 @@ func (store *SqlDb) ListKeys(table string) ([]string, error) {
 		return keys, nil
 	}
 
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.([]string), err
 }
 
@@ -261,7 +259,7 @@ func (store *SqlDb) DoesKeyExist(table string, key string) (bool, error) {
 		}
 		return true, nil
 	}
-	ret, err := sql_utils.ExecInTx(store.db, getInitFn(table), txFn)
+	ret, err := sql_utils.ExecInTx(store.db, store.getInitFn(table), txFn)
 	return ret.(bool), err
 }
 
