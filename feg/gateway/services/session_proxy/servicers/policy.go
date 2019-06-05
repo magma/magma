@@ -310,5 +310,10 @@ func getSingleUsageMonitorResponseFromCCA(
 	} else {
 		res.Credit = getUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
 	}
+
+	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(
+		answer.EventTriggers,
+		answer.RevalidationTime,
+	)
 	return res
 }

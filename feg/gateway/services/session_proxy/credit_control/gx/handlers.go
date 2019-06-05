@@ -29,7 +29,7 @@ func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 	glog.V(2).Infof("Received Gx CCA message:\n%s\n", message)
 	if err := message.Unmarshal(&cca); err != nil {
 		metrics.GxUnparseableMsg.Inc()
-		glog.Errorf("Received unparseable CCA over Gx")
+		glog.Errorf("Received unparseable CCA over Gx: %s", err)
 		return diameter.KeyAndAnswer{}
 	}
 	sid := diameter.DecodeSessionID(cca.SessionID)
@@ -42,6 +42,8 @@ func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 			RequestNumber:          cca.RequestNumber,
 			RuleInstallAVP:         cca.RuleInstalls,
 			UsageMonitors:          cca.UsageMonitors[:],
+			EventTriggers:          cca.EventTriggers,
+			RevalidationTime:       cca.RevalidationTime,
 		},
 	}
 }

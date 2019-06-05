@@ -319,6 +319,8 @@ message UsageMonitoringUpdateResponse {
   string session_id = 2;
   string sid = 3;
   bool success = 4;
+  repeated EventTrigger event_triggers = 5;
+  google.protobuf.Timestamp revalidation_time = 6;
 }
 
 

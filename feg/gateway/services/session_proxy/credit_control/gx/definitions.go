@@ -64,6 +64,8 @@ type CreditControlAnswer struct {
 	RequestNumber          uint32
 	RuleInstallAVP         []*RuleInstallAVP
 	UsageMonitors          []*UsageMonitoringInfo
+	EventTriggers          []EventTrigger
+	RevalidationTime       *time.Time
 }
 
 type UsageReport struct {
@@ -144,9 +146,11 @@ type CCADiameterMessage struct {
 		VendorId               uint32 `avp:"Vendor-Id"`
 		ExperimentalResultCode uint32 `avp:"Experimental-Result-Code"`
 	} `avp:"Experimental-Result"`
-	RequestType   uint32                 `avp:"CC-Request-Type"`
-	RuleInstalls  []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
-	UsageMonitors []*UsageMonitoringInfo `avp:"Usage-Monitoring-Information"`
+	RequestType      uint32                 `avp:"CC-Request-Type"`
+	RuleInstalls     []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
+	UsageMonitors    []*UsageMonitoringInfo `avp:"Usage-Monitoring-Information"`
+	EventTriggers    []EventTrigger         `avp:"Event-Trigger"`
+	RevalidationTime *time.Time             `avp:"Revalidation-Time"`
 }
 
 //<RA-Request> ::= 	< Diameter Header: 258, REQ, PXY >
