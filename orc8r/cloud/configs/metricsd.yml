@@ -10,10 +10,10 @@ profile: "default"
 prometheusAddress: "http://prometheus:9090"
 prometheusCustomPushAddress: "http://prometheus-cache:9091/metrics"
 
-graphiteAddress: "192.168.80.50"
+graphiteAddress: "metrics"
 graphiteReceivePort: 2003
 graphiteQueryPort: 8080
 
-prometheusConfigServiceURL: "http://prometheus:9093"
-alertmanagerConfigServiceURL : "http://alertmanager:9093"
 alertmanagerApiURL: "http://alertmanager:9092/api/v2/alerts"
+prometheusConfigServiceURL: "http://config-manager:9093"
+alertmanagerConfigServiceURL: "http://config-manager:9094"
