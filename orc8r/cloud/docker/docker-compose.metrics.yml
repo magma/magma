@@ -1,0 +1,46 @@
+version: "3.7"
+
+services:
+  prometheus-cache:
+    build:
+      context: $PWD/../../../orc8r/cloud
+      dockerfile: $PWD/prometheus-cache/Dockerfile
+    restart: always
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090/tcp
+    volumes:
+      - $PWD/../../../orc8r/cloud/docker/config-manager/configs:/etc/prometheus:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - 9093:9093/tcp
+    volumes:
+      - $PWD/../../../orc8r/cloud/docker/config-manager/configs:/etc/alertmanager:ro
+    restart: always
+
+  config-manager:
+    volumes:
+      - $PWD/../../../orc8r/cloud/docker/config-manager/configs:/etc/configs
+    build:
+      context: $PWD/../../../orc8r/cloud
+      dockerfile: $PWD/config-manager/Dockerfile
+    restart: always
+
+  graphite:
+    environment:
+      - REDIS_TAGDB=1
+    ports:
+      - 8001:80/tcp
+    volumes:
+      - $PWD/graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
+      - $PWD/graphite/carbon.conf:/opt/graphite/conf/carbon.conf
+    image: graphiteapp/graphite-statsd
