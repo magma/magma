@@ -58,18 +58,19 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 		)
 	}
 
-	alertConfigWebServerURL := configMap.GetRequiredStringParam(confignames.AlertConfigWebServerURL)
+	alertmanagerConfigServiceURL := configMap.GetRequiredStringParam(confignames.AlertmanagerConfigServiceURL)
+	prometheusConfigServiceURL := configMap.GetRequiredStringParam(confignames.PrometheusConfigServiceURL)
 	alertmanagerURL := configMap.GetRequiredStringParam(confignames.AlertmanagerApiURL)
 	ret = append(ret,
-		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(alertConfigWebServerURL)},
-		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRuleHandler(alertConfigWebServerURL)},
-		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.DELETE, HandlerFunc: promH.GetDeleteAlertRuleHandler(alertConfigWebServerURL)},
+		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigurePrometheusAlertHandler(prometheusConfigServiceURL)},
+		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRuleHandler(prometheusConfigServiceURL)},
+		handlers.Handler{Path: promH.AlertConfigURL, Methods: handlers.DELETE, HandlerFunc: promH.GetDeleteAlertRuleHandler(prometheusConfigServiceURL)},
 
 		handlers.Handler{Path: firingAlertURL, Methods: handlers.GET, HandlerFunc: promH.GetViewFiringAlertHandler(alertmanagerURL)},
-		handlers.Handler{Path: promH.AlertReceiverConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigureAlertReceiverHandler(alertConfigWebServerURL)},
-		handlers.Handler{Path: promH.AlertReceiverConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertReceiverHandler(alertConfigWebServerURL)},
-		handlers.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertConfigWebServerURL)},
-		handlers.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: handlers.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertConfigWebServerURL)},
+		handlers.Handler{Path: promH.AlertReceiverConfigURL, Methods: handlers.POST, HandlerFunc: promH.GetConfigureAlertReceiverHandler(alertmanagerConfigServiceURL)},
+		handlers.Handler{Path: promH.AlertReceiverConfigURL, Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertReceiverHandler(alertmanagerConfigServiceURL)},
+		handlers.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: handlers.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertmanagerConfigServiceURL)},
+		handlers.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: handlers.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertmanagerConfigServiceURL)},
 	)
 
 	return ret

@@ -18,6 +18,7 @@ const (
 	GraphiteReceivePort = "graphiteReceivePort"
 	GraphiteQueryPort   = "graphiteQueryPort"
 
-	AlertConfigWebServerURL = "alertConfigWebServerURL"
-	AlertmanagerApiURL      = "alertmanagerApiURL"
+	PrometheusConfigServiceURL   = "prometheusConfigServiceURL"
+	AlertmanagerConfigServiceURL = "alertmanagerConfigServiceURL"
+	AlertmanagerApiURL           = "alertmanagerApiURL"
 )
