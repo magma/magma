@@ -11,15 +11,15 @@ package cache
 import (
 	"testing"
 
-	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
-
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 )
 
 var (
-	testLabels = []*dto.LabelPair{{Name: tests.MakeStringPointer("testName"), Value: tests.MakeStringPointer("testValue")}}
+	testName   = "testName"
+	testValue  = "testValue"
+	testLabels = []*dto.LabelPair{{Name: &testName, Value: &testValue}}
 )
 
 func TestMetricQueue(t *testing.T) {

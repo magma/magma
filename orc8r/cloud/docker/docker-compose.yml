@@ -49,3 +49,9 @@ services:
 #      DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
 #      SQL_DIALECT: maria
     restart: always
+
+  prometheus-cache:
+    build:
+      context: $PWD/../../../orc8r/cloud
+      dockerfile: $PWD/prometheus-cache/Dockerfile
+    restart: always

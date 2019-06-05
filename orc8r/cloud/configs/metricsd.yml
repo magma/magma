@@ -8,7 +8,7 @@
 
 profile: "default"
 prometheusAddress: "http://192.168.80.50:9090"
-prometheusCustomPushAddress: "http://192.168.80.50:9091/metrics"
+prometheusCustomPushAddress: "http://prometheus-cache:9091/metrics"
 
 graphiteAddress: "192.168.80.50"
 graphiteReceivePort: 2003

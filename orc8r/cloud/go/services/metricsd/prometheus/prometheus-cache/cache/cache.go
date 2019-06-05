@@ -17,8 +17,6 @@ import (
 	"strings"
 	"sync"
 
-	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
-
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	dto "github.com/prometheus/client_model/go"
@@ -168,7 +166,7 @@ func (f *familyAndMetrics) prune() {
 // makeLabeledName builds a unique name from a metric LabelPairs
 func makeLabeledName(metric *dto.Metric, metricName string) string {
 	labels := metric.GetLabel()
-	sort.Sort(mxd_exp.ByName(labels))
+	sort.Sort(ByName(labels))
 
 	labeledName := strings.Builder{}
 	labeledName.WriteString(metricName)
@@ -225,3 +223,10 @@ func (q *MetricQueue) Pop() *dto.Metric {
 	q.size--
 	return metric
 }
+
+// ByName is an interface for sorting LabelPairs by name
+type ByName []*dto.LabelPair
+
+func (a ByName) Len() int           { return len(a) }
+func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByName) Less(i, j int) bool { return a[i].GetName() < a[j].GetName() }
