@@ -105,12 +105,6 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     command: python3 -m magma.magmad.main
 
-  metricsd:
-    <<: *pyservice
-    container_name: metricsd
-    volumes: *snowflake_volumes
-    command: python3 -m magma.metricsd.main
-
   redis:
     <<: *pyservice
     container_name: redis

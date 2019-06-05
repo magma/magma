@@ -47,10 +47,6 @@
       "package_version": "0.0.0-0",
       "dynamic_services": []
     },
-    "metricsd": {
-      "@type": "type.googleapis.com/magma.mconfig.MetricsD",
-      "logLevel": "INFO"
-    },
     "pipelined": {
       "@type": "type.googleapis.com/magma.mconfig.PipelineD",
       "logLevel": "INFO",

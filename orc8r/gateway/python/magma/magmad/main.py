@@ -30,6 +30,7 @@ from .service_manager import ServiceManager
 from .state_reporter import StateReporter
 from .service_poller import ServicePoller
 from .sync_rpc_client import SyncRPCClient
+from .metrics_collector import MetricsCollector
 
 
 def main():
@@ -56,6 +57,22 @@ def main():
     service_manager = ServiceManager(services, init_system, service_poller,
                                      registered_dynamic_services,
                                      enabled_dynamic_services)
+
+    # Get metrics service config
+    metrics_config = service.config['metricsd']
+    metrics_services = metrics_config['services']
+    collect_interval = metrics_config['collect_interval']
+    sync_interval = metrics_config['sync_interval']
+    grpc_timeout = metrics_config['grpc_timeout']
+    queue_length = metrics_config['queue_length']
+
+    # Create local metrics collector
+    metrics_collector = MetricsCollector(metrics_services, collect_interval,
+                                         sync_interval, grpc_timeout,
+                                         queue_length, service.loop)
+
+    # Poll and sync the metrics collector loops
+    metrics_collector.run()
 
     # Start a background thread to stream updates from the cloud
     stream_client = None

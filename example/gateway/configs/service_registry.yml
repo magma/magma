@@ -10,9 +10,6 @@ services:
   control_proxy:
     ip_address: 127.0.0.1
     port: 50053
-  metricsd:
-    ip_address: 127.0.0.1
-    port: 60054
   hello:
     ip_address: 127.0.0.1
     port: 9093

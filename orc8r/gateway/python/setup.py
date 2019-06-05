@@ -31,7 +31,6 @@ setup(
         'magma.magmad.check.network_check',
         'magma.magmad.logging',
         'magma.magmad.upgrade',
-        'magma.metricsd',
     ],
     scripts=[
         'scripts/checkin_cli.py',

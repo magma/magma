@@ -16,7 +16,7 @@ from orc8r.protos.metricsd_pb2 import MetricsContainer
 from metrics_pb2 import Metric, MetricFamily
 
 from magma.common.service_registry import ServiceRegistry
-from magma.metricsd.metrics_collector import MetricsCollector
+from magma.magmad.metrics_collector import MetricsCollector
 
 
 class MockFuture(object):
@@ -60,7 +60,7 @@ class MetricsCollectorTests(unittest.TestCase):
         self._collector = MetricsCollector(self._services, 5, 10,
                                            self.timeout, queue_length=self.queue_length)
 
-    @unittest.mock.patch('magma.metricsd.metrics_collector.MetricsControllerStub')
+    @unittest.mock.patch('magma.magmad.metrics_collector.MetricsControllerStub')
     def test_sync(self, controller_mock):
         """
         Test if the collector syncs our sample.
