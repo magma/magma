@@ -16,6 +16,7 @@ __pycache__/
 *.py[cod]
 # Virtual environments
 .env
+.coverage
 
 # C extensions
 *.so

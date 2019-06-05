@@ -18,5 +18,4 @@ TESTS=magma/common/tests \
       magma/magmad/logging/tests \
       magma/magmad/upgrade/tests \
       magma/magmad/generic_command/tests \
-      magma/metricsd/tests \
       magma/tests

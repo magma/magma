@@ -6,17 +6,21 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import asyncio
 import calendar
 import time
 import unittest
 import unittest.mock
 
-from orc8r.protos import metricsd_pb2
-from orc8r.protos.metricsd_pb2 import MetricsContainer
-from metrics_pb2 import Metric, MetricFamily
-
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.metrics_collector import MetricsCollector
+from metrics_pb2 import Metric, MetricFamily
+from orc8r.protos import metricsd_pb2
+from orc8r.protos.metricsd_pb2 import MetricsContainer
+
+
+# Allow access to protected variables for unit testing
+# pylint: disable=protected-access
 
 
 class MockFuture(object):
@@ -58,7 +62,9 @@ class MetricsCollectorTests(unittest.TestCase):
         self.queue_length = 5
         self.timeout = 1
         self._collector = MetricsCollector(self._services, 5, 10,
-                                           self.timeout, queue_length=self.queue_length)
+                                           self.timeout,
+                                           queue_length=self.queue_length,
+                                           loop=asyncio.new_event_loop())
 
     @unittest.mock.patch('magma.magmad.metrics_collector.MetricsControllerStub')
     def test_sync(self, controller_mock):
@@ -160,7 +166,7 @@ class MetricsCollectorTests(unittest.TestCase):
         mock.exception.side_effect = [False]
         try:
             self._collector.collect_done('test', mock)
-        except Exception:
+        except Exception:   # pylint: disable=broad-except
             self.fail("Collection with empty metric should not have failed")
 
 
