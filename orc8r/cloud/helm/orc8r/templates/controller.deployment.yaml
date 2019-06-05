@@ -92,9 +92,11 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ $serviceName }}
-                  key: postgres.connstr
+                  key: {{ .Values.controller.spec.database.driver }}.connstr
             - name: SQL_DRIVER
-              value: postgres
+              value: {{ .Values.controller.spec.database.driver }}
+            - name: SQL_DIALECT
+              value: {{ .Values.controller.spec.database.sql_dialect }}
             # Hostname override for dispatcher
             - name: SERVICE_HOST_NAME
               valueFrom:
