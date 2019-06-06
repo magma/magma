@@ -58,7 +58,10 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 func TestSqlBlobStorage_Get(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\(\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\)\\)",
+			).
 				WithArgs("network", "t1", "k1").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}).
@@ -75,7 +78,10 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 	}
 	dneCase := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\(\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\)\\)",
+			).
 				WithArgs("network", "t2", "k2").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}),
@@ -92,7 +98,10 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 	}
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\(\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\)\\)",
+			).
 				WithArgs("network", "t3", "k3").
 				WillReturnError(errors.New("Mock query error"))
 		},
@@ -112,7 +121,11 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 func TestSqlBlobStorage_GetMany(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\("+
+					"\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\) OR "+
+					"\\(network_id = \\$4 AND type = \\$5 AND \"key\" = \\$6\\)\\)").
 				WithArgs("network", "t1", "k1", "network", "t2", "k2").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}).

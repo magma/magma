@@ -150,7 +150,7 @@ func (store *sqlBlobStorage) GetMany(networkID string, ids []storage.TypeAndKey)
 	}
 
 	whereCondition := getWhereCondition(networkID, ids)
-	rows, err := sq.Select(typeCol, keyCol, valCol, verCol).From(store.tableName).
+	rows, err := store.builder.Select(typeCol, keyCol, valCol, verCol).From(store.tableName).
 		Where(whereCondition).
 		RunWith(store.tx).
 		Query()
