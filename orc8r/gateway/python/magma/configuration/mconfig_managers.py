@@ -161,7 +161,8 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
         cfg_file_name = self._get_mconfig_file_path()
         with open(cfg_file_name, 'r') as f:
             json_mconfig = json.load(f)
-            service_configs = json_mconfig["configsByKey"]
+            service_configs = json_mconfig.get('configsByKey')
+            service_configs.update(json_mconfig.get('configs_by_key'))
         if service_name not in service_configs:
             raise LoadConfigError(
                 "Service ({}) missing in mconfig".format(service_name),
