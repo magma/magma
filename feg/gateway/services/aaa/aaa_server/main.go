@@ -15,19 +15,23 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/servicers"
+	"magma/feg/gateway/services/aaa/store"
 	"magma/orc8r/cloud/go/service"
 )
 
 func main() {
+	// Create a shared Session Table
+	sessions := store.NewMemorySessionTable()
+
 	// Create the EAP AKA Provider service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.AAA)
 	if err != nil {
 		log.Fatalf("Error creating EAP service: %s", err)
 	}
-	auth, _ := servicers.NewEapAuthenticator()
+	auth, _ := servicers.NewEapAuthenticator(nil)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
-	acct, _ := servicers.NewAccountingService()
+	acct, _ := servicers.NewAccountingService(sessions)
 	protos.RegisterAccountingServer(srv.GrpcServer, acct)
 
 	err = srv.Run()
