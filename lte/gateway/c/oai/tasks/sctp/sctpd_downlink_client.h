@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -19,13 +19,18 @@
  *      contact@openairinterface.org
  */
 
-#ifndef FILE_SCTP_DEFAULT_VALUES_SEEN
-#define FILE_SCTP_DEFAULT_VALUES_SEEN
+#pragma once
 
-#define SCTP_OUT_STREAMS (16)
-#define SCTP_IN_STREAMS (16)
-#define SCTP_MAX_ATTEMPTS (2)
-#define SCTP_TIMEOUT (5)
-#define SCTP_RECV_BUFFER_SIZE (1024)
+#include <stdint.h>
 
-#endif /* FILE_SCTP_DEFAULT_VALUES_SEEN */
+#include "bstrlib.h"
+
+#include "sctp_messages_types.h"
+
+int init_sctpd_downlink_client(void);
+
+// init
+int sctpd_init(sctp_init_t *init);
+
+// sendDl
+int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload);
