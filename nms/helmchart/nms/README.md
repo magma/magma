@@ -53,9 +53,8 @@ The following table list the configurable parameters of the NMS chart and their 
 | `service.http.nodePort` | Service nodePort number | `""` |
 | Nginx:       |
 | `manifests.configmap` | Enable Nginx configmap to store config files. | `true` |
-| `manifests.secrets` | Enable Magmalte secrets to store mysql info. | `true` |
-| `manifests.deployment` | Enable Magmalte deployment | `true` |
-| `manifests.service` | Enable Magmalte services. | `true` |
+| `manifests.deployment` | Enable Nginx deployment | `true` |
+| `manifests.service` | Enable Nginx services. | `true` |
 | `labels.node_selector_key` | Target Node selector label Key. | `` |
 | `labels.node_selector_value` | Target Node selector label value. | `` |
 | `image.repository` | Repository for NMS Nginx image. | `nil` |
@@ -78,12 +77,9 @@ The following table list the configurable parameters of the NMS chart and their 
 ```
 - Install NMS chart:
 ```bash
-$ cat vals.yaml
+$ cat values.yaml
 magmalte:
   env:
-    api_host: orc8r-proxy.magma.svc.cluster.local:9443
-    host: 0.0.0.0
-    port: 8081
     mapbox_access_token: ""
     mysql_host: mariadb.magma.svc.cluster.local
     mysql_db: magma
@@ -96,7 +92,7 @@ magmalte:
 $ helm upgrade --install nms ./nms --namespace=magma
 
 ```
-- Create test user:
+- Create Admin user:
 ```bash
 kubectl exec -it -n magma $(kubectl get pod -n magma  \
 -l app.kubernetes.io/component=magmalte -o jsonpath="{.items[0].metadata.name}") \
