@@ -75,5 +75,10 @@ func MiddlewareHandler(ctx context.Context, req interface{}, info *grpc.UnarySer
 			req = newReq
 		}
 	}
-	return handler(ctx, req)
+
+	resp, err = handler(ctx, req)
+	if err != nil {
+		glog.Errorf("[ERROR %s]: %s", info.FullMethod, err)
+	}
+	return
 }
