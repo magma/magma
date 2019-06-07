@@ -21,6 +21,7 @@ const resolveApp = (relativePath: string) =>
 module.exports = {
   appIndexJs: resolveApp('app/main.js'),
   loginJs: resolveApp('app/login.js'),
+  onboardingJs: resolveApp('app/onboarding.js'),
   appSrc: resolveApp('app'),
   distPath: resolveApp('static/dist'),
   packagesDir: resolveApp('../../fbcnms-packages'),

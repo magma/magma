@@ -34,6 +34,11 @@ function createDevWebpackConfig(options: Options) {
         'webpack-hot-middleware/client?reload=true',
         paths.loginJs,
       ],
+      onboarding: [
+        'webpack/hot/dev-server',
+        'webpack-hot-middleware/client?reload=true',
+        paths.onboardingJs,
+      ],
     },
     externals: [
       {

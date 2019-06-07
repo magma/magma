@@ -29,6 +29,7 @@ function createProductionWebpackConfig(options: Options) {
     entry: {
       main: [paths.appIndexJs],
       login: [paths.loginJs],
+      onboarding: [paths.onboardingJs],
     },
     externals: [
       {
