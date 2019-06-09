@@ -103,7 +103,7 @@ func createReleaseChannelHandler(c echo.Context) error {
 }
 
 func multiplexCreateReleaseChannelIntoConfigurator(channel *models.ReleaseChannel) error {
-	serializedReleaseChannel, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.ReleaseChannelType, channel.SupportedVersions)
+	serializedReleaseChannel, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.ReleaseChannelType, channel)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func multiplexUpdateReleaseChannelIntoConfigurator(channel *models.ReleaseChanne
 	if err != nil {
 		return err
 	}
-	serializedReleaseChannel, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.ReleaseChannelType, channel.SupportedVersions)
+	serializedReleaseChannel, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.ReleaseChannelType, channel)
 	if err != nil {
 		return err
 	}
@@ -257,7 +257,7 @@ func createTierHandler(c echo.Context) error {
 }
 
 func multiplexCreateTierIntoConfigurator(networkID string, tier *models.Tier) error {
-	serializedTier, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.NetworkTierType, tier)
+	serializedTier, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.NetworkTierType, tier)
 	if err != nil {
 		return err
 	}
@@ -341,7 +341,7 @@ func multiplexUpdateTierIntoConfigurator(networkID, tierID string, tier *models.
 	if err != nil {
 		return err
 	}
-	serializedTier, err := serde.Serialize(configurator.SerdeDomain, upgrade_client.NetworkTierType, tier)
+	serializedTier, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.NetworkTierType, tier)
 	if err != nil {
 		return err
 	}

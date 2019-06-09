@@ -20,11 +20,14 @@ import (
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
 	checkindserde "magma/orc8r/cloud/go/services/checkind/serde"
+	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
+	models2 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
+	models3 "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
@@ -36,8 +39,9 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/cloud/go/services/upgrade"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
-	upgradeserde "magma/orc8r/cloud/go/services/upgrade/serde"
+	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 )
 
 // BaseOrchestratorPlugin is the OrchestratorPlugin for the orc8r module
@@ -64,11 +68,13 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		// Inventory service serdes
 		&GatewayRecordSerde{},
 
-		// Configurator service serdes
-		&upgradeserde.ReleaseChannelVersionsManager{},
-		&upgradeserde.NetworkTierConfigManager{},
-
 		// Config manager serdes
+		configurator.NewNetworkConfigSerde(dnsdconfig.DnsdNetworkType, &models2.NetworkDNSConfig{}),
+		configurator.NewNetworkEntityConfigSerde(magmadconfig.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
+		configurator.NewNetworkEntityConfigSerde(upgrade.ReleaseChannelType, &models.ReleaseChannel{}),
+		configurator.NewNetworkEntityConfigSerde(upgrade.NetworkTierType, &models.Tier{}),
+
+		// Legacy config manager serdes
 		&magmadconfig.MagmadGatewayConfigManager{},
 		&dnsdconfig.DnsNetworkConfigManager{},
 	}

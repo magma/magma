@@ -22,6 +22,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const EntityType = "policy"
+
 const ServiceName = "POLICYDB"
 
 // Utility function to get a RPC connection to the policydb service

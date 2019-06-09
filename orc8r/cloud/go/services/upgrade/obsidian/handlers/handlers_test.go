@@ -17,10 +17,11 @@ import (
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
-	upgrade_serde "magma/orc8r/cloud/go/services/upgrade/serde"
+	"magma/orc8r/cloud/go/services/upgrade"
+	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
 
 	"github.com/stretchr/testify/assert"
@@ -29,7 +30,7 @@ import (
 // Obsidian integration test for release channel API endpoints
 func TestReleaseChannels(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(&upgrade_serde.ReleaseChannelVersionsManager{})
+	configurator.NewNetworkEntityConfigSerde(upgrade.ReleaseChannelType, &models.ReleaseChannel{})
 	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -133,7 +134,7 @@ func TestReleaseChannels(t *testing.T) {
 
 func TestTiers(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(&upgrade_serde.NetworkTierConfigManager{})
+	configurator.NewNetworkEntityConfigSerde(upgrade.NetworkTierType, &models.Tier{})
 	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)

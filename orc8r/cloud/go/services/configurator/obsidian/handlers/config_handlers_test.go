@@ -132,7 +132,7 @@ func assertConfigExists(t *testing.T, networkID string, configType string, confi
 	networks, notFound, err := configurator.LoadNetworks([]string{networkID}, true, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
-	retrievedConfig, err := serde.Deserialize(configurator.SerdeDomain, configType, networks[networkID].Configs[configType])
+	retrievedConfig, err := serde.Deserialize(configurator.NetworkConfigSerdeDomain, configType, networks[networkID].Configs[configType])
 	assert.NoError(t, err)
 	assert.Equal(t, config, retrievedConfig)
 }
@@ -168,7 +168,7 @@ func (*fooSerde) GetType() string {
 }
 
 func (*fooSerde) GetDomain() string {
-	return configurator.SerdeDomain
+	return configurator.NetworkConfigSerdeDomain
 }
 
 func (*fooSerde) Serialize(c interface{}) ([]byte, error) {

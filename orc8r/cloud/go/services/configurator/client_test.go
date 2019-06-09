@@ -8,7 +8,6 @@ LICENSE file in the root directory of this source tree.
 package configurator_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -28,9 +27,13 @@ const (
 
 func TestConfiguratorService(t *testing.T) {
 	test_init.StartTestService(t)
-	err := serde.RegisterSerdes(&FooSerde{})
+	err := serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkConfigSerdeDomain, serdeType: "foo"})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(&BarSerde{})
+	err = serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkEntitySerdeDomain, serdeType: "foo"})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkConfigSerdeDomain, serdeType: "bar"})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkEntitySerdeDomain, serdeType: "bar"})
 	assert.NoError(t, err)
 
 	// Test Basic Network Interface
@@ -55,12 +58,7 @@ func TestConfiguratorService(t *testing.T) {
 	// Update, Load
 	newDesc := "Should be updated now"
 	toAddOrUpdate := map[string][]byte{}
-	barConfig := Bar{
-		Number: 42,
-	}
-	serializedBarConfig, err := json.Marshal(barConfig)
-	assert.NoError(t, err)
-	toAddOrUpdate["bar"] = serializedBarConfig
+	toAddOrUpdate["bar"] = []byte("hello")
 	toDelete := []string{"foo"}
 	updateCriteria1 := &protos.NetworkUpdateCriteria{
 		Id:                   networkID1,
@@ -75,8 +73,9 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, 0, len(notFound))
 	assert.Equal(t, 1, len(networks))
 	assert.Equal(t, newDesc, networks[networkID1].Description)
-	assert.Equal(t, []byte(nil), networks[networkID1].Configs["foo"])
-	assert.Equal(t, serializedBarConfig, networks[networkID1].Configs["bar"])
+	_, fooPresent := networks[networkID1].Configs["foo"]
+	assert.False(t, fooPresent)
+	assert.Equal(t, []byte("hello"), networks[networkID1].Configs["bar"])
 
 	// Create, Load
 	network2 := &protos.Network{
@@ -202,52 +201,26 @@ func strPointer(str string) *string {
 	return &str
 }
 
-// Test Serdes
-type FooSerde struct {
+type mockSerde struct {
+	domain, serdeType string
 }
 
-func (*FooSerde) GetDomain() string {
-	return configurator.SerdeDomain
+func (m *mockSerde) GetDomain() string {
+	return m.domain
 }
 
-func (*FooSerde) GetType() string {
-	return "foo"
+func (m *mockSerde) GetType() string {
+	return m.serdeType
 }
 
-func (*FooSerde) Serialize(in interface{}) ([]byte, error) {
+func (m *mockSerde) Serialize(in interface{}) ([]byte, error) {
 	str, ok := in.(string)
 	if !ok {
-		return nil, fmt.Errorf("%v is not serializable by Foo", in)
+		return nil, fmt.Errorf("serialization error")
 	}
 	return []byte(str), nil
 }
 
-func (*FooSerde) Deserialize(message []byte) (interface{}, error) {
-	return string(message), nil
-}
-
-type Bar struct {
-	// number
-	Number int `json:"age"`
-}
-
-type BarSerde struct {
-}
-
-func (*BarSerde) GetDomain() string {
-	return configurator.SerdeDomain
-}
-
-func (*BarSerde) GetType() string {
-	return "bar"
-}
-
-func (*BarSerde) Serialize(in interface{}) ([]byte, error) {
-	return json.Marshal(in)
-}
-
-func (*BarSerde) Deserialize(message []byte) (interface{}, error) {
-	res := Bar{}
-	err := json.Unmarshal(message, &res)
-	return res, err
+func (m *mockSerde) Deserialize(in []byte) (interface{}, error) {
+	return string(in), nil
 }

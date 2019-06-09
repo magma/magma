@@ -13,7 +13,12 @@ package configurator
 const (
 	// ServiceName is the name of this service
 	ServiceName = "CONFIGURATOR"
-	// SerdeDomain is the name of this service's serde domain
-	SerdeDomain       = "config_manager"
+
+	// NetworkConfigSerdeDomain is the Serde domain for network configs
+	NetworkConfigSerdeDomain = "configurator_network_configs"
+
+	// NetworkEntitySerdeDomain is the Serde domain for network entity configs
+	NetworkEntitySerdeDomain = "configurator_entity_configs"
+
 	GatewayEntityType = "gateway"
 )

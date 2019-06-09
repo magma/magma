@@ -227,7 +227,7 @@ func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *
 
 func networkConfigsAreValid(configs map[string][]byte) error {
 	for typeVal, config := range configs {
-		_, err := serde.Deserialize(configurator.SerdeDomain, typeVal, config)
+		_, err := serde.Deserialize(configurator.NetworkConfigSerdeDomain, typeVal, config)
 		if err != nil {
 			return err
 		}
@@ -236,7 +236,7 @@ func networkConfigsAreValid(configs map[string][]byte) error {
 }
 
 func entityConfigIsValid(typeVal string, config []byte) error {
-	_, err := serde.Deserialize(configurator.SerdeDomain, typeVal, config)
+	_, err := serde.Deserialize(configurator.NetworkEntitySerdeDomain, typeVal, config)
 	if err != nil {
 		return err
 	}

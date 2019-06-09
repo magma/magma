@@ -114,7 +114,7 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) (map[s
 }
 
 func UpdateNetworkConfig(networkID, configType string, config interface{}) error {
-	serializedConfig, err := serde.Serialize(SerdeDomain, configType, config)
+	serializedConfig, err := serde.Serialize(NetworkConfigSerdeDomain, configType, config)
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func GetNetworkConfigsByType(networkID string, configType string) (interface{}, 
 		return nil, fmt.Errorf("Network %s not found", networkID)
 	}
 	serializedConfig := networks[networkID].Configs[configType]
-	model, err := serde.Deserialize(SerdeDomain, configType, serializedConfig)
+	model, err := serde.Deserialize(NetworkConfigSerdeDomain, configType, serializedConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func UpdateInternalEntity(updates []*protos.EntityUpdateCriteria) (map[string]*p
 	return UpdateEntities(storage.InternalNetworkID, updates)
 }
 func UpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}) error {
-	serializedConfig, err := serde.Serialize(SerdeDomain, entityType, config)
+	serializedConfig, err := serde.Serialize(NetworkEntitySerdeDomain, entityType, config)
 	if err != nil {
 		return err
 	}

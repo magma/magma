@@ -22,6 +22,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+const EntityType = "subscriber"
+
 const ServiceName = "SUBSCRIBERDB"
 
 // Utility function to get a RPC connection to the subscriberdb service

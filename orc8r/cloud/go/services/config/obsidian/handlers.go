@@ -271,7 +271,7 @@ func handleCreateConfig(c echo.Context, networkId string, configType string, con
 		return handlers.HttpError(fmt.Errorf("Error creating config: %s", err), http.StatusInternalServerError)
 	}
 
-	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, iConfig)
+	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, userModel)
 	if err != nil {
 		return handlers.HttpError(fmt.Errorf("Success creating config, but failed to multiplex into configurator: %s", err), http.StatusInternalServerError)
 	}
@@ -395,7 +395,7 @@ func handleConfigUpdate(c echo.Context, networkId string, configType string, con
 		return handlers.HttpError(fmt.Errorf("Error updating config: %s", err), http.StatusInternalServerError)
 	}
 
-	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, iConfig)
+	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, userModel)
 	if err != nil {
 		return handlers.HttpError(fmt.Errorf("Success updating config, but failed to multiplex into configurator: %s", err), http.StatusInternalServerError)
 	}
