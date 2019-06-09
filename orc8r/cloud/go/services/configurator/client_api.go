@@ -192,6 +192,7 @@ func UpdateEntities(networkID string, updates []*protos.EntityUpdateCriteria) (m
 func UpdateInternalEntity(updates []*protos.EntityUpdateCriteria) (map[string]*protos.NetworkEntity, error) {
 	return UpdateEntities(storage.InternalNetworkID, updates)
 }
+
 func UpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}) error {
 	serializedConfig, err := serde.Serialize(NetworkEntitySerdeDomain, entityType, config)
 	if err != nil {

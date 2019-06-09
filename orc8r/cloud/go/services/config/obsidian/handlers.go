@@ -18,8 +18,6 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/configurator"
-	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -293,45 +291,6 @@ func getConfigTypeForConfigurator(configType string) ConfigType {
 	}
 }
 
-// case on configType and propagate create/update into configurator
-func multiplexCreateOrUpdateConfigIntoConfigurator(networkID, configType string, configKey string, iConfig interface{}) error {
-	switch getConfigTypeForConfigurator(configType) {
-	case NETWORK:
-		return multiplexCreateOrUpdateNetworkConfig(networkID, configType, iConfig)
-	case NETWORK_ENTITY:
-		return multiplexCreateOrUpdateEntityConfig(networkID, configType, configKey, iConfig)
-	default:
-		return fmt.Errorf("Unexpected config type : %s", configType)
-	}
-}
-
-func multiplexCreateOrUpdateNetworkConfig(networkID, configType string, config interface{}) error {
-	// Create an empty network if it doesn't exist already
-	err := configurator_utils.CreateNetworkIfNotExists(networkID)
-	if err != nil {
-		return err
-	}
-	err = configurator.UpdateNetworkConfig(networkID, configType, config)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex create network config %s:%s into configurator: %v", networkID, configType, err)
-	}
-	return nil
-}
-
-func multiplexCreateOrUpdateEntityConfig(networkID, entityType, entityKey string, config interface{}) error {
-	err := configurator_utils.CreateNetworkEntityIfNotExists(networkID, entityType, entityKey)
-	if err != nil {
-		return err
-	}
-	err = configurator.UpdateEntityConfig(networkID, entityType, entityKey, config)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex create network entity config %s:%s:%s into configurator: %v", networkID, entityType, entityKey, err)
-	}
-	return nil
-}
-
 // GetUpdateConfigHandler returns an obsidian handler for updating a config
 // using the config service. The returned Handler will have Methods set to PUT.
 //
@@ -453,43 +412,4 @@ func handleConfigDelete(c echo.Context, networkId string, configType string, con
 	}
 
 	return c.NoContent(http.StatusOK)
-}
-
-// case on configType and propagate delete into configurator
-func multiplexDeleteConfigIntoConfigurator(networkID, configType, configKey string) error {
-	switch getConfigTypeForConfigurator(configType) {
-	case NETWORK:
-		return multiplexDeleteNetworkConfig(networkID, configType)
-	case NETWORK_ENTITY:
-		return multiplexDeleteEntityConfig(networkID, configType, configKey)
-	default:
-		return fmt.Errorf("Unexpected config type : %s", configType)
-	}
-}
-
-func multiplexDeleteNetworkConfig(networkID, configType string) error {
-	// Create an empty network if it doesn't exist already
-	err := configurator_utils.CreateNetworkIfNotExists(networkID)
-	if err != nil {
-		return err
-	}
-	err = configurator.DeleteNetworkConfig(networkID, configType)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex delete network config %s:%s into configurator: %v", networkID, configType, err)
-	}
-	return nil
-}
-
-func multiplexDeleteEntityConfig(networkID, configType, configKey string) error {
-	err := configurator_utils.CreateNetworkEntityIfNotExists(networkID, configType, configKey)
-	if err != nil {
-		return err
-	}
-	err = configurator.DeleteEntityConfig(networkID, configType, configKey)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex delete network entity config %s:%s:%s into configurator: %v", networkID, configType, configKey, err)
-	}
-	return nil
 }
