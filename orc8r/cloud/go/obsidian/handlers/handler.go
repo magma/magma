@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"magma/orc8r/cloud/go/obsidian/config"
 	"magma/orc8r/cloud/go/util"
@@ -38,6 +39,16 @@ type Handler struct {
 	Methods HttpMethod
 
 	HandlerFunc echo.HandlerFunc
+
+	// MigratedHandlerFunc specifies a second handler function for the
+	// configurator service migration. The implementation to use will be
+	// chosen by the value of the USE_NEW_HANDLERS environment variable -
+	// set to 1 to use new handler functions in all handlers.
+	MigratedHandlerFunc echo.HandlerFunc
+
+	// If set to true, MultiplexHandlers will always run both HandlerFunc and
+	// MigratedHandlerFunc in serial.
+	MultiplexHandlers bool
 }
 
 const (
@@ -47,6 +58,8 @@ const (
 	DELETE
 	ALL = GET | POST | PUT | DELETE
 )
+
+const UseNewHandlersEnv = "USE_NEW_HANDLERS"
 
 const (
 	URL_SEP                   = "/"
@@ -86,12 +99,35 @@ var echoHandlerInitializers = map[HttpMethod]echoHandlerInitializer{
 	DELETE: (*echo.Echo).DELETE,
 }
 
-func register(registry handlerRegistry, path string, handler echo.HandlerFunc) error {
-	_, registered := registry[path]
+func register(registry handlerRegistry, handler Handler) error {
+	_, registered := registry[handler.Path]
 	if registered {
-		return fmt.Errorf("HandlerFunc[s] already registered for path: %q", path)
+		return fmt.Errorf("HandlerFunc[s] already registered for path: %q", handler.Path)
 	}
-	registry[path] = handler
+
+	wrappedHandlerFunc := func(c echo.Context) error {
+		if handler.MultiplexHandlers {
+			err := handler.HandlerFunc(c)
+			if err != nil {
+				return err
+			}
+
+			return handler.MigratedHandlerFunc(c)
+		} else {
+			shouldUse, found := os.LookupEnv(UseNewHandlersEnv)
+			if !found {
+				return handler.HandlerFunc(c)
+			}
+
+			if shouldUse == "0" {
+				return handler.HandlerFunc(c)
+			} else {
+				return handler.MigratedHandlerFunc(c)
+			}
+		}
+	}
+	registry[handler.Path] = wrappedHandlerFunc
+
 	return nil
 }
 
@@ -108,7 +144,7 @@ func Register(handler Handler) error {
 	}
 	for method := GET; method < ALL; method <<= 1 {
 		if (method & handler.Methods) != 0 {
-			err := register(registries[method], handler.Path, handler.HandlerFunc)
+			err := register(registries[method], handler)
 			if err != nil {
 				return err
 			}
@@ -229,16 +265,6 @@ func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {
 			http.StatusBadRequest)
 	}
 	return operId, nil
-}
-
-func GetConfigType(c echo.Context) (string, *echo.HTTPError) {
-	configType := c.Param("config_type")
-	if configType == "" {
-		return configType, HttpError(
-			fmt.Errorf("Invalid/Missing Config Type"),
-			http.StatusBadRequest)
-	}
-	return configType, nil
 }
 
 func NetworkIdHttpErr() *echo.HTTPError {
