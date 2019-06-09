@@ -570,10 +570,12 @@ void LocalEnforcer::init_policy_reauth(
     return;
   }
 
+  receive_monitoring_credit_from_rar(request, it->second);
+
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
 
-  process_policy_reauth_request(
+  get_rules_from_policy_reauth_request(
     request, it->second, &rules_to_activate, &rules_to_deactivate);
 
   auto ip_addr = it->second->get_subscriber_ip_addr();
@@ -602,7 +604,23 @@ void LocalEnforcer::init_policy_reauth(
   mark_rule_failures(activate_success, deactivate_success, request, answer_out);
 }
 
-void LocalEnforcer::process_policy_reauth_request(
+void LocalEnforcer::receive_monitoring_credit_from_rar(
+  const PolicyReAuthRequest &request,
+  const std::unique_ptr<SessionState> &session)
+{
+  UsageMonitoringUpdateResponse monitoring_credit;
+  monitoring_credit.set_session_id(request.session_id());
+  monitoring_credit.set_sid("IMSI" + request.session_id());
+  monitoring_credit.set_success(true);
+  UsageMonitoringCredit* credit = monitoring_credit.mutable_credit();
+
+  for (const auto &usage_monitoring_credit : request.usage_monitoring_credits()) {
+    credit->CopyFrom(usage_monitoring_credit);
+    session->get_monitor_pool().receive_credit(monitoring_credit);
+  }
+}
+
+void LocalEnforcer::get_rules_from_policy_reauth_request(
   const PolicyReAuthRequest &request,
   const std::unique_ptr<SessionState> &session,
   RulesToProcess *rules_to_activate,

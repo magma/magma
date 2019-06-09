@@ -167,7 +167,7 @@ class LocalEnforcer {
    * Rules need to be deactivated are categorized as either staic or dynamic
    * rule and put in the vector.
    */
-  void process_policy_reauth_request(
+  void get_rules_from_policy_reauth_request(
     const PolicyReAuthRequest &request,
     const std::unique_ptr<SessionState> &session,
     RulesToProcess *rules_to_activate,
@@ -205,6 +205,14 @@ class LocalEnforcer {
   void schedule_dynamic_rule_deactivation(
     const std::string &imsi,
     const DynamicRuleInstall &dynamic_rule);
+
+  /**
+   * Get the monitoring credits from PolicyReAuthRequest (RAR) message
+   * and add the credits to UsageMonitoringCreditPool of the session
+   */
+  void receive_monitoring_credit_from_rar(
+    const PolicyReAuthRequest &request,
+    const std::unique_ptr<SessionState> &session);
 };
 
 } // namespace magma
