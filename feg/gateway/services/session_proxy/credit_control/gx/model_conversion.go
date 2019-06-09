@@ -124,15 +124,17 @@ func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.Poli
 	)
 
 	eventTriggers, revalidationTime := GetEventTriggersRelatedInfo(rar.EventTriggers, rar.RevalidationTime)
+	usageMonitoringCredits := getUsageMonitoringCredits(rar.UsageMonitors)
 
 	return &protos.PolicyReAuthRequest{
-		SessionId:             sid,
-		Imsi:                  imsi,
-		RulesToRemove:         rulesToRemove,
-		RulesToInstall:        staticRulesToInstall,
-		DynamicRulesToInstall: dynamicRulesToInstall,
-		EventTriggers:         eventTriggers,
-		RevalidationTime:      revalidationTime,
+		SessionId:              sid,
+		Imsi:                   imsi,
+		RulesToRemove:          rulesToRemove,
+		RulesToInstall:         staticRulesToInstall,
+		DynamicRulesToInstall:  dynamicRulesToInstall,
+		EventTriggers:          eventTriggers,
+		RevalidationTime:       revalidationTime,
+		UsageMonitoringCredits: usageMonitoringCredits,
 	}
 }
 
@@ -227,4 +229,34 @@ func GetEventTriggersRelatedInfo(
 		}
 	}
 	return protoEventTriggers, protoRevalidationTime
+}
+
+func getUsageMonitoringCredits(usageMonitors []*UsageMonitoringInfo) []*protos.UsageMonitoringCredit {
+	usageMonitoringCredits := make([]*protos.UsageMonitoringCredit, 0, len(usageMonitors))
+	for _, monitor := range usageMonitors {
+		usageMonitoringCredits = append(
+			usageMonitoringCredits,
+			GetUsageMonitorCreditFromAVP(monitor),
+		)
+	}
+	return usageMonitoringCredits
+}
+
+func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMonitoringCredit {
+	if monitor.GrantedServiceUnit == nil || (monitor.GrantedServiceUnit.TotalOctets == nil &&
+		monitor.GrantedServiceUnit.InputOctets == nil &&
+		monitor.GrantedServiceUnit.OutputOctets == nil) {
+		return &protos.UsageMonitoringCredit{
+			Action:        protos.UsageMonitoringCredit_DISABLE,
+			MonitoringKey: monitor.MonitoringKey,
+			Level:         protos.MonitoringLevel(monitor.Level),
+		}
+	} else {
+		return &protos.UsageMonitoringCredit{
+			Action:        protos.UsageMonitoringCredit_CONTINUE,
+			MonitoringKey: monitor.MonitoringKey,
+			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
+			Level:         protos.MonitoringLevel(monitor.Level),
+		}
+	}
 }

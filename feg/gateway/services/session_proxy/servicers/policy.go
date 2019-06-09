@@ -113,32 +113,13 @@ func getUsageMonitorsFromCCA(imsi string, sessionID string, gxCCA *gx.CreditCont
 	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCA.UsageMonitors))
 	for _, monitor := range gxCCA.UsageMonitors {
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
-			Credit:    getUsageMonitorCreditFromAVP(monitor),
+			Credit:    gx.GetUsageMonitorCreditFromAVP(monitor),
 			SessionId: sessionID,
 			Sid:       addSidPrefix(imsi),
 			Success:   true,
 		})
 	}
 	return monitors
-}
-
-func getUsageMonitorCreditFromAVP(monitor *gx.UsageMonitoringInfo) *protos.UsageMonitoringCredit {
-	if monitor.GrantedServiceUnit == nil || (monitor.GrantedServiceUnit.TotalOctets == nil &&
-		monitor.GrantedServiceUnit.InputOctets == nil &&
-		monitor.GrantedServiceUnit.OutputOctets == nil) {
-		return &protos.UsageMonitoringCredit{
-			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: monitor.MonitoringKey,
-			Level:         protos.MonitoringLevel(monitor.Level),
-		}
-	} else {
-		return &protos.UsageMonitoringCredit{
-			Action:        protos.UsageMonitoringCredit_CONTINUE,
-			MonitoringKey: monitor.MonitoringKey,
-			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
-			Level:         protos.MonitoringLevel(monitor.Level),
-		}
-	}
 }
 
 // getGxUpdateRequestsFromUsage returns a slice of CCRs from usage update protos
@@ -308,7 +289,7 @@ func getSingleUsageMonitorResponseFromCCA(
 				MonitoringKey: request.UsageReports[0].MonitoringKey,
 				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	} else {
-		res.Credit = getUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
+		res.Credit = gx.GetUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
 	}
 
 	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(
