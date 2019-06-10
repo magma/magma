@@ -5,26 +5,17 @@
 # LICENSE file in the root directory of this source tree.
 #
 [Unit]
-Description=Magma OAI MME service
-PartOf=magma@mobilityd.service
-After=magma@mobilityd.service
-PartOf=magma@pipelined.service
-After=magma@pipelined.service
-PartOf=magma@sessiond.service
-After=magma@sessiond.service
-PartOf=magma@sctpd.service
-After=magma@sctpd.service
+Description=Magma sctpd service
 
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStart=/usr/local/bin/mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tmp/spgw.conf
+ExecStart=/usr/local/bin/sctpd
 MemoryAccounting=yes
 MemoryLimit=512M
-ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_oai_config.py
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=mme
+SyslogIdentifier=sctpd
 User=root
 Restart=always
 RestartSec=5

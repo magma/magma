@@ -9,7 +9,7 @@ TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_session_manager
+build: build_python build_common build_oai build_sctpd build_session_manager
 
 test: test_python test_oai test_session_manager
 
@@ -64,6 +64,9 @@ build_common:
 
 build_oai: build_common
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+
+build_sctpd: build_common
+	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager: build_common
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
