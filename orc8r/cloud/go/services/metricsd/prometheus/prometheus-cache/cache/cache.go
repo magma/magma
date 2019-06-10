@@ -40,36 +40,36 @@ func NewMetricCache(queueCapacity int) *MetricCache {
 }
 
 // Receive is a handler function to receive metric pushes
-func (g *MetricCache) Receive(c echo.Context) error {
+func (c *MetricCache) Receive(ctx echo.Context) error {
 	var parser expfmt.TextParser
 	var err error
 
-	parsedFamilies, err := parser.TextToMetricFamilies(c.Request().Body)
+	parsedFamilies, err := parser.TextToMetricFamilies(ctx.Request().Body)
 	if err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
+		return ctx.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
 	}
 
-	g.Lock()
-	defer g.Unlock()
+	c.Lock()
+	defer c.Unlock()
 	for _, fam := range parsedFamilies {
-		if fAndM, ok := g.familyMap[fam.GetName()]; ok {
+		if fAndM, ok := c.familyMap[fam.GetName()]; ok {
 			fAndM.addMetrics(fam.Metric)
 		} else {
-			g.familyMap[fam.GetName()] = newFamilyAndMetrics(fam, g.queueCapacity)
+			c.familyMap[fam.GetName()] = newFamilyAndMetrics(fam, c.queueCapacity)
 		}
 	}
-	return c.NoContent(http.StatusOK)
+	return ctx.NoContent(http.StatusOK)
 }
 
 // Scrape is a handler function for prometheus scrape requests. Formats the
 // metrics for scraping and sends the oldest datapoint per metric series if
 // there are multiple in the queue since prometheus cannot handle multiple
 // datapoints of the same metric in a scrape.
-func (g *MetricCache) Scrape(c echo.Context) error {
-	g.Lock()
-	defer g.Unlock()
+func (c *MetricCache) Scrape(ctx echo.Context) error {
+	c.Lock()
+	defer c.Unlock()
 	respStr := strings.Builder{}
-	for _, fam := range g.familyMap {
+	for _, fam := range c.familyMap {
 		pullFamily := fam.popOldestDatapoint()
 		familyStr, err := familyToString(pullFamily)
 		if err != nil {
@@ -78,17 +78,17 @@ func (g *MetricCache) Scrape(c echo.Context) error {
 			respStr.WriteString(familyStr)
 		}
 	}
-	g.clearEmptyMetrics()
-	return c.String(http.StatusOK, respStr.String())
+	c.clearEmptyMetrics()
+	return ctx.String(http.StatusOK, respStr.String())
 }
 
 // clearEmptyMetrics deletes families from the cache if they have no more
 // datapoints
-func (g *MetricCache) clearEmptyMetrics() {
-	for familyName, family := range g.familyMap {
+func (c *MetricCache) clearEmptyMetrics() {
+	for familyName, family := range c.familyMap {
 		family.prune()
 		if len(family.metrics) == 0 {
-			delete(g.familyMap, familyName)
+			delete(c.familyMap, familyName)
 		}
 	}
 }
