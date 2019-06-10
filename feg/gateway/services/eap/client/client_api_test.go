@@ -177,9 +177,9 @@ func TestEAPClientApiConcurent(t *testing.T) {
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
 	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{
 		Timeout: &mconfig.EapAkaConfig_Timeouts{
-			ChallengeMs:            300,
+			ChallengeMs:            700,
 			ErrorNotificationMs:    200,
-			SessionMs:              500,
+			SessionMs:              900,
 			SessionAuthenticatedMs: 1000,
 		}})
 	if err != nil {
