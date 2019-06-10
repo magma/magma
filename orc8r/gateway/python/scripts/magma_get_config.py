@@ -50,7 +50,7 @@ def main():
         print(mconfig, end="")
         sys.exit(0)
 
-    var = getattr(mconfig, args.variable)
+    var = mconfig[args.variable]
 
     if args.test:
         if var:
