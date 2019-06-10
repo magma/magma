@@ -46,6 +46,11 @@ class LocalEnforcerTest : public ::testing::Test {
     local_enforcer->attachEventBase(evb);
   }
 
+  virtual void TearDown()
+  {
+    folly::EventBaseManager::get()->clearEventBase();
+  }
+
   void run_evb()
   {
     evb->runAfterDelay([this]() { local_enforcer->stop(); }, 100);
@@ -600,7 +605,6 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time)
     .Times(1)
     .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
-  delete evb;
 }
 
 TEST_F(LocalEnforcerTest, test_usage_monitors)
