@@ -44,9 +44,9 @@ func (srv *accountingService) Start(_ context.Context, aaaCtx *protos.Context) (
 // InterimUpdate implements Radius Acct-Status-Type: Interim-Update endpoint
 func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.UpdateRequest) (*protos.AcctResp, error) {
 	if ur == nil {
-		return &protos.AcctResp{}, status.Errorf(codes.InvalidArgument, "Nil AAA Context")
+		return &protos.AcctResp{}, status.Errorf(codes.InvalidArgument, "Nil Update Request")
 	}
-	sid := ur.Ctx.GetSessionId()
+	sid := ur.GetCtx().GetSessionId()
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
 		return &protos.AcctResp{}, status.Errorf(
@@ -56,15 +56,27 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 }
 
 // Stop implements Radius Acct-Status-Type: Stop endpoint
-func (srv *accountingService) Stop(_ context.Context, aaaCtx *protos.Context) (*protos.AcctResp, error) {
-	if aaaCtx == nil {
-		return &protos.AcctResp{}, status.Errorf(codes.InvalidArgument, "Nil AAA Context")
+func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (*protos.AcctResp, error) {
+	if req == nil {
+		return &protos.AcctResp{}, status.Errorf(codes.InvalidArgument, "Nil Stop Request")
 	}
-	sid := aaaCtx.GetSessionId()
+	sid := req.GetCtx().GetSessionId()
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
 		return &protos.AcctResp{}, status.Errorf(
 			codes.FailedPrecondition, "Accounting Stop: Session %s cannot be found", sid)
 	}
+	return &protos.AcctResp{}, status.Errorf(codes.Unimplemented, "Not Implemented")
+}
+
+// CreateSession is an "outbound" RPC for session manager which can be called from start()
+func (srv *accountingService) CreateSession(context.Context, *protos.Context) (*protos.AcctResp, error) {
+	return &protos.AcctResp{}, status.Errorf(codes.Unimplemented, "Not Implemented")
+}
+
+// TerminateSession is an "inbound" RPC from session manager to notify accounting of a client session termination
+func (srv *accountingService) TerminateSession(
+	context.Context, *protos.TerminateSessionRequest) (*protos.AcctResp, error) {
+
 	return &protos.AcctResp{}, status.Errorf(codes.Unimplemented, "Not Implemented")
 }

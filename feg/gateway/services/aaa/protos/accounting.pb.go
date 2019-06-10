@@ -23,6 +23,80 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
+type StopRequestTerminateCause int32
+
+const (
+	StopRequest_UNDEFINED           StopRequestTerminateCause = 0
+	StopRequest_USER_REQUEST        StopRequestTerminateCause = 1
+	StopRequest_LOST_CARRIER        StopRequestTerminateCause = 2
+	StopRequest_LOST_SERVICE        StopRequestTerminateCause = 3
+	StopRequest_IDLE_TIMEOUT        StopRequestTerminateCause = 4
+	StopRequest_SESSION_TIMEOUT     StopRequestTerminateCause = 5
+	StopRequest_ADMIN_RESET         StopRequestTerminateCause = 6
+	StopRequest_ADMIN_REBOOT        StopRequestTerminateCause = 7
+	StopRequest_PORT_ERROR          StopRequestTerminateCause = 8
+	StopRequest_NAS_ERROR           StopRequestTerminateCause = 9
+	StopRequest_NAS_REQUEST         StopRequestTerminateCause = 10
+	StopRequest_NAS_REBOOT          StopRequestTerminateCause = 11
+	StopRequest_PORT_UNNEEDED       StopRequestTerminateCause = 12
+	StopRequest_PORT_PREEMPTED      StopRequestTerminateCause = 13
+	StopRequest_PORT_SUSPENDED      StopRequestTerminateCause = 14
+	StopRequest_SERVICE_UNAVAILABLE StopRequestTerminateCause = 15
+	StopRequest_CALLBACK            StopRequestTerminateCause = 16
+	StopRequest_USER_ERROR          StopRequestTerminateCause = 17
+	StopRequest_HOST_REQUEST        StopRequestTerminateCause = 18
+)
+
+var StopRequestTerminateCause_name = map[int32]string{
+	0:  "UNDEFINED",
+	1:  "USER_REQUEST",
+	2:  "LOST_CARRIER",
+	3:  "LOST_SERVICE",
+	4:  "IDLE_TIMEOUT",
+	5:  "SESSION_TIMEOUT",
+	6:  "ADMIN_RESET",
+	7:  "ADMIN_REBOOT",
+	8:  "PORT_ERROR",
+	9:  "NAS_ERROR",
+	10: "NAS_REQUEST",
+	11: "NAS_REBOOT",
+	12: "PORT_UNNEEDED",
+	13: "PORT_PREEMPTED",
+	14: "PORT_SUSPENDED",
+	15: "SERVICE_UNAVAILABLE",
+	16: "CALLBACK",
+	17: "USER_ERROR",
+	18: "HOST_REQUEST",
+}
+var StopRequestTerminateCause_value = map[string]int32{
+	"UNDEFINED":           0,
+	"USER_REQUEST":        1,
+	"LOST_CARRIER":        2,
+	"LOST_SERVICE":        3,
+	"IDLE_TIMEOUT":        4,
+	"SESSION_TIMEOUT":     5,
+	"ADMIN_RESET":         6,
+	"ADMIN_REBOOT":        7,
+	"PORT_ERROR":          8,
+	"NAS_ERROR":           9,
+	"NAS_REQUEST":         10,
+	"NAS_REBOOT":          11,
+	"PORT_UNNEEDED":       12,
+	"PORT_PREEMPTED":      13,
+	"PORT_SUSPENDED":      14,
+	"SERVICE_UNAVAILABLE": 15,
+	"CALLBACK":            16,
+	"USER_ERROR":          17,
+	"HOST_REQUEST":        18,
+}
+
+func (x StopRequestTerminateCause) String() string {
+	return proto.EnumName(StopRequestTerminateCause_name, int32(x))
+}
+func (StopRequestTerminateCause) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_accounting_8f9562d18431439e, []int{1, 0}
+}
+
 // update_request with usages & included context
 type UpdateRequest struct {
 	OctetsIn             uint32   `protobuf:"varint,1,opt,name=octets_in,json=octetsIn,proto3" json:"octets_in,omitempty"`
@@ -39,7 +113,7 @@ func (m *UpdateRequest) Reset()         { *m = UpdateRequest{} }
 func (m *UpdateRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateRequest) ProtoMessage()    {}
 func (*UpdateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_accounting_407d38f9618fc802, []int{0}
+	return fileDescriptor_accounting_8f9562d18431439e, []int{0}
 }
 func (m *UpdateRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateRequest.Unmarshal(m, b)
@@ -94,6 +168,53 @@ func (m *UpdateRequest) GetCtx() *Context {
 	return nil
 }
 
+// stop_request - ctx with termination cause: https://tools.ietf.org/html/rfc2866#page-20
+type StopRequest struct {
+	Cause                StopRequestTerminateCause `protobuf:"varint,1,opt,name=cause,proto3,enum=aaa.protos.StopRequestTerminateCause" json:"cause,omitempty"`
+	Ctx                  *Context                  `protobuf:"bytes,2,opt,name=ctx,proto3" json:"ctx,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *StopRequest) Reset()         { *m = StopRequest{} }
+func (m *StopRequest) String() string { return proto.CompactTextString(m) }
+func (*StopRequest) ProtoMessage()    {}
+func (*StopRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_accounting_8f9562d18431439e, []int{1}
+}
+func (m *StopRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_StopRequest.Unmarshal(m, b)
+}
+func (m *StopRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_StopRequest.Marshal(b, m, deterministic)
+}
+func (dst *StopRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_StopRequest.Merge(dst, src)
+}
+func (m *StopRequest) XXX_Size() int {
+	return xxx_messageInfo_StopRequest.Size(m)
+}
+func (m *StopRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_StopRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_StopRequest proto.InternalMessageInfo
+
+func (m *StopRequest) GetCause() StopRequestTerminateCause {
+	if m != nil {
+		return m.Cause
+	}
+	return StopRequest_UNDEFINED
+}
+
+func (m *StopRequest) GetCtx() *Context {
+	if m != nil {
+		return m.Ctx
+	}
+	return nil
+}
+
 // acct_resp message - RPC message definition for Accounting-Response (currently empty)
 // see: https://tools.ietf.org/html/rfc2866#section-4.2
 type AcctResp struct {
@@ -106,7 +227,7 @@ func (m *AcctResp) Reset()         { *m = AcctResp{} }
 func (m *AcctResp) String() string { return proto.CompactTextString(m) }
 func (*AcctResp) ProtoMessage()    {}
 func (*AcctResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_accounting_407d38f9618fc802, []int{1}
+	return fileDescriptor_accounting_8f9562d18431439e, []int{2}
 }
 func (m *AcctResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AcctResp.Unmarshal(m, b)
@@ -126,9 +247,58 @@ func (m *AcctResp) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AcctResp proto.InternalMessageInfo
 
+type TerminateSessionRequest struct {
+	RadiusSessionId      string   `protobuf:"bytes,1,opt,name=radius_session_id,json=radiusSessionId,proto3" json:"radius_session_id,omitempty"`
+	Imsi                 string   `protobuf:"bytes,2,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TerminateSessionRequest) Reset()         { *m = TerminateSessionRequest{} }
+func (m *TerminateSessionRequest) String() string { return proto.CompactTextString(m) }
+func (*TerminateSessionRequest) ProtoMessage()    {}
+func (*TerminateSessionRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_accounting_8f9562d18431439e, []int{3}
+}
+func (m *TerminateSessionRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_TerminateSessionRequest.Unmarshal(m, b)
+}
+func (m *TerminateSessionRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_TerminateSessionRequest.Marshal(b, m, deterministic)
+}
+func (dst *TerminateSessionRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TerminateSessionRequest.Merge(dst, src)
+}
+func (m *TerminateSessionRequest) XXX_Size() int {
+	return xxx_messageInfo_TerminateSessionRequest.Size(m)
+}
+func (m *TerminateSessionRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_TerminateSessionRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TerminateSessionRequest proto.InternalMessageInfo
+
+func (m *TerminateSessionRequest) GetRadiusSessionId() string {
+	if m != nil {
+		return m.RadiusSessionId
+	}
+	return ""
+}
+
+func (m *TerminateSessionRequest) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*UpdateRequest)(nil), "aaa.protos.update_request")
+	proto.RegisterType((*StopRequest)(nil), "aaa.protos.stop_request")
 	proto.RegisterType((*AcctResp)(nil), "aaa.protos.acct_resp")
+	proto.RegisterType((*TerminateSessionRequest)(nil), "aaa.protos.terminate_session_request")
+	proto.RegisterEnum("aaa.protos.StopRequestTerminateCause", StopRequestTerminateCause_name, StopRequestTerminateCause_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -143,12 +313,20 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AccountingClient interface {
+	// External Radius Server RPCs
+	//
 	// Acct-Status-Type Start
 	Start(ctx context.Context, in *Context, opts ...grpc.CallOption) (*AcctResp, error)
 	// Accounting Interim-Update
 	InterimUpdate(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*AcctResp, error)
 	// Acct-Status-Type Stop
-	Stop(ctx context.Context, in *Context, opts ...grpc.CallOption) (*AcctResp, error)
+	Stop(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*AcctResp, error)
+	// Local Session Management RPCs
+	//
+	// create_session is an "outbound" RPC for session manager which can be called from start()
+	CreateSession(ctx context.Context, in *Context, opts ...grpc.CallOption) (*AcctResp, error)
+	// terminate_session is an "inbound" RPC from session manager to notify accounting of a client session termination
+	TerminateSession(ctx context.Context, in *TerminateSessionRequest, opts ...grpc.CallOption) (*AcctResp, error)
 }
 
 type accountingClient struct {
@@ -177,7 +355,7 @@ func (c *accountingClient) InterimUpdate(ctx context.Context, in *UpdateRequest,
 	return out, nil
 }
 
-func (c *accountingClient) Stop(ctx context.Context, in *Context, opts ...grpc.CallOption) (*AcctResp, error) {
+func (c *accountingClient) Stop(ctx context.Context, in *StopRequest, opts ...grpc.CallOption) (*AcctResp, error) {
 	out := new(AcctResp)
 	err := c.cc.Invoke(ctx, "/aaa.protos.accounting/stop", in, out, opts...)
 	if err != nil {
@@ -186,14 +364,40 @@ func (c *accountingClient) Stop(ctx context.Context, in *Context, opts ...grpc.C
 	return out, nil
 }
 
+func (c *accountingClient) CreateSession(ctx context.Context, in *Context, opts ...grpc.CallOption) (*AcctResp, error) {
+	out := new(AcctResp)
+	err := c.cc.Invoke(ctx, "/aaa.protos.accounting/create_session", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountingClient) TerminateSession(ctx context.Context, in *TerminateSessionRequest, opts ...grpc.CallOption) (*AcctResp, error) {
+	out := new(AcctResp)
+	err := c.cc.Invoke(ctx, "/aaa.protos.accounting/terminate_session", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AccountingServer is the server API for Accounting service.
 type AccountingServer interface {
+	// External Radius Server RPCs
+	//
 	// Acct-Status-Type Start
 	Start(context.Context, *Context) (*AcctResp, error)
 	// Accounting Interim-Update
 	InterimUpdate(context.Context, *UpdateRequest) (*AcctResp, error)
 	// Acct-Status-Type Stop
-	Stop(context.Context, *Context) (*AcctResp, error)
+	Stop(context.Context, *StopRequest) (*AcctResp, error)
+	// Local Session Management RPCs
+	//
+	// create_session is an "outbound" RPC for session manager which can be called from start()
+	CreateSession(context.Context, *Context) (*AcctResp, error)
+	// terminate_session is an "inbound" RPC from session manager to notify accounting of a client session termination
+	TerminateSession(context.Context, *TerminateSessionRequest) (*AcctResp, error)
 }
 
 func RegisterAccountingServer(s *grpc.Server, srv AccountingServer) {
@@ -237,7 +441,7 @@ func _Accounting_InterimUpdate_Handler(srv interface{}, ctx context.Context, dec
 }
 
 func _Accounting_Stop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Context)
+	in := new(StopRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -249,7 +453,43 @@ func _Accounting_Stop_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/aaa.protos.accounting/Stop",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AccountingServer).Stop(ctx, req.(*Context))
+		return srv.(AccountingServer).Stop(ctx, req.(*StopRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Accounting_CreateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Context)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountingServer).CreateSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/aaa.protos.accounting/CreateSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountingServer).CreateSession(ctx, req.(*Context))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Accounting_TerminateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TerminateSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountingServer).TerminateSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/aaa.protos.accounting/TerminateSession",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountingServer).TerminateSession(ctx, req.(*TerminateSessionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -270,31 +510,60 @@ var _Accounting_serviceDesc = grpc.ServiceDesc{
 			MethodName: "stop",
 			Handler:    _Accounting_Stop_Handler,
 		},
+		{
+			MethodName: "create_session",
+			Handler:    _Accounting_CreateSession_Handler,
+		},
+		{
+			MethodName: "terminate_session",
+			Handler:    _Accounting_TerminateSession_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "accounting.proto",
 }
 
-func init() { proto.RegisterFile("accounting.proto", fileDescriptor_accounting_407d38f9618fc802) }
+func init() { proto.RegisterFile("accounting.proto", fileDescriptor_accounting_8f9562d18431439e) }
 
-var fileDescriptor_accounting_407d38f9618fc802 = []byte{
-	// 279 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x90, 0xc1, 0x4a, 0xc3, 0x40,
-	0x10, 0x86, 0x8d, 0x6d, 0xc5, 0x4e, 0x69, 0x91, 0x15, 0x21, 0x44, 0xc4, 0x12, 0x28, 0xf6, 0x94,
-	0x40, 0xd5, 0x17, 0x10, 0x3c, 0xf4, 0x24, 0xf4, 0xe8, 0x25, 0x8c, 0xeb, 0x18, 0x82, 0x64, 0x37,
-	0xee, 0xce, 0x6a, 0x7d, 0x2e, 0x5f, 0xc0, 0x47, 0x93, 0x64, 0xb7, 0xb6, 0x82, 0x1e, 0x3c, 0x25,
-	0xfb, 0x7f, 0xf3, 0xcd, 0xce, 0x0e, 0x1c, 0xa1, 0x94, 0xda, 0x29, 0xae, 0x54, 0x99, 0x35, 0x46,
-	0xb3, 0x16, 0x80, 0x88, 0xfe, 0xd7, 0x26, 0x63, 0xa9, 0x15, 0xd3, 0x9a, 0xfd, 0x39, 0xfd, 0x88,
-	0x60, 0xe2, 0x9a, 0x47, 0x64, 0x2a, 0x0c, 0xbd, 0x38, 0xb2, 0x2c, 0x4e, 0x61, 0xa8, 0x25, 0x13,
-	0xdb, 0xa2, 0x52, 0x71, 0x34, 0x8d, 0xe6, 0xe3, 0xd5, 0xa1, 0x0f, 0x96, 0x4a, 0x9c, 0x01, 0x04,
-	0xa8, 0x1d, 0xc7, 0xfb, 0x1d, 0x0d, 0xe5, 0x77, 0x8e, 0x5b, 0xdc, 0xa0, 0x7c, 0x0e, 0x72, 0xcf,
-	0xe3, 0x90, 0x2c, 0x95, 0x38, 0x87, 0xd1, 0x06, 0xb7, 0x7a, 0xbf, 0xe3, 0x1b, 0xa3, 0xf5, 0x67,
-	0xd0, 0x93, 0xbc, 0x8e, 0x07, 0xd3, 0x68, 0x3e, 0x5a, 0x1c, 0x67, 0xdb, 0xb9, 0xb3, 0x30, 0xf6,
-	0xaa, 0xe5, 0xe9, 0x08, 0x86, 0x28, 0x25, 0x17, 0x86, 0x6c, 0xb3, 0xf8, 0x8c, 0x00, 0xb6, 0x4f,
-	0x16, 0xd7, 0x30, 0xb0, 0x8c, 0x86, 0xc5, 0x6f, 0x7a, 0x72, 0xb2, 0x1b, 0x7e, 0xf7, 0x48, 0xf7,
-	0xc4, 0x2d, 0x4c, 0x2a, 0xc5, 0x64, 0xaa, 0xba, 0xf0, 0xfb, 0x10, 0xc9, 0x6e, 0xe9, 0xcf, 0x1d,
-	0xfd, 0xdd, 0xe6, 0x0a, 0xfa, 0x96, 0x75, 0xf3, 0xbf, 0xcb, 0x6f, 0x2e, 0xee, 0x67, 0x35, 0x96,
-	0x35, 0xe6, 0x4f, 0x54, 0xe6, 0x25, 0x32, 0xbd, 0xe1, 0x7b, 0x6e, 0xc9, 0xbc, 0x56, 0x92, 0x6c,
-	0x8e, 0x88, 0xb9, 0x97, 0x1e, 0x0e, 0xba, 0xef, 0xe5, 0x57, 0x00, 0x00, 0x00, 0xff, 0xff, 0xac,
-	0xff, 0x54, 0xd5, 0xe4, 0x01, 0x00, 0x00,
+var fileDescriptor_accounting_8f9562d18431439e = []byte{
+	// 611 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x5b, 0x6f, 0xd3, 0x30,
+	0x14, 0x5e, 0x6f, 0x63, 0x3d, 0x6d, 0x53, 0xd7, 0x13, 0xa2, 0x0c, 0x21, 0xa6, 0x4a, 0x13, 0x13,
+	0x0f, 0xad, 0x34, 0xc4, 0x03, 0x2f, 0x93, 0xd2, 0xc6, 0x88, 0x88, 0x36, 0x29, 0x76, 0xb2, 0x07,
+	0x78, 0x88, 0x4c, 0x6a, 0xaa, 0x08, 0x35, 0x29, 0xb1, 0x03, 0xe3, 0x77, 0xf1, 0x6f, 0x10, 0x8f,
+	0xfc, 0x10, 0xe4, 0x24, 0xbd, 0x70, 0xa9, 0x10, 0x4f, 0x89, 0xbf, 0x8b, 0xfd, 0x9d, 0xe3, 0x63,
+	0x40, 0x3c, 0x0c, 0x93, 0x2c, 0x56, 0x51, 0xbc, 0x1c, 0xae, 0xd3, 0x44, 0x25, 0x18, 0x38, 0xe7,
+	0xc5, 0xaf, 0x3c, 0xeb, 0x84, 0x49, 0xac, 0xc4, 0xad, 0x2a, 0xd6, 0x83, 0xaf, 0x15, 0x30, 0xb2,
+	0xf5, 0x82, 0x2b, 0x11, 0xa4, 0xe2, 0x63, 0x26, 0xa4, 0xc2, 0x0f, 0xa0, 0x99, 0x84, 0x4a, 0x28,
+	0x19, 0x44, 0x71, 0xbf, 0x72, 0x5e, 0xb9, 0xec, 0xd0, 0x93, 0x02, 0xb0, 0x63, 0xfc, 0x10, 0xa0,
+	0x24, 0x93, 0x4c, 0xf5, 0xab, 0x39, 0x5b, 0xca, 0xdd, 0x4c, 0x69, 0x7a, 0xcd, 0xc3, 0x0f, 0xa5,
+	0xb9, 0x56, 0xd0, 0x25, 0x62, 0xc7, 0xf8, 0x11, 0xb4, 0x36, 0xb4, 0xb6, 0xd7, 0x73, 0x7e, 0xe3,
+	0xd0, 0xfe, 0x0b, 0xa8, 0x85, 0xea, 0xb6, 0xdf, 0x38, 0xaf, 0x5c, 0xb6, 0xae, 0x4e, 0x87, 0xbb,
+	0xdc, 0xc3, 0x32, 0x36, 0xd5, 0xfc, 0xe0, 0x7b, 0x0d, 0xda, 0x52, 0x25, 0xeb, 0x6d, 0xe6, 0x6b,
+	0x68, 0x84, 0x3c, 0x93, 0x22, 0xcf, 0x6b, 0x5c, 0x5d, 0xee, 0x3b, 0xf7, 0x85, 0x43, 0x25, 0xd2,
+	0x55, 0x14, 0xeb, 0x72, 0x73, 0x3d, 0x2d, 0x6c, 0x9b, 0x73, 0xab, 0xff, 0x38, 0xf7, 0x47, 0x15,
+	0xba, 0xbf, 0xed, 0x80, 0x3b, 0xd0, 0xf4, 0x1d, 0x8b, 0xbc, 0xb0, 0x1d, 0x62, 0xa1, 0x23, 0x8c,
+	0xa0, 0xed, 0x33, 0x42, 0x03, 0x4a, 0x5e, 0xfb, 0x84, 0x79, 0xa8, 0xa2, 0x91, 0xa9, 0xcb, 0xbc,
+	0x60, 0x62, 0x52, 0x6a, 0x13, 0x8a, 0xaa, 0x5b, 0x84, 0x11, 0x7a, 0x63, 0x4f, 0x08, 0xaa, 0x69,
+	0xc4, 0xb6, 0xa6, 0x24, 0xf0, 0xec, 0x19, 0x71, 0x7d, 0x0f, 0xd5, 0xf1, 0x29, 0x74, 0x19, 0x61,
+	0xcc, 0x76, 0x9d, 0x2d, 0xd8, 0xc0, 0x5d, 0x68, 0x99, 0xd6, 0xcc, 0x76, 0x02, 0x4a, 0x18, 0xf1,
+	0xd0, 0xb1, 0xf6, 0x6d, 0x80, 0xb1, 0xeb, 0x7a, 0xe8, 0x0e, 0x36, 0x00, 0xe6, 0x2e, 0xf5, 0x02,
+	0x42, 0xa9, 0x4b, 0xd1, 0x89, 0x8e, 0xe7, 0x98, 0xac, 0x5c, 0x36, 0xf5, 0x0e, 0x7a, 0xb9, 0x49,
+	0x07, 0x5a, 0x5f, 0x00, 0xb9, 0xbf, 0x85, 0x7b, 0xd0, 0xc9, 0xfd, 0xbe, 0xe3, 0x10, 0x62, 0x11,
+	0x0b, 0xb5, 0x31, 0x06, 0x23, 0x87, 0xe6, 0x94, 0x90, 0xd9, 0xdc, 0x23, 0x16, 0xea, 0x6c, 0x31,
+	0xe6, 0xb3, 0x39, 0x71, 0xb4, 0xce, 0xc0, 0xf7, 0xe0, 0xb4, 0xac, 0x28, 0xf0, 0x1d, 0xf3, 0xc6,
+	0xb4, 0xa7, 0xe6, 0x78, 0x4a, 0x50, 0x17, 0xb7, 0xe1, 0x64, 0x62, 0x4e, 0xa7, 0x63, 0x73, 0xf2,
+	0x0a, 0x21, 0x7d, 0x62, 0xde, 0xa1, 0x22, 0x52, 0x4f, 0xd7, 0xf0, 0x52, 0x77, 0x63, 0x93, 0x09,
+	0x0f, 0x5a, 0xd0, 0xe4, 0x61, 0xa8, 0x82, 0x54, 0xc8, 0xf5, 0xe0, 0x2d, 0xdc, 0xdf, 0xb5, 0x5c,
+	0x0a, 0x29, 0xa3, 0x24, 0xde, 0xde, 0xfb, 0x13, 0xe8, 0xa5, 0x7c, 0x11, 0x65, 0x72, 0xcb, 0x44,
+	0x8b, 0x7c, 0x06, 0x9a, 0xb4, 0x5b, 0x10, 0xac, 0xc0, 0xed, 0x05, 0xc6, 0x50, 0x8f, 0x56, 0x32,
+	0xca, 0x2f, 0xb9, 0x49, 0xf3, 0xff, 0xab, 0x6f, 0x55, 0x80, 0xdd, 0x73, 0xc1, 0xcf, 0xa0, 0x21,
+	0x15, 0x4f, 0x15, 0xfe, 0xdb, 0x08, 0x9c, 0xdd, 0xdd, 0x07, 0x77, 0x01, 0x8f, 0x30, 0x01, 0x23,
+	0x8a, 0x95, 0x48, 0xa3, 0x55, 0x50, 0xbc, 0x25, 0x7c, 0xb6, 0x2f, 0xfd, 0xf5, 0x7d, 0x1d, 0xde,
+	0xe6, 0x39, 0xd4, 0xf5, 0xac, 0xe2, 0xfe, 0xa1, 0xe9, 0x3d, 0x6c, 0xbd, 0x06, 0x23, 0x4c, 0xc5,
+	0x5e, 0x87, 0xfe, 0xb3, 0x02, 0x06, 0xbd, 0x3f, 0x9a, 0x8c, 0x2f, 0xf6, 0xd5, 0x07, 0xef, 0xe0,
+	0xe0, 0xa6, 0xe3, 0xc7, 0x6f, 0x2e, 0x56, 0x7c, 0xb9, 0xe2, 0xa3, 0xf7, 0x62, 0x39, 0x5a, 0x72,
+	0x25, 0x3e, 0xf3, 0x2f, 0x23, 0x29, 0xd2, 0x4f, 0x51, 0x28, 0xe4, 0x88, 0x73, 0x3e, 0x2a, 0x4c,
+	0xef, 0x8e, 0xf3, 0xef, 0xd3, 0x9f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xbd, 0x4f, 0xda, 0x1f, 0xba,
+	0x04, 0x00, 0x00,
 }
