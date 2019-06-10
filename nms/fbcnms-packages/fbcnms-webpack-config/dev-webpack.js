@@ -17,29 +17,28 @@ const webpack = require('webpack');
 type Options = {
   projectName?: string,
   extraPaths?: string[],
+  entry?: Object,
 };
 
 function createDevWebpackConfig(options: Options) {
   return {
     mode: 'development',
     devtool: 'source-map',
-    entry: {
-      main: [
-        'webpack/hot/dev-server',
-        'webpack-hot-middleware/client?reload=true',
-        paths.appIndexJs,
-      ],
-      login: [
-        'webpack/hot/dev-server',
-        'webpack-hot-middleware/client?reload=true',
-        paths.loginJs,
-      ],
-      onboarding: [
-        'webpack/hot/dev-server',
-        'webpack-hot-middleware/client?reload=true',
-        paths.onboardingJs,
-      ],
-    },
+    entry: Object.assign(
+      {
+        main: [
+          'webpack/hot/dev-server',
+          'webpack-hot-middleware/client?reload=true',
+          paths.appIndexJs,
+        ],
+        login: [
+          'webpack/hot/dev-server',
+          'webpack-hot-middleware/client?reload=true',
+          paths.loginJs,
+        ],
+      },
+      options.entry || {},
+    ),
     externals: [
       {
         xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',
