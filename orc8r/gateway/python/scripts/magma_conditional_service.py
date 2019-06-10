@@ -27,9 +27,15 @@ def create_parser():
         help="Magma variable in service. "
              "Perform a truthy test on this variable.")
     parser.add_argument(
-        "--not", action="store_true",
+        "--not",
+        dest="invert_enable",
+        action="store_true",
         help="Flip boolean test. E.g. for use with 'disabled' variables. "
              "'Start this service if not disabled.'")
+    parser.add_argument(
+        "--enable-by-default",
+        action="store_true",
+        help="If the value is unset, treat as a truthy value")
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -42,7 +48,7 @@ def create_parser():
         "-P", "--forking_pid_file",
         help="If forking and this parameter is specified, "
              "then write the PID in the specified file.")
-    parser.add_argument("command", type=str)
+    parser.add_argument("command")
     parser.add_argument("args", nargs=argparse.REMAINDER)
     return parser
 
@@ -66,15 +72,14 @@ def main():
 
     mconfig = load_service_mconfig_as_json(args.service)
 
-    var = getattr(mconfig, args.variable)
+    service_enabled = bool(mconfig.get(args.variable, args.enable_by_default))
 
-    serviceEnabled = bool(var)
-    if getattr(args, "not"):  # 'not' is a reserved keyword
-        serviceEnabled = not serviceEnabled
+    if args.invert_enable:
+        service_enabled = not service_enabled
 
     execArgs = [args.command] + args.args
 
-    if serviceEnabled:
+    if service_enabled:
         logging.info(
             "service enabled, starting: %s" %
             " ".join([shlex.quote(a) for a in execArgs]))
@@ -83,7 +88,7 @@ def main():
         info = "service disabled since config %s.%s==%s %%s" % (
             args.service,
             args.variable,
-            bool(var),
+            service_enabled,
         )
         if args.oneshot:
             logging.info(info, "(oneshot, exiting...)")
@@ -99,7 +104,7 @@ def main():
                 "while true; do sleep 600; done & %s "
                 "# conditional_service disabled since config %s.%s==%s" % (
                     writePIDCmd,
-                    args.service, args.variable, bool(var)),
+                    args.service, args.variable, service_enabled),
             ]
             os.execv(forkArgs[0], forkArgs)
         else:
