@@ -12,6 +12,7 @@ sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@control_proxy.serv
 sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@magmad.service
 sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@mobilityd.service
 sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@mme.service
+sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@sctpd.service
 sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@dnsd.service
 sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@pipelined.service
 sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@redirectd.service
