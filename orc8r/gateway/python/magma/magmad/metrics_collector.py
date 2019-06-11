@@ -202,7 +202,7 @@ def example_metrics_postprocessor_fn(
         for sample in family.metric:
             try:
                 sample.label.add(name="new_label", value="foo")
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 # This operation is trivial enough that it probably shouldn't
                 # be caught, but this is for example purposes. It would be a
                 # bad idea to log per sample, because you could have thousands
@@ -212,6 +212,6 @@ def example_metrics_postprocessor_fn(
 
 
 def do_nothing_metrics_postprocessor(
-    samples: typing.List[metrics_pb2.MetricFamily]
+    _samples: typing.List[metrics_pb2.MetricFamily]
 ) -> None:
     """This metrics post processor does nothing for config examples"""
