@@ -8,6 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 import importlib
 import logging
+import typing
 
 import snowflake
 from magma.common.sdwatchdog import SDWatchdog
@@ -65,11 +66,14 @@ def main():
     sync_interval = metrics_config['sync_interval']
     grpc_timeout = metrics_config['grpc_timeout']
     queue_length = metrics_config['queue_length']
+    metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
     # Create local metrics collector
-    metrics_collector = MetricsCollector(metrics_services, collect_interval,
-                                         sync_interval, grpc_timeout,
-                                         queue_length, service.loop)
+    metrics_collector = MetricsCollector(
+        metrics_services, collect_interval, sync_interval,
+        grpc_timeout, queue_length, service.loop,
+        get_metrics_postprocessor_fn(metrics_post_processor_fn),
+    )
 
     # Poll and sync the metrics collector loops
     metrics_collector.run()
@@ -204,6 +208,20 @@ def _get_upgrader_impl(service):
         'upgrader_factory must be a subclass of UpgraderFactory'
 
     return factory_impl.create_upgrader(service, service.loop)
+
+
+def get_metrics_postprocessor_fn(module_fn_name: typing.Optional[str]):
+    """Load and validate the metricsd post processing function"""
+    if not module_fn_name:
+        return None
+    module, sep, fn_name = module_fn_name.rpartition(".")
+    assert all(
+        (module, sep, fn_name),
+    ), "metrics_postprocessor_fn needs to be import.path.func_name"
+    fn = getattr(importlib.import_module(module), fn_name)
+    assert callable(fn), "metrics_postprocessor_fn is not callable"
+    fn([])  # One way to check args
+    return fn
 
 
 if __name__ == "__main__":

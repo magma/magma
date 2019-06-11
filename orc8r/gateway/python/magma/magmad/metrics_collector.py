@@ -10,6 +10,7 @@ import asyncio
 import calendar
 import logging
 import time
+import typing
 
 import snowflake
 import metrics_pb2
@@ -29,7 +30,8 @@ class MetricsCollector(object):
     _services = []
 
     def __init__(self, services, collect_interval,
-                 sync_interval, grpc_timeout, queue_length, loop=None):
+                 sync_interval, grpc_timeout, queue_length, loop=None,
+                 post_processing_fn=None):
         self.sync_interval = sync_interval
         self.collect_interval = collect_interval
         self.grpc_timeout = grpc_timeout
@@ -38,6 +40,8 @@ class MetricsCollector(object):
         self._loop = loop if loop else asyncio.get_event_loop()
         self._retry_queue = []
         self._samples = []
+        # @see example_metrics_postprocessor_fn
+        self.post_processing_fn = post_processing_fn
 
     def run(self):
         """
@@ -56,6 +60,12 @@ class MetricsCollector(object):
             chan = ServiceRegistry.get_rpc_channel('metricsd',
                                                    ServiceRegistry.CLOUD)
             client = MetricsControllerStub(chan)
+            if self.post_processing_fn:
+                # If services wants to, let it run a postprocessing function
+                # If we throw an exception here, we'll have no idea whether
+                # something was postprocessed or not, so I guess try and make it
+                # idempotent?  #m sevchicken
+                self.post_processing_fn(self._samples)
             samples = self._retry_queue + self._samples
             metrics_container = MetricsContainer(
                 gatewayId=snowflake.snowflake(),
@@ -165,3 +175,43 @@ def _get_uptime_metric(service_name, start_time):
     metric_proto.label.add(name="service", value=service_name)
     family_proto.metric.extend([metric_proto])
     return family_proto
+
+
+def example_metrics_postprocessor_fn(
+    samples: typing.List[metrics_pb2.MetricFamily]
+) -> None:
+    """
+    An example metrics postprocessor function for MetricsCollector
+
+    A metrics postprocessor function can mutate samples before they are sent out
+    to the metricsd cloud service. The purpose of this is usually to add labels
+    to the metrics, though it is also possible to add, remove, or change the
+    value of samples (though you probably shouldn't).
+
+    Uncaught exceptions will crash the server, so if you are doing anything
+    non-trivial, consider wrapping in a try/catch and figuring out whether a
+    failure is fatal
+    (whether you are willing to accept malformed/unprocessed stats).
+
+    You are guaranteed that samples will only be run through this function once
+    (though retries can cause delays between when this is run on samples and
+    when it makes it the cloud).
+    """
+    failed = 0
+    for family in samples:
+        for sample in family.metric:
+            try:
+                sample.label.add(name="new_label", value="foo")
+            except Exception:
+                # This operation is trivial enough that it probably shouldn't
+                # be caught, but this is for example purposes. It would be a
+                # bad idea to log per sample, because you could have thousands
+                failed += 1
+    if failed:
+        logging.error("Failed to add label to %d samples!", failed)
+
+
+def do_nothing_metrics_postprocessor(
+    samples: typing.List[metrics_pb2.MetricFamily]
+) -> None:
+    """This metrics post processor does nothing for config examples"""
