@@ -11,6 +11,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
+#include "CloudReporter.h"
 #include "RuleStore.h"
 #include "PipelinedClient.h"
 #include "SessionState.h"
@@ -31,6 +32,7 @@ class LocalEnforcer {
   LocalEnforcer();
 
   LocalEnforcer(
+    std::shared_ptr<SessionCloudReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     long session_force_termination_timeout_ms);
@@ -126,6 +128,7 @@ class LocalEnforcer {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
   };
+  std::shared_ptr<SessionCloudReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
@@ -213,6 +216,17 @@ class LocalEnforcer {
   void receive_monitoring_credit_from_rar(
     const PolicyReAuthRequest &request,
     const std::unique_ptr<SessionState> &session);
+
+  /**
+   * Check if REVALIDATION_TIMEOUT is one of the event triggers
+   */
+  bool revalidation_required(
+    const google::protobuf::RepeatedField<int> &event_triggers);
+
+  void schedule_revalidation(
+    const google::protobuf::Timestamp &revalidation_time);
+
+  void check_usage_for_reporting();
 };
 
 } // namespace magma

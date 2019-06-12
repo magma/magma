@@ -104,4 +104,38 @@ void create_monitor_update_response(
   response->set_sid(imsi);
 }
 
+void create_policy_reauth_request(
+  const std::string &session_id,
+  const std::string &imsi,
+  const std::vector<std::string> &rules_to_remove,
+  const std::vector<StaticRuleInstall> &rules_to_install,
+  const std::vector<DynamicRuleInstall> &dynamic_rules_to_install,
+  const std::vector<EventTrigger> &event_triggers,
+  const uint64_t revalidation_time_unix_ts,
+  const std::vector<UsageMonitoringCredit> &usage_monitoring_credits,
+  PolicyReAuthRequest *request)
+{
+  request->set_session_id(session_id);
+  request->set_imsi(imsi);
+  for (const auto &rule_id : rules_to_remove) {
+    request->add_rules_to_remove(rule_id);
+  }
+  auto req_rules_to_install = request->mutable_rules_to_install();
+  for (const auto &static_rule_to_install : rules_to_install) {
+    req_rules_to_install->Add()->CopyFrom(static_rule_to_install);
+  }
+  auto req_dynamic_rules_to_install = request->mutable_dynamic_rules_to_install();
+  for (const auto &dynamic_rule_to_install : dynamic_rules_to_install) {
+    req_dynamic_rules_to_install->Add()->CopyFrom(dynamic_rule_to_install);
+  }
+  for (const auto &event_trigger : event_triggers) {
+    request->add_event_triggers(event_trigger);
+  }
+  request->mutable_revalidation_time()->set_seconds(revalidation_time_unix_ts);
+  auto req_credits = request->mutable_usage_monitoring_credits();
+  for (const auto &credit : usage_monitoring_credits) {
+    req_credits->Add()->CopyFrom(credit);
+  }
+}
+
 } // namespace magma

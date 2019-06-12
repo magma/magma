@@ -56,4 +56,15 @@ void create_usage_update(
   CreditUsage::UpdateType type,
   CreditUsageUpdate *update);
 
+void create_policy_reauth_request(
+  const std::string &session_id,
+  const std::string &imsi,
+  const std::vector<std::string> &rules_to_remove,
+  const std::vector<StaticRuleInstall> &rules_to_install,
+  const std::vector<DynamicRuleInstall> &dynamic_rules_to_install,
+  const std::vector<EventTrigger> &event_triggers,
+  const uint64_t revalidation_time_unix_ts,
+  const std::vector<UsageMonitoringCredit> &usage_monitoring_credits,
+  PolicyReAuthRequest *request);
+
 } // namespace magma

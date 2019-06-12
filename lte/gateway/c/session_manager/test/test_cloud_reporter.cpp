@@ -38,7 +38,7 @@ class CloudReporterTest : public ::testing::Test {
     mock_cloud = std::make_shared<MockCentralController>();
     magma_service->AddServiceToServer(mock_cloud.get());
 
-    reporter = std::make_shared<SessionCloudReporter>(&evb, channel);
+    reporter = std::make_shared<SessionCloudReporterImpl>(&evb, channel);
 
     std::thread reporter_thread([&]() {
       std::cout << "Started reporter thread\n";
@@ -78,7 +78,7 @@ class CloudReporterTest : public ::testing::Test {
  protected:
   std::shared_ptr<service303::MagmaService> magma_service;
   std::shared_ptr<MockCentralController> mock_cloud;
-  std::shared_ptr<SessionCloudReporter> reporter;
+  std::shared_ptr<SessionCloudReporterImpl> reporter;
   folly::EventBase evb;
   MockCallback mock_callback;
 };
