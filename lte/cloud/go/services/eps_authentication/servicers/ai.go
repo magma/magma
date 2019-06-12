@@ -12,16 +12,16 @@ import (
 	"errors"
 	"fmt"
 
-	fegprotos "magma/feg/cloud/go/protos"
-	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/crypto"
-	"magma/lte/cloud/go/services/eps_authentication/metrics"
-	"magma/orc8r/cloud/go/identity"
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	fegprotos "magma/feg/cloud/go/protos"
+	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/crypto"
+	"magma/lte/cloud/go/services/eps_authentication/metrics"
+	"magma/orc8r/cloud/go/identity"
 )
 
 func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fegprotos.AuthenticationInformationRequest) (*fegprotos.AuthenticationInformationAnswer, error) {

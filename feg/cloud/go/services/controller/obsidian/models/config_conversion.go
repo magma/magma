@@ -50,6 +50,7 @@ func (m *NetworkFederationConfigs) ToServiceModel() (interface{}, error) {
 	protos.FillIn(m.Swx, magmadConfig.Swx)
 	protos.FillIn(m.Health, magmadConfig.Health)
 	protos.FillIn(m.EapAka, magmadConfig.EapAka)
+	protos.FillIn(m.AAA, magmadConfig.AAA)
 	if err := fegprotos.ValidateNetworkConfig(magmadConfig); err != nil {
 		return nil, err
 	}
