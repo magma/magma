@@ -8,4 +8,8 @@ module magma/cwf/cloud/go
 
 replace magma/orc8r/cloud/go => ../../../orc8r/cloud/go
 
-require magma/orc8r/cloud/go v0.0.0
+require (
+	github.com/golang/protobuf v1.2.0
+	google.golang.org/grpc v1.17.0
+	magma/orc8r/cloud/go v0.0.0
+)
