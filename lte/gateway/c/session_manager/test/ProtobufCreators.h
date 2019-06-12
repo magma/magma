@@ -22,13 +22,13 @@ void create_rule_record(
 
 void create_charging_credit(uint64_t volume, ChargingCredit *credit);
 
-void create_update_response(
+void create_credit_update_response(
   const std::string &imsi,
   uint32_t charging_key,
   uint64_t volume,
   CreditUpdateResponse *response);
 
-void create_update_response(
+void create_credit_update_response(
   const std::string &imsi,
   uint32_t charging_key,
   uint64_t volume,
@@ -46,6 +46,15 @@ void create_monitor_update_response(
   const std::string &m_key,
   MonitoringLevel level,
   uint64_t volume,
+  UsageMonitoringUpdateResponse *response);
+
+void create_monitor_update_response(
+  const std::string &imsi,
+  const std::string &m_key,
+  MonitoringLevel level,
+  uint64_t volume,
+  const std::vector<EventTrigger> &event_triggers,
+  const uint64_t revalidation_time_unix_ts,
   UsageMonitoringUpdateResponse *response);
 
 void create_usage_update(

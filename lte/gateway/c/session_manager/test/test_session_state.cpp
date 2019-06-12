@@ -61,7 +61,7 @@ class SessionStateTest : public ::testing::Test {
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume)
   {
     CreditUpdateResponse charge_resp;
-    create_update_response("IMSI1", rating_group, volume, &charge_resp);
+    create_credit_update_response("IMSI1", rating_group, volume, &charge_resp);
     session_state->get_charging_pool().receive_credit(charge_resp);
   }
 
