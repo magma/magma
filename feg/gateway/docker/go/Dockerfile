@@ -58,6 +58,10 @@ ENV MAGMA_ROOT /magma
 ENV PIP_CACHE_HOME ~/.pipcache
 ENV PYTHON_BUILD /build/python
 ENV PATH ${PYTHON_BUILD}/bin:${PATH}:${GOBIN}
+ENV GO111MODULE on
+# Use public go modules proxy
+ENV GOPROXY https://proxy.golang.org
+
 RUN printenv > /etc/environment
 
 # Copy just the go.mod and go.sum files to download the golang deps.

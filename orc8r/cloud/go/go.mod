@@ -52,7 +52,7 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/testify v1.3.0
-	github.com/thoas/go-funk v0.0.0-20190407194523-c43409e2d5de
+	github.com/thoas/go-funk v0.4.0
 	github.com/toqueteos/webbrowser v1.1.0 // indirect
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	golang.org/x/crypto v0.0.0-20190103213133-ff983b9c42bc // indirect

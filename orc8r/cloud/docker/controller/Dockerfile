@@ -18,6 +18,8 @@ ENV GO111MODULE on
 ENV GOBIN /build/bin
 ENV PLUGIN_DIR /build/plugins
 ENV PATH ${PATH}:${GOBIN}
+# Use public go modules proxy
+ENV GOPROXY https://proxy.golang.org
 
 # Install protobuf compiler
 RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \

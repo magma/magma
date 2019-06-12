@@ -64,3 +64,13 @@
     - ocs
     - pcrf
     - hss
+
+- name: Set Go environment vars in profile
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - export GO111MODULE=on
+    - export GOPROXY=https://proxy.golang.org
+  when: full_provision
