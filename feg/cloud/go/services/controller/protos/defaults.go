@@ -84,6 +84,11 @@ var defaultConfig = Config{
 		},
 		PlmnIds: []string{},
 	},
+	AAA: &AAAConfig{
+		IdleSessionTimeoutMs: 21600000,
+		AccountingEnabled:    false,
+		CreateSessionOnAuth:  false,
+	},
 	ServedNetworkIds: []string{},
 	Health: &HealthConfig{
 		HealthServices:           []string{"S6A_PROXY", "SESSION_PROXY"},

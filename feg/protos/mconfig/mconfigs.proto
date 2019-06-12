@@ -78,6 +78,7 @@ message SwxConfig {
     bool verify_authorization = 3;
     uint32 CacheTTLSeconds = 4;
 }
+
 message EapAkaConfig {
     orc8r.LogLevel log_level = 1;
     message Timeouts {
@@ -88,6 +89,16 @@ message EapAkaConfig {
     }
     Timeouts timeout = 2;
     repeated string PlmnIds = 3;
+}
+
+message AAAConfig {
+    orc8r.LogLevel log_level = 1;
+    // Idle session TTL
+    uint32 IdleSessionTimeoutMs = 2;
+    // enable accounting & maintain long term user sessions
+    bool AccountingEnabled = 3;
+    // Postpone Auth success until successful accounting CreateSession completion
+    bool CreateSessionOnAuth = 4;
 }
 
 message GatewayHealthConfig {

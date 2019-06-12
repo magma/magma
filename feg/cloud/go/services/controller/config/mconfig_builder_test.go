@@ -120,6 +120,11 @@ func TestControllerBuilder_Build(t *testing.T) {
 			},
 			PlmnIds: []string{},
 		},
+		"aaa": &mconfig.AAAConfig{LogLevel: 1,
+			IdleSessionTimeoutMs: 21600000,
+			AccountingEnabled:    false,
+			CreateSessionOnAuth:  false,
+		},
 		"health": &mconfig.GatewayHealthConfig{
 			RequiredServices:          []string{"S6A_PROXY", "SESSION_PROXY"},
 			UpdateIntervalSecs:        10,

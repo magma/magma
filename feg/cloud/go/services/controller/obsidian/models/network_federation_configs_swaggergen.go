@@ -20,6 +20,9 @@ import (
 // swagger:model network_federation_configs
 type NetworkFederationConfigs struct {
 
+	// a a a
+	AAA *NetworkFederationConfigsAAA `json:"AAA,omitempty"`
+
 	// eap aka
 	EapAka *NetworkFederationConfigsEapAka `json:"eap_aka,omitempty"`
 
@@ -48,6 +51,10 @@ type NetworkFederationConfigs struct {
 // Validate validates this network federation configs
 func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateAAA(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateEapAka(formats); err != nil {
 		res = append(res, err)
@@ -80,6 +87,24 @@ func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkFederationConfigs) validateAAA(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AAA) { // not required
+		return nil
+	}
+
+	if m.AAA != nil {
+		if err := m.AAA.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("AAA")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -220,6 +245,43 @@ func (m *NetworkFederationConfigs) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *NetworkFederationConfigs) UnmarshalBinary(b []byte) error {
 	var res NetworkFederationConfigs
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkFederationConfigsAAA network federation configs a a a
+// swagger:model NetworkFederationConfigsAAA
+type NetworkFederationConfigsAAA struct {
+
+	// accounting enabled
+	AccountingEnabled bool `json:"accounting_enabled,omitempty"`
+
+	// create session on auth
+	CreateSessionOnAuth bool `json:"create_session_on_auth,omitempty"`
+
+	// idle session timeout ms
+	IDLESessionTimeoutMs uint32 `json:"idle_session_timeout_ms,omitempty" magma_alt_name:"IdleSessionTimeoutMs"`
+}
+
+// Validate validates this network federation configs a a a
+func (m *NetworkFederationConfigsAAA) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkFederationConfigsAAA) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkFederationConfigsAAA) UnmarshalBinary(b []byte) error {
+	var res NetworkFederationConfigsAAA
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
