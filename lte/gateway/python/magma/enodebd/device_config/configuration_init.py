@@ -25,6 +25,9 @@ from magma.enodebd.lte_utils import DuplexMode, \
 
 # LTE constants
 DEFAULT_S1_PORT = 36412
+# This is a known working value for supported eNB devices.
+# Cell Identity is a 28 bit number, but not all values are supported.
+DEFAULT_CELL_IDENTITY = 138777000
 
 
 SingleEnodebConfig = namedtuple('SingleEnodebConfig',
@@ -126,7 +129,7 @@ def _get_enb_config(
         allow_enodeb_transmit = mconfig.allow_enodeb_transmit
         tac = mconfig.tac
         bandwidth_mhz = mconfig.bandwidth_mhz
-        cell_id = 0
+        cell_id = DEFAULT_CELL_IDENTITY
         if mconfig.tdd_config is not None and str(mconfig.tdd_config) != '':
             earfcndl = mconfig.tdd_config.earfcndl
             subframe_assignment = mconfig.tdd_config.subframe_assignment
