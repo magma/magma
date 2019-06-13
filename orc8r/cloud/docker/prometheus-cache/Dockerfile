@@ -1,6 +1,5 @@
 FROM golang:1.11
 
-ENV GO111MODULE on
 # Use public go modules proxy
 ENV GOPROXY https://proxy.golang.org
 
