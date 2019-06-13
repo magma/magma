@@ -314,7 +314,6 @@ static void *log_task(__attribute__((unused)) void *args_p)
 {
   MessageDef *received_message_p = NULL;
   long timer_id = 0;
-  int rc = 0;
 
   itti_mark_task_ready(TASK_LOG);
   _LOG_START_USE();
@@ -371,7 +370,7 @@ static void *log_task(__attribute__((unused)) void *args_p)
           log_exit();
           MessageDef *terminate_message_p =
             itti_alloc_new_message(TASK_LOG, TERMINATE_MESSAGE);
-          rc = itti_send_msg_to_task(
+          itti_send_msg_to_task(
             TASK_SHARED_TS_LOG, INSTANCE_DEFAULT, terminate_message_p);
           itti_exit_task();
         } break;
@@ -380,9 +379,8 @@ static void *log_task(__attribute__((unused)) void *args_p)
         } break;
       }
       // Freeing the memory allocated from the memory pool
-      rc =
-        itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-      AssertFatal(rc == EXIT_SUCCESS, "Failed to free memory (%d)!\n", rc);
+      itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
+
       received_message_p = NULL;
     }
   }
@@ -1664,13 +1662,11 @@ error_event:
 //    output: tasks/nas/emm/sap/emm_cn.c
 const char *const get_short_file_name(const char *const source_file_nameP)
 {
-  if (!source_file_nameP)
-    return source_file_nameP;
+  if (!source_file_nameP) return source_file_nameP;
 
-  char *root_startP = strstr(source_file_nameP,LOG_MAGMA_REPO_ROOT);
+  char *root_startP = strstr(source_file_nameP, LOG_MAGMA_REPO_ROOT);
 
-  if (!root_startP)
-    return source_file_nameP; // root pattern not found
+  if (!root_startP) return source_file_nameP; // root pattern not found
 
-  return root_startP+strlen(LOG_MAGMA_REPO_ROOT);
+  return root_startP + strlen(LOG_MAGMA_REPO_ROOT);
 }
