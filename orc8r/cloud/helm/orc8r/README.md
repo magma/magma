@@ -63,11 +63,13 @@ The following table list the configurable parameters of the orchestrator chart a
 | `controller.image.repository` | Repository for orchestrator controller image. | `nil` |
 | `controller.image.tag` | Tag for orchestrator controller image. | `latest` |
 | `controller.image.pullPolicy` | Pull policy for orchestrator controller image. | `IfNotPresent` |
-| `controller.spec.postgres.db` | Postgres database name. | `magma` |
-| `controller.spec.postgres.host` | Postgres database host. | `postgresql` |
-| `controller.spec.postgres.port` | Postgres database port. | `5432` |
-| `controller.spec.postgres.user` | Postgres username. | `postgres` |
-| `controller.spec.postgres.pass` | Postgres password. | `postgres` |
+| `controller.spec.database.driver` | orc8r database name. | `mysql/postgres` |
+| `controller.spec.database.sql_dialect` | database dialect name. | `maria/psql` |
+| `controller.spec.database.db` | orc8r database name. | `magma` |
+| `controller.spec.database.host` | database host. | `postgresql` |
+| `controller.spec.database.port` | database port. | `5432` |
+| `controller.spec.database.user` | Database username. | `postgres` |
+| `controller.spec.database.pass` | Database password. | `postgres` |
 | `controller.replicas` | Number of instances to deploy for orchestrator controller. | `1` |
 | `controller.resources` | Define resources requests and limits for Pods. | `{}` |
 | `controller.nodeSelector` | Define which Nodes the Pods are scheduled on. | `{}` |

@@ -36,6 +36,8 @@ proxy:
         port: 9444
         targetPort: 9444
         nodePort: ""
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
 
   # proxy image
   image:
@@ -84,16 +86,19 @@ controller:
     portStart: 9079
     portEnd: 9108
 
-  # proxy image
+  # controller image
   image:
     repository:
     tag: latest
     pullPolicy: IfNotPresent
 
   spec:
-    # Postgres configuration
-    postgres:
-      db: magma
+    # Postgres/mysql configuration
+    database:
+      driver: postgres      # mysql/postgres
+      sql_dialect: psql # maria/psql
+      db: magma          # DB Name
+      protocol: tcp
       host: postgresql
       port: 5432
       user: postgres
