@@ -142,20 +142,22 @@ int main(int argc, char *argv[])
   auto reporting_limit = config["usage_reporting_limit_bytes"].as<uint64_t>();
   magma::SessionCredit::USAGE_REPORTING_LIMIT = reporting_limit;
 
+  auto reporter = std::make_shared<magma::SessionCloudReporterImpl>(
+    evb, get_controller_channel(config));
+  std::thread reporter_thread([&]() {
+    MLOG(MINFO) << "Started reporter thread";
+    reporter->rpc_response_loop();
+  });
+
   auto monitor = magma::LocalEnforcer(
+    reporter,
     rule_store,
     pipelined_client,
     config["session_force_termination_timeout_ms"].as<long>());
 
-  magma::SessionCloudReporter reporter(evb, get_controller_channel(config));
-  std::thread reporter_thread([&]() {
-    MLOG(MINFO) << "Started reporter thread";
-    reporter.rpc_response_loop();
-  });
-
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    &monitor, &reporter);
+    &monitor, reporter.get());
   auto proxy_handler =
     std::make_unique<magma::SessionProxyResponderHandlerImpl>(&monitor);
 

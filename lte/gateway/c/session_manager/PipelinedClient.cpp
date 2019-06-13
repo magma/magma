@@ -12,7 +12,6 @@
 #include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
-using google::protobuf::RepeatedPtrField;
 using grpc::Status;
 
 namespace { // anonymous
