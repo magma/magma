@@ -1,0 +1,45 @@
+{{/*
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+
+{{- if .Values.magmalte.manifests.service }}
+{{- $envAll := . }}
+{{ $serviceType := .Values.magmalte.service.type }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: magmalte
+  labels:
+{{ tuple $envAll "nms" "magmalte" | include "labels" | indent 4 }}
+spec:
+  selector:
+{{ tuple $envAll "nms" "magmalte" | include "selector-labels" | indent 6 }}
+  type: "{{ .Values.magmalte.service.type }}"
+  ports:
+  - name: http
+    port: {{ .Values.magmalte.service.http.port }}
+    targetPort: {{ .Values.magmalte.service.http.targetPort }}
+    protocol: TCP
+    {{- if eq $serviceType "NodePort" }}
+    {{- if .Values.magmalte.service.http.nodePort }}
+    nodePort: {{ .Values.magmalte.service.http.nodePort }}
+    {{- end -}}
+    {{- end -}}
+{{- if eq $serviceType "LoadBalancer" }}
+  {{- if .Values.magmalte.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.magmalte.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.magmalte.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.magmalte.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
+{{- end -}}
