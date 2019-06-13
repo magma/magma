@@ -4,6 +4,8 @@ FROM golang:1.12 as go
 ENV GO111MODULE on
 ENV GOBIN /build/bin
 ENV PATH ${PATH}:${GOBIN}
+# Use public go modules proxy
+ENV GOPROXY https://proxy.golang.org
 
 # Copy go.mod file to cache the downloads
 COPY go/go.mod /gomod/
