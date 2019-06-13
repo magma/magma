@@ -19,6 +19,7 @@ pushd "$ROOT_DIR/xplat/fbc" >/dev/null
   # TODO remove this when node-pre-gyp@0.13.1 is released (see D15591571)
   mkdir -p node_modules/grpc/src/node/extension_binary/
   tar -xzf "$ROOT_DIR/xplat/third-party/grpc/v1.20.3/node-v57-linux-x64-glibc.tar.gz" -C node_modules/grpc/src/node/extension_binary/
+  tar -xzf "$ROOT_DIR/xplat/third-party/grpc/v1.20.3/node-v64-linux-x64-glibc.tar.gz" -C node_modules/grpc/src/node/extension_binary/
 
   "$YARN_BINARY" run test "$@"
 popd >/dev/null
