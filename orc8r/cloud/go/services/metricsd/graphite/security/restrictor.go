@@ -93,10 +93,12 @@ func restrictFunction(function parser.Expr, networkID string) parser.Expr {
 			newFuncArgs = append(newFuncArgs, newFunc)
 			argsStrings = append(argsStrings, newFunc.ToString())
 		} else if arg.IsName() {
+			var newSeries parser.Expr
 			if strings.HasPrefix(arg.Target(), seriesByTagFuncName) {
-				return restrictSeriesByTagFunc(arg.Target(), networkID)
+				newSeries = restrictSeriesByTagFunc(arg.Target(), networkID)
+			} else {
+				newSeries = restrictSeries(arg.Target(), networkID)
 			}
-			newSeries := restrictSeries(arg.Target(), networkID)
 			seriesTarget := parser.NewTargetExpr(newSeries.ToString())
 			newFuncArgs = append(newFuncArgs, seriesTarget)
 			argsStrings = append(argsStrings, seriesTarget.Target())
