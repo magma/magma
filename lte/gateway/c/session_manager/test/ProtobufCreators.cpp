@@ -36,16 +36,16 @@ void create_charging_credit(
 }
 
 // defaults to not final credit
-void create_update_response(
+void create_credit_update_response(
   const std::string &imsi,
   uint32_t charging_key,
   uint64_t volume,
   CreditUpdateResponse *response)
 {
-  create_update_response(imsi, charging_key, volume, false, response);
+  create_credit_update_response(imsi, charging_key, volume, false, response);
 }
 
-void create_update_response(
+void create_credit_update_response(
   const std::string &imsi,
   uint32_t charging_key,
   uint64_t volume,
@@ -99,9 +99,27 @@ void create_monitor_update_response(
   uint64_t volume,
   UsageMonitoringUpdateResponse *response)
 {
+  std::vector<EventTrigger> event_triggers;
+  create_monitor_update_response(
+    imsi, m_key, level, volume, event_triggers, 0, response);
+}
+
+void create_monitor_update_response(
+  const std::string &imsi,
+  const std::string &m_key,
+  MonitoringLevel level,
+  uint64_t volume,
+  const std::vector<EventTrigger> &event_triggers,
+  const uint64_t revalidation_time_unix_ts,
+  UsageMonitoringUpdateResponse *response)
+{
   create_monitor_credit(m_key, level, volume, response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
+  for (const auto &event_trigger : event_triggers) {
+    response->add_event_triggers(event_trigger);
+  }
+  response->mutable_revalidation_time()->set_seconds(revalidation_time_unix_ts);
 }
 
 void create_policy_reauth_request(

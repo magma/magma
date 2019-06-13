@@ -473,6 +473,9 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
     it->second->get_charging_pool().receive_credit(response);
   }
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
+    if (revalidation_required(usage_monitor_resp.event_triggers())) {
+      schedule_revalidation(usage_monitor_resp.revalidation_time());
+    }
     auto it = session_map_.find(usage_monitor_resp.sid());
     if (it == session_map_.end()) {
       MLOG(MERROR) << "Could not find session for IMSI "
