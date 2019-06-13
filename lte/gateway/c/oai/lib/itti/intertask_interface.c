@@ -700,46 +700,24 @@ int itti_create_task(
     task_id,
     thread_id,
     itti_desc.threads[thread_id].task_state);
+
   itti_desc.threads[thread_id].task_state = TASK_STATE_STARTING;
+
   ITTI_DEBUG(
     ITTI_DEBUG_INIT,
     " Creating thread for task %s ...\n",
     itti_get_task_name(task_id));
-#if ITTI_TASK_STACK_SIZE
-  pthread_attr_t attr = {.__align = 0};
-  result = pthread_attr_init(&attr);
-  AssertFatal(
-    result == 0,
-    "Thread attributes for task %d, thread %d init failed (%d)!\n",
-    task_id,
-    thread_id,
-    result);
-  result = pthread_attr_setstacksize(&attr, ITTI_TASK_STACK_SIZE);
+
   result = pthread_create(
     &itti_desc.threads[thread_id].task_thread, NULL, start_routine, args_p);
+
   AssertFatal(
     result >= 0,
     "Thread creation for task %d, thread %d failed (%d)!\n",
     task_id,
     thread_id,
     result);
-  result = pthread_attr_destroy(&attr);
-  AssertFatal(
-    result == 0,
-    "Thread attributes for task %d, thread %d destroy failed (%d)!\n",
-    task_id,
-    thread_id,
-    result);
-#else
-  result = pthread_create(
-    &itti_desc.threads[thread_id].task_thread, NULL, start_routine, args_p);
-  AssertFatal(
-    result >= 0,
-    "Thread creation for task %d, thread %d failed (%d)!\n",
-    task_id,
-    thread_id,
-    result);
-#endif
+
   char name[16];
 
   snprintf(name, sizeof(name), "ITTI %d", thread_id);

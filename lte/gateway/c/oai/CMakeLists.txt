@@ -62,14 +62,6 @@ set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBI
 # Build options
 ################################################################
 add_boolean_option(DAEMONIZE                       False    "Fork executable if true")
-add_boolean_option(DISPLAY_LICENCE_INFO            False    "If a module has a licence banner to show")
-add_integer_option(ITTI_TASK_STACK_SIZE            0        "pthread allocated stack size in bytes of an ITTI task, if 0, use default stack size ")
-
-################################################################
-# NAS LAYER OPTIONS
-################################################################
-add_boolean_option(EPC_BUILD                       False    "BUILD MME-xGW executable")
-add_boolean_option(GTPV1U_LINEAR_TEID_ALLOCATION   False    "Teid allocation id mode versus pseudo random")
 
 ################################################################
 # S1AP LAYER OPTIONS
@@ -82,8 +74,6 @@ add_boolean_option(S1AP_DEBUG_LIST                 False    "Traces, option to b
 add_boolean_option(SCTP_DUMP_LIST                  False    "Traces, option to be removed soon")
 add_boolean_option(TRACE_HASHTABLE                 False    "Trace hashtables operations ")
 add_boolean_option(LOG_OAI                         False    "Thread safe logging utility")
-add_boolean_option(LOG_OAI_CLEAN_HARD              False    "Thread safe logging utility option for cleaning inner structs")
-add_boolean_option(SECU_DEBUG                      False    "Traces, option to be removed soon")
 add_boolean_option(TRACE_3GPP_SPEC                 True     "Log hits of 3GPP specifications requirements")
 add_boolean_option(ENABLE_OPENFLOW                 False    "Openflow based dataplane")
 add_boolean_option(EMBEDDED_SGW                    False    "Add the SPGW task to the MME binary")

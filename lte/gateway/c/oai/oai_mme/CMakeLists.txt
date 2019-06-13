@@ -1,13 +1,7 @@
 # Override options for MME
 set (  BYTE_ORDER=LITTLE_ENDIAN )
-set (  DISPLAY_LICENCE_INFO            False )
-set (  ITTI_TASK_STACK_SIZE            2097152 )
 set (  LOG_OAI                         True )
-set (  LOG_OAI_CLEAN_HARD              False )
-set (  MEMORY_CHECK                    False )
-set (  MME_BUILD                       True )
 set (  S1AP_DEBUG_LIST                 False )
-set (  SECU_DEBUG                      False )
 set (  SCTP_DUMP_LIST                  False )
 set (  TRACE_HASHTABLE                 False )
 set (  TRACE_3GPP_SPEC                 False )

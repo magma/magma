@@ -1186,15 +1186,7 @@ void mme_config_display(mme_config_t *config_pP)
     "Built with CMAKE_BUILD_TYPE ................: %s\n",
     CMAKE_BUILD_TYPE);
   OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with ITTI_TASK_STACK_SIZE ............: %d\n",
-    ITTI_TASK_STACK_SIZE);
-  OAILOG_DEBUG(
     LOG_CONFIG, "Built with LOG_OAI .........................: %d\n", LOG_OAI);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with LOG_OAI_CLEAN_HARD ..............: %d\n",
-    LOG_OAI_CLEAN_HARD);
   OAILOG_DEBUG(
     LOG_CONFIG,
     "Built with PACKAGE_NAME ....................: %s\n",
@@ -1203,10 +1195,6 @@ void mme_config_display(mme_config_t *config_pP)
     LOG_CONFIG,
     "Built with S1AP_DEBUG_LIST .................: %d\n",
     S1AP_DEBUG_LIST);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with SECU_DEBUG ......................: %d\n",
-    SECU_DEBUG);
   OAILOG_DEBUG(
     LOG_CONFIG,
     "Built with SCTP_DUMP_LIST ..................: %d\n",
@@ -1219,7 +1207,6 @@ void mme_config_display(mme_config_t *config_pP)
     LOG_CONFIG,
     "Built with TRACE_3GPP_SPEC .................: %d\n",
     TRACE_3GPP_SPEC);
-
 #endif
   OAILOG_INFO(LOG_CONFIG, "Configuration:\n");
   OAILOG_INFO(
@@ -1605,7 +1592,8 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
   return 0;
 }
 
-static bool parse_bool(const char *str) {
+static bool parse_bool(const char *str)
+{
   if (strcasecmp(str, "yes") == 0) return true;
   if (strcasecmp(str, "true") == 0) return true;
   if (strcasecmp(str, "no") == 0) return false;
