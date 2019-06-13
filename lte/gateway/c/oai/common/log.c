@@ -264,14 +264,9 @@ static void init_syslog(void)
 
 static void init_console(void)
 {
-#if DAEMONIZE
-  g_oai_log.log_fd = NULL;
-  g_oai_log.is_output_is_fd = false;
-#else
   setvbuf(stdout, NULL, _IONBF, 0);
   g_oai_log.log_fd = stdout;
   g_oai_log.is_output_is_fd = true;
-#endif
 }
 
 //------------------------------------------------------------------------------

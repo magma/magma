@@ -508,30 +508,6 @@ const char *const get_short_file_name(
 #define OAILOG_STREAM_HEX(...) NOP(__VA_ARGS__)
 #endif
 
-#if DAEMONIZE
-#define OAI_FPRINTF_ERR(...)                                                   \
-  do {                                                                         \
-    syslog(LOG_ERR, ##__VA_ARGS__);                                            \
-  } while (0)
-#define OAI_FPRINTF_INFO(...)                                                  \
-  do {                                                                         \
-    syslog(LOG_INFO, ##__VA_ARGS__);                                           \
-  } while (0)
-#define OAI_VFPRINTF_ERR(...)                                                  \
-  do {                                                                         \
-    vsyslog(LOG_ERR, ##__VA_ARGS__);                                           \
-  } while (0)
-#define OAI_VFPRINTF_INFO(...)                                                 \
-  do {                                                                         \
-    vsyslog(LOG_INFO, ##__VA_ARGS__);                                          \
-  } while (0)
-#if EMIT_ASN_DEBUG_EXTERN
-#define ASN_DEBUG(...)                                                         \
-  do {                                                                         \
-    vsyslog(LOG_ERR, ##__VA_ARGS__);                                           \
-  } while (0)
-#endif
-#else
 #define OAI_FPRINTF_ERR(...)                                                   \
   do {                                                                         \
     fprintf(stderr, ##__VA_ARGS__);                                            \
@@ -558,6 +534,5 @@ const char *const get_short_file_name(
     vfprintf(stderr, ##__VA_ARGS__);                                           \
     fflush(stderr);                                                            \
   } while (0)
-#endif
 #endif
 #endif /* FILE_LOG_SEEN */

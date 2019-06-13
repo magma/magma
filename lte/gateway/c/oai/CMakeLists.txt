@@ -57,12 +57,6 @@ set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
 set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
 set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
 
-
-################################################################
-# Build options
-################################################################
-add_boolean_option(DAEMONIZE                       False    "Fork executable if true")
-
 ################################################################
 # S1AP LAYER OPTIONS
 ################################################################

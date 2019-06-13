@@ -18,7 +18,6 @@ set(COMMON_SRC
   backtrace.c
   common_types.c
   conversions.c
-  daemonize.c
   digest.c
   dynamic_memory_check.c
   enum_string.c
