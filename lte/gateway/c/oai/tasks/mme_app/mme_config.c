@@ -1186,8 +1186,6 @@ void mme_config_display(mme_config_t *config_pP)
     "Built with CMAKE_BUILD_TYPE ................: %s\n",
     CMAKE_BUILD_TYPE);
   OAILOG_DEBUG(
-    LOG_CONFIG, "Built with LOG_OAI .........................: %d\n", LOG_OAI);
-  OAILOG_DEBUG(
     LOG_CONFIG,
     "Built with PACKAGE_NAME ....................: %s\n",
     PACKAGE_NAME);

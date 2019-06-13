@@ -25,11 +25,8 @@ set(COMMON_SRC
   mcc_mnc_itu.c
   pid_file.c
   shared_ts_log.c
+  log.c
 )
-
-if (LOG_OAI)
-  set(COMMON_SRC ${COMMON_SRC} log.c)
-endif (LOG_OAI)
 
 add_library(COMMON ${COMMON_SRC})
 target_link_libraries (COMMON

@@ -1,6 +1,5 @@
 # Override options for MME
 set (  BYTE_ORDER=LITTLE_ENDIAN )
-set (  LOG_OAI                         True )
 set (  S1AP_DEBUG_LIST                 False )
 set (  SCTP_DUMP_LIST                  False )
 set (  TRACE_HASHTABLE                 False )

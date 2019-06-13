@@ -246,9 +246,7 @@ int shared_log_init(const int max_threadsP)
   gettimeofday(&start_time, NULL);
   g_shared_log.log_start_time_second = start_time.tv_sec;
 
-#if LOG_OAI
   g_shared_log.logger_callback[SH_TS_LOG_TXT] = log_flush_message;
-#endif
 
   bstring b = bfromcstr("Logging thread context hashtable");
   g_shared_log.thread_context_htbl =

@@ -11,15 +11,11 @@ include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 if (CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif ()
+
 add_list_string_option(CMAKE_BUILD_TYPE "RelWithDebInfo" "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." Debug Release RelWithDebInfo MinSizeRel)
 message("Build type is ${CMAKE_BUILD_TYPE}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-  add_boolean_option(LOG_OAI True "Thread safe logging API")
-  add_boolean_option(LOG_OAI_MINIMAL True "Thread safe logging API, log only levels above NOTICE")
-endif ()
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_boolean_option(LOG_OAI True "Thread safe logging API")
   add_boolean_option(LINK_GCOV True "Whether to link gcov")
 endif ()
 
@@ -67,7 +63,6 @@ add_boolean_option(S1AP_DEBUG_LIST                 False    "Traces, option to b
 ################################################################
 add_boolean_option(SCTP_DUMP_LIST                  False    "Traces, option to be removed soon")
 add_boolean_option(TRACE_HASHTABLE                 False    "Trace hashtables operations ")
-add_boolean_option(LOG_OAI                         False    "Thread safe logging utility")
 add_boolean_option(TRACE_3GPP_SPEC                 True     "Log hits of 3GPP specifications requirements")
 add_boolean_option(ENABLE_OPENFLOW                 False    "Openflow based dataplane")
 add_boolean_option(EMBEDDED_SGW                    False    "Add the SPGW task to the MME binary")
