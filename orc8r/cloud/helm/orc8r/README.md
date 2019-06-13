@@ -78,11 +78,11 @@ The following table list the configurable parameters of the orchestrator chart a
 | `nms.magmalte.manifests.deployment` | Enable nms magmalte deployment. | `false` |
 | `nms.magmalte.manifests.service` | Enable nms magmalte service. | `false` |
 | `nms.magmalte.manifests.rbac` | Enable nms magmalte rbac. | `false` |
-| `nms.magmalte.nginx.configmap` | Enable nms nginx configmap. | `false` |
-| `nms.magmalte.nginx.secrets` | Enable nms nginx secrets. | `false` |
-| `nms.magmalte.nginx.deployment` | Enable nms nginx deployment. | `false` |
-| `nms.magmalte.nginx.service` | Enable nms nginx service. | `false` |
-| `nms.magmalte.nginx.rbac` | Enable nms nginx rbac. | `false` |
+| `nms.nginx.manifests.configmap` | Enable nms nginx configmap. | `false` |
+| `nms.nginx.manifests.secrets` | Enable nms nginx secrets. | `false` |
+| `nms.nginx.manifests.deployment` | Enable nms nginx deployment. | `false` |
+| `nms.nginx.manifests.service` | Enable nms nginx service. | `false` |
+| `nms.nginx.manifests.rbac` | Enable nms nginx rbac. | `false` |
 
 ## Running in Minikube
 - Start Minikube with 8192 MB of memory and 4 CPUs. This example uses Kuberenetes version 1.14.1 and uses [Minikube Hypervisor Driver](https://kubernetes.io/docs/tasks/tools/install-minikube/#install-a-hypervisor):
