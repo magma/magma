@@ -108,7 +108,7 @@ func (c *Client) DeleteRule(ruleName string, networkID string) error {
 
 func (c *Client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
-	err = ioutil.WriteFile(filename, yamlFile, 0660)
+	err = ioutil.WriteFile(filename, yamlFile, 0666)
 	if err != nil {
 		return fmt.Errorf("error writing rules file: %v\n", yamlFile)
 	}
