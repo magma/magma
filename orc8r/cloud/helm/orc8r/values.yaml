@@ -95,14 +95,14 @@ controller:
   spec:
     # Postgres/mysql configuration
     database:
-      driver: mysql      # mysql/postgres
-      sql_dialect: maria # maria/psql
+      driver: postgres      # mysql/postgres
+      sql_dialect: psql # maria/psql
       db: magma          # DB Name
       protocol: tcp
-      host: mariadb.magma.svc.cluster.local
-      port: 3306
-      user: magma
-      pass: password
+      host: postgresql
+      port: 5432
+      user: postgres
+      pass: postgres
 
   # Number of controller replicas desired
   replicas: 1
