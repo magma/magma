@@ -11,6 +11,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
@@ -36,6 +37,8 @@ func main() {
 
 	e := echo.New()
 
+	e.GET("/", statusHandler)
+
 	receiverClient := receivers.NewClient(*alertmanagerConfPath)
 	e.POST(receiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
 	e.GET(receiverPath, handlers.GetGetReceiversHandler(receiverClient))
@@ -45,4 +48,8 @@ func main() {
 
 	glog.Infof("Alertmanager Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
+}
+
+func statusHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "Alertmanager Config server")
 }

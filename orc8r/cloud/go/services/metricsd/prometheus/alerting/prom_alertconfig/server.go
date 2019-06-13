@@ -11,6 +11,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/handlers"
@@ -40,10 +41,16 @@ func main() {
 		glog.Errorf("error creating alert client: %v", err)
 		return
 	}
+	e.GET("/", statusHandler)
+
 	e.POST(alertPath, handlers.GetPostHandler(alertClient, *prometheusURL))
 	e.GET(alertPath, handlers.GetGetHandler(alertClient))
 	e.DELETE(alertPath, handlers.GetDeleteHandler(alertClient, *prometheusURL))
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
+}
+
+func statusHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "Prometheus Config server")
 }
