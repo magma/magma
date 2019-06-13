@@ -38,10 +38,11 @@ class LocalEnforcerTest : public ::testing::Test {
  protected:
   virtual void SetUp()
   {
+    reporter = std::make_shared<MockSessionCloudReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
-    local_enforcer =
-      std::make_unique<LocalEnforcer>(rule_store, pipelined_client, 0);
+    local_enforcer = std::make_unique<LocalEnforcer>(
+      reporter, rule_store, pipelined_client, 0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
   }
@@ -103,6 +104,7 @@ class LocalEnforcerTest : public ::testing::Test {
   }
 
  protected:
+  std::shared_ptr<MockSessionCloudReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
@@ -700,6 +702,71 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
   assert_monitor_credit("IMSI1", REPORTED_RX, {{"3", 1024}, {"4", 1049}});
   assert_monitor_credit("IMSI1", REPORTED_TX, {{"3", 1024}, {"4", 1079}});
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"3", 3072}, {"4", 3072}});
+}
+
+TEST_F(LocalEnforcerTest, test_rar_session_not_found)
+{
+  PolicyReAuthRequest rar;
+  std::vector<std::string> rules_to_remove;
+  std::vector<StaticRuleInstall> rules_to_install;
+  std::vector<DynamicRuleInstall> dynamic_rules_to_install;
+  std::vector<EventTrigger> event_triggers {EventTrigger::REVALIDATION_TIMEOUT};
+  std::vector<UsageMonitoringCredit> usage_monitoring_credits;
+  create_policy_reauth_request(
+    "session1",
+    "IMSI1",
+    rules_to_remove,
+    rules_to_install,
+    dynamic_rules_to_install,
+    event_triggers,
+    time(NULL),
+    usage_monitoring_credits,
+    &rar);
+  PolicyReAuthAnswer raa;
+  local_enforcer->init_policy_reauth(rar, raa);
+  EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
+}
+
+TEST_F(LocalEnforcerTest, test_rar_revalidation_timer)
+{
+  // init session first
+  CreateSessionResponse response;
+  create_update_response("IMSI1", 1, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session_credit("IMSI1", "session1", test_cfg, response);
+  insert_static_rule(1, "", "rule1");
+
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record("IMSI1", "rule1", 1024, 2048, record_list->Add());
+  local_enforcer->aggregate_records(table);
+
+  // only RAR with REVALIDATION_TIMEOUT as one of the event triggers
+  // will initiate an update
+  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+
+  PolicyReAuthRequest rar;
+  std::vector<std::string> rules_to_remove;
+  std::vector<StaticRuleInstall> rules_to_install;
+  std::vector<DynamicRuleInstall> dynamic_rules_to_install;
+  std::vector<EventTrigger> event_triggers {EventTrigger::TAI_CHANGE};
+  std::vector<UsageMonitoringCredit> usage_monitoring_credits;
+  create_policy_reauth_request(
+    "session1",
+    "IMSI1",
+    rules_to_remove,
+    rules_to_install,
+    dynamic_rules_to_install,
+    event_triggers,
+    time(NULL),
+    usage_monitoring_credits,
+    &rar);
+  PolicyReAuthAnswer raa;
+  local_enforcer->init_policy_reauth(rar, raa);
+  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+
+  rar.add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
+  local_enforcer->init_policy_reauth(rar, raa);
+  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
 }
 
 int main(int argc, char **argv)

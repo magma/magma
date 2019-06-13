@@ -16,7 +16,6 @@
 
 #include "GRPCReceiver.h"
 
-using google::protobuf::RepeatedPtrField;
 using grpc::Status;
 
 namespace magma {
