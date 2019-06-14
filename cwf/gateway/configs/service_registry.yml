@@ -15,7 +15,13 @@ services:
   control_proxy:
     ip_address: 127.0.0.1
     port: 50053
-  metricsd:
+  # TODO: Remove mobilityd by making pipelined's ServiceManager load configurable
+  mobilityd:
     ip_address: 127.0.0.1
-    port: 60054
-
+    port: 60051
+  pipelined:
+    ip_address: 127.0.0.1
+    port: 50063
+  sessiond:
+    ip_address: 127.0.0.1
+    port: 50065

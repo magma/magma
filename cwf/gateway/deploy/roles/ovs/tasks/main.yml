@@ -68,3 +68,6 @@
     state: started
     enabled: yes
   become: true
+
+- name: Ensure OVS switch will not auto-upgrade
+  action: shell apt-mark hold openvswitch-switch

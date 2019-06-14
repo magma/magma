@@ -20,6 +20,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cwag.vm.box = "generic/ubuntu1804"
     cwag.vm.hostname = "cwag-dev"
     cwag.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
+    cwag.vm.network "private_network", ip: "192.168.131.1", nic_type: "82540EM"
     cwag.ssh.password = "vagrant"
     cwag.ssh.insert_key = true
 

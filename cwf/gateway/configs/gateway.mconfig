@@ -17,6 +17,16 @@
     "metricsd": {
       "@type": "type.googleapis.com/magma.mconfig.MetricsD",
       "logLevel": "INFO"
+    },
+    "pipelined": {
+      "@type": "type.googleapis.com/magma.mconfig.PipelineD",
+      "logLevel": "INFO",
+      "ueIpBlock": "192.168.128.0/24",
+      "natEnabled": true,
+      "relayEnabled": false,
+      "apps": [],
+      "services": [
+      ]
     }
   }
 }

@@ -9,7 +9,8 @@ log_level: INFO
 # List of services for magmad to control
 magma_services:
   - control_proxy
-  - metricsd
+  - pipelined
+  - sessiond
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -46,3 +47,21 @@ mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
   - lte.protos.mconfig.mconfigs_pb2
   - feg.protos.mconfig.mconfigs_pb2
+
+metricsd:
+  log_level: INFO
+  collect_interval: 60 # How frequently to collect metrics samples in seconds
+  sync_interval: 60 # How frequently to sync to cloud in seconds
+  grpc_timeout: 30 # Timeout in seconds
+  queue_length: 1000 # Number of failed samples to enqueue for resend
+
+  # An optional function  to mutate metrics before they are sent to the cloud
+  # A string in the form path.to.module.fn_name
+  # @see magma.magmad.metrics_collector.example_metrics_postprocessor
+  post_processing_fn: magma.magmad.metrics_collector.do_nothing_metrics_postprocessor
+
+  # List of services for metricsd to poll
+  services:
+    - magmad
+    - pipelined
+    - sessiond
