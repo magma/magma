@@ -18,16 +18,14 @@ import (
 )
 
 const (
-	defaultPort          = "9091"
-	defaultQueueCapacity = 5
+	defaultPort = "9091"
 )
 
 func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
-	queueCapacity := flag.Int("queue-capacity", defaultQueueCapacity, fmt.Sprintf("Maximum number of datapoints per unique series stored in cache. Default is %d\n", defaultQueueCapacity))
 	flag.Parse()
 
-	metricCache := cache.NewMetricCache(*queueCapacity)
+	metricCache := cache.NewMetricCache()
 	e := echo.New()
 
 	e.POST("/metrics", metricCache.Receive)

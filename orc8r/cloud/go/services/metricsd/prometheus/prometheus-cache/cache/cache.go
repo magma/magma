@@ -11,7 +11,6 @@ package cache
 import (
 	"bytes"
 	"fmt"
-	"math"
 	"net/http"
 	"sort"
 	"strings"
@@ -27,15 +26,13 @@ import (
 // timestamps with metrics, and stores them in a queue to allow multiple
 // datapoints per metric series to be scraped
 type MetricCache struct {
-	familyMap     map[string]*familyAndMetrics
-	queueCapacity int
+	familyMap map[string]*familyAndMetrics
 	sync.Mutex
 }
 
-func NewMetricCache(queueCapacity int) *MetricCache {
+func NewMetricCache() *MetricCache {
 	return &MetricCache{
-		familyMap:     make(map[string]*familyAndMetrics),
-		queueCapacity: queueCapacity,
+		familyMap: make(map[string]*familyAndMetrics),
 	}
 }
 
@@ -48,29 +45,41 @@ func (c *MetricCache) Receive(ctx echo.Context) error {
 	if err != nil {
 		return ctx.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
 	}
-
-	c.Lock()
-	defer c.Unlock()
-	for _, fam := range parsedFamilies {
-		if fAndM, ok := c.familyMap[fam.GetName()]; ok {
-			fAndM.addMetrics(fam.Metric)
-		} else {
-			c.familyMap[fam.GetName()] = newFamilyAndMetrics(fam, c.queueCapacity)
-		}
-	}
+	c.cacheMetrics(parsedFamilies)
 	return ctx.NoContent(http.StatusOK)
 }
 
-// Scrape is a handler function for prometheus scrape requests. Formats the
-// metrics for scraping and sends the oldest datapoint per metric series if
-// there are multiple in the queue since prometheus cannot handle multiple
-// datapoints of the same metric in a scrape.
-func (c *MetricCache) Scrape(ctx echo.Context) error {
+func (c *MetricCache) cacheMetrics(families map[string]*dto.MetricFamily) {
 	c.Lock()
 	defer c.Unlock()
+	for _, fam := range families {
+		if fAndM, ok := c.familyMap[fam.GetName()]; ok {
+			fAndM.addMetrics(fam.Metric)
+		} else {
+			c.familyMap[fam.GetName()] = newFamilyAndMetrics(fam)
+		}
+	}
+}
+
+// Scrape is a handler function for prometheus scrape requests. Formats the
+// metrics for scraping.
+func (c *MetricCache) Scrape(ctx echo.Context) error {
+	c.Lock()
+	scrapeMetrics := c.familyMap
+	c.clearMetrics()
+	c.Unlock()
+
+	return ctx.String(http.StatusOK, c.exposeMetrics(scrapeMetrics))
+}
+
+func (c *MetricCache) clearMetrics() {
+	c.familyMap = make(map[string]*familyAndMetrics)
+}
+
+func (c *MetricCache) exposeMetrics(familyMap map[string]*familyAndMetrics) string {
 	respStr := strings.Builder{}
-	for _, fam := range c.familyMap {
-		pullFamily := fam.popOldestDatapoint()
+	for _, fam := range familyMap {
+		pullFamily := fam.popSortedDatapoints()
 		familyStr, err := familyToString(pullFamily)
 		if err != nil {
 			glog.Errorf("metric %s dropped. error converting metric to string: %v", *pullFamily.Name, err)
@@ -78,47 +87,30 @@ func (c *MetricCache) Scrape(ctx echo.Context) error {
 			respStr.WriteString(familyStr)
 		}
 	}
-	c.clearEmptyMetrics()
-	return ctx.String(http.StatusOK, respStr.String())
+	return respStr.String()
 }
 
-// clearEmptyMetrics deletes families from the cache if they have no more
-// datapoints
-func (c *MetricCache) clearEmptyMetrics() {
-	for familyName, family := range c.familyMap {
-		family.prune()
-		if len(family.metrics) == 0 {
-			delete(c.familyMap, familyName)
-		}
-	}
-}
-
-// familyAndMetrics stores the metrics in a MetricFamily in a MetricQueue
 type familyAndMetrics struct {
-	family        *dto.MetricFamily
-	metrics       map[string]*MetricQueue
-	queueCapacity int
+	family  *dto.MetricFamily
+	metrics map[string][]*dto.Metric
 }
 
-func newFamilyAndMetrics(family *dto.MetricFamily, queueCapacity int) *familyAndMetrics {
-	metricMap := make(map[string]*MetricQueue)
+func newFamilyAndMetrics(family *dto.MetricFamily) *familyAndMetrics {
+	metricMap := make(map[string][]*dto.Metric)
 	for _, metric := range family.Metric {
 		name := makeLabeledName(metric, family.GetName())
 		if metricQueue, ok := metricMap[name]; ok {
-			metricQueue.Push(metric)
+			metricMap[name] = append(metricQueue, metric)
 		} else {
-			queue := NewMetricQueue(queueCapacity)
-			queue.Push(metric)
-			metricMap[name] = queue
+			metricMap[name] = []*dto.Metric{metric}
 		}
 	}
 	// clear metrics in family because we are keeping them in the queues
 	family.Metric = []*dto.Metric{}
 
 	return &familyAndMetrics{
-		family:        family,
-		metrics:       metricMap,
-		queueCapacity: queueCapacity,
+		family:  family,
+		metrics: metricMap,
 	}
 }
 
@@ -126,25 +118,26 @@ func (f *familyAndMetrics) addMetrics(newMetrics []*dto.Metric) {
 	for _, metric := range newMetrics {
 		metricName := makeLabeledName(metric, f.family.GetName())
 		if queue, ok := f.metrics[metricName]; ok {
-			queue.Push(metric)
+			f.metrics[metricName] = append(queue, metric)
 		} else {
-			f.metrics[metricName] = NewMetricQueue(f.queueCapacity)
-			f.metrics[metricName].Push(metric)
+			f.metrics[metricName] = []*dto.Metric{metric}
 		}
 	}
 }
 
-// Returns a prometheus MetricFamily populated with the oldest datapoint for
-// each of the unique metric series stored in the struct. Pops the oldest point
-// off of each queue.
-func (f *familyAndMetrics) popOldestDatapoint() *dto.MetricFamily {
+// Returns a prometheus MetricFamily populated with all datapoints, sorted so
+// that the earliest datapoint appears first
+func (f *familyAndMetrics) popSortedDatapoints() *dto.MetricFamily {
 	pullFamily := f.copyFamily()
 	for _, queue := range f.metrics {
-		poppedMetric := queue.Pop()
-		if poppedMetric == nil {
+		if len(queue) == 0 {
 			continue
 		}
-		pullFamily.Metric = append(pullFamily.Metric, poppedMetric)
+		// Sort metrics by timestamp
+		sort.Slice(queue, func(i, j int) bool {
+			return *queue[i].TimestampMs < *queue[j].TimestampMs
+		})
+		pullFamily.Metric = append(pullFamily.Metric, queue...)
 	}
 	return &pullFamily
 }
@@ -154,19 +147,12 @@ func (f *familyAndMetrics) copyFamily() dto.MetricFamily {
 	return *f.family
 }
 
-// prune deletes metricQueues which no longer have any datapoints
-func (f *familyAndMetrics) prune() {
-	for metricName, metricQueue := range f.metrics {
-		if metricQueue.size == 0 {
-			delete(f.metrics, metricName)
-		}
-	}
-}
-
 // makeLabeledName builds a unique name from a metric LabelPairs
 func makeLabeledName(metric *dto.Metric, metricName string) string {
 	labels := metric.GetLabel()
-	sort.Sort(ByName(labels))
+	sort.Slice(labels, func(i, j int) bool {
+		return labels[i].GetName() < labels[j].GetName()
+	})
 
 	labeledName := strings.Builder{}
 	labeledName.WriteString(metricName)
@@ -184,49 +170,3 @@ func familyToString(family *dto.MetricFamily) (string, error) {
 	}
 	return buf.String(), nil
 }
-
-// MetricQueue implements a fixed-size moving window queue so that in the case
-// of more frequent pushes than scrapes, memory usage does not increase constantly.
-type MetricQueue struct {
-	capacity int
-	size     int
-	writeIdx int
-	queue    []*dto.Metric
-}
-
-func NewMetricQueue(capacity int) *MetricQueue {
-	return &MetricQueue{
-		capacity: capacity,
-		size:     0,
-		writeIdx: 0,
-		queue:    make([]*dto.Metric, capacity),
-	}
-}
-
-// Push adds a metric to the queue. The oldest metric is overwritten when
-// called while the buffer is full.
-func (q *MetricQueue) Push(metric *dto.Metric) {
-	q.queue[q.writeIdx] = metric
-	q.writeIdx = (q.writeIdx + 1) % q.capacity
-	if q.size < q.capacity {
-		q.size++
-	}
-}
-
-// Pop returns the oldest written metric. Overwrites the oldest metric when
-func (q *MetricQueue) Pop() *dto.Metric {
-	if q.size == 0 {
-		return nil
-	}
-	readIdx := int(math.Abs(float64((q.writeIdx - q.size) % q.capacity)))
-	metric := q.queue[readIdx]
-	q.size--
-	return metric
-}
-
-// ByName is an interface for sorting LabelPairs by name
-type ByName []*dto.LabelPair
-
-func (a ByName) Len() int           { return len(a) }
-func (a ByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByName) Less(i, j int) bool { return a[i].GetName() < a[j].GetName() }
