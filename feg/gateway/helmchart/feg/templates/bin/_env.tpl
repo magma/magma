@@ -8,8 +8,7 @@
 COMPOSE_PROJECT_NAME=feg
 DOCKER_REGISTRY={{ .Values.feg.image.docker_registry }}
 IMAGE_VERSION={{ .Values.feg.image.tag }}
-MAGMA_GITHUB_URL={{ .Values.feg.repo.url }}
-MAGMA_GITHUB_BRANCH={{ .Values.feg.repo.branch }}
+BUILD_CONTEXT={{ .Values.feg.repo.url }}#{{ .Values.feg.repo.branch }}
 
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml
