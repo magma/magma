@@ -12,9 +12,11 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -27,7 +29,22 @@ import (
 // datapoints per metric series to be scraped
 type MetricCache struct {
 	familyMap map[string]*familyAndMetrics
+	stats     cacheStats
 	sync.Mutex
+}
+
+type cacheStats struct {
+	lastScrapeTime        int64
+	lastScrapeSize        int64
+	lastScrapeNumFamilies int
+
+	lastReceiveTime        int64
+	lastReceiveSize        int64
+	lastReceiveNumFamilies int
+
+	currentCountFamilies   int
+	currentCountSeries     int
+	currentCountDatapoints int
 }
 
 func NewMetricCache() *MetricCache {
@@ -46,6 +63,10 @@ func (c *MetricCache) Receive(ctx echo.Context) error {
 		return ctx.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
 	}
 	c.cacheMetrics(parsedFamilies)
+
+	c.stats.lastReceiveTime = time.Now().Unix()
+	c.stats.lastReceiveSize = ctx.Request().ContentLength
+	c.stats.lastReceiveNumFamilies = len(parsedFamilies)
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -69,7 +90,12 @@ func (c *MetricCache) Scrape(ctx echo.Context) error {
 	c.clearMetrics()
 	c.Unlock()
 
-	return ctx.String(http.StatusOK, c.exposeMetrics(scrapeMetrics))
+	expositionString := c.exposeMetrics(scrapeMetrics)
+	c.stats.lastScrapeTime = time.Now().Unix()
+	c.stats.lastScrapeSize = int64(len(expositionString))
+	c.stats.lastScrapeNumFamilies = len(scrapeMetrics)
+
+	return ctx.String(http.StatusOK, expositionString)
 }
 
 func (c *MetricCache) clearMetrics() {
@@ -88,6 +114,48 @@ func (c *MetricCache) exposeMetrics(familyMap map[string]*familyAndMetrics) stri
 		}
 	}
 	return respStr.String()
+}
+
+// Debug is a handler function to show the current state of the cache without
+// consuming any datapoints
+func (c *MetricCache) Debug(ctx echo.Context) error {
+	c.updateCountStats()
+	hostname, _ := os.Hostname()
+	debugString := fmt.Sprintf(`Prometheus Cache running on %s
+Last Scrape: %d
+	Scrape Size: %d
+	Number of Familes: %d
+
+Last Receive: %d
+	Receive Size: %d
+	Number of Families: %d
+
+Current Count Families:   %d
+Current Count Series:     %d
+Current Count Datapoints: %d
+
+Current Exposition Text:
+
+%s`, hostname, c.stats.lastScrapeTime, c.stats.lastScrapeSize, c.stats.lastScrapeNumFamilies,
+		c.stats.lastReceiveTime, c.stats.lastReceiveSize, c.stats.lastReceiveNumFamilies,
+		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints, c.exposeMetrics(c.familyMap))
+
+	return ctx.String(http.StatusOK, debugString)
+}
+
+func (c *MetricCache) updateCountStats() {
+	numFamilies := len(c.familyMap)
+	numSeries := 0
+	numDatapoints := 0
+	for _, family := range c.familyMap {
+		numSeries += len(family.metrics)
+		for _, series := range family.metrics {
+			numDatapoints += len(series)
+		}
+	}
+	c.stats.currentCountFamilies = numFamilies
+	c.stats.currentCountSeries = numSeries
+	c.stats.currentCountDatapoints = numDatapoints
 }
 
 type familyAndMetrics struct {

@@ -31,5 +31,7 @@ func main() {
 	e.POST("/metrics", metricCache.Receive)
 	e.GET("/metrics", metricCache.Scrape)
 
+	e.GET("/debug", metricCache.Debug)
+
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
 }

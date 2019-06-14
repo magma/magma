@@ -5,6 +5,8 @@ services:
     build:
       context: $PWD/../../../orc8r/cloud
       dockerfile: $PWD/prometheus-cache/Dockerfile
+    ports:
+      - 9091:9091/tcp
     restart: always
 
   prometheus:
