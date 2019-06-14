@@ -27,11 +27,11 @@ class SctpdUplinkClient {
   explicit SctpdUplinkClient(std::shared_ptr<Channel> channel);
 
   // Send an uplink packet to MME (see sctpd.proto for more info)
-  int sendUl(const SendUlReq &req, SendUlRes *res);
+  virtual int sendUl(const SendUlReq &req, SendUlRes *res);
   // Notify MME of new association (see sctpd.proto for more info)
-  int newAssoc(const NewAssocReq &req, NewAssocRes *res);
+  virtual int newAssoc(const NewAssocReq &req, NewAssocRes *res);
   // Notify MME of closing/reseting association (see sctpd.proto for more info)
-  int closeAssoc(const CloseAssocReq &req, CloseAssocRes *res);
+  virtual int closeAssoc(const CloseAssocReq &req, CloseAssocRes *res);
 
  private:
   // Stub used for client to communicate with server
