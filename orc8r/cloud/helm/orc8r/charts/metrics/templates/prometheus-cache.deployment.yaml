@@ -1,0 +1,59 @@
+{{/*
+Copyright (c) 2018-present, Facebook, Inc.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+{{- $serviceName := print .Release.Name "-prometheus-cache" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/component: prometheus-cache
+{{ include "labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.prometheusCache.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: prometheus-cache
+{{ include "selector-labels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: prometheus-cache
+{{ include "selector-labels" . | indent 8 }}
+    spec:
+      {{- with .Values.prometheusCache.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.prometheusCache.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.prometheusCache.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+
+      containers:
+        - name: "prometheus-cache"
+          image: {{ required "prometheusCache.image.repository must be provided" .Values.prometheusCache.image.repository }}:{{ .Values.prometheusCache.image.tag }}
+          imagePullPolicy: {{ .Values.prometheusCache.image.pullPolicy }}
+          ports:
+            - containerPort: 9091
+          livenessProbe:
+            httpGet:
+              path: /debug
+              port: 9091
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+{{ toYaml .Values.prometheusCache.resources | indent 12 }}

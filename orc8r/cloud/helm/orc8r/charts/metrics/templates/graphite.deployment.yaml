@@ -1,0 +1,72 @@
+{{/*
+Copyright (c) 2018-present, Facebook, Inc.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+{{- $serviceName := print .Release.Name "-graphite" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/component: graphite
+{{ include "labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.graphite.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: graphite
+{{ include "selector-labels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: graphite
+{{ include "selector-labels" . | indent 8 }}
+    spec:
+      {{- with .Values.graphite.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.graphite.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.graphite.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      volumes:
+        - name: "graphite-data"
+{{ toYaml .Values.graphite.volumes.graphiteData | indent 10 }}
+        - name: "graphite-configs"
+{{ toYaml .Values.graphite.volumes.graphiteConfigs | indent 10 }}
+
+      containers:
+        - name: "graphite"
+          image: {{ required "graphite.image.respository must be provided" .Values.graphite.image.repository }}:{{ .Values.graphite.image.tag }}
+          imagePullPolicy: {{ .Values.graphite.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+            - containerPort: 2003
+          volumeMounts:
+            - name: "graphite-data"
+              mountPath: /opt/graphite/storage/whisper
+            - name: "graphite-configs"
+              mountPath: /opt/graphite/conf
+          environment:
+            - REDIS_TAGDB=1
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+  {{ toYaml .Values.graphite.resources | indent 12 }}

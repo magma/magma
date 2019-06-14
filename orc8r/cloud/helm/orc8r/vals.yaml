@@ -1,0 +1,34 @@
+imagePullSecrets:
+  - name: orc8r-secrets-registry
+proxy:
+  image:
+    repository: facebookconnectivity-orc8r-docker.jfrog.io/proxy
+    tag: 5243b96e
+  spec:
+    hostname: controller.magma.test
+controller:
+  image:
+    repository: facebookconnectivity-orc8r-docker.jfrog.io/controller
+    tag: 5243b96e
+
+metrics:
+  metrics:
+    configImage:
+      repository: facebookconnectivity-orc8r-docker.jfrog.io/config-manager
+    useEBSVolumes: 0
+    ebsVolumes:
+      prometheusData:
+        ebsVolumeID: 234bcd
+      prometheusConfig:
+        ebsVolumeID: 123abc
+
+  graphite:
+    useEBSVolumes: 1
+    ebsVolumes:
+      graphiteData:
+        ebsVolumeID: 345cde
+        ebsSize: 1
+
+  prometheusCache:
+    image:
+      repository: facebookconnectivity-orc8r-docker.jfrog.io/prometheus-cache
