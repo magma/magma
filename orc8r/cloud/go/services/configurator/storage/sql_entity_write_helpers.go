@@ -68,7 +68,7 @@ func (store *sqlConfiguratorStorage) insertIntoEntityTable(networkID string, ent
 
 // acls is an output parameter - entries will be updated in-place with
 // system-generated IDs.
-func (store *sqlConfiguratorStorage) createPermissions(networkID string, pk string, acls []ACL) error {
+func (store *sqlConfiguratorStorage) createPermissions(networkID string, pk string, acls []*ACL) error {
 	if funk.IsEmpty(acls) {
 		return nil
 	}
@@ -79,11 +79,11 @@ func (store *sqlConfiguratorStorage) createPermissions(networkID string, pk stri
 	aclIDs := make([]string, 0, len(acls))
 	for _, acl := range acls {
 		aclID := store.idGenerator.New()
-		scopeVal, err := serializeACLScope(acl.Scope)
+		scopeVal, err := serializeACLScope(acl)
 		if err != nil {
 			return err
 		}
-		typeVal, err := serializeACLType(acl.Type)
+		typeVal, err := serializeACLType(acl)
 		if err != nil {
 			return err
 		}
@@ -119,8 +119,8 @@ func (store *sqlConfiguratorStorage) createEdges(networkID string, entity entWit
 		Columns(aFrCol, aToCol).
 		OnConflict(nil, aFrCol, aToCol)
 	for _, edge := range entity.GetGraphEdges() {
-		fromPk := entsByTk[edge.From].pk
-		toPk := entsByTk[edge.To].pk
+		fromPk := entsByTk[edge.From.ToTypeAndKey()].pk
+		toPk := entsByTk[edge.To.ToTypeAndKey()].pk
 		insertBuilder = insertBuilder.Values(fromPk, toPk)
 	}
 	_, err = insertBuilder.RunWith(store.tx).Exec()
@@ -141,14 +141,23 @@ func (store *sqlConfiguratorStorage) loadEntsFromEdges(networkID string, targetE
 	return loadedEntsByTk, nil
 }
 
-func (store *sqlConfiguratorStorage) loadEntsWithPksByTK(networkID string, tksToLoad []storage.TypeAndKey) (map[storage.TypeAndKey]entWithPk, error) {
+func (store *sqlConfiguratorStorage) loadEntsWithPksByTK(networkID string, tksToLoad []*EntityID) (map[storage.TypeAndKey]entWithPk, error) {
 	ret := make(map[storage.TypeAndKey]entWithPk, len(tksToLoad)+1)
 	if funk.IsEmpty(tksToLoad) {
 		return ret, nil
 	}
 
-	uniqTksToLoad := funk.Uniq(tksToLoad).([]storage.TypeAndKey)
-	loadedEntsByPk, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: uniqTksToLoad}, EntityLoadCriteria{})
+	// Intermediate transform to TypeAndKey because proto internal fields make
+	// proto comparison iffy for the Uniq
+	uniqIDsToLoad := funk.Chain(tksToLoad).
+		Map(func(id *EntityID) storage.TypeAndKey { return id.ToTypeAndKey() }).
+		Uniq().
+		Map(func(tk storage.TypeAndKey) *EntityID {
+			id := &EntityID{}
+			id.FromTypeAndKey(tk)
+			return id
+		}).Value().([]*EntityID)
+	loadedEntsByPk, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: uniqIDsToLoad}, EntityLoadCriteria{})
 	if err != nil {
 		return ret, errors.WithStack(err)
 	}
@@ -178,7 +187,7 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 	// them into a single graph. Pick the lexicographically smallest graph ID
 	// to use as the ID for the final graph
 	adjacentGraphs := funk.Chain(createdEntity.Associations).
-		Map(func(tk storage.TypeAndKey) string { return allAssociatedEntsByTk[tk].GraphID }).
+		Map(func(id *EntityID) string { return allAssociatedEntsByTk[id.ToTypeAndKey()].GraphID }).
 		Uniq().
 		Value().([]string)
 	noMergeNecessary := funk.IsEmpty(adjacentGraphs) || (len(adjacentGraphs) == 1 && adjacentGraphs[0] == createdEntity.GraphID)
@@ -214,7 +223,7 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update EntityUpdateCriteria) (entWithPk, error) {
 	loadedEntByPk, err := store.loadFromEntitiesTable(
 		networkID,
-		EntityLoadFilter{IDs: []storage.TypeAndKey{update.GetTypeAndKey()}},
+		EntityLoadFilter{IDs: []*EntityID{update.GetID()}},
 		EntityLoadCriteria{},
 	)
 	if err != nil {
@@ -239,16 +248,16 @@ func (store *sqlConfiguratorStorage) processEntityFieldsUpdate(pk string, update
 	}
 
 	if update.NewName != nil {
-		entOut.Name = *update.NewName
+		entOut.Name = (*update.NewName).Value
 	}
 	if update.NewDescription != nil {
-		entOut.Description = *update.NewDescription
+		entOut.Description = (*update.NewDescription).Value
 	}
 	if update.NewPhysicalID != nil {
-		entOut.PhysicalID = *update.NewPhysicalID
+		entOut.PhysicalID = (*update.NewPhysicalID).Value
 	}
 	if update.NewConfig != nil {
-		entOut.Config = *update.NewConfig
+		entOut.Config = (*update.NewConfig).Value
 	}
 	entOut.Version++
 
@@ -334,23 +343,23 @@ func (store *sqlConfiguratorStorage) getEntityUpdateQueryBuilder(pk string, upda
 	// WHERE pk = $5
 	updateBuilder := store.builder.Update(entityTable).Where(sq.Eq{entPkCol: pk})
 	if update.NewName != nil {
-		updateBuilder = updateBuilder.Set(entNameCol, *update.NewName)
+		updateBuilder = updateBuilder.Set(entNameCol, update.NewName.Value)
 	}
 	if update.NewDescription != nil {
-		updateBuilder = updateBuilder.Set(entDescCol, *update.NewDescription)
+		updateBuilder = updateBuilder.Set(entDescCol, update.NewDescription.Value)
 	}
 	if update.NewPhysicalID != nil {
-		updateBuilder = updateBuilder.Set(entPidCol, *update.NewPhysicalID)
+		updateBuilder = updateBuilder.Set(entPidCol, update.NewPhysicalID.Value)
 	}
 	if update.NewConfig != nil {
-		updateBuilder = updateBuilder.Set(entConfCol, *update.NewConfig)
+		updateBuilder = updateBuilder.Set(entConfCol, update.NewConfig.Value)
 	}
 	updateBuilder = updateBuilder.Set(entVerCol, sq.Expr(fmt.Sprintf("%s+1", entVerCol)))
 	return updateBuilder
 }
 
 // entOut is an output parameter
-func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions []ACL, entOut *NetworkEntity) error {
+func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions []*ACL, entOut *NetworkEntity) error {
 	aclsExist, err := store.doAllACLsExist(permissions)
 	if err != nil {
 		return err
@@ -365,11 +374,11 @@ func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions
 	defer sqorc.ClearStatementCacheLogOnError(sc, "updatePermissions")
 
 	for _, acl := range permissions {
-		scopeVal, err := serializeACLScope(acl.Scope)
+		scopeVal, err := serializeACLScope(acl)
 		if err != nil {
 			return err
 		}
-		typeVal, err := serializeACLType(acl.Type)
+		typeVal, err := serializeACLType(acl)
 		if err != nil {
 			return err
 		}
@@ -394,8 +403,8 @@ func (store *sqlConfiguratorStorage) updatePermissions(entPk string, permissions
 	return nil
 }
 
-func (store *sqlConfiguratorStorage) doAllACLsExist(acls []ACL) (bool, error) {
-	aclIDs := funk.Map(acls, func(acl ACL) interface{} { return acl.ID }).([]interface{})
+func (store *sqlConfiguratorStorage) doAllACLsExist(acls []*ACL) (bool, error) {
+	aclIDs := funk.Map(acls, func(acl *ACL) interface{} { return acl.ID }).([]interface{})
 	var count uint64
 
 	err := store.builder.Select("COUNT(*)").
@@ -430,16 +439,16 @@ func (store *sqlConfiguratorStorage) deletePermissions(aclIDs []string, entOut *
 	}
 
 	idsSet := funk.Map(aclIDs, func(i string) (string, bool) { return i, true }).(map[string]bool)
-	entOut.Permissions = funk.Filter(entOut.Permissions, func(acl ACL) bool {
+	entOut.Permissions = funk.Filter(entOut.Permissions, func(acl *ACL) bool {
 		_, deleted := idsSet[acl.ID]
 		return !deleted
-	}).([]ACL)
+	}).([]*ACL)
 
 	return nil
 }
 
 // entToUpdateOut is an output parameter
-func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete []storage.TypeAndKey, entToUpdateOut *entWithPk) error {
+func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete []*EntityID, entToUpdateOut *entWithPk) error {
 	if funk.IsEmpty(edgesToDelete) {
 		return nil
 	}
@@ -453,7 +462,7 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 	for _, edge := range edgesToDelete {
 		orClause = append(orClause, sq.And{
 			sq.Eq{aFrCol: entToUpdateOut.pk},
-			sq.Eq{aToCol: loadedEntsByTk[edge].pk},
+			sq.Eq{aToCol: loadedEntsByTk[edge.ToTypeAndKey()].pk},
 		})
 	}
 
@@ -470,34 +479,37 @@ func (store *sqlConfiguratorStorage) deleteEdges(networkID string, edgesToDelete
 	}
 
 	// Remove deleted edges from the passed in ent
-	edgesToDeleteSet := funk.Map(edgesToDelete, func(tk storage.TypeAndKey) (storage.TypeAndKey, struct{}) { return tk, struct{}{} }).(map[storage.TypeAndKey]struct{})
-	entToUpdateOut.Associations = funk.Filter(entToUpdateOut.Associations, func(tk storage.TypeAndKey) bool {
-		_, wasDeleted := edgesToDeleteSet[tk]
+	edgesToDeleteSet := funk.Map(
+		edgesToDelete,
+		func(id *EntityID) (storage.TypeAndKey, bool) { return id.ToTypeAndKey(), true },
+	).(map[storage.TypeAndKey]bool)
+	entToUpdateOut.Associations = funk.Filter(entToUpdateOut.Associations, func(id *EntityID) bool {
+		_, wasDeleted := edgesToDeleteSet[id.ToTypeAndKey()]
 		return !wasDeleted
-	}).([]storage.TypeAndKey)
+	}).([]*EntityID)
 
 	return nil
 }
 
-func serializeACLScope(scope ACLScope) (string, error) {
-	switch scope.Wildcard {
-	case NoWildcard:
-		return strings.Join(scope.NetworkIDs, ","), nil
-	case WildcardAll:
-		return wildcardAllString, nil
+func serializeACLScope(acl *ACL) (string, error) {
+	switch acl.Scope.(type) {
+	case *ACL_ScopeNetworkIDs:
+		return strings.Join(acl.GetScopeNetworkIDs().IDs, ","), nil
+	case *ACL_ScopeWildcard:
+		return acl.GetScopeWildcard().String(), nil
 	default:
-		return "", fmt.Errorf("unrecognized ACL scope wildcard %v", scope.Wildcard)
+		return "", fmt.Errorf("unrecognized ACL scope wildcard %v", reflect.TypeOf(acl.Scope))
 	}
 }
 
-func serializeACLType(t ACLType) (string, error) {
-	switch t.Wildcard {
-	case NoWildcard:
-		return t.EntityType, nil
-	case WildcardAll:
-		return wildcardAllString, nil
+func serializeACLType(acl *ACL) (string, error) {
+	switch acl.Type.(type) {
+	case *ACL_EntityType:
+		return acl.GetEntityType(), nil
+	case *ACL_TypeWildcard:
+		return acl.GetTypeWildcard().String(), nil
 	default:
-		return "", fmt.Errorf("unrecognized ACL type wildcard %v", t.Wildcard)
+		return "", fmt.Errorf("unrecognized ACL type wildcard %v", reflect.TypeOf(acl.Type))
 	}
 }
 

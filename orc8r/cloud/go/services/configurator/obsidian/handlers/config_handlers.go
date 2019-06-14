@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/storage"
 
 	"github.com/labstack/echo"
 )
@@ -113,7 +114,16 @@ func createOrUpdateNetworkConfig(c echo.Context, path string, serde serde.Serde)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	err = configurator.UpdateNetworkConfig(networkID, configType, config)
+	serializedConfig, err := serde.Serialize(config)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	updateCriteria := &storage.NetworkUpdateCriteria{
+		ID:                   networkID,
+		ConfigsToAddOrUpdate: map[string][]byte{configType: serializedConfig},
+	}
+	err = configurator.UpdateNetworks([]*storage.NetworkUpdateCriteria{updateCriteria})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}

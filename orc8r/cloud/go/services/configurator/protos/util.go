@@ -6,5 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT/protos --proto_path=$MAGMA_ROOT/.. --go_out=plugins=grpc:. *.proto"
 package protos
+
+import "github.com/golang/protobuf/ptypes/wrappers"
+
+func GetStringWrapper(v *string) *wrappers.StringValue {
+	if v == nil {
+		return nil
+	}
+	return &wrappers.StringValue{Value: *v}
+}

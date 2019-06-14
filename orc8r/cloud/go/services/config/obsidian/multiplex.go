@@ -14,8 +14,9 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
-	"magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/configurator/storage"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 )
 
@@ -69,18 +70,18 @@ func multiplexCreateOrUpdateEntityConfig(networkID, entityType, entityKey string
 		// second, update this entity's config
 		_, err = configurator.UpdateEntities(
 			networkID,
-			[]*protos.EntityUpdateCriteria{
+			[]*storage.EntityUpdateCriteria{
 				{
 					Type: accessGatewayEntityType,
 					Key:  entityKey,
-					AssociationsToAdd: []*protos.EntityID{
-						{Type: entityType, Id: entityKey},
+					AssociationsToAdd: []*storage.EntityID{
+						{Type: entityType, Key: entityKey},
 					},
 				},
 				{
 					Type:      entityType,
 					Key:       entityKey,
-					NewConfig: protos.GetBytesWrapper(serializedConfig),
+					NewConfig: &wrappers.BytesValue{Value: serializedConfig},
 				},
 			},
 		)

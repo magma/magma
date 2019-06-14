@@ -6,9 +6,8 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 syntax = "proto3";
 
-import "configurator.proto";
-import "orc8r/protos/mconfig.proto";
-import "orc8r/protos/common.proto";
+import "magma/orc8r/protos/mconfig.proto";
+import "magma/orc8r/protos/common.proto";
 
 package magma.orc8r.configurator;
 option go_package = "protos";

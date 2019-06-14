@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
 	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/services/device"
 	deviceprotos "magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/services/magmad"
@@ -127,13 +128,13 @@ func multiplexGatewayCreateIntoDeviceAndConfigurator(networkID, gatewayID string
 		return fmt.Errorf("Hwid is already registered %s", gwRecord.HwID.ID)
 	}
 	// write into configurator
-	gwEntity := &configuratorprotos.NetworkEntity{
+	gwEntity := &storage.NetworkEntity{
 		Name:       gwRecord.Name,
 		Type:       configurator.GatewayEntityType,
-		Id:         gatewayID,
-		PhysicalId: gwRecord.HwID.ID,
+		Key:        gatewayID,
+		PhysicalID: gwRecord.HwID.ID,
 	}
-	_, err = configurator.CreateEntities(networkID, []*configuratorprotos.NetworkEntity{gwEntity})
+	_, err = configurator.CreateEntities(networkID, []*storage.NetworkEntity{gwEntity})
 	if err != nil {
 		return err
 	}
@@ -249,12 +250,12 @@ func updateChallengeKey(networkID, gatewayID string, challengeKey *magmad_models
 }
 
 func updateGatewayName(networkID, gatewayID, name string) error {
-	updateRequest := &configuratorprotos.EntityUpdateCriteria{
+	updateRequest := &storage.EntityUpdateCriteria{
 		Key:     gatewayID,
 		Type:    configurator.GatewayEntityType,
 		NewName: configuratorprotos.GetStringWrapper(&name),
 	}
-	_, err := configurator.UpdateEntities(networkID, []*configuratorprotos.EntityUpdateCriteria{updateRequest})
+	_, err := configurator.UpdateEntities(networkID, []*storage.EntityUpdateCriteria{updateRequest})
 	return err
 }
 
@@ -290,7 +291,7 @@ func multiplexGatewayDeleteIntoDeviceAndConfigurator(networkID, gatewayID string
 	if err != nil {
 		return err
 	}
-	return configurator.DeleteEntities(networkID, []*configuratorprotos.EntityID{{Id: gatewayID, Type: configurator.GatewayEntityType}})
+	return configurator.DeleteEntities(networkID, []*storage.EntityID{{Key: gatewayID, Type: configurator.GatewayEntityType}})
 }
 
 func rebootGateway(c echo.Context) error {

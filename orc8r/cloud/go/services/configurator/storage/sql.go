@@ -33,8 +33,6 @@ const (
 )
 
 const (
-	wildcardAllString = "*"
-
 	nwIDCol   = "id"
 	nwNameCol = "name"
 	nwDescCol = "description"
@@ -260,7 +258,7 @@ func (store *sqlConfiguratorStorage) Rollback() error {
 }
 
 func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error) {
-	emptyRet := NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []Network{}}
+	emptyRet := NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []*Network{}}
 	if len(ids) == 0 {
 		return emptyRet, nil
 	}
@@ -291,10 +289,10 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 
 	ret := NetworkLoadResult{
 		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, ids),
-		Networks:           make([]Network, 0, len(loadedNetworksByID)),
+		Networks:           make([]*Network, 0, len(loadedNetworksByID)),
 	}
 	for _, nid := range loadedNetworkIDs {
-		ret.Networks = append(ret.Networks, *loadedNetworksByID[nid])
+		ret.Networks = append(ret.Networks, loadedNetworksByID[nid])
 	}
 	return ret, nil
 }
@@ -409,7 +407,7 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 }
 
 func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error) {
-	ret := EntityLoadResult{Entities: []NetworkEntity{}, EntitiesNotFound: []storage.TypeAndKey{}}
+	ret := EntityLoadResult{Entities: []*NetworkEntity{}, EntitiesNotFound: []*EntityID{}}
 
 	// We load the requested entities in 3 steps:
 	// First, we load the entities and their ACLs
@@ -441,13 +439,13 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 	}
 
 	for _, ent := range entsByPk {
-		ret.Entities = append(ret.Entities, *ent)
+		ret.Entities = append(ret.Entities, ent)
 	}
 	ret.EntitiesNotFound = calculateEntitiesNotFound(entsByPk, filter.IDs)
 
 	// Sort entities for deterministic returns
-	entComparator := func(a, b NetworkEntity) bool {
-		return storage.TypeAndKey{Type: a.Type, Key: a.Key}.String() < storage.TypeAndKey{Type: b.Type, Key: b.Key}.String()
+	entComparator := func(a, b *NetworkEntity) bool {
+		return a.GetTypeAndKey().String() < b.GetTypeAndKey().String()
 	}
 	sort.Slice(ret.Entities, func(i, j int) bool { return entComparator(ret.Entities[i], ret.Entities[j]) })
 
@@ -496,7 +494,13 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	createdEntWithPk.GraphID = newGraphID
 
 	// If we were given duplicate edges, get rid of those
-	createdEntWithPk.Associations = funk.Uniq(createdEntWithPk.Associations).([]storage.TypeAndKey)
+	if !funk.IsEmpty(createdEntWithPk.Associations) {
+		createdEntWithPk.Associations = funk.Chain(createdEntWithPk.Associations).
+			Map(func(id *EntityID) storage.TypeAndKey { return id.ToTypeAndKey() }).
+			Uniq().
+			Map(func(tk storage.TypeAndKey) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
+			Value().([]*EntityID)
+	}
 
 	return createdEntWithPk.NetworkEntity, nil
 }
@@ -552,7 +556,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 	return entToUpdate.NetworkEntity, nil
 }
 
-func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
+func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID EntityID, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
 	// Technically you could do this in one DB query with a subquery in the
 	// WHERE when selecting from the entity table.
 	// But until we hit some kind of scaling limit, let's keep the code simple
@@ -560,7 +564,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 
 	// We just care about getting the graph ID off this entity so use an empty
 	// load criteria
-	loadResult, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: []storage.TypeAndKey{entityID}}, EntityLoadCriteria{})
+	loadResult, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: []*EntityID{&entityID}}, EntityLoadCriteria{})
 	if err != nil {
 		return EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
 	}
@@ -570,7 +574,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 		loadedEnt = ent
 	}
 	if loadedEnt == nil {
-		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID)
+		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID.String())
 	}
 
 	internalGraph, err := store.loadGraphInternal(networkID, loadedEnt.GraphID, loadCriteria)
@@ -596,12 +600,14 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 	}
 
 	// To make testing easier, we'll order the returned entities by TK
-	retEnts := funk.Map(internalGraph.entsByPk, func(_ string, ent *NetworkEntity) NetworkEntity { return *ent }).([]NetworkEntity)
-	retRoots := funk.Map(rootPks, func(pk string) storage.TypeAndKey { return entTksByPk[pk] }).([]storage.TypeAndKey)
+	retEnts := funk.Map(internalGraph.entsByPk, func(_ string, ent *NetworkEntity) *NetworkEntity { return ent }).([]*NetworkEntity)
+	retRoots := funk.Map(rootPks, func(pk string) *EntityID { return &EntityID{Type: entTksByPk[pk].Type, Key: entTksByPk[pk].Key} }).([]*EntityID)
 	sort.Slice(retEnts, func(i, j int) bool {
 		return storage.IsTKLessThan(retEnts[i].GetTypeAndKey(), retEnts[j].GetTypeAndKey())
 	})
-	sort.Slice(retRoots, func(i, j int) bool { return storage.IsTKLessThan(retRoots[i], retRoots[j]) })
+	sort.Slice(retRoots, func(i, j int) bool {
+		return storage.IsTKLessThan(retRoots[i].ToTypeAndKey(), retRoots[j].ToTypeAndKey())
+	})
 
 	return EntityGraph{
 		Entities:     retEnts,

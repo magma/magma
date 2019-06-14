@@ -31,26 +31,19 @@ func NewNorthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactor
 	return &nbConfiguratorServicer{factory}, nil
 }
 
-func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *protos.LoadNetworksRequest) (*protos.LoadNetworksResponse, error) {
-	res := &protos.LoadNetworksResponse{}
+func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *protos.LoadNetworksRequest) (*storage.NetworkLoadResult, error) {
+	res := &storage.NetworkLoadResult{}
 	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return res, err
 	}
 
-	result, err := store.LoadNetworks(req.Networks, req.Criteria.ToNetworkLoadCriteria())
+	result, err := store.LoadNetworks(req.Networks, *req.Criteria)
 	if err != nil {
 		store.Rollback()
 		return res, err
 	}
-
-	res.Networks = map[string]*protos.Network{}
-	for _, network := range result.Networks {
-		pNetwork := protos.FromStorageNetwork(network)
-		res.Networks[network.ID] = pNetwork
-	}
-	res.NotFound = result.NetworkIDsNotFound
-	return res, store.Commit()
+	return &result, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) ListNetworkIDs(context context.Context, void *commonProtos.Void) (*protos.ListNetworkIDsResponse, error) {
@@ -79,18 +72,18 @@ func (srv *nbConfiguratorServicer) CreateNetworks(context context.Context, req *
 		return emptyRes, err
 	}
 
-	createdNetworks := []*protos.Network{}
+	createdNetworks := make([]*storage.Network, 0, len(req.Networks))
 	for _, network := range req.Networks {
 		err = networkConfigsAreValid(network.Configs)
 		if err != nil {
 			return emptyRes, err
 		}
-		createdNetwork, err := store.CreateNetwork(network.ToNetwork())
+		createdNetwork, err := store.CreateNetwork(*network)
 		if err != nil {
 			store.Rollback()
 			return emptyRes, err
 		}
-		createdNetworks = append(createdNetworks, protos.FromStorageNetwork(createdNetwork))
+		createdNetworks = append(createdNetworks, &createdNetwork)
 	}
 	return &protos.CreateNetworksResponse{CreatedNetworks: createdNetworks}, store.Commit()
 }
@@ -103,12 +96,12 @@ func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *
 	}
 
 	updates := []storage.NetworkUpdateCriteria{}
-	for _, pUpdate := range req.Updates {
-		err = networkConfigsAreValid(pUpdate.ConfigsToAddOrUpdate)
+	for _, update := range req.Updates {
+		err = networkConfigsAreValid(update.ConfigsToAddOrUpdate)
 		if err != nil {
 			return void, err
 		}
-		updates = append(updates, pUpdate.ToNetworkUpdateCriteria())
+		updates = append(updates, *update)
 	}
 	err = store.UpdateNetworks(updates)
 	if err != nil {
@@ -137,23 +130,19 @@ func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *
 	return void, store.Commit()
 }
 
-func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *protos.LoadEntitiesRequest) (*protos.LoadEntitiesResponse, error) {
-	emptyRes := &protos.LoadEntitiesResponse{}
+func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *protos.LoadEntitiesRequest) (*storage.EntityLoadResult, error) {
+	emptyRes := &storage.EntityLoadResult{}
 	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
 
-	loadFilter := protos.ToEntityLoadFilter(req.TypeFilter, req.KeyFilter, req.EntityIDs)
-	loadResult, err := store.LoadEntities(req.NetworkID, loadFilter, req.Criteria.ToEntityLoadCriteria())
+	loadResult, err := store.LoadEntities(req.NetworkID, *req.Filter, *req.Criteria)
 	if err != nil {
 		store.Rollback()
 		return emptyRes, err
 	}
-	return &protos.LoadEntitiesResponse{
-		Entities: protos.FromStorageNetworkEntities(loadResult.Entities),
-		NotFound: protos.FromTKs(loadResult.EntitiesNotFound),
-	}, store.Commit()
+	return &loadResult, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *protos.CreateEntitiesRequest) (*protos.CreateEntitiesResponse, error) {
@@ -163,17 +152,17 @@ func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *
 		return emptyRes, err
 	}
 
-	createdEntities := []*protos.NetworkEntity{}
+	createdEntities := []*storage.NetworkEntity{}
 	for _, entity := range req.Entities {
 		if err := entityConfigIsValid(entity.Type, entity.Config); err != nil {
 			return emptyRes, err
 		}
-		createdEntity, err := store.CreateEntity(req.NetworkID, entity.ToNetworkEntity())
+		createdEntity, err := store.CreateEntity(req.NetworkID, *entity)
 		if err != nil {
 			store.Rollback()
 			return emptyRes, err
 		}
-		createdEntities = append(createdEntities, protos.FromStorageNetworkEntity(createdEntity))
+		createdEntities = append(createdEntities, &createdEntity)
 	}
 	return &protos.CreateEntitiesResponse{CreatedEntities: createdEntities}, store.Commit()
 }
@@ -185,7 +174,7 @@ func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *
 		return emptyRes, err
 	}
 
-	updatedEntities := map[string]*protos.NetworkEntity{}
+	updatedEntities := map[string]*storage.NetworkEntity{}
 	for _, update := range req.Updates {
 		if update.NewConfig != nil {
 			if err := entityConfigIsValid(update.Type, update.NewConfig.Value); err != nil {
@@ -193,12 +182,12 @@ func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *
 			}
 		}
 
-		updatedEntity, err := store.UpdateEntity(req.NetworkID, update.ToEntityUpdateCriteria())
+		updatedEntity, err := store.UpdateEntity(req.NetworkID, *update)
 		if err != nil {
 			store.Rollback()
 			return emptyRes, err
 		}
-		updatedEntities[update.Key] = protos.FromStorageNetworkEntity(updatedEntity)
+		updatedEntities[update.Key] = &updatedEntity
 	}
 	return &protos.UpdateEntitiesResponse{UpdatedEntities: updatedEntities}, store.Commit()
 }
@@ -213,7 +202,7 @@ func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *
 	for _, entityID := range req.ID {
 		request := storage.EntityUpdateCriteria{
 			Type:         entityID.Type,
-			Key:          entityID.Id,
+			Key:          entityID.Key,
 			DeleteEntity: true,
 		}
 		_, err = store.UpdateEntity(req.NetworkID, request)

@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -183,11 +184,11 @@ func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria,
 	return nil
 }
 
-func stringPtrToVal(in *string) interface{} {
-	if *in == "" {
-		return nil
+func stringPtrToVal(value *wrappers.StringValue) interface{} {
+	if value == nil {
+		return ""
 	}
-	return *in
+	return value.Value
 }
 
 func nullStringToValue(in sql.NullString) string {

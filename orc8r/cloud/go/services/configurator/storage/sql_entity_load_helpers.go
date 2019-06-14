@@ -62,24 +62,24 @@ func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID stri
 	// The WHERE has ORs if specific IDs are provided
 	if !funk.IsEmpty(filter.IDs) {
 		orClause := make(sq.Or, 0, len(filter.IDs))
-		funk.ForEach(filter.IDs, func(tk storage.TypeAndKey) {
+		funk.ForEach(filter.IDs, func(id *EntityID) {
 			orClause = append(orClause, sq.And{
 				sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID},
-				sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): tk.Key},
-				sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): tk.Type},
+				sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): id.Key},
+				sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): id.Type},
 			})
 		})
 		selectBuilder = selectBuilder.Where(orClause)
 	} else {
-		if filter.graphID != nil {
-			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): *filter.graphID})
+		if filter.GraphID != nil {
+			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): filter.GraphID.Value})
 		} else {
 			andClause := sq.And{sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID}}
 			if filter.KeyFilter != nil {
-				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): *filter.KeyFilter})
+				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): filter.KeyFilter.Value})
 			}
 			if filter.TypeFilter != nil {
-				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): *filter.TypeFilter})
+				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): filter.TypeFilter.Value})
 			}
 			selectBuilder = selectBuilder.Where(andClause)
 		}
@@ -164,11 +164,11 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 		Version: entVersion,
 	}
 	if criteria.LoadPermissions && aclid.Valid {
-		ent.Permissions = []ACL{
+		ent.Permissions = []*ACL{
 			{
 				ID:         aclid.String,
 				Scope:      deserializeACLScope(aclscope.String),
-				Permission: ACLPermission(aclPermission.Int64),
+				Permission: ACL_Permission(aclPermission.Int64),
 				Type:       deserializeACLType(acltype.String),
 				IDFilter:   deserializeACLIDFilter(aclIdFilter),
 				Version:    uint64(aclVersion.Int64),
@@ -179,7 +179,7 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 	existingEnt, entExists := existingEntsByPkOut[pk]
 	if entExists {
 		if existingEnt.Permissions == nil {
-			existingEnt.Permissions = []ACL{}
+			existingEnt.Permissions = []*ACL{}
 		}
 		existingEnt.Permissions = append(existingEnt.Permissions, ent.Permissions...)
 	} else {
@@ -188,19 +188,19 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 	return nil
 }
 
-func deserializeACLScope(aclScope string) ACLScope {
-	if aclScope == wildcardAllString {
-		return ACLScope{Wildcard: WildcardAll}
+func deserializeACLScope(aclScope string) isACL_Scope {
+	if aclScope == ACL_WILDCARD_ALL.String() {
+		return &ACL_ScopeWildcard{ScopeWildcard: ACL_WILDCARD_ALL}
 	} else {
-		return ACLScope{NetworkIDs: strings.Split(aclScope, ",")}
+		return &ACL_ScopeNetworkIDs{ScopeNetworkIDs: &ACL_NetworkIDs{IDs: strings.Split(aclScope, ",")}}
 	}
 }
 
-func deserializeACLType(aclType string) ACLType {
-	if aclType == wildcardAllString {
-		return ACLType{Wildcard: WildcardAll}
+func deserializeACLType(aclType string) isACL_Type {
+	if aclType == ACL_WILDCARD_ALL.String() {
+		return &ACL_TypeWildcard{TypeWildcard: ACL_WILDCARD_ALL}
 	} else {
-		return ACLType{EntityType: aclType}
+		return &ACL_EntityType{EntityType: aclType}
 	}
 }
 
@@ -307,47 +307,56 @@ func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedE
 }
 
 // entsByPkOut is an output parameter but will also be returned
-func updateEntitiesWithAssocs(entsByPkOut map[string]*NetworkEntity, assocs []loadedAssoc, entTksByPk map[string]storage.TypeAndKey, loadCriteria EntityLoadCriteria) (map[string]*NetworkEntity, []GraphEdge, error) {
-	retEdges := make([]GraphEdge, 0, len(assocs))
+func updateEntitiesWithAssocs(entsByPkOut map[string]*NetworkEntity, assocs []loadedAssoc, entTksByPk map[string]storage.TypeAndKey, loadCriteria EntityLoadCriteria) (map[string]*NetworkEntity, []*GraphEdge, error) {
+	retEdges := make([]*GraphEdge, 0, len(assocs))
 	for _, assoc := range assocs {
 		fromTk, fromTkExists := entTksByPk[assoc.fromPk]
+		fromID := &EntityID{}
+		fromID.FromTypeAndKey(fromTk)
+
 		toTk, toTkExists := entTksByPk[assoc.toPk]
+		toID := &EntityID{}
+		toID.FromTypeAndKey(toTk)
 
 		if !fromTkExists && !toTkExists {
 			return entsByPkOut, retEdges, errors.Errorf("one end of assoc from %s to %s does not exist", assoc.fromPk, assoc.toPk)
 		}
-		retEdges = append(retEdges, GraphEdge{From: fromTk, To: toTk})
+		retEdges = append(retEdges, &GraphEdge{From: fromID, To: toID})
 
 		// We could load assocs to/from entities that weren't selected for loading
 		if loadCriteria.LoadAssocsFromThis {
 			fromEnt, exists := entsByPkOut[assoc.fromPk]
 			if exists {
-				fromEnt.Associations = append(fromEnt.Associations, toTk)
+				fromEnt.Associations = append(fromEnt.Associations, toID)
 			}
 		}
 		if loadCriteria.LoadAssocsToThis {
 			toEnt, exists := entsByPkOut[assoc.toPk]
 			if exists {
-				toEnt.ParentAssociations = append(toEnt.ParentAssociations, fromTk)
+				toEnt.ParentAssociations = append(toEnt.ParentAssociations, fromID)
 			}
 		}
 	}
 
-	sort.Slice(retEdges, func(i, j int) bool { return retEdges[i].String() < retEdges[j].String() })
+	sort.Slice(retEdges, func(i, j int) bool { return retEdges[i].ToString() < retEdges[j].ToString() })
 	for _, ent := range entsByPkOut {
 		if loadCriteria.LoadAssocsFromThis {
-			sort.Slice(ent.Associations, func(i, j int) bool { return storage.IsTKLessThan(ent.Associations[i], ent.Associations[j]) })
+			sort.Slice(ent.Associations, func(i, j int) bool {
+				return storage.IsTKLessThan(ent.Associations[i].ToTypeAndKey(), ent.Associations[j].ToTypeAndKey())
+			})
 		}
 		if loadCriteria.LoadAssocsToThis {
-			sort.Slice(ent.ParentAssociations, func(i, j int) bool { return storage.IsTKLessThan(ent.ParentAssociations[i], ent.ParentAssociations[j]) })
+			sort.Slice(ent.ParentAssociations, func(i, j int) bool {
+				return storage.IsTKLessThan(ent.ParentAssociations[i].ToTypeAndKey(), ent.ParentAssociations[j].ToTypeAndKey())
+			})
 		}
 	}
 	return entsByPkOut, retEdges, nil
 }
 
-func calculateEntitiesNotFound(entsByPk map[string]*NetworkEntity, requestedIDs []storage.TypeAndKey) []storage.TypeAndKey {
+func calculateEntitiesNotFound(entsByPk map[string]*NetworkEntity, requestedIDs []*EntityID) []*EntityID {
 	if funk.IsEmpty(requestedIDs) {
-		return []storage.TypeAndKey{}
+		return []*EntityID{}
 	}
 
 	foundIDsMapper := func(pk string, entity *NetworkEntity) (storage.TypeAndKey, struct{}) {
@@ -355,9 +364,10 @@ func calculateEntitiesNotFound(entsByPk map[string]*NetworkEntity, requestedIDs 
 	}
 	foundIDsSet := funk.Map(entsByPk, foundIDsMapper).(map[storage.TypeAndKey]struct{})
 
-	ret := []storage.TypeAndKey{}
+	ret := []*EntityID{}
 	for _, requestedID := range requestedIDs {
-		_, loaded := foundIDsSet[requestedID]
+		requestedTk := storage.TypeAndKey{Type: requestedID.Type, Key: requestedID.Key}
+		_, loaded := foundIDsSet[requestedTk]
 		if !loaded {
 			ret = append(ret, requestedID)
 		}

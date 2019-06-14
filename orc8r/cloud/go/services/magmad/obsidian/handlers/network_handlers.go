@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
@@ -83,15 +84,15 @@ func registerNetwork(c echo.Context) error {
 }
 
 func multiplexCreateNetworkIntoConfigurator(requestedID string, swaggerRecord *magmad_models.NetworkRecord) (string, error) {
-	network := &protos.Network{
+	network := &storage.Network{
 		Name: swaggerRecord.Name,
-		Id:   requestedID,
+		ID:   requestedID,
 	}
-	createdNetworks, err := configurator.CreateNetworks([]*protos.Network{network})
+	createdNetworks, err := configurator.CreateNetworks([]*storage.Network{network})
 	if err != nil {
 		return "", err
 	}
-	return createdNetworks[0].Id, nil
+	return createdNetworks[0].ID, nil
 }
 
 func getNetwork(c echo.Context) error {
@@ -139,11 +140,11 @@ func multiplexUpdateNetworkIntoConfigurator(networkID string, record *magmad_mod
 		_, err := multiplexCreateNetworkIntoConfigurator(networkID, record)
 		return err
 	}
-	updateCriteria := &protos.NetworkUpdateCriteria{
-		Id:      networkID,
+	updateCriteria := &storage.NetworkUpdateCriteria{
+		ID:      networkID,
 		NewName: protos.GetStringWrapper(&record.Name),
 	}
-	return configurator.UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
+	return configurator.UpdateNetworks([]*storage.NetworkUpdateCriteria{updateCriteria})
 }
 
 func deleteNetwork(c echo.Context) error {
