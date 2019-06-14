@@ -31,6 +31,6 @@ class ServiceLogErrorReporter(Job):
         self._service_config = service_config
         self._handler = handler
 
-    def _run(self):
+    async def _run(self):
         error_count = self._handler.pop_error_count()
         SERVICE_ERRORS.inc(error_count)
