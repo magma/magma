@@ -22,6 +22,7 @@ add_library(LIB_DIRECTORYD
   )
 
 target_link_libraries(LIB_DIRECTORYD
+  grpc grpc++
   LIB_RPC_CLIENT ${ASYNC_GRPC} ${SERVICE_REGISTRY}
   ${CONFIG}
 )
