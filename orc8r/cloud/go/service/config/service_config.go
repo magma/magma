@@ -16,8 +16,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"magma/orc8r/cloud/go/errors"
-
 	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
 )
@@ -97,6 +95,8 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 	if fi, err := os.Stat(configFileName); err != nil || fi.IsDir() {
 		configFileName = filepath.Join(configDir, moduleName,
 			fmt.Sprintf("%s.yml", serviceName))
+	} else {
+		log.Printf("Using Legacy Service Registry Configuration: %s", configFileName)
 	}
 
 	config, err := loadYamlFile(configFileName)
@@ -147,7 +147,7 @@ func loadYamlFile(configFileName string) (*ConfigMap, error) {
 func getStringParamImpl(cfgMap *ConfigMap, key string) (string, error) {
 	paramIface, ok := cfgMap.RawMap[key]
 	if !ok {
-		return "", errors.ErrNotFound
+		return "", fmt.Errorf("Key '%s' is Not Found in: %+v", key, cfgMap.RawMap)
 	}
 	param, ok := paramIface.(string)
 	if !ok {
