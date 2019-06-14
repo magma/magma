@@ -38,7 +38,7 @@ func LoadServiceRegistryConfig(moduleName string) ([]registry.ServiceLocation, e
 	}
 	locations, err := convertToServiceLocations(rawMap, len(config.RawMap))
 	if err != nil {
-		glog.Fatalf("Failed to load in service registry for %s: %v", moduleName, err)
+		glog.Fatalf("Failed to load in service registry for %s:%s.yml: %v", moduleName, serviceRegistryFilename, err)
 	}
 	return locations, nil
 }
@@ -83,7 +83,11 @@ func convertToServiceLocations(rawMap rawMapType, len int) ([]registry.ServiceLo
 		configMap := &config.ConfigMap{RawMap: rawMap}
 		host, err := configMap.GetStringParam("host")
 		if err != nil {
-			return nil, err
+			// Check old/py format: 'ip_address'
+			var ipErr error
+			if host, ipErr = configMap.GetStringParam("ip_address"); ipErr != nil {
+				return nil, err
+			}
 		}
 		port, err := configMap.GetIntParam("port")
 		if err != nil {
