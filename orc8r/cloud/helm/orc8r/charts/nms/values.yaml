@@ -12,6 +12,7 @@ magmalte:
     secrets: true
     deployment: true
     service: true
+    rbac: true
 
   env:
     api_host: orc8r-proxy.magma.svc.cluster.local:9443
@@ -48,6 +49,7 @@ nginx:
     secrets: true
     deployment: true
     service: true
+    rbac: true
 
   labels:
     node_selector_key: nodetype

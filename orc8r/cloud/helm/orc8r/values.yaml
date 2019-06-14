@@ -9,21 +9,20 @@
 nms:
   magmalte:
     manifests:
-      configmap: true
-      secrets: true
-      deployment: true
-      service: true
-      rbac: true
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
     image:
       repository: <registry>/magmalte
       tag: latest
   nginx:
     manifests:
-      configmap: true
-      secrets: true
-      deployment: true
-      service: true
-      rbac: true
+      configmap: false
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/

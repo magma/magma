@@ -12,6 +12,7 @@
 
 {{- $saNamespace := $envAll.Release.Namespace }}
 {{- $serviceAccountName := printf "%s-%s" .Release.Name "nginx" }}
+{{- if .Values.nginx.manifests.rbac }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -101,6 +102,7 @@ roleRef:
   kind: ClusterRole
   name: {{ $serviceAccountName }}
   apiGroup: rbac.authorization.k8s.io
+{{- end }}
 ---
 apiVersion: apps/v1
 kind: Deployment
