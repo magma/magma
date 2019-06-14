@@ -42,11 +42,17 @@ spec:
       imagePullSecrets:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
+
       volumes:
         - name: "graphite-data"
-{{ toYaml .Values.graphite.volumes.graphiteData | indent 10 }}
+  {{ if .Values.graphite.usePeristentVolumes }}
+{{ toYaml .Values.graphite.persistentVolumes.graphiteData.volumeSpec | indent 10 }}
+      {{ else }}
+{{ toYaml .Values.graphite.volumes.graphiteData.volumeSpec | indent 10 }}
+  {{ end }}
         - name: "graphite-configs"
-{{ toYaml .Values.graphite.volumes.graphiteConfigs | indent 10 }}
+          configMap:
+            name: graphite-conf
 
       containers:
         - name: "graphite"
@@ -69,4 +75,77 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 30
           resources:
-  {{ toYaml .Values.graphite.resources | indent 12 }}
+{{ toYaml .Values.graphite.resources | indent 12 }}
+
+{{ if .Values.graphite.usePersistentVolumes }}
+---
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: graphite-data-persistent
+spec:
+  capacity:
+    storage: {{ .Values.graphite.persistentVolumes.graphiteData.storageSize }}
+  accessModes:
+    - ReadWriteOnce
+{{ toYaml .Values.graphite.persistentVolumes.graphiteData.storageTypeSpec | indent 2 }}
+
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: graphite-data-claim
+spec:
+  storageClassName: {{ .Values.graphite.persistentVolumes.graphiteData.storageClass }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.graphite.persistentVolumes.graphiteData.storageSize }}
+  volumeName: graphite-data-persistent
+{{ end }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: graphite-conf
+data:
+  carbon.conf: |
+    [cache]
+    DATABASE = whisper
+    ENABLE_LOGROTATION = True
+    USER =
+    MAX_CACHE_SIZE = inf
+    MAX_UPDATES_PER_SECOND = 2000
+    MAX_CREATES_PER_MINUTE = 1000
+    MIN_TIMESTAMP_RESOLUTION = 1
+    LINE_RECEIVER_INTERFACE = 0.0.0.0
+    LINE_RECEIVER_PORT = 2003
+    ENABLE_UDP_LISTENER = False
+    UDP_RECEIVER_INTERFACE = 0.0.0.0
+    UDP_RECEIVER_PORT = 2003
+    USE_INSECURE_UNPICKLER = False
+    CACHE_QUERY_INTERFACE = 0.0.0.0
+    CACHE_QUERY_PORT = 7002
+    USE_FLOW_CONTROL = True
+    LOG_UPDATES = False
+    LOG_CREATES = False
+    LOG_CACHE_HITS = False
+    LOG_CACHE_QUEUE_SORTS = False
+    CACHE_WRITE_STRATEGY = sorted
+    WHISPER_AUTOFLUSH = False
+    WHISPER_FALLOCATE_CREATE = True
+    CARBON_METRIC_INTERVAL = 10
+    GRAPHITE_URL = http://127.0.0.1:8080
+
+  storage-schemas.conf: |
+    [carbon]
+    pattern = ^carbon\.
+    retentions = 10s:6h,1m:90d
+
+    [default_1min_for_1day]
+    pattern = .*
+    retentions = 1m:14d,15m:180d,1h:2y

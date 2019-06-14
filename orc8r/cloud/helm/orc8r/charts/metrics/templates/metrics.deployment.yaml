@@ -42,11 +42,19 @@ spec:
       imagePullSecrets:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
+
       volumes:
-        - name: "prometheus-data"
-{{ toYaml .Values.metrics.volumes.prometheusData | indent 10 }}
+  {{ if .Values.metrics.usePersistentVolumes }}
         - name: "prometheus-config"
-{{ toYaml .Values.metrics.volumes.prometheusConfig | indent 10 }}
+{{ toYaml .Values.metrics.persistentVolumes.prometheusConfig.volumeSpec | indent 10 }}
+        - name: "prometheus-data"
+{{ toYaml .Values.metrics.persistentVolumes.prometheusConfig.volumeSpec | indent 10 }}
+  {{ else }}
+        - name: "prometheus-config"
+{{ toYaml .Values.metrics.volumes.prometheusConfig.volumeSpec | indent 10 }}
+        - name: "prometheus-data"
+{{ toYaml .Values.metrics.volumes.prometheusData.volumeSpec | indent 10 }}
+  {{ end }}
 
       containers:
         - name: "prometheus"
@@ -70,7 +78,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 30
           resources:
-  {{ toYaml .Values.metrics.prometheusResources | indent 12 }}
+{{ toYaml .Values.metrics.prometheusResources | indent 12 }}
 
         - name: "alertmanager"
           image: {{ required "metrics.alertmanagerImage.repository must be provided" .Values.metrics.alertmanagerImage.repository }}:{{ .Values.metrics.alertmanagerImage.tag }}
@@ -88,7 +96,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 30
           resources:
-  {{ toYaml .Values.metrics.alertmanagerResources | indent 12 }}
+{{ toYaml .Values.metrics.alertmanagerResources | indent 12 }}
 
         - name: "config-manager"
           image: {{ required "metrics.configImage.repository must be provided" .Values.metrics.configImage.repository }}:{{ .Values.metrics.configImage.tag }}
@@ -113,6 +121,63 @@ spec:
             - name: ALERTMANAGER_URL
               value: {{ .Values.metrics.environment.alertmanagerURL | quote }}
           resources:
-  {{ toYaml .Values.metrics.configResources | indent 12 }}
+{{ toYaml .Values.metrics.configResources | indent 12 }}
 
+{{ if .Values.metrics.usePersistentVolumes }}
 
+---
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: prometheus-configs-persistent
+spec:
+  capacity:
+    storage: {{ .Values.metrics.persistentVolumes.prometheusConfig.storageSize }}
+  accessModes:
+    - ReadWriteOnce
+{{ toYaml .Values.metrics.persistentVolumes.prometheusConfig.storageTypeSpec | indent 2 }}
+
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: prometheus-config-claim
+spec:
+  storageClassName: {{ .Values.metrics.persistentVolumes.prometheusConfig.storageClass }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.metrics.persistentVolumes.prometheusConfig.storageSize }}
+  volumeName: prometheus-configs-persistent
+
+---
+
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: prometheus-data-persistent
+spec:
+  capacity:
+    storage: {{ .Values.metrics.persistentVolumes.prometheusData.storageSize }}
+  accessModes:
+    - ReadWriteOnce
+{{ toYaml .Values.metrics.persistentVolumes.prometheusData.storageTypeSpec | indent 2 }}
+
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: prometheus-data-claim
+spec:
+  storageClassName: {{ .Values.metrics.persistentVolumes.prometheusData.storageClass }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.metrics.persistentVolumes.prometheusData.storageSize }}
+  volumeName: prometheus-data-persistent
+{{ end }}

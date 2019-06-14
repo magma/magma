@@ -127,4 +127,3 @@ controller:
   # Assign proxy to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
-

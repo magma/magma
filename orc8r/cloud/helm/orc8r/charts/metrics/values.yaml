@@ -31,10 +31,33 @@ metrics:
   volumes:
     # Default volume configurations for metrics data
     prometheusData:
-      emptyDir: {}
+      volumeSpec:
+        emptyDir: {}
     prometheusConfig:
-      hostPath:
-        path: /configs/prometheus
+      volumeSpec:
+        hostPath:
+          path: /configs/prometheus
+
+  # Volume Spec for persistentVolumeClaim. Will be used if
+  # metrics.usePersistentVolumes is set
+  usePersistentVolumes: 0
+  persistentVolumes:
+    prometheusConfig:
+      storageSize:
+      volumeSpec:
+        persistentVolumeClaim:
+          claimName: prometheus-config-claim
+      storageTypeSpec: {}
+        ### Example for EBS storage
+        # awsElasticBlockStore:
+        #   volumeID:
+        #   fsType: ext4
+    prometheusData:
+      storageSize:
+      volumeSpec:
+        persistentVolumeClaim:
+          claimName: prometheus-data-claim
+      storageTypeSpec: {}
 
   prometheusImage:
     repository: docker.io/prom/prometheus
@@ -79,7 +102,6 @@ graphite:
   # Service configuration.
   service:
     annotations: {}
-    labels: {}
     type: ClusterIP
     ports:
       - name: graphite-web
@@ -92,10 +114,18 @@ graphite:
   volumes:
     # Default volume configurations for graphite data
     graphiteData:
-      emptyDir: {}
-    graphiteConfigs:
-      hostPath:
-        path: /configs/graphite
+      volumeSpec:
+        emptyDir: {}
+
+  usePersistentVolumes: 0
+  persistentVolumes:
+    graphiteData:
+      labels: {}
+      storageSize:
+      volumeSpec:
+        persistentVolumeClaim:
+          claimName: graphite-data-claim
+      storageTypeSpec: {}
 
   image:
     repository: docker.io/graphiteapp/graphite-statsd
