@@ -13,7 +13,8 @@ replace (
 
 require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.2.0
+	github.com/stretchr/testify v1.3.0
 	google.golang.org/grpc v1.17.0
+	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/cloud/go v0.0.0
 )
