@@ -422,11 +422,12 @@ int itti_send_msg_to_task(
        */
       AssertFatal(
         itti_desc.threads[destination_thread_id].task_state == TASK_STATE_READY,
-        "Task %s Cannot send message %s (%d) to thread %d, it is not in ready "
-        "state (%d)!\n",
+        "Task %s Cannot send message %s (%d) to thread %s (%d), it is not in "
+        "ready state (%d)!\n",
         itti_get_task_name(origin_task_id),
         itti_desc.messages_info[message_id].name,
         message_id,
+        itti_desc.tasks_info[destination_thread_id].name,
         destination_thread_id,
         itti_desc.threads[destination_thread_id].task_state);
       /*
