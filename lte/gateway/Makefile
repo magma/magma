@@ -83,7 +83,7 @@ build_session_manager: build_common
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 # Catch all for c services that don't have custom flags
-# This works with build_dpi and build_session_manager
+# This works with build_dpi
 build_%:
 	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, )
 
