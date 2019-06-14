@@ -16,6 +16,7 @@ find_library(LFDS lfds710 PATHS /usr/local/lib /usr/lib )
 
 add_executable(oai_fuzz
     mock_task.c
+    fuzz_s1ap.c
 )
 
 target_link_libraries(oai_fuzz
@@ -23,7 +24,7 @@ target_link_libraries(oai_fuzz
         COMMON
         LIB_3GPP LIB_S1AP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
         LIB_HASHTABLE LIB_S6A_PROXY
-        TASK_S1AP TASK_SCTP_SERVER TASK_UDP_SERVER TASK_SGS_SERVICE TASK_SGS
+        TASK_S1AP TASK_SCTP_SERVER TASK_SGS_SERVICE TASK_SGS
         TASK_S6A TASK_MME_APP TASK_S6A_SERVICE TASK_NAS TASK_SGW
         ${MSC_LIB} ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
