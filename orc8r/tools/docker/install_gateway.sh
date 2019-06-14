@@ -92,7 +92,6 @@ mkdir -p /var/opt/magma/docker
 # Copy certs and configs
 cp rootCA.pem /var/opt/magma/certs/
 cp control_proxy.yml /etc/magma/
-cp -r "$INSTALL_DIR"/magma/feg/gateway/configs /var/opt/magma/
 
 # Copy docker files
 cp docker-compose.yml /var/opt/magma/docker/
