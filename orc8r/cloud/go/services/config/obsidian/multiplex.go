@@ -11,12 +11,10 @@ package obsidian
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
-	"magma/orc8r/cloud/go/services/configurator/storage"
+	storage2 "magma/orc8r/cloud/go/storage"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 )
 
@@ -50,12 +48,7 @@ func multiplexCreateOrUpdateNetworkConfig(networkID, configType string, config i
 }
 
 func multiplexCreateOrUpdateEntityConfig(networkID, entityType, entityKey string, config interface{}) error {
-	serializedConfig, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, entityType, config)
-	if err != nil {
-		return err
-	}
-
-	err = configurator_utils.CreateNetworkEntityIfNotExists(networkID, accessGatewayEntityType, entityKey)
+	err := configurator_utils.CreateNetworkEntityIfNotExists(networkID, accessGatewayEntityType, entityKey)
 	if err != nil {
 		return err
 	}
@@ -70,18 +63,18 @@ func multiplexCreateOrUpdateEntityConfig(networkID, entityType, entityKey string
 		// second, update this entity's config
 		_, err = configurator.UpdateEntities(
 			networkID,
-			[]*storage.EntityUpdateCriteria{
+			[]configurator.EntityUpdateCriteria{
 				{
 					Type: accessGatewayEntityType,
 					Key:  entityKey,
-					AssociationsToAdd: []*storage.EntityID{
+					AssociationsToAdd: []storage2.TypeAndKey{
 						{Type: entityType, Key: entityKey},
 					},
 				},
 				{
 					Type:      entityType,
 					Key:       entityKey,
-					NewConfig: &wrappers.BytesValue{Value: serializedConfig},
+					NewConfig: config,
 				},
 			},
 		)

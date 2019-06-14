@@ -12,21 +12,22 @@ import (
 	"context"
 	"fmt"
 
-	"magma/orc8r/cloud/go/errors"
+	merrors "magma/orc8r/cloud/go/errors"
 	commonProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	storage2 "magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/pkg/errors"
 )
 
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
@@ -47,26 +48,51 @@ func ListNetworkIDs() ([]string, error) {
 }
 
 // CreateNetworks registers the given list of Networks and returns the created networks
-func CreateNetworks(networks []*storage.Network) ([]*storage.Network, error) {
+func CreateNetworks(networks []Network) ([]Network, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
 	}
-	request := &protos.CreateNetworksRequest{Networks: networks}
-	result, err := client.CreateNetworks(context.Background(), request)
+
+	req := &protos.CreateNetworksRequest{Networks: make([]*storage.Network, 0, len(networks))}
+	for _, n := range networks {
+		pNet, err := n.toStorageProto()
+		if err != nil {
+			return nil, err
+		}
+		req.Networks = append(req.Networks, pNet)
+	}
+	result, err := client.CreateNetworks(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
-	return result.CreatedNetworks, err
+
+	ret := make([]Network, len(result.CreatedNetworks))
+	for i, protoNet := range result.CreatedNetworks {
+		ent, err := ret[i].fromStorageProto(protoNet)
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = ent
+	}
+	return ret, nil
 }
 
 // UpdateNetworks updates the specified networks and returns the updated networks
-func UpdateNetworks(updates []*storage.NetworkUpdateCriteria) error {
+func UpdateNetworks(updates []NetworkUpdateCriteria) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return err
 	}
-	request := &protos.UpdateNetworksRequest{Updates: updates}
+
+	request := &protos.UpdateNetworksRequest{Updates: make([]*storage.NetworkUpdateCriteria, 0, len(updates))}
+	for _, update := range updates {
+		protoUpdate, err := update.toStorageProto()
+		if err != nil {
+			return err
+		}
+		request.Updates = append(request.Updates, protoUpdate)
+	}
 	_, err = client.UpdateNetworks(context.Background(), request)
 	return err
 }
@@ -95,7 +121,7 @@ func DoesNetworkExist(networkID string) (bool, error) {
 
 // LoadNetworks loads networks specified by networks according to criteria specified and
 // returns the result
-func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]*storage.Network, []string, error) {
+func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]Network, []string, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, nil, err
@@ -111,29 +137,32 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]*st
 	if err != nil {
 		return nil, nil, err
 	}
-	return result.Networks, result.NetworkIDsNotFound, nil
+
+	ret := make([]Network, len(result.Networks))
+	for i, n := range result.Networks {
+		retNet, err := ret[i].fromStorageProto(n)
+		if err != nil {
+			return nil, nil, err
+		}
+		ret[i] = retNet
+	}
+	return ret, result.NetworkIDsNotFound, nil
 }
 
 func UpdateNetworkConfig(networkID, configType string, config interface{}) error {
-	serializedConfig, err := serde.Serialize(NetworkConfigSerdeDomain, configType, config)
-	if err != nil {
-		return err
-	}
-	configMap := map[string][]byte{}
-	configMap[configType] = serializedConfig
-	updateCriteria := &storage.NetworkUpdateCriteria{
+	updateCriteria := NetworkUpdateCriteria{
 		ID:                   networkID,
-		ConfigsToAddOrUpdate: configMap,
+		ConfigsToAddOrUpdate: map[string]interface{}{configType: config},
 	}
-	return UpdateNetworks([]*storage.NetworkUpdateCriteria{updateCriteria})
+	return UpdateNetworks([]NetworkUpdateCriteria{updateCriteria})
 }
 
 func DeleteNetworkConfig(networkID, configType string) error {
-	updateCriteria := &storage.NetworkUpdateCriteria{
+	updateCriteria := NetworkUpdateCriteria{
 		ID:              networkID,
 		ConfigsToDelete: []string{configType},
 	}
-	return UpdateNetworks([]*storage.NetworkUpdateCriteria{updateCriteria})
+	return UpdateNetworks([]NetworkUpdateCriteria{updateCriteria})
 }
 
 func GetNetworkConfigsByType(networkID string, configType string) (interface{}, error) {
@@ -144,82 +173,105 @@ func GetNetworkConfigsByType(networkID string, configType string) (interface{}, 
 	if len(networks) == 0 {
 		return nil, fmt.Errorf("Network %s not found", networkID)
 	}
-	serializedConfig := networks[0].Configs[configType]
-	model, err := serde.Deserialize(NetworkConfigSerdeDomain, configType, serializedConfig)
-	if err != nil {
-		return nil, err
-	}
-	return model, nil
+	return networks[0].Configs[configType], nil
 }
 
 // CreateEntities registers the given entities and returns the created network entities
-func CreateEntities(networkID string, entities []*storage.NetworkEntity) ([]*storage.NetworkEntity, error) {
+func CreateEntities(networkID string, entities []NetworkEntity) ([]NetworkEntity, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
 	}
 
-	request := &protos.CreateEntitiesRequest{NetworkID: networkID, Entities: entities}
+	request := &protos.CreateEntitiesRequest{NetworkID: networkID, Entities: make([]*storage.NetworkEntity, 0, len(entities))}
+	for _, ent := range entities {
+		protoEnt, err := ent.toStorageProto()
+		if err != nil {
+			return nil, err
+		}
+		request.Entities = append(request.Entities, protoEnt)
+	}
 	response, err := client.CreateEntities(context.Background(), request)
 	if err != nil {
 		return nil, err
 	}
-	return response.CreatedEntities, err
+
+	ret := make([]NetworkEntity, len(response.CreatedEntities))
+	for i, protoEnt := range response.CreatedEntities {
+		ent, err := ret[i].fromStorageProto(protoEnt)
+		if err != nil {
+			return nil, errors.Wrap(err, "request succeeded but deserialization failed")
+		}
+		ret[i] = ent
+	}
+	return ret, err
 }
 
 // CreateInternalEntity is a loose wrapper around CreateEntities to create an
 // entity in the internal network structure
-func CreateInternalEntities(entities []*storage.NetworkEntity) ([]*storage.NetworkEntity, error) {
+func CreateInternalEntities(entities []NetworkEntity) ([]NetworkEntity, error) {
 	return CreateEntities(storage.InternalNetworkID, entities)
 }
 
 // UpdateEntities updates the registered entities and returns the updated entities
-func UpdateEntities(networkID string, updates []*storage.EntityUpdateCriteria) (map[string]*storage.NetworkEntity, error) {
+func UpdateEntities(networkID string, updates []EntityUpdateCriteria) (map[string]NetworkEntity, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
 	}
 
-	request := &protos.UpdateEntitiesRequest{NetworkID: networkID, Updates: updates}
+	request := &protos.UpdateEntitiesRequest{NetworkID: networkID, Updates: make([]*storage.EntityUpdateCriteria, 0, len(updates))}
+	for _, update := range updates {
+		upProto, err := update.toStorageProto()
+		if err != nil {
+			return nil, err
+		}
+		request.Updates = append(request.Updates, upProto)
+	}
 	response, err := client.UpdateEntities(context.Background(), request)
 	if err != nil {
 		return nil, err
 	}
-	return response.UpdatedEntities, err
+
+	ret := map[string]NetworkEntity{}
+	for id, protoEnt := range response.UpdatedEntities {
+		ent, err := (NetworkEntity{}).fromStorageProto(protoEnt)
+		if err != nil {
+			return nil, errors.Wrap(err, "request succeeded but response deserialization failed")
+		}
+		ret[id] = ent
+	}
+	return ret, err
 }
 
 // UpdateInternalEntity is a loose wrapper around UpdateEntities to update an
 // entity in the internal network structure
-func UpdateInternalEntity(updates []*storage.EntityUpdateCriteria) (map[string]*storage.NetworkEntity, error) {
+func UpdateInternalEntity(updates []EntityUpdateCriteria) (map[string]NetworkEntity, error) {
 	return UpdateEntities(storage.InternalNetworkID, updates)
 }
 
 func UpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}) error {
-	serializedConfig, err := serde.Serialize(NetworkEntitySerdeDomain, entityType, config)
-	if err != nil {
-		return err
-	}
-	updateCriteria := &storage.EntityUpdateCriteria{
+	updateCriteria := EntityUpdateCriteria{
 		Key:       entityKey,
 		Type:      entityType,
-		NewConfig: &wrappers.BytesValue{Value: serializedConfig},
+		NewConfig: config,
 	}
-	_, err = UpdateEntities(networkID, []*storage.EntityUpdateCriteria{updateCriteria})
+	_, err := UpdateEntities(networkID, []EntityUpdateCriteria{updateCriteria})
 	return err
 }
 
 func DeleteEntityConfig(networkID, entityType, entityKey string) error {
-	updateCriteria := &storage.EntityUpdateCriteria{
-		Key:       entityKey,
-		Type:      entityType,
-		NewConfig: &wrappers.BytesValue{Value: []byte("")},
+	updateCriteria := EntityUpdateCriteria{
+		Key:          entityKey,
+		Type:         entityType,
+		DeleteConfig: true,
 	}
-	_, err := UpdateEntities(networkID, []*storage.EntityUpdateCriteria{updateCriteria})
+	_, err := UpdateEntities(networkID, []EntityUpdateCriteria{updateCriteria})
 	return err
 }
 
 // DeleteEntity deletes the entity specified by networkID, type, key
-func DeleteEntities(networkID string, ids []*storage.EntityID) error {
+func DeleteEntities(networkID string, ids []storage2.TypeAndKey) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return err
@@ -228,7 +280,7 @@ func DeleteEntities(networkID string, ids []*storage.EntityID) error {
 		context.Background(),
 		&protos.DeleteEntitiesRequest{
 			NetworkID: networkID,
-			ID:        ids,
+			ID:        tksToEntIDs(ids),
 		},
 	)
 	return err
@@ -236,7 +288,7 @@ func DeleteEntities(networkID string, ids []*storage.EntityID) error {
 
 // DeleteInternalEntity is a loose wrapper around DeleteEntities to delete an
 // entity in the internal network structure
-func DeleteInternalEntities(ids []*storage.EntityID) error {
+func DeleteInternalEntities(ids []storage2.TypeAndKey) error {
 	return DeleteEntities(storage.InternalNetworkID, ids)
 }
 
@@ -247,10 +299,10 @@ func GetPhysicalIDOfEntity(networkID, entityType, entityKey string) (string, err
 		networkID,
 		nil,
 		nil,
-		[]*storage.EntityID{
+		[]storage2.TypeAndKey{
 			{Type: entityType, Key: entityKey},
 		},
-		&storage.EntityLoadCriteria{LoadMetadata: true},
+		EntityLoadCriteria{},
 	)
 	if err != nil || len(entities) != 1 {
 		return "", err
@@ -263,9 +315,9 @@ func LoadEntities(
 	networkID string,
 	typeFilter *string,
 	keyFilter *string,
-	IDs []*storage.EntityID,
-	criteria *storage.EntityLoadCriteria,
-) ([]*storage.NetworkEntity, []*storage.EntityID, error) {
+	ids []storage2.TypeAndKey,
+	criteria EntityLoadCriteria,
+) ([]NetworkEntity, []storage2.TypeAndKey, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, nil, err
@@ -278,15 +330,24 @@ func LoadEntities(
 			Filter: &storage.EntityLoadFilter{
 				TypeFilter: protos.GetStringWrapper(typeFilter),
 				KeyFilter:  protos.GetStringWrapper(keyFilter),
-				IDs:        IDs,
+				IDs:        tksToEntIDs(ids),
 			},
-			Criteria: criteria,
+			Criteria: criteria.toStorageProto(),
 		},
 	)
 	if err != nil {
 		return nil, nil, err
 	}
-	return resp.Entities, resp.EntitiesNotFound, err
+
+	ret := make([]NetworkEntity, len(resp.Entities))
+	for i, protoEnt := range resp.Entities {
+		ent, err := ret[i].fromStorageProto(protoEnt)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "request succeeded but deserialization failed")
+		}
+		ret[i] = ent
+	}
+	return ret, entIDsToTKs(resp.EntitiesNotFound), nil
 }
 
 // DoesEntityExist returns a boolean that indicated whether the entity specified
@@ -296,8 +357,8 @@ func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
 		networkID,
 		nil,
 		nil,
-		[]*storage.EntityID{{Type: entityType, Key: entityKey}},
-		&storage.EntityLoadCriteria{},
+		[]storage2.TypeAndKey{{Type: entityType, Key: entityKey}},
+		EntityLoadCriteria{},
 	)
 	if err != nil {
 		return false, err
@@ -309,7 +370,7 @@ func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
 }
 
 // LoadAllEntitiesInNetwork fetches all entities of specified type in a network
-func LoadAllEntitiesInNetwork(networkID string, entityType string, criteria *storage.EntityLoadCriteria) ([]*storage.NetworkEntity, error) {
+func LoadAllEntitiesInNetwork(networkID string, entityType string, criteria EntityLoadCriteria) ([]NetworkEntity, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, err
@@ -322,11 +383,20 @@ func LoadAllEntitiesInNetwork(networkID string, entityType string, criteria *sto
 			Filter: &storage.EntityLoadFilter{
 				TypeFilter: &wrappers.StringValue{Value: entityType},
 			},
-			Criteria: criteria,
+			Criteria: criteria.toStorageProto(),
 		},
 	)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Entities, err
+
+	ret := make([]NetworkEntity, len(resp.Entities))
+	for i, protoEnt := range resp.Entities {
+		ent, err := ret[i].fromStorageProto(protoEnt)
+		if err != nil {
+			return nil, errors.Wrapf(err, "request succeeded but deserialization failed")
+		}
+		ret[i] = ent
+	}
+	return ret, nil
 }

@@ -21,7 +21,6 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
 	"github.com/labstack/echo"
@@ -43,7 +42,7 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 
 	// Test GetCreateNetworkConfigHandler
 	_, err = configurator.CreateNetworks(
-		[]*storage.Network{{
+		[]configurator.Network{{
 			ID: networkID,
 		}})
 	assert.NoError(t, err)
@@ -129,11 +128,10 @@ func addParametersToContext(c echo.Context, networkID string, configType string)
 }
 
 func assertConfigExists(t *testing.T, networkID string, configType string, config interface{}) {
-	networks, notFound, err := configurator.LoadNetworks([]string{networkID}, true, true)
+	networks, notFound, err := configurator.LoadNetworks([]string{networkID}, false, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
-	retrievedConfig, err := serde.Deserialize(configurator.NetworkConfigSerdeDomain, configType, networks[0].Configs[configType])
-	assert.NoError(t, err)
+	retrievedConfig := networks[0].Configs[configType]
 	assert.Equal(t, config, retrievedConfig)
 }
 

@@ -20,14 +20,13 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
-	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
-	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/services/device"
 	deviceprotos "magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -128,13 +127,13 @@ func multiplexGatewayCreateIntoDeviceAndConfigurator(networkID, gatewayID string
 		return fmt.Errorf("Hwid is already registered %s", gwRecord.HwID.ID)
 	}
 	// write into configurator
-	gwEntity := &storage.NetworkEntity{
+	gwEntity := configurator.NetworkEntity{
 		Name:       gwRecord.Name,
 		Type:       configurator.GatewayEntityType,
 		Key:        gatewayID,
 		PhysicalID: gwRecord.HwID.ID,
 	}
-	_, err = configurator.CreateEntities(networkID, []*storage.NetworkEntity{gwEntity})
+	_, err = configurator.CreateEntities(networkID, []configurator.NetworkEntity{gwEntity})
 	if err != nil {
 		return err
 	}
@@ -250,12 +249,12 @@ func updateChallengeKey(networkID, gatewayID string, challengeKey *magmad_models
 }
 
 func updateGatewayName(networkID, gatewayID, name string) error {
-	updateRequest := &storage.EntityUpdateCriteria{
+	updateRequest := configurator.EntityUpdateCriteria{
 		Key:     gatewayID,
 		Type:    configurator.GatewayEntityType,
-		NewName: configuratorprotos.GetStringWrapper(&name),
+		NewName: &name,
 	}
-	_, err := configurator.UpdateEntities(networkID, []*storage.EntityUpdateCriteria{updateRequest})
+	_, err := configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateRequest})
 	return err
 }
 
@@ -291,7 +290,8 @@ func multiplexGatewayDeleteIntoDeviceAndConfigurator(networkID, gatewayID string
 	if err != nil {
 		return err
 	}
-	return configurator.DeleteEntities(networkID, []*storage.EntityID{{Key: gatewayID, Type: configurator.GatewayEntityType}})
+	return configurator.DeleteEntities(networkID, []storage.TypeAndKey{{Key: gatewayID, Type: configurator.GatewayEntityType}})
+
 }
 
 func rebootGateway(c echo.Context) error {
