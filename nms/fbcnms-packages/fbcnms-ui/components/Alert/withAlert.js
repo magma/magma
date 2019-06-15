@@ -10,7 +10,7 @@
 
 'use strict';
 
-import type {ComponentType, Node} from 'react';
+import type {ComponentType, ElementConfig, Node} from 'react';
 
 import Alert from './Alert';
 import React from 'react';
@@ -38,10 +38,13 @@ export type WithAlert = {|
   confirm: (Node | DialogProps) => Promise<*>,
 |};
 
-function withAlert<Props: {}>(
-  Component: ComponentType<Props>,
-): ComponentType<Props> {
-  return class extends React.Component<Props, State> {
+function withAlert<TComponent: ComponentType<*>>(
+  Component: TComponent,
+): ComponentType<$Diff<ElementConfig<TComponent>, WithAlert>> {
+  return class extends React.Component<
+    $Diff<ElementConfig<TComponent>, WithAlert>,
+    State,
+  > {
     state = {
       dialogs: new Map<DialogMapKey, boolean>(),
     };

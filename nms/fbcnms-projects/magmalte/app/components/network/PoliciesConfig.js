@@ -121,6 +121,7 @@ class PoliciesConfig extends React.Component<Props, State> {
   }
 
   renderAddDialog = () => (
+    // $FlowFixMe: missing rule prop. Please fix.
     <PolicyRuleEditDialog
       onCancel={this.handleCloseDialog}
       onSave={this.onAddRule}
@@ -139,6 +140,7 @@ class PoliciesConfig extends React.Component<Props, State> {
     );
     return (
       <PolicyRuleEditDialog
+        // $FlowFixMe: rule is nullable. Please fix.
         rule={rule}
         onCancel={this.handleCloseDialog}
         onSave={this.onEditRule}
