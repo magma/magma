@@ -10,23 +10,23 @@ package registry
 
 import (
 	"log"
-
-	"google.golang.org/grpc"
-
 	platform_registry "magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/service/serviceregistry"
+
+	"google.golang.org/grpc"
 )
 
 const (
 	ModuleName = "feg"
 
+	CONTROL_PROXY = "CONTROL_PROXY"
 	S6A_PROXY     = "S6A_PROXY"
 	SESSION_PROXY = "SESSION_PROXY"
 	SWX_PROXY     = "SWX_PROXY"
 	HEALTH        = "HEALTH"
 	CSFB          = "CSFB"
 	FEG_HELLO     = "FEG_HELLO"
-	AAA           = "AAA"
+	AAA           = "AAA_SERVER"
 	EAP           = "EAP"
 	EAP_AKA       = "EAP_AKA"
 	RADIUS        = "RADIUS"
@@ -78,13 +78,12 @@ func init() {
 	addLocalService(MOCK_VLR, 9203)
 	addLocalService(MOCK_HSS, 9204)
 
-	// Overwrite/Add from /etc/magma/configs/service_registry.yml if it exists
-	// moduleName is "" since all feg configs lie in /etc/magma/configs without a module name
+	// Overwrite/Add from /etc/magma/service_registry.yml if it exists
+	// moduleName is "" since all feg configs lie in /etc/magma without a module name
 	locations, err := serviceregistry.LoadServiceRegistryConfig("")
 	if err != nil {
 		log.Printf("Error loading FeG service_registry.yml: %v", err)
 	} else if len(locations) > 0 {
 		platform_registry.AddServices(locations...)
 	}
-
 }
