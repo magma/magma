@@ -73,4 +73,14 @@
   with_items:
     - export GO111MODULE=on
     - export GOPROXY=https://proxy.golang.org
+
+- name: Load service registry service vars
+  include_vars:
+    dir: ../../../../configs/
+    files_matching: service_registry.yml
+    name: service_registry
+
+- name: Add the service entries into /etc/hosts from service_registry.yml
+  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line='127.0.0.1 {{ item }}' state=present
+  with_items: "{{ service_registry.services }}"
   when: full_provision

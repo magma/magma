@@ -61,13 +61,14 @@ metricsd:
   log_level: INFO
   collect_interval: 60 # How frequently to collect metrics samples in seconds
   sync_interval: 60 # How frequently to sync to cloud in seconds
-  grpc_timeout: 30 # Timeout in seconds
+  grpc_timeout: 10 # Timeout in seconds
   queue_length: 1000 # Number of failed samples to enqueue for resend
   # List of services for metricsd to poll
   services:
-    - subscriberdb
-    - mobilityd
-    - mme
     - magmad
-    - enodebd
-    - pipelined
+    - session_proxy
+    - s6a_proxy
+    - swx_proxy
+    - eap_aka
+    - aaa_server
+    - csfb

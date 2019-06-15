@@ -17,6 +17,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	platform_registry "magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/service/config"
 
 	"github.com/stretchr/testify/assert"
@@ -43,6 +44,9 @@ func (srv *helloServer) SayHello(
 }
 
 func TestCloudConnection(t *testing.T) {
+	// Update control_proxy Host to localhost (needed for docker)
+	platform_registry.AddService(platform_registry.ServiceLocation{Name: registry.CONTROL_PROXY, Host: "127.0.0.1", Port: 50053})
+
 	lis, err := net.Listen("tcp", ":44444")
 	assert.NoError(t, err)
 

@@ -12,6 +12,6 @@
       "autoupgradeEnabled": false,
       "autoupgradePollInterval": 300,
       "package_version": "0.0.0-0"
-    },
+    }
   }
 }
