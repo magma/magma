@@ -73,6 +73,7 @@ const (
 
 const (
 	deviceServiceTable = "device"
+	StateServiceTable  = "states"
 )
 
 // duplicated constants from magmad

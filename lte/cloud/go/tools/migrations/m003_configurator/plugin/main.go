@@ -44,7 +44,13 @@ func (*plugin) RunCustomMigrations(
 	builder sqorc.StatementBuilder,
 	migratedGatewayMetasByNetwork map[string]map[string]migration.MigratedGatewayMeta,
 ) error {
-	return migratePolicydb(sc, builder, funk.Keys(migratedGatewayMetasByNetwork).([]string))
+	nids := funk.Keys(migratedGatewayMetasByNetwork).([]string)
+
+	err := migratePolicydb(sc, builder, nids)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return migrateSubscriberdb(sc, builder, nids)
 }
 
 // migrators

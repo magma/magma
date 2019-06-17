@@ -13,7 +13,7 @@ import (
 	"magma/lte/cloud/go/services/cellular/config"
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
 	"magma/lte/cloud/go/services/cellular/obsidian/models"
-	"magma/lte/cloud/go/services/cellular/state"
+	cellular_state "magma/lte/cloud/go/services/cellular/state"
 	meteringdh "magma/lte/cloud/go/services/meteringd_records/obsidian/handlers"
 	"magma/lte/cloud/go/services/policydb"
 	policydbh "magma/lte/cloud/go/services/policydb/obsidian/handlers"
@@ -31,6 +31,7 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 )
@@ -55,8 +56,10 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		&config.CellularNetworkConfigManager{},
 		&config.CellularGatewayConfigManager{},
 		&config.CellularEnodebConfigManager{},
+
 		// TODO: expose enodeb state via swagger model and change serde to swagger serde
-		&state.EnodebStateSerde{},
+		&cellular_state.EnodebStateSerde{},
+		state.NewStateSerde(lte.SubscriberStateType, &models3.SubscriberState{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(config.CellularNetworkType, &models.NetworkCellularConfigs{}),

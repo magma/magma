@@ -10,13 +10,13 @@ LICENSE file in the root directory of this source tree.
 package obsidian
 
 import (
-	"encoding"
 	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
 
 	"github.com/golang/glog"
@@ -27,8 +27,7 @@ import (
 // which can be converted to and from a corresponding configuration object
 // from the config service.
 type ConvertibleUserModel interface {
-	encoding.BinaryMarshaler
-	encoding.BinaryUnmarshaler
+	serde.BinaryConvertible
 
 	ValidateModel() error
 

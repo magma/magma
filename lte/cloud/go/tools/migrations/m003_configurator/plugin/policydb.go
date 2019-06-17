@@ -38,30 +38,7 @@ func migratePolicydb(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, net
 
 // returns pks by rule id
 func migratePolicydbRulesForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string) (map[string]string, error) {
-	// checking for the existence of a table differs widely between DB engines,
-	// so instead we'll just provisionally create table we will query.
-	// If the table didn't exist before, we'll just create it here.
-	_, err := builder.CreateTable(migration.GetLegacyTableName(networkID, policyTable)).
-		IfNotExists().
-		Column(migration.DatastoreKeyCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column(migration.DatastoreValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
-		Column(migration.DatastoreGenCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		Column(migration.DatastoreDeletedCol).Type(sqorc.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
-		RunWith(sc).
-		Exec()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to provisionally create policy rule table for network %s", networkID)
-	}
-
-	rows, err := builder.Select(migration.DatastoreKeyCol, migration.DatastoreValCol).
-		From(migration.GetLegacyTableName(networkID, policyTable)).
-		RunWith(sc).
-		Query()
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to query for rule names for network %s", networkID)
-	}
-	defer rows.Close()
-	oldRules, err := migration.UnmarshalProtoMessagesFromDatastore(rows, &types.LegacyPolicyRule{})
+	oldRules, err := migration.UnmarshalProtoMessagesFromDatastore(sc, builder, networkID, policyTable, &types.LegacyPolicyRule{})
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to load rule names for network %s", networkID)
 	}
@@ -139,26 +116,7 @@ func migratePolicyRule(oldRule *types.LegacyPolicyRule) *types.PolicyRule {
 
 func migratePolicydbBaseNamesForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string, rulePKsByID map[string]string) error {
 	// see comment on rule migration function
-	_, err := builder.CreateTable(migration.GetLegacyTableName(networkID, baseNameTable)).
-		IfNotExists().
-		Column(migration.DatastoreKeyCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column(migration.DatastoreValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
-		Column(migration.DatastoreGenCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		Column(migration.DatastoreDeletedCol).Type(sqorc.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
-		RunWith(sc).
-		Exec()
-	if err != nil {
-		return errors.Wrapf(err, "failed to provisionally create base name table for network %s", networkID)
-	}
-	rows, err := builder.Select(migration.DatastoreKeyCol, migration.DatastoreValCol).
-		From(migration.GetLegacyTableName(networkID, baseNameTable)).
-		RunWith(sc).
-		Query()
-	if err != nil {
-		return errors.Wrapf(err, "failed to query for base names for network %s", networkID)
-	}
-	defer rows.Close()
-	oldBaseNames, err := migration.UnmarshalProtoMessagesFromDatastore(rows, &types.ChargingRuleNameSet{})
+	oldBaseNames, err := migration.UnmarshalProtoMessagesFromDatastore(sc, builder, networkID, baseNameTable, &types.ChargingRuleNameSet{})
 	if funk.IsEmpty(oldBaseNames) {
 		return nil
 	}

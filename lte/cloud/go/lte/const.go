@@ -9,3 +9,8 @@ LICENSE file in the root directory of this source tree.
 package lte
 
 const ModuleName = "lte"
+
+const (
+	EnodebStateType     = "enodeb"
+	SubscriberStateType = "subscriber"
+)

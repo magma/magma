@@ -25,6 +25,7 @@ func DropNewTables(tx *sql.Tx) error {
 		EntityAssocTable,
 		EntityAclTable,
 		deviceServiceTable,
+		StateServiceTable,
 	}
 
 	for _, tableName := range tablesToDrop {
@@ -50,6 +51,21 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to create devices table")
+	}
+
+	// state service tables
+	_, err = builder.CreateTable(StateServiceTable).
+		IfNotExists().
+		Column(BlobNidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(BlobTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(BlobKeyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(BlobValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column(BlobVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		PrimaryKey(BlobNidCol, BlobTypeCol, BlobKeyCol).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		return errors.Wrap(err, "failed to create states table")
 	}
 
 	// configurator tables
