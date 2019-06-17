@@ -11,6 +11,7 @@ package exporters
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
@@ -154,7 +155,8 @@ func (e *CustomPushExporter) pushFamilies() error {
 		return fmt.Errorf("error making request: %v", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error pushing to pushgateway: %v", err)
+		respBody, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("error pushing to pushgateway: %v", string(respBody))
 	}
 	return nil
 }
