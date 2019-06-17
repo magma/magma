@@ -20,6 +20,7 @@ type plugin struct{}
 func (*plugin) GetConfigMigrators() []migration.ConfigMigrator {
 	return []migration.ConfigMigrator{
 		&networkDnsMigrator{},
+		&magmadGatewayMigrator{},
 	}
 }
 
@@ -43,6 +44,24 @@ func (*networkDnsMigrator) ToNewConfig(oldConfig []byte) ([]byte, error) {
 	}
 
 	newModel := &types.NewNetworkDNSConfig{}
+	migration.FillIn(oldMsg, newModel)
+	return newModel.MarshalBinary()
+}
+
+type magmadGatewayMigrator struct{}
+
+func (*magmadGatewayMigrator) GetType() string {
+	return "magmad_gateway"
+}
+
+func (*magmadGatewayMigrator) ToNewConfig(oldConfig []byte) ([]byte, error) {
+	oldMsg := &types.OldMagmadGatewayConfig{}
+	err := migration.Unmarshal(oldConfig, oldMsg)
+	if err != nil {
+		return nil, err
+	}
+
+	newModel := &types.MagmadGatewayConfig{}
 	migration.FillIn(oldMsg, newModel)
 	return newModel.MarshalBinary()
 }
