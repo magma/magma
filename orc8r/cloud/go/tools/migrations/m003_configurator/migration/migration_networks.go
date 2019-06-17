@@ -9,7 +9,6 @@
 package migration
 
 import (
-	"database/sql"
 	"encoding/json"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -19,8 +18,8 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MigrateNetworks(tx *sql.Tx, builder sqorc.StatementBuilder) ([]string, error) {
-	networkRecords, err := loadAllLegacyNetworks(tx, builder)
+func MigrateNetworks(sc *squirrel.StmtCache, builder sqorc.StatementBuilder) ([]string, error) {
+	networkRecords, err := loadAllLegacyNetworks(sc, builder)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -28,7 +27,7 @@ func MigrateNetworks(tx *sql.Tx, builder sqorc.StatementBuilder) ([]string, erro
 	// create networks in configurator
 	nwInsertBuilder := builder.Insert(networksTable).
 		Columns(nwIDCol, nwNameCol).
-		RunWith(tx)
+		RunWith(sc)
 	for nid, nr := range networkRecords {
 		nwInsertBuilder = nwInsertBuilder.Values(nid, nr.Name)
 	}
@@ -38,13 +37,13 @@ func MigrateNetworks(tx *sql.Tx, builder sqorc.StatementBuilder) ([]string, erro
 	}
 
 	// migrate network configs
-	migratedNwConfigs, err := getNewNetworkConfigValues(networkRecords, tx, builder)
+	migratedNwConfigs, err := getNewNetworkConfigValues(networkRecords, sc, builder)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	nwcInsertBuilder := builder.Insert(networkConfigTable).
 		Columns(nwcIDCol, nwcTypeCol, nwcValCol).
-		RunWith(tx)
+		RunWith(sc)
 	for nid, newConfigs := range migratedNwConfigs {
 		for t, v := range newConfigs {
 			nwcInsertBuilder = nwcInsertBuilder.Values(nid, t, v)
@@ -58,10 +57,10 @@ func MigrateNetworks(tx *sql.Tx, builder sqorc.StatementBuilder) ([]string, erro
 	return funk.Keys(networkRecords).([]string), nil
 }
 
-func loadAllLegacyNetworks(tx *sql.Tx, builder sqorc.StatementBuilder) (map[string]legacyNetworkRecord, error) {
+func loadAllLegacyNetworks(sc *squirrel.StmtCache, builder sqorc.StatementBuilder) (map[string]legacyNetworkRecord, error) {
 	rows, err := builder.Select(datastoreKeyCol, datastoreValCol).
 		From(NetworksTableName).
-		RunWith(tx).
+		RunWith(sc).
 		Query()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query for networks")
@@ -87,7 +86,7 @@ func loadAllLegacyNetworks(tx *sql.Tx, builder sqorc.StatementBuilder) (map[stri
 	return networkRecords, nil
 }
 
-func getNewNetworkConfigValues(networkRecords map[string]legacyNetworkRecord, tx *sql.Tx, builder sqorc.StatementBuilder) (map[string]map[string][]byte, error) {
+func getNewNetworkConfigValues(networkRecords map[string]legacyNetworkRecord, sc *squirrel.StmtCache, builder sqorc.StatementBuilder) (map[string]map[string][]byte, error) {
 	// migrate network configs in configurator
 	// first, grab all configs for each network and delegate to plugins to
 	// migrate the binary values
@@ -96,7 +95,7 @@ func getNewNetworkConfigValues(networkRecords map[string]legacyNetworkRecord, tx
 		rows, err := builder.Select(configTypeCol, configValCol).
 			From(GetLegacyTableName(nid, configTable)).
 			Where(squirrel.Eq{configKeyCol: nid}).
-			RunWith(tx).
+			RunWith(sc).
 			Query()
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to query for network configs")

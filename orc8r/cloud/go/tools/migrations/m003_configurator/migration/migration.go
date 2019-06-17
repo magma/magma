@@ -13,6 +13,7 @@ import (
 
 	"magma/orc8r/cloud/go/sqorc"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 )
 
@@ -59,6 +60,19 @@ const (
 	InternalNetworkID          = "network_magma_internal"
 	internalNetworkName        = "Internal Magma Network"
 	internalNetworkDescription = "Internal network to hold non-network entities"
+)
+
+// duplicated constants from blobstore
+const (
+	blobNidCol  = "network_id"
+	blobTypeCol = "type"
+	blobKeyCol  = "\"key\""
+	blobValCol  = "value"
+	blobVerCol  = "version"
+)
+
+const (
+	deviceServiceTable = "device"
 )
 
 // duplicated constants from magmad
@@ -126,18 +140,24 @@ func Migrate(dbDriver string, dbSource string) error {
 		return err
 	}
 
+	sc := squirrel.NewStmtCache(tx)
+	defer sc.Clear()
+
 	// migrate networks
-	_, err = MigrateNetworks(tx, sqorc.GetSqlBuilder())
+	networkIDs, err := MigrateNetworks(sc, sqorc.GetSqlBuilder())
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.Wrap(err, "failed to migrate networks")
 	}
 
-	// TODO: migrate gateway records
+	// migrate gateways
+	_, err = MigrateGateways(sc, sqorc.GetSqlBuilder(), networkIDs)
+	if err != nil {
+		_ = tx.Rollback()
+		return errors.Wrap(err, "failed to migrate gateways")
+	}
 
-	// TODO: migrate gateway configs
-
-	// TODO: migrate policydb, subscriberdb
+	// TODO: custom per-module migrations
 
 	return tx.Commit()
 }
