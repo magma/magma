@@ -18,11 +18,19 @@ import (
 
 	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
+
+const policyTable = "policydb"
+const baseNameTable = "base_names"
 
 func main() {}
 
 type plugin struct{}
+
+func GetPlugin() migration.ConfiguratorMigrationPlugin {
+	return &plugin{}
+}
 
 func (*plugin) GetConfigMigrators() []migration.ConfigMigrator {
 	return []migration.ConfigMigrator{
@@ -36,11 +44,7 @@ func (*plugin) RunCustomMigrations(
 	builder sqorc.StatementBuilder,
 	migratedGatewayMetasByNetwork map[string]map[string]migration.MigratedGatewayMeta,
 ) error {
-	panic("implement me")
-}
-
-func GetPlugin() migration.ConfiguratorMigrationPlugin {
-	return &plugin{}
+	return migratePolicydb(sc, builder, funk.Keys(migratedGatewayMetasByNetwork).([]string))
 }
 
 // migrators

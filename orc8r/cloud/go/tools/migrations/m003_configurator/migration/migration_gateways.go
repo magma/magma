@@ -57,12 +57,12 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 
 			switch ctype {
 			case "magmad_gateway":
-				_, err := builder.Update(entityTable).
-					Set(entConfCol, newVal).
+				_, err := builder.Update(EntityTable).
+					Set(EntConfCol, newVal).
 					Where(squirrel.Eq{
-						entNidCol:  networkID,
-						entTypeCol: "magmad_gateway",
-						entKeyCol:  gwID,
+						EntNidCol:  networkID,
+						EntTypeCol: "magmad_gateway",
+						EntKeyCol:  gwID,
 					}).
 					RunWith(sc).
 					Exec()
@@ -72,8 +72,8 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 				break
 			default:
 				newEntPk := uuid.New().String()
-				_, err := builder.Insert(entityTable).
-					Columns(entPkCol, entNidCol, entTypeCol, entKeyCol, entConfCol, entGidCol).
+				_, err := builder.Insert(EntityTable).
+					Columns(EntPkCol, EntNidCol, EntTypeCol, EntKeyCol, EntConfCol, EntGidCol).
 					Values(newEntPk, networkID, ctype, gwID, newVal, migratedIDsByGw[gwID].GraphID).
 					RunWith(sc).
 					Exec()
@@ -81,9 +81,9 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 					return nil, errors.Wrapf(err, "failed to create new entity for %s with key %s", ctype, gwID)
 				}
 
-				_, err = builder.Update(entityAssocTable).
-					Set(aFrCol, migratedIDsByGw[gwID].Pk).
-					Set(aToCol, newEntPk).
+				_, err = builder.Update(EntityAssocTable).
+					Set(AFrCol, migratedIDsByGw[gwID].Pk).
+					Set(AToCol, newEntPk).
 					RunWith(sc).
 					Exec()
 				if err != nil {
@@ -100,9 +100,9 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 type legacyGatewayConfigs map[string][]byte
 
 func loadAllOldGatewayConfigs(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string, gwIDs []string) (map[string]legacyGatewayConfigs, error) {
-	rows, err := builder.Select(configTypeCol, configKeyCol, configValCol).
-		From(GetLegacyTableName(networkID, configTable)).
-		Where(squirrel.Eq{configKeyCol: gwIDs}).
+	rows, err := builder.Select(ConfigTypeCol, ConfigKeyCol, ConfigValCol).
+		From(GetLegacyTableName(networkID, ConfigTable)).
+		Where(squirrel.Eq{ConfigKeyCol: gwIDs}).
 		RunWith(sc).
 		Query()
 	if err != nil {
@@ -137,7 +137,7 @@ type MigratedGatewayMeta struct {
 }
 
 func migrateGatewayRecords(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string) ([]string, map[string]MigratedGatewayMeta, error) {
-	rows, err := builder.Select(datastoreKeyCol, datastoreValCol).
+	rows, err := builder.Select(DatastoreKeyCol, DatastoreValCol).
 		From(GetLegacyTableName(networkID, AgRecordTableName)).
 		RunWith(sc).
 		Query()
@@ -181,10 +181,10 @@ func migrateGatewayRecords(sc *squirrel.StmtCache, builder sqorc.StatementBuilde
 	// We'll fill in the configs from magmad configs later
 	migratedMetasByID := map[string]MigratedGatewayMeta{}
 	recInsertBuilder := builder.Insert(deviceServiceTable).
-		Columns(blobNidCol, blobTypeCol, blobKeyCol, blobValCol).
+		Columns(BlobNidCol, BlobTypeCol, BlobKeyCol, BlobValCol).
 		RunWith(sc)
-	entInsertBuilder := builder.Insert(entityTable).
-		Columns(entPkCol, entNidCol, entTypeCol, entKeyCol, entPidCol, entGidCol).
+	entInsertBuilder := builder.Insert(EntityTable).
+		Columns(EntPkCol, EntNidCol, EntTypeCol, EntKeyCol, EntPidCol, EntGidCol).
 		RunWith(sc)
 	for logicalID, record := range gwRecords {
 		marshaledRecord, err := json.Marshal(record)

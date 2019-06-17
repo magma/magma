@@ -19,43 +19,43 @@ import (
 
 // duplicated constants from configurator
 const (
-	networksTable      = "cfg_networks"
-	networkConfigTable = "cfg_network_configs"
+	NetworksTable      = "cfg_networks"
+	NetworkConfigTable = "cfg_network_configs"
 
-	entityTable      = "cfg_entities"
-	entityAssocTable = "cfg_assocs"
-	entityAclTable   = "cfg_acls"
+	EntityTable      = "cfg_entities"
+	EntityAssocTable = "cfg_assocs"
+	EntityAclTable   = "cfg_acls"
 
-	nwIDCol   = "id"
-	nwNameCol = "name"
-	nwDescCol = "description"
-	nwVerCol  = "version"
+	NwIDCol   = "id"
+	NwNameCol = "name"
+	NwDescCol = "description"
+	NwVerCol  = "version"
 
-	nwcIDCol   = "network_id"
-	nwcTypeCol = "type"
-	nwcValCol  = "value"
+	NwcIDCol   = "network_id"
+	NwcTypeCol = "type"
+	NwcValCol  = "value"
 
-	entPkCol   = "pk"
-	entNidCol  = "network_id"
-	entTypeCol = "type"
-	entKeyCol  = "\"key\""
-	entGidCol  = "graph_id"
-	entNameCol = "name"
-	entDescCol = "description"
-	entPidCol  = "physical_id"
-	entConfCol = "config"
-	entVerCol  = "version"
+	EntPkCol   = "pk"
+	EntNidCol  = "network_id"
+	EntTypeCol = "type"
+	EntKeyCol  = "\"key\""
+	EntGidCol  = "graph_id"
+	EntNameCol = "name"
+	EntDescCol = "description"
+	EntPidCol  = "physical_id"
+	EntConfCol = "config"
+	EntVerCol  = "version"
 
-	aFrCol = "from_pk"
-	aToCol = "to_pk"
+	AFrCol = "from_pk"
+	AToCol = "to_pk"
 
-	aclIdCol       = "id"
-	aclEntCol      = "entity_pk"
-	aclScopeCol    = "scope"
-	aclPermCol     = "permission"
-	aclTypeCol     = "type"
-	aclIdFilterCol = "id_filter"
-	aclVerCol      = "version"
+	AclIdCol       = "id"
+	AclEntCol      = "entity_pk"
+	AclScopeCol    = "scope"
+	AclPermCol     = "permission"
+	AclTypeCol     = "type"
+	AclIdFilterCol = "id_filter"
+	AclVerCol      = "version"
 
 	InternalNetworkID          = "network_magma_internal"
 	internalNetworkName        = "Internal Magma Network"
@@ -64,11 +64,11 @@ const (
 
 // duplicated constants from blobstore
 const (
-	blobNidCol  = "network_id"
-	blobTypeCol = "type"
-	blobKeyCol  = "\"key\""
-	blobValCol  = "value"
-	blobVerCol  = "version"
+	BlobNidCol  = "network_id"
+	BlobTypeCol = "type"
+	BlobKeyCol  = "\"key\""
+	BlobValCol  = "value"
+	BlobVerCol  = "version"
 )
 
 const (
@@ -85,20 +85,17 @@ const (
 
 // duplicated constants from config
 const (
-	configTable   = "configurations"
-	configTypeCol = "type"
-	configKeyCol  = "\"key\""
-	configValCol  = "value"
+	ConfigTable   = "configurations"
+	ConfigTypeCol = "type"
+	ConfigKeyCol  = "\"key\""
+	ConfigValCol  = "value"
 )
 
 const (
-	datastoreKeyCol = "\"key\""
-	datastoreValCol = "value"
-)
-
-const (
-	DnsdNetworkType     = "dnsd_network"
-	CellularNetworkType = "cellular_network"
+	DatastoreKeyCol     = "\"key\""
+	DatastoreValCol     = "value"
+	DatastoreGenCol     = "generation_number"
+	DatastoreDeletedCol = "deleted"
 )
 
 const (
@@ -151,13 +148,17 @@ func Migrate(dbDriver string, dbSource string) error {
 	}
 
 	// migrate gateways
-	_, err = MigrateGateways(sc, sqorc.GetSqlBuilder(), networkIDs)
+	migratedGatewayMetas, err := MigrateGateways(sc, sqorc.GetSqlBuilder(), networkIDs)
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.Wrap(err, "failed to migrate gateways")
 	}
 
-	// TODO: custom per-module migrations
+	err = RunCustomPluginMigrations(sc, sqorc.GetSqlBuilder(), migratedGatewayMetas)
+	if err != nil {
+		_ = tx.Rollback()
+		return errors.Wrap(err, "failed to run custom plugin migration jobs")
+	}
 
 	return tx.Commit()
 }

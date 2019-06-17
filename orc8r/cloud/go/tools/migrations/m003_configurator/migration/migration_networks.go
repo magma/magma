@@ -25,8 +25,8 @@ func MigrateNetworks(sc *squirrel.StmtCache, builder sqorc.StatementBuilder) ([]
 	}
 
 	// create networks in configurator
-	nwInsertBuilder := builder.Insert(networksTable).
-		Columns(nwIDCol, nwNameCol).
+	nwInsertBuilder := builder.Insert(NetworksTable).
+		Columns(NwIDCol, NwNameCol).
 		RunWith(sc)
 	for nid, nr := range networkRecords {
 		nwInsertBuilder = nwInsertBuilder.Values(nid, nr.Name)
@@ -41,8 +41,8 @@ func MigrateNetworks(sc *squirrel.StmtCache, builder sqorc.StatementBuilder) ([]
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	nwcInsertBuilder := builder.Insert(networkConfigTable).
-		Columns(nwcIDCol, nwcTypeCol, nwcValCol).
+	nwcInsertBuilder := builder.Insert(NetworkConfigTable).
+		Columns(NwcIDCol, NwcTypeCol, NwcValCol).
 		RunWith(sc)
 	for nid, newConfigs := range migratedNwConfigs {
 		for t, v := range newConfigs {
@@ -58,7 +58,7 @@ func MigrateNetworks(sc *squirrel.StmtCache, builder sqorc.StatementBuilder) ([]
 }
 
 func loadAllLegacyNetworks(sc *squirrel.StmtCache, builder sqorc.StatementBuilder) (map[string]legacyNetworkRecord, error) {
-	rows, err := builder.Select(datastoreKeyCol, datastoreValCol).
+	rows, err := builder.Select(DatastoreKeyCol, DatastoreValCol).
 		From(NetworksTableName).
 		RunWith(sc).
 		Query()
@@ -92,9 +92,9 @@ func getNewNetworkConfigValues(networkRecords map[string]legacyNetworkRecord, sc
 	// migrate the binary values
 	migratedNwConfigs := map[string]map[string][]byte{}
 	for nid, nr := range networkRecords {
-		rows, err := builder.Select(configTypeCol, configValCol).
-			From(GetLegacyTableName(nid, configTable)).
-			Where(squirrel.Eq{configKeyCol: nid}).
+		rows, err := builder.Select(ConfigTypeCol, ConfigValCol).
+			From(GetLegacyTableName(nid, ConfigTable)).
+			Where(squirrel.Eq{ConfigKeyCol: nid}).
 			RunWith(sc).
 			Query()
 		if err != nil {

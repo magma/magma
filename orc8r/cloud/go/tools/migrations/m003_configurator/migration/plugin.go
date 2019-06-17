@@ -44,14 +44,7 @@ type ConfigMigrator interface {
 const defaultPluginDir = "/var/opt/magma/plugins/migrations/m003_configurator"
 const factoryFunction = "GetPlugin"
 
-// allow override for local testing
-func getPluginDir() string {
-	override, found := os.LookupEnv("PLUGIN_DIR_OVERRIDE")
-	if found {
-		return override
-	}
-	return defaultPluginDir
-}
+var allPlugins = []ConfiguratorMigrationPlugin{}
 
 func LoadPlugins() error {
 	_, err := os.Stat(getPluginDir())
@@ -94,6 +87,16 @@ func LoadPlugins() error {
 
 			migratorRegistry[migrator.GetType()] = migrator
 		}
+		allPlugins = append(allPlugins, plug)
 	}
 	return nil
+}
+
+// allow override for local testing
+func getPluginDir() string {
+	override, found := os.LookupEnv("PLUGIN_DIR_OVERRIDE")
+	if found {
+		return override
+	}
+	return defaultPluginDir
 }

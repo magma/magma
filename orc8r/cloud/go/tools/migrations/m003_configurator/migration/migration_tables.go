@@ -19,11 +19,11 @@ import (
 
 func DropNewTables(tx *sql.Tx) error {
 	tablesToDrop := []string{
-		networksTable,
-		networkConfigTable,
-		entityTable,
-		entityAssocTable,
-		entityAclTable,
+		NetworksTable,
+		NetworkConfigTable,
+		EntityTable,
+		EntityAssocTable,
+		EntityAclTable,
 		deviceServiceTable,
 	}
 
@@ -40,12 +40,12 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 	// device service tables
 	_, err := builder.CreateTable(deviceServiceTable).
 		IfNotExists().
-		Column(blobNidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(blobTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(blobKeyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(blobValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
-		Column(blobVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		PrimaryKey(blobNidCol, blobTypeCol, blobKeyCol).
+		Column(BlobNidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(BlobTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(BlobKeyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(BlobValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column(BlobVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		PrimaryKey(BlobNidCol, BlobTypeCol, BlobKeyCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -53,25 +53,25 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 	}
 
 	// configurator tables
-	_, err = builder.CreateTable(networksTable).
+	_, err = builder.CreateTable(NetworksTable).
 		IfNotExists().
-		Column(nwIDCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column(nwNameCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(nwDescCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(nwVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Column(NwIDCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(NwNameCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(NwDescCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(NwVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		RunWith(tx).
 		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to create networks table")
 	}
 
-	_, err = builder.CreateTable(networkConfigTable).
+	_, err = builder.CreateTable(NetworkConfigTable).
 		IfNotExists().
-		Column(nwcIDCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(nwcTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(nwcValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
-		PrimaryKey(nwcIDCol, nwcTypeCol).
-		ForeignKey(networksTable, map[string]string{nwcIDCol: nwIDCol}, sqorc.ColumnOnDeleteCascade).
+		Column(NwcIDCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(NwcTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(NwcValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		PrimaryKey(NwcIDCol, NwcTypeCol).
+		ForeignKey(NetworksTable, map[string]string{NwcIDCol: NwIDCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -80,49 +80,49 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 
 	// Create an internal-only primary key (UUID) for entities.
 	// This keeps index size in control and supporting table schemas simpler.
-	_, err = builder.CreateTable(entityTable).
+	_, err = builder.CreateTable(EntityTable).
 		IfNotExists().
-		Column(entPkCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column(entNidCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(entTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(entKeyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(entGidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(entNameCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(entDescCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(entPidCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(entConfCol).Type(sqorc.ColumnTypeBytes).EndColumn().
-		Column(entVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		Unique(entNidCol, entKeyCol, entTypeCol).
-		ForeignKey(networksTable, map[string]string{entNidCol: nwIDCol}, sqorc.ColumnOnDeleteCascade).
+		Column(EntPkCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(EntNidCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(EntTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(EntKeyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(EntGidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(EntNameCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(EntDescCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(EntPidCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(EntConfCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column(EntVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Unique(EntNidCol, EntKeyCol, EntTypeCol).
+		ForeignKey(NetworksTable, map[string]string{EntNidCol: NwIDCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to create entities table")
 	}
 
-	_, err = builder.CreateTable(entityAssocTable).
+	_, err = builder.CreateTable(EntityAssocTable).
 		IfNotExists().
-		Column(aFrCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(aToCol).Type(sqorc.ColumnTypeText).EndColumn().
-		PrimaryKey(aFrCol, aToCol).
-		ForeignKey(entityTable, map[string]string{aFrCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
-		ForeignKey(entityTable, map[string]string{aToCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
+		Column(AFrCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(AToCol).Type(sqorc.ColumnTypeText).EndColumn().
+		PrimaryKey(AFrCol, AToCol).
+		ForeignKey(EntityTable, map[string]string{AFrCol: EntPkCol}, sqorc.ColumnOnDeleteCascade).
+		ForeignKey(EntityTable, map[string]string{AToCol: EntPkCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to create entity assoc table")
 	}
 
-	_, err = builder.CreateTable(entityAclTable).
+	_, err = builder.CreateTable(EntityAclTable).
 		IfNotExists().
-		Column(aclIdCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column(aclEntCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(aclScopeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(aclPermCol).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
-		Column(aclTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(aclIdFilterCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(aclVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		ForeignKey(entityTable, map[string]string{aclEntCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
+		Column(AclIdCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(AclEntCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(AclScopeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(AclPermCol).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
+		Column(AclTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(AclIdFilterCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(AclVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		ForeignKey(EntityTable, map[string]string{AclEntCol: EntPkCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -132,8 +132,8 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 	// Create indexes (index is not implicitly created on a referencing FK)
 	_, err = builder.CreateIndex("graph_id_idx").
 		IfNotExists().
-		On(entityTable).
-		Columns(entGidCol).
+		On(EntityTable).
+		Columns(EntGidCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -142,8 +142,8 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 
 	_, err = builder.CreateIndex("acl_ent_pk_idx").
 		IfNotExists().
-		On(entityAclTable).
-		Columns(aclEntCol).
+		On(EntityAclTable).
+		Columns(AclEntCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -151,10 +151,10 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 	}
 
 	// Create internal network(s)
-	_, err = builder.Insert(networksTable).
-		Columns(nwIDCol, nwNameCol, nwDescCol).
+	_, err = builder.Insert(NetworksTable).
+		Columns(NwIDCol, NwNameCol, NwDescCol).
 		Values(InternalNetworkID, internalNetworkName, internalNetworkDescription).
-		OnConflict(nil, nwIDCol).
+		OnConflict(nil, NwIDCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
