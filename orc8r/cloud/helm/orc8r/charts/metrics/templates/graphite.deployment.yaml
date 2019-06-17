@@ -66,8 +66,9 @@ spec:
               mountPath: /opt/graphite/storage/whisper
             - name: "graphite-configs"
               mountPath: /opt/graphite/conf
-          environment:
-            - REDIS_TAGDB=1
+          env:
+            - name: REDIS_TAGDB
+              value: "1"
           livenessProbe:
             httpGet:
               path: /
