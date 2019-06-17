@@ -44,13 +44,13 @@ func main() {
 
 	nbServicer, err := servicers.NewNorthboundConfiguratorServicer(factory)
 	if err != nil {
-		glog.Fatalf("Failed to instantiate the device servicer: %v", nbServicer)
+		glog.Fatalf("Failed to instantiate the user-facing configurator servicer: %v", nbServicer)
 	}
 	protos.RegisterNorthboundConfiguratorServer(srv.GrpcServer, nbServicer)
 
 	sbServicer, err := servicers.NewSouthboundConfiguratorServicer(factory)
 	if err != nil {
-		glog.Fatalf("Failed to instantiate the device servicer: %v", sbServicer)
+		glog.Fatalf("Failed to instantiate the device-facing configurator servicer: %v", sbServicer)
 	}
 	protos.RegisterSouthboundConfiguratorServer(srv.GrpcServer, sbServicer)
 
