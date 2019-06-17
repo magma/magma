@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-//go:generate bash -c "protoc -I . -I /usr/include --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
+//go:generate bash -c "protoc -I . --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
 package storage
 
 import (
@@ -158,6 +158,13 @@ func (m *EntityUpdateCriteria) GetID() *EntityID {
 
 func (m *EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
 	return storage.TypeAndKey{Type: m.Type, Key: m.Key}
+}
+
+func (m *EntityUpdateCriteria) getEdgesToCreate() []*EntityID {
+	if !funk.IsEmpty(m.AssociationsToSet) {
+		return m.AssociationsToSet
+	}
+	return m.AssociationsToAdd
 }
 
 func (m *GraphEdge) ToString() string {

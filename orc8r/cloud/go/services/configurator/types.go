@@ -258,6 +258,7 @@ type EntityUpdateCriteria struct {
 	// Set to true to clear the entity's config
 	DeleteConfig bool
 
+	AssociationsToSet    []storage2.TypeAndKey
 	AssociationsToAdd    []storage2.TypeAndKey
 	AssociationsToDelete []storage2.TypeAndKey
 }
@@ -270,6 +271,7 @@ func (euc EntityUpdateCriteria) toStorageProto() (*storage.EntityUpdateCriteria,
 		NewName:              strPtrToWrapper(euc.NewName),
 		NewDescription:       strPtrToWrapper(euc.NewDescription),
 		NewPhysicalID:        strPtrToWrapper(euc.NewPhysicalID),
+		AssociationsToSet:    tksToEntIDs(euc.AssociationsToSet),
 		AssociationsToAdd:    tksToEntIDs(euc.AssociationsToAdd),
 		AssociationsToDelete: tksToEntIDs(euc.AssociationsToDelete),
 	}

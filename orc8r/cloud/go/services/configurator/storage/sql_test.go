@@ -895,12 +895,12 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 
 			assocs := []*storage.EntityID{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}}
 			edgesByTk := map[storage2.TypeAndKey]expectedEntQueryResult{
-				{Type: "bar", Key: "baz"}: {"bar", "baz", "42", "", "aaa", 1},
-				{Type: "baz", Key: "quz"}: {"baz", "quz", "43", "", "zzz", 2},
+				{Type: "bar", Key: "baz"}: {"bar", "baz", "42", "", "1", 1},
+				{Type: "baz", Key: "quz"}: {"baz", "quz", "43", "", "3", 2},
 			}
 			expectEdgeQueries(m, assocs, edgesByTk)
 			expectEdgeInsertions(m, assocsToEdges("1", assocs, edgesByTk))
-			expectMergeGraphs(m, [][2]string{{"2", "aaa"}, {"zzz", "aaa"}})
+			expectMergeGraphs(m, [][2]string{{"2", "1"}, {"3", "1"}})
 		},
 		run: runFactory(
 			"network",
@@ -924,7 +924,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 			Key:         "bar",
 			Name:        "foobar",
 			Description: "foobar ent",
-			GraphID:     "aaa",
+			GraphID:     "1",
 			Associations: []*storage.EntityID{
 				{Type: "bar", Key: "baz"},
 				{Type: "baz", Key: "quz"},
@@ -1158,6 +1158,28 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 
 	// edges
 
+	// Set edges, merge graphs
+	runCase(
+		t,
+		getTestCaseForEntityUpdate(
+			storage.EntityUpdateCriteria{
+				Type: "foo",
+				Key:  "bar",
+				AssociationsToSet: []*storage.EntityID{
+					{Type: "bar", Key: "baz"},
+					{Type: "baz", Key: "quz"},
+				},
+			},
+			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
+			[]expectedEntQueryResult{
+				{"bar", "baz", "2", "", "g2", 0},
+				{"baz", "quz", "3", "", "g3", 0},
+			},
+			[2]string{"g2", "g1"},
+			[2]string{"g3", "g1"},
+		),
+	)
+
 	// Create edges, merge graphs
 	runCase(
 		t,
@@ -1175,8 +1197,8 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 				{"bar", "baz", "2", "", "g1", 0},
 				{"baz", "quz", "3", "", "g2", 0},
 			},
-			[2]string{"g9", "g1"},
 			[2]string{"g2", "g1"},
+			[2]string{"g9", "g1"},
 		),
 	)
 
@@ -1552,6 +1574,9 @@ func getTestCaseForEntityUpdate(
 	if !funk.IsEmpty(update.AssociationsToAdd) {
 		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToAdd...)
 	}
+	if !funk.IsEmpty(update.AssociationsToSet) {
+		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToSet...)
+	}
 
 	if !funk.IsEmpty(expectedGraphMerges) {
 		expectedResult.GraphID = expectedGraphMerges[0][1]
@@ -1595,6 +1620,19 @@ func getTestCaseForEntityUpdate(
 			}
 
 			// Graph
+			if !funk.IsEmpty(update.AssociationsToSet) {
+				m.ExpectExec("DELETE FROM cfg_assocs").WithArgs(entToUpdate.pk).WillReturnResult(mockResult)
+				expectEdgeQueries(m, update.AssociationsToSet, edgeLoadsByTk)
+				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToSet, edgeLoadsByTk))
+				if !funk.IsEmpty(expectedGraphMerges) {
+					expectMergeGraphs(m, expectedGraphMerges)
+				}
+
+				// fix graph, but no partition detected
+				expectBulkEntityQuery(m, []driver.Value{entToUpdate.graphID}, entToUpdate)
+				expectAssocQuery(m, []driver.Value{entToUpdate.pk, entToUpdate.pk})
+			}
+
 			if !funk.IsEmpty(update.AssociationsToAdd) {
 				expectEdgeQueries(m, update.AssociationsToAdd, edgeLoadsByTk)
 				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToAdd, edgeLoadsByTk))

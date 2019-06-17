@@ -419,7 +419,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		storage.NetworkEntity{
 			Type:       "hello",
 			Key:        "world",
-			GraphID:    "2",
+			GraphID:    "10",
 			PhysicalID: newPhysID,
 			Associations: []*storage.EntityID{
 				{Type: "foo", Key: "bar"},
@@ -437,7 +437,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		{Type: "baz", Key: "quz"},
 		{Type: "foo", Key: "bar"},
 	}
-	expectedHelloWorldEnt.GraphID = "2"
+	expectedHelloWorldEnt.GraphID = "10"
 	expectedHelloWorldEnt.Permissions = []*storage.ACL{
 		{
 			ID:         "11",
@@ -480,7 +480,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Load a graph directly via ID
-	actualGraph2, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.EntityLoadCriteria{})
+	actualGraph10, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.EntityLoadCriteria{})
 	assert.NoError(t, err)
 
 	expectedFoobarEnt.ParentAssociations = append(expectedFoobarEnt.ParentAssociations, &storage.EntityID{Type: "hello", Key: "world"})
@@ -490,7 +490,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedFoobarEnt = storage.NetworkEntity{
 		Type:       "foo",
 		Key:        "bar",
-		GraphID:    "2",
+		GraphID:    "10",
 		PhysicalID: "1",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "baz", Key: "quz"},
@@ -501,7 +501,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBarbazEnt = storage.NetworkEntity{
 		Type:    "bar",
 		Key:     "baz",
-		GraphID: "2",
+		GraphID: "10",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "baz", Key: "quz"},
 			{Type: "hello", Key: "world"},
@@ -511,7 +511,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBazquzEnt = storage.NetworkEntity{
 		Type:    "baz",
 		Key:     "quz",
-		GraphID: "2",
+		GraphID: "10",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "hello", Key: "world"},
 		},
@@ -524,7 +524,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedHelloWorldEnt = storage.NetworkEntity{
 		Type:       "hello",
 		Key:        "world",
-		GraphID:    "2",
+		GraphID:    "10",
 		PhysicalID: "asdf",
 		Associations: []*storage.EntityID{
 			{Type: "bar", Key: "baz"},
@@ -534,7 +534,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		Version: 2,
 	}
 
-	expectedGraph2 := storage.EntityGraph{
+	expectedGraph10 := storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -550,15 +550,15 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	assert.Equal(t, expectedGraph10, actualGraph10)
 
 	// Load a graph from the ID of a node in the middle
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "baz", Key: "quz"}, storage.EntityLoadCriteria{})
+	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "baz", Key: "quz"}, storage.EntityLoadCriteria{})
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	assert.Equal(t, expectedGraph10, actualGraph10)
 
 	// Load a graph with full load criteria
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
 
 	expectedFoobarEnt.Name = "foobar"
@@ -605,7 +605,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 	}
 
-	expectedGraph2 = storage.EntityGraph{
+	expectedGraph10 = storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -621,7 +621,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	assert.Equal(t, expectedGraph10, actualGraph10)
 	assert.NoError(t, store.Commit())
 
 	// TODO: orphan some graph nodes (blocked on impl of fixGraph)
@@ -660,7 +660,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedFoobarEnt.ParentAssociations = []*storage.EntityID{{Type: "baz", Key: "quz"}}
 	expectedBarbazEnt.ParentAssociations = []*storage.EntityID{{Type: "baz", Key: "quz"}}
 
-	expectedGraph2 = storage.EntityGraph{
+	expectedGraph10 = storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -674,9 +674,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "baz", Key: "quz"}},
 		},
 	}
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
+	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	assert.Equal(t, expectedGraph10, actualGraph10)
 
 	// delete assoc to bazquz, helloworld should have a new graph ID
 	_, err = store.UpdateEntity(
@@ -696,7 +696,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBazquzEnt.ParentAssociations = nil
 
 	// first, check graph of foobar which should be unchanged
-	expectedGraph2 = storage.EntityGraph{
+	expectedGraph10 = storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -708,9 +708,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "baz", Key: "quz"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph2, actualGraph2)
+	assert.Equal(t, expectedGraph10, actualGraph10)
 
 	// helloworld should be in its own graph now. ID generator was at 13
 	expectedGraph13 := storage.EntityGraph{
@@ -736,6 +736,54 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBarbazEnt.ParentAssociations = nil
 	expectedFoobarEnt.GraphID = "14"
 	expectedFoobarEnt.ParentAssociations = nil
+
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				&expectedBarbazEnt,
+				&expectedFoobarEnt,
+				&expectedHelloWorldEnt,
+			},
+			EntitiesNotFound: []*storage.EntityID{},
+		},
+		allEnts,
+	)
+
+	// associate helloworld -> foobar, then set helloworld's associations to
+	// just -> barbaz
+	_, err = store.UpdateEntity(
+		"n1",
+		storage.EntityUpdateCriteria{
+			Type: "hello",
+			Key:  "world",
+			AssociationsToAdd: []*storage.EntityID{
+				{Type: "foo", Key: "bar"},
+			},
+		},
+	)
+	assert.NoError(t, err)
+	_, err = store.UpdateEntity(
+		"n1",
+		storage.EntityUpdateCriteria{
+			Type: "hello",
+			Key:  "world",
+			AssociationsToSet: []*storage.EntityID{
+				{Type: "bar", Key: "baz"},
+			},
+		},
+	)
+
+	expectedHelloWorldEnt.Associations = []*storage.EntityID{{Type: "bar", Key: "baz"}}
+	expectedBarbazEnt.ParentAssociations = []*storage.EntityID{{Type: "hello", Key: "world"}}
+	expectedBarbazEnt.GraphID = "10"
+	expectedHelloWorldEnt.GraphID = "10"
+	expectedFoobarEnt.GraphID = "15"
+	expectedHelloWorldEnt.Version = 6
+
+	allEnts, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.NotNil(t, allEnts)
 
 	assert.Equal(
 		t,

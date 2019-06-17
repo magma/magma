@@ -174,18 +174,15 @@ func (store *sqlConfiguratorStorage) loadEntsWithPksByTK(networkID string, tksTo
 }
 
 func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAssociatedEntsByTk map[storage.TypeAndKey]entWithPk) (string, error) {
-	// If we create a node which bridges 2 previously disjoint graphs, then
-	// we need to change the ID of one of the graphs to the joined one.
+	// If we create a node or edge which bridges 2 previously disjoint graphs,
+	// then we need to change the ID of one of the graphs to the joined one.
 
 	// If we associate to no graphs, then no-op - we'll use the
 	// system-generated graph ID for this single-node graph.
 
-	// If we associate to only 1 graph, then we'll overwrite this node's
-	// graph ID with the ID of that graph.
-
-	// If we associate to 2+ graphs, this means that we need to merge all of
-	// them into a single graph. Pick the lexicographically smallest graph ID
-	// to use as the ID for the final graph
+	// Otherwise, we'll take the lexicographically smallest graph ID to keep
+	// and change the graph ID of every entity of the other graphs to this
+	// target graph ID.
 	adjacentGraphs := funk.Chain(createdEntity.Associations).
 		Map(func(id *EntityID) string { return allAssociatedEntsByTk[id.ToTypeAndKey()].GraphID }).
 		Uniq().
@@ -195,12 +192,12 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 		return createdEntity.GraphID, nil
 	}
 
+	if !funk.ContainsString(adjacentGraphs, createdEntity.GraphID) {
+		adjacentGraphs = append(adjacentGraphs, createdEntity.GraphID)
+	}
 	sort.Strings(adjacentGraphs)
 	targetGraphID := adjacentGraphs[0]
-	graphIDsToChange := []string{createdEntity.GraphID}
-	for _, oldGraphID := range adjacentGraphs[1:] {
-		graphIDsToChange = append(graphIDsToChange, oldGraphID)
-	}
+	graphIDsToChange := adjacentGraphs[1:]
 
 	// let squirrel cache prepared statements for us (there should only be 1)
 	sc := sq.NewStmtCache(store.tx)
@@ -293,13 +290,26 @@ func (store *sqlConfiguratorStorage) processPermissionUpdates(networkID string, 
 
 // entToUpdateOut is an output parameter
 func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update EntityUpdateCriteria, entToUpdateOut *entWithPk) error {
-	if funk.IsEmpty(update.AssociationsToAdd) && funk.IsEmpty(update.AssociationsToDelete) {
+	if funk.IsEmpty(update.AssociationsToSet) && funk.IsEmpty(update.AssociationsToAdd) && funk.IsEmpty(update.AssociationsToDelete) {
 		return nil
+	}
+
+	// If we want to set associations all at once, we'll first delete all
+	// associations
+	if !funk.IsEmpty(update.AssociationsToSet) {
+		_, err := store.builder.Delete(entityAssocTable).
+			Where(sq.Eq{aFrCol: entToUpdateOut.pk}).
+			RunWith(store.tx).
+			Exec()
+		if err != nil {
+			return errors.Wrap(err, "failed to delete existing edges")
+		}
 	}
 
 	// First, create edges. Because createEdges expects an entWithPk,
 	// we'll just make the ent's Associations the edges we want to create
-	entToUpdateOut.Associations = update.AssociationsToAdd
+	// If we want to set associations, we'll create those
+	entToUpdateOut.Associations = update.getEdgesToCreate()
 	newlyAssociatedEntsByTk, err := store.createEdges(networkID, *entToUpdateOut)
 	if err != nil {
 		entToUpdateOut.Associations = nil
@@ -326,7 +336,7 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	// we need to do a connected component search. If we come up with multiple
 	// components, then each new component needs to be updated with a new
 	// graph ID.
-	if funk.IsEmpty(update.AssociationsToDelete) {
+	if funk.IsEmpty(update.AssociationsToDelete) && funk.IsEmpty(update.AssociationsToSet) {
 		return nil
 	}
 
