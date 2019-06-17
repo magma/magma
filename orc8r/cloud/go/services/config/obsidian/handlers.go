@@ -10,11 +10,11 @@ LICENSE file in the root directory of this source tree.
 package obsidian
 
 import (
+	"encoding"
 	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
-	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/config"
@@ -27,17 +27,24 @@ import (
 // which can be converted to and from a corresponding configuration object
 // from the config service.
 type ConvertibleUserModel interface {
+	encoding.BinaryMarshaler
+	encoding.BinaryUnmarshaler
+
 	ValidateModel() error
+
+	// DEPRECATED
 	ToServiceModel() (interface{}, error)
+
+	// DEPRECATED
 	FromServiceModel(serviceModel interface{}) error
 }
 
 type ConfigType int
 
 const (
-	NETWORK        ConfigType = 1
-	NETWORK_ENTITY ConfigType = 2
-	UNRECOGNIZED   ConfigType = 3
+	Network      ConfigType = 1
+	Entity       ConfigType = 2
+	Unrecognized ConfigType = 3
 )
 
 // instantiateNewConvertibleUserModel creates a new, empty instance of the
@@ -172,6 +179,19 @@ func GetReadConfigHandler(
 			}
 			return handleGetConfig(c, networkId, configType, configKey, userModel)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorGetNetworkConfig(c, networkId, configType)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
 	}
 }
 
@@ -234,6 +254,19 @@ func GetCreateConfigHandler(
 			}
 			return handleCreateConfig(c, networkId, configType, configKey, userModel)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorCreateNetworkConfig(c, networkId, configType, userModel)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
 	}
 }
 
@@ -268,27 +301,7 @@ func handleCreateConfig(c echo.Context, networkId string, configType string, con
 	if err := config.CreateConfig(networkId, configType, configKey, iConfig); err != nil {
 		return handlers.HttpError(fmt.Errorf("Error creating config: %s", err), http.StatusInternalServerError)
 	}
-
-	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, userModel)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Success creating config, but failed to multiplex into configurator: %s", err), http.StatusInternalServerError)
-	}
-
 	return c.JSON(http.StatusCreated, configKey)
-}
-
-// Since the config service does not differentiate between configs that belong
-// to networks vs network entities, this is a bit of a hack that relies on the
-// current naming pattern to differentiate between the two.
-func getConfigTypeForConfigurator(configType string) ConfigType {
-	splittedConfigType := strings.Split(configType, "_")
-	if len(splittedConfigType) > 1 && splittedConfigType[1] == "network" {
-		return NETWORK
-	} else if len(splittedConfigType) == 1 || splittedConfigType[1] == "gateway" {
-		return NETWORK_ENTITY
-	} else {
-		return UNRECOGNIZED
-	}
 }
 
 // GetUpdateConfigHandler returns an obsidian handler for updating a config
@@ -319,6 +332,19 @@ func GetUpdateConfigHandler(
 				return err
 			}
 			return handleConfigUpdate(c, networkId, configType, configKey, userModel)
+		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, err := handlers.GetNetworkId(c)
+			if err != nil {
+				return err
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
 		},
 	}
 }
@@ -353,12 +379,6 @@ func handleConfigUpdate(c echo.Context, networkId string, configType string, con
 	if err := config.UpdateConfig(networkId, configType, configKey, iConfig); err != nil {
 		return handlers.HttpError(fmt.Errorf("Error updating config: %s", err), http.StatusInternalServerError)
 	}
-
-	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, userModel)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Success updating config, but failed to multiplex into configurator: %s", err), http.StatusInternalServerError)
-	}
-
 	return c.NoContent(http.StatusOK)
 }
 
@@ -384,6 +404,19 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 			}
 			return handleConfigDelete(c, networkId, configType, configKey)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, err := handlers.GetNetworkId(c)
+			if err != nil {
+				return err
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorDeleteNetworkConfig(c, networkId, configType)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
 	}
 }
 
@@ -405,11 +438,5 @@ func handleConfigDelete(c echo.Context, networkId string, configType string, con
 	if err := config.DeleteConfig(networkId, configType, configKey); err != nil {
 		return handlers.HttpError(fmt.Errorf("Error deleting config: %s", err), http.StatusInternalServerError)
 	}
-
-	err := multiplexDeleteConfigIntoConfigurator(networkId, configType, configKey)
-	if err != nil {
-		glog.Errorf("Success deleting config, but failed to multiplex into configurator: %s", err)
-	}
-
 	return c.NoContent(http.StatusOK)
 }

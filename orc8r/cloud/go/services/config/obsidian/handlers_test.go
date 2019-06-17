@@ -26,7 +26,6 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	config2 "magma/orc8r/cloud/go/services/magmad/config"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	storage2 "magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -203,9 +202,6 @@ func TestCreateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &fooConfig{Foo: "foo", Bar: "bar"}, actual)
 
-	// Test changes are properly reflected in configurator
-	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
-
 	glog.Errorf("IGNORE REST")
 	// Validate (convert) error
 	post = `{"Val": 1}`
@@ -269,9 +265,6 @@ func TestUpdateConfigHandler(t *testing.T) {
 	actualFoo, err := config.GetConfig("network1", "foo", "key")
 	assert.Equal(t, &fooConfig{Foo: "bar", Bar: "foo"}, actualFoo)
 
-	// Test changes are properly reflected in configurator
-	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "bar", Bar: "foo"})
-
 	// Validate (convert) error
 	post = `{"Value": 1}`
 	req = httptest.NewRequest(echo.POST, "/", strings.NewReader(post))
@@ -331,9 +324,6 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	/// Test changes are properly reflected in configurator
-	testEntityConfigsNotInConfigurator(t, "network1", "foo", "key")
-
 	// Config service error - deleting nonexistent config
 	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
 	assert.Error(t, err)
@@ -341,35 +331,6 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.Contains(t, err.Error(), "Deleting nonexistent config")
 
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-}
-
-func testEntityConfigsInConfigurator(t *testing.T, networkID, entityType, entityID string, expectedConfig interface{}) {
-	entities, entitiesNotFound, err := configurator.LoadEntities(
-		networkID,
-		nil,
-		nil,
-		[]storage2.TypeAndKey{{Type: entityType, Key: entityID}},
-		configurator.EntityLoadCriteria{LoadConfig: true},
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entities))
-	assert.Equal(t, 0, len(entitiesNotFound))
-	assert.Equal(t, expectedConfig, entities[0].Config)
-}
-
-func testEntityConfigsNotInConfigurator(t *testing.T, networkID, entityType, entityID string) {
-	entityTK := storage2.TypeAndKey{Type: entityType, Key: entityID}
-	entities, entitiesNotFound, err := configurator.LoadEntities(
-		networkID,
-		nil,
-		nil,
-		[]storage2.TypeAndKey{entityTK},
-		configurator.EntityLoadCriteria{LoadConfig: true},
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entities))
-	assert.Equal(t, 0, len(entitiesNotFound))
-	assert.Nil(t, entities[0].Config)
 }
 
 // Interface implementations for test configs
@@ -386,6 +347,14 @@ func (foo *fooConfig) FromServiceModel(serviceModel interface{}) error {
 	foo.Foo = casted.Foo
 	foo.Bar = casted.Bar
 	return nil
+}
+
+func (foo *fooConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(foo)
+}
+
+func (foo *fooConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, foo)
 }
 
 func (f *fooConfigManager) GetDomain() string {
@@ -422,6 +391,14 @@ func (*convertErrConfig) FromServiceModel(serviceModel interface{}) error {
 	return errors.New("FromSerivceModel error")
 }
 
+func (*convertErrConfig) MarshalBinary() ([]byte, error) {
+	return nil, errors.New("MarshalBinary error")
+}
+
+func (*convertErrConfig) UnmarshalBinary(data []byte) error {
+	return errors.New("UnmarshalBinary error")
+}
+
 func (c *convertErrConfigManager) GetDomain() string {
 	return c.domain
 }
@@ -451,6 +428,14 @@ func (c *errConfig) FromServiceModel(serviceModel interface{}) error {
 	c.ShouldErrorOnMarshal = castedModel.ShouldErrorOnMarshal
 	c.ShouldErrorOnUnmarshal = castedModel.ShouldErrorOnUnmarshal
 	return nil
+}
+
+func (c *errConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(c)
+}
+
+func (c *errConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, c)
 }
 
 func (*errConfigManager) GetType() string {

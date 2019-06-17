@@ -48,6 +48,11 @@ func ListNetworkIDs() ([]string, error) {
 	return idsWrapper.NetworkIDs, nil
 }
 
+func CreateNetwork(network Network) error {
+	_, err := CreateNetworks([]Network{network})
+	return err
+}
+
 // CreateNetworks registers the given list of Networks and returns the created networks
 func CreateNetworks(networks []Network) ([]Network, error) {
 	client, err := getNBConfiguratorClient()
