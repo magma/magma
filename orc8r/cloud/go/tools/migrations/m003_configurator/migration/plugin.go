@@ -14,6 +14,9 @@ import (
 	"plugin"
 	"strings"
 
+	"magma/orc8r/cloud/go/sqorc"
+
+	"github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
@@ -22,6 +25,12 @@ import (
 // integrate into the configurator data migration.
 type ConfiguratorMigrationPlugin interface {
 	GetConfigMigrators() []ConfigMigrator
+
+	RunCustomMigrations(
+		sc *squirrel.StmtCache,
+		builder sqorc.StatementBuilder,
+		migratedGatewayMetasByNetwork map[string]map[string]MigratedGatewayMeta,
+	) error
 }
 
 // ConfigMigrator is responsible for deserializing a legacy config and

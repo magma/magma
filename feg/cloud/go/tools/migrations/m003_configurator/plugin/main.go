@@ -11,7 +11,10 @@ package main
 import (
 	"magma/feg/cloud/go/tools/migrations/m003_configurator/plugin/types"
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations/m003_configurator/migration"
+
+	"github.com/Masterminds/squirrel"
 )
 
 func main() {}
@@ -23,6 +26,14 @@ func (*plugin) GetConfigMigrators() []migration.ConfigMigrator {
 		&fegNetworkMigrator{},
 		&fegGatewayMigrator{},
 	}
+}
+
+func (*plugin) RunCustomMigrations(
+	sc *squirrel.StmtCache,
+	builder sqorc.StatementBuilder,
+	migratedGatewayMetasByNetwork map[string]map[string]migration.MigratedGatewayMeta,
+) error {
+	return nil
 }
 
 func GetPlugin() migration.ConfiguratorMigrationPlugin {

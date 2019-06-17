@@ -19,25 +19,25 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MigrateGateways(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkIDs []string) (map[string][]string, error) {
-	gwIDsByNetwork := map[string][]string{}
+func MigrateGateways(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkIDs []string) (map[string]map[string]MigratedGatewayMeta, error) {
+	migratedGatewayMetaByNetwork := map[string]map[string]MigratedGatewayMeta{}
 	for _, nid := range networkIDs {
-		gwIDs, err := migrateGatewaysForNetwork(sc, builder, nid)
+		migratedGWs, err := migrateGatewaysForNetwork(sc, builder, nid)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		gwIDsByNetwork[nid] = gwIDs
+		migratedGatewayMetaByNetwork[nid] = migratedGWs
 	}
-	return gwIDsByNetwork, nil
+	return migratedGatewayMetaByNetwork, nil
 }
 
-func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string) ([]string, error) {
+func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string) (map[string]MigratedGatewayMeta, error) {
 	gwIDs, migratedIDsByGw, err := migrateGatewayRecords(sc, builder, networkID)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	if funk.IsEmpty(gwIDs) {
-		return []string{}, nil
+		return map[string]MigratedGatewayMeta{}, nil
 	}
 
 	oldConfigsByID, err := loadAllOldGatewayConfigs(sc, builder, networkID, gwIDs)
@@ -74,7 +74,7 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 				newEntPk := uuid.New().String()
 				_, err := builder.Insert(entityTable).
 					Columns(entPkCol, entNidCol, entTypeCol, entKeyCol, entConfCol, entGidCol).
-					Values(newEntPk, networkID, ctype, gwID, newVal, migratedIDsByGw[gwID].graphID).
+					Values(newEntPk, networkID, ctype, gwID, newVal, migratedIDsByGw[gwID].GraphID).
 					RunWith(sc).
 					Exec()
 				if err != nil {
@@ -82,7 +82,7 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 				}
 
 				_, err = builder.Update(entityAssocTable).
-					Set(aFrCol, migratedIDsByGw[gwID].pk).
+					Set(aFrCol, migratedIDsByGw[gwID].Pk).
 					Set(aToCol, newEntPk).
 					RunWith(sc).
 					Exec()
@@ -94,7 +94,7 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 		}
 	}
 
-	return gwIDs, nil
+	return migratedIDsByGw, nil
 }
 
 type legacyGatewayConfigs map[string][]byte
@@ -132,11 +132,11 @@ func loadAllOldGatewayConfigs(sc *squirrel.StmtCache, builder sqorc.StatementBui
 }
 
 // returns gw ids and map between gw id and graph id
-type migratedGatewayMeta struct {
-	pk, graphID string
+type MigratedGatewayMeta struct {
+	Pk, GraphID string
 }
 
-func migrateGatewayRecords(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string) ([]string, map[string]migratedGatewayMeta, error) {
+func migrateGatewayRecords(sc *squirrel.StmtCache, builder sqorc.StatementBuilder, networkID string) ([]string, map[string]MigratedGatewayMeta, error) {
 	rows, err := builder.Select(datastoreKeyCol, datastoreValCol).
 		From(GetLegacyTableName(networkID, AgRecordTableName)).
 		RunWith(sc).
@@ -173,13 +173,13 @@ func migrateGatewayRecords(sc *squirrel.StmtCache, builder sqorc.StatementBuilde
 		gwRecords[k] = newRec
 	}
 	if funk.IsEmpty(gwRecords) {
-		return []string{}, map[string]migratedGatewayMeta{}, nil
+		return []string{}, map[string]MigratedGatewayMeta{}, nil
 	}
 
 	// We'll migrate the gateway records into the device service and create
 	// placeholder entities for the logical access gateways in configurator.
 	// We'll fill in the configs from magmad configs later
-	migratedMetasByID := map[string]migratedGatewayMeta{}
+	migratedMetasByID := map[string]MigratedGatewayMeta{}
 	recInsertBuilder := builder.Insert(deviceServiceTable).
 		Columns(blobNidCol, blobTypeCol, blobKeyCol, blobValCol).
 		RunWith(sc)
@@ -194,7 +194,7 @@ func migrateGatewayRecords(sc *squirrel.StmtCache, builder sqorc.StatementBuilde
 
 		graphID := uuid.New().String()
 		pk := uuid.New().String()
-		migratedMetasByID[logicalID] = migratedGatewayMeta{graphID: graphID, pk: pk}
+		migratedMetasByID[logicalID] = MigratedGatewayMeta{GraphID: graphID, Pk: pk}
 
 		recInsertBuilder = recInsertBuilder.Values(networkID, "access_gateway_record", record.HwID.ID, marshaledRecord)
 		entInsertBuilder = entInsertBuilder.Values(

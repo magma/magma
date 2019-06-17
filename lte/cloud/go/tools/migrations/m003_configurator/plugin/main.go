@@ -13,8 +13,10 @@ import (
 	"fmt"
 
 	"magma/lte/cloud/go/tools/migrations/m003_configurator/plugin/types"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations/m003_configurator/migration"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/pkg/errors"
 )
 
@@ -27,6 +29,14 @@ func (*plugin) GetConfigMigrators() []migration.ConfigMigrator {
 		&cellularNetworkMigrator{},
 		&cellularGatewayMigrator{},
 	}
+}
+
+func (*plugin) RunCustomMigrations(
+	sc *squirrel.StmtCache,
+	builder sqorc.StatementBuilder,
+	migratedGatewayMetasByNetwork map[string]map[string]migration.MigratedGatewayMeta,
+) error {
+	panic("implement me")
 }
 
 func GetPlugin() migration.ConfiguratorMigrationPlugin {

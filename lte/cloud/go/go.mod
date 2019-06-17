@@ -12,6 +12,7 @@ replace (
 )
 
 require (
+	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/aws/aws-sdk-go v1.16.19
 	github.com/go-openapi/errors v0.18.0
 	github.com/go-openapi/strfmt v0.18.0
