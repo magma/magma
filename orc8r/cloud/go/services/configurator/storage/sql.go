@@ -508,8 +508,11 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
 	emptyRet := NetworkEntity{Type: update.Type, Key: update.Key}
 	entToUpdate, err := store.loadEntToUpdate(networkID, update)
-	if err != nil {
+	if err != nil && !update.DeleteEntity {
 		return emptyRet, errors.Wrap(err, "failed to load entity being updated")
+	}
+	if entToUpdate == nil {
+		return emptyRet, nil
 	}
 
 	if update.DeleteEntity {
@@ -527,7 +530,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 		}
 
 		// Deleting a node could partition its graph
-		err = store.fixGraph(networkID, entToUpdate.GraphID, &entToUpdate)
+		err = store.fixGraph(networkID, entToUpdate.GraphID, entToUpdate)
 		if err != nil {
 			return emptyRet, errors.Wrap(err, "failed to fix entity graph after deletion")
 		}
@@ -548,7 +551,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 	}
 
 	// Finally, process edge updates for the graph
-	err = store.processEdgeUpdates(networkID, update, &entToUpdate)
+	err = store.processEdgeUpdates(networkID, update, entToUpdate)
 	if err != nil {
 		return entToUpdate.NetworkEntity, errors.WithStack(err)
 	}

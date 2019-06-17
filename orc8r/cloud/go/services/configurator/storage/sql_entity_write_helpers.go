@@ -217,22 +217,26 @@ func (store *sqlConfiguratorStorage) mergeGraphs(createdEntity entWithPk, allAss
 	return targetGraphID, nil
 }
 
-func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update EntityUpdateCriteria) (entWithPk, error) {
+func (store *sqlConfiguratorStorage) loadEntToUpdate(networkID string, update EntityUpdateCriteria) (*entWithPk, error) {
 	loadedEntByPk, err := store.loadFromEntitiesTable(
 		networkID,
 		EntityLoadFilter{IDs: []*EntityID{update.GetID()}},
 		EntityLoadCriteria{},
 	)
 	if err != nil {
-		return entWithPk{}, errors.Wrap(err, "failed to load entity to update")
+		return nil, errors.Wrap(err, "failed to load entity to update")
 	}
-	if len(loadedEntByPk) != 1 {
-		return entWithPk{}, errors.Errorf("expected to load 1 ent for update, got %d", len(loadedEntByPk))
+	// don't error on deleting an entity which doesn't exist
+	if len(loadedEntByPk) != 1 && !update.DeleteEntity {
+		return nil, errors.Errorf("expected to load 1 ent for update, got %d", len(loadedEntByPk))
 	}
 
+	if funk.IsEmpty(loadedEntByPk) {
+		return nil, nil
+	}
 	return funk.Chain(loadedEntByPk).
-		Map(func(pk string, ent *NetworkEntity) entWithPk { return entWithPk{pk: pk, NetworkEntity: *ent} }).
-		Head().(entWithPk), nil
+		Map(func(pk string, ent *NetworkEntity) *entWithPk { return &entWithPk{pk: pk, NetworkEntity: *ent} }).
+		Head().(*entWithPk), nil
 }
 
 // entOut is an output parameter

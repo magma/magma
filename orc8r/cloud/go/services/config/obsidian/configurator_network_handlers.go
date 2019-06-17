@@ -33,6 +33,8 @@ func getConfigTypeForConfigurator(configType string) ConfigType {
 	}
 }
 
+// Networks
+
 func configuratorCreateNetworkConfig(c echo.Context, networkID string, configType string, iConfig interface{}) error {
 	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
 	if err := c.Bind(cfgInstance); err != nil {

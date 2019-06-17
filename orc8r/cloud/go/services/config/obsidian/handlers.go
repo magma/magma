@@ -188,6 +188,12 @@ func GetReadConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorGetNetworkConfig(c, networkId, configType)
+			case Entity:
+				configKey, cerr := configKeyGetter(c)
+				if cerr != nil {
+					return cerr
+				}
+				return configuratorGetGatewayConfig(c, networkId, configType, configKey)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
@@ -263,6 +269,12 @@ func GetCreateConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorCreateNetworkConfig(c, networkId, configType, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateGatewayConfig(c, networkId, configType, configKey, userModel)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
@@ -342,6 +354,12 @@ func GetUpdateConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateGatewayConfig(c, networkId, configType, configKey, userModel)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
@@ -413,6 +431,12 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorDeleteNetworkConfig(c, networkId, configType)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteGatewayConfig(c, networkId, configType, configKey)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
