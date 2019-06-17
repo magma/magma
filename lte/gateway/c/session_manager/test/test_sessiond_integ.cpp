@@ -271,6 +271,7 @@ TEST_F(SessiondTest, end_to_end_success)
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
   request.mutable_sid()->set_id("IMSI1");
+  request.set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
   RuleRecordTable table;
@@ -355,6 +356,7 @@ TEST_F(SessiondTest, end_to_end_cloud_down)
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
   request.mutable_sid()->set_id("IMSI1");
+  request.set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
   RuleRecordTable table1;

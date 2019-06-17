@@ -64,6 +64,22 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
     });
 }
 
+static CreateSessionRequest copy_wifi_session_info2create_req(
+  const LocalCreateSessionRequest *request,
+  const std::string &sid)
+{
+  CreateSessionRequest create_request;
+
+  create_request.mutable_subscriber()->CopyFrom(request->sid());
+  create_request.set_session_id(sid);
+  create_request.set_ue_ipv4(request->ue_ipv4());
+  create_request.set_apn(request->apn());
+  create_request.set_imei(request->imei());
+  create_request.set_msisdn(request->msisdn());
+
+  return create_request;
+}
+
 static CreateSessionRequest copy_session_info2create_req(
   const LocalCreateSessionRequest *request,
   const std::string &sid)
@@ -90,6 +106,41 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   const LocalCreateSessionRequest *request,
   std::function<void(Status, LocalCreateSessionResponse)> response_callback)
 {
+  switch (request->rat_type()) {
+    case RATType::TGPP_LTE:
+      create_lte_session(request, response_callback);
+      break;
+    case RATType::TGPP_WLAN:
+      create_carrier_wifi_session(request, response_callback);
+      break;
+    default:
+      MLOG(MERROR) << "Unknown RAT Type " << request->rat_type()
+                   << ", not creating session.";
+  }
+}
+
+void LocalSessionManagerHandlerImpl::create_carrier_wifi_session(
+  const LocalCreateSessionRequest *request,
+  std::function<void(Status, LocalCreateSessionResponse)> response_callback)
+{
+  SessionState::Config cfg;
+  cfg.ue_ipv4 = request->ue_ipv4();
+  cfg.apn = request->apn();
+  cfg.imei = request->imei();
+  cfg.msisdn = request->msisdn();
+
+  auto imsi = request->sid().id();
+  auto sid = id_gen_.gen_session_id(imsi);
+
+  send_create_session(
+    copy_wifi_session_info2create_req(request, sid),
+    imsi, sid, cfg, response_callback);
+}
+
+void LocalSessionManagerHandlerImpl::create_lte_session(
+  const LocalCreateSessionRequest *request,
+  std::function<void(Status, LocalCreateSessionResponse)> response_callback)
+{
   auto imsi = request->sid().id();
   auto sid = id_gen_.gen_session_id(imsi);
   SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
@@ -100,24 +151,37 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .plmn_id = request->plmn_id(),
                               .imsi_plmn_id = request->imsi_plmn_id(),
                               .user_location = request->user_location()};
-  reporter_->report_create_session(
+  send_create_session(
     copy_session_info2create_req(request, sid),
+    imsi, sid, cfg, response_callback);
+}
+
+void LocalSessionManagerHandlerImpl::send_create_session(
+  const CreateSessionRequest &request,
+  const std::string &imsi,
+  const std::string &sid,
+  const SessionState::Config &cfg,
+  std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback)
+{
+  reporter_->report_create_session(
+    request,
     [this, imsi, sid, cfg, response_callback](
       Status status, CreateSessionResponse response) {
       if (status.ok()) {
         bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {
-          MLOG(MERROR) << "Failed to init session in Usage Monitor for IMSI "
-                       << imsi;
+          MLOG(MERROR) << "Failed to init session in Usage Monitor "
+                       << "for IMSI " << imsi;
           status =
-            Status(grpc::FAILED_PRECONDITION, "Failed to initialize session");
+            Status(
+              grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
-          MLOG(MINFO) << "Successfully initialized new session in sessiond "
-                      << "for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized new session "
+                      << "in sessiond for subscriber " << imsi;
         }
       } else {
-        MLOG(MERROR) << "Failed to initialize session in OCS for IMSI " << imsi
-                     << ": " << status.error_message();
+        MLOG(MERROR) << "Failed to initialize session in OCS for IMSI "
+                     << imsi << ": " << status.error_message();
       }
       response_callback(status, LocalCreateSessionResponse());
     });

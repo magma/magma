@@ -104,6 +104,7 @@ void pcef_create_session(
   magma::LocalCreateSessionRequest sreq;
 
   sreq.mutable_sid()->set_id("IMSI" + imsi_str);
+  sreq.set_rat_type(magma::RATType::TGPP_LTE);
   sreq.set_ue_ipv4(ip_str);
   pcef_fill_create_session_req(session_data, &sreq);
 
