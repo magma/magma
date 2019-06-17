@@ -14,6 +14,8 @@ import (
 
 	"magma/lte/cloud/go/tools/migrations/m003_configurator/plugin/types"
 	"magma/orc8r/cloud/go/tools/migrations/m003_configurator/migration"
+
+	"github.com/pkg/errors"
 )
 
 func main() {}
@@ -23,6 +25,7 @@ type plugin struct{}
 func (*plugin) GetConfigMigrators() []migration.ConfigMigrator {
 	return []migration.ConfigMigrator{
 		&cellularNetworkMigrator{},
+		&cellularGatewayMigrator{},
 	}
 }
 
@@ -33,6 +36,7 @@ func GetPlugin() migration.ConfiguratorMigrationPlugin {
 // migrators
 
 type cellularNetworkMigrator struct{}
+type cellularGatewayMigrator struct{}
 
 func (*cellularNetworkMigrator) GetType() string {
 	return "cellular_network"
@@ -67,4 +71,21 @@ var networkServiceEnumToNameMap = map[types.NetworkEPCConfig_NetworkServices]str
 	types.NetworkEPCConfig_METERING:    "metering",
 	types.NetworkEPCConfig_DPI:         "dpi",
 	types.NetworkEPCConfig_ENFORCEMENT: "policy_enforcement",
+}
+
+func (*cellularGatewayMigrator) GetType() string {
+	return "cellular_gateway"
+}
+
+func (*cellularGatewayMigrator) ToNewConfig(oldConfig []byte) ([]byte, error) {
+	oldMsg := &types.CellularGatewayConfig{}
+	err := migration.Unmarshal(oldConfig, oldMsg)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	newModel := &types.GatewayCellularConfigs{}
+	migration.FillIn(oldMsg, newModel)
+	return newModel.MarshalBinary()
+
 }
