@@ -28,7 +28,7 @@ func instantiateUnderlyingModel(serde serde.Serde) interface{} {
 
 // GetCRUDNetworkConfigHandlers returns 4 Handlers which implement CRUD for
 // a network config.
-// Path should look like '/magma/configurator/networks/:network_id/configs/{config_type}'
+// Path should look like '.../networks/:network_id/{config_type}'
 // Serde is used to serialize/deserialize the config stored
 func GetCRUDNetworkConfigHandlers(path string, serde serde.Serde) []handlers.Handler {
 	return []handlers.Handler{
