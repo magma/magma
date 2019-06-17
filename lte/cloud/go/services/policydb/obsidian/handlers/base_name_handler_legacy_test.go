@@ -12,6 +12,7 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	lteplugin "magma/lte/cloud/go/plugin"
@@ -25,8 +26,9 @@ import (
 )
 
 func TestBaseNames(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	magmad_test_init.StartTestService(t)
 	policydb_test_init.StartTestService(t)

@@ -63,7 +63,8 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkEntityConfigSerde(config.CellularGatewayType, &models.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(config.CellularEnodebType, &models.NetworkEnodebConfigs{}),
 
-		configurator.NewNetworkEntityConfigSerde(policydb.EntityType, &models2.PolicyRule{}),
+		configurator.NewNetworkEntityConfigSerde(policydb.PolicyRuleEntityType, &models2.PolicyRule{}),
+		configurator.NewNetworkEntityConfigSerde(policydb.BaseNameEntityType, &models2.BaseNameRecord{}),
 		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &models3.Subscriber{}),
 	}
 }

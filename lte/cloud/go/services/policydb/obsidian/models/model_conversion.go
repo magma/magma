@@ -13,13 +13,52 @@ import (
 	"reflect"
 
 	"magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb"
 	orcprotos "magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/protobuf/proto"
+	"github.com/thoas/go-funk"
 )
 
 var formatsRegistry = strfmt.NewFormats()
+
+func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:         policydb.BaseNameEntityType,
+		Key:          string(m.Name),
+		Associations: m.RuleNames.ToAssocs(),
+	}
+}
+
+func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
+	m.Name = BaseName(ent.Key)
+	for _, tk := range ent.Associations {
+		if tk.Type == policydb.PolicyRuleEntityType {
+			m.RuleNames = append(m.RuleNames, tk.Key)
+		}
+	}
+	return m
+}
+
+func (m RuleNames) ToAssocs() []storage.TypeAndKey {
+	return funk.Map(
+		m,
+		func(rn string) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: policydb.PolicyRuleEntityType, Key: rn}
+		},
+	).([]storage.TypeAndKey)
+}
+
+func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   policydb.PolicyRuleEntityType,
+		Key:    m.ID,
+		Config: m,
+	}
+}
 
 // PolicyRules's FromProto fills in models.PolicyRules struct from
 // passed protos.PolicyRule

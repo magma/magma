@@ -112,6 +112,9 @@ func register(registry handlerRegistry, handler Handler) error {
 				return err
 			}
 
+			if handler.MigratedHandlerFunc == nil {
+				return err
+			}
 			return handler.MigratedHandlerFunc(c)
 		} else {
 			shouldUse, found := os.LookupEnv(UseNewHandlersEnv)
@@ -122,7 +125,10 @@ func register(registry handlerRegistry, handler Handler) error {
 			if shouldUse == "0" {
 				return handler.HandlerFunc(c)
 			} else {
-				return handler.MigratedHandlerFunc(c)
+				if handler.MigratedHandlerFunc != nil {
+					return handler.MigratedHandlerFunc(c)
+				}
+				return handler.HandlerFunc(c)
 			}
 		}
 	}

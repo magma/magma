@@ -22,6 +22,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
@@ -176,6 +177,14 @@ func GetNetworkConfigsByType(networkID string, configType string) (interface{}, 
 	return networks[0].Configs[configType], nil
 }
 
+func CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error) {
+	ret, err := CreateEntities(networkID, []NetworkEntity{entity})
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+	return ret[0], nil
+}
+
 // CreateEntities registers the given entities and returns the created network entities
 func CreateEntities(networkID string, entities []NetworkEntity) ([]NetworkEntity, error) {
 	client, err := getNBConfiguratorClient()
@@ -211,6 +220,17 @@ func CreateEntities(networkID string, entities []NetworkEntity) ([]NetworkEntity
 // entity in the internal network structure
 func CreateInternalEntities(entities []NetworkEntity) ([]NetworkEntity, error) {
 	return CreateEntities(storage.InternalNetworkID, entities)
+}
+
+func UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
+	retMap, err := UpdateEntities(networkID, []EntityUpdateCriteria{update})
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+	for _, v := range retMap {
+		return v, nil
+	}
+	return NetworkEntity{}, merrors.ErrNotFound
 }
 
 // UpdateEntities updates the registered entities and returns the updated entities
@@ -270,6 +290,10 @@ func DeleteEntityConfig(networkID, entityType, entityKey string) error {
 	return err
 }
 
+func DeleteEntity(networkID string, entityType string, entityKey string) error {
+	return DeleteEntities(networkID, []storage2.TypeAndKey{{Type: entityType, Key: entityKey}})
+}
+
 // DeleteEntity deletes the entity specified by networkID, type, key
 func DeleteEntities(networkID string, ids []storage2.TypeAndKey) error {
 	client, err := getNBConfiguratorClient()
@@ -308,6 +332,47 @@ func GetPhysicalIDOfEntity(networkID, entityType, entityKey string) (string, err
 		return "", err
 	}
 	return entities[0].PhysicalID, nil
+}
+
+// ListEntityKeys returns all keys for an entity type in a network.
+func ListEntityKeys(networkID string, entityType string) ([]string, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return []string{}, err
+	}
+
+	resp, err := client.LoadEntities(
+		context.Background(),
+		&protos.LoadEntitiesRequest{
+			NetworkID: networkID,
+			Filter: &storage.EntityLoadFilter{
+				TypeFilter: &wrappers.StringValue{Value: entityType},
+			},
+			Criteria: EntityLoadCriteria{}.toStorageProto(),
+		},
+	)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return funk.Map(resp.Entities, func(ent *storage.NetworkEntity) string { return ent.Key }).([]string), nil
+}
+
+func LoadEntity(networkID string, entityType string, entityKey string, criteria EntityLoadCriteria) (NetworkEntity, error) {
+	ret := NetworkEntity{}
+	loaded, notFound, err := LoadEntities(
+		networkID,
+		nil, nil,
+		[]storage2.TypeAndKey{{Type: entityType, Key: entityKey}},
+		criteria,
+	)
+	if err != nil {
+		return ret, err
+	}
+	if !funk.IsEmpty(notFound) || funk.IsEmpty(loaded) {
+		return ret, merrors.ErrNotFound
+	}
+	return loaded[0], nil
 }
 
 // LoadEntities loads entities specified by the parameters.
