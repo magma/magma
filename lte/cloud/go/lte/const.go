@@ -11,6 +11,7 @@ package lte
 const ModuleName = "lte"
 
 const (
-	EnodebStateType     = "enodeb"
-	SubscriberStateType = "subscriber"
+	EnodebStateType      = "enodeb"
+	SubscriberStateType  = "subscriber"
+	SubscriberEntityType = "subscriber"
 )

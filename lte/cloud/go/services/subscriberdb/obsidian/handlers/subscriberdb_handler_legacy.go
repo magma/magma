@@ -22,24 +22,6 @@ import (
 	"github.com/labstack/echo"
 )
 
-const (
-	SubscriberdRootPath  = handlers.NETWORKS_ROOT + "/:network_id/subscribers"
-	SubscriberManagePath = SubscriberdRootPath + "/:subscriber_id"
-)
-
-// GetObsidianHandlers returns all obsidian handlers for subscriberdb
-func GetObsidianHandlers() []handlers.Handler {
-	return []handlers.Handler{
-		{Path: SubscriberdRootPath, Methods: handlers.POST, HandlerFunc: addSubscriberHandler},
-		{Path: SubscriberManagePath, Methods: handlers.POST, HandlerFunc: addSubscriberHandler},
-		{Path: SubscriberdRootPath, Methods: handlers.GET, HandlerFunc: listSubscribersHandler},
-		{Path: SubscriberManagePath, Methods: handlers.GET, HandlerFunc: getSubscriberHandler},
-		{Path: SubscriberdRootPath, Methods: handlers.PUT, HandlerFunc: updateSubscriberHandler},
-		{Path: SubscriberManagePath, Methods: handlers.PUT, HandlerFunc: updateSubscriberHandler},
-		{Path: SubscriberManagePath, Methods: handlers.DELETE, HandlerFunc: deleteSubscriberHandler},
-	}
-}
-
 // REST Handler to add a new subscriber, expects subscriber data as payload
 func addSubscriberHandler(c echo.Context) error {
 	// Get swagger model
