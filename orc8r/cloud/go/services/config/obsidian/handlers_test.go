@@ -23,7 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/configurator/storage"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 
 	"github.com/golang/glog"
@@ -336,8 +336,8 @@ func testEntityConfigsInConfigurator(t *testing.T, networkID, entityType, entity
 		networkID,
 		nil,
 		nil,
-		[]*protos.EntityID{{Type: entityType, Id: entityID}},
-		&protos.EntityLoadCriteria{LoadConfig: true},
+		[]*storage.EntityID{{Type: entityType, Key: entityID}},
+		&storage.EntityLoadCriteria{LoadConfig: true},
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(entities))
@@ -348,13 +348,13 @@ func testEntityConfigsInConfigurator(t *testing.T, networkID, entityType, entity
 }
 
 func testEntityConfigsNotInConfigurator(t *testing.T, networkID, entityType, entityID string) {
-	entityTK := protos.EntityID{Type: entityType, Id: entityID}
+	entityTK := storage.EntityID{Type: entityType, Key: entityID}
 	entities, entitiesNotFound, err := configurator.LoadEntities(
 		networkID,
 		nil,
 		nil,
-		[]*protos.EntityID{&entityTK},
-		&protos.EntityLoadCriteria{LoadConfig: true},
+		[]*storage.EntityID{&entityTK},
+		&storage.EntityLoadCriteria{LoadConfig: true},
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(entities))

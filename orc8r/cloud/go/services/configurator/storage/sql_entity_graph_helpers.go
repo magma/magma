@@ -12,6 +12,7 @@ import (
 	"sort"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -24,7 +25,7 @@ type internalEntityGraph struct {
 // loadGraphInternal will load all entities and assocs for a given graph ID.
 // This function will NOT fill entities with associations.
 func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID string, criteria EntityLoadCriteria) (internalEntityGraph, error) {
-	loadFilter := EntityLoadFilter{graphID: &graphID}
+	loadFilter := EntityLoadFilter{GraphID: &wrappers.StringValue{Value: graphID}}
 	entsByPk, err := store.loadFromEntitiesTable(networkID, loadFilter, criteria)
 	if err != nil {
 		return internalEntityGraph{}, errors.Wrap(err, "failed to load entities for graph")
