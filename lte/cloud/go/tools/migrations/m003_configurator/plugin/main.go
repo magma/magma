@@ -6,7 +6,6 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-//go:generate bash -c "protoc -I . -I /usr/include --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
 package main
 
 import (
