@@ -15,16 +15,14 @@ import (
 	"sort"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
-	"magma/orc8r/cloud/go/services/configurator/storage"
 	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	"magma/orc8r/cloud/go/services/upgrade/protos"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/labstack/echo"
 )
 
@@ -104,16 +102,12 @@ func createReleaseChannelHandler(c echo.Context) error {
 }
 
 func multiplexCreateReleaseChannelIntoConfigurator(channel *models.ReleaseChannel) error {
-	serializedReleaseChannel, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.ReleaseChannelType, channel)
-	if err != nil {
-		return err
-	}
-	entity := &storage.NetworkEntity{
+	entity := configurator.NetworkEntity{
 		Type:   upgrade_client.ReleaseChannelType,
 		Key:    channel.Name,
-		Config: serializedReleaseChannel,
+		Config: channel,
 	}
-	_, err = configurator.CreateInternalEntities([]*storage.NetworkEntity{entity})
+	_, err := configurator.CreateInternalEntities([]configurator.NetworkEntity{entity})
 	return err
 }
 
@@ -156,16 +150,12 @@ func multiplexUpdateReleaseChannelIntoConfigurator(channel *models.ReleaseChanne
 	if err != nil {
 		return err
 	}
-	serializedReleaseChannel, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.ReleaseChannelType, channel)
-	if err != nil {
-		return err
-	}
-	update := &storage.EntityUpdateCriteria{
+	update := configurator.EntityUpdateCriteria{
 		Key:       channel.Name,
 		Type:      upgrade_client.ReleaseChannelType,
-		NewConfig: &wrappers.BytesValue{Value: serializedReleaseChannel},
+		NewConfig: channel,
 	}
-	_, err = configurator.UpdateInternalEntity([]*storage.EntityUpdateCriteria{update})
+	_, err = configurator.UpdateInternalEntity([]configurator.EntityUpdateCriteria{update})
 	return err
 }
 
@@ -181,7 +171,7 @@ func deleteReleaseChannelHandler(c echo.Context) error {
 	}
 
 	// multiplex delete into configurator
-	err = configurator.DeleteInternalEntities([]*storage.EntityID{{Key: channelId, Type: upgrade_client.ReleaseChannelType}})
+	err = configurator.DeleteInternalEntities([]storage.TypeAndKey{{Key: channelId, Type: upgrade_client.ReleaseChannelType}})
 	if err != nil {
 		glog.Errorf("Failed to multiplex delete into configurator: %v", err)
 	}
@@ -258,16 +248,12 @@ func createTierHandler(c echo.Context) error {
 }
 
 func multiplexCreateTierIntoConfigurator(networkID string, tier *models.Tier) error {
-	serializedTier, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.NetworkTierType, tier)
-	if err != nil {
-		return err
-	}
-	entity := &storage.NetworkEntity{
+	entity := configurator.NetworkEntity{
 		Type:   upgrade_client.NetworkTierType,
 		Key:    tier.ID,
-		Config: serializedTier,
+		Config: tier,
 	}
-	_, err = configurator.CreateEntities(networkID, []*storage.NetworkEntity{entity})
+	_, err := configurator.CreateEntities(networkID, []configurator.NetworkEntity{entity})
 	return err
 }
 
@@ -342,16 +328,12 @@ func multiplexUpdateTierIntoConfigurator(networkID, tierID string, tier *models.
 	if err != nil {
 		return err
 	}
-	serializedTier, err := serde.Serialize(configurator.NetworkEntitySerdeDomain, upgrade_client.NetworkTierType, tier)
-	if err != nil {
-		return err
-	}
-	entity := &storage.EntityUpdateCriteria{
+	entity := configurator.EntityUpdateCriteria{
 		Type:      upgrade_client.NetworkTierType,
 		Key:       tierID,
-		NewConfig: &wrappers.BytesValue{Value: serializedTier},
+		NewConfig: tier,
 	}
-	_, err = configurator.UpdateEntities(networkID, []*storage.EntityUpdateCriteria{entity})
+	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{entity})
 	return err
 }
 
@@ -370,7 +352,7 @@ func deleteTierHandler(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = configurator.DeleteEntities(networkId, []*storage.EntityID{{Type: upgrade_client.NetworkTierType, Key: tierId}})
+	err = configurator.DeleteEntities(networkId, []storage.TypeAndKey{{Type: upgrade_client.NetworkTierType, Key: tierId}})
 	if err != nil {
 		glog.Errorf("Failed to multiplex delete into configurator: %v", err)
 	}

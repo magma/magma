@@ -25,10 +25,10 @@ func CreateNetworkIfNotExists(networkID string) error {
 	}
 
 	// create a network
-	network := &storage.Network{
+	network := configurator.Network{
 		ID: networkID,
 	}
-	_, err = configurator.CreateNetworks([]*storage.Network{network})
+	_, err = configurator.CreateNetworks([]configurator.Network{network})
 	if err != nil {
 		return err
 	}
@@ -53,11 +53,11 @@ func CreateNetworkEntityIfNotExists(networkID, entityType, entityID string) erro
 	}
 
 	// Create an empty entity
-	networkEntity := &storage.NetworkEntity{
+	networkEntity := configurator.NetworkEntity{
 		Type: entityType,
 		Key:  entityID,
 	}
-	_, err = configurator.CreateEntities(networkID, []*storage.NetworkEntity{networkEntity})
+	_, err = configurator.CreateEntities(networkID, []configurator.NetworkEntity{networkEntity})
 	if err != nil {
 		return err
 	}

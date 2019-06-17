@@ -16,9 +16,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_models "magma/orc8r/cloud/go/services/configurator/obsidian/models"
-	"magma/orc8r/cloud/go/services/configurator/storage"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/labstack/echo"
 )
 
@@ -61,12 +59,12 @@ func registerNetwork(c echo.Context) error {
 		return err
 	}
 
-	protoNetwork := &storage.Network{
+	network := configurator.Network{
 		ID:          requestedID,
 		Name:        swaggerNetwork.Name,
 		Description: swaggerNetwork.Description,
 	}
-	createdNetworks, err := configurator.CreateNetworks([]*storage.Network{protoNetwork})
+	createdNetworks, err := configurator.CreateNetworks([]configurator.Network{network})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
@@ -106,12 +104,12 @@ func updateNetwork(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 
-	updateCriteria := &storage.NetworkUpdateCriteria{
+	updateCriteria := configurator.NetworkUpdateCriteria{
 		ID:             networkID,
-		NewName:        inputStrToStrWrapper(swaggerNetwork.Name),
-		NewDescription: inputStrToStrWrapper(swaggerNetwork.Description),
+		NewName:        &swaggerNetwork.Name,
+		NewDescription: &swaggerNetwork.Description,
 	}
-	err = configurator.UpdateNetworks([]*storage.NetworkUpdateCriteria{updateCriteria})
+	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
@@ -131,9 +129,6 @@ func deleteNetwork(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func inputStrToStrWrapper(in string) *wrappers.StringValue {
-	return &wrappers.StringValue{Value: in}
-}
 func VerifyNetworkIDFormat(requestedID string) error {
 	if len(requestedID) > 0 {
 		r, _ := regexp.Compile("^[a-z_][0-9a-z_]+$")
