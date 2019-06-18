@@ -240,7 +240,141 @@ func TestLegacyReleaseChannels(t *testing.T) {
 	assert.Equal(t, 500, status)
 }
 
-func TestTiers(t *testing.T) {
+// Obsidian integration test for tiers migrated API endpoints backed by configurator
+func TestMigratedTiers(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeTierEntityType, &models.Tier{})
+	magmad_test_init.StartTestService(t)
+	upgrade_test_init.StartTestService(t)
+	restPort := tests.StartObsidian(t)
+	configurator_test_init.StartTestService(t)
+	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+
+	registerNetworkTestCase := tests.Testcase{
+		Name:                      "Register Network",
+		Method:                    "POST",
+		Url:                       fmt.Sprintf("%s?requested_id=upgrade_obsidian_test_network", netUrlRoot),
+		Payload:                   `{"name":"This Is A Test Network Name"}`,
+		Skip_payload_verification: true,
+	}
+	_, networkId, err := tests.RunTest(t, registerNetworkTestCase)
+	assert.NoError(t, err)
+	json.Unmarshal([]byte(networkId), &networkId)
+
+	testUrlRoot := fmt.Sprintf("%s/%s/tiers", netUrlRoot, networkId)
+
+	// List tiers when none exist
+	listTiersTestCase := tests.Testcase{
+		Name:     "List Tiers",
+		Method:   "GET",
+		Url:      testUrlRoot,
+		Payload:  "",
+		Expected: "[]",
+	}
+	tests.RunTest(t, listTiersTestCase)
+
+	// Create 2 tiers
+	const tier1contentsA string = `{"id": "t1", "name": "t1", "version": "1.1.0-0"}`
+	const tier2contentsA string = `{"id": "t2", "name": "t2", "version": "none", "images": [{"name": "v002", "order": 10}, {"name": "v001", "order": 15}]}`
+	createTierTestCase := tests.Testcase{
+		Name:                      "Create Tier",
+		Method:                    "POST",
+		Url:                       testUrlRoot,
+		Payload:                   tier1contentsA,
+		Skip_payload_verification: true,
+	}
+	tests.RunTest(t, createTierTestCase)
+	createTierTestCase.Payload = tier2contentsA
+	tests.RunTest(t, createTierTestCase)
+
+	listTiersTestCase.Expected = `["t1", "t2"]`
+	tests.RunTest(t, listTiersTestCase)
+
+	// Get tier1
+	getTierTestCase1 := tests.Testcase{
+		Name:     "Get Tier",
+		Method:   "GET",
+		Url:      fmt.Sprintf("%s/%s", testUrlRoot, "t1"),
+		Payload:  "",
+		Expected: `{"id": "t1", "name": "t1", "version": "1.1.0-0", "images": null}`,
+	}
+	tests.RunTest(t, getTierTestCase1)
+
+	// Get tier2
+	getTierTestCase2 := tests.Testcase{
+		Name:     "Get Tier",
+		Method:   "GET",
+		Url:      fmt.Sprintf("%s/%s", testUrlRoot, "t2"),
+		Payload:  "",
+		Expected: tier2contentsA,
+	}
+	tests.RunTest(t, getTierTestCase2)
+
+	// Update tier1 to a new version
+	updateTierTestCase := tests.Testcase{
+		Name:     "Update Tier",
+		Method:   "PUT",
+		Url:      fmt.Sprintf("%s/%s", testUrlRoot, "t1"),
+		Payload:  `{"id": "t1", "name": "t1v2", "version": "1.3.0-0", "images": null}`,
+		Expected: "",
+	}
+	tests.RunTest(t, updateTierTestCase)
+	getTierTestCase1.Expected = `{"id": "t1", "name": "t1v2", "version": "1.3.0-0", "images": null}`
+	tests.RunTest(t, getTierTestCase1)
+
+	// Update tier1 to have images
+	const tier1contentsC string = `{"id": "t1", "name": "t1v3", "version": "none", "images": [{"name": "v003", "order": 12}, {"name": "v002", "order": 14}]}`
+	updateTierTestCase.Payload = tier1contentsC
+	tests.RunTest(t, updateTierTestCase)
+	getTierTestCase1.Expected = tier1contentsC
+	tests.RunTest(t, getTierTestCase1)
+
+	// Delete tier
+	deleteTierTestCase := tests.Testcase{
+		Name:     "Delete Tier",
+		Method:   "DELETE",
+		Url:      fmt.Sprintf("%s/%s", testUrlRoot, "t2"),
+		Payload:  "",
+		Expected: "",
+	}
+	tests.RunTest(t, deleteTierTestCase)
+
+	listTiersTestCase.Expected = `["t1"]`
+	tests.RunTest(t, listTiersTestCase)
+
+	// Some error cases
+
+	// Get nonexistent tier should 404
+	status, _, err := tests.SendHttpRequest(
+		"GET",
+		fmt.Sprintf("%s/%s", testUrlRoot, "t2"),
+		"")
+	assert.NoError(t, err)
+	assert.Equal(t, 404, status)
+
+	// Delete nonexistent tier should 500
+	status, _, err = tests.SendHttpRequest(
+		"DELETE",
+		fmt.Sprintf("%s/%s", testUrlRoot, "t2"),
+		"")
+	assert.NoError(t, err)
+	assert.Equal(t, 500, status)
+
+	// Remove network
+	removeNetworkTestCase := tests.Testcase{
+		Name:     "Force Remove Non Empty Network",
+		Method:   "DELETE",
+		Url:      fmt.Sprintf("%s/%s?mode=force", netUrlRoot, networkId),
+		Payload:  "",
+		Expected: "",
+	}
+	tests.RunTest(t, removeNetworkTestCase)
+}
+
+// Obsidian integration test for tier legacy API endpoints
+func TestLegacyTiers(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeTierEntityType, &models.Tier{})
 	magmad_test_init.StartTestService(t)

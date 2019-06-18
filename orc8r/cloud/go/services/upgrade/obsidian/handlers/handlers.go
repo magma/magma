@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
-	"magma/orc8r/cloud/go/services/upgrade/protos"
 
 	"github.com/labstack/echo"
 )
@@ -37,11 +36,11 @@ func GetObsidianHandlers() []handlers.Handler {
 		{Path: ReleaseChannelsManagePath, Methods: handlers.GET, HandlerFunc: getReleaseChannelsHandler, MigratedHandlerFunc: getReleaseChannel},
 		{Path: ReleaseChannelsManagePath, Methods: handlers.PUT, HandlerFunc: updateReleaseChannelHandler, MigratedHandlerFunc: updateReleaseChannel},
 		{Path: ReleaseChannelsManagePath, Methods: handlers.DELETE, HandlerFunc: deleteReleaseChannelHandler, MigratedHandlerFunc: deleteReleaseChannel},
-		{Path: TiersRootPath, Methods: handlers.GET, HandlerFunc: listTiersHandler},
-		{Path: TiersRootPath, Methods: handlers.POST, HandlerFunc: createTierHandler},
-		{Path: TiersManagePath, Methods: handlers.GET, HandlerFunc: getTierHandler},
-		{Path: TiersManagePath, Methods: handlers.PUT, HandlerFunc: updateTierHandler},
-		{Path: TiersManagePath, Methods: handlers.DELETE, HandlerFunc: deleteTierHandler},
+		{Path: TiersRootPath, Methods: handlers.GET, HandlerFunc: listTiersHandler, MigratedHandlerFunc: listTiers},
+		{Path: TiersRootPath, Methods: handlers.POST, HandlerFunc: createTierHandler, MigratedHandlerFunc: createrTier},
+		{Path: TiersManagePath, Methods: handlers.GET, HandlerFunc: getTierHandler, MigratedHandlerFunc: getTier},
+		{Path: TiersManagePath, Methods: handlers.PUT, HandlerFunc: updateTierHandler, MigratedHandlerFunc: updateTier},
+		{Path: TiersManagePath, Methods: handlers.DELETE, HandlerFunc: deleteTierHandler, MigratedHandlerFunc: deleteTier},
 	}
 }
 
@@ -148,143 +147,113 @@ func getReleaseChannel(c echo.Context) error {
 	return c.JSON(http.StatusOK, releaseChannel)
 }
 
-func listTiersHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	tiers, err := upgrade_client.GetTiers(networkId, []string{})
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-
-	ret := make([]string, 0, len(tiers))
-	for tierId := range tiers {
-		ret = append(ret, tierId)
-	}
-	// Return a deterministic ordering of tiers
-	sort.Strings(ret)
-	return c.JSON(http.StatusOK, ret)
-}
-
-func tierInfoModelToProto(model *models.Tier) *protos.TierInfo {
-	// Copy each image spec into a protobuf
-	var imageArray []*protos.ImageSpec
-	for _, elem := range model.Images {
-		imageArray = append(imageArray, &protos.ImageSpec{
-			Name:  elem.Name,
-			Order: elem.Order})
-	}
-
-	return &protos.TierInfo{
-		Name:    model.Name,
-		Version: model.Version,
-		Images:  imageArray,
-	}
-}
-
-func createTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	restTier := new(models.Tier)
-	if err := c.Bind(restTier); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-
-	tierProto := tierInfoModelToProto(restTier)
-
-	err := upgrade_client.CreateTier(networkId, restTier.ID, tierProto)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	// Return the ID of the created tier
-	return c.JSON(http.StatusCreated, restTier.ID)
-}
-
-func getTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	tierId := c.Param("tier_id")
-	if tierId == "" {
-		return noTierIdError()
-	}
-
-	tiers, err := upgrade_client.GetTiers(networkId, []string{tierId})
-	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
-	}
-	tierProto, ok := tiers[tierId]
-	if !ok {
-		return handlers.HttpError(
-			errors.New("Error while loading tier from service"),
-			http.StatusNotFound)
-	}
-
-	var imgList []*models.TierImagesItems0
-	for _, elem := range tierProto.GetImages() {
-		imgList = append(imgList, &models.TierImagesItems0{
-			Name:  elem.Name,
-			Order: elem.Order})
-	}
-
-	restTier := models.Tier{
-		ID:      tierId,
-		Name:    tierProto.GetName(),
-		Version: tierProto.GetVersion(),
-		Images:  imgList,
-	}
-	return c.JSON(http.StatusOK, restTier)
-}
-
-func updateTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	tierId := c.Param("tier_id")
-	if tierId == "" {
-		return noTierIdError()
-	}
-	restTier := new(models.Tier)
-	if err := c.Bind(restTier); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-
-	tierProto := tierInfoModelToProto(restTier)
-
-	err := upgrade_client.UpdateTier(networkId, tierId, tierProto)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func deleteTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	tierId := c.Param("tier_id")
-	if tierId == "" {
-		return noTierIdError()
-	}
-
-	err := upgrade_client.DeleteTier(networkId, tierId)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusNoContent)
-}
-
 func noTierIdError() error {
 	return handlers.HttpError(
 		errors.New("Missing tier ID"),
 		http.StatusBadRequest,
 	)
+}
+
+func listTiers(c echo.Context) error {
+	networkID, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	tiers, err := configurator.ListEntityKeys(networkID, upgrade_client.UpgradeTierEntityType)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return a deterministic ordering of tiers
+	sort.Strings(tiers)
+	return c.JSON(http.StatusOK, tiers)
+}
+
+func createrTier(c echo.Context) error {
+	networkID, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tier := new(models.Tier)
+	if err := c.Bind(tier); err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+
+	entity := configurator.NetworkEntity{
+		Type:   upgrade_client.UpgradeTierEntityType,
+		Key:    tier.ID,
+		Config: tier,
+	}
+	_, err := configurator.CreateEntity(networkID, entity)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return the ID of the created tier
+	return c.JSON(http.StatusCreated, tier.Name)
+}
+
+func getTier(c echo.Context) error {
+	networkID, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierID := c.Param("tier_id")
+	if tierID == "" {
+		return noTierIdError()
+	}
+
+	tier, err := configurator.LoadEntity(networkID, upgrade_client.UpgradeTierEntityType, tierID, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return handlers.HttpError(err, http.StatusNotFound)
+	}
+	// Return the ID of the created tier
+	return c.JSON(http.StatusCreated, tier.Config)
+}
+
+func updateTier(c echo.Context) error {
+	networkID, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierID := c.Param("tier_id")
+	if tierID == "" {
+		return noTierIdError()
+	}
+	tier := new(models.Tier)
+	if err := c.Bind(tier); err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+	update := configurator.EntityUpdateCriteria{
+		Key:       tier.ID,
+		Type:      upgrade_client.UpgradeTierEntityType,
+		NewConfig: tier,
+	}
+	_, err := configurator.UpdateEntity(networkID, update)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteTier(c echo.Context) error {
+	networkID, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierID := c.Param("tier_id")
+	if tierID == "" {
+		return noTierIdError()
+	}
+	// the API requires that an error is returned when the channel does not exist
+	exists, err := configurator.DoesEntityExist(networkID, upgrade_client.UpgradeTierEntityType, tierID)
+	if err != nil || !exists {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	err = configurator.DeleteEntity(networkID, upgrade_client.UpgradeTierEntityType, tierID)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
