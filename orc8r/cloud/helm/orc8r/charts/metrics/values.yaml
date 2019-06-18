@@ -1,4 +1,5 @@
 # Default values for metrics.
+imagePullSecrets: []
 
 metrics:
   # Service configuration.
