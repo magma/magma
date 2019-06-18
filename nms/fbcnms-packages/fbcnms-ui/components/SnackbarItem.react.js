@@ -18,6 +18,10 @@ import CloseIcon from '@material-ui/icons/Close';
 import ErrorIcon from '@material-ui/icons/Error';
 import Typography from '@material-ui/core/Typography';
 
+export type WithSnackbarProps = {
+  enqueueSnackbar: (message: string | React.Node, options?: Object) => null,
+};
+
 const useStyles = makeStyles(theme => ({
   root: {
     boxShadow: '0 0 0 1px #ccd0d5, 0 4px 8px 1px rgba(0,0,0,0.15)',

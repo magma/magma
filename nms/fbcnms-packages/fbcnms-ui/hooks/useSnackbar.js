@@ -11,7 +11,7 @@
 // https://github.com/iamhosseindhv/notistack/pull/17
 import {useEffect} from 'react';
 import {useSnackbar as useNotistackSnackbar} from 'notistack';
-import React from 'react';
+import * as React from 'react';
 import SnackbarItem from '../components/SnackbarItem.react';
 
 export default function useSnackbar(
