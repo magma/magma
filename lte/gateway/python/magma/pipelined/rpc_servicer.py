@@ -229,6 +229,18 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return resp
 
     # --------------------------
+    # UE MAC App
+    # --------------------------
+
+    def AddUEMacFlow(self, request, context):
+        """
+        Associate UE MAC address to subscriber
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Service not yet implemented!')
+        return None
+
+    # --------------------------
     # Debugging
     # --------------------------
 
