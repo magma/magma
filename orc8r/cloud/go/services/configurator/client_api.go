@@ -221,10 +221,10 @@ func CreateEntities(networkID string, entities []NetworkEntity) ([]NetworkEntity
 	return ret, err
 }
 
-// CreateInternalEntity is a loose wrapper around CreateEntities to create an
+// CreateInternalEntity is a loose wrapper around CreateEntity to create an
 // entity in the internal network structure
-func CreateInternalEntities(entities []NetworkEntity) ([]NetworkEntity, error) {
-	return CreateEntities(storage.InternalNetworkID, entities)
+func CreateInternalEntity(entity NetworkEntity) (NetworkEntity, error) {
+	return CreateEntity(storage.InternalNetworkID, entity)
 }
 
 func UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
@@ -269,10 +269,10 @@ func UpdateEntities(networkID string, updates []EntityUpdateCriteria) (map[strin
 	return ret, err
 }
 
-// UpdateInternalEntity is a loose wrapper around UpdateEntities to update an
+// UpdateInternalEntity is a loose wrapper around UpdateEntity to update an
 // entity in the internal network structure
-func UpdateInternalEntity(updates []EntityUpdateCriteria) (map[string]NetworkEntity, error) {
-	return UpdateEntities(storage.InternalNetworkID, updates)
+func UpdateInternalEntity(update EntityUpdateCriteria) (NetworkEntity, error) {
+	return UpdateEntity(storage.InternalNetworkID, update)
 }
 
 func UpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}) error {
@@ -317,8 +317,8 @@ func DeleteEntities(networkID string, ids []storage2.TypeAndKey) error {
 
 // DeleteInternalEntity is a loose wrapper around DeleteEntities to delete an
 // entity in the internal network structure
-func DeleteInternalEntities(ids []storage2.TypeAndKey) error {
-	return DeleteEntities(storage.InternalNetworkID, ids)
+func DeleteInternalEntity(entityType, entityKey string) error {
+	return DeleteEntity(storage.InternalNetworkID, entityType, entityKey)
 }
 
 // GetPhysicalIDOfEntity gets the physicalID associated with the entity
@@ -361,6 +361,11 @@ func ListEntityKeys(networkID string, entityType string) ([]string, error) {
 	}
 
 	return funk.Map(resp.Entities, func(ent *storage.NetworkEntity) string { return ent.Key }).([]string), nil
+}
+
+// ListInternalEntityKeys calls ListEntityKeys with the internal networkID
+func ListInternalEntityKeys(entityType string) ([]string, error) {
+	return ListEntityKeys(storage.InternalNetworkID, entityType)
 }
 
 func LoadEntity(networkID string, entityType string, entityKey string, criteria EntityLoadCriteria) (NetworkEntity, error) {
@@ -420,6 +425,11 @@ func LoadEntities(
 	return ret, entIDsToTKs(resp.EntitiesNotFound), nil
 }
 
+// LoadInternalEntity calls LoadEntity with the internal networkID
+func LoadInternalEntity(entityType string, entityKey string, criteria EntityLoadCriteria) (NetworkEntity, error) {
+	return LoadEntity(storage.InternalNetworkID, entityType, entityKey, criteria)
+}
+
 // DoesEntityExist returns a boolean that indicated whether the entity specified
 // exists in the network
 func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
@@ -437,6 +447,11 @@ func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+// DoesInternalEntityExist calls DoesEntityExist with the internal networkID
+func DoesInternalEntityExist(entityType, entityKey string) (bool, error) {
+	return DoesEntityExist(storage.InternalNetworkID, entityType, entityKey)
 }
 
 // LoadAllEntitiesInNetwork fetches all entities of specified type in a network
