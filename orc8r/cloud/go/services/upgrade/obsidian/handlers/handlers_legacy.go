@@ -109,3 +109,137 @@ func deleteReleaseChannelHandler(c echo.Context) error {
 	}
 	return c.NoContent(http.StatusNoContent)
 }
+
+func listTiersHandler(c echo.Context) error {
+	networkId, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	tiers, err := upgrade_client.GetTiers(networkId, []string{})
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := make([]string, 0, len(tiers))
+	for tierId := range tiers {
+		ret = append(ret, tierId)
+	}
+	// Return a deterministic ordering of tiers
+	sort.Strings(ret)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func tierInfoModelToProto(model *models.Tier) *protos.TierInfo {
+	// Copy each image spec into a protobuf
+	var imageArray []*protos.ImageSpec
+	for _, elem := range model.Images {
+		imageArray = append(imageArray, &protos.ImageSpec{
+			Name:  elem.Name,
+			Order: elem.Order})
+	}
+
+	return &protos.TierInfo{
+		Name:    model.Name,
+		Version: model.Version,
+		Images:  imageArray,
+	}
+}
+
+func createTierHandler(c echo.Context) error {
+	networkId, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	restTier := new(models.Tier)
+	if err := c.Bind(restTier); err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+
+	tierProto := tierInfoModelToProto(restTier)
+
+	err := upgrade_client.CreateTier(networkId, restTier.ID, tierProto)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return the ID of the created tier
+	return c.JSON(http.StatusCreated, restTier.ID)
+}
+
+func getTierHandler(c echo.Context) error {
+	networkId, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierId := c.Param("tier_id")
+	if tierId == "" {
+		return noTierIdError()
+	}
+
+	tiers, err := upgrade_client.GetTiers(networkId, []string{tierId})
+	if err != nil {
+		return handlers.HttpError(err, http.StatusNotFound)
+	}
+	tierProto, ok := tiers[tierId]
+	if !ok {
+		return handlers.HttpError(
+			errors.New("Error while loading tier from service"),
+			http.StatusNotFound)
+	}
+
+	var imgList []*models.TierImagesItems0
+	for _, elem := range tierProto.GetImages() {
+		imgList = append(imgList, &models.TierImagesItems0{
+			Name:  elem.Name,
+			Order: elem.Order})
+	}
+
+	restTier := models.Tier{
+		ID:      tierId,
+		Name:    tierProto.GetName(),
+		Version: tierProto.GetVersion(),
+		Images:  imgList,
+	}
+	return c.JSON(http.StatusOK, restTier)
+}
+
+func updateTierHandler(c echo.Context) error {
+	networkId, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierId := c.Param("tier_id")
+	if tierId == "" {
+		return noTierIdError()
+	}
+	restTier := new(models.Tier)
+	if err := c.Bind(restTier); err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+
+	tierProto := tierInfoModelToProto(restTier)
+
+	err := upgrade_client.UpdateTier(networkId, tierId, tierProto)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteTierHandler(c echo.Context) error {
+	networkId, nerr := handlers.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierId := c.Param("tier_id")
+	if tierId == "" {
+		return noTierIdError()
+	}
+
+	err := upgrade_client.DeleteTier(networkId, tierId)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
