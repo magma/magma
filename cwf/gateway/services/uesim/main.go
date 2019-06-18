@@ -20,9 +20,9 @@ import (
 )
 
 func main() {
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.UESIM)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.UeSim)
 	if err != nil {
-		glog.Fatalf("Error creating UESIM service: %s", err)
+		glog.Fatalf("Error creating UeSim service: %s", err)
 	}
 
 	store := blobstore.NewMemoryBlobStorageFactory()
