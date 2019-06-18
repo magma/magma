@@ -128,6 +128,10 @@ spec:
       nodeSelector:
         {{ .Values.magmalte.labels.node_selector_key }}: {{ .Values.magmalte.labels.node_selector_value | quote }}
       terminationGracePeriodSeconds: 60
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.magmalte.image.repository }}:{{ .Values.magmalte.image.tag }}"
