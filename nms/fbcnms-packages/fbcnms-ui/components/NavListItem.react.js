@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
   tooltip: {
     '&&': {
       padding: '8px 12px',
-      backgroundColor: theme.palette.primary.dark,
+      backgroundColor: theme.palette.blueGrayDark,
     },
   },
   arrow: {
