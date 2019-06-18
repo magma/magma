@@ -10535,13 +10535,15 @@ normalize-url@2.0.1:
     query-string "^5.0.1"
     sort-keys "^2.0.0"
 
-notistack@^0.4.1:
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/notistack/-/notistack-0.4.3.tgz#0387f2d2b399474339c7de8552e4090e432baa99"
-  integrity sha512-YVG4IqA7+eCmMRH42UE+KZOIXTPg/3HEWU+pE1S+Tc8mUNSTQlZMdLy7XwDF1+WimyLiA7Glm+y+ClSu/4t+WA==
+notistack@^0.8.5:
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/notistack/-/notistack-0.8.5.tgz#f113db69d5b5bf60f0818b364c2443320856a7d6"
+  integrity sha512-etxjUgvVOVxN1vNmWEujRkFIKEFz0Ev3q+to4U9j8VrX+wnF7NC3op1XCaCBaHu9eIQvPAzgtz+VKZ3gV3Qxnw==
   dependencies:
     classnames "^2.2.6"
+    hoist-non-react-statics "^3.3.0"
     prop-types "^15.6.2"
+    react-is "^16.8.6"
 
 npm-bundled@^1.0.1:
   version "1.0.6"

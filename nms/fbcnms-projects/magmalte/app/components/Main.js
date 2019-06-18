@@ -95,24 +95,24 @@ function Main() {
   }
 
   return (
-    <SnackbarProvider
-      maxSnack={3}
-      autoHideDuration={10000}
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'right',
-      }}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+    <MuiThemeProvider theme={defaultTheme}>
+      <MuiStylesThemeProvider theme={defaultTheme}>
+        <SnackbarProvider
+          maxSnack={3}
+          autoHideDuration={10000}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}>
           <AppContext.Provider value={appContext}>
             <TopBarContextProvider>
               <CssBaseline />
               <Index />
             </TopBarContextProvider>
           </AppContext.Provider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </SnackbarProvider>
+        </SnackbarProvider>
+      </MuiStylesThemeProvider>
+    </MuiThemeProvider>
   );
 }
 
