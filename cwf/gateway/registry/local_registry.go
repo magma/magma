@@ -18,6 +18,7 @@ const (
 	ModuleName = "cwf"
 
 	TWANSIM = "TWANSIM"
+	UESIM   = "UESIM"
 )
 
 // Add a new service.
@@ -43,4 +44,5 @@ func addLocalService(serviceType string, port int) {
 
 func init() {
 	addLocalService(TWANSIM, 10100)
+	addLocalService(UESIM, 10101)
 }
