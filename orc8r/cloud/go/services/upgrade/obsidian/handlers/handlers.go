@@ -10,19 +10,15 @@ package handlers
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"sort"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
-	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
 	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	"magma/orc8r/cloud/go/services/upgrade/protos"
-	"magma/orc8r/cloud/go/storage"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
@@ -36,11 +32,11 @@ const (
 // GetObsidianHandlers returns the obsidian handlers for upgrade
 func GetObsidianHandlers() []handlers.Handler {
 	return []handlers.Handler{
-		{Path: ReleaseChannelsRootPath, Methods: handlers.GET, HandlerFunc: listReleaseChannelsHandler},
-		{Path: ReleaseChannelsRootPath, Methods: handlers.POST, HandlerFunc: createReleaseChannelHandler},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.GET, HandlerFunc: getReleaseChannelsHandler},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.PUT, HandlerFunc: updateReleaseChannelHandler},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.DELETE, HandlerFunc: deleteReleaseChannelHandler},
+		{Path: ReleaseChannelsRootPath, Methods: handlers.GET, HandlerFunc: listReleaseChannelsHandler, MigratedHandlerFunc: listReleaseChannel},
+		{Path: ReleaseChannelsRootPath, Methods: handlers.POST, HandlerFunc: createReleaseChannelHandler, MigratedHandlerFunc: createReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: handlers.GET, HandlerFunc: getReleaseChannelsHandler, MigratedHandlerFunc: getReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: handlers.PUT, HandlerFunc: updateReleaseChannelHandler, MigratedHandlerFunc: updateReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: handlers.DELETE, HandlerFunc: deleteReleaseChannelHandler, MigratedHandlerFunc: deleteReleaseChannel},
 		{Path: TiersRootPath, Methods: handlers.GET, HandlerFunc: listTiersHandler},
 		{Path: TiersRootPath, Methods: handlers.POST, HandlerFunc: createTierHandler},
 		{Path: TiersManagePath, Methods: handlers.GET, HandlerFunc: getTierHandler},
@@ -49,141 +45,107 @@ func GetObsidianHandlers() []handlers.Handler {
 	}
 }
 
-// List all release channels by ID
-func listReleaseChannelsHandler(c echo.Context) error {
-	channels, err := upgrade_client.ListReleaseChannels()
-	if err != nil {
-		return handlers.HttpError(err)
-	}
-	// Return a deterministic ordering of channels
-	sort.Strings(channels)
-	return c.JSON(http.StatusOK, channels)
-}
-
-func getReleaseChannelsHandler(c echo.Context) error {
-	channelId := c.Param("channel_id")
-	if channelId == "" {
-		return noChannelIdError()
-	}
-
-	channel, err := upgrade_client.GetReleaseChannel(channelId)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
-	}
-
-	swaggerChannel := models.ReleaseChannel{}
-	swaggerChannel.Name = channelId
-	swaggerChannel.SupportedVersions = channel.GetSupportedVersions()
-	return c.JSON(http.StatusOK, swaggerChannel)
-}
-
-func createReleaseChannelHandler(c echo.Context) error {
-	restChannel := new(models.ReleaseChannel)
-	if err := c.Bind(restChannel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-
-	// Construct proto model and persist
-	channelProto := &protos.ReleaseChannel{
-		SupportedVersions: restChannel.SupportedVersions,
-	}
-	err := upgrade_client.CreateReleaseChannel(restChannel.Name, channelProto)
-	if err != nil {
-		return handlers.HttpError(err)
-	}
-
-	err = multiplexCreateReleaseChannelIntoConfigurator(restChannel)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to multiplex create into configurator : %v", err))
-	}
-
-	// Return the ID of the created channel
-	return c.JSON(http.StatusCreated, restChannel.Name)
-}
-
-func multiplexCreateReleaseChannelIntoConfigurator(channel *models.ReleaseChannel) error {
-	entity := configurator.NetworkEntity{
-		Type:   upgrade_client.ReleaseChannelType,
-		Key:    channel.Name,
-		Config: channel,
-	}
-	_, err := configurator.CreateInternalEntities([]configurator.NetworkEntity{entity})
-	return err
-}
-
-func updateReleaseChannelHandler(c echo.Context) error {
-	channelId := c.Param("channel_id")
-	if channelId == "" {
-		return noChannelIdError()
-	}
-	restChannel := new(models.ReleaseChannel)
-	if err := c.Bind(restChannel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-
-	// Release channel name is immutable
-	// This could change if release channels are keyed by UUID in their tables
-	if restChannel.Name != channelId {
-		return handlers.HttpError(
-			errors.New("Release channel name cannot be modified"),
-			http.StatusBadRequest)
-	}
-	updatedChannelProto := &protos.ReleaseChannel{
-		SupportedVersions: restChannel.SupportedVersions,
-	}
-
-	err := upgrade_client.UpdateReleaseChannel(channelId, updatedChannelProto)
-	if err != nil {
-		return handlers.HttpError(err)
-	}
-
-	err = multiplexUpdateReleaseChannelIntoConfigurator(restChannel)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to multiplex update into configurator : %v", err))
-	}
-
-	return c.NoContent(http.StatusOK)
-}
-
-func multiplexUpdateReleaseChannelIntoConfigurator(channel *models.ReleaseChannel) error {
-	err := configurator_utils.CreateInternalNetworkEntityIfNotExists(upgrade_client.ReleaseChannelType, channel.Name)
-	if err != nil {
-		return err
-	}
-	update := configurator.EntityUpdateCriteria{
-		Key:       channel.Name,
-		Type:      upgrade_client.ReleaseChannelType,
-		NewConfig: channel,
-	}
-	_, err = configurator.UpdateInternalEntity([]configurator.EntityUpdateCriteria{update})
-	return err
-}
-
-func deleteReleaseChannelHandler(c echo.Context) error {
-	channelId := c.Param("channel_id")
-	if channelId == "" {
-		return noChannelIdError()
-	}
-
-	err := upgrade_client.DeleteReleaseChannel(channelId)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-
-	// multiplex delete into configurator
-	err = configurator.DeleteInternalEntities([]storage.TypeAndKey{{Key: channelId, Type: upgrade_client.ReleaseChannelType}})
-	if err != nil {
-		glog.Errorf("Failed to multiplex delete into configurator: %v", err)
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
 func noChannelIdError() error {
 	return handlers.HttpError(
 		errors.New("Missing release channel ID"),
 		http.StatusBadRequest,
 	)
+}
+
+func listReleaseChannel(c echo.Context) error {
+	channelNames, err := configurator.ListInternalEntityKeys(upgrade_client.UpgradeReleaseChannelEntityType)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return a deterministic ordering of channels
+	sort.Strings(channelNames)
+	if len(channelNames) == 0 {
+		channelNames = nil
+	}
+	return c.JSON(http.StatusOK, channelNames)
+}
+
+func createReleaseChannel(c echo.Context) error {
+	channel := new(models.ReleaseChannel)
+	if err := c.Bind(channel); err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+
+	entity := configurator.NetworkEntity{
+		Type:   upgrade_client.UpgradeReleaseChannelEntityType,
+		Key:    channel.Name,
+		Name:   channel.Name,
+		Config: channel,
+	}
+	_, err := configurator.CreateInternalEntity(entity)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return the ID of the created channel
+	return c.JSON(http.StatusCreated, channel.Name)
+}
+
+func updateReleaseChannel(c echo.Context) error {
+	channelID := c.Param("channel_id")
+	if channelID == "" {
+		return noChannelIdError()
+	}
+	channel := new(models.ReleaseChannel)
+	if err := c.Bind(channel); err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+	// Release channel name is immutable
+	// This could change if release channels are keyed by UUID in their tables
+	if channel.Name != channelID {
+		return handlers.HttpError(
+			errors.New("Release channel name cannot be modified"),
+			http.StatusBadRequest)
+	}
+
+	update := configurator.EntityUpdateCriteria{
+		Key:       channel.Name,
+		Type:      upgrade_client.UpgradeReleaseChannelEntityType,
+		NewConfig: channel,
+	}
+	_, err := configurator.UpdateInternalEntity(update)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteReleaseChannel(c echo.Context) error {
+	channelID := c.Param("channel_id")
+	if channelID == "" {
+		return noChannelIdError()
+	}
+	// the API requires that an error is returned when the channel does not exist
+	exists, err := configurator.DoesInternalEntityExist(upgrade_client.UpgradeReleaseChannelEntityType, channelID)
+	if err != nil || !exists {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	err = configurator.DeleteInternalEntity(upgrade_client.UpgradeReleaseChannelEntityType, channelID)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getReleaseChannel(c echo.Context) error {
+	channelID := c.Param("channel_id")
+	if channelID == "" {
+		return noChannelIdError()
+	}
+
+	ent, err := configurator.LoadInternalEntity(upgrade_client.UpgradeReleaseChannelEntityType, channelID, configurator.EntityLoadCriteria{LoadConfig: true, LoadMetadata: true})
+	if err != nil {
+		return handlers.HttpError(err, http.StatusNotFound)
+	}
+	releaseChannel := ent.Config.(*models.ReleaseChannel)
+	releaseChannel.Name = ent.Name
+	return c.JSON(http.StatusOK, releaseChannel)
 }
 
 func listTiersHandler(c echo.Context) error {
@@ -238,23 +200,8 @@ func createTierHandler(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-
-	err = multiplexCreateTierIntoConfigurator(networkId, restTier)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to multiplex create into configurator : %v", err))
-	}
 	// Return the ID of the created tier
 	return c.JSON(http.StatusCreated, restTier.ID)
-}
-
-func multiplexCreateTierIntoConfigurator(networkID string, tier *models.Tier) error {
-	entity := configurator.NetworkEntity{
-		Type:   upgrade_client.NetworkTierType,
-		Key:    tier.ID,
-		Config: tier,
-	}
-	_, err := configurator.CreateEntities(networkID, []configurator.NetworkEntity{entity})
-	return err
 }
 
 func getTierHandler(c echo.Context) error {
@@ -315,26 +262,7 @@ func updateTierHandler(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = multiplexUpdateTierIntoConfigurator(networkId, tierId, restTier)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to multiplex update into configurator : %v", err))
-	}
-
 	return c.NoContent(http.StatusOK)
-}
-
-func multiplexUpdateTierIntoConfigurator(networkID, tierID string, tier *models.Tier) error {
-	err := configurator_utils.CreateNetworkEntityIfNotExists(networkID, upgrade_client.NetworkTierType, tierID)
-	if err != nil {
-		return err
-	}
-	entity := configurator.EntityUpdateCriteria{
-		Type:      upgrade_client.NetworkTierType,
-		Key:       tierID,
-		NewConfig: tier,
-	}
-	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{entity})
-	return err
 }
 
 func deleteTierHandler(c echo.Context) error {
@@ -350,11 +278,6 @@ func deleteTierHandler(c echo.Context) error {
 	err := upgrade_client.DeleteTier(networkId, tierId)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-
-	err = configurator.DeleteEntities(networkId, []storage.TypeAndKey{{Type: upgrade_client.NetworkTierType, Key: tierId}})
-	if err != nil {
-		glog.Errorf("Failed to multiplex delete into configurator: %v", err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

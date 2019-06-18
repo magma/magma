@@ -77,8 +77,8 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkConfigSerde(NetworkFeaturesConfig, &models3.NetworkFeatures{}),
 
 		configurator.NewNetworkEntityConfigSerde(magmadconfig.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.ReleaseChannelType, &models.ReleaseChannel{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.NetworkTierType, &models.Tier{}),
+		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
+		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeTierEntityType, &models.Tier{}),
 
 		// Legacy config manager serdes
 		&magmadconfig.MagmadGatewayConfigManager{},
