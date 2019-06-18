@@ -326,7 +326,7 @@ def get_operational_states(
     for serial_id in state_machine_manager.get_connected_serial_id_list():
         enb_state = get_single_enb_status(serial_id, state_machine_manager)
         state = State(
-            type="enodebd",
+            type="enodeb",
             deviceID=serial_id,
             value=MessageToJson(enb_state).encode('utf-8')
         )
