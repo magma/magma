@@ -212,7 +212,7 @@ definitions:
               maxLength: 6
               pattern: '^(\d{5,6})$'
               example: '123456'
-      AAA:
+      aaa_server:
         type: object
         properties:
           idle_session_timeout_ms:

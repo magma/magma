@@ -37,7 +37,7 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 	hss := gwConfig.GetHss()
 	swxc := gwConfig.GetSwx()
 	eapAka := gwConfig.GetEapAka()
-	aaa := gwConfig.GetAAA()
+	aaa := gwConfig.GetAaaServer()
 
 	hssSubProfile := map[string]*mconfig.HSSConfig_SubscriptionProfile{}
 	for imsi, profile := range hss.GetSubProfiles() {
@@ -90,7 +90,7 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 			Timeout:  eapAka.GetTimeout().ToMconfig(),
 			PlmnIds:  eapAka.GetPlmnIds(),
 		},
-		"aaa": &mconfig.AAAConfig{
+		"aaa_server": &mconfig.AAAConfig{
 			LogLevel:             protos.LogLevel_INFO,
 			IdleSessionTimeoutMs: aaa.GetIdleSessionTimeoutMs(),
 			AccountingEnabled:    aaa.GetAccountingEnabled(),

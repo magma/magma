@@ -20,8 +20,8 @@ import (
 // swagger:model network_federation_configs
 type NetworkFederationConfigs struct {
 
-	// a a a
-	AAA *NetworkFederationConfigsAAA `json:"AAA,omitempty"`
+	// aaa server
+	AaaServer *NetworkFederationConfigsAaaServer `json:"aaa_server,omitempty"`
 
 	// eap aka
 	EapAka *NetworkFederationConfigsEapAka `json:"eap_aka,omitempty"`
@@ -52,7 +52,7 @@ type NetworkFederationConfigs struct {
 func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAAA(formats); err != nil {
+	if err := m.validateAaaServer(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -90,16 +90,16 @@ func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *NetworkFederationConfigs) validateAAA(formats strfmt.Registry) error {
+func (m *NetworkFederationConfigs) validateAaaServer(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.AAA) { // not required
+	if swag.IsZero(m.AaaServer) { // not required
 		return nil
 	}
 
-	if m.AAA != nil {
-		if err := m.AAA.Validate(formats); err != nil {
+	if m.AaaServer != nil {
+		if err := m.AaaServer.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("AAA")
+				return ve.ValidateName("aaa_server")
 			}
 			return err
 		}
@@ -252,9 +252,9 @@ func (m *NetworkFederationConfigs) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-// NetworkFederationConfigsAAA network federation configs a a a
-// swagger:model NetworkFederationConfigsAAA
-type NetworkFederationConfigsAAA struct {
+// NetworkFederationConfigsAaaServer network federation configs aaa server
+// swagger:model NetworkFederationConfigsAaaServer
+type NetworkFederationConfigsAaaServer struct {
 
 	// accounting enabled
 	AccountingEnabled bool `json:"accounting_enabled,omitempty"`
@@ -266,13 +266,13 @@ type NetworkFederationConfigsAAA struct {
 	IDLESessionTimeoutMs uint32 `json:"idle_session_timeout_ms,omitempty" magma_alt_name:"IdleSessionTimeoutMs"`
 }
 
-// Validate validates this network federation configs a a a
-func (m *NetworkFederationConfigsAAA) Validate(formats strfmt.Registry) error {
+// Validate validates this network federation configs aaa server
+func (m *NetworkFederationConfigsAaaServer) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *NetworkFederationConfigsAAA) MarshalBinary() ([]byte, error) {
+func (m *NetworkFederationConfigsAaaServer) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -280,8 +280,8 @@ func (m *NetworkFederationConfigsAAA) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *NetworkFederationConfigsAAA) UnmarshalBinary(b []byte) error {
-	var res NetworkFederationConfigsAAA
+func (m *NetworkFederationConfigsAaaServer) UnmarshalBinary(b []byte) error {
+	var res NetworkFederationConfigsAaaServer
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

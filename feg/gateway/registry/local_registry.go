@@ -26,7 +26,7 @@ const (
 	HEALTH        = "HEALTH"
 	CSFB          = "CSFB"
 	FEG_HELLO     = "FEG_HELLO"
-	AAA           = "AAA_SERVER"
+	AAA_SERVER    = "AAA_SERVER"
 	EAP           = "EAP"
 	EAP_AKA       = "EAP_AKA"
 	RADIUS        = "RADIUS"
@@ -69,7 +69,7 @@ func init() {
 
 	addLocalService(RADIUS, 9108)
 	addLocalService(EAP, 9109)
-	addLocalService(AAA, 9109)
+	addLocalService(AAA_SERVER, 9109)
 	addLocalService(EAP_AKA, 9123)
 	addLocalService(SWX_PROXY, 9110)
 

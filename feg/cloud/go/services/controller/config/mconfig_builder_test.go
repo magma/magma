@@ -120,7 +120,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 			},
 			PlmnIds: []string{},
 		},
-		"aaa": &mconfig.AAAConfig{LogLevel: 1,
+		"aaa_server": &mconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
 			AccountingEnabled:    false,
 			CreateSessionOnAuth:  false,

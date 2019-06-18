@@ -12,6 +12,10 @@ package main
 import (
 	"log"
 
+	"github.com/golang/protobuf/proto"
+
+	"magma/feg/cloud/go/protos/mconfig"
+	managed_configs "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/servicers"
@@ -19,20 +23,28 @@ import (
 	"magma/orc8r/cloud/go/service"
 )
 
+const AAAServiceName = "aaa_server"
+
 func main() {
 	// Create a shared Session Table
 	sessions := store.NewMemorySessionTable()
 
 	// Create the EAP AKA Provider service
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.AAA)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.AAA_SERVER)
 	if err != nil {
-		log.Fatalf("Error creating EAP service: %s", err)
+		log.Fatalf("Error creating AAA service: %s", err)
 	}
-	auth, _ := servicers.NewEapAuthenticator(nil)
-	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
-
-	acct, _ := servicers.NewAccountingService(sessions)
+	aaaConfigs := &mconfig.AAAConfig{}
+	err = managed_configs.GetServiceConfigs(AAAServiceName, aaaConfigs)
+	if err != nil {
+		log.Printf("Error getting AAA Server service configs: %s", err)
+		aaaConfigs = nil
+	}
+	acct, _ := servicers.NewAccountingService(sessions, proto.Clone(aaaConfigs).(*mconfig.AAAConfig))
 	protos.RegisterAccountingServer(srv.GrpcServer, acct)
+
+	auth, _ := servicers.NewEapAuthenticator(nil, aaaConfigs, acct)
+	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
 	err = srv.Run()
 	if err != nil {
