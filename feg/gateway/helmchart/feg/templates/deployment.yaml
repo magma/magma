@@ -147,6 +147,10 @@ spec:
       nodeSelector:
         {{ .Values.labels.node_selector_key }}: {{ .Values.labels.node_selector_value | quote }}
       terminationGracePeriodSeconds: 120
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
       containers:
         - name: {{ $envAll.Chart.Name }}
           image: {{ $envAll.Values.image.repository | quote }}

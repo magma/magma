@@ -12,6 +12,11 @@
 
 release_group: null
 
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: orc8r-secrets-registry
+
 ## Key Values for docker inside VM
 feg:
   image:
