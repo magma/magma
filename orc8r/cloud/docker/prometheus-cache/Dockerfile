@@ -19,4 +19,4 @@ COPY --from=go /build/bin/prometheus-cache /bin/prometheus-cache
 
 EXPOSE 9091
 
-CMD ["prometheus-cache"]
+ENTRYPOINT ["prometheus-cache"]

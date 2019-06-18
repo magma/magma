@@ -18,14 +18,16 @@ import (
 )
 
 const (
-	defaultPort = "9091"
+	defaultPort  = "9091"
+	defaultLimit = -1
 )
 
 func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
+	totalMetricsLimit := flag.Int("limit", defaultLimit, fmt.Sprintf("Limit the total metrics in the cache at one time. Will reject a push if cache is full. Default is %d which is no limit.", defaultLimit))
 	flag.Parse()
 
-	metricCache := cache.NewMetricCache()
+	metricCache := cache.NewMetricCache(*totalMetricsLimit)
 	e := echo.New()
 
 	e.POST("/metrics", metricCache.Receive)
