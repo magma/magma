@@ -43,7 +43,7 @@ func (m *UEConfig) Reset()         { *m = UEConfig{} }
 func (m *UEConfig) String() string { return proto.CompactTextString(m) }
 func (*UEConfig) ProtoMessage()    {}
 func (*UEConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_3d963e349fb342a4, []int{0}
+	return fileDescriptor_ue_sim_f8b75686bddd75c1, []int{0}
 }
 func (m *UEConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UEConfig.Unmarshal(m, b)
@@ -101,7 +101,6 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type UESimClient interface {
 	// Adds a new UE to the store.
-	// Throws ALREADY_EXISTS if the UE already exists.
 	//
 	AddUE(ctx context.Context, in *UEConfig, opts ...grpc.CallOption) (*protos.Void, error)
 }
@@ -126,7 +125,6 @@ func (c *uESimClient) AddUE(ctx context.Context, in *UEConfig, opts ...grpc.Call
 // UESimServer is the server API for UESim service.
 type UESimServer interface {
 	// Adds a new UE to the store.
-	// Throws ALREADY_EXISTS if the UE already exists.
 	//
 	AddUE(context.Context, *UEConfig) (*protos.Void, error)
 }
@@ -166,9 +164,9 @@ var _UESim_serviceDesc = grpc.ServiceDesc{
 	Metadata: "cwf/protos/ue_sim.proto",
 }
 
-func init() { proto.RegisterFile("cwf/protos/ue_sim.proto", fileDescriptor_ue_sim_3d963e349fb342a4) }
+func init() { proto.RegisterFile("cwf/protos/ue_sim.proto", fileDescriptor_ue_sim_f8b75686bddd75c1) }
 
-var fileDescriptor_ue_sim_3d963e349fb342a4 = []byte{
+var fileDescriptor_ue_sim_f8b75686bddd75c1 = []byte{
 	// 203 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x4f, 0x2e, 0x4f, 0xd3,
 	0x2f, 0x28, 0xca, 0x2f, 0xc9, 0x2f, 0xd6, 0x2f, 0x4d, 0x8d, 0x2f, 0xce, 0xcc, 0xd5, 0x03, 0xf3,
