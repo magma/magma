@@ -15,7 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 
 	"github.com/golang/glog"
@@ -172,7 +171,7 @@ func (e *GraphiteExporter) reconnect() error {
 
 func makeGraphiteName(metric *dto.Metric, ctx exporters.MetricsContext) string {
 	name := ctx.MetricName
-	labels := protos.GetDecodedLabel(metric)
+	labels := metric.Label
 
 	networkID := ctx.NetworkID
 	gatewayID := ctx.GatewayID
