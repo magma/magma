@@ -128,6 +128,9 @@ void LocalSessionManagerHandlerImpl::create_carrier_wifi_session(
   cfg.apn = request->apn();
   cfg.imei = request->imei();
   cfg.msisdn = request->msisdn();
+  cfg.rat_type = RATType::TGPP_WLAN;
+  cfg.mac_addr = request->hardware_addr();
+  cfg.radius_session_id = request->radius_session_id();
 
   auto imsi = request->sid().id();
   auto sid = id_gen_.gen_session_id(imsi);
@@ -150,7 +153,8 @@ void LocalSessionManagerHandlerImpl::create_lte_session(
                               .imei = request->imei(),
                               .plmn_id = request->plmn_id(),
                               .imsi_plmn_id = request->imsi_plmn_id(),
-                              .user_location = request->user_location()};
+                              .user_location = request->user_location(),
+                              .rat_type = RATType::TGPP_LTE};
   send_create_session(
     copy_session_info2create_req(request, sid),
     imsi, sid, cfg, response_callback);
