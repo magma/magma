@@ -30,7 +30,7 @@ const (
 )
 
 var (
-	simpleTagRegexString = fmt.Sprintf("%s=[~]?%s", metricNameRegexString, metricNameRegexString)
+	simpleTagRegexString = fmt.Sprintf("%s[!]?=[~]?%s", metricNameRegexString, metricNameRegexString)
 	SimpleTagRegex       = regexp.MustCompile(simpleTagRegexString)
 
 	// regex to match an list of tags

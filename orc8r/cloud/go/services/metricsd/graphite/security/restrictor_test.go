@@ -48,6 +48,8 @@ const (
 	seriesByTagTemplate = `seriesByTag('name=~^%s$','networkID=testNetwork')`
 
 	seriesByTagInsideFunction = `sumSeries(seriesByTag('name=metric_name'))`
+	notEqualOperator          = `seriesByTag('name!=metric_name')`
+	notEqualRegexOperator     = `seriesByTag('name!=~metric_.*')`
 )
 
 var (
@@ -75,6 +77,8 @@ var (
 	restrictedBasicQueryWithRegexTag   = fmt.Sprintf(`seriesByTag('name=~^metric_name$','networkID=%s','tag1=~val_id_.*')`, testNetwork)
 
 	restrictedSeriesByTagInsideFunction = fmt.Sprintf(`sumSeries(seriesByTag('name=metric_name','networkID=%s'))`, testNetwork)
+	restrictedNotEqualOperator          = fmt.Sprintf(`seriesByTag('name!=metric_name','networkID=%s')`, testNetwork)
+	restrictedNotEqualRegexOperator     = fmt.Sprintf(`seriesByTag('name!=~metric_.*','networkID=%s')`, testNetwork)
 )
 
 type RestrictorTestCase struct {
@@ -130,6 +134,8 @@ func TestRestrictQuery(t *testing.T) {
 		NewBasicRestrictorTestCase(basicQueryWithRegexTag, restrictedBasicQueryWithRegexTag),
 
 		NewBasicRestrictorTestCase(seriesByTagInsideFunction, restrictedSeriesByTagInsideFunction),
+		NewBasicRestrictorTestCase(notEqualOperator, restrictedNotEqualOperator),
+		NewBasicRestrictorTestCase(notEqualRegexOperator, restrictedNotEqualRegexOperator),
 	}
 	for _, c := range testCases {
 		c.runTest(t)
