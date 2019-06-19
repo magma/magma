@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"sync"
 	"time"
 
@@ -25,6 +26,10 @@ import (
 
 const (
 	pushInterval = time.Second * 30
+)
+
+var (
+	prometheusLabelRegex = regexp.MustCompile("[a-zA-Z_][a-zA-Z0-9_]*")
 )
 
 // CustomPushExporter pushes metrics to a custom prometheus pushgateway
@@ -64,6 +69,11 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 		convertedFamilies := convertFamilyToGauges(originalFamily)
 		for _, fam := range convertedFamilies {
 			familyName := fam.GetName()
+			fam.Metric = dropInvalidMetrics(fam.Metric, familyName)
+			// if all metrics from this family were dropped, don't submit it
+			if len(fam.Metric) == 0 {
+				continue
+			}
 			for _, metric := range fam.Metric {
 				addContextLabelsToMetric(metric, metricAndContext.Context)
 				metric.TimestampMs = &timeStamp
@@ -76,6 +86,20 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 		}
 	}
 	return nil
+}
+
+// dropInvalidMetrics because invalid label names would cause the entire scrape
+// to fail. Drop them here and log to allow good metrics through
+func dropInvalidMetrics(metrics []*io_prometheus_client.Metric, familyName string) []*io_prometheus_client.Metric {
+	validMetrics := make([]*io_prometheus_client.Metric, 0, len(metrics))
+	for _, metric := range metrics {
+		if err := validateLabels(metric); err != nil {
+			glog.Errorf("Dropping metric %s because of invalid label: %v", familyName, err)
+		} else {
+			validMetrics = append(validMetrics, metric)
+		}
+	}
+	return validMetrics
 }
 
 func addContextLabelsToMetric(metric *io_prometheus_client.Metric, ctx mxd_exp.MetricsContext) {
@@ -100,6 +124,15 @@ func addContextLabelsToMetric(metric *io_prometheus_client.Metric, ctx mxd_exp.M
 			&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelGateway), Value: &ctx.GatewayID},
 		)
 	}
+}
+
+func validateLabels(metric *io_prometheus_client.Metric) error {
+	for _, label := range metric.Label {
+		if !prometheusLabelRegex.MatchString(label.GetName()) {
+			return fmt.Errorf("label %s invalid", label.GetName())
+		}
+	}
+	return nil
 }
 
 func addMetricsToFamily(baseFamily *io_prometheus_client.MetricFamily, newFamily *io_prometheus_client.MetricFamily) {
