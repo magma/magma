@@ -100,6 +100,9 @@ func (f *fegNetworkMigrator) ToNewConfig(oldConfig []byte) ([]byte, error) {
 	if newModel.EapAka == nil {
 		newModel.EapAka = &types.NetworkFederationConfigsEapAka{}
 	}
+	if newModel.AaaServer == nil {
+		newModel.AaaServer = &types.NetworkFederationConfigsAaaServer{}
+	}
 	protos.FillIn(oldMsg.S6A, newModel.S6a)
 	protos.FillIn(oldMsg.Hss, newModel.Hss)
 	protos.FillIn(oldMsg.Gx, newModel.Gx)
@@ -107,6 +110,7 @@ func (f *fegNetworkMigrator) ToNewConfig(oldConfig []byte) ([]byte, error) {
 	protos.FillIn(oldMsg.Swx, newModel.Swx)
 	protos.FillIn(oldMsg.Health, newModel.Health)
 	protos.FillIn(oldMsg.EapAka, newModel.EapAka)
+	protos.FillIn(oldMsg.AaaServer, newModel.AaaServer)
 	if newModel.ServedNetworkIds == nil {
 		newModel.ServedNetworkIds = []string{}
 	}
@@ -172,6 +176,9 @@ func (*fegGatewayMigrator) ToNewConfig(oldConfig []byte) ([]byte, error) {
 	if newModel.EapAka == nil {
 		newModel.EapAka = &types.NetworkFederationConfigsEapAka{}
 	}
+	if newModel.AaaServer == nil {
+		newModel.AaaServer = &types.NetworkFederationConfigsAaaServer{}
+	}
 	protos.FillIn(oldMsg.S6A, newModel.S6a)
 	protos.FillIn(oldMsg.Hss, newModel.Hss)
 	protos.FillIn(oldMsg.Gx, newModel.Gx)
@@ -179,6 +186,7 @@ func (*fegGatewayMigrator) ToNewConfig(oldConfig []byte) ([]byte, error) {
 	protos.FillIn(oldMsg.Swx, newModel.Swx)
 	protos.FillIn(oldMsg.Health, newModel.Health)
 	protos.FillIn(oldMsg.EapAka, newModel.EapAka)
+	protos.FillIn(oldMsg.AaaServer, newModel.AaaServer)
 	if newModel.ServedNetworkIds == nil {
 		newModel.ServedNetworkIds = []string{}
 	}

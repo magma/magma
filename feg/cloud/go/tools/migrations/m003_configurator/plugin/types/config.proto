@@ -93,6 +93,13 @@ message EapAkaConfig {
     repeated string PlmnIds = 2;
 }
 
+
+message AAAConfig {
+    uint32 IdleSessionTimeoutMs = 1; // Idle session TTL
+    bool AccountingEnabled = 2; // enable accounting & maintain long term user sessions
+    bool CreateSessionOnAuth = 3; // Postpone Auth success until successful accounting CreateSession completion
+}
+
 message Config {
     S6aConfig s6a = 4;
     GxConfig gx = 5;
@@ -102,4 +109,5 @@ message Config {
     SwxConfig swx = 9;
     HealthConfig health = 10;
     EapAkaConfig eap_aka = 11;
+    AAAConfig aaa_server = 12;
 }
