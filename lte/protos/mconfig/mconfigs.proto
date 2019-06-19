@@ -148,7 +148,8 @@ message MME {
     string mcc = 2;
     // Mobile network code
     string mnc = 3;
-    // Tracking area code. 16-bit
+    // [deprecated] Tracking area code. 16-bit
+    // Is overrideen by field 15
     int32 tac = 4;
     // MME group identifier - unique within a PLMN. 16-bit
     int32 mme_gid = 5;
@@ -170,6 +171,11 @@ message MME {
     // If relay_enabled is false, this determines whether cloud subscriberdb
     // or local subscriberdb is used for authentication requests.
     bool cloud_subscriberdb_enabled = 14;
+    // The Tracking Area Code of every connected eNodeB needs to be
+    // registered the MME.
+    // Overrides field 4 if this is not empty. Field 4 is in the process of
+    // being deprecated
+    repeated int32 attached_enodeb_tacs = 15;
 
     // DEPRECATED
     // Use relay_enabled instead
