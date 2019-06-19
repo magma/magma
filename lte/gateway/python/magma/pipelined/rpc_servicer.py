@@ -27,6 +27,7 @@ from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     RelayDisabledException
+from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
@@ -40,12 +41,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     """
 
     def __init__(self, loop, metering_stats, enforcer_app, enforcement_stats,
-                 dpi_app, service_manager):
+                 dpi_app, ue_mac_app, service_manager):
         self._loop = loop
         self._metering_stats = metering_stats
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
         self._dpi_app = dpi_app
+        self._ue_mac_app = ue_mac_app
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -236,9 +238,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Associate UE MAC address to subscriber
         """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Service not yet implemented!')
-        return None
+        if not self._service_manager.is_app_enabled(
+                UEMacAddressController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        # 12 hex characters + 5 colons
+        if len(request.mac_addr) != 17:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details('Invalid UE MAC address provided')
+            return None
+
+        resp = FlowResponse()
+        self._loop.call_soon_threadsafe(
+            self._ue_mac_app.add_ue_mac_flow,
+            request.sid.id, request.mac_addr)
+        return resp
 
     # --------------------------
     # Debugging

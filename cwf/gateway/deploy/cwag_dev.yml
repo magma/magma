@@ -15,6 +15,3 @@
     - role: ovs
     - role: golang
     - role: cwag
-
-
-
