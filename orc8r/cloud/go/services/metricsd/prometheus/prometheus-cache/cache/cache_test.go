@@ -39,7 +39,7 @@ func TestCacheMetrics(t *testing.T) {
 }
 
 func cacheSingleFamily(t *testing.T, metricsInFamily int) {
-	cache := NewMetricCache()
+	cache := NewMetricCache(0)
 	mf := makeFamily(dto.MetricType_GAUGE, "metricA", metricsInFamily, testLabels, timestamp)
 	metrics := map[string]*dto.MetricFamily{"metricA": mf}
 
@@ -55,7 +55,7 @@ func cacheSingleFamily(t *testing.T, metricsInFamily int) {
 }
 
 func cacheMultipleFamilies(t *testing.T) {
-	cache := NewMetricCache()
+	cache := NewMetricCache(0)
 	mf1 := makeFamily(dto.MetricType_GAUGE, "mf1", 5, testLabels, timestamp)
 	mf2 := makeFamily(dto.MetricType_GAUGE, "mf2", 10, testLabels, timestamp)
 	metrics := map[string]*dto.MetricFamily{"mf1": mf1, "mf2": mf2}
@@ -79,7 +79,7 @@ func cacheMultipleFamilies(t *testing.T) {
 }
 
 func cacheMultipleSeries(t *testing.T) {
-	cache := NewMetricCache()
+	cache := NewMetricCache(0)
 	mf1 := makeFamily(dto.MetricType_GAUGE, "mf1", 1, testLabels, timestamp)
 	mf2 := makeFamily(dto.MetricType_GAUGE, "mf1", 1, []*dto.LabelPair{}, timestamp)
 	mf1Map := map[string]*dto.MetricFamily{"mf1": mf1}
@@ -95,7 +95,7 @@ func cacheMultipleSeries(t *testing.T) {
 }
 
 func assertTimestampsSortedProperly(t *testing.T) {
-	cache := NewMetricCache()
+	cache := NewMetricCache(0)
 	counterValues := []float64{123, 234, 456}
 	counterTimes := []int64{1, 2, 3}
 	counter1 := dto.Counter{
