@@ -2,7 +2,7 @@
   "name": "@fbcnms/express-middleware",
   "private": true,
   "version": "0.1.0",
-  "devDependencies": {
+  "dependencies": {
     "@fbcnms/logging": "^0.1.0",
     "body-parser": "^1.18.3",
     "compression": "^1.7.1",
@@ -10,7 +10,9 @@
     "csurf": "^1.9.0",
     "express": "^4.16.3",
     "express-session": "^1.15.6",
-    "helmet": "^3.13.0",
+    "helmet": "^3.13.0"
+  },
+  "devDependencies": {
     "webpack": "^4.29.6",
     "webpack-dev-middleware": "^3.6.1",
     "webpack-hot-middleware": "^2.24.3"

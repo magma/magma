@@ -54,6 +54,7 @@ module.exports.overrides = [
       'fbcnms-projects/*/config/webpack.*.js',
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
+      'fbcnms-projects/platform-server/**/*.js',
     ],
     rules: {
       'no-console': 'off',
