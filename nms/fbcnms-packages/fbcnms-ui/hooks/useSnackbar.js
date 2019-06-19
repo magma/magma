@@ -9,7 +9,7 @@
  */
 
 // https://github.com/iamhosseindhv/notistack/pull/17
-import {useEffect} from 'react';
+import {useEffect, useCallback} from 'react';
 import {useSnackbar as useNotistackSnackbar} from 'notistack';
 import * as React from 'react';
 import SnackbarItem from '../components/SnackbarItem.react';
@@ -39,15 +39,18 @@ export default function useSnackbar(
 
 export function useEnqueueSnackbar() {
   const {enqueueSnackbar} = useNotistackSnackbar();
-  return (message: string, config: Object) =>
-    enqueueSnackbar(message, {
-      children: key => (
-        <SnackbarItem
-          id={key}
-          message={message}
-          variant={config.variant ?? 'success'}
-        />
-      ),
-      ...config,
-    });
+  return useCallback(
+    (message: string, config: Object) =>
+      enqueueSnackbar(message, {
+        children: key => (
+          <SnackbarItem
+            id={key}
+            message={message}
+            variant={config.variant ?? 'success'}
+          />
+        ),
+        ...config,
+      }),
+    [enqueueSnackbar],
+  );
 }
