@@ -80,7 +80,7 @@ services:
       - /var/run/openvswitch:/var/run/openvswitch
     command: >
       sh -c "set bridge br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
-        /usr/bin/ovs-vsctl set-controller br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654 &&
+        /usr/bin/ovs-vsctl set-controller br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
   sessiond:

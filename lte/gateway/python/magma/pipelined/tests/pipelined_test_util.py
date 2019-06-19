@@ -334,7 +334,7 @@ def get_meter_stats(controller: MeterStatsController) \
     return stats
 
 
-def create_service_manager(services=list):
+def create_service_manager(services: List[int], include_ue_mac=False):
     """
     Creates a service manager from the given list of services.
     Args:
@@ -345,8 +345,12 @@ def create_service_manager(services=list):
     mconfig = PipelineD(relay_enabled=True, services=services)
     magma_service = MagicMock()
     magma_service.mconfig = mconfig
+
+    static_services = (['ue_mac', 'arpd', 'access_control']
+                       if include_ue_mac
+                       else ['arpd', 'access_control'])
     magma_service.config = {
-        'static_services': ['arpd', 'access_control']
+        'static_services': static_services
     }
     return ServiceManager(magma_service)
 

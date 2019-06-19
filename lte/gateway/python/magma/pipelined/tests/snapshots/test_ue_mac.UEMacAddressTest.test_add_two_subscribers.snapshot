@@ -1,0 +1,4 @@
+ cookie=0x0, table=ue_mac(main_table), n_packets=0, n_bytes=0, priority=10,in_port=32768,dl_src=5e:cc:cc:b1:49:4b actions=set_field:0x48c2739fd9c3->metadata,resubmit(,ingress(main_table)),set_field:0->reg0
+ cookie=0x0, table=ue_mac(main_table), n_packets=0, n_bytes=0, priority=10,in_port=32768,dl_src=5e:cc:cc:aa:aa:fe actions=set_field:0x48c273a134fb->metadata,resubmit(,ingress(main_table)),set_field:0->reg0
+ cookie=0x0, table=ue_mac(main_table), n_packets=1, n_bytes=14, priority=10,in_port=LOCAL,dl_dst=5e:cc:cc:b1:49:4b actions=set_field:0x48c2739fd9c3->metadata,resubmit(,ingress(main_table)),set_field:0->reg0
+ cookie=0x0, table=ue_mac(main_table), n_packets=1, n_bytes=14, priority=10,in_port=LOCAL,dl_dst=5e:cc:cc:aa:aa:fe actions=set_field:0x48c273a134fb->metadata,resubmit(,ingress(main_table)),set_field:0->reg0
