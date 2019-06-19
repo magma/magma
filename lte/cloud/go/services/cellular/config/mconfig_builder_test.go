@@ -97,6 +97,7 @@ func TestCellularBuilder_Build(t *testing.T) {
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
+			AttachedEnodebTacs:       []int32{15000},
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -182,6 +183,7 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
+			AttachedEnodebTacs:       []int32{},
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,

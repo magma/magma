@@ -119,6 +119,7 @@ func (builder *CellularBuilder) Build(networkId string, gatewayId string) (map[s
 			Lac:                      nonEPSServiceMconfig.lac,
 			RelayEnabled:             nwEpc.GetRelayEnabled(),
 			CloudSubscriberdbEnabled: nwEpc.GetCloudSubscriberdbEnabled(),
+			AttachedEnodebTacs:       getEnodebTacs(enodebConfigsBySerial),
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -183,6 +184,16 @@ func getEnodebConfigsBySerial(
 		}
 	}
 	return enbConfigMap, nil
+}
+
+func getEnodebTacs(enbConfigsBySerial map[string]*mconfig.EnodebD_EnodebConfig) []int32 {
+	enbTacs := make([]int32, len(enbConfigsBySerial))
+	i := 0
+	for _, enbConfig := range enbConfigsBySerial {
+		enbTacs[i] = enbConfig.Tac
+		i += 1
+	}
+	return enbTacs
 }
 
 func getEnodebConfig(

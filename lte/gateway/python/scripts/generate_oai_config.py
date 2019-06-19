@@ -105,6 +105,17 @@ def _get_identity():
     return "{}.{}".format(socket.gethostname(), realm)
 
 
+def _get_attached_enodeb_tacs():
+    mme_config = load_service_mconfig_as_json("mme")
+    # attachedEnodebTacs overrides 'tac', which is being deprecated, but for
+    # now, both are supported
+    tac = mme_config["tac"]
+    attached_enodeb_tacs = mme_config["attachedEnodebTacs"]
+    if len(attached_enodeb_tacs) == 0:
+        return [tac]
+    return attached_enodeb_tacs
+
+
 def _get_context():
     """
     Create the context which has the interface IP and the OAI log level to use.
@@ -122,6 +133,7 @@ def _get_context():
     context["csfb_mnc"] = _get_csfb_mnc()
     context["lac"] = _get_lac()
     context["use_stateless"] = get_service_config_value("mme", "use_stateless", "")
+    context["attached_enodeb_tacs"] = _get_attached_enodeb_tacs()
     # set ovs params
     for key in (
         "ovs_bridge_name",
