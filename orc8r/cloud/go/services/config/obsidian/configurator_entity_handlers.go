@@ -9,10 +9,10 @@
 package obsidian
 
 import (
+	"errors"
 	"net/http"
-	"reflect"
 
-	"magma/orc8r/cloud/go/errors"
+	magma_errors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -22,14 +22,11 @@ import (
 // This set of CRUD handlers are meant for entities that only have one config
 // per entity.
 func configuratorCreateEntityConfig(c echo.Context, networkID string, entityType string, entityKey string, iConfig interface{}) error {
-	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
-	if err := c.Bind(cfgInstance); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+	config, nerr := getConfigAndValidate(c, iConfig)
+	if nerr != nil {
+		return nerr
 	}
-	if err := cfgInstance.ValidateModel(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, cfgInstance)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, config)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -38,7 +35,7 @@ func configuratorCreateEntityConfig(c echo.Context, networkID string, entityType
 
 func configuratorGetEntityConfig(c echo.Context, networkID string, entityType string, entityKey string) error {
 	ent, err := configurator.LoadEntity(networkID, entityType, entityKey, configurator.EntityLoadCriteria{LoadConfig: true})
-	if err == errors.ErrNotFound {
+	if err == magma_errors.ErrNotFound {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
 	if err != nil {
@@ -51,14 +48,11 @@ func configuratorGetEntityConfig(c echo.Context, networkID string, entityType st
 }
 
 func configuratorUpdateEntityConfig(c echo.Context, networkID string, entityType string, entityKey string, iConfig interface{}) error {
-	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
-	if err := c.Bind(cfgInstance); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+	config, nerr := getConfigAndValidate(c, iConfig)
+	if nerr != nil {
+		return nerr
 	}
-	if err := cfgInstance.ValidateModel(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, cfgInstance)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, config)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -71,4 +65,15 @@ func configuratorDeleteEntityConfig(c echo.Context, networkID string, entityType
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
+}
+
+func configuratorGetAllKeys(c echo.Context, networkID, entityType string) error {
+	keysArr, err := configurator.ListEntityKeys(networkID, entityType)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	if keysArr == nil {
+		return handlers.HttpError(errors.New("Keys not found"), http.StatusNotFound)
+	}
+	return c.JSON(http.StatusOK, keysArr)
 }

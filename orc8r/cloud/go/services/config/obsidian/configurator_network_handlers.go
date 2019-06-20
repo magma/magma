@@ -9,6 +9,7 @@
 package obsidian
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"strings"
@@ -22,11 +23,13 @@ import (
 // Since the config service does not differentiate between configs that belong
 // to networks vs network entities, this is a bit of a hack that relies on the
 // current naming pattern to differentiate between the two.
+// The current naming pattern is "*_network" and "*_gateway"
 func getConfigTypeForConfigurator(configType string) ConfigType {
-	splittedConfigType := strings.Split(configType, "_")
-	if len(splittedConfigType) > 1 && splittedConfigType[1] == "network" {
+	split := strings.Split(configType, "_")
+	lastIndex := len(split) - 1
+	if len(split) > 1 && split[lastIndex] == "network" {
 		return Network
-	} else if len(splittedConfigType) == 2 && splittedConfigType[1] == "gateway" {
+	} else if len(split) == 2 && split[lastIndex] == "gateway" {
 		return Gateway
 	} else {
 		return Entity
@@ -36,14 +39,11 @@ func getConfigTypeForConfigurator(configType string) ConfigType {
 // Networks
 
 func configuratorCreateNetworkConfig(c echo.Context, networkID string, configType string, iConfig interface{}) error {
-	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
-	if err := c.Bind(cfgInstance); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+	config, nerr := getConfigAndValidate(c, iConfig)
+	if nerr != nil {
+		return nerr
 	}
-	if err := cfgInstance.ValidateModel(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	err := configurator.UpdateNetworkConfig(networkID, configType, cfgInstance)
+	err := configurator.UpdateNetworkConfig(networkID, configType, config)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -62,14 +62,11 @@ func configuratorGetNetworkConfig(c echo.Context, networkID string, configType s
 }
 
 func configuratorUpdateNetworkConfig(c echo.Context, networkID string, configType string, iConfig interface{}) error {
-	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
-	if err := c.Bind(cfgInstance); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+	config, nerr := getConfigAndValidate(c, iConfig)
+	if nerr != nil {
+		return nerr
 	}
-	if err := cfgInstance.ValidateModel(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	err := configurator.UpdateNetworkConfig(networkID, configType, cfgInstance)
+	err := configurator.UpdateNetworkConfig(networkID, configType, config)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -82,4 +79,15 @@ func configuratorDeleteNetworkConfig(c echo.Context, networkID string, configTyp
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
+}
+
+func getConfigAndValidate(c echo.Context, iConfig interface{}) (ConvertibleUserModel, error) {
+	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
+	if err := c.Bind(cfgInstance); err != nil {
+		return nil, handlers.HttpError(err, http.StatusBadRequest)
+	}
+	if err := cfgInstance.ValidateModel(); err != nil {
+		return nil, handlers.HttpError(fmt.Errorf("Invalid config: %s", err), http.StatusBadRequest)
+	}
+	return cfgInstance, nil
 }
