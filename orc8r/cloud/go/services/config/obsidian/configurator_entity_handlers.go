@@ -11,31 +11,17 @@ package obsidian
 import (
 	"net/http"
 	"reflect"
-	"strings"
 
+	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
 )
 
-// Since the config service does not differentiate between configs that belong
-// to networks vs network entities, this is a bit of a hack that relies on the
-// current naming pattern to differentiate between the two.
-func getConfigTypeForConfigurator(configType string) ConfigType {
-	splittedConfigType := strings.Split(configType, "_")
-	if len(splittedConfigType) > 1 && splittedConfigType[1] == "network" {
-		return Network
-	} else if len(splittedConfigType) == 2 && splittedConfigType[1] == "gateway" {
-		return Gateway
-	} else {
-		return Entity
-	}
-}
-
-// Networks
-
-func configuratorCreateNetworkConfig(c echo.Context, networkID string, configType string, iConfig interface{}) error {
+// This set of CRUD handlers are meant for entities that only have one config
+// per entity.
+func configuratorCreateEntityConfig(c echo.Context, networkID string, entityType string, entityKey string, iConfig interface{}) error {
 	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
 	if err := c.Bind(cfgInstance); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
@@ -43,25 +29,28 @@ func configuratorCreateNetworkConfig(c echo.Context, networkID string, configTyp
 	if err := cfgInstance.ValidateModel(); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	err := configurator.UpdateNetworkConfig(networkID, configType, cfgInstance)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, cfgInstance)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusCreated, networkID)
+	return c.JSON(http.StatusCreated, entityKey)
 }
 
-func configuratorGetNetworkConfig(c echo.Context, networkID string, configType string) error {
-	cfg, err := configurator.GetNetworkConfigsByType(networkID, configType)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	if cfg == nil {
+func configuratorGetEntityConfig(c echo.Context, networkID string, entityType string, entityKey string) error {
+	ent, err := configurator.LoadEntity(networkID, entityType, entityKey, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err == errors.ErrNotFound {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
-	return c.JSON(http.StatusOK, cfg)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	if ent.Config == nil {
+		return echo.NewHTTPError(http.StatusNotFound)
+	}
+	return c.JSON(http.StatusOK, ent.Config)
 }
 
-func configuratorUpdateNetworkConfig(c echo.Context, networkID string, configType string, iConfig interface{}) error {
+func configuratorUpdateEntityConfig(c echo.Context, networkID string, entityType string, entityKey string, iConfig interface{}) error {
 	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
 	if err := c.Bind(cfgInstance); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
@@ -69,15 +58,15 @@ func configuratorUpdateNetworkConfig(c echo.Context, networkID string, configTyp
 	if err := cfgInstance.ValidateModel(); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	err := configurator.UpdateNetworkConfig(networkID, configType, cfgInstance)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, cfgInstance)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
 
-func configuratorDeleteNetworkConfig(c echo.Context, networkID string, configType string) error {
-	err := configurator.DeleteNetworkConfig(networkID, configType)
+func configuratorDeleteEntityConfig(c echo.Context, networkID string, entityType string, entityKey string) error {
+	err := configurator.DeleteEntityConfig(networkID, entityType, entityKey)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}

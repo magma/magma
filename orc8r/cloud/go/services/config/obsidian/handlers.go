@@ -19,7 +19,6 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
@@ -41,9 +40,14 @@ type ConvertibleUserModel interface {
 type ConfigType int
 
 const (
-	Network      ConfigType = 1
-	Entity       ConfigType = 2
-	Unrecognized ConfigType = 3
+	Network ConfigType = 1
+	Gateway ConfigType = 2
+	// Entity is a network entity in configurator that is not a magmad_gateway.
+	// This distinction is important since the current setup allows a gateway
+	// to have multiple configs. A gateway config is treated as a separate
+	// entity with an association to the gateway entity. With a simple entity,
+	// its config is stored inside the entity.
+	Entity ConfigType = 3
 )
 
 // instantiateNewConvertibleUserModel creates a new, empty instance of the
@@ -187,12 +191,12 @@ func GetReadConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorGetNetworkConfig(c, networkId, configType)
-			case Entity:
+			case Gateway, Entity:
 				configKey, cerr := configKeyGetter(c)
 				if cerr != nil {
 					return cerr
 				}
-				return configuratorGetGatewayConfig(c, networkId, configType, configKey)
+				return configuratorGetEntityConfig(c, networkId, configType, configKey)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
@@ -268,12 +272,18 @@ func GetCreateConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorCreateNetworkConfig(c, networkId, configType, userModel)
-			case Entity:
+			case Gateway:
 				configKey, err := configKeyGetter(c)
 				if err != nil {
 					return err
 				}
 				return configuratorCreateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateEntityConfig(c, networkId, configType, configKey, userModel)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
@@ -297,7 +307,6 @@ func GetCreateGatewayConfigHandler(path string, configType string, userModel Con
 
 func handleCreateConfig(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
 	userModel = instantiateNewConvertibleUserModel(userModel)
-	glog.Errorf("Type of userMode %T value of usermodel %v", userModel, userModel)
 	if err := c.Bind(userModel); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
@@ -353,12 +362,12 @@ func GetUpdateConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
-			case Entity:
+			case Gateway, Entity:
 				configKey, err := configKeyGetter(c)
 				if err != nil {
 					return err
 				}
-				return configuratorUpdateGatewayConfig(c, networkId, configType, configKey, userModel)
+				return configuratorUpdateEntityConfig(c, networkId, configType, configKey, userModel)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
@@ -430,12 +439,18 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorDeleteNetworkConfig(c, networkId, configType)
-			case Entity:
+			case Gateway:
 				configKey, err := configKeyGetter(c)
 				if err != nil {
 					return err
 				}
 				return configuratorDeleteGatewayConfig(c, networkId, configType, configKey)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteEntityConfig(c, networkId, configType, configKey)
 			default:
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}

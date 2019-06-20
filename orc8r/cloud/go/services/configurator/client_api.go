@@ -275,7 +275,7 @@ func UpdateInternalEntity(update EntityUpdateCriteria) (NetworkEntity, error) {
 	return UpdateEntity(storage.InternalNetworkID, update)
 }
 
-func UpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}) error {
+func CreateOrUpdateEntityConfig(networkID string, entityType string, entityKey string, config interface{}) error {
 	updateCriteria := EntityUpdateCriteria{
 		Key:       entityKey,
 		Type:      entityType,
@@ -383,6 +383,14 @@ func LoadEntity(networkID string, entityType string, entityKey string, criteria 
 		return ret, merrors.ErrNotFound
 	}
 	return loaded[0], nil
+}
+
+func LoadEntityConfig(networkID, entityType, entityKey string) (interface{}, error) {
+	entity, err := LoadEntity(networkID, entityType, entityKey, EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return nil, err
+	}
+	return entity.Config, nil
 }
 
 // LoadEntities loads entities specified by the parameters.
