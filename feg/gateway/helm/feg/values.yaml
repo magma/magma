@@ -44,12 +44,6 @@ labels:
   node_selector_value: virtlet
 
 pod:
-  affinity:
-    anti:
-      type:
-        default: preferredDuringSchedulingIgnoredDuringExecution
-      topologyKey:
-        default: kubernetes.io/hostname
   replicas:
     server: 1
   resources:
@@ -81,9 +75,6 @@ service:
       port: 22
       targetport: 22
       nodePort: ""
-
-nodeSelector:
-  extraRuntime: virtlet
 
 tolerations: []
 

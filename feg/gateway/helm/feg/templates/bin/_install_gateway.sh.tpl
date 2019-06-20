@@ -48,13 +48,6 @@ git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL" -b {{ .Values.feg.repo.branch }}
 #TAG=$(git -C $INSTALL_DIR/magma tag | tail -1)
 #git -C $INSTALL_DIR/magma checkout "tags/$TAG"
 
-# Ensure this script hasn't changed
-if ! cmp "$INSTALL_DIR"/magma/orc8r/tools/docker/install_gateway.sh /opt/magma/bin/install_gateway.sh; then
-    echo "This 'install_gateway.sh' script has changed..."
-    echo "Please copy this file from $INSTALL_DIR/magma/orc8r/tools/docker/install_gateway.sh and re-run"
-    exit
-fi
-
 cp "$INSTALL_DIR"/magma/feg/gateway/docker/docker-compose.yml .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/upgrade_gateway.sh .
 # Install Docker
@@ -72,7 +65,6 @@ sudo add-apt-repository \
    stable"
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-#sudo usermod -aG docker "$SUDO_USER"
 
 # Install Docker-Compose
 sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose

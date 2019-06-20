@@ -5,25 +5,27 @@ The federated gateway provides remote procedure call (GRPC) based interfaces to 
 
 ## TL;DR;
 ```bash
+$ cd magma/feg/gateway/helm
+
 $ cat vals.yaml
 feg:
   image:
     docker_registry: docker.io/proxy
   repo:
-    url: https://github.com/reddydodda/magma/
+    url: https://github.com/facebookincubator/magma/
     branch: master
 
-$ helm upgrade --install feg --namespace magma orc8r --values=vals.yaml
+$ helm upgrade --install feg --namespace magma ./feg --values=vals.yaml
 ```
 
 ## Overview
 
-This chart installs the magma Federated Gateway.
+This chart installs the Magma Federated Gateway.
 
 ## Prerequisites
-1. we will first need the orc8r to be setup
+1. We will first need the orc8r to be setup
 
-2. check if rootCA,gwcert.crt and gecert.key certs present under secrets named `orc8r-secrets-certs`
+2. check if rootCA.pem is present under secrets named `orc8r-secrets-certs`
 
 ```bash
 
@@ -32,14 +34,12 @@ This chart installs the magma Federated Gateway.
    Data
    ====
    rootCA.key:              1675 bytes
-   gwcert.key:              1679 bytes
-   gwcert.crt:              1224 bytes
 ```
 3. Install Virtlet to run Virtual Machine in POD
 
 	https://docs.virtlet.cloud/user-guide/real-cluster/ 
 
-4. build images for feg
+4. Build images for feg
 
 ```shell
    export COMPOSE_PROJECT_NAME=feg
@@ -101,7 +101,7 @@ The following table list the configurable parameters of the orchestrator chart a
 
 	helm upgrade --install feg --namespace magma orc8r --values=vals.yaml
 
-2. register the gateway with orchestrator
+2. Register the gateway with the orchestrator
 
 login to feg VM and execute below command
 
@@ -112,7 +112,7 @@ login to feg VM and execute below command
          feg_ip=$(kubectl -n magma get svc -l app.kubernetes.io/component=gateway,app.kubernetes.io/instance=feg \ 
          -o jsonpath="{.items[0].spec.clusterIP}")
     
-   b. ssh into VM
+   b. SSH into VM
    
          ssh testuser@${feg_ip} "/var/opt/magma/docker/docker-compose exec magmad /usr/local/bin/show_gateway_info.py"
       

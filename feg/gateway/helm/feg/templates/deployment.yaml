@@ -142,8 +142,14 @@ spec:
       {{- if .Values.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
       {{- end }}
+      {{- with .Values.controller.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.controller.affinity }}
       affinity:
-{{ tuple $envAll "feg" "gateway" | include "kubernetes_pod_anti_affinity" | indent 8 }}
+{{ toYaml . | indent 8 }}
+      {{- end }}
       nodeSelector:
         {{ .Values.labels.node_selector_key }}: {{ .Values.labels.node_selector_value | quote }}
       terminationGracePeriodSeconds: 120
@@ -166,12 +172,6 @@ spec:
             - name: orc8r-secrets-certs
               mountPath: /opt/magma/certs/rootCA.pem
               subPath: rootCA.pem
-            - name: orc8r-secrets-certs
-              mountPath: /opt/magma/certs/gwcert.crt
-              subPath: gwcert.crt
-            - name: orc8r-secrets-certs
-              mountPath: /opt/magma/certs/gwcert.key
-              subPath: gwcert.key
       volumes:
         - name: feg-bin
           configMap:
