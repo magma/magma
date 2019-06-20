@@ -51,6 +51,13 @@ func GetObsidianHandlers() []handlers.Handler {
 				}
 				return defaultUpdateHandler.HandlerFunc(cc)
 			},
+			MigratedHandlerFunc: func(c echo.Context) error {
+				cc, err := getNetworkConfigFromRequest(c)
+				if err != nil {
+					return err
+				}
+				return defaultUpdateHandler.MigratedHandlerFunc(cc)
+			},
 		},
 		obsidian.GetReadConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
 		obsidian.GetCreateConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),

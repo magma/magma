@@ -105,7 +105,7 @@ func TestConfiguratorCreateNetworkConfig(t *testing.T) {
 	err = handler.MigratedHandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	assert.Equal(t, "hello", err.(*echo.HTTPError).Message)
+	assert.Equal(t, "Invalid config: hello", err.(*echo.HTTPError).Message)
 
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkConfigSerdeDomain)
 }
@@ -158,7 +158,7 @@ func TestConfiguratorUpdateNetworkConfig(t *testing.T) {
 	err = handler.MigratedHandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	assert.Equal(t, "hello", err.(*echo.HTTPError).Message)
+	assert.Equal(t, "Invalid config: hello", err.(*echo.HTTPError).Message)
 
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkConfigSerdeDomain)
 }

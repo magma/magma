@@ -139,6 +139,13 @@ func GetReadAllKeysConfigHandler(
 			}
 			return handleGetAllKeys(c, networkID, configType)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkID, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+			return configuratorGetAllKeys(c, networkID, configType)
+		},
 	}
 }
 

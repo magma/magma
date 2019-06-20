@@ -10,7 +10,6 @@ package obsidian
 
 import (
 	"net/http"
-	"reflect"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -25,12 +24,9 @@ import (
 // in is different from the entity type of the gateway.
 
 func configuratorCreateGatewayConfig(c echo.Context, networkID string, configType string, configKey string, iConfig interface{}) error {
-	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
-	if err := c.Bind(cfgInstance); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	if err := cfgInstance.ValidateModel(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+	config, nerr := getConfigAndValidate(c, iConfig)
+	if nerr != nil {
+		return nerr
 	}
 
 	// the migrated handler will create the entity and associate the magmad
@@ -40,7 +36,7 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
 		Type:   configType,
 		Key:    configKey,
-		Config: cfgInstance,
+		Config: config,
 	})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)

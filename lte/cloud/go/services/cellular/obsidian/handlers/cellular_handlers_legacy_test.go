@@ -22,17 +22,14 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestGetNetworkConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -72,8 +69,8 @@ func TestGetNetworkConfigs(t *testing.T) {
 	// for now
 }
 
-func TestSetTDDNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestSetTDDNetworkConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -81,8 +78,8 @@ func TestSetTDDNetworkConfigs(t *testing.T) {
 	testSetNetworkConfigs(t, test_utils.NewDefaultTDDNetworkConfig(), test_utils.NewDefaultTDDNetworkConfig())
 }
 
-func TestSetFDDNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestSetFDDNetworkConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -90,8 +87,8 @@ func TestSetFDDNetworkConfigs(t *testing.T) {
 	testSetNetworkConfigs(t, test_utils.NewDefaultFDDNetworkConfig(), test_utils.NewDefaultFDDNetworkConfig())
 }
 
-func TestSetOldTddNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestSetOldTddNetworkConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -99,8 +96,8 @@ func TestSetOldTddNetworkConfigs(t *testing.T) {
 	testSetNetworkConfigs(t, test_utils.OldTDDNetworkConfig(), test_utils.NewDefaultTDDNetworkConfig())
 }
 
-func TestSetOldFddNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestSetOldFddNetworkConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -108,8 +105,8 @@ func TestSetOldFddNetworkConfigs(t *testing.T) {
 	testSetNetworkConfigs(t, test_utils.OldFDDNetworkConfig(), test_utils.NewDefaultFDDNetworkConfig())
 }
 
-func TestSetBadNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestSetBadNetworkConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -201,8 +198,8 @@ func TestSetBadNetworkConfigs(t *testing.T) {
 	assert.Equal(t, 400, status)
 }
 
-func TestSetBadOldConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestSetBadOldConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -234,8 +231,8 @@ func TestSetBadOldConfigs(t *testing.T) {
 	assert.Equal(t, 400, status)
 }
 
-func TestGetGatewayConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestGetGatewayConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -276,8 +273,8 @@ func TestGetGatewayConfigs(t *testing.T) {
 	// for now
 }
 
-func TestSetGatewayConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestSetGatewayConfigsLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -357,118 +354,4 @@ func TestSetGatewayConfigs(t *testing.T) {
 	status, _, err := obsidian_test.RunTest(t, setConfigTestCase)
 	assert.Equal(t, 400, status)
 
-}
-
-func testSetNetworkConfigs(t *testing.T, config *cellular_protos.CellularNetworkConfig, expectedConfig *cellular_protos.CellularNetworkConfig) {
-	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
-
-	networkId := registerNetwork(t, "Test Network 1", "cellular_obsidian_test_network")
-
-	// Happy path
-	swaggerConfig := &models.NetworkCellularConfigs{}
-	protos.FillIn(config, swaggerConfig)
-	marshaledCfg, err := swaggerConfig.MarshalBinary()
-	assert.NoError(t, err)
-	swaggerConfigString := string(marshaledCfg)
-
-	createConfigTestCase := obsidian_test.Testcase{
-		Name:     "Create Cellular Network Config",
-		Method:   "POST",
-		Url:      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
-		Payload:  swaggerConfigString,
-		Expected: fmt.Sprintf(`"%s"`, networkId),
-	}
-	obsidian_test.RunTest(t, createConfigTestCase)
-
-	config.Epc.Mcc = "123"
-	config.Epc.SubProfiles = make(
-		map[string]*cellular_protos.NetworkEPCConfig_SubscriptionProfile)
-	config.Epc.SubProfiles["test"] =
-		&cellular_protos.NetworkEPCConfig_SubscriptionProfile{
-			MaxUlBitRate: 100, MaxDlBitRate: 200,
-		}
-	config.Ran.BandwidthMhz = 15
-
-	expectedConfig.Epc.Mcc = "123"
-	expectedConfig.Epc.SubProfiles = make(
-		map[string]*cellular_protos.NetworkEPCConfig_SubscriptionProfile)
-	expectedConfig.Epc.SubProfiles["test"] =
-		&cellular_protos.NetworkEPCConfig_SubscriptionProfile{
-			MaxUlBitRate: 100, MaxDlBitRate: 200,
-		}
-	expectedConfig.Ran.BandwidthMhz = 15
-
-	swaggerConfig = &models.NetworkCellularConfigs{}
-	protos.FillIn(config, swaggerConfig)
-	swaggerConfig.Epc.NetworkServices = []string{"metering", "dpi", "policy_enforcement"}
-
-	expectedSwaggerConfig := &models.NetworkCellularConfigs{}
-	protos.FillIn(expectedConfig, expectedSwaggerConfig)
-	expectedSwaggerConfig.Epc.NetworkServices = []string{"metering", "dpi", "policy_enforcement"}
-
-	marshaledCfg, err = swaggerConfig.MarshalBinary()
-	assert.NoError(t, err)
-	swaggerConfigString = string(marshaledCfg)
-
-	exMarshaledCfg, err := expectedSwaggerConfig.MarshalBinary()
-	assert.NoError(t, err)
-	exSwaggerConfigString := string(exMarshaledCfg)
-
-	setConfigTestCase := obsidian_test.Testcase{
-		Name:     "Set Cellular Network Config",
-		Method:   "PUT",
-		Url:      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
-		Payload:  swaggerConfigString,
-		Expected: "",
-	}
-	obsidian_test.RunTest(t, setConfigTestCase)
-	getConfigTestCase := obsidian_test.Testcase{
-		Name:     "Get Updated Cellular Network Config",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
-		Payload:  "",
-		Expected: exSwaggerConfigString,
-	}
-	obsidian_test.RunTest(t, getConfigTestCase)
-}
-
-func registerNetwork(t *testing.T, networkName string, networkID string) string {
-	useNewHandler := os.Getenv(handlers.UseNewHandlersEnv)
-	if useNewHandler == "1" {
-		err := configurator.CreateNetwork(
-			configurator.Network{
-				Name: networkName,
-				ID:   networkID,
-			},
-		)
-		assert.NoError(t, err)
-		return networkID
-	} else {
-		networkId, err := magmad.RegisterNetwork(
-			&magmad_protos.MagmadNetworkRecord{Name: networkName},
-			networkID)
-		assert.NoError(t, err)
-		return networkId
-	}
-}
-
-func registerGateway(t *testing.T, networkId string, gatewayId string) string {
-	useNewHandler := os.Getenv(handlers.UseNewHandlersEnv)
-	if useNewHandler == "1" {
-		_, err := configurator.CreateEntity(networkId, configurator.NetworkEntity{
-			Key:        gatewayId,
-			Type:       "magmad_gateway",
-			PhysicalID: gatewayId,
-		})
-		assert.NoError(t, err)
-		return gatewayId
-	} else {
-		gatewayRecord := &magmad_protos.AccessGatewayRecord{
-			HwId: &protos.AccessGatewayID{Id: gatewayId},
-		}
-		registeredId, err := magmad.RegisterGateway(networkId, gatewayRecord)
-		assert.NoError(t, err)
-		return registeredId
-	}
 }
