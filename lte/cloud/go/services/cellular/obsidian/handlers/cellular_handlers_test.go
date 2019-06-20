@@ -129,7 +129,7 @@ func TestSetBadNetworkConfigs(t *testing.T) {
 		Method:                   "PUT",
 		Url:                      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
 		Payload:                  swaggerConfigString,
-		Expected:                 `{"message":"Error converting config model: Only one of TDD or FDD configs can be set"}`,
+		Expected:                 `{"message":"Invalid config: Only one of TDD or FDD configs can be set"}`,
 		Expect_http_error_status: true,
 	}
 	status, _, err := obsidian_test.RunTest(t, setConfigTestCase)
@@ -219,7 +219,7 @@ func TestSetBadOldConfigs(t *testing.T) {
 		Method:                   "POST",
 		Url:                      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
 		Payload:                  swaggerConfigString,
-		Expected:                 `{"message":"Error converting config model: Invalid EARFCNDL: no matching band"}`,
+		Expected:                 `{"message":"Invalid config: Invalid EARFCNDL: no matching band"}`,
 		Expect_http_error_status: true,
 	}
 	status, _, err := obsidian_test.RunTest(t, setConfigTestCase)
@@ -341,7 +341,7 @@ func TestSetGatewayConfigs(t *testing.T) {
 		Method:                   "PUT",
 		Url:                      fmt.Sprintf("%s/%s/gateways/%s/configs/cellular", testUrlRoot, networkId, gatewayId),
 		Payload:                  swaggerConfigString,
-		Expected:                 `{"message":"Error converting config model: Gateway RAN config is nil"}`,
+		Expected:                 `{"message":"Invalid config: Gateway RAN config is nil"}`,
 		Expect_http_error_status: true,
 	}
 	status, _, err := obsidian_test.RunTest(t, setConfigTestCase)
