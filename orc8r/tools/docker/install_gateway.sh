@@ -60,7 +60,7 @@ cp "$INSTALL_DIR"/magma/orc8r/tools/docker/upgrade_gateway.sh .
 
 # Install Docker
 sudo apt-get update
-sudo apt-get install \
+sudo apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -72,7 +72,7 @@ sudo add-apt-repository \
    $(lsb_release -cs) \
    stable"
 sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 sudo usermod -aG docker "$SUDO_USER"
 
 # Install Docker-Compose

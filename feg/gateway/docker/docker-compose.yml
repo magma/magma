@@ -45,7 +45,7 @@ services:
     <<: *goservice
     container_name: csfb
     build:
-      context: ../../../
+      context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/go/Dockerfile
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
 
@@ -98,7 +98,7 @@ services:
     <<: *pyservice
     container_name: magmad
     build:
-      context: ../../../
+      context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/python/Dockerfile
     volumes:
       - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
