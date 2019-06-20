@@ -9,6 +9,10 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	obsidianh "magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/handlers/hello"
 	"magma/orc8r/cloud/go/orc8r"
@@ -137,16 +141,27 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
 
 	// Prometheus profile - Exports all service metric to Prometheus
-	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(metricsConfig.GetRequiredStringParam(confignames.PrometheusCustomPushAddress))
+	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.PrometheusPushAddresses)
+	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(prometheusAddresses)
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
-	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
-	graphiteReceivePort := metricsConfig.GetRequiredIntParam(confignames.GraphiteReceivePort)
-	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort)
+	graphiteExportAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.GraphiteExportAddresses)
+	var graphiteAddresses []graphite_exp.Address
+	for _, address := range graphiteExportAddresses {
+		portIdx := strings.LastIndex(address, ":")
+		portStr := address[portIdx+1:]
+		portInt, err := strconv.Atoi(portStr)
+		if err != nil {
+			panic(fmt.Errorf("graphite address improperly formed: %s\n", address))
+		}
+		graphiteAddresses = append(graphiteAddresses, graphite_exp.Address{Host: address[:portIdx], Port: portInt})
+	}
+
+	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddresses)
 	// Graphite profile - Exports all service metrics to Graphite
 	graphiteProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameGraphite,

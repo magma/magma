@@ -36,7 +36,7 @@ func TestSubmitGraphiteHistogram(t *testing.T) {
 }
 
 func testSubmitGraphiteType(t *testing.T, metricType dto.MetricType) {
-	exporter := exporters.NewGraphiteExporter("", 0)
+	exporter := exporters.NewGraphiteExporter([]exporters.Address{{Host: "", Port: 0}})
 
 	serviceLabelPair := dto.LabelPair{
 		Name:  test_common.MakeStringPointer(mxd_exp.SERVICE_LABEL_NAME),

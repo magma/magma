@@ -32,20 +32,20 @@ var (
 	prometheusLabelRegex = regexp.MustCompile("[a-zA-Z_][a-zA-Z0-9_]*")
 )
 
-// CustomPushExporter pushes metrics to a custom prometheus pushgateway
+// CustomPushExporter pushes metrics to one or more custom prometheus pushgateways
 type CustomPushExporter struct {
 	familiesByName map[string]*io_prometheus_client.MetricFamily
 	exportInterval time.Duration
-	pushAddress    string
+	pushAddresses  []string
 	sync.Mutex
 }
 
 // NewCustomPushExporter creates a new exporter to a custom pushgateway
-func NewCustomPushExporter(pushAddress string) mxd_exp.Exporter {
+func NewCustomPushExporter(pushAddresses []string) mxd_exp.Exporter {
 	return &CustomPushExporter{
 		familiesByName: make(map[string]*io_prometheus_client.MetricFamily),
 		exportInterval: pushInterval,
-		pushAddress:    pushAddress,
+		pushAddresses:  pushAddresses,
 	}
 }
 
@@ -156,42 +156,47 @@ func (e *CustomPushExporter) Start() {
 
 func (e *CustomPushExporter) exportEvery() {
 	for range time.Tick(e.exportInterval) {
-		err := e.export()
-		if err != nil {
-			glog.Errorf("error in pushing to pushgateway: %v", err)
+		errs := e.export()
+		if len(errs) > 0 {
+			glog.Errorf("error in pushing to pushgateway: %v", errs)
 		}
 	}
 }
 
-func (e *CustomPushExporter) export() error {
-	err := e.pushFamilies()
+func (e *CustomPushExporter) export() []error {
+	errs := e.pushFamilies()
 	e.resetFamilies()
-	return err
+	return errs
 }
 
-func (e *CustomPushExporter) pushFamilies() error {
+func (e *CustomPushExporter) pushFamilies() []error {
+	var errs []error
 	if len(e.familiesByName) == 0 {
-		return nil
+		return []error{}
 	}
 	body := bytes.Buffer{}
 	for _, fam := range e.familiesByName {
 		familyString, err := familyToString(fam)
 		if err != nil {
-			return err
+			errs = append(errs, err)
 		}
 		body.WriteString(familyString)
 		body.WriteString("\n")
 	}
 	client := http.Client{}
-	resp, err := client.Post(e.pushAddress, "text/plain", &body)
-	if err != nil {
-		return fmt.Errorf("error making request: %v", err)
+	for _, address := range e.pushAddresses {
+		resp, err := client.Post(address, "text/plain", &body)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("error making request: %v", err))
+			continue
+		}
+		if resp.StatusCode != http.StatusOK {
+			respBody, _ := ioutil.ReadAll(resp.Body)
+			errs = append(errs, fmt.Errorf("error pushing to pushgateway %s: %v", address, string(respBody)))
+			continue
+		}
 	}
-	if resp.StatusCode != http.StatusOK {
-		respBody, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("error pushing to pushgateway: %v", string(respBody))
-	}
-	return nil
+	return errs
 }
 
 func (e *CustomPushExporter) resetFamilies() {

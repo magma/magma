@@ -34,40 +34,54 @@ const (
 
 // GraphiteExporter handles registering and updating graphite metrics
 type GraphiteExporter struct {
-	graphite          *graphite.Graphite
+	graphiteClients   []*graphiteClient
 	registeredMetrics map[string]GraphiteMetric
-	connected         bool
-	host              string
-	port              int
 	sync.Mutex
 }
 
-// NewGraphiteExporter create a new GraphiteExporter with own registry
-func NewGraphiteExporter(graphiteAddress string, graphiteReceivePort int) exporters.Exporter {
-	var graphiteObj *graphite.Graphite
+type Address struct {
+	Host string
+	Port int
+}
 
-	if graphiteAddress == "" {
-		graphiteObj = graphite.NewGraphiteNop(graphiteAddress, graphiteReceivePort)
-		glog.Error("Created No-Op graphite exporter because of empty graphite address\n")
-		return &GraphiteExporter{
-			registeredMetrics: make(map[string]GraphiteMetric),
-			graphite:          graphite.NewGraphiteNop(graphiteAddress, graphiteReceivePort),
+type graphiteClient struct {
+	client    *graphite.Graphite
+	connected bool
+	address   Address
+}
+
+func NewGraphiteClient(address Address) *graphiteClient {
+	var client *graphite.Graphite
+	connected := true
+	if address.Host == "" {
+		glog.Info("Created No-Op graphite exporter because of empty graphite address\n")
+		client = graphite.NewGraphiteNop(address.Host, address.Port)
+	} else {
+		var err error
+		client, err = graphite.NewGraphite(address.Host, address.Port)
+		if err != nil {
+			connected = false
+			glog.Errorf("Could not connect to graphite address %s on start. Retrying on export", address.Host)
 		}
 	}
-	var connected bool
-	graphiteObj, err := graphite.NewGraphite(graphiteAddress, graphiteReceivePort)
-	if err != nil {
-		connected = false
-		glog.Errorf("Could not connect to graphite address %s on start. Retrying on export", graphiteAddress)
-	} else {
-		connected = true
+	return &graphiteClient{
+		client:    client,
+		connected: connected,
+		address:   address,
 	}
+}
+
+// NewGraphiteExporter create a new GraphiteExporter with own registry
+func NewGraphiteExporter(graphiteAddresses []Address) exporters.Exporter {
+	var graphiteClients = make([]*graphiteClient, 0, len(graphiteAddresses))
+
+	for _, address := range graphiteAddresses {
+		graphiteClients = append(graphiteClients, NewGraphiteClient(address))
+	}
+
 	return &GraphiteExporter{
 		registeredMetrics: make(map[string]GraphiteMetric),
-		graphite:          graphiteObj,
-		connected:         connected,
-		host:              graphiteAddress,
-		port:              graphiteReceivePort,
+		graphiteClients:   graphiteClients,
 	}
 }
 
@@ -132,19 +146,23 @@ func (e *GraphiteExporter) exportEvery() {
 }
 
 func (e *GraphiteExporter) Export() error {
-	if !e.connected {
-		err := e.reconnect()
-		if err != nil {
-			return err
-		}
-	}
 	e.Lock()
 	defer e.Unlock()
-	for _, metric := range e.registeredMetrics {
-		err := metric.Export(e)
-		if err != nil {
-			e.connected = false
-			return err
+	for _, graphiteClient := range e.graphiteClients {
+		if !graphiteClient.connected {
+			err := graphiteClient.reconnect()
+			if err != nil {
+				glog.Errorf("Failed to reconnect: %v", err)
+			}
+			continue
+		}
+		for _, metric := range e.registeredMetrics {
+			err := metric.Export(graphiteClient.client)
+			if err != nil {
+				graphiteClient.connected = false
+				glog.Errorf("Graphite client failed to send to %s:%d %v. Retrying on next export.", graphiteClient.address.Host, graphiteClient.address.Port, err)
+				break
+			}
 		}
 	}
 	e.clearRegistry()
@@ -158,14 +176,14 @@ func (e *GraphiteExporter) clearRegistry() {
 }
 
 // reconnect attempts to connect the graphite client to the graphite server
-func (e *GraphiteExporter) reconnect() error {
-	newGraphite, err := graphite.NewGraphite(e.host, e.port)
+func (c *graphiteClient) reconnect() error {
+	newGraphite, err := graphite.NewGraphite(c.address.Host, c.address.Port)
 	if err != nil {
-		return fmt.Errorf("Could not connect to graphite address %s:%d on export. Retrying on next export", e.host, e.port)
+		return fmt.Errorf("Could not connect to graphite address %s:%d on export. Retrying on next export", c.address.Host, c.address.Port)
 	}
-	e.graphite = newGraphite
-	e.connected = true
-	glog.Infof("Successfully created graphite connection on %s:%d. Exporting now.", e.host, e.port)
+	c.client = newGraphite
+	c.connected = true
+	glog.Infof("Successfully created graphite connection on %s:%d. Exporting now.", c.address.Host, c.address.Port)
 	return nil
 }
 

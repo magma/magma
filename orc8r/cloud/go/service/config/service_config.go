@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/golang/glog"
@@ -84,6 +85,18 @@ func (cfgMap *ConfigMap) GetBoolParam(key string) (bool, error) {
 		return false, fmt.Errorf("Could not convert param to bool for key %s", key)
 	}
 	return param, nil
+}
+
+func (cfgMap *ConfigMap) GetStringArrayParam(key string) ([]string, error) {
+	return getStringArrayParamImpl(cfgMap, key)
+}
+
+func (cfgMap *ConfigMap) GetRequiredStringArrayParam(key string) []string {
+	param, err := getStringArrayParamImpl(cfgMap, key)
+	if err != nil {
+		glog.Fatalf("Error retrieving %s: %v\n", key, err)
+	}
+	return param
 }
 
 func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, configOverrideDir string) (*ConfigMap, error) {
@@ -167,4 +180,21 @@ func getIntParamImpl(cfgMap *ConfigMap, key string) (int, error) {
 		return 0, fmt.Errorf("Could not convert param to integer for key %s", key)
 	}
 	return param, nil
+}
+
+func getStringArrayParamImpl(cfgMap *ConfigMap, key string) ([]string, error) {
+	paramIface, ok := cfgMap.RawMap[key]
+	if !ok {
+		return []string{}, fmt.Errorf("Could not find key %s", key)
+	}
+	var strings []string
+	if reflect.TypeOf(paramIface).Kind() == reflect.Slice {
+		v := reflect.ValueOf(paramIface)
+		for i := 0; i < v.Len(); i++ {
+			strings = append(strings, v.Index(i).Interface().(string))
+		}
+	} else {
+		return []string{}, fmt.Errorf("could not convert param to string array for key %s", key)
+	}
+	return strings, nil
 }

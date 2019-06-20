@@ -233,6 +233,6 @@ func makeTestCustomPushExporter() CustomPushExporter {
 	return CustomPushExporter{
 		familiesByName: make(map[string]*dto.MetricFamily),
 		exportInterval: pushInterval,
-		pushAddress:    "",
+		pushAddresses:  []string{""},
 	}
 }

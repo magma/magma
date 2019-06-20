@@ -26,10 +26,10 @@ var testPlugins = &testPluginRegistry{plugins: map[string]OrchestratorPlugin{}}
 var testMetricsConfigMap = &config.ConfigMap{
 	RawMap: map[interface{}]interface{}{
 		confignames.Profile:                      "",
-		confignames.PrometheusAddress:            "",
-		confignames.PrometheusCustomPushAddress:  "",
-		confignames.GraphiteAddress:              "",
-		confignames.GraphiteReceivePort:          0,
+		confignames.PrometheusPushAddresses:      []string{""},
+		confignames.PrometheusQueryAddress:       "",
+		confignames.GraphiteExportAddresses:      []string{"nil:0"},
+		confignames.GraphiteQueryAddress:         "",
 		confignames.GraphiteQueryPort:            0,
 		confignames.PrometheusConfigServiceURL:   "",
 		confignames.AlertmanagerConfigServiceURL: "",
