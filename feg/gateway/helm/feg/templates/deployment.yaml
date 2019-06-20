@@ -142,11 +142,11 @@ spec:
       {{- if .Values.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
       {{- end }}
-      {{- with .Values.controller.tolerations }}
+      {{- with .Values.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
       {{- end }}
-      {{- with .Values.controller.affinity }}
+      {{- with .Values.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
       {{- end }}
