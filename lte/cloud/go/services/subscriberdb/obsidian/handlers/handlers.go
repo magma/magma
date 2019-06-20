@@ -137,7 +137,7 @@ func updateSubscriber(c echo.Context) error {
 		subscriberID = string(sub.ID)
 	}
 
-	err := configurator.UpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, sub)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, sub)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}

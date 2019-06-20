@@ -93,7 +93,7 @@ func updateRule(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := configurator.UpdateEntityConfig(networkID, policydb.PolicyRuleEntityType, ruleID, rule)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, policydb.PolicyRuleEntityType, ruleID, rule)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
