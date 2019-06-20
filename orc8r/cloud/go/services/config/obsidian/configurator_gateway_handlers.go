@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"reflect"
 
-	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
@@ -20,7 +19,10 @@ import (
 	"github.com/labstack/echo"
 )
 
-// Gateways
+// Gateway is a special type of network entity. Since magmad supports multiple
+// config types per gateway, each config if modeled as an entity with an
+// association to the gateway entity. This assumes that the configType passed
+// in is different from the entity type of the gateway.
 
 func configuratorCreateGatewayConfig(c echo.Context, networkID string, configType string, configKey string, iConfig interface{}) error {
 	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
@@ -54,35 +56,6 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, configKey)
-}
-
-func configuratorGetGatewayConfig(c echo.Context, networkID string, configType string, configKey string) error {
-	ent, err := configurator.LoadEntity(networkID, configType, configKey, configurator.EntityLoadCriteria{LoadConfig: true})
-	if err == errors.ErrNotFound {
-		return echo.NewHTTPError(http.StatusNotFound)
-	}
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	if ent.Config == nil {
-		return echo.NewHTTPError(http.StatusNotFound)
-	}
-	return c.JSON(http.StatusOK, ent.Config)
-}
-
-func configuratorUpdateGatewayConfig(c echo.Context, networkID string, configType string, configKey string, iConfig interface{}) error {
-	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
-	if err := c.Bind(cfgInstance); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	if err := cfgInstance.ValidateModel(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	err := configurator.UpdateEntityConfig(networkID, configType, configKey, cfgInstance)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusOK)
 }
 
 func configuratorDeleteGatewayConfig(c echo.Context, networkID string, configType string, configKey string) error {
