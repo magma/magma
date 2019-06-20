@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/tools/migrations/m003_configurator/plugin/types"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/pkg/errors"
 )
 
 func main() {}
@@ -32,6 +33,12 @@ func (*plugin) RunCustomMigrations(
 	builder sqorc.StatementBuilder,
 	migratedGatewayMetasByNetwork map[string]map[string]migration.MigratedGatewayMeta,
 ) error {
+	if err := migrateReleaseChannels(sc, builder); err != nil {
+		return errors.WithStack(err)
+	}
+	if err := migrateUpgradeTiers(sc, builder, migratedGatewayMetasByNetwork); err != nil {
+		return errors.WithStack(err)
+	}
 	return nil
 }
 

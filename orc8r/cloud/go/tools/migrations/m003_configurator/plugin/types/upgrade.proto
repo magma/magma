@@ -9,13 +9,17 @@ syntax = "proto3";
 package magma.migration.orc8r;
 option go_package = "types";
 
-message OldMagmadGatewayConfig {
-    int32 checkin_interval = 1;
-    int32 checkin_timeout = 2;
-    bool autoupgrade_enabled = 3;
-    int32 autoupgrade_poll_interval = 4;
-    string tier = 5;
+message LegacyReleaseChannel {
+    repeated string supported_versions = 1;
+}
 
-    map<string, bool> feature_flags = 6;
-    repeated string dynamic_services = 7;
+message ImageSpec {
+    string name = 1;
+    int64 order = 2;
+}
+
+message TierInfo {
+    string name = 1;
+    string version = 2;
+    repeated ImageSpec images = 3;
 }

@@ -149,13 +149,13 @@ func Migrate(dbDriver string, dbSource string) error {
 	}
 
 	// migrate gateways
-	migratedGatewayMetas, err := MigrateGateways(sc, sqorc.GetSqlBuilder(), networkIDs)
+	_, err = MigrateGateways(sc, sqorc.GetSqlBuilder(), networkIDs)
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.Wrap(err, "failed to migrate gateways")
 	}
 
-	err = RunCustomPluginMigrations(sc, sqorc.GetSqlBuilder(), migratedGatewayMetas)
+	err = RunCustomPluginMigrations(sc, sqorc.GetSqlBuilder())
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.Wrap(err, "failed to run custom plugin migration jobs")
