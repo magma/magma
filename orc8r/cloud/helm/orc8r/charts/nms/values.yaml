@@ -45,6 +45,9 @@ magmalte:
       targetport: 8081
       nodePort: ""
 
+  tolerations: []
+
+  affinity: {}
 
 ## Nginx-Proxy
 #
@@ -72,6 +75,9 @@ nginx:
       targetport: 443
       nodePort: ""
 
+  tolerations: []
+
+  affinity: {}
 ## POD Resource 
 
 pod:
@@ -80,12 +86,6 @@ pod:
       server: 1
     magmalte:
       server: 1
-  affinity:
-    anti:
-      type:
-        default: preferredDuringSchedulingIgnoredDuringExecution
-      topologyKey:
-        default: kubernetes.io/hostname
   resources:
     enabled: False
     nginx:

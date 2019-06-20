@@ -11,98 +11,7 @@
 {{- $envAll := . }}
 
 {{- $saNamespace := $envAll.Release.Namespace }}
-{{- $serviceAccountName := printf "%s-%s" .Release.Name "nginx" }}
-{{- if .Values.nginx.manifests.rbac }}
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ $serviceAccountName }}
-  namespace: {{ $saNamespace }}
----
-kind: ClusterRole
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: {{ $serviceAccountName }}
-rules:
-  - apiGroups:
-      - ""
-    resources:
-      - services
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - extensions
-    resources:
-      - ingresses
-    verbs:
-      - get
-      - list
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - events
-    verbs:
-      - create
-      - patch
-  - apiGroups:
-      - extensions
-    resources:
-      - ingresses/status
-    verbs:
-      - update
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-      - endpoints
-      - nodes
-      - pods
-      - secrets
-    verbs:
-      - list
-      - watch
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-      - pods
-      - secrets
-      - namespaces
-    verbs:
-      - get
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-    verbs:
-      - create
-      - update
-  - apiGroups:
-      - ""
-    resources:
-      - endpoints
-    verbs:
-      - get
-      - create
-      - update
----
-apiVersion: rbac.authorization.k8s.io/v1beta1
-kind: ClusterRoleBinding
-metadata:
-  name: {{ $serviceAccountName }}
-subjects:
-  - kind: ServiceAccount
-    name: {{ $serviceAccountName }}
-    namespace: {{ .Release.Namespace }}
-roleRef:
-  kind: ClusterRole
-  name: {{ $serviceAccountName }}
-  apiGroup: rbac.authorization.k8s.io
-{{- end }}
+{{- $serviceAccountName := printf "%s" .Release.Name }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -125,8 +34,14 @@ spec:
       {{- if .Values.nginx.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}
       {{- end }}
+      {{- with .Values.nginx.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.nginx.affinity }}
       affinity:
-{{ tuple $envAll "nms" "nginx" | include "kubernetes_pod_anti_affinity" | indent 8 }}
+{{ toYaml . | indent 8 }}
+      {{- end }}
       nodeSelector:
         {{ .Values.nginx.labels.node_selector_key }}: {{ .Values.nginx.labels.node_selector_value | quote }}
       terminationGracePeriodSeconds: 60
