@@ -9,7 +9,6 @@
 package obsidian_test
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -43,39 +42,7 @@ func commonSetupGateways(t *testing.T) {
 
 func TestConfiguratorGetGatewayConfig(t *testing.T) {
 	commonSetupGateways(t)
-
-	e := echo.New()
-	req := httptest.NewRequest(echo.GET, "/", nil)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("network_id")
-	c.SetParamValues("network1")
-
-	handler := obsidian.GetReadConfigHandler("google.com", "cfg_gateway", mockKeyGetter, &configType{})
-
-	// 404
-	err := handler.MigratedHandlerFunc(c)
-	assert.Error(t, err)
-	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
-
-	// Happy path
-	expected := &configType{Foo: "foo", Bar: "bar"}
-	_, err = configurator.CreateEntity("network1", configurator.NetworkEntity{
-		Type:   "cfg_gateway",
-		Key:    "key",
-		Config: expected,
-	})
-	assert.NoError(t, err)
-	err = handler.MigratedHandlerFunc(c)
-	assert.NoError(t, err)
-
-	actual := &configType{}
-	assert.Equal(t, http.StatusOK, rec.Code)
-	err = json.Unmarshal(rec.Body.Bytes(), actual)
-	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
-
-	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	testGetEntityConfig(t, "cfg_gateway")
 }
 
 func TestConfiguratorCreateGatewayConfig(t *testing.T) {
@@ -124,56 +91,7 @@ func TestConfiguratorCreateGatewayConfig(t *testing.T) {
 
 func TestConfiguratorUpdateGatewayConfig(t *testing.T) {
 	commonSetupGateways(t)
-
-	e := echo.New()
-
-	// Happy path - create a config with the PUT
-	post := `{"Foo": "foo", "Bar": "bar"}`
-	req := httptest.NewRequest(echo.PUT, "/", strings.NewReader(post))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("network_id")
-	c.SetParamValues("network1")
-
-	_, err := configurator.CreateEntity("network1", configurator.NetworkEntity{
-		Type:   "cfg_gateway",
-		Key:    "key",
-		Config: &configType{Foo: "foo", Bar: "bar"},
-	})
-	assert.NoError(t, err)
-
-	// Happy path - update a config with the PUT
-	handler := obsidian.GetUpdateConfigHandler("google.com", "cfg_gateway", mockKeyGetter, &configType{})
-	post = `{"Foo": "foo2", "Bar": "bar2"}`
-	req = httptest.NewRequest(echo.PUT, "/", strings.NewReader(post))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	rec = httptest.NewRecorder()
-	c = e.NewContext(req, rec)
-	c.SetParamNames("network_id")
-	c.SetParamValues("network1")
-
-	err = handler.MigratedHandlerFunc(c)
-	assert.NoError(t, err)
-	actual, err := configurator.LoadEntity("network1", "cfg_gateway", "key", configurator.EntityLoadCriteria{LoadConfig: true})
-	assert.NoError(t, err)
-	assert.Equal(t, &configType{Foo: "foo2", Bar: "bar2"}, actual.Config)
-
-	// Validation error
-	post = `{"Msg": "hello"}`
-	req = httptest.NewRequest(echo.POST, "/", strings.NewReader(post))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	c = e.NewContext(req, rec)
-	c.SetParamNames("network_id")
-	c.SetParamValues("network1")
-
-	handler = obsidian.GetUpdateConfigHandler("google.com", "err_gateway", mockKeyGetter, &errValidateType{})
-	err = handler.MigratedHandlerFunc(c)
-	assert.Error(t, err)
-	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	assert.Equal(t, "hello", err.(*echo.HTTPError).Message)
-
-	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	testEntityUpdate(t, "cfg_gateway", "err_gateway")
 }
 
 func TestConfiguratorDeleteGatewayConfig(t *testing.T) {
