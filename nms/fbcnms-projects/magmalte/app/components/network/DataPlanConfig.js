@@ -34,7 +34,7 @@ import TableRow from '@material-ui/core/TableRow';
 import {Route, withRouter} from 'react-router-dom';
 
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {get, map} from 'lodash-es';
+import {get, map} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 

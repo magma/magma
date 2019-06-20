@@ -31,7 +31,7 @@ import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
 
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {get, merge} from 'lodash-es';
+import {get, merge} from 'lodash';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withRouter} from 'react-router-dom';

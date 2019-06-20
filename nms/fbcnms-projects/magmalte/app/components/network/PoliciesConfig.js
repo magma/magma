@@ -32,7 +32,7 @@ import {withRouter, Route} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {findIndex} from 'lodash-es';
+import {findIndex} from 'lodash';
 
 const styles = {};
 

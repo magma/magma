@@ -27,7 +27,7 @@ import VersionTooltip from './VersionTooltip';
 import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {hot} from 'react-hot-loader';
 import {makeStyles} from '@material-ui/styles';
-import {sortBy} from 'lodash-es';
+import {sortBy} from 'lodash';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({

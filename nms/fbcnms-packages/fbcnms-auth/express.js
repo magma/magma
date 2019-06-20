@@ -10,7 +10,7 @@
 
 import bcrypt from 'bcryptjs';
 import {injectOrganizationParams} from './organization';
-import {isEmpty} from 'lodash-es';
+import {isEmpty} from 'lodash';
 import express from 'express';
 import logging from '@fbcnms/logging';
 import passport from 'passport';

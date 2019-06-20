@@ -24,7 +24,7 @@ import Input from '@material-ui/core/Input';
 import {MagmaAPIUrls} from '../common/MagmaAPI';
 import moment from 'moment';
 
-import {merge} from 'lodash-es';
+import {merge} from 'lodash';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';

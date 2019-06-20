@@ -12,7 +12,7 @@ import type {AxiosXHRConfig, $AxiosXHR} from 'axios';
 
 import {useEffect, useState} from 'react';
 import axios from 'axios';
-import {merge} from 'lodash-es';
+import {merge} from 'lodash';
 
 type AxiosResponse<T, R> = {
   error: any,

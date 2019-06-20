@@ -9,7 +9,7 @@
  */
 'use strict';
 
-import {omit} from 'lodash-es';
+import {omit} from 'lodash';
 import Sequelize from 'sequelize';
 import {AccessRoles} from '@fbcnms/auth/roles';
 

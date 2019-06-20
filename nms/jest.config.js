@@ -7,8 +7,6 @@
  * @format
  */
 
-const esModules = ['lodash-es'].join('|');
-
 module.exports = {
   collectCoverageFrom: [
     '**/fbcnms-projects/**/*.js',
@@ -39,7 +37,6 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
     },
     {
       name: 'app',
@@ -52,7 +49,6 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
     },
   ],
   testEnvironment: 'jsdom',

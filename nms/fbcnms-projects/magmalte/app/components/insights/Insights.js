@@ -19,7 +19,7 @@ import MapView from '../MapView';
 import Paper from '@material-ui/core/Paper';
 import MagmaTopBar from '../MagmaTopBar';
 
-import {get} from 'lodash-es';
+import {get} from 'lodash';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 import {MagmaAPIUrls} from '../../common/MagmaAPI';

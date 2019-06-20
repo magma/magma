@@ -42,7 +42,7 @@ import {
   fetchAllGateways,
   MagmaAPIUrls,
 } from '../../common/MagmaAPI';
-import {get, map, merge, sortBy} from 'lodash-es';
+import {get, map, merge, sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 type State = {

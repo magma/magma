@@ -31,7 +31,7 @@
     "express-http-proxy": "^1.5.1",
     "express-session": "^1.15.6",
     "https-proxy-agent": "^2.2.1",
-    "lodash-es": "^4.17.10",
+    "lodash": "^4.17.11",
     "mapbox-gl": "^0.53.0",
     "mysql2": "^1.5.3",
     "passport": "^0.4.0",
