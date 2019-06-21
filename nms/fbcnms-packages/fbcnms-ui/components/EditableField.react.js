@@ -108,6 +108,7 @@ export default function EditableField(props: Props) {
             fullWidth={true}
             className={classes.input}
             variant="outlined"
+            margin="dense"
             onChange={event => setEditedText(event.target.value)}
           />
         )}
