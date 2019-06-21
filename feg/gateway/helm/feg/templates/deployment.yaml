@@ -137,7 +137,7 @@ spec:
 {{- end }}
           runcmd:
           - /opt/magma/bin/bootstrap.sh
-          - /opt/magma/bin/install_gateway.sh
+          - /opt/magma/bin/install_gateway.sh {{ .Values.feg.type }}
     spec:
       {{- if .Values.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}

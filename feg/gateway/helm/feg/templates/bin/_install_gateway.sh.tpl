@@ -11,14 +11,32 @@
 
 set -e
 
+CWAG="cwag"
+FEG="feg"
 INSTALL_DIR="/tmp/magmagw_install"
 
-DIR=$(dirname "$0")
-if [ "$#" -eq 1 ]; then
-  DIR=$1
-fi
+# TODO: Update docker-compose to stable version
+
+# Using RC as opposed to stable (1.24.0) due to
+# SCTP port mapping support
+DOCKER_COMPOSE_VERSION=1.25.0-rc1
+
+DIR="."
 echo "Setting working directory as: $DIR"
 cd "$DIR"
+
+if [ -z $1 ]; then
+  echo "Please supply a gateway type to install. Valid types are: ['$FEG', '$CWAG']"
+  exit
+fi
+
+GW_TYPE=$1
+echo "Setting gateway type as: '$GW_TYPE'"
+
+if [ "$GW_TYPE" != "$FEG" ] && [ "$GW_TYPE" != "$CWAG" ]; then
+  echo "Gateway type '$GW_TYPE' is not valid. Valid types are: ['$FEG', '$CWAG']"
+  exit
+fi
 
 # Ensure necessary files are in place
 if [ ! -f /opt/magma/env/.env ]; then
@@ -48,7 +66,25 @@ git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL" -b {{ .Values.feg.repo.branch }}
 #TAG=$(git -C $INSTALL_DIR/magma tag | tail -1)
 #git -C $INSTALL_DIR/magma checkout "tags/$TAG"
 
-cp "$INSTALL_DIR"/magma/feg/gateway/docker/docker-compose.yml .
+if [ "$GW_TYPE" == "$CWAG" ]; then
+  MODULE_DIR="cwf"
+
+  # Run CWAG ansible role to setup OVS
+  echo "Copying and running ansible..."
+  apt-add-repository -y ppa:ansible/ansible
+  apt-get update -y
+  apt-get -y install ansible
+  ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
+fi
+
+if [ "$GW_TYPE" == "$FEG" ]; then
+  MODULE_DIR="$GW_TYPE"
+
+  # Load kernel module necessary for docker SCTP support
+  sudo modprobe nf_conntrack_proto_sctp
+fi
+
+cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/upgrade_gateway.sh .
 # Install Docker
 sudo apt-get update
@@ -67,7 +103,7 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # Install Docker-Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/"$DOCKER_COMPOSE_VERSION"/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Create snowflake to be mounted into containers
@@ -80,8 +116,16 @@ mkdir -p /var/opt/magma/certs
 mkdir -p /etc/magma
 mkdir -p /var/opt/magma/docker
 
-# Copy certs and configs
-cp -r /opt/magma/certs/ /var/opt/magma/certs/
+# Copy default configs directory
+cp -TR "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/configs /etc/magma
+
+# Copy config templates
+cp -R "$INSTALL_DIR"/magma/orc8r/gateway/configs/templates /etc/magma
+
+# Copy certs
+cp /opt/magma/certs/rootCA.pem /var/opt/magma/certs/
+
+# Copy control_proxy override
 cp /opt/magma/env/control_proxy.yml /etc/magma/
 
 # Copy docker files
@@ -94,9 +138,10 @@ cp upgrade_gateway.sh /var/opt/magma/docker/
 cd /var/opt/magma/docker
 source .env
 
+{{- if and .Values.feg.image.username .Values.feg.image.password }}
 echo "Logging into docker registry at $DOCKER_REGISTRY"
-#docker login "$DOCKER_REGISTRY"
-docker-compose pull
+docker login "$DOCKER_REGISTRY" --username {{ .Values.feg.image.username }} --password {{ .Values.feg.image.password }}
+{{- end }}
 docker-compose pull
 docker-compose -f docker-compose.yml up -d
 

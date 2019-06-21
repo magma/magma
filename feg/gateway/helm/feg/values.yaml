@@ -19,9 +19,12 @@ imagePullSecrets: []
 
 ## Key Values for docker inside VM
 feg:
+  type: feg
   image:
     docker_registry: ""
     tag: "latest"
+    #username:
+    #password:
   proxy:
     local_port: 8443
     cloud_address: orc8r-proxy.magma.svc.cluster.local
@@ -31,6 +34,20 @@ feg:
   repo:
     url: https://github.com/facebookincubator/magma/
     branch: master
+  bind:
+    S6A_LOCAL_PORT: 3868
+    S6A_HOST_PORT: 3869
+    S6A_NETWORK: sctp
+    SWX_LOCAL_PORT: 3868
+    SWX_HOST_PORT: 3868
+    SWX_NETWORK: sctp
+    GX_LOCAL_PORT: 3907
+    GX_HOST_PORT: 0
+    GX_NETWORK: tcp
+    GY_LOCAL_PORT: 3906
+    GY_HOST_PORT: 0
+    GY_NETWORK: tcp
+
 ## Key Values for VM running using virtlet runtime
 image:
   repository: virtlet.cloud/cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
