@@ -20,11 +20,11 @@ import (
 func GetObsidianHandlers() []handlers.Handler {
 	return []handlers.Handler{
 		// Network
-		{Path: ListNetworks, Methods: handlers.GET, HandlerFunc: listNetworks},
-		{Path: RegisterNetwork, Methods: handlers.POST, HandlerFunc: registerNetwork},
-		{Path: ManageNetwork, Methods: handlers.GET, HandlerFunc: getNetwork},
-		{Path: ManageNetwork, Methods: handlers.PUT, HandlerFunc: updateNetwork},
-		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetwork},
+		{Path: ListNetworks, Methods: handlers.GET, HandlerFunc: listNetworksHandler, MigratedHandlerFunc: listNetworks},
+		{Path: RegisterNetwork, Methods: handlers.POST, HandlerFunc: registerNetworkHandler, MigratedHandlerFunc: registerNetwork},
+		{Path: ManageNetwork, Methods: handlers.GET, HandlerFunc: getNetworkHandler, MigratedHandlerFunc: getNetwork},
+		{Path: ManageNetwork, Methods: handlers.PUT, HandlerFunc: updateNetworkHandler, MigratedHandlerFunc: updateNetwork},
+		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetworkHandler, MigratedHandlerFunc: deleteNetwork},
 
 		// Gateway
 		{Path: RegisterAG, Methods: handlers.GET, HandlerFunc: getListGatewaysHandler(&view_factory.FullGatewayViewFactoryImpl{})},

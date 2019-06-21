@@ -48,10 +48,6 @@ import (
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 )
 
-const (
-	NetworkFeaturesConfig = "orc8r_features"
-)
-
 // BaseOrchestratorPlugin is the OrchestratorPlugin for the orc8r module
 type BaseOrchestratorPlugin struct{}
 
@@ -78,7 +74,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		// Config manager serdes
 		configurator.NewNetworkConfigSerde(dnsdconfig.DnsdNetworkType, &models2.NetworkDNSConfig{}),
-		configurator.NewNetworkConfigSerde(NetworkFeaturesConfig, &models3.NetworkFeatures{}),
+		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &models3.NetworkFeatures{}),
 
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
 		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
