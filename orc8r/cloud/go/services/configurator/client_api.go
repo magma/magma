@@ -103,13 +103,26 @@ func UpdateNetworks(updates []NetworkUpdateCriteria) error {
 	return err
 }
 
-// DeleteNetwork deletes the network specified by networkID
+// DeleteNetworks deletes the network specified by networkID
 func DeleteNetworks(networkIDs []string) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return err
 	}
 	_, err = client.DeleteNetworks(context.Background(), &protos.DeleteNetworksRequest{NetworkIDs: networkIDs})
+	return err
+}
+
+// DeleteNetwork deletes a network.
+func DeleteNetwork(networkID string) error {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return err
+	}
+	_, err = client.DeleteNetworks(
+		context.Background(),
+		&protos.DeleteNetworksRequest{NetworkIDs: []string{networkID}},
+	)
 	return err
 }
 
@@ -153,6 +166,17 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]Net
 		ret[i] = retNet
 	}
 	return ret, result.NetworkIDsNotFound, nil
+}
+
+func LoadNetwork(networkID string, loadMetadata bool, loadConfigs bool) (Network, error) {
+	networks, _, err := LoadNetworks([]string{networkID}, loadMetadata, loadConfigs)
+	if err != nil {
+		return Network{}, err
+	}
+	if len(networks) == 0 {
+		return Network{}, merrors.ErrNotFound
+	}
+	return networks[0], nil
 }
 
 func UpdateNetworkConfig(networkID, configType string, config interface{}) error {
