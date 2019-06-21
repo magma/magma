@@ -99,7 +99,7 @@ apiVersion: v1
 metadata:
   name: graphite-data-claim
 spec:
-  storageClassName: {{ .Values.graphite.persistentVolumes.graphiteData.storageClass }}
+  storageClassName: ""
   accessModes:
     - ReadWriteOnce
   resources:

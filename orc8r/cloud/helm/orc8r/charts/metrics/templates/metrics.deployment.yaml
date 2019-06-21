@@ -145,7 +145,7 @@ apiVersion: v1
 metadata:
   name: prometheus-config-claim
 spec:
-  storageClassName: {{ .Values.metrics.persistentVolumes.prometheusConfig.storageClass }}
+  storageClassName: ""
   accessModes:
     - ReadWriteOnce
   resources:
@@ -173,7 +173,7 @@ apiVersion: v1
 metadata:
   name: prometheus-data-claim
 spec:
-  storageClassName: {{ .Values.metrics.persistentVolumes.prometheusData.storageClass }}
+  storageClassName: ""
   accessModes:
     - ReadWriteOnce
   resources:
