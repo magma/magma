@@ -80,7 +80,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkConfigSerde(dnsdconfig.DnsdNetworkType, &models2.NetworkDNSConfig{}),
 		configurator.NewNetworkConfigSerde(NetworkFeaturesConfig, &models3.NetworkFeatures{}),
 
-		configurator.NewNetworkEntityConfigSerde(magmadconfig.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
 		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
 		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeTierEntityType, &models.Tier{}),
 
@@ -90,13 +90,17 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
+func (*BaseOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
 	return []factory.MconfigBuilder{
 		// magmad
 		&magmadconfig.MagmadMconfigBuilder{},
 		// dnsd
 		&dnsdconfig.DnsdMconfigBuilder{},
 	}
+}
+
+func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
+	return []configurator.MconfigBuilder{}
 }
 
 func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {

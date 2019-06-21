@@ -18,13 +18,13 @@ import (
 	"testing"
 
 	obisidan_config "magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	config2 "magma/orc8r/cloud/go/services/magmad/config"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/golang/glog"
@@ -70,7 +70,7 @@ func TestReadAllKeysConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(config2.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
@@ -114,7 +114,7 @@ func TestGetConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(config2.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
@@ -176,7 +176,7 @@ func TestCreateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(config2.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
@@ -239,7 +239,7 @@ func TestUpdateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(config2.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
@@ -301,7 +301,7 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(config2.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 

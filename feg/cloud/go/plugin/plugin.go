@@ -56,10 +56,14 @@ func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*FegOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
+func (*FegOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
 	return []factory.MconfigBuilder{
 		&fegconfig.Builder{},
 	}
+}
+
+func (*FegOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
+	return []configurator.MconfigBuilder{}
 }
 
 func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {

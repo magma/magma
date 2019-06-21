@@ -191,6 +191,43 @@ func (ent NetworkEntity) GetTypeAndKey() storage2.TypeAndKey {
 	return storage2.TypeAndKey{Type: ent.Type, Key: ent.Key}
 }
 
+// EntityGraph represents a DAG of associated network entities
+type EntityGraph struct {
+	Entities     []NetworkEntity
+	RootEntities []storage2.TypeAndKey
+	Edges        []GraphEdge
+}
+
+func (eg EntityGraph) fromStorageProto(protoGraph *storage.EntityGraph) (EntityGraph, error) {
+	eg.Entities = make([]NetworkEntity, 0, len(protoGraph.Entities))
+	for _, protoEnt := range protoGraph.Entities {
+		ent, err := (NetworkEntity{}).fromStorageProto(protoEnt)
+		if err != nil {
+			return eg, errors.Wrapf(err, "failed to deserialize entity %s", protoEnt.GetTypeAndKey())
+		}
+		eg.Entities = append(eg.Entities, ent)
+	}
+
+	eg.RootEntities = entIDsToTKs(protoGraph.RootEntities)
+
+	eg.Edges = make([]GraphEdge, 0, len(protoGraph.Edges))
+	for _, protoEdge := range protoGraph.Edges {
+		eg.Edges = append(eg.Edges, (GraphEdge{}).fromStorageProto(protoEdge))
+	}
+	return eg, nil
+}
+
+type GraphEdge struct {
+	From storage2.TypeAndKey
+	To   storage2.TypeAndKey
+}
+
+func (ge GraphEdge) fromStorageProto(protoEdge *storage.GraphEdge) GraphEdge {
+	ge.From = protoEdge.From.ToTypeAndKey()
+	ge.To = protoEdge.To.ToTypeAndKey()
+	return ge
+}
+
 // EntityLoadFilter specifies which entities to load from storage
 type EntityLoadFilter struct {
 	// If TypeFilter is provided, the query will return all entities matching

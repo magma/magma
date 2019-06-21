@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -50,10 +51,15 @@ type OrchestratorPlugin interface {
 	// for many core orchestrator services.
 	GetSerdes() []serde.Serde
 
-	// GetMconfigBuilders returns a list of MconfigBuilders to register with
-	// the config streamer application. These builders are responsible for
+	// GetLegacyMconfigBuilders returns a list of MconfigBuilders to register
+	// with the config streamer application. These builders are responsible for
 	// constructing gateway mconfigs from cloud-stored configs.
-	GetMconfigBuilders() []factory.MconfigBuilder
+	GetLegacyMconfigBuilders() []factory.MconfigBuilder
+
+	// GetMconfigBuilders returns a list of MconfigBuilders to register with
+	// the configurator service. These builder are responsible for constructing
+	// mconfigs to pass down to gateways.
+	GetMconfigBuilders() []configurator.MconfigBuilder
 
 	// GetMetricsProfile returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
@@ -168,7 +174,7 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 	if err := serde.RegisterSerdes(orc8rPlugin.GetSerdes()...); err != nil {
 		return err
 	}
-	factory.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
+	factory.RegisterMconfigBuilders(orc8rPlugin.GetLegacyMconfigBuilders()...)
 	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles(metricsConfig)...); err != nil {
 		return err
 	}
@@ -178,6 +184,7 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 	if err := providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...); err != nil {
 		return err
 	}
+	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
 
 	return nil
 }

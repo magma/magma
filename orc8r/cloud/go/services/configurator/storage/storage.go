@@ -15,6 +15,7 @@ import (
 
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
 )
 
@@ -92,6 +93,24 @@ type ConfiguratorStorage interface {
 	// entity. The load criteria fields on associations are ignored, and the
 	// returned entities will always have both association fields filled out.
 	LoadGraphForEntity(networkID string, entityID EntityID, loadCriteria EntityLoadCriteria) (EntityGraph, error)
+}
+
+// RollbackLogOnError calls Rollback on the provided ConfiguratorStorage and
+// logs if Rollback resulted in an error.
+func RollbackLogOnError(store ConfiguratorStorage) {
+	err := store.Rollback()
+	if err != nil {
+		glog.Errorf("error while rolling back tx: %s", err)
+	}
+}
+
+// CommitLogOnError calls Commit on the provided ConfiguratorStorage and logs
+// if Commit resulted in an error.
+func CommitLogOnError(store ConfiguratorStorage) {
+	err := store.Commit()
+	if err != nil {
+		glog.Errorf("error while committing tx: %s", err)
+	}
 }
 
 // InternalNetworkID is the ID of the network under which all non-tenant

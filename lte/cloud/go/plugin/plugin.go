@@ -72,10 +72,14 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*LteOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
+func (*LteOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
 	return []factory.MconfigBuilder{
 		&config.CellularBuilder{},
 	}
+}
+
+func (*LteOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
+	return []configurator.MconfigBuilder{}
 }
 
 func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
