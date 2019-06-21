@@ -7,6 +7,7 @@ dist/**/*.js
 **/thrift/gen-nodejs/*.js
 config/webpack.*.js
 tgnms/**/*.js
+fbcnms-projects/tgnms/shared/types/*.js
 
 flow-typed/npm/@material-ui/core_v1.x.x.js
 flow-typed/npm/jest_v23.x.x.js
