@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package handlers_test
 
@@ -24,11 +24,10 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-func TestGetViewsForNetwork(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestGetViewsForNetworkLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	// Set up test
 	mockStore := &mocks.FullGatewayViewFactory{}
 	config.TLS = false
@@ -68,8 +67,8 @@ func TestGetViewsForNetwork(t *testing.T) {
 	mockStore.AssertNumberOfCalls(t, "GetGatewayViewsForNetwork", 1)
 }
 
-func TestGetViewsForNetworkEmptyResponse(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestGetViewsForNetworkEmptyResponseLegacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	mockStore := &mocks.FullGatewayViewFactory{}
 	config.TLS = false
 
@@ -95,51 +94,12 @@ func TestGetViewsForNetworkEmptyResponse(t *testing.T) {
 	mockStore.AssertNumberOfCalls(t, "GetGatewayViewsForNetwork", 1)
 }
 
-func TestGetGatewayViews_QueryType1(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestGetGatewayViews_QueryType1Legacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	testGetGatewayViews(t, "gateway_ids=gw0,gw1,badgw")
 }
 
-func TestGetGatewayViews_QueryType2(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+func TestGetGatewayViews_QueryType2Legacy(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	testGetGatewayViews(t, "gateway_ids[0]=gw0&gateway_ids[1]=gw1&gateway_ids[2]=badgw")
-}
-
-func testGetGatewayViews(t *testing.T, queryString string) {
-	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
-
-	networkID := "net1"
-	gatewayIDs := []string{"gw0", "gw1", "badgw"}
-	gatewayStates := map[string]*view_factory.GatewayState{
-		"gw0": {GatewayID: "gw0"},
-		"gw1": {GatewayID: "gw1"},
-	}
-	modelStates := []*models.GatewayStateType{
-		{GatewayID: "gw0"},
-		{GatewayID: "gw1"},
-	}
-
-	mockStore.On("GetGatewayViews", networkID, mock.MatchedBy(func(input []string) bool {
-		return assert.ElementsMatch(t, gatewayIDs, input)
-	})).Return(gatewayStates, nil)
-
-	e := echo.New()
-	req := httptest.NewRequest(echo.GET, "/", nil)
-	req.URL.RawQuery = queryString
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetParamNames("network_id")
-	c.SetParamValues(networkID)
-
-	err := magmadh.ListFullGatewayViews(c, mockStore)
-	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
-
-	var actualModelStates []*models.GatewayStateType
-	err = json.Unmarshal(rec.Body.Bytes(), &actualModelStates)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(actualModelStates))
-	assert.ElementsMatch(t, modelStates, actualModelStates)
-	mockStore.AssertNumberOfCalls(t, "GetGatewayViews", 1)
 }
