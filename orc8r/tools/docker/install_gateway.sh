@@ -15,6 +15,12 @@ CWAG="cwag"
 FEG="feg"
 INSTALL_DIR="/tmp/magmagw_install"
 
+# TODO: Update docker-compose to stable version
+
+# Using RC as opposed to stable (1.24.0) due to
+# SCTP port mapping support
+DOCKER_COMPOSE_VERSION=1.25.0-rc1
+
 DIR="."
 echo "Setting working directory as: $DIR"
 cd "$DIR"
@@ -76,8 +82,13 @@ if [ "$GW_TYPE" == "$CWAG" ]; then
   apt-get update -y
   apt-get -y install ansible
   ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
-else
+fi
+
+if [ "$GW_TYPE" == "$FEG" ]; then
   MODULE_DIR="$GW_TYPE"
+
+  # Load kernel module necessary for docker SCTP support
+  sudo modprobe nf_conntrack_proto_sctp
 fi
 
 cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
@@ -100,7 +111,7 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # Install Docker-Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Create snowflake to be mounted into containers
