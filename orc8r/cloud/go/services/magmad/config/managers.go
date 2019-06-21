@@ -18,10 +18,6 @@ import (
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 )
 
-const (
-	MagmadNetworkType = "magmad_network"
-)
-
 // To be deprecated! Config service DB tables have been seeded with magmad
 // network configs that were migrated from legacy magmad network configs,
 // so this will stick around for a bit. We can delete this after deleting
@@ -34,7 +30,7 @@ func (*MagmadNetworkConfigManager) GetDomain() string {
 }
 
 func (*MagmadNetworkConfigManager) GetType() string {
-	return MagmadNetworkType
+	return orc8r.MagmadNetworkType
 }
 
 func (*MagmadNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
