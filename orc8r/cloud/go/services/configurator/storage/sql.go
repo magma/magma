@@ -396,8 +396,13 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 		}
 	}
 
-	// Then delete all networks requested for deletion
-	_, err := store.builder.Delete(networksTable).Where(sq.Eq{nwIDCol: networksToDelete}).
+	_, err := store.builder.Delete(networkConfigTable).Where(sq.Eq{nwcIDCol: networksToDelete}).
+		RunWith(store.tx).
+		Exec()
+	if err != nil {
+		return errors.Wrap(err, "failed to delete configs associated with networks")
+	}
+	_, err = store.builder.Delete(networksTable).Where(sq.Eq{nwIDCol: networksToDelete}).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
