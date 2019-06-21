@@ -4,22 +4,6 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-# Only run installation for docker
-- include_role:
-    name: docker
-    tasks_from: install
-
-- name: Create snowflake file
-  copy:
-    content: ""
-    dest: /etc/snowflake
-
-# Required by some go libraries
-- name: Install bzr dependency
-  apt:
-    name: bzr
-    state: present
-
 - name: Create OVS bridge br0 and GRE tunnel gre0
   become: true
   script: create_gre_tunnel.sh

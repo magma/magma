@@ -11,14 +11,26 @@
 
 set -e
 
+CWAG="cwag"
+FEG="feg"
 INSTALL_DIR="/tmp/magmagw_install"
 
-DIR=$(dirname "$0")
-if [ "$#" -eq 1 ]; then
-  DIR=$1
-fi
+DIR="."
 echo "Setting working directory as: $DIR"
 cd "$DIR"
+
+if [ -z $1 ]; then
+  echo "Please supply a gateway type to install. Valid types are: ['$FEG', '$CWAG']"
+  exit
+fi
+
+GW_TYPE=$1
+echo "Setting gateway type as: '$GW_TYPE'"
+
+if [ "$GW_TYPE" != "$FEG" ] && [ "$GW_TYPE" != "$CWAG" ]; then
+  echo "Gateway type '$GW_TYPE' is not valid. Valid types are: ['$FEG', '$CWAG']"
+  exit
+fi
 
 # Ensure necessary files are in place
 if [ ! -f .env ]; then
@@ -55,7 +67,20 @@ if ! cmp "$INSTALL_DIR"/magma/orc8r/tools/docker/install_gateway.sh install_gate
     exit
 fi
 
-cp "$INSTALL_DIR"/magma/feg/gateway/docker/docker-compose.yml .
+if [ "$GW_TYPE" == "$CWAG" ]; then
+  MODULE_DIR="cwf"
+
+  # Run CWAG ansible role to setup OVS
+  echo "Copying and running ansible..."
+  apt-add-repository -y ppa:ansible/ansible
+  apt-get update -y
+  apt-get -y install ansible
+  ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
+else
+  MODULE_DIR="$GW_TYPE"
+fi
+
+cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
 cp "$INSTALL_DIR"/magma/orc8r/tools/docker/upgrade_gateway.sh .
 
 # Install Docker
@@ -73,7 +98,6 @@ sudo add-apt-repository \
    stable"
 sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-sudo usermod -aG docker "$SUDO_USER"
 
 # Install Docker-Compose
 sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -89,8 +113,16 @@ mkdir -p /var/opt/magma/certs
 mkdir -p /etc/magma
 mkdir -p /var/opt/magma/docker
 
-# Copy certs and configs
+# Copy default configs directory
+cp -TR "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/configs /etc/magma
+
+# Copy config templates
+cp -R "$INSTALL_DIR"/magma/orc8r/gateway/configs/templates /etc/magma
+
+# Copy certs
 cp rootCA.pem /var/opt/magma/certs/
+
+# Copy control_proxy override
 cp control_proxy.yml /etc/magma/
 
 # Copy docker files
