@@ -82,7 +82,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
 		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeTierEntityType, &models.Tier{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{}),
 
 		// Legacy config manager serdes
 		&magmadconfig.MagmadGatewayConfigManager{},
@@ -100,7 +100,9 @@ func (*BaseOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuild
 }
 
 func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{}
+	return []configurator.MconfigBuilder{
+		&BaseOrchestratorMconfigBuilder{},
+	}
 }
 
 func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {

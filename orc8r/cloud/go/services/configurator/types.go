@@ -196,6 +196,11 @@ type EntityGraph struct {
 	Entities     []NetworkEntity
 	RootEntities []storage2.TypeAndKey
 	Edges        []GraphEdge
+
+	// unexported fields for caching intermediate graph operations
+	entsByTK         map[storage2.TypeAndKey]NetworkEntity
+	edgesByTK        map[storage2.TypeAndKey][]storage2.TypeAndKey
+	reverseEdgesByTK map[storage2.TypeAndKey][]storage2.TypeAndKey
 }
 
 func (eg EntityGraph) fromStorageProto(protoGraph *storage.EntityGraph) (EntityGraph, error) {

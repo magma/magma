@@ -11,3 +11,5 @@ package orc8r
 const ModuleName string = "orc8r"
 
 const MagmadGatewayType = "magmad_gateway"
+
+const UpgradeTierEntityType = "upgrade_tier"

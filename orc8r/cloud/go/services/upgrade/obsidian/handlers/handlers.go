@@ -14,6 +14,7 @@ import (
 	"sort"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
@@ -160,7 +161,7 @@ func listTiers(c echo.Context) error {
 		return nerr
 	}
 
-	tiers, err := configurator.ListEntityKeys(networkID, upgrade_client.UpgradeTierEntityType)
+	tiers, err := configurator.ListEntityKeys(networkID, orc8r.UpgradeTierEntityType)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -180,7 +181,7 @@ func createrTier(c echo.Context) error {
 	}
 
 	entity := configurator.NetworkEntity{
-		Type:   upgrade_client.UpgradeTierEntityType,
+		Type:   orc8r.UpgradeTierEntityType,
 		Key:    tier.ID,
 		Config: tier,
 	}
@@ -202,7 +203,7 @@ func getTier(c echo.Context) error {
 		return noTierIdError()
 	}
 
-	tier, err := configurator.LoadEntity(networkID, upgrade_client.UpgradeTierEntityType, tierID, configurator.EntityLoadCriteria{LoadConfig: true})
+	tier, err := configurator.LoadEntity(networkID, orc8r.UpgradeTierEntityType, tierID, configurator.EntityLoadCriteria{LoadConfig: true})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusNotFound)
 	}
@@ -225,7 +226,7 @@ func updateTier(c echo.Context) error {
 	}
 	update := configurator.EntityUpdateCriteria{
 		Key:       tier.ID,
-		Type:      upgrade_client.UpgradeTierEntityType,
+		Type:      orc8r.UpgradeTierEntityType,
 		NewConfig: tier,
 	}
 	_, err := configurator.UpdateEntity(networkID, update)
@@ -245,12 +246,12 @@ func deleteTier(c echo.Context) error {
 		return noTierIdError()
 	}
 	// the API requires that an error is returned when the channel does not exist
-	exists, err := configurator.DoesEntityExist(networkID, upgrade_client.UpgradeTierEntityType, tierID)
+	exists, err := configurator.DoesEntityExist(networkID, orc8r.UpgradeTierEntityType, tierID)
 	if err != nil || !exists {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = configurator.DeleteEntity(networkID, upgrade_client.UpgradeTierEntityType, tierID)
+	err = configurator.DeleteEntity(networkID, orc8r.UpgradeTierEntityType, tierID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}

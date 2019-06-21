@@ -16,6 +16,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -244,7 +245,7 @@ func TestLegacyReleaseChannels(t *testing.T) {
 func TestMigratedTiers(t *testing.T) {
 	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeTierEntityType, &models.Tier{})
+	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
 	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
@@ -376,7 +377,7 @@ func TestMigratedTiers(t *testing.T) {
 func TestLegacyTiers(t *testing.T) {
 	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeTierEntityType, &models.Tier{})
+	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
 	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
