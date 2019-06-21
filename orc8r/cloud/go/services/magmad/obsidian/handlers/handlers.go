@@ -27,11 +27,13 @@ func GetObsidianHandlers() []handlers.Handler {
 		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetworkHandler, MigratedHandlerFunc: deleteNetwork},
 
 		// Gateway
-		{Path: RegisterAG, Methods: handlers.GET, HandlerFunc: getListGatewaysHandler(&view_factory.FullGatewayViewFactoryImpl{})},
-		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: registerGateway},
-		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGateway},
-		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGateway},
-		{Path: ManageAG, Methods: handlers.DELETE, HandlerFunc: deleteGateway},
+		{Path: RegisterAG, Methods: handlers.GET,
+			HandlerFunc:         getListGatewaysHandler(&view_factory.FullGatewayViewFactoryImpl{}),
+			MigratedHandlerFunc: getListGateways(&view_factory.FullGatewayViewFactoryImpl{})},
+		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: createGatewayHandler, MigratedHandlerFunc: createGateway},
+		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGatewayHandler, MigratedHandlerFunc: getGateway},
+		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGatewayHandler, MigratedHandlerFunc: updateGateway},
+		{Path: ManageAG, Methods: handlers.DELETE, HandlerFunc: deleteGatewayHandler, MigratedHandlerFunc: deleteGateway},
 
 		// Gateway Commands
 		{Path: RebootGateway, Methods: handlers.POST, HandlerFunc: rebootGateway},

@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
@@ -19,11 +20,16 @@ import (
 )
 
 // Gateway is a special type of network entity. Since magmad supports multiple
-// config types per gateway, each config if modeled as an entity with an
-// association to the gateway entity. This assumes that the configType passed
-// in is different from the entity type of the gateway.
+// config types per gateway, each config is modeled as an entity with an
+// association to the gateway entity. If the configType is "magmad_gateway" the
+// config will simply be stored inside the gateway entity
 
 func configuratorCreateGatewayConfig(c echo.Context, networkID string, configType string, configKey string, iConfig interface{}) error {
+	// If the type is magmad_gateway add the config to the gw entity
+	if configType == orc8r.MagmadGatewayType {
+		return configuratorCreateEntityConfig(c, networkID, configType, configKey, iConfig)
+	}
+
 	config, nerr := getConfigAndValidate(c, iConfig)
 	if nerr != nil {
 		return nerr
@@ -44,7 +50,7 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 
 	_, err = configurator.UpdateEntity(networkID, configurator.EntityUpdateCriteria{
 		// hardcoded type to prevent import cycle
-		Type:              "magmad_gateway",
+		Type:              orc8r.MagmadGatewayType,
 		Key:               configKey,
 		AssociationsToAdd: []storage.TypeAndKey{{Type: configType, Key: configKey}},
 	})
@@ -55,6 +61,11 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 }
 
 func configuratorDeleteGatewayConfig(c echo.Context, networkID string, configType string, configKey string) error {
+	// If the type is magmad_gateway remove config from the gateway entity
+	if configType == orc8r.MagmadGatewayType {
+		return configuratorDeleteEntityConfig(c, networkID, configType, configKey)
+	}
+
 	err := configurator.DeleteEntity(networkID, configType, configKey)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
