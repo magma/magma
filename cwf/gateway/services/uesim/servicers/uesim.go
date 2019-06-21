@@ -27,13 +27,21 @@ const (
 // UESimServer tracks all the UEs being simulated.
 type UESimServer struct {
 	store blobstore.BlobStorageFactory
+	op    []byte
+	amf   []byte
 }
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
 func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
+	// TODO use config to assign these values
+	Op := []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11")
+	Amf := []byte("\x67\x41")
+
 	return &UESimServer{
 		store: factory,
+		op:    Op,
+		amf:   Amf,
 	}, nil
 }
 
@@ -84,6 +92,16 @@ func ueToBlob(ue *cwfprotos.UEConfig) (blobstore.Blob, error) {
 		Key:   ue.GetImsi(),
 		Value: marshaledUE,
 	}, nil
+}
+
+// Converts a blob back into a UE config
+func blobToUE(blob blobstore.Blob) (*cwfprotos.UEConfig, error) {
+	ue := &cwfprotos.UEConfig{}
+	err := protos.Unmarshal(blob.Value, ue)
+	if err != nil {
+		return nil, err
+	}
+	return ue, nil
 }
 
 // ConvertStorageErrorToGrpcStatus converts a UE error into a gRPC status error.

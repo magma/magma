@@ -53,8 +53,8 @@ func validateUEKey(k []byte) error {
 	if k == nil {
 		return errors.New("Invalid Argument: key cannot be nil")
 	}
-	if len(k) != 32 {
-		return errors.New("Invalid Argument: key must be 32 bytes")
+	if len(k) != 16 {
+		return errors.New("Invalid Argument: key must be 16 bytes")
 	}
 	return nil
 }
@@ -64,8 +64,8 @@ func validateUEOpc(opc []byte) error {
 	if opc == nil {
 		return errors.New("Invalid Argument: opc cannot be nil")
 	}
-	if len(opc) != 32 {
-		return errors.New("Invalid Argument: opc must be 32 bytes")
+	if len(opc) != 16 {
+		return errors.New("Invalid Argument: opc must be 16 bytes")
 	}
 	return nil
 }

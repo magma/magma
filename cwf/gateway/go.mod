@@ -8,6 +8,9 @@ module magma/cwf/gateway
 
 replace (
 	magma/cwf/cloud/go => ../../cwf/cloud/go
+	magma/feg/cloud/go => ../../feg/cloud/go
+	magma/feg/gateway => ../../feg/gateway
+	magma/lte/cloud/go => ../../lte/cloud/go
 	magma/orc8r/cloud/go => ../../orc8r/cloud/go
 )
 

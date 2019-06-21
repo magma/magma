@@ -24,6 +24,9 @@ message UEConfig {
 
     // Operator configuration field (Op) signed with authentication key (k).
     bytes auth_opc = 3;
+
+    // Sequence Number (SEQ).
+    uint64 seq = 4;
 }
 
 // --------------------------------------------------------------------------

@@ -27,8 +27,8 @@ func TestUESimulator_AddUE(t *testing.T) {
 
 	expectedIMSI1 := "1234567890"
 	expectedIMSI2 := "2345678901"
-	ue1 := &protos.UEConfig{Imsi: expectedIMSI1, AuthKey: make([]byte, 32), AuthOpc: make([]byte, 32)}
-	ue2 := &protos.UEConfig{Imsi: expectedIMSI2, AuthKey: make([]byte, 32), AuthOpc: make([]byte, 32)}
+	ue1 := &protos.UEConfig{Imsi: expectedIMSI1, AuthKey: make([]byte, 16), AuthOpc: make([]byte, 16), Seq: 0}
+	ue2 := &protos.UEConfig{Imsi: expectedIMSI2, AuthKey: make([]byte, 16), AuthOpc: make([]byte, 16), Seq: 0}
 
 	_, err = server.AddUE(context.Background(), ue1)
 	assert.NoError(t, err)
