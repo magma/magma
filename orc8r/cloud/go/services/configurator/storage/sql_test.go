@@ -355,6 +355,7 @@ func TestSqlConfiguratorStorage_UpdateNetworks(t *testing.T) {
 			upsertStmt.ExpectExec().WithArgs("n4", "foo", []byte("bar"), []byte("bar")).WillReturnResult(mockResult)
 			m.ExpectExec("DELETE FROM cfg_network_configs").WithArgs("n4", "hello", "n4", "world").WillReturnResult(mockResult)
 
+			m.ExpectExec("DELETE FROM cfg_network_configs").WithArgs("n1").WillReturnResult(mockResult)
 			m.ExpectExec("DELETE FROM cfg_networks").WithArgs("n1").WillReturnResult(mockResult)
 		},
 		run: runFactory(
