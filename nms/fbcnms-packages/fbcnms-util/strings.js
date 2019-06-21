@@ -23,8 +23,7 @@ export function hexToBase64(hexString: string): string {
 }
 
 export function base64ToHex(base64String: string): string {
-  const hexValue = Buffer.from(base64String, 'base64').toString('hex');
-  return hexValue.replace(/^0+/, '');
+  return Buffer.from(base64String, 'base64').toString('hex');
 }
 
 export function isValidHex(hexString: string): boolean {
