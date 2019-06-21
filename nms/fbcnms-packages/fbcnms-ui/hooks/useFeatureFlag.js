@@ -11,6 +11,7 @@
 import type {Context} from 'react';
 
 export type FeatureID =
+  | 'lte_network_metrics'
   | 'sso_example_feature'
   | 'audit_log_example_feature'
   | 'third_party_devices'
