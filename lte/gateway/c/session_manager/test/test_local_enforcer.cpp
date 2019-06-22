@@ -132,6 +132,38 @@ TEST_F(LocalEnforcerTest, test_init_session_credit)
 
   EXPECT_CALL(
     *pipelined_client,
+    add_ue_mac_flow(
+      testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  EXPECT_CALL(
+    *pipelined_client,
+    activate_flows_for_rules(
+      testing::_, testing::_, CheckCount(0), CheckCount(0)))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  SessionState::Config test_cwf_cfg;
+  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
+
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
+
+  EXPECT_EQ(
+    local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 1024);
+}
+
+TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
+{
+  insert_static_rule(1, "", "rule1");
+
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response("IMSI1", 1, 1024, credits->Add());
+
+  EXPECT_CALL(
+    *pipelined_client,
     activate_flows_for_rules(
       testing::_, testing::_, CheckCount(0), CheckCount(0)))
     .Times(1)

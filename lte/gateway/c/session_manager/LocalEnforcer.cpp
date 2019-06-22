@@ -395,6 +395,17 @@ bool LocalEnforcer::init_session_credit(
   }
   session_map_[imsi] = std::unique_ptr<SessionState>(session_state);
 
+  if (session_state->is_radius_cwf_session()) {
+    MLOG(MDEBUG) << "Adding UE MAC flow for subscriber " << imsi;
+    SubscriberID sid;
+    sid.set_id(imsi);
+    bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
+      sid, session_state->get_mac_addr());
+    if (!add_ue_mac_flow_success) {
+      MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
+    }
+  }
+
   auto ip_addr = session_state->get_subscriber_ip_addr();
 
   RulesToProcess rules_to_activate;

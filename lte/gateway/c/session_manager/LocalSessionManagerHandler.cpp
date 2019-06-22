@@ -106,41 +106,6 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   const LocalCreateSessionRequest *request,
   std::function<void(Status, LocalCreateSessionResponse)> response_callback)
 {
-  switch (request->rat_type()) {
-    case RATType::TGPP_LTE:
-      create_lte_session(request, response_callback);
-      break;
-    case RATType::TGPP_WLAN:
-      create_carrier_wifi_session(request, response_callback);
-      break;
-    default:
-      MLOG(MERROR) << "Unknown RAT Type " << request->rat_type()
-                   << ", not creating session.";
-  }
-}
-
-void LocalSessionManagerHandlerImpl::create_carrier_wifi_session(
-  const LocalCreateSessionRequest *request,
-  std::function<void(Status, LocalCreateSessionResponse)> response_callback)
-{
-  SessionState::Config cfg;
-  cfg.ue_ipv4 = request->ue_ipv4();
-  cfg.apn = request->apn();
-  cfg.imei = request->imei();
-  cfg.msisdn = request->msisdn();
-
-  auto imsi = request->sid().id();
-  auto sid = id_gen_.gen_session_id(imsi);
-
-  send_create_session(
-    copy_wifi_session_info2create_req(request, sid),
-    imsi, sid, cfg, response_callback);
-}
-
-void LocalSessionManagerHandlerImpl::create_lte_session(
-  const LocalCreateSessionRequest *request,
-  std::function<void(Status, LocalCreateSessionResponse)> response_callback)
-{
   auto imsi = request->sid().id();
   auto sid = id_gen_.gen_session_id(imsi);
   SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
@@ -150,7 +115,10 @@ void LocalSessionManagerHandlerImpl::create_lte_session(
                               .imei = request->imei(),
                               .plmn_id = request->plmn_id(),
                               .imsi_plmn_id = request->imsi_plmn_id(),
-                              .user_location = request->user_location()};
+                              .user_location = request->user_location(),
+                              .rat_type = request->rat_type(),
+                              .mac_addr = request->hardware_addr(),
+                              .radius_session_id = request->radius_session_id()};
   send_create_session(
     copy_session_info2create_req(request, sid),
     imsi, sid, cfg, response_callback);

@@ -99,13 +99,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
  private:
   void check_usage_for_reporting();
-  void create_carrier_wifi_session(
-    const LocalCreateSessionRequest *request,
-    std::function<void(Status, LocalCreateSessionResponse)> response_callback);
-
-  void create_lte_session(
-    const LocalCreateSessionRequest *request,
-    std::function<void(Status, LocalCreateSessionResponse)> response_callback);
 
   void send_create_session(
     const CreateSessionRequest &request,

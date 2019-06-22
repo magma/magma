@@ -228,4 +228,14 @@ std::string SessionState::get_subscriber_ip_addr()
   return config_.ue_ipv4;
 }
 
+std::string SessionState::get_mac_addr()
+{
+  return config_.mac_addr;
+}
+
+bool SessionState::is_radius_cwf_session()
+{
+  return (config_.rat_type == RATType::TGPP_WLAN);
+}
+
 } // namespace magma

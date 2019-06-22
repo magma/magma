@@ -53,6 +53,16 @@ magma::ActivateFlowsRequest create_activate_req(
   return req;
 }
 
+magma::UEMacFlowRequest create_add_ue_mac_flow_req(
+  const magma::SubscriberID &sid,
+  const std::string &mac_addr)
+{
+  magma::UEMacFlowRequest req;
+  req.mutable_sid()->CopyFrom(sid);
+  req.set_mac_addr(mac_addr);
+  return req;
+}
+
 } // namespace
 
 namespace magma {
@@ -121,6 +131,20 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
   return true;
 }
 
+bool AsyncPipelinedClient::add_ue_mac_flow(
+    const SubscriberID &sid,
+    const std::string &mac_addr)
+{
+  auto req = create_add_ue_mac_flow_req(sid, mac_addr);
+  add_ue_mac_flow_rpc(req, [mac_addr](Status status, FlowResponse resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not add flow for subscriber with UE MAC"
+                   << mac_addr << ": " << status.error_message();
+    }
+  });
+  return true;
+}
+
 void AsyncPipelinedClient::deactivate_flows_rpc(
   const DeactivateFlowsRequest &request,
   std::function<void(Status, DeactivateFlowsResult)> callback)
@@ -139,6 +163,16 @@ void AsyncPipelinedClient::activate_flows_rpc(
     std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(
     stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::add_ue_mac_flow_rpc(
+    const UEMacFlowRequest &request,
+    std::function<void(Status, FlowResponse)> callback)
+{
+  auto local_resp = new AsyncLocalResponse<FlowResponse>(
+    std::move(callback), RESPONSE_TIMEOUT);
+  local_resp->set_response_reader(std::move(
+    stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_)));
 }
 
 } // namespace magma
