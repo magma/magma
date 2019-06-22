@@ -29,3 +29,7 @@ export function base64ToHex(base64String: string): string {
 export function isValidHex(hexString: string): boolean {
   return hexString.match(/^[a-fA-F0-9]*$/) !== null;
 }
+
+export function capitalize(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
