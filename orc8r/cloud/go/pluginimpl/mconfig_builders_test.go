@@ -6,16 +6,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package pluginimpl
+package pluginimpl_test
 
 import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/test_init"
+	models3 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	models2 "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
@@ -24,8 +25,6 @@ import (
 )
 
 func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
-	test_init.StartTestService(t)
-
 	nw := configurator.Network{ID: "n1"}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
@@ -44,7 +43,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	}
 
 	// Make sure we get a 0.0.0-0 and no error if no tier
-	builder := &BaseOrchestratorMconfigBuilder{}
+	builder := &pluginimpl.BaseOrchestratorMconfigBuilder{}
 	actual := map[string]proto.Message{}
 	err := builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
@@ -104,6 +103,76 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			FeatureFlags:    map[string]bool{},
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestDnsdMconfigBuilder_Build(t *testing.T) {
+	nw := configurator.Network{ID: "n1"}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType,
+		Key:  "gw1",
+		Config: &models.MagmadGatewayConfig{
+			AutoupgradeEnabled:      true,
+			AutoupgradePollInterval: 300,
+			CheckinInterval:         60,
+			CheckinTimeout:          10,
+			DynamicServices:         []string{},
+			FeatureFlags:            map[string]bool{},
+		},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{gw},
+	}
+
+	actual := map[string]proto.Message{}
+	builder := &pluginimpl.DnsdMconfigBuilder{}
+	err := builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	expected := map[string]proto.Message{
+		"dnsd": &mconfig.DnsD{},
+	}
+	assert.Equal(t, expected, actual)
+
+	nw.Configs = map[string]interface{}{
+		"dnsd_network": &models3.NetworkDNSConfig{
+			EnableCaching: true,
+			LocalTTL:      100,
+			Records: []*models3.NetworkDNSConfigRecordsItems0{
+				{
+					ARecord:     []string{"hello", "world"},
+					AaaaRecord:  []string{"foo", "bar"},
+					CnameRecord: []string{"baz"},
+					Domain:      "facebook.com",
+				},
+				{
+					ARecord: []string{"quz"},
+				},
+			},
+		},
+	}
+
+	actual = map[string]proto.Message{}
+	builder = &pluginimpl.DnsdMconfigBuilder{}
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	expected = map[string]proto.Message{
+		"dnsd": &mconfig.DnsD{
+			LogLevel:      protos.LogLevel_INFO,
+			EnableCaching: true,
+			LocalTTL:      100,
+			Records: []*mconfig.NetworkDNSConfigRecordsItems{
+				{
+					ARecord:     []string{"hello", "world"},
+					AaaaRecord:  []string{"foo", "bar"},
+					CnameRecord: []string{"baz"},
+					Domain:      "facebook.com",
+				},
+				{
+					ARecord: []string{"quz"},
+				},
+			},
+		},
 	}
 	assert.Equal(t, expected, actual)
 }

@@ -15,12 +15,12 @@ import (
 	"magma/lte/cloud/go/protos/mconfig"
 	cellular_config "magma/lte/cloud/go/services/cellular/config"
 	"magma/lte/cloud/go/services/cellular/test_utils"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
-	dnsd_config "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsd_protos "magma/orc8r/cloud/go/services/dnsd/protos"
 
 	"github.com/golang/protobuf/proto"
@@ -38,7 +38,7 @@ func TestCellularBuilder_Build(t *testing.T) {
 
 	err = config.CreateConfig("network", cellular_config.CellularNetworkType, "network", test_utils.NewDefaultTDDNetworkConfig())
 	assert.NoError(t, err)
-	err = config.CreateConfig("network", dnsd_config.DnsdNetworkType, "network", &dnsd_protos.NetworkDNSConfig{EnableCaching: false, LocalTTL: 0})
+	err = config.CreateConfig("network", orc8r.DnsdNetworkType, "network", &dnsd_protos.NetworkDNSConfig{EnableCaching: false, LocalTTL: 0})
 	assert.NoError(t, err)
 	err = config.CreateConfig("network", cellular_config.CellularEnodebType, "enb1", test_utils.NewDefaultEnodebConfig())
 	assert.NoError(t, err)

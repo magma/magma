@@ -10,8 +10,13 @@ package orc8r
 
 const (
 	ModuleName            string = "orc8r"
-	MagmadGatewayType            = "magmad_gateway"
+
 	MagmadNetworkType            = "magmad_network"
-	UpgradeTierEntityType        = "upgrade_tier"
 	NetworkFeaturesConfig        = "orc8r_features"
+
+	MagmadGatewayType            = "magmad_gateway"
+
+	UpgradeTierEntityType        = "upgrade_tier"
+
+    DnsdNetworkType = "dnsd_network"
 )

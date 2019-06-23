@@ -10,8 +10,8 @@ package handlers
 
 import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/config/obsidian"
-	"magma/orc8r/cloud/go/services/dnsd/config"
 	"magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	magmad_handlers "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 )
@@ -23,5 +23,5 @@ const (
 
 // GetObsidianHandlers returns all obsidian handlers for dnsd
 func GetObsidianHandlers() []handlers.Handler {
-	return obsidian.GetCRUDNetworkConfigHandlers(NetworkConfigPath, config.DnsdNetworkType, &models.NetworkDNSConfig{})
+	return obsidian.GetCRUDNetworkConfigHandlers(NetworkConfigPath, orc8r.DnsdNetworkType, &models.NetworkDNSConfig{})
 }

@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	models3 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	models2 "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
@@ -23,6 +24,7 @@ import (
 )
 
 type BaseOrchestratorMconfigBuilder struct{}
+type DnsdMconfigBuilder struct{}
 
 func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
 	// get magmad gateway - this must be present in the graph
@@ -74,4 +76,26 @@ func getPackageVersionAndImages(magmadGateway configurator.NetworkEntity, graph 
 		retImages = append(retImages, &mconfig.ImageSpec{Name: image.Name, Order: image.Order})
 	}
 	return tierConfig.Version, retImages, nil
+}
+
+func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+	iConfig, found := network.Configs[orc8r.DnsdNetworkType]
+	if !found {
+		// fill out the dnsd mconfig with an empty struct if no network config
+		mconfigOut["dnsd"] = &mconfig.DnsD{}
+		return nil
+	}
+
+	dnsConfig := iConfig.(*models3.NetworkDNSConfig)
+	mconfigDnsd := &mconfig.DnsD{}
+	protos.FillIn(dnsConfig, mconfigDnsd)
+	mconfigDnsd.LogLevel = protos.LogLevel_INFO
+	for _, record := range dnsConfig.Records {
+		mconfigRecord := &mconfig.NetworkDNSConfigRecordsItems{}
+		protos.FillIn(record, mconfigRecord)
+		mconfigDnsd.Records = append(mconfigDnsd.Records, mconfigRecord)
+	}
+
+	mconfigOut["dnsd"] = mconfigDnsd
+	return nil
 }

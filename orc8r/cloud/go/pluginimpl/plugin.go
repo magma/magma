@@ -73,7 +73,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		&GatewayRecordSerde{},
 
 		// Config manager serdes
-		configurator.NewNetworkConfigSerde(dnsdconfig.DnsdNetworkType, &models2.NetworkDNSConfig{}),
+		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models2.NetworkDNSConfig{}),
 		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &models3.NetworkFeatures{}),
 
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
@@ -98,6 +98,7 @@ func (*BaseOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuild
 func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
 	return []configurator.MconfigBuilder{
 		&BaseOrchestratorMconfigBuilder{},
+		&DnsdMconfigBuilder{},
 	}
 }
 
