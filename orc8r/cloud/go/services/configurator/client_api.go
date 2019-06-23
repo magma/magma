@@ -375,8 +375,7 @@ func DeleteInternalEntity(entityType, entityKey string) error {
 func GetPhysicalIDOfEntity(networkID, entityType, entityKey string) (string, error) {
 	entities, _, err := LoadEntities(
 		networkID,
-		nil,
-		nil,
+		nil, nil, nil,
 		[]storage2.TypeAndKey{
 			{Type: entityType, Key: entityKey},
 		},
@@ -421,7 +420,7 @@ func LoadEntity(networkID string, entityType string, entityKey string, criteria 
 	ret := NetworkEntity{}
 	loaded, notFound, err := LoadEntities(
 		networkID,
-		nil, nil,
+		nil, nil, nil,
 		[]storage2.TypeAndKey{{Type: entityType, Key: entityKey}},
 		criteria,
 	)
@@ -442,11 +441,31 @@ func LoadEntityConfig(networkID, entityType, entityKey string) (interface{}, err
 	return entity.Config, nil
 }
 
+func LoadEntityForPhysicalID(physicalID string, criteria EntityLoadCriteria) (NetworkEntity, error) {
+	ret := NetworkEntity{}
+	loaded, _, err := LoadEntities(
+		"placeholder",
+		nil, nil, &physicalID, nil,
+		criteria,
+	)
+	if err != nil {
+		return ret, err
+	}
+	if funk.IsEmpty(loaded) {
+		return ret, merrors.ErrNotFound
+	}
+	if len(loaded) > 1 {
+		return ret, errors.Errorf("expected one entity from query, found %d", len(loaded))
+	}
+	return loaded[0], nil
+}
+
 // LoadEntities loads entities specified by the parameters.
 func LoadEntities(
 	networkID string,
 	typeFilter *string,
 	keyFilter *string,
+	physicalID *string,
 	ids []storage2.TypeAndKey,
 	criteria EntityLoadCriteria,
 ) ([]NetworkEntity, []storage2.TypeAndKey, error) {
@@ -462,6 +481,7 @@ func LoadEntities(
 			Filter: &storage.EntityLoadFilter{
 				TypeFilter: protos.GetStringWrapper(typeFilter),
 				KeyFilter:  protos.GetStringWrapper(keyFilter),
+				PhysicalID: protos.GetStringWrapper(physicalID),
 				IDs:        tksToEntIDs(ids),
 			},
 			Criteria: criteria.toStorageProto(),
@@ -492,8 +512,7 @@ func LoadInternalEntity(entityType string, entityKey string, criteria EntityLoad
 func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
 	found, _, err := LoadEntities(
 		networkID,
-		nil,
-		nil,
+		nil, nil, nil,
 		[]storage2.TypeAndKey{{Type: entityType, Key: entityKey}},
 		EntityLoadCriteria{},
 	)

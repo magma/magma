@@ -213,6 +213,16 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		return
 	}
 
+	_, err = fact.builder.CreateIndex("phys_id_idx").
+		IfNotExists().
+		On(entityTable).
+		Columns(entPidCol).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create physical ID index")
+	}
+
 	// Create internal network(s)
 	_, err = fact.builder.Insert(networksTable).
 		Columns(nwIDCol, nwNameCol, nwDescCol).
@@ -507,6 +517,7 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 			Value().([]*EntityID)
 	}
 
+	createdEntWithPk.NetworkID = networkID
 	return createdEntWithPk.NetworkEntity, nil
 }
 
@@ -544,6 +555,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 	}
 
 	// Then, update the fields on the entity table
+	entToUpdate.NetworkID = networkID
 	err = store.processEntityFieldsUpdate(entToUpdate.pk, update, &entToUpdate.NetworkEntity)
 	if err != nil {
 		return entToUpdate.NetworkEntity, errors.WithStack(err)

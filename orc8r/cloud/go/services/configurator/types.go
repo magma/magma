@@ -107,6 +107,10 @@ func (nuc NetworkUpdateCriteria) toStorageProto() (*storage.NetworkUpdateCriteri
 // NetworkEntity is the storage representation of a logical component of a
 // network. Networks are partitioned into DAGs of entities.
 type NetworkEntity struct {
+	// Network that the entity belongs to. This is a READ-ONLY field and will
+	// be ignored if provided to write APIs.
+	NetworkID string
+
 	// (Type, Key) forms a unique identifier for the network entity within its
 	// network.
 	Type string
@@ -142,6 +146,7 @@ type NetworkEntity struct {
 
 func (ent NetworkEntity) toStorageProto() (*storage.NetworkEntity, error) {
 	ret := &storage.NetworkEntity{
+		// NetworkID is a read-only field so we won't fill it in
 		Type:        ent.Type,
 		Key:         ent.Key,
 		Name:        ent.Name,
@@ -166,6 +171,7 @@ func (ent NetworkEntity) toStorageProto() (*storage.NetworkEntity, error) {
 }
 
 func (ent NetworkEntity) fromStorageProto(protoEnt *storage.NetworkEntity) (NetworkEntity, error) {
+	ent.NetworkID = protoEnt.NetworkID
 	ent.Type = protoEnt.Type
 	ent.Key = protoEnt.Key
 	ent.Name = protoEnt.Name
@@ -248,8 +254,9 @@ type EntityLoadFilter struct {
 	// provided.
 	IDs []storage2.TypeAndKey
 
-	// Unexported for internal use
-	graphID *string
+	// If PhysicalID is provided, the query will return all entities matching
+	// the provided ID value.
+	PhysicalID *string
 }
 
 // EntityLoadCriteria specifies how much of an entity to load

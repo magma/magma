@@ -71,7 +71,9 @@ func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID stri
 		})
 		selectBuilder = selectBuilder.Where(orClause)
 	} else {
-		if filter.GraphID != nil {
+		if filter.PhysicalID != nil {
+			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entPidCol): filter.PhysicalID.Value})
+		} else if filter.GraphID != nil {
 			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): filter.GraphID.Value})
 		} else {
 			andClause := sq.And{sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID}}
@@ -90,6 +92,7 @@ func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID stri
 
 func getLoadEntitiesColumns(criteria EntityLoadCriteria) []string {
 	fields := []string{
+		fmt.Sprintf("ent.%s", entNidCol),
 		fmt.Sprintf("ent.%s", entPkCol),
 		fmt.Sprintf("ent.%s", entKeyCol),
 		fmt.Sprintf("ent.%s", entTypeCol),
@@ -119,7 +122,7 @@ func getLoadEntitiesColumns(criteria EntityLoadCriteria) []string {
 
 // existingEntsByPkOut is an output parameter
 func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEntsByPkOut map[string]*NetworkEntity) error {
-	var pk, key, entType, graphID string
+	var nid, pk, key, entType, graphID string
 	var physicalID sql.NullString
 	var name, description sql.NullString
 
@@ -132,7 +135,7 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 	var aclPermission, aclVersion sql.NullInt64
 
 	// This corresponds with the order of the columns queried in the SELECT
-	scanArgs := []interface{}{&pk, &key, &entType, &physicalID, &entVersion, &graphID}
+	scanArgs := []interface{}{&nid, &pk, &key, &entType, &physicalID, &entVersion, &graphID}
 	if criteria.LoadMetadata {
 		scanArgs = append(scanArgs, &name, &description)
 	}
@@ -149,8 +152,9 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 	}
 
 	ent := NetworkEntity{
-		Key:  key,
-		Type: entType,
+		NetworkID: nid,
+		Key:       key,
+		Type:      entType,
 
 		Name:        nullStringToValue(name),
 		Description: nullStringToValue(description),

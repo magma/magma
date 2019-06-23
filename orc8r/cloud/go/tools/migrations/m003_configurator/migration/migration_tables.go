@@ -166,6 +166,16 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 		return errors.Wrap(err, "failed to create acl ent PK index")
 	}
 
+	_, err = builder.CreateIndex("phys_id_idx").
+		IfNotExists().
+		On(EntityTable).
+		Columns(EntPidCol).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create physical ID index")
+	}
+
 	// Create internal network(s)
 	_, err = builder.Insert(NetworksTable).
 		Columns(NwIDCol, NwNameCol, NwDescCol).

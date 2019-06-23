@@ -286,6 +286,24 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	)
 	assert.NoError(t, store.Commit())
 
+	// Load from physical ID
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	// network ID shouldn't matter in this query
+	actualEntityLoad, err = store.LoadEntities("placeholder", storage.EntityLoadFilter{PhysicalID: stringPointer("1")}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				&expectedFoobarEnt,
+			},
+			EntitiesNotFound: []*storage.EntityID{},
+		},
+		actualEntityLoad,
+	)
+	assert.NoError(t, store.Commit())
+
 	// At this point, our graph looks like this:
 	//                (baz, quz)
 	//                 /      \
@@ -357,8 +375,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.Equal(
 		t,
 		storage.NetworkEntity{
-			Type: "hello",
-			Key:  "world",
+			NetworkID: "n1",
+			Type:      "hello",
+			Key:       "world",
 
 			GraphID: "10",
 
@@ -417,6 +436,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.Equal(
 		t,
 		storage.NetworkEntity{
+			NetworkID:  "n1",
 			Type:       "hello",
 			Key:        "world",
 			GraphID:    "10",
@@ -488,6 +508,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBazquzEnt.ParentAssociations = []*storage.EntityID{{Type: "hello", Key: "world"}}
 
 	expectedFoobarEnt = storage.NetworkEntity{
+		NetworkID:  "n1",
 		Type:       "foo",
 		Key:        "bar",
 		GraphID:    "10",
@@ -499,9 +520,10 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	}
 
 	expectedBarbazEnt = storage.NetworkEntity{
-		Type:    "bar",
-		Key:     "baz",
-		GraphID: "10",
+		NetworkID: "n1",
+		Type:      "bar",
+		Key:       "baz",
+		GraphID:   "10",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "baz", Key: "quz"},
 			{Type: "hello", Key: "world"},
@@ -509,9 +531,10 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	}
 
 	expectedBazquzEnt = storage.NetworkEntity{
-		Type:    "baz",
-		Key:     "quz",
-		GraphID: "10",
+		NetworkID: "n1",
+		Type:      "baz",
+		Key:       "quz",
+		GraphID:   "10",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "hello", Key: "world"},
 		},
@@ -522,6 +545,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	}
 
 	expectedHelloWorldEnt = storage.NetworkEntity{
+		NetworkID:  "n1",
 		Type:       "hello",
 		Key:        "world",
 		GraphID:    "10",

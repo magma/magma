@@ -132,8 +132,7 @@ func TestConfiguratorService(t *testing.T) {
 
 	entities, entitiesNotFound, err := configurator.LoadEntities(
 		networkID1,
-		nil,
-		nil,
+		nil, nil, nil,
 		[]storage.TypeAndKey{entityID1, entityID2},
 		fullEntityLoad,
 	)
@@ -164,8 +163,7 @@ func TestConfiguratorService(t *testing.T) {
 	entities, entitiesNotFound, err = configurator.LoadEntities(
 		networkID1,
 		strPointer("foo"),
-		nil,
-		nil,
+		nil, nil, nil,
 		fullEntityLoad,
 	)
 	assert.NoError(t, err)
@@ -184,8 +182,7 @@ func TestConfiguratorService(t *testing.T) {
 	entities, entitiesNotFound, err = configurator.LoadEntities(
 		networkID1,
 		strPointer("foo"),
-		nil,
-		nil,
+		nil, nil, nil,
 		fullEntityLoad,
 	)
 	assert.NoError(t, err)

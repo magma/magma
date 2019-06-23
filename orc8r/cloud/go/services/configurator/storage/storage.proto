@@ -73,10 +73,11 @@ message EntityID {
 // NetworkEntity is the storage representation of a logical component of a
 // network. Networks are partitioned into DAGs of entities.
 message NetworkEntity {
+    string networkID = 1;
     // (Type, Key) forms a unique identifier for the network entity within its
     // network.
-    string type = 1;
-    string key = 2;
+    string type = 2;
+    string key = 3;
 
     string name = 10;
     string description = 11;
@@ -171,6 +172,10 @@ message EntityLoadFilter {
 
     // Internal-only
     google.protobuf.StringValue graphID = 4;
+
+    // If PhysicalID is provided, the query will return all entities matching
+    // the provided ID. All other fields are ignored if this is set.
+    google.protobuf.StringValue physicalID = 5;
 }
 
 
