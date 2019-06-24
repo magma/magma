@@ -77,7 +77,7 @@ int decode_access_point_name_ie(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if (1 < ielen) {
+  if (1 <= ielen) {
     int length_apn = *(buffer + decoded);
     decoded++;
     *access_point_name = blk2bstr((void *) (buffer + decoded), length_apn);
