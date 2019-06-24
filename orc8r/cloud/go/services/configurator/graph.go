@@ -19,7 +19,11 @@ import (
 // inside the EntityGraph instance. This allow mconfig building to save some
 // search/scan operations.
 
-func (eg *EntityGraph) GetEntity(id storage.TypeAndKey) (NetworkEntity, error) {
+func (eg *EntityGraph) GetEntity(entType string, key string) (NetworkEntity, error) {
+	return eg.GetEntityByTK(storage.TypeAndKey{Type: entType, Key: key})
+}
+
+func (eg *EntityGraph) GetEntityByTK(id storage.TypeAndKey) (NetworkEntity, error) {
 	eg.cacheGraphHelpers()
 
 	ret, found := eg.entsByTK[id]

@@ -47,8 +47,8 @@ func (*FegOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// configurator serdes
-		configurator.NewNetworkConfigSerde(fegconfig.FegNetworkType, &models.NetworkFederationConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(fegconfig.FegGatewayType, &models.GatewayFegConfigs{}),
+		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &models.NetworkFederationConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &models.GatewayFegConfigs{}),
 
 		// legacy config service serdes
 		&fegconfig.FegNetworkConfigManager{},
@@ -63,7 +63,9 @@ func (*FegOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilde
 }
 
 func (*FegOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{}
+	return []configurator.MconfigBuilder{
+		&Builder{},
+	}
 }
 
 func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {

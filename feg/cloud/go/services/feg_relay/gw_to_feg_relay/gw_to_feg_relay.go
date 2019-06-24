@@ -18,7 +18,7 @@ import (
 	"os"
 	"strings"
 
-	feg_config "magma/feg/cloud/go/services/controller/config"
+	"magma/feg/cloud/go/feg"
 	feg_protos "magma/feg/cloud/go/services/controller/protos"
 	"magma/feg/cloud/go/services/health"
 	lte_config "magma/lte/cloud/go/services/cellular/config"
@@ -178,7 +178,7 @@ func getFeGHwIdForNetwork(agNwId string) (string, error) {
 		return "", fmt.Errorf("FegNetworkID is not set in cellular config for network: %s", agNwId)
 	}
 
-	fegCfg, err := config.GetConfig(fegNetworkID, feg_config.FegNetworkType, fegNetworkID)
+	fegCfg, err := config.GetConfig(fegNetworkID, feg.FegNetworkType, fegNetworkID)
 	if err != nil || fegCfg == nil {
 		return "", fmt.Errorf("Unable to retrieve config for FeG network: %s", fegNetworkID)
 	}

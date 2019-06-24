@@ -17,7 +17,6 @@ import (
 	models3 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	models2 "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
-	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -28,7 +27,7 @@ type DnsdMconfigBuilder struct{}
 
 func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
 	// get magmad gateway - this must be present in the graph
-	magmadGateway, err := graph.GetEntity(storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: gatewayID})
+	magmadGateway, err := graph.GetEntity(orc8r.MagmadGatewayType, gatewayID)
 	if err == merrors.ErrNotFound {
 		return errors.Errorf("could not find magmad gateway %s in graph", gatewayID)
 	}
