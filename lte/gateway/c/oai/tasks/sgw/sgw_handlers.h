@@ -65,4 +65,5 @@ int sgw_handle_modify_ue_ambr_request(
   teid_t teid,
   bitrate_t mbr_ul,
   bitrate_t mbr_dl);
+bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p);
 #endif /* FILE_SGW_HANDLERS_SEEN */

@@ -201,6 +201,13 @@ void *mme_app_thread(void *args)
           OAILOG_DEBUG(
             TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
+
+          if (ue_context_p->path_switch_req == true) {
+            mme_app_handle_path_switch_req_ack(
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
+            ue_context_p->path_switch_req = false;
+          }
           /*
            * Updating statistics
            */
@@ -492,6 +499,11 @@ void *mme_app_thread(void *args)
       case SGSAP_STATUS: {
         mme_app_handle_sgs_status_message(
           &received_message_p->ittiMsg.sgsap_status);
+      } break;
+
+      case S1AP_PATH_SWITCH_REQUEST: {
+        mme_app_handle_path_switch_request(
+          &S1AP_PATH_SWITCH_REQUEST(received_message_p));
       } break;
 
       case TERMINATE_MESSAGE: {

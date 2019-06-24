@@ -64,3 +64,26 @@ int derive_keNB(
   kdf(kasme_32, 32, s, 7, keNB, 32);
   return 0;
 }
+
+int derive_NH(
+  const uint8_t *kasme_32,
+  const uint8_t *syncInput,
+  uint8_t *next_hop,
+  uint8_t *next_hop_chaining_count)
+{
+  uint8_t s[35] = {0};
+
+  // FC
+  s[0] = FC_NH;
+  memcpy(s + 1, syncInput, 32);
+  /* length of syncInput */
+  s[33] = 0x00;
+  s[34] = 0x20;
+  /* update next hop chaining count */
+  *next_hop_chaining_count += 1;
+  if (*next_hop_chaining_count >= 8) {
+     *next_hop_chaining_count = 0;
+  }
+  kdf(kasme_32, 32, s, 35, next_hop, 32);
+  return 0;
+}

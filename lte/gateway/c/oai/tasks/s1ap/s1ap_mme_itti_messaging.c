@@ -236,3 +236,45 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
+
+//------------------------------------------------------------------------------
+int s1ap_mme_itti_s1ap_path_switch_request(
+  const sctp_assoc_id_t assoc_id,
+  const uint32_t enb_id,
+  const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+  const e_rab_to_be_switched_in_downlink_list_t const
+    *e_rab_to_be_switched_dl_list,
+  const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+  const ecgi_t const *ecgi,
+  const tai_t const *tai,
+  const uint16_t encryption_algorithm_capabilities,
+  const uint16_t integrity_algorithm_capabilities)
+{
+
+  MessageDef *message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
+  if (NULL == message_p) {
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  S1AP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id = assoc_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_id = enb_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).e_rab_to_be_switched_dl_list =
+    *e_rab_to_be_switched_dl_list;
+  S1AP_PATH_SWITCH_REQUEST(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).tai = *tai;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi = *ecgi;
+  S1AP_PATH_SWITCH_REQUEST(message_p).encryption_algorithm_capabilities =
+    encryption_algorithm_capabilities;
+  S1AP_PATH_SWITCH_REQUEST(message_p).integrity_algorithm_capabilities =
+    integrity_algorithm_capabilities;
+
+  OAILOG_DEBUG(
+     LOG_S1AP,
+     "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n"
+     , mme_ue_s1ap_id);
+
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}

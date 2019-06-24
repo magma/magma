@@ -48,6 +48,12 @@ int derive_key_nas(
   const uint8_t *kasme_32,
   uint8_t *knas);
 
+int derive_NH(
+  const uint8_t *kasme_32,
+  const uint8_t *syncInput,
+  uint8_t *next_hop,
+  uint8_t *next_hop_chaining_count);
+
 #define derive_key_nas_enc(aLGiD, kASME, kNAS)                                 \
   derive_key_nas(NAS_ENC_ALG, aLGiD, kASME, kNAS)
 

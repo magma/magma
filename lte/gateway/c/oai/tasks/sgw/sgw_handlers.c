@@ -1183,6 +1183,28 @@ int sgw_handle_modify_bearer_request(
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
     } else {
       // TO DO
+      // delete the existing tunnel if enb_ip is different
+      // Abbas commented for testing with S1SIM
+      //if (is_enb_ip_address_same(
+      //  &modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
+      //  .s1_eNB_fteid, &eps_bearer_ctxt_p->enb_ip_address_S1u) == false) {
+        itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
+        sgi_delete_end_point_request.context_teid = modify_bearer_pP->teid;
+        sgi_delete_end_point_request.sgw_S1u_teid =
+          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
+        sgi_delete_end_point_request.eps_bearer_id =
+           modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
+           .eps_bearer_id;
+        sgi_delete_end_point_request.pdn_type =
+          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+          .saved_message.pdn_type;
+        memcpy(
+          &sgi_delete_end_point_request.paa,
+          &eps_bearer_ctxt_p->paa,
+          sizeof(paa_t));
+
+        sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request);
+      //}
       FTEID_T_2_IP_ADDRESS_T(
         (&modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
             .s1_eNB_fteid),
@@ -2150,4 +2172,29 @@ int sgw_handle_modify_ue_ambr_request(
   }
 
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
+}
+
+bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p)
+{
+   bool rc = true;
+
+   switch ((ip_p)->pdn_type) {
+     case IPv4:
+       if ((ip_p)->address.ipv4_address.s_addr !=
+             (fte_p)->ipv4_address.s_addr) {
+         rc = false;
+       }
+       break;
+     case IPv4_AND_v6:
+     case IPv6:
+       if (memcmp(&(ip_p)->address.ipv6_address, &(fte_p)->ipv6_address,
+         sizeof((ip_p)->address.ipv6_address)) != 0) {
+         rc = false;
+       }
+       break;
+     default :
+       rc = true;
+       break;
+   }
+   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
