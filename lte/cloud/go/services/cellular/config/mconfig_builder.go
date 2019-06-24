@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"sort"
 
 	"magma/lte/cloud/go/protos/mconfig"
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
@@ -193,6 +194,7 @@ func getEnodebTacs(enbConfigsBySerial map[string]*mconfig.EnodebD_EnodebConfig) 
 		enbTacs[i] = enbConfig.Tac
 		i += 1
 	}
+	sort.Slice(enbTacs, func(i, j int) bool { return enbTacs[i] < enbTacs[j] })
 	return enbTacs
 }
 
