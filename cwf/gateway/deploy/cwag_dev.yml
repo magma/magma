@@ -17,18 +17,18 @@
     - role: cwag
 
   tasks:
-    - # Only run installation for docker
-      - include_role:
-          name: docker
-          tasks_from: install
+    # Only run installation for docker
+    - include_role:
+        name: docker
+        tasks_from: install
 
-      - name: Create snowflake file
-        copy:
-          content: ""
-          dest: /etc/snowflake
+    - name: Create snowflake file
+      copy:
+        content: ""
+        dest: /etc/snowflake
 
-      # Required by some go libraries
-      - name: Install bzr dependency
-        apt:
-          name: bzr
-          state: present
+    # Required by some go libraries
+    - name: Install bzr dependency
+      apt:
+        name: bzr
+        state: present
