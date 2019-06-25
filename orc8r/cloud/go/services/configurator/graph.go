@@ -48,6 +48,23 @@ func (eg *EntityGraph) GetFirstAncestorOfType(start NetworkEntity, targetType st
 	return *ancestor, nil
 }
 
+func (eg *EntityGraph) GetAllChildrenOfType(parent NetworkEntity, targetType string) ([]NetworkEntity, error) {
+	eg.cacheGraphHelpers()
+
+	start, found := eg.entsByTK[parent.GetTypeAndKey()]
+	if !found {
+		return nil, errors.Errorf("entity %s is not in graph", start.GetTypeAndKey())
+	}
+
+	ret := []NetworkEntity{}
+	for _, tk := range start.Associations {
+		if tk.Type == targetType {
+			ret = append(ret, eg.entsByTK[tk])
+		}
+	}
+	return ret, nil
+}
+
 // backwards DFS search for a type. practically bfs would be more efficient but
 // this is easier to implement
 func (eg *EntityGraph) upwardsDFSForType(start storage.TypeAndKey, target string, seen map[storage.TypeAndKey]bool) *NetworkEntity {
