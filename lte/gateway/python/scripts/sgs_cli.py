@@ -43,7 +43,8 @@ def send_eps_detach_indication(client, args):
     req = EPSDetachIndication(
         imsi=args.imsi,
         mme_name=args.mme_name,
-        imsi_detach_from_eps_service_type=b'\x11',
+        imsi_detach_from_eps_service_type=bytes(
+            [args.imsi_detach_from_eps_service_type])
     )
     print("Sending EPS Detach Indication with following fields:\n %s" % req)
     try:
@@ -97,6 +98,9 @@ def create_parser():
         'mme_name',
         help='MME name is a 55-character FQDN, specified in 3GPP TS 23.003',
     )
+    eps_detach_indication_parser.add_argument(
+        'imsi_detach_from_eps_service_type',
+        help='Enter either 1, 2 or 3', choices=[1, 2, 3], type=int)
     eps_detach_indication_parser.set_defaults(func=send_eps_detach_indication)
 
     # IMSI Detach Indication
