@@ -44,17 +44,10 @@ spec:
       {{- end }}
 
       volumes:
-  {{ if .Values.metrics.usePersistentVolumes }}
-        - name: "prometheus-config"
-{{ toYaml .Values.metrics.persistentVolumes.prometheusConfig.volumeSpec | indent 10 }}
-        - name: "prometheus-data"
-{{ toYaml .Values.metrics.persistentVolumes.prometheusConfig.volumeSpec | indent 10 }}
-  {{ else }}
         - name: "prometheus-config"
 {{ toYaml .Values.metrics.volumes.prometheusConfig.volumeSpec | indent 10 }}
         - name: "prometheus-data"
 {{ toYaml .Values.metrics.volumes.prometheusData.volumeSpec | indent 10 }}
-  {{ end }}
 
       containers:
         - name: "prometheus"
@@ -122,62 +115,3 @@ spec:
               value: {{ .Values.metrics.environment.alertmanagerURL | quote }}
           resources:
 {{ toYaml .Values.metrics.configResources | indent 12 }}
-
-{{ if .Values.metrics.usePersistentVolumes }}
-
----
-
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: prometheus-configs-persistent
-spec:
-  capacity:
-    storage: {{ .Values.metrics.persistentVolumes.prometheusConfig.storageSize }}
-  accessModes:
-    - ReadWriteOnce
-{{ toYaml .Values.metrics.persistentVolumes.prometheusConfig.storageTypeSpec | indent 2 }}
-
----
-
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: prometheus-config-claim
-spec:
-  storageClassName: ""
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.metrics.persistentVolumes.prometheusConfig.storageSize }}
-  volumeName: prometheus-configs-persistent
-
----
-
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: prometheus-data-persistent
-spec:
-  capacity:
-    storage: {{ .Values.metrics.persistentVolumes.prometheusData.storageSize }}
-  accessModes:
-    - ReadWriteOnce
-{{ toYaml .Values.metrics.persistentVolumes.prometheusData.storageTypeSpec | indent 2 }}
-
----
-
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: prometheus-data-claim
-spec:
-  storageClassName: ""
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.metrics.persistentVolumes.prometheusData.storageSize }}
-  volumeName: prometheus-data-persistent
-{{ end }}
