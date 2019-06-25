@@ -77,6 +77,13 @@ func (m EapAkaMagmaMethod) Handle(
 		return nil, err
 	}
 
+	// Get the client MAC address
+	var clientMac string
+	calledStationIDAttr, err := rfc2865.CallingStationID_Lookup(r.Packet)
+	if err == nil {
+		clientMac = string(calledStationIDAttr)
+	}
+
 	UnmarshalProtocolState.Start()
 	eapContext := aaa.Context{}
 	if err := json.Unmarshal([]byte(state), &eapContext); err != nil {
@@ -85,16 +92,26 @@ func (m EapAkaMagmaMethod) Handle(
 		UnmarshalProtocolState.Failure(err.Error())
 		eapContext = aaa.Context{
 			SessionId: sessionID,
+			MacAddr:   clientMac,
 		}
 		eapLogger.Debug("EAP state not found, created a new state", zap.Any("state", eapContext))
 	} else {
 		eapContext.SessionId = sessionID // Always get the session id from RADIUS
 		eapLogger.Debug("EAP state unmarshaled successfully", zap.Any("state", eapContext))
 		UnmarshalProtocolState.Success()
+
+		// Verify & warn if MAC address was already set on session but now changed
+		if eapContext.MacAddr != "" && eapContext.MacAddr != clientMac {
+			eapLogger.Warn(
+				"Found incompatible MAC address on session",
+				zap.String("previous", eapContext.MacAddr),
+				zap.String("current", clientMac),
+			)
+		}
 	}
 
 	c.SessionStorage.Set(session.State{
-		MACAddress: "00:00:00:00:00:00",
+		MACAddress: clientMac,
 		MSISDN:     eapContext.GetMsisdn(),
 	})
 
