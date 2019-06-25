@@ -7,8 +7,6 @@ LICENSE file in the root directory of this source tree.
 */
 
 // Package mconfig provides gateway Go support for cloud managed configuration (mconfig)
-// it resides within FeG for now since FeG is currently the only Go based Gateway but may move to
-// platform/gateway in the future
 package mconfig
 
 import (
@@ -21,10 +19,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	_ "magma/feg/cloud/go/protos/mconfig"
-	_ "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/protos"
-	_ "magma/orc8r/cloud/go/protos/mconfig"
 )
 
 var (
@@ -37,14 +32,14 @@ var (
 
 func init() {
 	localConfig.Store(new(protos.GatewayConfigs))
-	refreshConfigs()
+	RefreshConfigs()
 	cfgMu.Lock()
 	refreshTicker = time.NewTicker(MconfigRefreshInterval)
 	cfgMu.Unlock()
 	go func() {
 		for {
 			<-refreshTicker.C
-			err := refreshConfigs()
+			err := RefreshConfigs()
 			if err == nil {
 				log.Print("Mconfig refresh succeeded")
 			} else {
@@ -54,21 +49,25 @@ func init() {
 	}()
 }
 
-// refreshConfigs checks if Managed Config File's path or content has changed
+// RefreshConfigs checks if Managed Config File's path or content has changed
 // and tries to reload mamaged configs from the file
 // refreshConfigs is thread safe and can be safely called while current configs are in use by
 // other threads/routines
-func refreshConfigs() error {
+func RefreshConfigs() error {
 	dynamicConfigPath := configFilePath()
-	err := refreshConfigsFrom(dynamicConfigPath)
+	err := RefreshConfigsFrom(dynamicConfigPath)
 	if err != nil {
 		log.Printf("Cannot load configs from %s: %v", dynamicConfigPath, err)
-		err = refreshConfigsFrom(defaultConfigFilePath())
+		err = RefreshConfigsFrom(defaultConfigFilePath())
 	}
 	return err
 }
 
-func refreshConfigsFrom(mcpath string) error {
+// RefreshConfigsFrom checks if Managed Config File mcpath has changed
+// and tries to reload mamaged configs from the file
+// RefreshConfigsFrom is thread safe and can be safely called while current configs are in use by
+// other threads/routines
+func RefreshConfigsFrom(mcpath string) error {
 	cfgMu.Lock()
 	defer cfgMu.Unlock()
 
@@ -128,7 +127,8 @@ func loadFromFile(path string) error {
 	return nil
 }
 
-func stopRefreshTicker() {
+// StopRefreshTicker stops refresh ticker
+func StopRefreshTicker() {
 	cfgMu.Lock()
 	if refreshTicker != nil {
 		refreshTicker.Stop()

@@ -26,7 +26,7 @@ func CreateLoadTempConfig(configJSON string) error {
 	tmpfile.Close()
 	defer os.Remove(mcpath)
 
-	stopRefreshTicker()
+	StopRefreshTicker()
 
-	return refreshConfigsFrom(mcpath)
+	return RefreshConfigsFrom(mcpath)
 }

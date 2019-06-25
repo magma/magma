@@ -13,8 +13,8 @@ import (
 
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/services/swx_proxy/cache"
+	"magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/glog"
 )

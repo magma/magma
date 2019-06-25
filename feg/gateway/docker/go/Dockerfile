@@ -64,6 +64,7 @@ ENV GOPROXY https://proxy.golang.org
 
 RUN printenv > /etc/environment
 
+
 # Copy just the go.mod and go.sum files to download the golang deps.
 # This step allows us to cache the downloads, and prevents reaching out to
 # the internet unless any of the go.mod or go.sum files are changed.
@@ -73,8 +74,11 @@ COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
 COPY feg/gateway/go.* $MAGMA_ROOT/feg/gateway/
 COPY feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/go.* $MAGMA_ROOT/feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
+COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/feg/gateway
-RUN go mod download
+RUN go mod download; exit 0
+# Install protoc-gen-go
+RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
 
 # Copy the configs.
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
@@ -87,6 +91,9 @@ RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_n
 COPY feg $MAGMA_ROOT/feg
 COPY lte/cloud $MAGMA_ROOT/lte/cloud
 COPY orc8r/cloud $MAGMA_ROOT/orc8r/cloud
+COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
+# Enable make gen if proto gen is required
+# RUN make -C $MAGMA_ROOT/feg/gateway gen
 RUN make -C $MAGMA_ROOT/feg/gateway build
 
 # -----------------------------------------------------------------------------

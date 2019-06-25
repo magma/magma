@@ -15,13 +15,13 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/servicers"
 	"magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
+	"magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
