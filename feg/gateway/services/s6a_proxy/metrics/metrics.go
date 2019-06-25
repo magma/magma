@@ -14,9 +14,9 @@ import (
 	"time"
 
 	mconfigprotos "magma/feg/cloud/go/protos/mconfig"
-	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	service_health_metrics "magma/feg/gateway/service_health/metrics"
+	"magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"

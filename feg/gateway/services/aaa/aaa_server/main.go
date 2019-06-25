@@ -15,12 +15,12 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"magma/feg/cloud/go/protos/mconfig"
-	managed_configs "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/servicers"
 	"magma/feg/gateway/services/aaa/store"
 	"magma/orc8r/cloud/go/service"
+	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
 const AAAServiceName = "aaa_server"

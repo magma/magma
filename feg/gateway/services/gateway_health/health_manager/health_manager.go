@@ -19,11 +19,11 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
-	gwmcfg "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/service_health"
 	"magma/feg/gateway/services/gateway_health"
 	"magma/feg/gateway/services/gateway_health/collection"
+	gwmcfg "magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/glog"
 )

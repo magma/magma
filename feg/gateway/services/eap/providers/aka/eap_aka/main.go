@@ -14,12 +14,12 @@ import (
 	"log"
 
 	"magma/feg/cloud/go/protos/mconfig"
-	managed_configs "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	"magma/orc8r/cloud/go/service"
+	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
 const EapAkaServiceName = "eap_aka"

@@ -16,8 +16,8 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	managed_configs "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
 // OCS Environment Variables
