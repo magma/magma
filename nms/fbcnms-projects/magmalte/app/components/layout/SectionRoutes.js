@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaTopBar from '../MagmaTopBar';
 import Network from '../network/Network';
 import Settings from '../Settings';

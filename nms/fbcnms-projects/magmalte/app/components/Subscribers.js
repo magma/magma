@@ -15,7 +15,7 @@ import type {Subscriber} from './AddEditSubscriberDialog';
 
 import AddEditSubscriberDialog from './AddEditSubscriberDialog';
 import axios from 'axios';
-import LoadingFiller from './LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
