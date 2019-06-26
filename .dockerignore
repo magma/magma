@@ -9,6 +9,7 @@
 !feg/cloud/
 !feg/gateway/
 !feg/protos/
+!feg/radius
 
 !lte/cloud/
 !lte/gateway/configs/

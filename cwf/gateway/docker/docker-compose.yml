@@ -31,14 +31,23 @@ x-orc8r-service: &pyservice
 # Generic python anchor to avoid repetition for lte python services
 x-lte-pyservice: &ltepyservice
   <<: *service
-  image: ${DOCKER_REGISTRY}lte_gateway_python:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}gateway_pipelined:${IMAGE_VERSION}
 
 # Generic python anchor to avoid repetition for lte c services
 x-lte-cservice: &ltecservice
   <<: *service
-  image: ${DOCKER_REGISTRY}gateway_c:${IMAGE_VERSION}
+  image: ${DOCKER_REGISTRY}gateway_sessiond:${IMAGE_VERSION}
+
+x-feg-goservice: &feggoservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
 
 services:
+  aaa_server:
+    <<: *feggoservice
+    container_name: aaa_server
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
+
   control_proxy:
     <<: *pyservice
     container_name: control_proxy
@@ -46,12 +55,16 @@ services:
       sh -c "/usr/local/bin/generate_nghttpx_config.py &&
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
 
+  eap_aka:
+    <<: *feggoservice
+    container_name: eap_aka
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
+
   magmad:
     <<: *pyservice
     container_name: magmad
-    build:
-      context: ${BUILD_CONTEXT} # TODO: Move feg/gateway/docker/python to magma/orc8r/gateway/docker
-      dockerfile: feg/gateway/docker/python/Dockerfile
     volumes:
       - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
       - ${CERTS_VOLUME}:/var/opt/magma/certs
@@ -66,9 +79,6 @@ services:
   pipelined:
     <<: *ltepyservice
     container_name: pipelined
-    build:
-      context: ${BUILD_CONTEXT}
-      dockerfile: lte/gateway/docker/python/Dockerfile
     volumes:
       - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
       - ${CERTS_VOLUME}:/var/opt/magma/certs
@@ -83,10 +93,28 @@ services:
         /usr/bin/ovs-vsctl set-controller br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
+  radius:
+    image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
+    container_name: radius
+    logging: *logging_anchor
+    environment:
+      - RADIUS_AUTH_PORT=1813
+      - RADIUS_ACCT_PORT=1812
+      - RADIUS_COA_PORT=3799
+      - RADIUS_SECRET=123456
+      - FEG_ENDPOINT=127.0.0.1:9109
+    network_mode: host
+    restart: always
+
+  redis:
+    <<: *pyservice
+    container_name: redis
+    command: >
+      /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
+             /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
+
   sessiond:
     <<: *ltecservice
     container_name: sessiond
-    build:
-      context: ${BUILD_CONTEXT}
-      dockerfile: lte/gateway/docker/c/Dockerfile
     command: /usr/local/bin/sessiond
