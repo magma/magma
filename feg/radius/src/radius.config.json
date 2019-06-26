@@ -23,7 +23,7 @@
                                 {
                                     "name": "akamagma",
                                     "config": {
-                                        "FegEndpoint": "aaa_server:9109"
+                                        "FegEndpoint": "127.0.0.1:9109"
                                     }
                                 }
                             ]

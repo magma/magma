@@ -52,6 +52,10 @@ services:
     host: health
     ip_address: health
     port: 9107
+  redis:
+    host: redis
+    ip_address: redis
+    port: 6380
 
   # Development/Test Services
 

@@ -30,6 +30,7 @@ const (
 	EAP           = "EAP"
 	EAP_AKA       = "EAP_AKA"
 	RADIUS        = "RADIUS"
+	REDIS         = "REDIS"
 	MOCK_VLR      = "MOCK_VLR"
 	MOCK_OCS      = "MOCK_OCS"
 	MOCK_PCRF     = "MOCK_PCRF"
@@ -61,6 +62,8 @@ func addLocalService(serviceType string, port int) {
 
 func init() {
 	// Add default Local Service Locations
+	addLocalService(REDIS, 6380)
+
 	addLocalService(FEG_HELLO, 9093)
 	addLocalService(SESSION_PROXY, 9097)
 	addLocalService(S6A_PROXY, 9098)

@@ -14,6 +14,7 @@ package swx_proxy
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"magma/feg/cloud/go/protos"
@@ -34,22 +35,15 @@ type swxProxyClient struct {
 // getSwxProxyClient is a utility function to get a RPC connection to the
 // Swx Proxy service
 func getSwxProxyClient() (*swxProxyClient, error) {
-	conn, err := registry.GetConnection(registry.SWX_PROXY)
+	var conn *grpc.ClientConn
+	var err error
+	if os.Getenv("USE_REMOTE_SWX_PROXY") == "1" {
+		conn, err = registry.NewCloudRegistry().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
+	} else {
+		conn, err = registry.GetConnection(registry.SWX_PROXY)
+	}
 	if err != nil {
 		errMsg := fmt.Sprintf("Swx Proxy client initialization error: %s", err)
-		glog.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	return &swxProxyClient{
-		protos.NewSwxProxyClient(conn),
-		conn,
-	}, err
-}
-
-func getRemoteSwxProxyClient() (*swxProxyClient, error) {
-	conn, err := registry.NewCloudRegistry().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
-	if err != nil {
-		errMsg := fmt.Sprintf("Remote Swx Proxy client initialization error: %s", err)
 		glog.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
@@ -102,36 +96,6 @@ func Deregister(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, er
 		return nil, err
 	}
 	return cli.Deregister(context.Background(), req)
-}
-
-// AuthenticateRemote sends MAR (code 303) to a remote swx_proxy service,
-// waits (blocks) for MAA & returns its RPC representation
-func AuthenticateRemote(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
-	err := verifyAuthenticationRequest(req)
-	if err != nil {
-		errMsg := fmt.Errorf("Invalid AuthenticationRequest provided: %s", err)
-		return nil, errors.New(errMsg.Error())
-	}
-	cli, err := getRemoteSwxProxyClient()
-	if err != nil {
-		return nil, err
-	}
-	return cli.Authenticate(context.Background(), req)
-}
-
-// RegisterRemote sends SAR (Code 301) with ServerAssignmentType to REGISTRATION
-// to a remote swx_proxy service, waits (blocks) for SAA & returns its RPC representation
-func RegisterRemote(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, error) {
-	err := verifyRegistrationRequest(req)
-	if err != nil {
-		errMsg := fmt.Errorf("Invalid RegistrationRequest provided: %s", err)
-		return nil, errors.New(errMsg.Error())
-	}
-	cli, err := getRemoteSwxProxyClient()
-	if err != nil {
-		return nil, err
-	}
-	return cli.Register(context.Background(), req)
 }
 
 func verifyAuthenticationRequest(req *protos.AuthenticationRequest) error {

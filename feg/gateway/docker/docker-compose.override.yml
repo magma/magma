@@ -6,7 +6,7 @@ services:
     image: feg_gateway_go_base
     build:
       target: base
-      context: ../../../
+      context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/go/Dockerfile
     volumes:
       - ../../../:/magma
@@ -65,6 +65,11 @@ services:
          ip -4 route list match 0/0 | awk '{print $$3 " controller.magma.test"}' >> /etc/hosts
          ip -4 route list match 0/0 | awk '{print $$3 " bootstrapper-controller.magma.test"}' >> /etc/hosts
          python3 -m magma.magmad.main
+
+  radius:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/radius/Dockerfile
 
 volumes:
   gwcerts:
