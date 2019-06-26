@@ -29,6 +29,7 @@ module.exports = {
       name: 'server',
       testEnvironment: 'node',
       testMatch: [
+        '<rootDir>/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/server/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-auth/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',

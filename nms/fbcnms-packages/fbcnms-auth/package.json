@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "sqlite3-offline": "^4.0.6",
-    "supertest": "^3.4.2"
+    "supertest": "^4.0.2"
   }
 }
