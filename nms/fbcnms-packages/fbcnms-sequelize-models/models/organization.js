@@ -24,7 +24,7 @@ export type OrganizationRawType = {
 };
 
 type OrganizationGetters = {
-  isAdminOrg: boolean,
+  isMasterOrg: boolean,
 };
 
 type OrganizationModel = Model<
@@ -36,7 +36,7 @@ export type OrganizationType = OrganizationModel &
   OrganizationRawType &
   OrganizationGetters;
 
-const ADMIN_TAB = 'admin';
+const MASTER_ORG = 'master';
 
 export default (
   sequelize: Sequelize,
@@ -82,8 +82,8 @@ export default (
     },
     {
       getterMethods: {
-        isAdminOrg() {
-          return this.tabs && this.tabs.indexOf(ADMIN_TAB) !== -1;
+        isMasterOrg() {
+          return this.name === MASTER_ORG;
         },
       },
     },
