@@ -13,6 +13,7 @@ module.exports = {
     '**/fbcnms-packages/**/*.js',
     '!**/__mocks__/**',
     '!**/__tests__/**',
+    '!**/fbcnms-packages/fbcnms-ui/stories/**',
     '!**/thrift/gen-nodejs/**',
     '!**/node_modules/**',
   ],
