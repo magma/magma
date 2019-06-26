@@ -334,9 +334,12 @@ int s1ap_free_mme_decode_pdu(s1ap_message *message, MessagesIds message_id)
       }
     case S1AP_ENB_RESET_LOG:
       return free_s1ap_reset(&message->msg.s1ap_ResetIEs);
+    case S1AP_ENB_CONFIGURATION_TRANSFER_LOG:
+      return free_s1ap_enbconfigurationtransfer(
+        &message->msg.s1ap_ENBConfigurationTransferIEs);
     case S1AP_PATH_SWITCH_REQUEST_LOG:
-      return free_s1ap_pathswitchrequest(&message->msg
-            .s1ap_PathSwitchRequestIEs);
+      return free_s1ap_pathswitchrequest(
+        &message->msg.s1ap_PathSwitchRequestIEs);
     default: DevAssert(false);
   }
 }

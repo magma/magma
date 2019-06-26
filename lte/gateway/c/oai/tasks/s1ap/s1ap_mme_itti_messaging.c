@@ -271,9 +271,9 @@ int s1ap_mme_itti_s1ap_path_switch_request(
     integrity_algorithm_capabilities;
 
   OAILOG_DEBUG(
-     LOG_S1AP,
-     "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n"
-     , mme_ue_s1ap_id);
+    LOG_S1AP,
+    "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n"
+    , mme_ue_s1ap_id);
 
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);

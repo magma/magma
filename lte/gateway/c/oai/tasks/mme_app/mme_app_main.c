@@ -202,16 +202,17 @@ void *mme_app_thread(void *args)
             TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
+          if (ue_context_p->path_switch_req != true) {
+            /* Updating statistics */
+            update_mme_app_stats_s1u_bearer_add();
+          }
           if (ue_context_p->path_switch_req == true) {
             mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
             ue_context_p->path_switch_req = false;
           }
-          /*
-           * Updating statistics
-           */
-          update_mme_app_stats_s1u_bearer_add();
+
           unlock_ue_contexts(ue_context_p);
         }
       } break;

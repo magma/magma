@@ -208,6 +208,9 @@ int emm_proc_tracking_area_update_request(
 
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_context)) {
     emm_context->_security.kenb_ul_count = emm_context->_security.ul_count;
+    if (true == ies->is_initial) {
+      emm_context->_security.next_hop_chaining_count = 0;
+    }
   }
   // Check if it is not periodic update and not combined TAU for CSFB.
   /*If we receive combined TAU/TAU with IMSI attach send Location Update Req to MME instead of

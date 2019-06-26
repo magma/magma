@@ -318,10 +318,10 @@ static inline int s1ap_mme_encode_pathswitchreqack(
 {
   S1ap_PathSwitchRequestAcknowledge_t s1PathSwitchRequestAck;
   S1ap_PathSwitchRequestAcknowledge_t *s1PathSwitchRequestAck_p =
-     &s1PathSwitchRequestAck;
+    &s1PathSwitchRequestAck;
 
   memset(s1PathSwitchRequestAck_p, 0,
-        sizeof(S1ap_PathSwitchRequestAcknowledge_t));
+    sizeof(S1ap_PathSwitchRequestAcknowledge_t));
 
   if (
     s1ap_encode_s1ap_pathswitchrequestacknowledgeies(
@@ -372,7 +372,7 @@ static inline int s1ap_mme_encode_pathswitchreqfailure(
 {
   S1ap_PathSwitchRequestFailure_t s1PathSwitchRequestFailure;
   S1ap_PathSwitchRequestFailure_t *s1ap_PathSwitchRequestFailure_p =
-     &s1PathSwitchRequestFailure;
+    &s1PathSwitchRequestFailure;
 
   memset(s1ap_PathSwitchRequestFailure_p, 0,
         sizeof(S1ap_PathSwitchRequestFailure_t));

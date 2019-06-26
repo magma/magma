@@ -1184,27 +1184,23 @@ int sgw_handle_modify_bearer_request(
     } else {
       // TO DO
       // delete the existing tunnel if enb_ip is different
-      // Abbas commented for testing with S1SIM
-      //if (is_enb_ip_address_same(
-      //  &modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
-      //  .s1_eNB_fteid, &eps_bearer_ctxt_p->enb_ip_address_S1u) == false) {
-        itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
-        sgi_delete_end_point_request.context_teid = modify_bearer_pP->teid;
-        sgi_delete_end_point_request.sgw_S1u_teid =
-          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
-        sgi_delete_end_point_request.eps_bearer_id =
-           modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
-           .eps_bearer_id;
-        sgi_delete_end_point_request.pdn_type =
-          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-          .saved_message.pdn_type;
-        memcpy(
-          &sgi_delete_end_point_request.paa,
-          &eps_bearer_ctxt_p->paa,
-          sizeof(paa_t));
-
-        sgw_handle_sgi_endpoint_deleted(&sgi_delete_end_point_request);
-      //}
+      if (is_enb_ip_address_same(
+        &modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
+        .s1_eNB_fteid, &eps_bearer_ctxt_p->enb_ip_address_S1u) == false) {
+        // delete GTPv1-U tunnel
+        OAILOG_DEBUG(
+          LOG_SPGW_APP, "Delete GTPv1-U tunnel for sgw_teid : %d\n",
+          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+        struct in_addr ue = eps_bearer_ctxt_p->paa.ipv4_address;
+        rv = gtp_tunnel_ops->del_tunnel(
+          ue,
+          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          eps_bearer_ctxt_p->enb_teid_S1u,
+          NULL);
+        if (rv < 0) {
+          OAILOG_ERROR(LOG_SPGW_APP, "ERROR in deleting TUNNEL\n");
+        }
+      }
       FTEID_T_2_IP_ADDRESS_T(
         (&modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
             .s1_eNB_fteid),
