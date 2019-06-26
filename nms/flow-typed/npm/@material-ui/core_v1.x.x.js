@@ -1667,6 +1667,15 @@ declare module "@material-ui/core/RadioGroup/RadioGroup" {
   }>;
 }
 
+declare module "@material-ui/core/RootRef" {
+  import type {ComponentType, Node,Ref} from "react";
+
+  declare module.exports: ComponentType<{
+    children?: Node,
+    rootRef?: Function
+  }>;
+}
+
 declare module "@material-ui/core/Select" {
   declare module.exports: $Exports<"@material-ui/core/Select/Select">;
 }
