@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	srvconfig "magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -40,8 +41,12 @@ func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{}
 }
 
-func (*CwfOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
+func (*CwfOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
 	return []factory.MconfigBuilder{}
+}
+
+func (*CwfOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
+	return []configurator.MconfigBuilder{}
 }
 
 func (*CwfOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {

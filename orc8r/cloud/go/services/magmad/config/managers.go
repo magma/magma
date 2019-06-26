@@ -12,14 +12,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
 	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-)
-
-const (
-	MagmadGatewayType = "magmad_gateway"
-	MagmadNetworkType = "magmad_network"
 )
 
 // To be deprecated! Config service DB tables have been seeded with magmad
@@ -34,7 +30,7 @@ func (*MagmadNetworkConfigManager) GetDomain() string {
 }
 
 func (*MagmadNetworkConfigManager) GetType() string {
-	return MagmadNetworkType
+	return orc8r.MagmadNetworkType
 }
 
 func (*MagmadNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
@@ -64,7 +60,7 @@ func (*MagmadGatewayConfigManager) GetDomain() string {
 }
 
 func (*MagmadGatewayConfigManager) GetType() string {
-	return MagmadGatewayType
+	return orc8r.MagmadGatewayType
 }
 
 func (*MagmadGatewayConfigManager) Serialize(config interface{}) ([]byte, error) {

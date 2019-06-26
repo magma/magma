@@ -2,7 +2,7 @@
   "docs": {
     "Basics": ["basics/introduction", "basics/prerequisites", "basics/quick_start_guide"],
     "Orchestrator": ["orc8r/docker_setup", "orc8r/nms_setup", "orc8r/testing", "orc8r/remote_cli", "orc8r/rest_apis", "orc8r/generic_commands", "orc8r/packer"],
-    "Access Gateway": ["lte/readme_agw", "lte/setup", "lte/s1ap_tests", "lte/enodebd", "lte/redirectd", "lte/pipelined", "lte/pipelined_tests", "lte/readme_callflow"],
+    "Access Gateway": ["lte/readme_agw", "lte/setup_deb", "lte/setup", "lte/s1ap_tests", "lte/enodebd", "lte/redirectd", "lte/pipelined", "lte/pipelined_tests", "lte/readme_callflow"],
     "Federated Gateway": ["feg/readme", "feg/deployment", "feg/faq", "feg/docker_setup", "feg/vagrant_setup"],
     "How To": ["howtos/configurations", "howtos/readme_package", "howtos/docusaurus"]
   }

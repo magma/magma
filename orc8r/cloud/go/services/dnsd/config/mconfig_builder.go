@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/config"
@@ -41,7 +42,7 @@ func (builder *DnsdMconfigBuilder) Build(networkId string, gatewayId string) (ma
 }
 
 func GetNetworkDNSConfig(networkId string) (*dns_protos.NetworkDNSConfig, error) {
-	iNetworkDNSconfigs, err := config.GetConfig(networkId, DnsdNetworkType, networkId)
+	iNetworkDNSconfigs, err := config.GetConfig(networkId, orc8r.DnsdNetworkType, networkId)
 	if err != nil || iNetworkDNSconfigs == nil {
 		return nil, err
 	}

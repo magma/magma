@@ -27,7 +27,7 @@ import {Route, Switch} from 'react-router-dom';
 import Select from '@material-ui/core/Select';
 
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {find} from 'lodash-es';
+import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios, useSnackbar, useRouter} from '@fbcnms/ui/hooks';
 import {useCallback, useState} from 'react';

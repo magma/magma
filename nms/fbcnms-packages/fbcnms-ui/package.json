@@ -7,7 +7,7 @@
     "@material-ui/icons": "^3.0.2",
     "@material-ui/lab": "^3.0.0-alpha.30",
     "@material-ui/styles": "^3.0.0-alpha.7",
-    "notistack": "^0.4.1",
+    "notistack": "^0.8.5",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
     "react-perfect-scrollbar": "^1.4.4",

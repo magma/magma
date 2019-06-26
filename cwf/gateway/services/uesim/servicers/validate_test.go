@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package storage
+package servicers
 
 import (
 	"errors"
@@ -21,7 +21,7 @@ func TestValidateUEData(t *testing.T) {
 	err := validateUEData(nil)
 	assert.Exactly(t, errors.New("Invalid Argument: UE data cannot be nil"), err)
 
-	ue := &protos.UEConfig{Imsi: "0123456789", AuthKey: make([]byte, 32), AuthOpc: make([]byte, 32)}
+	ue := &protos.UEConfig{Imsi: "0123456789", AuthKey: make([]byte, 16), AuthOpc: make([]byte, 16), Seq: 0}
 	err = validateUEData(ue)
 	assert.NoError(t, err)
 }
@@ -51,9 +51,9 @@ func TestValidateUEKey(t *testing.T) {
 	assert.Exactly(t, errors.New("Invalid Argument: key cannot be nil"), err)
 
 	err = validateUEKey(make([]byte, 5))
-	assert.Exactly(t, errors.New("Invalid Argument: key must be 32 bytes"), err)
+	assert.Exactly(t, errors.New("Invalid Argument: key must be 16 bytes"), err)
 
-	err = validateUEKey(make([]byte, 32))
+	err = validateUEKey(make([]byte, 16))
 	assert.NoError(t, err)
 }
 
@@ -62,8 +62,8 @@ func TestValidateUEOpc(t *testing.T) {
 	assert.Exactly(t, errors.New("Invalid Argument: opc cannot be nil"), err)
 
 	err = validateUEOpc(make([]byte, 5))
-	assert.Exactly(t, errors.New("Invalid Argument: opc must be 32 bytes"), err)
+	assert.Exactly(t, errors.New("Invalid Argument: opc must be 16 bytes"), err)
 
-	err = validateUEOpc(make([]byte, 32))
+	err = validateUEOpc(make([]byte, 16))
 	assert.NoError(t, err)
 }

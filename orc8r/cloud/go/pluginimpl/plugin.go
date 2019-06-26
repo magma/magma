@@ -9,6 +9,10 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	obsidianh "magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/handlers/hello"
 	"magma/orc8r/cloud/go/orc8r"
@@ -69,10 +73,12 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		&GatewayRecordSerde{},
 
 		// Config manager serdes
-		configurator.NewNetworkConfigSerde(dnsdconfig.DnsdNetworkType, &models2.NetworkDNSConfig{}),
-		configurator.NewNetworkEntityConfigSerde(magmadconfig.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.ReleaseChannelType, &models.ReleaseChannel{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.NetworkTierType, &models.Tier{}),
+		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models2.NetworkDNSConfig{}),
+		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &models3.NetworkFeatures{}),
+
+		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
+		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{}),
 
 		// Legacy config manager serdes
 		&magmadconfig.MagmadGatewayConfigManager{},
@@ -80,12 +86,19 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
+func (*BaseOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
 	return []factory.MconfigBuilder{
 		// magmad
 		&magmadconfig.MagmadMconfigBuilder{},
 		// dnsd
 		&dnsdconfig.DnsdMconfigBuilder{},
+	}
+}
+
+func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
+	return []configurator.MconfigBuilder{
+		&BaseOrchestratorMconfigBuilder{},
+		&DnsdMconfigBuilder{},
 	}
 }
 
@@ -131,16 +144,27 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
 
 	// Prometheus profile - Exports all service metric to Prometheus
-	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(metricsConfig.GetRequiredStringParam(confignames.PrometheusCustomPushAddress))
+	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.PrometheusPushAddresses)
+	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(prometheusAddresses)
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
-	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
-	graphiteReceivePort := metricsConfig.GetRequiredIntParam(confignames.GraphiteReceivePort)
-	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort)
+	graphiteExportAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.GraphiteExportAddresses)
+	var graphiteAddresses []graphite_exp.Address
+	for _, address := range graphiteExportAddresses {
+		portIdx := strings.LastIndex(address, ":")
+		portStr := address[portIdx+1:]
+		portInt, err := strconv.Atoi(portStr)
+		if err != nil {
+			panic(fmt.Errorf("graphite address improperly formed: %s\n", address))
+		}
+		graphiteAddresses = append(graphiteAddresses, graphite_exp.Address{Host: address[:portIdx], Port: portInt})
+	}
+
+	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddresses)
 	// Graphite profile - Exports all service metrics to Graphite
 	graphiteProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameGraphite,

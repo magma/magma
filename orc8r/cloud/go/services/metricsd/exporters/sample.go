@@ -13,8 +13,6 @@ import (
 	"sort"
 	"strconv"
 
-	"magma/orc8r/cloud/go/protos"
-
 	dto "github.com/prometheus/client_model/go"
 )
 
@@ -72,7 +70,7 @@ func GetSamplesForMetrics(name string,
 	metric *dto.Metric,
 	entity string,
 ) []Sample {
-	labels := protos.GetDecodedLabel(metric)
+	labels := metric.Label
 	sort.Sort(ByName(labels))
 	timestampMs := metric.GetTimestampMs()
 	switch metric_type {

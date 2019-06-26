@@ -28,7 +28,10 @@ func init() {
 }
 
 func (m *NetworkCellularConfigs) ValidateModel() error {
-	return m.Validate(formatsRegistry)
+	if err := m.Validate(formatsRegistry); err != nil {
+		return err
+	}
+	return m.ValidateNetworkConfig()
 }
 
 func (m *NetworkCellularConfigs) ToServiceModel() (interface{}, error) {
@@ -36,9 +39,6 @@ func (m *NetworkCellularConfigs) ToServiceModel() (interface{}, error) {
 	protos.FillIn(m, magmadConfig)
 	magmadConfig.FegNetworkId = m.FegNetworkID
 	if err := m.networkServicesToServiceModel(magmadConfig); err != nil {
-		return nil, err
-	}
-	if err := cellularprotos.ValidateNetworkConfig(magmadConfig); err != nil {
 		return nil, err
 	}
 	magmadConfig.Epc.RelayEnabled = m.Epc.RelayEnabled
@@ -87,15 +87,15 @@ func (m *NetworkCellularConfigs) networkServicesFromServiceModel(magmadConfig *c
 }
 
 func (m *GatewayCellularConfigs) ValidateModel() error {
-	return m.Validate(formatsRegistry)
+	if err := m.Validate(formatsRegistry); err != nil {
+		return err
+	}
+	return m.ValidateGatewayConfig()
 }
 
 func (m *GatewayCellularConfigs) ToServiceModel() (interface{}, error) {
 	magmadConfig := &cellularprotos.CellularGatewayConfig{}
 	protos.FillIn(m, magmadConfig)
-	if err := cellularprotos.ValidateGatewayConfig(magmadConfig); err != nil {
-		return nil, err
-	}
 	return magmadConfig, nil
 }
 
@@ -105,15 +105,12 @@ func (m *GatewayCellularConfigs) FromServiceModel(magmadModel interface{}) error
 }
 
 func (m *NetworkEnodebConfigs) ValidateModel() error {
-	return nil
+	return m.ValidateEnodebConfig()
 }
 
 func (m *NetworkEnodebConfigs) ToServiceModel() (interface{}, error) {
 	magmadConfig := &cellularprotos.CellularEnodebConfig{}
 	protos.FillIn(m, magmadConfig)
-	if err := cellularprotos.ValidateEnodebConfig(magmadConfig); err != nil {
-		return nil, err
-	}
 	return magmadConfig, nil
 }
 

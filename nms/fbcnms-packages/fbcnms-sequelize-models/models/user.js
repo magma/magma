@@ -9,7 +9,7 @@
  */
 'use strict';
 
-import {omit} from 'lodash-es';
+import {omit} from 'lodash';
 import Sequelize from 'sequelize';
 import {AccessRoles} from '@fbcnms/auth/roles';
 
@@ -27,6 +27,7 @@ type UserRawInitType = {
 
 // This is the type read back
 export type UserRawType = {
+  id: number,
   networkIDs: Array<string>,
   isSuperUser: boolean,
 } & UserRawInitType;

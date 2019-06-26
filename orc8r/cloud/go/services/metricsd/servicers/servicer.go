@@ -75,6 +75,9 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *promethe
 				OriginatingEntity: networkID + "." + gatewayID,
 				DecodedName:       decodedName,
 			}
+			for _, metric := range family.Metric {
+				metric.Label = protos.GetDecodedLabel(metric)
+			}
 			err := e.Submit([]exporters.MetricAndContext{{Family: family, Context: ctx}})
 			if err != nil {
 				glog.Error(err)
@@ -114,6 +117,9 @@ func metricsContainerToMetricAndContexts(
 			GatewayID:         gatewayID,
 			OriginatingEntity: networkID + "." + gatewayID,
 			DecodedName:       protos.GetDecodedName(fam),
+		}
+		for _, metric := range fam.Metric {
+			metric.Label = protos.GetDecodedLabel(metric)
 		}
 		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}

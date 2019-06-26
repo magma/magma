@@ -22,7 +22,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-const EntityType = "policy"
+const (
+	BaseNameEntityType   = "base_name"
+	PolicyRuleEntityType = "policy"
+)
 
 const ServiceName = "POLICYDB"
 

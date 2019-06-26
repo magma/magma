@@ -9,7 +9,13 @@
  */
 
 import type {Context} from 'react';
-import type {FeatureID} from 'inventory/server/features';
+
+export type FeatureID =
+  | 'lte_network_metrics'
+  | 'sso_example_feature'
+  | 'audit_log_example_feature'
+  | 'third_party_devices'
+  | 'network_topology';
 
 import {useContext} from 'react';
 

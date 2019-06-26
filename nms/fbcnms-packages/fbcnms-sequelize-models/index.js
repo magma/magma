@@ -8,6 +8,7 @@
  * @format
  */
 
+import AuditLogEntryModel from './models/audit_log_entry';
 import FeatureFlagModel from './models/featureflag';
 import OrganizationModel from './models/organization';
 import UserModel from './models/user';
@@ -24,6 +25,7 @@ export const sequelize = new Sequelize(
 );
 
 const db = {
+  AuditLogEntry: AuditLogEntryModel(sequelize, Sequelize),
   FeatureFlag: FeatureFlagModel(sequelize, Sequelize),
   Organization: OrganizationModel(sequelize, Sequelize),
   User: UserModel(sequelize, Sequelize),
@@ -33,6 +35,7 @@ Object.keys(db).forEach(
   modelName => db[modelName].associate != null && db[modelName].associate(db),
 );
 
+export const AuditLogEntry = db.AuditLogEntry;
 export const Organization = db.Organization;
 export const User = db.User;
 export const FeatureFlag = db.FeatureFlag;

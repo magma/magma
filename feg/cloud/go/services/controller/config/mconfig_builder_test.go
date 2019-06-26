@@ -11,6 +11,7 @@ package config_test
 import (
 	"testing"
 
+	"magma/feg/cloud/go/feg"
 	fegplugin "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/protos/mconfig"
 	feg_config "magma/feg/cloud/go/services/controller/config"
@@ -32,7 +33,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 	assert.Equal(t, map[string]proto.Message{}, actual)
 
 	defaultNetCfg := config_protos.NewDefaultNetworkConfig()
-	err = config.CreateConfig("network", feg_config.FegNetworkType, "network", defaultNetCfg)
+	err = config.CreateConfig("network", feg.FegNetworkType, "network", defaultNetCfg)
 	assert.NoError(t, err)
 
 	expected := map[string]proto.Message{
@@ -120,7 +121,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 			},
 			PlmnIds: []string{},
 		},
-		"aaa": &mconfig.AAAConfig{LogLevel: 1,
+		"aaa_server": &mconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
 			AccountingEnabled:    false,
 			CreateSessionOnAuth:  false,
@@ -163,14 +164,14 @@ func TestControllerBuilder_Build(t *testing.T) {
 	expected["swx_proxy"].(*mconfig.SwxConfig).Server.LocalAddress = ":12123"
 	expected["health"].(*mconfig.GatewayHealthConfig).UpdateFailureThreshold = 4
 
-	err = config.CreateConfig("network", feg_config.FegGatewayType, "feg1", defaultGwCfg)
+	err = config.CreateConfig("network", feg.FegGatewayType, "feg1", defaultGwCfg)
 	assert.NoError(t, err)
 
 	actual, err = builder.Build("network", "feg1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	err = config.DeleteConfig("network", feg_config.FegGatewayType, "feg1")
+	err = config.DeleteConfig("network", feg.FegGatewayType, "feg1")
 	assert.NoError(t, err)
 	expected["s6a_proxy"].(*mconfig.S6AConfig).Server.Address = ""
 	expected["s6a_proxy"].(*mconfig.S6AConfig).Server.LocalAddress = ""

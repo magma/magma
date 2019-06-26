@@ -47,6 +47,7 @@ func TestCustomPushExporter_Submit(t *testing.T) {
 	testSubmitSummary(t)
 
 	testSubmitInvalidMetrics(t)
+	testSubmitInvalidLabel(t)
 }
 
 func testSubmitGauge(t *testing.T) {
@@ -154,6 +155,45 @@ func testSubmitInvalidMetrics(t *testing.T) {
 	assert.Equal(t, len(exp.familiesByName), 0)
 }
 
+func testSubmitInvalidLabel(t *testing.T) {
+	// Submitting a metric with invalid labelnames should not include that metric
+	exp := makeTestCustomPushExporter()
+	mf := tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 5, sampleLabels)
+	extraMetric := tests.MakePromoGauge(10)
+	mf.Metric[2] = &extraMetric
+	mf.Metric[2].Label = append(mf.Metric[2].Label, &dto.LabelPair{Name: makeStringPointer("1"), Value: makeStringPointer("badLabelName")})
+
+	mc := exporters.MetricAndContext{
+		Family:  mf,
+		Context: sampleContext,
+	}
+	metrics := []exporters.MetricAndContext{mc}
+
+	err := exp.Submit(metrics)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(exp.familiesByName))
+	for _, fam := range exp.familiesByName {
+		assert.Equal(t, 4, len(fam.Metric))
+	}
+
+	// If all metrics are invalid, the family should not be submitted
+	exp = makeTestCustomPushExporter()
+	mf = tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, sampleLabels)
+	badMetric := tests.MakePromoGauge(10)
+	mf.Metric[0] = &badMetric
+	mf.Metric[0].Label = append(mf.Metric[0].Label, &dto.LabelPair{Name: makeStringPointer("1"), Value: makeStringPointer("badLabelName")})
+
+	mc = exporters.MetricAndContext{
+		Family:  mf,
+		Context: sampleContext,
+	}
+	metrics = []exporters.MetricAndContext{mc}
+
+	err = exp.Submit(metrics)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(exp.familiesByName))
+}
+
 func totalMetricCount(exp *CustomPushExporter) int {
 	total := 0
 	for _, fam := range exp.familiesByName {
@@ -193,6 +233,6 @@ func makeTestCustomPushExporter() CustomPushExporter {
 	return CustomPushExporter{
 		familiesByName: make(map[string]*dto.MetricFamily),
 		exportInterval: pushInterval,
-		pushAddress:    "",
+		pushAddresses:  []string{""},
 	}
 }

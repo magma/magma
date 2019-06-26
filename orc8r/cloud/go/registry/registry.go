@@ -115,7 +115,7 @@ func GetServiceProxyAliases(service string) (map[string]int, error) {
 func GetServicePort(service string) (int, error) {
 	registry.RLock()
 	defer registry.RUnlock()
-	location, ok := registry.serviceLocations[string(service)]
+	location, ok := registry.serviceLocations[strings.ToUpper(string(service))]
 	if !ok {
 		return 0, fmt.Errorf("Service %s not registered", service)
 	}

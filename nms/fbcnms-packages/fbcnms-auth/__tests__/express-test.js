@@ -8,6 +8,8 @@
  * @format
  */
 
+import OrganizationLocalStrategy from '@fbcnms/auth/strategies/OrganizationLocalStrategy';
+
 import bodyParser from 'body-parser';
 import express from 'express';
 import fbcPassport from '../passport';
@@ -62,6 +64,7 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded());
   fbcPassport.use();
+  passport.use(new OrganizationLocalStrategy());
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(configureAccess({loginUrl: '/user/login'}));
@@ -279,7 +282,6 @@ describe('user tests', () => {
         .expect(stripDates)
         .expect({
           user: {
-            isSuperUser: false,
             networkIDs: [],
             id: 1,
             email: 'valid@123.com',

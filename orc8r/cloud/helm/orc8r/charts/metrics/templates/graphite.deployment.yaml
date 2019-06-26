@@ -45,11 +45,7 @@ spec:
 
       volumes:
         - name: "graphite-data"
-  {{ if .Values.graphite.usePeristentVolumes }}
-{{ toYaml .Values.graphite.persistentVolumes.graphiteData.volumeSpec | indent 10 }}
-      {{ else }}
 {{ toYaml .Values.graphite.volumes.graphiteData.volumeSpec | indent 10 }}
-  {{ end }}
         - name: "graphite-configs"
           configMap:
             name: graphite-conf
@@ -66,8 +62,9 @@ spec:
               mountPath: /opt/graphite/storage/whisper
             - name: "graphite-configs"
               mountPath: /opt/graphite/conf
-          environment:
-            - REDIS_TAGDB=1
+          env:
+            - name: REDIS_TAGDB
+              value: "1"
           livenessProbe:
             httpGet:
               path: /
@@ -76,36 +73,6 @@ spec:
             periodSeconds: 30
           resources:
 {{ toYaml .Values.graphite.resources | indent 12 }}
-
-{{ if .Values.graphite.usePersistentVolumes }}
----
-
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: graphite-data-persistent
-spec:
-  capacity:
-    storage: {{ .Values.graphite.persistentVolumes.graphiteData.storageSize }}
-  accessModes:
-    - ReadWriteOnce
-{{ toYaml .Values.graphite.persistentVolumes.graphiteData.storageTypeSpec | indent 2 }}
-
----
-
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: graphite-data-claim
-spec:
-  storageClassName: {{ .Values.graphite.persistentVolumes.graphiteData.storageClass }}
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.graphite.persistentVolumes.graphiteData.storageSize }}
-  volumeName: graphite-data-persistent
-{{ end }}
 
 ---
 apiVersion: v1

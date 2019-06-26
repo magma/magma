@@ -4,14 +4,6 @@
   "version": "0.1.0",
   "description": "Code shared outside of Facebook for fbc",
   "dependencies": {
-    "axios": "^0.18.0",
-    "bcryptjs": "^2.4.3",
-    "lodash-es": "^4.17.10",
-    "react": "^16.8.1",
-    "react-dom": "^16.8.1",
-    "url": "^0.11.0"
-  },
-  "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.3.4",
     "@babel/node": "^7.0.0",
@@ -23,10 +15,13 @@
     "@babel/preset-react": "^7.0.0",
     "@babel/register": "^7.0.0",
     "@fbcnms/util": "0.1.0",
+    "babel-plugin-lodash": "^3.3.4",
+    "babel-plugin-relay": "^1.6.2",
+    "core-js": "^3.0.1"
+  },
+  "devDependencies": {
     "babel-eslint": "^10.0.1",
     "babel-jest": "24.3.0",
-    "babel-plugin-relay": "^1.6.2",
-    "core-js": "^3.0.1",
     "eslint": "^5.1.0",
     "eslint-config-fb-strict": "^24.3.0",
     "eslint-config-fbcnms": "^0.1.0",

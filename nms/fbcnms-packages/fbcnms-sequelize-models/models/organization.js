@@ -83,7 +83,7 @@ export default (
     {
       getterMethods: {
         isAdminOrg() {
-          return this.tabs.indexOf(ADMIN_TAB) !== -1;
+          return this.tabs && this.tabs.indexOf(ADMIN_TAB) !== -1;
         },
       },
     },

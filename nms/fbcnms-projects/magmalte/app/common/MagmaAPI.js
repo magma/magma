@@ -12,7 +12,7 @@ import type {Match} from 'react-router-dom';
 import type {WifiConfig, MagmadConfig, Record} from './MagmaAPIType';
 
 import axios from 'axios';
-import {get, map} from 'lodash-es';
+import {get, map} from 'lodash';
 import url from 'url';
 
 import type {CheckindGateway, NetworkUpgradeTier} from './MagmaAPIType';

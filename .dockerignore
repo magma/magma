@@ -4,29 +4,10 @@
 
 
 !cwf/cloud/
-!cwf/gateway/configs/
-!cwf/gateway/Makefile
+!cwf/gateway/
 
 !feg/cloud/
-!feg/gateway/configs/
-!feg/gateway/deploy/roles/feg_dev/files
-!feg/gateway/deploy/roles/feg_services/files
-!feg/gateway/diameter/
-!feg/gateway/deploy/envdir
-!feg/gateway/docker/configs
-!feg/gateway/mconfig/
-!feg/gateway/object_store/
-!feg/gateway/policydb/
-!feg/gateway/registry/
-!feg/gateway/scripts/
-!feg/gateway/service_health/
-!feg/gateway/services/
-!feg/gateway/streamer/
-!feg/gateway/third-party/
-!feg/gateway/tools/
-!feg/gateway/go.mod
-!feg/gateway/go.sum
-!feg/gateway/Makefile
+!feg/gateway/
 !feg/protos/
 
 !lte/cloud/
@@ -43,9 +24,7 @@
 !orc8r/cloud/docker/
 !orc8r/cloud/scripts/
 !orc8r/cloud/Makefile
-!orc8r/gateway/c
-!orc8r/gateway/configs/
-!orc8r/gateway/python/
+!orc8r/gateway/
 !orc8r/protos/
 !orc8r/tools/ansible/roles/gateway_services/files
 !orc8r/tools/ansible/roles/pkgrepo/files

@@ -12,13 +12,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
 	dns_protos "magma/orc8r/cloud/go/services/dnsd/protos"
-)
-
-const (
-	DnsdNetworkType = "dnsd_network"
 )
 
 type DnsNetworkConfigManager struct{}
@@ -28,7 +25,7 @@ func (*DnsNetworkConfigManager) GetDomain() string {
 }
 
 func (*DnsNetworkConfigManager) GetType() string {
-	return DnsdNetworkType
+	return orc8r.DnsdNetworkType
 }
 
 func (*DnsNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {

@@ -99,6 +99,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
  private:
   void check_usage_for_reporting();
+
+  void send_create_session(
+    const CreateSessionRequest &request,
+    const std::string &imsi,
+    const std::string &sid,
+    const SessionState::Config &cfg,
+    std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback);
 };
 
 } // namespace magma

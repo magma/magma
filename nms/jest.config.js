@@ -7,8 +7,6 @@
  * @format
  */
 
-const esModules = ['lodash-es'].join('|');
-
 module.exports = {
   collectCoverageFrom: [
     '**/fbcnms-projects/**/*.js',
@@ -31,28 +29,30 @@ module.exports = {
       testEnvironment: 'node',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/server/**/__tests__/*.js',
+        '<rootDir>/fbcnms-packages/fbcnms-auth/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-i18n/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
+        '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
     },
     {
       name: 'app',
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',
+        '<rootDir>/fbcnms-packages/fbcnms-ui/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
+        '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
-      transformIgnorePatterns: [`/node_modules/(?!${esModules})`],
     },
   ],
   testEnvironment: 'jsdom',

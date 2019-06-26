@@ -18,13 +18,14 @@ import (
 	"testing"
 
 	obisidan_config "magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/protos"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -69,6 +70,8 @@ func TestReadAllKeysConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
@@ -110,6 +113,8 @@ func TestGetConfigHandler(t *testing.T) {
 	err := serde.RegisterSerdes(&fooConfigManager{config.SerdeDomain}, &convertErrConfigManager{config.SerdeDomain}, &errConfigManager{config.SerdeDomain})
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
@@ -171,6 +176,8 @@ func TestCreateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	configurator_test_init.StartTestService(t)
@@ -194,9 +201,6 @@ func TestCreateConfigHandler(t *testing.T) {
 	actual, err := config.GetConfig("network1", "foo", "key")
 	assert.NoError(t, err)
 	assert.Equal(t, &fooConfig{Foo: "foo", Bar: "bar"}, actual)
-
-	// Test changes are properly reflected in configurator
-	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 
 	glog.Errorf("IGNORE REST")
 	// Validate (convert) error
@@ -235,6 +239,8 @@ func TestUpdateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
@@ -258,9 +264,6 @@ func TestUpdateConfigHandler(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rec.Code)
 	actualFoo, err := config.GetConfig("network1", "foo", "key")
 	assert.Equal(t, &fooConfig{Foo: "bar", Bar: "foo"}, actualFoo)
-
-	// Test changes are properly reflected in configurator
-	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "bar", Bar: "foo"})
 
 	// Validate (convert) error
 	post = `{"Value": 1}`
@@ -298,6 +301,8 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
 	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
@@ -319,9 +324,6 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	/// Test changes are properly reflected in configurator
-	testEntityConfigsNotInConfigurator(t, "network1", "foo", "key")
-
 	// Config service error - deleting nonexistent config
 	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
 	assert.Error(t, err)
@@ -329,37 +331,6 @@ func TestDeleteConfigHandler(t *testing.T) {
 	assert.Contains(t, err.Error(), "Deleting nonexistent config")
 
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-}
-
-func testEntityConfigsInConfigurator(t *testing.T, networkID, entityType, entityID string, expectedConfig interface{}) {
-	entities, entitiesNotFound, err := configurator.LoadEntities(
-		networkID,
-		nil,
-		nil,
-		[]*protos.EntityID{{Type: entityType, Id: entityID}},
-		&protos.EntityLoadCriteria{LoadConfig: true},
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entities))
-	assert.Equal(t, 0, len(entitiesNotFound))
-	actualConfig, err := serde.Deserialize(config.SerdeDomain, entityType, entities[0].Config)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedConfig, actualConfig)
-}
-
-func testEntityConfigsNotInConfigurator(t *testing.T, networkID, entityType, entityID string) {
-	entityTK := protos.EntityID{Type: entityType, Id: entityID}
-	entities, entitiesNotFound, err := configurator.LoadEntities(
-		networkID,
-		nil,
-		nil,
-		[]*protos.EntityID{&entityTK},
-		&protos.EntityLoadCriteria{LoadConfig: true},
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entities))
-	assert.Equal(t, 0, len(entitiesNotFound))
-	assert.Equal(t, []byte(nil), entities[0].Config)
 }
 
 // Interface implementations for test configs
@@ -376,6 +347,14 @@ func (foo *fooConfig) FromServiceModel(serviceModel interface{}) error {
 	foo.Foo = casted.Foo
 	foo.Bar = casted.Bar
 	return nil
+}
+
+func (foo *fooConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(foo)
+}
+
+func (foo *fooConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, foo)
 }
 
 func (f *fooConfigManager) GetDomain() string {
@@ -412,6 +391,14 @@ func (*convertErrConfig) FromServiceModel(serviceModel interface{}) error {
 	return errors.New("FromSerivceModel error")
 }
 
+func (*convertErrConfig) MarshalBinary() ([]byte, error) {
+	return nil, errors.New("MarshalBinary error")
+}
+
+func (*convertErrConfig) UnmarshalBinary(data []byte) error {
+	return errors.New("UnmarshalBinary error")
+}
+
 func (c *convertErrConfigManager) GetDomain() string {
 	return c.domain
 }
@@ -441,6 +428,14 @@ func (c *errConfig) FromServiceModel(serviceModel interface{}) error {
 	c.ShouldErrorOnMarshal = castedModel.ShouldErrorOnMarshal
 	c.ShouldErrorOnUnmarshal = castedModel.ShouldErrorOnUnmarshal
 	return nil
+}
+
+func (c *errConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(c)
+}
+
+func (c *errConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, c)
 }
 
 func (*errConfigManager) GetType() string {

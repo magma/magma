@@ -22,7 +22,7 @@ import UsersSettings from './UsersSettings';
 import SecuritySettings from './SecuritySettings';
 import MagmaTopBar from './MagmaTopBar';
 
-import {findIndex} from 'lodash-es';
+import {findIndex} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 import {Route, Switch, withRouter} from 'react-router-dom';
 

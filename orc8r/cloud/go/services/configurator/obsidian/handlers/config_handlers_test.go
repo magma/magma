@@ -21,7 +21,6 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
 	"github.com/labstack/echo"
@@ -43,8 +42,8 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 
 	// Test GetCreateNetworkConfigHandler
 	_, err = configurator.CreateNetworks(
-		[]*protos.Network{{
-			Id: networkID,
+		[]configurator.Network{{
+			ID: networkID,
 		}})
 	assert.NoError(t, err)
 
@@ -124,16 +123,15 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 
 func addParametersToContext(c echo.Context, networkID string, configType string) echo.Context {
 	c.SetParamNames("network_id", "config_type")
-	c.SetParamValues(networkID, fooSerdeType)
+	c.SetParamValues(networkID, configType)
 	return c
 }
 
 func assertConfigExists(t *testing.T, networkID string, configType string, config interface{}) {
-	networks, notFound, err := configurator.LoadNetworks([]string{networkID}, true, true)
+	networks, notFound, err := configurator.LoadNetworks([]string{networkID}, false, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
-	retrievedConfig, err := serde.Deserialize(configurator.NetworkConfigSerdeDomain, configType, networks[networkID].Configs[configType])
-	assert.NoError(t, err)
+	retrievedConfig := networks[0].Configs[configType]
 	assert.Equal(t, config, retrievedConfig)
 }
 
@@ -141,7 +139,7 @@ func assertConfigDoesNotExist(t *testing.T, networkID string, configType string)
 	networks, notFound, err := configurator.LoadNetworks([]string{networkID}, true, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
-	_, ok := networks[networkID].Configs[configType]
+	_, ok := networks[0].Configs[configType]
 	assert.Equal(t, false, ok)
 }
 

@@ -16,6 +16,9 @@
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
+#include <folly/io/async/EventBase.h>
+
+#include "CloudReporter.h"
 #include "LocalSessionManagerHandler.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
@@ -63,6 +66,7 @@ class MockPipelinedClient : public PipelinedClient {
       .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _))
       .WillByDefault(Return(true));
+    ON_CALL(*this, add_ue_mac_flow(_, _)).WillByDefault(Return(true));
   }
 
   MOCK_METHOD1(deactivate_all_flows, bool(const std::string &imsi));
@@ -79,6 +83,11 @@ class MockPipelinedClient : public PipelinedClient {
       const std::string &ip_addr,
       const std::vector<std::string> &static_rules,
       const std::vector<PolicyRule> &dynamic_rules));
+  MOCK_METHOD2(
+    add_ue_mac_flow,
+    bool(
+      const SubscriberID &sid,
+      const std::string &mac_addr));
 };
 
 /**
@@ -145,6 +154,28 @@ class MockSessionHandler final : public LocalSessionManagerHandler {
       grpc::ServerContext *,
       const SubscriberID *,
       std::function<void(Status, LocalEndSessionResponse)>));
+};
+
+class MockSessionCloudReporter : public SessionCloudReporter {
+  public:
+    MOCK_METHOD2(
+      report_updates,
+      void(
+        const UpdateSessionRequest &,
+        std::function<void(grpc::Status, UpdateSessionResponse)>));
+
+    MOCK_METHOD2(
+      report_create_session,
+      void(
+        const CreateSessionRequest &,
+        std::function<void(Status, CreateSessionResponse)>));
+
+    MOCK_METHOD2(
+      report_terminate_session,
+      void(
+        const SessionTerminateRequest &,
+        std::function<void(Status, SessionTerminateResponse)>));
+
 };
 
 } // namespace magma

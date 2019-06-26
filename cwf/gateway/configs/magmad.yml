@@ -59,7 +59,6 @@ metricsd:
   # A string in the form path.to.module.fn_name
   # @see magma.magmad.metrics_collector.example_metrics_postprocessor
   post_processing_fn: magma.magmad.metrics_collector.do_nothing_metrics_postprocessor
-
   # List of services for metricsd to poll
   services:
     - magmad

@@ -9,23 +9,48 @@
  */
 
 // https://github.com/iamhosseindhv/notistack/pull/17
-import {SnackbarContextNext} from 'notistack/build/SnackbarContext';
-import {useContext, useEffect} from 'react';
+import {useEffect, useCallback} from 'react';
+import {useSnackbar as useNotistackSnackbar} from 'notistack';
+import * as React from 'react';
+import SnackbarItem from '../components/SnackbarItem.react';
 
 export default function useSnackbar(
   message: string,
   config: any,
   show: boolean,
 ) {
-  const enqueueSnackbar = useEnqueueSnackbar();
+  const {enqueueSnackbar} = useNotistackSnackbar();
   const stringConfig = JSON.stringify(config);
   useEffect(() => {
     if (show) {
-      enqueueSnackbar(message, config);
+      enqueueSnackbar(message, {
+        children: key => (
+          <SnackbarItem
+            id={key}
+            message={message}
+            variant={config.variant ?? 'success'}
+          />
+        ),
+        ...config,
+      });
     }
   }, [message, show, stringConfig]);
 }
 
 export function useEnqueueSnackbar() {
-  return useContext(SnackbarContextNext).handleEnqueueSnackbar;
+  const {enqueueSnackbar} = useNotistackSnackbar();
+  return useCallback(
+    (message: string, config: Object) =>
+      enqueueSnackbar(message, {
+        children: key => (
+          <SnackbarItem
+            id={key}
+            message={message}
+            variant={config.variant ?? 'success'}
+          />
+        ),
+        ...config,
+      }),
+    [enqueueSnackbar],
+  );
 }

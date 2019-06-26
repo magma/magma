@@ -23,9 +23,9 @@ func init() {
 
 func main() {
 	// Create the service
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.TWANSIM)
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.TwanSim)
 	if err != nil {
-		glog.Fatalf("Error creating TWANSIM service: %s", err)
+		glog.Fatalf("Error creating TwanSim service: %s", err)
 	}
 
 	// Run the service

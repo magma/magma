@@ -28,6 +28,7 @@ from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
     RuleModResult,
+    UEMacFlowRequest,
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
@@ -156,6 +157,38 @@ def create_enforcement_parser(apps):
     subcmd.set_defaults(func=get_policy_usage)
 
 
+# -------------
+# UE MAC APP
+# -------------
+
+@grpc_wrapper
+def add_ue_mac_flow(client, args):
+    request = UEMacFlowRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        mac_addr=args.mac
+    )
+    res = client.AddUEMacFlow(request)
+    if res is None:
+        print("Error associating MAC to IMSI")
+
+
+def create_ue_mac_parser(apps):
+    """
+    Creates the argparse subparser for the MAC App
+    """
+    app = apps.add_parser('ue_mac')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    # Add subcommands
+    subcmd = subparsers.add_parser('add_ue_mac_flow',
+                                   help='Add flow to match UE MAC \
+                                   with a subscriber')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--mac', help='UE MAC address',
+                        default='5e:cc:cc:b1:49:ff')
+    subcmd.set_defaults(func=add_ue_mac_flow)
+
+
 # --------------------------
 # Debugging
 # --------------------------
@@ -267,6 +300,7 @@ def create_parser():
     apps = parser.add_subparsers(title='apps', dest='cmd')
     create_metering_parser(apps)
     create_enforcement_parser(apps)
+    create_ue_mac_parser(apps)
     create_debug_parser(apps)
     return parser
 

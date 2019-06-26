@@ -33,7 +33,7 @@ import {
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withRouter} from 'react-router-dom';
-import {merge} from 'lodash-es';
+import {merge} from 'lodash';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './DataPlanConst';
 

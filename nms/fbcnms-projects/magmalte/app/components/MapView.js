@@ -24,7 +24,7 @@ import type {ComponentType} from 'react';
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import {withStyles} from '@material-ui/core/styles';
-import {isEqual} from 'lodash-es';
+import {isEqual} from 'lodash';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 

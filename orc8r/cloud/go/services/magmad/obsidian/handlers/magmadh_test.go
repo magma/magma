@@ -1,16 +1,17 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package handlers_test
 
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
@@ -28,6 +29,7 @@ import (
 )
 
 func TestMagmad(t *testing.T) {
+	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -228,18 +230,6 @@ func TestMagmad(t *testing.T) {
 		t.Fatalf("***** %s test failed, received: %s\n***** Expected: %s or %s",
 			listAGsTestCase.Name, r, exp1, exp2)
 	}
-
-	// Test Removal Of Non Empty Network
-	removeNetworkTestCase = tests.Testcase{
-		Name:                      "Remove Non Empty Network",
-		Method:                    "DELETE",
-		Url:                       fmt.Sprintf("%s/%s", testUrlRoot, networkId),
-		Payload:                   "",
-		Expected:                  "",
-		Skip_payload_verification: true,
-		Expect_http_error_status:  true,
-	}
-	tests.RunTest(t, removeNetworkTestCase)
 
 	// Test Forced Removal
 	removeNetworkTestCase = tests.Testcase{

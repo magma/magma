@@ -46,7 +46,11 @@ function webpackDevMiddleware(options: WebpackMiddlewareOptions): Middleware {
 
   const router = express.Router();
   router.use(middleware);
-  webpackHotMiddleware(compiler);
+  router.use(
+    webpackHotMiddleware(compiler, {
+      reload: true,
+    }),
+  );
   return router;
 }
 

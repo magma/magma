@@ -1,4 +1,5 @@
 # Default values for metrics.
+imagePullSecrets: []
 
 metrics:
   # Service configuration.
@@ -32,32 +33,14 @@ metrics:
     # Default volume configurations for metrics data
     prometheusData:
       volumeSpec:
-        emptyDir: {}
+        hostPath:
+          path: /graphiteData
+          type: DirectoryOrCreate
     prometheusConfig:
       volumeSpec:
         hostPath:
           path: /configs/prometheus
-
-  # Volume Spec for persistentVolumeClaim. Will be used if
-  # metrics.usePersistentVolumes is set
-  usePersistentVolumes: 0
-  persistentVolumes:
-    prometheusConfig:
-      storageSize:
-      volumeSpec:
-        persistentVolumeClaim:
-          claimName: prometheus-config-claim
-      storageTypeSpec: {}
-        ### Example for EBS storage
-        # awsElasticBlockStore:
-        #   volumeID:
-        #   fsType: ext4
-    prometheusData:
-      storageSize:
-      volumeSpec:
-        persistentVolumeClaim:
-          claimName: prometheus-data-claim
-      storageTypeSpec: {}
+          type: DirectoryOrCreate
 
   prometheusImage:
     repository: docker.io/prom/prometheus
@@ -115,17 +98,9 @@ graphite:
     # Default volume configurations for graphite data
     graphiteData:
       volumeSpec:
-        emptyDir: {}
-
-  usePersistentVolumes: 0
-  persistentVolumes:
-    graphiteData:
-      labels: {}
-      storageSize:
-      volumeSpec:
-        persistentVolumeClaim:
-          claimName: graphite-data-claim
-      storageTypeSpec: {}
+        hostPath:
+          path: /graphiteData
+          type: DirectoryOrCreate
 
   image:
     repository: docker.io/graphiteapp/graphite-statsd

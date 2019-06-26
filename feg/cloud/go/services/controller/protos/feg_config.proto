@@ -130,5 +130,5 @@ message Config {
     SwxConfig swx = 9;
     HealthConfig health = 10;
     EapAkaConfig eap_aka = 11;
-    AAAConfig AAA = 12;
+    AAAConfig aaa_server = 12;
 }

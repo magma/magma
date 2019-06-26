@@ -86,7 +86,8 @@ module.exports = Object.assign({}, fbStrict, {
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
-    strict: 'off',
+    'no-warning-comments': [1, {'terms': ['$FlowFixMe'], 'location': 'anywhere'}],
+    'strict': 'off',
 
     // Import Plugin
     // https://github.com/benmosher/eslint-plugin-import
@@ -168,6 +169,14 @@ module.exports = Object.assign({}, fbStrict, {
      ],
      'rules': {
        'flowtype/require-valid-file-annotation': 'off',
+     },
+   },
+   {
+     'files': [
+       '**/__tests__/*.js',
+     ],
+     'rules': {
+       'no-warning-comments': [0],
      },
    }],
 });

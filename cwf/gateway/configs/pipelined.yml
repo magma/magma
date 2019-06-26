@@ -24,6 +24,7 @@ log_level: INFO
 # the same order as the list. Cloud managed services will be initialized
 # after these static services.
 static_services: [
+  'ue_mac',
   'arpd',
   'access_control',
   'ryu_rest_service',

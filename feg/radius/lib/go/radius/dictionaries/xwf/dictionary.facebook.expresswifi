@@ -1,0 +1,39 @@
+# -*- text -*-
+# Copyright 2004-present Facebook. All Rights Reserved.
+#
+# dictionary.facebook.expresswifi
+#
+#
+
+VENDOR    Facebook-ExpressWiFi        40981
+
+#
+#    Standard attribute
+#
+BEGIN-VENDOR  Facebook-ExpressWiFi
+
+ATTRIBUTE  XWF-Restrict-To-Walled-Garden            1  integer
+VALUE  XWF-Restrict-To-Walled-Garden                True  0
+VALUE  XWF-Restrict-To-Walled-Garden                False 1
+
+ATTRIBUTE  XWF-Captive-Portal-Token                 2  string
+ATTRIBUTE  XWF-Allowed-Quota                        3  integer
+
+ATTRIBUTE  XWF-Authorize-Traffic-Classes            4  tlv
+ATTRIBUTE  XWF-Authorize-Class-Name                 4.1 string
+ATTRIBUTE  XWF-Authorize-Bytes-Left                 4.2 integer64
+
+ATTRIBUTE  XWF-Traffic-Classes-Acct                 5  tlv
+ATTRIBUTE  Class-Name                               5.1  string
+ATTRIBUTE  Input-Octets                             5.2  integer64
+ATTRIBUTE  Output-Octets                            5.3  integer64
+ATTRIBUTE  Input-Packets                            5.4  integer64
+ATTRIBUTE  Output-Packets                           5.5  integer64
+
+ATTRIBUTE  XWF-Suppress-Captive-Portal-Detection    6 integer
+VALUE      XWF-Suppress-Captive-Portal-Detection    False 0
+VALUE      XWF-Suppress-Captive-Portal-Detection    True  1
+
+ATTRIBUTE  XWF-MSISDN                               7 string
+
+END-VENDOR  Facebook-ExpressWiFi

@@ -1,0 +1,35 @@
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+COMPOSE_PROJECT_NAME=feg
+DOCKER_REGISTRY=feg_
+IMAGE_VERSION=latest
+BUILD_CONTEXT=https://github.com/facebookincubator/magma.git#master
+
+ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
+CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml
+SNOWFLAKE_PATH=/etc/snowflake
+
+CERTS_VOLUME=/var/opt/magma/certs
+CONFIGS_VOLUME=/var/opt/magma/configs
+
+# This section is unnecessary if using host networking
+S6A_LOCAL_PORT=3868
+S6A_HOST_PORT=3869
+S6A_NETWORK=sctp
+
+SWX_LOCAL_PORT=3868
+SWX_HOST_PORT=3868
+SWX_NETWORK=sctp
+
+GX_LOCAL_PORT=3907
+GX_HOST_PORT=0
+GX_NETWORK=tcp
+
+GY_LOCAL_PORT=3906
+GY_HOST_PORT=0
+GY_NETWORK=tcp

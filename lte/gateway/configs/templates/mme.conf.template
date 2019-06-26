@@ -12,7 +12,7 @@ MME :
     PID_DIRECTORY                             = "/var/run";
     # Define the limits of the system in terms of served eNB and served UE.
     # When the limits will be reached, overload procedure will take place.
-    MAXENB                                    = 2;                              # power of 2
+    MAXENB                                    = 8;                              # power of 2
     MAXUE                                     = 16;                             # power of 2
     RELATIVE_CAPACITY                         = 10;
 
@@ -72,7 +72,19 @@ MME :
     # maximum of 16 TAIs, comma separated
     # !!! Actually use only one PLMN
     TAI_LIST = (
+    {% if not attachedEnodebTacs|length %}
          { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ tac }}"; }
+    {%- else %}
+         {% for enbTac in attachedEnodebTacs -%}
+         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
+         {% endfor -%}
+    {%- endif %}
+    );
+
+    TAC_LIST = (
+         {% for enbTac in attached_enodeb_tacs -%}
+         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
+         {% endfor %}
     );
 
     CSFB :
@@ -91,7 +103,6 @@ MME :
         ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST = [ "EIA2" , "EIA1" , "EIA0" ];
         ORDERED_SUPPORTED_CIPHERING_ALGORITHM_LIST = [ "EEA0" , "EEA1" , "EEA2" ];
 
-        DISABLE_ESM_INFORMATION_PROCEDURE          = "yes";
         # EMM TIMERS
         # T3402 start:
         # At attach failure and the attempt counter is equal to 5.

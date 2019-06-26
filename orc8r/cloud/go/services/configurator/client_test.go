@@ -13,10 +13,9 @@ import (
 
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/storage"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,17 +36,17 @@ func TestConfiguratorService(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test Basic Network Interface
-	config := map[string][]byte{
-		"foo": []byte("world"),
+	config := map[string]interface{}{
+		"foo": "world",
 	}
 	// Create, Load
-	network1 := &protos.Network{
-		Id:          networkID1,
+	network1 := configurator.Network{
+		ID:          networkID1,
 		Name:        "test_network",
 		Description: "description",
 		Configs:     config,
 	}
-	_, err = configurator.CreateNetworks([]*protos.Network{network1})
+	_, err = configurator.CreateNetworks([]configurator.Network{network1})
 	assert.NoError(t, err)
 
 	networks, notFound, err := configurator.LoadNetworks([]string{networkID1}, true, true)
@@ -57,33 +56,34 @@ func TestConfiguratorService(t *testing.T) {
 
 	// Update, Load
 	newDesc := "Should be updated now"
-	toAddOrUpdate := map[string][]byte{}
-	toAddOrUpdate["bar"] = []byte("hello")
+	toAddOrUpdate := map[string]interface{}{}
+	toAddOrUpdate["bar"] = "hello"
 	toDelete := []string{"foo"}
-	updateCriteria1 := &protos.NetworkUpdateCriteria{
-		Id:                   networkID1,
-		NewDescription:       strToStringValue(newDesc),
+	updateCriteria1 := configurator.NetworkUpdateCriteria{
+		ID:                   networkID1,
+		NewDescription:       &newDesc,
 		ConfigsToAddOrUpdate: toAddOrUpdate,
 		ConfigsToDelete:      toDelete,
 	}
 
-	err = configurator.UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria1})
+	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria1})
+	assert.NoError(t, err)
 	networks, notFound, err = configurator.LoadNetworks([]string{networkID1}, true, true)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(notFound))
 	assert.Equal(t, 1, len(networks))
-	assert.Equal(t, newDesc, networks[networkID1].Description)
-	_, fooPresent := networks[networkID1].Configs["foo"]
+	assert.Equal(t, newDesc, networks[0].Description)
+	_, fooPresent := networks[0].Configs["foo"]
 	assert.False(t, fooPresent)
-	assert.Equal(t, []byte("hello"), networks[networkID1].Configs["bar"])
+	assert.Equal(t, "hello", networks[0].Configs["bar"])
 
 	// Create, Load
-	network2 := &protos.Network{
-		Id:          networkID2,
+	network2 := configurator.Network{
+		ID:          networkID2,
 		Name:        "test_network2",
 		Description: "description2",
 	}
-	_, err = configurator.CreateNetworks([]*protos.Network{network2})
+	_, err = configurator.CreateNetworks([]configurator.Network{network2})
 	assert.NoError(t, err)
 
 	networkIDs, err := configurator.ListNetworkIDs()
@@ -92,7 +92,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, networkID2, networkIDs[1])
 
 	// Delete, Load
-	err = configurator.DeleteNetworks([]string{network2.Id})
+	err = configurator.DeleteNetworks([]string{network2.ID})
 	assert.NoError(t, err)
 
 	networks, notFound, err = configurator.LoadNetworks([]string{networkID2}, true, true)
@@ -101,41 +101,39 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, 1, len(notFound))
 
 	// Test Basic Entity Interface
-	entityID1 := &protos.EntityID{Type: "foo", Id: "bar"}
-	entity1 := &protos.NetworkEntity{
+	entityID1 := storage.TypeAndKey{Type: "foo", Key: "bar"}
+	entity1 := configurator.NetworkEntity{
 		Type:        "foo",
-		Id:          "bar",
+		Key:         "bar",
 		Name:        "foobar",
 		Description: "ent: foobar",
-		PhysicalId:  "1234",
-		Config:      []byte("hello"),
+		PhysicalID:  "1234",
+		Config:      "hello",
 	}
-	entityID2 := &protos.EntityID{Type: "foo", Id: "boo"}
-	entity2 := &protos.NetworkEntity{
+	entityID2 := storage.TypeAndKey{Type: "foo", Key: "boo"}
+	entity2 := configurator.NetworkEntity{
 		Type:        "foo",
-		Id:          "boo",
+		Key:         "boo",
 		Name:        "fooboo",
 		Description: "ent: fooboo",
-		PhysicalId:  "5678",
-		Config:      []byte("bye"),
+		PhysicalID:  "5678",
+		Config:      "bye",
 	}
-	fullEntityLoad := &protos.EntityLoadCriteria{
-		LoadMetadata:    true,
-		LoadAssocsTo:    true,
-		LoadAssocsFrom:  true,
-		LoadConfig:      true,
-		LoadPermissions: true,
+	fullEntityLoad := configurator.EntityLoadCriteria{
+		LoadMetadata:       true,
+		LoadAssocsToThis:   true,
+		LoadAssocsFromThis: true,
+		LoadConfig:         true,
 	}
 
 	// Create, Load
-	_, err = configurator.CreateEntities(networkID1, []*protos.NetworkEntity{entity1, entity2})
+	_, err = configurator.CreateEntities(networkID1, []configurator.NetworkEntity{entity1, entity2})
 	assert.NoError(t, err)
 
 	entities, entitiesNotFound, err := configurator.LoadEntities(
 		networkID1,
-		nil,
-		nil,
-		[]*protos.EntityID{entityID1, entityID2},
+		nil, nil, nil,
+		[]storage.TypeAndKey{entityID1, entityID2},
 		fullEntityLoad,
 	)
 	assert.NoError(t, err)
@@ -152,20 +150,20 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, "fooboo", entities[1].Name)
 
 	// Update, Load
-	entityUpdateCriteria := &protos.EntityUpdateCriteria{
+	newPhysID := "4321"
+	entityUpdateCriteria := configurator.EntityUpdateCriteria{
 		Type:              entityID1.Type,
-		Key:               entityID1.Id,
-		NewPhysicalID:     strToStringValue("4321"),
-		AssociationsToAdd: []*protos.EntityID{entityID2},
+		Key:               entityID1.Key,
+		NewPhysicalID:     &newPhysID,
+		AssociationsToAdd: []storage.TypeAndKey{entityID2},
 	}
 
-	_, err = configurator.UpdateEntities(networkID1, []*protos.EntityUpdateCriteria{entityUpdateCriteria})
+	_, err = configurator.UpdateEntities(networkID1, []configurator.EntityUpdateCriteria{entityUpdateCriteria})
 	assert.NoError(t, err)
 	entities, entitiesNotFound, err = configurator.LoadEntities(
 		networkID1,
 		strPointer("foo"),
-		nil,
-		nil,
+		nil, nil, nil,
 		fullEntityLoad,
 	)
 	assert.NoError(t, err)
@@ -173,28 +171,24 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, 0, len(entitiesNotFound))
 	assert.Equal(t, "foobar", entities[0].Name)
 	assert.Equal(t, "fooboo", entities[1].Name)
-	assert.Equal(t, "4321", entities[0].PhysicalId)
-	assert.Equal(t, 1, len(entities[0].Assocs))
-	assert.Equal(t, entityID2.Id, entities[0].Assocs[0].Id)
+	assert.Equal(t, "4321", entities[0].PhysicalID)
+	assert.Equal(t, 1, len(entities[0].Associations))
+	assert.Equal(t, entityID2.Type, entities[0].Associations[0].Type)
+	assert.Equal(t, entityID2.Key, entities[0].Associations[0].Key)
 
 	// Delete, Load
-	err = configurator.DeleteEntities(networkID1, []*protos.EntityID{entityID2})
+	err = configurator.DeleteEntities(networkID1, []storage.TypeAndKey{entityID2})
 	assert.NoError(t, err)
 	entities, entitiesNotFound, err = configurator.LoadEntities(
 		networkID1,
 		strPointer("foo"),
-		nil,
-		nil,
+		nil, nil, nil,
 		fullEntityLoad,
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(entities))
 	assert.Equal(t, 0, len(entitiesNotFound))
 	assert.Equal(t, "foobar", entities[0].Name)
-}
-
-func strToStringValue(str string) *wrappers.StringValue {
-	return &wrappers.StringValue{Value: str}
 }
 
 func strPointer(str string) *string {

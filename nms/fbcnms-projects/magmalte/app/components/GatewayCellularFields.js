@@ -25,7 +25,7 @@ import Typography from '@material-ui/core/Typography';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
 
-import {merge} from 'lodash-es';
+import {merge} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import {toString} from './GatewayUtils';

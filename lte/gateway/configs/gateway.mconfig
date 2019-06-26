@@ -19,7 +19,8 @@
       "nonEpsServiceControl": 0,
       "csfbMcc": "001",
       "csfbMnc": "01",
-      "lac": 1
+      "lac": 1,
+      "attachedEnodebTacs": []
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",

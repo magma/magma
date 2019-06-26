@@ -1,0 +1,1 @@
+{"vcs":"git","repo":"https://github.com/layeh/radius","rev":"56df9813e8461fe877c2758800a5ef840cb5460d","pkgs":["fbc/lib/go/radius","fbc/lib/go/radius/rfc2865"]}

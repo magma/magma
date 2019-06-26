@@ -13,7 +13,10 @@ import (
 	"log"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
@@ -23,11 +26,17 @@ import (
 type eapAuth struct {
 	supportedMethods []byte
 	sessions         aaa.SessionTable // AAA SessionTable, if Nil -> Auth only mode
+	config           *mconfig.AAAConfig
+	accounting       protos.AccountingServer
 }
 
 // NewEapAuthenticator returns a new instance of EAP Auth service
-func NewEapAuthenticator(sessions aaa.SessionTable) (protos.AuthenticatorServer, error) {
-	return &eapAuth{supportedMethods: client.SupportedTypes(), sessions: sessions}, nil
+func NewEapAuthenticator(
+	sessions aaa.SessionTable,
+	cfg *mconfig.AAAConfig,
+	acct protos.AccountingServer) (protos.AuthenticatorServer, error) {
+
+	return &eapAuth{supportedMethods: client.SupportedTypes(), sessions: sessions, config: cfg, accounting: acct}, nil
 }
 
 // HandleIdentity passes Identity EAP payload to corresponding method provider & returns corresponding
@@ -63,6 +72,20 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 						resp.Ctx.GetSessionId(), s.GetCtx().GetImsi(), resp.Ctx.GetImsi())
 				}
 				s.SetCtx(resp.Ctx)
+			}
+			if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() &&
+				resp.Payload[eap.EapMsgCode] == eap.SuccessCode {
+
+				if srv.accounting == nil {
+					return resp, status.Errorf(
+						codes.Unavailable,
+						"Cannot Create Session on Auth: accounting service is missing")
+				}
+				_, err = srv.accounting.CreateSession(ctx, in.Ctx)
+				if err != nil {
+					resp.Payload[eap.EapMsgCode] = eap.FailureCode
+					return resp, err
+				}
 			}
 		}
 	}

@@ -3,6 +3,8 @@ version: "3.7"
 services:
   postgres:
     image: postgres
+    ports:
+      - 5432:5432/tcp
     volumes:
       - $PWD/../../../.cache/orc8r/pgdata:/var/lib/postgresql/data
     environment:
@@ -46,6 +48,10 @@ services:
       SQL_DRIVER: postgres
       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
       SQL_DIALECT: psql
+
+      # If you're testing the data migration, uncomment this line:
+      # USE_NEW_HANDLERS: '1'
+
       # To use MariaDB, use these connection parameters instead:
       # SQL_DRIVER: mysql
       # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"

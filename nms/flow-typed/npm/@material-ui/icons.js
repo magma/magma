@@ -932,6 +932,10 @@ declare module "@material-ui/icons/DeleteSweep" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/DeleteOutline" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/Description" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }

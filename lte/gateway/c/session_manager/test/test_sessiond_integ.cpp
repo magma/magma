@@ -49,8 +49,9 @@ class SessiondTest : public ::testing::Test {
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
-    monitor = std::make_shared<LocalEnforcer>(rule_store, pipelined_client, 0);
-    reporter = std::make_shared<SessionCloudReporter>(evb, test_channel);
+    reporter = std::make_shared<SessionCloudReporterImpl>(evb, test_channel);
+    monitor = std::make_shared<LocalEnforcer>(
+      reporter, rule_store, pipelined_client, 0);
 
     local_service =
       std::make_shared<service303::MagmaService>("sessiond", "1.0");
@@ -134,7 +135,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<MockCentralController> controller_mock;
   std::shared_ptr<MockPipelined> pipelined_mock;
   std::shared_ptr<LocalEnforcer> monitor;
-  std::shared_ptr<SessionCloudReporter> reporter;
+  std::shared_ptr<SessionCloudReporterImpl> reporter;
   std::shared_ptr<LocalSessionManagerAsyncService> session_manager;
   std::shared_ptr<SessionProxyResponderAsyncService> proxy_responder;
   std::shared_ptr<service303::MagmaService> local_service;
@@ -211,9 +212,9 @@ TEST_F(SessiondTest, end_to_end_success)
       "rule2");
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
       "rule3");
-    create_update_response(
+    create_credit_update_response(
       "IMSI1", 1, 1024, create_response.mutable_credits()->Add());
-    create_update_response(
+    create_credit_update_response(
       "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
@@ -233,7 +234,7 @@ TEST_F(SessiondTest, end_to_end_success)
     create_usage_update(
       "IMSI1", 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
     UpdateSessionResponse update_response;
-    create_update_response(
+    create_credit_update_response(
       "IMSI1", 1, 1024, update_response.mutable_responses()->Add());
     // Expect update with IMSI1, charging key 1
     EXPECT_CALL(
@@ -270,6 +271,7 @@ TEST_F(SessiondTest, end_to_end_success)
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
   request.mutable_sid()->set_id("IMSI1");
+  request.set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
   RuleRecordTable table;
@@ -312,9 +314,9 @@ TEST_F(SessiondTest, end_to_end_cloud_down)
       "rule2");
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
       "rule3");
-    create_update_response(
+    create_credit_update_response(
       "IMSI1", 1, 1024, create_response.mutable_credits()->Add());
-    create_update_response(
+    create_credit_update_response(
       "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
@@ -354,6 +356,7 @@ TEST_F(SessiondTest, end_to_end_cloud_down)
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
   request.mutable_sid()->set_id("IMSI1");
+  request.set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
   RuleRecordTable table1;

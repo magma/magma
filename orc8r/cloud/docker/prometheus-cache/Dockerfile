@@ -11,12 +11,12 @@ COPY ${CACHE_FILES} /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/pr
 WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/prometheus-cache
 
 RUN go get -d -v ./...
-RUN go install .
+RUN CGO_ENABLED=0 go install .
 
-FROM ubuntu:xenial
+FROM alpine:latest
 
 COPY --from=go /build/bin/prometheus-cache /bin/prometheus-cache
 
 EXPOSE 9091
 
-CMD ["prometheus-cache"]
+ENTRYPOINT ["prometheus-cache"]

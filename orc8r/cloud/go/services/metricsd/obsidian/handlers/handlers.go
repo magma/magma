@@ -30,7 +30,7 @@ const (
 // GetObsidianHandlers returns all obsidian handlers for metricsd
 func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 	var ret []handlers.Handler
-	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.GetRequiredStringParam(confignames.PrometheusAddress)})
+	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.GetRequiredStringParam(confignames.PrometheusQueryAddress)})
 	if err != nil {
 		ret = append(ret,
 			handlers.Handler{Path: promH.QueryURL, Methods: handlers.GET, HandlerFunc: getInitErrorHandler(err)},
@@ -44,9 +44,9 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []handlers.Handler {
 		)
 	}
 
-	graphiteAddress := configMap.GetRequiredStringParam(confignames.GraphiteAddress)
+	graphiteQueryHost := configMap.GetRequiredStringParam(confignames.GraphiteQueryAddress)
 	graphiteQueryPort := configMap.GetRequiredIntParam(confignames.GraphiteQueryPort)
-	graphiteQueryAddress := fmt.Sprintf("%s://%s:%d", graphiteH.Protocol, graphiteAddress, graphiteQueryPort)
+	graphiteQueryAddress := fmt.Sprintf("%s://%s:%d", graphiteH.Protocol, graphiteQueryHost, graphiteQueryPort)
 	graphiteClient, err := graphiteAPI.NewFromString(graphiteQueryAddress)
 	if err != nil {
 		ret = append(ret,

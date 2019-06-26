@@ -84,7 +84,7 @@ var defaultConfig = Config{
 		},
 		PlmnIds: []string{},
 	},
-	AAA: &AAAConfig{
+	AaaServer: &AAAConfig{
 		IdleSessionTimeoutMs: 21600000,
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,

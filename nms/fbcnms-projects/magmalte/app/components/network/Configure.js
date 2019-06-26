@@ -25,7 +25,7 @@ import Tab from '@material-ui/core/Tab';
 import MagmaTopBar from '../MagmaTopBar';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {findIndex} from 'lodash-es';
+import {findIndex} from 'lodash';
 import {Route, Switch, withRouter} from 'react-router-dom';
 
 import {withStyles} from '@material-ui/core/styles';

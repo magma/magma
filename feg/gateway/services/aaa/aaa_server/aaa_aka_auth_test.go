@@ -107,7 +107,7 @@ func TestEapAkaConcurent(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
@@ -138,7 +138,7 @@ func TestEAPPeerNak(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
@@ -183,7 +183,7 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
@@ -220,7 +220,7 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
@@ -255,7 +255,7 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 

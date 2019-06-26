@@ -13,6 +13,7 @@ replace (
 
 	magma/lte/cloud/go => ../../lte/cloud/go
 	magma/orc8r/cloud/go => ../../orc8r/cloud/go
+	magma/orc8r/gateway => ../../orc8r/gateway/go
 )
 
 require (
@@ -35,4 +36,5 @@ require (
 
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
+	magma/orc8r/gateway v0.0.0
 )

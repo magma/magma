@@ -29,6 +29,7 @@ import (
 // datapoints per metric series to be scraped
 type MetricCache struct {
 	familyMap map[string]*familyAndMetrics
+	limit     int
 	stats     cacheStats
 	sync.Mutex
 }
@@ -47,9 +48,16 @@ type cacheStats struct {
 	currentCountDatapoints int
 }
 
-func NewMetricCache() *MetricCache {
+func NewMetricCache(limit int) *MetricCache {
+	if limit > 0 {
+		glog.Infof("Prometheus-Cache created with a limit of %d\n", limit)
+	} else {
+		glog.Info("Prometheus-Cache created with no limit\n")
+	}
+
 	return &MetricCache{
 		familyMap: make(map[string]*familyAndMetrics),
+		limit:     limit,
 	}
 }
 
@@ -62,6 +70,19 @@ func (c *MetricCache) Receive(ctx echo.Context) error {
 	if err != nil {
 		return ctx.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
 	}
+
+	// Check if new datapoints will exceed the specified limit
+	if c.limit > 0 {
+		newDatapoints := 0
+		for _, fam := range parsedFamilies {
+			newDatapoints += len(fam.Metric)
+		}
+		if c.stats.currentCountDatapoints+newDatapoints > c.limit {
+			fmt.Println("Not accepting push. Would overfill cache limit")
+			return ctx.NoContent(http.StatusNotAcceptable)
+		}
+	}
+
 	c.cacheMetrics(parsedFamilies)
 
 	c.stats.lastReceiveTime = time.Now().Unix()
