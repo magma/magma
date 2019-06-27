@@ -95,6 +95,17 @@ func Deserialize(domain string, typeVal string, data []byte) (interface{}, error
 	return subregistry.deserialize(typeVal, data)
 }
 
+func GetSerdeByDomainAndType(domain string, typeVal string) (interface{}, error) {
+	registry.RLock()
+	defer registry.RUnlock()
+
+	subregistry, ok := registry.serdeRegistriesByDomain[domain]
+	if !ok {
+		return nil, fmt.Errorf("No serdes registered for domain %s", domain)
+	}
+	return subregistry.deserialize(typeVal, nil)
+}
+
 func getSerdesByDomain(serdesToGroup []Serde) map[string][]Serde {
 	ret := map[string][]Serde{}
 	for _, s := range serdesToGroup {

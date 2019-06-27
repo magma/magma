@@ -9,7 +9,6 @@
 package handlers_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -23,6 +22,7 @@ import (
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,8 +34,8 @@ const (
 
 func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 	test_init.StartTestService(t)
-	fooSerde := fooSerde{}
-	err := serde.RegisterSerdes(&fooSerde)
+	fooSerde := serde.NewBinarySerde(configurator.NetworkConfigSerdeDomain, fooSerdeType, &FooConfigs{})
+	err := serde.RegisterSerdes(fooSerde)
 	assert.NoError(t, err)
 	restPort := tests.StartObsidian(t)
 	e := echo.New()
@@ -47,11 +47,11 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 		}})
 	assert.NoError(t, err)
 
-	config := FooConfigs{
+	config := &FooConfigs{
 		ConfigNum: 100,
 		ConfigStr: "hello!",
 	}
-	post, err := json.Marshal(config)
+	post, err := config.MarshalBinary()
 	assert.NoError(t, err)
 
 	req := httptest.NewRequest(echo.POST, "/", strings.NewReader(string(post)))
@@ -62,7 +62,7 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 
 	// Success
 	url := getURL(restPort, networkID, fooSerdeType)
-	err = configuratorh.GetCreateNetworkConfigHandler(url, &fooSerde).HandlerFunc(c)
+	err = configuratorh.GetCreateNetworkConfigHandler(url).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
@@ -79,17 +79,17 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 	err = configuratorh.GetReadNetworkConfigHandler(url).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	actual := FooConfigs{}
-	err = json.Unmarshal(rec.Body.Bytes(), &actual)
+	actual := &FooConfigs{}
+	err = actual.UnmarshalBinary(rec.Body.Bytes())
 	assert.NoError(t, err)
 	assert.Equal(t, config, actual)
 
 	// Test GetUpdateNetworkConfigsHandler
-	updatedConfig := FooConfigs{
+	updatedConfig := &FooConfigs{
 		ConfigNum: 32,
 		ConfigStr: "goodbye!",
 	}
-	post, err = json.Marshal(updatedConfig)
+	post, err = updatedConfig.MarshalBinary()
 	assert.NoError(t, err)
 
 	req = httptest.NewRequest(echo.PUT, "/", strings.NewReader(string(post)))
@@ -100,7 +100,7 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 
 	// Success
 	url = getURL(restPort, networkID, fooSerdeType)
-	err = configuratorh.GetUpdateNetworkConfigHandler(url, &fooSerde).HandlerFunc(c)
+	err = configuratorh.GetUpdateNetworkConfigHandler(url).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
@@ -159,22 +159,20 @@ type FooConfigs struct {
 	ConfigNum int    `json:"config_num"`
 }
 
-type fooSerde struct{}
-
-func (*fooSerde) GetType() string {
-	return fooSerdeType
+// MarshalBinary interface implementation
+func (m *FooConfigs) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
 }
 
-func (*fooSerde) GetDomain() string {
-	return configurator.NetworkConfigSerdeDomain
-}
-
-func (*fooSerde) Serialize(c interface{}) ([]byte, error) {
-	return json.Marshal(c)
-}
-
-func (*fooSerde) Deserialize(message []byte) (interface{}, error) {
-	res := FooConfigs{}
-	err := json.Unmarshal(message, &res)
-	return res, err
+// UnmarshalBinary interface implementation
+func (m *FooConfigs) UnmarshalBinary(b []byte) error {
+	var res FooConfigs
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
 }
