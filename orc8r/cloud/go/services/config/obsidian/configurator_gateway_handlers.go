@@ -30,7 +30,7 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 		return configuratorCreateEntityConfig(c, networkID, configType, configKey, iConfig)
 	}
 
-	config, nerr := getConfigAndValidate(c, iConfig)
+	config, nerr := GetConfigAndValidate(c, iConfig)
 	if nerr != nil {
 		return nerr
 	}
