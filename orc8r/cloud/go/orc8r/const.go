@@ -20,5 +20,6 @@ const (
 
 	DnsdNetworkType = "dnsd_network"
 
+	// used to migrate network/gateway lookup magmad dependencies
 	UseConfiguratorEnv = "USE_NEW_HANDLERS"
 )

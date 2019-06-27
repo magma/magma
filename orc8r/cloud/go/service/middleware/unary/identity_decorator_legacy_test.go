@@ -15,52 +15,99 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	"magma/orc8r/cloud/go/services/checkind"
-	"magma/orc8r/cloud/go/services/configurator"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/services/magmad"
+	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
+	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
 
-const testAgHwID = "Test-AGW-Hw-Id"
+type testCheckindServer struct {
+	lastClientIdentity    *protos.Identity
+	lastClientCertExpTime int64
+}
 
-func TestIdentityInjector(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
-	configurator_test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
-	serde.RegisterSerdes(&pluginimpl.GatewayRecordSerde{})
+func NewTestCheckindServer() (*testCheckindServer, error) {
+	return &testCheckindServer{}, nil
+}
 
+// Gateway periodic checkin
+func (srv *testCheckindServer) Checkin(
+	ctx context.Context,
+	req *protos.CheckinRequest) (*protos.CheckinResponse, error) {
+
+	srv.lastClientIdentity = proto.Clone(protos.GetClientIdentity(ctx)).(*protos.Identity)
+	srv.lastClientCertExpTime = protos.GetClientCertExpiration(ctx)
+	return &protos.CheckinResponse{Action: protos.CheckinResponse_NONE,
+			Time: uint64(time.Now().UnixNano()) / uint64(time.Millisecond)},
+		nil
+}
+
+// Gateway real time status retrieval
+func (srv *testCheckindServer) GetStatus(
+	ctx context.Context,
+	req *protos.GatewayStatusRequest) (*protos.GatewayStatus, error) {
+
+	srv.lastClientIdentity =
+		proto.Clone(protos.GetClientIdentity(ctx)).(*protos.Identity)
+	return new(protos.GatewayStatus), nil
+}
+
+// Removes Gateway status record from the Gateway's network table
+func (srv *testCheckindServer) DeleteGatewayStatus(
+	ctx context.Context,
+	req *protos.GatewayStatusRequest) (*protos.Void, error) {
+
+	srv.lastClientIdentity =
+		proto.Clone(protos.GetClientIdentity(ctx)).(*protos.Identity)
+	return &protos.Void{}, nil
+}
+
+// Deletes the network's status table
+func (srv *testCheckindServer) DeleteNetwork(
+	ctx context.Context, networkId *protos.NetworkID) (*protos.Void, error) {
+
+	srv.lastClientIdentity =
+		proto.Clone(protos.GetClientIdentity(ctx)).(*protos.Identity)
+	return &protos.Void{}, nil
+}
+
+// Returns a list of all logical gateway IDs
+func (srv *testCheckindServer) List(
+	ctx context.Context, networkId *protos.NetworkID) (*protos.IDList, error) {
+
+	srv.lastClientIdentity =
+		proto.Clone(protos.GetClientIdentity(ctx)).(*protos.Identity)
+	return new(protos.IDList), nil
+}
+
+func TestIdentityInjectorLegacy(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "0")
+	magmad_test_init.StartTestService(t)
 	// Make sure to "share" in memory magmad DBs with interceptors
-	networkID := "identity_decorator_test_network"
-	testNetwork := configurator.Network{
-		ID:   networkID,
-		Name: "Identity Decorator Test",
-	}
-	err := configurator.CreateNetwork(testNetwork)
+
+	testNetworkId, err := magmad.RegisterNetwork(
+		&magmad_protos.MagmadNetworkRecord{Name: "Identity Decorator Test"},
+		"identity_decorator_test_network")
 	assert.NoError(t, err)
 
-	configurator_test_utils.RegisterGateway(
-		t,
-		networkID,
-		testAgHwID,
-		&magmad_models.AccessGatewayRecord{
-			HwID: &magmad_models.HwGatewayID{testAgHwID},
-			Name: "Test GW Name",
-		})
+	t.Logf("New Registered Network: %s", testNetworkId)
+
+	hwId := protos.AccessGatewayID{Id: testAgHwID}
+	logicalId, err := magmad.RegisterGateway(testNetworkId, &magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "Test GW Name"})
+	assert.NoError(t, err)
+	assert.NotEqual(t, logicalId, "")
 
 	// Create the service
-	srv, err := service.NewTestOrchestratorService(t, orc8r.ModuleName, checkind.ServiceName)
+	srv, err := service.NewTestOrchestratorService(t, "", checkind.ServiceName)
 	assert.NoError(t, err)
 
 	// Add servicers to the service
@@ -116,8 +163,8 @@ func TestIdentityInjector(t *testing.T) {
 	gwid := identity.GetGateway()
 	assert.NotNil(t, gwid)
 	assert.Equal(t, gwid.HardwareId, testAgHwID)
-	assert.Equal(t, gwid.NetworkId, networkID)
-	assert.Equal(t, gwid.LogicalId, testAgHwID)
+	assert.Equal(t, gwid.NetworkId, testNetworkId)
+	assert.Equal(t, gwid.LogicalId, logicalId)
 
 	// Test CTX without any Identification related headers (Identity should
 	// not be injected by the middleware)
@@ -147,7 +194,7 @@ func TestIdentityInjector(t *testing.T) {
 	// Unregister GW
 	assert.NoError(
 		t,
-		configurator.DeleteEntity(networkID, orc8r.MagmadGatewayType, gwid.LogicalId))
+		magmad.RemoveGateway(testNetworkId, request.GatewayId))
 
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),
