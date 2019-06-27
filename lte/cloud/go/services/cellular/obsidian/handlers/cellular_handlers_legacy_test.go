@@ -23,7 +23,8 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/magmad"
+	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
@@ -34,15 +35,14 @@ func TestGetNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
-	networkId := registerNetwork(t, "Test Network 1", "cellular_obsidian_test_network")
+	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 
 	// Happy path
 	expectedConfig := &models.NetworkCellularConfigs{}
-	protos.FillIn(test_utils.NewDefaultFDDNetworkConfig(), expectedConfig)
+	protos.FillIn(test_utils.NewDefaultProtosFDDNetworkConfig(), expectedConfig)
 	marshaledCfg, err := expectedConfig.MarshalBinary()
 	assert.NoError(t, err)
 	expected := string(marshaledCfg)
@@ -75,8 +75,7 @@ func TestSetTDDNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
-	testSetNetworkConfigs(t, test_utils.NewDefaultTDDNetworkConfig(), test_utils.NewDefaultTDDNetworkConfig())
+	testSetNetworkConfigsLegacy(t, test_utils.NewDefaultProtosTDDNetworkConfig(), test_utils.NewDefaultProtosTDDNetworkConfig())
 }
 
 func TestSetFDDNetworkConfigsLegacy(t *testing.T) {
@@ -84,8 +83,7 @@ func TestSetFDDNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
-	testSetNetworkConfigs(t, test_utils.NewDefaultFDDNetworkConfig(), test_utils.NewDefaultFDDNetworkConfig())
+	testSetNetworkConfigsLegacy(t, test_utils.NewDefaultProtosFDDNetworkConfig(), test_utils.NewDefaultProtosFDDNetworkConfig())
 }
 
 func TestSetOldTddNetworkConfigsLegacy(t *testing.T) {
@@ -93,8 +91,7 @@ func TestSetOldTddNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
-	testSetNetworkConfigs(t, test_utils.OldTDDNetworkConfig(), test_utils.NewDefaultTDDNetworkConfig())
+	testSetNetworkConfigsLegacy(t, test_utils.OldProtosTDDNetworkConfig(), test_utils.NewDefaultProtosTDDNetworkConfig())
 }
 
 func TestSetOldFddNetworkConfigsLegacy(t *testing.T) {
@@ -102,8 +99,7 @@ func TestSetOldFddNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
-	testSetNetworkConfigs(t, test_utils.OldFDDNetworkConfig(), test_utils.NewDefaultFDDNetworkConfig())
+	testSetNetworkConfigsLegacy(t, test_utils.OldProtosFDDNetworkConfig(), test_utils.NewDefaultProtosFDDNetworkConfig())
 }
 
 func TestSetBadNetworkConfigsLegacy(t *testing.T) {
@@ -111,13 +107,12 @@ func TestSetBadNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
-	networkId := registerNetwork(t, "Test Network 1", "cellular_obsidian_test_network")
+	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 
-	config := test_utils.NewDefaultTDDNetworkConfig()
+	config := test_utils.NewDefaultProtosTDDNetworkConfig()
 
 	// Fail RAN config check
 	config.Ran.FddConfig = &cellular_protos.NetworkRANConfig_FDDConfig{
@@ -179,7 +174,7 @@ func TestSetBadNetworkConfigsLegacy(t *testing.T) {
 	assert.Equal(t, 400, status)
 
 	// Fail swagger validation
-	config = test_utils.NewDefaultTDDNetworkConfig()
+	config = test_utils.NewDefaultProtosTDDNetworkConfig()
 	swaggerConfig = &models.NetworkCellularConfigs{}
 	protos.FillIn(config, swaggerConfig)
 	swaggerConfig.Epc.NetworkServices = []string{"metering", "dpi", "bad"}
@@ -204,14 +199,13 @@ func TestSetBadOldConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
-	networkId := registerNetwork(t, "Test Network 1", "cellular_obsidian_test_network")
+	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 
 	// Fail RAN config check
-	config := test_utils.OldTDDNetworkConfig()
+	config := test_utils.OldProtosTDDNetworkConfig()
 	config.Ran.Earfcndl = 125000
 
 	swaggerConfig := &models.NetworkCellularConfigs{}
@@ -237,16 +231,15 @@ func TestGetGatewayConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
-	networkId := registerNetwork(t, "Test Network 1", "cellular_obsidian_test_network")
-	gatewayId := registerGateway(t, networkId, "g1")
+	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
+	gatewayId := registerGatewayLegacy(t, networkId, "g1")
 
 	// Happy path
 	expectedConfig := &models.GatewayCellularConfigs{}
-	protos.FillIn(test_utils.NewDefaultGatewayConfig(), expectedConfig)
+	protos.FillIn(test_utils.NewDefaultProtosGatewayConfig(), expectedConfig)
 	marshaledCfg, err := expectedConfig.MarshalBinary()
 	assert.NoError(t, err)
 	expected := string(marshaledCfg)
@@ -279,15 +272,14 @@ func TestSetGatewayConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
-	networkId := registerNetwork(t, "Test Network 1", "cellular_obsidian_test_network")
-	gatewayId := registerGateway(t, networkId, "g2")
+	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
+	gatewayId := registerGatewayLegacy(t, networkId, "g2")
 
 	// Happy path
-	gatewayConfig := test_utils.NewDefaultGatewayConfig()
+	gatewayConfig := test_utils.NewDefaultProtosGatewayConfig()
 	swaggerConfig := &models.GatewayCellularConfigs{}
 	protos.FillIn(gatewayConfig, swaggerConfig)
 	marshaledCfg, err := swaggerConfig.MarshalBinary()
@@ -354,5 +346,95 @@ func TestSetGatewayConfigsLegacy(t *testing.T) {
 	}
 	status, _, err := obsidian_test.RunTest(t, setConfigTestCase)
 	assert.Equal(t, 400, status)
+}
 
+func testSetNetworkConfigsLegacy(t *testing.T, config *cellular_protos.CellularNetworkConfig, expectedConfig *cellular_protos.CellularNetworkConfig) {
+	restPort := obsidian_test.StartObsidian(t)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+
+	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
+
+	// Happy path
+	swaggerConfig := &models.NetworkCellularConfigs{}
+	protos.FillIn(config, swaggerConfig)
+	marshaledCfg, err := swaggerConfig.MarshalBinary()
+	assert.NoError(t, err)
+	swaggerConfigString := string(marshaledCfg)
+
+	createConfigTestCase := obsidian_test.Testcase{
+		Name:     "Create Cellular Network Config",
+		Method:   "POST",
+		Url:      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
+		Payload:  swaggerConfigString,
+		Expected: fmt.Sprintf(`"%s"`, networkId),
+	}
+	obsidian_test.RunTest(t, createConfigTestCase)
+
+	config.Epc.Mcc = "123"
+	config.Epc.SubProfiles = make(
+		map[string]*cellular_protos.NetworkEPCConfig_SubscriptionProfile)
+	config.Epc.SubProfiles["test"] =
+		&cellular_protos.NetworkEPCConfig_SubscriptionProfile{
+			MaxUlBitRate: 100, MaxDlBitRate: 200,
+		}
+	config.Ran.BandwidthMhz = 15
+
+	expectedConfig.Epc.Mcc = "123"
+	expectedConfig.Epc.SubProfiles = make(
+		map[string]*cellular_protos.NetworkEPCConfig_SubscriptionProfile)
+	expectedConfig.Epc.SubProfiles["test"] =
+		&cellular_protos.NetworkEPCConfig_SubscriptionProfile{
+			MaxUlBitRate: 100, MaxDlBitRate: 200,
+		}
+	expectedConfig.Ran.BandwidthMhz = 15
+
+	swaggerConfig = &models.NetworkCellularConfigs{}
+	protos.FillIn(config, swaggerConfig)
+	swaggerConfig.Epc.NetworkServices = []string{"metering", "dpi", "policy_enforcement"}
+
+	expectedSwaggerConfig := &models.NetworkCellularConfigs{}
+	protos.FillIn(expectedConfig, expectedSwaggerConfig)
+	expectedSwaggerConfig.Epc.NetworkServices = []string{"metering", "dpi", "policy_enforcement"}
+
+	marshaledCfg, err = swaggerConfig.MarshalBinary()
+	assert.NoError(t, err)
+	swaggerConfigString = string(marshaledCfg)
+
+	exMarshaledCfg, err := expectedSwaggerConfig.MarshalBinary()
+	assert.NoError(t, err)
+	exSwaggerConfigString := string(exMarshaledCfg)
+
+	setConfigTestCase := obsidian_test.Testcase{
+		Name:     "Set Cellular Network Config",
+		Method:   "PUT",
+		Url:      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
+		Payload:  swaggerConfigString,
+		Expected: "",
+	}
+	obsidian_test.RunTest(t, setConfigTestCase)
+	getConfigTestCase := obsidian_test.Testcase{
+		Name:     "Get Updated Cellular Network Config",
+		Method:   "GET",
+		Url:      fmt.Sprintf("%s/%s/configs/cellular", testUrlRoot, networkId),
+		Payload:  "",
+		Expected: exSwaggerConfigString,
+	}
+	obsidian_test.RunTest(t, getConfigTestCase)
+}
+
+func registerNetworkLegacy(t *testing.T, networkName string, networkID string) string {
+	networkId, err := magmad.RegisterNetwork(
+		&magmad_protos.MagmadNetworkRecord{Name: networkName},
+		networkID)
+	assert.NoError(t, err)
+	return networkId
+}
+
+func registerGatewayLegacy(t *testing.T, networkId string, gatewayId string) string {
+	gatewayRecord := &magmad_protos.AccessGatewayRecord{
+		HwId: &protos.AccessGatewayID{Id: gatewayId},
+	}
+	registeredId, err := magmad.RegisterGateway(networkId, gatewayRecord)
+	assert.NoError(t, err)
+	return registeredId
 }
