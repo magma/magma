@@ -1,5 +1,6 @@
 .PHONY: all build test clean run status
 
+MME_LOG_DIR = /var/log/mme
 GATEWAY_C_DIR = $(MAGMA_ROOT)/lte/gateway/c
 GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
@@ -70,6 +71,7 @@ build_common:
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
 build_oai: build_common
+	sudo mkdir -p $(MME_LOG_DIR)
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
 build_sctpd: build_common

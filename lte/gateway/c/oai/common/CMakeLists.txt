@@ -28,10 +28,12 @@ set(COMMON_SRC
   log.c
 )
 
+add_subdirectory(glogwrapper)
+
 add_library(COMMON ${COMMON_SRC})
 target_link_libraries (COMMON
   lfds710
-  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI
+  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper
 )
 target_include_directories(COMMON PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}

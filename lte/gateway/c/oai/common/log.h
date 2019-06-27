@@ -52,6 +52,7 @@ extern int fd_g_debug_lvl;
 #include <pthread.h>
 
 #include "bstrlib.h"
+#include "glogwrapper/glog_logging.h"
 
 struct shared_log_queue_item_s;
 
