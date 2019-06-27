@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -174,18 +175,19 @@ func (e *CustomPushExporter) pushFamilies() []error {
 	if len(e.familiesByName) == 0 {
 		return []error{}
 	}
-	body := bytes.Buffer{}
+	bodyBuilder := strings.Builder{}
 	for _, fam := range e.familiesByName {
 		familyString, err := familyToString(fam)
 		if err != nil {
 			errs = append(errs, err)
 		}
-		body.WriteString(familyString)
-		body.WriteString("\n")
+		bodyBuilder.WriteString(familyString)
+		bodyBuilder.WriteString("\n")
 	}
+	body := bodyBuilder.String()
 	client := http.Client{}
 	for _, address := range e.pushAddresses {
-		resp, err := client.Post(address, "text/plain", &body)
+		resp, err := client.Post(address, "text/plain", bytes.NewBufferString(body))
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error making request: %v", err))
 			continue
