@@ -139,11 +139,13 @@ class SessionCredit {
   void reauth();
 
   /**
-   * Limit for the total usage (tx + rx) in credit updates.
-   * If the used counts are greater than the limits, then the credit
-   * updates will be sent over multiple transactions.
+   * A threshold represented as a ratio for triggering usage update before
+   * an user completely used up the quota
+   * Session manager will send usage update when
+   * (available bytes since last update) * USAGE_REPORTING_THRESHOLD >=
+   * (used bytes since last update)
    */
-  static uint64_t USAGE_REPORTING_LIMIT;
+  static float USAGE_REPORTING_THRESHOLD;
 
  private:
   bool reporting_;
@@ -152,6 +154,11 @@ class SessionCredit {
   ServiceState service_state_;
   std::time_t expiry_time_;
   uint64_t buckets_[MAX_VALUES];
+  /**
+   * Limit for the total usage (tx + rx) in credit updates to prevent
+   * session manager from reporting more usage than granted
+   */
+  uint64_t usage_reporting_limit_;
 
  private:
   bool quota_exhausted();

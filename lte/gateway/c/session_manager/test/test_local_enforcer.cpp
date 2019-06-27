@@ -271,7 +271,7 @@ TEST_F(LocalEnforcerTest, test_collect_updates)
 {
   CreateSessionResponse response;
   create_credit_update_response(
-    "IMSI1", 1, 1024, response.mutable_credits()->Add());
+    "IMSI1", 1, 3072, response.mutable_credits()->Add());
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   insert_static_rule(1, "", "rule1");
 
@@ -369,7 +369,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting)
 {
   CreateSessionResponse response;
   create_credit_update_response(
-    "IMSI1", 1, 1024, response.mutable_credits()->Add());
+    "IMSI1", 1, 3072, response.mutable_credits()->Add());
   create_credit_update_response(
     "IMSI1", 2, 2048, response.mutable_credits()->Add());
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
@@ -446,13 +446,13 @@ TEST_F(LocalEnforcerTest, test_all)
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   CreateSessionResponse response2;
   create_credit_update_response(
-    "IMSI2", 2, 1024, response2.mutable_credits()->Add());
+    "IMSI2", 2, 2048, response2.mutable_credits()->Add());
   local_enforcer->init_session_credit("IMSI2", "4321", test_cfg, response2);
 
   EXPECT_EQ(
     local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(
-    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 1024);
+    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 2048);
 
   // receive usages from pipelined
   RuleRecordTable table;
@@ -482,7 +482,7 @@ TEST_F(LocalEnforcerTest, test_all)
   local_enforcer->update_session_credit(update_response);
 
   EXPECT_EQ(
-    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 5120);
+    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 6144);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTING_TX), 0);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTING_RX), 0);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTED_TX), 1024);
@@ -701,18 +701,18 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
     "IMSI1",
     "3",
     MonitoringLevel::PCC_RULE_LEVEL,
-    1024,
+    2048,
     response.mutable_usage_monitors()->Add());
   create_monitor_update_response(
     "IMSI1",
     "4",
     MonitoringLevel::SESSION_LEVEL,
-    1024,
+    2128,
     response.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   assert_charging_credit("IMSI1", ALLOWED_TOTAL, {{1, 1024}, {2, 1024}});
   assert_monitor_credit(
-    "IMSI1", ALLOWED_TOTAL, {{"1", 1024}, {"3", 1024}, {"4", 1024}});
+    "IMSI1", ALLOWED_TOTAL, {{"1", 1024}, {"3", 2048}, {"4", 2128}});
 
   // receive usages from pipelined
   RuleRecordTable table;
@@ -770,7 +770,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
   assert_monitor_credit("IMSI1", REPORTING_TX, {{"3", 0}, {"4", 0}});
   assert_monitor_credit("IMSI1", REPORTED_RX, {{"3", 1024}, {"4", 1049}});
   assert_monitor_credit("IMSI1", REPORTED_TX, {{"3", 1024}, {"4", 1079}});
-  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"3", 3072}, {"4", 3072}});
+  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"3", 4096}, {"4", 4176}});
 }
 
 TEST_F(LocalEnforcerTest, test_rar_session_not_found)

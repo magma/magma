@@ -24,6 +24,9 @@
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
 #define SESSIOND_VERSION "1.0"
+#define MIN_USAGE_REPORTING_THRESHOLD 0.4
+#define MAX_USAGE_REPORTING_THRESHOLD 1.1
+#define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -139,8 +142,16 @@ int main(int argc, char *argv[])
     pipelined_client->rpc_response_loop();
   });
 
-  auto reporting_limit = config["usage_reporting_limit_bytes"].as<uint64_t>();
-  magma::SessionCredit::USAGE_REPORTING_LIMIT = reporting_limit;
+  auto reporting_threshold = config["usage_reporting_threshold"].as<float>();
+  if (reporting_threshold <= MIN_USAGE_REPORTING_THRESHOLD ||
+      reporting_threshold >= MAX_USAGE_REPORTING_THRESHOLD) {
+    MLOG(MWARNING) << "Usage reporting threshold should be between "
+                   << MIN_USAGE_REPORTING_THRESHOLD << " and "
+                   << MAX_USAGE_REPORTING_THRESHOLD << ", apply default value: "
+                   << DEFAULT_USAGE_REPORTING_THRESHOLD;
+    reporting_threshold = DEFAULT_USAGE_REPORTING_THRESHOLD;
+  }
+  magma::SessionCredit::USAGE_REPORTING_THRESHOLD = reporting_threshold;
 
   auto reporter = std::make_shared<magma::SessionCloudReporterImpl>(
     evb, get_controller_channel(config));
