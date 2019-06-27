@@ -10,18 +10,21 @@ package handlers_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	checkindTestInit "magma/orc8r/cloud/go/services/checkind/test_init"
 	"magma/orc8r/cloud/go/services/checkind/test_utils"
+	"magma/orc8r/cloud/go/services/configurator"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmadProtos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmadTestInit "magma/orc8r/cloud/go/services/magmad/test_init"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	stateTestUtils "magma/orc8r/cloud/go/services/state/test_utils"
 
@@ -33,35 +36,32 @@ const testAgHwId = "Test-AGW-Hw-Id"
 // TestCheckind is Obsidian Gateway Status Integration Test intended to be run
 // on cloud VM
 func TestCheckind(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	magmadTestInit.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	checkindTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 
 	// create a test network with a single GW
-	testNetworkID, err := magmad.RegisterNetwork(
-		&magmadProtos.MagmadNetworkRecord{Name: "Test Network 1"},
-		"checkind_obsidian_test_network")
-	assert.NoError(t, err)
+	testNetworkID := registerNetwork(t, "Test Network 1", "checkind_obsidian_test_network")
 
 	t.Logf("New Registered Network: %s", testNetworkID)
 
-	hwID := protos.AccessGatewayID{Id: testAgHwId}
-	logicalID, err := magmad.RegisterGateway(testNetworkID, &magmadProtos.AccessGatewayRecord{HwId: &hwID, Name: "Test GW Name"})
-	assert.NoError(t, err)
-	assert.NotEqual(t, logicalID, "")
+	logicalID := registerGateway(t, testNetworkID, testAgHwId, testAgHwId, "Test GW Name")
 
 	ctx := stateTestUtils.GetContextWithCertificate(t, testAgHwId)
 
 	// put one checkin state into state service
 	gwStatus := test_utils.GetGatewayStatusSwaggerFixture(testAgHwId)
+
 	stateTestUtils.ReportGatewayStatus(t, ctx, gwStatus)
 
 	getGWStatusNoError(t, restPort, testNetworkID, logicalID)
 	getGWStatusNotFoundError(t, restPort, testNetworkID)
 
-	magmad.ForceRemoveNetwork(testNetworkID)
+	err := configurator.DeleteNetwork(testNetworkID)
+	assert.NoError(t, err)
 }
 
 func getURL(restPort int, networkID string, logicalID string) string {
@@ -83,4 +83,45 @@ func getGWStatusNoError(t *testing.T, restPort int, networkID string, logicalID 
 func getGWStatusNotFoundError(t *testing.T, restPort int, networkID string) {
 	url := getURL(restPort, networkID, "should-not-exist")
 	stateTestUtils.GetGWStatusExpectNotFound(t, url)
+}
+
+func registerNetwork(t *testing.T, networkName string, networkID string) string {
+	useNewHandler := os.Getenv(orc8r.UseConfiguratorEnv)
+	if useNewHandler == "1" {
+		err := configurator.CreateNetwork(
+			configurator.Network{
+				Name: networkName,
+				ID:   networkID,
+			},
+		)
+		assert.NoError(t, err)
+		return networkID
+	} else {
+		networkId, err := magmad.RegisterNetwork(
+			&magmadProtos.MagmadNetworkRecord{Name: networkName},
+			networkID)
+		assert.NoError(t, err)
+		return networkId
+	}
+}
+
+func registerGateway(t *testing.T, networkID string, gatewayID string, hwID string, name string) string {
+	useNewHandler := os.Getenv(orc8r.UseConfiguratorEnv)
+	if useNewHandler == "1" {
+		_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
+			Key:        gatewayID,
+			Type:       "magmad_gateway",
+			PhysicalID: hwID,
+		})
+		assert.NoError(t, err)
+		return gatewayID
+	} else {
+		gatewayRecord := &magmadProtos.AccessGatewayRecord{
+			HwId: &protos.AccessGatewayID{Id: gatewayID},
+			Name: name,
+		}
+		registeredId, err := magmad.RegisterGateway(networkID, gatewayRecord)
+		assert.NoError(t, err)
+		return registeredId
+	}
 }
