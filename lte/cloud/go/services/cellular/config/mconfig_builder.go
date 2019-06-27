@@ -15,6 +15,7 @@ import (
 	"reflect"
 	"sort"
 
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos/mconfig"
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/orc8r/cloud/go/protos"
@@ -202,7 +203,7 @@ func getEnodebConfig(
 	networkID string,
 	enbSerialID string,
 ) (*mconfig.EnodebD_EnodebConfig, error) {
-	cellularEnbConfigStruct, err := config.GetConfig(networkID, CellularEnodebType, enbSerialID)
+	cellularEnbConfigStruct, err := config.GetConfig(networkID, lte.CellularEnodebType, enbSerialID)
 	if err != nil {
 		return nil, err
 	}
@@ -224,7 +225,7 @@ func getEnodebConfig(
 }
 
 func getCellularNetworkConfig(networkId string) (*cellular_protos.CellularNetworkConfig, error) {
-	iCellularNwConfigs, err := config.GetConfig(networkId, CellularNetworkType, networkId)
+	iCellularNwConfigs, err := config.GetConfig(networkId, lte.CellularNetworkType, networkId)
 	if err != nil || iCellularNwConfigs == nil {
 		return nil, err
 	}
@@ -240,7 +241,7 @@ func getCellularNetworkConfig(networkId string) (*cellular_protos.CellularNetwor
 }
 
 func getCellularGatewayConfig(networkId string, gatewayId string) (*cellular_protos.CellularGatewayConfig, error) {
-	iGatewayConfigs, err := config.GetConfig(networkId, CellularGatewayType, gatewayId)
+	iGatewayConfigs, err := config.GetConfig(networkId, lte.CellularGatewayType, gatewayId)
 	if err != nil || iGatewayConfigs == nil {
 		return nil, err
 	}

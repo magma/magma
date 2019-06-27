@@ -1,54 +1,70 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
-
-package config_test
+package plugin_test
 
 import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lteplugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/protos/mconfig"
-	cellular_config "magma/lte/cloud/go/services/cellular/config"
-	"magma/lte/cloud/go/services/cellular/test_utils"
+	"magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/config"
-	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
-	dnsd_protos "magma/orc8r/cloud/go/services/dnsd/protos"
+	"magma/orc8r/cloud/go/services/configurator"
+	models2 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCellularBuilder_Build(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	config_test_init.StartTestService(t)
-	builder := &cellular_config.CellularBuilder{}
-	actual, err := builder.Build("network", "gw1")
-	assert.NoError(t, err)
-	assert.Equal(t, map[string]proto.Message{}, actual)
+func TestBuilder_Build(t *testing.T) {
+	builder := &plugin.Builder{}
 
-	err = config.CreateConfig("network", lte.CellularNetworkType, "network", test_utils.NewDefaultTDDNetworkConfig())
-	assert.NoError(t, err)
-	err = config.CreateConfig("network", orc8r.DnsdNetworkType, "network", &dnsd_protos.NetworkDNSConfig{EnableCaching: false, LocalTTL: 0})
-	assert.NoError(t, err)
-	err = config.CreateConfig("network", lte.CellularEnodebType, "enb1", test_utils.NewDefaultEnodebConfig())
-	assert.NoError(t, err)
-	err = config.CreateConfig("network", lte.CellularGatewayType, "gw1", test_utils.NewDefaultGatewayConfig())
-	assert.NoError(t, err)
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkType: newDefaultTDDNetworkConfig(),
+			orc8r.DnsdNetworkType: &models2.NetworkDNSConfig{
+				EnableCaching: true,
+			},
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayType, Key: "gw1"},
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayType, Key: "gw1",
+		Config: newDefaultGatewayConfig(),
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+		},
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	enb := configurator.NetworkEntity{
+		Type: lte.CellularEnodebType, Key: "enb1",
+		Config:             newDefaultEnodebConfig(),
+		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+		},
+	}
 
-	actual, err = builder.Build("network", "gw1")
-	assert.NoError(t, err)
-
+	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
 			LogLevel:               protos.LogLevel_INFO,
@@ -68,7 +84,7 @@ func TestCellularBuilder_Build(t *testing.T) {
 			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
 			Arfcn_2G:            []int32{},
 			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
-				"enb1": &mconfig.EnodebD_EnodebConfig{
+				"enb1": {
 					Earfcndl:               39150,
 					SubframeAssignment:     2,
 					SpecialSubframePattern: 7,
@@ -98,6 +114,7 @@ func TestCellularBuilder_Build(t *testing.T) {
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
+			EnableDnsCaching:         true,
 			AttachedEnodebTacs:       []int32{15000},
 		},
 		"pipelined": &mconfig.PipelineD{
@@ -126,27 +143,40 @@ func TestCellularBuilder_Build(t *testing.T) {
 			RelayEnabled: false,
 		},
 	}
+	err := builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-// Should still stream even if no dnsd config exists
-func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	config_test_init.StartTestService(t)
-	builder := &cellular_config.CellularBuilder{}
-	actual, err := builder.Build("network", "gw1")
-	assert.NoError(t, err)
-	assert.Equal(t, map[string]proto.Message{}, actual)
+func TestBuilder_Build_BaseCase(t *testing.T) {
+	builder := &plugin.Builder{}
 
-	err = config.CreateConfig("network", lte.CellularNetworkType, "network", test_utils.NewDefaultTDDNetworkConfig())
-	assert.NoError(t, err)
-	err = config.CreateConfig("network", lte.CellularGatewayType, "gw1", test_utils.NewDefaultGatewayConfig())
-	assert.NoError(t, err)
+	// no dnsd config, no enodebs
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkType: newDefaultTDDNetworkConfig(),
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayType, Key: "gw1"},
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayType, Key: "gw1",
+		Config:             newDefaultGatewayConfig(),
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
 
-	actual, err = builder.Build("network", "gw1")
-	assert.NoError(t, err)
-
+	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
 			LogLevel:               protos.LogLevel_INFO,
@@ -212,6 +242,67 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 			RelayEnabled: false,
 		},
 	}
+	err := builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+}
 
+func newDefaultTDDNetworkConfig() *models.NetworkCellularConfigs {
+	return &models.NetworkCellularConfigs{
+		Ran: &models.NetworkRanConfigs{
+			BandwidthMhz:           20,
+			Earfcndl:               44590,
+			SubframeAssignment:     2,
+			SpecialSubframePattern: 7,
+			TddConfig: &models.NetworkRanConfigsTddConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+		},
+		Epc: &models.NetworkEpcConfigs{
+			Mcc: "001",
+			Mnc: "01",
+			Tac: 1,
+			// 16 bytes of \x11
+			LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf: []byte("\x80\x00"),
+		},
+	}
+}
+
+func newDefaultGatewayConfig() *models.GatewayCellularConfigs {
+	return &models.GatewayCellularConfigs{
+		AttachedEnodebSerials: []string{"enb1"},
+		Ran: &models.GatewayRanConfigs{
+			Pci:             260,
+			TransmitEnabled: true,
+		},
+		Epc: &models.GatewayEpcConfigs{
+			NatEnabled: true,
+			IPBlock:    "192.168.128.0/24",
+		},
+		NonEpsService: &models.GatewayNonEpsServiceConfigs{
+			CsfbMcc:              "",
+			CsfbMnc:              "",
+			Lac:                  1,
+			CsfbRat:              0,
+			Arfcn2g:              []uint32{},
+			NonEpsServiceControl: 0,
+		},
+	}
+}
+
+func newDefaultEnodebConfig() *models.NetworkEnodebConfigs {
+	return &models.NetworkEnodebConfigs{
+		Earfcndl:               39150,
+		SubframeAssignment:     2,
+		SpecialSubframePattern: 7,
+		Pci:                    260,
+		CellID:                 138777000,
+		Tac:                    15000,
+		BandwidthMhz:           20,
+		TransmitEnabled:        true,
+		DeviceClass:            "Baicells ID TDD/FDD",
+	}
 }

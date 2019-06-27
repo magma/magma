@@ -15,7 +15,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"magma/lte/cloud/go/services/cellular/config"
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/lte/cloud/go/services/cellular/utils"
 	"magma/orc8r/cloud/go/obsidian/handlers"
@@ -35,11 +35,11 @@ const (
 
 // GetObsidianHandlers returns all obsidian handlers for the cellular service
 func GetObsidianHandlers() []handlers.Handler {
-	defaultUpdateHandler := obsidian.GetUpdateNetworkConfigHandler(NetworkConfigPath, config.CellularNetworkType, &models.NetworkCellularConfigs{})
+	defaultUpdateHandler := obsidian.GetUpdateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{})
 	ret := []handlers.Handler{
-		obsidian.GetReadNetworkConfigHandler(NetworkConfigPath, config.CellularNetworkType, &models.NetworkCellularConfigs{}),
-		obsidian.GetCreateNetworkConfigHandler(NetworkConfigPath, config.CellularNetworkType, &models.NetworkCellularConfigs{}),
-		obsidian.GetDeleteNetworkConfigHandler(NetworkConfigPath, config.CellularNetworkType),
+		obsidian.GetReadNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
+		obsidian.GetCreateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
+		obsidian.GetDeleteNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType),
 		// Patch default config update handler to set TDD/FDD fields in network config
 		{
 			Path:    defaultUpdateHandler.Path,
@@ -59,14 +59,14 @@ func GetObsidianHandlers() []handlers.Handler {
 				return defaultUpdateHandler.MigratedHandlerFunc(cc)
 			},
 		},
-		obsidian.GetReadConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		obsidian.GetCreateConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		obsidian.GetUpdateConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		obsidian.GetDeleteConfigHandler(EnodebConfigPath, config.CellularEnodebType, getEnodebId),
+		obsidian.GetReadConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		obsidian.GetCreateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		obsidian.GetUpdateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		obsidian.GetDeleteConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId),
 		// List all eNodeB devices for a network
-		obsidian.GetReadAllKeysConfigHandler(EnodebListPath, config.CellularEnodebType),
+		obsidian.GetReadAllKeysConfigHandler(EnodebListPath, lte.CellularEnodebType),
 	}
-	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, config.CellularGatewayType, &models.GatewayCellularConfigs{})...)
+	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})...)
 	return ret
 }
 

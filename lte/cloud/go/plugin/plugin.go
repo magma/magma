@@ -62,9 +62,9 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		state.NewStateSerde(lte.SubscriberStateType, &models3.SubscriberState{}),
 
 		// Configurator serdes
-		configurator.NewNetworkConfigSerde(config.CellularNetworkType, &models.NetworkCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(config.CellularGatewayType, &models.GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(config.CellularEnodebType, &models.NetworkEnodebConfigs{}),
+		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &models.GatewayCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &models.NetworkEnodebConfigs{}),
 
 		configurator.NewNetworkEntityConfigSerde(policydb.PolicyRuleEntityType, &models2.PolicyRule{}),
 		configurator.NewNetworkEntityConfigSerde(policydb.BaseNameEntityType, &models2.BaseNameRecord{}),
@@ -79,7 +79,9 @@ func (*LteOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilde
 }
 
 func (*LteOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{}
+	return []configurator.MconfigBuilder{
+		&Builder{},
+	}
 }
 
 func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
