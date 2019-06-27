@@ -71,6 +71,11 @@ func (p Packet) Identifier() uint8 {
 	return p[EapMsgIdentifier]
 }
 
+// IsSuccess returns if the EAP Packet Code is Success (3)
+func (p Packet) IsSuccess() bool {
+	return len(p) > EapMsgCode && p[EapMsgCode] == SuccessCode
+}
+
 // Type returns EAP Method Type or 0 - reserved if not available
 func (p Packet) Type() uint8 {
 	if len(p) <= EapMsgMethodType {

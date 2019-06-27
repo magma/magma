@@ -43,7 +43,7 @@ func main() {
 	acct, _ := servicers.NewAccountingService(sessions, proto.Clone(aaaConfigs).(*mconfig.AAAConfig))
 	protos.RegisterAccountingServer(srv.GrpcServer, acct)
 
-	auth, _ := servicers.NewEapAuthenticator(nil, aaaConfigs, acct)
+	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
 	err = srv.Run()
