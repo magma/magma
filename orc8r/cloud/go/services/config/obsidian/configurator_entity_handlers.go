@@ -22,7 +22,7 @@ import (
 // This set of CRUD handlers are meant for entities that only have one config
 // per entity.
 func configuratorCreateEntityConfig(c echo.Context, networkID string, entityType string, entityKey string, iConfig interface{}) error {
-	config, nerr := getConfigAndValidate(c, iConfig)
+	config, nerr := GetConfigAndValidate(c, iConfig)
 	if nerr != nil {
 		return nerr
 	}
@@ -48,7 +48,7 @@ func configuratorGetEntityConfig(c echo.Context, networkID string, entityType st
 }
 
 func configuratorUpdateEntityConfig(c echo.Context, networkID string, entityType string, entityKey string, iConfig interface{}) error {
-	config, nerr := getConfigAndValidate(c, iConfig)
+	config, nerr := GetConfigAndValidate(c, iConfig)
 	if nerr != nil {
 		return nerr
 	}

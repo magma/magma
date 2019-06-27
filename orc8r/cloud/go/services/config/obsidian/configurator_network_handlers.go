@@ -39,7 +39,7 @@ func getConfigTypeForConfigurator(configType string) ConfigType {
 // Networks
 
 func configuratorCreateNetworkConfig(c echo.Context, networkID string, configType string, iConfig interface{}) error {
-	config, nerr := getConfigAndValidate(c, iConfig)
+	config, nerr := GetConfigAndValidate(c, iConfig)
 	if nerr != nil {
 		return nerr
 	}
@@ -62,7 +62,7 @@ func configuratorGetNetworkConfig(c echo.Context, networkID string, configType s
 }
 
 func configuratorUpdateNetworkConfig(c echo.Context, networkID string, configType string, iConfig interface{}) error {
-	config, nerr := getConfigAndValidate(c, iConfig)
+	config, nerr := GetConfigAndValidate(c, iConfig)
 	if nerr != nil {
 		return nerr
 	}
@@ -81,7 +81,7 @@ func configuratorDeleteNetworkConfig(c echo.Context, networkID string, configTyp
 	return c.NoContent(http.StatusOK)
 }
 
-func getConfigAndValidate(c echo.Context, iConfig interface{}) (ConvertibleUserModel, error) {
+func GetConfigAndValidate(c echo.Context, iConfig interface{}) (ConvertibleUserModel, error) {
 	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
 	if err := c.Bind(cfgInstance); err != nil {
 		return nil, handlers.HttpError(err, http.StatusBadRequest)
