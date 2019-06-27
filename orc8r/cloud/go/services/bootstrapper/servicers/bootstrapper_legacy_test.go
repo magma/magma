@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package servicers_test
 
@@ -20,45 +20,33 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
-	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
-	"magma/orc8r/cloud/go/services/configurator"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/services/magmad"
+	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
+	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
-	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
 
-const (
-	echoType  = "ECHO"
-	rsaType   = "SOFTWARE_RSA_SHA256"
-	ecdsaType = "SOFTWARE_ECDSA_SHA256"
-)
-
-func testWithECHO(
+func testWithECHOLegacy(
 	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_echo"
 
-	configurator_test_utils.RegisterGateway(
-		t,
+	_, err := magmad.RegisterGateway(
 		networkId,
-		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
+		&magmad_protos.AccessGatewayRecord{
+			HwId: &protos.AccessGatewayID{Id: testAgHwId},
 			Name: "Test GW echo",
-			Key:  &models.ChallengeKey{KeyType: echoType},
+			Key:  &protos.ChallengeKey{KeyType: protos.ChallengeKey_ECHO},
 		})
+	assert.NoError(t, err)
 
 	// check challenge type
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
@@ -82,7 +70,7 @@ func testWithECHO(
 	assert.NotNil(t, cert)
 }
 
-func testWithRSA(
+func testWithRSALegacy(
 	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_rsa"
@@ -91,19 +79,16 @@ func testWithRSA(
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 
-	pubKey := strfmt.Base64(marshaledPubKey)
-	configurator_test_utils.RegisterGateway(
-		t,
+	_, err = magmad.RegisterGateway(
 		networkId,
-		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
+		&magmad_protos.AccessGatewayRecord{
+			HwId: &protos.AccessGatewayID{Id: testAgHwId},
 			Name: "Test GW RSA",
-			Key: &models.ChallengeKey{
-				KeyType: rsaType,
-				Key:     &pubKey,
-			},
+			Key: &protos.ChallengeKey{
+				KeyType: protos.ChallengeKey_SOFTWARE_RSA_SHA256,
+				Key:     marshaledPubKey},
 		})
+	assert.NoError(t, err)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -132,7 +117,7 @@ func testWithRSA(
 	assert.NotNil(t, cert)
 }
 
-func testWithECDSA(
+func testWithECDSALegacy(
 	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_ecdsa"
@@ -141,19 +126,16 @@ func testWithECDSA(
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 
-	pubKey := strfmt.Base64(marshaledPubKey)
-	configurator_test_utils.RegisterGateway(
-		t,
+	_, err = magmad.RegisterGateway(
 		networkId,
-		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
+		&magmad_protos.AccessGatewayRecord{
+			HwId: &protos.AccessGatewayID{Id: testAgHwId},
 			Name: "Test GW ECDSA",
-			Key: &models.ChallengeKey{
-				KeyType: ecdsaType,
-				Key:     &pubKey,
-			},
+			Key: &protos.ChallengeKey{
+				KeyType: protos.ChallengeKey_SOFTWARE_ECDSA_SHA256,
+				Key:     marshaledPubKey},
 		})
+	assert.NoError(t, err)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -180,7 +162,7 @@ func testWithECDSA(
 	assert.NotNil(t, cert)
 }
 
-func testNegative(
+func testNegativeLegacy(
 	t *testing.T, networkId string, srv *servicers.BootstrapperServer, ctx context.Context) {
 
 	testAgHwId := "test_ag_negative"
@@ -189,38 +171,29 @@ func testNegative(
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 
-	pubKey := strfmt.Base64(marshaledPubKey)
-	configurator_test_utils.RegisterGateway(
-		t,
+	_, err = magmad.RegisterGateway(
 		networkId,
-		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
-			Name: "Test GW ECDSA with bad key type",
-			Key: &models.ChallengeKey{
-				KeyType: "10",
-				Key:     &pubKey,
-			},
+		&magmad_protos.AccessGatewayRecord{
+			HwId: &protos.AccessGatewayID{Id: testAgHwId},
+			Name: "Test GW ECDSA",
+			Key:  &protos.ChallengeKey{KeyType: 10, Key: marshaledPubKey},
 		})
-
+	assert.NoError(t, err)
 	// cannot get challenge because of unsupported key type
 	_, err = srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.Error(t, err)
 
-	configurator_test_utils.RemoveGateway(t, networkId, testAgHwId)
-
-	configurator_test_utils.RegisterGateway(
-		t,
+	testAgHwId = "test_ag_negative2"
+	_, err = magmad.RegisterGateway(
 		networkId,
-		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
+		&magmad_protos.AccessGatewayRecord{
+			HwId: &protos.AccessGatewayID{Id: testAgHwId},
 			Name: "Test GW ECDSA",
-			Key: &models.ChallengeKey{
-				KeyType: rsaType,
-				Key:     &pubKey,
-			},
+			Key: &protos.ChallengeKey{
+				KeyType: protos.ChallengeKey_SOFTWARE_ECDSA_SHA256,
+				Key:     marshaledPubKey},
 		})
+	assert.NoError(t, err)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -282,20 +255,13 @@ func testNegative(
 	assert.Error(t, err)
 }
 
-func TestBootstrapperServer(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
-	configurator_test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
-	serde.RegisterSerdes(&pluginimpl.GatewayRecordSerde{})
-
-	testNetworkID := "bootstrapper_test_network"
-	err := configurator.CreateNetwork(configurator.Network{
-		ID:   testNetworkID,
-		Name: "Test Network Name",
-	})
+func TestBootstrapperServerLegacy(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "0")
+	magmad_test_init.StartTestService(t)
+	testNetworkId, err := magmad.RegisterNetwork(
+		&magmad_protos.MagmadNetworkRecord{Name: "Test Network Name"},
+		"bootstrapper_test_network")
 	assert.NoError(t, err)
-	exists, err := configurator.DoesNetworkExist(testNetworkID)
-	assert.True(t, exists)
 
 	ctx := context.Background()
 
@@ -313,17 +279,17 @@ func TestBootstrapperServer(t *testing.T) {
 	// for signing csr
 	certifier_test_init.StartTestService(t)
 
-	testWithECHO(t, testNetworkID, srv, ctx)
+	testWithECHOLegacy(t, testNetworkId, srv, ctx)
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-serial", "bla"))
-	testWithRSA(t, testNetworkID, srv, ctx)
+	testWithRSALegacy(t, testNetworkId, srv, ctx)
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-serial", ""))
-	testWithECDSA(t, testNetworkID, srv, ctx)
+	testWithECDSALegacy(t, testNetworkId, srv, ctx)
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-cn", "bla"))
-	testNegative(t, testNetworkID, srv, ctx)
+	testNegativeLegacy(t, testNetworkId, srv, ctx)
 }

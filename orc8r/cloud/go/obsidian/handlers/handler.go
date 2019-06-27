@@ -18,6 +18,7 @@ import (
 	"os"
 
 	"magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/util"
 
 	"github.com/labstack/echo"
@@ -58,8 +59,6 @@ const (
 	DELETE
 	ALL = GET | POST | PUT | DELETE
 )
-
-const UseNewHandlersEnv = "USE_NEW_HANDLERS"
 
 const (
 	URL_SEP                   = "/"
@@ -117,7 +116,7 @@ func register(registry handlerRegistry, handler Handler) error {
 			}
 			return handler.MigratedHandlerFunc(c)
 		} else {
-			shouldUse, found := os.LookupEnv(UseNewHandlersEnv)
+			shouldUse, found := os.LookupEnv(orc8r.UseConfiguratorEnv)
 			if !found {
 				return handler.HandlerFunc(c)
 			}

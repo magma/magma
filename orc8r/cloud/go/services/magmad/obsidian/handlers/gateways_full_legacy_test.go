@@ -16,7 +16,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/config"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory/mocks"
@@ -27,7 +27,7 @@ import (
 )
 
 func TestGetViewsForNetworkLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	// Set up test
 	mockStore := &mocks.FullGatewayViewFactory{}
 	config.TLS = false
@@ -68,7 +68,7 @@ func TestGetViewsForNetworkLegacy(t *testing.T) {
 }
 
 func TestGetViewsForNetworkEmptyResponseLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	mockStore := &mocks.FullGatewayViewFactory{}
 	config.TLS = false
 
@@ -95,11 +95,11 @@ func TestGetViewsForNetworkEmptyResponseLegacy(t *testing.T) {
 }
 
 func TestGetGatewayViews_QueryType1Legacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	testGetGatewayViews(t, "gateway_ids=gw0,gw1,badgw")
 }
 
 func TestGetGatewayViews_QueryType2Legacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	testGetGatewayViews(t, "gateway_ids[0]=gw0&gateway_ids[1]=gw1&gateway_ids[2]=badgw")
 }

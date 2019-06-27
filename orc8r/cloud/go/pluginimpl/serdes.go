@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -39,7 +40,7 @@ func (*GatewayRecordSerde) GetDomain() string {
 }
 
 func (*GatewayRecordSerde) GetType() string {
-	return "access_gateway_record"
+	return orc8r.AccessGatewayRecordType
 }
 
 func (*GatewayRecordSerde) Serialize(in interface{}) ([]byte, error) {

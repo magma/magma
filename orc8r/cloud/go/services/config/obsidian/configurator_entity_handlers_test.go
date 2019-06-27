@@ -16,7 +16,7 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -27,7 +27,7 @@ import (
 )
 
 func commonSetupEntities(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 	err := serde.RegisterSerdes(
 		configurator.NewNetworkEntityConfigSerde("cfg_entity", &configType{}),

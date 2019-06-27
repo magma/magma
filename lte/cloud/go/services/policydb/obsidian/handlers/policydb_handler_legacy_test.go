@@ -19,6 +19,7 @@ import (
 	policydb_test_init "magma/lte/cloud/go/services/policydb/test_init"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -26,7 +27,7 @@ import (
 )
 
 func TestPolicyRules(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)

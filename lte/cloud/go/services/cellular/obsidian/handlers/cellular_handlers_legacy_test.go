@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/services/cellular/test_utils"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
@@ -29,7 +30,7 @@ import (
 )
 
 func TestGetNetworkConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -70,7 +71,7 @@ func TestGetNetworkConfigsLegacy(t *testing.T) {
 }
 
 func TestSetTDDNetworkConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -79,7 +80,7 @@ func TestSetTDDNetworkConfigsLegacy(t *testing.T) {
 }
 
 func TestSetFDDNetworkConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -88,7 +89,7 @@ func TestSetFDDNetworkConfigsLegacy(t *testing.T) {
 }
 
 func TestSetOldTddNetworkConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -97,7 +98,7 @@ func TestSetOldTddNetworkConfigsLegacy(t *testing.T) {
 }
 
 func TestSetOldFddNetworkConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -106,7 +107,7 @@ func TestSetOldFddNetworkConfigsLegacy(t *testing.T) {
 }
 
 func TestSetBadNetworkConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -199,7 +200,7 @@ func TestSetBadNetworkConfigsLegacy(t *testing.T) {
 }
 
 func TestSetBadOldConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -232,7 +233,7 @@ func TestSetBadOldConfigsLegacy(t *testing.T) {
 }
 
 func TestGetGatewayConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -274,7 +275,7 @@ func TestGetGatewayConfigsLegacy(t *testing.T) {
 }
 
 func TestSetGatewayConfigsLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)

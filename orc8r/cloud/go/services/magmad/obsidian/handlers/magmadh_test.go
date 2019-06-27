@@ -16,6 +16,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
@@ -29,7 +30,7 @@ import (
 )
 
 func TestMagmad(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)

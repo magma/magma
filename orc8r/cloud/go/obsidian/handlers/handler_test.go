@@ -15,6 +15,8 @@ import (
 	"strings"
 	"testing"
 
+	"magma/orc8r/cloud/go/orc8r"
+
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -44,7 +46,7 @@ func TestRegister(t *testing.T) {
 		expectedError:           "foo",
 	})
 
-	err := os.Setenv(UseNewHandlersEnv, "0")
+	err := os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	assert.NoError(t, err)
 	runCase(t, testCase{expectHandlerFuncCalled: true})
 	runCase(t, testCase{
@@ -52,7 +54,7 @@ func TestRegister(t *testing.T) {
 		handlerFuncError:        "foo",
 		expectedError:           "foo",
 	})
-	err = os.Setenv(UseNewHandlersEnv, "1")
+	err = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	assert.NoError(t, err)
 	runCase(t, testCase{expectMigratedHandlerFuncCalled: true})
 	runCase(t, testCase{

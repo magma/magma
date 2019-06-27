@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/services/cellular/test_utils"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
@@ -32,7 +33,7 @@ import (
 )
 
 func TestGetNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -73,7 +74,7 @@ func TestGetNetworkConfigs(t *testing.T) {
 }
 
 func TestSetTDDNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -82,7 +83,7 @@ func TestSetTDDNetworkConfigs(t *testing.T) {
 }
 
 func TestSetFDDNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -91,7 +92,7 @@ func TestSetFDDNetworkConfigs(t *testing.T) {
 }
 
 func TestSetOldTddNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -100,7 +101,7 @@ func TestSetOldTddNetworkConfigs(t *testing.T) {
 }
 
 func TestSetOldFddNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -109,7 +110,7 @@ func TestSetOldFddNetworkConfigs(t *testing.T) {
 }
 
 func TestSetBadNetworkConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -202,7 +203,7 @@ func TestSetBadNetworkConfigs(t *testing.T) {
 }
 
 func TestSetBadOldConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -235,7 +236,7 @@ func TestSetBadOldConfigs(t *testing.T) {
 }
 
 func TestGetGatewayConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -277,7 +278,7 @@ func TestGetGatewayConfigs(t *testing.T) {
 }
 
 func TestSetGatewayConfigs(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
@@ -434,7 +435,7 @@ func testSetNetworkConfigs(t *testing.T, config *cellular_protos.CellularNetwork
 }
 
 func registerNetwork(t *testing.T, networkName string, networkID string) string {
-	useNewHandler := os.Getenv(handlers.UseNewHandlersEnv)
+	useNewHandler := os.Getenv(orc8r.UseConfiguratorEnv)
 	if useNewHandler == "1" {
 		err := configurator.CreateNetwork(
 			configurator.Network{
@@ -454,7 +455,7 @@ func registerNetwork(t *testing.T, networkName string, networkID string) string 
 }
 
 func registerGateway(t *testing.T, networkId string, gatewayId string) string {
-	useNewHandler := os.Getenv(handlers.UseNewHandlersEnv)
+	useNewHandler := os.Getenv(orc8r.UseConfiguratorEnv)
 	if useNewHandler == "1" {
 		_, err := configurator.CreateEntity(networkId, configurator.NetworkEntity{
 			Key:        gatewayId,
