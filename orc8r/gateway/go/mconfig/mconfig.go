@@ -19,7 +19,7 @@ import (
 )
 
 func GetServiceConfigs(service string, result proto.Message) error {
-	current := localConfig.Load().(*protos.GatewayConfigs)
+	current := GetGatewayConfigs()
 	anyCfg, found := current.ConfigsByKey[service]
 	if !found {
 		cfgMu.Lock()
@@ -30,5 +30,14 @@ func GetServiceConfigs(service string, result proto.Message) error {
 }
 
 func GetGatewayConfigs() *protos.GatewayConfigs {
-	return localConfig.Load().(*protos.GatewayConfigs)
+	current := localConfig.Load().(*protos.GatewayConfigs)
+	if current == nil {
+		// initial refresh, only do it once
+		err := RefreshConfigs()
+		if err != nil || localConfig.Load() == nil {
+			localConfig.Store(new(protos.GatewayConfigs))
+		}
+		current = localConfig.Load().(*protos.GatewayConfigs)
+	}
+	return current
 }
