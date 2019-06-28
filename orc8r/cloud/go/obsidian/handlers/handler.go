@@ -262,6 +262,18 @@ func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
 	return logicalGwId, nil
 }
 
+func GetNetworkAndGWID(c echo.Context) (string, string, error) {
+	networkID, err := GetNetworkId(c)
+	if err != nil {
+		return "", "", err
+	}
+	gatewayID, err := GetLogicalGwId(c)
+	if err != nil {
+		return "", "", err
+	}
+	return networkID, gatewayID, nil
+}
+
 func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {
 	operId := c.Param("operator_id")
 	if operId == "" {
