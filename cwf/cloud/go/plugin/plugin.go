@@ -10,6 +10,9 @@ package plugin
 
 import (
 	"magma/cwf/cloud/go/cwf"
+	cwfconfig "magma/cwf/cloud/go/services/carrier_wifi/config"
+	cwfhandlers "magma/cwf/cloud/go/services/carrier_wifi/obsidian/handlers"
+	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
@@ -38,15 +41,21 @@ func (*CwfOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{}
+	return []serde.Serde{
+		configurator.NewNetworkConfigSerde(cwf.CwfNetworkType, &models.NetworkCarrierWifiConfigs{}),
+	}
 }
 
 func (*CwfOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
-	return []factory.MconfigBuilder{}
+	return []factory.MconfigBuilder{
+		&cwfconfig.Builder{},
+	}
 }
 
 func (*CwfOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{}
+	return []configurator.MconfigBuilder{
+		&Builder{},
+	}
 }
 
 func (*CwfOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
@@ -54,7 +63,9 @@ func (*CwfOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.Config
 }
 
 func (*CwfOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []handlers.Handler {
-	return plugin.FlattenHandlerLists()
+	return plugin.FlattenHandlerLists(
+		cwfhandlers.GetObsidianHandlers(),
+	)
 }
 
 func (*CwfOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
