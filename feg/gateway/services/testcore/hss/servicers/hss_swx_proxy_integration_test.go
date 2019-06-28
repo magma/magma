@@ -9,8 +9,8 @@ import (
 	"magma/feg/gateway/services/swx_proxy/cache"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
+	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/crypto"
 
 	"github.com/stretchr/testify/assert"
 )

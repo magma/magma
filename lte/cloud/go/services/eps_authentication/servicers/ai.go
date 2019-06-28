@@ -18,8 +18,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/crypto"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/orc8r/cloud/go/identity"
 )

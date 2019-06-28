@@ -54,6 +54,26 @@ func TestGenerateSIPAuthVector(t *testing.T) {
 	assert.Equal(t, []byte{0x6f, 0xbf, 0xa3, 0x80, 0x3, 0xe0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, vector.AnonymityKey[:])
 }
 
+func TestGenerateSIPAuthVectorWithRand(t *testing.T) {
+	rand := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f")
+	key := []byte("\x8b\xafG?/\x8f\xd0\x94\x87\xcc\xcb\xd7\t|hb")
+	sqn := uint64(7351)
+	opc := []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]")
+	amf := []byte("\x80\x00")
+
+	milenage, err := NewMilenageCipher(amf)
+	assert.NoError(t, err)
+
+	vector, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc, sqn)
+	assert.NoError(t, err)
+	assert.Equal(t, rand, vector.Rand[:])
+	assert.Equal(t, []byte("\x2d\xaf\x87\x3d\x73\xf3\x10\xc6"), vector.Xres[:])
+	assert.Equal(t, []byte("o\xbf\xa3\x80\x1fW\x80\x00{\xdeY\x88n\x96\xe4\xfe"), vector.Autn[:])
+	assert.Equal(t, []byte{0xf0, 0x6e, 0x32, 0xf9, 0x13, 0xee, 0xfb, 0x49, 0xfb, 0x72, 0xf1, 0x9, 0xb3, 0xa5, 0xf3, 0xc8}, vector.ConfidentialityKey[:])
+	assert.Equal(t, []byte{0xb0, 0x6a, 0x7b, 0x46, 0xf, 0x4f, 0x53, 0xc4, 0x16, 0x6b, 0xf4, 0xa2, 0xe0, 0xa0, 0xc2, 0x5c}, vector.IntegrityKey[:])
+	assert.Equal(t, []byte{0x6f, 0xbf, 0xa3, 0x80, 0x3, 0xe0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0}, vector.AnonymityKey[:])
+}
+
 func TestGenerateEutranVectorError(t *testing.T) {
 	amf := []byte("\x80\x00")
 	milenage, err := NewMilenageCipher(amf)
@@ -91,7 +111,7 @@ func TestValidateGenerateEutranVectorInputs(t *testing.T) {
 }
 
 func TestValidateGenerateSIPAuthVectorInputs(t *testing.T) {
-	err := validateGenerateEutranVectorInputs(nil, nil, 0, nil)
+	err := validateGenerateSIPAuthVectorInputs(nil, nil, 0)
 	assert.Error(t, err)
 
 	var key = make([]byte, ExpectedKeyBytes)
@@ -108,6 +128,32 @@ func TestValidateGenerateSIPAuthVectorInputs(t *testing.T) {
 	assert.EqualError(t, err, "incorrect opc size. Expected 16 bytes, but got 8 bytes")
 
 	err = validateGenerateSIPAuthVectorInputs(key, opc, maxSqn+1)
+	assert.EqualError(t, err, "sequence number too large, expected a number which can fit in 48 bits. Got: 140737488355328")
+}
+
+func TestValidateGenerateSIPAuthVectorWithRandInputs(t *testing.T) {
+	err := validateGenerateSIPAuthVectorWithRandInputs(nil, nil, nil, 0)
+	assert.Error(t, err)
+
+	var rand = make([]byte, RandChallengeBytes)
+	var key = make([]byte, ExpectedKeyBytes)
+	var opc = make([]byte, ExpectedOpcBytes)
+	err = validateGenerateSIPAuthVectorWithRandInputs(rand, key, opc, 0)
+	assert.NoError(t, err)
+
+	var badRand = make([]byte, RandChallengeBytes*2)
+	err = validateGenerateSIPAuthVectorWithRandInputs(badRand, key, opc, 0)
+	assert.EqualError(t, err, "incorrect rand size. Expected 16 bytes, but got 32 bytes")
+
+	var badKey = make([]byte, ExpectedKeyBytes*2)
+	err = validateGenerateSIPAuthVectorWithRandInputs(rand, badKey, opc, 0)
+	assert.EqualError(t, err, "incorrect key size. Expected 16 bytes, but got 32 bytes")
+
+	var badOpc = make([]byte, ExpectedOpcBytes/2)
+	err = validateGenerateSIPAuthVectorWithRandInputs(rand, key, badOpc, 0)
+	assert.EqualError(t, err, "incorrect opc size. Expected 16 bytes, but got 8 bytes")
+
+	err = validateGenerateSIPAuthVectorWithRandInputs(rand, key, opc, maxSqn+1)
 	assert.EqualError(t, err, "sequence number too large, expected a number which can fit in 48 bits. Got: 140737488355328")
 }
 
