@@ -370,7 +370,13 @@ func GetUpdateConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
-			case Gateway, Entity:
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
 				configKey, err := configKeyGetter(c)
 				if err != nil {
 					return err
