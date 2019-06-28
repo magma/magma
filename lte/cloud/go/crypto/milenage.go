@@ -166,29 +166,43 @@ func (milenage *MilenageCipher) GenerateSIPAuthVector(key []byte, opc []byte, sq
 	if err != nil {
 		return nil, err
 	}
+	return milenage.GenerateSIPAuthVectorWithRand(randChallenge, key, opc, sqn)
+}
+
+// GenerateSIPAuthVectorWithRand creates a SIP auth vector using a specific random challenge value.
+// Inputs:
+//   rand: 128 bit random challenge
+//   key:  128 bit subscriber key
+//   opc:  128 bit operator variant algorithm configuration field
+//   sqn:  48 bit sequence number
+// Outputs: A SIP auth vector or an error. The SIP auth vector is not nil if and only if err == nil.
+func (milenage *MilenageCipher) GenerateSIPAuthVectorWithRand(rand []byte, key []byte, opc []byte, sqn uint64) (*SIPAuthVector, error) {
+	if err := validateGenerateSIPAuthVectorWithRandInputs(rand, key, opc, sqn); err != nil {
+		return nil, err
+	}
 	sqnBytes := getSqnBytes(sqn)
 
-	macA, _, err := f1(key, sqnBytes, randChallenge, opc, milenage.amf[:])
+	macA, _, err := f1(key, sqnBytes, rand, opc, milenage.amf[:])
 	if err != nil {
 		return nil, err
 	}
 
-	xres, ak, err := f2F5(key, randChallenge, opc)
+	xres, ak, err := f2F5(key, rand, opc)
 	if err != nil {
 		return nil, err
 	}
 
-	ck, err := f3(key, randChallenge, opc)
+	ck, err := f3(key, rand, opc)
 	if err != nil {
 		return nil, err
 	}
-	ik, err := f4(key, randChallenge, opc)
+	ik, err := f4(key, rand, opc)
 	if err != nil {
 		return nil, err
 	}
 
 	autn := generateAutn(sqnBytes, ak, macA, milenage.amf[:])
-	return newSIPAuthVector(randChallenge, xres, autn, ck, ik, ak), nil
+	return newSIPAuthVector(rand, xres, autn, ck, ik, ak), nil
 }
 
 // GenerateOpc returns the OP_c according to 3GPP 35.205 8.2
@@ -279,6 +293,25 @@ func validateGenerateEutranVectorInputs(key []byte, opc []byte, sqn uint64, plmn
 // Each byte slice must be the correct number of bytes and sqn must fit within 48 bits.
 // Output: An error if any of the arguments is invalid or nil otherwise.
 func validateGenerateSIPAuthVectorInputs(key []byte, opc []byte, sqn uint64) error {
+	if len(key) != ExpectedKeyBytes {
+		return fmt.Errorf("incorrect key size. Expected %v bytes, but got %v bytes", ExpectedKeyBytes, len(key))
+	}
+	if len(opc) != ExpectedOpcBytes {
+		return fmt.Errorf("incorrect opc size. Expected %v bytes, but got %v bytes", ExpectedOpcBytes, len(opc))
+	}
+	if uint64(sqn) > maxSqn {
+		return fmt.Errorf("sequence number too large, expected a number which can fit in 48 bits. Got: %v", sqn)
+	}
+	return nil
+}
+
+// validateGenerateSIPAuthVectorWithRandInputs ensures that each argument has the required form.
+// Each byte slice must be the correct number of bytes and sqn must fit within 48 bits.
+// Output: An error if any of the arguments is invalid or nil otherwise.
+func validateGenerateSIPAuthVectorWithRandInputs(rand []byte, key []byte, opc []byte, sqn uint64) error {
+	if len(rand) != RandChallengeBytes {
+		return fmt.Errorf("incorrect rand size. Expected %v bytes, but got %v bytes", RandChallengeBytes, len(rand))
+	}
 	if len(key) != ExpectedKeyBytes {
 		return fmt.Errorf("incorrect key size. Expected %v bytes, but got %v bytes", ExpectedKeyBytes, len(key))
 	}
