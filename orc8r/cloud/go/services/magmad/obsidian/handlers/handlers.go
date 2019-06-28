@@ -21,19 +21,19 @@ func GetObsidianHandlers() []handlers.Handler {
 	return []handlers.Handler{
 		// Network
 		{Path: ListNetworks, Methods: handlers.GET, HandlerFunc: listNetworksHandler, MigratedHandlerFunc: listNetworks},
-		{Path: RegisterNetwork, Methods: handlers.POST, HandlerFunc: registerNetworkHandler, MigratedHandlerFunc: registerNetwork},
+		{Path: RegisterNetwork, Methods: handlers.POST, HandlerFunc: registerNetworkHandler, MigratedHandlerFunc: registerNetwork, MultiplexAfterMigration: true},
 		{Path: ManageNetwork, Methods: handlers.GET, HandlerFunc: getNetworkHandler, MigratedHandlerFunc: getNetwork},
-		{Path: ManageNetwork, Methods: handlers.PUT, HandlerFunc: updateNetworkHandler, MigratedHandlerFunc: updateNetwork},
-		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetworkHandler, MigratedHandlerFunc: deleteNetwork},
+		{Path: ManageNetwork, Methods: handlers.PUT, HandlerFunc: updateNetworkHandler, MigratedHandlerFunc: updateNetwork, MultiplexAfterMigration: true},
+		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetworkHandler, MigratedHandlerFunc: deleteNetwork, MultiplexAfterMigration: true},
 
 		// Gateway
 		{Path: RegisterAG, Methods: handlers.GET,
 			HandlerFunc:         getListGatewaysHandler(&view_factory.FullGatewayViewFactoryImpl{}),
 			MigratedHandlerFunc: getListGateways(&view_factory.FullGatewayViewFactoryImpl{})},
-		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: createGatewayHandler, MigratedHandlerFunc: createGateway},
+		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: createGatewayHandler, MigratedHandlerFunc: createGateway, MultiplexAfterMigration: true},
 		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGatewayHandler, MigratedHandlerFunc: getGateway},
-		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGatewayHandler, MigratedHandlerFunc: updateGateway},
-		{Path: ManageAG, Methods: handlers.DELETE, HandlerFunc: deleteGatewayHandler, MigratedHandlerFunc: deleteGateway},
+		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGatewayHandler, MigratedHandlerFunc: updateGateway, MultiplexAfterMigration: true},
+		{Path: ManageAG, Methods: handlers.DELETE, HandlerFunc: deleteGatewayHandler, MigratedHandlerFunc: deleteGateway, MultiplexAfterMigration: true},
 
 		// Gateway Commands
 		{Path: RebootGateway, Methods: handlers.POST, HandlerFunc: rebootGateway},

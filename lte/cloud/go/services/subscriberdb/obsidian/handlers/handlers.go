@@ -29,13 +29,13 @@ const (
 // GetObsidianHandlers returns all obsidian handlers for subscriberdb
 func GetObsidianHandlers() []handlers.Handler {
 	return []handlers.Handler{
-		{Path: SubscriberdRootPath, Methods: handlers.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber},
-		{Path: SubscriberManagePath, Methods: handlers.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber},
+		{Path: SubscriberdRootPath, Methods: handlers.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber, MultiplexAfterMigration: true},
+		{Path: SubscriberManagePath, Methods: handlers.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber, MultiplexAfterMigration: true},
 		{Path: SubscriberdRootPath, Methods: handlers.GET, HandlerFunc: listSubscribersHandler, MigratedHandlerFunc: listSubscribers},
 		{Path: SubscriberManagePath, Methods: handlers.GET, HandlerFunc: getSubscriberHandler, MigratedHandlerFunc: getSubscriber},
-		{Path: SubscriberdRootPath, Methods: handlers.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber},
-		{Path: SubscriberManagePath, Methods: handlers.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber},
-		{Path: SubscriberManagePath, Methods: handlers.DELETE, HandlerFunc: deleteSubscriberHandler, MigratedHandlerFunc: deleteSubscriber},
+		{Path: SubscriberdRootPath, Methods: handlers.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber, MultiplexAfterMigration: true},
+		{Path: SubscriberManagePath, Methods: handlers.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber, MultiplexAfterMigration: true},
+		{Path: SubscriberManagePath, Methods: handlers.DELETE, HandlerFunc: deleteSubscriberHandler, MigratedHandlerFunc: deleteSubscriber, MultiplexAfterMigration: true},
 	}
 }
 

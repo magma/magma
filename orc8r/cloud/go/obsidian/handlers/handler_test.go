@@ -34,9 +34,11 @@ type testCase struct {
 
 func TestRegister(t *testing.T) {
 	oldRegistry := registries
+
+	// Unmigrated, env var not set
 	runCase(t, testCase{
 		expectHandlerFuncCalled:         true,
-		expectMigratedHandlerFuncCalled: true,
+		expectMigratedHandlerFuncCalled: false,
 		multiplexHandlers:               true,
 	})
 	runCase(t, testCase{expectHandlerFuncCalled: true})
@@ -46,6 +48,7 @@ func TestRegister(t *testing.T) {
 		expectedError:           "foo",
 	})
 
+	// Unmigrated, env var set to 0
 	err := os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	assert.NoError(t, err)
 	runCase(t, testCase{expectHandlerFuncCalled: true})
@@ -54,6 +57,8 @@ func TestRegister(t *testing.T) {
 		handlerFuncError:        "foo",
 		expectedError:           "foo",
 	})
+
+	// Migrated
 	err = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	assert.NoError(t, err)
 	runCase(t, testCase{expectMigratedHandlerFuncCalled: true})
@@ -64,14 +69,15 @@ func TestRegister(t *testing.T) {
 	})
 
 	runCase(t, testCase{
-		expectHandlerFuncCalled: true,
-		multiplexHandlers:       true,
-		handlerFuncError:        "foo",
-		expectedError:           "foo",
+		expectMigratedHandlerFuncCalled: true,
+		expectHandlerFuncCalled:         true,
+		multiplexHandlers:               true,
+		handlerFuncError:                "foo",
+		expectedError:                   "foo",
 	})
 
 	runCase(t, testCase{
-		expectHandlerFuncCalled:         true,
+		expectHandlerFuncCalled:         false,
 		expectMigratedHandlerFuncCalled: true,
 		multiplexHandlers:               true,
 		migratedHandlerFuncError:        "foo",
@@ -106,7 +112,7 @@ func runCase(t *testing.T, tc testCase) {
 			}
 			return nil
 		},
-		MultiplexHandlers: tc.multiplexHandlers,
+		MultiplexAfterMigration: tc.multiplexHandlers,
 	}
 	err := Register(mockHandler)
 	assert.NoError(t, err)

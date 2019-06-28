@@ -11,8 +11,10 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -47,9 +49,10 @@ type Handler struct {
 	// set to 1 to use new handler functions in all handlers.
 	MigratedHandlerFunc echo.HandlerFunc
 
-	// If set to true, MultiplexHandlers will always run both HandlerFunc and
-	// MigratedHandlerFunc in serial.
-	MultiplexHandlers bool
+	// If set to true, MultiplexAfterMigration will always run both
+	// MigratedHandlerFunc and HandlerFunc in serial if the migration flag is
+	// set. Otherwise, only MigratedHandlerFunc will run.
+	MultiplexAfterMigration bool
 }
 
 const (
@@ -98,6 +101,25 @@ var echoHandlerInitializers = map[HttpMethod]echoHandlerInitializer{
 	DELETE: (*echo.Echo).DELETE,
 }
 
+// nopWriter wraps an http.ResponseWriter to no-op the Write() method.
+// We need this to prevent multiplexed handlers from writing the same return
+// value to the context response twice.
+type nopWriter struct {
+	writer http.ResponseWriter
+}
+
+func (n *nopWriter) Header() http.Header {
+	return n.writer.Header()
+}
+
+func (*nopWriter) Write(p []byte) (int, error) {
+	return len(p), nil
+}
+
+func (n *nopWriter) WriteHeader(statusCode int) {
+	n.writer.WriteHeader(statusCode)
+}
+
 func register(registry handlerRegistry, handler Handler) error {
 	_, registered := registry[handler.Path]
 	if registered {
@@ -105,30 +127,45 @@ func register(registry handlerRegistry, handler Handler) error {
 	}
 
 	wrappedHandlerFunc := func(c echo.Context) error {
-		if handler.MultiplexHandlers {
-			err := handler.HandlerFunc(c)
+		migrated := os.Getenv(orc8r.UseConfiguratorEnv)
+		if migrated == "1" {
+			// If there's no migrated handler, we just run the normal one
+			if handler.MigratedHandlerFunc == nil {
+				return handler.HandlerFunc(c)
+			}
+
+			// echo's context.Bind uses up the request body's reader so the
+			// multiplexed handler will see an empty request body. We can read
+			// out the entire body here and overwrite the request's reader
+			// before each handler call.
+			bodyBytes, err := ioutil.ReadAll(c.Request().Body)
+			if err != nil {
+				return echo.NewHTTPError(http.StatusInternalServerError, "could not read request body")
+			}
+
+			clonedReader := ioutil.NopCloser(bytes.NewReader(bodyBytes))
+			c.Request().Body = clonedReader
+			err = handler.MigratedHandlerFunc(c)
 			if err != nil {
 				return err
 			}
 
-			if handler.MigratedHandlerFunc == nil {
-				return err
-			}
-			return handler.MigratedHandlerFunc(c)
-		} else {
-			shouldUse, found := os.LookupEnv(orc8r.UseConfiguratorEnv)
-			if !found {
-				return handler.HandlerFunc(c)
+			if handler.MultiplexAfterMigration {
+				clonedReader := ioutil.NopCloser(bytes.NewReader(bodyBytes))
+				c.Request().Body = clonedReader
+				// we don't want the multiplexed legacy handler to write to
+				// the response
+				c.Response().Writer = &nopWriter{writer: c.Response().Writer}
+
+				err = handler.HandlerFunc(c)
+				if err != nil {
+					return err
+				}
 			}
 
-			if shouldUse == "0" {
-				return handler.HandlerFunc(c)
-			} else {
-				if handler.MigratedHandlerFunc != nil {
-					return handler.MigratedHandlerFunc(c)
-				}
-				return handler.HandlerFunc(c)
-			}
+			return nil
+		} else {
+			return handler.HandlerFunc(c)
 		}
 	}
 	registry[handler.Path] = wrappedHandlerFunc

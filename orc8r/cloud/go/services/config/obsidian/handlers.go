@@ -295,6 +295,7 @@ func GetCreateConfigHandler(
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -379,6 +380,7 @@ func GetUpdateConfigHandler(
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -462,6 +464,7 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
+		MultiplexAfterMigration: true,
 	}
 }
 

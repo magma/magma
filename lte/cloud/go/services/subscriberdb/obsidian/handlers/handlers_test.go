@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	lteplugin "magma/lte/cloud/go/plugin"
+	sdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
@@ -30,6 +31,7 @@ func TestHandlers(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
+	sdb_test_init.StartTestService(t)
 
 	restPort := tests.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)

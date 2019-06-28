@@ -33,15 +33,15 @@ const (
 func GetObsidianHandlers() []handlers.Handler {
 	return []handlers.Handler{
 		{Path: ReleaseChannelsRootPath, Methods: handlers.GET, HandlerFunc: listReleaseChannelsHandler, MigratedHandlerFunc: listReleaseChannel},
-		{Path: ReleaseChannelsRootPath, Methods: handlers.POST, HandlerFunc: createReleaseChannelHandler, MigratedHandlerFunc: createReleaseChannel},
+		{Path: ReleaseChannelsRootPath, Methods: handlers.POST, HandlerFunc: createReleaseChannelHandler, MigratedHandlerFunc: createReleaseChannel, MultiplexAfterMigration: true},
 		{Path: ReleaseChannelsManagePath, Methods: handlers.GET, HandlerFunc: getReleaseChannelsHandler, MigratedHandlerFunc: getReleaseChannel},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.PUT, HandlerFunc: updateReleaseChannelHandler, MigratedHandlerFunc: updateReleaseChannel},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.DELETE, HandlerFunc: deleteReleaseChannelHandler, MigratedHandlerFunc: deleteReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: handlers.PUT, HandlerFunc: updateReleaseChannelHandler, MigratedHandlerFunc: updateReleaseChannel, MultiplexAfterMigration: true},
+		{Path: ReleaseChannelsManagePath, Methods: handlers.DELETE, HandlerFunc: deleteReleaseChannelHandler, MigratedHandlerFunc: deleteReleaseChannel, MultiplexAfterMigration: true},
 		{Path: TiersRootPath, Methods: handlers.GET, HandlerFunc: listTiersHandler, MigratedHandlerFunc: listTiers},
-		{Path: TiersRootPath, Methods: handlers.POST, HandlerFunc: createTierHandler, MigratedHandlerFunc: createrTier},
+		{Path: TiersRootPath, Methods: handlers.POST, HandlerFunc: createTierHandler, MigratedHandlerFunc: createrTier, MultiplexAfterMigration: true},
 		{Path: TiersManagePath, Methods: handlers.GET, HandlerFunc: getTierHandler, MigratedHandlerFunc: getTier},
-		{Path: TiersManagePath, Methods: handlers.PUT, HandlerFunc: updateTierHandler, MigratedHandlerFunc: updateTier},
-		{Path: TiersManagePath, Methods: handlers.DELETE, HandlerFunc: deleteTierHandler, MigratedHandlerFunc: deleteTier},
+		{Path: TiersManagePath, Methods: handlers.PUT, HandlerFunc: updateTierHandler, MigratedHandlerFunc: updateTier, MultiplexAfterMigration: true},
+		{Path: TiersManagePath, Methods: handlers.DELETE, HandlerFunc: deleteTierHandler, MigratedHandlerFunc: deleteTier, MultiplexAfterMigration: true},
 	}
 }
 
