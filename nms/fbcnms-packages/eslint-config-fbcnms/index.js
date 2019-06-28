@@ -20,13 +20,20 @@ const fbStrict = require('eslint-config-fb-strict');
 // Also supports 'let' and 'const'.
 const variableNamePattern = String.raw`\s*[a-zA-Z_$][a-zA-Z_$\d]*\s*`;
 const atLeastOneVariablePattern =
-  '{?' + variableNamePattern +
-  '(?:,' + variableNamePattern + ')*}?';
+  '\\{?' + variableNamePattern +
+  '(?:,' + variableNamePattern + ')*\\}?';
 const importStatement = String.raw`^(?:var|let|const|import type|import)\s+` +
   atLeastOneVariablePattern;
 const maxLenIgnorePattern =
-  '(?:' + importStatement + '|})' +
+  '(?:' + importStatement + '|\\})' +
   String.raw`\s*(?:=\s*require\(|from)[a-zA-Z_+./"'\s\d\-]+\)?[^;\n]*[;\n]`;
+
+const restrictedImportsRule = ['error',{
+  'paths':[{
+    'name': 'lodash-es',
+    'message': 'Please use lodash directly.',
+  }],
+}];
 
 module.exports = Object.assign({}, fbStrict, {
   env: {
@@ -76,6 +83,8 @@ module.exports = Object.assign({}, fbStrict, {
     }],
     'no-alert': 'off',
     'no-console': ['warn', {allow: ['error', 'warn']}],
+    'no-restricted-modules': restrictedImportsRule,
+    'no-restricted-imports': restrictedImportsRule,
     'no-undef': 'error',
     'no-unused-vars': ['error', {
       'vars': 'all',
