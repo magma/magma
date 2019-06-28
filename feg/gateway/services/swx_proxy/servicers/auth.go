@@ -67,6 +67,8 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	if err != nil {
 		return res, status.Errorf(codes.InvalidArgument, err.Error())
 	}
+
+	marStartTime := time.Now()
 	err = s.sendDiameterMsg(marMsg, MAX_DIAM_RETRIES)
 	if err != nil {
 		metrics.MARSendFailures.Inc()
@@ -77,6 +79,7 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	metrics.MARRequests.Inc()
 	select {
 	case resp, open := <-ch:
+		metrics.MARLatency.Observe(time.Since(marStartTime).Seconds())
 		if !open {
 			metrics.SwxInvalidSessions.Inc()
 			err = status.Errorf(codes.Aborted, "MAA for Session ID: %s is cancelled", sid)
@@ -120,6 +123,7 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 		}
 
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
+		metrics.MARLatency.Observe(time.Since(marStartTime).Seconds())
 		metrics.SwxTimeouts.Inc()
 		err = status.Errorf(codes.DeadlineExceeded, "MAA Timed Out for Session ID: %s", sid)
 		glog.Error(err)
