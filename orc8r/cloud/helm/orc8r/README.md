@@ -101,7 +101,7 @@ $ kubectl get pods -n kube-system | grep tiller
 ```bash
 $ kubectl create namespace magma
 ```
-- Install Postgres Helm chart:
+- Install Postgres Helm chart (ONLY for running in Minikube):
 ```bash
 $ helm install \
     --name postgresql \
@@ -151,7 +151,7 @@ controller:
 $ helm install --name orc8r --namespace magma . --values=vals.yaml
 
 # In the future, if you want to upgrade the helm chart, run:
-$ helm upgrade orc8r . -f --values=vals.yaml
+$ helm upgrade orc8r . --values=vals.yaml
 ```
 - Add the admin in the datastore:
 ```bash
