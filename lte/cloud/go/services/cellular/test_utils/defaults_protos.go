@@ -1,31 +1,31 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
 
 package test_utils
 
 import (
-	"magma/lte/cloud/go/services/cellular/obsidian/models"
+	"magma/lte/cloud/go/services/cellular/protos"
 )
 
-func NewDefaultTDDNetworkConfig() *models.NetworkCellularConfigs {
-	return &models.NetworkCellularConfigs{
-		Ran: &models.NetworkRanConfigs{
+func NewDefaultProtosTDDNetworkConfig() *protos.CellularNetworkConfig {
+	return &protos.CellularNetworkConfig{
+		Ran: &protos.NetworkRANConfig{
 			BandwidthMhz:           20,
 			Earfcndl:               44590,
 			SubframeAssignment:     2,
 			SpecialSubframePattern: 7,
-			TddConfig: &models.NetworkRanConfigsTddConfig{
+			TddConfig: &protos.NetworkRANConfig_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
 				SpecialSubframePattern: 7,
 			},
 		},
-		Epc: &models.NetworkEpcConfigs{
+		Epc: &protos.NetworkEPCConfig{
 			Mcc: "001",
 			Mnc: "01",
 			Tac: 1,
@@ -37,17 +37,17 @@ func NewDefaultTDDNetworkConfig() *models.NetworkCellularConfigs {
 	}
 }
 
-func NewDefaultFDDNetworkConfig() *models.NetworkCellularConfigs {
-	return &models.NetworkCellularConfigs{
-		Ran: &models.NetworkRanConfigs{
+func NewDefaultProtosFDDNetworkConfig() *protos.CellularNetworkConfig {
+	return &protos.CellularNetworkConfig{
+		Ran: &protos.NetworkRANConfig{
 			BandwidthMhz: 20,
 			Earfcndl:     1,
-			FddConfig: &models.NetworkRanConfigsFddConfig{
+			FddConfig: &protos.NetworkRANConfig_FDDConfig{
 				Earfcndl: 1,
 				Earfcnul: 18001,
 			},
 		},
-		Epc: &models.NetworkEpcConfigs{
+		Epc: &protos.NetworkEPCConfig{
 			Mcc: "001",
 			Mnc: "01",
 			Tac: 1,
@@ -59,15 +59,15 @@ func NewDefaultFDDNetworkConfig() *models.NetworkCellularConfigs {
 	}
 }
 
-func OldTDDNetworkConfig() *models.NetworkCellularConfigs {
-	return &models.NetworkCellularConfigs{
-		Ran: &models.NetworkRanConfigs{
+func OldProtosTDDNetworkConfig() *protos.CellularNetworkConfig {
+	return &protos.CellularNetworkConfig{
+		Ran: &protos.NetworkRANConfig{
 			BandwidthMhz:           20,
 			Earfcndl:               44590,
 			SubframeAssignment:     2,
 			SpecialSubframePattern: 7,
 		},
-		Epc: &models.NetworkEpcConfigs{
+		Epc: &protos.NetworkEPCConfig{
 			Mcc: "001",
 			Mnc: "01",
 			Tac: 1,
@@ -78,13 +78,13 @@ func OldTDDNetworkConfig() *models.NetworkCellularConfigs {
 	}
 }
 
-func OldFDDNetworkConfig() *models.NetworkCellularConfigs {
-	return &models.NetworkCellularConfigs{
-		Ran: &models.NetworkRanConfigs{
+func OldProtosFDDNetworkConfig() *protos.CellularNetworkConfig {
+	return &protos.CellularNetworkConfig{
+		Ran: &protos.NetworkRANConfig{
 			BandwidthMhz: 20,
 			Earfcndl:     1,
 		},
-		Epc: &models.NetworkEpcConfigs{
+		Epc: &protos.NetworkEPCConfig{
 			Mcc: "001",
 			Mnc: "01",
 			Tac: 1,
@@ -95,35 +95,35 @@ func OldFDDNetworkConfig() *models.NetworkCellularConfigs {
 	}
 }
 
-func NewDefaultGatewayConfig() *models.GatewayCellularConfigs {
-	return &models.GatewayCellularConfigs{
+func NewDefaultProtosGatewayConfig() *protos.CellularGatewayConfig {
+	return &protos.CellularGatewayConfig{
 		AttachedEnodebSerials: []string{"enb1"},
-		Ran: &models.GatewayRanConfigs{
+		Ran: &protos.GatewayRANConfig{
 			Pci:             260,
 			TransmitEnabled: true,
 		},
-		Epc: &models.GatewayEpcConfigs{
+		Epc: &protos.GatewayEPCConfig{
 			NatEnabled: true,
-			IPBlock:    "192.168.128.0/24",
+			IpBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models.GatewayNonEpsServiceConfigs{
+		NonEpsService: &protos.GatewayNonEPSConfig{
 			CsfbMcc:              "",
 			CsfbMnc:              "",
 			Lac:                  1,
-			CsfbRat:              0, //2G
-			Arfcn2g:              []uint32{},
-			NonEpsServiceControl: 0, //CONTROL_OFF
+			CsfbRat:              protos.GatewayNonEPSConfig_CSFBRAT_2G,
+			Arfcn_2G:             []int32(""),
+			NonEpsServiceControl: protos.GatewayNonEPSConfig_NON_EPS_SERVICE_CONTROL_OFF,
 		},
 	}
 }
 
-func NewDefaultEnodebConfig() *models.NetworkEnodebConfigs {
-	return &models.NetworkEnodebConfigs{
+func NewDefaultProtosEnodebConfig() *protos.CellularEnodebConfig {
+	return &protos.CellularEnodebConfig{
 		Earfcndl:               39150,
 		SubframeAssignment:     2,
 		SpecialSubframePattern: 7,
 		Pci:                    260,
-		CellID:                 138777000,
+		CellId:                 138777000,
 		Tac:                    15000,
 		BandwidthMhz:           20,
 		TransmitEnabled:        true,

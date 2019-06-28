@@ -57,7 +57,6 @@ func (m *GatewayEpcConfigs) validateGatewayEPCConfig() error {
 }
 
 func (m *NetworkCellularConfigs) ValidateNetworkConfig() error {
-	glog.Errorf("verifying network config : %v %v %s", m.Ran, m.Epc, m.FegNetworkID)
 	if m == nil {
 		return errors.New("Network config is nil")
 	}
