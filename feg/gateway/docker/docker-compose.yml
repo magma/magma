@@ -134,13 +134,18 @@ services:
   radius:
     image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
     container_name: radius
+    networks:
+      - magma
+    ports:
+      - 1812:1812/udp
+      - 1813:1813/udp
+      - 3799:3799/udp
     environment:
       - RADIUS_AUTH_PORT=1813
       - RADIUS_ACCT_PORT=1812
       - RADIUS_COA_PORT=3799
       - RADIUS_SECRET=123456
       - FEG_ENDPOINT=aaa_server:9109
-    network_mode: host
     restart: always
 
 networks:
