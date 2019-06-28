@@ -51,6 +51,8 @@ func (mockClock *mockClock) Now() time.Time {
 	return mockClock.now
 }
 
+// TODO: test case for migrated configurator mconfig construction
+
 // Test AG Configs Streaming
 func TestMconfigStreamer(t *testing.T) {
 	magmad_test_init.StartTestService(t)

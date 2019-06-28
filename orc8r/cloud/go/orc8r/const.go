@@ -22,4 +22,8 @@ const (
 
 	// used to migrate network/gateway lookup magmad dependencies
 	UseConfiguratorEnv = "USE_NEW_HANDLERS"
+
+	// separate flag to control mconfig builders because this has significant
+	// implications on production gateways
+	UseConfiguratorMconfigsEnv = "USE_NEW_MCONFIGS"
 )

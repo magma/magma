@@ -536,3 +536,21 @@ func LoadAllEntitiesInNetwork(networkID string, entityType string, criteria Enti
 	}
 	return ret, nil
 }
+
+func getSBConfiguratorClient() (protos.SouthboundConfiguratorClient, error) {
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := merrors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
+	}
+	return protos.NewSouthboundConfiguratorClient(conn), err
+}
+
+func GetMconfigFor(hardwareID string) (*protos.GetMconfigResponse, error) {
+	client, err := getSBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+	return client.GetMconfigInternal(context.Background(), &protos.GetMconfigRequest{HardwareID: hardwareID})
+}
