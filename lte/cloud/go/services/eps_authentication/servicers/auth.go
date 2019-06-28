@@ -12,8 +12,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"magma/lte/cloud/go/crypto"
 	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/crypto"
 
 	"github.com/golang/glog"
 )
