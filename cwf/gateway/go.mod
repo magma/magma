@@ -24,5 +24,6 @@ require (
 	google.golang.org/grpc v1.17.0
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/gateway v0.0.0-00010101000000-000000000000
+	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 )
