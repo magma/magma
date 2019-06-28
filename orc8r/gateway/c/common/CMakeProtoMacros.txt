@@ -10,6 +10,8 @@ set(MAGMA_ROOT $ENV{MAGMA_ROOT})
 set(ORC8R_PROTO_DIR ${MAGMA_ROOT}/orc8r/protos)
 set(LTE_PROTO_DIR ${MAGMA_ROOT}/lte/protos)
 set(FEG_PROTO_DIR ${MAGMA_ROOT}/feg/protos)
+set(CWF_PROTO_DIR ${MAGMA_ROOT}/feg/gateway/services/aaa/protos)
+set(CWF_PATH ${MAGMA_ROOT}/feg/gateway/services/aaa/protos)
 set(PROMETHEUS_PATH ${ORC8R_PROTO_DIR}/prometheus)
 set(GRPC_CPP_PLUGIN_PATH "/usr/local/bin" CACHE STRING "Path for grpc_cpp_plugin")
 
@@ -36,6 +38,23 @@ macro(generate_prometheus_proto PROTO_SRCS PROTO_HDRS OUT_DIR)
     VERBATIM )
 endmacro()
 
+macro(generate_cwf_cpp_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
+  foreach(PROTO_NAME ${PROTO_NAME_LIST})
+    list(APPEND PROTO_SRCS "${OUT_DIR}/${PROTO_NAME}.pb.cc")
+    list(APPEND PROTO_HDRS "${OUT_DIR}/${PROTO_NAME}.pb.h")
+
+    add_custom_command(
+      OUTPUT "${OUT_DIR}/${PROTO_NAME}.pb.h"
+             "${OUT_DIR}/${PROTO_NAME}.pb.cc"
+      COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
+      ARGS -I ${CWF_PATH}
+      --cpp_out=${OUT_DIR} ${IN_DIR}/${PROTO_NAME}.proto
+      DEPENDS ${IN_DIR}/${PROTO_NAME}.proto ${PROTOBUF_PROTOC_EXECUTABLE}
+      COMMENT "Running C++ protobuf compiler on ${IN_DIR}/${PROTO_NAME}.proto"
+      VERBATIM )
+  endforeach()
+endmacro()
+
 macro(generate_cpp_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
   foreach(PROTO_NAME ${PROTO_NAME_LIST})
     list(APPEND PROTO_SRCS "${OUT_DIR}/${PROTO_NAME}.pb.cc")
@@ -45,7 +64,8 @@ macro(generate_cpp_protos PROTO_NAME_LIST PROTO_SRCS PROTO_HDRS IN_DIR OUT_DIR)
       OUTPUT "${OUT_DIR}/${PROTO_NAME}.pb.h"
              "${OUT_DIR}/${PROTO_NAME}.pb.cc"
       COMMAND ${PROTOBUF_PROTOC_EXECUTABLE}
-      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} --proto_path=${MAGMA_ROOT}
+      ARGS -I ${PROMETHEUS_PATH} -I ${MAGMA_ROOT} -I ${CWF_PATH}
+      --proto_path=${MAGMA_ROOT}
       --cpp_out=${CMAKE_CURRENT_BINARY_DIR} ${IN_DIR}/${PROTO_NAME}.proto
       DEPENDS ${IN_DIR}/${PROTO_NAME}.proto ${PROTOBUF_PROTOC_EXECUTABLE}
       COMMENT "Running C++ protobuf compiler on ${IN_DIR}/${PROTO_NAME}.proto"
