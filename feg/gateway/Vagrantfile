@@ -28,7 +28,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     feg.ssh.insert_key = true
 
     config.vm.provider "virtualbox" do |v|
-      v.customize ['modifyvm', :id, '--natnet1', '10.0.5.0/24']
       v.linked_clone = true
       v.memory = 1536
       v.cpus = 2
