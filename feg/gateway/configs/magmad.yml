@@ -1,4 +1,11 @@
 ---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
 log_level: INFO
 # List of services for magmad to control
 magma_services:
@@ -20,7 +27,7 @@ non_service303_services:
 
 # Init system to use to control services
 # Supported systems include: [systemd, runit, docker]
-init_system: systemd
+init_system: docker
 
 # bootstrap_manager config
 bootstrap_config:
@@ -31,7 +38,7 @@ bootstrap_config:
 enable_config_streamer: True
 enable_upgrade_manager: False
 enable_network_monitor: False
-enable_systemd_tailer: True
+enable_systemd_tailer: False
 enable_sync_rpc: True
 
 systemd_tailer_poll_interval: 30 # seconds
@@ -61,4 +68,3 @@ metricsd:
     - eap_aka
     - aaa_server
     - csfb
-
