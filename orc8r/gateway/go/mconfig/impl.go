@@ -31,8 +31,7 @@ var (
 )
 
 func init() {
-	localConfig.Store(new(protos.GatewayConfigs))
-	RefreshConfigs()
+	localConfig.Store((*protos.GatewayConfigs)(nil))
 	cfgMu.Lock()
 	refreshTicker = time.NewTicker(MconfigRefreshInterval)
 	cfgMu.Unlock()
@@ -116,7 +115,7 @@ func loadFromFile(path string) error {
 		return err
 	}
 	mc := new(protos.GatewayConfigs)
-	err = protos.Unmarshal(cont, mc)
+	err = protos.UnmarshalMconfig(cont, mc)
 	if err != nil {
 		return err
 	}

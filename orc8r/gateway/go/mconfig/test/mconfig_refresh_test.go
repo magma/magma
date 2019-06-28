@@ -17,12 +17,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
+
 	orcprotos "magma/orc8r/cloud/go/protos"
-	_ "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/gateway/mconfig"
 	"magma/orc8r/gateway/mconfig/test/testcfg"
-
-	"github.com/golang/protobuf/ptypes"
 )
 
 // JSON to recreate scenario with "static" mconfig file
@@ -45,6 +44,12 @@ const (
 		  "uint22": 2,
 		  "float1": 3.14,
 		  "bool1": true
+		},
+		"does_not_exist_1": {
+		  "@type": "type.googleapis.com/magma.mconfig.DoesNotExist",
+		  "bla": 1,
+		  "blaBla": 1,
+		  "logLevel": "INFO"
 		}
 	  }
 	}`
@@ -133,7 +138,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 			Str22: "str22",
 		})
 
-	marshaled, err := orcprotos.MarshalIntern(mc)
+	marshaled, err := orcprotos.MarshalMconfig(mc)
 	if err != nil {
 		t.Fatal(err)
 	}
