@@ -6,11 +6,24 @@
 //
 module magma/cwf/cloud/go
 
-replace magma/orc8r/cloud/go => ../../../orc8r/cloud/go
+replace (
+	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
+	magma/lte/cloud/go => ../../../lte/cloud/go
+	magma/orc8r/cloud/go => ../../../orc8r/cloud/go
+)
 
 require (
+	github.com/go-openapi/errors v0.18.0
+	github.com/go-openapi/strfmt v0.18.0
+	github.com/go-openapi/swag v0.18.0
+	github.com/go-openapi/validate v0.18.0
 	github.com/golang/protobuf v1.2.0
+	github.com/pkg/errors v0.8.1
+	github.com/stretchr/testify v1.3.0
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
 	google.golang.org/grpc v1.17.0
+
+	magma/feg/cloud/go/protos v0.0.0
+	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 )

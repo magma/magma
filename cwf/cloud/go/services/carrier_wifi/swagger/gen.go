@@ -6,11 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package cwf
+//go:generate cp $SWAGGER_ROOT/$SWAGGER_COMMON $SWAGGER_COMMON
+//go:generate swagger generate model -f swagger.yml -t ../obsidian/ -C $SWAGGER_TEMPLATE
+//go:generate rm ./$SWAGGER_COMMON
 
-const (
-	ModuleName = "cwf"
-
-	CwfNetworkPath = "carrier_wifi"
-	CwfNetworkType = "carrier_wifi_network"
-)
+package swagger
