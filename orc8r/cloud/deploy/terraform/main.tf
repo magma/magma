@@ -31,6 +31,32 @@ module "vpc" {
   }
 }
 
+data "template_file" "metrics_userdata" {
+  template = "${file("${path.module}/scripts/prepare_metrics_instance.sh.tpl")}"
+}
+
+data "aws_iam_policy_document" "worker_node_policy_doc" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ec2:DescribeVolumes",
+      "ec2:AttachVolume",
+      "ec2:DetachVolume",
+    ]
+
+    resources = [
+      "arn:aws:ec2:*:*:volume/*",
+      "arn:aws:ec2:*:*:instance/*",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "worker_node_policy" {
+  name   = "magma_eks_worker_node_policy"
+  policy = "${data.aws_iam_policy_document.worker_node_policy_doc.json}"
+}
+
 module "eks" {
   source       = "terraform-aws-modules/eks/aws"
   cluster_name = var.cluster_name
@@ -38,6 +64,7 @@ module "eks" {
   subnets      = module.vpc.public_subnets
 
   worker_additional_security_group_ids = [aws_security_group.default.id]
+  workers_additional_policies          = ["${aws_iam_policy.worker_node_policy.arn}"]
 
   # asg max capacity is 3
   # 1 worker group for orc8r (3 boxes total)
@@ -70,8 +97,7 @@ module "eks" {
       # can only be mounted into the same AZ
       subnets = [module.vpc.public_subnets[0]]
 
-      # TODO: custom userdata to claim and mount the EBS volume
-      # for now, you'll have to mount the volume to the node manually
+      additional_userdata  = "${data.template_file.metrics_userdata.rendered}"
 
       # Have to specify this here otherwise it forces a new resource
       ami_id = "ami-08716b70cac884aaa"
@@ -125,7 +151,7 @@ resource "aws_ebs_volume" "prometheus-ebs-eks" {
   size              = 400
 
   tags = {
-    name = "orc8r-prometheus-data"
+    Name = "orc8r-prometheus-data"
   }
 }
 
@@ -135,7 +161,7 @@ resource "aws_ebs_volume" "prometheus-configs-ebs-eks" {
   size              = 1
 
   tags = {
-    name = "orc8r-prometheus-configs"
+    Name = "orc8r-prometheus-configs"
   }
 }
 
