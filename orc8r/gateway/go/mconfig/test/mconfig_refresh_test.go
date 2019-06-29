@@ -95,12 +95,6 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 	}
 	t.Logf("Created gateway config file: %s", mcpath)
 
-	// Cleanup @ the end of the test
-	defer func() {
-		t.Logf("Remove temporary gateway config file: %s", mcpath)
-		os.Remove(mcpath)
-	}()
-
 	// Start configs refresh ticker
 	ticker := time.NewTicker(time.Millisecond * 50)
 	go func() {
@@ -111,6 +105,14 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 				t.Error(refreshErr)
 			}
 		}
+	}()
+
+	// Cleanup @ the end of the test
+	defer func() {
+		ticker.Stop()
+		time.Sleep(time.Millisecond * 20)
+		t.Logf("Remove temporary gateway config file: %s", mcpath)
+		os.Remove(mcpath)
 	}()
 
 	time.Sleep(time.Millisecond * 120)

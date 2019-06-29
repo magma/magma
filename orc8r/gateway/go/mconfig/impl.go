@@ -18,12 +18,13 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unsafe"
 
 	"magma/orc8r/cloud/go/protos"
 )
 
 var (
-	localConfig   atomic.Value // always *mconfig.GatewayConfigs, never should be nil
+	localConfig   unsafe.Pointer
 	cfgMu         sync.Mutex
 	lastFileInfo  os.FileInfo
 	lastFilePath  string
@@ -31,7 +32,6 @@ var (
 )
 
 func init() {
-	localConfig.Store((*protos.GatewayConfigs)(nil))
 	cfgMu.Lock()
 	refreshTicker = time.NewTicker(MconfigRefreshInterval)
 	cfgMu.Unlock()
@@ -122,7 +122,7 @@ func loadFromFile(path string) error {
 	if len(mc.GetConfigsByKey()) == 0 {
 		return fmt.Errorf("Empty Managed Gateway Configs")
 	}
-	localConfig.Store(mc)
+	atomic.StorePointer(&localConfig, (unsafe.Pointer)(mc))
 	return nil
 }
 
