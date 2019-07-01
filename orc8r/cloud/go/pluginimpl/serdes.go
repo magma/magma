@@ -9,13 +9,10 @@ package pluginimpl
 
 import (
 	"fmt"
-	"reflect"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	"magma/orc8r/cloud/go/services/state"
 )
 
 // Serdes for user-facing types delegate to swagger's MarshalBinary, which
@@ -55,32 +52,4 @@ func (*GatewayRecordSerde) Deserialize(in []byte) (interface{}, error) {
 	ret := &models.AccessGatewayRecord{}
 	err := ret.UnmarshalBinary(in)
 	return ret, err
-}
-
-// CheckinRequestSerde is a state serde for the CheckinRequest type
-type CheckinRequestSerde struct{}
-
-func (*CheckinRequestSerde) GetDomain() string {
-	return state.SerdeDomain
-}
-
-func (s *CheckinRequestSerde) GetType() string {
-	return "checkin_request"
-}
-
-func (s *CheckinRequestSerde) Serialize(in interface{}) ([]byte, error) {
-	castedState, ok := in.(*protos.CheckinRequest)
-	if !ok {
-		return nil, fmt.Errorf(
-			"Invalid gateway state type. Expected *CheckinRequest, received %s",
-			reflect.TypeOf(in),
-		)
-	}
-	return protos.MarshalIntern(castedState)
-}
-
-func (s *CheckinRequestSerde) Deserialize(in []byte) (interface{}, error) {
-	response := &protos.CheckinRequest{}
-	err := protos.Unmarshal(in, response)
-	return response, err
 }
