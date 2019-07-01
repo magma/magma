@@ -13,9 +13,12 @@ package servicers
 
 import (
 	"errors"
+	"os"
 	"strings"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 
@@ -38,7 +41,14 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	}
 
 	hardwareID := in.GetGatewayId()
-	networkID, gatewayID, err := srv.getNetworkAndGatewayID(hardwareID)
+	var networkID, gatewayID string
+	var err error
+	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
+	if useConfigurator == "1" {
+		networkID, gatewayID, err = configurator.GetNetworkAndEntityIDForPhysicalID(hardwareID)
+	} else {
+		networkID, gatewayID, err = srv.getNetworkAndGatewayID(hardwareID)
+	}
 	if err != nil {
 		return new(protos.Void), err
 	}

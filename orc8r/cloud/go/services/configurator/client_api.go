@@ -435,6 +435,17 @@ func LoadEntityForPhysicalID(physicalID string, criteria EntityLoadCriteria) (Ne
 	return loaded[0], nil
 }
 
+func GetNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, error) {
+	if len(physicalID) == 0 {
+		return "", "", errors.New("Empty Hardware ID")
+	}
+	entity, err := LoadEntityForPhysicalID(physicalID, EntityLoadCriteria{})
+	if err != nil {
+		return "", "", err
+	}
+	return entity.NetworkID, entity.Key, nil
+}
+
 // LoadEntities loads entities specified by the parameters.
 func LoadEntities(
 	networkID string,
