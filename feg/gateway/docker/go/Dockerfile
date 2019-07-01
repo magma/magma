@@ -1,7 +1,8 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial as base
+ARG baseImage="ubuntu:xenial"
+FROM ${baseImage} as base
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -95,6 +96,12 @@ COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
 # Enable make gen if proto gen is required
 # RUN make -C $MAGMA_ROOT/feg/gateway gen
 RUN make -C $MAGMA_ROOT/feg/gateway build
+
+# -----------------------------------------------------------------------------
+# Go-cache base image
+# -----------------------------------------------------------------------------
+FROM ubuntu:xenial as gocache
+COPY --from=base /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image

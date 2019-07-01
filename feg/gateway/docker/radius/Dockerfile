@@ -20,7 +20,7 @@ RUN go mod download
 
 COPY feg/radius/src /radius/src
 COPY feg/radius/src/config/samples/radius.cwf.config.json.template /radius/src/radius.config.json.template
-COPY feg/gateway /gateway
+COPY feg/gateway/services/aaa /gateway/services/aaa
 
 RUN ./run.sh build
 COPY feg/radius/src/docker-entrypoint.sh /radius/src/bin/docker-entrypoint.sh
