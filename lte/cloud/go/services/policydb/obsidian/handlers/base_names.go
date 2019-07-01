@@ -11,7 +11,7 @@ package handlers
 import (
 	"net/http"
 
-	"magma/lte/cloud/go/services/policydb"
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian/handlers"
@@ -26,7 +26,7 @@ func listBaseNames(c echo.Context) error {
 		return nerr
 	}
 
-	baseNames, err := configurator.ListEntityKeys(networkID, policydb.BaseNameEntityType)
+	baseNames, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntityType)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -62,7 +62,7 @@ func getBaseName(c echo.Context) error {
 
 	ret, err := configurator.LoadEntity(
 		networkID,
-		policydb.BaseNameEntityType,
+		lte.BaseNameEntityType,
 		baseName,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 	)
@@ -93,7 +93,7 @@ func updateBaseName(c echo.Context) error {
 	_, err := configurator.UpdateEntity(
 		networkID,
 		configurator.EntityUpdateCriteria{
-			Type:              policydb.BaseNameEntityType,
+			Type:              lte.BaseNameEntityType,
 			Key:               baseName,
 			AssociationsToSet: ruleNames.ToAssocs(),
 		},
@@ -114,7 +114,7 @@ func deleteBaseName(c echo.Context) error {
 		return baseNameHTTPErr()
 	}
 
-	err := configurator.DeleteEntity(networkID, policydb.BaseNameEntityType, baseName)
+	err := configurator.DeleteEntity(networkID, lte.BaseNameEntityType, baseName)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}

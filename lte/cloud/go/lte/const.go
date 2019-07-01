@@ -18,4 +18,7 @@ const (
 	EnodebStateType      = "enodeb"
 	SubscriberStateType  = "subscriber"
 	SubscriberEntityType = "subscriber"
+
+	BaseNameEntityType   = "base_name"
+	PolicyRuleEntityType = "policy"
 )
