@@ -43,25 +43,25 @@ func validateNetworkDNSConfigRecordsItems(config *NetworkDNSConfigRecordsItems) 
 		return errors.New("NetworkDNSconfig Records Item is nil.")
 	}
 
-	if err := validateNetworkDNSConfigARecord(config.GetARecord()); err != nil {
+	if err := ValidateNetworkDNSConfigARecord(config.GetARecord()); err != nil {
 		return err
 	}
-	if err := validateNetworkDNSConfigAaaaRecord(config.GetAaaaRecord()); err != nil {
-		return err
-	}
-
-	if err := validateNetworkDNSConfigDomain(config.GetDomain()); err != nil {
+	if err := ValidateNetworkDNSConfigAaaaRecord(config.GetAaaaRecord()); err != nil {
 		return err
 	}
 
-	if err := validateNetworkDNSConfigCname(config.GetCnameRecord()); err != nil {
+	if err := ValidateNetworkDNSConfigDomain(config.GetDomain()); err != nil {
+		return err
+	}
+
+	if err := ValidateNetworkDNSConfigCname(config.GetCnameRecord()); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func validateNetworkDNSConfigARecord(ARecord []string) error {
+func ValidateNetworkDNSConfigARecord(ARecord []string) error {
 	if ARecord == nil {
 		return nil
 	}
@@ -73,7 +73,7 @@ func validateNetworkDNSConfigARecord(ARecord []string) error {
 	return nil
 }
 
-func validateNetworkDNSConfigAaaaRecord(AaaaRecord []string) error {
+func ValidateNetworkDNSConfigAaaaRecord(AaaaRecord []string) error {
 	if AaaaRecord == nil {
 		return nil
 	}
@@ -85,7 +85,7 @@ func validateNetworkDNSConfigAaaaRecord(AaaaRecord []string) error {
 	return nil
 }
 
-func validateNetworkDNSConfigDomain(domain string) error {
+func ValidateNetworkDNSConfigDomain(domain string) error {
 	// TODO: Figure out how to validate a string is a domain
 	if domain == "" {
 		return errors.New("Domain cannot be empty string.")
@@ -93,12 +93,12 @@ func validateNetworkDNSConfigDomain(domain string) error {
 	return nil
 }
 
-func validateNetworkDNSConfigCname(CnameRecord []string) error {
+func ValidateNetworkDNSConfigCname(CnameRecord []string) error {
 	if CnameRecord == nil {
 		return nil
 	}
 	for _, record := range CnameRecord {
-		if err := validateNetworkDNSConfigDomain(record); err != nil {
+		if err := ValidateNetworkDNSConfigDomain(record); err != nil {
 			return err
 		}
 	}
