@@ -10,21 +10,15 @@ package servicers_test
 
 import (
 	"errors"
-	"flag"
 	"os"
 	"strconv"
 	"testing"
-	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/serde"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/cloud/go/services/magmad"
+	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
+	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 
 	"github.com/golang/glog"
@@ -33,43 +27,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-type testMetricExporter struct {
-	queue []exporters.Sample
-
-	// error to return
-	retErr error
-}
-
-const (
-	MetricName = protos.MetricName_process_virtual_memory_bytes
-	LabelName  = protos.MetricLabelName_result
-	LabelValue = "success"
-)
-
-// Set verbosity so we can capture exporter error logging
-var _ = flag.Set("vmodule", "*=2")
-
-func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error {
-	for _, metricAndContext := range metrics {
-		family, ctx := metricAndContext.Family, metricAndContext.Context
-		for _, metric := range family.GetMetric() {
-			e.queue = append(
-				e.queue,
-				exporters.GetSamplesForMetrics(ctx.DecodedName, family.GetType(), metric, ctx.OriginatingEntity)...,
-			)
-		}
-	}
-
-	return e.retErr
-}
-
-func (e *testMetricExporter) Start() {}
-
-func TestCollect(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
-	device_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
-	serde.RegisterSerdes(&pluginimpl.GatewayRecordSerde{})
+func TestCollectLegacy(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "0")
+	magmad_test_init.StartTestService(t)
 
 	e := &testMetricExporter{}
 	ctx := context.Background()
@@ -77,12 +37,21 @@ func TestCollect(t *testing.T) {
 	srv.RegisterExporter(e)
 
 	// Create test network
-	networkID := "metricsd_servicer_test_network"
-	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network Name")
+	testNetworkId, err := magmad.RegisterNetwork(
+		&magmad_protos.MagmadNetworkRecord{Name: "Test Network Name"},
+		"metricsd_servicer_test_network")
+	if err != nil {
+		t.Fatalf("Magmad Register Network '%s' Error: %s", testNetworkId, err)
+	}
 
 	// Register a fake gateway
-	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
-	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: gatewayID}})
+	gatewayId := "2876171d-bf38-4254-b4da-71a713952904"
+	hwId := protos.AccessGatewayID{Id: gatewayId}
+	logicalId, err := magmad.RegisterGateway(testNetworkId,
+		&magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "bla"})
+	if err != nil || logicalId == "" {
+		t.Fatalf("Magmad Register Error: %s, logical ID: %#v", err, logicalId)
+	}
 
 	name := strconv.Itoa(int(MetricName))
 	key := strconv.Itoa(int(LabelName))
@@ -91,7 +60,7 @@ func TestCollect(t *testing.T) {
 	int_val := uint64(1)
 	counter_type := dto.MetricType_COUNTER
 	counters := protos.MetricsContainer{
-		GatewayId: gatewayID,
+		GatewayId: gatewayId,
 		Family: []*dto.MetricFamily{{
 			Type: &counter_type,
 			Name: &name,
@@ -102,7 +71,7 @@ func TestCollect(t *testing.T) {
 
 	gauge_type := dto.MetricType_GAUGE
 	gauges := protos.MetricsContainer{
-		GatewayId: gatewayID,
+		GatewayId: gatewayId,
 		Family: []*dto.MetricFamily{{
 			Type: &gauge_type,
 			Name: &name,
@@ -113,7 +82,7 @@ func TestCollect(t *testing.T) {
 
 	summary_type := dto.MetricType_SUMMARY
 	summaries := protos.MetricsContainer{
-		GatewayId: gatewayID,
+		GatewayId: gatewayId,
 		Family: []*dto.MetricFamily{{
 			Type: &summary_type,
 			Name: &name,
@@ -124,7 +93,7 @@ func TestCollect(t *testing.T) {
 
 	histogram_type := dto.MetricType_HISTOGRAM
 	histograms := protos.MetricsContainer{
-		GatewayId: gatewayID,
+		GatewayId: gatewayId,
 		Family: []*dto.MetricFamily{{
 			Type: &histogram_type,
 			Name: &name,
@@ -137,7 +106,7 @@ func TestCollect(t *testing.T) {
 								UpperBound: &float}}}}}}}}
 
 	// Collect counters
-	_, err := srv.Collect(ctx, &counters)
+	_, err = srv.Collect(ctx, &counters)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
@@ -185,22 +154,4 @@ func TestCollect(t *testing.T) {
 	_, err = srv.Collect(ctx, &gauges)
 	assert.NoError(t, err)
 	assert.Equal(t, prevInfoLines+1, glog.Stats.Info.Lines())
-}
-
-func TestConsume(t *testing.T) {
-	metricsChan := make(chan *dto.MetricFamily)
-	e := &testMetricExporter{}
-
-	srv := servicers.NewMetricsControllerServer()
-	srv.RegisterExporter(e)
-
-	go srv.ConsumeCloudMetrics(metricsChan, "Host_name_place_holder")
-	fam1 := "test1"
-	fam2 := "test2"
-	go func() {
-		metricsChan <- &dto.MetricFamily{Name: &fam1, Metric: []*dto.Metric{{}}}
-		metricsChan <- &dto.MetricFamily{Name: &fam2, Metric: []*dto.Metric{{}}}
-	}()
-	time.Sleep(time.Second)
-	assert.Equal(t, 2, len(e.queue))
 }
