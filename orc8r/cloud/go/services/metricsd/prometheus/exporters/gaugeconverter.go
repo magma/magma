@@ -38,6 +38,8 @@ func convertFamilyToGauges(baseFamily *dto.MetricFamily) []*dto.MetricFamily {
 		gaugeFamilies = append(gaugeFamilies, histogramToGauges(baseFamily)...)
 	case dto.MetricType_SUMMARY:
 		gaugeFamilies = append(gaugeFamilies, summaryToGauges(baseFamily)...)
+	case dto.MetricType_UNTYPED:
+		gaugeFamilies = append(gaugeFamilies, untypedToGauge(baseFamily))
 	}
 	return gaugeFamilies
 }
@@ -173,4 +175,27 @@ func summaryToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
 		}
 	}
 	return []*dto.MetricFamily{&quantFamily, &sumFamily, &countFamily}
+}
+
+// untypedToGauge takes an untyped metric and converts it to a gauge with the
+// same value
+func untypedToGauge(family *dto.MetricFamily) *dto.MetricFamily {
+	untypedFamily := dto.MetricFamily{
+		Name: makeStringPointer(family.GetName()),
+		Type: &gaugeType,
+	}
+	for _, metric := range family.Metric {
+		if metric.Untyped == nil {
+			continue
+		}
+		untypedValue := float64(*metric.Untyped.Value)
+		untypedMetric := dto.Metric{
+			Label: metric.Label,
+			Gauge: &dto.Gauge{
+				Value: &untypedValue,
+			},
+		}
+		untypedFamily.Metric = append(untypedFamily.Metric, &untypedMetric)
+	}
+	return &untypedFamily
 }

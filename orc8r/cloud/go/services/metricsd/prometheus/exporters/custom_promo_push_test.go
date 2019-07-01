@@ -45,9 +45,11 @@ func TestCustomPushExporter_Submit(t *testing.T) {
 	testSubmitGauge(t)
 	testSubmitHistogram(t)
 	testSubmitSummary(t)
+	testSubmitUntyped(t)
 
 	testSubmitInvalidMetrics(t)
 	testSubmitInvalidLabel(t)
+	testSubmitInvalidName(t)
 }
 
 func testSubmitGauge(t *testing.T) {
@@ -140,6 +142,28 @@ func testSubmitSummary(t *testing.T) {
 	}
 }
 
+func testSubmitUntyped(t *testing.T) {
+	exp := makeTestCustomPushExporter()
+	err := submitNewMetric(&exp, dto.MetricType_UNTYPED)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, totalMetricCount(&exp))
+
+	err = submitNewMetric(&exp, dto.MetricType_UNTYPED)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, totalMetricCount(&exp))
+
+	assert.Equal(t, len(exp.familiesByName), 1)
+	for _, fam := range exp.familiesByName {
+		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
+		for _, metric := range fam.Metric {
+			assert.True(t, hasLabel(metric.Label, NetworkLabelNetwork, sampleNetworkID))
+			assert.True(t, hasLabel(metric.Label, NetworkLabelGateway, sampleGatewayID))
+			assert.True(t, hasLabel(metric.Label, "testLabel", "testValue"))
+		}
+	}
+
+}
+
 func testSubmitInvalidMetrics(t *testing.T) {
 	// Submitting a metric family with 0 metrics should not register the family
 	exp := makeTestCustomPushExporter()
@@ -153,6 +177,33 @@ func testSubmitInvalidMetrics(t *testing.T) {
 	err := exp.Submit(metrics)
 	assert.NoError(t, err)
 	assert.Equal(t, len(exp.familiesByName), 0)
+}
+
+func testSubmitInvalidName(t *testing.T) {
+	// Submitting a metric with an invalid name should submit a renamed metric
+	testInvalidName(t, "invalid metric name", "invalid_metric_name")
+	testInvalidName(t, "0starts_with_number", "_0starts_with_number")
+	testInvalidName(t, "bad?-/$chars", "bad____chars")
+}
+
+func testInvalidName(t *testing.T, inputName, expectedName string) {
+	exp := makeTestCustomPushExporter()
+	mf := tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, sampleLabels)
+
+	mc := exporters.MetricAndContext{
+		Family: mf,
+		Context: exporters.MetricsContext{
+			MetricName: inputName,
+		},
+	}
+	metrics := []exporters.MetricAndContext{mc}
+
+	err := exp.Submit(metrics)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(exp.familiesByName))
+	for name := range exp.familiesByName {
+		assert.Equal(t, expectedName, name)
+	}
 }
 
 func testSubmitInvalidLabel(t *testing.T) {

@@ -30,7 +30,8 @@ const (
 )
 
 var (
-	prometheusLabelRegex = regexp.MustCompile("[a-zA-Z_][a-zA-Z0-9_]*")
+	prometheusNameRegex = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
+	nonPromoChars       = regexp.MustCompile("[^a-zA-Z\\d_]")
 )
 
 // CustomPushExporter pushes metrics to one or more custom prometheus pushgateways
@@ -64,7 +65,7 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 			continue
 		}
 		originalFamily := metricAndContext.Family
-		originalFamily.Name = makeStringPointer(metricAndContext.Context.MetricName)
+		originalFamily.Name = sanitizePrometheusName(metricAndContext.Context.MetricName)
 		// Convert all families to gauges to avoid name collisions of different
 		// types.
 		convertedFamilies := convertFamilyToGauges(originalFamily)
@@ -129,7 +130,7 @@ func addContextLabelsToMetric(metric *io_prometheus_client.Metric, ctx mxd_exp.M
 
 func validateLabels(metric *io_prometheus_client.Metric) error {
 	for _, label := range metric.Label {
-		if !prometheusLabelRegex.MatchString(label.GetName()) {
+		if !prometheusNameRegex.MatchString(label.GetName()) {
 			return fmt.Errorf("label %s invalid", label.GetName())
 		}
 	}
@@ -180,6 +181,7 @@ func (e *CustomPushExporter) pushFamilies() []error {
 		familyString, err := familyToString(fam)
 		if err != nil {
 			errs = append(errs, err)
+			continue
 		}
 		bodyBuilder.WriteString(familyString)
 		bodyBuilder.WriteString("\n")
@@ -207,4 +209,13 @@ func (e *CustomPushExporter) resetFamilies() {
 
 func makeStringPointer(str string) *string {
 	return &str
+}
+
+func sanitizePrometheusName(name string) *string {
+	sanitizedName := string(nonPromoChars.ReplaceAllString(name, "_"))
+	// If still doesn't match, must be because digit is first character.
+	if !prometheusNameRegex.MatchString(sanitizedName) {
+		sanitizedName = "_" + sanitizedName
+	}
+	return &sanitizedName
 }
