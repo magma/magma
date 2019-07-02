@@ -71,7 +71,7 @@ $(RUN_LIST): %_run:
 
 precommit: fmt test vet swagger_validate
 
-build: plugin $(BUILD_LIST) swagger
+build: plugin $(BUILD_LIST) migration_plugin swagger
 $(BUILD_LIST): %_build:
 	make -C $*/cloud/go build
 

@@ -45,11 +45,19 @@ func (*plugin) RunCustomMigrations(
 ) error {
 	nids := funk.Keys(migratedGatewayMetasByNetwork).([]string)
 
-	err := migratePolicydb(sc, builder, nids)
-	if err != nil {
+	if err := migratePolicydb(sc, builder, nids); err != nil {
 		return errors.WithStack(err)
 	}
-	return migrateSubscriberdb(sc, builder, nids)
+
+	if err := migrateSubscriberdb(sc, builder, nids); err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := migrateEnodebs(sc, builder, migratedGatewayMetasByNetwork); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
 }
 
 // migrators

@@ -127,6 +127,10 @@ func migrateUpgradeTiersForNetwork(
 		return errors.Wrap(err, "failed to insert new tiers")
 	}
 
+	if funk.IsEmpty(graphIDsToChangeByTierGraphID) {
+		return nil
+	}
+
 	_, err = assocInsertBuilder.Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to create tier assocs")

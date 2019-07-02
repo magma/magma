@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
 
@@ -125,6 +126,7 @@ func Migrate(dbDriver string, dbSource string) error {
 	}
 
 	// Start by dropping all the new tables so the migration is idempotent
+	glog.Info("Dropping new tables...")
 	err = DropNewTables(tx)
 	if err != nil {
 		_ = tx.Rollback()
@@ -132,6 +134,7 @@ func Migrate(dbDriver string, dbSource string) error {
 	}
 
 	// Set up the new tables from scratch
+	glog.Info("Setting up new tables...")
 	err = SetupTables(tx, sqorc.GetSqlBuilder())
 	if err != nil {
 		_ = tx.Rollback()
@@ -142,6 +145,7 @@ func Migrate(dbDriver string, dbSource string) error {
 	defer sc.Clear()
 
 	// migrate networks
+	glog.Info("Migrating networks...")
 	networkIDs, err := MigrateNetworks(sc, sqorc.GetSqlBuilder())
 	if err != nil {
 		_ = tx.Rollback()
@@ -149,12 +153,14 @@ func Migrate(dbDriver string, dbSource string) error {
 	}
 
 	// migrate gateways
+	glog.Info("Migrating gateways...")
 	_, err = MigrateGateways(sc, sqorc.GetSqlBuilder(), networkIDs)
 	if err != nil {
 		_ = tx.Rollback()
 		return errors.Wrap(err, "failed to migrate gateways")
 	}
 
+	glog.Info("Running custom migrations...")
 	err = RunCustomPluginMigrations(sc, sqorc.GetSqlBuilder())
 	if err != nil {
 		_ = tx.Rollback()
