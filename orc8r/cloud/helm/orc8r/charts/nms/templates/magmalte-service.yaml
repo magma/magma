@@ -19,7 +19,7 @@ metadata:
 {{ tuple $envAll "nms" "magmalte" | include "labels" | indent 4 }}
 spec:
   selector:
-{{ tuple $envAll "nms" "magmalte" | include "selector-labels" | indent 6 }}
+{{ tuple $envAll "nms" "magmalte" | include "selector-labels" | indent 4 }}
   type: "{{ .Values.magmalte.service.type }}"
   ports:
   - name: http

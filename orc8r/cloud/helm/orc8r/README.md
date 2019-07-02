@@ -16,6 +16,15 @@ controller:
   image:
     repository: docker.io/controller
 
+metrics:
+  metrics:
+    configImage:
+      repository: docker.io/config-manager
+
+  prometheusCache:
+    image:
+      repository: docker.io/prometheus-cache
+
 $ helm install --name orc8r --namespace magma orc8r --values=vals.yaml
 ```
 
@@ -87,7 +96,7 @@ The following table list the configurable parameters of the orchestrator chart a
 ## Running in Minikube
 - Start Minikube with 8192 MB of memory and 4 CPUs. This example uses Kuberenetes version 1.14.1 and uses [Minikube Hypervisor Driver](https://kubernetes.io/docs/tasks/tools/install-minikube/#install-a-hypervisor):
 ```bash
-$ minikube start --memory=8192 --cpus=4 --kubernetes-version=v1.14.1
+$ minikube start --memory=8192 --cpus=4 --kubernetes-version=v1.14.1 --mount --mount-string "<path-to-metrics-configs>:/configs"
 ```
 - Install Helm Tiller:
 ```bash
@@ -100,7 +109,7 @@ $ kubectl get pods -n kube-system | grep tiller
 ```bash
 $ kubectl create namespace magma
 ```
-- Install Postgres Helm chart:
+- Install Postgres Helm chart (ONLY for running in Minikube):
 ```bash
 $ helm install \
     --name postgresql \
@@ -151,7 +160,7 @@ controller:
 $ helm install --name orc8r --namespace magma . --values=vals.yaml
 
 # In the future, if you want to upgrade the helm chart, run:
-$ helm upgrade orc8r . -f --values=vals.yaml
+$ helm upgrade orc8r . --values=vals.yaml
 ```
 - Add the admin in the datastore:
 ```bash

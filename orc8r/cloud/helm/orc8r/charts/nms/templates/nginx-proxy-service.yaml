@@ -19,7 +19,7 @@ metadata:
 {{ tuple $envAll "nms" "nginx" | include "labels" | indent 4 }}
 spec:
   selector:
-{{ tuple $envAll "nms" "nginx" | include "selector-labels" | indent 6 }}
+{{ tuple $envAll "nms" "nginx" | include "selector-labels" | indent 4 }}
   type: "{{ .Values.nginx.service.type }}"
   ports:
   - name: https

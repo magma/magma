@@ -86,7 +86,9 @@ spec:
           livenessProbe:
             exec:
               command:
-              - curl -If localhost:8081/user/login
+              - curl 
+              - http://localhost:8081/user/login
+            initialDelaySeconds: 60
           ports:
             - containerPort: 8081
           volumeMounts:

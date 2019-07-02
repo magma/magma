@@ -7,7 +7,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 */}}
 
-{{- define "labels" -}}
+{{- define "nms.labels" -}}
 {{- $envAll := index . 0 -}}
 {{- $application := index . 1 -}}
 {{- $component := index . 2 -}}
@@ -20,7 +20,7 @@ app.kubernetes.io/part-of: magma
 {{- end -}}
 
 {{/* Generate selector labels */}}
-{{- define "selector-labels" -}}
+{{- define "nms.selector-labels" -}}
 {{- $envAll := index . 0 -}}
 {{- $application := index . 1 -}}
 {{- $component := index . 2 -}}
