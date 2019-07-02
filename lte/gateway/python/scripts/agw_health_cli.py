@@ -21,20 +21,24 @@ from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 
 
 class AGWHealthSummary:
-    def __init__(self, relay_enabled, nb_enbs_connected, allocated_ips):
+    def __init__(self, relay_enabled, nb_enbs_connected,
+                 allocated_ips, subscriber_table):
         self.relay_enabled = relay_enabled
         self.nb_enbs_connected = nb_enbs_connected
         self.allocated_ips = allocated_ips
+        self.subscriber_table = subscriber_table
 
     def __str__(self):
         return """
 {}
-#eNBs connected: {}
-#IPs allocated: {}
+#eNBs connected: {}\t\t(run `enodebd_cli.py get_all_status` for more details)
+#IPs allocated: {}\t\t(run `mobilityd_cli.py list_allocated_ips` for more details)
+#UEs connected: {}\t\t(run `mobilityd_cli.py get_subscriber_table` for more details)
 """.format(
             'Using Feg' if self.relay_enabled else 'Using subscriberdb',
             self.nb_enbs_connected,
             len(self.allocated_ips),
+            len(self.subscriber_table),
         )
 
 
@@ -58,6 +62,14 @@ def get_allocated_ips():
     return res
 
 
+def get_subscriber_table():
+    chan = ServiceRegistry.get_rpc_channel('mobilityd', ServiceRegistry.LOCAL)
+    client = MobilityServiceStub(chan)
+
+    table = client.GetSubscriberIPTable(Void())
+    return table.entries
+
+
 def gateway_health_status():
     config = load_service_mconfig_as_json('mme')
 
@@ -67,14 +79,12 @@ def gateway_health_status():
     status = client.GetAllEnodebStatus(Void())
     status_list = status.enb_status_list
 
-    ''' List IPs allocated '''
-    allocated_ips = get_allocated_ips()
-
     health_summary = AGWHealthSummary(
         relay_enabled=config['relayEnabled'],
         nb_enbs_connected={enb_status.ip_address: enb_status.connected
                            for enb_status in status_list},
-        allocated_ips=allocated_ips,
+        allocated_ips=get_allocated_ips(),
+        subscriber_table=get_subscriber_table(),
     )
     return str(health_summary)
 
@@ -86,4 +96,6 @@ if __name__ == '__main__':
     else:
         fire.Fire({
             'status': gateway_health_status,
+            'allocated_ips': get_allocated_ips,
+            'subscriber_table': get_subscriber_table,
         })
