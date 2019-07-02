@@ -177,6 +177,8 @@ func (e *CustomPushExporter) pushFamilies() []error {
 		return []error{}
 	}
 	bodyBuilder := strings.Builder{}
+
+	e.Lock()
 	for _, fam := range e.familiesByName {
 		familyString, err := familyToString(fam)
 		if err != nil {
@@ -186,6 +188,8 @@ func (e *CustomPushExporter) pushFamilies() []error {
 		bodyBuilder.WriteString(familyString)
 		bodyBuilder.WriteString("\n")
 	}
+	e.Unlock()
+
 	body := bodyBuilder.String()
 	client := http.Client{}
 	for _, address := range e.pushAddresses {
