@@ -56,11 +56,12 @@ func (srv *deviceServicer) GetDeviceInfo(ctx context.Context, req *protos.GetDev
 	ids := protos.DeviceIDsToTypeAndKey(req.DeviceIDs)
 	store, err := srv.factory.StartTransaction()
 	if err != nil {
+		store.Rollback()
 		return nil, err
 	}
 	blobs, err := store.GetMany(req.NetworkID, ids)
 	response.DeviceMap = protos.BlobsToEntityByDeviceID(blobs)
-	return response, nil
+	return response, store.Commit()
 }
 
 func (srv *deviceServicer) DeleteDevices(ctx context.Context, req *protos.DeleteDevicesRequest) (*commonProtos.Void, error) {
