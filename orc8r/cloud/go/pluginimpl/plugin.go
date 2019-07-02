@@ -66,7 +66,6 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
-		&CheckinRequestSerde{},
 		&checkindserde.GatewayStatusSerde{},
 
 		// Inventory service serdes

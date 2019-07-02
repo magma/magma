@@ -10,7 +10,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from typing import Optional, List, Dict
-from google.protobuf.json_format import MessageToJson
 import snowflake
 
 from orc8r.protos.common_pb2 import Void
@@ -113,14 +112,6 @@ class StateReporter(SDWatchdogTask):
                           value=gw_state.encode('utf-8'))
             return state
         return None
-
-    def _get_checkin_request_as_state(self) -> State:
-        request = self._checkin_manager.get_latest_checkin_request()
-        value = MessageToJson(request)
-        state = State(type="checkin_request",
-                      deviceID=snowflake.snowflake(),
-                      value=value.encode('utf-8'))
-        return state
 
     def _construct_service_info(self) -> Dict[str, ServiceInfo]:
         info = {}
