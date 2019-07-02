@@ -303,9 +303,9 @@ func TestMagmad(t *testing.T) {
 	tests.RunTest(t, getAGConfigTestCase)
 
 	// assert the gateway now has an association to tier entity
-	entity, err := configurator.LoadEntity(networkId, orc8r.MagmadGatewayType, "TestAGHwId12345", configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	entity, err := configurator.LoadEntity(networkId, orc8r.UpgradeTierEntityType, "default", configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, "default", entity.Associations[0].Key)
+	assert.Equal(t, "TestAGHwId12345", entity.Associations[0].Key)
 
 	// empty tier should not be accepted
 	expCfg.Tier = ""
@@ -340,10 +340,9 @@ func TestMagmad(t *testing.T) {
 	tests.RunTest(t, setAGConfigTestCase)
 
 	// assert the gateway's tier association has changed
-	entity, err = configurator.LoadEntity(networkId, orc8r.MagmadGatewayType, "TestAGHwId12345", configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true})
+	entity, err = configurator.LoadEntity(networkId, orc8r.UpgradeTierEntityType, "changed", configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entity.Associations))
-	assert.Equal(t, "changed", entity.Associations[0].Key)
+	assert.Equal(t, "TestAGHwId12345", entity.Associations[0].Key)
 
 	// Test Getting AG Configs After Config Update
 	getAGConfigTestCase2 := tests.Testcase{

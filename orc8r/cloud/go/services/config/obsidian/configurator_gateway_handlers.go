@@ -96,14 +96,18 @@ func configuratorCreateMagmadGatewayConfig(c echo.Context, networkID string, gat
 		return nerr
 	}
 
-	update := configurator.EntityUpdateCriteria{
-		Type:              orc8r.MagmadGatewayType,
-		Key:               gatewayID,
-		NewConfig:         requestedConfig,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: requestedConfig.Tier}},
+	gwUpdate := configurator.EntityUpdateCriteria{
+		Type:      orc8r.MagmadGatewayType,
+		Key:       gatewayID,
+		NewConfig: requestedConfig,
+	}
+	tierUpdate := configurator.EntityUpdateCriteria{
+		Type:              orc8r.UpgradeTierEntityType,
+		Key:               requestedConfig.Tier,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
 	}
 
-	_, err := configurator.UpdateEntity(networkID, update)
+	_, err := configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{gwUpdate, tierUpdate})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -124,25 +128,34 @@ func configuratorUpdateMagmadGatewayConfig(c echo.Context, networkID string, gat
 	}
 	currentConfig := iCurrentConfig.(*models.MagmadGatewayConfig)
 
-	var associationsToAdd, associationsToDelete []storage.TypeAndKey
+	updates := []configurator.EntityUpdateCriteria{}
 	if currentConfig.Tier != requestedConfig.Tier {
 		nerr = createTierEntityIfDoesNotExist(networkID, requestedConfig.Tier)
 		if nerr != nil {
 			return nerr
 		}
-		associationsToAdd = []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: requestedConfig.Tier}}
-		associationsToDelete = []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: currentConfig.Tier}}
+
+		updateToCurrentTier := configurator.EntityUpdateCriteria{
+			Type:                 orc8r.UpgradeTierEntityType,
+			Key:                  currentConfig.Tier,
+			AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+		}
+		updateToRequestedTier := configurator.EntityUpdateCriteria{
+			Type:              orc8r.UpgradeTierEntityType,
+			Key:               requestedConfig.Tier,
+			AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+		}
+		updates = []configurator.EntityUpdateCriteria{updateToCurrentTier, updateToRequestedTier}
 	}
 
-	update := configurator.EntityUpdateCriteria{
-		Type:                 orc8r.MagmadGatewayType,
-		Key:                  gatewayID,
-		NewConfig:            requestedConfig,
-		AssociationsToAdd:    associationsToAdd,
-		AssociationsToDelete: associationsToDelete,
+	updateToGw := configurator.EntityUpdateCriteria{
+		Type:      orc8r.MagmadGatewayType,
+		Key:       gatewayID,
+		NewConfig: requestedConfig,
 	}
+	updates = append(updates, updateToGw)
 
-	_, err = configurator.UpdateEntity(networkID, update)
+	_, err = configurator.UpdateEntities(networkID, updates)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -150,17 +163,12 @@ func configuratorUpdateMagmadGatewayConfig(c echo.Context, networkID string, gat
 }
 
 func configuratorDeleteMagmadGatewayConfig(c echo.Context, networkID, gatewayID string) error {
-	iCurrentConfig, err := configurator.LoadEntityConfig(networkID, orc8r.MagmadGatewayType, gatewayID)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	currentConfig := iCurrentConfig.(*models.MagmadGatewayConfig)
-
 	update := configurator.EntityUpdateCriteria{
-		DeleteConfig:         true,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: currentConfig.Tier}},
+		Type:         orc8r.MagmadGatewayType,
+		Key:          gatewayID,
+		DeleteConfig: true,
 	}
-	_, err = configurator.UpdateEntity(networkID, update)
+	_, err := configurator.UpdateEntity(networkID, update)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
