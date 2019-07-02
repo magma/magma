@@ -18,7 +18,6 @@ import (
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/lte/cloud/go/crypto"
 	"magma/lte/cloud/go/services/eps_authentication/servicers"
-	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -26,61 +25,25 @@ import (
 
 // todo Replace constants with configurable fields
 const (
-	IdentityPostfix = "\x40\x77\x6c\x61\x6e\x2e\x6d\x6e\x63\x30\x30\x31\x2e\x6d\x63\x63" +
-		"\x30\x30\x31\x2e\x33\x67\x70\x70\x6e\x65\x74\x77\x6f\x72\x6b\x2e" +
-		"\x6f\x72\x67"
 	IND            = 0
 	CheckcodeValue = "\x00\x00\x86\xe8\x20\x4d\xc6\xe1\xe3\xd8\x94\x44\x3c\x26" +
 		"\xa7\xc6\x5d\xee\x3c\x42\xab\xf8"
 )
 
-// Handle routes the EAP request to the UE with the specified imsi.
-func (srv *UESimServer) Handle(imsi string, req eap.Packet) (res eap.Packet, err error) {
-	err = req.Validate()
-	if err != nil {
-		return nil, errors.Wrap(err, "Error validating EAP packet")
-	}
-
-	// Get the specified UE from the blobstore.
-	store, err := srv.store.StartTransaction()
-	if err != nil {
-		err = errors.Wrap(err, "Error while starting transaction")
-		return
-	}
-	defer func() {
-		switch err {
-		case nil:
-			if commitErr := store.Commit(); commitErr != nil {
-				err = errors.Wrap(err, "Error while committing transaction")
-			}
-		default:
-			if rollbackErr := store.Rollback(); rollbackErr != nil {
-				glog.Errorf("Error while rolling back transaction: %s", err)
-			}
-		}
-	}()
-
-	blob, err := store.Get(networkIDPlaceholder, storage.TypeAndKey{Type: blobTypePlaceholder, Key: imsi})
-	if err != nil {
-		return
-	}
-	ue, err := blobToUE(blob)
-	if err != nil {
-		return
-	}
-
+// handleEapAka routes the EAP-AKA request to the UE with the specified imsi.
+func (srv *UESimServer) handleEapAka(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	switch aka.Subtype(req[eap.EapSubtype]) {
 	case aka.SubtypeIdentity:
-		return identityRequest(ue, req)
+		return eapAkaIdentityRequest(ue, req)
 	case aka.SubtypeChallenge:
-		return challengeRequest(ue, srv.op, srv.amf, req)
+		return eapAkaChallengeRequest(ue, srv.op, srv.amf, req)
 	default:
 		return nil, errors.Errorf("Unsupported Subtype: %d", req[eap.EapSubtype])
 	}
 }
 
-// Given a UE and the EAP identity request, generates the EAP response.
-func identityRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
+// Given a UE and the EAP-AKA identity request, generates the EAP response.
+func eapAkaIdentityRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error creating new attribute scanner")
@@ -155,7 +118,7 @@ func parseChallengeAttributes(req eap.Packet) (challengeAttributes, error) {
 }
 
 // Given a UE, the Op, the Amf, and the EAP challenge, generates the EAP response.
-func challengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.Packet) (eap.Packet, error) {
+func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.Packet) (eap.Packet, error) {
 	attrs, err := parseChallengeAttributes(req)
 	if err != io.EOF {
 		return nil, errors.Wrap(err, "Error while parsing attributes of request packet")

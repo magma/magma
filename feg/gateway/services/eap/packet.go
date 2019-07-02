@@ -55,7 +55,7 @@ func (p Packet) Validate() error {
 	if lp < EapHeaderLen {
 		return io.ErrShortBuffer
 	}
-	if p.Len() > lp {
+	if p.Len() != lp {
 		return fmt.Errorf("Invalid Packet Length: header => %d, actual => %d", p.Len(), lp)
 	}
 	return nil
