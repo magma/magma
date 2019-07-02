@@ -9,16 +9,21 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import asyncio
 import subprocess
 import sys
 
 import apt
 import fire as fire
+from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
+from magma.magmad.metrics import UNEXPECTED_SERVICE_RESTARTS
 from orc8r.protos import common_pb2, magmad_pb2
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
+from orc8r.protos.mconfig import mconfigs_pb2
 from pystemd.systemd1 import Unit
 
+from magma.magmad.service_poller import ServicePoller
 from . import checkin_cli
 
 
@@ -64,7 +69,7 @@ class RestartFrequency:
         self.time_interval = time_interval
 
     def __str__(self):
-        return 'Restarted {} times during {}'.format(
+        return 'Restarted {} times {}'.format(
             self.count,
             self.time_interval,
         )
@@ -106,22 +111,37 @@ class ServiceHealth:
 
 
 class HealthSummary:
-    def __init__(self, version, services_health, internet_health, dns_health):
+    def __init__(self, version,
+                 services_health,
+                 internet_health, dns_health,
+                 unexpected_restarts):
         self.version = version
         self.services_health = services_health
         self.internet_health = internet_health
         self.dns_health = dns_health
+        self.unexpected_restarts = unexpected_restarts
 
     def __str__(self):
+        any_restarts = any([restarts.count
+                            for restarts in self.unexpected_restarts.values()])
         return """
 Version: {}:
 {}
 
 Internet health: {}
 DNS health: {}
+
+Restart summary:
+{}
         """.format(self.version,
                    '\n'.join([str(h) for h in self.services_health]),
-                   self.internet_health, self.dns_health)
+                   self.internet_health, self.dns_health,
+                   '\n'.join(['{:20} {}'.format(name, restarts)
+                              for name, restarts
+                              in self.unexpected_restarts.items()])
+                   if any_restarts
+                   else "No restarts since the gateway started",
+                   )
 
 
 def ping(host, num_packets=4):
@@ -173,11 +193,38 @@ def get_magma_services_status():
     return services_health_summary
 
 
+def get_unexpected_restart_summary():
+    service = MagmaService('magmad', mconfigs_pb2.MagmaD())
+    service_poller = ServicePoller(service.loop, service.config)
+    service_poller.start()
+
+    asyncio.set_event_loop(service.loop)
+
+    # noinspection PyProtectedMember
+    async def fetch_info():
+        restart_frequencies = {}
+        await service_poller._get_service_info()
+        for service_name in service_poller.service_info.keys():
+            restarts = int(UNEXPECTED_SERVICE_RESTARTS
+                           .labels(service_name=service_name)
+                           ._value.get())
+            restart_frequencies[service_name] = RestartFrequency(
+                count=restarts,
+                time_interval=''
+            )
+
+        return restart_frequencies
+
+    return service.loop.run_until_complete(fetch_info())
+
+
 def get_health_summary():
     """ Get health summary for the whole program """
     # Check connection to the orchestrator
     print('\nGateway <-> Controller connectivity')
     checkin_cli.main()
+
+    unexpected_restarts = get_unexpected_restart_summary()
 
     # Get magma version and when it was updated
     cache = apt.Cache()
@@ -185,12 +232,20 @@ def get_health_summary():
     version = Version(version_code=pkg.versions[0],
                       last_update_time='19 Jun 2019')
 
-    return str(HealthSummary(
+    health_summary = HealthSummary(
         version=version,
         services_health=get_magma_services_status(),
         internet_health=ping_status(host='8.8.8.8'),
         dns_health=ping_status(host='google.com'),
-    ))
+        unexpected_restarts=unexpected_restarts,
+    )
+
+    ''' Check connection to the orchestrator '''
+    # Call this last because it closes the event loop
+    print('\nGateway <-> Controller connectivity')
+    checkin_cli.main()
+
+    return str(health_summary)
 
 
 if __name__ == '__main__':
@@ -201,4 +256,5 @@ if __name__ == '__main__':
         fire.Fire({
             'services_status': get_magma_services_status,
             'status': get_health_summary,
+            'error_summary': get_unexpected_restart_summary,
         })
