@@ -46,6 +46,9 @@ setup(
         'scripts/show_gateway_info.py',
     ],
     install_requires=[
+        'Cython>=0.29.0',
+        'pystemd==0.5.0',
+        'fire>=0.1.3',
         'aioh2==0.2.2',
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
         'redis-collections>=0.4.2',
