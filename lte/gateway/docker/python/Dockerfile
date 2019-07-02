@@ -1,43 +1,10 @@
 # -----------------------------------------------------------------------------
-# Builder image to generate OVS debian packages and Magma proto files
+# Builder image for Magma proto files
 # -----------------------------------------------------------------------------
 FROM ubuntu:xenial AS builder
 
-# Add the magma apt repo
-RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https
-COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ xenial main"
-
 # Install the runtime deps from apt.
-RUN apt-get -y update && apt-get -y install curl make virtualenv zip tar
-
-# TODO: Fetch necessary OVS debian packages from pkgrepo
-# Fetch OVS v2.8.1 tarball
-RUN curl -Lfs https://www.openvswitch.org/releases/openvswitch-2.8.1.tar.gz | tar xvz
-
-# Install OVS dependencies for building
-RUN apt-get -y update && apt-get -y install \
-  graphviz \
-  autoconf \
-  automake \
-  bzip2 \
-  debhelper \
-  dh-autoreconf \
-  libssl-dev \
-  libtool \
-  openssl \
-  procps \
-  python-all \
-  python-twisted-conch \
-  python-zopeinterface \
-  python-six \
-  build-essential \
-  fakeroot
-
-# Build OVS v2.8.1 debian packages
-RUN cd openvswitch-2.8.1 && DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
+RUN apt-get -y update && apt-get -y install curl make virtualenv zip
 
 # Install protobuf compiler.
 RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
@@ -71,6 +38,7 @@ FROM ubuntu:xenial AS lte_gateway_python
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
+COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
     apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ xenial main"
 
@@ -94,18 +62,15 @@ RUN apt-get -y update && apt-get -y install \
   python3-pip \
   redis-server
 
-# Copy OVS debian packages from builder
-COPY --from=builder libopenvswitch_2.8.1-1_amd64.deb /tmp/ovs/
-COPY --from=builder openvswitch-common_2.8.1-1_amd64.deb /tmp/ovs/
-COPY --from=builder openvswitch-switch_2.8.1-1_amd64.deb /tmp/ovs/
-COPY --from=builder python-openvswitch_2.8.1-1_all.deb /tmp/ovs/
+# Install OVS via Magma bionic pkg repo
+RUN apt-key add /tmp/jfrog.pub && \
+    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ bionic main"
 
-# Install OVS debian packages
-RUN apt-get -y install \
-  /tmp/ovs/libopenvswitch_2.8.1-1_amd64.deb \
-  /tmp/ovs/openvswitch-common_2.8.1-1_amd64.deb \
-  /tmp/ovs/openvswitch-switch_2.8.1-1_amd64.deb \
-  /tmp/ovs/python-openvswitch_2.8.1-1_all.deb
+RUN apt-get -y update && apt-get -y install \
+  libopenvswitch \
+  openvswitch-common \
+  openvswitch-switch \
+  python-openvswitch
 
 # Install orc8r python (magma.common required for lte python)
 COPY orc8r/gateway/python /tmp/orc8r
