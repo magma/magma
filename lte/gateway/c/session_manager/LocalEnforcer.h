@@ -11,9 +11,10 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
+#include "AAAClient.h"
 #include "CloudReporter.h"
-#include "RuleStore.h"
 #include "PipelinedClient.h"
+#include "RuleStore.h"
 #include "SessionState.h"
 
 namespace magma {
@@ -35,6 +36,7 @@ class LocalEnforcer {
     std::shared_ptr<SessionCloudReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
+    std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms);
 
   void attachEventBase(folly::EventBase *evb);
@@ -131,6 +133,7 @@ class LocalEnforcer {
   std::shared_ptr<SessionCloudReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
+  std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
   folly::EventBase *evb_;
   long session_force_termination_timeout_ms_;
@@ -227,6 +230,9 @@ class LocalEnforcer {
     const google::protobuf::Timestamp &revalidation_time);
 
   void check_usage_for_reporting();
+
+  void execute_actions(
+    const std::vector<std::unique_ptr<ServiceAction>> &actions);
 };
 
 } // namespace magma

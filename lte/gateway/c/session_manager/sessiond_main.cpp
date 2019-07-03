@@ -142,6 +142,18 @@ int main(int argc, char *argv[])
     pipelined_client->rpc_response_loop();
   });
 
+  std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
+  std::thread aaa_client_thread;
+  if (config["support_carrier_wifi"].as<bool>()) {
+    aaa_client = std::make_shared<aaa::AsyncAAAClient>();
+    aaa_client_thread = std::thread([&]() {
+      MLOG(MINFO) << "Started AAA client response thread";
+      aaa_client->rpc_response_loop();
+    });
+  } else {
+    aaa_client = nullptr;
+  }
+
   auto reporting_threshold = config["usage_reporting_threshold"].as<float>();
   if (reporting_threshold <= MIN_USAGE_REPORTING_THRESHOLD ||
       reporting_threshold >= MAX_USAGE_REPORTING_THRESHOLD) {
@@ -164,6 +176,7 @@ int main(int argc, char *argv[])
     reporter,
     rule_store,
     pipelined_client,
+    aaa_client,
     config["session_force_termination_timeout_ms"].as<long>());
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
@@ -201,6 +214,10 @@ int main(int argc, char *argv[])
   proxy_thread.join();
   rule_manager_thread.join();
   policy_loader_thread.join();
+
+  if (config["support_carrier_wifi"].as<bool>()) {
+    aaa_client_thread.join();
+  }
 
   return 0;
 }

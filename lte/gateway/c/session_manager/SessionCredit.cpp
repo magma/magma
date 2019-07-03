@@ -248,4 +248,9 @@ void SessionCredit::reauth()
   reauth_state_ = REAUTH_REQUIRED;
 }
 
+bool SessionCredit::no_more_grant()
+{
+  return is_final_;
+}
+
 } // namespace magma

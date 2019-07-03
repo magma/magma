@@ -238,4 +238,9 @@ bool SessionState::is_radius_cwf_session()
   return (config_.rat_type == RATType::TGPP_WLAN);
 }
 
+std::string SessionState::get_radius_session_id()
+{
+  return config_.radius_session_id;
+}
+
 } // namespace magma

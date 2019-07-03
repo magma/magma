@@ -139,6 +139,11 @@ class SessionCredit {
   void reauth();
 
   /**
+   * Returns true when there will be no more quora granted
+   */
+  bool no_more_grant();
+
+  /**
    * A threshold represented as a ratio for triggering usage update before
    * an user completely used up the quota
    * Session manager will send usage update when

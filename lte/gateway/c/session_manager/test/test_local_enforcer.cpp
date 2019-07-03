@@ -41,8 +41,9 @@ class LocalEnforcerTest : public ::testing::Test {
     reporter = std::make_shared<MockSessionCloudReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
+    aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_unique<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, 0);
+      reporter, rule_store, pipelined_client, aaa_client, 0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
   }
@@ -108,6 +109,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
+  std::shared_ptr<MockAAAClient> aaa_client;
   folly::EventBase *evb;
 };
 
@@ -122,7 +124,7 @@ MATCHER_P2(CheckActivateFlows, imsi, rule_count, "")
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
 }
 
-TEST_F(LocalEnforcerTest, test_init_session_credit)
+TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
 {
   insert_static_rule(1, "", "rule1");
 
@@ -147,6 +149,7 @@ TEST_F(LocalEnforcerTest, test_init_session_credit)
   SessionState::Config test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
+  test_cwf_cfg.radius_session_id = "1234567";
 
   local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
 
@@ -154,7 +157,7 @@ TEST_F(LocalEnforcerTest, test_init_session_credit)
     local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 1024);
 }
 
-TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
+TEST_F(LocalEnforcerTest, test_init_session_credit)
 {
   insert_static_rule(1, "", "rule1");
 
@@ -426,6 +429,43 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling)
   EXPECT_CALL(
     *pipelined_client,
     deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  // call collect_updates to trigger actions
+  auto usage_updates = local_enforcer->collect_updates();
+}
+
+TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling)
+{
+  CreateSessionResponse response;
+  create_credit_update_response(
+    "IMSI1", 1, true, 1024, response.mutable_credits()->Add());
+
+  SessionState::Config test_cwf_cfg;
+  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
+  test_cwf_cfg.radius_session_id = "1234567";
+
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+
+  // Insert record for key 1
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record("IMSI1", "rule1", 1024, 2048, record_list->Add());
+  create_rule_record("IMSI1", "rule2", 1024, 2048, record_list->Add());
+  local_enforcer->aggregate_records(table);
+
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  EXPECT_CALL(
+    *aaa_client,
+    terminate_session(testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
   // call collect_updates to trigger actions
