@@ -107,6 +107,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: USE_NEW_HANDLERS
+              value: "{{ .Values.controller.migration.new_handlers }}"
+            - name: USE_NEW_MCONFIGS
+              value: "{{ .Values.controller.migration.new_mconfigs }}"
           livenessProbe:
             tcpSocket:
               port: 9081
