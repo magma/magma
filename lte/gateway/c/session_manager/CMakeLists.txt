@@ -53,6 +53,10 @@ set(SMGR_GRPC_PROTOS session_manager pipelined pgw)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
+set(SMGR_CWF_GRPC_PROTOS accounting)
+generate_grpc_protos("${SMGR_CWF_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
+
 message("Proto_srcs are ${PROTO_SRCS}")
 
 link_directories(
@@ -64,6 +68,8 @@ link_directories(
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(SESSION_MANAGER
+    AAAClient.cpp
+    AAAClient.h
     SessionManagerServer.cpp
     SessionManagerServer.h
     LocalSessionManagerHandler.cpp
