@@ -65,7 +65,7 @@ spec:
       nodePort: {{ .nodePort }}
       {{- end -}}
       {{- end -}}
-     {{- end }}
+    {{- end }}
 {{- if eq .Values.service.type "LoadBalancer" }}
   {{- if .Values.service.loadBalancerIP }}
   loadBalancerIP: {{ .Values.service.loadBalancerIP }}

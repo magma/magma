@@ -10,10 +10,15 @@ $ cd magma/feg/gateway/helm
 $ cat vals.yaml
 feg:
   image:
-    docker_registry: docker.io/proxy
+    docker_registry: docker.io/feg_
+    tag: latest
   repo:
-    url: https://github.com/facebookincubator/magma/
+    url: https://github.com/facebookincubator/magma.git
     branch: master
+
+image:
+  repository: virtlet.cloud/cloud-images.ubuntu.com/xenial/current/xenial-server-cloudimg-amd64-disk1.img
+  pullPolicy: IfNotPresent
 
 $ helm upgrade --install feg --namespace magma ./feg --values=vals.yaml
 ```
@@ -92,7 +97,6 @@ The following table list the configurable parameters of the orchestrator chart a
 | `feg.bind.GY_LOCAL_PORT` | FeG GY local port. | `3906` |
 | `feg.bind.GY_HOST_PORT` | FeG GY host port. | `0` |
 | `feg.bind.GY_NETWORK` | FeG GY network type. | `tcp` |
-
 | `image.repository` | Virtlet image path | `virtlet.cloud/<image_path>` |
 | `image.pullPolicy` | Virtlet Image pullpolicy | `IfNotPresent` |
 | `labels.node_selector_key` | Target Node selector label Key. | `extraRuntime` |

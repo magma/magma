@@ -12,8 +12,8 @@ nghttpx_config_location: /var/tmp/nghttpx.conf
 
 # Location for certs
 rootca_cert: /var/opt/magma/certs/rootCA.pem
-gateway_cert: /var/opt/magma/certs/gwcert.crt
-gateway_key: /var/opt/magma/certs/gwcert.key
+gateway_cert: /var/opt/magma/certs/gateway.crt
+gateway_key: /var/opt/magma/certs/gateway.key
 
 # Listening port of the proxy for local services. The port would be closed
 # for the rest of the world.

@@ -74,7 +74,7 @@ pod:
         cpu: "2000m"
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     local:
       port: 8443
