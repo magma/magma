@@ -120,7 +120,8 @@ int mme_api_get_emm_config(
       config->tai_list.partial_tai_list[0].typeoflist =
         mme_config_p->served_tai.list_type;
       // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2 elements...), see 3GPP TS 24.301, section 9.9.3.33.1
-      config->tai_list.partial_tai_list[0].numberofelements = 0;
+      config->tai_list.partial_tai_list[0].numberofelements = 
+        mme_config_p->served_tai.nb_tai - 1;
       config->tai_list.partial_tai_list[0]
         .u.tai_one_plmn_consecutive_tacs.mcc_digit1 =
         (mme_config_p->served_tai.plmn_mcc[0] / 100) % 10;
@@ -609,17 +610,23 @@ int mme_api_new_guti(
                t < (tai_list->partial_tai_list[j].numberofelements + 1);
                t++) {
             tai_list->partial_tai_list[j].u.tai_many_plmn[t].mcc_digit1 =
-              guti->gummei.plmn.mcc_digit1;
+              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
+              .mcc_digit1;
             tai_list->partial_tai_list[j].u.tai_many_plmn[t].mcc_digit2 =
-              guti->gummei.plmn.mcc_digit2;
+              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
+              .mcc_digit2;
             tai_list->partial_tai_list[j].u.tai_many_plmn[t].mcc_digit3 =
-              guti->gummei.plmn.mcc_digit3;
+              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
+              .mcc_digit3;
             tai_list->partial_tai_list[j].u.tai_many_plmn[t].mnc_digit1 =
-              guti->gummei.plmn.mnc_digit1;
+              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
+             .mnc_digit1;
             tai_list->partial_tai_list[j].u.tai_many_plmn[t].mnc_digit2 =
-              guti->gummei.plmn.mnc_digit2;
+              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
+              .mnc_digit2;
             tai_list->partial_tai_list[j].u.tai_many_plmn[t].mnc_digit3 =
-              guti->gummei.plmn.mnc_digit3;
+              _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]
+              .mnc_digit3;
             // _emm_data.conf.tai_list is sorted
             tai_list->partial_tai_list[j].u.tai_many_plmn[t].tac =
               _emm_data.conf.tai_list.partial_tai_list[i]
