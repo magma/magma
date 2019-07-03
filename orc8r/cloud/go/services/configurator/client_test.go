@@ -149,7 +149,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, "foobar", entities[0].Name)
 	assert.Equal(t, "fooboo", entities[1].Name)
 
-	// Update, Load
+	// Update, Load add an association from foobar to fooboo
 	newPhysID := "4321"
 	entityUpdateCriteria := configurator.EntityUpdateCriteria{
 		Type:              entityID1.Type,
@@ -175,6 +175,7 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, 1, len(entities[0].Associations))
 	assert.Equal(t, entityID2.Type, entities[0].Associations[0].Type)
 	assert.Equal(t, entityID2.Key, entities[0].Associations[0].Key)
+	assert.Equal(t, entityID1.Key, entities[1].ParentAssociations[0].Key)
 
 	// Delete, Load
 	err = configurator.DeleteEntities(networkID1, []storage.TypeAndKey{entityID2})
