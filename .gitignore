@@ -30,6 +30,7 @@ dist/
 eggs/
 lib/
 lib64/
+!feg/radius/lib/
 parts/
 sdist/
 var/
