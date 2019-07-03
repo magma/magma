@@ -21,7 +21,7 @@ import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MenuItem from '@material-ui/core/MenuItem';
 import Button from '@material-ui/core/Button';
 import Select from '@material-ui/core/Select';

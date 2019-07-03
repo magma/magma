@@ -21,11 +21,9 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
-	deviceprotos "magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	"magma/orc8r/cloud/go/storage"
 
 	"github.com/labstack/echo"
 )
@@ -97,7 +95,22 @@ func createGateway(c echo.Context) error {
 		gatewayID = record.HwID.ID
 	}
 
-	err := configurator.RegisterGateway(networkID, gatewayID, record)
+	if device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID) {
+		return fmt.Errorf("Hwid is already registered %s", record.HwID.ID)
+	}
+	// write into device
+	err := device.CreateOrUpdate(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	// write into configurator
+	gwEntity := configurator.NetworkEntity{
+		Name:       record.Name,
+		Type:       orc8r.MagmadGatewayType,
+		Key:        gatewayID,
+		PhysicalID: record.HwID.ID,
+	}
+	_, err = configurator.CreateEntity(networkID, gwEntity)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -121,7 +134,7 @@ func getGateway(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	deviceEntity, err := device.GetDevice(networkID, device.GatewayInfoType, gatewayEntity.PhysicalID)
+	deviceEntity, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, gatewayEntity.PhysicalID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -169,7 +182,7 @@ func updateChallengeKey(networkID, gatewayID string, challengeKey *magmad_models
 	if err != nil {
 		return err
 	}
-	iRecord, err := device.GetDevice(networkID, device.GatewayInfoType, deviceID)
+	iRecord, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, deviceID)
 	if err != nil {
 		return err
 	}
@@ -178,7 +191,7 @@ func updateChallengeKey(networkID, gatewayID string, challengeKey *magmad_models
 		return fmt.Errorf("Info stored in deviceID %s is not of type AccessGatewayRecord", deviceID)
 	}
 	record.Key = challengeKey
-	return device.CreateOrUpdate(networkID, device.GatewayInfoType, deviceID, record)
+	return device.CreateOrUpdate(networkID, orc8r.AccessGatewayRecordType, deviceID, record)
 }
 
 func updateGatewayName(networkID, gatewayID, name string) error {
@@ -205,15 +218,14 @@ func deleteGateway(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	err = device.DeleteDevices(networkID, []*deviceprotos.DeviceID{{DeviceID: physicalID, Type: device.GatewayInfoType}})
+	err = device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, physicalID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	err = configurator.DeleteEntities(networkID, []storage.TypeAndKey{{Key: gatewayID, Type: orc8r.MagmadGatewayType}})
+	err = configurator.DeleteEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-
 	return c.NoContent(http.StatusNoContent)
 }
 

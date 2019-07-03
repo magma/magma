@@ -464,18 +464,13 @@ static void log_connect_to_server(void)
 //------------------------------------------------------------------------------
 static void log_sync(log_queue_item_t *new_item_p)
 {
-  if (g_oai_log.is_output_is_fd) {
-    fprintf(g_oai_log.log_fd, "%s", bdata(new_item_p->bstr));
-    fflush(g_oai_log.log_fd);
-  } else {
-    syslog(new_item_p->log_level, "%s", bdata(new_item_p->bstr));
-  }
+  log_string(new_item_p->log_level, bdata(new_item_p->bstr));
   // Release the log_item
   free_log_queue_item_sync(&new_item_p);
 }
 static void log_async(shared_log_queue_item_t *new_item_p)
 {
-  shared_log_item(new_item_p);
+  log_string(new_item_p->u_app_log.log.log_level, bdata(new_item_p->bstr));
 }
 //------------------------------------------------------------------------------
 // for sync or async logging
@@ -684,6 +679,9 @@ int log_init(
   const log_level_t default_log_levelP,
   const int max_threadsP)
 {
+  // init glog logging
+  init_logging(app_name, default_log_levelP);
+
   int i = 0;
   struct timeval start_time = {.tv_sec = 0, .tv_usec = 0};
 
@@ -1198,6 +1196,8 @@ void log_message_add_sync(log_queue_item_t *messageP, char *format, ...)
 //------------------------------------------------------------------------------
 static void log_message_finish_sync(log_queue_item_t *messageP)
 {
+  // flush everything
+  flush_log(MIN_LOG_LEVEL);
   int rv = 0;
 
   if (NULL == messageP) {
@@ -1226,6 +1226,8 @@ error_event:
 //------------------------------------------------------------------------------
 void log_message_finish_async(struct shared_log_queue_item_s *messageP)
 {
+  // flush everything
+  flush_log(MIN_LOG_LEVEL);
   int rv = 0;
 
   if (messageP) {

@@ -52,10 +52,12 @@ LocalEnforcer::LocalEnforcer(
   std::shared_ptr<SessionCloudReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
   std::shared_ptr<PipelinedClient> pipelined_client,
+  std::shared_ptr<aaa::AAAClient> aaa_client,
   long session_force_termination_timeout_ms):
   reporter_(reporter),
   rule_store_(rule_store),
   pipelined_client_(pipelined_client),
+  aaa_client_(aaa_client),
   session_force_termination_timeout_ms_(session_force_termination_timeout_ms)
 {
 }
@@ -124,18 +126,30 @@ void LocalEnforcer::aggregate_records(const RuleRecordTable &records)
   finish_report();
 }
 
-static void execute_actions(
-  PipelinedClient &pipelined_client,
+void LocalEnforcer::execute_actions(
   const std::vector<std::unique_ptr<ServiceAction>> &actions)
 {
   for (auto &action_p : actions) {
     if (action_p->get_type() == TERMINATE_SERVICE) {
-      pipelined_client.deactivate_flows_for_rules(
+      pipelined_client_->deactivate_flows_for_rules(
         action_p->get_imsi(),
         action_p->get_rule_ids(),
         action_p->get_rule_definitions());
+
+      // tell AAA service to terminate radius session if necessary
+      auto it = session_map_.find(action_p->get_imsi());
+      if (it == session_map_.end()) {
+        MLOG(MWARNING) << "Could not find session with IMSI "
+                       << action_p->get_imsi();
+      } else if (it->second->is_radius_cwf_session()) {
+        MLOG(MDEBUG) << "Asking AAA service to terminate session with "
+                     << "Radius ID: " << it->second->get_radius_session_id()
+                     << ", IMSI: " << action_p->get_imsi();
+        aaa_client_->terminate_session(
+          it->second->get_radius_session_id(), action_p->get_imsi());
+      }
     } else if (action_p->get_type() == ACTIVATE_SERVICE) {
-      pipelined_client.activate_flows_for_rules(
+      pipelined_client_->activate_flows_for_rules(
         action_p->get_imsi(),
         action_p->get_ip_addr(),
         action_p->get_rule_ids(),
@@ -151,7 +165,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates()
   for (auto &session_pair : session_map_) {
     session_pair.second->get_updates(&request, &actions);
   }
-  execute_actions(*pipelined_client_, actions);
+  execute_actions(actions);
   return request;
 }
 

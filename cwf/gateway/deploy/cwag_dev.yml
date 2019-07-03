@@ -12,6 +12,10 @@
     - user: vagrant
     - full_provision: true
   roles:
+    - role: apt_cache
+    - role: pkgrepo
+      vars:
+        distribution: "bionic"
     - role: ovs
     - role: golang
     - role: cwag

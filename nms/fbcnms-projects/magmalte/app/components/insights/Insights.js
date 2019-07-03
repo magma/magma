@@ -13,7 +13,7 @@ import type {MagmaFeatureCollection} from '../../common/GeoJSON';
 
 import React from 'react';
 import Alert from '@fbcnms/ui/components/Alert/Alert';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import GatewayMapMarker from './GatewayMapMarker';
 import MapView from '../MapView';
 import Paper from '@material-ui/core/Paper';

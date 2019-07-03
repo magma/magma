@@ -13,21 +13,18 @@ module.exports = {
     '**/fbcnms-packages/**/*.js',
     '!**/__mocks__/**',
     '!**/__tests__/**',
+    '!**/fbcnms-packages/fbcnms-ui/stories/**',
     '!**/thrift/gen-nodejs/**',
     '!**/node_modules/**',
   ],
   coverageReporters: ['json', 'html'],
-  moduleNameMapper: {
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
-      '<rootDir>/__mocks__/fileMock.js',
-    '\\.(css|less)$': 'identity-obj-proxy',
-  },
   modulePathIgnorePatterns: [],
   projects: [
     {
       name: 'server',
       testEnvironment: 'node',
       testMatch: [
+        '<rootDir>/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/server/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-auth/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',
@@ -41,6 +38,11 @@ module.exports = {
       },
     },
     {
+      moduleNameMapper: {
+        '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+          '<rootDir>/__mocks__/fileMock.js',
+        '\\.(css|less)$': 'identity-obj-proxy',
+      },
       name: 'app',
       testEnvironment: 'jsdom',
       testMatch: [

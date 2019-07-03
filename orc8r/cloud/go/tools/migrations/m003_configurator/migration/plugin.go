@@ -41,7 +41,7 @@ type ConfigMigrator interface {
 	ToNewConfig(oldConfig []byte) ([]byte, error)
 }
 
-const defaultPluginDir = "/var/opt/magma/plugins/migrations/m003_configurator"
+const defaultPluginDir = "/var/opt/magma/plugins/migrations/m003_configurator/"
 const factoryFunction = "GetPlugin"
 
 var allPlugins = []ConfiguratorMigrationPlugin{}

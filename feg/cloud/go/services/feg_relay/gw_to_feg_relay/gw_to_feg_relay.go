@@ -21,7 +21,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	feg_protos "magma/feg/cloud/go/services/controller/protos"
 	"magma/feg/cloud/go/services/health"
-	lte_config "magma/lte/cloud/go/services/cellular/config"
+	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/orc8r/cloud/go/http2"
 	"magma/orc8r/cloud/go/protos"
@@ -165,7 +165,7 @@ func getFeGHwIdForNetwork(agNwId string) (string, error) {
 	if err == nil {
 		return fegEnvHwID, nil
 	}
-	cfg, err := config.GetConfig(agNwId, lte_config.CellularNetworkType, agNwId)
+	cfg, err := config.GetConfig(agNwId, lte.CellularNetworkType, agNwId)
 	if err != nil || cfg == nil {
 		return "", fmt.Errorf("Unable to retrieve cellular config for AG network: %s", agNwId)
 	}

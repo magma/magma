@@ -13,13 +13,10 @@ import (
 	"fmt"
 
 	merrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/orc8r"
 	commonProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
-	"magma/orc8r/cloud/go/services/device"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	storage2 "magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
@@ -207,28 +204,6 @@ func GetNetworkConfigsByType(networkID string, configType string) (interface{}, 
 		return nil, fmt.Errorf("Network %s not found", networkID)
 	}
 	return networks[0].Configs[configType], nil
-}
-
-// configurator backed version of magmad.RegisterGateway. Adds an entity into
-// configurator, then adds the gateway record into device.
-func RegisterGateway(networkID, gatewayID string, record *magmad_models.AccessGatewayRecord) error {
-	if device.DoesDeviceExist(networkID, device.GatewayInfoType, record.HwID.ID) {
-		return fmt.Errorf("Hwid is already registered %s", record.HwID.ID)
-	}
-	// write into device
-	err := device.CreateOrUpdate(networkID, device.GatewayInfoType, record.HwID.ID, record)
-	if err != nil {
-		return err
-	}
-	// write into configurator
-	gwEntity := NetworkEntity{
-		Name:       record.Name,
-		Type:       orc8r.MagmadGatewayType,
-		Key:        gatewayID,
-		PhysicalID: record.HwID.ID,
-	}
-	_, err = CreateEntity(networkID, gwEntity)
-	return err
 }
 
 func CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error) {
@@ -460,6 +435,17 @@ func LoadEntityForPhysicalID(physicalID string, criteria EntityLoadCriteria) (Ne
 	return loaded[0], nil
 }
 
+func GetNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, error) {
+	if len(physicalID) == 0 {
+		return "", "", errors.New("Empty Hardware ID")
+	}
+	entity, err := LoadEntityForPhysicalID(physicalID, EntityLoadCriteria{})
+	if err != nil {
+		return "", "", err
+	}
+	return entity.NetworkID, entity.Key, nil
+}
+
 // LoadEntities loads entities specified by the parameters.
 func LoadEntities(
 	networkID string,
@@ -560,4 +546,22 @@ func LoadAllEntitiesInNetwork(networkID string, entityType string, criteria Enti
 		ret[i] = ent
 	}
 	return ret, nil
+}
+
+func getSBConfiguratorClient() (protos.SouthboundConfiguratorClient, error) {
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := merrors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
+	}
+	return protos.NewSouthboundConfiguratorClient(conn), err
+}
+
+func GetMconfigFor(hardwareID string) (*protos.GetMconfigResponse, error) {
+	client, err := getSBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+	return client.GetMconfigInternal(context.Background(), &protos.GetMconfigRequest{HardwareID: hardwareID})
 }

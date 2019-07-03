@@ -15,21 +15,34 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"os"
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/services/configurator"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
+)
+
+const (
+	echoType  = "ECHO"
+	rsaType   = "SOFTWARE_RSA_SHA256"
+	ecdsaType = "SOFTWARE_ECDSA_SHA256"
 )
 
 func testWithECHO(
@@ -37,14 +50,15 @@ func testWithECHO(
 
 	testAgHwId := "test_ag_echo"
 
-	_, err := magmad.RegisterGateway(
+	configurator_test_utils.RegisterGateway(
+		t,
 		networkId,
-		&magmad_protos.AccessGatewayRecord{
-			HwId: &protos.AccessGatewayID{Id: testAgHwId},
+		testAgHwId,
+		&models.AccessGatewayRecord{
+			HwID: &models.HwGatewayID{ID: testAgHwId},
 			Name: "Test GW echo",
-			Key:  &protos.ChallengeKey{KeyType: protos.ChallengeKey_ECHO},
+			Key:  &models.ChallengeKey{KeyType: echoType},
 		})
-	assert.NoError(t, err)
 
 	// check challenge type
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
@@ -77,16 +91,19 @@ func testWithRSA(
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 
-	_, err = magmad.RegisterGateway(
+	pubKey := strfmt.Base64(marshaledPubKey)
+	configurator_test_utils.RegisterGateway(
+		t,
 		networkId,
-		&magmad_protos.AccessGatewayRecord{
-			HwId: &protos.AccessGatewayID{Id: testAgHwId},
+		testAgHwId,
+		&models.AccessGatewayRecord{
+			HwID: &models.HwGatewayID{ID: testAgHwId},
 			Name: "Test GW RSA",
-			Key: &protos.ChallengeKey{
-				KeyType: protos.ChallengeKey_SOFTWARE_RSA_SHA256,
-				Key:     marshaledPubKey},
+			Key: &models.ChallengeKey{
+				KeyType: rsaType,
+				Key:     &pubKey,
+			},
 		})
-	assert.NoError(t, err)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -124,16 +141,19 @@ func testWithECDSA(
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 
-	_, err = magmad.RegisterGateway(
+	pubKey := strfmt.Base64(marshaledPubKey)
+	configurator_test_utils.RegisterGateway(
+		t,
 		networkId,
-		&magmad_protos.AccessGatewayRecord{
-			HwId: &protos.AccessGatewayID{Id: testAgHwId},
+		testAgHwId,
+		&models.AccessGatewayRecord{
+			HwID: &models.HwGatewayID{ID: testAgHwId},
 			Name: "Test GW ECDSA",
-			Key: &protos.ChallengeKey{
-				KeyType: protos.ChallengeKey_SOFTWARE_ECDSA_SHA256,
-				Key:     marshaledPubKey},
+			Key: &models.ChallengeKey{
+				KeyType: ecdsaType,
+				Key:     &pubKey,
+			},
 		})
-	assert.NoError(t, err)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -169,29 +189,38 @@ func testNegative(
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 
-	_, err = magmad.RegisterGateway(
+	pubKey := strfmt.Base64(marshaledPubKey)
+	configurator_test_utils.RegisterGateway(
+		t,
 		networkId,
-		&magmad_protos.AccessGatewayRecord{
-			HwId: &protos.AccessGatewayID{Id: testAgHwId},
-			Name: "Test GW ECDSA",
-			Key:  &protos.ChallengeKey{KeyType: 10, Key: marshaledPubKey},
+		testAgHwId,
+		&models.AccessGatewayRecord{
+			HwID: &models.HwGatewayID{ID: testAgHwId},
+			Name: "Test GW ECDSA with bad key type",
+			Key: &models.ChallengeKey{
+				KeyType: "10",
+				Key:     &pubKey,
+			},
 		})
-	assert.NoError(t, err)
+
 	// cannot get challenge because of unsupported key type
 	_, err = srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.Error(t, err)
 
-	testAgHwId = "test_ag_negative2"
-	_, err = magmad.RegisterGateway(
+	configurator_test_utils.RemoveGateway(t, networkId, testAgHwId)
+
+	configurator_test_utils.RegisterGateway(
+		t,
 		networkId,
-		&magmad_protos.AccessGatewayRecord{
-			HwId: &protos.AccessGatewayID{Id: testAgHwId},
+		testAgHwId,
+		&models.AccessGatewayRecord{
+			HwID: &models.HwGatewayID{ID: testAgHwId},
 			Name: "Test GW ECDSA",
-			Key: &protos.ChallengeKey{
-				KeyType: protos.ChallengeKey_SOFTWARE_ECDSA_SHA256,
-				Key:     marshaledPubKey},
+			Key: &models.ChallengeKey{
+				KeyType: rsaType,
+				Key:     &pubKey,
+			},
 		})
-	assert.NoError(t, err)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -254,11 +283,19 @@ func testNegative(
 }
 
 func TestBootstrapperServer(t *testing.T) {
-	magmad_test_init.StartTestService(t)
-	testNetworkId, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: "Test Network Name"},
-		"bootstrapper_test_network")
+	os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
+	serde.RegisterSerdes(&pluginimpl.GatewayRecordSerde{})
+
+	testNetworkID := "bootstrapper_test_network"
+	err := configurator.CreateNetwork(configurator.Network{
+		ID:   testNetworkID,
+		Name: "Test Network Name",
+	})
 	assert.NoError(t, err)
+	exists, err := configurator.DoesNetworkExist(testNetworkID)
+	assert.True(t, exists)
 
 	ctx := context.Background()
 
@@ -276,17 +313,17 @@ func TestBootstrapperServer(t *testing.T) {
 	// for signing csr
 	certifier_test_init.StartTestService(t)
 
-	testWithECHO(t, testNetworkId, srv, ctx)
+	testWithECHO(t, testNetworkID, srv, ctx)
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-serial", "bla"))
-	testWithRSA(t, testNetworkId, srv, ctx)
+	testWithRSA(t, testNetworkID, srv, ctx)
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-serial", ""))
-	testWithECDSA(t, testNetworkId, srv, ctx)
+	testWithECDSA(t, testNetworkID, srv, ctx)
 	ctx = metadata.NewOutgoingContext(
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-cn", "bla"))
-	testNegative(t, testNetworkId, srv, ctx)
+	testNegative(t, testNetworkID, srv, ctx)
 }

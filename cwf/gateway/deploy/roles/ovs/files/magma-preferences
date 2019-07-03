@@ -1,0 +1,3 @@
+Package: *
+Pin: origin magma.jfrog.io
+Pin-Priority: 900

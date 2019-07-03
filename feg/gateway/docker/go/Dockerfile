@@ -1,7 +1,8 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial as base
+ARG baseImage="ubuntu:xenial"
+FROM ${baseImage} as base
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -97,6 +98,12 @@ COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
 RUN make -C $MAGMA_ROOT/feg/gateway build
 
 # -----------------------------------------------------------------------------
+# Go-cache base image
+# -----------------------------------------------------------------------------
+FROM ubuntu:xenial as gocache
+COPY --from=base /root/.cache /root/.cache
+
+# -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
 FROM ubuntu:xenial AS gateway_go
@@ -109,8 +116,6 @@ COPY --from=base /var/opt/magma/bin /var/opt/magma/bin
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
-# Add docker config overrides
-COPY feg/gateway/docker/configs /etc/magma
 
 # Create empty envdir directory
 RUN mkdir -p /var/opt/magma/envdir

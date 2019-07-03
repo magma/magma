@@ -8,7 +8,9 @@ LICENSE file in the root directory of this source tree.
 
 // Package aaa provides Carrier WiFi related services
 //
-//go:generate protoc -I protos --go_out=plugins=grpc,paths=source_relative:protos protos/context.proto protos/eap.proto protos/accounting.proto
+//go:generate protoc -I protos --go_out=plugins=grpc,paths=source_relative:protos protos/context.proto protos/eap.proto
+//go:generate protoc -I protos --go_out=plugins=grpc,paths=source_relative:protos protos/accounting.proto
+//go:generate protoc -I protos --go_out=plugins=grpc,paths=source_relative:protos protos/authorization.proto
 //
 package aaa
 
@@ -49,7 +51,7 @@ type SessionTable interface {
 	// AddSession - adds a new session to the table & returns the newly created session pointer.
 	// If a session with the same ID already is in the table - returns "Session with SID: XYZ already exist" as well as the
 	// existing session.
-	AddSession(pc *protos.Context, tout time.Duration) (s Session, err error)
+	AddSession(pc *protos.Context, tout time.Duration, overwrite ...bool) (s Session, err error)
 	// GetSession returns session corresponding to the given sid or nil if not found
 	GetSession(sid string) (lockedSession Session)
 	// RemoveSession - removes the session with the given SID and returns it, returns nil if not found

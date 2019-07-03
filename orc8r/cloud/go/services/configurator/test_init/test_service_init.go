@@ -30,11 +30,17 @@ func StartTestService(t *testing.T) {
 	storageFactory.InitializeServiceStorage()
 
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, configurator.ServiceName)
-	nbServiser, err := servicers.NewNorthboundConfiguratorServicer(storageFactory)
+	nb, err := servicers.NewNorthboundConfiguratorServicer(storageFactory)
 	if err != nil {
-		t.Fatalf("Failed to create checkin servisers: %s", err)
+		t.Fatalf("Failed to create NB configurator servicer: %s", err)
 	}
-	protos.RegisterNorthboundConfiguratorServer(srv.GrpcServer, nbServiser)
+	protos.RegisterNorthboundConfiguratorServer(srv.GrpcServer, nb)
+
+	sb, err := servicers.NewSouthboundConfiguratorServicer(storageFactory)
+	if err != nil {
+		t.Fatalf("Failed to create SB configurator servicer: %s", err)
+	}
+	protos.RegisterSouthboundConfiguratorServer(srv.GrpcServer, sb)
 
 	go srv.RunTest(lis)
 }

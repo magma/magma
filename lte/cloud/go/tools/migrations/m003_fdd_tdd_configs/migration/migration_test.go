@@ -11,8 +11,8 @@ package migration_test
 import (
 	"testing"
 
+	"magma/lte/cloud/go/lte"
 	lteplugin "magma/lte/cloud/go/plugin"
-	cellular_config "magma/lte/cloud/go/services/cellular/config"
 	"magma/lte/cloud/go/services/cellular/protos"
 	"magma/lte/cloud/go/tools/migrations/m003_fdd_tdd_configs/migration"
 	"magma/orc8r/cloud/go/plugin"
@@ -50,9 +50,9 @@ func TestMigrateFddTddConfigs(t *testing.T) {
 	require.NoError(t, err)
 
 	// validate
-	tddConf, err := config.GetConfig(tddNetwork, cellular_config.CellularNetworkType, tddNetwork)
+	tddConf, err := config.GetConfig(tddNetwork, lte.CellularNetworkType, tddNetwork)
 	require.NoError(t, err, "Failed to get tdd config")
-	fddConf, err := config.GetConfig(fddNetwork, cellular_config.CellularNetworkType, fddNetwork)
+	fddConf, err := config.GetConfig(fddNetwork, lte.CellularNetworkType, fddNetwork)
 	require.NoError(t, err, "Failed to get fdd config")
 
 	tddNetConf := tddConf.(*protos.CellularNetworkConfig)
@@ -119,8 +119,8 @@ func setup(t *testing.T) {
 	tddNetConfig := &protos.CellularNetworkConfig{Ran: &tdd, Epc: epc}
 	fddNetConfig := &protos.CellularNetworkConfig{Ran: &fdd, Epc: epc}
 
-	err = config.CreateConfig(tddNetwork, cellular_config.CellularNetworkType, tddNetwork, tddNetConfig)
+	err = config.CreateConfig(tddNetwork, lte.CellularNetworkType, tddNetwork, tddNetConfig)
 	require.NoError(t, err)
-	err = config.CreateConfig(fddNetwork, cellular_config.CellularNetworkType, fddNetwork, fddNetConfig)
+	err = config.CreateConfig(fddNetwork, lte.CellularNetworkType, fddNetwork, fddNetConfig)
 	require.NoError(t, err)
 }

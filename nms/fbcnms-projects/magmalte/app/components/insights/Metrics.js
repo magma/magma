@@ -19,7 +19,7 @@ import FormControl from '@material-ui/core/FormControl';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MenuItem from '@material-ui/core/MenuItem';
 import MagmaTopBar from '../MagmaTopBar';
 import Typography from '@material-ui/core/Typography';

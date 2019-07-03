@@ -21,6 +21,4 @@ const (
 
 	// DBTableName is the name of the sql table used for this service
 	DBTableName = "device"
-
-	GatewayInfoType = "access_gateway_record"
 )

@@ -25,3 +25,13 @@ services:
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
+  aaa_server:
+    ip_address: 127.0.0.1
+    port: 9109
+  eap_aka:
+    ip_address: 127.0.0.1
+    port: 9123
+  redis:
+    ip_address: 127.0.0.1
+    port: 6380
+

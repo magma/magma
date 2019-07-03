@@ -8,5 +8,8 @@
   hosts: localhost
   become: yes
   roles:
+    - role: pkgrepo
+      vars:
+        distribution: "bionic"
     - role: ovs
     - role: cwag

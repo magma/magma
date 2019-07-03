@@ -16,22 +16,22 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/services/magmad/protos"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMagmadLegacy(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
@@ -285,7 +285,7 @@ func TestMagmadLegacy(t *testing.T) {
 	tests.RunTest(t, listAGsTestCase)
 
 	expCfg := &models.MagmadGatewayConfig{}
-	err := expCfg.FromServiceModel(newDefaultGatewayConfig())
+	err := expCfg.FromServiceModel(newDefaultProtosGatewayConfig())
 	assert.NoError(t, err)
 	marshaledCfg, err := expCfg.MarshalBinary()
 	assert.NoError(t, err)
@@ -428,4 +428,16 @@ func TestMagmadLegacy(t *testing.T) {
 		Expected: "[]",
 	}
 	tests.RunTest(t, listNetworksTestCase)
+}
+
+// Default gateway config struct. Please DO NOT MODIFY this struct in-place
+func newDefaultProtosGatewayConfig() *protos.MagmadGatewayConfig {
+	return &protos.MagmadGatewayConfig{
+		AutoupgradeEnabled:      true,
+		AutoupgradePollInterval: 300,
+		CheckinInterval:         60,
+		CheckinTimeout:          10,
+		Tier:                    "default",
+		DynamicServices:         []string{},
+	}
 }

@@ -1,12 +1,35 @@
 version: "3.7"
 
 services:
+  aaa_server:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/go/Dockerfile
+
   control_proxy:
     extra_hosts:
       - controller.magma.test:10.0.2.2
       - bootstrapper-controller.magma.test:10.0.2.2
 
   magmad:
+    build:
+      context: ${BUILD_CONTEXT} # TODO: Move feg/gateway/docker/python to magma/orc8r/gateway/docker
+      dockerfile: feg/gateway/docker/python/Dockerfile
     extra_hosts:
       - controller.magma.test:10.0.2.2
       - bootstrapper-controller.magma.test:10.0.2.2
+
+  pipelined:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/python/Dockerfile
+
+  radius:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/radius/Dockerfile
+
+  sessiond:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/c/Dockerfile

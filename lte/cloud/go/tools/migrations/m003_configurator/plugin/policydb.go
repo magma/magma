@@ -134,9 +134,7 @@ func migratePolicydbBaseNamesForNetwork(sc *squirrel.StmtCache, builder sqorc.St
 		Columns(migration.EntPkCol, migration.EntNidCol, migration.EntTypeCol, migration.EntKeyCol, migration.EntConfCol, migration.EntGidCol).
 		RunWith(sc)
 	for bnID, oldBN := range oldBaseNames {
-		newBN := &types.BaseNameRecord{
-			RuleNames: oldBN.(*types.ChargingRuleNameSet).RuleNames,
-		}
+		newBN := &types.BaseNameRecord{Name: types.BaseName(bnID)}
 		marshaledBN, err := newBN.MarshalBinary()
 		if err != nil {
 			return errors.Wrapf(err, "failed to marshal new base name (%s, %s)", networkID, bnID)
@@ -144,9 +142,14 @@ func migratePolicydbBaseNamesForNetwork(sc *squirrel.StmtCache, builder sqorc.St
 
 		bnPK, bnGid := uuid.New().String(), uuid.New().String()
 		bnInsertBuilder = bnInsertBuilder.Values(bnPK, networkID, "base_name", bnID, marshaledBN, bnGid)
-		for _, rn := range newBN.RuleNames {
-			assocsToCreate = append(assocsToCreate, [2]string{bnPK, rulePKsByID[rn]})
-			rulePKsByNewGraphID[bnGid] = append(rulePKsByNewGraphID[bnGid], rulePKsByID[rn])
+		for _, rn := range oldBN.(*types.ChargingRuleNameSet).RuleNames {
+			rulePK, exists := rulePKsByID[rn]
+			if !exists {
+				continue
+			}
+
+			assocsToCreate = append(assocsToCreate, [2]string{bnPK, rulePK})
+			rulePKsByNewGraphID[bnGid] = append(rulePKsByNewGraphID[bnGid], rulePK)
 		}
 	}
 	_, err = bnInsertBuilder.Exec()

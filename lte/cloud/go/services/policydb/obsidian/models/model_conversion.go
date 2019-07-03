@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
@@ -27,7 +27,7 @@ var formatsRegistry = strfmt.NewFormats()
 
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
-		Type:         policydb.BaseNameEntityType,
+		Type:         lte.BaseNameEntityType,
 		Key:          string(m.Name),
 		Associations: m.RuleNames.ToAssocs(),
 	}
@@ -36,7 +36,7 @@ func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
 	m.Name = BaseName(ent.Key)
 	for _, tk := range ent.Associations {
-		if tk.Type == policydb.PolicyRuleEntityType {
+		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
 		}
 	}
@@ -47,14 +47,14 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 	return funk.Map(
 		m,
 		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: policydb.PolicyRuleEntityType, Key: rn}
+			return storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
-		Type:   policydb.PolicyRuleEntityType,
+		Type:   lte.PolicyRuleEntityType,
 		Key:    m.ID,
 		Config: m,
 	}

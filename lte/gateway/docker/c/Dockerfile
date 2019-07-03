@@ -55,6 +55,7 @@ ENV XDG_CACHE_HOME $MAGMA_ROOT/.cache
 
 # Copy proto files
 COPY feg/protos $MAGMA_ROOT/feg/protos
+COPY feg/gateway/services/aaa/protos $MAGMA_ROOT/feg/gateway/services/aaa/protos
 COPY lte/protos $MAGMA_ROOT/lte/protos
 COPY orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY protos $MAGMA_ROOT/protos

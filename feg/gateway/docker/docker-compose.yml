@@ -49,6 +49,8 @@ services:
   eap_aka:
     <<: *goservice
     container_name: eap_aka
+    environment:
+      USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
   aaa_server:
@@ -128,6 +130,23 @@ services:
       /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
              /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
+
+  radius:
+    image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
+    container_name: radius
+    networks:
+      - magma
+    ports:
+      - 1812:1812/udp
+      - 1813:1813/udp
+      - 3799:3799/udp
+    environment:
+      - RADIUS_AUTH_PORT=1813
+      - RADIUS_ACCT_PORT=1812
+      - RADIUS_COA_PORT=3799
+      - RADIUS_SECRET=123456
+      - FEG_ENDPOINT=aaa_server:9109
+    restart: always
 
 networks:
   magma:

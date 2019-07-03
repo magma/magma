@@ -64,6 +64,10 @@ func DeleteDevices(networkID string, deviceIDs []*protos.DeviceID) error {
 	return err
 }
 
+func DeleteDevice(networkID, deviceType, deviceKey string) error {
+	return DeleteDevices(networkID, []*protos.DeviceID{{DeviceID: deviceKey, Type: deviceType}})
+}
+
 func GetDevice(networkID, deviceType, deviceKey string) (interface{}, error) {
 	client, err := getDeviceClient()
 	if err != nil {

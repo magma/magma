@@ -178,4 +178,18 @@ class MockSessionCloudReporter : public SessionCloudReporter {
 
 };
 
+class MockAAAClient : public aaa::AAAClient {
+ public:
+  MockAAAClient()
+  {
+    ON_CALL(*this, terminate_session(_, _)).WillByDefault(Return(true));
+  }
+
+  MOCK_METHOD2(
+    terminate_session,
+    bool(
+      const std::string &radius_session_id,
+      const std::string &imsi));
+};
+
 } // namespace magma

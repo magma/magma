@@ -19,6 +19,7 @@ import (
 	policydb_test_init "magma/lte/cloud/go/services/policydb/test_init"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -29,7 +30,7 @@ import (
 
 // Integration test for the migrated configurator-based handlers
 func TestPolicyDBHandlers(t *testing.T) {
-	err := os.Setenv(handlers.UseNewHandlersEnv, "1")
+	err := os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	assert.NoError(t, err)
 	err = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	assert.NoError(t, err)

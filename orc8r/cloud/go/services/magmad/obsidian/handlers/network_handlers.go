@@ -127,7 +127,8 @@ func updateNetwork(c echo.Context) error {
 			orc8r.NetworkFeaturesConfig: &magmad_models.NetworkFeatures{Features: record.Features},
 		},
 	}
-	return configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
+	configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
+	return c.NoContent(http.StatusNoContent)
 }
 
 func deleteNetwork(c echo.Context) error {

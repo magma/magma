@@ -31,6 +31,7 @@ include_directories(${MAGMA_LIB_DIR}/policydb)
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
 create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
+create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
@@ -44,9 +45,17 @@ set(SMGR_LTE_CPP_PROTOS session_manager meteringd subscriberdb policydb
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
+set(SMGR_CWF_CPP_PROTOS accounting context)
+generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
+
 set(SMGR_GRPC_PROTOS session_manager pipelined pgw)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+
+set(SMGR_CWF_GRPC_PROTOS accounting)
+generate_grpc_protos("${SMGR_CWF_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
 message("Proto_srcs are ${PROTO_SRCS}")
 
@@ -59,6 +68,8 @@ link_directories(
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(SESSION_MANAGER
+    AAAClient.cpp
+    AAAClient.h
     SessionManagerServer.cpp
     SessionManagerServer.h
     LocalSessionManagerHandler.cpp

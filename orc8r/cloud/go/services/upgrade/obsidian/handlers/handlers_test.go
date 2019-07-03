@@ -31,7 +31,7 @@ import (
 
 // Obsidian integration test for release channel migrated API endpoints backed by configurator
 func TestMigratedReleaseChannels(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
 	magmad_test_init.StartTestService(t)
@@ -137,7 +137,7 @@ func TestMigratedReleaseChannels(t *testing.T) {
 
 // Obsidian integration test for release channel legacy API endpoints
 func TestLegacyReleaseChannels(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
 	magmad_test_init.StartTestService(t)
@@ -243,7 +243,7 @@ func TestLegacyReleaseChannels(t *testing.T) {
 
 // Obsidian integration test for tiers migrated API endpoints backed by configurator
 func TestMigratedTiers(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
 	magmad_test_init.StartTestService(t)
@@ -375,7 +375,7 @@ func TestMigratedTiers(t *testing.T) {
 
 // Obsidian integration test for tier legacy API endpoints
 func TestLegacyTiers(t *testing.T) {
-	_ = os.Setenv(handlers.UseNewHandlersEnv, "0")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
 	magmad_test_init.StartTestService(t)

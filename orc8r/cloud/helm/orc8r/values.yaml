@@ -104,6 +104,10 @@ controller:
       user: postgres
       pass: postgres
 
+  migration:
+    new_handlers: 0
+    new_mconfigs: 0
+
   # Number of controller replicas desired
   replicas: 1
 

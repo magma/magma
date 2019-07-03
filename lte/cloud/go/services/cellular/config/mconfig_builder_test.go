@@ -11,6 +11,7 @@ package config_test
 import (
 	"testing"
 
+	"magma/lte/cloud/go/lte"
 	lteplugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/protos/mconfig"
 	cellular_config "magma/lte/cloud/go/services/cellular/config"
@@ -36,13 +37,13 @@ func TestCellularBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]proto.Message{}, actual)
 
-	err = config.CreateConfig("network", cellular_config.CellularNetworkType, "network", test_utils.NewDefaultTDDNetworkConfig())
+	err = config.CreateConfig("network", lte.CellularNetworkType, "network", test_utils.NewDefaultProtosTDDNetworkConfig())
 	assert.NoError(t, err)
 	err = config.CreateConfig("network", orc8r.DnsdNetworkType, "network", &dnsd_protos.NetworkDNSConfig{EnableCaching: false, LocalTTL: 0})
 	assert.NoError(t, err)
-	err = config.CreateConfig("network", cellular_config.CellularEnodebType, "enb1", test_utils.NewDefaultEnodebConfig())
+	err = config.CreateConfig("network", lte.CellularEnodebType, "enb1", test_utils.NewDefaultProtosEnodebConfig())
 	assert.NoError(t, err)
-	err = config.CreateConfig("network", cellular_config.CellularGatewayType, "gw1", test_utils.NewDefaultGatewayConfig())
+	err = config.CreateConfig("network", lte.CellularGatewayType, "gw1", test_utils.NewDefaultProtosGatewayConfig())
 	assert.NoError(t, err)
 
 	actual, err = builder.Build("network", "gw1")
@@ -138,9 +139,9 @@ func TestCellularBuilder_Build_NullDnsdConfig(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]proto.Message{}, actual)
 
-	err = config.CreateConfig("network", cellular_config.CellularNetworkType, "network", test_utils.NewDefaultTDDNetworkConfig())
+	err = config.CreateConfig("network", lte.CellularNetworkType, "network", test_utils.NewDefaultProtosTDDNetworkConfig())
 	assert.NoError(t, err)
-	err = config.CreateConfig("network", cellular_config.CellularGatewayType, "gw1", test_utils.NewDefaultGatewayConfig())
+	err = config.CreateConfig("network", lte.CellularGatewayType, "gw1", test_utils.NewDefaultProtosGatewayConfig())
 	assert.NoError(t, err)
 
 	actual, err = builder.Build("network", "gw1")

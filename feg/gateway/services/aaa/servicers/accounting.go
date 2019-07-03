@@ -13,6 +13,7 @@ import (
 	"net"
 	"time"
 
+	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/session_manager"
 
 	"golang.org/x/net/context"
@@ -132,6 +133,12 @@ func (srv *accountingService) TerminateSession(
 		return &protos.AcctResp{}, status.Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
 	}
-
-	return &protos.AcctResp{}, nil
+	conn, err := registry.GetConnection(registry.RADIUS)
+	if err != nil {
+		return &protos.AcctResp{}, status.Errorf(
+			codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
+	}
+	radcli := protos.NewAuthorizationClient(conn)
+	_, err = radcli.Disconnect(context.Background(), &protos.DisconnectRequest{Ctx: s.GetCtx()})
+	return &protos.AcctResp{}, err
 }

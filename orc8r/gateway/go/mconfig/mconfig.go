@@ -11,6 +11,8 @@ package mconfig
 
 import (
 	"fmt"
+	"sync/atomic"
+	"unsafe"
 
 	"magma/orc8r/cloud/go/protos"
 
@@ -19,7 +21,7 @@ import (
 )
 
 func GetServiceConfigs(service string, result proto.Message) error {
-	current := localConfig.Load().(*protos.GatewayConfigs)
+	current := GetGatewayConfigs()
 	anyCfg, found := current.ConfigsByKey[service]
 	if !found {
 		cfgMu.Lock()
@@ -30,5 +32,15 @@ func GetServiceConfigs(service string, result proto.Message) error {
 }
 
 func GetGatewayConfigs() *protos.GatewayConfigs {
-	return localConfig.Load().(*protos.GatewayConfigs)
+	current := (*protos.GatewayConfigs)(atomic.LoadPointer(&localConfig))
+	if current == nil {
+		// initial refresh, only do it one time
+		RefreshConfigs()
+		// Swap with an empty configs obj if localConfig is still nil, use CompareAndSwap to not to overwrite
+		// the result of concurrent, successful refresh
+		atomic.CompareAndSwapPointer(&localConfig, nil, (unsafe.Pointer)(&protos.GatewayConfigs{}))
+		// Return the latest value of localConfig
+		return (*protos.GatewayConfigs)(atomic.LoadPointer(&localConfig))
+	}
+	return current
 }

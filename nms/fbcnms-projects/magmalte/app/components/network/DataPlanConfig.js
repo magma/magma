@@ -24,7 +24,7 @@ import DataPlanEditDialog from './DataPlanEditDialog';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';

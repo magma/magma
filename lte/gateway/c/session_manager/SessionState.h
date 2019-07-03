@@ -121,6 +121,8 @@ class SessionState {
 
   std::string get_mac_addr();
 
+  std::string get_radius_session_id();
+
   bool is_radius_cwf_session();
 
  private:

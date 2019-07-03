@@ -74,7 +74,7 @@ type Props = {
 
 const ProfileButton = (props: Props) => {
   const {user} = props;
-  const {email, isSuperUser} = user;
+  const {email} = user;
   const {relativeUrl, history} = useRouter();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
@@ -87,20 +87,18 @@ const ProfileButton = (props: Props) => {
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
             <Typography className={classes.profileItemText}>{email}</Typography>
           </ListItem>
-          {isSuperUser && (
-            <ListItem
-              classes={{gutters: classes.itemGutters}}
-              button
-              onClick={() => {
-                toggleProfileMenu(false);
-                history.push(relativeUrl('/settings'));
-              }}
-              component="a">
-              <Typography className={classes.profileItemText}>
-                Settings
-              </Typography>
-            </ListItem>
-          )}
+          <ListItem
+            classes={{gutters: classes.itemGutters}}
+            button
+            onClick={() => {
+              toggleProfileMenu(false);
+              history.push(relativeUrl('/settings'));
+            }}
+            component="a">
+            <Typography className={classes.profileItemText}>
+              Settings
+            </Typography>
+          </ListItem>
           <ListItem
             classes={{gutters: classes.itemGutters}}
             button

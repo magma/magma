@@ -41,8 +41,9 @@ class LocalEnforcerTest : public ::testing::Test {
     reporter = std::make_shared<MockSessionCloudReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
+    aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_unique<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, 0);
+      reporter, rule_store, pipelined_client, aaa_client, 0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
   }
@@ -108,6 +109,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
+  std::shared_ptr<MockAAAClient> aaa_client;
   folly::EventBase *evb;
 };
 
@@ -122,7 +124,7 @@ MATCHER_P2(CheckActivateFlows, imsi, rule_count, "")
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
 }
 
-TEST_F(LocalEnforcerTest, test_init_session_credit)
+TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
 {
   insert_static_rule(1, "", "rule1");
 
@@ -147,6 +149,7 @@ TEST_F(LocalEnforcerTest, test_init_session_credit)
   SessionState::Config test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
+  test_cwf_cfg.radius_session_id = "1234567";
 
   local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
 
@@ -154,7 +157,7 @@ TEST_F(LocalEnforcerTest, test_init_session_credit)
     local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 1024);
 }
 
-TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
+TEST_F(LocalEnforcerTest, test_init_session_credit)
 {
   insert_static_rule(1, "", "rule1");
 
@@ -271,7 +274,7 @@ TEST_F(LocalEnforcerTest, test_collect_updates)
 {
   CreateSessionResponse response;
   create_credit_update_response(
-    "IMSI1", 1, 1024, response.mutable_credits()->Add());
+    "IMSI1", 1, 3072, response.mutable_credits()->Add());
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   insert_static_rule(1, "", "rule1");
 
@@ -369,7 +372,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting)
 {
   CreateSessionResponse response;
   create_credit_update_response(
-    "IMSI1", 1, 1024, response.mutable_credits()->Add());
+    "IMSI1", 1, 3072, response.mutable_credits()->Add());
   create_credit_update_response(
     "IMSI1", 2, 2048, response.mutable_credits()->Add());
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
@@ -432,6 +435,43 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling)
   auto usage_updates = local_enforcer->collect_updates();
 }
 
+TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling)
+{
+  CreateSessionResponse response;
+  create_credit_update_response(
+    "IMSI1", 1, true, 1024, response.mutable_credits()->Add());
+
+  SessionState::Config test_cwf_cfg;
+  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
+  test_cwf_cfg.radius_session_id = "1234567";
+
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cwf_cfg, response);
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+
+  // Insert record for key 1
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record("IMSI1", "rule1", 1024, 2048, record_list->Add());
+  create_rule_record("IMSI1", "rule2", 1024, 2048, record_list->Add());
+  local_enforcer->aggregate_records(table);
+
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules(testing::_, testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+  EXPECT_CALL(
+    *aaa_client,
+    terminate_session(testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  // call collect_updates to trigger actions
+  auto usage_updates = local_enforcer->collect_updates();
+}
+
 TEST_F(LocalEnforcerTest, test_all)
 {
   // insert key rule mapping
@@ -446,13 +486,13 @@ TEST_F(LocalEnforcerTest, test_all)
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   CreateSessionResponse response2;
   create_credit_update_response(
-    "IMSI2", 2, 1024, response2.mutable_credits()->Add());
+    "IMSI2", 2, 2048, response2.mutable_credits()->Add());
   local_enforcer->init_session_credit("IMSI2", "4321", test_cfg, response2);
 
   EXPECT_EQ(
     local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(
-    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 1024);
+    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 2048);
 
   // receive usages from pipelined
   RuleRecordTable table;
@@ -482,7 +522,7 @@ TEST_F(LocalEnforcerTest, test_all)
   local_enforcer->update_session_credit(update_response);
 
   EXPECT_EQ(
-    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 5120);
+    local_enforcer->get_charging_credit("IMSI2", 2, ALLOWED_TOTAL), 6144);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTING_TX), 0);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTING_RX), 0);
   EXPECT_EQ(local_enforcer->get_charging_credit("IMSI2", 2, REPORTED_TX), 1024);
@@ -701,18 +741,18 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
     "IMSI1",
     "3",
     MonitoringLevel::PCC_RULE_LEVEL,
-    1024,
+    2048,
     response.mutable_usage_monitors()->Add());
   create_monitor_update_response(
     "IMSI1",
     "4",
     MonitoringLevel::SESSION_LEVEL,
-    1024,
+    2128,
     response.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
   assert_charging_credit("IMSI1", ALLOWED_TOTAL, {{1, 1024}, {2, 1024}});
   assert_monitor_credit(
-    "IMSI1", ALLOWED_TOTAL, {{"1", 1024}, {"3", 1024}, {"4", 1024}});
+    "IMSI1", ALLOWED_TOTAL, {{"1", 1024}, {"3", 2048}, {"4", 2128}});
 
   // receive usages from pipelined
   RuleRecordTable table;
@@ -770,7 +810,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
   assert_monitor_credit("IMSI1", REPORTING_TX, {{"3", 0}, {"4", 0}});
   assert_monitor_credit("IMSI1", REPORTED_RX, {{"3", 1024}, {"4", 1049}});
   assert_monitor_credit("IMSI1", REPORTED_TX, {{"3", 1024}, {"4", 1079}});
-  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"3", 3072}, {"4", 3072}});
+  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"3", 4096}, {"4", 4176}});
 }
 
 TEST_F(LocalEnforcerTest, test_rar_session_not_found)

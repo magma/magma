@@ -55,37 +55,28 @@ func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) 
 func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
 	resp, err := client.Handle(in)
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
+		// log error, but do not return it to Radius. EAP will carry its own error
 		log.Printf("EAP Handle Error: %v", err)
-		err = nil
-	} else if srv.sessions != nil && resp != nil && eap.Packet(resp.Payload).Type() == eap.SuccessCode {
-		s, err := srv.sessions.AddSession(resp.Ctx, aaa.DefaultSessionTimeout)
+		return resp, nil
+	}
+	if srv.sessions != nil && resp != nil && eap.Packet(resp.Payload).IsSuccess() {
+		// Add Session & overwrite an existing session with the same ID if present,
+		// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
+		_, err := srv.sessions.AddSession(resp.Ctx, aaa.DefaultSessionTimeout, true)
 		if err != nil {
-			log.Printf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
-			if s != nil {
-				s.Lock()
-				defer s.Unlock()
-				if resp.Ctx.GetImsi() != s.GetCtx().GetImsi() {
-					// same user, just overwrite it
-					// different IMSI, same Session ID - likely Radius server issue, LOG & overwrite
-					log.Printf(
-						"Radius Request Error: Same Session ID (%s) is used for different IMSIs, old: %s, new: %s",
-						resp.Ctx.GetSessionId(), s.GetCtx().GetImsi(), resp.Ctx.GetImsi())
-				}
-				s.SetCtx(resp.Ctx)
+			return resp, status.Errorf(
+				codes.Internal, "Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
+		}
+		if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() {
+			if srv.accounting == nil {
+				resp.Payload[eap.EapMsgCode] = eap.FailureCode
+				return resp, status.Errorf(
+					codes.Unavailable,
+					"Cannot Create Session on Auth: accounting service is missing")
 			}
-			if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() &&
-				resp.Payload[eap.EapMsgCode] == eap.SuccessCode {
-
-				if srv.accounting == nil {
-					return resp, status.Errorf(
-						codes.Unavailable,
-						"Cannot Create Session on Auth: accounting service is missing")
-				}
-				_, err = srv.accounting.CreateSession(ctx, in.Ctx)
-				if err != nil {
-					resp.Payload[eap.EapMsgCode] = eap.FailureCode
-					return resp, err
-				}
+			_, err = srv.accounting.CreateSession(ctx, in.Ctx)
+			if err != nil {
+				resp.Payload[eap.EapMsgCode] = eap.FailureCode
 			}
 		}
 	}

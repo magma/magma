@@ -84,7 +84,7 @@ func NewMemorySessionTable() aaa.SessionTable {
 // AddSession - adds a new session to the table & returns the newly created session pointer.
 // If a session with the same ID already is in the table - returns "Session with SID: XYZ already exist" as well as the
 // existing session.
-func (st *memSessionTable) AddSession(pc *protos.Context, tout time.Duration) (aaa.Session, error) {
+func (st *memSessionTable) AddSession(pc *protos.Context, tout time.Duration, overwrite ...bool) (aaa.Session, error) {
 	if st == nil {
 		return nil, fmt.Errorf("Nil SessionTable")
 	}
@@ -103,8 +103,22 @@ func (st *memSessionTable) AddSession(pc *protos.Context, tout time.Duration) (a
 
 	st.rwl.Lock()
 	if oldSession, ok := st.sm[sid]; ok {
-		st.rwl.Unlock() // return old session is "best effort", done outside of the table lock
-		return oldSession, fmt.Errorf("Session with SID: %s already exist", sid)
+		if len(overwrite) > 0 && overwrite[0] {
+			oldSession.StopTimeout()
+			go func() {
+				oldImsi := "<nil>"
+				if oldSession != nil {
+					oldSession.Lock()
+					oldImsi = oldSession.GetImsi()
+					oldSession.Unlock()
+				}
+				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
+					sid, oldImsi, s.GetImsi())
+			}()
+		} else {
+			st.rwl.Unlock() // return old session is "best effort", done outside of the table lock
+			return oldSession, fmt.Errorf("Session with SID: %s already exist", sid)
+		}
 	}
 
 	st.sm[sid] = s

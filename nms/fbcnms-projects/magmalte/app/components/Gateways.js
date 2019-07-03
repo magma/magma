@@ -36,7 +36,7 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 import {GatewayStatus} from './GatewayUtils';
-import LoadingFiller from './LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 
 const myInt = (n: ?(string | number)): ?number => {
   return n ? parseInt(n) : null;

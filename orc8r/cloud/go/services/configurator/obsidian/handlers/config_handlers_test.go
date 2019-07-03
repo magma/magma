@@ -23,19 +23,20 @@ import (
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
 
 const (
-	fooSerdeType = "foo"
-	networkID    = "networkID"
+	fooConfigType = "foo"
+	networkID     = "networkID"
 )
 
 func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 	test_init.StartTestService(t)
-	fooSerde := fooSerde{}
-	err := serde.RegisterSerdes(&fooSerde)
+	fooNetworkSerde := configurator.NewNetworkConfigSerde(fooConfigType, &FooConfigs{})
+	err := serde.RegisterSerdes(fooNetworkSerde)
 	assert.NoError(t, err)
 	restPort := tests.StartObsidian(t)
 	e := echo.New()
@@ -58,25 +59,25 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	addParametersToContext(c, networkID, fooSerdeType)
+	addParametersToContext(c, networkID, fooConfigType)
 
 	// Success
-	url := getURL(restPort, networkID, fooSerdeType)
-	err = configuratorh.GetCreateNetworkConfigHandler(url, &fooSerde).HandlerFunc(c)
+	url := getURL(restPort, networkID, fooConfigType)
+	err = configuratorh.GetCreateNetworkConfigHandler(url, fooConfigType, &FooConfigs{}).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	assertConfigExists(t, networkID, fooSerdeType, config)
+	assertConfigExists(t, networkID, fooConfigType, &config)
 
 	// Test GetReadNetworkConfigsHandler
 	req = httptest.NewRequest(echo.GET, "/", nil)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	addParametersToContext(c, networkID, fooSerdeType)
+	addParametersToContext(c, networkID, fooConfigType)
 
 	// Success
-	url = getURL(restPort, networkID, fooSerdeType)
-	err = configuratorh.GetReadNetworkConfigHandler(url).HandlerFunc(c)
+	url = getURL(restPort, networkID, fooConfigType)
+	err = configuratorh.GetReadNetworkConfigHandler(url, fooConfigType).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	actual := FooConfigs{}
@@ -96,29 +97,29 @@ func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
 	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	addParametersToContext(c, networkID, fooSerdeType)
+	addParametersToContext(c, networkID, fooConfigType)
 
 	// Success
-	url = getURL(restPort, networkID, fooSerdeType)
-	err = configuratorh.GetUpdateNetworkConfigHandler(url, &fooSerde).HandlerFunc(c)
+	url = getURL(restPort, networkID, fooConfigType)
+	err = configuratorh.GetUpdateNetworkConfigHandler(url, fooConfigType, &FooConfigs{}).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	assertConfigExists(t, networkID, fooSerdeType, updatedConfig)
+	assertConfigExists(t, networkID, fooConfigType, &updatedConfig)
 
 	// TestGetDeleteConfigHandler
 	req = httptest.NewRequest(echo.DELETE, "/", nil)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	addParametersToContext(c, networkID, fooSerdeType)
+	addParametersToContext(c, networkID, fooConfigType)
 
 	// Success
-	url = getURL(restPort, networkID, fooSerdeType)
-	err = configuratorh.GetDeleteNetworkConfigHandler(url).HandlerFunc(c)
+	url = getURL(restPort, networkID, fooConfigType)
+	err = configuratorh.GetDeleteNetworkConfigHandler(url, fooConfigType).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, rec.Code)
 
-	assertConfigDoesNotExist(t, networkID, fooSerdeType)
+	assertConfigDoesNotExist(t, networkID, fooConfigType)
 }
 
 func addParametersToContext(c echo.Context, networkID string, configType string) echo.Context {
@@ -159,22 +160,19 @@ type FooConfigs struct {
 	ConfigNum int    `json:"config_num"`
 }
 
-type fooSerde struct{}
-
-func (*fooSerde) GetType() string {
-	return fooSerdeType
+// MarshalBinary interface implementation
+func (f *FooConfigs) MarshalBinary() ([]byte, error) {
+	if f == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(f)
 }
 
-func (*fooSerde) GetDomain() string {
-	return configurator.NetworkConfigSerdeDomain
-}
-
-func (*fooSerde) Serialize(c interface{}) ([]byte, error) {
-	return json.Marshal(c)
-}
-
-func (*fooSerde) Deserialize(message []byte) (interface{}, error) {
-	res := FooConfigs{}
-	err := json.Unmarshal(message, &res)
-	return res, err
+func (f *FooConfigs) UnmarshalBinary(b []byte) error {
+	var res FooConfigs
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*f = res
+	return nil
 }

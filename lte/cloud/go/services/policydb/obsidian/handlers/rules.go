@@ -11,7 +11,7 @@ package handlers
 import (
 	"net/http"
 
-	"magma/lte/cloud/go/services/policydb"
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -24,7 +24,7 @@ func listRules(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	rules, err := configurator.ListEntityKeys(networkID, policydb.PolicyRuleEntityType)
+	rules, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -64,7 +64,7 @@ func getRule(c echo.Context) error {
 
 	ent, err := configurator.LoadEntity(
 		networkID,
-		policydb.PolicyRuleEntityType,
+		lte.PolicyRuleEntityType,
 		ruleID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 	)
@@ -93,7 +93,7 @@ func updateRule(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := configurator.CreateOrUpdateEntityConfig(networkID, policydb.PolicyRuleEntityType, ruleID, rule)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.PolicyRuleEntityType, ruleID, rule)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -110,7 +110,7 @@ func deleteRule(c echo.Context) error {
 		return ruleIDHTTPErr()
 	}
 
-	err := configurator.DeleteEntity(networkID, policydb.PolicyRuleEntityType, ruleID)
+	err := configurator.DeleteEntity(networkID, lte.PolicyRuleEntityType, ruleID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}

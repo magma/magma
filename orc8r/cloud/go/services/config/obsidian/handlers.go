@@ -295,6 +295,7 @@ func GetCreateConfigHandler(
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -369,7 +370,13 @@ func GetUpdateConfigHandler(
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
-			case Gateway, Entity:
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
 				configKey, err := configKeyGetter(c)
 				if err != nil {
 					return err
@@ -379,6 +386,7 @@ func GetUpdateConfigHandler(
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -462,6 +470,7 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
+		MultiplexAfterMigration: true,
 	}
 }
 

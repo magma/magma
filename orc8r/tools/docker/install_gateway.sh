@@ -81,7 +81,7 @@ if [ "$GW_TYPE" == "$CWAG" ]; then
   apt-add-repository -y ppa:ansible/ansible
   apt-get update -y
   apt-get -y install ansible
-  ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
+  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
 fi
 
 if [ "$GW_TYPE" == "$FEG" ]; then

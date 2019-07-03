@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package migration
 
 import (
-	cellular_config "magma/lte/cloud/go/services/cellular/config"
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/cellular/protos"
 	"magma/lte/cloud/go/services/cellular/utils"
 	"magma/orc8r/cloud/go/services/config"
@@ -34,7 +34,7 @@ func Migrate() error {
 
 	for _, network := range networks {
 
-		conf, err := config.GetConfig(network, cellular_config.CellularNetworkType, network)
+		conf, err := config.GetConfig(network, lte.CellularNetworkType, network)
 		if err != nil {
 			return err
 		}
@@ -49,7 +49,7 @@ func Migrate() error {
 
 		netConf.Ran = &newRan
 
-		err = config.UpdateConfig(network, cellular_config.CellularNetworkType, network, netConf)
+		err = config.UpdateConfig(network, lte.CellularNetworkType, network, netConf)
 		if err != nil {
 			return err
 		}
