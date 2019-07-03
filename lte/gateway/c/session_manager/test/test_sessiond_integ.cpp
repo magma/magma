@@ -51,7 +51,7 @@ class SessiondTest : public ::testing::Test {
 
     reporter = std::make_shared<SessionCloudReporterImpl>(evb, test_channel);
     monitor = std::make_shared<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, 0);
+      reporter, rule_store, pipelined_client, nullptr, 0);
 
     local_service =
       std::make_shared<service303::MagmaService>("sessiond", "1.0");

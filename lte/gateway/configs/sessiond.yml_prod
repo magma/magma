@@ -21,3 +21,6 @@ usage_reporting_threshold: 0.8
 # terminating the session. This should be at least twice the poll interval of
 # pipelined
 session_force_termination_timeout_ms: 5000
+
+# Set to true to enable sessiond support of carrier wifi
+support_carrier_wifi: false
