@@ -182,11 +182,6 @@ MESSAGE_DEF(
   IttiMsgText,
   s1ap_enb_configuration_transfer_log)
 MESSAGE_DEF(
-  S1AP_MME_CONFIGURATION_TRANSFER_LOG,
-  MESSAGE_PRIORITY_MED,
-  IttiMsgText,
-  s1ap_mme_configuration_transfer_log)
-MESSAGE_DEF(
   S1AP_PATH_SWITCH_REQUEST_LOG,
   MESSAGE_PRIORITY_MED,
   IttiMsgText,
@@ -197,20 +192,10 @@ MESSAGE_DEF(
   itti_s1ap_path_switch_request_t,
   s1ap_path_switch_request)
 MESSAGE_DEF(
-  S1AP_PATH_SWITCH_REQUEST_ACK_LOG,
-  MESSAGE_PRIORITY_MED,
-  IttiMsgText,
-  s1ap_path_switch_request_ack_log)
-MESSAGE_DEF(
   S1AP_PATH_SWITCH_REQUEST_ACK,
   MESSAGE_PRIORITY_MED,
   itti_s1ap_path_switch_request_ack_t,
   s1ap_path_switch_request_ack)
-MESSAGE_DEF(
-  S1AP_PATH_SWITCH_REQUEST_FAILURE_LOG,
-  MESSAGE_PRIORITY_MED,
-  IttiMsgText,
-  s1ap_path_switch_request_failure_log)
 MESSAGE_DEF(
   S1AP_PATH_SWITCH_REQUEST_FAILURE,
   MESSAGE_PRIORITY_MED,
