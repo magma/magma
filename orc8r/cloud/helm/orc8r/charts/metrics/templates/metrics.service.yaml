@@ -4,14 +4,14 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
-
+{{- if .Values.metrics.create }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-metrics
   labels:
     app.kubernetes.io/component: metrics
-{{ include "labels" . | indent 4 }}
+{{ include "metrics.labels" . | indent 4 }}
     {{- with .Values.metrics.service.labels }}
 {{ toYaml . | indent 4}}
     {{- end}}
@@ -30,4 +30,4 @@ spec:
        port: {{ $port.port }}
        targetPort: {{ $port.targetPort }}
 {{- end }}
-
+{{- end }}
