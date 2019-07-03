@@ -188,4 +188,7 @@ module.exports = Object.assign({}, fbStrict, {
        'no-warning-comments': [0],
      },
    }],
+   'extends': [
+    'plugin:relay/recommended',
+  ],
 });
