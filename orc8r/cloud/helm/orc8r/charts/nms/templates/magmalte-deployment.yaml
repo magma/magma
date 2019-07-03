@@ -18,16 +18,16 @@ kind: Deployment
 metadata:
   name: nms-magmalte
   labels:
-{{ tuple $envAll "nms" "magmalte" | include "labels" | indent 4 }}
+{{ tuple $envAll "nms" "magmalte" | include "nms.labels" | indent 4 }}
 spec:
   replicas: {{ .Values.pod.replicas.magmalte.server }}
   selector:
     matchLabels:
-{{ tuple $envAll "nms" "magmalte" | include "selector-labels" | indent 6 }}
+{{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 6 }}
   template:
     metadata:
       labels:
-{{ tuple $envAll "nms" "magmalte" | include "selector-labels" | indent 8 }}
+{{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 8 }}
     spec:
       {{- if .Values.magmalte.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}

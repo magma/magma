@@ -18,18 +18,18 @@ kind: Deployment
 metadata:
   name: nms-nginx-proxy
   labels:
-{{ tuple $envAll "nms" "nginx" | include "labels" | indent 4 }}
+{{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
 spec:
   replicas: {{ .Values.pod.replicas.nginx.server }}
   strategy:
     type: Recreate
   selector:
     matchLabels:
-{{ tuple $envAll "nms" "nginx" | include "selector-labels" | indent 6 }}
+{{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 6 }}
   template:
     metadata:
       labels:
-{{ tuple $envAll "nms" "nginx" | include "selector-labels" | indent 8 }}
+{{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 8 }}
     spec:
       {{- if .Values.nginx.manifests.rbac }}
       serviceAccountName: {{ $serviceAccountName }}

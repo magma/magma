@@ -14,8 +14,8 @@ metadata:
   name: nginx-proxy-etc
   namespace: {{ .Release.Namespace }}
   labels:
-{{ tuple $envAll "nms" "nginx" | include "labels" | indent 4 }}
+{{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
 data:
   nginx_proxy_ssl.conf: |
-{{ tuple "etc/_nginx_proxy_ssl.conf.tpl" . | include "template" | indent 4 }}
+{{ tuple "etc/_nginx_proxy_ssl.conf.tpl" . | include "nms.template" | indent 4 }}
 {{- end }}
