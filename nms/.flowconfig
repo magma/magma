@@ -45,7 +45,6 @@
 .*/node_modules/express-graphql/.*
 .*/node_modules/graphql/.*
 .*/node_modules/mapbox-gl/src/.*
-.*/node_modules/react-beautiful-dnd/.*
 
 [options]
 esproposal.optional_chaining=enable
