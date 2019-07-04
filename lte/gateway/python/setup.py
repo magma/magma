@@ -46,6 +46,7 @@ setup(
         'magma.subscriberdb.store',
     ],
     scripts=[
+        'scripts/agw_health_cli.py',
         'scripts/create_oai_certs.py',
         'scripts/enodebd_cli.py',
         'scripts/fake_user.py',
