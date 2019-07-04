@@ -42,8 +42,6 @@ void init_logging(const char *log_dir,
   FLAGS_log_prefix = false;
   FLAGS_log_dir = log_dir;
   FLAGS_v = default_verbosity;
-
-  google::SetLogSymlink(google::GLOG_INFO, "/var/log/mme.log");
 }
 
 void init_logging(const char *app_name, uint32_t default_verbosity) {
