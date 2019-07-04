@@ -179,7 +179,7 @@ func (ent NetworkEntity) fromStorageProto(protoEnt *storage.NetworkEntity) (Netw
 	ent.PhysicalID = protoEnt.PhysicalID
 	ent.GraphID = protoEnt.GraphID
 	ent.Associations = entIDsToTKs(protoEnt.Associations)
-	ent.ParentAssociations = entIDsToTKs(protoEnt.Associations)
+	ent.ParentAssociations = entIDsToTKs(protoEnt.ParentAssociations)
 	ent.Version = protoEnt.Version
 
 	if !funk.IsEmpty(protoEnt.Config) {
