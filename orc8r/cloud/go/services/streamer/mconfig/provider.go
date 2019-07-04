@@ -10,6 +10,7 @@ package mconfig
 
 import (
 	"os"
+	"strings"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
@@ -18,7 +19,9 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/thoas/go-funk"
 )
 
 // GetProvider returns the StreamProvider for on demand mconfigs.
@@ -34,15 +37,38 @@ func (provider *ConfigProvider) GetStreamName() string {
 
 func (provider *ConfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	migrated := os.Getenv(orc8r.UseConfiguratorMconfigsEnv)
+	whitelist := os.Getenv(orc8r.MconfigWhitelistEnv)
 	if migrated == "1" {
-		resp, err := configurator.GetMconfigFor(gatewayId)
-		if err != nil {
-			return nil, err
+		whitelistedNetworks := strings.Split(whitelist, ",")
+
+		// empty whitelist means fully migrated
+		if funk.IsEmpty(whitelistedNetworks) {
+			return buildMconfigConfigurator(gatewayId)
+		} else {
+			nid, _, err := configurator.GetNetworkAndEntityIDForPhysicalID(gatewayId)
+			if err != nil {
+				return nil, err
+			}
+
+			if funk.ContainsString(whitelistedNetworks, nid) {
+				glog.Infof("running migrated mconfig builders for %s", gatewayId)
+				return buildMconfigConfigurator(gatewayId)
+			} else {
+				glog.Infof("running legacy mconfig builders for %s", gatewayId)
+				return buildMconfigLegacy(gatewayId)
+			}
 		}
-		return mconfigToUpdate(resp.Configs, resp.LogicalID)
 	} else {
 		return buildMconfigLegacy(gatewayId)
 	}
+}
+
+func buildMconfigConfigurator(gatewayId string) ([]*protos.DataUpdate, error) {
+	resp, err := configurator.GetMconfigFor(gatewayId)
+	if err != nil {
+		return nil, err
+	}
+	return mconfigToUpdate(resp.Configs, resp.LogicalID)
 }
 
 func buildMconfigLegacy(gatewayId string) ([]*protos.DataUpdate, error) {

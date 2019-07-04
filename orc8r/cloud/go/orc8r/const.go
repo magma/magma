@@ -26,4 +26,7 @@ const (
 	// separate flag to control mconfig builders because this has significant
 	// implications on production gateways
 	UseConfiguratorMconfigsEnv = "USE_NEW_MCONFIGS"
+
+	// comma-separated list of networks to run new mconfig builders for
+	MconfigWhitelistEnv = "NEW_MCONFIGS_WHITELIST"
 )
