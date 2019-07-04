@@ -66,6 +66,8 @@ setup(
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[
+        'Cython>=0.29.0',
+        'pystemd==0.5.0',
         'fire>=0.1.3',
         'envoy>=0.0.3',
         # lxml required by spyne.
