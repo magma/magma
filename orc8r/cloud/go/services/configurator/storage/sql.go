@@ -151,6 +151,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		Column(entConfCol).Type(sqorc.ColumnTypeBytes).EndColumn().
 		Column(entVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		Unique(entNidCol, entKeyCol, entTypeCol).
+		Unique(entPidCol).
 		ForeignKey(networksTable, map[string]string{entNidCol: nwIDCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
@@ -211,16 +212,6 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	if err != nil {
 		err = errors.Wrap(err, "failed to create acl ent PK index")
 		return
-	}
-
-	_, err = fact.builder.CreateIndex("phys_id_idx").
-		IfNotExists().
-		On(entityTable).
-		Columns(entPidCol).
-		RunWith(tx).
-		Exec()
-	if err != nil {
-		err = errors.Wrap(err, "failed to create physical ID index")
 	}
 
 	// Create internal network(s)

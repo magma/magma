@@ -109,6 +109,7 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 		Column(EntConfCol).Type(sqorc.ColumnTypeBytes).EndColumn().
 		Column(EntVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		Unique(EntNidCol, EntKeyCol, EntTypeCol).
+		Unique(EntPidCol).
 		ForeignKey(NetworksTable, map[string]string{EntNidCol: NwIDCol}, sqorc.ColumnOnDeleteCascade).
 		RunWith(tx).
 		Exec()
@@ -164,16 +165,6 @@ func SetupTables(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to create acl ent PK index")
-	}
-
-	_, err = builder.CreateIndex("phys_id_idx").
-		IfNotExists().
-		On(EntityTable).
-		Columns(EntPidCol).
-		RunWith(tx).
-		Exec()
-	if err != nil {
-		err = errors.Wrap(err, "failed to create physical ID index")
 	}
 
 	// Create internal network(s)
