@@ -530,6 +530,7 @@ typedef struct ue_mm_context_s {
   subscriber_status_t subscriber_status; // set by S6A UPDATE LOCATION ANSWER
   network_access_mode_t
     network_access_mode; // set by S6A UPDATE LOCATION ANSWER
+  bool path_switch_req;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
 

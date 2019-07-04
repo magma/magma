@@ -248,9 +248,20 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
           OAILOG_ERROR(LOG_S1AP, "Failed to send paging message\n");
         }
       } break;
+
       case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
         s1ap_handle_ue_context_mod_req(
           state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request);
+      } break;
+
+      case S1AP_PATH_SWITCH_REQUEST_ACK: {
+        s1ap_handle_path_switch_req_ack(
+          state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack);
+      } break;
+
+      case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
+        s1ap_handle_path_switch_req_failure(
+          state, &received_message_p->ittiMsg.s1ap_path_switch_request_failure);
       } break;
 
       case TIMER_HAS_EXPIRED: {

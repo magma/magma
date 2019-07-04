@@ -402,6 +402,12 @@ void nas_itti_establish_cnf(
       emm_ctx->_security.kenb_ul_count.seq_num |
         (emm_ctx->_security.kenb_ul_count.overflow << 8),
       NAS_CONNECTION_ESTABLISHMENT_CNF(message_p).kenb);
+    /* Genarate Next HOP key parameter */
+    derive_NH(
+      emm_ctx->_vector[emm_ctx->_security.vector_index].kasme,
+      NAS_CONNECTION_ESTABLISHMENT_CNF(message_p).kenb,
+      emm_ctx->_security.next_hop,
+      &emm_ctx->_security.next_hop_chaining_count);
 
     unlock_ue_contexts(ue_mm_context);
     OAILOG_INFO(LOG_NAS_EMM, "Sending NAS Connection Establishment confirm for ue_id "MME_UE_S1AP_ID_FMT"\n",
