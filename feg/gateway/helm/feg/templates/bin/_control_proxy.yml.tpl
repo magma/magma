@@ -24,7 +24,7 @@ cloud_address: {{ .Values.feg.proxy.cloud_address }}
 cloud_port: {{ .Values.feg.proxy.cloud_port }}
 
 bootstrap_address: {{ .Values.feg.proxy.bootstrap_address }}
-bootstrap_port: {{ .Values.feg.proxy.bootstrap_address }}
+bootstrap_port: {{ .Values.feg.proxy.bootstrap_port }}
 
 # Option to use nghttpx for proxying. If disabled, the individual
 # services would establish the TLS connections themselves.
