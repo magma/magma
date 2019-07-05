@@ -112,6 +112,12 @@ func createGateway(c echo.Context) error {
 	}
 	_, err = configurator.CreateEntity(networkID, gwEntity)
 	if err != nil {
+		derr := device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID)
+		if derr != nil {
+			return handlers.HttpError(
+				fmt.Errorf("Failed to create gateway entity: %v, failed to delete device entity: %v", err, derr),
+				http.StatusInternalServerError)
+		}
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
