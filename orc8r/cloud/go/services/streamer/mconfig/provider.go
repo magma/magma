@@ -42,7 +42,7 @@ func (provider *ConfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any)
 		whitelistedNetworks := strings.Split(whitelist, ",")
 
 		// empty whitelist means fully migrated
-		if funk.IsEmpty(whitelistedNetworks) {
+		if funk.IsEmpty(whitelist) {
 			return buildMconfigConfigurator(gatewayId)
 		} else {
 			nid, _, err := configurator.GetNetworkAndEntityIDForPhysicalID(gatewayId)
