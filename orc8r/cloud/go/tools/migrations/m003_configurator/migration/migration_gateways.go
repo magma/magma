@@ -45,6 +45,10 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 		return nil, errors.WithStack(err)
 	}
 
+	configAssocBuilder := builder.Insert(EntityAssocTable).
+		Columns(AFrCol, AToCol).
+		RunWith(sc)
+	hasAssocsToInsert := false
 	for gwID, legacyConfigs := range oldConfigsByID {
 		for ctype, oldVal := range legacyConfigs {
 			newVal, err := migrateConfig(ctype, oldVal)
@@ -81,16 +85,17 @@ func migrateGatewaysForNetwork(sc *squirrel.StmtCache, builder sqorc.StatementBu
 					return nil, errors.Wrapf(err, "failed to create new entity for %s with key %s", ctype, gwID)
 				}
 
-				_, err = builder.Update(EntityAssocTable).
-					Set(AFrCol, migratedIDsByGw[gwID].Pk).
-					Set(AToCol, newEntPk).
-					RunWith(sc).
-					Exec()
-				if err != nil {
-					return nil, errors.Wrapf(err, "failed to associate magmad gateway with new entity (%s, %s)", ctype, gwID)
-				}
+				configAssocBuilder = configAssocBuilder.Values(migratedIDsByGw[gwID].Pk, newEntPk)
+				hasAssocsToInsert = true
 				break
 			}
+		}
+	}
+
+	if hasAssocsToInsert {
+		_, err = configAssocBuilder.Exec()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create associations between magmad gateways and subconfigs")
 		}
 	}
 
