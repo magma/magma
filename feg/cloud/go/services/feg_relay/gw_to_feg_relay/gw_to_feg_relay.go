@@ -24,9 +24,11 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/orc8r/cloud/go/http2"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/services/config"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/cloud/go/services/magmad"
 
@@ -201,11 +203,21 @@ func getActiveFeGForNetwork(fegNetworkID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve active FeG for network: %s; %s", fegNetworkID, err)
 	}
-	record, err := magmad.FindGatewayRecord(fegNetworkID, activeGW)
-	if err != nil {
-		return "", fmt.Errorf("Unable to retrieve Gateway Record for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
+	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
+	var hwId string
+	if useConfigurator == "1" {
+		var err error
+		hwId, err = configurator.GetPhysicalIDOfEntity(fegNetworkID, orc8r.MagmadGatewayType, activeGW)
+		if err != nil {
+			return "", fmt.Errorf("Unable to retrieve hardware ID for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
+		}
+	} else {
+		record, err := magmad.FindGatewayRecord(fegNetworkID, activeGW)
+		if err != nil {
+			return "", fmt.Errorf("Unable to retrieve Gateway Record for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
+		}
+		hwId = record.GetHwId().GetId()
 	}
-	hwId := record.GetHwId().GetId()
 	if len(hwId) == 0 {
 		return "", fmt.Errorf("Unable to retrieve Hardware ID for active feg: %s in network: %s", activeGW, fegNetworkID)
 	}
