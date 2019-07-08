@@ -1,19 +1,19 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
-
-package models
+package view_factory
 
 import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/protos"
 	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
 
 	"github.com/golang/protobuf/ptypes/struct"
@@ -23,22 +23,22 @@ import (
 type GatewayStateType struct {
 	Config    map[string]interface{}         `json:"config"`
 	GatewayID string                         `json:"gateway_id"`
-	Record    *AccessGatewayRecord           `json:"record"`
+	Record    *models.AccessGatewayRecord    `json:"record"`
 	Status    *checkind_models.GatewayStatus `json:"status"`
 }
 
 // GatewayStateToModel converts a storage.GatewayState object to the equivalent
 // model.GatewayStateType
-func GatewayStateToModel(state *view_factory.GatewayState) (*GatewayStateType, error) {
+func GatewayStateToModel(state *GatewayState) (*GatewayStateType, error) {
 	modelState := &GatewayStateType{
 		GatewayID: state.GatewayID,
 		Config:    state.Config,
 	}
-	modelStatus, err := gatewayStatusToModel(state.Status)
+	modelStatus, err := gatewayStatusToModel(state.LegacyStatus)
 	if err != nil {
 		return nil, err
 	}
-	modelRecord, err := gatewayRecordToModel(state.Record)
+	modelRecord, err := gatewayRecordToModel(state.LegacyRecord)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func GatewayStateToModel(state *view_factory.GatewayState) (*GatewayStateType, e
 
 // GatewayStateMapToModelList converts a map of storage.GatewayState objects
 // to an equivalent list of model.GatewayStateType objects
-func GatewayStateMapToModelList(states map[string]*view_factory.GatewayState) ([]*GatewayStateType, error) {
+func GatewayStateMapToModelList(states map[string]*GatewayState) ([]*GatewayStateType, error) {
 	models := make([]*GatewayStateType, 0, len(states))
 	for _, state := range states {
 		gatewayState, err := GatewayStateToModel(state)
@@ -99,11 +99,11 @@ func gatewayStatusToModel(status *protos.GatewayStatus) (*checkind_models.Gatewa
 	return modelStatus, err
 }
 
-func gatewayRecordToModel(record *magmadprotos.AccessGatewayRecord) (*AccessGatewayRecord, error) {
+func gatewayRecordToModel(record *magmadprotos.AccessGatewayRecord) (*models.AccessGatewayRecord, error) {
 	if record == nil {
 		return nil, nil
 	}
-	modelRecord := &AccessGatewayRecord{}
+	modelRecord := &models.AccessGatewayRecord{}
 	err := modelRecord.FromMconfig(record)
 	return modelRecord, err
 }

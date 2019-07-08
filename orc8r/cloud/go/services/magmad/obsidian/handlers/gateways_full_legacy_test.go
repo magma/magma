@@ -20,7 +20,6 @@ import (
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory/mocks"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -38,7 +37,7 @@ func TestGetViewsForNetworkLegacy(t *testing.T) {
 		"gw0": {GatewayID: "gw0"},
 		"gw1": {GatewayID: "gw1"},
 	}
-	modelStates := []*models.GatewayStateType{
+	modelStates := []*view_factory.GatewayStateType{
 		{GatewayID: "gw0"},
 		{GatewayID: "gw1"},
 	}
@@ -55,12 +54,12 @@ func TestGetViewsForNetworkLegacy(t *testing.T) {
 	c.SetParamValues(networkID)
 
 	// Execute test
-	err := magmadh.ListFullGatewayViews(c, mockStore)
+	err := magmadh.ListFullGatewayViewsLegacy(c, mockStore)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	// Verify results
-	var actualModelStates []*models.GatewayStateType
+	var actualModelStates []*view_factory.GatewayStateType
 	err = json.Unmarshal(rec.Body.Bytes(), &actualModelStates)
 	assert.NoError(t, err)
 	assert.ElementsMatch(t, modelStates, actualModelStates)
@@ -83,11 +82,11 @@ func TestGetViewsForNetworkEmptyResponseLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues(networkID)
 
-	err := magmadh.ListFullGatewayViews(c, mockStore)
+	err := magmadh.ListFullGatewayViewsLegacy(c, mockStore)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	var actualModelStates []*models.GatewayStateType
+	var actualModelStates []*view_factory.GatewayStateType
 	err = json.Unmarshal(rec.Body.Bytes(), &actualModelStates)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actualModelStates))

@@ -331,7 +331,7 @@ func gatewayGenericCommand(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	params, err := magmad_models.JSONMapToProtobufStruct(request.Params)
+	params, err := view_factory.JSONMapToProtobufStruct(request.Params)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
@@ -345,7 +345,7 @@ func gatewayGenericCommand(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	resp, err := magmad_models.ProtobufStructToJSONMap(response.Response)
+	resp, err := view_factory.ProtobufStructToJSONMap(response.Response)
 	genericCommandResponse := magmad_models.GenericCommandResponse{
 		Response: resp,
 	}

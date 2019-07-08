@@ -20,7 +20,6 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/serde"
@@ -30,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
@@ -286,7 +286,7 @@ func TestBootstrapperServer(t *testing.T) {
 	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	serde.RegisterSerdes(&pluginimpl.GatewayRecordSerde{})
+	serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}))
 
 	testNetworkID := "bootstrapper_test_network"
 	err := configurator.CreateNetwork(configurator.Network{
