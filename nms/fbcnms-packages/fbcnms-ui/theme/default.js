@@ -124,6 +124,9 @@ export default createMuiTheme({
           borderColor: 'rgba(0, 0, 0, 0.87)',
           borderWidth: '1px',
         },
+        '&$disabled': {
+          background: gray0,
+        },
       },
       input: {
         fontSize: '14px',
@@ -149,9 +152,6 @@ export default createMuiTheme({
         '&::-ms-input-placeholder': {
           opacity: 1,
         },
-      },
-      '&$disabled': {
-        background: gray0,
       },
     },
   },
