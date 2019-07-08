@@ -106,15 +106,16 @@ func GetCheckinRequestProtoFixture(gatewayId string) *protos.CheckinRequest {
 
 func GetGatewayStatusProtoFixture(gatewayId string) *protos.GatewayStatus {
 	return &protos.GatewayStatus{
-		Time:    12345,
+		Time:    0,
 		Checkin: GetCheckinRequestProtoFixture(gatewayId),
 	}
 }
 
 func GetGatewayStatusSwaggerFixture(gatewayId string) *models.GatewayStatus {
 	return &models.GatewayStatus{
-		CheckinTime: 12345,
-		Meta:        map[string]string{"hello": "world"},
+		CheckinTime:        0,
+		CertExpirationTime: 0,
+		Meta:               map[string]string{"hello": "world"},
 		SystemStatus: &models.SystemStatus{
 			Time:       1495484735606,
 			CPUUser:    31498,

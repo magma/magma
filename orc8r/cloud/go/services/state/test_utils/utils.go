@@ -6,6 +6,7 @@ import (
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -24,11 +25,11 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *checkind_models
 	assert.NoError(t, err)
 	client := protos.NewStateServiceClient(conn)
 
-	serializedGWStatus, err := serde.Serialize(state.SerdeDomain, "gw_state", req)
+	serializedGWStatus, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, req)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
-			Type:     "gw_state",
+			Type:     orc8r.GatewayStateType,
 			DeviceID: req.HardwareID,
 			Value:    serializedGWStatus,
 		},

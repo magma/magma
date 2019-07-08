@@ -8,11 +8,14 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
+	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/services/state"
 )
 
 // Serdes for user-facing types delegate to swagger's MarshalBinary, which
@@ -52,4 +55,24 @@ func (*GatewayRecordSerde) Deserialize(in []byte) (interface{}, error) {
 	ret := &models.AccessGatewayRecord{}
 	err := ret.UnmarshalBinary(in)
 	return ret, err
+}
+
+type GatewayStatusSerde struct{}
+
+func (*GatewayStatusSerde) GetDomain() string {
+	return state.SerdeDomain
+}
+
+func (s *GatewayStatusSerde) GetType() string {
+	return orc8r.GatewayStateType
+}
+
+func (s *GatewayStatusSerde) Serialize(in interface{}) ([]byte, error) {
+	return json.Marshal(in)
+}
+
+func (s *GatewayStatusSerde) Deserialize(in []byte) (interface{}, error) {
+	response := checkind_models.GatewayStatus{}
+	err := json.Unmarshal(in, &response)
+	return response, err
 }

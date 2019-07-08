@@ -12,12 +12,17 @@ import (
 	"fmt"
 
 	magmaerrors "magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/checkind"
-	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/magmad"
+	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/device"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
+	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/storage"
+
+	"github.com/thoas/go-funk"
 )
 
 // GatewayState represents the current state of a gateway, including
@@ -28,24 +33,16 @@ type GatewayState struct {
 	// Configuration of the gateway, represented as a map from configuration types
 	// to configuration objects
 	Config map[string]interface{}
-	// Status of the gateway
-	Status *protos.GatewayStatus
-	// Gateway record
-	Record *magmadprotos.AccessGatewayRecord
-}
 
-// GatewayUpdateParams contains information from an update to a gateway state. Each
-// parameter is nullable, and only non-null parameters will be used to update the gateway
-// state
-type GatewayUpdateParams struct {
-	// Only the keys in this NewConfig map will be used to update the config of the GatewayState
-	NewConfig map[string]interface{}
-	// Configurations to delete
-	ConfigsToDelete []string
-	// New status of the gateway
-	NewStatus *protos.GatewayStatus
-	// New gateway record
-	NewRecord *magmadprotos.AccessGatewayRecord
+	// Gateway record
+	Record *models.AccessGatewayRecord
+	// Status of the gateway
+	Status *checkind_models.GatewayStatus
+
+	// Gateway record
+	LegacyRecord *magmadprotos.AccessGatewayRecord // Deprecated
+	// Status of the gateway
+	LegacyStatus *protos.GatewayStatus // Deprecated
 }
 
 // FullGatewayViewFactory constructs `GatewayState`s for specified gateways
@@ -63,7 +60,7 @@ type FullGatewayViewFactory interface {
 type FullGatewayViewFactoryImpl struct{}
 
 func (f *FullGatewayViewFactoryImpl) GetGatewayViewsForNetwork(networkID string) (map[string]*GatewayState, error) {
-	gatewayIDs, err := magmad.ListGateways(networkID)
+	gatewayIDs, err := configurator.ListEntityKeys(networkID, orc8r.MagmadGatewayType)
 	if err != nil {
 		return map[string]*GatewayState{}, fmt.Errorf("Error loading gateway IDs for network view: %s", err)
 	}
@@ -72,54 +69,48 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViewsForNetwork(networkID string)
 
 func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayIDs []string) (map[string]*GatewayState, error) {
 	ret := make(map[string]*GatewayState, len(gatewayIDs))
-	for _, gatewayID := range gatewayIDs {
-		state, err := loadGatewayView(networkID, gatewayID)
+	gatewayTKs := funk.Map(gatewayIDs, func(id string) storage.TypeAndKey { return storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id} }).([]storage.TypeAndKey)
+	loadedGateways, _, err := configurator.LoadEntities(networkID, nil, nil, nil, gatewayTKs, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	if err != nil {
+		return nil, err
+	}
+	for _, gateway := range loadedGateways {
+		record, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, gateway.PhysicalID)
 		if err != nil {
-			return map[string]*GatewayState{}, fmt.Errorf("Error loading gateway %s view: %s", gatewayID, err)
+			return nil, fmt.Errorf("Error loading record: %s", err)
 		}
-		ret[gatewayID] = state
+
+		status, err := stateh.GetGWStatus(networkID, gateway.PhysicalID)
+		if err == magmaerrors.ErrNotFound {
+			status = nil
+		} else if err != nil {
+			return nil, fmt.Errorf("Error loading status: %s", err)
+		}
+
+		ret[gateway.Key] = &GatewayState{
+			GatewayID: gateway.Key,
+			Record:    record.(*models.AccessGatewayRecord),
+			Status:    status,
+			Config:    map[string]interface{}{orc8r.MagmadGatewayType: gateway.Config},
+		}
+	}
+
+	// load all associated config entities
+	allAssociations := getAllAssociations(loadedGateways)
+	loadedConfigs, _, err := configurator.LoadEntities(networkID, nil, nil, nil, allAssociations, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return nil, err
+	}
+	for _, config := range loadedConfigs {
+		ret[config.Key].Config[config.Type] = config.Config
 	}
 	return ret, nil
 }
 
-func loadGatewayView(networkID string, gatewayID string) (*GatewayState, error) {
-	record, err := magmad.FindGatewayRecord(networkID, gatewayID)
-	if err != nil {
-		return nil, fmt.Errorf("Error loading record: %s", err)
-	}
-	configs, err := config.GetConfigsByKey(networkID, gatewayID)
-	if err != nil {
-		return nil, fmt.Errorf("Error loading configs: %s", err)
-	}
-	status, err := loadStatus(networkID, gatewayID)
-	if err != nil {
-		return nil, err
-	}
-	return createGatewayView(gatewayID, record, configs, status), nil
-}
-
-func loadStatus(networkID string, gatewayID string) (*protos.GatewayStatus, error) {
-	status, err := checkind.GetStatus(networkID, gatewayID)
-	if err == magmaerrors.ErrNotFound {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("Error loading status: %s", err)
-	}
-	return status, nil
-}
-
-type gatewayConfigs map[storage.TypeAndKey]interface{}
-
-func createGatewayView(gatewayID string, record *magmadprotos.AccessGatewayRecord, configs gatewayConfigs, status *protos.GatewayStatus) *GatewayState {
-	ret := &GatewayState{
-		GatewayID: gatewayID,
-		Status:    status,
-		Record:    record,
-		Config:    make(map[string]interface{}, len(configs)),
-	}
-	for typeAndKey, configVal := range configs {
-		ret.Config[typeAndKey.Type] = configVal
+func getAllAssociations(gateways []configurator.NetworkEntity) []storage.TypeAndKey {
+	ret := []storage.TypeAndKey{}
+	for _, gateway := range gateways {
+		ret = append(ret, gateway.Associations...)
 	}
 	return ret
 }

@@ -28,7 +28,7 @@ func GetObsidianHandlers() []handlers.Handler {
 
 		// Gateway
 		{Path: RegisterAG, Methods: handlers.GET,
-			HandlerFunc:         getListGatewaysHandler(&view_factory.FullGatewayViewFactoryImpl{}),
+			HandlerFunc:         getListGatewaysHandler(&view_factory.FullGatewayViewFactoryLegacyImpl{}),
 			MigratedHandlerFunc: getListGateways(&view_factory.FullGatewayViewFactoryImpl{})},
 		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: createGatewayHandler, MigratedHandlerFunc: createGateway, MultiplexAfterMigration: true},
 		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGatewayHandler, MigratedHandlerFunc: getGateway},

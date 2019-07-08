@@ -13,11 +13,11 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
 	configuratorti "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratortu "magma/orc8r/cloud/go/services/configurator/test_utils"
+	"magma/orc8r/cloud/go/services/device"
 	deviceti "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/logger/exporters"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -47,7 +47,7 @@ func TestScribeEntryUtils_WithHWID(t *testing.T) {
 	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	configuratorti.StartTestService(t)
 	deviceti.StartTestService(t)
-	serde.RegisterSerdes(&pluginimpl.GatewayRecordSerde{})
+	serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}))
 
 	networkID := "test_network"
 	gatewayID := "test_gateway"

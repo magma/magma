@@ -10,19 +10,24 @@ package view_factory_test
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
-	checkinti "magma/orc8r/cloud/go/services/checkind/test_init"
-	"magma/orc8r/cloud/go/services/checkind/test_utils"
-	"magma/orc8r/cloud/go/services/config"
-	configti "magma/orc8r/cloud/go/services/config/test_init"
-	"magma/orc8r/cloud/go/services/magmad"
+	checkintu "magma/orc8r/cloud/go/services/checkind/test_utils"
+	"magma/orc8r/cloud/go/services/configurator"
+	configuratorti "magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratortu "magma/orc8r/cloud/go/services/configurator/test_utils"
+	"magma/orc8r/cloud/go/services/device"
+	deviceti "magma/orc8r/cloud/go/services/device/test_init"
 	storagetu "magma/orc8r/cloud/go/services/magmad/obsidian/handlers/test_utils"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
-	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmadti "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	stateti "magma/orc8r/cloud/go/services/state/test_init"
+	statetu "magma/orc8r/cloud/go/services/state/test_utils"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,73 +36,77 @@ var cfg1 = &storagetu.Conf1{Value1: 1, Value2: "foo", Value3: []byte("bar")}
 var cfg2 = &storagetu.Conf2{Value1: []string{"foo", "bar"}, Value2: 1}
 
 func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	// Test setup
-	magmadti.StartTestService(t)
-	configti.StartTestService(t)
-	checkinti.StartTestService(t)
+	configuratorti.StartTestService(t)
+	deviceti.StartTestService(t)
+	stateti.StartTestService(t)
 
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(storagetu.NewConfig1Manager(), storagetu.NewConfig2Manager())
+	serde.UnregisterAllSerdes(t)
+	err := serde.RegisterSerdes(
+		storagetu.NewConfig1ConfiguratorManager(),
+		storagetu.NewConfig2ConfiguratorManager(),
+		&pluginimpl.GatewayStatusSerde{},
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}),
+	)
 	assert.NoError(t, err)
 
 	// Setup fixture data
-	networkID, err := magmad.RegisterNetwork(&magmadprotos.MagmadNetworkRecord{Name: "foobar"}, "xservice1")
+	networkID := "test_network"
+	gatewayID1 := "gw1"
+	gatewayID2 := "gw2"
+	hwID1 := "hw1"
+	hwID2 := "hw2"
+	record1 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID1}}
+	record2 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID2}}
+	configuratortu.RegisterNetwork(t, networkID, "xservice1")
+	configuratortu.RegisterGateway(t, networkID, gatewayID1, record1)
+	configuratortu.RegisterGateway(t, networkID, gatewayID2, record2)
+
+	// configs for gw1
+	gw1config1 := configurator.NetworkEntity{
+		Type:   storagetu.NewConfig1Manager().GetType(),
+		Key:    gatewayID1,
+		Config: cfg1,
+	}
+	gw1config2 := configurator.NetworkEntity{
+		Type:   storagetu.NewConfig2Manager().GetType(),
+		Key:    gatewayID1,
+		Config: cfg2,
+	}
+	// configs for gw2
+	gw2config1 := configurator.NetworkEntity{
+		Type:   storagetu.NewConfig1Manager().GetType(),
+		Key:    gatewayID2,
+		Config: cfg1,
+	}
+
+	_, err = configurator.CreateEntities(networkID, []configurator.NetworkEntity{gw1config1, gw1config2, gw2config1})
 	assert.NoError(t, err)
 
-	// Register gateways
-	record1 := &magmadprotos.AccessGatewayRecord{
-		HwId: &protos.AccessGatewayID{Id: "hw1"},
+	// add config associations to gateways
+	// gw1 has cfg1 and cfg2, gw2 only has cfg1
+	updateGW1 := configurator.EntityUpdateCriteria{
+		Type: orc8r.MagmadGatewayType,
+		Key:  gatewayID1,
+		AssociationsToSet: []storage.TypeAndKey{
+			{Type: gw1config1.Type, Key: gatewayID1},
+			{Type: gw1config2.Type, Key: gatewayID1}},
 	}
-	record2 := &magmadprotos.AccessGatewayRecord{
-		HwId: &protos.AccessGatewayID{Id: "hw2"},
+	updateGW2 := configurator.EntityUpdateCriteria{
+		Type: orc8r.MagmadGatewayType,
+		Key:  gatewayID2,
+		AssociationsToSet: []storage.TypeAndKey{
+			{Type: gw2config1.Type, Key: gatewayID2}},
 	}
-	_, err = magmad.RegisterGatewayWithId(networkID, record1, "gw1")
-	assert.NoError(t, err)
-	_, err = magmad.RegisterGatewayWithId(networkID, record2, "gw2")
+
+	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateGW1, updateGW2})
 	assert.NoError(t, err)
 
-	// gw1 has cfg1 and cfg2, gw2 only has cfg2
-	err = config.CreateConfig(
-		networkID,
-		storagetu.NewConfig1Manager().GetType(),
-		"gw1",
-		cfg1,
-	)
-	assert.NoError(t, err)
-	err = config.CreateConfig(
-		networkID,
-		storagetu.NewConfig2Manager().GetType(),
-		"gw1",
-		cfg2,
-	)
-	assert.NoError(t, err)
-	err = config.CreateConfig(
-		networkID,
-		storagetu.NewConfig2Manager().GetType(),
-		"gw2",
-		cfg2,
-	)
-	assert.NoError(t, err)
-
-	// gw1 has status, gw2 does not
-	checkinReq := &protos.CheckinRequest{
-		GatewayId:       "hw1",
-		MagmaPkgVersion: "1.2.3",
-		Status: &protos.ServiceStatus{
-			Meta: map[string]string{
-				"hello": "world",
-			},
-		},
-		SystemStatus: &protos.SystemStatus{
-			CpuUser:   31498,
-			CpuSystem: 8361,
-			CpuIdle:   1869111,
-			MemTotal:  1016084,
-			MemUsed:   54416,
-			MemFree:   412772,
-		},
-	}
-	test_utils.Checkin(t, checkinReq)
+	// put status into gw1
+	ctx := statetu.GetContextWithCertificate(t, hwID1)
+	gwStatus := checkintu.GetGatewayStatusSwaggerFixture(hwID1)
+	statetu.ReportGatewayStatus(t, ctx, gwStatus)
 
 	fact := &view_factory.FullGatewayViewFactoryImpl{}
 	actual, err := fact.GetGatewayViewsForNetwork(networkID)
@@ -106,28 +115,26 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	for _, state := range actual {
 		if state.Status != nil {
 			state.Status.CertExpirationTime = 0
-			state.Status.Time = 0
+			state.Status.CheckinTime = 0
 		}
 	}
 
 	expected := map[string]*view_factory.GatewayState{
-		"gw1": {
-			GatewayID: "gw1",
+		gatewayID1: {
+			GatewayID: gatewayID1,
 			Config: map[string]interface{}{
-				storagetu.NewConfig1Manager().GetType(): cfg1,
-				storagetu.NewConfig2Manager().GetType(): cfg2,
+				storagetu.NewConfig1ConfiguratorManager().GetType(): cfg1,
+				storagetu.NewConfig2ConfiguratorManager().GetType(): cfg2,
+				orc8r.MagmadGatewayType:                             nil,
 			},
+			Status: checkintu.GetGatewayStatusSwaggerFixture(hwID1),
 			Record: record1,
-			Status: &protos.GatewayStatus{
-				Checkin:            checkinReq,
-				Time:               0,
-				CertExpirationTime: 0,
-			},
 		},
-		"gw2": {
-			GatewayID: "gw2",
+		gatewayID2: {
+			GatewayID: gatewayID2,
 			Config: map[string]interface{}{
-				storagetu.NewConfig2Manager().GetType(): cfg2,
+				storagetu.NewConfig1ConfiguratorManager().GetType(): cfg1,
+				orc8r.MagmadGatewayType:                             nil,
 			},
 			Record: record2,
 		},

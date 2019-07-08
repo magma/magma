@@ -15,6 +15,7 @@ const (
 	NetworkFeaturesConfig   = "orc8r_features"
 	MagmadGatewayType       = "magmad_gateway"
 	AccessGatewayRecordType = "access_gateway_record"
+	GatewayStateType        = "gw_state"
 
 	UpgradeTierEntityType = "upgrade_tier"
 

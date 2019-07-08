@@ -23,15 +23,15 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
-	checkindserde "magma/orc8r/cloud/go/services/checkind/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/device"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
-	models2 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
+	dnsdmodels "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
-	models3 "magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	magmadmodels "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
@@ -45,7 +45,7 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/cloud/go/services/upgrade"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
+	upgrademodels "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 )
 
 // BaseOrchestratorPlugin is the OrchestratorPlugin for the orc8r module
@@ -66,18 +66,18 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
-		&checkindserde.GatewayStatusSerde{},
+		&GatewayStatusSerde{},
 
 		// Inventory service serdes
-		&GatewayRecordSerde{},
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &magmadmodels.AccessGatewayRecord{}),
 
 		// Config manager serdes
-		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models2.NetworkDNSConfig{}),
-		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &models3.NetworkFeatures{}),
+		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &dnsdmodels.NetworkDNSConfig{}),
+		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &magmadmodels.NetworkFeatures{}),
 
-		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models3.MagmadGatewayConfig{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
-		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &magmadmodels.MagmadGatewayConfig{}),
+		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &upgrademodels.Tier{}),
 
 		// Legacy config manager serdes
 		&magmadconfig.MagmadGatewayConfigManager{},

@@ -27,7 +27,7 @@ func getListGatewaysHandler(factory view_factory.FullGatewayViewFactory) func(ec
 	return func(c echo.Context) error {
 		fields := c.QueryParam("view")
 		if fields == "full" {
-			return ListFullGatewayViews(c, factory)
+			return ListFullGatewayViewsLegacy(c, factory)
 		}
 		return listGatewaysHandler(c)
 	}

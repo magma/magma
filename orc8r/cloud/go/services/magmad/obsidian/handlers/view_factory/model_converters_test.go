@@ -1,12 +1,12 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
-
-package models_test
+package view_factory_test
 
 import (
 	"encoding/json"
@@ -29,7 +29,7 @@ func TestGatewayStateToModel(t *testing.T) {
 		Config: map[string]interface{}{
 			"Hello": "World!",
 		},
-		Status: &protos.GatewayStatus{
+		LegacyStatus: &protos.GatewayStatus{
 			Time: 12345,
 			Checkin: &protos.CheckinRequest{
 				GatewayId: "gw0",
@@ -103,7 +103,7 @@ func TestGatewayStateToModel(t *testing.T) {
 				},
 			},
 		},
-		Record: &magmadprotos.AccessGatewayRecord{
+		LegacyRecord: &magmadprotos.AccessGatewayRecord{
 			HwId: &protos.AccessGatewayID{Id: "gw0"},
 			Name: "Gateway 0",
 			Key: &protos.ChallengeKey{
@@ -111,7 +111,7 @@ func TestGatewayStateToModel(t *testing.T) {
 			},
 		},
 	}
-	expectedModel := &magmad_models.GatewayStateType{
+	expectedModel := &view_factory.GatewayStateType{
 		Config: map[string]interface{}{
 			"Hello": "World!",
 		},
@@ -196,29 +196,29 @@ func TestGatewayStateToModel(t *testing.T) {
 			Name: "Gateway 0",
 		},
 	}
-	actualModel, err := magmad_models.GatewayStateToModel(state)
+	actualModel, err := view_factory.GatewayStateToModel(state)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, actualModel)
 }
 
 func TestGatewayStateToModelNilFields(t *testing.T) {
 	state := &view_factory.GatewayState{
-		GatewayID: "gw0",
+		GatewayID:    "gw0",
+		Config:       make(map[string]interface{}),
+		LegacyStatus: nil,
+		LegacyRecord: nil,
+	}
+	expectedModel := &view_factory.GatewayStateType{
 		Config:    make(map[string]interface{}),
+		GatewayID: "gw0",
 		Status:    nil,
 		Record:    nil,
 	}
-	expectedModel := &magmad_models.GatewayStateType{
-		Config:    make(map[string]interface{}),
-		GatewayID: "gw0",
-		Status:    nil,
-		Record:    nil,
-	}
-	actualModel, err := magmad_models.GatewayStateToModel(state)
+	actualModel, err := view_factory.GatewayStateToModel(state)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, actualModel)
 
-	state.Status = &protos.GatewayStatus{
+	state.LegacyStatus = &protos.GatewayStatus{
 		Time:    12345,
 		Checkin: nil,
 	}
@@ -229,11 +229,11 @@ func TestGatewayStateToModelNilFields(t *testing.T) {
 		SystemStatus: nil,
 		Version:      "",
 	}
-	actualModel, err = magmad_models.GatewayStateToModel(state)
+	actualModel, err = view_factory.GatewayStateToModel(state)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, actualModel)
 
-	state.Record = &magmadprotos.AccessGatewayRecord{
+	state.LegacyRecord = &magmadprotos.AccessGatewayRecord{
 		HwId: nil,
 		Name: "gw0",
 		Key:  nil,
@@ -243,7 +243,7 @@ func TestGatewayStateToModelNilFields(t *testing.T) {
 		Key:  nil,
 		Name: "gw0",
 	}
-	actualModel, err = magmad_models.GatewayStateToModel(state)
+	actualModel, err = view_factory.GatewayStateToModel(state)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedModel, actualModel)
 }
@@ -264,7 +264,7 @@ func TestJSONMapToProtobufStruct(t *testing.T) {
 	err = jsonpb.UnmarshalString(string(marshaled), expectedProtobufStruct)
 	assert.NoError(t, err)
 
-	actualProtobufStruct, err := magmad_models.JSONMapToProtobufStruct(jsonMap)
+	actualProtobufStruct, err := view_factory.JSONMapToProtobufStruct(jsonMap)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProtobufStruct, actualProtobufStruct)
@@ -286,7 +286,7 @@ func TestProtobufStructToJSONMap(t *testing.T) {
 	err = jsonpb.UnmarshalString(string(marshaled), protobufStruct)
 	assert.NoError(t, err)
 
-	actualJsonMap, err := magmad_models.ProtobufStructToJSONMap(protobufStruct)
+	actualJsonMap, err := view_factory.ProtobufStructToJSONMap(protobufStruct)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedJsonMap, actualJsonMap)
