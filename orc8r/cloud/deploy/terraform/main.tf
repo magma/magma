@@ -32,7 +32,7 @@ module "vpc" {
 }
 
 data "template_file" "metrics_userdata" {
-  template = "${file("${path.module}/scripts/prepare_metrics_instance.sh.tpl")}"
+  template = file("${path.module}/scripts/prepare_metrics_instance.sh.tpl")
 }
 
 data "aws_iam_policy_document" "worker_node_policy_doc" {
@@ -54,7 +54,7 @@ data "aws_iam_policy_document" "worker_node_policy_doc" {
 
 resource "aws_iam_policy" "worker_node_policy" {
   name   = "magma_eks_worker_node_policy"
-  policy = "${data.aws_iam_policy_document.worker_node_policy_doc.json}"
+  policy = data.aws_iam_policy_document.worker_node_policy_doc.json
 }
 
 module "eks" {
@@ -64,7 +64,7 @@ module "eks" {
   subnets      = module.vpc.public_subnets
 
   worker_additional_security_group_ids = [aws_security_group.default.id]
-  workers_additional_policies          = ["${aws_iam_policy.worker_node_policy.arn}"]
+  workers_additional_policies          = [aws_iam_policy.worker_node_policy.arn]
 
   # asg max capacity is 3
   # 1 worker group for orc8r (3 boxes total)
@@ -75,9 +75,6 @@ module "eks" {
       instance_type        = "m4.xlarge"
       asg_desired_capacity = 3
       key_name             = var.key_name
-
-      # Have to specify this here otherwise it forces a new resource
-      ami_id = "ami-08716b70cac884aaa"
 
       tags = [
         {
@@ -97,10 +94,7 @@ module "eks" {
       # can only be mounted into the same AZ
       subnets = [module.vpc.public_subnets[0]]
 
-      additional_userdata  = "${data.template_file.metrics_userdata.rendered}"
-
-      # Have to specify this here otherwise it forces a new resource
-      ami_id = "ami-08716b70cac884aaa"
+      additional_userdata = data.template_file.metrics_userdata.rendered
 
       tags = [
         {

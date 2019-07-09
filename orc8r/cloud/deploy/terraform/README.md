@@ -64,14 +64,15 @@ changes.
 ## Setup Steps After Terraforming
 
 First find the public IP address of the metrics instance using
-```
-export METRICS_IP=$(aws ec2 describe-instances --filters Name=tag:Name,Values=orc8r-wg-metrics-eks_asg --query 'Reservations[*].Instances[0].PublicIpAddress' --output text)
+```bash
+export METRICS_IP=$(aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-prometheus-node --query 'Reservations[*].Instances[0].PublicIpAddress' --output text)
+echo $METRICS_IP
 ```
 The Prometheus config manager application expects some configuration files to
 be seeded in the EBS config volume (don't forget to use the correct private
 key in `scp` with the `-i` flag:
 
-```
+```bash
 scp -r config_defaults ec2-user@$METRICS_IP:~
 ssh ec2-user@$METRICS_IP
 [ec2-user@<metrics-ip> ~]$ sudo cp -r config_defaults/. /configs/prometheus
@@ -96,12 +97,13 @@ Label the EKS worker nodes appropriately, so we can schedule the metrics pod on
 the metrics worker and the Orchestrator pods on the Orchestrator worker nodes:
 
 ```bash
+export AWS_DEFAULT_REGION=...
 aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-worker-node \
-  --query 'Reservations[].Instances[].[PrivateDnsName]' --region eu-west-1 --output text \
+  --query 'Reservations[].Instances[].[PrivateDnsName]' --output text \
   | xargs -I % kubectl -n magma label nodes % worker-type=controller --overwrite
 
 aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-prometheus-node \
-  --query 'Reservations[].Instances[].[PrivateDnsName]' --region eu-west-1 --output text \
+  --query 'Reservations[].Instances[].[PrivateDnsName]' --output text \
   | xargs -I % kubectl -n magma label nodes % worker-type=metrics --overwrite
 ```
 
