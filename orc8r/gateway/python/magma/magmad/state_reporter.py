@@ -32,12 +32,9 @@ class StateReporter(SDWatchdogTask):
     Periodically collects operational states from service303 states and reports
     them to the cloud state service.
     """
-    GET_STATE_TIMEOUT = 20
-    GET_STATE_INTERVAL = 60
-
     def __init__(self, service: MagmaService, checkin_manager: CheckinRequest):
         super().__init__(
-            self.GET_STATE_INTERVAL,
+            max(5, service.mconfig.checkin_interval),
             service.loop
         )
 
@@ -60,7 +57,7 @@ class StateReporter(SDWatchdogTask):
             states = []
             future = client.GetOperationalStates.future(
                 Void(),
-                self.GET_STATE_TIMEOUT,
+                self._service.mconfig.checkin_timeout,
             )
             result = await grpc_async_wrapper(future, self._loop)
             for i in range(len(result.states)):
@@ -98,7 +95,7 @@ class StateReporter(SDWatchdogTask):
             await grpc_async_wrapper(
                 state_client.ReportStates.future(
                     request,
-                    self.GET_STATE_TIMEOUT,
+                    self._service.mconfig.checkin_timeout,
                 ),
                 self._loop)
         except Exception as err:
