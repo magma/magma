@@ -73,10 +73,11 @@ type Props = {
   label: string,
   icon: any,
   hidden: boolean,
+  onClick?: ?() => void,
 };
 
 export default function NavListItem(props: Props) {
-  const {hidden} = props;
+  const {hidden, onClick} = props;
   const classes = useStyles();
   const router = useRouter();
   const [arrowArrow, setArrowRef] = useState(null);
@@ -93,7 +94,10 @@ export default function NavListItem(props: Props) {
   const isSelected = router.location.pathname.includes(props.path);
 
   return (
-    <Link to={props.path} className={classes.link}>
+    <Link
+      to={props.path}
+      className={classes.link}
+      onClick={() => onClick && onClick()}>
       <Tooltip
         placement="right"
         title={
