@@ -3813,6 +3813,23 @@ bcryptjs@^2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/bcryptjs/-/bcryptjs-2.4.3.tgz#9ab5627b93e60621ff7cdac5da9733027df1d0cb"
 
+beaver-logger@^4.0.12:
+  version "4.0.12"
+  resolved "https://registry.yarnpkg.com/beaver-logger/-/beaver-logger-4.0.12.tgz#2080918a57063b14f0e3b61e7161b963897acfc9"
+  integrity sha512-6RYZsB+YAb2N0GIf7nhtlDg7Zw0ZzqcGkJH5ET45a7SZJk4aHJD5zziIMCo7zYOhV7saTdvXOdfCFCeQPmG3vg==
+  dependencies:
+    belter "^1.0.17"
+    zalgo-promise "^1.0.26"
+
+belter@^1.0.17:
+  version "1.0.99"
+  resolved "https://registry.yarnpkg.com/belter/-/belter-1.0.99.tgz#b0bb275500fdd27ace3dc7314d942f6be3e3b1cd"
+  integrity sha512-K6WCqYRXDdDWDTi8HS7p4QlmyC5Y3OWfKtPcOnCFZ4Sh4kz4lorqu4qoBfhNxPHqsuU/8lMXW2n/imBX0DZFAQ==
+  dependencies:
+    cross-domain-safe-weakmap "^1.0.20"
+    cross-domain-utils "^2.0.10"
+    zalgo-promise "^1.0.28"
+
 bfj@^6.1.1:
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/bfj/-/bfj-6.1.1.tgz#05a3b7784fbd72cfa3c22e56002ef99336516c48"
@@ -5063,6 +5080,20 @@ create-react-context@^0.2.1, create-react-context@^0.2.2:
   dependencies:
     fbjs "^0.8.0"
     gud "^1.0.0"
+
+cross-domain-safe-weakmap@^1.0.20:
+  version "1.0.25"
+  resolved "https://registry.yarnpkg.com/cross-domain-safe-weakmap/-/cross-domain-safe-weakmap-1.0.25.tgz#240f44b478cd0e1dc7023599f2d89d727fe260cf"
+  integrity sha512-8JcZJVsWv+Sor3V2MJKmTibLUwUWVqUevcceoMi/BY+3Ryn7KjniAFH+9h7zNL/HEA1jah7oUhoIgdazp9P31A==
+  dependencies:
+    cross-domain-utils "^2.0.0"
+
+cross-domain-utils@^2.0.0, cross-domain-utils@^2.0.10:
+  version "2.0.27"
+  resolved "https://registry.yarnpkg.com/cross-domain-utils/-/cross-domain-utils-2.0.27.tgz#acd3d8cfe2441dfc132965b55f7864bbb0958571"
+  integrity sha512-dtnbLH8klyFwSlOWN/BDxVTImFdXUIKJHAywFQxWbc9T04mnmNGmWkiuihYLAG8+U0sM5hA1EDbjESUlAdo7uA==
+  dependencies:
+    zalgo-promise "^1.0.11"
 
 cross-spawn@5.1.0, cross-spawn@^5.0.1:
   version "5.1.0"
@@ -16135,3 +16166,8 @@ yarn@^1.12.3:
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/yarn/-/yarn-1.16.0.tgz#5701b58ac555ff91f7b889b7d791b3dc86f8f999"
   integrity sha512-cfemyGlnWKA1zopUUgebTPf8C4WkPIZ+TJmklwcEAJ4u6oWPtJeAzrsamaGGh/+b1XWe8W51yzAImC4AWbWR1g==
+
+zalgo-promise@^1.0.11, zalgo-promise@^1.0.26, zalgo-promise@^1.0.28:
+  version "1.0.41"
+  resolved "https://registry.yarnpkg.com/zalgo-promise/-/zalgo-promise-1.0.41.tgz#3d25fe46a1d01c56dd9639cf90e0ad5a35b27773"
+  integrity sha512-hXL+hZU6/5sUE0EKL/LycxjGQNLZMsvlZjr+g7gCsFAaCsvTeH+WOtmwrcAQ/6R3NGcO0NGYwNqFtGa7WEcDFw==
