@@ -821,4 +821,20 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 		allEnts,
 	)
+
+	// create an entity in a separate network and try to load all
+	expectedHahaHohoEnt, err := store.CreateEntity("n2", storage.NetworkEntity{Key: "haha", Type: "hoho"})
+	assert.NoError(t, err)
+
+	entities, err := store.LoadAllEntities(storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(t, []*storage.NetworkEntity{
+		// n1 entities
+		&expectedBarbazEnt,
+		&expectedFoobarEnt,
+		&expectedHelloWorldEnt,
+		// n2 entities
+		&expectedHahaHohoEnt,
+	}, entities)
+
 }

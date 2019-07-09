@@ -145,6 +145,22 @@ func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *pr
 	return &loadResult, store.Commit()
 }
 
+func (srv *nbConfiguratorServicer) LoadAllEntities(context context.Context, req *protos.LoadAllEntitiesRequest) (*protos.LoadAllEntitiesResponse, error) {
+	res := &protos.LoadAllEntitiesResponse{}
+	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	if err != nil {
+		return res, err
+	}
+
+	entities, err := store.LoadAllEntities(*req.Filter, *req.Criteria)
+	if err != nil {
+		store.Rollback()
+		return res, err
+	}
+	res.Entities = entities
+	return res, store.Commit()
+}
+
 func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *protos.CreateEntitiesRequest) (*protos.CreateEntitiesResponse, error) {
 	emptyRes := &protos.CreateEntitiesResponse{}
 	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})

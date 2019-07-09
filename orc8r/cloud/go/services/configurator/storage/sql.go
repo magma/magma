@@ -412,6 +412,33 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	return nil
 }
 
+func (store *sqlConfiguratorStorage) LoadAllEntities(filter EntityLoadFilter, loadCriteria EntityLoadCriteria) ([]*NetworkEntity, error) {
+	ret := []*NetworkEntity{}
+	entsByPk, err := store.loadAllFromEntitiesTable(filter, loadCriteria)
+	if err != nil {
+		return ret, err
+	}
+	assocs, allAssocPks, err := store.loadFromAssocsTable(filter, loadCriteria, entsByPk)
+	if err != nil {
+		return ret, err
+	}
+	entTksByPk, err := store.loadEntityTypeAndKeys(allAssocPks, entsByPk)
+	if err != nil {
+		return ret, err
+	}
+
+	entsByPk, _, err = updateEntitiesWithAssocs(entsByPk, assocs, entTksByPk, loadCriteria)
+	if err != nil {
+		return ret, err
+	}
+
+	for _, ent := range entsByPk {
+		ret = append(ret, ent)
+	}
+	ret = sortEntitiesByTk(ret)
+	return ret, nil
+}
+
 func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error) {
 	ret := EntityLoadResult{Entities: []*NetworkEntity{}, EntitiesNotFound: []*EntityID{}}
 
@@ -450,11 +477,7 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 	ret.EntitiesNotFound = calculateEntitiesNotFound(entsByPk, filter.IDs)
 
 	// Sort entities for deterministic returns
-	entComparator := func(a, b *NetworkEntity) bool {
-		return a.GetTypeAndKey().String() < b.GetTypeAndKey().String()
-	}
-	sort.Slice(ret.Entities, func(i, j int) bool { return entComparator(ret.Entities[i], ret.Entities[j]) })
-
+	ret.Entities = sortEntitiesByTk(ret.Entities)
 	return ret, nil
 }
 
@@ -625,4 +648,12 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 		RootEntities: retRoots,
 		Edges:        edges,
 	}, nil
+}
+
+func sortEntitiesByTk(entities []*NetworkEntity) []*NetworkEntity {
+	entComparator := func(a, b *NetworkEntity) bool {
+		return a.GetTypeAndKey().String() < b.GetTypeAndKey().String()
+	}
+	sort.Slice(entities, func(i, j int) bool { return entComparator(entities[i], entities[j]) })
+	return entities
 }

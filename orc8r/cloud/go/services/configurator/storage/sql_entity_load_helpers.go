@@ -24,10 +24,18 @@ import (
 )
 
 func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
+	selectBuilder := store.getLoadEntitiesSelectBuilder(networkID, filter, criteria)
+	return store.runLoadEntitiesQuery(selectBuilder, criteria)
+}
+
+func (store *sqlConfiguratorStorage) loadAllFromEntitiesTable(filter EntityLoadFilter, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
+	selectBuilder := store.getLoadAllEntitiesSelectBuilder(filter, criteria)
+	return store.runLoadEntitiesQuery(selectBuilder, criteria)
+}
+
+func (store *sqlConfiguratorStorage) runLoadEntitiesQuery(selectBuilder sq.SelectBuilder, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
 	// Pointer values because we're modifying entities in-place with ACLs (LEFT JOIN)
 	entsByPk := map[string]*NetworkEntity{}
-
-	selectBuilder := store.getLoadEntitiesSelectBuilder(networkID, filter, criteria)
 	rows, err := selectBuilder.RunWith(store.tx).Query()
 	if err != nil {
 		return entsByPk, errors.Wrap(err, "error querying for entities")
@@ -45,6 +53,48 @@ func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, fil
 		}
 	}
 	return entsByPk, nil
+}
+
+func (store *sqlConfiguratorStorage) getLoadAllEntitiesSelectBuilder(filter EntityLoadFilter, criteria EntityLoadCriteria) sq.SelectBuilder {
+	// SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, graph.graph_id, ent.name, ent.description, ent.config,
+	// [[ acl.id, acl.scope, acl.permission, acl.type, acl.id_filter, acl.version ]]
+	// FROM cfg_entities AS ent
+	// [[ LEFT JOIN cfg_acls AS acl ON acl.entity_pk = ent.pk ]]
+	// [[ WHERE (ent.key = $2 AND ent.type = $3) ... ]]
+	selectBuilder := store.builder.Select(getLoadEntitiesColumns(criteria)...).
+		From(fmt.Sprintf("%s AS ent", entityTable))
+	if criteria.LoadPermissions {
+		selectBuilder = selectBuilder.LeftJoin(fmt.Sprintf("%s AS acl ON acl.%s = ent.%s", entityAclTable, aclEntCol, entPkCol))
+	}
+
+	// The WHERE has ORs if specific IDs are provided
+	if !funk.IsEmpty(filter.IDs) {
+		orClause := make(sq.Or, 0, len(filter.IDs))
+		funk.ForEach(filter.IDs, func(id *EntityID) {
+			orClause = append(orClause, sq.And{
+				sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): id.Key},
+				sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): id.Type},
+			})
+		})
+		selectBuilder = selectBuilder.Where(orClause)
+	} else {
+		if filter.PhysicalID != nil {
+			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entPidCol): filter.PhysicalID.Value})
+		} else if filter.GraphID != nil {
+			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): filter.GraphID.Value})
+		} else {
+			andClause := sq.And{}
+			if filter.KeyFilter != nil {
+				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): filter.KeyFilter.Value})
+			}
+			if filter.TypeFilter != nil {
+				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): filter.TypeFilter.Value})
+			}
+			selectBuilder = selectBuilder.Where(andClause)
+		}
+	}
+
+	return selectBuilder
 }
 
 func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) sq.SelectBuilder {

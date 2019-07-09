@@ -70,6 +70,9 @@ type ConfiguratorStorage interface {
 	// Entity Operations
 	// =======================================================================
 
+	// LoadAllEntities returns a set of entities corresponding to the provided
+	// load criteria and filter, from all networks.
+	LoadAllEntities(filter EntityLoadFilter, loadCriteria EntityLoadCriteria) ([]*NetworkEntity, error)
 	// LoadEntities returns a set of entities corresponding to the provided
 	// load criteria. Any entities which aren't found are excluded from the
 	// returned value.

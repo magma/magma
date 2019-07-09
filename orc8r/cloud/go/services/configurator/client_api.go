@@ -548,6 +548,46 @@ func LoadAllEntitiesInNetwork(networkID string, entityType string, criteria Enti
 	return ret, nil
 }
 
+// LoadEntities loads entities specified by the parameters across all networks
+func LoadAllEntities(
+	typeFilter *string,
+	keyFilter *string,
+	physicalID *string,
+	ids []storage2.TypeAndKey,
+	criteria EntityLoadCriteria,
+) ([]NetworkEntity, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := client.LoadAllEntities(
+		context.Background(),
+		&protos.LoadAllEntitiesRequest{
+			Filter: &storage.EntityLoadFilter{
+				TypeFilter: protos.GetStringWrapper(typeFilter),
+				KeyFilter:  protos.GetStringWrapper(keyFilter),
+				PhysicalID: protos.GetStringWrapper(physicalID),
+				IDs:        tksToEntIDs(ids),
+			},
+			Criteria: criteria.toStorageProto(),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make([]NetworkEntity, len(resp.Entities))
+	for i, protoEnt := range resp.Entities {
+		ent, err := ret[i].fromStorageProto(protoEnt)
+		if err != nil {
+			return nil, errors.Wrap(err, "request succeeded but deserialization failed")
+		}
+		ret[i] = ent
+	}
+	return ret, nil
+}
+
 func getSBConfiguratorClient() (protos.SouthboundConfiguratorClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
