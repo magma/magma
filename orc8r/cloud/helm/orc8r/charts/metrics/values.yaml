@@ -2,6 +2,8 @@
 imagePullSecrets: []
 
 metrics:
+  # Enable/Disable chart
+  create: true
   # Service configuration.
   service:
     annotations: {}
@@ -82,6 +84,8 @@ metrics:
   affinity: {}
 
 graphite:
+  # Enable/Disable chart
+  create: true
   # Service configuration.
   service:
     annotations: {}
@@ -132,6 +136,8 @@ graphite:
   affinity: {}
 
 prometheusCache:
+  # Enable/Disable chart
+  create: true
   # Service configuration.
   service:
     annotations: {}

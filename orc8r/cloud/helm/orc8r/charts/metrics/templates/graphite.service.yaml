@@ -4,14 +4,14 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
-
+{{- if .Values.graphite.create }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ .Release.Name }}-graphite
   labels:
     app.kubernetes.io/component: graphite
-{{ include "labels" . | indent 4 }}
+{{ include "metrics.labels" . | indent 4 }}
     {{- with .Values.graphite.service.labels }}
 {{ toYaml . | indent 4}}
     {{- end}}
@@ -29,4 +29,5 @@ spec:
      - name: {{ $port.name }}
        port: {{ $port.port }}
        targetPort: {{ $port.targetPort }}
+{{- end }}
 {{- end }}

@@ -10,6 +10,15 @@
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
+## metrics subchart configuration.
+metrics:
+  metrics:
+    create: false
+  graphite:
+    create: false
+  prometheusCache:
+    create: false
+
 # secrets subchart configuration.
 secrets:
   create: false

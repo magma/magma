@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 */}}
+{{- if .Values.prometheusCache.create }}
 {{- $serviceName := print .Release.Name "-prometheus-cache" -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -13,7 +14,7 @@ metadata:
   name: {{ $serviceName }}
   labels:
     app.kubernetes.io/component: prometheus-cache
-{{ include "labels" . | indent 4 }}
+{{ include "metrics.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.prometheusCache.replicas }}
   selector:
@@ -57,3 +58,4 @@ spec:
             periodSeconds: 30
           resources:
 {{ toYaml .Values.prometheusCache.resources | indent 12 }}
+{{- end }}
