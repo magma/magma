@@ -52,7 +52,7 @@ spec:
             - containerPort: 9091
           livenessProbe:
             httpGet:
-              path: /debug
+              path: /
               port: 9091
             initialDelaySeconds: 10
             periodSeconds: 30

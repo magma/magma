@@ -35,5 +35,8 @@ func main() {
 
 	e.GET("/debug", metricCache.Debug)
 
+	// For liveness probe
+	e.GET("/", func(ctx echo.Context) error { return ctx.NoContent(200) })
+
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
 }
