@@ -521,7 +521,7 @@ void itti_receive_msg(task_id_t task_id, MessageDef **received_msg)
   if (
     lfds710_queue_bmm_dequeue(
       &itti_desc.tasks[task_id].message_queue, NULL, (void **) &message) == 0) {
-    Fatal(
+    OAILOG_WARNING(LOG_ITTI,
       "No message in queue for task %d while there are %zu and some "
       "for the messages queue!\n",
       task_id,
