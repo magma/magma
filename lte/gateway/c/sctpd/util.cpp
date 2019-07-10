@@ -67,6 +67,7 @@ int create_sctp_sock(const InitReq &req)
 fail:
   close(sd);
   free(addrs);
+  exit(EXIT_FAILURE);
   return -1;
 }
 
