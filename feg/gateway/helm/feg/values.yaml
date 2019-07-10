@@ -29,8 +29,8 @@ feg:
     local_port: 8443
     cloud_address: orc8r-proxy.magma.svc.cluster.local
     cloud_port: 9443
-    bootstrap_address: orc8r-bootstrap-legacy.magma.svc.cluster.local
-    bootstrap_port: 9444
+    bootstrap_address: bootstrap-legacy.magma.svc.cluster.local
+    bootstrap_port: 443
   repo:
     url: https://github.com/facebookincubator/magma/
     branch: master
