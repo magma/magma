@@ -27,6 +27,8 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
+#include <stdlib.h>
+#include <unistd.h>
 #include "glog_logging.h"
 #include <glog/logging.h>
 #include <glog/stl_logging.h>
@@ -45,7 +47,11 @@ void init_logging(const char *log_dir,
 }
 
 void init_logging(const char *app_name, uint32_t default_verbosity) {
-  init_logging("/var/log/mme", app_name, default_verbosity);
+  init_logging("/var/log", app_name, default_verbosity);
+
+  // symlink glog output to /var/log/mme.log
+  char *glog_log_path = realpath("/var/log/MME.INFO", NULL);
+  symlink(glog_log_path, "/var/log/mme.log");
 }
 
 
