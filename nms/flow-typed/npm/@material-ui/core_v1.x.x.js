@@ -3042,7 +3042,7 @@ declare module "@material-ui/core/Typography/Typography" {
     | "error"
     | "default";
 
-  declare module.exports: ComponentType<{
+  declare export type TypographyProps = {
     align?: Align,
     children?: Node,
     classes?: Object,
@@ -3054,7 +3054,9 @@ declare module "@material-ui/core/Typography/Typography" {
     noWrap?: boolean,
     paragraph?: boolean,
     variant?: Variant
-  }>;
+  }
+
+  declare module.exports: ComponentType<TypographyProps>;
 }
 
 declare module "@material-ui/core/utils/addEventListener" {
