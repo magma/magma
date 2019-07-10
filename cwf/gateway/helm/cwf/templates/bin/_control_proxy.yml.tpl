@@ -31,4 +31,4 @@ bootstrap_port: {{ .Values.cwf.proxy.bootstrap_port }}
 proxy_cloud_connections: True
 
 # Allows http_proxy usage if the environment variable is present
-allow_http_proxy: False
+allow_http_proxy: True
