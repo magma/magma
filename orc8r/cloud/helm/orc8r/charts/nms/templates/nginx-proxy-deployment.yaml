@@ -1,0 +1,81 @@
+{{/*
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+
+{{- if .Values.nginx.manifests.deployment }}
+{{- $envAll := . }}
+
+{{- $saNamespace := $envAll.Release.Namespace }}
+{{- $serviceAccountName := printf "%s" .Release.Name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nms-nginx-proxy
+  labels:
+{{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
+spec:
+  replicas: {{ .Values.pod.replicas.nginx.server }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+{{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 8 }}
+    spec:
+      {{- if .Values.nginx.manifests.rbac }}
+      serviceAccountName: {{ $serviceAccountName }}
+      {{- end }}
+      {{- with .Values.nginx.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.nginx.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      nodeSelector:
+        {{ .Values.nginx.labels.node_selector_key }}: {{ .Values.nginx.labels.node_selector_value | quote }}
+      terminationGracePeriodSeconds: 60
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      restartPolicy: Always
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
+          imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
+{{ tuple $envAll $envAll.Values.pod.resources.nginx | include "kubernetes_resources" | indent 10 }}
+          ports:
+            - containerPort: 443
+          volumeMounts:
+            - name: nginx-proxy-etc
+              mountPath: /etc/nginx/conf.d/nginx_proxy_ssl.conf
+              subPath: nginx_proxy_ssl.conf
+            - name: orc8r-secrets-certs
+              mountPath: /etc/nginx/conf.d/nms_nginx.pem
+              subPath: nms_nginx.pem
+              readOnly: true
+            - name: orc8r-secrets-certs
+              mountPath: /etc/nginx/conf.d/nms_nginx.key.pem
+              subPath: nms_nginx.key.pem
+              readOnly: true
+      volumes:
+        - name: nginx-proxy-etc
+          configMap:
+            name: nginx-proxy-etc
+            defaultMode: 0555
+        - name: orc8r-secrets-certs
+          secret:
+            secretName: orc8r-secrets-certs
+            defaultMode: 0444
+{{- end }}

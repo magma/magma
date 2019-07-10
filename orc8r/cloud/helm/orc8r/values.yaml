@@ -5,6 +5,25 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+## Global values for NMS chart
+nms:
+  magmalte:
+    manifests:
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
+    image:
+      repository: <registry>/magmalte
+      tag: latest
+  nginx:
+    manifests:
+      configmap: false
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
+
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []

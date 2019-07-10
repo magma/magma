@@ -1,0 +1,106 @@
+{{/*
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+
+{{- if .Values.magmalte.manifests.deployment }}
+{{- $envAll := . }}
+
+{{- $saNamespace := $envAll.Release.Namespace }}
+{{- $serviceAccountName := printf "%s" .Release.Name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nms-magmalte
+  labels:
+{{ tuple $envAll "nms" "magmalte" | include "nms.labels" | indent 4 }}
+spec:
+  replicas: {{ .Values.pod.replicas.magmalte.server }}
+  selector:
+    matchLabels:
+{{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 6 }}
+  template:
+    metadata:
+      labels:
+{{ tuple $envAll "nms" "magmalte" | include "nms.selector-labels" | indent 8 }}
+    spec:
+      {{- if .Values.magmalte.manifests.rbac }}
+      serviceAccountName: {{ $serviceAccountName }}
+      {{- end }}
+      {{- with .Values.magmalte.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.magmalte.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      nodeSelector:
+        {{ .Values.magmalte.labels.node_selector_key }}: {{ .Values.magmalte.labels.node_selector_value | quote }}
+      terminationGracePeriodSeconds: 60
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.magmalte.image.repository }}:{{ .Values.magmalte.image.tag }}"
+          imagePullPolicy: {{ .Values.magmalte.image.pullPolicy }}
+{{ tuple $envAll $envAll.Values.pod.resources.magmalte | include "kubernetes_resources" | indent 10 }}
+          args:
+            - yarn
+            - run
+            - start:dev
+          env:
+            - name: API_CERT_FILENAME
+              value: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.pem
+            - name: API_PRIVATE_KEY_FILENAME
+              value: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.key.pem
+            - name: API_HOST
+              value: {{ .Values.magmalte.env.api_host | quote }}
+            - name: HOST
+              value: {{ .Values.magmalte.env.host | quote }}
+            - name: PORT
+              value: {{ .Values.magmalte.env.port | quote }}
+            - name: MAPBOX_ACCESS_TOKEN
+              value: {{ .Values.magmalte.env.mapbox_access_token | quote }}
+            - name: MYSQL_DB
+              value: {{ .Values.magmalte.env.mysql_db | quote }}
+            - name: MYSQL_HOST
+              value: {{ .Values.magmalte.env.mysql_host | quote }}
+            - name: MYSQL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: magmalte-mysql-secrets
+                  key: MYSQL_PASS
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: magmalte-mysql-secrets
+                  key: MYSQL_USER
+          livenessProbe:
+            exec:
+              command:
+              - curl 
+              - http://localhost:8081/user/login
+            initialDelaySeconds: 60
+          ports:
+            - containerPort: 8081
+          volumeMounts:
+            - name: orc8r-secrets-certs
+              mountPath: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.pem
+              subPath: admin_operator.pem
+            - name: orc8r-secrets-certs
+              mountPath: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.key.pem
+              subPath: admin_operator.key.pem
+      volumes:
+        - name: orc8r-secrets-certs
+          secret:
+            secretName: orc8r-secrets-certs
+            defaultMode: 0444
+{{- end }}
