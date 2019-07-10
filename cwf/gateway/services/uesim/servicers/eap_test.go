@@ -35,24 +35,24 @@ const (
 	Seq  = 32
 )
 
-func setupTest() (*servicers.UESimServer, error) {
+func setupTest() (*servicers.UESimServer, *cwfprotos.UEConfig, error) {
 	store := blobstore.NewMemoryBlobStorageFactory()
 
 	server, err := servicers.NewUESimServer(store)
 	if err != nil {
-		return server, err
+		return server, &cwfprotos.UEConfig{}, err
 	}
 
 	ue := &cwfprotos.UEConfig{Imsi: Imsi, AuthKey: []byte(Key), AuthOpc: []byte(Opc), Seq: Seq}
 	_, err = server.AddUE(context.Background(), ue)
-	return server, err
+	return server, ue, err
 }
 
 func TestEapIdentityRequest(t *testing.T) {
-	server, err := setupTest()
+	server, ue, err := setupTest()
 	assert.NoError(t, err)
 
-	res, err := server.HandleEap(Imsi, eap.Packet(EapIdentityRequestPacket))
+	res, err := server.HandleEap(ue, eap.Packet(EapIdentityRequestPacket))
 	assert.NoError(t, err)
 	assert.True(
 		t,
@@ -64,7 +64,7 @@ func TestEapIdentityRequest(t *testing.T) {
 }
 
 func TestInvalidEapPacket(t *testing.T) {
-	server, err := setupTest()
+	server, ue, err := setupTest()
 	assert.NoError(t, err)
 
 	// Make packet and set its length to zero.
@@ -72,25 +72,17 @@ func TestInvalidEapPacket(t *testing.T) {
 	badPacket[eap.EapMsgLenHigh] = 0
 	badPacket[eap.EapMsgLenLow] = 0
 
-	_, err = server.HandleEap(Imsi, badPacket)
+	_, err = server.HandleEap(ue, badPacket)
 	assert.EqualError(t, err, "Error validating EAP packet: Invalid Packet Length: header => 0, actual => 4")
 }
 
-func TestEapUserNotFound(t *testing.T) {
-	server, err := setupTest()
-	assert.NoError(t, err)
-
-	_, err = server.HandleEap("012345678901234", eap.Packet(EapIdentityRequestPacket))
-	assert.EqualError(t, err, "Error getting UE with specified IMSI: Not found")
-}
-
 func TestUnsupportedEapType(t *testing.T) {
-	server, err := setupTest()
+	server, ue, err := setupTest()
 	assert.NoError(t, err)
 
 	// Make packet and set its type to an unsupported type.
 	badTypePacket := eap.NewPacket(eap.RequestCode, 1, []byte{uint8(fegprotos.EapType_Reserved)})
 
-	_, err = server.HandleEap(Imsi, badTypePacket)
+	_, err = server.HandleEap(ue, badTypePacket)
 	assert.EqualError(t, err, "Unsupported Eap Type: 0")
 }

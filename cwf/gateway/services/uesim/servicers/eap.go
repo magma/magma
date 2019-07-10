@@ -12,9 +12,7 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/orc8r/cloud/go/storage"
 
-	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
 
@@ -24,39 +22,10 @@ const (
 )
 
 // HandleEAP routes the EAP request to the UE with the specified imsi.
-func (srv *UESimServer) HandleEap(imsi string, req eap.Packet) (res eap.Packet, err error) {
-	err = req.Validate()
+func (srv *UESimServer) HandleEap(ue *cwfprotos.UEConfig, req eap.Packet) (eap.Packet, error) {
+	err := req.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "Error validating EAP packet")
-	}
-
-	// Get the specified UE from the blobstore.
-	store, err := srv.store.StartTransaction()
-	if err != nil {
-		err = errors.Wrap(err, "Error while starting transaction")
-		return
-	}
-	defer func() {
-		switch err {
-		case nil:
-			if commitErr := store.Commit(); commitErr != nil {
-				err = errors.Wrap(err, "Error while committing transaction")
-			}
-		default:
-			if rollbackErr := store.Rollback(); rollbackErr != nil {
-				glog.Errorf("Error while rolling back transaction: %s", err)
-			}
-		}
-	}()
-
-	blob, err := store.Get(networkIDPlaceholder, storage.TypeAndKey{Type: blobTypePlaceholder, Key: imsi})
-	if err != nil {
-		err = errors.Wrap(err, "Error getting UE with specified IMSI")
-		return
-	}
-	ue, err := blobToUE(blob)
-	if err != nil {
-		return
 	}
 
 	switch fegprotos.EapType(req.Type()) {
