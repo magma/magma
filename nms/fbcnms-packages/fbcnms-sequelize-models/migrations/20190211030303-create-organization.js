@@ -33,6 +33,11 @@ module.exports = {
         defaultValue: '[]',
         type: types.JSON,
       },
+      tabs: {
+        allowNull: false,
+        defaultValue: '[]',
+        type: types.JSON,
+      },
       createdAt: {
         allowNull: false,
         type: types.DATE,
