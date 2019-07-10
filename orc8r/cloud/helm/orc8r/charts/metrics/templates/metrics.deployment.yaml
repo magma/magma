@@ -50,6 +50,18 @@ spec:
         - name: "prometheus-data"
 {{ toYaml .Values.metrics.volumes.prometheusData.volumeSpec | indent 10 }}
 
+  {{ if .Values.metrics.useMinikube }}
+      initContainers:
+        - name: volume-mount
+          image: busybox
+          command: ["sh", "-c", "chmod -R 777 /prometheusData /etc/configs"]
+          volumeMounts:
+          - name: prometheus-data
+            mountPath: /prometheusData
+          - name: prometheus-config
+            mountPath: /etc/configs
+  {{ end }}
+
       containers:
         - name: "prometheus"
           image: {{ required "metrics.prometheusImage.repository must be provided" .Values.metrics.prometheusImage.repository }}:{{ .Values.metrics.prometheusImage.tag }}

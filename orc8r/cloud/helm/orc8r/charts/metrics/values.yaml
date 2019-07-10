@@ -4,6 +4,10 @@ imagePullSecrets: []
 metrics:
   # Enable/Disable chart
   create: true
+
+  # Set to 1 if using a minikube setup
+  useMinikube:
+
   # Service configuration.
   service:
     annotations: {}
@@ -36,7 +40,7 @@ metrics:
     prometheusData:
       volumeSpec:
         hostPath:
-          path: /graphiteData
+          path: /prometheusData
           type: DirectoryOrCreate
     prometheusConfig:
       volumeSpec:
