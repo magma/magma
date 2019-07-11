@@ -15,8 +15,9 @@ import (
 
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/eap/methods"
-	aaa "fbc/cwf/radius/modules/eap/methods/akamagma/protos"
+	"fbc/cwf/radius/modules/eap/methods/common"
 	"fbc/cwf/radius/modules/eap/packet"
+	aaa "fbc/cwf/radius/modules/protos"
 	"fbc/cwf/radius/session"
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2865"
@@ -150,7 +151,7 @@ func (m EapAkaMagmaMethod) Handle(
 		MarshalProtocolState.Failure(err.Error())
 		newProtocolState = []byte("{}")
 	} else {
-		eapLogger.Debug("EAP state marshalled successfully", zap.Any("state", postHandlerContext))
+		eapLogger.Debug("EAP state marshaled successfully", zap.Any("state", postHandlerContext))
 		MarshalProtocolState.Success()
 	}
 
@@ -171,7 +172,7 @@ func (m EapAkaMagmaMethod) Handle(
 		result.ExtraAttributes = radius.Attributes{}
 
 		// Add MPPE keys
-		keyingMaterialAttrs, err := GetKeyingAttributes(
+		keyingMaterialAttrs, err := common.GetKeyingAttributes(
 			postHandlerContext.GetMsk(),
 			radiusSecret,
 			radiusReqAuthenticator,

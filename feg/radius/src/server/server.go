@@ -18,7 +18,6 @@ import (
 	"fbc/cwf/radius/session"
 	"fbc/lib/go/log"
 	"fmt"
-	"math/rand"
 	"sync/atomic"
 	"time"
 
@@ -185,7 +184,11 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 
 		// Initialize the listener
 		listener.SetHandleRequest(handler)
-		listener.Init(&server, config, lconfig)
+		err := listener.Init(&server, config, lconfig)
+		if err != nil {
+			return nil, err
+		}
+
 		logger.Debug("listener created", zap.String("listener", lconfig.Name))
 		server.listeners[lconfig.Name] = listener
 		counters.ListenerInit.Success()
@@ -320,93 +323,4 @@ func (s Server) getSessionStateAPI(sessionID string) session.Storage {
 func (s Server) getSessionState(sessionID string) (*session.State, error) {
 	sessionStg := s.getSessionStateAPI(sessionID)
 	return sessionStg.Get()
-}
-
-// generatePacketHandler A generic handler method to incoming RADIUS packets
-func generatePacketHandler(l Listener, server *Server) func(radius.ResponseWriter, *radius.Request) {
-	server.logger.Debug(
-		"Registering handler for listener",
-		zap.String("listener", l.GetConfig().Name),
-	)
-	return func(w radius.ResponseWriter, r *radius.Request) {
-		// Make sure no duplicate packet
-		dedupOperation := counters.DedupPacket.Start()
-		requestKey := fmt.Sprintf("%s_%d", r.RemoteAddr, r.Identifier)
-
-		if _, found := server.dedupSet.Get(requestKey); found {
-			server.logger.Warn(
-				"Duplicate packet was receieved and dropped",
-				zap.Stringer("source_ip", r.RemoteAddr),
-				zap.Int("identifier", int(r.Identifier)),
-			)
-			atomic.AddUint32(l.GetDupDropped(), 1)
-			dedupOperation.Failure("duplicate_packet_dropped")
-			return
-		}
-		server.dedupSet.Set(requestKey, "-", cache.DefaultExpiration)
-		dedupOperation.Success()
-
-		// Get session ID from the request, if exists, and setup correlation ID
-		var correlationField = zap.Uint32("correlation", rand.Uint32())
-		sessionID := getSessionID(r)
-
-		// Create request context
-		requestContext := modules.RequestContext{
-			RequestID:      correlationField.Integer,
-			Logger:         server.loggerFactory.Bg().With(correlationField),
-			SessionID:      sessionID,
-			SessionStorage: session.NewSessionStorage(server.multiSessionStorage, sessionID),
-		}
-
-		server.logger.Debug(
-			"Received RADIUS message on listener...",
-			zap.String("listener", l.GetConfig().Name),
-			correlationField,
-		)
-
-		// Execute filters
-		filterProcessCounter := counters.NewOperation("filter_process").Start()
-		for _, filter := range server.filters {
-			err := filter.Code.Process(&requestContext, l.GetConfig().Name, r)
-			if err != nil {
-				server.logger.Error("Failed to process reqeust by filter", zap.Error(err), correlationField)
-				filterProcessCounter.SetTag(counters.FilterTag, filter.Name).Failure("filter_failed")
-				return
-			}
-		}
-		filterProcessCounter.Success()
-
-		// Execute modules
-		listenerHandleCounter := counters.NewOperation("listener_handle").
-			SetTag(counters.ListenerTag, l.GetConfig().Name).
-			Start()
-		response, err := l.GetHandleRequest()(&requestContext, r)
-		if err != nil {
-			server.logger.Error("Failed to handle reqeust by listener", zap.Error(err), correlationField)
-			listenerHandleCounter.Failure("handle_failed")
-			return
-		}
-		listenerHandleCounter.Success()
-
-		if response == nil {
-			server.logger.Warn(
-				"Request failed to be handled, as no response returned",
-				correlationField,
-			)
-			return
-		}
-
-		// Build response
-		server.logger.Warn(
-			"Request successfully handled, as no response returned",
-			correlationField,
-		)
-		radiusResponse := r.Response(response.Code)
-		for key, values := range response.Attributes {
-			for _, value := range values {
-				radiusResponse.Add(key, value)
-			}
-		}
-		w.Write(radiusResponse)
-	}
 }

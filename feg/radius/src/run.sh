@@ -26,23 +26,11 @@ function lint {
 }
 
 function build {
-    gen_eap_client
-    gen_authorization_client
-    ${GO} build  .
+    ${GO} build .
 }
 
-function gen_eap_client {
-    AAA_PROTOS_DIR=../../gateway/services/aaa/protos
-    GRPC_GEN_OUTPUT_DIR=./modules/eap/methods/akamagma/protos
-    mkdir -p ${GRPC_GEN_OUTPUT_DIR}
-    protoc -I${AAA_PROTOS_DIR} --go_out=plugins=grpc,paths=source_relative:${GRPC_GEN_OUTPUT_DIR} ${AAA_PROTOS_DIR}/context.proto ${AAA_PROTOS_DIR}/eap.proto
-}
-
-function gen_authorization_client {
-    AAA_PROTOS_DIR=../../gateway/services/aaa/protos
-    GRPC_GEN_OUTPUT_DIR=./modules/coa/protos
-    mkdir -p ${GRPC_GEN_OUTPUT_DIR}
-    protoc -I${AAA_PROTOS_DIR} --go_out=plugins=grpc,paths=source_relative:${GRPC_GEN_OUTPUT_DIR} ${AAA_PROTOS_DIR}/context.proto ${AAA_PROTOS_DIR}/authorization.proto
+function gen {
+    ${GO} generate ./...
 }
 
 function clean {
@@ -52,6 +40,11 @@ function clean {
 function start {
     build
     ./radius
+}
+
+function pretty {
+    build
+    ./radius 2>&1 |  zap-pretty
 }
 
 function test {
@@ -80,26 +73,22 @@ clean*)
 start*)
 	start
 	;;
+pretty*)
+        pretty
+        ;;
 test*)
 	test
 	;;
 e2e*)
 	e2e
 	;;
-gen_eap_client*)
-    gen_eap_client
-    ;;
 lint*)
     lint
     ;;
-gen_authorization_client*)
-    gen_authorization_client
-    ;;
 gen*)
-    gen_eap_client
-    gen_authorization_client
+    gen
     ;;
 *)
-	echo "usage: ./run.sh {build | clean | start | test | e2e | lint | gen_eap_client | gen_authorization_client}"
+	echo "usage: ./run.sh {build | clean | start | test | e2e | lint | gen}"
 	;;
 esac

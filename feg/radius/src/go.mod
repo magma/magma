@@ -5,6 +5,7 @@ replace (
 	fbc/lib/go/libgraphql => ../lib/go/libgraphql
 	fbc/lib/go/log => ../lib/go/log
 	fbc/lib/go/oc => ../lib/go/oc
+	fbc/lib/go/oc/helpers => ../lib/go/oc/helpers
 	fbc/lib/go/radius => ../lib/go/radius
 )
 
@@ -25,4 +26,5 @@ require (
 	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
 	google.golang.org/grpc v1.21.1
 	gopkg.in/fsnotify.v1 v1.4.7 // indirect
+	layeh.com/radius v0.0.0-20190322222518-890bc1058917
 )

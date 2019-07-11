@@ -23,7 +23,7 @@ func TestLoadRadiusConfig(t *testing.T) {
 }
 
 func TestLoadLBConfig(t *testing.T) {
-	conf, err := Read("../lb.config.json")
+	conf, err := Read("./samples/lb.config.json")
 	require.Nil(t, err)
 	require.NotNil(t, conf)
 	require.NotNil(t, conf.Server)
