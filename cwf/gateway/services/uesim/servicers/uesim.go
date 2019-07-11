@@ -12,7 +12,9 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/storage"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -102,6 +104,35 @@ func blobToUE(blob blobstore.Blob) (*cwfprotos.UEConfig, error) {
 		return nil, err
 	}
 	return ue, nil
+}
+
+// getUE gets the UE with the specified IMSI from the blobstore.
+func getUE(blobStoreFactory blobstore.BlobStorageFactory, imsi string) (ue *cwfprotos.UEConfig, err error) {
+	store, err := blobStoreFactory.StartTransaction()
+	if err != nil {
+		err = errors.Wrap(err, "Error while starting transaction")
+		return
+	}
+	defer func() {
+		switch err {
+		case nil:
+			if commitErr := store.Commit(); commitErr != nil {
+				err = errors.Wrap(err, "Error while committing transaction")
+			}
+		default:
+			if rollbackErr := store.Rollback(); rollbackErr != nil {
+				glog.Errorf("Error while rolling back transaction: %s", err)
+			}
+		}
+	}()
+
+	blob, err := store.Get(networkIDPlaceholder, storage.TypeAndKey{Type: blobTypePlaceholder, Key: imsi})
+	if err != nil {
+		err = errors.Wrap(err, "Error getting UE with specified IMSI")
+		return
+	}
+	ue, err = blobToUE(blob)
+	return
 }
 
 // ConvertStorageErrorToGrpcStatus converts a UE error into a gRPC status error.
