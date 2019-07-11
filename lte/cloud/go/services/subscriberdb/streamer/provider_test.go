@@ -51,22 +51,22 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{Type: lte.SubscriberEntityType, Key: "12345", Config: &models.Subscriber{ID: models.SubscriberID("IMSI12345"), Lte: &models.LteSubscription{State: "ACTIVE"}}},
-		{Type: lte.SubscriberEntityType, Key: "67890", Config: &models.Subscriber{ID: models.SubscriberID("IMSI67890"), Lte: &models.LteSubscription{State: "INACTIVE"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI12345", Config: &models.Subscriber{ID: models.SubscriberID("IMSI12345"), Lte: &models.LteSubscription{State: "ACTIVE"}}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.Subscriber{ID: models.SubscriberID("IMSI67890"), Lte: &models.LteSubscription{State: "INACTIVE"}}},
 	})
 	assert.NoError(t, err)
 
 	pro := &sdbstreamer.SubscribersProvider{}
 	expectedProtos := []*protos.SubscriberData{
-		{Sid: &protos.SubscriberID{Id: "12345"}, Lte: &protos.LTESubscription{State: protos.LTESubscription_ACTIVE}, NetworkId: &orcprotos.NetworkID{Id: "n1"}},
-		{Sid: &protos.SubscriberID{Id: "67890"}, Lte: &protos.LTESubscription{State: protos.LTESubscription_INACTIVE}, NetworkId: &orcprotos.NetworkID{Id: "n1"}},
+		{Sid: &protos.SubscriberID{Id: "12345", Type: protos.SubscriberID_IMSI}, Lte: &protos.LTESubscription{State: protos.LTESubscription_ACTIVE}, NetworkId: &orcprotos.NetworkID{Id: "n1"}},
+		{Sid: &protos.SubscriberID{Id: "67890", Type: protos.SubscriberID_IMSI}, Lte: &protos.LTESubscription{State: protos.LTESubscription_INACTIVE}, NetworkId: &orcprotos.NetworkID{Id: "n1"}},
 	}
 	expected := funk.Map(
 		expectedProtos,
 		func(sub *protos.SubscriberData) *orcprotos.DataUpdate {
 			data, err := proto.Marshal(sub)
 			assert.NoError(t, err)
-			return &orcprotos.DataUpdate{Key: sub.Sid.Id, Value: data}
+			return &orcprotos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
 	actual, err := pro.GetUpdates("hw1", nil)

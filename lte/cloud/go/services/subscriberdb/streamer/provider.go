@@ -82,7 +82,7 @@ func subscribersToUpdates(subs []*protos2.SubscriberData) ([]*protos.DataUpdate,
 		if err != nil {
 			return nil, err
 		}
-		update := &protos.DataUpdate{Key: sub.Sid.Id, Value: marshaledProto}
+		update := &protos.DataUpdate{Key: protos2.SidString(sub.Sid), Value: marshaledProto}
 		ret = append(ret, update)
 	}
 	sort.Slice(ret, func(i, j int) bool { return ret[i].Key < ret[j].Key })
