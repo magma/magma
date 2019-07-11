@@ -9,6 +9,8 @@
 package main
 
 import (
+	"strings"
+
 	"magma/lte/cloud/go/tools/migrations/m003_configurator/plugin/types"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations/m003_configurator/migration"
@@ -57,6 +59,9 @@ func migrateSubscribersForNetwork(sc *squirrel.StmtCache, builder sqorc.Statemen
 			return errors.Wrapf(err, "failed to migrate subscriber (%s, %s)", networkID, sid)
 		}
 		pk, gid := uuid.New().String(), uuid.New().String()
+		if !strings.HasPrefix(sid, "IMSI") {
+			sid = "IMSI" + sid
+		}
 		subInsertBuilder = subInsertBuilder.Values(pk, networkID, "subscriber", sid, newSub, gid)
 
 		if oldSub.State != nil {
@@ -93,7 +98,13 @@ func migrateSubscribersForNetwork(sc *squirrel.StmtCache, builder sqorc.Statemen
 func migrateSubscriber(oldSub *types.SubscriberData) ([]byte, error) {
 	newSub := &types.Subscriber{}
 	migration.FillIn(oldSub, newSub)
-	newSub.ID = types.SubscriberID("IMSI" + oldSub.Sid.Id)
+
+	if strings.HasPrefix(oldSub.Sid.Id, "IMSI") {
+		newSub.ID = types.SubscriberID(oldSub.Sid.Id)
+	} else {
+		newSub.ID = types.SubscriberID("IMSI" + oldSub.Sid.Id)
+	}
+
 	if newSub.Lte != nil && oldSub.Lte != nil {
 		t, ok := types.LegacyLTESubscription_LTESubscriptionState_name[int32(oldSub.Lte.State)]
 		if ok {
