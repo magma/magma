@@ -13,6 +13,7 @@ ROOT_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && hg root)
 source "$ROOT_DIR/xplat/js/env-utils/setup_env_vars.sh"
 
 pushd "$ROOT_DIR/xplat/fbc" >/dev/null
+  # Setup
   "$INSTALL_NODE_MODULES"
 
   # manually install GRPC binaries
@@ -21,6 +22,17 @@ pushd "$ROOT_DIR/xplat/fbc" >/dev/null
   tar -xzf "$ROOT_DIR/xplat/third-party/grpc/v1.20.3/node-v57-linux-x64-glibc.tar.gz" -C node_modules/grpc/src/node/extension_binary/
   tar -xzf "$ROOT_DIR/xplat/third-party/grpc/v1.20.3/node-v64-linux-x64-glibc.tar.gz" -C node_modules/grpc/src/node/extension_binary/
 
+  # Run tests
   "$YARN_BINARY" run test "$@"
-popd >/dev/null
 
+  # Check relay
+  pushd fbcnms-projects/inventory > /dev/null
+    "$YARN_BINARY" relay "$@"
+    repo_status=$(hg status | wc -l)
+    if [ "$repo_status" -ne 0 ]; then
+      echo "'yarn relay' modified changes. Please run 'yarn relay' from xplat/fbc/fbcnms-projects/inventory" >&2
+      exit 1
+    fi
+  popd >/dev/null
+
+popd >/dev/null
