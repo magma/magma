@@ -4,8 +4,8 @@ Install NMS which includes nginx and magmalte subcomponents.
 
 ## Install charts
 
+```
 $ helm upgrade --install nms ./nms --namespace=magma
-
 ```
 
 ## Overview

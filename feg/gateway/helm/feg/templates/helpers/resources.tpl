@@ -7,7 +7,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 */}}
 
-{{- define "kubernetes_resources" -}}
+{{- define "nms.kubernetes_resources" -}}
 {{- $envAll := index . 0 -}}
 {{- $component := index . 1 -}}
 {{- if $envAll.Values.pod.resources.enabled -}}

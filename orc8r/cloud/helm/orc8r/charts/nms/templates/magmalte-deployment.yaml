@@ -51,7 +51,7 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.magmalte.image.repository }}:{{ .Values.magmalte.image.tag }}"
           imagePullPolicy: {{ .Values.magmalte.image.pullPolicy }}
-{{ tuple $envAll $envAll.Values.pod.resources.magmalte | include "kubernetes_resources" | indent 10 }}
+{{ tuple $envAll $envAll.Values.pod.resources.magmalte | include "nms.kubernetes_resources" | indent 10 }}
           args:
             - yarn
             - run

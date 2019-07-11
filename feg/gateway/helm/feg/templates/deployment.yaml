@@ -161,7 +161,7 @@ spec:
         - name: {{ $envAll.Chart.Name }}
           image: {{ $envAll.Values.image.repository | quote }}
           imagePullPolicy: {{ $envAll.Values.image.pullPolicy }}
-{{ tuple $envAll $envAll.Values.pod.resources.server | include "kubernetes_resources" | indent 10 }}
+{{ tuple $envAll $envAll.Values.pod.resources.server | include "nms.kubernetes_resources" | indent 10 }}
           tty: true
           stdin: true
           volumeMounts:

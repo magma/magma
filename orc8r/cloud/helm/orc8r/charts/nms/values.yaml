@@ -30,8 +30,8 @@ magmalte:
     mysql_pass: password
 
   labels:
-    node_selector_key: nodetype
-    node_selector_value: magma
+    node_selector_key: worker-type
+    node_selector_value: controller
 
   image:
     repository:
@@ -60,8 +60,8 @@ nginx:
     rbac: true
 
   labels:
-    node_selector_key: nodetype
-    node_selector_value: magma
+    node_selector_key: worker-type
+    node_selector_value: controller
 
   image:
     repository: nginx
@@ -74,6 +74,11 @@ nginx:
       port: 443
       targetport: 443
       nodePort: ""
+
+  deployment:
+    spec:
+      ssl_cert_name: nms_nginx.pem
+      ssl_cert_key_name: nms_nginx.key.pem
 
   tolerations: []
 

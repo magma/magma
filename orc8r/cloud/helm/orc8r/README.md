@@ -170,7 +170,7 @@ kubectl exec -it -n magma \
     $(kubectl get pod -n magma -l app.kubernetes.io/component=controller -o jsonpath="{.items[0].metadata.name}") -- \
     /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
-- Port forward traffic to orchestrator proxy:
+- Port forward traffic to orchestrator proxy (if running in Minikube):
 ```bash
 kubectl port-forward -n magma svc/orc8r-proxy 9443:9443
 
@@ -179,3 +179,19 @@ minikube service orc8r-proxy -n magma --https
 ```
 - Orchestrator proxy should be reachable via https://localhost:9443 and
 requires magma client certificate to be installed on browser.
+
+- Create an administrator for the NMS:
+
+```bash
+kubectl exec -it -n magma \
+  $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
+  yarn setAdminPassword <admin user email> <admin user password>
+  
+yarn run v1.16.0
+$ node -r '@fbcnms/babel-register' scripts/setPassword.js xjtian@fb.com magma
+Success
+Done in 1.82s.
+```
+
+- At this point, you should be able to log into the NMS as the admin user you
+just provisioned. The NMS will be reachable through the

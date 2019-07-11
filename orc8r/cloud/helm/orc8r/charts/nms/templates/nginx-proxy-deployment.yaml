@@ -54,7 +54,7 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
           imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
-{{ tuple $envAll $envAll.Values.pod.resources.nginx | include "kubernetes_resources" | indent 10 }}
+{{ tuple $envAll $envAll.Values.pod.resources.nginx | include "nms.kubernetes_resources" | indent 10 }}
           ports:
             - containerPort: 443
           volumeMounts:
@@ -63,11 +63,11 @@ spec:
               subPath: nginx_proxy_ssl.conf
             - name: orc8r-secrets-certs
               mountPath: /etc/nginx/conf.d/nms_nginx.pem
-              subPath: nms_nginx.pem
+              subPath: {{ .Values.nginx.deployment.spec.ssl_cert_name }}
               readOnly: true
             - name: orc8r-secrets-certs
               mountPath: /etc/nginx/conf.d/nms_nginx.key.pem
-              subPath: nms_nginx.key.pem
+              subPath: {{ .Values.nginx.deployment.spec.ssl_cert_key_name }}
               readOnly: true
       volumes:
         - name: nginx-proxy-etc
