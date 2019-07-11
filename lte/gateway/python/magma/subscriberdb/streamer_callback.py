@@ -13,7 +13,6 @@ from typing import Any
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
 from lte.protos.subscriberdb_pb2 import SubscriberData
-
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
 
@@ -64,6 +63,19 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
                 just streamed from the cloud
         :return: n/a
         """
+        # THIS IS A HACK UNTIL WE FIX THIS ON CLOUD
+        # We accept IMSIs with or without 'IMSI' prepended on cloud, but we
+        # always store IMSIs on local subscriberdb with IMSI prepended. If the
+        # cloud streams down subscriber IDs without 'IMSI' prepended,
+        # subscriberdb will try to delete all of the subscribers from MME every
+        # time it streams from cloud because the set membership will fail
+        # when comparing '12345' to 'IMSI12345'.
+        new_sub_ids = set(
+            map(
+                lambda s: 'IMSI' + s if not s.startswith('IMSI') else s,
+                new_sub_ids,
+            ),
+        )
         deleted_sub_ids = [sub_id for sub_id in old_sub_ids
                            if sub_id not in set(new_sub_ids)]
         if len(deleted_sub_ids) == 0:
