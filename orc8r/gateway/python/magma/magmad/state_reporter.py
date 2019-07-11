@@ -85,19 +85,23 @@ class StateReporter(SDWatchdogTask):
 
     async def _send_to_state_service(
             self,
-            request: ReportStatesRequest)-> None:
+            request: ReportStatesRequest) -> None:
         chan = ServiceRegistry.get_rpc_channel(
             'state',
             ServiceRegistry.CLOUD
         )
         state_client = StateServiceStub(chan)
         try:
-            await grpc_async_wrapper(
+            response = await grpc_async_wrapper(
                 state_client.ReportStates.future(
                     request,
                     self._service.mconfig.checkin_timeout,
                 ),
                 self._loop)
+            for idAndError in response.unreportedStates:
+                logging.error(
+                    "Failed to report state for (%s,%s): %s",
+                    idAndError.type, idAndError.deviceID, idAndError.error)
         except Exception as err:
             logging.error("Failed to make a ReportStates request: %s", err)
 
