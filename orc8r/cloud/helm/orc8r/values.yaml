@@ -135,6 +135,7 @@ controller:
   migration:
     new_handlers: 0
     new_mconfigs: 0
+    mconfig_whitelist: ""
 
   # Number of controller replicas desired
   replicas: 1
