@@ -11,15 +11,20 @@ package tests
 import (
 	"context"
 	"encoding/json"
+	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	"magma/orc8r/cloud/go/services/device"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+
 	"magma/orc8r/cloud/go/services/state"
 	test_service "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
@@ -47,15 +52,20 @@ func makeStateBundle(typeVal string, key string, value interface{}) stateBundle 
 }
 
 func TestStateService(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	// Set up test networkID, hwID, and encode into context
-	magmad_test_init.StartTestService(t)
-	networkID, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: "State Service Test"},
-		"state_service_test_network")
-	hwId := protos.AccessGatewayID{Id: testAgHwId}
-	magmad.RegisterGateway(
-		networkID,
-		&magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "Test GW Name"})
+	test_service.StartTestService(t)
+	err := serde.RegisterSerdes(
+		&Serde{},
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}))
+	assert.NoError(t, err)
+
+	networkID := "state_service_test_network"
+	configurator_test_utils.RegisterNetwork(t, networkID, "State Service Test")
+	gatewayID := testAgHwId
+	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: testAgHwId}})
 	ctx := test_utils.GetContextWithCertificate(t, testAgHwId)
 
 	// Create States, IDs, values
@@ -66,24 +76,20 @@ func TestStateService(t *testing.T) {
 	bundle1 := makeStateBundle(typeName, "key1", value1)
 	bundle2 := makeStateBundle(typeName, "key2", value2)
 
-	test_service.StartTestService(t)
-	err = serde.RegisterSerdes(&Serde{})
-	assert.NoError(t, err)
-
 	// Check contract for empty network
 	states, err := state.GetStates(networkID, []state.StateID{bundle0.ID})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(states))
 
 	// Report and read back
-	err = reportStates(ctx, bundle0, bundle1)
+	_, err = reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
 	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
 
 	// Report a state with fields the corresponding serde does not expect
-	err = reportStates(ctx, bundle2)
+	_, err = reportStates(ctx, bundle2)
 	assert.NoError(t, err)
 	states, err = state.GetStates(networkID, []state.StateID{bundle2.ID})
 	assert.NoError(t, err)
@@ -96,6 +102,18 @@ func TestStateService(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(states))
 	testGetStatesResponse(t, states, bundle1)
+
+	// Send a valid state and a state with no corresponding serde
+	unserializableBundle := makeStateBundle("nonexistent-serde", "key3", value0)
+	resp, err := reportStates(ctx, bundle0, unserializableBundle)
+	assert.NoError(t, err)
+	assert.Equal(t, "nonexistent-serde", resp.UnreportedStates[0].Type)
+	assert.Equal(t, "No Serde found for type nonexistent-serde", resp.UnreportedStates[0].Error)
+	// Valid state should still be reported
+	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID, bundle2.ID})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(states))
+	testGetStatesResponse(t, states, bundle0, bundle1)
 }
 
 type NameAndAge struct {
@@ -142,13 +160,13 @@ func getClient() (protos.StateServiceClient, error) {
 	return protos.NewStateServiceClient(conn), err
 }
 
-func reportStates(ctx context.Context, bundles ...stateBundle) error {
+func reportStates(ctx context.Context, bundles ...stateBundle) (*protos.ReportStatesResponse, error) {
 	client, err := getClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	_, err = client.ReportStates(ctx, makeReportStatesRequest(bundles))
-	return err
+	response, err := client.ReportStates(ctx, makeReportStatesRequest(bundles))
+	return response, err
 }
 
 func testGetStatesResponse(t *testing.T, states map[state.StateID]state.StateValue, bundles ...stateBundle) {

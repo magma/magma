@@ -24,11 +24,6 @@ func ValidateGetStatesRequest(req *protos.GetStatesRequest) error {
 	return nil
 }
 
-// ValidateReportStatesRequest checks that all required fields exist
-func ValidateReportStatesRequest(req *protos.ReportStatesRequest) error {
-	return validateStates(req)
-}
-
 // ValidateDeleteStatesRequest checks that all required fields exist
 func ValidateDeleteStatesRequest(req *protos.DeleteStatesRequest) error {
 	if err := checkNonEmptyInput(req.GetNetworkID(), req.GetIds()); err != nil {
@@ -37,18 +32,30 @@ func ValidateDeleteStatesRequest(req *protos.DeleteStatesRequest) error {
 	return nil
 }
 
-func validateStates(req *protos.ReportStatesRequest) error {
+// PartitionStatesBySerializability checks that each state is deserializable.
+// If a state is not deserializable, we will send back the states type, key, and error.
+func PartitionStatesBySerializability(req *protos.ReportStatesRequest) ([]*protos.State, []*protos.IDAndError, error) {
+	validatedStates := []*protos.State{}
+	invalidStates := []*protos.IDAndError{}
+
 	states := req.GetStates()
 	if states == nil || len(states) == 0 {
-		return errors.New("States value must be specified and non-empty")
+		return nil, nil, errors.New("States value must be specified and non-empty")
 	}
 	for _, state := range states {
 		_, err := serde.Deserialize(stateservice.SerdeDomain, state.GetType(), state.GetValue())
 		if err != nil {
-			return err
+			stateAndError := &protos.IDAndError{
+				Type:     state.Type,
+				DeviceID: state.DeviceID,
+				Error:    err.Error(),
+			}
+			invalidStates = append(invalidStates, stateAndError)
+		} else {
+			validatedStates = append(validatedStates, state)
 		}
 	}
-	return nil
+	return validatedStates, invalidStates, nil
 }
 
 func checkNonEmptyInput(networkID string, ids []*protos.StateID) error {
