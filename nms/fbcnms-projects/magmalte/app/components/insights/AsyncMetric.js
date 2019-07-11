@@ -98,7 +98,7 @@ export default function AsyncMetric(props: Props) {
 
   const {error, isLoading, response} = useAxios({
     method: 'get',
-    url: MagmaAPIUrls.graphiteQuery(match),
+    url: MagmaAPIUrls.prometheusQueryRange(match),
     params: {
       query: props.query,
       ...startEnd,
