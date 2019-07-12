@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 )
@@ -29,8 +30,9 @@ func TestHandlers(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
+	config_test_init.StartTestService(t)
+	magmad_test_init.StartTestService(t)
 	sdb_test_init.StartTestService(t)
 
 	restPort := tests.StartObsidian(t)
@@ -268,4 +270,13 @@ func TestHandlers(t *testing.T) {
 	}
 	tests.RunTest(t, listSubscribersTestCase)
 
+	deleteSubscriberTestCase = tests.Testcase{
+		Name:   "Delete Subscriber",
+		Method: "DELETE",
+		Url: fmt.Sprintf(
+			"%s/%s/subscribers/IMSI12333344444", testUrlRoot, networkId),
+		Payload:  "",
+		Expected: "",
+	}
+	tests.RunTest(t, deleteSubscriberTestCase)
 }

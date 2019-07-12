@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package handlers_test
 
@@ -20,7 +20,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 	"magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
@@ -28,13 +28,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Obsidian integration test for release channel migrated API endpoints backed by configurator
-func TestReleaseChannels(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+// Obsidian integration test for release channel legacy API endpoints
+func TestLegacyReleaseChannels(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
+	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, handlers.REST_ROOT)
 
@@ -133,14 +133,14 @@ func TestReleaseChannels(t *testing.T) {
 	assert.Equal(t, 500, status)
 }
 
-// Obsidian integration test for tiers migrated API endpoints backed by configurator
-func TestTiers(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+// Obsidian integration test for tier legacy API endpoints
+func TestLegacyTiers(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
+	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
-	configurator_test_init.StartTestService(t)
 	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
 
 	registerNetworkTestCase := tests.Testcase{
