@@ -32,7 +32,7 @@ func TestControllerBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]proto.Message{}, actual)
 
-	defaultNetCfg := config_protos.NewDefaultNetworkConfig()
+	defaultNetCfg := config_protos.NewDefaultProtosNetworkConfig()
 	err = config.CreateConfig("network", feg.FegNetworkType, "network", defaultNetCfg)
 	assert.NoError(t, err)
 
