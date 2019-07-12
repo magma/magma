@@ -54,7 +54,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 		},
 		Gy: &mconfig.GyConfig{
 			Server:     diamClientConfigToMconfig(gyc.Server),
-			InitMethod: mconfig.GyInitMethod(*gyc.InitMethod),
+			InitMethod: getGyInitMethod(gyc.InitMethod),
 		},
 		RequestFailureThreshold: healthc.RequestFailureThreshold,
 		MinimumRequestThreshold: healthc.MinimumRequestThreshold,
@@ -126,6 +126,13 @@ func getFegConfig(gatewayID string, network configurator.Network, graph configur
 	}
 	nwConfig := inwConfig.(*models.NetworkFederationConfigs)
 	return &models.GatewayFegConfigs{NetworkFederationConfigs: *nwConfig}, nil
+}
+
+func getGyInitMethod(initMethod *uint32) mconfig.GyInitMethod {
+	if initMethod == nil {
+		return mconfig.GyInitMethod_RESERVED
+	}
+	return mconfig.GyInitMethod(*initMethod)
 }
 
 func subProfileToMconfig(profile *models.SubscriptionProfile) *mconfig.HSSConfig_SubscriptionProfile {
