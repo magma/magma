@@ -103,10 +103,10 @@ var defaultConfig = Config{
 	},
 }
 
-func NewDefaultNetworkConfig() *Config {
+func NewDefaultProtosNetworkConfig() *Config {
 	return proto.Clone(&defaultConfig).(*Config)
 }
 
-func NewDefaultGatewayConfig() *Config {
+func NewDefaultProtosGatewayConfig() *Config {
 	return proto.Clone(&defaultConfig).(*Config)
 }
