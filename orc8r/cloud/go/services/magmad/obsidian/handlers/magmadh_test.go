@@ -23,7 +23,6 @@ import (
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -31,7 +30,6 @@ import (
 func TestMagmad(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
