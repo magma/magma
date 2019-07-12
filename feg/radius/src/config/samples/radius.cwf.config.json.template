@@ -10,15 +10,19 @@
             {
                 "name": "auth",
                 "port": $RADIUS_AUTH_PORT,
+                "type": "udp",
                 "modules": [
-                    {
-                        "name": "analytics",
-                        "config": {}
-                    },
                     {
                         "name": "eap",
                         "config": {
-                            "FegEndpoint": "$FEG_ENDPOINT"
+                            "methods": [
+                                {
+                                    "name": "akamagma",
+                                    "config": {
+                                        "FegEndpoint": "$FEG_ENDPOINT"
+                                    }
+                                }
+                            ]
                         }
                     }
                 ]
@@ -26,20 +30,36 @@
             {
                 "name": "acct",
                 "port": $RADIUS_ACCT_PORT,
+                "type": "udp",
                 "modules": [
                     {
-                        "name": "analytics",
+                        "name": "adaptruckus",
                         "config": {}
+                    },
+                    {
+                      "name": "coadynamic",
+                      "config": {
+                         "Port": "$RADIUS_COA_PORT"
+                      }
+                    },
+                    {
+                      "name": "magmaacct",
+                      "config": {
+                        "FegEndpoint": "$FEG_ENDPOINT"
+                      }
                     }
                 ]
             },
             {
-                "name": "coa",
-                "port": $RADIUS_COA_PORT,
+                "name": "coa_grpc",
+                "port": $RADIUS_COA_GRPC_PORT,
+                "type": "grpc",
                 "modules": [
                     {
-                        "name": "analytics",
-                        "config": {}
+                        "name": "coafixedip",
+                        "config": {
+                            "Target": "$COA_FIXED_ENDPOINT"
+                        }
                     }
                 ]
             }
