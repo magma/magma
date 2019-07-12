@@ -8,7 +8,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 # pylint: disable=protected-access
-from unittest import TestCase, mock
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.tr069 import models
@@ -16,11 +15,10 @@ from magma.enodebd.tests.test_utils.tr069_msg_builder import \
     Tr069MessageBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
-from magma.enodebd.tests.test_utils.mock_functions import \
-    mock_get_ip_from_if, GET_IP_FROM_IF_PATH
+from magma.enodebd.tests.test_utils.enodeb_handler import EnodebHandlerTestCase
 
 
-class BaicellsHandlerTests(TestCase):
+class BaicellsHandlerTests(EnodebHandlerTestCase):
     def test_initial_enb_bootup(self) -> None:
         """
         Baicells does not support configuration during initial bootup of
@@ -186,8 +184,7 @@ class BaicellsHandlerTests(TestCase):
                         'State machine should end TR-069 session after '
                         'receiving a RebootResponse')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_missing_param_during_provisioning(self, _mock_func) -> None:
+    def test_missing_param_during_provisioning(self) -> None:
         """
         Test the scenario where:
         - enodebd is configuring the eNodeB
@@ -248,8 +245,7 @@ class BaicellsHandlerTests(TestCase):
         self.assertTrue(isinstance(resp, models.DummyInput),
                         'State machine should be ending session')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_provision_multi_without_invasive_changes(self, _mock_func) -> None:
+    def test_provision_multi_without_invasive_changes(self) -> None:
         """
         Test the scenario where:
         - eNodeB has already been powered for 10 minutes without configuration
@@ -329,8 +325,7 @@ class BaicellsHandlerTests(TestCase):
                         'while old enodebd config does not '
                         'enable transmit. Use eNB config.')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_provision_without_invasive_changes(self, _mock_func) -> None:
+    def test_provision_without_invasive_changes(self) -> None:
         """
         Test the scenario where:
         - eNodeB has already been powered for 10 minutes without configuration
@@ -430,8 +425,7 @@ class BaicellsHandlerTests(TestCase):
         self.assertTrue(isinstance(resp, models.GetParameterValues),
                         'State machine should be requesting param values')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_reboot_after_invasive_changes(self, _mock_func) -> None:
+    def test_reboot_after_invasive_changes(self) -> None:
         """
         Test the scenario where:
         - eNodeB has already been powered for 10 minutes without configuration
@@ -558,8 +552,7 @@ class BaicellsHandlerTests(TestCase):
         self.assertTrue(len(resp.ParameterNames.string) > 1,
                         'Should be requesting transient params.')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_missing_mme_timeout_handler(self, _mock_func) -> None:
+    def test_missing_mme_timeout_handler(self) -> None:
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
             .build_acs_state_machine(EnodebDeviceName.BAICELLS)
@@ -584,8 +577,7 @@ class BaicellsHandlerTests(TestCase):
                                                     ['2 PERIODIC'])
         acs_state_machine.handle_tr069_message(inform_msg)
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_fault_after_set_parameters(self, _mock_func) -> None:
+    def test_fault_after_set_parameters(self) -> None:
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
                 .build_acs_state_machine(EnodebDeviceName.BAICELLS)

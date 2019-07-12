@@ -128,7 +128,7 @@ def _get_enb_yang_config(
         enb_serial = \
             device_config.get_parameter(ParameterName.SERIAL_NUMBER)
         config = json.loads(
-            load_service_mconfig_as_json('yang').get('value', ''))
+            load_service_mconfig_as_json('yang').get('value', '{}'))
         enb.extend(filter(lambda entry: entry['serial'] == enb_serial,
                           config.get('cellular', {}).get('enodeb', [])))
     except (ValueError, KeyError, LoadConfigError):
