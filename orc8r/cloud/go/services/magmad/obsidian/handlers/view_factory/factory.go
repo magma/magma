@@ -95,22 +95,27 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayID
 		}
 	}
 
-	// load all associated config entities
-	allAssociations := getAllAssociations(loadedGateways)
+	// load all associated configEntity entities
+	allAssociations := getAllAssociatedConfigEntities(loadedGateways)
 	loadedConfigs, _, err := configurator.LoadEntities(networkID, nil, nil, nil, allAssociations, configurator.EntityLoadCriteria{LoadConfig: true})
 	if err != nil {
 		return nil, err
 	}
-	for _, config := range loadedConfigs {
-		ret[config.Key].Config[config.Type] = config.Config
+	for _, configEntity := range loadedConfigs {
+		ret[configEntity.Key].Config[configEntity.Type] = configEntity.Config
 	}
 	return ret, nil
 }
 
-func getAllAssociations(gateways []configurator.NetworkEntity) []storage.TypeAndKey {
+// Relies on config entities sharing its key with the parent gateway entity
+func getAllAssociatedConfigEntities(queriedGateways []configurator.NetworkEntity) []storage.TypeAndKey {
 	ret := []storage.TypeAndKey{}
-	for _, gateway := range gateways {
-		ret = append(ret, gateway.Associations...)
+	for _, gatewayEnt := range queriedGateways {
+		for _, associatedEnt := range gatewayEnt.Associations {
+			if associatedEnt.Key == gatewayEnt.Key {
+				ret = append(ret, associatedEnt)
+			}
+		}
 	}
 	return ret
 }
