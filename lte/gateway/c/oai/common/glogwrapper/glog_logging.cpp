@@ -85,13 +85,15 @@ void init_logging(const char *app_name, uint32_t default_verbosity) {
   // remove old glog files and leave only 10 most recent
   auto dir_files = read_directory(log_dir);
   std::vector <std::string> glog_files;
-  std::regex match_mme_log(".*MM.*log.INFO.*");
+  std::regex match_mme_log(".*MME.*log.INFO.*");
   for( const auto& filename : dir_files ) {
     if( regex_search(filename, match_mme_log) )
       glog_files.push_back(filename);
   }
 
   sort( glog_files.begin(), glog_files.end() );
+  if (glog_files.size() <= 10)
+    return;
   for( int i=0; i < glog_files.size() - 10; ++i ) {
     std::remove(glog_files[i].c_str());
   }
