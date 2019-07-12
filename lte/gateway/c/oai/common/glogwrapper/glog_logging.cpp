@@ -27,11 +27,35 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 
+#include <string>
+#include <vector>
+#include <regex>
+#include <algorithm>
+#include <fstream>
+#include <cstdio>
 #include <stdlib.h>
 #include <unistd.h>
 #include "glog_logging.h"
 #include <glog/logging.h>
 #include <glog/stl_logging.h>
+
+#include <sys/types.h>
+#include <dirent.h>
+
+std::vector <std::string> read_directory(const std::string& dir_path) {
+    const std::string absolute_dir_path = realpath(dir_path.c_str(), nullptr);
+
+    std::vector <std::string> res;
+    DIR *dir;
+    struct dirent *ent;
+    dir = opendir(absolute_dir_path.c_str());
+    while ((ent = readdir (dir)) != nullptr) {
+        res.emplace_back(absolute_dir_path + "/" + ent->d_name);
+    }
+    closedir (dir);
+
+    return res;
+}
 
 
 void init_logging(const char *log_dir,
@@ -47,11 +71,30 @@ void init_logging(const char *log_dir,
 }
 
 void init_logging(const char *app_name, uint32_t default_verbosity) {
-  init_logging("/var/log", app_name, default_verbosity);
+  auto log_dir = "/var/log/";
+  init_logging(log_dir, app_name, default_verbosity);
 
   // symlink glog output to /var/log/mme.log
-  char *glog_log_path = realpath("/var/log/MME.INFO", NULL);
-  symlink(glog_log_path, "/var/log/mme.log");
+  auto mme_log_path = "/var/log/mme.log";
+  auto glog_log_path = "/var/log/MME.INFO";
+
+  std::remove(mme_log_path);
+  symlink(glog_log_path, mme_log_path);
+
+
+  // remove old glog files and leave only 10 most recent
+  auto dir_files = read_directory(log_dir);
+  std::vector <std::string> glog_files;
+  std::regex match_mme_log(".*MM.*log.INFO.*");
+  for( const auto& filename : dir_files ) {
+    if( regex_search(filename, match_mme_log) )
+      glog_files.push_back(filename);
+  }
+
+  sort( glog_files.begin(), glog_files.end() );
+  for( int i=0; i < glog_files.size() - 10; ++i ) {
+    std::remove(glog_files[i].c_str());
+  }
 }
 
 
