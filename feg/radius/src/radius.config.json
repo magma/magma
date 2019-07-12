@@ -13,10 +13,6 @@
                 "type": "udp",
                 "modules": [
                     {
-                        "name": "analytics",
-                        "config": {}
-                    },
-                    {
                         "name": "eap",
                         "config": {
                             "methods": [
@@ -37,29 +33,20 @@
                 "type": "udp",
                 "modules": [
                     {
-                        "name": "analytics",
+                        "name": "adaptruckus",
                         "config": {}
                     },
                     {
-                      "name": "addmsisdn",
-                      "config": {}
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": "3799"
+                        }
                     },
                     {
-                      "name": "proxy",
+                      "name": "magmaacct",
                       "config": {
-                        "Target": "127.0.0.1:2813"
+                        "FegEndpoint": "127.0.0.1:9109"
                       }
-                    }
-                ]
-            },
-            {
-                "name": "coa",
-                "port": 3799,
-                "type": "udp",
-                "modules": [
-                    {
-                        "name": "analytics",
-                        "config": {}
                     }
                 ]
             },
@@ -68,10 +55,6 @@
                 "port": 3798,
                 "type": "grpc",
                 "modules": [
-                    {
-                        "name": "analytics",
-                        "config": {}
-                    },
                     {
                         "name": "coafixedip",
                         "config": {
