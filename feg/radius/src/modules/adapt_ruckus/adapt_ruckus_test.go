@@ -28,14 +28,14 @@ func TestVerifyConversion(t *testing.T) {
 		Attributes: radius.Attributes{},
 	}
 	acctCtrs := []ruckus.RuckusTCAcctCtrs{
-		ruckus.RuckusTCAcctCtrs{
+		{
 			RuckusAcctCtrsTCName:        "xwf",
 			RuckusAcctCtrsInputOctets:   100,
 			RuckusAcctCtrsOutputOctets:  100,
 			RuckusAcctCtrsInputPackets:  100,
 			RuckusAcctCtrsOutputPackets: 100,
 		},
-		ruckus.RuckusTCAcctCtrs{
+		{
 			RuckusAcctCtrsTCName:        "internet",
 			RuckusAcctCtrsInputOctets:   1234,
 			RuckusAcctCtrsOutputOctets:  4321,
