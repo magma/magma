@@ -49,9 +49,8 @@ services:
       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
       SQL_DIALECT: psql
 
-      # If you're testing the data migration, uncomment these lines:
-      # USE_NEW_HANDLERS: '1'
-      # USE_NEW_MCONFIGS: '1'
+      USE_NEW_HANDLERS: '1'
+      USE_NEW_MCONFIGS: '1'
 
       # To use MariaDB, use these connection parameters instead:
       # SQL_DRIVER: mysql
