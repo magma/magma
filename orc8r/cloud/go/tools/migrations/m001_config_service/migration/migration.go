@@ -47,31 +47,26 @@ const DnsdGatewayType = "dnsd_gateway" // Technically this is unused
 const MagmadGatewayType = "magmad_gateway"
 const MagmadNetworkType = "magmad_network"
 const MeshType = "mesh"
-const TerragraphNetworkType = "terragraph_network"
-const TerragraphGatewayType = "terragraph_gateway"
 const WifiNetworkType = "wifi_network"
 const WifiGatewayType = "wifi_gateway"
 
 const CellularConfigKey = "cellular"
 const DnsConfigKey = "dns"
 const MagmadConfigKey = "magmad"
-const TerragraphConfigKey = "terragraph"
 const WifiConfigKey = "wifi"
 
 var newNetworkTypesByOldKey = map[string]string{
-	CellularConfigKey:   CellularNetworkType,
-	DnsConfigKey:        DnsdNetworkType,
-	MagmadConfigKey:     MagmadNetworkType,
-	TerragraphConfigKey: TerragraphNetworkType,
-	WifiConfigKey:       WifiNetworkType,
+	CellularConfigKey: CellularNetworkType,
+	DnsConfigKey:      DnsdNetworkType,
+	MagmadConfigKey:   MagmadNetworkType,
+	WifiConfigKey:     WifiNetworkType,
 }
 
 var newGatewayTypesByOldKey = map[string]string{
-	CellularConfigKey:   CellularGatewayType,
-	DnsConfigKey:        DnsdGatewayType,
-	MagmadConfigKey:     MagmadGatewayType,
-	TerragraphConfigKey: TerragraphGatewayType,
-	WifiConfigKey:       WifiGatewayType,
+	CellularConfigKey: CellularGatewayType,
+	DnsConfigKey:      DnsdGatewayType,
+	MagmadConfigKey:   MagmadGatewayType,
+	WifiConfigKey:     WifiGatewayType,
 }
 
 // Entry point for the migration. Everything runs in 1 serializable postgres
