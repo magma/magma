@@ -145,4 +145,34 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	marshaledActual, err := json.Marshal(actual)
 	assert.NoError(t, err)
 	assert.Equal(t, marshaledExpected, marshaledActual)
+
+	// add an unrelated entity to gw1 and make sure only the config entities are loaded
+	nonConfigEntity, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
+		Key:    "random_entity",
+		Type:   storagetu.NewConfig1Manager().GetType(),
+		Config: cfg1,
+	})
+	assert.NoError(t, err)
+
+	// add association from gw1 -> nonConfigEntity
+	updateGW1.AssociationsToAdd = []storage.TypeAndKey{{Type: nonConfigEntity.Type, Key: nonConfigEntity.Key}}
+	updateGW1.AssociationsToSet = nil
+	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateGW1})
+	assert.NoError(t, err)
+
+	actual, err = fact.GetGatewayViewsForNetwork(networkID)
+	assert.NoError(t, err)
+	// Wipe out timestamps from status so we can compare the structs
+	for _, state := range actual {
+		if state.Status != nil {
+			state.Status.CertExpirationTime = 0
+			state.Status.CheckinTime = 0
+		}
+	}
+	// result should be the same as before, ignoring the non config ents
+	marshaledExpected, err = json.Marshal(expected)
+	assert.NoError(t, err)
+	marshaledActual, err = json.Marshal(actual)
+	assert.NoError(t, err)
+	assert.Equal(t, marshaledExpected, marshaledActual)
 }
