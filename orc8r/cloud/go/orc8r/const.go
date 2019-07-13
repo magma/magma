@@ -17,7 +17,8 @@ const (
 	AccessGatewayRecordType = "access_gateway_record"
 	GatewayStateType        = "gw_state"
 
-	UpgradeTierEntityType = "upgrade_tier"
+	UpgradeTierEntityType           = "upgrade_tier"
+	UpgradeReleaseChannelEntityType = "upgrade_release_channel"
 
 	DnsdNetworkType = "dnsd_network"
 

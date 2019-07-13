@@ -43,7 +43,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
-	"magma/orc8r/cloud/go/services/upgrade"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
 	upgrademodels "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 )
@@ -76,7 +75,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &magmadmodels.NetworkFeatures{}),
 
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &magmadmodels.MagmadGatewayConfig{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),
 		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &upgrademodels.Tier{}),
 
 		// Legacy config manager serdes

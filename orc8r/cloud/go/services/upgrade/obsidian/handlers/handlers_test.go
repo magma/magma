@@ -21,7 +21,6 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	"magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
 
@@ -32,7 +31,7 @@ import (
 func TestReleaseChannels(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
+	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
 	upgrade_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)

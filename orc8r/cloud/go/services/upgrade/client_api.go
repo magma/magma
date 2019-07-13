@@ -20,8 +20,6 @@ import (
 
 const (
 	ServiceName = "UPGRADE"
-	// type used in configurator to identify network entities that are related to release channels
-	UpgradeReleaseChannelEntityType = "upgrade_release_channel"
 )
 
 func getUpgradeServiceClient() (upgrade_protos.UpgradeServiceClient, error) {
