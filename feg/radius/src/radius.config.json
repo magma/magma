@@ -13,14 +13,6 @@
                 "type": "udp",
                 "modules": [
                     {
-                      "name": "analytics",
-                      "config": {
-                        "AccessToken": "<Get it from `bunnylol ixpp robi-bd`>",
-                        "GraphQLURL": "https://graph-controller-staging.magma.etagecom.io/graphql",
-                        "DryRunGraphQL": false
-                      }
-                    },
-                    {
                         "name": "eap",
                         "config": {
                             "methods": [
