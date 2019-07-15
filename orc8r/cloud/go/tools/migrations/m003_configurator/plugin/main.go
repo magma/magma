@@ -19,16 +19,16 @@ import (
 
 func main() {}
 
-type plugin struct{}
+type orcPlugin struct{}
 
-func (*plugin) GetConfigMigrators() []migration.ConfigMigrator {
+func (*orcPlugin) GetConfigMigrators() []migration.ConfigMigrator {
 	return []migration.ConfigMigrator{
 		&networkDnsMigrator{},
 		&magmadGatewayMigrator{},
 	}
 }
 
-func (*plugin) RunCustomMigrations(
+func (*orcPlugin) RunCustomMigrations(
 	sc *squirrel.StmtCache,
 	builder sqorc.StatementBuilder,
 	migratedGatewayMetasByNetwork map[string]map[string]migration.MigratedGatewayMeta,
@@ -43,7 +43,7 @@ func (*plugin) RunCustomMigrations(
 }
 
 func GetPlugin() migration.ConfiguratorMigrationPlugin {
-	return &plugin{}
+	return &orcPlugin{}
 }
 
 // migrators
