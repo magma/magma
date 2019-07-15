@@ -58,7 +58,7 @@ paths:
       parameters:
       - $ref: './swagger-common.yml#/parameters/network_id'
       responses:
-        '201':
+        '200':
           description: Network Configs
           schema:
             $ref: '#/definitions/network_record'
@@ -77,7 +77,7 @@ paths:
         schema:
           $ref: '#/definitions/network_record'
       responses:
-        '200':
+        '204':
           description: Success
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
