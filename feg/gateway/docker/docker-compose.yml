@@ -144,10 +144,10 @@ services:
       - RADIUS_AUTH_PORT=1812
       - RADIUS_ACCT_PORT=1813
       - RADIUS_COA_PORT=3799
-      - RADIUS_COA_GRPC_PORT=3798
+      - RADIUS_COA_GRPC_PORT=9108
       - RADIUS_SECRET=123456
       - COA_FIXED_ENDPOINT=127.0.0.1:4799
-      - FEG_ENDPOINT=aaa_server:9109
+      - AAA_ENDPOINT=aaa_server:9109
     restart: always
 
 networks:

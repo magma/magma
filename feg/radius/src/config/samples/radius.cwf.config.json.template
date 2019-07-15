@@ -13,13 +13,21 @@
                 "type": "udp",
                 "modules": [
                     {
+                      "name": "analytics",
+                      "config": {
+                        "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",
+                        "GraphQLURL": "$ANALYTICS_GRAPHQL_ENDPOINT",
+                        "DryRunGraphQL": false
+                      }
+                    },
+                    {
                         "name": "eap",
                         "config": {
                             "methods": [
                                 {
                                     "name": "akamagma",
                                     "config": {
-                                        "FegEndpoint": "$FEG_ENDPOINT"
+                                        "FegEndpoint": "$AAA_ENDPOINT"
                                     }
                                 }
                             ]
@@ -37,15 +45,15 @@
                         "config": {}
                     },
                     {
-                      "name": "coadynamic",
-                      "config": {
-                         "Port": "$RADIUS_COA_PORT"
-                      }
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": "3799"
+                        }
                     },
                     {
                       "name": "magmaacct",
                       "config": {
-                        "FegEndpoint": "$FEG_ENDPOINT"
+                        "FegEndpoint": "$AAA_ENDPOINT"
                       }
                     }
                 ]
@@ -56,9 +64,9 @@
                 "type": "grpc",
                 "modules": [
                     {
-                        "name": "coafixedip",
+                        "name": "coadynamic",
                         "config": {
-                            "Target": "$COA_FIXED_ENDPOINT"
+                            "Port": "3799"
                         }
                     }
                 ]

@@ -34,10 +34,10 @@ import (
 
 // Config configuration structure for the EAP module
 type Config struct {
-	AccessToken string  // Access Token to use in GraphQL calls
-	GraphQLURL string   // the GraphQL endpoint to issue calls to
-	DryRunGraphQL bool  // true means all GraphQL operations will be skipped & assumed successful.
-	AllowPII bool       // If true, PII will not be tokenized before sending to GraphQL
+	AccessToken   string // Access Token to use in GraphQL calls
+	GraphQLURL    string // the GraphQL endpoint to issue calls to
+	DryRunGraphQL bool   // true means all GraphQL operations will be skipped & assumed successful.
+	AllowPII      bool   // If true, PII will not be tokenized before sending to GraphQL
 }
 
 var (
@@ -115,7 +115,7 @@ func createRadiusSession(logger *zap.Logger, c *modules.RequestContext, session 
 				zap.Error(err))
 			return
 		}
-		c.Logger.Warn("session created", zap.Uint64("fbid", sessionState.RadiusSessionFBID))
+		logger.Warn("session created", zap.Uint64("fbid", sessionState.RadiusSessionFBID))
 		sessionState.RadiusSessionFBID = createOp.Response().FBID
 	}
 
@@ -157,9 +157,9 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 	switch r.Code {
 	case radius.CodeAccessRequest:
 		// Get session state
-		sessionState, err := getSessionState(logger, c)
+		sessionState, err := getSessionState(c.Logger, c)
 		if err != nil {
-			logger.Error("failed to get session state", zap.Any("radius_request", r), zap.Error(err))
+			c.Logger.Error("failed to get session state", zap.Any("radius_request", r), zap.Error(err))
 			break
 		}
 
@@ -173,7 +173,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			// remove trailing ":<AP name>", format is "AB-CD-EF-GH-IJ-KL", I.E.: MAC address, in capitals
 			normalizedMacAddress = strings.ToUpper(normalizedMacAddress[:calledStationIDSeparator])
 		}
-		logger.Info("processing auth packet", zap.String("framed_ip_addr", framedIPAddr),
+		c.Logger.Info("processing auth packet", zap.String("framed_ip_addr", framedIPAddr),
 			zap.String("nas_ip_addr", nasIDAddr))
 		session := RadiusSession{
 			NASIPAddress:         nasIDAddr,
@@ -194,7 +194,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 
 		asyncQL.Add(1)
 		go func() {
-			createRadiusSession(logger, c, &session, sessionState)
+			createRadiusSession(c.Logger, c, &session, sessionState)
 			asyncQL.Done()
 		}()
 
@@ -207,7 +207,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 		case rfc2866.AcctStatusType_Value_InterimUpdate:
 			sessionState, err := c.SessionStorage.Get()
 			if err != nil {
-				logger.Error("failed to get session state", zap.Any("radius_request", r), zap.Error(err))
+				c.Logger.Error("failed to get session state", zap.Any("radius_request", r), zap.Error(err))
 				break
 			}
 
@@ -222,7 +222,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			if outputWrapped != 0 {
 				outputBytes |= int64(outputWrapped) << 32
 			}
-			logger.Debug(
+			c.Logger.Debug(
 				"processing accounting packet",
 				zap.Int64("input_bytes", inputBytes),
 				zap.Int64("output_bytes", outputBytes),
@@ -245,7 +245,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			// Send the request!
 			asyncQL.Add(1)
 			go func() {
-				updateRadiusSession(logger, c, &session, sessionState)
+				updateRadiusSession(c.Logger, c, &session, sessionState)
 				asyncQL.Done()
 			}()
 		case rfc2866.AcctStatusType_Value_AccountingOn:
@@ -254,7 +254,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			fallthrough
 		case rfc2866.AcctStatusType_Value_Failed:
 			acctStatusType := rfc2866.AcctStatusType_Get(pkt)
-			logger.Info(
+			c.Logger.Info(
 				"ignoring accounting packet",
 				zap.String("acct_status_type", acctStatusType.String()),
 			)

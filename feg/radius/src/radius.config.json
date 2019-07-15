@@ -15,7 +15,7 @@
                     {
                       "name": "analytics",
                       "config": {
-                        "AccessToken": "<Get it from `bunnylol ixpp robi-bd`>",
+                        "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",
                         "GraphQLURL": "https://graph-controller-staging.magma.etagecom.io/graphql",
                         "DryRunGraphQL": false
                       }
@@ -60,13 +60,13 @@
             },
             {
                 "name": "coa_grpc",
-                "port": 3798,
+                "port": 9108,
                 "type": "grpc",
                 "modules": [
                     {
-                        "name": "coafixedip",
+                        "name": "coadynamic",
                         "config": {
-                            "Target": "127.0.0.1:4799"
+                            "Port": "3799"
                         }
                     }
                 ]
