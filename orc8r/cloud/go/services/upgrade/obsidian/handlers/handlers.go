@@ -16,7 +16,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
 	"github.com/labstack/echo"
@@ -53,7 +52,7 @@ func noChannelIdError() error {
 }
 
 func listReleaseChannel(c echo.Context) error {
-	channelNames, err := configurator.ListInternalEntityKeys(upgrade_client.UpgradeReleaseChannelEntityType)
+	channelNames, err := configurator.ListInternalEntityKeys(orc8r.UpgradeReleaseChannelEntityType)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -72,7 +71,7 @@ func createReleaseChannel(c echo.Context) error {
 	}
 
 	entity := configurator.NetworkEntity{
-		Type:   upgrade_client.UpgradeReleaseChannelEntityType,
+		Type:   orc8r.UpgradeReleaseChannelEntityType,
 		Key:    channel.Name,
 		Name:   channel.Name,
 		Config: channel,
@@ -104,7 +103,7 @@ func updateReleaseChannel(c echo.Context) error {
 
 	update := configurator.EntityUpdateCriteria{
 		Key:       channel.Name,
-		Type:      upgrade_client.UpgradeReleaseChannelEntityType,
+		Type:      orc8r.UpgradeReleaseChannelEntityType,
 		NewConfig: channel,
 	}
 	_, err := configurator.UpdateInternalEntity(update)
@@ -120,12 +119,12 @@ func deleteReleaseChannel(c echo.Context) error {
 		return noChannelIdError()
 	}
 	// the API requires that an error is returned when the channel does not exist
-	exists, err := configurator.DoesInternalEntityExist(upgrade_client.UpgradeReleaseChannelEntityType, channelID)
+	exists, err := configurator.DoesInternalEntityExist(orc8r.UpgradeReleaseChannelEntityType, channelID)
 	if err != nil || !exists {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = configurator.DeleteInternalEntity(upgrade_client.UpgradeReleaseChannelEntityType, channelID)
+	err = configurator.DeleteInternalEntity(orc8r.UpgradeReleaseChannelEntityType, channelID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -139,7 +138,7 @@ func getReleaseChannel(c echo.Context) error {
 		return noChannelIdError()
 	}
 
-	ent, err := configurator.LoadInternalEntity(upgrade_client.UpgradeReleaseChannelEntityType, channelID, configurator.EntityLoadCriteria{LoadConfig: true, LoadMetadata: true})
+	ent, err := configurator.LoadInternalEntity(orc8r.UpgradeReleaseChannelEntityType, channelID, configurator.EntityLoadCriteria{LoadConfig: true, LoadMetadata: true})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusNotFound)
 	}
