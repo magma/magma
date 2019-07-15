@@ -51,9 +51,6 @@ const useStyles = makeStyles(theme => ({
     alignItems: 'center',
     width: '100%',
     justifyContent: 'center',
-    position: 'absolute',
-    left: 0,
-    top: 'calc(50% - 10px)',
     flexGrow: 1,
   },
   visibleExpandButton: {
