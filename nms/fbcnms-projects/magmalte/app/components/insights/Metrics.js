@@ -147,7 +147,7 @@ function Metrics() {
   const onGatewayChanged = useCallback(
     event => {
       const gatewayId = event.target.value;
-      history.push(`/${match.params.networkId}/metrics/${gatewayId}`);
+      history.push(`/nms/${match.params.networkId}/metrics/${gatewayId}`);
     },
     [match],
   );
