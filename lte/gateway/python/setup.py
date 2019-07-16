@@ -73,9 +73,11 @@ setup(
         'envoy>=0.0.3',
         # lxml required by spyne.
         'lxml==4.2.1',
-        'ryu==4.13',
+        'ryu>=4.30',
         'spyne==2.12.16',
-        'scapy==2.4.2',
+        # scapy version 2.4.2 has an issue of not having LICENSE file in pypi
+        # version resulting in error (this is a temporary fix)
+        'scapy==2.4.3rc3',
         'flask>=1.0.2',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
@@ -89,7 +91,6 @@ setup(
             # update it in lte/gateway/python/Makefile
             'grpcio-tools==1.16.1',
             'nose==1.3.7',
-            'scapy==2.4.2',
             'pyroute2',
             'iperf3',
         ]
