@@ -11,8 +11,8 @@
 import AuditLogEntryModel from './models/audit_log_entry';
 import FeatureFlagModel from './models/featureflag';
 import OrganizationModel from './models/organization';
-import UserModel from './models/user';
 import Sequelize from 'sequelize';
+import UserModel from './models/user';
 
 const env = process.env.NODE_ENV || 'development';
 const config = require('./sequelizeConfig.js')[env];

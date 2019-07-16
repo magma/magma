@@ -8,15 +8,15 @@
  * @format
  */
 
-import {green, red} from '../theme/colors';
-import {makeStyles} from '@material-ui/styles';
-import {useSnackbar} from 'notistack';
 import * as React from 'react';
 import CheckCircleIcon from '@material-ui/icons/CheckCircle';
-import classNames from 'classnames';
 import CloseIcon from '@material-ui/icons/Close';
 import ErrorIcon from '@material-ui/icons/Error';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {green, red} from '../theme/colors';
+import {makeStyles} from '@material-ui/styles';
+import {useSnackbar} from 'notistack';
 
 export type WithSnackbarProps = {
   enqueueSnackbar: (message: string | React.Node, options?: Object) => null,

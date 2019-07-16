@@ -12,21 +12,21 @@ import type {ComponentType} from 'react';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import DataPlanConfig from './DataPlanConfig';
-import PoliciesConfig from './PoliciesConfig';
+import MagmaTopBar from '../MagmaTopBar';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkConfig from './NetworkConfig';
-import UpgradeConfig from './UpgradeConfig';
 import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
+import PoliciesConfig from './PoliciesConfig';
+import React from 'react';
 import Tab from '@material-ui/core/Tab';
-import MagmaTopBar from '../MagmaTopBar';
+import Tabs from '@material-ui/core/Tabs';
+import UpgradeConfig from './UpgradeConfig';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {findIndex} from 'lodash';
 import {Route, Switch, withRouter} from 'react-router-dom';
+import {findIndex} from 'lodash';
 
 import {withStyles} from '@material-ui/core/styles';
 

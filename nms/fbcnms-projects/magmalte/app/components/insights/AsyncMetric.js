@@ -8,15 +8,15 @@
  * @format
  */
 
-import React from 'react';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import {Line} from 'react-chartjs-2';
+import React from 'react';
 import moment from 'moment';
+import {Line} from 'react-chartjs-2';
 
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {useAxios, useSnackbar, useRouter} from '@fbcnms/ui/hooks';
-import {useMemo} from 'react';
 import {makeStyles} from '@material-ui/styles';
+import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useMemo} from 'react';
 
 type Props = {
   label: string,

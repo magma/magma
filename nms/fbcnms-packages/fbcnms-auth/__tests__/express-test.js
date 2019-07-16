@@ -17,7 +17,7 @@ import passport from 'passport';
 import request from 'supertest';
 import userMiddleware from '../express';
 import {USERS, USERS_EXPECTED} from '../test/UserModel';
-import {sequelize, User} from '@fbcnms/sequelize-models';
+import {User, sequelize} from '@fbcnms/sequelize-models';
 
 import {configureAccess} from '../access';
 

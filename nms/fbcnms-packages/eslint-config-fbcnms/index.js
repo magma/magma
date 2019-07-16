@@ -72,6 +72,7 @@ module.exports = Object.assign({}, fbStrict, {
     'react',
     'react-hooks',
     'relay',
+    'sort-imports-es6-autofix',
   ],
   rules: {
     'comma-dangle': ['warn', 'always-multiline'],
@@ -158,6 +159,13 @@ module.exports = Object.assign({}, fbStrict, {
     // React Hooks Plugin
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
+
+    // sort-imports autofix plugin (sort-imports doesnt autofix)
+    'sort-imports-es6-autofix/sort-imports-es6': [2, {
+      'ignoreCase': false,
+      'ignoreMemberSort': false,
+      'memberSyntaxSortOrder': ['none', 'all', 'single', 'multiple'],
+    }],
 
     // Jest Plugin
     // The following rules are made available via `eslint-plugin-jest`.

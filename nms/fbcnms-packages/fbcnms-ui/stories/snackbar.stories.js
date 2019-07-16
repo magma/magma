@@ -8,8 +8,8 @@
  * @format
  */
 
-import React, {useState} from 'react';
 import Button from '@material-ui/core/Button';
+import React, {useState} from 'react';
 import {storiesOf} from '@storybook/react';
 import {useSnackbar} from '../hooks';
 

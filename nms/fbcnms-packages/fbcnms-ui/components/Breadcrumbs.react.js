@@ -10,7 +10,6 @@
 
 import type {BreadcrumbData} from './Breadcrumb.react';
 
-import {makeStyles} from '@material-ui/styles';
 import Breadcrumb from './Breadcrumb.react';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import List from '@material-ui/core/List';
@@ -19,6 +18,7 @@ import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import Popover from '@material-ui/core/Popover';
 import React, {useState} from 'react';
 import Typography from '@material-ui/core/Typography';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   breadcrumbs: {

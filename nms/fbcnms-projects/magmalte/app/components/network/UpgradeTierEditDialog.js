@@ -12,20 +12,20 @@ import type {ContextRouter} from 'react-router-dom';
 import type {NetworkUpgradeTier} from '../../common/MagmaAPIType';
 import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormGroup from '@material-ui/core/FormGroup';
 import React from 'react';
-import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+import axios from 'axios';
 
-import {fetchNetworkUpgradeTier, MagmaAPIUrls} from '../../common/MagmaAPI';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {MagmaAPIUrls, fetchNetworkUpgradeTier} from '../../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import nullthrows from '@fbcnms/util/nullthrows';
 
 const styles = {};
 

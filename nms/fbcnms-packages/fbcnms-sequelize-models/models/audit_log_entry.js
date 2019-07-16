@@ -10,8 +10,8 @@
 
 import Sequelize from 'sequelize';
 
-import type {DataTypes, Model} from 'sequelize';
 import type {AssociateProp} from './AssociateTypes.flow';
+import type {DataTypes, Model} from 'sequelize';
 
 export type AuditLogEntryRawType = {
   actingUserId: number,

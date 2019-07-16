@@ -8,9 +8,9 @@
  * @format
  */
 
-import type {DataTypes, QueryInterface} from 'sequelize';
-import nullthrows from '@fbcnms/util/nullthrows';
 import bcrypt from 'bcryptjs';
+import nullthrows from '@fbcnms/util/nullthrows';
+import type {DataTypes, QueryInterface} from 'sequelize';
 
 module.exports = {
   up: async (queryInterface: QueryInterface, _Sequelize: DataTypes) => {

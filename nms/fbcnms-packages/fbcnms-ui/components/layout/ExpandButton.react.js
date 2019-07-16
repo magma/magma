@@ -8,10 +8,10 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   iconContainer: {

@@ -17,9 +17,9 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import NavListItem from '@fbcnms/ui/components/NavListItem.react';
 import SettingsIcon from '@material-ui/icons/Settings';
 
-import {useRouter} from '@fbcnms/ui/hooks';
-import useSections from './useSections';
 import NetworkContext from '../context/NetworkContext';
+import useSections from './useSections';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function SectionLinks() {
   const sections = useSections();

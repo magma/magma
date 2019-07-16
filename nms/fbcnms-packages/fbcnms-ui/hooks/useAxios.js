@@ -8,11 +8,11 @@
  * @format
  */
 
-import type {AxiosXHRConfig, $AxiosXHR} from 'axios';
+import type {$AxiosXHR, AxiosXHRConfig} from 'axios';
 
-import {useEffect, useState} from 'react';
 import axios from 'axios';
 import {merge} from 'lodash';
+import {useEffect, useState} from 'react';
 
 type AxiosResponse<T, R> = {
   error: any,

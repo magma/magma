@@ -8,7 +8,6 @@
  * @format
  */
 
-import React, {useState} from 'react';
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -17,6 +16,7 @@ import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
 import MagmaTopBar from '../MagmaTopBar';
 import Paper from '@material-ui/core/Paper';
+import React, {useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 
 import axios from 'axios';

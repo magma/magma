@@ -8,18 +8,18 @@
  * @format
  */
 
+import EmailValidator from 'email-validator';
 import bcrypt from 'bcryptjs';
-import {injectOrganizationParams} from './organization';
-import {isEmpty} from 'lodash';
 import express from 'express';
 import logging from '@fbcnms/logging';
 import passport from 'passport';
 import staticDist from 'fbcnms-webpack-config/staticDist';
-import {access} from './access';
 import {AccessRoles} from './roles';
+import {Organization, User} from '@fbcnms/sequelize-models';
+import {access} from './access';
 import {addQueryParamsToUrl} from './util';
-import EmailValidator from 'email-validator';
-import {User, Organization} from '@fbcnms/sequelize-models';
+import {injectOrganizationParams} from './organization';
+import {isEmpty} from 'lodash';
 
 import type {ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSRequest} from './access';

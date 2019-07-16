@@ -13,10 +13,10 @@ jest.mock('mapbox-gl', () => ({
 }));
 jest.mock('../MapView', () => () => <div>Im the Map!</div>);
 
-import React from 'react';
-import {BrowserRouter} from 'react-router-dom';
 import Main from '../Main';
+import React from 'react';
 import renderer from 'react-test-renderer';
+import {BrowserRouter} from 'react-router-dom';
 
 it('renders without crashing', () => {
   global.CONFIG = {

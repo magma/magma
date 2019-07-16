@@ -10,8 +10,8 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import {withStyles} from '@material-ui/core/styles';
 import React from 'react';
+import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
   onClick: () => void,

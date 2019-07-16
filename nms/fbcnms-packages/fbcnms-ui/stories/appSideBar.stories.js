@@ -8,12 +8,12 @@
  * @format
  */
 
-import {storiesOf} from '@storybook/react';
 import AppSideBar from '../components/layout/AppSideBar.react';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import ListIcon from '@material-ui/icons/List';
 import React, {useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import {storiesOf} from '@storybook/react';
 
 const ExpandablePanel = () => {
   const [isExpanded, setIsExpanded] = useState();

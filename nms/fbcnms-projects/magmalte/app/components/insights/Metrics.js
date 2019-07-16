@@ -10,7 +10,6 @@
 
 import type {TimeRange} from './AsyncMetric';
 
-import React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from './AsyncMetric';
 import Card from '@material-ui/core/Card';
@@ -20,16 +19,17 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MenuItem from '@material-ui/core/MenuItem';
 import MagmaTopBar from '../MagmaTopBar';
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import {Route, Switch} from 'react-router-dom';
-import Select from '@material-ui/core/Select';
 
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useSnackbar, useRouter} from '@fbcnms/ui/hooks';
+import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 import {useCallback, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({

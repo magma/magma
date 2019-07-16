@@ -8,11 +8,11 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
-import classNames from 'classnames';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   root: {

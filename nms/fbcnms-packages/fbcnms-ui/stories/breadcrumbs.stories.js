@@ -8,9 +8,9 @@
  * @format
  */
 
-import {storiesOf} from '@storybook/react';
 import Breadcrumbs from '../components/Breadcrumbs.react';
 import React from 'react';
+import {storiesOf} from '@storybook/react';
 
 storiesOf('Breadcrumbs', module).add('collapsed', () => (
   <Breadcrumbs

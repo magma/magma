@@ -11,18 +11,18 @@
 import type {CheckindGateway} from '../../common/MagmaAPIType';
 import type {MagmaFeatureCollection} from '../../common/GeoJSON';
 
-import React from 'react';
 import Alert from '@fbcnms/ui/components/Alert/Alert';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import GatewayMapMarker from './GatewayMapMarker';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaTopBar from '../MagmaTopBar';
 import MapView from '../MapView';
 import Paper from '@material-ui/core/Paper';
-import MagmaTopBar from '../MagmaTopBar';
+import React from 'react';
 
+import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {get} from 'lodash';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 
 function buildGeoJson(gateways): MagmaFeatureCollection {
   const features = (gateways || [])

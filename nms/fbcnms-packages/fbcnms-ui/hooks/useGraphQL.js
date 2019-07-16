@@ -8,8 +8,8 @@
  * @format
  */
 
-import {useEffect, useState} from 'react';
 import {Environment, fetchQuery} from 'relay-runtime';
+import {useEffect, useState} from 'react';
 
 export default function(
   env: Environment,

@@ -10,11 +10,11 @@
 
 import type {ProjectLink} from './AppDrawerProjectNavigation';
 
-import {makeStyles} from '@material-ui/styles';
 import AppSideBarProjectNavigation from './AppSideBarProjectNavigation.react';
 import ExpandButton from './ExpandButton.react';
 import ProfileButton from '../ProfileButton.react';
 import React, {useState} from 'react';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   root: {
