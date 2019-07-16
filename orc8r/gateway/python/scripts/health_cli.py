@@ -12,6 +12,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 import asyncio
 import subprocess
 import sys
+from datetime import datetime
+from dateutil import tz
 
 import apt
 import fire as fire
@@ -25,7 +27,6 @@ from orc8r.protos.mconfig import mconfigs_pb2
 from pystemd.systemd1 import Unit
 
 from magma.magmad.service_poller import ServicePoller
-from . import checkin_cli
 
 
 class ActiveState:
@@ -116,11 +117,12 @@ class ServiceHealth:
 
 
 class HealthSummary:
-    def __init__(self, version,
+    def __init__(self, version, platform,
                  services_health,
                  internet_health, dns_health,
                  unexpected_restarts):
         self.version = version
+        self.platform = platform
         self.services_health = services_health
         self.internet_health = internet_health
         self.dns_health = dns_health
@@ -130,6 +132,7 @@ class HealthSummary:
         any_restarts = any([restarts.count
                             for restarts in self.unexpected_restarts.values()])
         return """
+Running on {}
 Version: {}:
   {:20} {:10} {:15} {:10} {:>10} {:>10}
 {}
@@ -139,7 +142,7 @@ DNS health: {}
 
 Restart summary:
 {}
-        """.format(self.version,
+        """.format(self.version, self.platform,
                    'Service', 'Status', 'SubState', 'Running for', 'Log level',
                    'Errors since last restart',
                    '\n'.join([str(h) for h in self.services_health]),
@@ -250,27 +253,52 @@ def get_unexpected_restart_summary():
     return service.loop.run_until_complete(fetch_info())
 
 
+def get_kernel_version():
+    info, error = subprocess.Popen('uname -a'.split(), stdout=subprocess.PIPE)\
+        .communicate()
+
+    if error:
+        raise ValueError('Cannot get the kernel version')
+    return str(info, 'utf-8')
+
+
+def get_magma_version():
+    cache = apt.Cache()
+
+    # Return the python version if magma is not there
+    if 'magma' not in cache:
+        return Version(version_code=cache['python'].versions[0],
+                       last_update_time='-')
+
+    pkg = str(cache['magma'].versions[0])
+    version = pkg.split('-')[0].split('=')[-1]
+    timestamp = int(pkg.split('-')[1])
+
+    return Version(version_code=version,
+                   last_update_time=datetime.utcfromtimestamp(timestamp)
+                                            .replace(tzinfo=tz.tzutc())
+                                            .astimezone(tz=tz.tzlocal())
+                                            .strftime('%Y-%m-%d %H:%M:%S'))
+
+
 def get_health_summary():
     """ Get health summary for the whole program """
 
-    # Get magma version and when it was updated
-    cache = apt.Cache()
-    pkg = cache.get('magma', default=cache['python'])
-    version = Version(version_code=pkg.versions[0],
-                      last_update_time='19 Jun 2019')
-
     health_summary = HealthSummary(
-        version=version,
+        version=get_magma_version(),
+        platform=get_kernel_version(),
         services_health=get_magma_services_summary(),
         internet_health=ping_status(host='8.8.8.8'),
         dns_health=ping_status(host='google.com'),
         unexpected_restarts=get_unexpected_restart_summary(),
     )
 
-    ''' Check connection to the orchestrator '''
-    # Call this last because it closes the event loop
+    # Check connection to the orchestrator
+    # This part is implemented in the checkin_cli.py so we'll just execute it
     print('\nGateway <-> Controller connectivity')
-    checkin_cli.main()
+    checkin, error = subprocess.Popen(['checkin_cli.py'],
+                                      stdout=subprocess.PIPE).communicate()
+    print(str(checkin, 'utf-8'))
 
     return str(health_summary)
 
@@ -282,6 +310,9 @@ if __name__ == '__main__':
     else:
         fire.Fire({
             'status': get_health_summary,
+            'magma_version': get_magma_version,
+            'kernel_version': get_kernel_version,
+            'internet_status': ping_status,
             'services_status': get_magma_services_summary,
             'restarts_status': get_unexpected_restart_summary,
             'error_status': get_error_summary,
