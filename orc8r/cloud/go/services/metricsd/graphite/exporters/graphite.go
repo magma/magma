@@ -44,6 +44,16 @@ type Address struct {
 	Port int
 }
 
+func NewAddress(host string, port int) Address {
+	if strings.HasPrefix(host, "http") {
+		host = host[strings.LastIndex(host, "/")+1:]
+	}
+	return Address{
+		Host: host,
+		Port: port,
+	}
+}
+
 type graphiteClient struct {
 	client    *graphite.Graphite
 	connected bool

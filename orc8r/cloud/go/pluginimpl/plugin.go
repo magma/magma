@@ -159,7 +159,7 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		if err != nil {
 			panic(fmt.Errorf("graphite address improperly formed: %s\n", address))
 		}
-		graphiteAddresses = append(graphiteAddresses, graphite_exp.Address{Host: address[:portIdx], Port: portInt})
+		graphiteAddresses = append(graphiteAddresses, graphite_exp.NewAddress(address[:portIdx], portInt))
 	}
 
 	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddresses)
