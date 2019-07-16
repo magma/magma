@@ -92,8 +92,12 @@ func decodePostResponse(c echo.Context) (rulefmt.Rule, error) {
 
 func reloadPrometheus(url string) error {
 	resp, err := http.Post(fmt.Sprintf("http://%s%s", url, prometheusReloadPath), "text/plain", &bytes.Buffer{})
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("code: %d error reloading prometheus: %v", resp.StatusCode, err)
+	if err != nil {
+		return fmt.Errorf("error reloading prometheus: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("error reloading prometheus (status %d): %s", resp.StatusCode, string(body))
 	}
 	return nil
 }
