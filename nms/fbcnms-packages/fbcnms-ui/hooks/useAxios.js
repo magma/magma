@@ -29,12 +29,14 @@ export default function useAxios<T, R>(
   const [isLoading, setIsLoading] = useState(false);
   const [loadedUrl, setLoadedUrl] = useState(null);
 
-  const stringConfig = JSON.stringify(config);
+  // implicitly filters out functions, e.g. onResponse
+  const stringConfigs = JSON.stringify(config);
+  const onResponse = config.onResponse;
 
   useEffect(() => {
-    const config = JSON.parse(stringConfig);
+    const requestConfigs = JSON.parse(stringConfigs);
     const source = axios.CancelToken.source();
-    const configWithCancelToken = merge({}, config, {
+    const configWithCancelToken = merge({}, requestConfigs, {
       cancelToken: source.token,
     });
     setIsLoading(true);
@@ -44,22 +46,22 @@ export default function useAxios<T, R>(
       .then(res => {
         setIsLoading(false);
         setResponse(res);
-        config.onResponse && config.onResponse(res);
-        setLoadedUrl(config.url);
+        onResponse && onResponse(res);
+        setLoadedUrl(requestConfigs.url);
       })
       .catch(error => {
         if (!axios.isCancel(error)) {
           setIsLoading(false);
           setError(error);
-          setLoadedUrl(config.url);
+          setLoadedUrl(requestConfigs.url);
         }
       });
     return () => {
       source.cancel();
       setIsLoading(false);
-      setLoadedUrl(config.url);
+      setLoadedUrl(requestConfigs.url);
     };
-  }, [stringConfig]);
+  }, [onResponse, stringConfigs]);
   return {
     error,
     isLoading,
