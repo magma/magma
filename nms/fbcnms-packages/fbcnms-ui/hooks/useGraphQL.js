@@ -20,9 +20,9 @@ export default function(
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const queryText = query().text;
   const variablesJSON = JSON.stringify(variables);
   useEffect(() => {
+    const variables = JSON.parse(variablesJSON);
     if (!Object.keys(variables).length) {
       return;
     }
@@ -38,7 +38,7 @@ export default function(
         setError(error);
         setIsLoading(false);
       });
-  }, [queryText, variablesJSON]);
+  }, [env, query, variablesJSON]);
 
   return {error, response, isLoading};
 }

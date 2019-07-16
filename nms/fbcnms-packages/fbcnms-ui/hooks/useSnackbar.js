@@ -23,6 +23,7 @@ export default function useSnackbar(
   const stringConfig = JSON.stringify(config);
   useEffect(() => {
     if (show) {
+      const config = JSON.parse(stringConfig);
       enqueueSnackbar(message, {
         children: key => (
           <SnackbarItem
@@ -34,7 +35,7 @@ export default function useSnackbar(
         ...config,
       });
     }
-  }, [message, show, stringConfig]);
+  }, [enqueueSnackbar, message, show, stringConfig]);
 }
 
 export function useEnqueueSnackbar() {

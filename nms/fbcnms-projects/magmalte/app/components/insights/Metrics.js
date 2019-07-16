@@ -149,7 +149,7 @@ function Metrics() {
       const gatewayId = event.target.value;
       history.push(`/nms/${match.params.networkId}/metrics/${gatewayId}`);
     },
-    [match],
+    [history, match.params.networkId],
   );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);

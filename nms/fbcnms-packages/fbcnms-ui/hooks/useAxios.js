@@ -32,6 +32,7 @@ export default function useAxios<T, R>(
   const stringConfig = JSON.stringify(config);
 
   useEffect(() => {
+    const config = JSON.parse(stringConfig);
     const source = axios.CancelToken.source();
     const configWithCancelToken = merge({}, config, {
       cancelToken: source.token,
