@@ -82,6 +82,8 @@ ENV SERVICE_HOST_NAME localhost
 # TODO: fix metricsd for fetching host level metrics
 ENV HOST_NAME dev
 
+COPY src/magma/orc8r/cloud/docker/wait-for-it.sh /usr/local/bin
+
 # Copy the configs
 COPY configs /etc/magma/configs
 

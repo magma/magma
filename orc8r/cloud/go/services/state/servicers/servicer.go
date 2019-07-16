@@ -47,8 +47,11 @@ func (srv *stateServicer) GetStates(context context.Context, req *protos.GetStat
 		return nil, err
 	}
 	states, err := store.GetMany(req.GetNetworkID(), ids)
-	store.Commit()
-	return &protos.GetStatesResponse{States: protos.BlobsToStates(states)}, nil
+	if err != nil {
+		store.Rollback()
+		return nil, err
+	}
+	return &protos.GetStatesResponse{States: protos.BlobsToStates(states)}, store.Commit()
 }
 
 // ReportStates saves states into blobstorage
