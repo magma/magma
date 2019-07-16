@@ -15,7 +15,8 @@ export type FeatureID =
   | 'sso_example_feature'
   | 'audit_log_example_feature'
   | 'third_party_devices'
-  | 'network_topology';
+  | 'network_topology'
+  | 'prometheus_metrics_database';
 
 import {useContext} from 'react';
 
