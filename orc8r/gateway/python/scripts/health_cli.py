@@ -17,6 +17,7 @@ import apt
 import fire as fire
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
+from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.magmad.metrics import UNEXPECTED_SERVICE_RESTARTS
 from orc8r.protos import common_pb2, magmad_pb2
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
@@ -94,19 +95,23 @@ class Version:
 
 
 class ServiceHealth:
-    def __init__(self, service_name, active_state, sub_state, time_running):
+    def __init__(self, service_name, active_state, sub_state,
+                 time_running, errors):
         self.service_name = service_name
         self.active_state = active_state
         self.sub_state = sub_state
         self.time_running = time_running
+        self.errors = errors
 
     def __str__(self):
-        return '{} {:20} {:10} {:15} Running for {}'.format(
+        return '{} {:20} {:10} {:15} {:10} {:>10} {:>10}'.format(
             ActiveState.state2status[self.active_state],
             self.service_name,
             self.active_state,
             self.sub_state,
-            self.time_running
+            self.time_running,
+            self.errors.log_level,
+            self.errors.error_count,
         )
 
 
@@ -126,6 +131,7 @@ class HealthSummary:
                             for restarts in self.unexpected_restarts.values()])
         return """
 Version: {}:
+  {:20} {:10} {:15} {:10} {:>10} {:>10}
 {}
 
 Internet health: {}
@@ -134,6 +140,8 @@ DNS health: {}
 Restart summary:
 {}
         """.format(self.version,
+                   'Service', 'Status', 'SubState', 'Running for', 'Log level',
+                   'Errors since last restart',
                    '\n'.join([str(h) for h in self.services_health]),
                    self.internet_health, self.dns_health,
                    '\n'.join(['{:20} {}'.format(name, restarts)
@@ -163,7 +171,27 @@ def ping_status(host):
     return HealthStatus.UNKNOWN
 
 
-def get_magma_services_status():
+def get_error_summary(service_names):
+    configs = {service_name: load_service_mconfig_as_json(service_name)
+               for service_name in service_names}
+    res = {service_name: Errors(log_level=configs[service_name]['logLevel'],
+                                error_count=0)
+           for service_name in service_names}
+
+    with open('/var/log/syslog', 'r') as f:
+        for line in f:
+            for service_name in service_names:
+                if service_name not in line:
+                    continue
+                # Reset the counter for restart/start
+                if 'Starting {}...'.format(service_name) in line:
+                    res[service_name].error_count = 0
+                elif 'ERROR' in line:
+                    res[service_name].error_count += 1
+    return res
+
+
+def get_magma_services_summary():
     """ Get health for all the running services """
     # DBus Unit objects: https://www.freedesktop.org/wiki/Software/systemd/dbus/
     chan = ServiceRegistry.get_rpc_channel('magmad', ServiceRegistry.LOCAL)
@@ -172,7 +200,10 @@ def get_magma_services_status():
     configs = client.GetConfigs(common_pb2.Void())
     services_health_summary = []
 
-    for service_name in configs.configs_by_key:
+    service_names = [str(name) for name in configs.configs_by_key]
+    services_errors = get_error_summary(service_names=service_names)
+
+    for service_name in service_names:
         unit = Unit('magma@{}.service'.format(service_name), _autoload=True)
         active_state = ActiveState.dbus2state[unit.Unit.ActiveState]
         sub_state = str(unit.Unit.SubState, 'utf-8')
@@ -188,7 +219,8 @@ def get_magma_services_status():
         services_health_summary.append(ServiceHealth(
             service_name=service_name,
             active_state=active_state, sub_state=sub_state,
-            time_running=str(time_running, 'utf-8').strip()
+            time_running=str(time_running, 'utf-8').strip(),
+            errors=services_errors[service_name]
         ))
     return services_health_summary
 
@@ -220,11 +252,6 @@ def get_unexpected_restart_summary():
 
 def get_health_summary():
     """ Get health summary for the whole program """
-    # Check connection to the orchestrator
-    print('\nGateway <-> Controller connectivity')
-    checkin_cli.main()
-
-    unexpected_restarts = get_unexpected_restart_summary()
 
     # Get magma version and when it was updated
     cache = apt.Cache()
@@ -234,10 +261,10 @@ def get_health_summary():
 
     health_summary = HealthSummary(
         version=version,
-        services_health=get_magma_services_status(),
+        services_health=get_magma_services_summary(),
         internet_health=ping_status(host='8.8.8.8'),
         dns_health=ping_status(host='google.com'),
-        unexpected_restarts=unexpected_restarts,
+        unexpected_restarts=get_unexpected_restart_summary(),
     )
 
     ''' Check connection to the orchestrator '''
@@ -251,10 +278,11 @@ def get_health_summary():
 if __name__ == '__main__':
     print('Health Summary')
     if len(sys.argv) == 1:
-        print(get_health_summary())
+        fire.Fire(get_health_summary)
     else:
         fire.Fire({
-            'services_status': get_magma_services_status,
             'status': get_health_summary,
-            'error_summary': get_unexpected_restart_summary,
+            'services_status': get_magma_services_summary,
+            'restarts_status': get_unexpected_restart_summary,
+            'error_status': get_error_summary,
         })
