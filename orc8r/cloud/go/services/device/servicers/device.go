@@ -60,6 +60,10 @@ func (srv *deviceServicer) GetDeviceInfo(ctx context.Context, req *protos.GetDev
 		return nil, err
 	}
 	blobs, err := store.GetMany(req.NetworkID, ids)
+	if err != nil {
+		store.Rollback()
+		return response, err
+	}
 	response.DeviceMap = protos.BlobsToEntityByDeviceID(blobs)
 	return response, store.Commit()
 }
