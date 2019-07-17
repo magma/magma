@@ -19,6 +19,14 @@ no-ocsp=yes
 # Enable access gateway cert verification
 verify-client=no
 
+{% if 'HTTP_PROXY_HOSTNAME' in env and env['HTTP_PROXY_HOSTNAME']|length > 0 -%}
+# HTTP proxy config to forward HTTP requests
+backend={{ env['HTTP_PROXY_BACKEND'] }},443;{{ env['HTTP_PROXY_HOSTNAME'] }};tls
+host-rewrite=yes
+# TODO: Look into IPv6 support in Docker-Compose and Kubernetes
+backend-address-family=IPv4
+{% endif -%}
+
 # Magma services
 {% for backend in proxy_backends.split(',') -%}
 {% for service, value in service_registry.items() -%}

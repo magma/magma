@@ -77,6 +77,8 @@ proxy:
   spec:
     # magma controller domain name
     hostname: ""
+    http_proxy_hostname: ""
+    http_proxy_backend: ""
 
   # Number of proxy replicas desired
   replicas: 1
