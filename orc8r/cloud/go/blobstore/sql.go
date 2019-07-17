@@ -198,6 +198,45 @@ func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) erro
 	return nil
 }
 
+func (store *sqlBlobStorage) CreateWithUniqueKeys(networkID string, blobs []Blob) error {
+	if err := store.validateTx(); err != nil {
+		return err
+	}
+	whereConditions := make(sq.Or, 0, len(blobs))
+	for _, id := range blobs {
+		// Use explicit sq.And to preserve ordering of clauses for testing
+		whereConditions = append(whereConditions, sq.And{
+			sq.Eq{keyCol: id.Key},
+		})
+	}
+
+	rows, err := store.builder.Select(keyCol).From(store.tableName).
+		Where(whereConditions).
+		RunWith(store.tx).
+		Query()
+	if err != nil {
+		return err
+	}
+	defer sqorc.CloseRowsLogOnError(rows, "CreateWithUniqueKeys")
+	scannedKeys := []string{}
+	for rows.Next() {
+		var key string
+		err = rows.Scan(&key)
+		if err != nil {
+			return err
+		}
+		scannedKeys = append(scannedKeys, key)
+	}
+	if len(scannedKeys) > 0 {
+		return fmt.Errorf("Keys %v are already registered", scannedKeys)
+	}
+	err = store.insertNewBlobs(networkID, blobs)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	if err := store.validateTx(); err != nil {
 		return err

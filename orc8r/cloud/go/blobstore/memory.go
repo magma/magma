@@ -16,6 +16,8 @@ import (
 
 	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/storage"
+
+	"github.com/thoas/go-funk"
 )
 
 type changeType int
@@ -187,6 +189,32 @@ func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) e
 	return nil
 }
 
+func (store *memoryBlobStorage) CreateWithUniqueKeys(networkID string, blobs []Blob) error {
+	store.Lock()
+	defer store.Unlock()
+
+	if err := store.validateTx(); err != nil {
+		return err
+	}
+
+	keySet := funk.Map(blobs, func(b Blob) (string, interface{}) { return b.Key, nil }).(map[string]interface{})
+	store.shared.RLock()
+	allKeysAreUnique, nonUniqueKeys := store.keyAreUniqueAcrossNetworks(keySet)
+	store.shared.RUnlock()
+	if !allKeysAreUnique {
+		return fmt.Errorf("Keys %v are already registered", nonUniqueKeys)
+	}
+
+	store.changes.initializeNetworkTable(networkID)
+	perNetworkLocalMap := store.changes[networkID]
+	for _, blob := range blobs {
+		id := blob.toID()
+		perNetworkLocalMap[id] = change{cType: CreateOrUpdate, blob: blob}
+	}
+
+	return nil
+}
+
 func (store *memoryBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	store.Lock()
 	defer store.Unlock()
@@ -324,6 +352,18 @@ func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID stri
 		}
 	}
 	return blobsByID.toBlobList(), nil
+}
+
+func (store *memoryBlobStorage) keyAreUniqueAcrossNetworks(keySet map[string]interface{}) (bool, []string) {
+	keysThatAlreadyExist := []string{}
+	for _, blobsByID := range store.shared.table {
+		for tk := range blobsByID {
+			if _, exists := keySet[tk.Key]; exists {
+				keysThatAlreadyExist = append(keysThatAlreadyExist, tk.Key)
+			}
+		}
+	}
+	return len(keysThatAlreadyExist) == 0, keysThatAlreadyExist
 }
 
 // Adds a field if it doesn't exist already.
