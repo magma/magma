@@ -24,6 +24,7 @@ export type WithSnackbarProps = {
 
 const useStyles = makeStyles(theme => ({
   root: {
+    backgroundColor: theme.palette.common.white,
     boxShadow: '0 0 0 1px #ccd0d5, 0 4px 8px 1px rgba(0,0,0,0.15)',
     borderRadius: '2px',
     display: 'flex',
