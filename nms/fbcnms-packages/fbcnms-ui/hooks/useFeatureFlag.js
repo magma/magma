@@ -14,6 +14,7 @@ export type FeatureID =
   | 'lte_network_metrics'
   | 'sso_example_feature'
   | 'audit_log_example_feature'
+  | 'audit_log_view'
   | 'third_party_devices'
   | 'network_topology'
   | 'prometheus_metrics_database';
