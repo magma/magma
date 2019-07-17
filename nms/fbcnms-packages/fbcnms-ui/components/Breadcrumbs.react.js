@@ -131,7 +131,14 @@ const Breadcrumbs = (props: Props) => {
         }}>
         <List className={classes.collapsedBreadcrumbsList}>
           {collapsedBreadcrumbs.map(b => (
-            <ListItem key={`list_item_${b.id}`} button onClick={b.onClick}>
+            <ListItem
+              key={`list_item_${b.id}`}
+              button
+              onClick={() => {
+                b.onClick && b.onClick(b.id);
+                toggleBreadcrumbsMenuOpen(false);
+                setAnchorEl(null);
+              }}>
               <Typography>{b.name}</Typography>
               <Typography className={classes.subtext}>{b.subtext}</Typography>
             </ListItem>
