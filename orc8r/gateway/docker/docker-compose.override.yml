@@ -1,0 +1,15 @@
+version: "3.7"
+
+services:
+  magmad:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: orc8r/gateway/docker/Dockerfile
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+
+  control_proxy:
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1

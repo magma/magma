@@ -1,5 +1,4 @@
-# -----------------------------------------------------------------------------
-# Builder image for Magma proto files
+# Builder image to generate proto files
 # -----------------------------------------------------------------------------
 FROM ubuntu:xenial AS builder
 
@@ -20,7 +19,6 @@ ENV PYTHON_BUILD /build/python
 ENV PIP_CACHE_HOME ~/.pipcache
 
 # Generate python proto bindings.
-COPY feg/protos $MAGMA_ROOT/feg/protos
 COPY lte/gateway/python/defs.mk $MAGMA_ROOT/lte/gateway/python/defs.mk
 COPY lte/gateway/python/Makefile $MAGMA_ROOT/lte/gateway/python/Makefile
 COPY lte/protos $MAGMA_ROOT/lte/protos
@@ -30,9 +28,9 @@ COPY protos $MAGMA_ROOT/protos
 RUN make -C $MAGMA_ROOT/lte/gateway/python protos
 
 # -----------------------------------------------------------------------------
-# Dev/Production image
+# Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS lte_gateway_python
+FROM ubuntu:xenial AS gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -58,33 +56,24 @@ RUN apt-get -y update && apt-get -y install \
   openssl \
   pkg-config \
   python-cffi \
-  python3-aioeventlet \
   python3-pip \
   redis-server
 
-# Install OVS via Magma bionic pkg repo
-RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://magma.jfrog.io/magma/list/dev/ bionic main"
+RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
+    sh /tmp/get_docker.sh && \
+    rm /tmp/get_docker.sh
 
-RUN apt-get -y update && apt-get -y install \
-  libopenvswitch \
-  openvswitch-common \
-  openvswitch-switch \
-  python-openvswitch
-
-# Install orc8r python (magma.common required for lte python)
+# Install python code.
 COPY orc8r/gateway/python /tmp/orc8r
 RUN pip3 install /tmp/orc8r
-
-# Install lte python
-COPY lte/gateway/python /tmp/lte
-RUN pip3 install /tmp/lte
 
 # Copy the build artifacts.
 COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
 
 # Copy the configs.
-COPY lte/gateway/configs /etc/magma
+COPY orc8r/gateway/configs /etc/magma
+
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
+
 RUN mkdir -p /var/opt/magma/configs
