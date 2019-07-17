@@ -150,6 +150,41 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 
 	assert.NoError(t, store.Commit())
 
+	// Test CreateWithUniqueKeys fail
+	store, err = fact.StartTransaction()
+	assert.NoError(t, err)
+
+	err = store.CreateWithUniqueKeys("network2", []blobstore.Blob{
+		{Type: "t2", Key: "k1", Value: []byte("non-unique-key")},
+		{Type: "t6", Key: "k4", Value: []byte("v6")},
+	})
+	assert.Error(t, err)
+	assert.NoError(t, store.Commit())
+
+	// Test CreateWithUniqueKeys success
+	store, err = fact.StartTransaction()
+	assert.NoError(t, err)
+
+	err = store.CreateWithUniqueKeys("network2", []blobstore.Blob{
+		{Type: "t2", Key: "k50", Value: []byte("unique-key")},
+		{Type: "t6", Key: "k51", Value: []byte("unique-key")},
+	})
+	assert.NoError(t, err)
+	assert.NoError(t, store.Commit())
+
+	store, err = fact.StartTransaction()
+	assert.NoError(t, err)
+	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+		{Type: "t2", Key: "k50"},
+		{Type: "t6", Key: "k51"},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, []blobstore.Blob{
+		{Type: "t2", Key: "k50", Value: []byte("unique-key")},
+		{Type: "t6", Key: "k51", Value: []byte("unique-key")},
+	}, getManyActual)
+	assert.NoError(t, store.Commit())
+
 	// Operation after commit
 	_, err = store.Get("network1", storage.TypeAndKey{Type: "t1", Key: "k1"})
 	assert.EqualError(t, err, "No transaction is available")

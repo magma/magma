@@ -60,6 +60,12 @@ type TransactionalBlobStorage interface {
 	// storage implementation.
 	CreateOrUpdate(networkID string, blobs []Blob) error
 
+	// CreateWithUniqueKeys creates blobs. It ensures its keys are unique
+	// across networks. The Version field of Blobs passed in here is
+	// ignored - all version incrementation is done internally inside the
+	// storage implementation.
+	CreateWithUniqueKeys(networkID string, blob []Blob) error
+
 	// Delete deletes specified blobs from storage.
 	Delete(networkID string, ids []storage.TypeAndKey) error
 }
