@@ -57,4 +57,8 @@ services:
       # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
       # SQL_DIALECT: maria
     restart: always
-    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -t 30 postgres:5432 && /usr/bin/supervisord"]
+    depends_on:
+      - postgres
+      # - maria
+    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
+    # command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 maria:[port] && /usr/bin/supervisord"]
