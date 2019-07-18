@@ -34,6 +34,8 @@ services:
     networks:
       - magma
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=0
+    ports:
+      - "9204:9204"
 
   control_proxy:
     depends_on:

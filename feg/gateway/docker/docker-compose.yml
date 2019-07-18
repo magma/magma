@@ -85,10 +85,7 @@ services:
     <<: *goservice
     container_name: swx_proxy
     ports:
-      - "${SWX_HOST_PORT}:${SWX_LOCAL_PORT}/${SWX_NETWORK}"
-    environment:
-      SWX_NETWORK: ${SWX_NETWORK}
-      SWX_LOCAL_ADDR: :${SWX_LOCAL_PORT}
+      - "9110:9110"
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
 
   s6a_proxy:
