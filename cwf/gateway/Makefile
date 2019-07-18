@@ -5,6 +5,9 @@ MAGMA_ROOT = /home/$USER/magma
 endif
 export MAGMA_ROOT
 
+# Path to the test files
+UNIT_TESTS=services
+
 all: fmt test vet install
 
 build: install
@@ -16,7 +19,7 @@ install:
 	go install ./...
 
 test:
-	go test ./...
+	go test ./$(UNIT_TESTS)/...
 
 clean:
 	go clean ./...
