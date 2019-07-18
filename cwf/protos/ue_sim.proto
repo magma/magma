@@ -29,6 +29,14 @@ message UEConfig {
     uint64 seq = 4;
 }
 
+message AuthenticateRequest {
+    string imsi = 1;
+}
+
+message AuthenticateResponse {
+    bytes radiusPacket = 1;
+}
+
 // --------------------------------------------------------------------------
 // UE Simulator service definition
 // --------------------------------------------------------------------------
@@ -36,4 +44,8 @@ service UESim {
     // Adds a new UE to the store.
     //
     rpc AddUE (UEConfig) returns (orc8r.Void) {}
+
+    // Triggers an authentication for the UE with the specified imsi.
+    //
+    rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {}
 }
