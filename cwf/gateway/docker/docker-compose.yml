@@ -59,7 +59,7 @@ services:
     <<: *feggoservice
     container_name: eap_aka
     environment:
-      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+      USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
   magmad:
