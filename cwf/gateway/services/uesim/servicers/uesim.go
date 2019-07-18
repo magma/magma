@@ -83,6 +83,14 @@ func (srv *UESimServer) AddUE(ctx context.Context, ue *cwfprotos.UEConfig) (ret 
 	return
 }
 
+// Authenticate triggers an authentication for the UE with the specified IMSI.
+// Input: The IMSI of the UE to try to authenticate.
+// Output: The resulting Radius packet returned by the Radius server.
+func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.AuthenticateRequest) (*cwfprotos.AuthenticateResponse, error) {
+	err := errors.New("Not Implemented")
+	return &cwfprotos.AuthenticateResponse{}, ConvertStorageErrorToGrpcStatus(err)
+}
+
 // Converts UE data to a blob for storage.
 func ueToBlob(ue *cwfprotos.UEConfig) (blobstore.Blob, error) {
 	marshaledUE, err := protos.Marshal(ue)

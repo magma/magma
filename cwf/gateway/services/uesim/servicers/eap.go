@@ -44,7 +44,7 @@ func (srv *UESimServer) eapIdentityRequest(ue *cwfprotos.UEConfig, req eap.Packe
 		req.Identifier(),
 		append(
 			[]byte{uint8(fegprotos.EapType_Identity)},
-			[]byte("\x30"+ue.Imsi+IdentityPostfix)...,
+			[]byte("\x30"+ue.GetImsi()+IdentityPostfix)...,
 		),
 	)
 
