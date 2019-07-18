@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/protos"
@@ -24,6 +25,7 @@ import (
 const (
 	networkIDPlaceholder = "magma"
 	blobTypePlaceholder  = "uesim"
+	radiusAddress        = "127.0.0.1:1812"
 )
 
 // UESimServer tracks all the UEs being simulated.
@@ -87,8 +89,43 @@ func (srv *UESimServer) AddUE(ctx context.Context, ue *cwfprotos.UEConfig) (ret 
 // Input: The IMSI of the UE to try to authenticate.
 // Output: The resulting Radius packet returned by the Radius server.
 func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.AuthenticateRequest) (*cwfprotos.AuthenticateResponse, error) {
-	err := errors.New("Not Implemented")
-	return &cwfprotos.AuthenticateResponse{}, ConvertStorageErrorToGrpcStatus(err)
+	eapIDResp, err := srv.CreateEAPIdentityRequest(id.GetImsi())
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{}, err
+	}
+
+	akaIDReq, err := radius.Exchange(context.Background(), &eapIDResp, radiusAddress)
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{}, err
+	}
+
+	akaIDResp, err := srv.HandleRadius(id.GetImsi(), radius.Packet(*akaIDReq))
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{}, err
+	}
+
+	akaChalReq, err := radius.Exchange(context.Background(), &akaIDResp, radiusAddress)
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{}, err
+	}
+
+	akaChalResp, err := srv.HandleRadius(id.GetImsi(), radius.Packet(*akaChalReq))
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{}, err
+	}
+
+	result, err := radius.Exchange(context.Background(), &akaChalResp, radiusAddress)
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{}, err
+	}
+
+	resultBytes, err := result.Encode()
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{}, errors.Wrap(err, "Error encoding Radius packet")
+	}
+	radiusPacket := &cwfprotos.AuthenticateResponse{RadiusPacket: resultBytes}
+
+	return radiusPacket, nil
 }
 
 // Converts UE data to a blob for storage.
