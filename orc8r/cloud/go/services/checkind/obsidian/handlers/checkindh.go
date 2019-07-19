@@ -14,7 +14,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/magmad"
-	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/state"
 
 	"github.com/labstack/echo"
 
@@ -42,7 +42,7 @@ func GetObsidianHandlers() []handlers.Handler {
 					return handlers.HttpError(err, http.StatusNotFound)
 				}
 				hwid := gwRecord.HwId.Id
-				gwStatus, err := stateh.GetGWStatus(networkID, hwid)
+				gwStatus, err := state.GetGatewayStatus(networkID, hwid)
 				if err != nil {
 					return handlers.HttpError(err, http.StatusNotFound)
 				}
@@ -59,7 +59,7 @@ func GetObsidianHandlers() []handlers.Handler {
 				if err != nil {
 					return handlers.HttpError(err, http.StatusNotFound)
 				}
-				gwStatus, err := stateh.GetGWStatus(networkID, gwPhysicalID)
+				gwStatus, err := state.GetGatewayStatus(networkID, gwPhysicalID)
 				if err != nil {
 					return handlers.HttpError(err, http.StatusNotFound)
 				}

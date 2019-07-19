@@ -14,9 +14,11 @@ import (
 	"sync"
 
 	"magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/checkind/obsidian/models"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -141,6 +143,22 @@ func DeleteStates(networkID string, stateIDs []StateID) error {
 		},
 	)
 	return err
+}
+
+func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus, error) {
+	state, err := GetState(networkID, orc8r.GatewayStateType, deviceID)
+	if err != nil {
+		return nil, err
+	}
+	gwStatus := state.ReportedState.(models.GatewayStatus)
+	gwStatus.CheckinTime = state.Time
+	gwStatus.CertExpirationTime = state.CertExpirationTime
+	// Use the hardware ID from the middleware
+	gwStatus.HardwareID = state.ReporterID
+	// Populate deprecated fields to support API backwards compatibility
+	// TODO: Remove this and related tests when deprecated fields are no longer used
+	gwStatus.FillDeprecatedFields()
+	return &gwStatus, nil
 }
 
 func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {
