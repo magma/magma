@@ -71,7 +71,7 @@ func NewMemoryBlobStorageFactory() BlobStorageFactory {
 	return &memoryBlobStoreFactory{table: blobTable{}}
 }
 
-func (fact *memoryBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, error) {
+func (fact *memoryBlobStoreFactory) StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error) {
 	return &memoryBlobStorage{
 		shared:            sharedMemoryBlobTables{RWMutex: &fact.RWMutex, table: fact.table},
 		transactionExists: true,

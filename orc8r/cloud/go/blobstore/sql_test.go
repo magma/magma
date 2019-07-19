@@ -416,7 +416,7 @@ func runCase(t *testing.T, test *testCase) {
 	assert.NoError(t, err)
 
 	mock.ExpectBegin()
-	store, err := factory.StartTransaction()
+	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	test.setup(mock)

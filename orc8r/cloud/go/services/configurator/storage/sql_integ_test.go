@@ -15,6 +15,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	orc8rStorage "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes/wrappers"
@@ -134,7 +135,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, store.Commit())
 
-	store, err = factory.StartTransaction(context.Background(), &storage.TxOptions{ReadOnly: true})
+	store, err = factory.StartTransaction(context.Background(), &orc8rStorage.TxOptions{ReadOnly: true})
 	assert.NoError(t, err)
 	loadNetworksActual, err = store.LoadNetworks([]string{"n1", "n2", "n3"}, storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)

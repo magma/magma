@@ -229,7 +229,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	return
 }
 
-func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context, opts *TxOptions) (ConfiguratorStorage, error) {
+func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context, opts *storage.TxOptions) (ConfiguratorStorage, error) {
 	tx, err := fact.db.BeginTx(ctx, getSqlOpts(opts))
 	if err != nil {
 		return nil, err
@@ -237,11 +237,14 @@ func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context,
 	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator, builder: fact.builder}, nil
 }
 
-func getSqlOpts(opts *TxOptions) *sql.TxOptions {
+func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
 	if opts == nil {
 		return nil
 	}
-	return &sql.TxOptions{ReadOnly: opts.ReadOnly}
+	if opts.Isolation == 0 {
+		return &sql.TxOptions{ReadOnly: opts.ReadOnly}
+	}
+	return &sql.TxOptions{ReadOnly: opts.ReadOnly, Isolation: sql.IsolationLevel(opts.Isolation)}
 }
 
 type sqlConfiguratorStorage struct {

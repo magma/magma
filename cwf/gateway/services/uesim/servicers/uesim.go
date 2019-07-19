@@ -60,7 +60,7 @@ func (srv *UESimServer) AddUE(ctx context.Context, ue *cwfprotos.UEConfig) (ret 
 		return
 	}
 	blob, err := ueToBlob(ue)
-	store, err := srv.store.StartTransaction()
+	store, err := srv.store.StartTransaction(nil)
 	if err != nil {
 		err = errors.Wrap(err, "Error while starting transaction")
 		err = ConvertStorageErrorToGrpcStatus(err)
@@ -153,7 +153,7 @@ func blobToUE(blob blobstore.Blob) (*cwfprotos.UEConfig, error) {
 
 // getUE gets the UE with the specified IMSI from the blobstore.
 func getUE(blobStoreFactory blobstore.BlobStorageFactory, imsi string) (ue *cwfprotos.UEConfig, err error) {
-	store, err := blobStoreFactory.StartTransaction()
+	store, err := blobStoreFactory.StartTransaction(nil)
 	if err != nil {
 		err = errors.Wrap(err, "Error while starting transaction")
 		return
