@@ -23,7 +23,7 @@ install_virtualenv:
 	@echo "Initializing virtualenv with python version $(PYTHON_VERSION)"
 	virtualenv --system-site-packages --python=/usr/bin/python$(PYTHON_VERSION) $(PYTHON_BUILD)
 	. $(PYTHON_BUILD)/bin/activate;
-	$(VIRT_ENV_PIP_INSTALL) pip>=19.1.1
+	$(VIRT_ENV_PIP_INSTALL) "pip>=19.1.1"
 
 setupenv: $(PYTHON_BUILD)/sysdeps $(SITE_PACKAGES_DIR)/setuptools
 
@@ -37,7 +37,7 @@ $(PYTHON_BUILD):
 	mkdir -p $(PYTHON_BUILD)
 
 $(SITE_PACKAGES_DIR)/setuptools: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) setuptools>=41.0.1
+	$(VIRT_ENV_PIP_INSTALL) "setuptools>=41.0.1"
 
 protos:: $(BIN)/grpcio-tools $(PROTO_LIST) prometheus_proto
 	@find $(PYTHON_BUILD)/gen -type d | tail -n +2 | sed '/__pycache__/d' | xargs -I % touch "%/__init__.py"
