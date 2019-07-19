@@ -16,20 +16,29 @@ import (
 	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/serde"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 )
 
-// StateValue includes reported operational states and additional info
-type StateValue struct {
+// State includes reported operational state and additional info about the reporter
+type State struct {
 	// ID of the entity reporting the state (hwID, cert serial number, etc)
 	ReporterID string
 	// Checkin Time
 	Time uint64
 	// Cert expiration Time
 	CertExpirationTime int64
-	ReportedValue      []byte
+	ReportedState      interface{}
+}
+
+// SerializedStateWithMeta includes reported operational states and additional info
+type SerializedStateWithMeta struct {
+	ReporterID              string
+	Time                    uint64
+	CertExpirationTime      int64
+	SerializedReportedState []byte
 }
 
 // StateID contains the identifying information of a state
@@ -62,11 +71,10 @@ func getStateClient() (protos.StateServiceClient, error) {
 }
 
 // GetState returns the state specified by the networkID, typeVal, and hwID
-func GetState(networkID string, typeVal string, hwID string) (*StateValue, error) {
-	stateValue := &StateValue{}
+func GetState(networkID string, typeVal string, hwID string) (State, error) {
 	client, err := getStateClient()
 	if err != nil {
-		return nil, err
+		return State{}, err
 	}
 
 	stateID := &protos.StateID{
@@ -82,16 +90,16 @@ func GetState(networkID string, typeVal string, hwID string) (*StateValue, error
 		},
 	)
 	if err != nil {
-		return nil, err
+		return State{}, err
 	}
 	if len(ret.States) == 0 {
-		return nil, errors.ErrNotFound
+		return State{}, errors.ErrNotFound
 	}
-	return stateValue, json.Unmarshal(ret.States[0].Value, stateValue)
+	return toState(ret.States[0])
 }
 
 // GetStates returns a map of states specified by the networkID and a list of type and key
-func GetStates(networkID string, stateIDs []StateID) (map[StateID]StateValue, error) {
+func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) {
 	client, err := getStateClient()
 	if err != nil {
 		return nil, err
@@ -107,12 +115,14 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]StateValue, er
 		return nil, err
 	}
 
-	idToValue := map[StateID]StateValue{}
-	for _, state := range res.States {
-		stateID := StateID{Type: state.Type, DeviceID: state.DeviceID}
-		stateValue := StateValue{}
-		json.Unmarshal(state.Value, &stateValue)
-		idToValue[stateID] = stateValue
+	idToValue := map[StateID]State{}
+	for _, pState := range res.States {
+		stateID := StateID{Type: pState.Type, DeviceID: pState.DeviceID}
+		state, err := toState(pState)
+		if err != nil {
+			return nil, err
+		}
+		idToValue[stateID] = state
 	}
 	return idToValue, nil
 }
@@ -139,4 +149,20 @@ func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {
 		ids = append(ids, &protos.StateID{Type: state.Type, DeviceID: state.DeviceID})
 	}
 	return ids
+}
+
+func toState(pState *protos.State) (State, error) {
+	serialized := &SerializedStateWithMeta{}
+	err := json.Unmarshal(pState.Value, serialized)
+	if err != nil {
+		return State{}, err
+	}
+	iReportedState, err := serde.Deserialize(SerdeDomain, pState.Type, serialized.SerializedReportedState)
+	state := State{
+		ReporterID:         serialized.ReporterID,
+		Time:               serialized.Time,
+		CertExpirationTime: serialized.CertExpirationTime,
+		ReportedState:      iReportedState,
+	}
+	return state, err
 }

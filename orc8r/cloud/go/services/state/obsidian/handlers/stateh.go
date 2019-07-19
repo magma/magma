@@ -13,7 +13,6 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
 	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	stateservice "magma/orc8r/cloud/go/services/state"
 
@@ -52,12 +51,7 @@ func GetGWStatus(networkID string, deviceID string) (*checkind_models.GatewaySta
 	if err != nil {
 		return nil, err
 	}
-	deserializedValue, err := serde.Deserialize(
-		stateservice.SerdeDomain,
-		orc8r.GatewayStateType,
-		state.ReportedValue,
-	)
-	gwStatus := deserializedValue.(checkind_models.GatewayStatus)
+	gwStatus := state.ReportedState.(checkind_models.GatewayStatus)
 	gwStatus.CheckinTime = state.Time
 	gwStatus.CertExpirationTime = state.CertExpirationTime
 	// Use the hardware ID from the middleware
