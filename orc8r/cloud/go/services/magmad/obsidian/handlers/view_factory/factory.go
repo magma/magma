@@ -86,7 +86,6 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayID
 		} else if err != nil {
 			return nil, fmt.Errorf("Error loading status: %s", err)
 		}
-
 		ret[gateway.Key] = &GatewayState{
 			GatewayID: gateway.Key,
 			Record:    record.(*models.AccessGatewayRecord),
@@ -97,6 +96,10 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayID
 
 	// load all associated configEntity entities
 	allAssociations := getAllAssociatedConfigEntities(loadedGateways)
+	if len(allAssociations) == 0 {
+		// if allAssociations is length 0 the call below will load all entities
+		return ret, nil
+	}
 	loadedConfigs, _, err := configurator.LoadEntities(networkID, nil, nil, nil, allAssociations, configurator.EntityLoadCriteria{LoadConfig: true})
 	if err != nil {
 		return nil, err

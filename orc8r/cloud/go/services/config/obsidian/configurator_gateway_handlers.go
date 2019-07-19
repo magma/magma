@@ -32,7 +32,6 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 	if configType == orc8r.MagmadGatewayType {
 		return configuratorCreateMagmadGatewayConfig(c, networkID, configKey, iConfig)
 	}
-
 	config, nerr := GetConfigAndValidate(c, iConfig)
 	if nerr != nil {
 		return nerr
@@ -106,7 +105,6 @@ func configuratorCreateMagmadGatewayConfig(c echo.Context, networkID string, gat
 		Key:               requestedConfig.Tier,
 		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
 	}
-
 	_, err := configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{gwUpdate, tierUpdate})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
