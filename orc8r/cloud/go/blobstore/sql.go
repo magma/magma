@@ -9,6 +9,7 @@
 package blobstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -42,12 +43,22 @@ type sqlBlobStoreFactory struct {
 	builder   sqorc.StatementBuilder
 }
 
-func (fact *sqlBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, error) {
-	tx, err := fact.db.Begin()
+func (fact *sqlBlobStoreFactory) StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error) {
+	tx, err := fact.db.BeginTx(context.Background(), getSqlOpts(opts))
 	if err != nil {
 		return nil, err
 	}
 	return &sqlBlobStorage{tableName: fact.tableName, tx: tx, builder: fact.builder}, nil
+}
+
+func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
+	if opts == nil {
+		return nil
+	}
+	if opts.Isolation == 0 {
+		return &sql.TxOptions{ReadOnly: opts.ReadOnly}
+	}
+	return &sql.TxOptions{ReadOnly: opts.ReadOnly, Isolation: sql.IsolationLevel(opts.Isolation)}
 }
 
 func (fact *sqlBlobStoreFactory) InitializeFactory() error {

@@ -26,7 +26,7 @@ type BlobStorageFactory interface {
 	// StartTransaction opens a transaction for all following blob storage
 	// operations, and returns a TransactionalBlobStorage instance tied to the
 	// opened transaction.
-	StartTransaction() (TransactionalBlobStorage, error)
+	StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error)
 }
 
 // TransactionalBlobStorage is the client API for blob storage operations

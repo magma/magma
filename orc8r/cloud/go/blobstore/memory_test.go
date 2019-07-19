@@ -33,7 +33,7 @@ func TestMemoryBlobStorageStorage_CreateOrUpdate(t *testing.T) {
 	blob2 := blobstore.Blob{Type: type1, Key: key1, Value: []byte("value2")}
 	network1 := "network1"
 
-	store, err := factory.StartTransaction()
+	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	// create
@@ -61,7 +61,7 @@ func TestMemoryBlobStorage_Rollback(t *testing.T) {
 	blob1 := blobstore.Blob{Type: type1, Key: key1, Value: []byte("value1")}
 	network1 := "network1"
 
-	store, err := factory.StartTransaction()
+	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	// create
@@ -72,7 +72,7 @@ func TestMemoryBlobStorage_Rollback(t *testing.T) {
 
 	store.Rollback()
 
-	store, err = factory.StartTransaction()
+	store, err = factory.StartTransaction(nil)
 	assert.NoError(t, err)
 	_, err = store.Get(network1, storage.TypeAndKey{type1, key1})
 	assert.Equal(t, errors.ErrNotFound, err)
@@ -86,7 +86,7 @@ func TestMemoryBlobStorage_Commit(t *testing.T) {
 	network1 := "network1"
 	id1 := storage.TypeAndKey{type1, key1}
 
-	store, err := factory.StartTransaction()
+	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	// create
@@ -97,7 +97,7 @@ func TestMemoryBlobStorage_Commit(t *testing.T) {
 
 	store.Commit()
 
-	store, err = factory.StartTransaction()
+	store, err = factory.StartTransaction(nil)
 	assert.NoError(t, err)
 	blob, err := store.Get(network1, id1)
 	assert.NoError(t, err)
@@ -106,7 +106,7 @@ func TestMemoryBlobStorage_Commit(t *testing.T) {
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
 	store.Commit()
 
-	store, err = factory.StartTransaction()
+	store, err = factory.StartTransaction(nil)
 	blob, err = store.Get(network1, id1)
 	assert.Equal(t, []byte("value2"), blob.Value)
 }
@@ -125,7 +125,7 @@ func TestMemoryBlobStorage_GetMany(t *testing.T) {
 		{Type: blob2.Type, Key: blob2.Key},
 	}
 
-	store, err := factory.StartTransaction()
+	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	// create
@@ -155,7 +155,7 @@ func TestMemoryBlobStorage_Delete(t *testing.T) {
 		{Type: blob1.Type, Key: blob1.Key},
 	}
 
-	store, err := factory.StartTransaction()
+	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	// create, update, delete within a transaction session should end up with
@@ -165,7 +165,7 @@ func TestMemoryBlobStorage_Delete(t *testing.T) {
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
 	assert.NoError(t, store.Delete(network1, ids))
 	store.Commit()
-	store, err = factory.StartTransaction()
+	store, err = factory.StartTransaction(nil)
 	blobs, _ := store.GetMany(network1, ids)
 	assert.Equal(t, 0, len(blobs))
 
@@ -176,7 +176,7 @@ func TestMemoryBlobStorage_Delete(t *testing.T) {
 	assert.NoError(t, store.Delete(network1, ids))
 	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
 	store.Commit()
-	store, err = factory.StartTransaction()
+	store, err = factory.StartTransaction(nil)
 	blobs, _ = store.GetMany(network1, ids)
 	assert.Equal(t, 1, len(blobs))
 }
@@ -190,7 +190,7 @@ func TestMemoryBlobStorage_ListKeys(t *testing.T) {
 	blob2 := blobstore.Blob{Type: type1, Key: key2, Value: []byte("value2")}
 	network1 := "network1"
 
-	store, err := factory.StartTransaction()
+	store, err := factory.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	// Test local changes
@@ -199,7 +199,7 @@ func TestMemoryBlobStorage_ListKeys(t *testing.T) {
 	assert.Equal(t, []string{key1, key2}, keys)
 
 	store.Commit()
-	store, err = factory.StartTransaction()
+	store, err = factory.StartTransaction(nil)
 
 	// Test committed changes
 	keys, err = store.ListKeys(network1, type1)

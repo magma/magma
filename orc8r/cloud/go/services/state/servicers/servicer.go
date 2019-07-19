@@ -42,7 +42,7 @@ func (srv *stateServicer) GetStates(context context.Context, req *protos.GetStat
 
 	ids := protos.StateIDsToTKs(req.GetIds())
 
-	store, err := srv.factory.StartTransaction()
+	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 		return response, err
 	}
 
-	store, err := srv.factory.StartTransaction()
+	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return response, err
 	}
@@ -102,7 +102,7 @@ func (srv *stateServicer) DeleteStates(context context.Context, req *protos.Dele
 	networkID := req.GetNetworkID()
 	ids := protos.StateIDsToTKs(req.GetIds())
 
-	store, err := srv.factory.StartTransaction()
+	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, err
 	}

@@ -23,7 +23,7 @@ import (
 func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	// Check the contract for an empty datastore
 	err := fact.InitializeFactory()
-	store, err := fact.StartTransaction()
+	store, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
 	listActual, err := store.ListKeys("network", "type")
 	assert.NoError(t, err)
@@ -45,7 +45,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store.Commit())
 
 	// Workflow test
-	store1, err := fact.StartTransaction()
+	store1, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	// Create blobs on 2 networks
@@ -60,7 +60,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store1.Commit())
 
 	// network2: (t3) X (k3, k4)
-	store2, err := fact.StartTransaction()
+	store2, err := fact.StartTransaction(nil)
 	assert.NoError(t, err)
 	err = store2.CreateOrUpdate("network2", []blobstore.Blob{
 		{Type: "t3", Key: "k3", Value: []byte("v5")},
@@ -70,7 +70,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store2.Commit())
 
 	// Read tests
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	listActual, err = store.ListKeys("network1", "t1")
@@ -122,7 +122,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store.Commit())
 
 	// Update with creation, read back
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	err = store.CreateOrUpdate("network1", []blobstore.Blob{
@@ -151,7 +151,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store.Commit())
 
 	// Test CreateWithUniqueKeys fail
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	err = store.CreateWithUniqueKeys("network2", []blobstore.Blob{
@@ -162,7 +162,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store.Commit())
 
 	// Test CreateWithUniqueKeys success
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	err = store.CreateWithUniqueKeys("network2", []blobstore.Blob{
@@ -172,7 +172,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 	assert.NoError(t, store.Commit())
 
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
 		{Type: "t2", Key: "k50"},
@@ -190,7 +190,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.EqualError(t, err, "No transaction is available")
 
 	// Delete multiple
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	err = store.Delete("network1", []storage.TypeAndKey{
@@ -210,7 +210,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, store.Commit())
 
 	// Delete multiple, rollback, read back
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	err = store.Delete("network2", []storage.TypeAndKey{
@@ -226,7 +226,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.Equal(t, []blobstore.Blob{}, getManyActual)
 	assert.NoError(t, store.Rollback())
 
-	store, err = fact.StartTransaction()
+	store, err = fact.StartTransaction(nil)
 	assert.NoError(t, err)
 
 	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{

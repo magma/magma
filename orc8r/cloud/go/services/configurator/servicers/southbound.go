@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	orc8rStorage "magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/thoas/go-funk"
@@ -47,7 +48,7 @@ func (srv *sbConfiguratorServicer) GetMconfig(ctx context.Context, void *commonP
 }
 
 func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *protos.GetMconfigRequest) (*protos.GetMconfigResponse, error) {
-	store, err := srv.factory.StartTransaction(context.Background(), &storage.TxOptions{ReadOnly: true})
+	store, err := srv.factory.StartTransaction(context.Background(), &orc8rStorage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Aborted, "failed to start transaction: %s", err)
@@ -75,7 +76,7 @@ func (srv *sbConfiguratorServicer) GetMconfigInternal(ctx context.Context, req *
 }
 
 func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID string) (*commonProtos.GatewayConfigs, error) {
-	store, err := srv.factory.StartTransaction(context.Background(), &storage.TxOptions{ReadOnly: true})
+	store, err := srv.factory.StartTransaction(context.Background(), &orc8rStorage.TxOptions{ReadOnly: true})
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Aborted, "failed to start transaction: %s", err)

@@ -35,7 +35,7 @@ func (srv *deviceServicer) RegisterDevices(ctx context.Context, req *protos.Regi
 	}
 
 	blobs := protos.EntitiesToBlobs(req.GetEntities())
-	store, err := srv.factory.StartTransaction()
+	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (srv *deviceServicer) GetDeviceInfo(ctx context.Context, req *protos.GetDev
 	}
 
 	ids := protos.DeviceIDsToTypeAndKey(req.DeviceIDs)
-	store, err := srv.factory.StartTransaction()
+	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		store.Rollback()
 		return nil, err
@@ -75,7 +75,7 @@ func (srv *deviceServicer) DeleteDevices(ctx context.Context, req *protos.Delete
 	}
 
 	ids := protos.DeviceIDsToTypeAndKey(req.DeviceIDs)
-	store, err := srv.factory.StartTransaction()
+	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, err
 	}
