@@ -12,9 +12,7 @@ import (
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/orc8r"
-	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
-	stateservice "magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state"
 
 	"github.com/labstack/echo"
 )
@@ -38,26 +36,10 @@ func AGStatusByDeviceIDHandler(c echo.Context) error {
 		return nerr
 	}
 	deviceID := c.Param("device_id")
-	gwStatusModel, err := GetGWStatus(networkID, deviceID)
+	gwStatusModel, err := state.GetGatewayStatus(networkID, deviceID)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusNotFound)
 	}
 
 	return c.JSON(http.StatusOK, &gwStatusModel)
-}
-
-func GetGWStatus(networkID string, deviceID string) (*checkind_models.GatewayStatus, error) {
-	state, err := stateservice.GetState(networkID, orc8r.GatewayStateType, deviceID)
-	if err != nil {
-		return nil, err
-	}
-	gwStatus := state.ReportedState.(checkind_models.GatewayStatus)
-	gwStatus.CheckinTime = state.Time
-	gwStatus.CertExpirationTime = state.CertExpirationTime
-	// Use the hardware ID from the middleware
-	gwStatus.HardwareID = state.ReporterID
-	// Populate deprecated fields to support API backwards compatibility
-	// TODO: Remove this and related tests when deprecated fields are no longer used
-	gwStatus.FillDeprecatedFields()
-	return &gwStatus, nil
 }
