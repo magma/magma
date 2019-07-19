@@ -20,6 +20,10 @@ type Blob struct {
 	Version uint64
 }
 
+type SearchFilter struct {
+	NetworkID *string
+}
+
 // BlobStorageFactory is an API to create a storage API bound to a transaction.
 type BlobStorageFactory interface {
 	InitializeFactory() error
@@ -60,11 +64,10 @@ type TransactionalBlobStorage interface {
 	// storage implementation.
 	CreateOrUpdate(networkID string, blobs []Blob) error
 
-	// CreateWithUniqueKeys creates blobs. It ensures its keys are unique
-	// across networks. The Version field of Blobs passed in here is
-	// ignored - all version incrementation is done internally inside the
-	// storage implementation.
-	CreateWithUniqueKeys(networkID string, blob []Blob) error
+	// FilterExistingKeys takes in a list of keys and returns a list of keys
+	// that exist from the input. The filter specifies whether to look at the
+	// entire storage or just in a network.
+	FilterExistingKeys(keys []string, filter SearchFilter) ([]string, error)
 
 	// Delete deletes specified blobs from storage.
 	Delete(networkID string, ids []storage.TypeAndKey) error
