@@ -15,7 +15,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/protos"
-	stateservice "magma/orc8r/cloud/go/services/state"
+	state_service "magma/orc8r/cloud/go/services/state"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -114,12 +114,12 @@ func (srv *stateServicer) DeleteStates(context context.Context, req *protos.Dele
 	return ret, store.Commit()
 }
 
-func addAdditionalInfo(state *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
-	wrap := stateservice.StateValue{
-		ReporterID:         hwID,
-		Time:               time,
-		CertExpirationTime: certExpiry,
-		ReportedValue:      state.Value,
+func wrapStateWithAdditionalInfo(state *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
+	wrap := state_service.SerializedStateWithMeta{
+		ReporterID:              hwID,
+		Time:                    time,
+		CertExpirationTime:      certExpiry,
+		SerializedReportedState: state.Value,
 	}
 	return json.Marshal(wrap)
 }
@@ -127,7 +127,7 @@ func addAdditionalInfo(state *protos.State, hwID string, time uint64, certExpiry
 func addWrapperAndMakeBlobs(states []*protos.State, hwID string, time uint64, certExpiry int64) ([]blobstore.Blob, error) {
 	blobs := []blobstore.Blob{}
 	for _, state := range states {
-		wrappedValue, err := addAdditionalInfo(state, hwID, time, certExpiry)
+		wrappedValue, err := wrapStateWithAdditionalInfo(state, hwID, time, certExpiry)
 		if err != nil {
 			return nil, err
 		}

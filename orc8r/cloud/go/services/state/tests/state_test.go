@@ -39,7 +39,6 @@ const (
 )
 
 type stateBundle struct {
-	value interface{}
 	state *protos.State
 	ID    state.StateID
 }
@@ -48,7 +47,7 @@ func makeStateBundle(typeVal string, key string, value interface{}) stateBundle 
 	marshaledValue, _ := json.Marshal(value)
 	ID := state.StateID{Type: typeVal, DeviceID: key}
 	state := protos.State{Type: typeVal, DeviceID: key, Value: marshaledValue}
-	return stateBundle{state: &state, ID: ID, value: value}
+	return stateBundle{state: &state, ID: ID}
 }
 
 func TestStateService(t *testing.T) {
@@ -169,10 +168,12 @@ func reportStates(ctx context.Context, bundles ...stateBundle) (*protos.ReportSt
 	return response, err
 }
 
-func testGetStatesResponse(t *testing.T, states map[state.StateID]state.StateValue, bundles ...stateBundle) {
+func testGetStatesResponse(t *testing.T, states map[state.StateID]state.State, bundles ...stateBundle) {
 	for _, bundle := range bundles {
 		value := states[bundle.ID]
-		assert.Equal(t, bundle.state.Value, value.ReportedValue)
+		iState, err := serde.Deserialize(state.SerdeDomain, bundle.ID.Type, bundle.state.Value)
+		assert.NoError(t, err)
+		assert.Equal(t, iState, value.ReportedState)
 	}
 }
 
