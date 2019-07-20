@@ -150,6 +150,10 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 	if err != nil {
 		return nil, err
 	}
+	if state.ReportedState == nil {
+		return nil, errors.ErrNotFound
+	}
+
 	gwStatus := state.ReportedState.(models.GatewayStatus)
 	gwStatus.CheckinTime = state.Time
 	gwStatus.CertExpirationTime = state.CertExpirationTime

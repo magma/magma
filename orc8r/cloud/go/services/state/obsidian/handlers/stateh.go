@@ -11,6 +11,7 @@ package handlers
 import (
 	"net/http"
 
+	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/state"
 
@@ -37,8 +38,11 @@ func AGStatusByDeviceIDHandler(c echo.Context) error {
 	}
 	deviceID := c.Param("device_id")
 	gwStatusModel, err := state.GetGatewayStatus(networkID, deviceID)
+	if err == errors.ErrNotFound || gwStatusModel == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, &gwStatusModel)

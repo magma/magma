@@ -11,6 +11,7 @@ package handlers
 import (
 	"net/http"
 
+	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/magmad"
@@ -43,8 +44,11 @@ func GetObsidianHandlers() []handlers.Handler {
 				}
 				hwid := gwRecord.HwId.Id
 				gwStatus, err := state.GetGatewayStatus(networkID, hwid)
+				if err == errors.ErrNotFound || gwStatus == nil {
+					return c.NoContent(http.StatusNotFound)
+				}
 				if err != nil {
-					return handlers.HttpError(err, http.StatusNotFound)
+					return handlers.HttpError(err, http.StatusInternalServerError)
 				}
 				return c.JSON(http.StatusOK, &gwStatus)
 			},
@@ -60,8 +64,11 @@ func GetObsidianHandlers() []handlers.Handler {
 					return handlers.HttpError(err, http.StatusNotFound)
 				}
 				gwStatus, err := state.GetGatewayStatus(networkID, gwPhysicalID)
+				if err == errors.ErrNotFound || gwStatus == nil {
+					return c.NoContent(http.StatusNotFound)
+				}
 				if err != nil {
-					return handlers.HttpError(err, http.StatusNotFound)
+					return handlers.HttpError(err, http.StatusInternalServerError)
 				}
 				return c.JSON(http.StatusOK, &gwStatus)
 			},
