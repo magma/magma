@@ -21,6 +21,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 const (
@@ -209,43 +210,38 @@ func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) erro
 	return nil
 }
 
-func (store *sqlBlobStorage) CreateWithUniqueKeys(networkID string, blobs []Blob) error {
+func (store *sqlBlobStorage) FilterExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
 	if err := store.validateTx(); err != nil {
-		return err
-	}
-	whereConditions := make(sq.Or, 0, len(blobs))
-	for _, id := range blobs {
-		// Use explicit sq.And to preserve ordering of clauses for testing
-		whereConditions = append(whereConditions, sq.And{
-			sq.Eq{keyCol: id.Key},
-		})
+		return nil, err
 	}
 
-	rows, err := store.builder.Select(keyCol).From(store.tableName).
+	whereConditions := make(sq.Or, 0, len(keys))
+	for _, key := range keys {
+		and := sq.And{sq.Eq{keyCol: key}}
+		if funk.NotEmpty(filter.NetworkID) {
+			and = append(and, sq.Eq{nidCol: filter.NetworkID})
+		}
+
+		whereConditions = append(whereConditions, and)
+	}
+	rows, err := store.builder.Select(keyCol).Distinct().From(store.tableName).
 		Where(whereConditions).
 		RunWith(store.tx).
 		Query()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer sqorc.CloseRowsLogOnError(rows, "CreateWithUniqueKeys")
+	defer sqorc.CloseRowsLogOnError(rows, "FilterExistingKeys")
 	scannedKeys := []string{}
 	for rows.Next() {
 		var key string
 		err = rows.Scan(&key)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		scannedKeys = append(scannedKeys, key)
 	}
-	if len(scannedKeys) > 0 {
-		return fmt.Errorf("Keys %v are already registered", scannedKeys)
-	}
-	err = store.insertNewBlobs(networkID, blobs)
-	if err != nil {
-		return err
-	}
-	return nil
+	return scannedKeys, nil
 }
 
 func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {

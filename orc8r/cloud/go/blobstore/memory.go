@@ -43,6 +43,8 @@ type blobsByID map[storage.TypeAndKey]Blob
 // blobTable maps networkIDs to a map of Blobs
 type blobTable map[tNetworkID]blobsByID
 
+type keySet map[string]interface{}
+
 type memoryBlobStorage struct {
 	// guards both transactionExists flag and changes
 	sync.RWMutex
@@ -64,6 +66,13 @@ type memoryBlobStoreFactory struct {
 	sync.RWMutex
 	table blobTable
 }
+
+type networkIDAndTK struct {
+	networkID  string
+	typeAndKey storage.TypeAndKey
+}
+
+type nIDAndTKSet map[networkIDAndTK]interface{}
 
 // NewMemoryBlobStorageFactory returns a BlobStorageFactory implementation
 // which will return storage APIs backed by an in-memory map.
@@ -189,32 +198,6 @@ func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) e
 	return nil
 }
 
-func (store *memoryBlobStorage) CreateWithUniqueKeys(networkID string, blobs []Blob) error {
-	store.Lock()
-	defer store.Unlock()
-
-	if err := store.validateTx(); err != nil {
-		return err
-	}
-
-	keySet := funk.Map(blobs, func(b Blob) (string, interface{}) { return b.Key, nil }).(map[string]interface{})
-	store.shared.RLock()
-	allKeysAreUnique, nonUniqueKeys := store.keyAreUniqueAcrossNetworks(keySet)
-	store.shared.RUnlock()
-	if !allKeysAreUnique {
-		return fmt.Errorf("Keys %v are already registered", nonUniqueKeys)
-	}
-
-	store.changes.initializeNetworkTable(networkID)
-	perNetworkLocalMap := store.changes[networkID]
-	for _, blob := range blobs {
-		id := blob.toID()
-		perNetworkLocalMap[id] = change{cType: CreateOrUpdate, blob: blob}
-	}
-
-	return nil
-}
-
 func (store *memoryBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	store.Lock()
 	defer store.Unlock()
@@ -228,6 +211,91 @@ func (store *memoryBlobStorage) Delete(networkID string, ids []storage.TypeAndKe
 		store.changes[networkID][id] = change{cType: Delete}
 	}
 	return nil
+}
+
+func (store *memoryBlobStorage) FilterExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
+	store.Lock()
+	defer store.Unlock()
+
+	if err := store.validateTx(); err != nil {
+		return nil, err
+	}
+	keySet := funk.Map(keys, func(k string) (string, interface{}) { return k, nil }).(map[string]interface{})
+	if funk.NotEmpty(filter.NetworkID) {
+		return store.filterExistingKeysInNetwork(*filter.NetworkID, keySet)
+	}
+	return store.filterExistingKeysAllNetworks(keySet)
+}
+
+func (store *memoryBlobStorage) filterExistingKeysInNetwork(networkID string, keySet keySet) ([]string, error) {
+	store.shared.RLock()
+	_, ok := store.shared.table[networkID]
+	if !ok {
+		store.shared.RUnlock()
+		return nil, fmt.Errorf("Network %s does not exist", networkID)
+	}
+	existingKeysSet := nIDAndTKSet{}
+	store.searchForKeysInNetworkShared(networkID, keySet, existingKeysSet)
+	store.shared.RUnlock()
+
+	_, ok = store.changes[networkID]
+	if ok {
+		store.updateSearchedKeysWithLocalChanges(networkID, keySet, existingKeysSet)
+	}
+	return existingKeysSet.sortAndRemoveDuplicate(), nil
+}
+
+func (store *memoryBlobStorage) filterExistingKeysAllNetworks(keys keySet) ([]string, error) {
+	store.shared.RLock()
+	existingKeysSet := store.searchForKeysInShared(keys)
+	store.shared.RUnlock()
+
+	for networkID := range store.changes {
+		store.updateSearchedKeysWithLocalChanges(networkID, keys, existingKeysSet)
+	}
+	return existingKeysSet.sortAndRemoveDuplicate(), nil
+}
+
+func (store *memoryBlobStorage) searchForKeysInShared(keySet keySet) nIDAndTKSet {
+	existingKeysSet := nIDAndTKSet{}
+	for networkID := range store.shared.table {
+		store.searchForKeysInNetworkShared(networkID, keySet, existingKeysSet)
+	}
+	return existingKeysSet
+}
+
+// existingKeysSet is also an outputting parameter
+func (store *memoryBlobStorage) searchForKeysInNetworkShared(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) {
+	for tk := range store.shared.table[networkID] {
+		if _, exists := keySet[tk.Key]; exists {
+			existingKeysSet[networkIDAndTK{networkID: networkID, typeAndKey: tk}] = nil
+		}
+	}
+}
+
+// existingKeysSet is also an outputting parameter
+func (store *memoryBlobStorage) updateSearchedKeysWithLocalChanges(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) error {
+	for tk, change := range store.changes[networkID] {
+		if _, exists := keySet[tk.Key]; exists {
+			id := networkIDAndTK{networkID: networkID, typeAndKey: tk}
+			switch change.cType {
+			case Delete:
+				delete(existingKeysSet, id)
+			case CreateOrUpdate:
+				existingKeysSet[id] = nil
+			default:
+				return fmt.Errorf("This transaction contains ill-formatted changes.")
+			}
+		}
+	}
+	return nil
+}
+
+func (set *nIDAndTKSet) sortAndRemoveDuplicate() []string {
+	deduped := funk.Map(*set, func(id networkIDAndTK, _ interface{}) (string, interface{}) { return id.typeAndKey.Key, nil }).(map[string]interface{})
+	keys := funk.Map(deduped, func(key string, _ interface{}) string { return key }).([]string)
+	sort.Strings(keys)
+	return keys
 }
 
 // Must be called with read lock on change map.
@@ -352,18 +420,6 @@ func (store *memoryBlobStorage) updateBlobsWithLocalChangesUnsafe(networkID stri
 		}
 	}
 	return blobsByID.toBlobList(), nil
-}
-
-func (store *memoryBlobStorage) keyAreUniqueAcrossNetworks(keySet map[string]interface{}) (bool, []string) {
-	keysThatAlreadyExist := []string{}
-	for _, blobsByID := range store.shared.table {
-		for tk := range blobsByID {
-			if _, exists := keySet[tk.Key]; exists {
-				keysThatAlreadyExist = append(keysThatAlreadyExist, tk.Key)
-			}
-		}
-	}
-	return len(keysThatAlreadyExist) == 0, keysThatAlreadyExist
 }
 
 // Adds a field if it doesn't exist already.
