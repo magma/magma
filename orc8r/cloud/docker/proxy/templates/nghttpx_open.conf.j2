@@ -27,6 +27,20 @@ host-rewrite=yes
 backend-address-family=IPv4
 {% endif -%}
 
+{% if 'HTTP_PROXY_DOCKER_HOSTNAME' in env and env['HTTP_PROXY_DOCKER_HOSTNAME']|length > 0 -%}
+# HTTP proxy config to forward HTTP requests for docker images
+backend=localhost,3128;{{ env['HTTP_PROXY_DOCKER_HOSTNAME'] }}
+host-rewrite=yes
+backend-address-family=IPv4
+{% endif -%}
+
+{% if 'HTTP_PROXY_GITHUB_HOSTNAME' in env and env['HTTP_PROXY_GITHUB_HOSTNAME']|length > 0 -%}
+# HTTP proxy config to forward HTTP requests for github
+backend=localhost,3128;{{ env['HTTP_PROXY_GITHUB_HOSTNAME'] }}
+host-rewrite=yes
+backend-address-family=IPv4
+{% endif -%}
+
 # Magma services
 {% for backend in proxy_backends.split(',') -%}
 {% for service, value in service_registry.items() -%}
