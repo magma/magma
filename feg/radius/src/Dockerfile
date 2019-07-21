@@ -4,6 +4,7 @@ COPY radius/src /src/radius
 COPY radius/src/config/samples/radius.cwf.config.json.template /src/radius/radius.config.json.template
 COPY radius/lib/go/ /src/lib/go
 WORKDIR /src/radius
+ENV GOPROXY https://proxy.golang.org
 RUN go mod download
 RUN ./run.sh build 
 
