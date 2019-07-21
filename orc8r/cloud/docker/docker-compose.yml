@@ -37,6 +37,8 @@ services:
       PROXY_BACKENDS: controller  # Uses Docker internal DNS for controller
       # HTTP_PROXY_HOSTNAME: proxy.magma.test
       # HTTP_PROXY_BACKEND: www.magma.test
+      HTTP_PROXY_DOCKER_HOSTNAME: docker.io
+      HTTP_PROXY_GITHUB_HOSTNAME: github.com
       TEST_MODE: "1"  # Used to run dev scripts on startup
     restart: always
 

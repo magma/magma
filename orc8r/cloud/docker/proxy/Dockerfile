@@ -13,7 +13,8 @@ RUN apt-get update && \
         libssl-dev libev-dev libevent-dev libjansson-dev libjemalloc-dev libc-ares-dev magma-nghttpx=1.31.1-1 \
         daemontools \
         supervisor \
-        python3-pip
+        python3-pip \
+        squid
 
 # Install python3 deps from pip
 RUN pip3 install PyYAML jinja2
@@ -28,6 +29,7 @@ COPY configs /etc/magma/configs
 COPY ${PROXY_FILES}/templates /etc/magma/templates
 COPY ${PROXY_FILES}/magma_headers.rb /etc/nghttpx/magma_headers.rb
 COPY ${PROXY_FILES}/run_nghttpx.py /usr/local/bin/run_nghttpx.py
+COPY ${PROXY_FILES}/squid.conf /etc/squid/squid.conf
 COPY ${PROXY_FILES}/create_test_proxy_certs /usr/local/bin/create_test_proxy_certs
 
 # Copy the supervisor configs
