@@ -10,6 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import asyncio
+import os
 import subprocess
 from datetime import datetime
 
@@ -57,7 +58,14 @@ class GenericHealthChecker:
         res = {service_name: Errors(log_level=configs[service_name]['logLevel'],
                                     error_count=0)
                for service_name in service_names}
-        with open('/var/log/syslog', 'r') as f:
+
+        syslog_path = '/var/log/syslog'
+        if not os.access(syslog_path, os.R_OK):
+            raise PermissionError('syslog is not readable. '
+                                  'Try `sudo chmod a+r {}`.'
+                                  'Or execute the command with sudo '
+                                  'permissions: `venvsudo`'.format(syslog_path))
+        with open(syslog_path, 'r') as f:
             for line in f:
                 for service_name in service_names:
                     if service_name not in line:
@@ -93,6 +101,10 @@ class GenericHealthChecker:
                     stdout=subprocess.PIPE)
 
                 time_running, error = process.communicate()
+                if error:
+                    raise ValueError('Cannot get time running for the service '
+                                     '{} `ps -o etime= -p {}`'
+                                     .format(service_name, pid))
             else:
                 time_running = b'00'
 
@@ -112,6 +124,7 @@ class GenericHealthChecker:
         asyncio.set_event_loop(service.loop)
 
         # noinspection PyProtectedMember
+        # pylint: disable=protected-access
         async def fetch_info():
             restart_frequencies = {}
             await service_poller._get_service_info()
