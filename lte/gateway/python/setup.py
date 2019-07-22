@@ -69,7 +69,9 @@ setup(
     install_requires=[
         'Cython>=0.29.1',
         'pystemd==0.5.0',
-        'fire>=0.1.3',
+        # Waiting for a new fire release (v0.1.3 is too old)
+        'fire @ git+https://www.github.com/google/python-fire@'
+        '024fbad9424cfdb0d3c93c86c856aedbac0f9d48',
         'envoy>=0.0.3',
         # lxml required by spyne.
         'lxml==4.2.1',
