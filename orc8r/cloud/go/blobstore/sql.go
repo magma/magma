@@ -210,7 +210,7 @@ func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) erro
 	return nil
 }
 
-func (store *sqlBlobStorage) FilterExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
+func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
 	if err := store.validateTx(); err != nil {
 		return nil, err
 	}
@@ -231,7 +231,7 @@ func (store *sqlBlobStorage) FilterExistingKeys(keys []string, filter SearchFilt
 	if err != nil {
 		return nil, err
 	}
-	defer sqorc.CloseRowsLogOnError(rows, "FilterExistingKeys")
+	defer sqorc.CloseRowsLogOnError(rows, "GetExistingKeys")
 	scannedKeys := []string{}
 	for rows.Next() {
 		var key string

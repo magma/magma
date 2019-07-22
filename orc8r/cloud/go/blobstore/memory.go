@@ -213,7 +213,7 @@ func (store *memoryBlobStorage) Delete(networkID string, ids []storage.TypeAndKe
 	return nil
 }
 
-func (store *memoryBlobStorage) FilterExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
+func (store *memoryBlobStorage) GetExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
 	store.Lock()
 	defer store.Unlock()
 
@@ -222,12 +222,12 @@ func (store *memoryBlobStorage) FilterExistingKeys(keys []string, filter SearchF
 	}
 	keySet := funk.Map(keys, func(k string) (string, interface{}) { return k, nil }).(map[string]interface{})
 	if funk.NotEmpty(filter.NetworkID) {
-		return store.filterExistingKeysInNetwork(*filter.NetworkID, keySet)
+		return store.getExistingKeysInNetwork(*filter.NetworkID, keySet)
 	}
-	return store.filterExistingKeysAllNetworks(keySet)
+	return store.getExistingKeysAllNetworks(keySet)
 }
 
-func (store *memoryBlobStorage) filterExistingKeysInNetwork(networkID string, keySet keySet) ([]string, error) {
+func (store *memoryBlobStorage) getExistingKeysInNetwork(networkID string, keySet keySet) ([]string, error) {
 	store.shared.RLock()
 	_, ok := store.shared.table[networkID]
 	if !ok {
@@ -235,7 +235,7 @@ func (store *memoryBlobStorage) filterExistingKeysInNetwork(networkID string, ke
 		return nil, fmt.Errorf("Network %s does not exist", networkID)
 	}
 	existingKeysSet := nIDAndTKSet{}
-	store.searchForKeysInNetworkShared(networkID, keySet, existingKeysSet)
+	store.getExistingKeysAllNetworksFromShared(networkID, keySet, existingKeysSet)
 	store.shared.RUnlock()
 
 	_, ok = store.changes[networkID]
@@ -245,9 +245,9 @@ func (store *memoryBlobStorage) filterExistingKeysInNetwork(networkID string, ke
 	return existingKeysSet.sortAndRemoveDuplicate(), nil
 }
 
-func (store *memoryBlobStorage) filterExistingKeysAllNetworks(keys keySet) ([]string, error) {
+func (store *memoryBlobStorage) getExistingKeysAllNetworks(keys keySet) ([]string, error) {
 	store.shared.RLock()
-	existingKeysSet := store.searchForKeysInShared(keys)
+	existingKeysSet := store.getExistingKeysFromShared(keys)
 	store.shared.RUnlock()
 
 	for networkID := range store.changes {
@@ -256,16 +256,16 @@ func (store *memoryBlobStorage) filterExistingKeysAllNetworks(keys keySet) ([]st
 	return existingKeysSet.sortAndRemoveDuplicate(), nil
 }
 
-func (store *memoryBlobStorage) searchForKeysInShared(keySet keySet) nIDAndTKSet {
+func (store *memoryBlobStorage) getExistingKeysFromShared(keySet keySet) nIDAndTKSet {
 	existingKeysSet := nIDAndTKSet{}
 	for networkID := range store.shared.table {
-		store.searchForKeysInNetworkShared(networkID, keySet, existingKeysSet)
+		store.getExistingKeysAllNetworksFromShared(networkID, keySet, existingKeysSet)
 	}
 	return existingKeysSet
 }
 
 // existingKeysSet is also an outputting parameter
-func (store *memoryBlobStorage) searchForKeysInNetworkShared(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) {
+func (store *memoryBlobStorage) getExistingKeysAllNetworksFromShared(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) {
 	for tk := range store.shared.table[networkID] {
 		if _, exists := keySet[tk.Key]; exists {
 			existingKeysSet[networkIDAndTK{networkID: networkID, typeAndKey: tk}] = nil
