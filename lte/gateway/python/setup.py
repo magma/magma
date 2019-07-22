@@ -29,6 +29,7 @@ setup(
         'magma.enodebd.devices.experimental',
         'magma.enodebd.state_machines',
         'magma.enodebd.tr069',
+        'magma.health',
         'magma.mobilityd',
         'magma.pipelined',
         'magma.pipelined.app',
