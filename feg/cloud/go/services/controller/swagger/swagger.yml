@@ -250,6 +250,7 @@ definitions:
             example:
             - S6A_PROXY
             - SESSION_PROXY
+            x-go-custom-tag: 'magma_alt_name:"RequiredServices"'
           update_interval_secs:
             type: integer
             format: uint32
@@ -258,10 +259,12 @@ definitions:
             type: integer
             format: uint32
             example: 10
+            x-go-custom-tag: 'magma_alt_name:"CloudDisconnectPeriodSecs"'
           local_disable_period_secs:
             type: integer
             format: uint32
             example: 1
+            x-go-custom-tag: 'magma_alt_name:"LocalDisconnectPeriodSecs"'
           update_failure_threshold:
             type: integer
             format: uint32
