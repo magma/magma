@@ -49,6 +49,7 @@ setup(
     install_requires=[
         'Cython>=0.29.1',
         'pystemd==0.5.0',
+        'docker>=4.0.2',
         'fire>=0.1.3',
         'aioh2==0.2.2',
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
