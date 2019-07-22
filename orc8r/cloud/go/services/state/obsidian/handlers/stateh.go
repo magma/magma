@@ -18,13 +18,13 @@ import (
 	"github.com/labstack/echo"
 )
 
-const AgStatusUrl = handlers.NETWORKS_ROOT + "/:network_id/gateways/:device_id/gateway_status"
+const AgStatusURL = handlers.NETWORKS_ROOT + "/:network_id/gateways/:gw_hardware_id/gateway_status"
 
 // GetObsidianHandlers returns all handlers for state
 func GetObsidianHandlers() []handlers.Handler {
 	return []handlers.Handler{
 		{
-			Path:        AgStatusUrl,
+			Path:        AgStatusURL,
 			Methods:     handlers.GET,
 			HandlerFunc: AGStatusByDeviceIDHandler,
 		},
@@ -36,7 +36,7 @@ func AGStatusByDeviceIDHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	deviceID := c.Param("device_id")
+	deviceID := c.Param("gw_hardware_id")
 	gwStatusModel, err := state.GetGatewayStatus(networkID, deviceID)
 	if err == errors.ErrNotFound || gwStatusModel == nil {
 		return c.NoContent(http.StatusNotFound)
