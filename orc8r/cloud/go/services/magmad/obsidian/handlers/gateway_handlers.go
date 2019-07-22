@@ -99,7 +99,7 @@ func createGateway(c echo.Context) error {
 		return fmt.Errorf("Hwid is already registered %s", record.HwID.ID)
 	}
 	// write into device
-	err := device.CreateOrUpdate(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
+	err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -197,7 +197,7 @@ func updateChallengeKey(networkID, gatewayID string, challengeKey *magmad_models
 		return fmt.Errorf("Info stored in deviceID %s is not of type AccessGatewayRecord", deviceID)
 	}
 	record.Key = challengeKey
-	return device.CreateOrUpdate(networkID, orc8r.AccessGatewayRecordType, deviceID, record)
+	return device.UpdateDevice(networkID, orc8r.AccessGatewayRecordType, deviceID, record)
 }
 
 func updateGatewayName(networkID, gatewayID, name string) error {

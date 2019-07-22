@@ -150,14 +150,14 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 
 	assert.NoError(t, store.Commit())
 
-	// Test FilterExistingKeys
+	// Test GetExistingKeys
 	store, err = fact.StartTransaction(nil)
-	existingKeys, err := store.FilterExistingKeys([]string{"k1", "k9", "k8"}, blobstore.SearchFilter{})
+	existingKeys, err := store.GetExistingKeys([]string{"k1", "k9", "k8"}, blobstore.SearchFilter{})
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k1", "k9"}, existingKeys)
 
 	network2 := "network2"
-	existingKeys, err = store.FilterExistingKeys([]string{"k1", "k3", "k4", "k9", "k8"}, blobstore.SearchFilter{NetworkID: &network2})
+	existingKeys, err = store.GetExistingKeys([]string{"k1", "k3", "k4", "k9", "k8"}, blobstore.SearchFilter{NetworkID: &network2})
 	t.Log(existingKeys)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"k3", "k4"}, existingKeys)

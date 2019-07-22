@@ -64,10 +64,10 @@ type TransactionalBlobStorage interface {
 	// storage implementation.
 	CreateOrUpdate(networkID string, blobs []Blob) error
 
-	// FilterExistingKeys takes in a list of keys and returns a list of keys
+	// GetExistingKeys takes in a list of keys and returns a list of keys
 	// that exist from the input. The filter specifies whether to look at the
 	// entire storage or just in a network.
-	FilterExistingKeys(keys []string, filter SearchFilter) ([]string, error)
+	GetExistingKeys(keys []string, filter SearchFilter) ([]string, error)
 
 	// Delete deletes specified blobs from storage.
 	Delete(networkID string, ids []storage.TypeAndKey) error

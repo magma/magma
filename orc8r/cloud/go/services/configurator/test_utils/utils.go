@@ -35,7 +35,7 @@ func RegisterGateway(t *testing.T, networkID string, gatewayID string, record *m
 			t.Fatalf("Hwid is already registered %s", record.HwID.ID)
 		}
 		// write into device
-		err := device.CreateOrUpdate(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
+		err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
 		assert.NoError(t, err)
 
 		gwEntity = configurator.NetworkEntity{
