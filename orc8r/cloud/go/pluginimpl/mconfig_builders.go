@@ -40,18 +40,20 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 		return errors.WithStack(err)
 	}
 
-	magmadGatewayConfig := magmadGateway.Config.(*models2.MagmadGatewayConfig)
-	mconfigOut["magmad"] = &mconfig.MagmaD{
-		LogLevel:                protos.LogLevel_INFO,
-		CheckinInterval:         magmadGatewayConfig.CheckinInterval,
-		CheckinTimeout:          magmadGatewayConfig.CheckinTimeout,
-		AutoupgradeEnabled:      magmadGatewayConfig.AutoupgradeEnabled,
-		AutoupgradePollInterval: magmadGatewayConfig.AutoupgradePollInterval,
-		PackageVersion:          version,
-		Images:                  images,
-		TierId:                  magmadGatewayConfig.Tier,
-		DynamicServices:         magmadGatewayConfig.DynamicServices,
-		FeatureFlags:            magmadGatewayConfig.FeatureFlags,
+	if magmadGateway.Config != nil {
+		magmadGatewayConfig := magmadGateway.Config.(*models2.MagmadGatewayConfig)
+		mconfigOut["magmad"] = &mconfig.MagmaD{
+			LogLevel:                protos.LogLevel_INFO,
+			CheckinInterval:         magmadGatewayConfig.CheckinInterval,
+			CheckinTimeout:          magmadGatewayConfig.CheckinTimeout,
+			AutoupgradeEnabled:      magmadGatewayConfig.AutoupgradeEnabled,
+			AutoupgradePollInterval: magmadGatewayConfig.AutoupgradePollInterval,
+			PackageVersion:          version,
+			Images:                  images,
+			TierId:                  magmadGatewayConfig.Tier,
+			DynamicServices:         magmadGatewayConfig.DynamicServices,
+			FeatureFlags:            magmadGatewayConfig.FeatureFlags,
+		}
 	}
 
 	mconfigOut["control_proxy"] = &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO}
