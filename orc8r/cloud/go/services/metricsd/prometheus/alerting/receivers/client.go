@@ -87,8 +87,15 @@ func (c *Client) ModifyNetworkRoute(route *config.Route, networkID string) error
 	}
 	// ensure base route is valid base route for this network
 	route.Receiver = makeBaseRouteName(networkID)
-	route.Match = map[string]string{exporters.NetworkLabelNetwork: networkID}
+	if route.Match == nil {
+		route.Match = map[string]string{}
+	}
+	route.Match[exporters.NetworkLabelNetwork] = networkID
+
 	for _, childRoute := range route.Routes {
+		if childRoute == nil {
+			continue
+		}
 		secureRoute(childRoute, networkID)
 	}
 
@@ -139,9 +146,12 @@ func (c *Client) readConfigFile() (*Config, error) {
 
 func (c *Client) writeConfigFile(conf *Config) error {
 	yamlFile, err := yaml.Marshal(conf)
+	if err != nil {
+		return fmt.Errorf("error marshaling config file: %v", err)
+	}
 	err = ioutil.WriteFile(c.configPath, yamlFile, 0660)
 	if err != nil {
-		return fmt.Errorf("error writing config file: %v\n", yamlFile)
+		return fmt.Errorf("error writing config file: %v", err)
 	}
 	return nil
 }
