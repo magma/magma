@@ -39,7 +39,7 @@ func GetConfigurePrometheusAlertHandler(webServerURL string) func(c echo.Context
 		if nerr != nil {
 			return nerr
 		}
-		url := webServerURL + "/" + networkID + "/alert"
+		url := alertConfigURL(webServerURL, networkID)
 		return configurePrometheusAlert(c, url, networkID)
 	}
 }
@@ -50,7 +50,7 @@ func GetRetrieveAlertRuleHandler(webServerURL string) func(c echo.Context) error
 		if nerr != nil {
 			return nerr
 		}
-		url := webServerURL + "/" + networkID + "/alert"
+		url := alertConfigURL(webServerURL, networkID)
 		return retrieveAlertRule(c, url)
 	}
 }
@@ -61,7 +61,7 @@ func GetDeleteAlertRuleHandler(webServerURL string) func(c echo.Context) error {
 		if nerr != nil {
 			return nerr
 		}
-		url := webServerURL + "/" + networkID + "/alert"
+		url := alertConfigURL(webServerURL, networkID)
 		return deleteAlertRule(c, url)
 	}
 }
@@ -79,22 +79,22 @@ func GetViewFiringAlertHandler(alertmanagerURL string) func(c echo.Context) erro
 func configurePrometheusAlert(c echo.Context, url, networkID string) error {
 	rule, err := buildRuleFromContext(c)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return handlers.HttpError(fmt.Errorf("misconfigured rule: %v", err), http.StatusBadRequest)
 	}
 
 	err = alert.SecureRule(&rule, networkID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 
 	errs := rule.Validate()
 	if len(errs) != 0 {
-		return handlers.HttpError(fmt.Errorf("Invalid rule: %v\n", errs), http.StatusBadRequest)
+		return handlers.HttpError(fmt.Errorf("invalid rule: %v\n", errs), http.StatusBadRequest)
 	}
 
 	err = sendConfig(rule, url)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return err
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)
 }
@@ -108,14 +108,14 @@ func sendConfig(payload interface{}, url string) error {
 	client := &http.Client{}
 	resp, err := client.Post(url, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		return err
+		return fmt.Errorf("Error making post request: %v\n", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body := echo.HTTPError{}
-		err = json.NewDecoder(resp.Body).Decode(&body)
-		return handlers.HttpError(fmt.Errorf("server error: %v, code: %v", body.Message, body.Internal), http.StatusInternalServerError)
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error writing config: %v", body.Message), resp.StatusCode)
 	}
 	return nil
 }
@@ -126,25 +126,23 @@ func retrieveAlertRule(c echo.Context, url string) error {
 		url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, alertName)
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return err
-	}
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := client.Get(url)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return handlers.HttpError(fmt.Errorf("alert server responded with error"), resp.StatusCode)
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error reading rules: %v", body.Message), resp.StatusCode)
 	}
 
 	var rules []alert.RuleJSONWrapper
 	err = json.NewDecoder(resp.Body).Decode(&rules)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding server response: %v", err))
+		return handlers.HttpError(fmt.Errorf("error decoding server response: %v", err), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, rules)
 }
@@ -152,7 +150,7 @@ func retrieveAlertRule(c echo.Context, url string) error {
 func deleteAlertRule(c echo.Context, url string) error {
 	alertName := c.QueryParam(AlertNameQueryParam)
 	if alertName == "" {
-		return handlers.HttpError(fmt.Errorf("alert Name not provided"), http.StatusBadRequest)
+		return handlers.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
 	}
 	url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, alertName)
 
@@ -169,7 +167,9 @@ func deleteAlertRule(c echo.Context, url string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return handlers.HttpError(fmt.Errorf("alert server responded with error"), resp.StatusCode)
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error deleting rule: %v", body.Message), resp.StatusCode)
 	}
 	return c.JSON(http.StatusOK, nil)
 }
@@ -185,7 +185,7 @@ func viewFiringAlerts(c echo.Context, networkID, alertmanagerApiURL string) erro
 	var alerts []models.GettableAlert
 	err = json.NewDecoder(resp.Body).Decode(&alerts)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding alertmanager response: %v", err))
+		return handlers.HttpError(fmt.Errorf("error decoding alertmanager response: %v", err), http.StatusInternalServerError)
 	}
 	networkAlerts := getAlertsForNetwork(networkID, alerts)
 	return c.JSON(http.StatusOK, networkAlerts)
@@ -223,4 +223,8 @@ func buildRuleFromContext(c echo.Context) (rulefmt.Rule, error) {
 		Annotations: jsonRule.Annotations,
 	}
 	return rule, nil
+}
+
+func alertConfigURL(hostName, networkID string) string {
+	return hostName + "/" + networkID + "/alert"
 }

@@ -41,7 +41,7 @@ func (f *File) GetRule(rulename string) (*rulefmt.Rule, error) {
 			return &rule, nil
 		}
 	}
-	return nil, fmt.Errorf("could not find rule: %s", rulename)
+	return nil, fmt.Errorf("could not find rule '%s'", rulename)
 }
 
 // AddRule appends a new rule to the list of rules in this file

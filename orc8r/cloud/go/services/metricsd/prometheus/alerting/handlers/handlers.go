@@ -3,7 +3,6 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -26,16 +25,23 @@ func GetPostHandler(client *alert.Client, prometheusURL string) func(c echo.Cont
 	return func(c echo.Context) error {
 		rule, err := decodePostResponse(c)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		networkID := getNetworkID(c)
-		err = client.WriteAlert(rule, networkID)
+
+		err = client.ValidateRule(rule, networkID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
+
+		err = client.WriteRule(rule, networkID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
 		err = reloadPrometheus(prometheusURL)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)
 	}
@@ -47,12 +53,12 @@ func GetGetHandler(client *alert.Client) func(c echo.Context) error {
 		networkID := getNetworkID(c)
 		rules, err := client.ReadRules(ruleName, networkID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		jsonRules, err := rulesToJSON(rules)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, jsonRules)
 	}
@@ -63,17 +69,17 @@ func GetDeleteHandler(client *alert.Client, prometheusURL string) func(c echo.Co
 		ruleName := c.QueryParam(ruleNameQueryParam)
 		networkID := getNetworkID(c)
 		if ruleName == "" {
-			return echo.NewHTTPError(http.StatusBadRequest, errors.New("No rule name provided"))
+			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
 		}
 		err := client.DeleteRule(ruleName, networkID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		err = reloadPrometheus(prometheusURL)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, nil)
+		return c.String(http.StatusOK, fmt.Sprintf("rule %s deleted", ruleName))
 	}
 }
 
