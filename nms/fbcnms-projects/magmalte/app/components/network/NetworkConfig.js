@@ -39,21 +39,21 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   formContainer: {
-    paddingBottom: theme.spacing.unit * 2,
+    paddingBottom: theme.spacing(2),
   },
   formGroup: {
-    marginLeft: theme.spacing.unit * 2,
-    marginBottom: theme.spacing.unit * 2,
+    marginLeft: theme.spacing(2),
+    marginBottom: theme.spacing(2),
   },
   select: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(),
     minWidth: 200,
   },
   saveButton: {
-    marginTop: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
   },
   textField: {
-    marginRight: theme.spacing.unit,
+    marginRight: theme.spacing(),
   },
 });
 

@@ -2281,7 +2281,7 @@ declare module "@material-ui/core/styles/shape" {
 
 declare module "@material-ui/core/styles/spacing" {
   declare export type Spacing = {
-    unit: number
+    (unit?: number): number
   };
 
   declare export type SpacingOptions = $Shape<Spacing>;

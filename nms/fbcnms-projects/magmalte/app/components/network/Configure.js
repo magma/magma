@@ -32,7 +32,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
   tabs: {
     flex: 1,

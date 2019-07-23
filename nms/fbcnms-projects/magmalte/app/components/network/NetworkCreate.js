@@ -25,10 +25,10 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   container: {
-    marginTop: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
   },
   content: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
   },
 }));
 
