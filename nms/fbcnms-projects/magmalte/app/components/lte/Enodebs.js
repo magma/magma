@@ -132,7 +132,7 @@ class Enodebs extends React.Component<Props, State> {
               Add eNodeB
             </Button>
           </div>
-          <Paper>
+          <Paper elevation={2}>
             {enodebs ? (
               <Table>
                 <TableHead>

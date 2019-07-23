@@ -107,7 +107,7 @@ class Configure extends React.Component<Props, State> {
     return (
       <>
         <MagmaTopBar title="Configure" />
-        <Paper className={this.props.classes.paper}>
+        <Paper className={this.props.classes.paper} elevation={2}>
           <AppBar position="static" color="default">
             <Tabs
               value={currentTab}

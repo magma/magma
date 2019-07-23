@@ -67,7 +67,7 @@ class Settings extends React.Component<Props, State> {
         {({user, networkIds}) => (
           <>
             <MagmaTopBar title="Settings" />
-            <Paper className={this.props.classes.paper}>
+            <Paper className={this.props.classes.paper} elevation={2}>
               <AppBar position="static" color="default">
                 <Tabs
                   value={this.state.currentTab}

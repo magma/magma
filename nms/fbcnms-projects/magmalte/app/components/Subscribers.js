@@ -131,7 +131,7 @@ class Subscribers extends React.Component<Props, State> {
               Add Subscriber
             </Button>
           </div>
-          <Paper>
+          <Paper elevation={2}>
             {this.state.loading ? (
               <LoadingFiller />
             ) : (

@@ -74,7 +74,7 @@ export default function NetworkCreate() {
         <Grid container spacing={3}>
           <Grid item xs />
           <Grid item xs={6}>
-            <Paper className={classes.content}>
+            <Paper className={classes.content} elevation={2}>
               <DialogTitle>Create Network</DialogTitle>
               <DialogContent>
                 <FormGroup row>
