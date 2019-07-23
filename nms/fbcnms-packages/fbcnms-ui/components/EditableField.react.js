@@ -105,7 +105,6 @@ export default function EditableField(props: Props) {
         ) : (
           <TextField
             defaultValue={props.value || ''}
-            fullWidth={true}
             className={classes.input}
             variant="outlined"
             margin="dense"

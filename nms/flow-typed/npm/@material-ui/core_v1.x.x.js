@@ -2202,15 +2202,6 @@ declare module "@material-ui/core/styles/createTypography" {
     | "srOnly"
     | "inherit"
 
-    // deprecated
-    | "display1"
-    | "display2"
-    | "display3"
-    | "display4"
-    | "headline"
-    | "title"
-    | "subheading"
-
   declare type FontStyle = {
     fontFamily: $PropertyType<CSSProperties, "fontFamily">,
     fontSize: $PropertyType<CSSProperties, "fontSize">,
@@ -2608,7 +2599,8 @@ declare module "@material-ui/core/TableBody/TableBody" {
 declare module "@material-ui/core/TableCell/TableCell" {
   import type {ComponentType, ElementType, Node} from "react";
 
-  declare type Padding = "default" | "checkbox" | "dense" | "none";
+  declare type Padding = "default" | "checkbox" | "none";
+  declare type Size = "small" | "medium";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -2616,7 +2608,8 @@ declare module "@material-ui/core/TableCell/TableCell" {
     className?: string,
     component?: ElementType,
     numeric?: boolean,
-    padding?: Padding
+    padding?: Padding,
+    size?: Size
   }>;
 }
 
@@ -2756,11 +2749,9 @@ declare module "@material-ui/core/Tabs/Tabs" {
     children?: Node,
     classes?: Object,
     className?: string,
-    fullWidth?: boolean,
     indicatorClassName?: string,
     indicatorColor?: IndicatorColor,
     onChange?: (event: SyntheticEvent<*>, value: any) => void,
-    scrollable?: boolean,
     scrollButtons?: ScrollButtons,
     TabScrollButton?: ComponentType<*>,
     textColor?: TextColor,
@@ -3040,7 +3031,7 @@ declare module "@material-ui/core/Typography/Typography" {
     | "textPrimary"
     | "textSecondary"
     | "error"
-    | "default";
+    | "initial";
 
   declare export type TypographyProps = {
     align?: Align,
