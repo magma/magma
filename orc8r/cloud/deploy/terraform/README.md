@@ -93,20 +93,6 @@ kubectl apply -f config-map-aws-auth_orc8r.yaml
 kubectl create namespace magma
 ```
 
-Label the EKS worker nodes appropriately, so we can schedule the metrics pod on
-the metrics worker and the Orchestrator pods on the Orchestrator worker nodes:
-
-```bash
-export AWS_DEFAULT_REGION=...
-aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-worker-node \
-  --query 'Reservations[].Instances[].[PrivateDnsName]' --output text \
-  | xargs -I % kubectl -n magma label nodes % worker-type=controller --overwrite
-
-aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-prometheus-node \
-  --query 'Reservations[].Instances[].[PrivateDnsName]' --output text \
-  | xargs -I % kubectl -n magma label nodes % worker-type=metrics --overwrite
-```
-
 At this point, if everything succeeded, you're ready to move on to the initial
 Helm deployment. Follow the README in `magma/orc8r/cloud/helm`.
 

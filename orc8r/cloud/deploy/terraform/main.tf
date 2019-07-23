@@ -75,6 +75,7 @@ module "eks" {
       instance_type        = "m4.xlarge"
       asg_desired_capacity = 3
       key_name             = var.key_name
+      kubelet_extra_args   = "--node-labels=worker-type=controller"
 
       tags = [
         {
@@ -89,6 +90,7 @@ module "eks" {
       instance_type        = "t2.xlarge"
       asg_desired_capacity = 1
       key_name             = var.key_name
+      kubelet_extra_args   = "--node-labels=worker-type=metrics"
 
       # we put the metrics nodes into 1 specific subnet because EBS volumes
       # can only be mounted into the same AZ
