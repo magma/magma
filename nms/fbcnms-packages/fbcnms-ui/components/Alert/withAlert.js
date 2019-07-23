@@ -34,11 +34,11 @@ export type DialogMapKey = DialogProps & {
 };
 
 export type WithAlert = {|
-  alert: (Node | Error, ?Node) => Promise<*>,
-  confirm: (Node | DialogProps) => Promise<*>,
+  alert: (Node | Error, ?Node) => Promise<boolean>,
+  confirm: (Node | DialogProps) => Promise<boolean>,
 |};
 
-function withAlert<TComponent: ComponentType<*>>(
+function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
   Component: TComponent,
 ): ComponentType<$Diff<ElementConfig<TComponent>, WithAlert>> {
   return class extends React.Component<
@@ -61,10 +61,10 @@ function withAlert<TComponent: ComponentType<*>>(
       this.setState({dialogs: this.state.dialogs.set(alert, false)});
     }
 
-    addDialog(props: DialogProps): Promise<*> {
+    addDialog(props: DialogProps): Promise<boolean> {
       let dialog: DialogMapKey;
       this.lastKey = this.lastKey + 1;
-      return new Promise<*>(resolve => {
+      return new Promise<boolean>(resolve => {
         dialog = {
           ...props,
           key: this.lastKey,
@@ -84,16 +84,20 @@ function withAlert<TComponent: ComponentType<*>>(
       });
     }
 
-    alert = (message: Node | Error, confirmLabel?: Node = 'Ok'): Promise<*> => {
+    alert = (
+      message: Node | Error,
+      confirmLabel?: Node = 'Ok',
+    ): Promise<boolean> => {
       return this.addDialog({
         message: message instanceof Error ? String(message) : message,
         confirmLabel,
       }).catch(() => {
         /* always resolve */
+        return false;
       });
     };
 
-    confirm = (messageOrProps: DialogProps | Node): Promise<*> => {
+    confirm = (messageOrProps: DialogProps | Node): Promise<boolean> => {
       let dialogProps: DialogProps;
       const confirmLabel = <>Confirm</>;
       const cancelLabel = <>Cancel</>;
