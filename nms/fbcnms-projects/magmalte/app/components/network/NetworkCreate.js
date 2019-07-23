@@ -71,7 +71,7 @@ export default function NetworkCreate() {
     <>
       <MagmaTopBar />
       <div className={classes.container}>
-        <Grid container spacing={24}>
+        <Grid container spacing={3}>
           <Grid item xs />
           <Grid item xs={6}>
             <Paper className={classes.content}>
