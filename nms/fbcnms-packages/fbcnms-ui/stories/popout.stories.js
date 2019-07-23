@@ -19,7 +19,7 @@ storiesOf('Popout', module).add('default', () => (
     <Popout
       content={
         <div style={{padding: 20}}>
-          <Typography>Content</Typography>
+          <Typography variant="body2">Content</Typography>
         </div>
       }>
       <Button variant="contained" color="primary">

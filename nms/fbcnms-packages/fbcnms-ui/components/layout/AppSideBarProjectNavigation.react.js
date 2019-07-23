@@ -134,7 +134,7 @@ export default function AppSideBarProjectNavigation(props: Props) {
                 })}
                 disabled={match.url.startsWith(item.url)}
                 onClick={_event => history.push(item.url)}>
-                <Typography className={classes.menuItemText}>
+                <Typography className={classes.menuItemText} variant="body2">
                   {item.secondary}
                 </Typography>
               </div>

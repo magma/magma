@@ -102,7 +102,7 @@ export default function NavListItem(props: Props) {
         placement="right"
         title={
           <>
-            <Typography className={classes.tooltipLabel}>
+            <Typography className={classes.tooltipLabel} variant="body2">
               {props.label}
             </Typography>
             <span className={classes.arrow} ref={handleArrowRef} />

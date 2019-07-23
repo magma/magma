@@ -162,7 +162,9 @@ class Subscribers extends React.Component<Props, State> {
           </Paper>
           <div
             style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
-            <Typography color="error">{this.state.errorMessage}</Typography>
+            <Typography color="error" variant="body2">
+              {this.state.errorMessage}
+            </Typography>
           </div>
           <AddEditSubscriberDialog
             key={(this.state.editingSubscriber || {}).id || 'new'}

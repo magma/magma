@@ -76,7 +76,7 @@ export default function EditableField(props: Props) {
     return (
       <div className={classes.root}>
         {props.value || props.editDisabled ? (
-          <Typography>{props.value}</Typography>
+          <Typography variant="body2">{props.value}</Typography>
         ) : (
           <Typography variant="body2" color="textSecondary">
             Set...

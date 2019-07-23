@@ -3041,7 +3041,7 @@ declare module "@material-ui/core/Typography/Typography" {
     component?: ElementType,
     color?: Color,
     gutterBottom?: boolean,
-    headlineMapping?: { [key: Variant]: string },
+    variantMapping?: { [key: Variant]: string },
     noWrap?: boolean,
     paragraph?: boolean,
     variant?: Variant
