@@ -1,7 +1,8 @@
 # ------------------------------------------------------------------------------
 # Base image (for tests, precommit, codegen, etc.)
 # ------------------------------------------------------------------------------
-FROM ubuntu:xenial as base
+ARG baseImage="ubuntu:xenial"
+FROM ${baseImage} as base
 
 # Install the runtime deps from apt
 RUN apt-get update && \
@@ -57,6 +58,12 @@ RUN . /etc/profile.d/env.sh && make tools
 FROM base as builder
 
 RUN . /etc/profile.d/env.sh && make build
+
+# -----------------------------------------------------------------------------
+# Go-cache base image
+# -----------------------------------------------------------------------------
+FROM ubuntu:xenial as gocache
+COPY --from=builder /root/.cache /root/.cache
 
 # ------------------------------------------------------------------------------
 # Production image
