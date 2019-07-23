@@ -17,6 +17,8 @@ import classNames from 'classnames';
 import {green, red} from '../theme/colors';
 import {makeStyles} from '@material-ui/styles';
 import {useSnackbar} from 'notistack';
+import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
+import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 
 export type WithSnackbarProps = {
   enqueueSnackbar: (message: string | React.Node, options?: Object) => null,
@@ -78,20 +80,20 @@ type Props = {
   id: number,
   message: string,
   variant: 'success' | 'error',
-};
+} & ForwardRef;
 
 const IconVariants = {
   error: ErrorIcon,
   success: CheckCircleIcon,
 };
 
-const SnackbarItem = (props: Props) => {
-  const {id, message, variant} = props;
+const SnackbarItem = withForwardRef((props: Props) => {
+  const {id, message, variant, fwdRef} = props;
   const classes = useStyles();
   const {closeSnackbar} = useSnackbar();
   const Icon = IconVariants[variant];
   return (
-    <div className={classes.root}>
+    <div className={classes.root} ref={fwdRef}>
       <div className={classNames(classes.bar, classes[variant + 'Bar'])} />
       <div className={classes.content}>
         <Icon className={classNames(classes.icon, classes[variant + 'Icon'])} />
@@ -103,6 +105,6 @@ const SnackbarItem = (props: Props) => {
       </div>
     </div>
   );
-};
+});
 
 export default SnackbarItem;

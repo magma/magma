@@ -33,13 +33,20 @@
  */
 
 import * as React from 'react';
+import type {AbstractComponent, ComponentType, ElementConfig, Ref} from 'react';
 
 export type ForwardRef = {|
-  fwdRef?: React.Ref<any>,
+  fwdRef?: Ref<any>,
 |};
 
-export function withForwardRef(Component: React.ComponentType<ForwardRef>) {
-  return React.forwardRef<ForwardRef, typeof Component>((props, ref) => {
+export function withForwardRef<
+  Props: ForwardRef,
+  TComponent: ComponentType<Props>,
+  Instance,
+>(
+  Component: TComponent,
+): AbstractComponent<$Diff<ElementConfig<TComponent>, ForwardRef>, Instance> {
+  return React.forwardRef<Props, Instance>((props, ref) => {
     return <Component fwdRef={ref} {...props} />;
   });
 }

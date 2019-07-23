@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import * as React from 'react';
 import {Link} from 'react-router-dom';
 
 import {makeStyles} from '@material-ui/styles';
@@ -25,7 +25,7 @@ type Props = {
   to: string,
 };
 
-export default function NestedRouteLink(props: Props) {
+function NestedRouteLink(props: Props, ref: React.Ref<any>) {
   const classes = useStyles();
   const {match} = useRouter();
   const {children, to, ...childProps} = props;
@@ -33,8 +33,14 @@ export default function NestedRouteLink(props: Props) {
   const base = match.url.replace(/\/$/, '');
   const url = to.replace(/^\//, '');
   return (
-    <Link className={classes.link} to={`${base}/${url}`} {...childProps}>
+    <Link
+      innerRef={ref}
+      className={classes.link}
+      to={`${base}/${url}`}
+      {...childProps}>
       {children}
     </Link>
   );
 }
+
+export default React.forwardRef<Props, typeof NestedRouteLink>(NestedRouteLink);
