@@ -74,7 +74,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 					codes.Unavailable,
 					"Cannot Create Session on Auth: accounting service is missing")
 			}
-			_, err = srv.accounting.CreateSession(ctx, in.Ctx)
+			_, err = srv.accounting.CreateSession(ctx, resp.Ctx)
 			if err != nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
 			}
