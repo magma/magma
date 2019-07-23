@@ -12,7 +12,7 @@
 
 - name: Add GPG key for magma repository
   apt_key:
-    file: "{{ magma_root }}/fb/manufacturing/preseed/pubkey.gpg"
+    url: http://packages.magma.etagecom.io/pubkey.gpg
     state: present
     id: 2E97854368E14ED8FB6F80903E838E02450E78EA
 
