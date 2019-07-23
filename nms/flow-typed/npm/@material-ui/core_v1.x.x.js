@@ -2401,7 +2401,7 @@ declare module "@material-ui/core/styles/withTheme" {
     innerRef: void | (Ref<any> | {current: ElementRef<any> | null})
   };
 
-  declare module.exports: () => <Props: {}, WrappedComponent: ComponentType<Props>>(
+  declare module.exports: <Props: {}, WrappedComponent: ComponentType<Props>>(
     Component: WrappedComponent
   ) => ComponentType<$Diff<ElementConfig<WrappedComponent>, WithThemeHOC>>;
 }

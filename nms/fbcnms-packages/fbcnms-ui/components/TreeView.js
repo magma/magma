@@ -411,4 +411,4 @@ class TreeView extends React.Component<Props, State> {
   }
 }
 
-export default withTheme()(withStyles(styles)(TreeView));
+export default withTheme(withStyles(styles)(TreeView));
