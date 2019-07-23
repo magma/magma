@@ -43,7 +43,7 @@ func main() {
 	e.POST(receiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
 	e.GET(receiverPath, handlers.GetGetReceiversHandler(receiverClient))
 
-	e.POST(receiverPath+"/route", handlers.GetUpdateRouteHandler(receiverClient))
+	e.POST(receiverPath+"/route", handlers.GetUpdateRouteHandler(receiverClient, *alertmanagerURL))
 	e.GET(receiverPath+"/route", handlers.GetGetRouteHandler(receiverClient))
 
 	glog.Infof("Alertmanager Config server listening on port: %s\n", *port)
