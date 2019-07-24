@@ -227,6 +227,43 @@ func (store *memoryBlobStorage) GetExistingKeys(keys []string, filter SearchFilt
 	return store.getExistingKeysAllNetworks(keySet)
 }
 
+func (store *memoryBlobStorage) IncrementVersion(networkID string, id storage.TypeAndKey) error {
+	store.Lock()
+	defer store.Unlock()
+
+	if err := store.validateTx(); err != nil {
+		return err
+	}
+
+	blob := Blob{
+		Type:    id.Type,
+		Key:     id.Key,
+		Version: 1,
+	}
+
+	store.shared.RLock()
+	master, ok := store.shared.table[networkID]
+	if ok {
+		sharedBlob, ok := master[id]
+		if ok {
+			blob.Version = sharedBlob.Version + 1
+			blob.Value = sharedBlob.Value
+		}
+	}
+	store.shared.RUnlock()
+
+	store.changes.initializeNetworkTable(networkID)
+	perNetworkLocalMap := store.changes[networkID]
+	storedChange, exists := perNetworkLocalMap[id]
+	if exists && storedChange.cType == CreateOrUpdate {
+		blob.Version = storedChange.blob.Version + 1
+		blob.Value = storedChange.blob.Value
+	}
+	perNetworkLocalMap[id] = change{cType: CreateOrUpdate, blob: blob}
+
+	return nil
+}
+
 func (store *memoryBlobStorage) getExistingKeysInNetwork(networkID string, keySet keySet) ([]string, error) {
 	store.shared.RLock()
 	_, ok := store.shared.table[networkID]

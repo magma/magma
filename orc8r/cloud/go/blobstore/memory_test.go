@@ -211,6 +211,34 @@ func TestMemoryBlobStorage_ListKeys(t *testing.T) {
 	assert.Equal(t, []string{key2}, keys)
 }
 
+func TestMemoryBlobStorageStorage_IncrementVersion(t *testing.T) {
+	factory := blobstore.NewMemoryBlobStorageFactory()
+	type1 := "type1"
+	key1 := "key1"
+	network1 := "network1"
+
+	typeAndKey := storage.TypeAndKey{Type: type1, Key: key1}
+
+	store, err := factory.StartTransaction(nil)
+	assert.NoError(t, err)
+
+	// increment non-existing blob
+	err = store.IncrementVersion(network1, typeAndKey)
+	assert.NoError(t, err)
+	blob, err := store.Get(network1, typeAndKey)
+	assert.NoError(t, err)
+
+	assert.Equal(t, blob.Version, uint64(1))
+
+	// increment version
+	err = store.IncrementVersion(network1, typeAndKey)
+	assert.NoError(t, err)
+	blob, err = store.Get(network1, typeAndKey)
+	assert.NoError(t, err)
+
+	assert.Equal(t, blob.Version, uint64(2))
+}
+
 func TestMemoryBlobStorage_Integration(t *testing.T) {
 	fact := blobstore.NewMemoryBlobStorageFactory()
 	integration(t, fact)

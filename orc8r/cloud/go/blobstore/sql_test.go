@@ -381,6 +381,28 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 	runCase(t, queryError)
 }
 
+func TestSqlBlobStorage_IncrementVersion(t *testing.T) {
+	happyPath := &testCase{
+		setup: func(mock sqlmock.Sqlmock) {
+			mock.ExpectExec("INSERT INTO network_table \\(network_id,type,\"key\",version\\) "+
+				"VALUES \\(\\$1,\\$2,\\$3,\\$4\\) "+
+				"ON CONFLICT \\(network_id, type, \"key\"\\) "+
+				"DO UPDATE SET version = ",
+			).
+				WithArgs("network", "t1", "k1", 1).
+				WillReturnResult(sqlmock.NewResult(1, 1))
+		},
+		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
+			err := store.IncrementVersion("network", storage.TypeAndKey{Type: "t1", Key: "k1"})
+			return nil, err
+		},
+		expectedError:  nil,
+		expectedResult: nil,
+	}
+
+	runCase(t, happyPath)
+}
+
 func TestSqlBlobStorage_Integration(t *testing.T) {
 	// Use an in-memory sqlite datastore
 	db, err := sqorc.Open("sqlite3", ":memory:")

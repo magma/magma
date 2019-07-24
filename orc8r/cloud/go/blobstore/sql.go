@@ -257,6 +257,26 @@ func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) 
 	return err
 }
 
+func (store *sqlBlobStorage) IncrementVersion(networkID string, id storage.TypeAndKey) error {
+	if err := store.validateTx(); err != nil {
+		return err
+	}
+
+	_, err := store.builder.Insert(store.tableName).
+		Columns(nidCol, typeCol, keyCol, verCol).
+		Values(networkID, id.Type, id.Key, 1).
+		OnConflict(
+			[]sqorc.UpsertValue{{Column: verCol, Value: sq.Expr(fmt.Sprintf("%s.%s+1", store.tableName, verCol))}},
+			nidCol, typeCol, keyCol,
+		).
+		RunWith(store.tx).
+		Exec()
+	if err != nil {
+		return errors.Wrapf(err, "Error incrementing version on network %s with type %s and key %s", networkID, id.Type, id.Key)
+	}
+	return nil
+}
+
 func (store *sqlBlobStorage) validateTx() error {
 	if store.tx == nil {
 		return errors.New("No transaction is available")
