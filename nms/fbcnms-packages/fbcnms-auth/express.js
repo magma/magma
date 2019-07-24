@@ -215,7 +215,9 @@ function userMiddleware(options: Options): express.Router {
 
   router.get('/login', async (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
-      res.redirect(ensureRelativeUrl(req.body.to) || '/');
+      const to = req.query.to;
+      const next = ensureRelativeUrl(Array.isArray(to) ? null : to);
+      res.redirect(next || '/');
       return;
     }
 
