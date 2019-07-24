@@ -20,10 +20,6 @@ import {useSnackbar} from 'notistack';
 import {withForwardRef} from '@fbcnms/ui/components/ForwardRef';
 import type {ForwardRef} from '@fbcnms/ui/components/ForwardRef';
 
-export type WithSnackbarProps = {
-  enqueueSnackbar: (message: string | React.Node, options?: Object) => null,
-};
-
 const useStyles = makeStyles(theme => ({
   root: {
     backgroundColor: theme.palette.common.white,
@@ -77,7 +73,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  id: number,
+  id: number | string,
   message: string,
   variant: 'success' | 'error',
 } & ForwardRef;
