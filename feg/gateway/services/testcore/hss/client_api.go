@@ -31,7 +31,7 @@ type hssClient struct {
 }
 
 // getHSSClient is a utility function to get a RPC connection to the
-// HSS service
+// HSS service.
 func getHSSClient() (*hssClient, error) {
 	conn, err := registry.GetConnection(registry.MOCK_HSS)
 	if err != nil {
@@ -50,7 +50,7 @@ func getHSSClient() (*hssClient, error) {
 // been added.
 // Input: The subscriber data which will be added.
 func AddSubscriber(sub *lteprotos.SubscriberData) error {
-	err := verifySubscriberData(sub)
+	err := VerifySubscriberData(sub)
 	if err != nil {
 		errMsg := fmt.Errorf("Invalid AddSubscriberRequest provided: %s", err)
 		return errors.New(errMsg.Error())
@@ -87,7 +87,7 @@ func GetSubscriberData(id string) (*lteprotos.SubscriberData, error) {
 // If the subscriber cannot be found, an error is returned instead.
 // Input: The new subscriber data to store.
 func UpdateSubscriber(sub *lteprotos.SubscriberData) error {
-	err := verifySubscriberData(sub)
+	err := VerifySubscriberData(sub)
 	if err != nil {
 		errMsg := fmt.Errorf("Invalid UpdateSubscriberRequest provided: %s", err)
 		return errors.New(errMsg.Error())
@@ -120,7 +120,7 @@ func DeleteSubscriber(id string) error {
 	return err
 }
 
-func verifySubscriberData(sub *lteprotos.SubscriberData) error {
+func VerifySubscriberData(sub *lteprotos.SubscriberData) error {
 	if sub == nil {
 		return fmt.Errorf("subscriber is nil")
 	}

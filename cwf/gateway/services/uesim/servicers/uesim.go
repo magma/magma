@@ -25,7 +25,7 @@ import (
 const (
 	networkIDPlaceholder = "magma"
 	blobTypePlaceholder  = "uesim"
-	radiusAddress        = "127.0.0.1:1812"
+	radiusAddress        = "192.168.70.101:1812"
 )
 
 // UESimServer tracks all the UEs being simulated.
