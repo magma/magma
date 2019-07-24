@@ -29,7 +29,7 @@ const (
 // receiver and then reloads alertmanager
 func GetReceiverPostHandler(client *receivers.Client, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		receiver, err := decodeReceiverPostResponse(c)
+		receiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintf("%s", err))
 		}
@@ -90,7 +90,7 @@ func GetUpdateRouteHandler(client *receivers.Client, alertmanagerURL string) fun
 	}
 }
 
-func decodeReceiverPostResponse(c echo.Context) (receivers.Receiver, error) {
+func decodeReceiverPostRequest(c echo.Context) (receivers.Receiver, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return receivers.Receiver{}, fmt.Errorf("error reading request body: %v", err)

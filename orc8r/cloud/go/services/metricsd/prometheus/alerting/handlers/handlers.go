@@ -24,7 +24,7 @@ const (
 // write the alert configuration from the body of this request
 func GetPostHandler(client *alert.Client, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		rule, err := decodePostResponse(c)
+		rule, err := decodeRulePostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -100,7 +100,7 @@ func GetUpdateAlertHandler(client *alert.Client, prometheusURL string) func(c ec
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' does not exist", ruleName))
 		}
 
-		rule, err := decodePostResponse(c)
+		rule, err := decodeRulePostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -123,7 +123,7 @@ func GetUpdateAlertHandler(client *alert.Client, prometheusURL string) func(c ec
 	}
 }
 
-func decodePostResponse(c echo.Context) (rulefmt.Rule, error) {
+func decodeRulePostRequest(c echo.Context) (rulefmt.Rule, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return rulefmt.Rule{}, fmt.Errorf("error reading request body: %v", err)

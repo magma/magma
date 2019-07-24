@@ -36,46 +36,46 @@ const (
 	AlertReceiverConfigURL = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertReceiverPart
 )
 
-func GetConfigurePrometheusAlertHandler(webServerURL string) func(c echo.Context) error {
+func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := alertConfigURL(webServerURL, networkID)
+		url := alertConfigURL(configManagerURL, networkID)
 		return configurePrometheusAlert(c, url, networkID)
 	}
 }
 
-func GetRetrieveAlertRuleHandler(webServerURL string) func(c echo.Context) error {
+func GetRetrieveAlertRuleHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := alertConfigURL(webServerURL, networkID)
+		url := alertConfigURL(configManagerURL, networkID)
 		return retrieveAlertRule(c, url)
 	}
 }
 
-func GetDeleteAlertRuleHandler(webServerURL string) func(c echo.Context) error {
+func GetDeleteAlertRuleHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := alertConfigURL(webServerURL, networkID)
+		url := alertConfigURL(configManagerURL, networkID)
 		return deleteAlertRule(c, url)
 	}
 }
 
-func GetUpdateAlertRuleHandler(webServerURL string) func(c echo.Context) error {
+func GetUpdateAlertRuleHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := alertConfigURL(webServerURL, networkID)
+		url := alertConfigURL(configManagerURL, networkID)
 		return updateAlertRule(c, url)
 	}
 }

@@ -20,46 +20,46 @@ import (
 	"github.com/prometheus/alertmanager/config"
 )
 
-func GetConfigureAlertReceiverHandler(webServerURL string) func(c echo.Context) error {
+func GetConfigureAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkReceiverPath(webServerURL, networkID)
+		url := makeNetworkReceiverPath(configManagerURL, networkID)
 		return configureAlertReceiver(c, url)
 	}
 }
 
-func GetRetrieveAlertReceiverHandler(webServerURL string) func(c echo.Context) error {
+func GetRetrieveAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkReceiverPath(webServerURL, networkID)
+		url := makeNetworkReceiverPath(configManagerURL, networkID)
 		return retrieveAlertReceivers(c, url)
 	}
 }
 
-func GetRetrieveAlertRouteHandler(webServerURL string) func(c echo.Context) error {
+func GetRetrieveAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkRoutePath(webServerURL, networkID)
+		url := makeNetworkRoutePath(configManagerURL, networkID)
 		return retrieveAlertRoute(c, url)
 	}
 }
 
-func GetUpdateAlertRouteHandler(webServerURL string) func(c echo.Context) error {
+func GetUpdateAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkRoutePath(webServerURL, networkID)
+		url := makeNetworkRoutePath(configManagerURL, networkID)
 		return updateAlertRoute(c, url)
 	}
 }
@@ -150,10 +150,10 @@ func buildRouteFromContext(c echo.Context) (config.Route, error) {
 	return jsonRoute.ToPrometheusConfig()
 }
 
-func makeNetworkReceiverPath(webServerURL, networkID string) string {
-	return webServerURL + "/" + networkID + "/receiver"
+func makeNetworkReceiverPath(configManagerURL, networkID string) string {
+	return configManagerURL + "/" + networkID + "/receiver"
 }
 
-func makeNetworkRoutePath(webSeverURL, networkID string) string {
-	return webSeverURL + "/" + networkID + "/receiver/route"
+func makeNetworkRoutePath(configManagerURL, networkID string) string {
+	return configManagerURL + "/" + networkID + "/receiver/route"
 }
