@@ -45,13 +45,14 @@ declare module "@material-ui/core/Badge/Badge" {
   import type {ComponentType, Node} from "react";
 
   declare type Color = "default" | "primary" | "secondary" | "error";
-
+  declare type BadgeVariant = "standard" | "dot";
   declare module.exports: ComponentType<{
-    badgeContent: Node,
+    badgeContent?: Node,
     children: Node,
     className?: string,
     classes?: Object,
-    color?: Color
+    color?: Color,
+    variant?: BadgeVariant
   }>;
 }
 
