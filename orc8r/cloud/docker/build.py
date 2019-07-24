@@ -14,6 +14,7 @@
 import argparse
 import glob
 import subprocess
+from subprocess import PIPE
 from collections import namedtuple
 from typing import List
 
@@ -51,7 +52,7 @@ def main() -> None:
     else:
         # Check if orc8r_cache image exists
         result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
-                                    capture_output=True)
+                stdout=PIPE, stderr=PIPE)
         if result.stdout == b'':
             print("Orc8r_cache image does not exist. Building...")
             subprocess.run(['docker-compose', '-f', 'docker-compose.cache.yml',
