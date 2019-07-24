@@ -14,23 +14,31 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
+	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+)
+
+const (
+	internalMetricCacheSize  = "cache_size"
+	internalMetricCacheLimit = "cache_limit"
 )
 
 // MetricCache serves as a replacement for the prometheus pushgateway. Accepts
 // timestamps with metrics, and stores them in a queue to allow multiple
 // datapoints per metric series to be scraped
 type MetricCache struct {
-	familyMap map[string]*familyAndMetrics
-	limit     int
-	stats     cacheStats
+	familyMap       map[string]*familyAndMetrics
+	internalMetrics map[string]prometheus.Gauge
+	limit           int
+	stats           cacheStats
 	sync.Mutex
 }
 
@@ -55,9 +63,16 @@ func NewMetricCache(limit int) *MetricCache {
 		glog.Info("Prometheus-Cache created with no limit\n")
 	}
 
+	cacheLimit := prometheus.NewGauge(prometheus.GaugeOpts{Name: internalMetricCacheLimit, Help: "Maximum number of datapoints in cache", ConstLabels: prometheus.Labels{"networkID": "internal"}})
+	cacheSize := prometheus.NewGauge(prometheus.GaugeOpts{Name: internalMetricCacheSize, Help: "Number of datapoints in cache", ConstLabels: prometheus.Labels{"networkID": "internal"}})
+	internalMetrics := map[string]prometheus.Gauge{internalMetricCacheLimit: cacheLimit, internalMetricCacheSize: cacheSize}
+
+	cacheLimit.Set(float64(limit))
+
 	return &MetricCache{
-		familyMap: make(map[string]*familyAndMetrics),
-		limit:     limit,
+		familyMap:       make(map[string]*familyAndMetrics),
+		internalMetrics: internalMetrics,
+		limit:           limit,
 	}
 }
 
@@ -71,12 +86,13 @@ func (c *MetricCache) Receive(ctx echo.Context) error {
 		return ctx.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
 	}
 
+	newDatapoints := 0
+	for _, fam := range parsedFamilies {
+		newDatapoints += len(fam.Metric)
+	}
+
 	// Check if new datapoints will exceed the specified limit
 	if c.limit > 0 {
-		newDatapoints := 0
-		for _, fam := range parsedFamilies {
-			newDatapoints += len(fam.Metric)
-		}
 		if c.stats.currentCountDatapoints+newDatapoints > c.limit {
 			fmt.Println("Not accepting push. Would overfill cache limit")
 			return ctx.NoContent(http.StatusNotAcceptable)
@@ -88,6 +104,9 @@ func (c *MetricCache) Receive(ctx echo.Context) error {
 	c.stats.lastReceiveTime = time.Now().Unix()
 	c.stats.lastReceiveSize = ctx.Request().ContentLength
 	c.stats.lastReceiveNumFamilies = len(parsedFamilies)
+	c.stats.currentCountDatapoints += newDatapoints
+	c.internalMetrics[internalMetricCacheSize].Set(float64(c.stats.currentCountDatapoints))
+
 	return ctx.NoContent(http.StatusOK)
 }
 
@@ -112,9 +131,12 @@ func (c *MetricCache) Scrape(ctx echo.Context) error {
 	c.Unlock()
 
 	expositionString := c.exposeMetrics(scrapeMetrics)
+	expositionString += c.exposeInternalMetrics()
 	c.stats.lastScrapeTime = time.Now().Unix()
 	c.stats.lastScrapeSize = int64(len(expositionString))
 	c.stats.lastScrapeNumFamilies = len(scrapeMetrics)
+	c.stats.currentCountDatapoints = 0
+	c.internalMetrics[internalMetricCacheSize].Set(0)
 
 	return ctx.String(http.StatusOK, expositionString)
 }
@@ -137,12 +159,38 @@ func (c *MetricCache) exposeMetrics(familyMap map[string]*familyAndMetrics) stri
 	return respStr.String()
 }
 
+func (c *MetricCache) exposeInternalMetrics() string {
+	strBuilder := strings.Builder{}
+	for name, metric := range c.internalMetrics {
+		str, err := writeInternalMetric(metric, name, dto.MetricType_GAUGE)
+		if err != nil {
+			continue
+		}
+		strBuilder.WriteString(str)
+	}
+	return strBuilder.String()
+}
+
 // Debug is a handler function to show the current state of the cache without
 // consuming any datapoints
 func (c *MetricCache) Debug(ctx echo.Context) error {
+	verbose := ctx.QueryParam("verbose")
+
 	c.updateCountStats()
 	hostname, _ := os.Hostname()
+	var limitValue, utilizationValue string
+	if c.limit <= 0 {
+		limitValue = "None"
+		utilizationValue = "0"
+	} else {
+		limitValue = strconv.Itoa(c.limit)
+		utilizationValue = strconv.FormatFloat(float64(c.stats.currentCountDatapoints)*100/float64(c.limit), 'f', 2, 64)
+	}
+
 	debugString := fmt.Sprintf(`Prometheus Cache running on %s
+Cache Limit:       %s
+Cache Utilization: %s%%
+
 Last Scrape: %d
 	Scrape Size: %d
 	Number of Familes: %d
@@ -153,13 +201,14 @@ Last Receive: %d
 
 Current Count Families:   %d
 Current Count Series:     %d
-Current Count Datapoints: %d
-
-Current Exposition Text:
-
-%s`, hostname, c.stats.lastScrapeTime, c.stats.lastScrapeSize, c.stats.lastScrapeNumFamilies,
+Current Count Datapoints: %d `, hostname, limitValue, utilizationValue,
+		c.stats.lastScrapeTime, c.stats.lastScrapeSize, c.stats.lastScrapeNumFamilies,
 		c.stats.lastReceiveTime, c.stats.lastReceiveSize, c.stats.lastReceiveNumFamilies,
-		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints, c.exposeMetrics(c.familyMap))
+		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints)
+
+	if verbose != "" {
+		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.familyMap), c.exposeInternalMetrics())
+	}
 
 	return ctx.String(http.StatusOK, debugString)
 }
@@ -258,4 +307,22 @@ func familyToString(family *dto.MetricFamily) (string, error) {
 		return "", fmt.Errorf("error writing family string: %v", err)
 	}
 	return buf.String(), nil
+}
+
+func writeInternalMetric(metric prometheus.Metric, name string, familyType dto.MetricType) (string, error) {
+	var dtoMetric dto.Metric
+	err := metric.Write(&dtoMetric)
+	if err != nil {
+		return "", err
+	}
+	fam := dto.MetricFamily{
+		Name:   &name,
+		Type:   &familyType,
+		Metric: []*dto.Metric{&dtoMetric},
+	}
+	cacheSizeStr, err := familyToString(&fam)
+	if err != nil {
+		return "", err
+	}
+	return cacheSizeStr, nil
 }
