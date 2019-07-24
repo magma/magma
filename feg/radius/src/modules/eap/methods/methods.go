@@ -36,5 +36,6 @@ type HandlerResponse struct {
 
 // EapMethod the interface between RADIUS server and EAP method
 type EapMethod interface {
+	// Handle an EAP packet
 	Handle(c *modules.RequestContext, p *packet.Packet, eapState string, r *radius.Request) (*HandlerResponse, error)
 }

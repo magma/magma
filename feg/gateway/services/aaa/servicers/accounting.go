@@ -87,10 +87,11 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 		return &protos.AcctResp{}, status.Errorf(
 			codes.FailedPrecondition, "Accounting Stop: Session %s is not found", sid)
 	}
-	_, err := session_manager.EndSession(
-		&lte_protos.SubscriberID{
-			Id:   req.GetCtx().GetImsi(),
-			Type: lte_protos.SubscriberID_IMSI})
+	var err error
+	if srv.config.GetAccountingEnabled() {
+		_, err = session_manager.EndSession(
+			&lte_protos.SubscriberID{Id: req.GetCtx().GetImsi(), Type: lte_protos.SubscriberID_IMSI})
+	}
 	return &protos.AcctResp{}, err
 }
 

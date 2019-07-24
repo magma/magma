@@ -8,8 +8,8 @@
  * @format
  */
 
-import EditIcon from '@material-ui/icons/Edit';
 import CheckIcon from '@material-ui/icons/Check';
+import EditIcon from '@material-ui/icons/Edit';
 import React, {useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -76,7 +76,7 @@ export default function EditableField(props: Props) {
     return (
       <div className={classes.root}>
         {props.value || props.editDisabled ? (
-          <Typography>{props.value}</Typography>
+          <Typography variant="body2">{props.value}</Typography>
         ) : (
           <Typography variant="body2" color="textSecondary">
             Set...
@@ -105,7 +105,6 @@ export default function EditableField(props: Props) {
         ) : (
           <TextField
             defaultValue={props.value || ''}
-            fullWidth={true}
             className={classes.input}
             variant="outlined"
             margin="dense"

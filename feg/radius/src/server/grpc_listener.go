@@ -12,17 +12,25 @@ import (
 	"context"
 	"errors"
 	"fbc/cwf/radius/config"
+	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/modules/coa/protos"
+	"fbc/cwf/radius/modules/protos"
+	"fbc/cwf/radius/session"
 	"fmt"
+	"math/rand"
 	"net"
 
+	"fbc/lib/go/radius"
+	"fbc/lib/go/radius/rfc2866"
+
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 // GRPCListener listens to gRpc
 type GRPCListener struct {
-	Server        *grpc.Server
+	GrpcServer    *grpc.Server
+	Server        *Server
 	Config        config.ListenerConfig
 	Modules       []Module
 	HandleRequest modules.Middleware
@@ -56,8 +64,18 @@ func (l *GRPCListener) SetHandleRequest(hr modules.Middleware) {
 }
 
 // Init override
-func (l *GRPCListener) Init(server *Server, serverConfig config.ServerConfig, listenerConfig config.ListenerConfig) {
+func (l *GRPCListener) Init(
+	server *Server,
+	serverConfig config.ServerConfig,
+	listenerConfig config.ListenerConfig,
+) error {
+	if server == nil {
+		return errors.New("cannot initialize GRPC listener with null server")
+	}
+
 	l.ready = make(chan bool, 1)
+	l.Server = server
+	return nil
 }
 
 // ListenAndServe override
@@ -71,10 +89,10 @@ func (l *GRPCListener) ListenAndServe() error {
 	}
 
 	// Start serving
-	l.Server = grpc.NewServer()
-	protos.RegisterAuthorizationServer(l.Server, &authorizationServer{Listener: l})
+	l.GrpcServer = grpc.NewServer()
+	protos.RegisterAuthorizationServer(l.GrpcServer, &authorizationServer{Listener: l})
 	go func() {
-		l.Server.Serve(lis)
+		l.GrpcServer.Serve(lis)
 	}()
 
 	// Signal listener is ready
@@ -114,13 +132,98 @@ type authorizationServer struct {
 }
 
 func (s *authorizationServer) Change(ctx context.Context, request *protos.ChangeRequest) (*protos.CoaResponse, error) {
+	// Convert to RADIUS request
+	req := radius.Request{
+		Packet: &radius.Packet{
+			Code:   radius.CodeDisconnectRequest,
+			Secret: []byte(s.Listener.Server.config.Secret),
+		},
+	}
 
-	//@todo #T45624133 - parse packet and do something similar to generatePacketHandler
-	return &protos.CoaResponse{CoaResponseType: protos.CoaResponse_NAK, Ctx: request.Ctx}, nil
+	// Handle RADIUS request
+	return s.handleCoaRequest(request.Ctx, &req)
 }
 
 func (s *authorizationServer) Disconnect(ctx context.Context, request *protos.DisconnectRequest) (*protos.CoaResponse, error) {
+	// Convert to RADIUS request
+	req := radius.Request{
+		Packet: &radius.Packet{
+			Code:   radius.CodeDisconnectRequest,
+			Secret: []byte(s.Listener.Server.config.Secret),
+		},
+	}
 
-	//@todo - #T45624133 parse packet and do something similar to generatePacketHandler
-	return &protos.CoaResponse{CoaResponseType: protos.CoaResponse_ACK, Ctx: request.Ctx}, nil
+	// Handle RADIUS request
+	return s.handleCoaRequest(request.Ctx, &req)
+}
+
+func (s *authorizationServer) handleCoaRequest(ctx *protos.Context, request *radius.Request) (*protos.CoaResponse, error) {
+	if ctx == nil {
+		return nil, errors.New("cannot handle a request without context")
+	}
+
+	if request == nil {
+		return nil, errors.New("cannot handle a nil request")
+	}
+
+	// Get session ID from the request, if exists, and setup correlation ID
+	srv := s.Listener.Server
+	var correlationField = zap.Uint32("correlation", rand.Uint32())
+	requestContext := modules.RequestContext{
+		RequestID: correlationField.Integer,
+		Logger:    srv.loggerFactory.Bg().With(correlationField),
+		SessionID: ctx.SessionId,
+		SessionStorage: session.NewSessionStorage(
+			srv.multiSessionStorage,
+			ctx.SessionId,
+		),
+	}
+
+	// Load state, read CoA identifier and persist the state again
+	state, err := requestContext.SessionStorage.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	// Add Acct-Session-Id attribute
+	request.Attributes = radius.Attributes{}
+	request.Set(rfc2866.AcctSessionID_Type, radius.Attribute(state.AcctSessionID))
+
+	// Set Identifier
+	request.Identifier = state.NextCoAIdentifier
+	state.NextCoAIdentifier = (state.NextCoAIdentifier + 1) % 0xFF
+
+	// Handle
+	counter := counters.NewOperation("handle_grpc").Start()
+	res, err := s.Listener.HandleRequest(&requestContext, request)
+	if err != nil {
+		requestContext.Logger.Error("failed to handle request", zap.Error(err))
+		counter.Failure("grpc_handle_error")
+		return nil, err
+	}
+	if res == nil {
+		requestContext.Logger.Error("got nil response")
+		counter.Failure("grpc_nil_response")
+		return nil, err
+	}
+	counter.Success()
+
+	// Persist state
+	err = srv.multiSessionStorage.Set(ctx.SessionId, *state)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert response to CoA response
+	return &protos.CoaResponse{
+		CoaResponseType: convertCoaCode(res.Code),
+		Ctx:             ctx,
+	}, nil
+}
+
+func convertCoaCode(code radius.Code) protos.CoaResponseCoaResponseTypeEnum {
+	if code == radius.CodeCoAACK || code == radius.CodeDisconnectACK {
+		return protos.CoaResponse_ACK
+	}
+	return protos.CoaResponse_NAK
 }

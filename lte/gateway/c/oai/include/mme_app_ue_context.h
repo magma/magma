@@ -400,7 +400,7 @@ typedef struct ue_mm_context_s {
   // eKSI                         // Key Set Identifier for the main key K ASME . Also indicates whether the UE is using
   // security keys derived from UTRAN or E-UTRAN security association.
 
-  apn_config_profile_t apn_profile; // set by S6A UPDATE LOCATION ANSWER
+  apn_config_profile_t apn_config_profile; // set by S6A UPDATE LOCATION ANSWER
   subscriber_status_t sub_status;   // set by S6A UPDATE LOCATION ANSWER
 
   // K ASME                       // Main key for E-UTRAN key hierarchy based on CK, IK and Serving network identity
@@ -483,7 +483,6 @@ typedef struct ue_mm_context_s {
   emm_context_t emm_context;
   bearer_context_t *bearer_contexts[BEARERS_PER_UE];
 
-  apn_config_profile_t apn_config_profile; // set by S6A UPDATE LOCATION ANSWER
   /* Store the radio capabilities as received in S1AP UE capability indication
    * message.
    */

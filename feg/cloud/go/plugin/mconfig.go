@@ -22,7 +22,13 @@ import (
 
 type Builder struct{}
 
-func (*Builder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+func (*Builder) Build(
+	networkID string,
+	gatewayID string,
+	graph configurator.EntityGraph,
+	network configurator.Network,
+	mconfigOut map[string]proto.Message) error {
+
 	gwConfig, err := getFegConfig(gatewayID, network, graph)
 	if err == merrors.ErrNotFound {
 		return nil
@@ -38,78 +44,72 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	swxc := gwConfig.Swx
 	eapAka := gwConfig.EapAka
 	aaa := gwConfig.AaaServer
-	healthc := gwConfig.Health
+	healthc := protos.SafeInit(gwConfig.Health).(*models.NetworkFederationConfigsHealth)
 
-	mconfigOut["s6a_proxy"] = &mconfig.S6AConfig{
-		LogLevel:                protos.LogLevel_INFO,
-		Server:                  diamClientConfigToMconfig(s6ac.Server),
-		RequestFailureThreshold: healthc.RequestFailureThreshold,
-		MinimumRequestThreshold: healthc.MinimumRequestThreshold,
+	if s6ac != nil {
+		mconfigOut["s6a_proxy"] = &mconfig.S6AConfig{
+			LogLevel:                protos.LogLevel_INFO,
+			Server:                  s6ac.Server.ToMconfig(),
+			RequestFailureThreshold: healthc.RequestFailureThreshold,
+			MinimumRequestThreshold: healthc.MinimumRequestThreshold,
+		}
 	}
 
-	mconfigOut["session_proxy"] = &mconfig.SessionProxyConfig{
-		LogLevel: protos.LogLevel_INFO,
-		Gx: &mconfig.GxConfig{
-			Server: diamClientConfigToMconfig(gxc.Server),
-		},
-		Gy: &mconfig.GyConfig{
-			Server:     diamClientConfigToMconfig(gyc.Server),
-			InitMethod: mconfig.GyInitMethod(*gyc.InitMethod),
-		},
-		RequestFailureThreshold: healthc.RequestFailureThreshold,
-		MinimumRequestThreshold: healthc.MinimumRequestThreshold,
+	if gxc != nil || gyc != nil {
+		mc := &mconfig.SessionProxyConfig{
+			LogLevel:                protos.LogLevel_INFO,
+			RequestFailureThreshold: healthc.RequestFailureThreshold,
+			MinimumRequestThreshold: healthc.MinimumRequestThreshold,
+		}
+		if gxc != nil {
+			mc.Gx = &mconfig.GxConfig{Server: gxc.Server.ToMconfig()}
+		}
+		if gyc != nil {
+			mc.Gy = &mconfig.GyConfig{
+				Server:     gyc.Server.ToMconfig(),
+				InitMethod: getGyInitMethod(gyc.InitMethod),
+			}
+		}
+		mconfigOut["session_proxy"] = mc
 	}
 
-	mconfigOut["health"] = &mconfig.GatewayHealthConfig{
-		RequiredServices:          healthc.HealthServices,
-		UpdateIntervalSecs:        healthc.UpdateIntervalSecs,
-		UpdateFailureThreshold:    healthc.UpdateFailureThreshold,
-		CloudDisconnectPeriodSecs: healthc.CloudDisablePeriodSecs,
-		LocalDisconnectPeriodSecs: healthc.LocalDisablePeriodSecs,
+	if gwConfig.Health != nil {
+		mc := &mconfig.GatewayHealthConfig{}
+		protos.FillIn(healthc, mc)
+		mconfigOut["health"] = mc
 	}
 
-	hssSubProfile := map[string]*mconfig.HSSConfig_SubscriptionProfile{}
-	for imsi, profile := range hss.SubProfiles {
-		hssSubProfile[imsi] = subProfileToMconfig(&profile)
-	}
-	mconfigOut["hss"] = &mconfig.HSSConfig{
-		Server:            diamServerConfigToMconfig(hss.Server),
-		LteAuthOp:         hss.LteAuthOp,
-		LteAuthAmf:        hss.LteAuthAmf,
-		DefaultSubProfile: subProfileToMconfig(hss.DefaultSubProfile),
-		SubProfiles:       hssSubProfile,
-		StreamSubscribers: hss.StreamSubscribers,
+	if hss != nil {
+		mc := &mconfig.HSSConfig{
+			SubProfiles: map[string]*mconfig.HSSConfig_SubscriptionProfile{}} // legacy: avoid nil map
+		protos.FillIn(hss, mc)
+		mconfigOut["hss"] = mc
 	}
 
-	mconfigOut["swx_proxy"] = &mconfig.SwxConfig{
-		LogLevel:            protos.LogLevel_INFO,
-		Server:              diamClientConfigToMconfig(swxc.Server),
-		VerifyAuthorization: swxc.VerifyAuthorization,
-		CacheTTLSeconds:     swxc.CacheTTLSeconds,
+	if swxc != nil {
+		mc := &mconfig.SwxConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(swxc, mc)
+		mconfigOut["swx_proxy"] = mc
 	}
 
-	mconfigOut["eap_aka"] = &mconfig.EapAkaConfig{
-		LogLevel: protos.LogLevel_INFO,
-		Timeout: &mconfig.EapAkaConfig_Timeouts{
-			ChallengeMs:            eapAka.Timeout.ChallengeMs,
-			ErrorNotificationMs:    eapAka.Timeout.ErrorNotificationMs,
-			SessionMs:              eapAka.Timeout.SessionMs,
-			SessionAuthenticatedMs: eapAka.Timeout.SessionAuthenticatedMs,
-		},
-		PlmnIds: eapAka.PlmnIds,
+	if eapAka != nil {
+		mc := &mconfig.EapAkaConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(eapAka, mc)
+		mconfigOut["eap_aka"] = mc
 	}
 
-	mconfigOut["aaa_server"] = &mconfig.AAAConfig{
-		LogLevel:             protos.LogLevel_INFO,
-		IdleSessionTimeoutMs: aaa.IDLESessionTimeoutMs,
-		AccountingEnabled:    aaa.AccountingEnabled,
-		CreateSessionOnAuth:  aaa.CreateSessionOnAuth,
+	if aaa != nil {
+		mc := &mconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(aaa, mc)
+		mconfigOut["aaa_server"] = mc
 	}
 
 	return nil
 }
 
-func getFegConfig(gatewayID string, network configurator.Network, graph configurator.EntityGraph) (*models.GatewayFegConfigs, error) {
+func getFegConfig(
+	gatewayID string, network configurator.Network, graph configurator.EntityGraph) (*models.GatewayFegConfigs, error) {
+
 	fegGW, err := graph.GetEntity(feg.FegGatewayType, gatewayID)
 	if err != nil && err != merrors.ErrNotFound {
 		return nil, errors.WithStack(err)
@@ -128,35 +128,9 @@ func getFegConfig(gatewayID string, network configurator.Network, graph configur
 	return &models.GatewayFegConfigs{NetworkFederationConfigs: *nwConfig}, nil
 }
 
-func subProfileToMconfig(profile *models.SubscriptionProfile) *mconfig.HSSConfig_SubscriptionProfile {
-	return &mconfig.HSSConfig_SubscriptionProfile{
-		MaxUlBitRate: profile.MaxUlBitRate,
-		MaxDlBitRate: profile.MaxDlBitRate,
+func getGyInitMethod(initMethod *uint32) mconfig.GyInitMethod {
+	if initMethod == nil {
+		return mconfig.GyInitMethod_RESERVED
 	}
-}
-
-func diamClientConfigToMconfig(config *models.DiameterClientConfigs) *mconfig.DiamClientConfig {
-	return &mconfig.DiamClientConfig{
-		Protocol:         config.Protocol,
-		Address:          config.Address,
-		Retransmits:      config.Retransmits,
-		WatchdogInterval: config.WatchdogInterval,
-		RetryCount:       config.RetryCount,
-		LocalAddress:     config.LocalAddress,
-		ProductName:      config.ProductName,
-		Realm:            config.Realm,
-		Host:             config.Host,
-		DestRealm:        config.DestRealm,
-		DestHost:         config.DestHost,
-	}
-}
-
-func diamServerConfigToMconfig(config *models.DiameterServerConfigs) *mconfig.DiamServerConfig {
-	return &mconfig.DiamServerConfig{
-		Protocol:     config.Protocol,
-		Address:      config.Address,
-		LocalAddress: config.LocalAddress,
-		DestRealm:    config.DestRealm,
-		DestHost:     config.DestHost,
-	}
+	return mconfig.GyInitMethod(*initMethod)
 }

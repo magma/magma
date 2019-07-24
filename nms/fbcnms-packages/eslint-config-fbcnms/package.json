@@ -17,6 +17,7 @@
     "eslint-plugin-node": "^9.1.0",
     "eslint-plugin-prettier": "^2.6.0",
     "eslint-plugin-react": "^7.14.2",
-    "eslint-plugin-relay": "^1.3.2"
+    "eslint-plugin-relay": "^1.3.2",
+    "eslint-plugin-sort-imports-es6-autofix": "^0.4.0"
   }
 }

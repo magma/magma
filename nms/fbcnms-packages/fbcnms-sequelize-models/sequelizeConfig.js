@@ -23,7 +23,6 @@ module.exports = {
     password: null,
     database: 'db',
     dialect: 'sqlite',
-    dialectModulePath: 'sqlite3-offline',
     logging: false,
   },
   development: {

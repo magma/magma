@@ -10,11 +10,11 @@
 
 import type {Theme, WithStyles} from '@material-ui/core';
 
-import {withStyles, withTheme} from '@material-ui/core/styles';
 import * as React from 'react';
 import Autosuggest from 'react-autosuggest';
 import ClearIcon from '@material-ui/icons/Clear';
 import Typography from '@material-ui/core/Typography';
+import {withStyles, withTheme} from '@material-ui/core/styles';
 
 const styles = _theme => ({
   root: {
@@ -221,4 +221,4 @@ class Tokenizer extends React.Component<Props, State> {
   }
 }
 
-export default withTheme()(withStyles(styles)(Tokenizer));
+export default withTheme(withStyles(styles)(Tokenizer));

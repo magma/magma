@@ -44,6 +44,11 @@ type CustomPushExporter struct {
 
 // NewCustomPushExporter creates a new exporter to a custom pushgateway
 func NewCustomPushExporter(pushAddresses []string) mxd_exp.Exporter {
+	for i, addr := range pushAddresses {
+		if !strings.HasPrefix(addr, "http") {
+			pushAddresses[i] = fmt.Sprintf("http://%s", addr)
+		}
+	}
 	return &CustomPushExporter{
 		familiesByName: make(map[string]*io_prometheus_client.MetricFamily),
 		exportInterval: pushInterval,

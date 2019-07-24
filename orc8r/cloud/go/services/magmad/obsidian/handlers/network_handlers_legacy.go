@@ -93,8 +93,11 @@ func updateNetworkHandler(c echo.Context) error {
 	if err := swaggerRecord.ValidateModel(); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-
-	return magmad.UpdateNetwork(networkId, swaggerRecord.ToProto())
+	err := magmad.UpdateNetwork(networkId, swaggerRecord.ToProto())
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 func deleteNetworkHandler(c echo.Context) error {
@@ -116,6 +119,5 @@ func deleteNetworkHandler(c echo.Context) error {
 		// TODO: conversion based on grpc code
 		return handlers.HttpError(err, status)
 	}
-
 	return c.NoContent(http.StatusNoContent)
 }

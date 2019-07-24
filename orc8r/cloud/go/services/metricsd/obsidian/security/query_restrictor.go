@@ -37,8 +37,7 @@ func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
 
 	promQuery, err := promql.ParseExpr(query)
 	if err != nil {
-		fmt.Printf("Error parsing query")
-		return "", err
+		return "", fmt.Errorf("error parsing query: %v", err)
 	}
 	promql.Inspect(promQuery, q.addRestrictorLabels())
 	return promQuery.String(), nil

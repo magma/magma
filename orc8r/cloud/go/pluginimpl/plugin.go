@@ -43,7 +43,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
-	"magma/orc8r/cloud/go/services/upgrade"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
 	upgrademodels "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 )
@@ -76,7 +75,7 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &magmadmodels.NetworkFeatures{}),
 
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &magmadmodels.MagmadGatewayConfig{}),
-		configurator.NewNetworkEntityConfigSerde(upgrade.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),
 		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &upgrademodels.Tier{}),
 
 		// Legacy config manager serdes
@@ -160,7 +159,7 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		if err != nil {
 			panic(fmt.Errorf("graphite address improperly formed: %s\n", address))
 		}
-		graphiteAddresses = append(graphiteAddresses, graphite_exp.Address{Host: address[:portIdx], Port: portInt})
+		graphiteAddresses = append(graphiteAddresses, graphite_exp.NewAddress(address[:portIdx], portInt))
 	}
 
 	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddresses)

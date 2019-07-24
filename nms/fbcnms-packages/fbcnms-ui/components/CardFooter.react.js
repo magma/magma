@@ -10,9 +10,9 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import {withStyles} from '@material-ui/core/styles';
 import * as React from 'react';
 import CardActions from '@material-ui/core/CardActions';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
   cardRoot: {

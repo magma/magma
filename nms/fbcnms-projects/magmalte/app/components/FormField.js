@@ -39,8 +39,13 @@ export default function FormField(props: Props) {
   const classes = useStyles();
   return (
     <div className={classes.root}>
-      <Typography className={classes.heading}>{props.label}</Typography>
-      <Typography className={classes.secondaryHeading} component="div">
+      <Typography className={classes.heading} variant="body2">
+        {props.label}
+      </Typography>
+      <Typography
+        className={classes.secondaryHeading}
+        component="div"
+        variant="body2">
         {props.children}
       </Typography>
     </div>

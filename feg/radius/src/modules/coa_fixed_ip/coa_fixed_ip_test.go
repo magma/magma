@@ -33,7 +33,6 @@ func TestCoaFixed(t *testing.T) {
 	radiusServer := radius.PacketServer{
 		Handler: radius.HandlerFunc(
 			func(w radius.ResponseWriter, r *radius.Request) {
-
 				fmt.Println("Got RADIUS packet")
 				resp := r.Response(radius.CodeDisconnectACK)
 				fmt.Println("Sending RADIUS response")

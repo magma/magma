@@ -9,6 +9,7 @@
 package exporters
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -50,6 +51,15 @@ func TestCustomPushExporter_Submit(t *testing.T) {
 	testSubmitInvalidMetrics(t)
 	testSubmitInvalidLabel(t)
 	testSubmitInvalidName(t)
+}
+
+func TestNewCustomPushExporter(t *testing.T) {
+	addrs := []string{"http://prometheus-cache:9091", "prometheus-cache:9091", "https://prometheus-cache:9091"}
+	exp := NewCustomPushExporter(addrs).(*CustomPushExporter)
+	protocolMatch := regexp.MustCompile("(http|https)://")
+	for _, addr := range exp.pushAddresses {
+		assert.True(t, protocolMatch.MatchString(addr))
+	}
 }
 
 func testSubmitGauge(t *testing.T) {

@@ -14,8 +14,8 @@ const HttpsProxyAgent = require('https-proxy-agent');
 const url = require('url');
 const {apiCredentials, API_HOST, NETWORK_FALLBACK} = require('../config');
 
-import type {NMSRequest} from '../../scripts/server';
 import type {ExpressResponse} from 'express';
+import type {NMSRequest} from '../../scripts/server';
 
 const router = express.Router();
 

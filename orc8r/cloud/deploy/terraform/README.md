@@ -93,20 +93,6 @@ kubectl apply -f config-map-aws-auth_orc8r.yaml
 kubectl create namespace magma
 ```
 
-Label the EKS worker nodes appropriately, so we can schedule the metrics pod on
-the metrics worker and the Orchestrator pods on the Orchestrator worker nodes:
-
-```bash
-export AWS_DEFAULT_REGION=...
-aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-worker-node \
-  --query 'Reservations[].Instances[].[PrivateDnsName]' --output text \
-  | xargs -I % kubectl -n magma label nodes % worker-type=controller --overwrite
-
-aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-prometheus-node \
-  --query 'Reservations[].Instances[].[PrivateDnsName]' --output text \
-  | xargs -I % kubectl -n magma label nodes % worker-type=metrics --overwrite
-```
-
 At this point, if everything succeeded, you're ready to move on to the initial
 Helm deployment. Follow the README in `magma/orc8r/cloud/helm`.
 
@@ -115,6 +101,7 @@ Helm deployment. Follow the README in `magma/orc8r/cloud/helm`.
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 | db_password | The password for the RDS instance | string | "" | **yes** |
+| nms_db_password | The password for the nms RDS instance | string | "" | **yes** |
 | key_name | The name of the EC2 keypair for SSH access to nodes | string | "" | **yes** |
 | region | The AWS region to provision the resources in | string | "eu-west-1" | no |
 | vpc_name | The name of the provisioned VPC | string | "orc8r-vpc" | no |

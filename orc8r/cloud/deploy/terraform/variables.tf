@@ -17,6 +17,11 @@ variable "db_password" {
   type        = "string"
 }
 
+variable "nms_db_password" {
+  description = "Password for the NMS DB user. You should put this value into a file NOT checked into source control!"
+  type        = "string"
+}
+
 variable "key_name" {
   description = "Name of the EC2 Keypair to use for SSH access to nodes"
   type        = "string"

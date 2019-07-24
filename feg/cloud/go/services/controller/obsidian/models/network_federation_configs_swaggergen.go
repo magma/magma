@@ -542,16 +542,16 @@ func (m *NetworkFederationConfigsGy) UnmarshalBinary(b []byte) error {
 type NetworkFederationConfigsHealth struct {
 
 	// cloud disable period secs
-	CloudDisablePeriodSecs uint32 `json:"cloud_disable_period_secs,omitempty"`
+	CloudDisablePeriodSecs uint32 `json:"cloud_disable_period_secs,omitempty" magma_alt_name:"CloudDisconnectPeriodSecs"`
 
 	// cpu utilization threshold
 	CPUUtilizationThreshold float32 `json:"cpu_utilization_threshold,omitempty" magma_alt_name:"CpuUtilizationThreshold"`
 
 	// FeG services for the health service to monitor
-	HealthServices []string `json:"health_services"`
+	HealthServices []string `json:"health_services" magma_alt_name:"RequiredServices"`
 
 	// local disable period secs
-	LocalDisablePeriodSecs uint32 `json:"local_disable_period_secs,omitempty"`
+	LocalDisablePeriodSecs uint32 `json:"local_disable_period_secs,omitempty" magma_alt_name:"LocalDisconnectPeriodSecs"`
 
 	// memory available threshold
 	MemoryAvailableThreshold float32 `json:"memory_available_threshold,omitempty"`

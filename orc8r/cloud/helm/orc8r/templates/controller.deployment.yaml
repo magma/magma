@@ -111,6 +111,8 @@ spec:
               value: "{{ .Values.controller.migration.new_handlers }}"
             - name: USE_NEW_MCONFIGS
               value: "{{ .Values.controller.migration.new_mconfigs }}"
+            - name: NEW_MCONFIGS_WHITELIST
+              value: {{ .Values.controller.migration.mconfig_whitelist }}
           livenessProbe:
             tcpSocket:
               port: 9081

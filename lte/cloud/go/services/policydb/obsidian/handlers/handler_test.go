@@ -23,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -37,7 +36,6 @@ func TestPolicyDBHandlers(t *testing.T) {
 	err = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	assert.NoError(t, err)
 	configurator_test_init.StartTestService(t)
-	magmad_test_init.StartTestService(t)
 	policydb_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 

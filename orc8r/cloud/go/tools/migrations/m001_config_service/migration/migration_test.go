@@ -37,7 +37,7 @@ func TestMigrateNetworkConfigs(t *testing.T) {
 		WillReturnRows(
 			sqlmock.NewRows([]string{"key", "value"}).
 				AddRow("network1", getDefaultConfigFixture(t)).
-				AddRow("network2", getConfigFixture(t, map[string][]byte{"terragraph": []byte("terragraph")})),
+				AddRow("network2", getConfigFixture(t, map[string][]byte{"cellular": []byte("cellular")})),
 		)
 
 	expectCreateTable(mock, "network1_configurations")
@@ -50,7 +50,7 @@ func TestMigrateNetworkConfigs(t *testing.T) {
 
 	expectCreateTable(mock, "network2_configurations")
 	network2Prepare := mock.ExpectPrepare("INSERT INTO network2_configurations")
-	network2Prepare.ExpectExec().WithArgs("terragraph_network", "network2", []byte("terragraph"), []byte("terragraph")).
+	network2Prepare.ExpectExec().WithArgs("cellular_network", "network2", []byte("cellular"), []byte("cellular")).
 		WillReturnResult(mockResult)
 	network2Prepare.WillBeClosed()
 

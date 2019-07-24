@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/cloud/go/services/accessd/obsidian/models"
 	"magma/orc8r/cloud/go/services/accessd/test_init"
 	certifier_test_utils "magma/orc8r/cloud/go/services/certifier/test_utils"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
@@ -42,7 +41,6 @@ const (
 )
 
 func testInit(t *testing.T) (string, map[models.OperatorID]models.Certificate, map[models.OperatorID]models.ACLType) {
-	magmad_test_init.StartTestService(t)
 	test_init.StartTestService(t)
 	testOperatorSerialNumber := access_tests.StartMockAccessControl(t, testAdminOperatorID)
 	certificates := make(map[models.OperatorID]models.Certificate)

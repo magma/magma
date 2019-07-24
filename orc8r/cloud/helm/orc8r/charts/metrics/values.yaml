@@ -61,7 +61,7 @@ metrics:
   configImage:
     repository:
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   # Number of metrics replicas desired
   replicas: 1
@@ -155,7 +155,7 @@ prometheusCache:
   image:
     repository:
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   # Number of metrics replicas desired
   replicas: 1

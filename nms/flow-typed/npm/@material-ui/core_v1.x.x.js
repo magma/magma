@@ -858,7 +858,7 @@ declare module "@material-ui/core/Grid/Grid" {
     | "flex-end"
     | "space-between"
     | "space-around";
-  declare type Spacing = 0 | 8 | 16 | 24 | 32 | 40;
+  declare type Spacing = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
   declare type Wrap = "nowrap" | "wrap" | "wrap-reverse";
   declare type GridProps = {
     children?: Node,
@@ -2202,15 +2202,6 @@ declare module "@material-ui/core/styles/createTypography" {
     | "srOnly"
     | "inherit"
 
-    // deprecated
-    | "display1"
-    | "display2"
-    | "display3"
-    | "display4"
-    | "headline"
-    | "title"
-    | "subheading"
-
   declare type FontStyle = {
     fontFamily: $PropertyType<CSSProperties, "fontFamily">,
     fontSize: $PropertyType<CSSProperties, "fontSize">,
@@ -2281,7 +2272,7 @@ declare module "@material-ui/core/styles/shape" {
 
 declare module "@material-ui/core/styles/spacing" {
   declare export type Spacing = {
-    unit: number
+    (unit?: number): number
   };
 
   declare export type SpacingOptions = $Shape<Spacing>;
@@ -2401,7 +2392,7 @@ declare module "@material-ui/core/styles/withTheme" {
     innerRef: void | (Ref<any> | {current: ElementRef<any> | null})
   };
 
-  declare module.exports: () => <Props: {}, WrappedComponent: ComponentType<Props>>(
+  declare module.exports: <Props: {}, WrappedComponent: ComponentType<Props>>(
     Component: WrappedComponent
   ) => ComponentType<$Diff<ElementConfig<WrappedComponent>, WithThemeHOC>>;
 }
@@ -2608,7 +2599,8 @@ declare module "@material-ui/core/TableBody/TableBody" {
 declare module "@material-ui/core/TableCell/TableCell" {
   import type {ComponentType, ElementType, Node} from "react";
 
-  declare type Padding = "default" | "checkbox" | "dense" | "none";
+  declare type Padding = "default" | "checkbox" | "none";
+  declare type Size = "small" | "medium";
 
   declare module.exports: ComponentType<{
     children?: Node,
@@ -2616,7 +2608,8 @@ declare module "@material-ui/core/TableCell/TableCell" {
     className?: string,
     component?: ElementType,
     numeric?: boolean,
-    padding?: Padding
+    padding?: Padding,
+    size?: Size
   }>;
 }
 
@@ -2756,11 +2749,9 @@ declare module "@material-ui/core/Tabs/Tabs" {
     children?: Node,
     classes?: Object,
     className?: string,
-    fullWidth?: boolean,
     indicatorClassName?: string,
     indicatorColor?: IndicatorColor,
     onChange?: (event: SyntheticEvent<*>, value: any) => void,
-    scrollable?: boolean,
     scrollButtons?: ScrollButtons,
     TabScrollButton?: ComponentType<*>,
     textColor?: TextColor,
@@ -3040,9 +3031,9 @@ declare module "@material-ui/core/Typography/Typography" {
     | "textPrimary"
     | "textSecondary"
     | "error"
-    | "default";
+    | "initial";
 
-  declare module.exports: ComponentType<{
+  declare export type TypographyProps = {
     align?: Align,
     children?: Node,
     classes?: Object,
@@ -3050,11 +3041,13 @@ declare module "@material-ui/core/Typography/Typography" {
     component?: ElementType,
     color?: Color,
     gutterBottom?: boolean,
-    headlineMapping?: { [key: Variant]: string },
+    variantMapping?: { [key: Variant]: string },
     noWrap?: boolean,
     paragraph?: boolean,
     variant?: Variant
-  }>;
+  }
+
+  declare module.exports: ComponentType<TypographyProps>;
 }
 
 declare module "@material-ui/core/utils/addEventListener" {

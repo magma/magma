@@ -10,13 +10,13 @@
 
 import type {CellularNetworkConfig} from '../../app/common/MagmaAPIType';
 
-import {access} from '@fbcnms/auth/access';
-import {AccessRoles} from '@fbcnms/auth/roles';
 import axios from 'axios';
 import express from 'express';
 import https from 'https';
+import {AccessRoles} from '@fbcnms/auth/roles';
+import {access} from '@fbcnms/auth/access';
 
-import {apiCredentials, API_HOST} from '../config';
+import {API_HOST, apiCredentials} from '../config';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 

@@ -12,26 +12,29 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	lteplugin "magma/lte/cloud/go/plugin"
 	sdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // TestSubscriberd is Obsidian Subscriberd Integration Test intended to be run
 // on cloud VM
 func TestSubscriberd(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	sdb_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
 
 	restPort := tests.StartObsidian(t)
 
@@ -46,7 +49,8 @@ func TestSubscriberd(t *testing.T) {
 		Payload:                   `{"name":"This Is A Test Network Name"}`,
 		Skip_payload_verification: true,
 	}
-	_, networkId, _ := tests.RunTest(t, registerNetworkTestCase)
+	_, networkId, err := tests.RunTest(t, registerNetworkTestCase)
+	assert.NoError(t, err)
 
 	json.Unmarshal([]byte(networkId), &networkId)
 
@@ -269,4 +273,14 @@ func TestSubscriberd(t *testing.T) {
 		Expected: `["IMSI12333344444"]`,
 	}
 	tests.RunTest(t, listSubscribersTestCase)
+
+	deleteSubscriberTestCase = tests.Testcase{
+		Name:   "Delete Subscriber",
+		Method: "DELETE",
+		Url: fmt.Sprintf(
+			"%s/%s/subscribers/IMSI12333344444", testUrlRoot, networkId),
+		Payload:  "",
+		Expected: "",
+	}
+	tests.RunTest(t, deleteSubscriberTestCase)
 }

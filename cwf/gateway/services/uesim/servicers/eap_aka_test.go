@@ -36,10 +36,10 @@ const (
 )
 
 func TestEapAkaIdentityRequest(t *testing.T) {
-	server, err := setupTest()
+	server, ue, err := setupTest()
 	assert.NoError(t, err)
 
-	res, err := server.HandleEap(Imsi, eap.Packet(EapAkaIdentityRequestPacket))
+	res, err := server.HandleEap(ue, eap.Packet(EapAkaIdentityRequestPacket))
 	assert.NoError(t, err)
 	assert.True(
 		t,
@@ -51,10 +51,10 @@ func TestEapAkaIdentityRequest(t *testing.T) {
 }
 
 func TestEapAkaChallengeRequest(t *testing.T) {
-	server, err := setupTest()
+	server, ue, err := setupTest()
 	assert.NoError(t, err)
 
-	res, err := server.HandleEap(Imsi, eap.Packet(EapAkaChallengeRequestPacket))
+	res, err := server.HandleEap(ue, eap.Packet(EapAkaChallengeRequestPacket))
 	assert.NoError(t, err)
 	assert.True(
 		t,

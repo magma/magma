@@ -14,13 +14,19 @@ import (
 	filtlballocate "fbc/cwf/radius/filters/lballocate"
 	filtlbcanary "fbc/cwf/radius/filters/lbcanary"
 	"fbc/cwf/radius/modules"
+	modadaptruckus "fbc/cwf/radius/modules/adapt_ruckus"
 	modmsisdn "fbc/cwf/radius/modules/addmsisdn"
+	modalwaysaccept "fbc/cwf/radius/modules/always_accept"
 	modan "fbc/cwf/radius/modules/analytics"
+	modcoadynamic "fbc/cwf/radius/modules/coa_dynamic"
 	modcoafixed "fbc/cwf/radius/modules/coa_fixed_ip"
+	modcoanas "fbc/cwf/radius/modules/coa_nas"
 	modeap "fbc/cwf/radius/modules/eap"
 	modlbserve "fbc/cwf/radius/modules/lbserve"
+	modmagmaacct "fbc/cwf/radius/modules/magma_acct"
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
+	modxwfv3 "fbc/cwf/radius/modules/xwfv3"
 	"fbc/lib/go/radius"
 	"fmt"
 
@@ -51,8 +57,14 @@ var CWFModuleMap = ModuleNameMap{
 	"eap":          func() modules.Module { return NewModule(modeap.Init, modeap.Handle) },
 	"lbserve":      func() modules.Module { return NewModule(modlbserve.Init, modlbserve.Handle) },
 	"proxy":        func() modules.Module { return NewModule(modproxy.Init, modproxy.Handle) },
+	"xwfv3":        func() modules.Module { return NewModule(modxwfv3.Init, modxwfv3.Handle) },
 	"testloopback": func() modules.Module { return NewModule(modloopback.Init, modloopback.Handle) },
 	"coafixedip":   func() modules.Module { return NewModule(modcoafixed.Init, modcoafixed.Handle) },
+	"coanas":       func() modules.Module { return NewModule(modcoanas.Init, modcoanas.Handle) },
+	"coadynamic":   func() modules.Module { return NewModule(modcoadynamic.Init, modcoadynamic.Handle) },
+	"adaptruckus":  func() modules.Module { return NewModule(modadaptruckus.Init, modadaptruckus.Handle) },
+	"alwaysaccept": func() modules.Module { return NewModule(modalwaysaccept.Init, modalwaysaccept.Handle) },
+	"magmaacct":    func() modules.Module { return NewModule(modmagmaacct.Init, modmagmaacct.Handle) },
 }
 
 var CWFFilterMap = FilterNameMap{

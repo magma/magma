@@ -10,6 +10,8 @@ package config
 
 import (
 	"fmt"
+	"log"
+	"strings"
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
@@ -19,7 +21,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -51,62 +52,58 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 }
 
 func BuildFromNetworkConfig(nwConfig *models.NetworkCarrierWifiConfigs) (map[string]proto.Message, error) {
-	emptyRet := map[string]proto.Message{}
+	ret := map[string]proto.Message{}
+	if nwConfig == nil {
+		return ret, nil
+	}
 	pipelineDServices, err := getPipelineDServicesConfig(nwConfig.NetworkServices)
 	if err != nil {
-		return emptyRet, err
+		return ret, err
 	}
 
 	eapAka := nwConfig.EapAka
 	aaa := nwConfig.AaaServer
-	vals := map[string]proto.Message{
-		"eap_aka": &fegmconfig.EapAkaConfig{
-			LogLevel: protos.LogLevel_INFO,
-			Timeout: &fegmconfig.EapAkaConfig_Timeouts{
-				ChallengeMs:            eapAka.Timeout.ChallengeMs,
-				ErrorNotificationMs:    eapAka.Timeout.ErrorNotificationMs,
-				SessionMs:              eapAka.Timeout.SessionMs,
-				SessionAuthenticatedMs: eapAka.Timeout.SessionAuthenticatedMs,
-			},
-			PlmnIds: eapAka.PlmnIds,
-		},
-		"aaa_server": &fegmconfig.AAAConfig{
-			LogLevel:             protos.LogLevel_INFO,
-			IdleSessionTimeoutMs: aaa.IDLESessionTimeoutMs,
-			AccountingEnabled:    aaa.AccountingEnabled,
-			CreateSessionOnAuth:  aaa.CreateSessionOnAuth,
-		},
-		"pipelined": &ltemconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
-			UeIpBlock:     DefaultUeIpBlock, // Unused by CWF
-			NatEnabled:    nwConfig.NatEnabled,
-			DefaultRuleId: nwConfig.DefaultRuleID,
-			RelayEnabled:  nwConfig.RelayEnabled,
-			Services:      pipelineDServices,
-		},
-		"sessiond": &ltemconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
-			RelayEnabled: nwConfig.RelayEnabled,
-		},
+	if eapAka != nil {
+		mc := &fegmconfig.EapAkaConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(eapAka, mc)
+		ret["eap_aka"] = mc
 	}
-	return vals, err
+	if aaa != nil {
+		mc := &fegmconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(aaa, mc)
+		ret["aaa_server"] = mc
+	}
+	ret["pipelined"] = &ltemconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     DefaultUeIpBlock, // Unused by CWF
+		NatEnabled:    nwConfig.NatEnabled,
+		DefaultRuleId: nwConfig.DefaultRuleID,
+		RelayEnabled:  nwConfig.RelayEnabled,
+		Services:      pipelineDServices,
+	}
+	ret["sessiond"] = &ltemconfig.SessionD{
+		LogLevel:     protos.LogLevel_INFO,
+		RelayEnabled: nwConfig.RelayEnabled,
+	}
+	return ret, err
 }
 
 func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.PipelineD_NetworkServices, error) {
-	if networkServices == nil || len(networkServices) == 0 {
-		return []ltemconfig.PipelineD_NetworkServices{
+	apps := make([]ltemconfig.PipelineD_NetworkServices, 0, len(networkServices))
+	for _, service := range networkServices {
+		mc, found := networkServicesByName[strings.ToLower(service)]
+		if !found {
+			log.Printf("CWAG: unknown network service name %s", service)
+		} else {
+			apps = append(apps, mc)
+		}
+	}
+	if len(apps) == 0 {
+		apps = []ltemconfig.PipelineD_NetworkServices{
 			ltemconfig.PipelineD_METERING,
 			ltemconfig.PipelineD_DPI,
 			ltemconfig.PipelineD_ENFORCEMENT,
-		}, nil
-	}
-	apps := make([]ltemconfig.PipelineD_NetworkServices, 0, len(networkServices))
-	for _, service := range networkServices {
-		mc, found := networkServicesByName[service]
-		if !found {
-			return nil, errors.Errorf("unknown network service name %s", service)
 		}
-		apps = append(apps, mc)
 	}
 	return apps, nil
 }

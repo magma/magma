@@ -10,12 +10,33 @@
 // storage interfaces
 package storage
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type TypeAndKey struct {
 	Type string
 	Key  string
 }
+
+type IsolationLevel int
+
+// TxOptions specifies options for transactions
+type TxOptions struct {
+	Isolation IsolationLevel
+	ReadOnly  bool
+}
+
+const (
+	LevelDefault IsolationLevel = iota
+	LevelReadUncommitted
+	LevelReadCommitted
+	LevelWriteCommitted
+	LevelRepeatableRead
+	LevelSnapshot
+	LevelSerializable
+	LevelLinearizable
+)
 
 func (tk TypeAndKey) String() string {
 	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)

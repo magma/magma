@@ -44,6 +44,9 @@ services:
   csfb:
     <<: *goservice
     container_name: csfb
+    environment:
+      VLR_ADDR: ${VLR_ADDR}
+      SGS_LOCAL_ADDR: ${SGS_LOCAL_ADDR}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
 
   eap_aka:
@@ -141,11 +144,13 @@ services:
       - 1813:1813/udp
       - 3799:3799/udp
     environment:
-      - RADIUS_AUTH_PORT=1813
-      - RADIUS_ACCT_PORT=1812
+      - RADIUS_AUTH_PORT=1812
+      - RADIUS_ACCT_PORT=1813
       - RADIUS_COA_PORT=3799
+      - RADIUS_COA_GRPC_PORT=9108
       - RADIUS_SECRET=123456
-      - FEG_ENDPOINT=aaa_server:9109
+      - COA_FIXED_ENDPOINT=127.0.0.1:4799
+      - AAA_ENDPOINT=aaa_server:9109
     restart: always
 
 networks:

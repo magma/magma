@@ -8,8 +8,8 @@
  * @format
  */
 
-import {AccessRoles} from '../roles';
 import bcrypt from 'bcryptjs';
+import {AccessRoles} from '../roles';
 
 export const USERS = [
   {

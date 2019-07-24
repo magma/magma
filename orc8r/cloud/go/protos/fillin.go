@@ -49,7 +49,6 @@ func fillIn(vs *reflect.Value, vd *reflect.Value) int {
 			savedVd = vd
 			vdo = reflect.New(vd.Type().Elem()).Elem()
 			vd = &vdo
-
 		} else {
 			vdo = vd.Elem()
 		}
@@ -155,4 +154,49 @@ func convertMap(vs *reflect.Value, vd *reflect.Value) int {
 		vd.SetMapIndex(mapKey, copyVal)
 	}
 	return count
+}
+
+// SafeInit traverses given struct ptr and fills in all nil struct pointer, map & slice fields with defult initialized
+// elements recursively
+func SafeInit(s interface{}) interface{} {
+	t := reflect.TypeOf(s)
+	k := t.Kind()
+	v := reflect.ValueOf(s)
+
+	if s == nil || ((k == reflect.Ptr || k == reflect.Slice || k == reflect.Map) && v.IsNil()) {
+		switch k {
+		case reflect.Ptr:
+			s = reflect.New(t.Elem()).Interface()
+		case reflect.Slice:
+			s = reflect.MakeSlice(t, 0, 0).Interface()
+		case reflect.Map:
+			s = reflect.MakeMap(t).Interface()
+		}
+		t = reflect.TypeOf(s)
+		k = t.Kind()
+		v = reflect.ValueOf(s)
+	}
+	if k == reflect.Ptr {
+		t = t.Elem()
+		if t.Kind() == reflect.Struct {
+			v = v.Elem()
+			fn := t.NumField()
+			for i := 0; i < fn; i++ {
+				switch t.Field(i).Type.Kind() {
+				case reflect.Ptr, reflect.Map, reflect.Slice:
+					fv := v.Field(i)
+					newFld := SafeInit(fv.Interface())
+					if fv.IsNil() && fv.CanSet() {
+						fv.Set(reflect.ValueOf(newFld))
+					}
+				case reflect.Struct:
+					fv := v.Field(i)
+					if fv.CanAddr() {
+						SafeInit(fv.Addr().Interface())
+					}
+				}
+			}
+		}
+	}
+	return s
 }

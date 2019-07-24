@@ -8,253 +8,101 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
-import asyncio
 import subprocess
+
+import os
 import sys
-
-import apt
 import fire as fire
-from magma.common.service import MagmaService
-from magma.common.service_registry import ServiceRegistry
-from magma.magmad.metrics import UNEXPECTED_SERVICE_RESTARTS
-from orc8r.protos import common_pb2, magmad_pb2
-from orc8r.protos.magmad_pb2_grpc import MagmadStub
-from orc8r.protos.mconfig import mconfigs_pb2
-from pystemd.systemd1 import Unit
 
-from magma.magmad.service_poller import ServicePoller
-from . import checkin_cli
+from magma.common.health.docker_health_service import DockerHealthChecker
+from magma.common.health.health_service import GenericHealthChecker
 
 
-class ActiveState:
-    ACTIVE = 'active'
-    RELOADING = 'reloading'
-    INACTIVE = 'inactive'
-    FAILED = 'failed'
-    ACTIVATING = 'activating'
-    DEACTIVATING = 'deactivating'
-
-    dbus2state = {
-        b'active': ACTIVE,
-        b'reloading': RELOADING,
-        b'inactive': INACTIVE,
-        b'failed': FAILED,
-        b'activating': ACTIVATING,
-        b'deactivating': DEACTIVATING,
-    }
-
-    state2status = {
-        ACTIVE: u'\u2714',
-        RELOADING: u'\u27A4',
-        INACTIVE: u'\u2717',
-        FAILED: u'\u2717',
-        ACTIVATING: u'\u27A4',
-        DEACTIVATING: u'\u27A4',
-    }
-
-
-class Errors:
-    def __init__(self, log_level, error_count):
-        self.log_level = log_level
-        self.error_count = error_count
-
-    def __str__(self):
-        return '{}: {}'.format(self.log_level, self.error_count)
-
-
-class RestartFrequency:
-    def __init__(self, count, time_interval):
-        self.count = count
-        self.time_interval = time_interval
-
-    def __str__(self):
-        return 'Restarted {} times {}'.format(
-            self.count,
-            self.time_interval,
-        )
-
-
-class HealthStatus:
-    DOWN = 'Down'
-    UP = 'Up'
-    UNKNOWN = 'Unknown'
-
-
-class Version:
-    def __init__(self, version_code, last_update_time):
-        self.version_code = version_code
-        self.last_update_time = last_update_time
-
-    def __str__(self):
-        return '{}, last updated: {}'.format(
-            self.version_code,
-            self.last_update_time,
-        )
-
-
-class ServiceHealth:
-    def __init__(self, service_name, active_state, sub_state, time_running):
-        self.service_name = service_name
-        self.active_state = active_state
-        self.sub_state = sub_state
-        self.time_running = time_running
-
-    def __str__(self):
-        return '{} {:20} {:10} {:15} Running for {}'.format(
-            ActiveState.state2status[self.active_state],
-            self.service_name,
-            self.active_state,
-            self.sub_state,
-            self.time_running
-        )
-
-
-class HealthSummary:
-    def __init__(self, version,
-                 services_health,
-                 internet_health, dns_health,
-                 unexpected_restarts):
-        self.version = version
-        self.services_health = services_health
-        self.internet_health = internet_health
-        self.dns_health = dns_health
-        self.unexpected_restarts = unexpected_restarts
-
-    def __str__(self):
-        any_restarts = any([restarts.count
-                            for restarts in self.unexpected_restarts.values()])
-        return """
-Version: {}:
-{}
-
-Internet health: {}
-DNS health: {}
-
-Restart summary:
-{}
-        """.format(self.version,
-                   '\n'.join([str(h) for h in self.services_health]),
-                   self.internet_health, self.dns_health,
-                   '\n'.join(['{:20} {}'.format(name, restarts)
-                              for name, restarts
-                              in self.unexpected_restarts.items()])
-                   if any_restarts
-                   else "No restarts since the gateway started",
-                   )
-
-
-def ping(host, num_packets=4):
-    chan = ServiceRegistry.get_rpc_channel('magmad', ServiceRegistry.LOCAL)
-    client = MagmadStub(chan)
-
-    response = client.RunNetworkTests(magmad_pb2.NetworkTestRequest(
-        pings=[magmad_pb2.PingParams(host_or_ip=host, num_packets=num_packets)]
-    ))
-    return response.pings
-
-
-def ping_status(host):
-    pings = ping(host=host, num_packets=4)[0]
-    if pings.error:
-        return HealthStatus.DOWN
-    if pings.avg_response_ms:
-        return HealthStatus.UP
-    return HealthStatus.UNKNOWN
-
-
-def get_magma_services_status():
-    """ Get health for all the running services """
-    # DBus Unit objects: https://www.freedesktop.org/wiki/Software/systemd/dbus/
-    chan = ServiceRegistry.get_rpc_channel('magmad', ServiceRegistry.LOCAL)
-    client = MagmadStub(chan)
-
-    configs = client.GetConfigs(common_pb2.Void())
-    services_health_summary = []
-
-    for service_name in configs.configs_by_key:
-        unit = Unit('magma@{}.service'.format(service_name), _autoload=True)
-        active_state = ActiveState.dbus2state[unit.Unit.ActiveState]
-        sub_state = str(unit.Unit.SubState, 'utf-8')
-        if active_state == ActiveState.ACTIVE:
-            pid = unit.Service.MainPID
-            process = subprocess.Popen('ps -o etime= -p {}'.format(pid).split(),
-                                       stdout=subprocess.PIPE)
-
-            time_running, error = process.communicate()
-        else:
-            time_running = b'00'
-
-        services_health_summary.append(ServiceHealth(
-            service_name=service_name,
-            active_state=active_state, sub_state=sub_state,
-            time_running=str(time_running, 'utf-8').strip()
-        ))
-    return services_health_summary
-
-
-def get_unexpected_restart_summary():
-    service = MagmaService('magmad', mconfigs_pb2.MagmaD())
-    service_poller = ServicePoller(service.loop, service.config)
-    service_poller.start()
-
-    asyncio.set_event_loop(service.loop)
-
-    # noinspection PyProtectedMember
-    async def fetch_info():
-        restart_frequencies = {}
-        await service_poller._get_service_info()
-        for service_name in service_poller.service_info.keys():
-            restarts = int(UNEXPECTED_SERVICE_RESTARTS
-                           .labels(service_name=service_name)
-                           ._value.get())
-            restart_frequencies[service_name] = RestartFrequency(
-                count=restarts,
-                time_interval=''
-            )
-
-        return restart_frequencies
-
-    return service.loop.run_until_complete(fetch_info())
-
-
-def get_health_summary():
-    """ Get health summary for the whole program """
-    # Check connection to the orchestrator
-    print('\nGateway <-> Controller connectivity')
-    checkin_cli.main()
-
-    unexpected_restarts = get_unexpected_restart_summary()
-
-    # Get magma version and when it was updated
-    cache = apt.Cache()
-    pkg = cache.get('magma', default=cache['python'])
-    version = Version(version_code=pkg.versions[0],
-                      last_update_time='19 Jun 2019')
-
-    health_summary = HealthSummary(
-        version=version,
-        services_health=get_magma_services_status(),
-        internet_health=ping_status(host='8.8.8.8'),
-        dns_health=ping_status(host='google.com'),
-        unexpected_restarts=unexpected_restarts,
+def is_docker():
+    """ Checks if the current script is executed in a docker container """
+    path = '/proc/self/cgroup'
+    return (
+        os.path.exists('/.dockerenv') or
+        os.path.isfile(path) and any('docker' in line for line in open(path))
     )
 
-    ''' Check connection to the orchestrator '''
-    # Call this last because it closes the event loop
-    print('\nGateway <-> Controller connectivity')
-    checkin_cli.main()
 
-    return str(health_summary)
+class HealthCLI:
+    """
+    Command line interface for generic Health-Checking.
+    """
+    def __init__(self):
+        self._health_checker = DockerHealthChecker() \
+            if is_docker() \
+            else GenericHealthChecker()
 
+    def status(self):
+        """
+        Global health status
+
+        example: `health_cli.py status` or just `health_cli.py`
+        """
+        print('Health Summary')
+        # Check connection to the orchestrator
+        # This part is implemented in the checkin_cli.py - we'll just execute it
+        print('\nGateway <-> Controller connectivity')
+        checkin, error = subprocess.Popen(['checkin_cli.py'],
+                                          stdout=subprocess.PIPE).communicate()
+        print(str(checkin, 'utf-8'))
+        return str(self._health_checker.get_health_summary())
+
+    def magma_version(self):
+        """
+        Get the installed magma version
+        """
+        return str(self._health_checker.get_magma_version())
+
+    def kernel_version(self):
+        """
+        Get kernel version of the VM
+        """
+        return str(self._health_checker.get_kernel_version())
+
+    def internet_status(self, host):
+        """
+        Checks if it's possible to connect to the specified host
+
+        examples:
+            `health_cli.py internet_status --host 8.8.8.8`
+            `health_cli.py internet_status --host google.com`
+        """
+        return str(self._health_checker.ping_status(host))
+
+    def services_status(self):
+        """
+        Get status summary for all the magma services
+        """
+        return str(self._health_checker.get_magma_services_summary())
+
+    def restarts_status(self):
+        """
+        How many times each services was restarting since the whole system start
+        """
+        return str(self._health_checker.get_unexpected_restart_summary())
+
+    def error_status(self, service_names):
+        """
+        How many errors have each service had since the last restart
+
+        examples:
+            `health_cli.py error_status --service_names mme,dnsd`
+            `health_cli.py error_status --service_names '[pipelined,mme]'`
+        """
+        return '\n'.join(['{}:\t{}'.format(name, errors) for name, errors in
+                          self._health_checker
+                              .get_error_summary(service_names)
+                              .items()
+                          ])
 
 if __name__ == '__main__':
-    print('Health Summary')
+    health_cli = HealthCLI()
+
     if len(sys.argv) == 1:
-        print(get_health_summary())
+        fire.Fire(health_cli.status)
     else:
-        fire.Fire({
-            'services_status': get_magma_services_status,
-            'status': get_health_summary,
-            'error_summary': get_unexpected_restart_summary,
-        })
+        fire.Fire(health_cli)

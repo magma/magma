@@ -86,7 +86,9 @@ func retrieveAlertReceivers(c echo.Context, url string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return handlers.HttpError(fmt.Errorf("alert server responded with error"), resp.StatusCode)
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error reading receivers: %v", body.Message), resp.StatusCode)
 	}
 	var recs []receivers.Receiver
 	err = json.NewDecoder(resp.Body).Decode(&recs)
@@ -104,10 +106,15 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error reading alerting route: %v", body.Message), resp.StatusCode)
+	}
 	var route config.Route
 	err = json.NewDecoder(resp.Body).Decode(&route)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding server response %v", err))
+		return handlers.HttpError(fmt.Errorf("error decoding server response %v", err), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, route)
 }
@@ -115,18 +122,12 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 func updateAlertRoute(c echo.Context, url string) error {
 	route, err := buildRouteFromContext(c)
 	if err != nil {
-		return err
+		return handlers.HttpError(fmt.Errorf("invalid route specification: %v\n", err), http.StatusBadRequest)
 	}
-	client := &http.Client{}
-	resp, err := client.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
 
 	err = sendConfig(route, url)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return handlers.HttpError(fmt.Errorf("error updating alert route: %v", err), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -141,12 +142,12 @@ func buildReceiverFromContext(c echo.Context) (receivers.Receiver, error) {
 }
 
 func buildRouteFromContext(c echo.Context) (config.Route, error) {
-	route := config.Route{}
-	err := json.NewDecoder(c.Request().Body).Decode(&route)
+	jsonRoute := receivers.RouteJSONWrapper{}
+	err := json.NewDecoder(c.Request().Body).Decode(&jsonRoute)
 	if err != nil {
 		return config.Route{}, err
 	}
-	return route, nil
+	return jsonRoute.ToPrometheusConfig()
 }
 
 func makeNetworkReceiverPath(webServerURL, networkID string) string {

@@ -10,10 +10,10 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import {withStyles} from '@material-ui/core/styles';
 import ErrorIcon from '@material-ui/icons/Error';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
   root: {

@@ -10,6 +10,7 @@ package alert
 
 import (
 	"io/ioutil"
+	"os"
 	"sync"
 )
 
@@ -20,6 +21,12 @@ type FileLocker struct {
 
 func NewFileLocker(rulesDir string) (*FileLocker, error) {
 	fileLocks := make(map[string]*sync.RWMutex)
+
+	_, err := os.Stat(rulesDir)
+	if err != nil {
+		_ = os.Mkdir(rulesDir, 0766)
+	}
+
 	files, err := ioutil.ReadDir(rulesDir)
 	if err != nil {
 		return nil, err

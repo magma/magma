@@ -8,15 +8,15 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
-import classNames from 'classnames';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popout from '@fbcnms/ui/components/Popout.react';
 import ProfileIcon from '../icons/ProfileIcon.react';
 import React, {useState} from 'react';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   accountButton: {

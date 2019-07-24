@@ -8,8 +8,8 @@
  * @format
  */
 
+import {Organization, sequelize} from '@fbcnms/sequelize-models';
 import {getOrganization} from '@fbcnms/express-middleware/organizationMiddleware';
-import {sequelize, Organization} from '@fbcnms/sequelize-models';
 
 const ORGS = [
   {

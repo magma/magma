@@ -9,10 +9,10 @@
  */
 
 // https://github.com/iamhosseindhv/notistack/pull/17
-import {useEffect, useCallback} from 'react';
-import {useSnackbar as useNotistackSnackbar} from 'notistack';
 import * as React from 'react';
 import SnackbarItem from '../components/SnackbarItem.react';
+import {useCallback, useEffect} from 'react';
+import {useSnackbar as useNotistackSnackbar} from 'notistack';
 
 export default function useSnackbar(
   message: string,
@@ -23,6 +23,7 @@ export default function useSnackbar(
   const stringConfig = JSON.stringify(config);
   useEffect(() => {
     if (show) {
+      const config = JSON.parse(stringConfig);
       enqueueSnackbar(message, {
         children: key => (
           <SnackbarItem
@@ -34,7 +35,7 @@ export default function useSnackbar(
         ...config,
       });
     }
-  }, [message, show, stringConfig]);
+  }, [enqueueSnackbar, message, show, stringConfig]);
 }
 
 export function useEnqueueSnackbar() {

@@ -12,6 +12,8 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	accessd_test_init "magma/orc8r/cloud/go/services/accessd/test_init"
+	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/servicers"
@@ -28,6 +30,9 @@ func StartTestService(t *testing.T) {
 	idGenerator := storage.DefaultIDGenerator{}
 	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sqorc.GetSqlBuilder())
 	storageFactory.InitializeServiceStorage()
+
+	accessd_test_init.StartTestService(t)
+	certifier_test_init.StartTestService(t)
 
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, configurator.ServiceName)
 	nb, err := servicers.NewNorthboundConfiguratorServicer(storageFactory)

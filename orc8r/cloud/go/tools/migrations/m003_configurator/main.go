@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/tools/migrations"
 	"magma/orc8r/cloud/go/tools/migrations/m003_configurator/migration"
 
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 )
 

@@ -13,11 +13,13 @@ import "bytes"
 type (
 	// State the data to store per session
 	State struct {
+		NextCoAIdentifier byte
 		MACAddress        string
 		MSISDN            string
 		UpstreamHost      string
 		Tier              string
 		RadiusSessionFBID uint64 // the FBID of the XWFEntRadiusSession created for this RADIUS session
+		AcctSessionID     string
 	}
 
 	// GlobalStorage an interface for session-level storage, which allows

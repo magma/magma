@@ -11,12 +11,8 @@ package alert
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
-
-	"github.com/labstack/echo"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"
 )
@@ -43,12 +39,11 @@ func NewClient(rulesDir string) (*Client, error) {
 	}, nil
 }
 
-// WriteAlert takes an alerting rule and writes it to the rules file for the
-// given networkID
-func (c *Client) WriteAlert(rule rulefmt.Rule, networkID string) error {
+// ValidateRule checks that a new alert rule is a valid specification
+func (c *Client) ValidateRule(rule rulefmt.Rule, networkID string) error {
 	errs := rule.Validate()
 	if len(errs) != 0 {
-		return handlers.HttpError(fmt.Errorf("invalid rule: %v", errs), http.StatusBadRequest)
+		return fmt.Errorf("invalid rule: %v", errs)
 	}
 	filename := makeFilename(networkID, c.rulesDir)
 
@@ -57,13 +52,33 @@ func (c *Client) WriteAlert(rule rulefmt.Rule, networkID string) error {
 
 	ruleFile, err := c.initializeRuleFile(filename, networkID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return err
+	}
+
+	existingRule, _ := ruleFile.GetRule(rule.Alert)
+	if existingRule != nil {
+		return fmt.Errorf("rule '%s' already exists", rule.Alert)
+	}
+	return nil
+}
+
+// WriteRule takes an alerting rule and writes it to the rules file for the
+// given networkID
+func (c *Client) WriteRule(rule rulefmt.Rule, networkID string) error {
+	filename := makeFilename(networkID, c.rulesDir)
+
+	c.fileLocks.Lock(filename)
+	defer c.fileLocks.Unlock(filename)
+
+	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	if err != nil {
+		return err
 	}
 	ruleFile.AddRule(rule)
 
 	err = c.writeRuleFile(ruleFile, filename)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return err
 	}
 	return nil
 }
@@ -93,15 +108,18 @@ func (c *Client) DeleteRule(ruleName string, networkID string) error {
 	defer c.fileLocks.Unlock(filename)
 
 	ruleFile, err := c.readRuleFile(filename)
+	if err != nil {
+		return err
+	}
 
 	err = ruleFile.DeleteRule(ruleName)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return err
 	}
 
 	err = c.writeRuleFile(ruleFile, filename)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return err
 	}
 	return nil
 }

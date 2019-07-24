@@ -30,7 +30,11 @@ type Listener interface {
 	//
 	// Server and listenning methods
 	//
-	Init(server *Server, serverConfig config.ServerConfig, listenerConfig config.ListenerConfig)
+	Init(
+		server *Server,
+		serverConfig config.ServerConfig,
+		listenerConfig config.ListenerConfig,
+	) error
 
 	// Blocking call to shutting down a listener
 	Shutdown(ctx context.Context) error

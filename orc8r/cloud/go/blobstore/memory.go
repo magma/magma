@@ -16,6 +16,8 @@ import (
 
 	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/storage"
+
+	"github.com/thoas/go-funk"
 )
 
 type changeType int
@@ -41,6 +43,8 @@ type blobsByID map[storage.TypeAndKey]Blob
 // blobTable maps networkIDs to a map of Blobs
 type blobTable map[tNetworkID]blobsByID
 
+type keySet map[string]interface{}
+
 type memoryBlobStorage struct {
 	// guards both transactionExists flag and changes
 	sync.RWMutex
@@ -63,13 +67,20 @@ type memoryBlobStoreFactory struct {
 	table blobTable
 }
 
+type networkIDAndTK struct {
+	networkID  string
+	typeAndKey storage.TypeAndKey
+}
+
+type nIDAndTKSet map[networkIDAndTK]interface{}
+
 // NewMemoryBlobStorageFactory returns a BlobStorageFactory implementation
 // which will return storage APIs backed by an in-memory map.
 func NewMemoryBlobStorageFactory() BlobStorageFactory {
 	return &memoryBlobStoreFactory{table: blobTable{}}
 }
 
-func (fact *memoryBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, error) {
+func (fact *memoryBlobStoreFactory) StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error) {
 	return &memoryBlobStorage{
 		shared:            sharedMemoryBlobTables{RWMutex: &fact.RWMutex, table: fact.table},
 		transactionExists: true,
@@ -200,6 +211,91 @@ func (store *memoryBlobStorage) Delete(networkID string, ids []storage.TypeAndKe
 		store.changes[networkID][id] = change{cType: Delete}
 	}
 	return nil
+}
+
+func (store *memoryBlobStorage) GetExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
+	store.Lock()
+	defer store.Unlock()
+
+	if err := store.validateTx(); err != nil {
+		return nil, err
+	}
+	keySet := funk.Map(keys, func(k string) (string, interface{}) { return k, nil }).(map[string]interface{})
+	if funk.NotEmpty(filter.NetworkID) {
+		return store.getExistingKeysInNetwork(*filter.NetworkID, keySet)
+	}
+	return store.getExistingKeysAllNetworks(keySet)
+}
+
+func (store *memoryBlobStorage) getExistingKeysInNetwork(networkID string, keySet keySet) ([]string, error) {
+	store.shared.RLock()
+	_, ok := store.shared.table[networkID]
+	if !ok {
+		store.shared.RUnlock()
+		return nil, fmt.Errorf("Network %s does not exist", networkID)
+	}
+	existingKeysSet := nIDAndTKSet{}
+	store.getExistingKeysAllNetworksFromShared(networkID, keySet, existingKeysSet)
+	store.shared.RUnlock()
+
+	_, ok = store.changes[networkID]
+	if ok {
+		store.updateSearchedKeysWithLocalChanges(networkID, keySet, existingKeysSet)
+	}
+	return existingKeysSet.sortAndRemoveDuplicate(), nil
+}
+
+func (store *memoryBlobStorage) getExistingKeysAllNetworks(keys keySet) ([]string, error) {
+	store.shared.RLock()
+	existingKeysSet := store.getExistingKeysFromShared(keys)
+	store.shared.RUnlock()
+
+	for networkID := range store.changes {
+		store.updateSearchedKeysWithLocalChanges(networkID, keys, existingKeysSet)
+	}
+	return existingKeysSet.sortAndRemoveDuplicate(), nil
+}
+
+func (store *memoryBlobStorage) getExistingKeysFromShared(keySet keySet) nIDAndTKSet {
+	existingKeysSet := nIDAndTKSet{}
+	for networkID := range store.shared.table {
+		store.getExistingKeysAllNetworksFromShared(networkID, keySet, existingKeysSet)
+	}
+	return existingKeysSet
+}
+
+// existingKeysSet is also an outputting parameter
+func (store *memoryBlobStorage) getExistingKeysAllNetworksFromShared(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) {
+	for tk := range store.shared.table[networkID] {
+		if _, exists := keySet[tk.Key]; exists {
+			existingKeysSet[networkIDAndTK{networkID: networkID, typeAndKey: tk}] = nil
+		}
+	}
+}
+
+// existingKeysSet is also an outputting parameter
+func (store *memoryBlobStorage) updateSearchedKeysWithLocalChanges(networkID string, keySet keySet, existingKeysSet nIDAndTKSet) error {
+	for tk, change := range store.changes[networkID] {
+		if _, exists := keySet[tk.Key]; exists {
+			id := networkIDAndTK{networkID: networkID, typeAndKey: tk}
+			switch change.cType {
+			case Delete:
+				delete(existingKeysSet, id)
+			case CreateOrUpdate:
+				existingKeysSet[id] = nil
+			default:
+				return fmt.Errorf("This transaction contains ill-formatted changes.")
+			}
+		}
+	}
+	return nil
+}
+
+func (set *nIDAndTKSet) sortAndRemoveDuplicate() []string {
+	deduped := funk.Map(*set, func(id networkIDAndTK, _ interface{}) (string, interface{}) { return id.typeAndKey.Key, nil }).(map[string]interface{})
+	keys := funk.Map(deduped, func(key string, _ interface{}) string { return key }).([]string)
+	sort.Strings(keys)
+	return keys
 }
 
 // Must be called with read lock on change map.

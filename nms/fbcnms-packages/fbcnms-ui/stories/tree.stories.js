@@ -7,10 +7,10 @@
  * @flow
  * @format
  */
-import {action} from '@storybook/addon-actions';
-import {storiesOf} from '@storybook/react';
 import React from 'react';
 import TreeView from '../components/TreeView';
+import {action} from '@storybook/addon-actions';
+import {storiesOf} from '@storybook/react';
 
 const levels = [1, 2, 3, 4];
 

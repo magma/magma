@@ -35,8 +35,10 @@ services:
     environment:
       CONTROLLER_HOSTNAME: controller.magma.test
       PROXY_BACKENDS: controller  # Uses Docker internal DNS for controller
-      HTTP_PROXY_HOSTNAME: proxy.magma.test
-      HTTP_PROXY_BACKEND: www.magma.test
+      # HTTP_PROXY_HOSTNAME: proxy.magma.test
+      # HTTP_PROXY_BACKEND: www.magma.test
+      HTTP_PROXY_DOCKER_HOSTNAME: docker.io
+      HTTP_PROXY_GITHUB_HOSTNAME: github.com
       TEST_MODE: "1"  # Used to run dev scripts on startup
     restart: always
 
@@ -49,12 +51,16 @@ services:
       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
       SQL_DIALECT: psql
 
-      # If you're testing the data migration, uncomment these lines:
-      # USE_NEW_HANDLERS: '1'
-      # USE_NEW_MCONFIGS: '1'
+      USE_NEW_HANDLERS: '1'
+      USE_NEW_MCONFIGS: '1'
 
       # To use MariaDB, use these connection parameters instead:
       # SQL_DRIVER: mysql
       # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
       # SQL_DIALECT: maria
     restart: always
+    depends_on:
+      - postgres
+      # - maria
+    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
+    # command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 maria:[port] && /usr/bin/supervisord"]

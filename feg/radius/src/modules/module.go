@@ -6,6 +6,11 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
+//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos context.proto
+//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos eap.proto
+//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos authorization.proto
+//go:generate protoc -I../../../../magma/feg/gateway/services/aaa/protos --go_out=plugins=grpc,paths=source_relative:./protos accounting.proto
+
 package modules
 
 import (

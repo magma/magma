@@ -10,8 +10,8 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
 import LoadingFiller from './LoadingFiller';
+import React from 'react';
 
 import {withStyles} from '@material-ui/core/styles';
 

@@ -14,8 +14,6 @@ and meta data for the network and network entity structures.
 package main
 
 import (
-	"database/sql"
-
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
@@ -34,13 +32,16 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}
-	db, err := sql.Open(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	db, err := sqorc.Open(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
 
 	factory := storage.NewSQLConfiguratorStorageFactory(db, &storage.DefaultIDGenerator{}, sqorc.GetSqlBuilder())
 	err = factory.InitializeServiceStorage()
+	if err != nil {
+		glog.Fatalf("Failed to initialize configurator databse: %s", err)
+	}
 
 	nbServicer, err := servicers.NewNorthboundConfiguratorServicer(factory)
 	if err != nil {

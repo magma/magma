@@ -413,6 +413,9 @@ func LoadEntityConfig(networkID, entityType, entityKey string) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
+	if entity.Config == nil {
+		return nil, merrors.ErrNotFound
+	}
 	return entity.Config, nil
 }
 

@@ -10,7 +10,7 @@
     "passport-saml": "^1.0.0"
   },
   "devDependencies": {
-    "sqlite3-offline": "^4.0.6",
+    "sqlite3": "^4.0.9",
     "supertest": "^4.0.2"
   }
 }

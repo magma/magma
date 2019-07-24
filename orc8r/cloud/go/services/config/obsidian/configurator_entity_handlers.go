@@ -9,7 +9,7 @@
 package obsidian
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 
 	magma_errors "magma/orc8r/cloud/go/errors"
@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 )
 
 // This set of CRUD handlers are meant for entities that only have one config
@@ -26,9 +27,24 @@ func configuratorCreateEntityConfig(c echo.Context, networkID string, entityType
 	if nerr != nil {
 		return nerr
 	}
-	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, config)
+	entityExists, err := configurator.DoesEntityExist(networkID, entityType, entityKey)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return handlers.HttpError(errors.Wrap(err, fmt.Sprintf("Entity %s,%s does not exist in %s", entityType, entityKey, networkID)), http.StatusInternalServerError)
+	}
+	if !entityExists {
+		_, err = configurator.CreateEntity(networkID, configurator.NetworkEntity{
+			Key:    entityKey,
+			Type:   entityType,
+			Config: config,
+		})
+		if err != nil {
+			return handlers.HttpError(errors.Wrap(err, "Failed to create entity"), http.StatusInternalServerError)
+		}
+	} else {
+		err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, config)
+		if err != nil {
+			return handlers.HttpError(errors.Wrap(err, "Failed to create entity config"), http.StatusInternalServerError)
+		}
 	}
 	return c.JSON(http.StatusCreated, entityKey)
 }

@@ -55,6 +55,7 @@ RUN apt-get -y update && apt-get -y install \
   magma-nghttpx=1.31.1-1 \
   net-tools \
   openssl \
+  iputils-ping \
   pkg-config \
   python-cffi \
   python3-pip \

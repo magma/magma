@@ -8,8 +8,8 @@
  * @format
  */
 
-import React from 'react';
 import NetworkCreate from './NetworkCreate';
+import React from 'react';
 
 import {Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';

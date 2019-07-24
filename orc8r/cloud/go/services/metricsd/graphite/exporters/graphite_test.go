@@ -59,3 +59,10 @@ func testSubmitGraphiteType(t *testing.T, metricType dto.MetricType) {
 	err = exporter.Submit([]mxd_exp.MetricAndContext{{Family: family, Context: context}})
 	assert.NoError(t, err)
 }
+
+func TestNewAddress(t *testing.T) {
+	for _, addr := range []string{"http://graphite-host", "graphite-host", "https://graphite-host"} {
+		graphiteAddress := exporters.NewAddress(addr, 2003)
+		assert.Equal(t, "graphite-host", graphiteAddress.Host)
+	}
+}

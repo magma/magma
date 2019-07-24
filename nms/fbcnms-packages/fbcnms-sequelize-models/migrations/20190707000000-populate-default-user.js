@@ -8,9 +8,9 @@
  * @format
  */
 
-import type {DataTypes, QueryInterface} from 'sequelize';
-import nullthrows from '@fbcnms/util/nullthrows';
 import bcrypt from 'bcryptjs';
+import nullthrows from '@fbcnms/util/nullthrows';
+import type {DataTypes, QueryInterface} from 'sequelize';
 
 module.exports = {
   up: async (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
@@ -26,6 +26,15 @@ module.exports = {
     return queryInterface.bulkInsert(
       'Users',
       [
+        {
+          email: testuser,
+          organization: 'master',
+          password: passwordHash,
+          role: 3,
+          createdAt: '2019-07-07 15:19:42',
+          updatedAt: '2019-07-07 15:19:42',
+          networkIDs: '[]',
+        },
         {
           email: testuser,
           organization: 'fb-test',

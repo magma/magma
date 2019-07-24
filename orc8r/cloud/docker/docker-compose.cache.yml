@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  cache:
+    build:
+      target: gocache
+      context: /tmp/magma_orc8r_build
+      dockerfile: $PWD/controller/Dockerfile

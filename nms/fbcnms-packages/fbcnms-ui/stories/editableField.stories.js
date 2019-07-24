@@ -8,9 +8,9 @@
  * @format
  */
 
-import {storiesOf} from '@storybook/react';
 import EditableField from '../components/EditableField.react';
 import React, {useState} from 'react';
+import {storiesOf} from '@storybook/react';
 
 function TestField(props: {type: 'string' | 'date'}) {
   const [value, setValue] = useState(null);

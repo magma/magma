@@ -12,11 +12,13 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
 
 func RunCustomPluginMigrations(sc *squirrel.StmtCache, builder sqorc.StatementBuilder) error {
 	for _, plug := range allPlugins {
+		glog.Infof("Running custom migrations for plugin %T", plug)
 		// reload gateway metas every time in case a plugin changes gw meta
 		migratedGatewayMetasByNetwork, err := reloadGatewayMetas(sc, builder)
 		if err != nil {

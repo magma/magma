@@ -37,7 +37,7 @@ AsyncAAAClient::AsyncAAAClient(
 
 AsyncAAAClient::AsyncAAAClient():
   AsyncAAAClient(magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-    "aaa",
+    "aaa_server",
     magma::ServiceRegistrySingleton::LOCAL))
 {
 }

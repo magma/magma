@@ -17,12 +17,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
-import {withStyles} from '@material-ui/core/styles';
 import {EnodebDeviceClass} from './EnodebUtils';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   formControl: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(),
     minWidth: 120,
   },
 });

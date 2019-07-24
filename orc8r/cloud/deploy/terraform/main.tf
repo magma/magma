@@ -75,6 +75,7 @@ module "eks" {
       instance_type        = "m4.xlarge"
       asg_desired_capacity = 3
       key_name             = var.key_name
+      kubelet_extra_args   = "--node-labels=worker-type=controller"
 
       tags = [
         {
@@ -89,6 +90,7 @@ module "eks" {
       instance_type        = "t2.xlarge"
       asg_desired_capacity = 1
       key_name             = var.key_name
+      kubelet_extra_args   = "--node-labels=worker-type=metrics"
 
       # we put the metrics nodes into 1 specific subnet because EBS volumes
       # can only be mounted into the same AZ
@@ -157,20 +159,4 @@ resource "aws_ebs_volume" "prometheus-configs-ebs-eks" {
   tags = {
     Name = "orc8r-prometheus-configs"
   }
-}
-
-resource "aws_db_instance" "default" {
-  identifier        = "orc8rdb"
-  allocated_storage = 128
-  engine            = "postgres"
-  engine_version    = "9.6.11"
-  instance_class    = "db.m4.large"
-
-  name     = "orc8r"
-  username = "orc8r"
-  password = var.db_password
-
-  vpc_security_group_ids = [aws_security_group.default.id]
-
-  db_subnet_group_name = module.vpc.database_subnet_group
 }

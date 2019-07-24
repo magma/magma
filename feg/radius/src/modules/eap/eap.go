@@ -66,11 +66,12 @@ func Init(logger *zap.Logger, config modules.ModuleConfig) error {
 
 // GetMethod factory method, instatiates and initializes an EAP method
 func getMethod(method Method) (methods.EapMethod, error) {
-	if method.Name != "akamagma" {
-		return nil, errors.New("only 'akamagma' eap method is currently supported")
+	switch method.Name {
+	case "akamagma":
+		return akamagma.Create(method.Config)
+	default:
+		return nil, errors.New("unsupported eap method '%s' (only 'akamagma' is supported")
 	}
-
-	return akamagma.Create(method.Config)
 }
 
 // Handle module interface implementation
@@ -121,7 +122,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 
 	HandleEapPacket.Start()
 	// Check if EAP method is supported
-	if eapPacket.EAPType != packet.EAPTypeAKA {
+	if eapPacket.EAPType != packet.EAPTypeAKA && eapPacket.EAPType != packet.EAPTypeIDENTITY {
 		c.Logger.Error("Unsupported EAP method requested", zap.Int("eap_method", int(eapPacket.EAPType)))
 		HandleEapPacket.Failure(fmt.Sprintf("unsupported_eap_type_%d", int(eapPacket.EAPType)))
 	}
