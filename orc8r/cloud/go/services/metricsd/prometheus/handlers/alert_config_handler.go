@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	neturl "net/url"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
@@ -137,7 +138,7 @@ func sendConfig(payload interface{}, url string, method string) error {
 func retrieveAlertRule(c echo.Context, url string) error {
 	alertName := c.QueryParam(AlertNameQueryParam)
 	if alertName != "" {
-		url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, alertName)
+		url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, neturl.QueryEscape(alertName))
 	}
 
 	client := &http.Client{}
@@ -166,7 +167,7 @@ func deleteAlertRule(c echo.Context, url string) error {
 	if alertName == "" {
 		return handlers.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
 	}
-	url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, alertName)
+	url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, neturl.QueryEscape(alertName))
 
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
@@ -197,7 +198,7 @@ func updateAlertRule(c echo.Context, url string) error {
 	if alertName == "" {
 		return handlers.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
 	}
-	url += fmt.Sprintf("/%s", alertName)
+	url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 
 	err = sendConfig(rule, url, http.MethodPut)
 	if err != nil {
