@@ -29,7 +29,7 @@ func TestInMemSessionTable(t *testing.T) {
 
 	st := store.NewMemorySessionTable()
 	var err error
-	sharedSession, err = st.AddSession(&protos.Context{SessionId: sharedSid}, time.Minute*10)
+	sharedSession, err = st.AddSession(&protos.Context{SessionId: sharedSid}, time.Minute*10, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, sharedSession)
 
@@ -44,10 +44,19 @@ func TestInMemSessionTable(t *testing.T) {
 	}
 }
 
+type callbackDone bool
+
+func (done *callbackDone) timeoutCallback(s aaa.Session) error {
+	if done != nil {
+		*done = true
+	}
+	return nil
+}
+
 func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	defer func() { c <- struct{}{} }()
 
-	shared, err := st.AddSession(&protos.Context{SessionId: sharedSid}, time.Minute*10)
+	shared, err := st.AddSession(&protos.Context{SessionId: sharedSid}, time.Minute*10, nil)
 	assert.Error(t, err)
 	assert.Equal(t, shared, sharedSession)
 
@@ -59,7 +68,8 @@ func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	shared.Unlock()
 
 	// Test Crete session
-	s, err := st.AddSession(pc, time.Millisecond*10)
+	var done callbackDone
+	s, err := st.AddSession(pc, time.Millisecond*10, (&done).timeoutCallback)
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
 
@@ -78,11 +88,12 @@ func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	time.Sleep(time.Millisecond * 300)
 	s1.Unlock()
 
+	assert.True(t, bool(done))
 	s2 := st.GetSession(sid)
 	assert.Nil(t, s2)
 
 	// Test Remove session
-	s, err = st.AddSession(pc, time.Minute) // don't expire
+	s, err = st.AddSession(pc, time.Minute, nil) // don't expire
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
 	s1 = st.GetSession(sid)
@@ -91,17 +102,20 @@ func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	assert.Equal(t, s1, s2)
 
 	// Test SetTimeout
-	s, err = st.AddSession(pc, time.Minute)
+	s, err = st.AddSession(pc, time.Minute, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, s)
 	s1 = st.GetSession(sid)
 	assert.Equal(t, s, s1)
-	success := st.SetTimeout(sid, time.Millisecond*5)
+	done = false
+	success := st.SetTimeout(sid, time.Millisecond*5, (&done).timeoutCallback)
 	assert.True(t, success)
 	time.Sleep(time.Millisecond * 300)
+
+	assert.True(t, bool(done))
 	s2 = st.GetSession(sid)
 	assert.Nil(t, s2)
 
-	success = st.SetTimeout(sid, time.Millisecond*10)
+	success = st.SetTimeout(sid, time.Millisecond*10, nil)
 	assert.False(t, success)
 }

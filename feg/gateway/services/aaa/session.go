@@ -46,16 +46,19 @@ type Session interface {
 	StopTimeout() bool
 }
 
+// TimeoutNotifier is a callback function to be called on session timeout
+type TimeoutNotifier func(Session) error
+
 // SessionTable - synchronized map of authenticated sessions
 type SessionTable interface {
 	// AddSession - adds a new session to the table & returns the newly created session pointer.
 	// If a session with the same ID already is in the table - returns "Session with SID: XYZ already exist" as well as the
 	// existing session.
-	AddSession(pc *protos.Context, tout time.Duration, overwrite ...bool) (s Session, err error)
+	AddSession(pc *protos.Context, tout time.Duration, cb TimeoutNotifier, overwrite ...bool) (s Session, err error)
 	// GetSession returns session corresponding to the given sid or nil if not found
 	GetSession(sid string) (lockedSession Session)
 	// RemoveSession - removes the session with the given SID and returns it, returns nil if not found
 	RemoveSession(sid string) Session
 	// SetTimeout - [Re]sets the session's cleanup timeout to fire after tout duration
-	SetTimeout(sid string, tout time.Duration) bool
+	SetTimeout(sid string, tout time.Duration, callback TimeoutNotifier) bool
 }
