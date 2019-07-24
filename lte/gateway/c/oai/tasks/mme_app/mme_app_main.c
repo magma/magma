@@ -35,7 +35,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
@@ -205,34 +204,26 @@ void *mme_app_thread(void *args)
           received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
         if (ue_context_p == NULL) {
-          MSC_LOG_RX_DISCARDED_MESSAGE(
-            MSC_MMEAPP_MME,
-            MSC_S11_MME,
-            NULL,
-            0,
-            "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT " ",
-            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
           OAILOG_WARNING(
             LOG_MME_APP,
             "We didn't find this teid in list of UE: %08x\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
         } else {
-          MSC_LOG_RX_MESSAGE(
-            MSC_MMEAPP_MME,
-            MSC_S11_MME,
-            NULL,
-            0,
-            "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT
-            " IMSI " IMSI_64_FMT " ",
-            received_message_p->ittiMsg.s11_modify_bearer_response.teid,
-            ue_context_p->emm_context._imsi64);
-            OAILOG_DEBUG(
-              TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
-              received_message_p->ittiMsg.s11_modify_bearer_response.teid);
-          /*
-           * Updating statistics
-           */
-          update_mme_app_stats_s1u_bearer_add();
+          OAILOG_DEBUG(
+            TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
+            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
+
+          if (ue_context_p->path_switch_req != true) {
+            /* Updating statistics */
+            update_mme_app_stats_s1u_bearer_add();
+          }
+          if (ue_context_p->path_switch_req == true) {
+            mme_app_handle_path_switch_req_ack(
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
+            ue_context_p->path_switch_req = false;
+          }
+
           unlock_ue_contexts(ue_context_p);
         }
       } break;
@@ -540,6 +531,11 @@ void *mme_app_thread(void *args)
       case MME_APP_DELETE_DEDICATED_BEARER_REJ: {
         mme_app_handle_delete_dedicated_bearer_rej(
           &MME_APP_DELETE_DEDICATED_BEARER_REJ(received_message_p));
+      } break;
+
+      case S1AP_PATH_SWITCH_REQUEST: {
+        mme_app_handle_path_switch_request(
+          &S1AP_PATH_SWITCH_REQUEST(received_message_p));
       } break;
 
       case TERMINATE_MESSAGE: {

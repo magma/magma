@@ -22,6 +22,6 @@ func StartTestService(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, lte.ModuleName, policydb.ServiceName)
 	protos.RegisterPolicyDBControllerServer(
 		srv.GrpcServer,
-		servicers.NewPolicyDBServer(test_utils.GetMockDatastoreInstance()))
+		servicers.NewPolicyDBServer(test_utils.NewMockDatastore()))
 	go srv.RunTest(lis)
 }

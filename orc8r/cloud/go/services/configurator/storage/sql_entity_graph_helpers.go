@@ -9,11 +9,10 @@
 package storage
 
 import (
-	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
-
+	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -26,7 +25,7 @@ type internalEntityGraph struct {
 // loadGraphInternal will load all entities and assocs for a given graph ID.
 // This function will NOT fill entities with associations.
 func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID string, criteria EntityLoadCriteria) (internalEntityGraph, error) {
-	loadFilter := EntityLoadFilter{graphID: &graphID}
+	loadFilter := EntityLoadFilter{GraphID: &wrappers.StringValue{Value: graphID}}
 	entsByPk, err := store.loadFromEntitiesTable(networkID, loadFilter, criteria)
 	if err != nil {
 		return internalEntityGraph{}, errors.Wrap(err, "failed to load entities for graph")
@@ -84,13 +83,11 @@ func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, 
 
 func (store *sqlConfiguratorStorage) updateGraphID(pksToUpdate []string, newGraphID string) error {
 	sort.Strings(pksToUpdate)
-	args := make([]interface{}, len(pksToUpdate)+1)
-	args[0] = newGraphID
-	fillSlice := args[1:1] // 1:1 because ConvertSlice expects a slice with len of 0
-	funk.ConvertSlice(pksToUpdate, &fillSlice)
-
-	updateExec := fmt.Sprintf("UPDATE %s SET graph_id = $1 WHERE pk IN %s", entityTable, sql_utils.GetPlaceholderArgList(2, len(pksToUpdate)))
-	_, err := store.tx.Exec(updateExec, args...)
+	_, err := store.builder.Update(entityTable).
+		Set(entGidCol, newGraphID).
+		Where(sq.Eq{entPkCol: pksToUpdate}).
+		RunWith(store.tx).
+		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to update graph ID")
 	}

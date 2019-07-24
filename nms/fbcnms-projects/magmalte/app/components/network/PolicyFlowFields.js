@@ -8,13 +8,13 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {PolicyFlow} from './PolicyTypes';
+import type {WithStyles} from '@material-ui/core';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import FormControl from '@material-ui/core/FormControl';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
@@ -26,8 +26,8 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
-import {withStyles} from '@material-ui/core/styles';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
   input: {

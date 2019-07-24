@@ -28,7 +28,6 @@
 #include "bstrlib.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
@@ -796,7 +795,6 @@ void emm_context_stop_all_timers(struct emm_context_s *emm_ctx)
   if (emm_ctx->T3450.id != NAS_TIMER_INACTIVE_ID) {
     OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3450 (%d)\n", emm_ctx->T3450.id);
     emm_ctx->T3450.id = nas_timer_stop (emm_ctx->T3450.id);
-    MSC_LOG_EVENT (MSC_NAS_EMM_MME, "0 T3450 stopped UE " MME_UE_S1AP_ID_FMT " ", emm_ctx->ue_id);
   }
 
   /*
@@ -805,7 +803,6 @@ void emm_context_stop_all_timers(struct emm_context_s *emm_ctx)
   if (emm_ctx->T3460.id != NAS_TIMER_INACTIVE_ID) {
     OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3460 (%d)\n", emm_ctx->T3460.id);
     emm_ctx->T3460.id = nas_timer_stop (emm_ctx->T3460.id);
-    MSC_LOG_EVENT (MSC_NAS_EMM_MME, "0 T3460 stopped UE " MME_UE_S1AP_ID_FMT " ", emm_ctx->ue_id);
   }
 
   /*
@@ -814,7 +811,6 @@ void emm_context_stop_all_timers(struct emm_context_s *emm_ctx)
   if (emm_ctx->T3470.id != NAS_TIMER_INACTIVE_ID) {
     OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3470 (%d)\n", emm_ctx->T3470.id);
     emm_ctx->T3470.id = nas_timer_stop (emm_ctx->T3470.id);
-    MSC_LOG_EVENT (MSC_NAS_EMM_MME, "0 T3470 stopped UE " MME_UE_S1AP_ID_FMT " ", emm_ctx->ue_id);
   }
 
   /*
@@ -835,7 +831,6 @@ void emm_context_stop_all_timers(struct emm_context_s *emm_ctx)
   if (emm_ctx->T3422.id != NAS_TIMER_INACTIVE_ID) {
     OAILOG_DEBUG (LOG_NAS_EMM, "EMM-PROC  - Stop timer T3422 (%d)\n", emm_ctx->T3422.id);
     emm_ctx->T3422.id = nas_timer_stop (emm_ctx->T3422.id);
-    MSC_LOG_EVENT (MSC_NAS_EMM_MME, "0 T3472 stopped UE " MME_UE_S1AP_ID_FMT " ", emm_ctx->ue_id);
   }
 #endif
 }
@@ -985,8 +980,6 @@ void nas_start_T3450(
     T3450->id =
       nas_timer_start(T3450->sec, 0, time_out_cb, timer_callback_args);
     if (NAS_TIMER_INACTIVE_ID != T3450->id) {
-      MSC_LOG_EVENT(
-        MSC_NAS_EMM_MME, "0 T3450 started UE " MME_UE_S1AP_ID_FMT " ", ue_id);
       OAILOG_DEBUG(
         LOG_NAS_EMM, "T3450 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
     } else {
@@ -1006,8 +999,6 @@ void nas_start_T3460(
     T3460->id =
       nas_timer_start(T3460->sec, 0, time_out_cb, timer_callback_args);
     if (NAS_TIMER_INACTIVE_ID != T3460->id) {
-      MSC_LOG_EVENT(
-        MSC_NAS_EMM_MME, "0 T3460 started UE " MME_UE_S1AP_ID_FMT " ", ue_id);
       OAILOG_DEBUG(
         LOG_NAS_EMM, "T3460 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
     } else {
@@ -1027,8 +1018,6 @@ void nas_start_T3470(
     T3470->id =
       nas_timer_start(T3470->sec, 0, time_out_cb, timer_callback_args);
     if (NAS_TIMER_INACTIVE_ID != T3470->id) {
-      MSC_LOG_EVENT(
-        MSC_NAS_EMM_MME, "0 T3470 started UE " MME_UE_S1AP_ID_FMT " ", ue_id);
       OAILOG_DEBUG(
         LOG_NAS_EMM, "T3470 started UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
     } else {
@@ -1048,10 +1037,6 @@ void nas_start_Ts6a_auth_info(
     Ts6a_auth_info->id =
       nas_timer_start(Ts6a_auth_info->sec, 0, time_out_cb, timer_callback_args);
     if (NAS_TIMER_INACTIVE_ID != Ts6a_auth_info->id) {
-      MSC_LOG_EVENT(
-        MSC_NAS_EMM_MME,
-        "0 Ts6a_auth_info started UE " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
       OAILOG_DEBUG(
         LOG_NAS_EMM,
         "Ts6a_auth_info started UE " MME_UE_S1AP_ID_FMT "\n",
@@ -1072,8 +1057,6 @@ void nas_stop_T3450(
 {
   if ((T3450) && (T3450->id != NAS_TIMER_INACTIVE_ID)) {
     T3450->id = nas_timer_stop(T3450->id, &timer_callback_args);
-    MSC_LOG_EVENT(
-      MSC_NAS_EMM_MME, "0 T3450 stopped UE " MME_UE_S1AP_ID_FMT " ", ue_id);
     OAILOG_DEBUG(
       LOG_NAS_EMM, "T3450 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1087,8 +1070,6 @@ void nas_stop_T3460(
 {
   if ((T3460) && (T3460->id != NAS_TIMER_INACTIVE_ID)) {
     T3460->id = nas_timer_stop(T3460->id, &timer_callback_args);
-    MSC_LOG_EVENT(
-      MSC_NAS_EMM_MME, "0 T3460 stopped UE " MME_UE_S1AP_ID_FMT " ", ue_id);
     OAILOG_DEBUG(
       LOG_NAS_EMM, "T3460 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1102,8 +1083,6 @@ void nas_stop_T3470(
 {
   if ((T3470) && (T3470->id != NAS_TIMER_INACTIVE_ID)) {
     T3470->id = nas_timer_stop(T3470->id, &timer_callback_args);
-    MSC_LOG_EVENT(
-      MSC_NAS_EMM_MME, "0 T3470 stopped UE " MME_UE_S1AP_ID_FMT " ", ue_id);
     OAILOG_DEBUG(
       LOG_NAS_EMM, "T3470 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }
@@ -1118,10 +1097,6 @@ void nas_stop_Ts6a_auth_info(
   if ((Ts6a_auth_info) && (Ts6a_auth_info->id != NAS_TIMER_INACTIVE_ID)) {
     Ts6a_auth_info->id =
       nas_timer_stop(Ts6a_auth_info->id, &timer_callback_args);
-    MSC_LOG_EVENT(
-      MSC_NAS_EMM_MME,
-      "0 Ts6a_auth_info stopped UE " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     OAILOG_DEBUG(
       LOG_NAS_EMM, "Ts6a_auth_info stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
   }

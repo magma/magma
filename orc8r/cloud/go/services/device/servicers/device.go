@@ -27,6 +27,7 @@ func NewDeviceServicer(factory blobstore.BlobStorageFactory) (protos.DeviceServe
 	}
 	return &deviceServicer{factory: factory}, nil
 }
+
 func (srv *deviceServicer) RegisterDevices(ctx context.Context, req *protos.RegisterDevicesRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
 	if err := ValidateRegisterDevicesRequest(req); err != nil {
@@ -55,11 +56,16 @@ func (srv *deviceServicer) GetDeviceInfo(ctx context.Context, req *protos.GetDev
 	ids := protos.DeviceIDsToTypeAndKey(req.DeviceIDs)
 	store, err := srv.factory.StartTransaction()
 	if err != nil {
+		store.Rollback()
 		return nil, err
 	}
 	blobs, err := store.GetMany(req.NetworkID, ids)
+	if err != nil {
+		store.Rollback()
+		return response, err
+	}
 	response.DeviceMap = protos.BlobsToEntityByDeviceID(blobs)
-	return response, nil
+	return response, store.Commit()
 }
 
 func (srv *deviceServicer) DeleteDevices(ctx context.Context, req *protos.DeleteDevicesRequest) (*commonProtos.Void, error) {

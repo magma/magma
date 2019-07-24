@@ -8,14 +8,14 @@
  * @format
  */
 
-import React from 'react';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaTopBar from '../MagmaTopBar';
 import Network from '../network/Network';
+import React from 'react';
 import Settings from '../Settings';
 
-import {Route, Switch} from 'react-router-dom';
 import useSections from './useSections';
+import {Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function SectionRoutes() {

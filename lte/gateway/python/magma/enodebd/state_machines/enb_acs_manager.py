@@ -146,7 +146,12 @@ class StateMachineManager:
             value = param_value.Value.Data
             param_values_by_path[path] = value
 
-        enb_serial = param_values_by_path['Device.DeviceInfo.SerialNumber']
+        if 'Device.DeviceInfo.SerialNumber' in param_values_by_path:
+            enb_serial = param_values_by_path['Device.DeviceInfo.SerialNumber']
+        else:
+            param_path = 'InternetGatewayDevice.DeviceInfo.SerialNumber'
+            enb_serial = param_values_by_path[param_path]
+
         return enb_serial
 
     def _get_client_ip(self, ctx: WsgiMethodContext) -> str:

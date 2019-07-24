@@ -13,17 +13,17 @@ import type {Theme, WithStyles} from '@material-ui/core';
 // $FlowFixMe - icon exists
 import ArrowRightIcon from '@material-ui/icons/ArrowRight';
 
-import {withStyles, withTheme} from '@material-ui/core/styles';
-import classNames from 'classnames';
+import 'react-perfect-scrollbar/dist/css/styles.css';
+import * as React from 'react';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ListItem from '@material-ui/core/ListItem';
-import nullthrows from '@fbcnms/util/nullthrows';
-import * as React from 'react';
-import Typography from '@material-ui/core/Typography';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import 'react-perfect-scrollbar/dist/css/styles.css';
+import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {withStyles, withTheme} from '@material-ui/core/styles';
 
 type TreeNode = {
   name: string,

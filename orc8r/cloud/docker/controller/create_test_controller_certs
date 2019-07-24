@@ -10,8 +10,7 @@
 # This script generates certs for the controller tier for dev and testing
 set -e
 
-TEST_MODE=$(cat /var/opt/magma/envdir/TEST_MODE || echo 0)
-if [ "${TEST_MODE}" != "1" ]; then
+if [ "$TEST_MODE" != "1" ]; then
   echo "Not running in test mode!"
   exit 0
 fi
@@ -46,7 +45,9 @@ if [ ! -f vpn_ca.key ]; then
 fi
 
 echo "Waiting for datastore to come up..."
-timeout 20 bash -c 'until nc -z datastore 5432; do sleep 1; done'
+# we always check postgres, even though we could be running against maria
+# backend
+timeout 20 bash -c 'until nc -z postgres 5432; do sleep 1; done'
 
 ACCESSC='/var/opt/magma/bin/accessc'
 if [ -f admin_operator.pfx ]; then

@@ -18,50 +18,47 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "METERINGD_RECORDS"
 
-// Get a thin RPC client to the stats service.
-func GetMeteringdRecordsClient() (protos.MeteringdRecordsControllerClient, *grpc.ClientConn, error) {
+// GetMeteringdRecordsClient get a thin RPC client to the stats service.
+func GetMeteringdRecordsClient() (protos.MeteringdRecordsControllerClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewMeteringdRecordsControllerClient(conn), conn, err
+	return protos.NewMeteringdRecordsControllerClient(conn), err
 }
 
-// Get a Record from a network
-func GetRecord(networkId string, recordId string) (*protos.FlowRecord, error) {
-	client, conn, err := GetMeteringdRecordsClient()
+// GetRecord get a Record from a network
+func GetRecord(networkID string, recordID string) (*protos.FlowRecord, error) {
+	client, err := GetMeteringdRecordsClient()
 	if err != nil {
 		return &protos.FlowRecord{}, err
 	}
-	defer conn.Close()
 
 	req := &protos.FlowRecordQuery{
-		NetworkId: networkId,
+		NetworkId: networkID,
 		Query: &protos.FlowRecordQuery_RecordId{
-			RecordId: recordId,
+			RecordId: recordID,
 		},
 	}
 	ctx := context.Background()
 	return client.GetRecord(ctx, req)
 }
 
-// List Records for a subscriber
-func ListSubscriberRecords(networkId string, sid string) ([]*protos.FlowRecord, error) {
-	client, conn, err := GetMeteringdRecordsClient()
+// ListSubscriberRecords list Records for a subscriber
+func ListSubscriberRecords(networkID string, sid string) ([]*protos.FlowRecord, error) {
+	client, err := GetMeteringdRecordsClient()
 	if err != nil {
 		return []*protos.FlowRecord{}, err
 	}
-	defer conn.Close()
 
 	req := &protos.FlowRecordQuery{
-		NetworkId: networkId,
+		NetworkId: networkID,
 		Query: &protos.FlowRecordQuery_SubscriberId{
 			SubscriberId: sid,
 		},

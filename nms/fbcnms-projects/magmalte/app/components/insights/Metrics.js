@@ -10,7 +10,6 @@
 
 import type {TimeRange} from './AsyncMetric';
 
-import React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from './AsyncMetric';
 import Card from '@material-ui/core/Card';
@@ -19,17 +18,18 @@ import FormControl from '@material-ui/core/FormControl';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
-import LoadingFiller from '../LoadingFiller';
-import MenuItem from '@material-ui/core/MenuItem';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaTopBar from '../MagmaTopBar';
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
 import {Route, Switch} from 'react-router-dom';
-import Select from '@material-ui/core/Select';
 
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {find} from 'lodash-es';
+import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useSnackbar, useRouter} from '@fbcnms/ui/hooks';
+import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 import {useCallback, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -56,7 +56,7 @@ type Config = {
 const CHART_CONFIGS: Config[] = [
   {
     id: 'enodeb_rf_tx_enabled',
-    filters: ['service=enodebd'],
+    filters: ['service="enodebd"'],
     label: 'E-Node B Status',
     metric: 'enodeb_rf_tx_enabled',
   },
@@ -68,7 +68,7 @@ const CHART_CONFIGS: Config[] = [
   },
   {
     id: 'download_throughput',
-    filters: ['service=enodebd'],
+    filters: ['service="enodebd"'],
     label: 'Download Throughput',
     metric: 'pdcp_user_plane_bytes_dl',
     // 'transform' => 'formula(* $1 26.667)',
@@ -76,7 +76,7 @@ const CHART_CONFIGS: Config[] = [
   },
   {
     id: 'upload_throughput',
-    filters: ['service=enodebd'],
+    filters: ['service="enodebd"'],
     label: 'Upload Throughput',
     metric: 'pdcp_user_plane_bytes_ul',
     // 'transform' => 'formula(* $1 26.667)',
@@ -84,43 +84,43 @@ const CHART_CONFIGS: Config[] = [
   },
   {
     id: 'latency',
-    filters: ['service=magmad'],
+    filters: ['service="magmad"', 'metric="rtt_ms"'],
     label: 'Latency',
-    metric: 'magmad_ping_rtt_ms_8_8_8_8_metric_rtt_ms',
+    metric: 'magmad_ping_rtt_ms',
     unit: ' ms',
   },
   {
     id: 'gateway_cpu',
-    filters: ['service=magmad'],
+    filters: ['service="magmad"'],
     label: 'Gateway CPU (%)',
     metric: 'cpu_percent',
     unit: '%',
   },
   {
     id: 'temperature_coretemp_0',
-    filters: ['service=magmad'],
+    filters: ['service="magmad"'],
     label: 'Temperature (℃)',
-    metric: 'temperature_.+_coretemp_0',
+    metric: 'temperature',
     unit: '℃',
   },
   {
     id: 'disk',
-    filters: ['service=magmad'],
+    filters: ['service="magmad"'],
     label: 'Disk (%)',
     metric: 'disk_percent',
     unit: '%',
   },
   {
     id: 's6a_auth_success',
-    filters: ['service=subscriberdb'],
+    filters: ['service="subscriberdb"'],
     label: 's6a Auth Success',
     metric: 's6a_auth_success',
     // 'transform' => 'rate(1m, duration=900)',
     unit: '',
   },
   {
-    id: 's6a_auth_failure_code_ResultCode_DIAMETER_AUTHORIZATION_REJECTED',
-    filters: ['service=subscriberdb'],
+    id: 's6a_auth_failure',
+    filters: ['service="subscriberdb"'],
     label: 's6a Auth Failure',
     metric: 's6a_auth_failure',
     // 'transform' => 'rate(1m, duration=900)',
@@ -129,8 +129,8 @@ const CHART_CONFIGS: Config[] = [
 ];
 
 function resolveQuery(config: Config, gatewayId: string) {
-  const filters = [...config.filters, `gatewayID=${gatewayId}`].join(',');
-  return `${config.metric},${filters}`;
+  const filters = [...config.filters, `gatewayID="${gatewayId}"`].join(',');
+  return `${config.metric}{${filters}}`;
 }
 
 function Metrics() {
@@ -147,9 +147,9 @@ function Metrics() {
   const onGatewayChanged = useCallback(
     event => {
       const gatewayId = event.target.value;
-      history.push(`/${match.params.networkId}/metrics/${gatewayId}`);
+      history.push(`/nms/${match.params.networkId}/metrics/${gatewayId}`);
     },
-    [match],
+    [history, match.params.networkId],
   );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);

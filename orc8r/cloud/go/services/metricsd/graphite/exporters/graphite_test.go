@@ -36,7 +36,7 @@ func TestSubmitGraphiteHistogram(t *testing.T) {
 }
 
 func testSubmitGraphiteType(t *testing.T, metricType dto.MetricType) {
-	exporter := exporters.NewGraphiteExporter("", 0)
+	exporter := exporters.NewGraphiteExporter([]exporters.Address{{Host: "", Port: 0}})
 
 	serviceLabelPair := dto.LabelPair{
 		Name:  test_common.MakeStringPointer(mxd_exp.SERVICE_LABEL_NAME),
@@ -58,4 +58,11 @@ func testSubmitGraphiteType(t *testing.T, metricType dto.MetricType) {
 	// Updating existing metric should not throw error
 	err = exporter.Submit([]mxd_exp.MetricAndContext{{Family: family, Context: context}})
 	assert.NoError(t, err)
+}
+
+func TestNewAddress(t *testing.T) {
+	for _, addr := range []string{"http://graphite-host", "graphite-host", "https://graphite-host"} {
+		graphiteAddress := exporters.NewAddress(addr, 2003)
+		assert.Equal(t, "graphite-host", graphiteAddress.Host)
+	}
 }

@@ -9,13 +9,12 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"fmt"
 	"net/http"
-	"regexp"
-	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/configurator"
+	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/labstack/echo"
@@ -35,11 +34,14 @@ func listNetworks(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	networks, err := magmad.ListNetworks()
+	networks, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-
+	//magmad expects [] not null for the empty case
+	if networks == nil {
+		networks = []string{}
+	}
 	return c.JSON(http.StatusOK, networks)
 }
 
@@ -51,85 +53,93 @@ func registerNetwork(c echo.Context) error {
 	}
 
 	// Bind network record from swagger
-	swaggerRecord := &magmad_models.NetworkRecord{}
-	err := c.Bind(&swaggerRecord)
+	record := &magmad_models.NetworkRecord{}
+	err := c.Bind(&record)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	if err := swaggerRecord.ValidateModel(); err != nil {
+	if err := record.ValidateModel(); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	magmadRecord := swaggerRecord.ToProto()
 
-	var networkId string
-	requestedId := c.QueryParam("requested_id")
-	if len(requestedId) > 0 {
-		r, _ := regexp.Compile("^[a-z_][0-9a-z_]+$")
-		if !r.MatchString(requestedId) {
-			return handlers.HttpError(
-				fmt.Errorf("Network ID '%s' is not allowed. Network ID can only contain "+
-					"lowercase alphanumeric characters and underscore, and should start with a letter or underscore.", requestedId),
-				http.StatusBadRequest,
-			)
-		}
-	}
-	networkId, err = magmad.RegisterNetwork(magmadRecord, requestedId)
-
+	requestedID := c.QueryParam("requested_id")
+	err = configuratorh.VerifyNetworkIDFormat(requestedID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusConflict)
+		return err
 	}
 
-	return c.JSON(http.StatusCreated, networkId)
+	network := configurator.Network{
+		Name: record.Name,
+		ID:   requestedID,
+		Configs: map[string]interface{}{
+			orc8r.NetworkFeaturesConfig: &magmad_models.NetworkFeatures{Features: record.Features},
+		},
+	}
+
+	err = configurator.CreateNetwork(network)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusBadRequest)
+	}
+	return c.JSON(http.StatusCreated, requestedID)
 }
 
 func getNetwork(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-
-	record, err := magmad.GetNetwork(networkId)
+	network, err := configurator.LoadNetwork(networkID, true, false)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	swaggerRecord := magmad_models.NetworkRecordFromProto(record)
-	return c.JSON(http.StatusOK, &swaggerRecord)
+
+	networkFeatures := &magmad_models.NetworkFeatures{}
+	features, ok := network.Configs[orc8r.NetworkFeaturesConfig]
+	if ok {
+		networkFeatures = features.(*magmad_models.NetworkFeatures)
+	}
+
+	record := magmad_models.NetworkRecord{
+		Name:     network.Name,
+		Features: networkFeatures.Features,
+	}
+	return c.JSON(http.StatusOK, &record)
 }
 
 func updateNetwork(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	swaggerRecord := &magmad_models.NetworkRecord{}
-	if err := c.Bind(&swaggerRecord); err != nil {
+	record := &magmad_models.NetworkRecord{}
+	if err := c.Bind(&record); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	if err := swaggerRecord.ValidateModel(); err != nil {
+	if err := record.ValidateModel(); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	return magmad.UpdateNetwork(networkId, swaggerRecord.ToProto())
+
+	updateCriteria := configurator.NetworkUpdateCriteria{
+		ID:      networkID,
+		NewName: &record.Name,
+		ConfigsToAddOrUpdate: map[string]interface{}{
+			orc8r.NetworkFeaturesConfig: &magmad_models.NetworkFeatures{Features: record.Features},
+		},
+	}
+	configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
+	return c.NoContent(http.StatusNoContent)
 }
 
 func deleteNetwork(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	force := c.QueryParam("mode")
-	var err error
-	if strings.ToUpper(force) == "FORCE" {
-		err = magmad.ForceRemoveNetwork(networkId)
-	} else {
-		err = magmad.RemoveNetwork(networkId)
-	}
-
+	err := configurator.DeleteNetwork(networkID)
 	if err != nil {
-		status := http.StatusInternalServerError
-		// TODO: conversion based on grpc code
-		return handlers.HttpError(err, status)
+		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

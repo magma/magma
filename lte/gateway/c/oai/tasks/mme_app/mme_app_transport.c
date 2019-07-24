@@ -29,7 +29,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "mme_app_ue_context.h"
@@ -75,15 +74,6 @@ int mme_app_handle_nas_dl_req(itti_nas_dl_data_req_t *const nas_dl_req_pP)
   S1AP_NAS_DL_DATA_REQ(message_p).mme_ue_s1ap_id = nas_dl_req_pP->ue_id;
   S1AP_NAS_DL_DATA_REQ(message_p).nas_msg = bstrcpy(nas_dl_req_pP->nas_msg);
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    TASK_S1AP,
-    NULL,
-    0,
-    "0 DOWNLINK NAS TRANSPORT enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-    " ue id " MME_UE_S1AP_ID_FMT " ",
-    enb_ue_s1ap_id,
-    nas_dl_req_pP->ue_id);
   /*
    * Store the S1AP NAS DL DATA REQ in case of IMSI or combined EPS/IMSI detach in sgs context
    * and send it after recieving the SGS IMSI Detach Ack from SGS task.

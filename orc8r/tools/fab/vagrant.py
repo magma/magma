@@ -19,8 +19,10 @@ def __ensure_in_vagrant_dir():
         print("Error: Vagrantfile not found. Try executing from fbcode/magma")
         exit(1)
 
+    return
 
-def setup_env_vagrant(machine='magma'):
+
+def setup_env_vagrant(machine='magma', apply_to_env=True):
     """ Host config for local Vagrant VM.
 
     Sets the environment to point at the local vagrant machine. Used
@@ -49,16 +51,25 @@ def setup_env_vagrant(machine='magma'):
             exit(1)
 
     ssh_config = local('vagrant ssh-config %s' % machine, capture=True)
-    host = local('echo "%s" | grep HostName' % ssh_config,
-                 capture=True).split()[1]
-    port = local('echo "%s" | grep Port' % ssh_config,
-                 capture=True).split()[1]
-    env.host_string = 'vagrant@%s:%s' % (host, port)
-    env.hosts = [env.host_string]
-    identity_file = local('echo "%s" | grep IdentityFile'
-                          % ssh_config, capture=True)
+
+    ssh_lines = [line.strip() for line in ssh_config.split("\n")]
+    ssh_params = {key: val for key, val
+                  in [line.split(" ", 1) for line in ssh_lines]}
+
+    host = ssh_params.get("HostName", "").strip()
+    port = ssh_params.get("Port", "").strip()
     # some installations seem to have quotes around the file location
-    env.key_filename = identity_file.split()[1].strip('"')
+    identity_file = ssh_params.get("IdentityFile", "").strip().strip('"')
+    host_string = 'vagrant@%s:%s' % (host, port)
+
+    if apply_to_env:
+        env.host_string = host_string
+        env.hosts = [env.host_string]
+        env.key_filename = identity_file
+    else:
+        return {"hosts": [host_string],
+                "host_string": host_string,
+                "key_filename": identity_file}
 
 
 def teardown_vagrant(machine):

@@ -12,6 +12,7 @@ import (
 	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	stateservice "magma/orc8r/cloud/go/services/state"
@@ -47,13 +48,13 @@ func AGStatusByDeviceIDHandler(c echo.Context) error {
 }
 
 func GetGWStatus(networkID string, deviceID string) (*checkind_models.GatewayStatus, error) {
-	state, err := stateservice.GetState(networkID, "gw_state", deviceID)
+	state, err := stateservice.GetState(networkID, orc8r.GatewayStateType, deviceID)
 	if err != nil {
 		return nil, err
 	}
 	deserializedValue, err := serde.Deserialize(
 		stateservice.SerdeDomain,
-		"gw_state",
+		orc8r.GatewayStateType,
 		state.ReportedValue,
 	)
 	gwStatus := deserializedValue.(checkind_models.GatewayStatus)

@@ -142,3 +142,17 @@ definitions:
         minLength: 1
         description: Subscription profile name
         example: 'default'
+  # this is a read-only object
+  subscriber_state:
+    type: object
+    properties:
+      lte_auth_next_seq:
+        type: integer
+        format: uint64
+        x-nullable: false
+      tgpp_aaa_server_name:
+        type: string
+        x-nullable: false
+      tgpp_aaa_server_registered:
+        type: boolean
+        example: false

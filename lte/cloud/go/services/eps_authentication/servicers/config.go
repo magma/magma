@@ -1,11 +1,12 @@
 package servicers
 
 import (
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	cellular "magma/lte/cloud/go/services/cellular/config"
+	"magma/lte/cloud/go/lte"
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/orc8r/cloud/go/services/config"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // EpsAuthConfig stores all the configs needed to run the service.
@@ -17,7 +18,7 @@ type EpsAuthConfig struct {
 
 // getConfig returns the EpsAuthConfig config for a given networkId.
 func getConfig(networkID string) (*EpsAuthConfig, error) {
-	configs, err := config.GetConfig(networkID, cellular.CellularNetworkType, networkID)
+	configs, err := config.GetConfig(networkID, lte.CellularNetworkType, networkID)
 	if err != nil {
 		return nil, err
 	}

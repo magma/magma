@@ -25,7 +25,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
 #include "common_defs.h"
@@ -220,8 +219,6 @@ int esm_ebr_release(emm_context_t *emm_context, ebi_t ebi)
       }
       free_wrapper((void **) &esm_ebr_timer_data);
     }
-    MSC_LOG_EVENT(
-      MSC_NAS_ESM_MME, "0 Timer %x ebi %u stopped", ebr_ctx->timer.id, ebi);
   }
 
   /*
@@ -300,8 +297,6 @@ int esm_ebr_start_timer(
       nas_timer_stop(ebr_ctx->timer.id, (void **) &esm_ebr_timer_data);
     ebr_ctx->timer.id =
       nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
-    MSC_LOG_EVENT(
-      MSC_NAS_ESM_MME, "0 Timer %x ebi %u restarted", ebr_ctx->timer.id, ebi);
   } else {
     /*
      * Setup the retransmission timer parameters
@@ -334,8 +329,6 @@ int esm_ebr_start_timer(
        */
       ebr_ctx->timer.id =
         nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
-      MSC_LOG_EVENT(
-        MSC_NAS_ESM_MME, "0 Timer %x ebi %u started", ebr_ctx->timer.id, ebi);
       ebr_ctx->timer.sec = sec;
     }
   }
@@ -413,8 +406,6 @@ int esm_ebr_stop_timer(emm_context_t *emm_context, ebi_t ebi)
     esm_ebr_timer_data_t *esm_ebr_timer_data = NULL;
     ebr_ctx->timer.id =
       nas_timer_stop(ebr_ctx->timer.id, (void **) &esm_ebr_timer_data);
-    MSC_LOG_EVENT(
-      MSC_NAS_ESM_MME, "0 Timer %x ebi %u stopped", ebr_ctx->timer.id, ebi);
     /*
      * Release the retransmisison timer parameters
      */
@@ -563,12 +554,6 @@ int esm_ebr_set_status(
         ebi,
         _esm_ebr_state_str[old_status],
         _esm_ebr_state_str[status]);
-      MSC_LOG_EVENT(
-        MSC_NAS_ESM_MME,
-        "0 ESM state %s => %s " MME_UE_S1AP_ID_FMT " ",
-        _esm_ebr_state_str[old_status],
-        _esm_ebr_state_str[status],
-        ue_mm_context->mme_ue_s1ap_id);
       ebr_ctx->status = status;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
     } else {

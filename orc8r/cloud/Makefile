@@ -53,6 +53,8 @@ define add_module
 	TOOLS_LIST += $(MODULE)_tools
 	VET_LIST += $(MODULE)_vet
 
+	MIGRATION_PLUGIN_LIST += $(MODULE)_migrationplugin
+
 	SERVICES += $(foreach srvs, $($(MODULE)_SERVICE_NAMES), $(srvs))
 endef
 _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
@@ -69,7 +71,7 @@ $(RUN_LIST): %_run:
 
 precommit: fmt test vet swagger_validate
 
-build: plugin $(BUILD_LIST) swagger
+build: plugin $(BUILD_LIST) migration_plugin swagger
 $(BUILD_LIST): %_build:
 	make -C $*/cloud/go build
 
@@ -179,3 +181,7 @@ list:  # List all commands
 
 # Run target for travis - don't create admin certs since we don't spin up postgres
 travis_run: build $(RUN_LIST)
+
+migration_plugin: $(MIGRATION_PLUGIN_LIST)
+$(MIGRATION_PLUGIN_LIST): %_migrationplugin:
+	make -C $*/cloud/go migration_plugin

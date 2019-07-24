@@ -26,7 +26,6 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "nas_timer.h"
 #include "3gpp_requirements_24.301.h"
 #include "common_types.h"
@@ -209,6 +208,9 @@ int emm_proc_tracking_area_update_request(
 
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_context)) {
     emm_context->_security.kenb_ul_count = emm_context->_security.ul_count;
+    if (true == ies->is_initial) {
+      emm_context->_security.next_hop_chaining_count = 0;
+    }
   }
   // Check if it is not periodic update and not combined TAU for CSFB.
   /*If we receive combined TAU/TAU with IMSI attach send Location Update Req to MME instead of
@@ -796,10 +798,6 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
             &tau_proc->T3450,
             tau_proc->emm_spec_proc.emm_proc.base_proc.time_out,
             emm_context);
-          MSC_LOG_EVENT(
-            MSC_NAS_EMM_MME,
-            "T3450 restarted UE " MME_UE_S1AP_ID_FMT " (TAU)",
-            tau_proc->ue_id);
         } else {
           /*
         * Start T3450 timer
@@ -809,10 +807,6 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
             &tau_proc->T3450,
             tau_proc->emm_spec_proc.emm_proc.base_proc.time_out,
             emm_context);
-          MSC_LOG_EVENT(
-            MSC_NAS_EMM_MME,
-            "T3450 started UE " MME_UE_S1AP_ID_FMT " (TAU)",
-            tau_proc->ue_id);
         }
 
         OAILOG_INFO(
@@ -866,13 +860,6 @@ static int _emm_tracking_area_update_abort(
       emm_sap.primitive = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id = ue_id;
       emm_sap.u.emm_reg.ctx = emm_context;
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "0 EMMREG_ATTACH_REJ ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
       rc = emm_sap_send(&emm_sap);
     }
   }
@@ -976,8 +963,6 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
         "EMM-PROC  - Stop timer T3450 (%ld)\n",
         tau_proc->T3450.id);
       nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, NULL);
-      MSC_LOG_EVENT(
-        MSC_NAS_EMM_MME, "T3450 stopped UE " MME_UE_S1AP_ID_FMT " ", ue_id);
       /*
        * Upon receiving TAU COMPLETE message, the MME shall
        * consider the TMSI sent in the TAU ACCEPT message as valid.

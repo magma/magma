@@ -113,32 +113,13 @@ func getUsageMonitorsFromCCA(imsi string, sessionID string, gxCCA *gx.CreditCont
 	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCA.UsageMonitors))
 	for _, monitor := range gxCCA.UsageMonitors {
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
-			Credit:    getUsageMonitorCreditFromAVP(monitor),
+			Credit:    gx.GetUsageMonitorCreditFromAVP(monitor),
 			SessionId: sessionID,
-			Sid:       addPrefix(imsi),
+			Sid:       addSidPrefix(imsi),
 			Success:   true,
 		})
 	}
 	return monitors
-}
-
-func getUsageMonitorCreditFromAVP(monitor *gx.UsageMonitoringInfo) *protos.UsageMonitoringCredit {
-	if monitor.GrantedServiceUnit == nil || (monitor.GrantedServiceUnit.TotalOctets == nil &&
-		monitor.GrantedServiceUnit.InputOctets == nil &&
-		monitor.GrantedServiceUnit.OutputOctets == nil) {
-		return &protos.UsageMonitoringCredit{
-			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: monitor.MonitoringKey,
-			Level:         protos.MonitoringLevel(monitor.Level),
-		}
-	} else {
-		return &protos.UsageMonitoringCredit{
-			Action:        protos.UsageMonitoringCredit_CONTINUE,
-			MonitoringKey: monitor.MonitoringKey,
-			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
-			Level:         protos.MonitoringLevel(monitor.Level),
-		}
-	}
 }
 
 // getGxUpdateRequestsFromUsage returns a slice of CCRs from usage update protos
@@ -149,7 +130,7 @@ func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest
 			SessionID:     update.SessionId,
 			RequestNumber: update.RequestNumber,
 			Type:          credit_control.CRTUpdate,
-			IMSI:          stripPrefix(update.Sid),
+			IMSI:          removeSidPrefix(update.Sid),
 			IPAddr:        update.UeIpv4,
 			UsageReports:  []*gx.UsageReport{getGxUsageReportFromUsageUpdate(update.Update)},
 		})
@@ -279,7 +260,7 @@ func addMissingGxResponses(
 		responses = append(responses, &protos.UsageMonitoringUpdateResponse{
 			Success:   false,
 			SessionId: ccr.SessionID,
-			Sid:       addPrefix(ccr.IMSI),
+			Sid:       addSidPrefix(ccr.IMSI),
 			Credit: &protos.UsageMonitoringCredit{
 				MonitoringKey: ccr.UsageReports[0].MonitoringKey,
 				Level:         protos.MonitoringLevel(ccr.UsageReports[0].Level),
@@ -298,7 +279,7 @@ func getSingleUsageMonitorResponseFromCCA(
 	res := &protos.UsageMonitoringUpdateResponse{
 		Success:   answer.ResultCode == diameter.SuccessCode,
 		SessionId: request.SessionID,
-		Sid:       addPrefix(request.IMSI)}
+		Sid:       addSidPrefix(request.IMSI)}
 
 	if len(answer.UsageMonitors) == 0 {
 		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
@@ -308,7 +289,12 @@ func getSingleUsageMonitorResponseFromCCA(
 				MonitoringKey: request.UsageReports[0].MonitoringKey,
 				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	} else {
-		res.Credit = getUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
+		res.Credit = gx.GetUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
 	}
+
+	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(
+		answer.EventTriggers,
+		answer.RevalidationTime,
+	)
 	return res
 }

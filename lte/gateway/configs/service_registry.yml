@@ -23,9 +23,6 @@ services:
   metering:
     ip_address: 127.0.0.1
     port: 60052
-  metricsd:
-    ip_address: 127.0.0.1
-    port: 60054
   enodebd:
     ip_address: 127.0.0.1
     port: 60055

@@ -33,7 +33,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "conversions.h"
 #include "common_types.h"
@@ -83,13 +82,6 @@ void mme_app_itti_ue_context_release(
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).enb_ue_s1ap_id =
     ue_context_p->enb_ue_s1ap_id;
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = cause;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S1AP_MME,
-    NULL,
-    0,
-    "0 S1AP_UE_CONTEXT_RELEASE_COMMAND mme_ue_s1ap_id %06" PRIX32 " ",
-    S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).mme_ue_s1ap_id);
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -121,13 +113,6 @@ int mme_app_send_s11_release_access_bearers_req(
 
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 S11_RELEASE_ACCESS_BEARERS_REQUEST teid %u",
-    release_access_bearers_request_p->teid);
   rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -332,13 +317,6 @@ int mme_app_send_s11_create_session_req(
   session_request_p->serving_network.mnc[2] =
     ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 S11_CREATE_SESSION_REQUEST imsi " IMSI_64_FMT,
-    ue_mm_context->emm_context._imsi64);
   OAILOG_INFO(
     TASK_MME_APP, "Sending S11 CREATE SESSION REQ message to SPGW for (ue_id = %u)\n",
     ue_mm_context->mme_ue_s1ap_id);

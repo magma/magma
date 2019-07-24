@@ -37,19 +37,17 @@ func tailLogsCmd(cmd *cobra.Command, args []string) {
 	if len(args) == 1 {
 		service = args[0]
 	}
-	stream, conn, err := magmad.TailGatewayLogs(networkId, gatewayId, service)
+	stream, err := magmad.TailGatewayLogs(networkId, gatewayId, service)
 	if err != nil {
 		glog.Error(err)
 		os.Exit(1)
 	}
-	defer conn.Close()
 
 	// https://stackoverflow.com/q/11268943
 	term := make(chan os.Signal, 1)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-term
-		conn.Close()
 	}()
 	for {
 		line, err := stream.Recv()

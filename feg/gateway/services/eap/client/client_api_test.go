@@ -12,12 +12,13 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/cloud/go/protos"
+	cp "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/client"
-	eap_protos "magma/feg/gateway/services/eap/protos"
+	eapp "magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
@@ -47,14 +48,14 @@ var (
 
 type testEapClient struct{}
 
-func (c testEapClient) Handle(in *eap_protos.Eap) (*eap_protos.Eap, error) {
+func (c testEapClient) Handle(in *protos.Eap) (*protos.Eap, error) {
 	return client.Handle(in)
 }
 
 func TestEAPClientApi(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
@@ -63,14 +64,14 @@ func TestEAPClientApi(t *testing.T) {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
-	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
 	go eap_test.Auth(t, testEapClient{}, eap_test.IMSI2, 10, nil) // start IMSI2 tests in parallel
 
 	tst := eap_test.Units[eap_test.IMSI1]
-	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
-	peap, err := client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
+	peap, err := client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
@@ -83,7 +84,7 @@ func TestEAPClientApi(t *testing.T) {
 	servicer.SetSessionAuthenticatedTimeout(time.Millisecond * 200)
 
 	eapCtx = peap.GetCtx()
-	peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
+	peap, err = client.Handle(&protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test Challenge EAP: %v", err)
 	}
@@ -121,7 +122,7 @@ func TestEAPClientApi(t *testing.T) {
 	time.Sleep(time.Millisecond * 10)
 
 	eapCtx = peap.GetCtx()
-	peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
+	peap, err = client.Handle(&protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Second Test Challenge EAP within Auth timeout window: %v", err)
 	}
@@ -134,7 +135,7 @@ func TestEAPClientApi(t *testing.T) {
 	time.Sleep(servicer.SessionAuthenticatedTimeout() + time.Millisecond*10)
 
 	eapCtx = peap.GetCtx()
-	peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
+	peap, err = client.Handle(&protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Unexpected Error for removed Session ID: %s - %v", eapCtx.SessionId, err)
 	}
@@ -147,15 +148,15 @@ func TestEAPClientApi(t *testing.T) {
 
 	// Test timeout
 	servicer.SetChallengeTimeout(time.Millisecond * 100)
-	eapCtx = &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
-	peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	eapCtx = &protos.Context{SessionId: eap.CreateSessionId()}
+	peap, err = client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling second Test EAP: %v", err)
 	}
 	time.Sleep(servicer.ChallengeTimeout() + time.Millisecond*20)
 
 	eapCtx = peap.GetCtx()
-	peap, err = client.Handle(&eap_protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
+	peap, err = client.Handle(&protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Unxpected Error for timed out Session ID: %s - %v", eapCtx.SessionId, err)
 	}
@@ -170,22 +171,22 @@ func TestEAPClientApi(t *testing.T) {
 func TestEAPClientApiConcurent(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
 	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{
 		Timeout: &mconfig.EapAkaConfig_Timeouts{
-			ChallengeMs:            300,
+			ChallengeMs:            700,
 			ErrorNotificationMs:    200,
-			SessionMs:              500,
+			SessionMs:              900,
 			SessionAuthenticatedMs: 1000,
 		}})
 	if err != nil {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
-	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
 	done := make(chan error)

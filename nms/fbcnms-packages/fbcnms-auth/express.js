@@ -8,20 +8,20 @@
  * @format
  */
 
+import EmailValidator from 'email-validator';
 import bcrypt from 'bcryptjs';
-import {injectOrganizationParams} from './organization';
-import {isEmpty} from 'lodash-es';
 import express from 'express';
 import logging from '@fbcnms/logging';
 import passport from 'passport';
 import staticDist from 'fbcnms-webpack-config/staticDist';
-import {access} from './access';
 import {AccessRoles} from './roles';
+import {Organization, User} from '@fbcnms/sequelize-models';
+import {access} from './access';
 import {addQueryParamsToUrl} from './util';
-import EmailValidator from 'email-validator';
-import {User} from '@fbcnms/sequelize-models';
+import {injectOrganizationParams} from './organization';
+import {isEmpty} from 'lodash';
 
-import type {ExpressResponse} from 'express';
+import type {ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSRequest} from './access';
 import type {UserRawType} from '@fbcnms/sequelize-models/models/user';
 
@@ -151,9 +151,76 @@ function userMiddleware(options: Options): express.Router {
     })(req, res, next);
   });
 
+  const onboardingMiddleware = async (
+    req: FBCNMSRequest,
+    res: ExpressResponse,
+    next: NextFunction,
+  ) => {
+    if (req.isAuthenticated()) {
+      res.redirect('/');
+    } else if (await User.findOne()) {
+      res.redirect('/user/login');
+    }
+    next();
+  };
+
+  router.get(
+    '/onboarding',
+    onboardingMiddleware,
+    async (req: FBCNMSRequest, res) => {
+      res.render('onboarding', {
+        staticDist,
+        configJson: JSON.stringify({
+          appData: {
+            csrfToken: req.csrfToken(),
+          },
+        }),
+      });
+    },
+  );
+
+  router.post(
+    '/onboarding',
+    onboardingMiddleware,
+    async (req: FBCNMSRequest, res) => {
+      try {
+        const allowedProps = ['email', 'password', 'organization'];
+        const userProps = await getPropsToUpdate(
+          allowedProps,
+          req.body,
+          props => ({
+            ...props,
+            organization: req.body.organization,
+          }),
+        );
+        userProps.role = AccessRoles.SUPERUSER;
+        await User.create(userProps);
+
+        await Organization.create({
+          name: req.body.organization,
+          tabs: req.body.tabs,
+          networkIDs: [],
+          customDomains: [],
+          ssoCert: '',
+          ssoEntrypoint: '',
+          ssoIssuer: '',
+        });
+
+        res.status(200).send({success: true});
+      } catch (error) {
+        res.status(400).send({error: error.toString()});
+      }
+    },
+  );
+
   router.get('/login', async (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
       res.redirect(ensureRelativeUrl(req.body.to) || '/');
+      return;
+    }
+
+    if (!(await User.findOne())) {
+      res.redirect('/user/onboarding');
       return;
     }
 

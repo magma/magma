@@ -15,21 +15,12 @@ const i18nextMiddleware = require('i18next-express-middleware');
 const FilesystemBackend = require('i18next-node-fs-backend');
 
 const DEVELOPMENT = process.env.NODE_ENV !== 'production';
-
 const LOCALE_PARAM = 'locale';
-const fsBackendOptions = {
-  // path where resources get loaded from
-  loadPath: './locales/{{lng}}/{{ns}}.json',
-  // path to post missing resources
-  addPath: './locales/{{lng}}/{{ns}}.json',
-  // jsonIndent to use when storing json files
-  jsonIndent: 2,
-};
 
 const defaultConfig = {
   preload: ['en_US'],
   fallbackLng: 'en_US',
-  backend: fsBackendOptions,
+  backend: {},
   detection: {
     order: ['querystring', 'path', 'cookie'],
     // keys to lookup in the http path (req.params)
@@ -70,6 +61,9 @@ export function i18nBuilder(
       : typeof config === 'object'
       ? Object.assign(defaultConfig, config)
       : defaultConfig;
+  if (!initConfig.backend) {
+    initConfig.backend = initFsBackendOptions();
+  }
   i18next
     .use(i18nextMiddleware.LanguageDetector)
     .use(FilesystemBackend)
@@ -81,6 +75,21 @@ export function i18nBuilder(
   );
 
   return i18next;
+}
+
+export function initFsBackendOptions(
+  options?: {localesDir: string} = {localesDir: './locales'},
+) {
+  const LOCALES_DIR = options.localesDir || './locales';
+  const fsBackendOptions = {
+    // path where resources get loaded from
+    loadPath: path.join(LOCALES_DIR, '/{{lng}}/{{ns}}.json'),
+    // path to post missing resources
+    addPath: path.join(LOCALES_DIR, '/{{lng}}/{{ns}}.json'),
+    // jsonIndent to use when storing json files
+    jsonIndent: 2,
+  };
+  return fsBackendOptions;
 }
 
 /**

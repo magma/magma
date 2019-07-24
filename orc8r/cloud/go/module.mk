@@ -4,7 +4,8 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 #
-.PHONY: build clean clean_gen download fmt gen lint plugin test tidy vet
+SHELL := /bin/bash
+.PHONY: build clean clean_gen download fmt gen lint plugin test tidy vet migration_plugin
 
 build:: plugin
 	go install ./...
@@ -54,3 +55,10 @@ cover:
 	# Don't measure coverage for protos and tools
 	sed -i '/\.pb\.go/d; /.*\/tools\/.*/d' $(COVER_FILE);
 	go tool cover -func=$(COVER_FILE)
+
+
+# for configurator data migration
+migration_plugin:
+	if [[ -d ./tools/migrations/m003_configurator/plugin ]]; then \
+		go build -buildmode=plugin -o $(PLUGIN_DIR)/migrations/m003_configurator/$(PLUGIN_NAME).so ./tools/migrations/m003_configurator/plugin; \
+	fi

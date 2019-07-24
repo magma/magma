@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 #include "dynamic_memory_check.h"
-#include "msc.h"
 #include "assertions.h"
 #include "common_types.h"
 #include "intertask_interface.h"
@@ -201,12 +200,5 @@ void mme_app_s11_procedure_create_bearer_send_response(
   } else {
     s11_create_bearer_response->cause.cause_value = REQUEST_ACCEPTED;
   }
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 S11_CREATE_BEARER_RESPONSE teid %u",
-    s11_create_bearer_response->teid);
   itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, message_p);
 }

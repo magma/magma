@@ -14,6 +14,7 @@ add_library(LIB_SECU
     snow3g.c
 )
 target_link_libraries(LIB_SECU
+    ${NETTLE_LIBRARIES}
     COMMON
     LIB_BSTR
 )

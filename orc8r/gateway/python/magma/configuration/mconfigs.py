@@ -9,8 +9,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from typing import Any as TAny, Dict
 
-# Import to register all mconfig protobufs in symbol database
-from google.protobuf import symbol_database
 from google.protobuf.internal.well_known_types import Any
 
 from magma.configuration import service_configs
@@ -28,8 +26,7 @@ def filter_configs_by_key(configs_by_key: Dict[str, TAny]) -> Dict[str, TAny]:
             JSON-deserialized service mconfigs keyed by service name
 
     Returns:
-        The input map without any services which currently don't exist or have
-        types which are not in the protobuf type registry.
+        The input map without any services which currently don't exist.
     """
     services = service_configs.get_service_config_value(
         'magmad',
@@ -42,31 +39,24 @@ def filter_configs_by_key(configs_by_key: Dict[str, TAny]) -> Dict[str, TAny]:
     for srv, cfg in configs_by_key.items():
         if srv not in services:
             continue
-
-        try:
-            type_name = cfg['@type'].split('/')[-1]
-            symbol_database.Default().GetSymbol(type_name)
-        except KeyError:
-            continue
         filtered_configs_by_key[srv] = cfg
     return filtered_configs_by_key
 
 
-def unpack_mconfig_any(mconfig_any: Any) -> TAny:
+def unpack_mconfig_any(mconfig_any: Any, mconfig_struct: TAny) -> TAny:
     """
-    Unpack a protobuf Any type into its concrete protobuf type.
+    Unpack a protobuf Any type into a given an empty protobuf message struct
+    for a service.
 
     Args:
         mconfig_any: protobuf Any type to unpack
+        mconfig_struct: protobuf message struct
 
     Returns: Concrete protobuf object that the provided Any wraps
     """
-    type_name = mconfig_any.TypeName()
-    try:
-        msg = symbol_database.Default().GetSymbol(type_name)()
-    except KeyError as e:
+    unpacked = mconfig_any.Unpack(mconfig_struct)
+    if not unpacked:
         raise LoadConfigError(
-            'Mconfig proto type %s not found' % type_name,
-        ) from e
-    mconfig_any.Unpack(msg)
-    return msg
+            'Cannot unpack Any type into message: %s' % mconfig_struct,
+        )
+    return mconfig_struct

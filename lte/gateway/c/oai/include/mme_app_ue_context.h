@@ -406,7 +406,7 @@ typedef struct ue_mm_context_s {
   // eKSI                         // Key Set Identifier for the main key K ASME . Also indicates whether the UE is using
   // security keys derived from UTRAN or E-UTRAN security association.
 
-  apn_config_profile_t apn_profile; // set by S6A UPDATE LOCATION ANSWER
+  apn_config_profile_t apn_config_profile; // set by S6A UPDATE LOCATION ANSWER
   subscriber_status_t sub_status;   // set by S6A UPDATE LOCATION ANSWER
 
   // K ASME                       // Main key for E-UTRAN key hierarchy based on CK, IK and Serving network identity
@@ -489,7 +489,6 @@ typedef struct ue_mm_context_s {
   emm_context_t emm_context;
   bearer_context_t *bearer_contexts[BEARERS_PER_UE];
 
-  apn_config_profile_t apn_config_profile; // set by S6A UPDATE LOCATION ANSWER
   /* Store the radio capabilities as received in S1AP UE capability indication
    * message.
    */
@@ -536,6 +535,7 @@ typedef struct ue_mm_context_s {
   subscriber_status_t subscriber_status; // set by S6A UPDATE LOCATION ANSWER
   network_access_mode_t
     network_access_mode; // set by S6A UPDATE LOCATION ANSWER
+  bool path_switch_req;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
 
@@ -679,14 +679,14 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const mme_ue_context_p);
 void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context);
 
 void mme_app_handle_s1ap_ue_context_release_req(
-  const itti_s1ap_ue_context_release_req_t const *s1ap_ue_context_release_req);
+  const itti_s1ap_ue_context_release_req_t *s1ap_ue_context_release_req);
 
 bearer_context_t *mme_app_get_bearer_context(
   ue_mm_context_t *const ue_context,
   const ebi_t ebi);
 
 void mme_app_handle_enb_deregister_ind(
-  const itti_s1ap_eNB_deregistered_ind_t const *eNB_deregistered_ind);
+  const itti_s1ap_eNB_deregistered_ind_t *eNB_deregistered_ind);
 
 bearer_context_t *mme_app_get_bearer_context_by_state(
   ue_mm_context_t *const ue_context,
@@ -703,9 +703,9 @@ void mme_app_send_delete_session_request(
   const pdn_cid_t cid);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
-  const itti_s1ap_ue_context_mod_resp_t const *s1ap_ue_context_mod_resp);
+  const itti_s1ap_ue_context_mod_resp_t *s1ap_ue_context_mod_resp);
 void mme_app_handle_s1ap_ue_context_modification_fail(
-  const itti_s1ap_ue_context_mod_resp_fail_t const *s1ap_ue_context_mod_fail);
+  const itti_s1ap_ue_context_mod_resp_fail_t *s1ap_ue_context_mod_fail);
 
 void mme_app_ue_sgs_context_free_content(
   sgs_context_t *const sgs_context_p,

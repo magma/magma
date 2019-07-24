@@ -16,6 +16,7 @@ __pycache__/
 *.py[cod]
 # Virtual environments
 .env
+.coverage
 
 # C extensions
 *.so
@@ -29,6 +30,7 @@ dist/
 eggs/
 lib/
 lib64/
+!feg/radius/lib/
 parts/
 sdist/
 var/

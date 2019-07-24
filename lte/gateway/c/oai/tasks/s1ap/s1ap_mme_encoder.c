@@ -100,6 +100,21 @@ static inline int s1ap_mme_encode_ue_context_modification_request(
   uint8_t **buffer,
   uint32_t *length);
 
+static inline int s1ap_mme_encode_mme_configuration_transfer(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length);
+
+static inline int s1ap_mme_encode_pathswitchreqack(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length);
+
+static inline int s1ap_mme_encode_pathswitchreqfailure(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length);
+
 static inline int s1ap_mme_encode_initial_context_setup_request(
   s1ap_message *message_p,
   uint8_t **buffer,
@@ -190,6 +205,10 @@ static inline int s1ap_mme_encode_initiating(
     case S1ap_ProcedureCode_id_E_RABRelease:
       return s1ap_mme_encode_e_rab_release_command(message_p, buffer, length);
 
+    case S1ap_ProcedureCode_id_MMEConfigurationTransfer:
+      return s1ap_mme_encode_mme_configuration_transfer(
+        message_p, buffer, length);
+
     default:
       OAILOG_DEBUG(
         LOG_S1AP,
@@ -212,6 +231,8 @@ static inline int s1ap_mme_encode_successfull_outcome(
       return s1ap_mme_encode_s1setupresponse(message_p, buffer, length);
     case S1ap_ProcedureCode_id_Reset:
       return s1ap_mme_encode_resetack(message_p, buffer, length);
+    case S1ap_ProcedureCode_id_PathSwitchRequest:
+      return s1ap_mme_encode_pathswitchreqack(message_p, buffer, length);
 
     default:
       OAILOG_DEBUG(
@@ -233,6 +254,8 @@ static inline int s1ap_mme_encode_unsuccessfull_outcome(
   switch (message_p->procedureCode) {
     case S1ap_ProcedureCode_id_S1Setup:
       return s1ap_mme_encode_s1setupfailure(message_p, buffer, length);
+    case S1ap_ProcedureCode_id_PathSwitchRequest:
+      return s1ap_mme_encode_pathswitchreqfailure(message_p, buffer, length);
 
     default:
       OAILOG_DEBUG(
@@ -296,6 +319,34 @@ static inline int s1ap_mme_encode_resetack(
     s1ResetAck_p);
 }
 
+static inline int s1ap_mme_encode_pathswitchreqack(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length)
+{
+  S1ap_PathSwitchRequestAcknowledge_t s1PathSwitchRequestAck;
+  S1ap_PathSwitchRequestAcknowledge_t *s1PathSwitchRequestAck_p =
+    &s1PathSwitchRequestAck;
+
+  memset(s1PathSwitchRequestAck_p, 0,
+    sizeof(S1ap_PathSwitchRequestAcknowledge_t));
+
+  if (
+    s1ap_encode_s1ap_pathswitchrequestacknowledgeies(
+      s1PathSwitchRequestAck_p,
+      &message_p->msg.s1ap_PathSwitchRequestAcknowledgeIEs) < 0) {
+    return -1;
+  }
+
+  return s1ap_generate_successfull_outcome(
+    buffer,
+    length,
+    S1ap_ProcedureCode_id_PathSwitchRequest,
+    message_p->criticality,
+    &asn_DEF_S1ap_PathSwitchRequestAcknowledge,
+    s1PathSwitchRequestAck_p);
+}
+
 //------------------------------------------------------------------------------
 static inline int s1ap_mme_encode_s1setupfailure(
   s1ap_message *message_p,
@@ -320,6 +371,34 @@ static inline int s1ap_mme_encode_s1setupfailure(
     message_p->criticality,
     &asn_DEF_S1ap_S1SetupFailure,
     s1SetupFailure_p);
+}
+
+static inline int s1ap_mme_encode_pathswitchreqfailure(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length)
+{
+  S1ap_PathSwitchRequestFailure_t s1PathSwitchRequestFailure;
+  S1ap_PathSwitchRequestFailure_t *s1ap_PathSwitchRequestFailure_p =
+    &s1PathSwitchRequestFailure;
+
+  memset(s1ap_PathSwitchRequestFailure_p, 0,
+        sizeof(S1ap_PathSwitchRequestFailure_t));
+
+  if (
+    s1ap_encode_s1ap_pathswitchrequestfailureies(
+      s1ap_PathSwitchRequestFailure_p,
+      &message_p->msg.s1ap_PathSwitchRequestFailureIEs) < 0) {
+    return -1;
+  }
+
+  return s1ap_generate_unsuccessfull_outcome(
+    buffer,
+    length,
+    S1ap_ProcedureCode_id_PathSwitchRequest,
+    message_p->criticality,
+    &asn_DEF_S1ap_PathSwitchRequestFailure,
+    s1ap_PathSwitchRequestFailure_p);
 }
 
 //------------------------------------------------------------------------------
@@ -490,4 +569,35 @@ static inline int s1ap_mme_encode_e_rab_release_command(
     message_p->criticality,
     &asn_DEF_S1ap_E_RABSetupRequest,
     e_rab_rel_cmd_p);
+}
+
+static inline int s1ap_mme_encode_mme_configuration_transfer(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length)
+{
+
+  S1ap_MMEConfigurationTransfer_t mmeConfigurationTransfer;
+  S1ap_MMEConfigurationTransfer_t *mmeConfigurationTransfer_p =
+    &mmeConfigurationTransfer;
+
+  memset(
+    mmeConfigurationTransfer_p,
+    0,
+    sizeof(S1ap_MMEConfigurationTransfer_t));
+
+  if (
+    s1ap_encode_s1ap_mmeconfigurationtransferies(
+      mmeConfigurationTransfer_p,
+      &message_p->msg.s1ap_MMEConfigurationTransferIEs) < 0) {
+    return -1;
+  }
+
+  return s1ap_generate_initiating_message(
+    buffer,
+    length,
+    S1ap_ProcedureCode_id_MMEConfigurationTransfer,
+    S1ap_Criticality_ignore,
+    &asn_DEF_S1ap_MMEConfigurationTransfer,
+    mmeConfigurationTransfer_p);
 }

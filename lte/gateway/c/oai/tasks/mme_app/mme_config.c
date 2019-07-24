@@ -135,7 +135,6 @@ void log_config_init(log_config_t *log_conf)
   log_conf->s6a_log_level = MAX_LOG_LEVEL;
   log_conf->secu_log_level = MAX_LOG_LEVEL;
   log_conf->util_log_level = MAX_LOG_LEVEL;
-  log_conf->msc_log_level = MAX_LOG_LEVEL;
   log_conf->itti_log_level = MAX_LOG_LEVEL;
   log_conf->spgw_app_log_level = MAX_LOG_LEVEL;
   log_conf->pgw_app_log_level = MAX_LOG_LEVEL;
@@ -417,10 +416,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
             LOG_CONFIG_STRING_UTIL_LOG_LEVEL,
             (const char **) &astring))
         config_pP->log_config.util_log_level = OAILOG_LEVEL_STR2INT(astring);
-
-      if (config_setting_lookup_string(
-            setting, LOG_CONFIG_STRING_MSC_LOG_LEVEL, (const char **) &astring))
-        config_pP->log_config.msc_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(
             setting,
@@ -1192,30 +1187,12 @@ void mme_config_display(mme_config_t *config_pP)
     CMAKE_BUILD_TYPE);
   OAILOG_DEBUG(
     LOG_CONFIG,
-    "Built with ITTI_TASK_STACK_SIZE ............: %d\n",
-    ITTI_TASK_STACK_SIZE);
-  OAILOG_DEBUG(
-    LOG_CONFIG, "Built with LOG_OAI .........................: %d\n", LOG_OAI);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with LOG_OAI_CLEAN_HARD ..............: %d\n",
-    LOG_OAI_CLEAN_HARD);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with MESSAGE_CHART_GENERATOR .........: %d\n",
-    MESSAGE_CHART_GENERATOR);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
     "Built with PACKAGE_NAME ....................: %s\n",
     PACKAGE_NAME);
   OAILOG_DEBUG(
     LOG_CONFIG,
     "Built with S1AP_DEBUG_LIST .................: %d\n",
     S1AP_DEBUG_LIST);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with SECU_DEBUG ......................: %d\n",
-    SECU_DEBUG);
   OAILOG_DEBUG(
     LOG_CONFIG,
     "Built with SCTP_DUMP_LIST ..................: %d\n",
@@ -1228,7 +1205,6 @@ void mme_config_display(mme_config_t *config_pP)
     LOG_CONFIG,
     "Built with TRACE_3GPP_SPEC .................: %d\n",
     TRACE_3GPP_SPEC);
-
 #endif
   OAILOG_INFO(LOG_CONFIG, "Configuration:\n");
   OAILOG_INFO(
@@ -1530,10 +1506,6 @@ void mme_config_display(mme_config_t *config_pP)
     OAILOG_LEVEL_INT2STR(config_pP->log_config.util_log_level));
   OAILOG_INFO(
     LOG_CONFIG,
-    "    MSC log level........: %s (MeSsage Chart)\n",
-    OAILOG_LEVEL_INT2STR(config_pP->log_config.msc_log_level));
-  OAILOG_INFO(
-    LOG_CONFIG,
     "    ITTI log level.......: %s (InTer-Task Interface)\n",
     OAILOG_LEVEL_INT2STR(config_pP->log_config.itti_log_level));
 }
@@ -1618,7 +1590,8 @@ int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP)
   return 0;
 }
 
-static bool parse_bool(const char *str) {
+static bool parse_bool(const char *str)
+{
   if (strcasecmp(str, "yes") == 0) return true;
   if (strcasecmp(str, "true") == 0) return true;
   if (strcasecmp(str, "no") == 0) return false;

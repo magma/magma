@@ -10,8 +10,8 @@ package handlers
 
 import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/config/obsidian"
-	"magma/orc8r/cloud/go/services/magmad/config"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 )
@@ -20,18 +20,20 @@ import (
 func GetObsidianHandlers() []handlers.Handler {
 	return []handlers.Handler{
 		// Network
-		{Path: ListNetworks, Methods: handlers.GET, HandlerFunc: listNetworks},
-		{Path: RegisterNetwork, Methods: handlers.POST, HandlerFunc: registerNetwork},
-		{Path: ManageNetwork, Methods: handlers.GET, HandlerFunc: getNetwork},
-		{Path: ManageNetwork, Methods: handlers.PUT, HandlerFunc: updateNetwork},
-		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetwork},
+		{Path: ListNetworks, Methods: handlers.GET, HandlerFunc: listNetworksHandler, MigratedHandlerFunc: listNetworks},
+		{Path: RegisterNetwork, Methods: handlers.POST, HandlerFunc: registerNetworkHandler, MigratedHandlerFunc: registerNetwork, MultiplexAfterMigration: true},
+		{Path: ManageNetwork, Methods: handlers.GET, HandlerFunc: getNetworkHandler, MigratedHandlerFunc: getNetwork},
+		{Path: ManageNetwork, Methods: handlers.PUT, HandlerFunc: updateNetworkHandler, MigratedHandlerFunc: updateNetwork, MultiplexAfterMigration: true},
+		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetworkHandler, MigratedHandlerFunc: deleteNetwork, MultiplexAfterMigration: true},
 
 		// Gateway
-		{Path: RegisterAG, Methods: handlers.GET, HandlerFunc: getListGatewaysHandler(&view_factory.FullGatewayViewFactoryImpl{})},
-		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: registerGateway},
-		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGateway},
-		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGateway},
-		{Path: ManageAG, Methods: handlers.DELETE, HandlerFunc: deleteGateway},
+		{Path: RegisterAG, Methods: handlers.GET,
+			HandlerFunc:         getListGatewaysHandler(&view_factory.FullGatewayViewFactoryLegacyImpl{}),
+			MigratedHandlerFunc: getListGateways(&view_factory.FullGatewayViewFactoryImpl{})},
+		{Path: RegisterAG, Methods: handlers.POST, HandlerFunc: createGatewayHandler, MigratedHandlerFunc: createGateway, MultiplexAfterMigration: true},
+		{Path: ManageAG, Methods: handlers.GET, HandlerFunc: getGatewayHandler, MigratedHandlerFunc: getGateway},
+		{Path: ManageAG, Methods: handlers.PUT, HandlerFunc: updateGatewayHandler, MigratedHandlerFunc: updateGateway, MultiplexAfterMigration: true},
+		{Path: ManageAG, Methods: handlers.DELETE, HandlerFunc: deleteGatewayHandler, MigratedHandlerFunc: deleteGateway, MultiplexAfterMigration: true},
 
 		// Gateway Commands
 		{Path: RebootGateway, Methods: handlers.POST, HandlerFunc: rebootGateway},
@@ -40,9 +42,9 @@ func GetObsidianHandlers() []handlers.Handler {
 		{Path: GatewayGenericCommand, Methods: handlers.POST, HandlerFunc: gatewayGenericCommand},
 		{Path: TailGatewayLogs, Methods: handlers.POST, HandlerFunc: tailGatewayLogs},
 
-		obsidian.GetReadGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
-		obsidian.GetCreateGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
-		obsidian.GetUpdateGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
-		obsidian.GetDeleteGatewayConfigHandler(ConfigureAG, config.MagmadGatewayType),
+		obsidian.GetReadGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
+		obsidian.GetCreateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
+		obsidian.GetUpdateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
+		obsidian.GetDeleteGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType),
 	}
 }

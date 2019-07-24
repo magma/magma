@@ -167,10 +167,32 @@ func TestEncodeDecodeSID(t *testing.T) {
 	// Magma SIDs
 	assert.Equal(t,
 		EncodeSessionID("gx.magma.com", "IMSI123456789012345-987654321"),
-		"gx.magma.com;987654321;987654321;IMSI123456789012345")
+		"gx.magma.com;9876;54321;IMSI123456789012345")
 	assert.Equal(t,
-		DecodeSessionID("gx.magma.com;987654321;987654321;IMSI123456789012345"),
+		DecodeSessionID("gx.magma.com;9876;54321;IMSI123456789012345"),
 		"IMSI123456789012345-987654321")
+
+	assert.Equal(t,
+		EncodeSessionID("gx.magma.com", "IMSI123456789012345-98"),
+		"gx.magma.com;9;8;IMSI123456789012345")
+	assert.Equal(t,
+		DecodeSessionID("gx.magma.com;9;8;IMSI123456789012345"),
+		"IMSI123456789012345-98")
+
+	assert.Equal(t,
+		EncodeSessionID("gx.magma.com", "IMSI123456789012345-1"),
+		"gx.magma.com;;1;IMSI123456789012345")
+	assert.Equal(t,
+		DecodeSessionID("gx.magma.com;;1;IMSI123456789012345"),
+		"IMSI123456789012345-1")
+
+	// With Bearer ID
+	assert.Equal(t,
+		EncodeSessionID("gx.magma.com", "IMSI123456789012345_7-987654321"),
+		"gx.magma.com;9876;54321;IMSI123456789012345_7")
+	assert.Equal(t,
+		DecodeSessionID("gx.magma.com;9876;54321;IMSI123456789012345_7"),
+		"IMSI123456789012345_7-987654321")
 
 	// Non magma SIDs
 	assert.Equal(t,
@@ -184,4 +206,14 @@ func TestEncodeDecodeSID(t *testing.T) {
 		DecodeSessionID("gx.magma.com;987654321;987654321;123456789012345"),
 		"gx.magma.com;987654321;987654321;123456789012345")
 
+	// Parsing
+	r := [5]string{}
+	r[0], r[1], r[2], r[3], r[4] =
+		ParseDiamSessionID("gx.magma.com;987654321;987654322;IMSI123456789012345_123")
+	assert.Equal(t, r, [5]string{"gx.magma.com", "987654321", "987654322", "123456789012345", "123"})
+	r[0], r[1], r[2], r[3], r[4] =
+		ParseDiamSessionID("gx.magma.com;987654321;987654322;IMSI123456789012345")
+	assert.Equal(t, r, [5]string{"gx.magma.com", "987654321", "987654322", "123456789012345", ""})
+	r[0], r[1], r[2], r[3], r[4] = ParseDiamSessionID("blablabla")
+	assert.Equal(t, r, [5]string{"blablabla", "", "", "", ""})
 }

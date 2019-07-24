@@ -15,7 +15,7 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	magmaerrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ import (
 func TestSqlBlobStorage_ListKeys(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT key FROM network_table").
+			mock.ExpectQuery("SELECT \"key\" FROM network_table").
 				WithArgs("network", "type").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"key"}).AddRow("key1").AddRow("key2"),
@@ -40,7 +40,7 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT key FROM network_table").
+			mock.ExpectQuery("SELECT \"key\" FROM network_table").
 				WithArgs("network", "type").
 				WillReturnError(errors.New("Mock query error"))
 		},
@@ -58,8 +58,11 @@ func TestSqlBlobStorage_ListKeys(t *testing.T) {
 func TestSqlBlobStorage_Get(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
-				WithArgs("t1", "k1").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\(\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\)\\)",
+			).
+				WithArgs("network", "t1", "k1").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}).
 						AddRow("t1", "k1", []byte("value1"), 42),
@@ -75,8 +78,11 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 	}
 	dneCase := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
-				WithArgs("t2", "k2").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\(\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\)\\)",
+			).
+				WithArgs("network", "t2", "k2").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}),
 				)
@@ -92,8 +98,11 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 	}
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
-				WithArgs("t3", "k3").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\(\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\)\\)",
+			).
+				WithArgs("network", "t3", "k3").
 				WillReturnError(errors.New("Mock query error"))
 		},
 
@@ -112,8 +121,12 @@ func TestSqlBlobStorage_Get(t *testing.T) {
 func TestSqlBlobStorage_GetMany(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
-				WithArgs("t1", "k1", "t2", "k2").
+			mock.ExpectQuery(
+				"SELECT type, \"key\", value, version FROM network_table "+
+					"WHERE \\("+
+					"\\(network_id = \\$1 AND type = \\$2 AND \"key\" = \\$3\\) OR "+
+					"\\(network_id = \\$4 AND type = \\$5 AND \"key\" = \\$6\\)\\)").
+				WithArgs("network", "t1", "k1", "network", "t2", "k2").
 				WillReturnRows(
 					sqlmock.NewRows([]string{"type", "key", "value", "version"}).
 						AddRow("t1", "k1", []byte("value1"), 42).
@@ -134,8 +147,8 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
-				WithArgs("t1", "k1", "t2", "k2").
+			mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
+				WithArgs("network", "t1", "k1", "network", "t2", "k2").
 				WillReturnError(errors.New("Mock query error"))
 		},
 
@@ -157,7 +170,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			expectGetMany(
 				mock,
-				[]driver.Value{"t1", "k1", "t2", "k2"},
+				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
 				[]blobstore.Blob{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 				},
@@ -169,11 +182,9 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 				WillReturnResult(sqlmock.NewResult(1, 1))
 			updatePrepare.WillBeClosed()
 
-			insertPrepare := mock.ExpectPrepare("INSERT INTO network_table")
-			insertPrepare.ExpectExec().
+			mock.ExpectExec("INSERT INTO network_table").
 				WithArgs("network", "t2", "k2", []byte("world")).
 				WillReturnResult(sqlmock.NewResult(1, 1))
-			insertPrepare.WillBeClosed()
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
@@ -195,7 +206,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			expectGetMany(
 				mock,
-				[]driver.Value{"t1", "k1", "t2", "k2"},
+				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
 				[]blobstore.Blob{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 43},
@@ -231,18 +242,16 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			expectGetMany(
 				mock,
-				[]driver.Value{"t1", "k1", "t2", "k2"},
+				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
 				[]blobstore.Blob{},
 			)
 
-			insertPrepare := mock.ExpectPrepare("INSERT INTO network_table")
-			insertPrepare.ExpectExec().
-				WithArgs("network", "t1", "k1", []byte("hello")).
+			mock.ExpectExec("INSERT INTO network_table").
+				WithArgs(
+					"network", "t1", "k1", []byte("hello"),
+					"network", "t2", "k2", []byte("world"),
+				).
 				WillReturnResult(sqlmock.NewResult(1, 1))
-			insertPrepare.ExpectExec().
-				WithArgs("network", "t2", "k2", []byte("world")).
-				WillReturnResult(sqlmock.NewResult(1, 1))
-			insertPrepare.WillBeClosed()
 		},
 
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
@@ -264,7 +273,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			expectGetMany(
 				mock,
-				[]driver.Value{"t1", "k1", "t2", "k2"},
+				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
 				[]blobstore.Blob{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 				},
@@ -296,7 +305,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		setup: func(mock sqlmock.Sqlmock) {
 			expectGetMany(
 				mock,
-				[]driver.Value{"t1", "k1", "t2", "k2"},
+				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
 				[]blobstore.Blob{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 				},
@@ -308,8 +317,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 				WillReturnResult(sqlmock.NewResult(1, 1))
 			updatePrepare.WillBeClosed()
 
-			insertPrepare := mock.ExpectPrepare("INSERT INTO network_table")
-			insertPrepare.ExpectExec().
+			mock.ExpectExec("INSERT INTO network_table").
 				WithArgs("network", "t2", "k2", []byte("world")).
 				WillReturnError(errors.New("Mock query error"))
 		},
@@ -325,7 +333,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			return nil, err
 		},
 
-		expectedError:  errors.New("Error creating blob (network, t2, k2): Mock query error"),
+		expectedError:  errors.New("error creating blobs: Mock query error"),
 		expectedResult: nil,
 	}
 
@@ -340,7 +348,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectExec("DELETE FROM network_table").
-				WithArgs("t1", "k1", "t2", "k2").
+				WithArgs("network", "t1", "k1", "network", "t2", "k2").
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
 
@@ -356,7 +364,7 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 	queryError := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
 			mock.ExpectExec("DELETE FROM network_table").
-				WithArgs("t1", "k1", "t2", "k2").
+				WithArgs("network", "t1", "k1", "network", "t2", "k2").
 				WillReturnError(errors.New("Mock query error"))
 		},
 
@@ -375,11 +383,11 @@ func TestSqlBlobStorage_Delete(t *testing.T) {
 
 func TestSqlBlobStorage_Integration(t *testing.T) {
 	// Use an in-memory sqlite datastore
-	db, err := sql_utils.Open("sqlite3", ":memory:")
+	db, err := sqorc.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	fact := blobstore.NewSQLBlobStorageFactory("network_table", db)
+	fact := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
 	integration(t, fact)
 }
 
@@ -402,7 +410,7 @@ func runCase(t *testing.T, test *testCase) {
 	}
 	defer db.Close()
 
-	factory := blobstore.NewSQLBlobStorageFactory("network_table", db)
+	factory := blobstore.NewSQLBlobStorageFactory("network_table", db, sqorc.GetSqlBuilder())
 	expectCreateTable(mock)
 	err = factory.InitializeFactory()
 	assert.NoError(t, err)
@@ -440,7 +448,7 @@ func expectGetMany(mock sqlmock.Sqlmock, args []driver.Value, blobs []blobstore.
 		rows.AddRow(blob.Type, blob.Key, blob.Value, blob.Version)
 	}
 
-	mock.ExpectQuery("SELECT type, key, value, version FROM network_table").
+	mock.ExpectQuery("SELECT type, \"key\", value, version FROM network_table").
 		WithArgs(args...).
 		WillReturnRows(rows)
 }

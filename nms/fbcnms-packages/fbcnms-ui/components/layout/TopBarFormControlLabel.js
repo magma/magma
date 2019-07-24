@@ -8,8 +8,8 @@
  * @format
  */
 
-import React from 'react';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import React from 'react';
 
 import {makeStyles} from '@material-ui/styles';
 

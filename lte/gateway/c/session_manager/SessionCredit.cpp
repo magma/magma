@@ -14,8 +14,7 @@
 
 namespace magma {
 
-uint64_t SessionCredit::USAGE_REPORTING_LIMIT =
-  std::numeric_limits<uint64_t>::max();
+float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 
 SessionCredit::SessionCredit(ServiceState start_state):
   reporting_(false),
@@ -87,6 +86,8 @@ void SessionCredit::receive_credit(
                << buckets_[REPORTING_TX];
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
+  usage_reporting_limit_ =
+    buckets_[ALLOWED_TOTAL] - buckets_[REPORTED_RX] - buckets_[REPORTED_TX];
   MLOG(MDEBUG) << "receive_credit:"
                << "reported rx " << buckets_[REPORTED_RX] << "reported_tx "
                << buckets_[REPORTED_TX] << "reporting_rx "
@@ -115,22 +116,40 @@ void SessionCredit::receive_credit(
 
 bool SessionCredit::quota_exhausted()
 {
-  uint64_t used_tot = buckets_[USED_TX] + buckets_[USED_RX];
+  // used quota since last report
+  uint64_t total_reported_usage = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
+  uint64_t total_usage_since_report =
+    buckets_[USED_TX] + buckets_[USED_RX] - total_reported_usage;
+  uint64_t tx_usage_since_report =
+    buckets_[USED_TX] - buckets_[REPORTED_TX];
+  uint64_t rx_usage_since_report =
+    buckets_[USED_RX] - buckets_[REPORTED_RX];
+
+  // available quota since last report
+  auto total_usage_reporting_threshold =
+    (buckets_[ALLOWED_TOTAL] - total_reported_usage) * SessionCredit::USAGE_REPORTING_THRESHOLD;
+
+  // reported tx/rx could be greater than allowed tx/rx
+  // because some OCS/PCRF might not track tx/rx,
+  // and 0 is added to the allowed credit when an credit update is received
+  auto tx_usage_reporting_threshold = buckets_[ALLOWED_TX] > buckets_[REPORTED_TX] ?
+    (buckets_[ALLOWED_TX] - buckets_[REPORTED_TX]) * SessionCredit::USAGE_REPORTING_THRESHOLD :
+    0;
+  auto rx_usage_reporting_threshold = buckets_[ALLOWED_RX] > buckets_[REPORTED_RX] ?
+    (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) * SessionCredit::USAGE_REPORTING_THRESHOLD :
+    0;
+
+  MLOG(MDEBUG) << " Is Quota exhausted?"
+               << "\n Total used: " << buckets_[USED_TX] + buckets_[USED_RX]
+               << "\n Allowed total: " << buckets_[ALLOWED_TOTAL]
+               << "\n Reported total: " << total_reported_usage;
+
   bool is_exhausted = false;
-  if ((buckets_[ALLOWED_TX] > 0) || (buckets_[ALLOWED_RX] > 0)) {
-    is_exhausted = used_tot > buckets_[ALLOWED_TOTAL] ||
-                   buckets_[USED_TX] > buckets_[ALLOWED_TX] ||
-                   buckets_[USED_RX] > buckets_[ALLOWED_RX];
-  } else {
-    MLOG(MDEBUG) << " Is Quota exhausted ? "
-                 << "Total_used:  " << used_tot
-                 << " Allowed Total: " << buckets_[ALLOWED_TOTAL];
-    is_exhausted = used_tot > buckets_[ALLOWED_TOTAL];
-  }
+  is_exhausted = total_usage_since_report >= total_usage_reporting_threshold ||
+    (buckets_[ALLOWED_TX] > 0) && (tx_usage_since_report >= tx_usage_reporting_threshold) ||
+    (buckets_[ALLOWED_RX] > 0) && (rx_usage_since_report >= rx_usage_reporting_threshold);
   if (is_exhausted == true) {
-    MLOG(MDEBUG) << " YES Quota exhausted "
-                 << "Total_used:  " << used_tot
-                 << " Allowed Total: " << buckets_[ALLOWED_TOTAL];
+    MLOG(MDEBUG) << " YES Quota exhausted ";
   }
   return is_exhausted;
 }
@@ -169,9 +188,8 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
   if (!is_termination && !is_final_) {
     // Apply reporting limits since the user is not getting terminated.
     // The limits are applied on total usage (ie. tx + rx)
-    uint64_t limit = SessionCredit::USAGE_REPORTING_LIMIT;
-    tx = std::min(tx, limit);
-    rx = std::min(rx, limit - tx);
+    tx = std::min(tx, usage_reporting_limit_);
+    rx = std::min(rx, usage_reporting_limit_ - tx);
   }
 
   if (get_update_type() == CREDIT_REAUTH_REQUIRED) {
@@ -228,6 +246,11 @@ bool SessionCredit::is_reauth_required()
 void SessionCredit::reauth()
 {
   reauth_state_ = REAUTH_REQUIRED;
+}
+
+bool SessionCredit::no_more_grant()
+{
+  return is_final_;
 }
 
 } // namespace magma

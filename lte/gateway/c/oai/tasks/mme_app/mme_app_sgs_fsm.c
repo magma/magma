@@ -41,7 +41,6 @@
 #include "log.h"
 #include "mme_app_sgs_fsm.h"
 #include "assertions.h"
-#include "msc.h"
 #include "common_defs.h"
 #include "common_types.h"
 #include "mme_app_ue_context.h"
@@ -193,11 +192,6 @@ int sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void *ctx, sgs_fsm_state_t state)
         ue_id,
         _sgs_fsm_state_str[sgs_ctx->sgs_state],
         _sgs_fsm_state_str[state]);
-      MSC_LOG_EVENT(
-        MSC_MME_APP,
-        "SGS state %s UE " MME_UE_S1AP_ID_FMT " ",
-        _sgs_fsm_state_str[state],
-        ue_id);
       sgs_ctx->sgs_state = state;
     }
 

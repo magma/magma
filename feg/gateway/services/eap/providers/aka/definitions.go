@@ -13,8 +13,8 @@ import (
 	"fmt"
 	"time"
 
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/protos"
 )
 
 const (

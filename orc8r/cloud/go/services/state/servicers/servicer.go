@@ -47,45 +47,50 @@ func (srv *stateServicer) GetStates(context context.Context, req *protos.GetStat
 		return nil, err
 	}
 	states, err := store.GetMany(req.GetNetworkID(), ids)
-	store.Commit()
-	return &protos.GetStatesResponse{States: protos.BlobsToStates(states)}, nil
+	if err != nil {
+		store.Rollback()
+		return nil, err
+	}
+	return &protos.GetStatesResponse{States: protos.BlobsToStates(states)}, store.Commit()
 }
 
 // ReportStates saves states into blobstorage
-func (srv *stateServicer) ReportStates(context context.Context, req *protos.ReportStatesRequest) (*protos.Void, error) {
-	ret := &protos.Void{}
-	if err := ValidateReportStatesRequest(req); err != nil {
-		return nil, err
+func (srv *stateServicer) ReportStates(context context.Context, req *protos.ReportStatesRequest) (*protos.ReportStatesResponse, error) {
+	response := &protos.ReportStatesResponse{}
+	validatedStates, invalidStates, err := PartitionStatesBySerializability(req)
+	if err != nil {
+		return response, err
 	}
+	response.UnreportedStates = invalidStates
 
 	// Get gateway information from context
 	gw := protos.GetClientGateway(context)
 	if gw == nil {
-		return ret, status.Errorf(codes.PermissionDenied, "Missing Gateway Identity")
+		return response, status.Errorf(codes.PermissionDenied, "Missing Gateway Identity")
 	}
 	if !gw.Registered() {
-		return ret, status.Errorf(codes.PermissionDenied, "Gateway is not registered")
+		return response, status.Errorf(codes.PermissionDenied, "Gateway is not registered")
 	}
 	hwID := gw.HardwareId
 	networkID := gw.NetworkId
 	certExpiry := protos.GetClientCertExpiration(context)
 	time := uint64(time.Now().UnixNano()) / uint64(time.Millisecond)
 
-	states, err := addWrapperAndMakeBlobs(req.States, hwID, time, certExpiry)
+	states, err := addWrapperAndMakeBlobs(validatedStates, hwID, time, certExpiry)
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
 	store, err := srv.factory.StartTransaction()
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 	err = store.CreateOrUpdate(networkID, states)
 	if err != nil {
 		store.Rollback()
-		return ret, err
+		return response, err
 	}
-	return ret, store.Commit()
+	return response, store.Commit()
 }
 
 // DeleteStates deletes states from blobstorage

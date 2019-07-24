@@ -13,10 +13,10 @@
 
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/subscriberdb.pb.h>
 
 #include "GRPCReceiver.h"
 
-using google::protobuf::RepeatedPtrField;
 using grpc::Status;
 
 namespace magma {
@@ -54,6 +54,14 @@ class PipelinedClient {
     const std::string &ip_addr,
     const std::vector<std::string> &static_rules,
     const std::vector<PolicyRule> &dynamic_rules) = 0;
+
+  /**
+   * Send the MAC address of UE and the subscriberID
+   * for pipelined to add a flow for the subscriber by matching the MAC
+   */
+  virtual bool add_ue_mac_flow(
+    const SubscriberID &sid,
+    const std::string &mac_addr) = 0;
 };
 
 /**
@@ -93,6 +101,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::vector<std::string> &static_rules,
     const std::vector<PolicyRule> &dynamic_rules);
 
+  bool add_ue_mac_flow(
+    const SubscriberID &sid,
+    const std::string &mac_addr);
+
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<Pipelined::Stub> stub_;
@@ -105,6 +117,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void activate_flows_rpc(
     const ActivateFlowsRequest &request,
     std::function<void(Status, ActivateFlowsResult)> callback);
+
+  void add_ue_mac_flow_rpc(
+    const UEMacFlowRequest &request,
+    std::function<void(Status, FlowResponse)> callback);
 };
 
 } // namespace magma

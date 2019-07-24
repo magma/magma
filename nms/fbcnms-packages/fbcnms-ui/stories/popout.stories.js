@@ -8,11 +8,11 @@
  * @format
  */
 
-import {storiesOf} from '@storybook/react';
 import Button from '@material-ui/core/Button';
 import Popout from '../components/Popout.react';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
+import {storiesOf} from '@storybook/react';
 
 storiesOf('Popout', module).add('default', () => (
   <div style={{padding: 100}}>

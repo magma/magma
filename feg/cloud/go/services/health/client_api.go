@@ -20,30 +20,28 @@ import (
 	"magma/orc8r/cloud/go/registry"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "HEALTH"
 
 // getHealthClient is a utility function to get an RPC connection to the
 // Health service
-func getHealthClient() (protos.HealthClient, *grpc.ClientConn, error) {
+func getHealthClient() (protos.HealthClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewHealthClient(conn), conn, nil
+	return protos.NewHealthClient(conn), nil
 }
 
 // GetActiveGateway returns the active federated gateway in the network specified by networkID
 func GetActiveGateway(networkID string) (string, error) {
-	client, conn, err := getHealthClient()
+	client, err := getHealthClient()
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
 
 	// Currently, we use networkID as clusterID as we only support one cluster per network
 	clusterState, err := client.GetClusterState(context.Background(), &protos.ClusterStateRequest{
@@ -65,11 +63,10 @@ func GetHealth(networkID string, logicalID string) (*protos.HealthStats, error) 
 	if len(logicalID) == 0 {
 		return nil, fmt.Errorf("Empty logicalId provided")
 	}
-	client, conn, err := getHealthClient()
+	client, err := getHealthClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	gatewayHealthReq := &protos.GatewayStatusRequest{
 		NetworkId: networkID,

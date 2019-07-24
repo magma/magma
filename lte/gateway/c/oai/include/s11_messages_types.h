@@ -111,8 +111,8 @@ typedef struct itti_s11_nw_init_actv_bearer_rsp_s {
 typedef struct itti_s11_nw_init_deactv_bearer_request_s {
   uint32_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
-  bool delete_default_bearer;
   teid_t s11_mme_teid; ///< MME TEID
+  bool delete_default_bearer;
 } itti_s11_nw_init_deactv_bearer_request_t;
 
 //-----------------------------------------------------------------------------

@@ -31,7 +31,6 @@
 #include <stdint.h>
 
 #include "intertask_interface.h"
-#include "msc.h"
 #include "log.h"
 #include "sgs_defs.h"
 #include "assertions.h"

@@ -1,0 +1,49 @@
+---
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+- name: Copy preferences file for Magma's pkg repo
+  copy: src=magma-preferences dest=/etc/apt/preferences.d/magma-preferences
+
+- name: Install OVS Dependencies for Ubuntu
+  package:
+    name: "{{ item }}"
+    state: present
+  become: true
+  with_items:
+    - graphviz
+    - autoconf
+    - automake
+    - bzip2
+    - debhelper
+    - dh-autoreconf
+    - libssl-dev
+    - libtool
+    - openssl
+    - procps
+    - python-all
+    - python-twisted-conch
+    - python-zopeinterface
+    - python-six
+    - build-essential
+    - fakeroot
+
+- name: Install OVS v2.8.1 from Magma's pkgrepo
+  apt: pkg={{ item }} state=present update_cache=yes
+  with_items:
+    - libopenvswitch
+    - openvswitch-common
+    - openvswitch-switch
+    - python-openvswitch
+
+- name: Start OVS
+  service:
+    name: openvswitch-switch
+    state: started
+    enabled: yes
+  become: true
+
+- name: Ensure OVS switch will not auto-upgrade
+  action: shell apt-mark hold openvswitch-switch

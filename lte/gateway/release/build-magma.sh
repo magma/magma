@@ -15,7 +15,7 @@ shopt -s extglob
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=0.3.72 # magma version number
+VERSION=0.3.75 # magma version number
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -201,9 +201,11 @@ fi
 cd "${MAGMA_ROOT}/lte/gateway"
 OAI_BUILD="${C_BUILD}/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
+SCTPD_BUILD="${C_BUILD}/sctpd"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
+make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
 
 # Next, gather up the python files and put them into a build path.
 #
@@ -267,11 +269,13 @@ ${ORC8R_PY_DEPS} \
 ${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
+${SCTPD_BUILD}/sctpd=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
 $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
 $(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
+$(glob_files "${SERVICE_DIR}/magma@sctpd.service" /etc/systemd/system/magma@sctpd.service) \
 $(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
 $(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \

@@ -10,7 +10,7 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"magma/feg/cloud/go/services/controller/config"
+	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/services/controller/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/config/obsidian"
@@ -26,7 +26,7 @@ const (
 // GetObsidianHandlers returns all obsidian handlers for feg controller
 func GetObsidianHandlers() []handlers.Handler {
 	ret := make([]handlers.Handler, 0, 8)
-	ret = append(ret, obsidian.GetCRUDNetworkConfigHandlers(NetworkConfigPath, config.FegNetworkType, &models.NetworkFederationConfigs{})...)
-	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, config.FegGatewayType, &models.GatewayFegConfigs{})...)
+	ret = append(ret, obsidian.GetCRUDNetworkConfigHandlers(NetworkConfigPath, feg.FegNetworkType, &models.NetworkFederationConfigs{})...)
+	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, feg.FegGatewayType, &models.GatewayFegConfigs{})...)
 	return ret
 }

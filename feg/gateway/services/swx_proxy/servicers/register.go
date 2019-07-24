@@ -48,6 +48,8 @@ func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, 
 	defer s.requestTracker.DeregisterRequest(sid)
 
 	sarMsg := s.createSAR(sid, userName, serverAssignmentType)
+
+	sarStartTime := time.Now()
 	err := s.sendDiameterMsg(sarMsg, MAX_DIAM_RETRIES)
 	if err != nil {
 		metrics.SARSendFailures.Inc()
@@ -57,6 +59,7 @@ func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, 
 	metrics.SARRequests.Inc()
 	select {
 	case resp, open := <-ch:
+		metrics.SARLatency.Observe(time.Since(sarStartTime).Seconds())
 		if !open {
 			metrics.SwxInvalidSessions.Inc()
 			err = status.Errorf(codes.Aborted, "SAA for Session ID: %s is cancelled", sid)
@@ -80,6 +83,7 @@ func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, 
 		return saa, err
 
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
+		metrics.SARLatency.Observe(time.Since(sarStartTime).Seconds())
 		metrics.SwxTimeouts.Inc()
 		err = status.Errorf(codes.DeadlineExceeded, "SAA Timed Out for Session ID: %s", sid)
 		glog.Error(err)

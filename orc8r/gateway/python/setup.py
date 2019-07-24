@@ -31,7 +31,6 @@ setup(
         'magma.magmad.check.network_check',
         'magma.magmad.logging',
         'magma.magmad.upgrade',
-        'magma.metricsd',
     ],
     scripts=[
         'scripts/checkin_cli.py',
@@ -40,6 +39,7 @@ setup(
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
         'scripts/generate_service_config.py',
+        'scripts/health_cli.py',
         'scripts/magma_conditional_service.py',
         'scripts/magma_get_config.py',
         'scripts/magmad_cli.py',
@@ -47,6 +47,9 @@ setup(
         'scripts/show_gateway_info.py',
     ],
     install_requires=[
+        'Cython>=0.29.1',
+        'pystemd==0.5.0',
+        'fire>=0.1.3',
         'aioh2==0.2.2',
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
         'redis-collections>=0.4.2',
@@ -56,7 +59,7 @@ setup(
         'Jinja2>=2.8',
         'netifaces>=0.10.4',
         'pylint>=1.7.1',
-        'PyYAML==3.11',
+        'PyYAML>=3.12',
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
         'snowflake>=0.0.3',
@@ -66,5 +69,6 @@ setup(
         'itsdangerous>=0.24',
         'click>=5.1',
         'pycares>=2.3.0',
+        'python-dateutil>=1.4',
     ]
 )

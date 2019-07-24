@@ -10,11 +10,11 @@
 
 import type {MapMarkerProps} from '../MapTypes';
 
-import React from 'react';
-import mapboxgl from 'mapbox-gl';
 import GatewayMapMarkerPopup from './GatewayMapMarkerPopup';
 import PlaceIcon from '@material-ui/icons/Place';
+import React from 'react';
 import ReactDOM from 'react-dom';
+import mapboxgl from 'mapbox-gl';
 
 type State = {
   marker: ?mapboxgl.Marker,

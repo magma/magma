@@ -17,11 +17,13 @@ import (
 
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
 
 	"github.com/labstack/echo"
 )
@@ -39,7 +41,7 @@ const (
 	TailGatewayLogs       = CommandRoot + "/tail_logs"
 )
 
-func getListGatewaysHandler(factory view_factory.FullGatewayViewFactory) func(echo.Context) error {
+func getListGateways(factory view_factory.FullGatewayViewFactory) func(echo.Context) error {
 	return func(c echo.Context) error {
 		fields := c.QueryParam("view")
 		if fields == "full" {
@@ -50,129 +52,186 @@ func getListGatewaysHandler(factory view_factory.FullGatewayViewFactory) func(ec
 }
 
 func listGateways(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayIds, err := magmad.ListGateways(networkId)
+	gatewayIDs, err := configurator.ListEntityKeys(networkID, orc8r.MagmadGatewayType)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
 	// Return a deterministic ordering of IDs
-	sort.Strings(gatewayIds)
-	return c.JSON(http.StatusOK, gatewayIds)
+	sort.Strings(gatewayIDs)
+	return c.JSON(http.StatusOK, gatewayIDs)
 }
 
-func registerGateway(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+func createGateway(c echo.Context) error {
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	swaggerRecord := &magmad_models.AccessGatewayRecord{}
-	if err := c.Bind(swaggerRecord); err != nil {
+	record := &magmad_models.AccessGatewayRecord{}
+	if err := c.Bind(record); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	if err := swaggerRecord.Verify(); err != nil {
+	if err := record.Verify(); err != nil {
 		return handlers.HttpError(
 			fmt.Errorf("Invalid Gateway Record, Error: %s", err),
 			http.StatusBadRequest)
 	}
-	record, err := swaggerRecord.ToMconfig()
-	if err != nil {
-		return handlers.HttpError(err, http.StatusUnsupportedMediaType)
-	}
 
-	var gatewayId string
-	requestedId := c.QueryParam("requested_id")
-	if len(requestedId) > 0 {
+	gatewayID := c.QueryParam("requested_id")
+	if len(gatewayID) > 0 {
 		r, _ := regexp.Compile("^[a-zA-Z_][0-9a-zA-Z_-]+$")
-		if !r.MatchString(requestedId) {
+		if !r.MatchString(gatewayID) {
 			return handlers.HttpError(
 				fmt.Errorf("Gateway ID '%s' is not allowed. Gateway ID can only contain "+
-					"alphanumeric characters and underscore, and should start with a letter or underscore.", requestedId),
+					"alphanumeric characters and underscore, and should start with a letter or underscore.", gatewayID),
 				http.StatusBadRequest,
 			)
 		}
-		gatewayId, err = magmad.RegisterGatewayWithId(networkId, record, requestedId)
 	} else {
-		gatewayId, err = magmad.RegisterGateway(networkId, record)
+		gatewayID = record.HwID.ID
 	}
 
-	if err != nil {
-		return handlers.HttpError(err, http.StatusConflict)
+	if device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID) {
+		return fmt.Errorf("Hwid is already registered %s", record.HwID.ID)
 	}
-	return c.JSON(http.StatusCreated, gatewayId)
+	// write into device
+	err := device.CreateOrUpdate(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	// write into configurator
+	gwEntity := configurator.NetworkEntity{
+		Name:       record.Name,
+		Type:       orc8r.MagmadGatewayType,
+		Key:        gatewayID,
+		PhysicalID: record.HwID.ID,
+	}
+	_, err = configurator.CreateEntity(networkID, gwEntity)
+	if err != nil {
+		derr := device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID)
+		if derr != nil {
+			return handlers.HttpError(
+				fmt.Errorf("Failed to create gateway entity: %v, failed to delete device entity: %v", err, derr),
+				http.StatusInternalServerError)
+		}
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusCreated, gatewayID)
 }
 
 func getGateway(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	lid, gerr := handlers.GetLogicalGwId(c)
-	if gerr != nil {
-		return gerr
+	gatewayID, nerr := handlers.GetLogicalGwId(c)
+	if nerr != nil {
+		return nerr
 	}
 
-	record, err := magmad.FindGatewayRecord(networkId, lid)
+	record := &magmad_models.AccessGatewayRecord{}
+
+	gatewayEntity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadMetadata: true})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	swaggerRecord := magmad_models.AccessGatewayRecord{}
-	err = swaggerRecord.FromMconfig(record)
+	deviceEntity, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, gatewayEntity.PhysicalID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusUnsupportedMediaType)
+		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, &swaggerRecord)
+	record.HwID = &magmad_models.HwGatewayID{ID: gatewayEntity.PhysicalID}
+	record.Name = gatewayEntity.Name
+	record.Key = deviceEntity.(*magmad_models.AccessGatewayRecord).Key
+
+	return c.JSON(http.StatusOK, record)
 }
 
 func updateGateway(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	lid, gerr := handlers.GetLogicalGwId(c)
+	gatewayID, gerr := handlers.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
 
-	swaggerRecord := magmad_models.MutableGatewayRecord{}
-	if berr := c.Bind(&swaggerRecord); berr != nil {
+	record := magmad_models.MutableGatewayRecord{}
+	if berr := c.Bind(&record); berr != nil {
 		return handlers.HttpError(berr, http.StatusBadRequest)
 	}
-	if err := swaggerRecord.Verify(); err != nil {
+	if err := record.Verify(); err != nil {
 		return handlers.HttpError(
 			fmt.Errorf("Invalid Gateway Record, Error: %s", err),
 			http.StatusBadRequest)
 	}
-	record := magmadprotos.AccessGatewayRecord{}
-	berr := swaggerRecord.ToMconfig(&record)
-	if berr != nil {
-		return handlers.HttpError(berr, http.StatusUnsupportedMediaType)
-	}
-	err := magmad.UpdateGatewayRecord(networkId, lid, &record)
+
+	err := updateChallengeKey(networkID, gatewayID, record.Key)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusConflict)
+		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
+	err = updateGatewayName(networkID, gatewayID, record.Name)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
 	return c.NoContent(http.StatusOK)
 }
 
+func updateChallengeKey(networkID, gatewayID string, challengeKey *magmad_models.ChallengeKey) error {
+	deviceID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err != nil {
+		return err
+	}
+	iRecord, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, deviceID)
+	if err != nil {
+		return err
+	}
+	record, ok := iRecord.(*magmad_models.AccessGatewayRecord)
+	if !ok {
+		return fmt.Errorf("Info stored in deviceID %s is not of type AccessGatewayRecord", deviceID)
+	}
+	record.Key = challengeKey
+	return device.CreateOrUpdate(networkID, orc8r.AccessGatewayRecordType, deviceID, record)
+}
+
+func updateGatewayName(networkID, gatewayID, name string) error {
+	updateRequest := configurator.EntityUpdateCriteria{
+		Key:     gatewayID,
+		Type:    orc8r.MagmadGatewayType,
+		NewName: &name,
+	}
+	_, err := configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateRequest})
+	return err
+}
+
 func deleteGateway(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := handlers.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	lid, gerr := handlers.GetLogicalGwId(c)
+	gatewayID, gerr := handlers.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
 
-	err := magmad.RemoveGateway(networkId, lid)
+	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-
+	err = device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, physicalID)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	err = configurator.DeleteEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -272,7 +331,7 @@ func gatewayGenericCommand(c echo.Context) error {
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	params, err := magmad_models.JSONMapToProtobufStruct(request.Params)
+	params, err := view_factory.JSONMapToProtobufStruct(request.Params)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
@@ -286,7 +345,7 @@ func gatewayGenericCommand(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	resp, err := magmad_models.ProtobufStructToJSONMap(response.Response)
+	resp, err := view_factory.ProtobufStructToJSONMap(response.Response)
 	genericCommandResponse := magmad_models.GenericCommandResponse{
 		Response: resp,
 	}
@@ -309,15 +368,13 @@ func tailGatewayLogs(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 
-	stream, conn, err := magmad.TailGatewayLogs(networkId, gatewayId, request.Service)
+	stream, err := magmad.TailGatewayLogs(networkId, gatewayId, request.Service)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	defer conn.Close()
 
 	go func() {
 		<-c.Request().Context().Done()
-		conn.Close()
 	}()
 	// https://echo.labstack.com/cookbook/streaming-response
 	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextPlainCharsetUTF8)

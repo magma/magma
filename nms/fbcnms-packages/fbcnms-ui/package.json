@@ -7,14 +7,14 @@
     "@material-ui/icons": "^3.0.2",
     "@material-ui/lab": "^3.0.0-alpha.30",
     "@material-ui/styles": "^3.0.0-alpha.7",
-    "notistack": "^0.4.1",
+    "notistack": "^0.8.5",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
     "react-perfect-scrollbar": "^1.4.4",
-    "relay-runtime": "^3.0.0"
+    "relay-runtime": "^5.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.3.4",
+    "@babel/core": "^7.4.5",
     "@babel/preset-env": "^7.3.4",
     "@babel/preset-flow": "^7.0.0",
     "@babel/preset-react": "^7.0.0",

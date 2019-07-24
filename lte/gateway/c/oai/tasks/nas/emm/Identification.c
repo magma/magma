@@ -25,7 +25,6 @@
 
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "common_defs.h"
 #include "common_types.h"
 #include "nas_timer.h"
@@ -181,13 +180,6 @@ int emm_proc_identification(
       emm_sap.u.emm_reg.ue_id = ue_id;
       emm_sap.u.emm_reg.ctx = emm_context;
       rc = emm_sap_send(&emm_sap);
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "EMMREG_COMMON_PROC_REQ (IDENT) ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
     }
   }
 
@@ -279,13 +271,6 @@ int emm_proc_identification_complete(
       /*
        * Notify EMM that the identification procedure successfully completed
        */
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "EMMREG_COMMON_PROC_CNF (IDENT) ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
       emm_sap.primitive = EMMREG_COMMON_PROC_CNF;
       emm_sap.u.emm_reg.ue_id = ue_id;
       emm_sap.u.emm_reg.ctx = emm_ctx;
@@ -385,13 +370,6 @@ static void _identification_t3470_handler(void *args)
         (nas_emm_common_proc_t *) (&ident_proc->emm_com_proc);
       emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
         ((nas_emm_proc_t *) ident_proc)->previous_emm_fsm_state;
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "0 EMMREG_PROC_ABORT (identification) ue id " MME_UE_S1AP_ID_FMT " ",
-        ident_proc->ue_id);
       emm_sap_send(&emm_sap);
       nas_delete_all_emm_procedures(emm_ctx);
       /* clear emm_common_data_ctx */
@@ -439,13 +417,6 @@ static int _identification_request(nas_emm_ident_proc_t *const proc)
    * Notify EMM-AS SAP that Identity Request message has to be sent
    * to the UE
    */
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "EMMAS_SECURITY_REQ ue id " MME_UE_S1AP_ID_FMT " IDENTIFICATION",
-    proc->ue_id);
   emm_sap.primitive = EMMAS_SECURITY_REQ;
   emm_sap.u.emm_as.u.security.puid =
     proc->emm_com_proc.emm_proc.base_proc.nas_puid;
@@ -459,13 +430,6 @@ static int _identification_request(nas_emm_ident_proc_t *const proc)
    */
   emm_as_set_security_data(
     &emm_sap.u.emm_as.u.security.sctx, &emm_ctx->_security, false, true);
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMAS_SECURITY_REQ (identification) ue id " MME_UE_S1AP_ID_FMT " ",
-    proc->ue_id);
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {

@@ -14,7 +14,7 @@ import logging
 
 from magma.common.misc_utils import get_ip_from_if_cidr
 from magma.configuration.exceptions import LoadConfigError
-from magma.configuration.mconfig_managers import load_service_mconfig
+from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.configuration.service_configs import load_service_config
 from orc8r.protos.mconfig.mconfigs_pb2 import DnsD
 
@@ -32,7 +32,7 @@ def _get_addresses(cfg, mconfig):
     """
     # Start with list of addresses from YML
     addresses = cfg['addresses']
-    for record in mconfig.records:
+    for record in mconfig['records']:
         # Unpack each record type into list NOTE: list concat doesn't work here
         domain_records = [
             *record.a_record,
@@ -52,9 +52,9 @@ def get_context():
     context = {}
     cfg = load_service_config("dnsd")
     try:
-        mconfig = load_service_mconfig("dnsd")
+        mconfig = load_service_mconfig_as_json("dnsd")
     except LoadConfigError as err:
-        logging.warn("Error! Using default config because: %s", err)
+        logging.warning("Error! Using default config because: %s", err)
         mconfig = DnsD()
     ip = get_ip_from_if_cidr(cfg['enodeb_interface'])
     dhcp_block_size = cfg['dhcp_block_size']

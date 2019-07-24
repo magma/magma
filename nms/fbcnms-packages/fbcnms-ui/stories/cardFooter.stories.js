@@ -7,9 +7,9 @@
  * @flow
  * @format
  */
-import {storiesOf} from '@storybook/react';
 import CardFooter from '../components/CardFooter.react';
 import React from 'react';
+import {storiesOf} from '@storybook/react';
 
 storiesOf('CardFooter', module)
   .add('left', () => (

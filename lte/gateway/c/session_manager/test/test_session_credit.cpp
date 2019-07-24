@@ -43,15 +43,34 @@ TEST(test_collect_updates, test_session_credit)
 {
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
-  credit.add_used_credit(1024, 20);
+  credit.add_used_credit(500, 524);
   EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
   auto update = credit.get_usage_for_reporting(false);
-  EXPECT_EQ(update.bytes_tx, 1024);
-  EXPECT_EQ(update.bytes_rx, 20);
+  EXPECT_EQ(update.bytes_tx, 500);
+  EXPECT_EQ(update.bytes_rx, 524);
 
   EXPECT_TRUE(credit.is_reporting());
-  EXPECT_EQ(credit.get_credit(REPORTING_TX), 1024);
-  EXPECT_EQ(credit.get_credit(REPORTING_RX), 20);
+  EXPECT_EQ(credit.get_credit(REPORTING_TX), 500);
+  EXPECT_EQ(credit.get_credit(REPORTING_RX), 524);
+}
+
+/*
+ * Default usage reporting threshold is 0.8, so session manager will report
+ * when quota is not completely used up.
+ */
+TEST(test_collect_updates_when_nearly_exhausted, test_session_credit)
+{
+  SessionCredit credit;
+  credit.receive_credit(1000, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
+  credit.add_used_credit(300, 500);
+  EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
+  auto update = credit.get_usage_for_reporting(false);
+  EXPECT_EQ(update.bytes_tx, 300);
+  EXPECT_EQ(update.bytes_rx, 500);
+
+  EXPECT_TRUE(credit.is_reporting());
+  EXPECT_EQ(credit.get_credit(REPORTING_TX), 300);
+  EXPECT_EQ(credit.get_credit(REPORTING_RX), 500);
 }
 
 TEST(test_collect_updates_timer_expiries, test_credit_manager)
@@ -70,9 +89,28 @@ TEST(test_collect_updates_timer_expiries, test_credit_manager)
 TEST(test_collect_updates_none_available, test_session_credit)
 {
   SessionCredit credit;
-  credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
-  credit.add_used_credit(30, 20);
+  credit.receive_credit(1000, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
+  credit.add_used_credit(400, 399);
   EXPECT_EQ(credit.get_update_type(), CREDIT_NO_UPDATE);
+}
+
+/*
+ * The maximum of reported usage is capped by what is granted even when an user
+ * overused.
+ */
+TEST(test_collect_updates_when_overusing, test_session_credit)
+{
+  SessionCredit credit;
+  credit.receive_credit(1000, HIGH_CREDIT, HIGH_CREDIT, 3600, false);
+  credit.add_used_credit(510, 500);
+  EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
+  auto update = credit.get_usage_for_reporting(false);
+  EXPECT_EQ(update.bytes_tx, 510);
+  EXPECT_EQ(update.bytes_rx, 490);
+
+  EXPECT_TRUE(credit.is_reporting());
+  EXPECT_EQ(credit.get_credit(REPORTING_TX), 510);
+  EXPECT_EQ(credit.get_credit(REPORTING_RX), 490);
 }
 
 TEST(test_get_action, test_session_credit)
@@ -111,31 +149,25 @@ TEST(test_failures, test_session_credit)
 TEST(test_add_rx_tx_credit, test_session_credit)
 {
   SessionCredit credit;
-  credit.receive_credit(HIGH_CREDIT, 1000, 1000, 3600, false);
-  credit.add_used_credit(1500, 0);
-  EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
-  auto update = credit.get_usage_for_reporting(false);
-  EXPECT_EQ(update.bytes_tx, 1500);
-  EXPECT_EQ(update.bytes_rx, 0);
 
   // receive tx
-  credit.receive_credit(0, 1000, 0, 3600, false);
-  credit.add_used_credit(0, 1500);
+  credit.receive_credit(1000, 1000, 0, 3600, false);
+  credit.add_used_credit(1000, 0);
+  EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
+  auto update = credit.get_usage_for_reporting(false);
+  EXPECT_EQ(update.bytes_tx, 1000);
+  EXPECT_EQ(update.bytes_rx, 0);
+
+  // receive rx
+  credit.receive_credit(1000, 0, 1000, 3600, false);
+  credit.add_used_credit(0, 1000);
   EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
   auto update2 = credit.get_usage_for_reporting(false);
   EXPECT_EQ(update2.bytes_tx, 0);
-  EXPECT_EQ(update2.bytes_rx, 1500);
+  EXPECT_EQ(update2.bytes_rx, 1000);
 
-  // receive rx
-  credit.receive_credit(0, 0, 1000, 3600, false);
-  credit.add_used_credit(1000, 1000);
-  EXPECT_EQ(credit.get_update_type(), CREDIT_QUOTA_EXHAUSTED);
-  auto update3 = credit.get_usage_for_reporting(false);
-  EXPECT_EQ(update3.bytes_tx, 1000);
-  EXPECT_EQ(update3.bytes_rx, 1000);
-
-  // receive rx
-  credit.receive_credit(0, 1000, 1000, 3600, false);
+  // receive rx, tx, but no usage
+  credit.receive_credit(2000, 1000, 1000, 3600, false);
   EXPECT_EQ(credit.get_update_type(), CREDIT_NO_UPDATE);
 }
 

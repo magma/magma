@@ -22,28 +22,26 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "CERTIFIER"
 
 // Utility function to get a RPC connection to the certifier service
-func getCertifierClient() (certifierprotos.CertifierClient, *grpc.ClientConn, error) {
+func getCertifierClient() (certifierprotos.CertifierClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
-		return nil, nil, merrors.NewInitError(err, ServiceName)
+		return nil, merrors.NewInitError(err, ServiceName)
 	}
 
-	return certifierprotos.NewCertifierClient(conn), conn, err
+	return certifierprotos.NewCertifierClient(conn), err
 }
 
 // Get the certificate for the requested CA
 func GetCACert(getCAReq *certifierprotos.GetCARequest) (*protos.CACert, error) {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	ca, err := client.GetCA(context.Background(), getCAReq)
 	if err != nil {
@@ -56,11 +54,10 @@ func GetCACert(getCAReq *certifierprotos.GetCARequest) (*protos.CACert, error) {
 
 // Return a signed certificate given CSR
 func SignCSR(csr *protos.CSR) (*protos.Certificate, error) {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	cert, err := client.SignAddCertificate(context.Background(), csr)
 	if err != nil {
@@ -72,11 +69,10 @@ func SignCSR(csr *protos.CSR) (*protos.Certificate, error) {
 
 // Add an existing Certificate & associate it with operator
 func AddCertificate(oper *protos.Identity, certDer []byte) error {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = client.AddCertificate(
 		context.Background(), &certifierprotos.AddCertRequest{Id: oper, CertDer: certDer})
 	return err
@@ -84,11 +80,10 @@ func AddCertificate(oper *protos.Identity, certDer []byte) error {
 
 // Get the CertificateInfo {Identity, NotAfter} of an SN
 func GetIdentity(sn *protos.Certificate_SN) (*certifierprotos.CertificateInfo, error) {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	certInfo, err := client.GetIdentity(context.Background(), sn)
 	if err != nil {
@@ -134,11 +129,10 @@ func GetVerifiedCertificateIdentity(serialNum string) (*protos.Identity, error) 
 
 // Returns serial numbers of all registered certificates
 func ListCertificates() ([]string, error) {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return []string{}, err
 	}
-	defer conn.Close()
 	slist, err := client.ListCertificates(context.Background(), &protos.Void{})
 	if err != nil || slist == nil {
 		return []string{}, err
@@ -149,11 +143,10 @@ func ListCertificates() ([]string, error) {
 // Finds & returns Serial Numbers of all Certificates associated with the
 // given Identity
 func FindCertificates(id *protos.Identity) ([]string, error) {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return []string{}, err
 	}
-	defer conn.Close()
 	slist, err := client.FindCertificates(context.Background(), id)
 	if err != nil || slist == nil {
 		return []string{}, err
@@ -163,11 +156,10 @@ func FindCertificates(id *protos.Identity) ([]string, error) {
 
 // GetAll returns all Certificates Records
 func GetAll() (map[string]*certifierprotos.CertificateInfo, error) {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	certMap, err := client.GetAll(context.Background(), &protos.Void{})
 	if err != nil || certMap == nil {
 		return nil, err
@@ -177,11 +169,10 @@ func GetAll() (map[string]*certifierprotos.CertificateInfo, error) {
 
 // Revoke Certificate and delete record of given SN
 func RevokeCertificate(sn *protos.Certificate_SN) error {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	glog.V(2).Infof("Certifier: revoking certificate with SN: %s", sn.Sn)
 
@@ -199,11 +190,10 @@ func RevokeCertificateSN(sn string) error {
 
 // Let certifier to remove expired certificates
 func CollectGarbage() error {
-	client, conn, err := getCertifierClient()
+	client, err := getCertifierClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	_, err = client.CollectGarbage(context.Background(), &protos.Void{})
 	if err != nil {

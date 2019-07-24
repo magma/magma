@@ -39,7 +39,7 @@ func GetConfigurePrometheusAlertHandler(webServerURL string) func(c echo.Context
 		if nerr != nil {
 			return nerr
 		}
-		url := webServerURL + "/" + networkID
+		url := webServerURL + "/" + networkID + "/alert"
 		return configurePrometheusAlert(c, url, networkID)
 	}
 }
@@ -50,7 +50,7 @@ func GetRetrieveAlertRuleHandler(webServerURL string) func(c echo.Context) error
 		if nerr != nil {
 			return nerr
 		}
-		url := webServerURL + "/" + networkID
+		url := webServerURL + "/" + networkID + "/alert"
 		return retrieveAlertRule(c, url)
 	}
 }
@@ -61,7 +61,7 @@ func GetDeleteAlertRuleHandler(webServerURL string) func(c echo.Context) error {
 		if nerr != nil {
 			return nerr
 		}
-		url := webServerURL + "/" + networkID
+		url := webServerURL + "/" + networkID + "/alert"
 		return deleteAlertRule(c, url)
 	}
 }

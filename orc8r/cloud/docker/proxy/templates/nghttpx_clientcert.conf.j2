@@ -40,6 +40,14 @@ backend={{ backend }},{{ map.port }};{{ alias }}-{{ controller_hostname }};proto
 {% endif -%}
 {% endfor -%}
 
+{% if 'HTTP_PROXY_HOSTNAME' in env -%}
+# HTTP proxy config to forward HTTP requests
+backend={{ env['HTTP_PROXY_BACKEND'] }},443;{{ env['HTTP_PROXY_HOSTNAME'] }};tls;dns
+host-rewrite=yes
+# TODO: Look into IPv6 support in Docker-Compose and Kubernetes
+backend-address-family=IPv4
+{% endif -%}
+
 # Send API requests to obsidian. By default, any other requests would also
 # be sent to obsidian.
 backend={{ backend }},{{obsidian_port}};;no-tls;dns

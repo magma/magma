@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package handlers
 
@@ -16,7 +16,6 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/labstack/echo"
 )
@@ -33,11 +32,19 @@ func ListFullGatewayViews(c echo.Context, factory view_factory.FullGatewayViewFa
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
-	modelStates, err := models.GatewayStateMapToModelList(gatewayStates)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+	// todo can remove this after the legacy full gateway views is deprecated
+	//  and only uses GatewayStateType
+	gatewayStateTypes := []*view_factory.GatewayStateType{}
+	for _, state := range gatewayStates {
+		gatewayStateTypes = append(gatewayStateTypes,
+			&view_factory.GatewayStateType{
+				Config:    state.Config,
+				GatewayID: state.GatewayID,
+				Record:    state.Record,
+				Status:    state.Status,
+			})
 	}
-	return c.JSON(http.StatusOK, modelStates)
+	return c.JSON(http.StatusOK, gatewayStateTypes)
 }
 
 func getGatewayIDs(queryParams url.Values) []string {

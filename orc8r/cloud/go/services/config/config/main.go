@@ -18,7 +18,7 @@ import (
 	"magma/orc8r/cloud/go/services/config/protos"
 	"magma/orc8r/cloud/go/services/config/servicers"
 	"magma/orc8r/cloud/go/services/config/storage"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func main() {
@@ -27,11 +27,11 @@ func main() {
 		log.Fatalf("Error creating config service: %s", err)
 	}
 
-	db, err := sql_utils.Open(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	db, err := sqorc.Open(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %s", err)
 	}
-	store := storage.NewSqlConfigurationStorage(db)
+	store := storage.NewSqlConfigurationStorage(db, sqorc.GetSqlBuilder())
 
 	servicer := servicers.NewConfigService(store)
 	protos.RegisterConfigServiceServer(srv.GrpcServer, servicer)

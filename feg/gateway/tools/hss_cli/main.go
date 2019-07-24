@@ -16,10 +16,9 @@ import (
 	"path/filepath"
 
 	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/testcore"
+	"magma/feg/gateway/registry"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/tools/commands"
 )
 
@@ -242,7 +241,7 @@ func addSubscriberDataFlags(flags *flag.FlagSet) {
 
 // connectToHss establishes a grpc connection to the hss configurator service.
 func connectToHss() (protos.HSSConfiguratorClient, error) {
-	conn, err := registry.GetConnection(testcore.MockHSSServiceName)
+	conn, err := registry.GetConnection(registry.MOCK_HSS)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,21 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree.
+//
+syntax = "proto3";
+
+package magma.migration.orc8r;
+option go_package = "types";
+
+message OldMagmadGatewayConfig {
+    int32 checkin_interval = 1;
+    int32 checkin_timeout = 2;
+    bool autoupgrade_enabled = 3;
+    int32 autoupgrade_poll_interval = 4;
+    string tier = 5;
+
+    map<string, bool> feature_flags = 6;
+    repeated string dynamic_services = 7;
+}

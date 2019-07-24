@@ -17,20 +17,19 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 const ServiceName = "DIRECTORYD"
 
 // Get a thin RPC client to the directory service.
-func GetDirectorydClient() (protos.DirectoryServiceClient, *grpc.ClientConn, error) {
+func GetDirectorydClient() (protos.DirectoryServiceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewDirectoryServiceClient(conn), conn, err
+	return protos.NewDirectoryServiceClient(conn), err
 }
 
 func GetHardwareIdByIMSI(imsi string) (string, error) {
@@ -42,11 +41,10 @@ func GetHostNameByIMSI(hwId string) (string, error) {
 }
 
 func getLocation(tableId protos.TableID, recordId string) (string, error) {
-	client, conn, err := GetDirectorydClient()
+	client, err := GetDirectorydClient()
 	if err != nil {
 		return "", err
 	}
-	defer conn.Close()
 
 	req := &protos.GetLocationRequest{
 		Table: tableId,
@@ -69,11 +67,10 @@ func UpdateHostNameByHwId(hwId string, hostName string) error {
 }
 
 func updateLocation(tableId protos.TableID, recordId string, location string) error {
-	client, conn, err := GetDirectorydClient()
+	client, err := GetDirectorydClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &protos.UpdateDirectoryLocationRequest{
 		Table:  tableId,
@@ -94,11 +91,10 @@ func DeleteHostNameByIMSI(hwId string) error {
 }
 
 func deleteLocation(tableId protos.TableID, recordId string) error {
-	client, conn, err := GetDirectorydClient()
+	client, err := GetDirectorydClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &protos.DeleteLocationRequest{
 		Table: tableId,

@@ -1,0 +1,36 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+package magma.mconfig;
+option go_package = "magma/ocr8c/gateway/mconfig/test/testcfg";
+
+//------------------------------------------------------------------------------
+// Service 1 configs
+//------------------------------------------------------------------------------
+message Service1Config {
+    string str1 = 1;
+    string str2 = 2;
+    uint32 uint1 = 3;
+    uint32 uint2 = 4;
+    repeated string str_arr = 5;
+}
+
+//------------------------------------------------------------------------------
+// Service 1 configs
+//------------------------------------------------------------------------------
+message Service2Config {
+    string str21 = 1;
+    string str22 = 2;
+    uint32 uint21 = 3;
+    uint32 uint22 = 4;
+    float  float1 = 5;
+    bool   bool1 = 6;
+}
+
+

@@ -42,7 +42,6 @@
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "mme_app_statistics.h"
 #include "s1ap_mme_decoder.h"
@@ -249,6 +248,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
           OAILOG_ERROR(LOG_S1AP, "Failed to send paging message\n");
         }
       } break;
+
       case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
         s1ap_handle_ue_context_mod_req(
           state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request);
@@ -259,6 +259,15 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
           state, &S1AP_E_RAB_REL_CMD(received_message_p));
       } break;
 
+      case S1AP_PATH_SWITCH_REQUEST_ACK: {
+        s1ap_handle_path_switch_req_ack(
+          state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack);
+      } break;
+
+      case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
+        s1ap_handle_path_switch_req_failure(
+          state, &received_message_p->ittiMsg.s1ap_path_switch_request_failure);
+      } break;
 
       case TIMER_HAS_EXPIRED: {
         if (!timer_exists(
@@ -551,11 +560,6 @@ ue_description_t *s1ap_new_ue(
     free_wrapper((void **) &ue_ref);
     return NULL;
   }
-  MSC_LOG_EVENT(
-    MSC_S1AP_MME,
-    " Associating ue  (enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT ") to eNB %s",
-    ue_ref->mme_ue_s1ap_id,
-    enb_ref->enb_name);
   // Increment number of UE
   enb_ref->nb_ue_associated++;
   return ue_ref;

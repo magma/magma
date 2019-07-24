@@ -298,26 +298,54 @@ func (client *DiameterClientConfig) GenSessionID(protocol string) string {
 }
 
 // DecodeSessionID extracts and returns session ID if available,
-// or original diamSid string otherwise
-// Input: OriginHost;req#;rand#;IMSIxyz
+// or original diam SessionId (diamSid) string otherwise
+// Input: OriginHost;rand1#;rand2#;IMSIxyz
 // Returns: IMSIxyz-rand#
+// rand# = rand1# + rand2#, where + means concatenation
 func DecodeSessionID(diamSid string) string {
 	split := strings.Split(diamSid, ";")
 	n1 := len(split) - 1
 	if n1 >= 3 && strings.HasPrefix(split[n1], "IMSI") {
-		return split[n1] + "-" + split[n1-1]
+		return split[n1] + "-" + split[n1-2] + split[n1-1]
 	}
 	return diamSid // not magma encoded SID, return as is
 }
 
 // EncodeSessionID encodes SessionID in rfc6733 compliant form:
 // <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
-// OriginHost;req#;rand#;IMSIxyz
+// OriginHost;rand#;rand#;IMSIxyz
 func EncodeSessionID(originHost, sid string) string {
 	split := strings.Split(sid, "-")
-	if len(split) == 2 && strings.HasPrefix(split[0], "IMSI") {
-		return fmt.Sprintf("%s;%s;%s;%s", originHost, split[1], split[1], split[0])
+	if len(split) > 1 && strings.HasPrefix(split[0], "IMSI") {
+		rndPart := split[1]
+		r2l := len(rndPart) / 2
+		return fmt.Sprintf("%s;%s;%s;%s", originHost, rndPart[:r2l], rndPart[r2l:], split[0])
 	}
 	return sid // not magma generated SID, return as is
 
+}
+
+// ParseDiamSessionID parses given session ID in the form of: // OriginHost;req#;rand#;IMSIxyz_BearerId
+// and returns OriginHost, Request Number, Rand, IMSI (without prefix) and bearrerId if present
+func ParseDiamSessionID(sessionID string) (host, rnd1, rnd2, imsi, bearrerId string) {
+	parts := strings.Split(sessionID, ";")
+	l := len(parts)
+	switch {
+	case l >= 4:
+		t := strings.Split(strings.TrimPrefix(parts[3], "IMSI"), "_")
+		imsi = t[0]
+		if len(t) > 1 {
+			bearrerId = t[1]
+		}
+		fallthrough
+	case l == 3:
+		rnd2 = parts[2]
+		fallthrough
+	case l == 2:
+		rnd1 = parts[1]
+		fallthrough
+	case l == 1:
+		host = parts[0]
+	}
+	return
 }

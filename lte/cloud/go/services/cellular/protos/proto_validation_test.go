@@ -18,7 +18,7 @@ import (
 )
 
 func TestValidateGatewayConfig(t *testing.T) {
-	config := test_utils.NewDefaultGatewayConfig()
+	config := test_utils.NewDefaultProtosGatewayConfig()
 	err := protos.ValidateGatewayConfig(config)
 	assert.NoError(t, err)
 
@@ -27,7 +27,7 @@ func TestValidateGatewayConfig(t *testing.T) {
 	err = protos.ValidateGatewayConfig(config)
 	assert.Error(t, err, "Gateway EPC config is nil")
 
-	config = test_utils.NewDefaultGatewayConfig()
+	config = test_utils.NewDefaultProtosGatewayConfig()
 	config.Ran = nil
 	err = protos.ValidateGatewayConfig(config)
 	assert.Error(t, err, "Gateway RAN config is nil")
@@ -36,7 +36,7 @@ func TestValidateGatewayConfig(t *testing.T) {
 	assert.Error(t, err, "Gateway config is nil")
 
 	// IP block parsing
-	config = test_utils.NewDefaultGatewayConfig()
+	config = test_utils.NewDefaultProtosGatewayConfig()
 	config.Epc.IpBlock = "20.20.20.0/24"
 	assert.NoError(t, protos.ValidateGatewayConfig(config))
 	config.Epc.IpBlock = "12345"
@@ -44,7 +44,7 @@ func TestValidateGatewayConfig(t *testing.T) {
 }
 
 func TestValidateNetworkConfig(t *testing.T) {
-	config := test_utils.NewDefaultTDDNetworkConfig()
+	config := test_utils.NewDefaultProtosTDDNetworkConfig()
 	err := protos.ValidateNetworkConfig(config)
 	assert.NoError(t, err)
 
@@ -97,7 +97,7 @@ func TestValidateNetworkConfig(t *testing.T) {
 }
 
 func TestValidateNetworkRANConfig(t *testing.T) {
-	config := test_utils.NewDefaultTDDNetworkConfig()
+	config := test_utils.NewDefaultProtosTDDNetworkConfig()
 	tddConf := &protos.NetworkRANConfig_TDDConfig{
 		Earfcndl:               43950,
 		SubframeAssignment:     2,
@@ -144,7 +144,7 @@ func TestValidateNetworkRANConfig(t *testing.T) {
 }
 
 func TestValidateNetworkTDDRANConfig(t *testing.T) {
-	config := test_utils.NewDefaultTDDNetworkConfig()
+	config := test_utils.NewDefaultProtosTDDNetworkConfig()
 
 	positiveTestCases := []struct {
 		earfcndl int32
@@ -184,7 +184,7 @@ func TestValidateNetworkTDDRANConfig(t *testing.T) {
 }
 
 func TestValidateNetworkFDDRANConfig(t *testing.T) {
-	config := test_utils.NewDefaultTDDNetworkConfig()
+	config := test_utils.NewDefaultProtosTDDNetworkConfig()
 
 	positiveTestCases := []struct {
 		earfcndl int32
@@ -226,7 +226,7 @@ func TestValidateNetworkFDDRANConfig(t *testing.T) {
 }
 
 func TestValidateSubProfile(t *testing.T) {
-	config := test_utils.NewDefaultTDDNetworkConfig()
+	config := test_utils.NewDefaultProtosTDDNetworkConfig()
 	config.Epc.SubProfiles = make(
 		map[string]*protos.NetworkEPCConfig_SubscriptionProfile)
 	config.Epc.SubProfiles["test"] = &protos.NetworkEPCConfig_SubscriptionProfile{
@@ -249,46 +249,46 @@ func TestValidateSubProfile(t *testing.T) {
 }
 
 func TestValidateEnodebConfig(t *testing.T) {
-	config := test_utils.NewDefaultEnodebConfig()
+	config := test_utils.NewDefaultProtosEnodebConfig()
 	err := protos.ValidateEnodebConfig(config)
 	assert.NoError(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.Earfcndl = -1
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.SubframeAssignment = 7
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.SpecialSubframePattern = 10
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.Pci = 505
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.DeviceClass = "Some unsupported device"
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.CellId = 268435456
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.Tac = 65536
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)
 
-	config = test_utils.NewDefaultEnodebConfig()
+	config = test_utils.NewDefaultProtosEnodebConfig()
 	config.BandwidthMhz = 0
 	err = protos.ValidateEnodebConfig(config)
 	assert.Error(t, err)

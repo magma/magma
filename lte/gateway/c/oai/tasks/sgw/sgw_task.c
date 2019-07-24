@@ -155,7 +155,7 @@ static void *sgw_intertask_interface(void *args_p)
       } break;
 
       case S5_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
-        //Handle Dedicated bearer Deactivation Res from PGW
+        //Handle Dedicated bearer Deactivation Req from PGW
         sgw_handle_nw_initiated_deactv_bearer_req(
           &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_request);
       } break;

@@ -216,13 +216,6 @@ int sgw_config_parse_file(sgw_config_t *config_pP)
 
       if (config_setting_lookup_string(
             subsetting,
-            LOG_CONFIG_STRING_MSC_LOG_LEVEL,
-            (const char **) &astring)) {
-        config_pP->log_config.msc_log_level = OAILOG_LEVEL_STR2INT(astring);
-      }
-
-      if (config_setting_lookup_string(
-            subsetting,
             LOG_CONFIG_STRING_ITTI_LOG_LEVEL,
             (const char **) &astring)) {
         config_pP->log_config.itti_log_level = OAILOG_LEVEL_STR2INT(astring);

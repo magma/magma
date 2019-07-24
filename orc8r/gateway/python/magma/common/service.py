@@ -34,6 +34,8 @@ from orc8r.protos.service303_pb2_grpc import (
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import get_mconfig_manager
 from magma.configuration.service_configs import load_service_config
+from .log_counter import ServiceLogErrorReporter
+from .log_count_handler import MsgCounterHandler
 from .metrics_export import get_metrics
 from .service_registry import ServiceRegistry
 
@@ -45,22 +47,25 @@ class MagmaService(Service303Servicer):
     entities to interact with the service.
     """
 
-    def __init__(self, name, loop=None):
+    def __init__(self, name, empty_mconfig, loop=None):
         self._name = name
         self._port = 0
         self._get_status_callback = None
         self._get_operational_states_cb = None
+        self._log_count_handler = MsgCounterHandler()
 
         # Init logging before doing anything
         logging.basicConfig(
             level=logging.INFO,
             format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
+        # Add a handler to count errors
+        logging.root.addHandler(self._log_count_handler)
 
         # Set gRPC polling strategy
         self._set_grpc_poll_strategy()
 
         # Load the managed config if present
-        self._mconfig = None
+        self._mconfig = empty_mconfig
         self._mconfig_metadata = None
         self._mconfig_manager = get_mconfig_manager()
         self.reload_mconfig()
@@ -76,6 +81,12 @@ class MagmaService(Service303Servicer):
         # Load the service config if present
         self._config = None
         self.reload_config()
+
+        # Count errors
+        log_counter = ServiceLogErrorReporter(self._loop,
+                                              self._config,
+                                              self._log_count_handler)
+        log_counter.start()
 
         # Operational States
         self._operational_states = []
@@ -172,6 +183,7 @@ class MagmaService(Service303Servicer):
             self._mconfig_manager = get_mconfig_manager()
             self._mconfig = self._mconfig_manager.load_service_mconfig(
                 self._name,
+                self._mconfig,
             )
             self._mconfig_metadata = \
                 self._mconfig_manager.load_mconfig_metadata()

@@ -18,9 +18,9 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	configs "magma/feg/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/config"
+	configs "magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/glog"
 )
@@ -113,7 +113,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 	}
 	rawMap, ok := subscribers.(map[interface{}]interface{})
 	if !ok {
-		return nil, fmt.Errorf("Unable to convert map %v", rawMap)
+		return nil, fmt.Errorf("Unable to convert %T to map %v", subscribers, rawMap)
 	}
 	var subscriberData []*protos.SubscriberData
 	for k, v := range rawMap {

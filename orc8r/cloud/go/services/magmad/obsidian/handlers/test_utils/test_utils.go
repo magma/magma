@@ -13,6 +13,7 @@ import (
 
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
+	"magma/orc8r/cloud/go/services/configurator"
 )
 
 type Conf1 struct {
@@ -69,6 +70,54 @@ func (manager *Conf2Manager) Serialize(config interface{}) ([]byte, error) {
 }
 
 func (manager *Conf2Manager) Deserialize(message []byte) (interface{}, error) {
+	var out Conf2
+	err := json.Unmarshal(message, &out)
+	return &out, err
+}
+
+type Conf1ConfiguratorManager struct{}
+
+func NewConfig1ConfiguratorManager() serde.Serde {
+	return &Conf1ConfiguratorManager{}
+}
+
+func (manager *Conf1ConfiguratorManager) GetDomain() string {
+	return configurator.NetworkEntitySerdeDomain
+}
+
+func (manager *Conf1ConfiguratorManager) GetType() string {
+	return "Config1"
+}
+
+func (manager *Conf1ConfiguratorManager) Serialize(config interface{}) ([]byte, error) {
+	return json.Marshal(config)
+}
+
+func (manager *Conf1ConfiguratorManager) Deserialize(message []byte) (interface{}, error) {
+	var out Conf1
+	err := json.Unmarshal(message, &out)
+	return &out, err
+}
+
+type Conf2ConfiguratorManager struct{}
+
+func NewConfig2ConfiguratorManager() serde.Serde {
+	return &Conf2ConfiguratorManager{}
+}
+
+func (manager *Conf2ConfiguratorManager) GetDomain() string {
+	return configurator.NetworkEntitySerdeDomain
+}
+
+func (manager *Conf2ConfiguratorManager) GetType() string {
+	return "Config2"
+}
+
+func (manager *Conf2ConfiguratorManager) Serialize(config interface{}) ([]byte, error) {
+	return json.Marshal(config)
+}
+
+func (manager *Conf2ConfiguratorManager) Deserialize(message []byte) (interface{}, error) {
 	var out Conf2
 	err := json.Unmarshal(message, &out)
 	return &out, err

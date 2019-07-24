@@ -10,13 +10,13 @@
 
 import type {ProjectLink} from './AppDrawerProjectNavigation';
 
-import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '../../hooks';
 import AppsIcon from '@material-ui/icons/Apps';
-import classNames from 'classnames';
 import Popout from '../Popout.react';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '../../hooks';
 
 type Props = {
   projects: ProjectLink[],

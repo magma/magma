@@ -13,7 +13,7 @@ from magma.captive_portal.rpc_servicer import SessionRpcServicer
 
 def main():
     """ main() for captive_portal service """
-    service = MagmaService('captive_portal')
+    service = MagmaService('captive_portal', None)
 
     # Add all servicers to the server
     session_servicer = SessionRpcServicer(service)

@@ -13,6 +13,7 @@ set(ITTI_FILES
 )
 add_library(LIB_ITTI ${ITTI_FILES})
 target_link_libraries(LIB_ITTI
+    rt pthread
     COMMON
     LIB_BSTR LIB_HASHTABLE LIB_MESSAGE_UTILS
 )

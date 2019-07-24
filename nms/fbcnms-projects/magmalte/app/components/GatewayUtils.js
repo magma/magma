@@ -8,12 +8,12 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {
   CellularConfig,
   MagmadConfig,
   Record,
 } from '../common/MagmaAPIType';
+import type {WithStyles} from '@material-ui/core';
 
 import {withStyles} from '@material-ui/core/styles';
 

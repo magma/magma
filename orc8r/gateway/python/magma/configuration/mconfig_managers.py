@@ -37,12 +37,25 @@ def get_mconfig_manager():
     return MconfigManagerImpl()
 
 
-def load_service_mconfig(service: str) -> Any:
+def load_service_mconfig(service: str, mconfig_struct: Any) -> Any:
     """
     Utility function to load the mconfig for a specific service using the
     configured mconfig manager.
     """
-    return get_mconfig_manager().load_service_mconfig(service)
+    return get_mconfig_manager().load_service_mconfig(service, mconfig_struct)
+
+
+def load_service_mconfig_as_json(service_name: str) -> Any:
+    """
+    Loads the managed configuration from its json file stored on disk.
+
+    Args:
+        service_name (str): name of the service to load the config for
+
+    Returns: Loaded config value for the service as parsed json struct, not
+    protobuf message struct
+    """
+    return get_mconfig_manager().load_service_mconfig_as_json(service_name)
 
 
 class MconfigManager(Generic[T]):
@@ -61,12 +74,14 @@ class MconfigManager(Generic[T]):
         pass
 
     @abc.abstractmethod
-    def load_service_mconfig(self, service_name: str) -> Any:
+    def load_service_mconfig(self, service_name: str, mconfig_struct: Any) -> Any:
         """
         Load a specific service's managed configuration.
 
         Args:
             service_name (str): name of the service to load a config for
+            mconfig_struct (Any): protobuf message struct of the managed config
+            for the service
 
         Returns: Loaded config value for the service
         """
@@ -132,7 +147,7 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
         except (OSError, json.JSONDecodeError, json_format.ParseError) as e:
             raise LoadConfigError('Error loading mconfig') from e
 
-    def load_service_mconfig(self, service_name: str) -> Any:
+    def load_service_mconfig(self, service_name: str, mconfig_struct: Any) -> Any:
         mconfig = self.load_mconfig()
         if service_name not in mconfig.configs_by_key:
             raise LoadConfigError(
@@ -140,7 +155,21 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
             )
 
         service_mconfig = mconfig.configs_by_key[service_name]
-        return unpack_mconfig_any(service_mconfig)
+        return unpack_mconfig_any(service_mconfig, mconfig_struct)
+
+    def load_service_mconfig_as_json(self, service_name) -> Any:
+        cfg_file_name = self._get_mconfig_file_path()
+        with open(cfg_file_name, 'r') as f:
+            json_mconfig = json.load(f)
+            service_configs = json_mconfig.get('configsByKey', {})
+            service_configs.update(json_mconfig.get('configs_by_key', {}))
+        if service_name not in service_configs:
+            raise LoadConfigError(
+                "Service ({}) missing in mconfig".format(service_name),
+            )
+
+        return service_configs[service_name]
+
 
     def load_mconfig_metadata(self) -> GatewayConfigsMetadata:
         mconfig = self.load_mconfig()

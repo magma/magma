@@ -18,11 +18,16 @@ import (
 	"testing"
 
 	obisidan_config "magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
+	"magma/orc8r/cloud/go/services/configurator"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -33,19 +38,25 @@ type (
 	fooConfig struct {
 		Foo, Bar string
 	}
-	fooConfigManager struct{}
+	fooConfigManager struct {
+		domain string
+	}
 
 	// To coerce errors in config conversion
 	convertErrConfig struct {
 		Val int
 	}
-	convertErrConfigManager struct{}
+	convertErrConfigManager struct {
+		domain string
+	}
 
 	// To coerce errors in config service serialization/deserialization
 	errConfig struct {
 		ShouldErrorOnMarshal, ShouldErrorOnUnmarshal string // Y | N
 	}
-	errConfigManager struct{}
+	errConfigManager struct {
+		domain string
+	}
 )
 
 func mockKeyGetter(_ echo.Context) (string, *echo.HTTPError) {
@@ -54,7 +65,12 @@ func mockKeyGetter(_ echo.Context) (string, *echo.HTTPError) {
 
 func TestReadAllKeysConfigHandler(t *testing.T) {
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{config.SerdeDomain}, &convertErrConfigManager{config.SerdeDomain}, &errConfigManager{config.SerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
@@ -93,7 +109,12 @@ func TestReadAllKeysConfigHandler(t *testing.T) {
 
 func TestGetConfigHandler(t *testing.T) {
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{config.SerdeDomain}, &convertErrConfigManager{config.SerdeDomain}, &errConfigManager{config.SerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
@@ -150,10 +171,16 @@ func TestGetConfigHandler(t *testing.T) {
 
 func TestCreateConfigHandler(t *testing.T) {
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{config.SerdeDomain}, &convertErrConfigManager{config.SerdeDomain}, &errConfigManager{config.SerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
+	configurator_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
 
 	e := echo.New()
@@ -175,6 +202,7 @@ func TestCreateConfigHandler(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, &fooConfig{Foo: "foo", Bar: "bar"}, actual)
 
+	glog.Errorf("IGNORE REST")
 	// Validate (convert) error
 	post = `{"Val": 1}`
 	req = httptest.NewRequest(echo.PUT, "/", strings.NewReader(post))
@@ -206,10 +234,17 @@ func TestCreateConfigHandler(t *testing.T) {
 
 func TestUpdateConfigHandler(t *testing.T) {
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{config.SerdeDomain}, &convertErrConfigManager{config.SerdeDomain}, &errConfigManager{config.SerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 	assert.NoError(t, err)
 
@@ -261,10 +296,18 @@ func TestUpdateConfigHandler(t *testing.T) {
 
 func TestDeleteConfigHandler(t *testing.T) {
 	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{config.SerdeDomain}, &convertErrConfigManager{config.SerdeDomain}, &errConfigManager{config.SerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
 	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
 	assert.NoError(t, err)
 
@@ -306,8 +349,16 @@ func (foo *fooConfig) FromServiceModel(serviceModel interface{}) error {
 	return nil
 }
 
-func (*fooConfigManager) GetDomain() string {
-	return config.SerdeDomain
+func (foo *fooConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(foo)
+}
+
+func (foo *fooConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, foo)
+}
+
+func (f *fooConfigManager) GetDomain() string {
+	return f.domain
 }
 
 func (*fooConfigManager) GetType() string {
@@ -340,8 +391,16 @@ func (*convertErrConfig) FromServiceModel(serviceModel interface{}) error {
 	return errors.New("FromSerivceModel error")
 }
 
-func (*convertErrConfigManager) GetDomain() string {
-	return config.SerdeDomain
+func (*convertErrConfig) MarshalBinary() ([]byte, error) {
+	return nil, errors.New("MarshalBinary error")
+}
+
+func (*convertErrConfig) UnmarshalBinary(data []byte) error {
+	return errors.New("UnmarshalBinary error")
+}
+
+func (c *convertErrConfigManager) GetDomain() string {
+	return c.domain
 }
 
 func (*convertErrConfigManager) GetType() string {
@@ -371,12 +430,20 @@ func (c *errConfig) FromServiceModel(serviceModel interface{}) error {
 	return nil
 }
 
+func (c *errConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(c)
+}
+
+func (c *errConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, c)
+}
+
 func (*errConfigManager) GetType() string {
 	return "err"
 }
 
-func (*errConfigManager) GetDomain() string {
-	return config.SerdeDomain
+func (e *errConfigManager) GetDomain() string {
+	return e.domain
 }
 
 func (*errConfigManager) Serialize(config interface{}) ([]byte, error) {

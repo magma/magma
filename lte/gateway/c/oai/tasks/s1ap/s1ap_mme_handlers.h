@@ -189,4 +189,19 @@ int s1ap_mme_handle_erab_rel_response(
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message);
+
+int s1ap_mme_handle_enb_configuration_transfer(
+  s1ap_state_t *state,
+  const sctp_assoc_id_t assoc_id,
+  const sctp_stream_id_t stream,
+  struct s1ap_message_s *message_p);
+
+int s1ap_handle_path_switch_req_ack(
+  s1ap_state_t *state,
+  const itti_s1ap_path_switch_request_ack_t *path_switch_req_ack_p);
+
+int s1ap_handle_path_switch_req_failure(
+  s1ap_state_t *state,
+  const itti_s1ap_path_switch_request_failure_t *path_switch_req_failure_p);
+
 #endif /* FILE_S1AP_MME_HANDLERS_SEEN */

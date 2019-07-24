@@ -7,12 +7,18 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 profile: "default"
-prometheusAddress: "http://192.168.80.50:9090"
-prometheusCustomPushAddress: "http://192.168.80.50:9091/metrics"
 
-graphiteAddress: "192.168.80.50"
-graphiteReceivePort: 2003
+graphiteExportAddresses:
+  - "graphite:2003"
+
+graphiteQueryAddress: "graphite"
 graphiteQueryPort: 8080
 
-alertConfigWebServerURL: "http://192.168.80.50:9093"
-alertmanagerApiURL: "http://192.168.80.50:9092/api/v2/alerts"
+prometheusPushAddresses:
+  - "http://prometheus-cache:9091/metrics"
+
+prometheusQueryAddress: "http://prometheus:9090"
+
+alertmanagerApiURL: "http://alertmanager:9092/api/v2/alerts"
+prometheusConfigServiceURL: "http://config-manager:9093"
+alertmanagerConfigServiceURL: "http://config-manager:9094"

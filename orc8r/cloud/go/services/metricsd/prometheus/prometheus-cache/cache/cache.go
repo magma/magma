@@ -11,13 +11,12 @@ package cache
 import (
 	"bytes"
 	"fmt"
-	"math"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
-
-	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
+	"time"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -29,50 +28,105 @@ import (
 // timestamps with metrics, and stores them in a queue to allow multiple
 // datapoints per metric series to be scraped
 type MetricCache struct {
-	familyMap     map[string]*familyAndMetrics
-	queueCapacity int
+	familyMap map[string]*familyAndMetrics
+	limit     int
+	stats     cacheStats
 	sync.Mutex
 }
 
-func NewMetricCache(queueCapacity int) *MetricCache {
+type cacheStats struct {
+	lastScrapeTime        int64
+	lastScrapeSize        int64
+	lastScrapeNumFamilies int
+
+	lastReceiveTime        int64
+	lastReceiveSize        int64
+	lastReceiveNumFamilies int
+
+	currentCountFamilies   int
+	currentCountSeries     int
+	currentCountDatapoints int
+}
+
+func NewMetricCache(limit int) *MetricCache {
+	if limit > 0 {
+		glog.Infof("Prometheus-Cache created with a limit of %d\n", limit)
+	} else {
+		glog.Info("Prometheus-Cache created with no limit\n")
+	}
+
 	return &MetricCache{
-		familyMap:     make(map[string]*familyAndMetrics),
-		queueCapacity: queueCapacity,
+		familyMap: make(map[string]*familyAndMetrics),
+		limit:     limit,
 	}
 }
 
 // Receive is a handler function to receive metric pushes
-func (g *MetricCache) Receive(c echo.Context) error {
+func (c *MetricCache) Receive(ctx echo.Context) error {
 	var parser expfmt.TextParser
 	var err error
 
-	parsedFamilies, err := parser.TextToMetricFamilies(c.Request().Body)
+	parsedFamilies, err := parser.TextToMetricFamilies(ctx.Request().Body)
 	if err != nil {
-		return c.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
+		return ctx.String(http.StatusBadRequest, fmt.Sprintf("error parsing metrics: %v", err))
 	}
 
-	g.Lock()
-	defer g.Unlock()
-	for _, fam := range parsedFamilies {
-		if fAndM, ok := g.familyMap[fam.GetName()]; ok {
-			fAndM.addMetrics(fam.Metric)
-		} else {
-			g.familyMap[fam.GetName()] = newFamilyAndMetrics(fam, g.queueCapacity)
+	// Check if new datapoints will exceed the specified limit
+	if c.limit > 0 {
+		newDatapoints := 0
+		for _, fam := range parsedFamilies {
+			newDatapoints += len(fam.Metric)
+		}
+		if c.stats.currentCountDatapoints+newDatapoints > c.limit {
+			fmt.Println("Not accepting push. Would overfill cache limit")
+			return ctx.NoContent(http.StatusNotAcceptable)
 		}
 	}
-	return c.NoContent(http.StatusOK)
+
+	c.cacheMetrics(parsedFamilies)
+
+	c.stats.lastReceiveTime = time.Now().Unix()
+	c.stats.lastReceiveSize = ctx.Request().ContentLength
+	c.stats.lastReceiveNumFamilies = len(parsedFamilies)
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (c *MetricCache) cacheMetrics(families map[string]*dto.MetricFamily) {
+	c.Lock()
+	defer c.Unlock()
+	for _, fam := range families {
+		if fAndM, ok := c.familyMap[fam.GetName()]; ok {
+			fAndM.addMetrics(fam.Metric)
+		} else {
+			c.familyMap[fam.GetName()] = newFamilyAndMetrics(fam)
+		}
+	}
 }
 
 // Scrape is a handler function for prometheus scrape requests. Formats the
-// metrics for scraping and sends the oldest datapoint per metric series if
-// there are multiple in the queue since prometheus cannot handle multiple
-// datapoints of the same metric in a scrape.
-func (g *MetricCache) Scrape(c echo.Context) error {
-	g.Lock()
-	defer g.Unlock()
+// metrics for scraping.
+func (c *MetricCache) Scrape(ctx echo.Context) error {
+	c.Lock()
+	scrapeMetrics := c.familyMap
+	c.clearMetrics()
+	c.Unlock()
+
+	expositionString := c.exposeMetrics(scrapeMetrics)
+	c.stats.lastScrapeTime = time.Now().Unix()
+	c.stats.lastScrapeSize = int64(len(expositionString))
+	c.stats.lastScrapeNumFamilies = len(scrapeMetrics)
+
+	return ctx.String(http.StatusOK, expositionString)
+}
+
+func (c *MetricCache) clearMetrics() {
+	c.familyMap = make(map[string]*familyAndMetrics)
+}
+
+func (c *MetricCache) exposeMetrics(familyMap map[string]*familyAndMetrics) string {
 	respStr := strings.Builder{}
-	for _, fam := range g.familyMap {
-		pullFamily := fam.popOldestDatapoint()
+	for _, fam := range familyMap {
+		pullFamily := fam.popSortedDatapoints()
 		familyStr, err := familyToString(pullFamily)
 		if err != nil {
 			glog.Errorf("metric %s dropped. error converting metric to string: %v", *pullFamily.Name, err)
@@ -80,47 +134,72 @@ func (g *MetricCache) Scrape(c echo.Context) error {
 			respStr.WriteString(familyStr)
 		}
 	}
-	g.clearEmptyMetrics()
-	return c.String(http.StatusOK, respStr.String())
+	return respStr.String()
 }
 
-// clearEmptyMetrics deletes families from the cache if they have no more
-// datapoints
-func (g *MetricCache) clearEmptyMetrics() {
-	for familyName, family := range g.familyMap {
-		family.prune()
-		if len(family.metrics) == 0 {
-			delete(g.familyMap, familyName)
+// Debug is a handler function to show the current state of the cache without
+// consuming any datapoints
+func (c *MetricCache) Debug(ctx echo.Context) error {
+	c.updateCountStats()
+	hostname, _ := os.Hostname()
+	debugString := fmt.Sprintf(`Prometheus Cache running on %s
+Last Scrape: %d
+	Scrape Size: %d
+	Number of Familes: %d
+
+Last Receive: %d
+	Receive Size: %d
+	Number of Families: %d
+
+Current Count Families:   %d
+Current Count Series:     %d
+Current Count Datapoints: %d
+
+Current Exposition Text:
+
+%s`, hostname, c.stats.lastScrapeTime, c.stats.lastScrapeSize, c.stats.lastScrapeNumFamilies,
+		c.stats.lastReceiveTime, c.stats.lastReceiveSize, c.stats.lastReceiveNumFamilies,
+		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints, c.exposeMetrics(c.familyMap))
+
+	return ctx.String(http.StatusOK, debugString)
+}
+
+func (c *MetricCache) updateCountStats() {
+	numFamilies := len(c.familyMap)
+	numSeries := 0
+	numDatapoints := 0
+	for _, family := range c.familyMap {
+		numSeries += len(family.metrics)
+		for _, series := range family.metrics {
+			numDatapoints += len(series)
 		}
 	}
+	c.stats.currentCountFamilies = numFamilies
+	c.stats.currentCountSeries = numSeries
+	c.stats.currentCountDatapoints = numDatapoints
 }
 
-// familyAndMetrics stores the metrics in a MetricFamily in a MetricQueue
 type familyAndMetrics struct {
-	family        *dto.MetricFamily
-	metrics       map[string]*MetricQueue
-	queueCapacity int
+	family  *dto.MetricFamily
+	metrics map[string][]*dto.Metric
 }
 
-func newFamilyAndMetrics(family *dto.MetricFamily, queueCapacity int) *familyAndMetrics {
-	metricMap := make(map[string]*MetricQueue)
+func newFamilyAndMetrics(family *dto.MetricFamily) *familyAndMetrics {
+	metricMap := make(map[string][]*dto.Metric)
 	for _, metric := range family.Metric {
 		name := makeLabeledName(metric, family.GetName())
 		if metricQueue, ok := metricMap[name]; ok {
-			metricQueue.Push(metric)
+			metricMap[name] = append(metricQueue, metric)
 		} else {
-			queue := NewMetricQueue(queueCapacity)
-			queue.Push(metric)
-			metricMap[name] = queue
+			metricMap[name] = []*dto.Metric{metric}
 		}
 	}
 	// clear metrics in family because we are keeping them in the queues
 	family.Metric = []*dto.Metric{}
 
 	return &familyAndMetrics{
-		family:        family,
-		metrics:       metricMap,
-		queueCapacity: queueCapacity,
+		family:  family,
+		metrics: metricMap,
 	}
 }
 
@@ -128,25 +207,26 @@ func (f *familyAndMetrics) addMetrics(newMetrics []*dto.Metric) {
 	for _, metric := range newMetrics {
 		metricName := makeLabeledName(metric, f.family.GetName())
 		if queue, ok := f.metrics[metricName]; ok {
-			queue.Push(metric)
+			f.metrics[metricName] = append(queue, metric)
 		} else {
-			f.metrics[metricName] = NewMetricQueue(f.queueCapacity)
-			f.metrics[metricName].Push(metric)
+			f.metrics[metricName] = []*dto.Metric{metric}
 		}
 	}
 }
 
-// Returns a prometheus MetricFamily populated with the oldest datapoint for
-// each of the unique metric series stored in the struct. Pops the oldest point
-// off of each queue.
-func (f *familyAndMetrics) popOldestDatapoint() *dto.MetricFamily {
+// Returns a prometheus MetricFamily populated with all datapoints, sorted so
+// that the earliest datapoint appears first
+func (f *familyAndMetrics) popSortedDatapoints() *dto.MetricFamily {
 	pullFamily := f.copyFamily()
 	for _, queue := range f.metrics {
-		poppedMetric := queue.Pop()
-		if poppedMetric == nil {
+		if len(queue) == 0 {
 			continue
 		}
-		pullFamily.Metric = append(pullFamily.Metric, poppedMetric)
+		// Sort metrics by timestamp
+		sort.Slice(queue, func(i, j int) bool {
+			return *queue[i].TimestampMs < *queue[j].TimestampMs
+		})
+		pullFamily.Metric = append(pullFamily.Metric, queue...)
 	}
 	return &pullFamily
 }
@@ -156,19 +236,12 @@ func (f *familyAndMetrics) copyFamily() dto.MetricFamily {
 	return *f.family
 }
 
-// prune deletes metricQueues which no longer have any datapoints
-func (f *familyAndMetrics) prune() {
-	for metricName, metricQueue := range f.metrics {
-		if metricQueue.size == 0 {
-			delete(f.metrics, metricName)
-		}
-	}
-}
-
 // makeLabeledName builds a unique name from a metric LabelPairs
 func makeLabeledName(metric *dto.Metric, metricName string) string {
 	labels := metric.GetLabel()
-	sort.Sort(mxd_exp.ByName(labels))
+	sort.Slice(labels, func(i, j int) bool {
+		return labels[i].GetName() < labels[j].GetName()
+	})
 
 	labeledName := strings.Builder{}
 	labeledName.WriteString(metricName)
@@ -185,43 +258,4 @@ func familyToString(family *dto.MetricFamily) (string, error) {
 		return "", fmt.Errorf("error writing family string: %v", err)
 	}
 	return buf.String(), nil
-}
-
-// MetricQueue implements a fixed-size moving window queue so that in the case
-// of more frequent pushes than scrapes, memory usage does not increase constantly.
-type MetricQueue struct {
-	capacity int
-	size     int
-	writeIdx int
-	queue    []*dto.Metric
-}
-
-func NewMetricQueue(capacity int) *MetricQueue {
-	return &MetricQueue{
-		capacity: capacity,
-		size:     0,
-		writeIdx: 0,
-		queue:    make([]*dto.Metric, capacity),
-	}
-}
-
-// Push adds a metric to the queue. The oldest metric is overwritten when
-// called while the buffer is full.
-func (q *MetricQueue) Push(metric *dto.Metric) {
-	q.queue[q.writeIdx] = metric
-	q.writeIdx = (q.writeIdx + 1) % q.capacity
-	if q.size < q.capacity {
-		q.size++
-	}
-}
-
-// Pop returns the oldest written metric. Overwrites the oldest metric when
-func (q *MetricQueue) Pop() *dto.Metric {
-	if q.size == 0 {
-		return nil
-	}
-	readIdx := int(math.Abs(float64((q.writeIdx - q.size) % q.capacity)))
-	metric := q.queue[readIdx]
-	q.size--
-	return metric
 }

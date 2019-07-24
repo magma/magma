@@ -47,7 +47,6 @@
 #include "log.h"
 #include "common_defs.h"
 #include "emm_fsm.h"
-#include "msc.h"
 #include "emm_data.h"
 #include "emm_regDef.h"
 #include "nas_procedures.h"
@@ -95,13 +94,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_COMMON_PROC_REQ is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_COMMON_PROC_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_COMMON_PROC_CNF:
@@ -110,13 +102,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
      * An EMM common procedure successfully completed;
      */
       if (evt->u.common.common_proc) {
-        MSC_LOG_RX_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "_EMMREG_COMMON_PROC_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-          evt->ue_id);
         if (evt->u.common.common_proc->emm_proc.base_proc.parent) {
           rc = nas_unlink_procedures(
             evt->u.common.common_proc->emm_proc.base_proc.parent,
@@ -136,26 +121,11 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         if (evt->free_proc) {
           nas_delete_common_procedure(emm_ctx, &evt->u.common.common_proc);
         }
-      } else {
-        MSC_LOG_RX_DISCARDED_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "_EMMREG_COMMON_PROC_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-          evt->ue_id);
       }
       break;
 
     case _EMMREG_COMMON_PROC_REJ:
       if (evt->u.common.common_proc) {
-        MSC_LOG_RX_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "_EMMREG_COMMON_PROC_REJ ue id " MME_UE_S1AP_ID_FMT " ",
-          evt->ue_id);
         /*
        * An EMM common procedure failed;
        * enter state EMM-DEREGISTERED.
@@ -179,26 +149,11 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         if (evt->free_proc) {
           nas_delete_common_procedure(emm_ctx, &evt->u.common.common_proc);
         }
-      } else {
-        MSC_LOG_RX_DISCARDED_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "_EMMREG_COMMON_PROC_REJ ue id " MME_UE_S1AP_ID_FMT " ",
-          evt->ue_id);
       }
 
       break;
 
     case _EMMREG_COMMON_PROC_ABORT:
-      MSC_LOG_RX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_COMMON_PROC_ABORT ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       if (evt->u.common.common_proc) {
         if (evt->u.common.common_proc->emm_proc.base_proc.parent) {
           rc = nas_unlink_procedures(
@@ -227,26 +182,11 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         if (evt->free_proc) {
           nas_delete_common_procedure(emm_ctx, &evt->u.common.common_proc);
         }
-      } else {
-        MSC_LOG_RX_DISCARDED_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "_EMMREG_COMMON_PROC_ABORT ue id " MME_UE_S1AP_ID_FMT " ",
-          evt->ue_id);
       }
 
       break;
 
     case _EMMREG_ATTACH_CNF:
-      MSC_LOG_RX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_ATTACH_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       /*
      * Attach procedure successful and default EPS bearer
      * context activated;
@@ -257,13 +197,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
       break;
 
     case _EMMREG_ATTACH_REJ:
-      MSC_LOG_RX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_ATTACH_REJ ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       /*
      * Attach procedure failed;
      * enter state EMM-DEREGISTERED.
@@ -274,13 +207,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
 
     case _EMMREG_ATTACH_ABORT:
       if (evt->u.attach.proc) {
-        MSC_LOG_RX_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "_EMMREG_ATTACH_ABORT ue id " MME_UE_S1AP_ID_FMT " ",
-          evt->ue_id);
         rc = emm_fsm_set_state(evt->ue_id, emm_ctx, EMM_DEREGISTERED);
         if (
           (emm_ctx) &&
@@ -299,14 +225,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         if (evt->free_proc) {
           nas_delete_attach_procedure(emm_ctx);
         }
-      } else {
-        MSC_LOG_RX_DISCARDED_MESSAGE(
-          MSC_NAS_EMM_MME,
-          MSC_NAS_EMM_MME,
-          NULL,
-          0,
-          "_EMMREG_ATTACH_ABORT ue id " MME_UE_S1AP_ID_FMT " ",
-          evt->ue_id);
       }
 
       break;
@@ -316,13 +234,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_DETACH_INIT is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_DETACH_INIT ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_DETACH_REQ:
@@ -330,13 +241,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_DETACH_REQ is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_DETACH_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_DETACH_FAILED:
@@ -344,13 +248,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_DETACH_FAILED is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_DETACH_FAILED ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_DETACH_CNF:
@@ -358,13 +255,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_DETACH_CNF is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_DETACH_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_TAU_REQ:
@@ -372,13 +262,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_TAU_REQ is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_TAU_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_TAU_CNF:
@@ -386,13 +269,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_TAU_CNF is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_TAU_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_TAU_REJ:
@@ -400,13 +276,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_TAU_REJ is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_TAU_REJ ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_SERVICE_REQ:
@@ -414,13 +283,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_SERVICE_REQ is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_SERVICE_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_SERVICE_CNF:
@@ -428,13 +290,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_SERVICE_CNF is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_SERVICE_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_SERVICE_REJ:
@@ -442,23 +297,9 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         LOG_NAS_EMM,
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive "
         "_EMMREG_SERVICE_REJ is not valid\n");
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_SERVICE_REJ ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       break;
 
     case _EMMREG_LOWERLAYER_SUCCESS:
-      MSC_LOG_RX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_LOWERLAYER_SUCCESS ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       /*
      * Data successfully delivered to the network
      */
@@ -478,14 +319,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
       break;
 
     case _EMMREG_LOWERLAYER_FAILURE:
-      MSC_LOG_RX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_LOWERLAYER_FAILURE ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
-
       if (emm_ctx) {
         nas_emm_proc_t *emm_proc = nas_emm_find_procedure_by_msg_digest(
           emm_ctx,
@@ -502,25 +335,11 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
       break;
 
     case _EMMREG_LOWERLAYER_RELEASE:
-      MSC_LOG_RX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_LOWERLAYER_RELEASE ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       nas_delete_all_emm_procedures(emm_ctx);
       rc = RETURNok;
       break;
 
     case _EMMREG_LOWERLAYER_NON_DELIVERY:
-      MSC_LOG_RX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_LOWERLAYER_NON_DELIVERY ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->ue_id);
       if (emm_ctx) {
         nas_emm_proc_t *emm_proc = nas_emm_find_procedure_by_msg_digest(
           emm_ctx,
@@ -542,14 +361,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
         "EMM-FSM state EMM_COMMON_PROCEDURE_INITIATED - Primitive is not valid "
         "(%d)\n",
         evt->primitive);
-      MSC_LOG_RX_DISCARDED_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "_EMMREG_UNKNOWN(primitive id %d) ue id " MME_UE_S1AP_ID_FMT " ",
-        evt->primitive,
-        evt->ue_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

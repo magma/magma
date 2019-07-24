@@ -42,7 +42,6 @@
 #include "common_defs.h"
 #include "emm_esmDef.h"
 #include "esm_sapDef.h"
-#include "msc.h"
 #include "nas_itti_messaging.h"
 #include "esm_pt.h"
 
@@ -545,13 +544,6 @@ static int _eps_bearer_deactivate(
   emm_sap.u.emm_esm.u.deactivate_bearer.msg = *msg;
   bstring msg_dup = bstrcpy(*msg);
   *msg = NULL;
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMESM_UNITDATA_REQ (bearer deactivate) ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_id);
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {

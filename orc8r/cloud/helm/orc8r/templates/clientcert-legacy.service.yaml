@@ -1,0 +1,42 @@
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+{{/*
+  Chart for a legacy clientcert-secured service. We need this in place because
+  old gateways are configured to connect to cloud via port 443, not 9443. This
+  service can go away after all gateways in the field have been upgraded to
+  talk to ports 9443/9444.
+*/}}
+{{ $serviceType := .Values.proxy.service.type }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-clientcert-legacy
+  labels:
+    app.kubernetes.io/component: proxy
+{{ include "labels" . | indent 4 }}
+    {{- with .Values.proxy.service.labels }}
+{{ toYaml . | indent 4 }}
+    {{- end }}
+  {{- with .Values.proxy.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: proxy
+{{ include "selector-labels" . | indent 4 }}
+  type: {{ .Values.proxy.service.type }}
+  ports:
+    {{- with .Values.proxy.service.port.clientcert }}
+    - name: clientcert
+      port: 443
+      targetPort: {{ .targetPort }}
+      {{- if (and (eq $serviceType "NodePort") (not (empty .nodePort))) }}
+      nodePort: {{ .nodePort }}
+      {{- end }}
+    {{- end }}

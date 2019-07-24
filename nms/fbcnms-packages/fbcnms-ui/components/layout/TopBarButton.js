@@ -8,8 +8,8 @@
  * @format
  */
 
-import React from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
+import React from 'react';
 
 import {makeStyles} from '@material-ui/styles';
 

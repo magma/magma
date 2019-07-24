@@ -545,6 +545,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
   uint32_t i = 0;
+  uint32_t j = 0;
   hash_table_ts_t *hashtblP = NULL;
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
@@ -580,9 +581,16 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     ebi,
     sizeof(ebi_t));
   hashtblP = sgw_app.s11_bearer_context_information_hashtable;
+  if (hashtblP == NULL) {
+    OAILOG_ERROR(
+    LOG_PGW_APP,
+    "hashtblP is NULL for S5_NW_INITIATED_DEACTIV_BEARER_REQ\n");
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
+  }
 
   //Check if EBI recvd == LBI to know if default bearer has to be deactivated
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)) {
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size)
+        && (!found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
@@ -598,8 +606,8 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
           (const char *)imsi->digit)) {
           itti_s5_deactv_ded_bearer_req->s11_mme_teid =
             spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-          for (i = 0; i < no_of_bearers; i++) {
-            if (ebi[i] == spgw_ctxt_p->sgw_eps_bearer_context_information.
+          for (j = 0; j < no_of_bearers; j++) {
+            if (ebi[j] == spgw_ctxt_p->sgw_eps_bearer_context_information.
               pdn_connection.default_bearer) {
               itti_s5_deactv_ded_bearer_req->delete_default_bearer = true;
               found = true;

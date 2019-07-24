@@ -26,6 +26,8 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
@@ -37,11 +39,10 @@ import (
 // NOTE: This endpoint exists for testing ONLY
 // Real clients will use gRPC directly
 func UpdateFlowsTest(csn string, tbl *protos.FlowTable) error {
-	client, conn, err := meteringd_records.GetMeteringdRecordsClient()
+	client, err := meteringd_records.GetMeteringdRecordsClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	// Hack in the identity context
 	ctx := metadata.NewOutgoingContext(
@@ -57,6 +58,8 @@ func TestMeteringdRecords(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	sdb_test_init.StartTestService(t)
 	meteringd_records_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)

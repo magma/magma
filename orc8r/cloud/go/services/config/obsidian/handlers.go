@@ -16,6 +16,7 @@ import (
 	"reflect"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
 
 	"github.com/labstack/echo"
@@ -25,10 +26,29 @@ import (
 // which can be converted to and from a corresponding configuration object
 // from the config service.
 type ConvertibleUserModel interface {
+	serde.BinaryConvertible
+
 	ValidateModel() error
+
+	// DEPRECATED
 	ToServiceModel() (interface{}, error)
+
+	// DEPRECATED
 	FromServiceModel(serviceModel interface{}) error
 }
+
+type ConfigType int
+
+const (
+	Network ConfigType = 1
+	Gateway ConfigType = 2
+	// Entity is a network entity in configurator that is not a magmad_gateway.
+	// This distinction is important since the current setup allows a gateway
+	// to have multiple configs. A gateway config is treated as a separate
+	// entity with an association to the gateway entity. With a simple entity,
+	// its config is stored inside the entity.
+	Entity ConfigType = 3
+)
 
 // instantiateNewConvertibleUserModel creates a new, empty instance of the
 // provided userModel struct. The parameter is expected to be a pointer to a
@@ -119,6 +139,13 @@ func GetReadAllKeysConfigHandler(
 			}
 			return handleGetAllKeys(c, networkID, configType)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkID, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+			return configuratorGetAllKeys(c, networkID, configType)
+		},
 	}
 }
 
@@ -161,6 +188,25 @@ func GetReadConfigHandler(
 				return cerr
 			}
 			return handleGetConfig(c, networkId, configType, configKey, userModel)
+		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorGetNetworkConfig(c, networkId, configType)
+			case Gateway, Entity:
+				configKey, cerr := configKeyGetter(c)
+				if cerr != nil {
+					return cerr
+				}
+				return configuratorGetEntityConfig(c, networkId, configType, configKey)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
 		},
 	}
 }
@@ -224,6 +270,32 @@ func GetCreateConfigHandler(
 			}
 			return handleCreateConfig(c, networkId, configType, configKey, userModel)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorCreateNetworkConfig(c, networkId, configType, userModel)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateEntityConfig(c, networkId, configType, configKey, userModel)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -289,6 +361,32 @@ func GetUpdateConfigHandler(
 			}
 			return handleConfigUpdate(c, networkId, configType, configKey, userModel)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, err := handlers.GetNetworkId(c)
+			if err != nil {
+				return err
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateEntityConfig(c, networkId, configType, configKey, userModel)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -347,6 +445,32 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 			}
 			return handleConfigDelete(c, networkId, configType, configKey)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, err := handlers.GetNetworkId(c)
+			if err != nil {
+				return err
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorDeleteNetworkConfig(c, networkId, configType)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteGatewayConfig(c, networkId, configType, configKey)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteEntityConfig(c, networkId, configType, configKey)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
+		MultiplexAfterMigration: true,
 	}
 }
 

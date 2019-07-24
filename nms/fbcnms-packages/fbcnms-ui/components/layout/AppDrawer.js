@@ -11,13 +11,13 @@
 import type {ProjectLink} from './AppDrawerProjectNavigation';
 import type {TopBarContextType} from './TopBarContext';
 
-import React, {useContext} from 'react';
 import AppDrawerProjectNavigation from './AppDrawerProjectNavigation';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import IconButton from '@material-ui/core/IconButton';
+import React, {useContext} from 'react';
 import TopBarContext from './TopBarContext';
 
 import classNames from 'classnames';

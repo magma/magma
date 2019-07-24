@@ -8,10 +8,11 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
+	"encoding/json"
 	"fmt"
-	"reflect"
 
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/orc8r"
+	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -39,7 +40,7 @@ func (*GatewayRecordSerde) GetDomain() string {
 }
 
 func (*GatewayRecordSerde) GetType() string {
-	return "access_gateway_record"
+	return orc8r.AccessGatewayRecordType
 }
 
 func (*GatewayRecordSerde) Serialize(in interface{}) ([]byte, error) {
@@ -56,30 +57,22 @@ func (*GatewayRecordSerde) Deserialize(in []byte) (interface{}, error) {
 	return ret, err
 }
 
-// CheckinRequestSerde is a state serde for the CheckinRequest type
-type CheckinRequestSerde struct{}
+type GatewayStatusSerde struct{}
 
-func (*CheckinRequestSerde) GetDomain() string {
+func (*GatewayStatusSerde) GetDomain() string {
 	return state.SerdeDomain
 }
 
-func (s *CheckinRequestSerde) GetType() string {
-	return "checkin_request"
+func (s *GatewayStatusSerde) GetType() string {
+	return orc8r.GatewayStateType
 }
 
-func (s *CheckinRequestSerde) Serialize(in interface{}) ([]byte, error) {
-	castedState, ok := in.(*protos.CheckinRequest)
-	if !ok {
-		return nil, fmt.Errorf(
-			"Invalid gateway state type. Expected *CheckinRequest, received %s",
-			reflect.TypeOf(in),
-		)
-	}
-	return protos.MarshalIntern(castedState)
+func (s *GatewayStatusSerde) Serialize(in interface{}) ([]byte, error) {
+	return json.Marshal(in)
 }
 
-func (s *CheckinRequestSerde) Deserialize(in []byte) (interface{}, error) {
-	response := &protos.CheckinRequest{}
-	err := protos.Unmarshal(in, response)
+func (s *GatewayStatusSerde) Deserialize(in []byte) (interface{}, error) {
+	response := checkind_models.GatewayStatus{}
+	err := json.Unmarshal(in, &response)
 	return response, err
 }
