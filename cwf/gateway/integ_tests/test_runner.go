@@ -15,22 +15,71 @@ import (
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
+	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/testcore/hss"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
 const (
-	Op     = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
-	Secret = "123456"
+	Op            = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
+	Secret        = "123456"
+	MockHSSRemote = "HSS_REMOTE"
+	HSSHostIp     = "192.168.70.101"
+	HSSPort       = 9204
 )
 
 type TestRunner struct {
 	Imsis map[string]bool
+}
+
+// Wrapper for GRPC Client functionality
+type hssClient struct {
+	fegprotos.HSSConfiguratorClient
+	cc *grpc.ClientConn
+}
+
+// getHSSClient is a utility function to getHSSClient a RPC connection to a
+// remote HSS service.
+func getHSSClient() (*hssClient, error) {
+	var conn *grpc.ClientConn
+	var err error
+	conn, err = registry.GetConnection(MockHSSRemote)
+	if err != nil {
+		errMsg := fmt.Sprintf("HSS client initialization error: %s", err)
+		glog.Error(errMsg)
+		return nil, errors.New(errMsg)
+	}
+	return &hssClient{
+		fegprotos.NewHSSConfiguratorClient(conn),
+		conn,
+	}, err
+}
+
+// addSubscriber tries to add this subscriber to the server.
+// This function returns an AlreadyExists error if the subscriber has already
+// been added.
+// Input: The subscriber data which will be added.
+func addSubscriber(sub *lteprotos.SubscriberData) error {
+	err := hss.VerifySubscriberData(sub)
+	if err != nil {
+		errMsg := fmt.Errorf("Invalid AddSubscriberRequest provided: %s", err)
+		return errors.New(errMsg.Error())
+	}
+	cli, err := getHSSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.AddSubscriber(context.Background(), sub)
+	return err
 }
 
 // NewTestRunner initializes a new TestRunner by making a UESim client and
@@ -40,6 +89,8 @@ func NewTestRunner() *TestRunner {
 	testRunner := &TestRunner{}
 
 	testRunner.Imsis = make(map[string]bool)
+	fmt.Printf("Adding Mock HSS service at %s:%d\n", HSSHostIp, HSSPort)
+	registry.AddService(MockHSSRemote, HSSHostIp, HSSPort)
 
 	return testRunner
 }
@@ -72,7 +123,7 @@ func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, erro
 			return nil, errors.Wrap(err, "Error adding UE to UESimServer")
 		}
 
-		err = hss.AddSubscriber(sub)
+		err = addSubscriber(sub)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to HSS")
 		}
