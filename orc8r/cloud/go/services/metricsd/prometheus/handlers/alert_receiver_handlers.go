@@ -70,7 +70,7 @@ func configureAlertReceiver(c echo.Context, url string) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = sendConfig(receiver, url)
+	err = sendConfig(receiver, url, http.MethodPost)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -125,7 +125,7 @@ func updateAlertRoute(c echo.Context, url string) error {
 		return handlers.HttpError(fmt.Errorf("invalid route specification: %v\n", err), http.StatusBadRequest)
 	}
 
-	err = sendConfig(route, url)
+	err = sendConfig(route, url, http.MethodPost)
 	if err != nil {
 		return handlers.HttpError(fmt.Errorf("error updating alert route: %v", err), http.StatusInternalServerError)
 	}

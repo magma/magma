@@ -40,11 +40,15 @@ func NewClient(rulesDir string) (*Client, error) {
 }
 
 // ValidateRule checks that a new alert rule is a valid specification
-func (c *Client) ValidateRule(rule rulefmt.Rule, networkID string) error {
+func (c *Client) ValidateRule(rule rulefmt.Rule) error {
 	errs := rule.Validate()
 	if len(errs) != 0 {
 		return fmt.Errorf("invalid rule: %v", errs)
 	}
+	return nil
+}
+
+func (c *Client) RuleExists(rulename, networkID string) bool {
 	filename := makeFilename(networkID, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
@@ -52,14 +56,9 @@ func (c *Client) ValidateRule(rule rulefmt.Rule, networkID string) error {
 
 	ruleFile, err := c.initializeRuleFile(filename, networkID)
 	if err != nil {
-		return err
+		return false
 	}
-
-	existingRule, _ := ruleFile.GetRule(rule.Alert)
-	if existingRule != nil {
-		return fmt.Errorf("rule '%s' already exists", rule.Alert)
-	}
-	return nil
+	return ruleFile.GetRule(rulename) != nil
 }
 
 // WriteRule takes an alerting rule and writes it to the rules file for the
@@ -83,6 +82,34 @@ func (c *Client) WriteRule(rule rulefmt.Rule, networkID string) error {
 	return nil
 }
 
+func (c *Client) UpdateRule(rule rulefmt.Rule, networkID string) error {
+	filename := makeFilename(networkID, c.rulesDir)
+
+	c.fileLocks.Lock(filename)
+	defer c.fileLocks.Unlock(filename)
+
+	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	if err != nil {
+		return err
+	}
+
+	err = SecureRule(&rule, networkID)
+	if err != nil {
+		return err
+	}
+
+	err = ruleFile.ReplaceRule(rule)
+	if err != nil {
+		return err
+	}
+
+	err = c.writeRuleFile(ruleFile, filename)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *Client) ReadRules(ruleName string, networkID string) ([]rulefmt.Rule, error) {
 	filename := makeFilename(networkID, c.rulesDir)
 	c.fileLocks.RLock(filename)
@@ -95,9 +122,9 @@ func (c *Client) ReadRules(ruleName string, networkID string) ([]rulefmt.Rule, e
 	if ruleName == "" {
 		return ruleFile.Rules(), nil
 	}
-	foundRule, err := ruleFile.GetRule(ruleName)
-	if err != nil {
-		return nil, err
+	foundRule := ruleFile.GetRule(ruleName)
+	if foundRule == nil {
+		return nil, fmt.Errorf("rule %s not found", ruleName)
 	}
 	return []rulefmt.Rule{*foundRule}, nil
 }

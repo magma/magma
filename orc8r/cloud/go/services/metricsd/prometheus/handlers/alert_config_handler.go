@@ -28,8 +28,10 @@ const (
 	alertConfigPart     = "alert_config"
 	alertReceiverPart   = "alert_receiver"
 	AlertNameQueryParam = "alert_name"
+	AlertNamePathParam  = "alert_name"
 
 	AlertConfigURL         = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertConfigPart
+	AlertUpdateURL         = AlertConfigURL + handlers.URL_SEP + ":" + AlertNamePathParam
 	AlertReceiverConfigURL = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertReceiverPart
 )
 
@@ -66,6 +68,17 @@ func GetDeleteAlertRuleHandler(webServerURL string) func(c echo.Context) error {
 	}
 }
 
+func GetUpdateAlertRuleHandler(webServerURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID, nerr := handlers.GetNetworkId(c)
+		if nerr != nil {
+			return nerr
+		}
+		url := alertConfigURL(webServerURL, networkID)
+		return updateAlertRule(c, url)
+	}
+}
+
 func GetViewFiringAlertHandler(alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
@@ -92,23 +105,24 @@ func configurePrometheusAlert(c echo.Context, url, networkID string) error {
 		return handlers.HttpError(fmt.Errorf("invalid rule: %v\n", errs), http.StatusBadRequest)
 	}
 
-	err = sendConfig(rule, url)
+	err = sendConfig(rule, url, http.MethodPost)
 	if err != nil {
 		return err
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)
 }
 
-func sendConfig(payload interface{}, url string) error {
+func sendConfig(payload interface{}, url string, method string) error {
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
 	client := &http.Client{}
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
+	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Error making post request: %v\n", err)
+		return fmt.Errorf("Error making %s request: %v\n", method, err)
 	}
 	defer resp.Body.Close()
 
@@ -174,6 +188,24 @@ func deleteAlertRule(c echo.Context, url string) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
+func updateAlertRule(c echo.Context, url string) error {
+	rule, err := buildRuleFromContext(c)
+	if err != nil {
+		return err
+	}
+	alertName := c.Param(AlertNamePathParam)
+	if alertName == "" {
+		return handlers.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
+	}
+	url += fmt.Sprintf("/%s", alertName)
+
+	err = sendConfig(rule, url, http.MethodPut)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, nil)
+}
+
 func viewFiringAlerts(c echo.Context, networkID, alertmanagerApiURL string) error {
 	client := &http.Client{}
 	resp, err := client.Get(alertmanagerApiURL)
@@ -214,6 +246,14 @@ func buildRuleFromContext(c echo.Context) (rulefmt.Rule, error) {
 	if err != nil {
 		return rulefmt.Rule{}, err
 	}
+
+	if jsonRule.Labels == nil {
+		jsonRule.Labels = make(map[string]string)
+	}
+	if jsonRule.Annotations == nil {
+		jsonRule.Annotations = make(map[string]string)
+	}
+
 	rule := rulefmt.Rule{
 		Record:      jsonRule.Record,
 		Alert:       jsonRule.Alert,
