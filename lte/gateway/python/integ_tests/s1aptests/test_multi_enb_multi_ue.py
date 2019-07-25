@@ -22,10 +22,7 @@ class TestMultiEnbMultiUEAttachDetach(unittest.TestCase):
 
     def test_attach_detach_multienb_multiue(self):
         """ Multi Enb Multi UE attach detach """
-        req = s1ap_types.multiEnbConfigReq_t()
-        # Num of Enbs (Max Number of ENBS is 5)
         num_of_enbs = 5
-        plmn_length = 6
         # column is a enb parameter,  row is a number of enbs
         """            Cell Id,   Tac, EnbType, PLMN Id """
         enb_list = list([[1,       1,     1,    "001010"],
@@ -33,35 +30,11 @@ class TestMultiEnbMultiUEAttachDetach(unittest.TestCase):
                          [3,       1,     1,    "001010"],
                          [4,       1,     1,    "001010"],
                          [5,       1,     1,    "001010"]])
-        # Maximum 5 Enbs can be configured
-        req.numOfEnbs = num_of_enbs
 
-        # ENB Parameter column index initialization
-        cellid_col_idx = 0
-        tac_col_idx = 1
-        enbtype_col_idx = 2
-        plmnid_col_idx = 3
+        assert (num_of_enbs == len(enb_list)), "Number of enbs configured"
+        "not equal to enbs in the list!!!"
 
-        for idx1 in range(num_of_enbs):
-            req.multiEnbCfgParam[idx1].cell_id = \
-                    (enb_list[idx1][cellid_col_idx])
-
-        for idx1 in range(num_of_enbs):
-            req.multiEnbCfgParam[idx1].tac = \
-                    (enb_list[idx1][tac_col_idx])
-
-        for idx1 in range(num_of_enbs):
-            req.multiEnbCfgParam[idx1].enbType = \
-                    (enb_list[idx1][enbtype_col_idx])
-
-        for idx1 in range(num_of_enbs):
-            for idx3 in range(plmn_length):
-                val = enb_list[idx1][plmnid_col_idx][idx3]
-                req.multiEnbCfgParam[idx1].plmn_id[idx3] = int(val)
-
-        print("***************** Sending Multiple Enb Config Request\n")
-        assert (self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.MULTIPLE_ENB_CONFIG_REQ, req) == 0)
+        self._s1ap_wrapper.multiEnbConfig(num_of_enbs, enb_list)
 
         time.sleep(2)
 
