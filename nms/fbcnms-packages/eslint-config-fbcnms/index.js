@@ -123,6 +123,7 @@ module.exports = Object.assign({}, fbStrict, {
     // Flow Plugin
     // The following rules are made available via `eslint-plugin-flowtype`
     'flowtype/define-flow-type': 1,
+    'flowtype/no-weak-types': [1],
     'flowtype/use-flow-type': 1,
     // The following is disabled for many file types in overrides
     'flowtype/require-valid-file-annotation': [2, 'always'],
@@ -194,6 +195,14 @@ module.exports = Object.assign({}, fbStrict, {
      ],
      'rules': {
        'no-warning-comments': [0],
+     },
+   },
+   {
+     'files': [
+       'flow-typed/**/*.js',
+     ],
+     'rules': {
+       'flowtype/no-weak-types': [0],
      },
    }],
    'extends': [
