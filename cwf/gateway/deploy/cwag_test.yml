@@ -27,3 +27,8 @@
       apt:
         name: bzr
         state: present
+    # Required to start the UE Simulator in the background
+    - name: Install tmux
+      apt:
+        name: tmux
+        state: present
