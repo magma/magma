@@ -5,3 +5,6 @@
 
 [cwag]
 cwag ansible_ssh_host=192.168.70.101 ansible_ssh_port=22 ansible_user=vagrant ansible_python_interpreter=/usr/bin/python3
+
+[cwag_test]
+cwag_test ansible_ssh_host=192.168.70.102 ansible_ssh_port=22 ansible_user=vagrant ansible_python_interpreter=/usr/bin/python3
