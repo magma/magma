@@ -17,21 +17,26 @@ import (
 const (
 	prometheusReloadPath = "/-/reload"
 	ruleNameQueryParam   = "alert_name"
+	RuleNamePathParam    = "alert_name"
 )
 
 // GetPostHandler returns a handler that calls the client method WriteAlert() to
 // write the alert configuration from the body of this request
 func GetPostHandler(client *alert.Client, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		rule, err := decodePostResponse(c)
+		rule, err := decodeRulePostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		networkID := getNetworkID(c)
 
-		err = client.ValidateRule(rule, networkID)
+		err = client.ValidateRule(rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		if client.RuleExists(rule.Alert, networkID) {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' already exists", rule.Alert))
 		}
 
 		err = client.WriteRule(rule, networkID)
@@ -83,7 +88,42 @@ func GetDeleteHandler(client *alert.Client, prometheusURL string) func(c echo.Co
 	}
 }
 
-func decodePostResponse(c echo.Context) (rulefmt.Rule, error) {
+func GetUpdateAlertHandler(client *alert.Client, prometheusURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		ruleName := c.Param(RuleNamePathParam)
+		networkID := getNetworkID(c)
+		if ruleName == "" {
+			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
+		}
+
+		if !client.RuleExists(ruleName, networkID) {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' does not exist", ruleName))
+		}
+
+		rule, err := decodeRulePostRequest(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		err = client.ValidateRule(rule)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		err = client.UpdateRule(rule, networkID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		err = reloadPrometheus(prometheusURL)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func decodeRulePostRequest(c echo.Context) (rulefmt.Rule, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return rulefmt.Rule{}, fmt.Errorf("error reading request body: %v", err)

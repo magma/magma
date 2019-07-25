@@ -11,6 +11,7 @@ package servicers
 
 import (
 	"log"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -27,16 +28,22 @@ type eapAuth struct {
 	supportedMethods []byte
 	sessions         aaa.SessionTable // AAA SessionTable, if Nil -> Auth only mode
 	config           *mconfig.AAAConfig
-	accounting       protos.AccountingServer
+	sessionTout      time.Duration // Idle Session Timeout
+	accounting       *accountingService
 }
 
 // NewEapAuthenticator returns a new instance of EAP Auth service
 func NewEapAuthenticator(
 	sessions aaa.SessionTable,
 	cfg *mconfig.AAAConfig,
-	acct protos.AccountingServer) (protos.AuthenticatorServer, error) {
+	acct *accountingService) (protos.AuthenticatorServer, error) {
 
-	return &eapAuth{supportedMethods: client.SupportedTypes(), sessions: sessions, config: cfg, accounting: acct}, nil
+	return &eapAuth{
+		supportedMethods: client.SupportedTypes(),
+		sessions:         sessions,
+		config:           cfg,
+		sessionTout:      GetIdleSessionTimeout(cfg),
+		accounting:       acct}, nil
 }
 
 // HandleIdentity passes Identity EAP payload to corresponding method provider & returns corresponding
@@ -53,6 +60,7 @@ func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) 
 
 // Handle handles passed EAP payload & returns corresponding EAP result
 func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
+	var notifier aaa.TimeoutNotifier
 	resp, err := client.Handle(in)
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
 		// log error, but do not return it to Radius. EAP will carry its own error
@@ -60,13 +68,6 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 		return resp, nil
 	}
 	if srv.sessions != nil && resp != nil && eap.Packet(resp.Payload).IsSuccess() {
-		// Add Session & overwrite an existing session with the same ID if present,
-		// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
-		_, err := srv.sessions.AddSession(resp.Ctx, aaa.DefaultSessionTimeout, true)
-		if err != nil {
-			return resp, status.Errorf(
-				codes.Internal, "Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
-		}
 		if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() {
 			if srv.accounting == nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
@@ -77,6 +78,16 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 			_, err = srv.accounting.CreateSession(ctx, resp.Ctx)
 			if err != nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
+			}
+			notifier = srv.accounting.timeoutSessionNotifier
+		}
+		if eap.Packet(resp.Payload).IsSuccess() {
+			// Add Session & overwrite an existing session with the same ID if present,
+			// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
+			_, err := srv.sessions.AddSession(resp.Ctx, srv.sessionTout, notifier, true)
+			if err != nil {
+				return resp, status.Errorf(
+					codes.Internal, "Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
 			}
 		}
 	}

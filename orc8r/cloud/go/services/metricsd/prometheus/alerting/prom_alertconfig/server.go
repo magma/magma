@@ -46,6 +46,7 @@ func main() {
 	e.POST(alertPath, handlers.GetPostHandler(alertClient, *prometheusURL))
 	e.GET(alertPath, handlers.GetGetHandler(alertClient))
 	e.DELETE(alertPath, handlers.GetDeleteHandler(alertClient, *prometheusURL))
+	e.PUT(alertPath+"/:"+handlers.RuleNamePathParam, handlers.GetUpdateAlertHandler(alertClient, *prometheusURL))
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))

@@ -212,4 +212,31 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, []blobstore.Blob{{Type: "t3", Key: "k3", Value: []byte("v5"), Version: 0}}, getManyActual)
+	assert.NoError(t, store.Commit())
+
+	// Increment version
+	store, err = fact.StartTransaction(nil)
+	assert.NoError(t, err)
+
+	// Non-existent type/key
+	err = store.IncrementVersion("network2", storage.TypeAndKey{Type: "t7", Key: "k1"})
+	assert.NoError(t, err)
+
+	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+		{Type: "t7", Key: "k1"},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, []blobstore.Blob{{Type: "t7", Key: "k1", Version: 1}}, getManyActual)
+
+	// Increment existing type/key twice
+	err = store.IncrementVersion("network2", storage.TypeAndKey{Type: "t3", Key: "k3"})
+	assert.NoError(t, err)
+	err = store.IncrementVersion("network2", storage.TypeAndKey{Type: "t3", Key: "k3"})
+	assert.NoError(t, err)
+
+	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
+		{Type: "t3", Key: "k3"},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, []blobstore.Blob{{Type: "t3", Key: "k3", Value: []byte("v5"), Version: 2}}, getManyActual)
 }

@@ -315,6 +315,11 @@ func ClearStatementCacheLogOnError(cache *squirrel.StmtCache, callsite string) {
 
 func setValuesToUpsertClause(setValues []UpsertValue, writeSet bool) (string, []interface{}) {
 	setParts := funk.Map(setValues, func(uv UpsertValue) string {
+		v, ok := uv.Value.(squirrel.Sqlizer)
+		if ok {
+			str, _, _ := v.ToSql()
+			return uv.Column + " = " + str
+		}
 		return uv.Column + " = ?"
 	}).([]string)
 	setClause := strings.Join(setParts, ", ")
@@ -327,5 +332,13 @@ func setValuesToUpsertClause(setValues []UpsertValue, writeSet bool) (string, []
 	} else {
 		upsertClause = fmt.Sprintf("UPDATE %s", setClause)
 	}
-	return upsertClause, funk.Map(setValues, func(uv UpsertValue) interface{} { return uv.Value }).([]interface{})
+
+	updateArgs := []interface{}{}
+	for _, uv := range setValues {
+		_, ok := uv.Value.(squirrel.Sqlizer)
+		if !ok {
+			updateArgs = append(updateArgs, uv.Value)
+		}
+	}
+	return upsertClause, updateArgs
 }

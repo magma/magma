@@ -84,7 +84,9 @@ func NewMemorySessionTable() aaa.SessionTable {
 // AddSession - adds a new session to the table & returns the newly created session pointer.
 // If a session with the same ID already is in the table - returns "Session with SID: XYZ already exist" as well as the
 // existing session.
-func (st *memSessionTable) AddSession(pc *protos.Context, tout time.Duration, overwrite ...bool) (aaa.Session, error) {
+func (st *memSessionTable) AddSession(
+	pc *protos.Context, tout time.Duration, notifier aaa.TimeoutNotifier, overwrite ...bool) (aaa.Session, error) {
+
 	if st == nil {
 		return nil, fmt.Errorf("Nil SessionTable")
 	}
@@ -124,7 +126,7 @@ func (st *memSessionTable) AddSession(pc *protos.Context, tout time.Duration, ov
 	st.sm[sid] = s
 	st.rwl.Unlock()
 
-	setTimeoutUnsafe(st, sid, tout, s)
+	setTimeoutUnsafe(st, sid, tout, s, notifier)
 	return s, nil
 }
 
@@ -159,12 +161,12 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 }
 
 // SetTimeout - [Re]sets the session's cleanup timeout to fire after tout duration
-func (st *memSessionTable) SetTimeout(sid string, tout time.Duration) bool {
+func (st *memSessionTable) SetTimeout(sid string, tout time.Duration, notifier aaa.TimeoutNotifier) bool {
 	var res bool
 	if tout > 0 && st != nil && len(sid) > 0 {
 		st.rwl.Lock()
 		if s, ok := st.sm[sid]; ok && s != nil {
-			setTimeoutUnsafe(st, sid, tout, s)
+			setTimeoutUnsafe(st, sid, tout, s, notifier)
 			res = true
 		}
 		st.rwl.Unlock()
@@ -176,11 +178,12 @@ type cleanupTimerCtx struct {
 	owner           *memSessionTable
 	sidKey          string
 	s               *memSession
+	notifyRoutine   aaa.TimeoutNotifier
 	sessionTimerPtr unsafe.Pointer
 }
 
-func setTimeoutUnsafe(st *memSessionTable, sid string, tout time.Duration, s *memSession) {
-	var ctx = &cleanupTimerCtx{owner: st, sidKey: sid, s: s}
+func setTimeoutUnsafe(st *memSessionTable, sid string, tout time.Duration, s *memSession, notifier aaa.TimeoutNotifier) {
+	var ctx = &cleanupTimerCtx{owner: st, sidKey: sid, s: s, notifyRoutine: notifier}
 	newTimer := time.AfterFunc(tout, func() { cleanupTimer(ctx) })
 	atomic.StorePointer(&ctx.sessionTimerPtr, unsafe.Pointer(newTimer))
 	atomic.StorePointer(&s.cleanupTimerCtx, unsafe.Pointer(ctx))
@@ -202,9 +205,14 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 		ctx.owner.rwl.Unlock()
 
 		if deleted {
+			var notifyResult error
 			s := ctx.s
-			log.Printf("Timed out session '%s' for SessionId: %s; IMSI: %s; Identity: %s; MAC: %s; IP: %s",
-				ctx.sidKey, s.GetSessionId(), s.GetImsi(), s.GetIdentity(), s.GetMacAddr(), s.GetIpAddr())
+			if ctx.notifyRoutine != nil {
+				notifyResult = ctx.notifyRoutine(s)
+			}
+			log.Printf(
+				"Timed out session '%s' for SessionId: %s; IMSI: %s; Identity: %s; MAC: %s; IP: %s; notify result: %v",
+				ctx.sidKey, s.GetSessionId(), s.GetImsi(), s.GetIdentity(), s.GetMacAddr(), s.GetIpAddr(), notifyResult)
 		}
 	}
 }

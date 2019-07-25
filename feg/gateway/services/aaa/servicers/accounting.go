@@ -33,12 +33,8 @@ type accountingService struct {
 }
 
 // NewEapAuthenticator returns a new instance of EAP Auth service
-func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (protos.AccountingServer, error) {
-	tout := aaa.DefaultSessionTimeout
-	if cfg != nil {
-		tout = time.Millisecond * time.Duration(cfg.GetIdleSessionTimeoutMs())
-	}
-	return &accountingService{sessions: sessions, config: cfg, sessionTout: tout}, nil
+func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (*accountingService, error) {
+	return &accountingService{sessions: sessions, config: cfg, sessionTout: GetIdleSessionTimeout(cfg)}, nil
 }
 
 // Start implements Radius Acct-Status-Type: Start endpoint
@@ -56,7 +52,7 @@ func (srv *accountingService) Start(ctx context.Context, aaaCtx *protos.Context)
 	if srv.config.GetAccountingEnabled() && !srv.config.GetCreateSessionOnAuth() {
 		_, err = srv.CreateSession(ctx, aaaCtx)
 	} else {
-		srv.sessions.SetTimeout(sid, srv.sessionTout)
+		srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 	}
 	return &protos.AcctResp{}, err
 }
@@ -72,7 +68,7 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 		return &protos.AcctResp{}, status.Errorf(
 			codes.FailedPrecondition, "Accounting Update: Session %s was not authenticated", sid)
 	}
-	srv.sessions.SetTimeout(sid, srv.sessionTout)
+	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 	return &protos.AcctResp{}, nil
 }
 
@@ -113,7 +109,7 @@ func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *pro
 	}
 	_, err = session_manager.CreateSession(req)
 	if err == nil {
-		srv.sessions.SetTimeout(req.GetRadiusSessionId(), srv.sessionTout)
+		srv.sessions.SetTimeout(req.GetRadiusSessionId(), srv.sessionTout, srv.timeoutSessionNotifier)
 	}
 	return &protos.AcctResp{}, err
 }
@@ -140,6 +136,44 @@ func (srv *accountingService) TerminateSession(
 			codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
 	}
 	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(context.Background(), &protos.DisconnectRequest{Ctx: s.GetCtx()})
+	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: s.GetCtx()})
 	return &protos.AcctResp{}, err
+}
+
+// EndTimedOutSession is an "inbound" -> session manager AND "outbound" -> Radius server notification of a timed out
+// session. It should be called for a timed out and recently removed from the sessions table session.
+func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
+	if aaaCtx == nil {
+		return status.Errorf(codes.InvalidArgument, "Nil AAA Context")
+	}
+	var err, radErr error
+
+	if srv.config.GetAccountingEnabled() {
+		_, err = session_manager.EndSession(
+			&lte_protos.SubscriberID{Id: aaaCtx.GetImsi(), Type: lte_protos.SubscriberID_IMSI})
+	}
+
+	conn, radErr := registry.GetConnection(registry.RADIUS)
+	if radErr != nil {
+		radErr = status.Errorf(codes.Unavailable, "Session Timeout Notification Radius Connection Error: %v", radErr)
+	} else {
+		_, radErr = protos.NewAuthorizationClient(conn).Disconnect(
+			context.Background(), &protos.DisconnectRequest{Ctx: aaaCtx})
+	}
+	if radErr != nil {
+		if err != nil {
+			err = status.Errorf(
+				codes.Internal, "Session Timeout Notification errors; session manager: %v, Radius: %v", err, radErr)
+		} else {
+			err = radErr
+		}
+	}
+	return err
+}
+
+func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {
+	if srv != nil && s != nil {
+		return srv.EndTimedOutSession(s.GetCtx())
+	}
+	return nil
 }

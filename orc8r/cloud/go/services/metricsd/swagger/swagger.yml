@@ -178,6 +178,31 @@ paths:
           description: Deleted
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_config/{alert_name}:
+    put:
+      summary: Update an alerting rule
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: path
+          name: alert_name
+          description: Name of alert to be updated
+          required: true
+          type: string
+        - in: body
+          name: alert_config
+          description: Alerting rule that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/prom_alert_config'
+      responses:
+        '200':
+          description: Updated
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/prometheus/alert_receiver:
     post:
       summary: Create new alert receiver

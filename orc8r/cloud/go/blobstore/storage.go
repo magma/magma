@@ -71,6 +71,10 @@ type TransactionalBlobStorage interface {
 
 	// Delete deletes specified blobs from storage.
 	Delete(networkID string, ids []storage.TypeAndKey) error
+
+	// IncrementVersion is an atomic upsert (INSERT DO ON CONFLICT) that
+	// increments the version column or inserts 1 if it does not exist.
+	IncrementVersion(networkID string, id storage.TypeAndKey) error
 }
 
 // GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of

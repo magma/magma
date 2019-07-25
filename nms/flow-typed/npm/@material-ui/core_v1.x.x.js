@@ -45,13 +45,14 @@ declare module "@material-ui/core/Badge/Badge" {
   import type {ComponentType, Node} from "react";
 
   declare type Color = "default" | "primary" | "secondary" | "error";
-
+  declare type BadgeVariant = "standard" | "dot";
   declare module.exports: ComponentType<{
-    badgeContent: Node,
+    badgeContent?: Node,
     children: Node,
     className?: string,
     classes?: Object,
-    color?: Color
+    color?: Color,
+    variant?: BadgeVariant
   }>;
 }
 
@@ -104,7 +105,7 @@ declare module "@material-ui/core/Button/Button" {
   import type {ComponentType, ElementType, Node} from "react";
 
   declare type Color = "default" | "inherit" | "primary" | "secondary";
-  declare type Variant = "text" | "flat" | "outlined" | "contained" | "raised" | "fab" | "extendedFab"
+  declare type Variant = "text" | "outlined" | "contained" | "extendedFab"
   declare type Size = "small" | "medium" | "large"
 
   declare module.exports: ComponentType<{
@@ -212,7 +213,7 @@ declare module "@material-ui/core/CardActions/CardActions" {
     children?: Node,
     className?: string,
     classes?: Object,
-    disableActionSpacing?: boolean
+    disableSpacing?: boolean
   }>;
 }
 
@@ -559,8 +560,8 @@ declare module "@material-ui/core/Divider/Divider" {
     absolute?: boolean,
     className?: string,
     classes?: Object,
-    inset?: boolean,
-    light?: boolean
+    light?: boolean,
+    variant?: 'fullWidth' | 'inset' | 'middle'
   }>;
 }
 
@@ -2171,7 +2172,7 @@ declare module "@material-ui/core/styles/createPalette" {
       mainShade?: number | string,
       lightShade?: number | string,
       darkShade?: number | string,
-    ) => void,
+    ) => PaletteColor,
     [string]: any,
   };
 
@@ -2607,7 +2608,6 @@ declare module "@material-ui/core/TableCell/TableCell" {
     classes?: Object,
     className?: string,
     component?: ElementType,
-    numeric?: boolean,
     padding?: Padding,
     size?: Size
   }>;
