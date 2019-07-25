@@ -42,11 +42,11 @@ class TestAttachMissingImsi(unittest.TestCase):
         print("************************* Adding IMSI entry for UE id ", ue_id)
         # Adding IMSI to subscriberdb
         self._s1ap_wrapper.configUEDevice_without_checking_gw_health(1)
-        #req = self._s1ap_wrapper.ue_req
         ue_id = 2
         time.sleep(5)
+
         print("************************* Rerunning End to End attach for ",
-              "UE id ")
+              "UE id ", ue_id)
         # Now actually complete the attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
@@ -56,7 +56,7 @@ class TestAttachMissingImsi(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        print("************************* Running UE detach for UE id ")
+        print("************************* Running UE detach for UE id ", ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
             ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False)
