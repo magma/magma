@@ -1,6 +1,14 @@
 ---
 swagger: '2.0'
 
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/pluginimpl/models # TODO: figure out where these defs should go
+  dependencies:
+    - 'orc8r/cloud/docker/controller/apidocs/v1/swagger-common.yml'
+  temp-gen-filename: swagger-common.yml
+  output-dir: orc8r/cloud/go/pluginimpl # TODO: should we generate this at all?
+  types: [] # TODO: fill this in later
+
 info:
   title: Magma
   description: Magma REST APIs
@@ -77,7 +85,7 @@ definitions:
     x-nullable: false
     example: Sample Network
   network_description:
-    type: strin
+    type: string
     minLength: 1
     x-nullable: false
     example: Foobar network

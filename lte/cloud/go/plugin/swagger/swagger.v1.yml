@@ -1,9 +1,21 @@
 ---
 swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/lte/cloud/go/plugin/models
+  dependencies:
+    - 'orc8r/cloud/docker/controller/apidocs/v1/swagger-common.yml'
+    - 'orc8r/cloud/go/pluginimpl/swagger/swagger.v1.yml'
+  temp-gen-filename: lte-swagger.yml
+  output-dir: lte/cloud/go/plugin
+  types: [] # TODO: fill this in later
+
 info:
   title: LTE Network Management
   description: LTE REST APIs
   version: 1.0.0
+
+basePath: /magma/v1
 
 tags:
   - name: Enodeb
@@ -22,7 +34,8 @@ paths:
           description: List of LTE network IDs
           schema:
             type: array
-            items: string
+            items:
+              type: string
             example:
               - lte_network1
               - lte_network2
@@ -263,7 +276,7 @@ paths:
         '200':
           description: DNS configuration of the network
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_dns_config'
+            $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -277,7 +290,7 @@ paths:
           description: New DNS configuration for the network
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_dns_config'
+            $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       responses:
         '204':
           description: Success
@@ -297,7 +310,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
@@ -314,7 +327,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
       responses:
         '204':
           description: Success
@@ -333,7 +346,7 @@ paths:
         '200':
           description: DNS config record
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
+            $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
     post:
@@ -348,8 +361,8 @@ paths:
           description: Custom DNS record for the domain
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
-      respones:
+            $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
+      responses:
         '201':
           description: Success
         default:
@@ -366,8 +379,8 @@ paths:
           description: Custom DNS record for the domain
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
-      respones:
+            $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
+      responses:
         '204':
           description: Success
         default:
@@ -379,7 +392,7 @@ paths:
       parameters:
         - $ref: './swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/dns_domain'
-      respones:
+      responses:
         '204':
           description: Success
         default:
@@ -396,7 +409,7 @@ paths:
         '200':
           description: Feature flags of the network
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_features'
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -410,7 +423,7 @@ paths:
           description: New feature flags for the network
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_features'
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
       responses:
         '204':
           description: Success
@@ -445,9 +458,9 @@ definitions:
       cellular:
         $ref: '#/definitions/network_cellular_configs'
       dns:
-        $ref: './orc8r.swagger.yml#/definitions/network_dns_config'
+        $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
-        $ref: './orc8r.swagger.yml#/definitions/network_features'
+        $ref: './orc8r-swagger.yml#/definitions/network_features'
 
   network_cellular_configs:
     description: Cellular configuration for a network
