@@ -25,6 +25,8 @@ tags:
     description: Provision and manage gateways
   - name: Operators
     description: Access Control Operations and Participants
+  - name: TestController
+    description: Controller for CI Test & Upgrade Services
 
 paths:
   /foo:

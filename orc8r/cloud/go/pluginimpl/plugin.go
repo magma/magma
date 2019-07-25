@@ -9,6 +9,10 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
+
 	obsidianh "magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/handlers/hello"
 	"magma/orc8r/cloud/go/orc8r"
@@ -19,12 +23,15 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
-	checkindserde "magma/orc8r/cloud/go/services/checkind/serde"
+	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/device"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
+	dnsdmodels "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
+	magmadmodels "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
@@ -37,7 +44,7 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
-	upgradeserde "magma/orc8r/cloud/go/services/upgrade/serde"
+	upgrademodels "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 )
 
 // BaseOrchestratorPlugin is the OrchestratorPlugin for the orc8r module
@@ -58,28 +65,38 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
-		&CheckinRequestSerde{},
-		&checkindserde.GatewayStatusSerde{},
+		&GatewayStatusSerde{},
 
 		// Inventory service serdes
-		&GatewayRecordSerde{},
-
-		// Configurator service serdes
-		&upgradeserde.ReleaseChannelVersionsManager{},
-		&upgradeserde.NetworkTierConfigManager{},
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &magmadmodels.AccessGatewayRecord{}),
 
 		// Config manager serdes
+		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &dnsdmodels.NetworkDNSConfig{}),
+		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &magmadmodels.NetworkFeatures{}),
+
+		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &magmadmodels.MagmadGatewayConfig{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),
+		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &upgrademodels.Tier{}),
+
+		// Legacy config manager serdes
 		&magmadconfig.MagmadGatewayConfigManager{},
 		&dnsdconfig.DnsNetworkConfigManager{},
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMconfigBuilders() []factory.MconfigBuilder {
+func (*BaseOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
 	return []factory.MconfigBuilder{
 		// magmad
 		&magmadconfig.MagmadMconfigBuilder{},
 		// dnsd
 		&dnsdconfig.DnsdMconfigBuilder{},
+	}
+}
+
+func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
+	return []configurator.MconfigBuilder{
+		&BaseOrchestratorMconfigBuilder{},
+		&DnsdMconfigBuilder{},
 	}
 }
 
@@ -125,16 +142,27 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
 
 	// Prometheus profile - Exports all service metric to Prometheus
-	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(metricsConfig.GetRequiredStringParam(confignames.PrometheusCustomPushAddress))
+	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.PrometheusPushAddresses)
+	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(prometheusAddresses)
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
-	graphiteAddress := metricsConfig.GetRequiredStringParam(confignames.GraphiteAddress)
-	graphiteReceivePort := metricsConfig.GetRequiredIntParam(confignames.GraphiteReceivePort)
-	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddress, graphiteReceivePort)
+	graphiteExportAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.GraphiteExportAddresses)
+	var graphiteAddresses []graphite_exp.Address
+	for _, address := range graphiteExportAddresses {
+		portIdx := strings.LastIndex(address, ":")
+		portStr := address[portIdx+1:]
+		portInt, err := strconv.Atoi(portStr)
+		if err != nil {
+			panic(fmt.Errorf("graphite address improperly formed: %s\n", address))
+		}
+		graphiteAddresses = append(graphiteAddresses, graphite_exp.NewAddress(address[:portIdx], portInt))
+	}
+
+	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddresses)
 	// Graphite profile - Exports all service metrics to Graphite
 	graphiteProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameGraphite,

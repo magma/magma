@@ -16,9 +16,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_models "magma/orc8r/cloud/go/services/configurator/obsidian/models"
-	"magma/orc8r/cloud/go/services/configurator/protos"
 
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/labstack/echo"
 )
 
@@ -61,16 +59,16 @@ func registerNetwork(c echo.Context) error {
 		return err
 	}
 
-	protoNetwork := &protos.Network{
-		Id:          requestedID,
+	network := configurator.Network{
+		ID:          requestedID,
 		Name:        swaggerNetwork.Name,
 		Description: swaggerNetwork.Description,
 	}
-	createdNetworks, err := configurator.CreateNetworks([]*protos.Network{protoNetwork})
+	createdNetworks, err := configurator.CreateNetworks([]configurator.Network{network})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
-	return c.JSON(http.StatusCreated, createdNetworks[0].Id)
+	return c.JSON(http.StatusCreated, createdNetworks[0].ID)
 }
 
 func getNetwork(c echo.Context) error {
@@ -85,7 +83,7 @@ func getNetwork(c echo.Context) error {
 	if len(networks) == 0 {
 		return handlers.HttpError(fmt.Errorf("Network ID %s not found", networkID), http.StatusBadRequest)
 	}
-	network := networks[networkID]
+	network := networks[0]
 
 	swaggerRecord := &configurator_models.NetworkRecord{
 		Name:        network.Name,
@@ -106,12 +104,12 @@ func updateNetwork(c echo.Context) error {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
 
-	updateCriteria := &protos.NetworkUpdateCriteria{
-		Id:             networkID,
-		NewName:        inputStrToStrWrapper(swaggerNetwork.Name),
-		NewDescription: inputStrToStrWrapper(swaggerNetwork.Description),
+	updateCriteria := configurator.NetworkUpdateCriteria{
+		ID:             networkID,
+		NewName:        &swaggerNetwork.Name,
+		NewDescription: &swaggerNetwork.Description,
 	}
-	err = configurator.UpdateNetworks([]*protos.NetworkUpdateCriteria{updateCriteria})
+	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
 	if err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
@@ -131,9 +129,6 @@ func deleteNetwork(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func inputStrToStrWrapper(in string) *wrappers.StringValue {
-	return &wrappers.StringValue{Value: in}
-}
 func VerifyNetworkIDFormat(requestedID string) error {
 	if len(requestedID) > 0 {
 		r, _ := regexp.Compile("^[a-z_][0-9a-z_]+$")

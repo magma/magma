@@ -38,29 +38,44 @@ class AsyncEvbResponse : public AsyncGRPCResponse<ResponseType> {
   folly::EventBase *base_;
 };
 
-class SessionCloudReporter : public GRPCReceiver {
+class SessionCloudReporter : public GRPCReceiver{
  public:
-  SessionCloudReporter(
-    folly::EventBase *base,
-    std::shared_ptr<grpc::Channel> channel);
-
   /**
    * Proxy an UpdateSessionRequest gRPC call to the cloud
    */
-  void report_updates(
+  virtual void report_updates(
     const UpdateSessionRequest &request,
-    std::function<void(grpc::Status, UpdateSessionResponse)> callback);
+    std::function<void(grpc::Status, UpdateSessionResponse)> callback) = 0;
 
   /**
    * Proxy a CreateSessionRequest gRPC call to the cloud
    */
-  void report_create_session(
+  virtual void report_create_session(
     const CreateSessionRequest &request,
-    std::function<void(grpc::Status, CreateSessionResponse)> callback);
+    std::function<void(grpc::Status, CreateSessionResponse)> callback) = 0;
 
   /**
    * Proxy a SessionTerminateRequest gRPC call to the cloud
    */
+  virtual void report_terminate_session(
+    const SessionTerminateRequest &request,
+    std::function<void(grpc::Status, SessionTerminateResponse)> callback) = 0;
+};
+
+class SessionCloudReporterImpl : public SessionCloudReporter {
+ public:
+  SessionCloudReporterImpl(
+    folly::EventBase *base,
+    std::shared_ptr<grpc::Channel> channel);
+
+  void report_updates(
+    const UpdateSessionRequest &request,
+    std::function<void(grpc::Status, UpdateSessionResponse)> callback);
+
+  void report_create_session(
+    const CreateSessionRequest &request,
+    std::function<void(grpc::Status, CreateSessionResponse)> callback);
+
   void report_terminate_session(
     const SessionTerminateRequest &request,
     std::function<void(grpc::Status, SessionTerminateResponse)> callback);

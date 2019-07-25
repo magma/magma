@@ -11,26 +11,27 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
-	upgrade_serde "magma/orc8r/cloud/go/services/upgrade/serde"
+	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// Obsidian integration test for release channel API endpoints
+// Obsidian integration test for release channel migrated API endpoints backed by configurator
 func TestReleaseChannels(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(&upgrade_serde.ReleaseChannelVersionsManager{})
-	magmad_test_init.StartTestService(t)
+	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
 	upgrade_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
@@ -131,10 +132,11 @@ func TestReleaseChannels(t *testing.T) {
 	assert.Equal(t, 500, status)
 }
 
+// Obsidian integration test for tiers migrated API endpoints backed by configurator
 func TestTiers(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(&upgrade_serde.NetworkTierConfigManager{})
-	magmad_test_init.StartTestService(t)
+	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 	configurator_test_init.StartTestService(t)

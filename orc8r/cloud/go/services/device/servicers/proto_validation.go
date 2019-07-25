@@ -16,7 +16,7 @@ import (
 	"magma/orc8r/cloud/go/services/device/protos"
 )
 
-func ValidateRegisterDevicesRequest(req *protos.RegisterDevicesRequest) error {
+func ValidateRegisterDevicesRequest(req *protos.RegisterOrUpdateDevicesRequest) error {
 	if err := nonEmptyNetworkID(req.GetNetworkID()); err != nil {
 		return err
 	}

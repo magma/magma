@@ -14,7 +14,7 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
@@ -33,7 +33,36 @@ const (
 )
 
 const (
-	wildcardAllString = "*"
+	nwIDCol   = "id"
+	nwNameCol = "name"
+	nwDescCol = "description"
+	nwVerCol  = "version"
+
+	nwcIDCol   = "network_id"
+	nwcTypeCol = "type"
+	nwcValCol  = "value"
+
+	entPkCol   = "pk"
+	entNidCol  = "network_id"
+	entTypeCol = "type"
+	entKeyCol  = "\"key\""
+	entGidCol  = "graph_id"
+	entNameCol = "name"
+	entDescCol = "description"
+	entPidCol  = "physical_id"
+	entConfCol = "config"
+	entVerCol  = "version"
+
+	aFrCol = "from_pk"
+	aToCol = "to_pk"
+
+	aclIdCol       = "id"
+	aclEntCol      = "entity_pk"
+	aclScopeCol    = "scope"
+	aclPermCol     = "permission"
+	aclTypeCol     = "type"
+	aclIdFilterCol = "id_filter"
+	aclVerCol      = "version"
 )
 
 type IDGenerator interface {
@@ -48,14 +77,14 @@ func (*DefaultIDGenerator) New() string {
 
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
 // implementation backed by a SQL database.
-func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator, sqlBuilder sql_utils.StatementBuilder) ConfiguratorStorageFactory {
+func NewSQLConfiguratorStorageFactory(db *sql.DB, generator IDGenerator, sqlBuilder sqorc.StatementBuilder) ConfiguratorStorageFactory {
 	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder}
 }
 
 type sqlConfiguratorStorageFactory struct {
 	db          *sql.DB
 	idGenerator IDGenerator
-	builder     sql_utils.StatementBuilder
+	builder     sqorc.StatementBuilder
 }
 
 func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error) {
@@ -77,120 +106,130 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		}
 	}()
 
-	networksTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			id TEXT PRIMARY KEY,
-			name TEXT,
-			description TEXT,
-			version INTEGER NOT NULL DEFAULT 0
-		)
-	`, networksTable)
+	// Named return values below so we can automatically decide tx commit/
+	// rollback in deferred function
 
-	networksConfigTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			network_id TEXT REFERENCES %s (id) ON DELETE CASCADE,
-			type TEXT NOT NULL,
-			value BYTEA,
+	_, err = fact.builder.CreateTable(networksTable).
+		IfNotExists().
+		Column(nwIDCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(nwNameCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(nwDescCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(nwVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create networks table")
+		return
+	}
 
-			PRIMARY KEY (network_id, type)
-		)
-	`, networkConfigTable, networksTable)
+	_, err = fact.builder.CreateTable(networkConfigTable).
+		IfNotExists().
+		Column(nwcIDCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(nwcTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(nwcValCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		PrimaryKey(nwcIDCol, nwcTypeCol).
+		ForeignKey(networksTable, map[string]string{nwcIDCol: nwIDCol}, sqorc.ColumnOnDeleteCascade).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create network configs table")
+		return
+	}
 
 	// Create an internal-only primary key (UUID) for entities.
 	// This keeps index size in control and supporting table schemas simpler.
-	entityTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			pk TEXT PRIMARY KEY,
-
-			network_id TEXT REFERENCES %s (id) ON DELETE CASCADE,
-			type TEXT NOT NULL,
-			key TEXT NOT NULL,
-
-			graph_id TEXT NOT NULL,
-
-			name TEXT,
-			description TEXT,
-			physical_id TEXT,
-			config BYTEA,
-
-			version INTEGER NOT NULL DEFAULT 0,
-
-			UNIQUE (network_id, key, type)			
-		)
-	`, entityTable, networksTable)
-
-	entityAssocTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			from_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
-			to_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
-
-			PRIMARY KEY (from_pk, to_pk)
-		)
-	`, entityAssocTable, entityTable, entityTable)
-
-	entityAclTableExec := fmt.Sprintf(`
-		CREATE TABLE IF NOT EXISTS %s
-		(
-			id TEXT PRIMARY KEY,
-			entity_pk TEXT REFERENCES %s (pk) ON DELETE CASCADE,
-
-			scope text NOT NULL,
-			permission INTEGER NOT NULL,
-			type text NOT NULL,
-			id_filter TEXT,
-
-			version INTEGER NOT NULL DEFAULT 0
-		)
-	`, entityAclTable, entityTable)
-
-	// Named return value for err so we can automatically decide to
-	// commit/rollback
-	tablesToCreate := []string{
-		networksTableExec,
-		networksConfigTableExec,
-		entityTableExec,
-		entityAssocTableExec,
-		entityAclTableExec,
+	_, err = fact.builder.CreateTable(entityTable).
+		IfNotExists().
+		Column(entPkCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(entNidCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(entKeyCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(entGidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(entNameCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entDescCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entPidCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(entConfCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+		Column(entVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		Unique(entNidCol, entKeyCol, entTypeCol).
+		Unique(entPidCol).
+		ForeignKey(networksTable, map[string]string{entNidCol: nwIDCol}, sqorc.ColumnOnDeleteCascade).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create entities table")
+		return
 	}
-	for _, execQuery := range tablesToCreate {
-		_, err = tx.Exec(execQuery)
-		if err != nil {
-			return
-		}
+
+	_, err = fact.builder.CreateTable(entityAssocTable).
+		IfNotExists().
+		Column(aFrCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(aToCol).Type(sqorc.ColumnTypeText).EndColumn().
+		PrimaryKey(aFrCol, aToCol).
+		ForeignKey(entityTable, map[string]string{aFrCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
+		ForeignKey(entityTable, map[string]string{aToCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create entity assoc table")
+		return
+	}
+
+	_, err = fact.builder.CreateTable(entityAclTable).
+		IfNotExists().
+		Column(aclIdCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(aclEntCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(aclScopeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(aclPermCol).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
+		Column(aclTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(aclIdFilterCol).Type(sqorc.ColumnTypeText).EndColumn().
+		Column(aclVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+		ForeignKey(entityTable, map[string]string{aclEntCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create entity acl table")
+		return
 	}
 
 	// Create indexes (index is not implicitly created on a referencing FK)
-	indexesToCreate := []string{
-		fmt.Sprintf("CREATE INDEX IF NOT EXISTS graph_id_idx ON %s (graph_id)", entityTable),
-		fmt.Sprintf("CREATE INDEX IF NOT EXISTS acl_ent_pk_idx ON %s (entity_pk)", entityAclTable),
+	_, err = fact.builder.CreateIndex("graph_id_idx").
+		IfNotExists().
+		On(entityTable).
+		Columns(entGidCol).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create graph ID index")
+		return
 	}
-	for _, execQuery := range indexesToCreate {
-		_, err = tx.Exec(execQuery)
-		if err != nil {
-			return
-		}
+
+	_, err = fact.builder.CreateIndex("acl_ent_pk_idx").
+		IfNotExists().
+		On(entityAclTable).
+		Columns(aclEntCol).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create acl ent PK index")
+		return
 	}
 
 	// Create internal network(s)
 	_, err = fact.builder.Insert(networksTable).
-		Columns("id", "name", "description").
+		Columns(nwIDCol, nwNameCol, nwDescCol).
 		Values(InternalNetworkID, internalNetworkName, internalNetworkDescription).
-		OnConflict(nil, "id").
+		OnConflict(nil, nwIDCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
-		err = fmt.Errorf("error creating internal networks: %s", err)
+		err = errors.Wrap(err, "error creating internal networks")
 		return
 	}
 
 	return
 }
 
-func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context, opts *TxOptions) (ConfiguratorStorage, error) {
+func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context, opts *storage.TxOptions) (ConfiguratorStorage, error) {
 	tx, err := fact.db.BeginTx(ctx, getSqlOpts(opts))
 	if err != nil {
 		return nil, err
@@ -198,17 +237,20 @@ func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context,
 	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator, builder: fact.builder}, nil
 }
 
-func getSqlOpts(opts *TxOptions) *sql.TxOptions {
+func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
 	if opts == nil {
 		return nil
 	}
-	return &sql.TxOptions{ReadOnly: opts.ReadOnly}
+	if opts.Isolation == 0 {
+		return &sql.TxOptions{ReadOnly: opts.ReadOnly}
+	}
+	return &sql.TxOptions{ReadOnly: opts.ReadOnly, Isolation: sql.IsolationLevel(opts.Isolation)}
 }
 
 type sqlConfiguratorStorage struct {
 	tx          *sql.Tx
 	idGenerator IDGenerator
-	builder     sql_utils.StatementBuilder
+	builder     sqorc.StatementBuilder
 }
 
 func (store *sqlConfiguratorStorage) Commit() error {
@@ -220,7 +262,7 @@ func (store *sqlConfiguratorStorage) Rollback() error {
 }
 
 func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error) {
-	emptyRet := NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []Network{}}
+	emptyRet := NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []*Network{}}
 	if len(ids) == 0 {
 		return emptyRet, nil
 	}
@@ -228,13 +270,13 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
 		From(networksTable).
 		Where(sq.Eq{
-			fmt.Sprintf("%s.id", networksTable): ids,
+			fmt.Sprintf("%s.%s", networksTable, nwIDCol): ids,
 		})
 	if loadCriteria.LoadConfigs {
 		selectBuilder = selectBuilder.LeftJoin(
 			fmt.Sprintf(
-				"%s ON %s.network_id = %s.id",
-				networkConfigTable, networkConfigTable, networksTable,
+				"%s ON %s.%s = %s.%s",
+				networkConfigTable, networkConfigTable, nwcIDCol, networksTable, nwIDCol,
 			),
 		)
 	}
@@ -242,7 +284,7 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	if err != nil {
 		return emptyRet, fmt.Errorf("error querying for networks: %s", err)
 	}
-	defer sql_utils.CloseRowsLogOnError(rows, "LoadNetworks")
+	defer sqorc.CloseRowsLogOnError(rows, "LoadNetworks")
 
 	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
 	if err != nil {
@@ -251,10 +293,10 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 
 	ret := NetworkLoadResult{
 		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, ids),
-		Networks:           make([]Network, 0, len(loadedNetworksByID)),
+		Networks:           make([]*Network, 0, len(loadedNetworksByID)),
 	}
 	for _, nid := range loadedNetworkIDs {
-		ret.Networks = append(ret.Networks, *loadedNetworksByID[nid])
+		ret.Networks = append(ret.Networks, loadedNetworksByID[nid])
 	}
 	return ret, nil
 }
@@ -266,13 +308,13 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCri
 	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
 		From(networksTable).
 		Where(sq.NotEq{
-			fmt.Sprintf("%s.id", networksTable): idsToExclude,
+			fmt.Sprintf("%s.%s", networksTable, nwIDCol): idsToExclude,
 		})
 	if loadCriteria.LoadConfigs {
 		selectBuilder = selectBuilder.LeftJoin(
 			fmt.Sprintf(
-				"%s ON %s.network_id = %s.id",
-				networkConfigTable, networkConfigTable, networksTable,
+				"%s ON %s.%s = %s.%s",
+				networkConfigTable, networkConfigTable, nwcIDCol, networksTable, nwIDCol,
 			),
 		)
 	}
@@ -280,7 +322,7 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCri
 	if err != nil {
 		return emptyNetworks, fmt.Errorf("error querying for networks: %s", err)
 	}
-	defer sql_utils.CloseRowsLogOnError(rows, "LoadAllNetworks")
+	defer sqorc.CloseRowsLogOnError(rows, "LoadAllNetworks")
 
 	loadedNetworksByID, loadedNetworkIDs, err := scanNetworkRows(rows, loadCriteria)
 	if err != nil {
@@ -304,7 +346,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	}
 
 	_, err = store.builder.Insert(networksTable).
-		Columns("id", "name", "description").
+		Columns(nwIDCol, nwNameCol, nwDescCol).
 		Values(network.ID, network.Name, network.Description).
 		RunWith(store.tx).
 		Exec()
@@ -320,7 +362,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	configKeys := funk.Keys(network.Configs).([]string)
 	sort.Strings(configKeys)
 	insertBuilder := store.builder.Insert(networkConfigTable).
-		Columns("network_id", "type", "value")
+		Columns(nwcIDCol, nwcTypeCol, nwcValCol)
 	for _, configKey := range configKeys {
 		insertBuilder = insertBuilder.Values(network.ID, configKey, network.Configs[configKey])
 	}
@@ -348,7 +390,7 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	}
 
 	stmtCache := sq.NewStmtCache(store.tx)
-	defer sql_utils.ClearStatementCacheLogOnError(stmtCache)
+	defer sqorc.ClearStatementCacheLogOnError(stmtCache, "UpdateNetworks")
 
 	// Update networks first
 	for _, update := range networksToUpdate {
@@ -358,8 +400,13 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 		}
 	}
 
-	// Then delete all networks requested for deletion
-	_, err := store.builder.Delete(networksTable).Where(sq.Eq{"id": networksToDelete}).
+	_, err := store.builder.Delete(networkConfigTable).Where(sq.Eq{nwcIDCol: networksToDelete}).
+		RunWith(store.tx).
+		Exec()
+	if err != nil {
+		return errors.Wrap(err, "failed to delete configs associated with networks")
+	}
+	_, err = store.builder.Delete(networksTable).Where(sq.Eq{nwIDCol: networksToDelete}).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
@@ -369,7 +416,7 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 }
 
 func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error) {
-	ret := EntityLoadResult{Entities: []NetworkEntity{}, EntitiesNotFound: []storage.TypeAndKey{}}
+	ret := EntityLoadResult{Entities: []*NetworkEntity{}, EntitiesNotFound: []*EntityID{}}
 
 	// We load the requested entities in 3 steps:
 	// First, we load the entities and their ACLs
@@ -401,13 +448,13 @@ func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter Entit
 	}
 
 	for _, ent := range entsByPk {
-		ret.Entities = append(ret.Entities, *ent)
+		ret.Entities = append(ret.Entities, ent)
 	}
 	ret.EntitiesNotFound = calculateEntitiesNotFound(entsByPk, filter.IDs)
 
 	// Sort entities for deterministic returns
-	entComparator := func(a, b NetworkEntity) bool {
-		return storage.TypeAndKey{Type: a.Type, Key: a.Key}.String() < storage.TypeAndKey{Type: b.Type, Key: b.Key}.String()
+	entComparator := func(a, b *NetworkEntity) bool {
+		return a.GetTypeAndKey().String() < b.GetTypeAndKey().String()
 	}
 	sort.Slice(ret.Entities, func(i, j int) bool { return entComparator(ret.Entities[i], ret.Entities[j]) })
 
@@ -456,28 +503,44 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 	createdEntWithPk.GraphID = newGraphID
 
 	// If we were given duplicate edges, get rid of those
-	createdEntWithPk.Associations = funk.Uniq(createdEntWithPk.Associations).([]storage.TypeAndKey)
+	if !funk.IsEmpty(createdEntWithPk.Associations) {
+		createdEntWithPk.Associations = funk.Chain(createdEntWithPk.Associations).
+			Map(func(id *EntityID) storage.TypeAndKey { return id.ToTypeAndKey() }).
+			Uniq().
+			Map(func(tk storage.TypeAndKey) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
+			Value().([]*EntityID)
+	}
 
+	createdEntWithPk.NetworkID = networkID
 	return createdEntWithPk.NetworkEntity, nil
 }
 
 func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
 	emptyRet := NetworkEntity{Type: update.Type, Key: update.Key}
 	entToUpdate, err := store.loadEntToUpdate(networkID, update)
-	if err != nil {
+	if err != nil && !update.DeleteEntity {
 		return emptyRet, errors.Wrap(err, "failed to load entity being updated")
+	}
+	if entToUpdate == nil {
+		return emptyRet, nil
 	}
 
 	if update.DeleteEntity {
 		// Cascading FK relations in the schema will handle the other tables
-		exec := fmt.Sprintf("DELETE FROM %s WHERE (network_id, type, key) = ($1, $2, $3)", entityTable)
-		_, err := store.tx.Exec(exec, networkID, update.Type, update.Key)
+		_, err := store.builder.Delete(entityTable).
+			Where(sq.And{
+				sq.Eq{entNidCol: networkID},
+				sq.Eq{entTypeCol: update.Type},
+				sq.Eq{entKeyCol: update.Key},
+			}).
+			RunWith(store.tx).
+			Exec()
 		if err != nil {
 			return emptyRet, errors.Wrapf(err, "failed to delete entity (%s, %s)", update.Type, update.Key)
 		}
 
 		// Deleting a node could partition its graph
-		err = store.fixGraph(networkID, entToUpdate.GraphID, &entToUpdate)
+		err = store.fixGraph(networkID, entToUpdate.GraphID, entToUpdate)
 		if err != nil {
 			return emptyRet, errors.Wrap(err, "failed to fix entity graph after deletion")
 		}
@@ -486,6 +549,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 	}
 
 	// Then, update the fields on the entity table
+	entToUpdate.NetworkID = networkID
 	err = store.processEntityFieldsUpdate(entToUpdate.pk, update, &entToUpdate.NetworkEntity)
 	if err != nil {
 		return entToUpdate.NetworkEntity, errors.WithStack(err)
@@ -498,7 +562,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 	}
 
 	// Finally, process edge updates for the graph
-	err = store.processEdgeUpdates(networkID, update, &entToUpdate)
+	err = store.processEdgeUpdates(networkID, update, entToUpdate)
 	if err != nil {
 		return entToUpdate.NetworkEntity, errors.WithStack(err)
 	}
@@ -506,7 +570,7 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 	return entToUpdate.NetworkEntity, nil
 }
 
-func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
+func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID EntityID, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
 	// Technically you could do this in one DB query with a subquery in the
 	// WHERE when selecting from the entity table.
 	// But until we hit some kind of scaling limit, let's keep the code simple
@@ -514,7 +578,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 
 	// We just care about getting the graph ID off this entity so use an empty
 	// load criteria
-	loadResult, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: []storage.TypeAndKey{entityID}}, EntityLoadCriteria{})
+	loadResult, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: []*EntityID{&entityID}}, EntityLoadCriteria{})
 	if err != nil {
 		return EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
 	}
@@ -524,7 +588,7 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 		loadedEnt = ent
 	}
 	if loadedEnt == nil {
-		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID)
+		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID.String())
 	}
 
 	internalGraph, err := store.loadGraphInternal(networkID, loadedEnt.GraphID, loadCriteria)
@@ -550,12 +614,14 @@ func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entity
 	}
 
 	// To make testing easier, we'll order the returned entities by TK
-	retEnts := funk.Map(internalGraph.entsByPk, func(_ string, ent *NetworkEntity) NetworkEntity { return *ent }).([]NetworkEntity)
-	retRoots := funk.Map(rootPks, func(pk string) storage.TypeAndKey { return entTksByPk[pk] }).([]storage.TypeAndKey)
+	retEnts := funk.Map(internalGraph.entsByPk, func(_ string, ent *NetworkEntity) *NetworkEntity { return ent }).([]*NetworkEntity)
+	retRoots := funk.Map(rootPks, func(pk string) *EntityID { return &EntityID{Type: entTksByPk[pk].Type, Key: entTksByPk[pk].Key} }).([]*EntityID)
 	sort.Slice(retEnts, func(i, j int) bool {
 		return storage.IsTKLessThan(retEnts[i].GetTypeAndKey(), retEnts[j].GetTypeAndKey())
 	})
-	sort.Slice(retRoots, func(i, j int) bool { return storage.IsTKLessThan(retRoots[i], retRoots[j]) })
+	sort.Slice(retRoots, func(i, j int) bool {
+		return storage.IsTKLessThan(retRoots[i].ToTypeAndKey(), retRoots[j].ToTypeAndKey())
+	})
 
 	return EntityGraph{
 		Entities:     retEnts,

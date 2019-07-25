@@ -11,12 +11,8 @@ package alert
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
-
-	"github.com/labstack/echo"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"
 )
@@ -43,13 +39,16 @@ func NewClient(rulesDir string) (*Client, error) {
 	}, nil
 }
 
-// WriteAlert takes an alerting rule and writes it to the rules file for the
-// given networkID
-func (c *Client) WriteAlert(rule rulefmt.Rule, networkID string) error {
+// ValidateRule checks that a new alert rule is a valid specification
+func (c *Client) ValidateRule(rule rulefmt.Rule) error {
 	errs := rule.Validate()
 	if len(errs) != 0 {
-		return handlers.HttpError(fmt.Errorf("invalid rule: %v", errs), http.StatusBadRequest)
+		return fmt.Errorf("invalid rule: %v", errs)
 	}
+	return nil
+}
+
+func (c *Client) RuleExists(rulename, networkID string) bool {
 	filename := makeFilename(networkID, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
@@ -57,13 +56,56 @@ func (c *Client) WriteAlert(rule rulefmt.Rule, networkID string) error {
 
 	ruleFile, err := c.initializeRuleFile(filename, networkID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return false
+	}
+	return ruleFile.GetRule(rulename) != nil
+}
+
+// WriteRule takes an alerting rule and writes it to the rules file for the
+// given networkID
+func (c *Client) WriteRule(rule rulefmt.Rule, networkID string) error {
+	filename := makeFilename(networkID, c.rulesDir)
+
+	c.fileLocks.Lock(filename)
+	defer c.fileLocks.Unlock(filename)
+
+	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	if err != nil {
+		return err
 	}
 	ruleFile.AddRule(rule)
 
 	err = c.writeRuleFile(ruleFile, filename)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return err
+	}
+	return nil
+}
+
+func (c *Client) UpdateRule(rule rulefmt.Rule, networkID string) error {
+	filename := makeFilename(networkID, c.rulesDir)
+
+	c.fileLocks.Lock(filename)
+	defer c.fileLocks.Unlock(filename)
+
+	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	if err != nil {
+		return err
+	}
+
+	err = SecureRule(&rule, networkID)
+	if err != nil {
+		return err
+	}
+
+	err = ruleFile.ReplaceRule(rule)
+	if err != nil {
+		return err
+	}
+
+	err = c.writeRuleFile(ruleFile, filename)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -80,9 +122,9 @@ func (c *Client) ReadRules(ruleName string, networkID string) ([]rulefmt.Rule, e
 	if ruleName == "" {
 		return ruleFile.Rules(), nil
 	}
-	foundRule, err := ruleFile.GetRule(ruleName)
-	if err != nil {
-		return nil, err
+	foundRule := ruleFile.GetRule(ruleName)
+	if foundRule == nil {
+		return nil, fmt.Errorf("rule %s not found", ruleName)
 	}
 	return []rulefmt.Rule{*foundRule}, nil
 }
@@ -93,22 +135,25 @@ func (c *Client) DeleteRule(ruleName string, networkID string) error {
 	defer c.fileLocks.Unlock(filename)
 
 	ruleFile, err := c.readRuleFile(filename)
+	if err != nil {
+		return err
+	}
 
 	err = ruleFile.DeleteRule(ruleName)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, err)
+		return err
 	}
 
 	err = c.writeRuleFile(ruleFile, filename)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return err
 	}
 	return nil
 }
 
 func (c *Client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
-	err = ioutil.WriteFile(filename, yamlFile, 0660)
+	err = ioutil.WriteFile(filename, yamlFile, 0666)
 	if err != nil {
 		return fmt.Errorf("error writing rules file: %v\n", yamlFile)
 	}

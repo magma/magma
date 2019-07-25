@@ -11,6 +11,8 @@ package config
 import (
 	"fmt"
 
+	"magma/feg/cloud/go/feg"
+
 	"github.com/golang/protobuf/proto"
 
 	"magma/feg/cloud/go/protos/mconfig"
@@ -37,6 +39,7 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 	hss := gwConfig.GetHss()
 	swxc := gwConfig.GetSwx()
 	eapAka := gwConfig.GetEapAka()
+	aaa := gwConfig.GetAaaServer()
 
 	hssSubProfile := map[string]*mconfig.HSSConfig_SubscriptionProfile{}
 	for imsi, profile := range hss.GetSubProfiles() {
@@ -89,6 +92,12 @@ func (builder *Builder) Build(networkId string, gatewayId string) (map[string]pr
 			Timeout:  eapAka.GetTimeout().ToMconfig(),
 			PlmnIds:  eapAka.GetPlmnIds(),
 		},
+		"aaa_server": &mconfig.AAAConfig{
+			LogLevel:             protos.LogLevel_INFO,
+			IdleSessionTimeoutMs: aaa.GetIdleSessionTimeoutMs(),
+			AccountingEnabled:    aaa.GetAccountingEnabled(),
+			CreateSessionOnAuth:  aaa.GetCreateSessionOnAuth(),
+		},
 	}, nil
 }
 
@@ -99,7 +108,7 @@ func GetGatewayConfig(networkId string, gatewayId string) (*config_protos.Config
 		ok         bool
 	)
 	// Get Network configs to fill in GW configs or return
-	netCfg, nerr := config.GetConfig(networkId, FegNetworkType, networkId)
+	netCfg, nerr := config.GetConfig(networkId, feg.FegNetworkType, networkId)
 	if nerr == nil && netCfg != nil {
 		networkCfg, ok = netCfg.(*config_protos.Config)
 		if !ok {
@@ -109,7 +118,7 @@ func GetGatewayConfig(networkId string, gatewayId string) (*config_protos.Config
 		}
 	}
 	// Check if there are GW configs
-	cfg, err := config.GetConfig(networkId, FegGatewayType, gatewayId)
+	cfg, err := config.GetConfig(networkId, feg.FegGatewayType, gatewayId)
 	if err != nil {
 		return nil, err
 	}

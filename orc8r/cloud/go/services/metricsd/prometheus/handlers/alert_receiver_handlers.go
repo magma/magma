@@ -20,46 +20,46 @@ import (
 	"github.com/prometheus/alertmanager/config"
 )
 
-func GetConfigureAlertReceiverHandler(webServerURL string) func(c echo.Context) error {
+func GetConfigureAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkReceiverPath(webServerURL, networkID)
+		url := makeNetworkReceiverPath(configManagerURL, networkID)
 		return configureAlertReceiver(c, url)
 	}
 }
 
-func GetRetrieveAlertReceiverHandler(webServerURL string) func(c echo.Context) error {
+func GetRetrieveAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkReceiverPath(webServerURL, networkID)
+		url := makeNetworkReceiverPath(configManagerURL, networkID)
 		return retrieveAlertReceivers(c, url)
 	}
 }
 
-func GetRetrieveAlertRouteHandler(webServerURL string) func(c echo.Context) error {
+func GetRetrieveAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkRoutePath(webServerURL, networkID)
+		url := makeNetworkRoutePath(configManagerURL, networkID)
 		return retrieveAlertRoute(c, url)
 	}
 }
 
-func GetUpdateAlertRouteHandler(webServerURL string) func(c echo.Context) error {
+func GetUpdateAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
-		url := makeNetworkRoutePath(webServerURL, networkID)
+		url := makeNetworkRoutePath(configManagerURL, networkID)
 		return updateAlertRoute(c, url)
 	}
 }
@@ -70,7 +70,7 @@ func configureAlertReceiver(c echo.Context, url string) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = sendConfig(receiver, url)
+	err = sendConfig(receiver, url, http.MethodPost)
 	if err != nil {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
@@ -86,7 +86,9 @@ func retrieveAlertReceivers(c echo.Context, url string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return handlers.HttpError(fmt.Errorf("alert server responded with error"), resp.StatusCode)
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error reading receivers: %v", body.Message), resp.StatusCode)
 	}
 	var recs []receivers.Receiver
 	err = json.NewDecoder(resp.Body).Decode(&recs)
@@ -104,10 +106,15 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error reading alerting route: %v", body.Message), resp.StatusCode)
+	}
 	var route config.Route
 	err = json.NewDecoder(resp.Body).Decode(&route)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding server response %v", err))
+		return handlers.HttpError(fmt.Errorf("error decoding server response %v", err), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, route)
 }
@@ -115,18 +122,12 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 func updateAlertRoute(c echo.Context, url string) error {
 	route, err := buildRouteFromContext(c)
 	if err != nil {
-		return err
+		return handlers.HttpError(fmt.Errorf("invalid route specification: %v\n", err), http.StatusBadRequest)
 	}
-	client := &http.Client{}
-	resp, err := client.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
 
-	err = sendConfig(route, url)
+	err = sendConfig(route, url, http.MethodPost)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return handlers.HttpError(fmt.Errorf("error updating alert route: %v", err), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -141,18 +142,18 @@ func buildReceiverFromContext(c echo.Context) (receivers.Receiver, error) {
 }
 
 func buildRouteFromContext(c echo.Context) (config.Route, error) {
-	route := config.Route{}
-	err := json.NewDecoder(c.Request().Body).Decode(&route)
+	jsonRoute := receivers.RouteJSONWrapper{}
+	err := json.NewDecoder(c.Request().Body).Decode(&jsonRoute)
 	if err != nil {
 		return config.Route{}, err
 	}
-	return route, nil
+	return jsonRoute.ToPrometheusConfig()
 }
 
-func makeNetworkReceiverPath(webServerURL, networkID string) string {
-	return webServerURL + "/" + networkID + "/receiver"
+func makeNetworkReceiverPath(configManagerURL, networkID string) string {
+	return configManagerURL + "/" + networkID + "/receiver"
 }
 
-func makeNetworkRoutePath(webSeverURL, networkID string) string {
-	return webSeverURL + "/" + networkID + "/receiver/route"
+func makeNetworkRoutePath(configManagerURL, networkID string) string {
+	return configManagerURL + "/" + networkID + "/receiver/route"
 }

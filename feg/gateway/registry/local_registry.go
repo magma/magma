@@ -9,7 +9,9 @@ LICENSE file in the root directory of this source tree.
 package registry
 
 import (
+	"log"
 	platform_registry "magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/service/serviceregistry"
 
 	"google.golang.org/grpc"
 )
@@ -17,20 +19,24 @@ import (
 const (
 	ModuleName = "feg"
 
+	CONTROL_PROXY = "CONTROL_PROXY"
 	S6A_PROXY     = "S6A_PROXY"
 	SESSION_PROXY = "SESSION_PROXY"
 	SWX_PROXY     = "SWX_PROXY"
 	HEALTH        = "HEALTH"
 	CSFB          = "CSFB"
 	FEG_HELLO     = "FEG_HELLO"
-	AAA           = "AAA"
+	AAA_SERVER    = "AAA_SERVER"
 	EAP           = "EAP"
 	EAP_AKA       = "EAP_AKA"
 	RADIUS        = "RADIUS"
+	REDIS         = "REDIS"
 	MOCK_VLR      = "MOCK_VLR"
 	MOCK_OCS      = "MOCK_OCS"
 	MOCK_PCRF     = "MOCK_PCRF"
 	MOCK_HSS      = "HSS"
+
+	SESSION_MANAGER = "SESSIOND"
 )
 
 // Add a new service.
@@ -55,6 +61,9 @@ func addLocalService(serviceType string, port int) {
 }
 
 func init() {
+	// Add default Local Service Locations
+	addLocalService(REDIS, 6380)
+
 	addLocalService(FEG_HELLO, 9093)
 	addLocalService(SESSION_PROXY, 9097)
 	addLocalService(S6A_PROXY, 9098)
@@ -63,7 +72,7 @@ func init() {
 
 	addLocalService(RADIUS, 9108)
 	addLocalService(EAP, 9109)
-	addLocalService(AAA, 9109)
+	addLocalService(AAA_SERVER, 9109)
 	addLocalService(EAP_AKA, 9123)
 	addLocalService(SWX_PROXY, 9110)
 
@@ -71,4 +80,13 @@ func init() {
 	addLocalService(MOCK_PCRF, 9202)
 	addLocalService(MOCK_VLR, 9203)
 	addLocalService(MOCK_HSS, 9204)
+
+	// Overwrite/Add from /etc/magma/service_registry.yml if it exists
+	// moduleName is "" since all feg configs lie in /etc/magma without a module name
+	locations, err := serviceregistry.LoadServiceRegistryConfig("")
+	if err != nil {
+		log.Printf("Error loading FeG service_registry.yml: %v", err)
+	} else if len(locations) > 0 {
+		platform_registry.AddServices(locations...)
+	}
 }

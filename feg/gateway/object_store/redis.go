@@ -11,7 +11,7 @@ package object_store
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/service/config"
+	"magma/feg/gateway/registry"
 
 	"github.com/go-redis/redis"
 )
@@ -34,18 +34,13 @@ type RedisClientImpl struct {
 // NewRedisClient gets the redis configuration from the service config and returns
 // a new client or an error if something went wrong
 func NewRedisClient() (RedisClient, error) {
-	// moduleName is "" since all feg configs lie in /etc/magma/configs without a module name
-	configMap, err := config.GetServiceConfig("", "redis")
-	if err != nil {
-		return nil, err
-	}
-	port, err := configMap.GetIntParam("port")
+	address, err := registry.GetServiceAddress(registry.REDIS)
 	if err != nil {
 		return nil, err
 	}
 	return &RedisClientImpl{
 		rawClient: redis.NewClient(&redis.Options{
-			Addr: fmt.Sprintf("127.0.0.1:%d", port),
+			Addr: fmt.Sprintf(address),
 		}),
 	}, nil
 }

@@ -20,7 +20,7 @@ message PhysicalEntity {
     bytes info = 3;
 }
 
-message RegisterDevicesRequest {
+message RegisterOrUpdateDevicesRequest {
     string networkID = 1;
     repeated PhysicalEntity entities = 2;
 }
@@ -46,7 +46,8 @@ message DeleteDevicesRequest {
 }
 
 service Device {
-    rpc RegisterDevices(RegisterDevicesRequest) returns (magma.orc8r.Void) {}
+    rpc RegisterDevices(RegisterOrUpdateDevicesRequest) returns (magma.orc8r.Void) {}
+    rpc UpdateDevices(RegisterOrUpdateDevicesRequest) returns (magma.orc8r.Void) {}
     rpc GetDeviceInfo(GetDeviceInfoRequest) returns (GetDeviceInfoResponse) {}
     rpc DeleteDevices(DeleteDevicesRequest) returns (magma.orc8r.Void) {}
 }

@@ -13,7 +13,7 @@ from magmaexample.hello.rpc_servicer import HelloRpcServicer
 
 def main():
     """ main() for hello service """
-    service = MagmaService('hello')
+    service = MagmaService('hello', None)
 
     # Add all servicers to the server
     hello_servicer = HelloRpcServicer()

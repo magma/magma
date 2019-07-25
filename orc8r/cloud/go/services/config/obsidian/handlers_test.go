@@ -18,15 +18,13 @@ import (
 	"testing"
 
 	obisidan_config "magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/config"
 	"magma/orc8r/cloud/go/services/config/obsidian"
-	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/protos"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -37,19 +35,25 @@ type (
 	fooConfig struct {
 		Foo, Bar string
 	}
-	fooConfigManager struct{}
+	fooConfigManager struct {
+		domain string
+	}
 
 	// To coerce errors in config conversion
 	convertErrConfig struct {
 		Val int
 	}
-	convertErrConfigManager struct{}
+	convertErrConfigManager struct {
+		domain string
+	}
 
 	// To coerce errors in config service serialization/deserialization
 	errConfig struct {
 		ShouldErrorOnMarshal, ShouldErrorOnUnmarshal string // Y | N
 	}
-	errConfigManager struct{}
+	errConfigManager struct {
+		domain string
+	}
 )
 
 func mockKeyGetter(_ echo.Context) (string, *echo.HTTPError) {
@@ -57,12 +61,14 @@ func mockKeyGetter(_ echo.Context) (string, *echo.HTTPError) {
 }
 
 func TestReadAllKeysConfigHandler(t *testing.T) {
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
-	config_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 
 	e := echo.New()
 	req := httptest.NewRequest(echo.GET, "/", nil)
@@ -72,36 +78,40 @@ func TestReadAllKeysConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
+	err = configurator.CreateNetwork(configurator.Network{ID: "network1"})
+	assert.NoError(t, err)
+
 	// 404
 	actual := &fooConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).MigratedHandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
 	// Happy path
 	a_config := &fooConfig{Foo: "foo", Bar: "bar"}
-	err = config.CreateConfig("network1", "foo", "key", a_config)
+	_, err = configurator.CreateEntity("network1", configurator.NetworkEntity{Key: "key", Type: "foo", Config: a_config})
 	assert.NoError(t, err)
 
 	actual_keys := &[]string{}
 	expected := &[]string{"key"}
-	err = obsidian.GetReadAllKeysConfigHandler("google.com", "foo").HandlerFunc(c)
+	err = obsidian.GetReadAllKeysConfigHandler("google.com", "foo").MigratedHandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	err = json.Unmarshal(rec.Body.Bytes(), actual_keys)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual_keys)
-
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 }
 
 func TestGetConfigHandler(t *testing.T) {
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
-	config_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 
 	e := echo.New()
 	req := httptest.NewRequest(echo.GET, "/", nil)
@@ -111,55 +121,49 @@ func TestGetConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
+	err = configurator.CreateNetwork(configurator.Network{ID: "network1"})
+	assert.NoError(t, err)
+
 	// 404
 	actual := &fooConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).MigratedHandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
 	// Happy path
 	expected := &fooConfig{Foo: "foo", Bar: "bar"}
-	err = config.CreateConfig("network1", "foo", "key", expected)
+	_, err = configurator.CreateEntity("network1", configurator.NetworkEntity{Key: "key", Type: "foo", Config: expected})
 	assert.NoError(t, err)
 
-	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).MigratedHandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	err = json.Unmarshal(rec.Body.Bytes(), actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	// Convert error
-	expectedConvertErrCfg := &convertErrConfig{Val: 1}
-	err = config.CreateConfig("network1", "convertErr", "key", expectedConvertErrCfg)
-	assert.NoError(t, err)
-
-	actualConvertErr := &convertErrConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "convertErr", mockKeyGetter, actualConvertErr).HandlerFunc(c)
-	assert.Error(t, err)
-	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
-
 	// Config service error
 	expectedUnmarshalErrCfg := &errConfig{ShouldErrorOnMarshal: "N", ShouldErrorOnUnmarshal: "Y"}
-	err = config.CreateConfig("network1", "err", "key", expectedUnmarshalErrCfg)
-	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("network1", configurator.NetworkEntity{Key: "key", Type: "err", Config: expectedUnmarshalErrCfg})
+	assert.Error(t, err)
 
 	actualUnmarshalErr := &errConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "err", mockKeyGetter, actualUnmarshalErr).HandlerFunc(c)
+	err = obsidian.GetReadConfigHandler("google.com", "err", mockKeyGetter, actualUnmarshalErr).MigratedHandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 }
 
 func TestCreateConfigHandler(t *testing.T) {
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
 	configurator_test_init.StartTestService(t)
-	config_test_init.StartTestService(t)
 
 	e := echo.New()
 
@@ -172,55 +176,30 @@ func TestCreateConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
+	err = configurator.CreateNetwork(configurator.Network{ID: "network1"})
+	assert.NoError(t, err)
+
+	err = obsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).MigratedHandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)
 	assert.Equal(t, `"key"`, rec.Body.String())
-	actual, err := config.GetConfig("network1", "foo", "key")
+	actual, err := configurator.LoadEntityConfig("network1", "foo", "key")
 	assert.NoError(t, err)
 	assert.Equal(t, &fooConfig{Foo: "foo", Bar: "bar"}, actual)
 
-	// Test changes are properly reflected in configurator
-	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
-
-	glog.Errorf("IGNORE REST")
-	// Validate (convert) error
-	post = `{"Val": 1}`
-	req = httptest.NewRequest(echo.PUT, "/", strings.NewReader(post))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	c = e.NewContext(req, rec)
-	c.SetParamNames("network_id")
-	c.SetParamValues("network1")
-
-	err = obsidian.GetCreateConfigHandler("google.com", "convertErr", mockKeyGetter, &convertErrConfig{}).HandlerFunc(c)
-	assert.Error(t, err)
-	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	assert.Contains(t, err.Error(), "Validate error")
-
-	// Config service error (creating duplicate config)
-	post = `{"Foo": "bar", "Bar": "foo"}`
-	req = httptest.NewRequest(echo.PUT, "/", strings.NewReader(post))
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	c = e.NewContext(req, rec)
-	c.SetParamNames("network_id")
-	c.SetParamValues("network1")
-
-	err = obsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
-	assert.Error(t, err)
-	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
-	assert.Contains(t, err.Error(), "Creating already existing config")
-
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 }
 
 func TestUpdateConfigHandler(t *testing.T) {
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}), configurator.NewNetworkConfigSerde("foo_network", &fooConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
-	config_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
+	err = configurator.CreateNetwork(configurator.Network{ID: "network1", Configs: map[string]interface{}{"foo_network": &fooConfig{Foo: "foo", Bar: "bar"}}})
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -234,14 +213,12 @@ func TestUpdateConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetUpdateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
+	err = obsidian.GetUpdateConfigHandler("google.com", "foo_network", mockKeyGetter, &fooConfig{}).MigratedHandlerFunc(c)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, rec.Code)
-	actualFoo, err := config.GetConfig("network1", "foo", "key")
-	assert.Equal(t, &fooConfig{Foo: "bar", Bar: "foo"}, actualFoo)
 
-	// Test changes are properly reflected in configurator
-	testEntityConfigsInConfigurator(t, "network1", "foo", "key", &fooConfig{Foo: "bar", Bar: "foo"})
+	assert.Equal(t, http.StatusOK, rec.Code)
+	network, err := configurator.LoadNetwork("network1", false, true)
+	assert.Equal(t, &fooConfig{Foo: "bar", Bar: "foo"}, network.Configs["foo_network"])
 
 	// Validate (convert) error
 	post = `{"Value": 1}`
@@ -251,7 +228,7 @@ func TestUpdateConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetUpdateConfigHandler("google.com", "convertErr", mockKeyGetter, &convertErrConfig{}).HandlerFunc(c)
+	err = obsidian.GetUpdateConfigHandler("google.com", "convertErr", mockKeyGetter, &convertErrConfig{}).MigratedHandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Validate error")
@@ -264,23 +241,23 @@ func TestUpdateConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetUpdateConfigHandler("google.com", "foo", func(ctx echo.Context) (string, *echo.HTTPError) { return "dne", nil }, &fooConfig{}).HandlerFunc(c)
+	err = obsidian.GetUpdateConfigHandler("google.com", "foo", func(ctx echo.Context) (string, *echo.HTTPError) { return "dne", nil }, &fooConfig{}).MigratedHandlerFunc(c)
 	assert.Error(t, err)
-	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
-	assert.Contains(t, err.Error(), "Updating nonexistent config")
 
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 }
 
 func TestDeleteConfigHandler(t *testing.T) {
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{}, &convertErrConfigManager{}, &errConfigManager{})
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
+	err := serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	assert.NoError(t, err)
+	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
+	assert.NoError(t, err)
 	obisidan_config.TLS = false // To bypass access control
 
-	config_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	err = config.CreateConfig("network1", "foo", "key", &fooConfig{Foo: "foo", Bar: "bar"})
+	_, err = configurator.CreateEntity("network1", configurator.NetworkEntity{Type: "foo", Key: "key", Config: &fooConfig{Foo: "foo", Bar: "bar"}})
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -292,51 +269,11 @@ func TestDeleteConfigHandler(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
+	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).MigratedHandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	/// Test changes are properly reflected in configurator
-	testEntityConfigsNotInConfigurator(t, "network1", "foo", "key")
-
-	// Config service error - deleting nonexistent config
-	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
-	assert.Error(t, err)
-	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
-	assert.Contains(t, err.Error(), "Deleting nonexistent config")
-
-	serde.UnregisterSerdesForDomain(t, config.SerdeDomain)
-}
-
-func testEntityConfigsInConfigurator(t *testing.T, networkID, entityType, entityID string, expectedConfig interface{}) {
-	entities, entitiesNotFound, err := configurator.LoadEntities(
-		networkID,
-		nil,
-		nil,
-		[]*protos.EntityID{{Type: entityType, Id: entityID}},
-		&protos.EntityLoadCriteria{LoadConfig: true},
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entities))
-	assert.Equal(t, 0, len(entitiesNotFound))
-	actualConfig, err := serde.Deserialize(config.SerdeDomain, entityType, entities[0].Config)
-	assert.NoError(t, err)
-	assert.Equal(t, expectedConfig, actualConfig)
-}
-
-func testEntityConfigsNotInConfigurator(t *testing.T, networkID, entityType, entityID string) {
-	entityTK := protos.EntityID{Type: entityType, Id: entityID}
-	entities, entitiesNotFound, err := configurator.LoadEntities(
-		networkID,
-		nil,
-		nil,
-		[]*protos.EntityID{&entityTK},
-		&protos.EntityLoadCriteria{LoadConfig: true},
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entities))
-	assert.Equal(t, 0, len(entitiesNotFound))
-	assert.Equal(t, []byte(nil), entities[0].Config)
+	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 }
 
 // Interface implementations for test configs
@@ -355,8 +292,16 @@ func (foo *fooConfig) FromServiceModel(serviceModel interface{}) error {
 	return nil
 }
 
-func (*fooConfigManager) GetDomain() string {
-	return config.SerdeDomain
+func (foo *fooConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(foo)
+}
+
+func (foo *fooConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, foo)
+}
+
+func (f *fooConfigManager) GetDomain() string {
+	return f.domain
 }
 
 func (*fooConfigManager) GetType() string {
@@ -389,8 +334,16 @@ func (*convertErrConfig) FromServiceModel(serviceModel interface{}) error {
 	return errors.New("FromSerivceModel error")
 }
 
-func (*convertErrConfigManager) GetDomain() string {
-	return config.SerdeDomain
+func (*convertErrConfig) MarshalBinary() ([]byte, error) {
+	return nil, errors.New("MarshalBinary error")
+}
+
+func (*convertErrConfig) UnmarshalBinary(data []byte) error {
+	return errors.New("UnmarshalBinary error")
+}
+
+func (c *convertErrConfigManager) GetDomain() string {
+	return c.domain
 }
 
 func (*convertErrConfigManager) GetType() string {
@@ -420,12 +373,20 @@ func (c *errConfig) FromServiceModel(serviceModel interface{}) error {
 	return nil
 }
 
+func (c *errConfig) MarshalBinary() ([]byte, error) {
+	return json.Marshal(c)
+}
+
+func (c *errConfig) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, c)
+}
+
 func (*errConfigManager) GetType() string {
 	return "err"
 }
 
-func (*errConfigManager) GetDomain() string {
-	return config.SerdeDomain
+func (e *errConfigManager) GetDomain() string {
+	return e.domain
 }
 
 func (*errConfigManager) Serialize(config interface{}) ([]byte, error) {

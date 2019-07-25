@@ -10,10 +10,11 @@
 
 import type {ProjectLink} from './AppDrawerProjectNavigation';
 
-import {makeStyles} from '@material-ui/styles';
 import AppSideBarProjectNavigation from './AppSideBarProjectNavigation.react';
+import ExpandButton from './ExpandButton.react';
 import ProfileButton from '../ProfileButton.react';
-import React from 'react';
+import React, {useState} from 'react';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -24,20 +25,39 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column',
     height: '100vh',
     width: '82px',
-    padding: '60px 0px 20px 0px',
+    minWidth: '82px',
+    padding: '20px 0px 20px 0px',
+    position: 'relative',
   },
   mainItems: {
     display: 'flex',
+    flexGrow: 1,
     flexDirection: 'column',
     alignItems: 'center',
     width: '100%',
     flexGrow: 1,
+    paddingTop: '40px',
   },
   secondaryItems: {
     display: 'flex',
+    flexGrow: 1,
     flexDirection: 'column',
     alignItems: 'center',
     width: '100%',
+    justifyContent: 'flex-end',
+  },
+  expandButton: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
+  visibleExpandButton: {
+    visibility: 'visible',
+  },
+  hiddenExpandButton: {
+    visibility: 'hidden',
   },
 }));
 
@@ -49,21 +69,59 @@ type Props = {
     isSuperUser: boolean,
   },
   projects?: ProjectLink[],
+  useExpandButton: boolean,
+  showExpandButton: boolean,
+  expanded: boolean,
+  onExpandClicked?: () => void,
 };
 
-export default function AppSideBar(props: Props) {
-  const {user} = props;
+const AppSideBar = (props: Props) => {
+  const {
+    user,
+    expanded,
+    showExpandButton,
+    useExpandButton,
+    onExpandClicked,
+    mainItems,
+    secondaryItems,
+  } = props;
   const classes = useStyles();
   const projects = props.projects || [];
-
+  const [hovered, setIsHovered] = useState(false);
   return (
-    <div className={classes.root}>
-      <div className={classes.mainItems}>{props.mainItems}</div>
+    <div
+      className={classes.root}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}>
+      <div className={classes.mainItems}>{mainItems}</div>
+      {useExpandButton && (
+        <div className={classes.expandButton}>
+          <div
+            className={
+              showExpandButton || hovered
+                ? classes.visibleExpandButton
+                : classes.hiddenExpandButton
+            }>
+            <ExpandButton
+              expanded={expanded}
+              onClick={() => onExpandClicked && onExpandClicked()}
+            />
+          </div>
+        </div>
+      )}
       <div className={classes.secondaryItems}>
-        {props.secondaryItems}
+        {secondaryItems}
         <ProfileButton user={user} />
       </div>
       <AppSideBarProjectNavigation projects={projects} />
     </div>
   );
-}
+};
+
+AppSideBar.defaultProps = {
+  useExpandButton: false,
+  showExpandButton: false,
+  expanded: false,
+};
+
+export default AppSideBar;

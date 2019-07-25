@@ -8,4 +8,9 @@ LICENSE file in the root directory of this source tree.
 
 package cwf
 
-const ModuleName = "cwf"
+const (
+	ModuleName = "cwf"
+
+	CwfNetworkPath = "carrier_wifi"
+	CwfNetworkType = "carrier_wifi_network"
+)

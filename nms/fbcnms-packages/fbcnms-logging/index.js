@@ -66,6 +66,7 @@ module.exports = {
   getHttpLogger: (callingModule: any) => {
     const logger = module.exports.getLogger(callingModule);
     return morgan('combined', {
+      skip: (req, _) => req.baseUrl == '/healthz',
       stream: {
         write: message => {
           logger.info(message);

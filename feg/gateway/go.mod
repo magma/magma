@@ -8,11 +8,13 @@ module magma/feg/gateway
 
 replace (
 	github.com/fiorix/go-diameter => ./third-party/go/src/github.com/fiorix/go-diameter
+
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
 
 	magma/lte/cloud/go => ../../lte/cloud/go
 	magma/orc8r/cloud/go => ../../orc8r/cloud/go
+	magma/orc8r/gateway => ../../orc8r/gateway/go
 )
 
 require (
@@ -23,7 +25,6 @@ require (
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/mux v1.6.2
 	github.com/ishidawataru/sctp v0.0.0-20180918013207-6e2cb1366111
-	github.com/onsi/gomega v1.4.2 // indirect
 	github.com/prometheus/client_golang v0.9.2
 	github.com/shirou/gopsutil v2.18.10+incompatible
 	github.com/stretchr/testify v1.3.0
@@ -35,4 +36,5 @@ require (
 
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
+	magma/orc8r/gateway v0.0.0
 )

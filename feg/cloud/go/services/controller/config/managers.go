@@ -12,14 +12,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/feg/cloud/go/feg"
 	config_protos "magma/feg/cloud/go/services/controller/protos"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
-)
-
-const (
-	FegNetworkType = "federation_network"
-	FegGatewayType = "federation_gateway"
 )
 
 type FegNetworkConfigManager struct{}
@@ -29,7 +25,7 @@ func (*FegNetworkConfigManager) GetDomain() string {
 }
 
 func (*FegNetworkConfigManager) GetType() string {
-	return FegNetworkType
+	return feg.FegNetworkType
 }
 
 func (*FegNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
@@ -59,7 +55,7 @@ func (*FegGatewayConfigManager) GetDomain() string {
 }
 
 func (*FegGatewayConfigManager) GetType() string {
-	return FegGatewayType
+	return feg.FegGatewayType
 }
 
 func (*FegGatewayConfigManager) Serialize(config interface{}) ([]byte, error) {

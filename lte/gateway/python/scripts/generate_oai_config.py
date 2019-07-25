@@ -19,7 +19,7 @@ from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
 
 from magma.common.misc_utils import get_ip_from_if, get_ip_from_if_cidr
-from magma.configuration.mconfig_managers import load_service_mconfig
+from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.configuration.service_configs import get_service_config_value
 
 CONFIG_OVERRIDE_DIR = "/var/opt/magma/tmp"
@@ -39,7 +39,7 @@ def _get_dns_ip(iface_config):
     If caching is enabled, use the ip of interface that dnsd listens over.
     Otherwise, just use dns server in yml.
     """
-    if load_service_mconfig("mme").enable_dns_caching:
+    if load_service_mconfig_as_json("mme")["enableDnsCaching"]:
         iface_name = get_service_config_value("dnsd", iface_config, "")
         return get_ip_from_if(iface_name)
     return get_service_config_value("spgw", "ipv4_dns", "")
@@ -61,43 +61,59 @@ def _get_oai_log_level():
 
 
 def _get_relay_enabled():
-    if load_service_mconfig("mme").relay_enabled:
+    if load_service_mconfig_as_json("mme")["relayEnabled"]:
         return "yes"
     return "no"
 
 
 def _get_non_eps_service_control():
-    if load_service_mconfig("mme").non_eps_service_control:
-        if load_service_mconfig("mme").non_eps_service_control == 0:
+    non_eps_service_control = \
+        load_service_mconfig_as_json("mme")["nonEpsServiceControl"]
+    if non_eps_service_control:
+        if non_eps_service_control == 0:
             return "OFF"
-        elif load_service_mconfig("mme").non_eps_service_control == 1:
+        elif non_eps_service_control == 1:
             return "CSFB_SMS"
-        elif load_service_mconfig("mme").non_eps_service_control == 2:
+        elif non_eps_service_control == 2:
             return "SMS"
     return "OFF"
 
 
 def _get_lac():
-    if load_service_mconfig("mme").lac:
-        return load_service_mconfig("mme").lac
+    lac = load_service_mconfig_as_json("mme")["lac"]
+    if lac:
+        return lac
     return 0
 
 
 def _get_csfb_mcc():
-    if load_service_mconfig("mme").csfb_mcc:
-        return load_service_mconfig("mme").csfb_mcc
+    csfb_mcc = load_service_mconfig_as_json("mme")["csfbMcc"]
+    if csfb_mcc:
+        return csfb_mcc
     return ""
 
 
 def _get_csfb_mnc():
-    if load_service_mconfig("mme").csfb_mnc:
-        return load_service_mconfig("mme").csfb_mnc
+    csfb_mnc = load_service_mconfig_as_json("mme")["csfbMnc"]
+    if csfb_mnc:
+        return csfb_mnc
     return ""
 
 
 def _get_identity():
     realm = get_service_config_value("mme", "realm", "")
     return "{}.{}".format(socket.gethostname(), realm)
+
+
+def _get_attached_enodeb_tacs():
+    mme_config = load_service_mconfig_as_json("mme")
+    # attachedEnodebTacs overrides 'tac', which is being deprecated, but for
+    # now, both are supported
+    tac = mme_config["tac"]
+    attached_enodeb_tacs = mme_config["attachedEnodebTacs"]
+    if len(attached_enodeb_tacs) == 0:
+        return [tac]
+    return attached_enodeb_tacs
 
 
 def _get_context():
@@ -117,6 +133,7 @@ def _get_context():
     context["csfb_mnc"] = _get_csfb_mnc()
     context["lac"] = _get_lac()
     context["use_stateless"] = get_service_config_value("mme", "use_stateless", "")
+    context["attached_enodeb_tacs"] = _get_attached_enodeb_tacs()
     # set ovs params
     for key in (
         "ovs_bridge_name",

@@ -61,7 +61,7 @@ class SessionStateTest : public ::testing::Test {
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume)
   {
     CreditUpdateResponse charge_resp;
-    create_update_response("IMSI1", rating_group, volume, &charge_resp);
+    create_credit_update_response("IMSI1", rating_group, volume, &charge_resp);
     session_state->get_charging_pool().receive_credit(charge_resp);
   }
 
@@ -196,10 +196,10 @@ TEST_F(SessionStateTest, test_session_level_key)
 {
   EXPECT_EQ(nullptr, session_state->get_monitor_pool().get_session_level_key());
 
-  receive_credit_from_pcrf("m1", 1024, MonitoringLevel::SESSION_LEVEL);
+  receive_credit_from_pcrf("m1", 8000, MonitoringLevel::SESSION_LEVEL);
   EXPECT_EQ("m1", *session_state->get_monitor_pool().get_session_level_key());
   EXPECT_EQ(
-    session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 1024);
+    session_state->get_monitor_pool().get_credit("m1", ALLOWED_TOTAL), 8000);
 
   session_state->add_used_credit("rule1", 5000, 3000);
   EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_TX), 5000);
@@ -220,7 +220,7 @@ TEST_F(SessionStateTest, test_reauth_key)
 {
   insert_rule(1, "", "rule1", true);
 
-  receive_credit_from_ocs(1, 1024);
+  receive_credit_from_ocs(1, 1500);
 
   session_state->add_used_credit("rule1", 1000, 500);
 

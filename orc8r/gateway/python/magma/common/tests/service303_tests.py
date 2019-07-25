@@ -13,6 +13,7 @@ from unittest import TestCase, main, mock
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import ServiceInfo
 from orc8r.protos.service303_pb2_grpc import Service303Stub
+from orc8r.protos.mconfig import mconfigs_pb2
 
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
@@ -29,12 +30,14 @@ class Service303Tests(TestCase):
         self._stub = None
 
         # Use a new event loop to ensure isolated tests
-        self._service = MagmaService('test', loop=asyncio.new_event_loop())
+        self._service = MagmaService('test', mconfigs_pb2.MagmaD(),
+                                     loop=asyncio.new_event_loop())
         # Clear the global event loop so tests rely only on the event loop that
         # was manually set
         asyncio.set_event_loop(None)
 
-    @mock.patch('magma.common.service_registry.ServiceRegistry.get_proxy_config')
+    @mock.patch(
+        'magma.common.service_registry.ServiceRegistry.get_proxy_config')
     def test_service_run(self, mock_get_proxy_config):
         """
         Test if the service starts and stops gracefully.
@@ -53,7 +56,8 @@ class Service303Tests(TestCase):
 
         # Create a rpc stub and query the Service303 interface
         ServiceRegistry.add_service('test', '0.0.0.0', self._service.port)
-        channel = ServiceRegistry.get_rpc_channel('test', ServiceRegistry.LOCAL)
+        channel = ServiceRegistry.get_rpc_channel('test',
+                                                  ServiceRegistry.LOCAL)
         self._stub = Service303Stub(channel)
 
         info = ServiceInfo(name='test',

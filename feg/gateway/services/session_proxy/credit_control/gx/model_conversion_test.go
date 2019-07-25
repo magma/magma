@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"magma/feg/gateway/policydb/mocks"
+	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/lte/cloud/go/protos"
 
@@ -26,7 +27,10 @@ import (
 func TestReAuthRequest_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
 	monitoringKey := "monitor"
+	monitoringKey2 := "monitor2"
 	var ratingGroup uint32 = 42
+	var totalOctets uint64 = 2048
+	var monitoringLevel gx.MonitoringLevel = gx.SessionLevel
 	currentTime := time.Now()
 	protoTimestamp, err := ptypes.TimestampProto(currentTime)
 	assert.NoError(t, err)
@@ -52,6 +56,20 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 		},
 		EventTriggers:    []gx.EventTrigger{gx.UsageReportTrigger, gx.RevalidationTimeout},
 		RevalidationTime: &currentTime,
+		UsageMonitors: []*gx.UsageMonitoringInfo{
+			{
+				MonitoringKey: monitoringKey,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{
+					TotalOctets: &totalOctets,
+				},
+				Level: monitoringLevel,
+			},
+			{
+				MonitoringKey:      monitoringKey2,
+				GrantedServiceUnit: nil,
+				Level:              monitoringLevel,
+			},
+		},
 	}
 	policyClient := &mocks.PolicyDBClient{}
 	policyClient.On("GetRuleIDsForBaseNames", []string{"baseRemove1", "baseRemove2", "baseRemove3"}).
@@ -99,6 +117,23 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			protos.EventTrigger_REVALIDATION_TIMEOUT,
 		},
 		RevalidationTime: protoTimestamp,
+		UsageMonitoringCredits: []*protos.UsageMonitoringCredit{
+			{
+				Action:        protos.UsageMonitoringCredit_CONTINUE,
+				MonitoringKey: monitoringKey,
+				GrantedUnits: &protos.GrantedUnits{
+					Total: &protos.CreditUnit{IsValid: true, Volume: totalOctets},
+					Tx:    &protos.CreditUnit{IsValid: false},
+					Rx:    &protos.CreditUnit{IsValid: false},
+				},
+				Level: protos.MonitoringLevel(monitoringLevel),
+			},
+			{
+				Action:        protos.UsageMonitoringCredit_DISABLE,
+				MonitoringKey: monitoringKey2,
+				Level:         protos.MonitoringLevel(monitoringLevel),
+			},
+		},
 	}
 	assert.Equal(t, expected, actual)
 	policyClient.AssertExpectations(t)

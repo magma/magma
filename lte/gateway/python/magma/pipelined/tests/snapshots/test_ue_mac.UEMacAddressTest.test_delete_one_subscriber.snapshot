@@ -1,0 +1,2 @@
+ cookie=0x0, table=ue_mac(main_table), n_packets=0, n_bytes=0, priority=10,in_port=32768,dl_src=5e:cc:cc:aa:aa:fe actions=set_field:0x48c273a134fb->metadata,resubmit(,ingress(main_table)),set_field:0->reg0
+ cookie=0x0, table=ue_mac(main_table), n_packets=2, n_bytes=28, priority=10,in_port=LOCAL,dl_dst=5e:cc:cc:aa:aa:fe actions=set_field:0x48c273a134fb->metadata,resubmit(,ingress(main_table)),set_field:0->reg0

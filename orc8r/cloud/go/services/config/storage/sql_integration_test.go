@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/config/storage"
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	mstore "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -24,13 +24,13 @@ import (
 // Note this test does not run on sandcastle
 func TestSqlConfigStorage_Integration(t *testing.T) {
 	// Use an in-memory sqlite datastore
-	db, err := sql_utils.Open("sqlite3", ":memory:")
+	db, err := sqorc.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
 
 	// Check the contract for an empty datastore
-	store := storage.NewSqlConfigurationStorage(db, sql_utils.GetSqlBuilder())
+	store := storage.NewSqlConfigurationStorage(db, sqorc.GetSqlBuilder())
 	networkKeys, err := store.ListKeysForType("network", "network")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{}, networkKeys)

@@ -94,9 +94,7 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.P
 	} else {
 		sid = ctx.SessionId
 	}
-	if len(req) < 12 { // min Notification packet len
-		resultErr = fmt.Errorf("Session AKA-Notification for session ID %s is too short: %x", sid, req)
-	} else {
+	if len(req) >= 12 {
 		scanner, err := eap.NewAttributeScanner(req)
 		if err != nil {
 			resultErr = fmt.Errorf("Malformed Session AKA-Notification for session ID %s: %x", sid, req)

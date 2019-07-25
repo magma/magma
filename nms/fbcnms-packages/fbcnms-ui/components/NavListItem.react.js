@@ -8,13 +8,13 @@
  * @format
  */
 
+import React, {useCallback, useState} from 'react';
+import Tooltip from '@material-ui/core/Tooltip';
+import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
 import {Link} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
-import classNames from 'classnames';
-import React, {useState, useCallback} from 'react';
-import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles(theme => ({
   icon: {
@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
   tooltip: {
     '&&': {
       padding: '8px 12px',
-      backgroundColor: theme.palette.primary.dark,
+      backgroundColor: theme.palette.blueGrayDark,
     },
   },
   arrow: {
@@ -73,10 +73,11 @@ type Props = {
   label: string,
   icon: any,
   hidden: boolean,
+  onClick?: ?() => void,
 };
 
 export default function NavListItem(props: Props) {
-  const {hidden} = props;
+  const {hidden, onClick} = props;
   const classes = useStyles();
   const router = useRouter();
   const [arrowArrow, setArrowRef] = useState(null);
@@ -93,12 +94,15 @@ export default function NavListItem(props: Props) {
   const isSelected = router.location.pathname.includes(props.path);
 
   return (
-    <Link to={props.path} className={classes.link}>
+    <Link
+      to={props.path}
+      className={classes.link}
+      onClick={() => onClick && onClick()}>
       <Tooltip
         placement="right"
         title={
           <>
-            <Typography className={classes.tooltipLabel}>
+            <Typography className={classes.tooltipLabel} variant="body2">
               {props.label}
             </Typography>
             <span className={classes.arrow} ref={handleArrowRef} />

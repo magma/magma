@@ -69,6 +69,14 @@ spec:
               value: {{ print .Release.Name "-controller" | quote }}
             - name: CONTROLLER_HOSTNAME
               value: {{ required "proxy.spec.hostname must be provided" .Values.proxy.spec.hostname | quote }}
+            - name: HTTP_PROXY_HOSTNAME
+              value: {{ .Values.proxy.spec.http_proxy_hostname | quote }}
+            - name: HTTP_PROXY_BACKEND
+              value: {{ .Values.proxy.spec.http_proxy_backend | quote }}
+            - name: HTTP_PROXY_DOCKER_HOSTNAME
+              value: {{ .Values.proxy.spec.http_proxy_docker_hostname | quote }}
+            - name: HTTP_PROXY_GITHUB_HOSTNAME
+              value: {{ .Values.proxy.spec.http_proxy_github_hostname | quote }}
             # Hostname override for metricsd
             - name: HOST_NAME
               valueFrom:

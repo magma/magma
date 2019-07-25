@@ -33,6 +33,8 @@ export const gray2 = '#4d4d4e';
 export const gray3 = '#dadde1';
 export const gray4 = 'rgba(0,0,0,0.5)';
 export const gray5 = 'rgba(0,0,0,0.3)';
+export const gray6 = '#f0f0f0';
+export const gray7 = '#fafafa';
 export const gray50 = '#b3b3b3';
 export const green = '#66bb6a';
 export const lightBlue = '#42a5f5';
@@ -68,6 +70,8 @@ export default {
   gray3,
   gray4,
   gray5,
+  gray6,
+  gray7,
   green,
   lightBlue,
   orange,

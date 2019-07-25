@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+//go:generate bash -c "protoc -I . -I /usr/include --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
 package storage
 
 import (
@@ -14,6 +15,7 @@ import (
 
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
 )
 
@@ -26,13 +28,7 @@ type ConfiguratorStorageFactory interface {
 
 	// StartTransaction returns a ConfiguratorStorage implementation bound to
 	// a transaction. Transaction options can be optionally provided.
-	StartTransaction(ctx context.Context, opts *TxOptions) (ConfiguratorStorage, error)
-}
-
-// TxOptions specifies options for transactions started by
-// ConfiguratorStorageFactory
-type TxOptions struct {
-	ReadOnly bool
+	StartTransaction(ctx context.Context, opts *storage.TxOptions) (ConfiguratorStorage, error)
 }
 
 // ConfiguratorStorage is the interface for the configurator service's access
@@ -90,24 +86,25 @@ type ConfiguratorStorage interface {
 	// LoadGraphForEntity returns the full DAG which contains the requested
 	// entity. The load criteria fields on associations are ignored, and the
 	// returned entities will always have both association fields filled out.
-	LoadGraphForEntity(networkID string, entityID storage.TypeAndKey, loadCriteria EntityLoadCriteria) (EntityGraph, error)
+	LoadGraphForEntity(networkID string, entityID EntityID, loadCriteria EntityLoadCriteria) (EntityGraph, error)
 }
 
-// A network represents a tenant. Networks can be configured in a hierarchical
-// manner - network-level configurations are assumed to apply across multiple
-// entities within the network.
-type Network struct {
-	ID string
+// RollbackLogOnError calls Rollback on the provided ConfiguratorStorage and
+// logs if Rollback resulted in an error.
+func RollbackLogOnError(store ConfiguratorStorage) {
+	err := store.Rollback()
+	if err != nil {
+		glog.Errorf("error while rolling back tx: %s", err)
+	}
+}
 
-	Name        string
-	Description string
-
-	// Configs maps between a type value and a serialized representation of the
-	// configuration value. The type value will point to the Serde
-	// implementation which can deserialize the associated value.
-	Configs map[string][]byte
-
-	Version uint64
+// CommitLogOnError calls Commit on the provided ConfiguratorStorage and logs
+// if Commit resulted in an error.
+func CommitLogOnError(store ConfiguratorStorage) {
+	err := store.Commit()
+	if err != nil {
+		glog.Errorf("error while committing tx: %s", err)
+	}
 }
 
 // InternalNetworkID is the ID of the network under which all non-tenant
@@ -117,201 +114,46 @@ const InternalNetworkID = "network_magma_internal"
 const internalNetworkName = "Internal Magma Network"
 const internalNetworkDescription = "Internal network to hold non-network entities"
 
-// NetworkLoadCriteria specifies how much of a network to load
-type NetworkLoadCriteria struct {
-	// Set LoadMetadata to true to load metadata fields (name, description)
-	LoadMetadata bool
-
-	LoadConfigs bool
-}
-
 // FullNetworkLoadCriteria is a utility variable to specify a full network load
 var FullNetworkLoadCriteria = NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}
 
-type NetworkLoadResult struct {
-	Networks           []Network
-	NetworkIDsNotFound []string
+func (m *EntityID) ToTypeAndKey() storage.TypeAndKey {
+	return storage.TypeAndKey{Type: m.Type, Key: m.Key}
 }
 
-type FailedOperations map[string]error
-
-// NetworkUpdateCriteria specifies how to update a network
-type NetworkUpdateCriteria struct {
-	// ID of the network to update
-	ID string
-
-	// Set DeleteNetwork to true to delete the network
-	DeleteNetwork bool
-
-	// Set NewName or NewDescription to nil to indicate that no update is
-	// desired. To clear the value of name or description, set these fields to
-	// a pointer to an empty string.
-	NewName        *string
-	NewDescription *string
-
-	// New config values to add or existing ones to update
-	ConfigsToAddOrUpdate map[string][]byte
-
-	// Config values to delete
-	ConfigsToDelete []string
+func (m *EntityID) FromTypeAndKey(tk storage.TypeAndKey) *EntityID {
+	m.Type = tk.Type
+	m.Key = tk.Key
+	return m
 }
 
-// NetworkEntity is the storage representation of a logical component of a
-// network. Networks are partitioned into DAGs of entities.
-type NetworkEntity struct {
-	// (Type, Key) forms a unique identifier for the network entity within its
-	// network.
-	Type string
-	Key  string
-
-	Name        string
-	Description string
-
-	// PhysicalID will be non-empty if the entity corresponds to a physical
-	// asset.
-	PhysicalID string
-
-	// Serialized view of the entity's configuration. The value of the Type
-	// field will determine the Serde implementation for this value.
-	Config []byte
-
-	// GraphID is a mostly-internal field to designate the DAG that this
-	// network entity belongs to. This field is system-generated and will be
-	// ignored if set during entity creation.
-	GraphID string
-
-	// Associations are the directed edges originating from this entity.
-	Associations []storage.TypeAndKey
-
-	// ParentAssociations are the directed edges ending at this entity.
-	// This is a read-only field and will be ignored if set during entity
-	// creation.
-	ParentAssociations []storage.TypeAndKey
-
-	// Permissions defines the access control for this entity.
-	Permissions []ACL
-
-	Version uint64
+func (m *NetworkEntity) GetID() *EntityID {
+	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-func (ent NetworkEntity) GetTypeAndKey() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: ent.Type, Key: ent.Key}
+func (m *NetworkEntity) GetTypeAndKey() storage.TypeAndKey {
+	return m.GetID().ToTypeAndKey()
 }
 
-func (ent NetworkEntity) GetGraphEdges() []GraphEdge {
-	myTk := ent.GetTypeAndKey()
-	existingAssocs := map[storage.TypeAndKey]struct{}{}
-	ret := make([]GraphEdge, 0, len(ent.Associations))
-	for _, assoc := range ent.Associations {
-		if _, exists := existingAssocs[assoc]; exists {
+func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
+	myID := m.GetID()
+	existingAssocs := map[storage.TypeAndKey]bool{}
+
+	ret := make([]*GraphEdge, 0, len(m.Associations))
+	for _, assoc := range m.Associations {
+		if _, exists := existingAssocs[assoc.ToTypeAndKey()]; exists {
 			continue
 		}
-		ret = append(ret, GraphEdge{From: myTk, To: assoc})
-		existingAssocs[assoc] = struct{}{}
+		ret = append(ret, &GraphEdge{From: myID, To: assoc})
+		existingAssocs[assoc.ToTypeAndKey()] = true
 	}
 	return ret
 }
 
-// ACL (Access Control List) defines a specific permission for an entity on
-// access to other entities.
-type ACL struct {
-	// A unique system-generated identifier for this ACL.
-	ID string
-
-	// An ACL can apply to one or more networks.
-	Scope ACLScope
-
-	Permission ACLPermission
-
-	// An ACL can define access permissions to a specific type of entity, or
-	// all entities.
-	Type ACLType
-
-	// An ACL can optionally define access permissions to specific entity IDs
-	// If empty, the ACL will apply to all entities of the specified type.
-	IDFilter []string
-
-	Version uint64
-}
-
-// ACLScope is a oneof to define the scope of an ACL (specific networks or all
-// networks in the system).
-type ACLScope struct {
-	NetworkIDs []string
-	Wildcard   ACLWildcard
-}
-
-var WildcardACLScope = ACLScope{Wildcard: WildcardAll}
-
-func ACLScopeOf(networkIDs []string) ACLScope {
-	return ACLScope{NetworkIDs: networkIDs}
-}
-
-// ACLType is a oneof to define the scope of the permissions of an ACL (apply
-// to access on a specific type or all types within the scope).
-type ACLType struct {
-	EntityType string
-	Wildcard   ACLWildcard
-}
-
-var WildcardACLType = ACLType{Wildcard: WildcardAll}
-
-func ACLTypeOf(t string) ACLType {
-	return ACLType{EntityType: t}
-}
-
-type ACLPermission int32
-
-const (
-	NoPermissions ACLPermission = iota
-	ReadPermission
-	WritePermission
-	OwnerPermission
-)
-
-type ACLWildcard int32
-
-const (
-	NoWildcard ACLWildcard = iota
-	WildcardAll
-)
-
-// EntityLoadFilter specifies which entities to load from storage
-type EntityLoadFilter struct {
-	// If TypeFilter is provided, the query will return all entities matching
-	// the given type.
-	TypeFilter *string
-
-	// If KeyFilter is provided, the query will return all entities matching the
-	// given ID.
-	KeyFilter *string
-
-	// If IDs is provided, the query will return all entities matching the
-	// provided TypeAndKeys. TypeFilter and KeyFilter are ignored if IDs is
-	// provided.
-	IDs []storage.TypeAndKey
-
-	// Unexported for internal use
-	graphID *string
-}
-
 // IsLoadAllEntities return true if the EntityLoadFilter is specifying to load
 // all entities in a network, false if there are any filter conditions.
-func (elf EntityLoadFilter) IsLoadAllEntities() bool {
-	return elf.TypeFilter == nil && elf.KeyFilter == nil && elf.graphID == nil && funk.IsEmpty(elf.IDs)
-}
-
-// EntityLoadCriteria specifies how much of an entity to load
-type EntityLoadCriteria struct {
-	// Set LoadMetadata to true to load the metadata fields (name, description)
-	LoadMetadata bool
-
-	LoadConfig bool
-
-	LoadAssocsToThis   bool
-	LoadAssocsFromThis bool
-
-	LoadPermissions bool
+func (m *EntityLoadFilter) IsLoadAllEntities() bool {
+	return m.TypeFilter == nil && m.KeyFilter == nil && m.GraphID == nil && funk.IsEmpty(m.IDs)
 }
 
 // FullEntityLoadCriteria is an EntityLoadCriteria which loads everything
@@ -323,66 +165,21 @@ var FullEntityLoadCriteria = EntityLoadCriteria{
 	LoadPermissions:    true,
 }
 
-// EntityLoadResult encapsulates the result of a LoadEntities call
-type EntityLoadResult struct {
-	// Loaded entities
-	Entities []NetworkEntity
-	// Entities which were not found
-	EntitiesNotFound []storage.TypeAndKey
+func (m *EntityUpdateCriteria) GetID() *EntityID {
+	return &EntityID{Type: m.Type, Key: m.Key}
 }
 
-// EntityUpdateCriteria specifies a patch operation on a network entity.
-type EntityUpdateCriteria struct {
-	// (Type, Key) of the entity to update
-	Type string
-	Key  string
-
-	// Set DeleteEntity to true to mark the entity for deletion
-	DeleteEntity bool
-
-	NewName        *string
-	NewDescription *string
-
-	NewPhysicalID *string
-
-	// A nil value here indicates no update.
-	NewConfig *[]byte
-
-	AssociationsToAdd    []storage.TypeAndKey
-	AssociationsToDelete []storage.TypeAndKey
-
-	// New ACLs to add. ACL IDs are ignored and generated by the system.
-	PermissionsToCreate []ACL
-
-	// ACLs to change. The ACL IDs are important here - make sure to provide
-	// the same ID returned from loading the entity.
-	PermissionsToUpdate []ACL
-
-	// ACL IDs to delete
-	PermissionsToDelete []string
+func (m *EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
+	return storage.TypeAndKey{Type: m.Type, Key: m.Key}
 }
 
-func (euc EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
-	return storage.TypeAndKey{Type: euc.Type, Key: euc.Key}
+func (m *EntityUpdateCriteria) getEdgesToCreate() []*EntityID {
+	if !funk.IsEmpty(m.AssociationsToSet) {
+		return m.AssociationsToSet
+	}
+	return m.AssociationsToAdd
 }
 
-// EntityGraph represents a DAG of associated network entities.
-type EntityGraph struct {
-	// All nodes in the graph
-	Entities []NetworkEntity
-
-	// All nodes in the graph which don't have any edges terminating at them.
-	RootEntities []storage.TypeAndKey
-
-	// All edges in the graph.
-	Edges []GraphEdge
-}
-
-// GraphEdge represents a directed edge within a graph
-type GraphEdge struct {
-	To, From storage.TypeAndKey
-}
-
-func (edge GraphEdge) String() string {
-	return fmt.Sprintf("%s, %s", edge.From, edge.To)
+func (m *GraphEdge) ToString() string {
+	return fmt.Sprintf("%s, %s", m.From.ToTypeAndKey(), m.To.ToTypeAndKey())
 }

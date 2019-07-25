@@ -129,6 +129,26 @@ static int s1ap_mme_decode_initiating(
       // ret = s1ap_decode_s1ap_enbconfigurationupdate_ies (&message->msg.s1ap_ENBConfigurationUpdate_IEs, &initiating_p->value);
     } break;
 
+    case S1ap_ProcedureCode_id_eNBConfigurationTransfer: {
+      OAILOG_INFO(
+        LOG_S1AP,
+        "S1AP eNB Configuration Transfer is received. Procedure code = %d\n",
+        (int) initiating_p->procedureCode);
+      ret = s1ap_decode_s1ap_enbconfigurationtransferies(
+        &message->msg.s1ap_ENBConfigurationTransferIEs, &initiating_p->value);
+      *message_id = S1AP_ENB_CONFIGURATION_TRANSFER_LOG;
+    } break;
+
+    case S1ap_ProcedureCode_id_PathSwitchRequest: {
+      OAILOG_INFO(
+        LOG_S1AP,
+        "S1AP Path Switch Request is received. Procedure code = %d\n",
+        (int) initiating_p->procedureCode);
+      ret = s1ap_decode_s1ap_pathswitchrequesties(
+        &message->msg.s1ap_PathSwitchRequestIEs, &initiating_p->value);
+      *message_id = S1AP_PATH_SWITCH_REQUEST_LOG;
+    } break;
+
     default: {
       OAILOG_ERROR(
         LOG_S1AP,
@@ -314,6 +334,12 @@ int s1ap_free_mme_decode_pdu(s1ap_message *message, MessagesIds message_id)
       }
     case S1AP_ENB_RESET_LOG:
       return free_s1ap_reset(&message->msg.s1ap_ResetIEs);
+    case S1AP_ENB_CONFIGURATION_TRANSFER_LOG:
+      return free_s1ap_enbconfigurationtransfer(
+        &message->msg.s1ap_ENBConfigurationTransferIEs);
+    case S1AP_PATH_SWITCH_REQUEST_LOG:
+      return free_s1ap_pathswitchrequest(
+        &message->msg.s1ap_PathSwitchRequestIEs);
     default: DevAssert(false);
   }
 }

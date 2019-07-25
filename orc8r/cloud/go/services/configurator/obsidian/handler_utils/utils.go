@@ -10,7 +10,6 @@ package handler_utils
 
 import (
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 )
 
@@ -26,10 +25,10 @@ func CreateNetworkIfNotExists(networkID string) error {
 	}
 
 	// create a network
-	network := &protos.Network{
-		Id: networkID,
+	network := configurator.Network{
+		ID: networkID,
 	}
-	_, err = configurator.CreateNetworks([]*protos.Network{network})
+	_, err = configurator.CreateNetworks([]configurator.Network{network})
 	if err != nil {
 		return err
 	}
@@ -54,11 +53,11 @@ func CreateNetworkEntityIfNotExists(networkID, entityType, entityID string) erro
 	}
 
 	// Create an empty entity
-	networkEntity := &protos.NetworkEntity{
-		Id:   entityID,
+	networkEntity := configurator.NetworkEntity{
 		Type: entityType,
+		Key:  entityID,
 	}
-	_, err = configurator.CreateEntities(networkID, []*protos.NetworkEntity{networkEntity})
+	_, err = configurator.CreateEntities(networkID, []configurator.NetworkEntity{networkEntity})
 	if err != nil {
 		return err
 	}

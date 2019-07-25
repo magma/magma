@@ -4,7 +4,8 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 #
-.PHONY: build clean clean_gen download fmt gen lint plugin test tidy vet
+SHELL := /bin/bash
+.PHONY: build clean clean_gen download fmt gen lint plugin test tidy vet migration_plugin
 
 build:: plugin
 	go install ./...
@@ -26,8 +27,13 @@ gen::
 	go generate ./...
 
 # The sed expression replaces '/' with '_' and gets rid of any './ in the path
+# For v1, we prepend the module name to the filename as well
+#
+# So for e.g., a swagger file under orc8r/cloud/go/pluginimpl/swagger/swagger.v1.yml
+# will end up as orc8r_pluginimpl_swagger_swagger.v1.yml
 copy_swagger_files:
 	find . -name "swagger.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g")'
+	find . -name "swagger.v1.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_V1_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g" | xargs -I @ echo "$$(basename $$(realpath $$(pwd)/../..))_@")'
 
 lint:
 	golint ./...
@@ -52,5 +58,12 @@ COVER_FILE=$(COVER_DIR)/$(PLUGIN_NAME).gocov
 cover:
 	go test ./... -coverprofile $(COVER_FILE);
 	# Don't measure coverage for protos and tools
-	sed -i '/\.pb\.go/d; /.*\/tools\/.*/d' $(COVER_FILE);
+	sed -i '/\.pb\.go/d; /.*\/tools\/.*/d; /.*_swaggergen\.go/d' $(COVER_FILE);
 	go tool cover -func=$(COVER_FILE)
+
+
+# for configurator data migration
+migration_plugin:
+	if [[ -d ./tools/migrations/m003_configurator/plugin ]]; then \
+		go build -buildmode=plugin -o $(PLUGIN_DIR)/migrations/m003_configurator/$(PLUGIN_NAME).so ./tools/migrations/m003_configurator/plugin; \
+	fi

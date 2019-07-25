@@ -30,7 +30,7 @@ func getDeviceClient() (protos.DeviceClient, error) {
 	return protos.NewDeviceClient(conn), err
 }
 
-func CreateOrUpdate(networkID, deviceType, deviceKey string, info interface{}) error {
+func RegisterDevice(networkID, deviceType, deviceKey string, info interface{}) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
@@ -45,11 +45,34 @@ func CreateOrUpdate(networkID, deviceType, deviceKey string, info interface{}) e
 		Type:     deviceType,
 		Info:     serializedInfo,
 	}
-	req := &protos.RegisterDevicesRequest{
+	req := &protos.RegisterOrUpdateDevicesRequest{
 		NetworkID: networkID,
 		Entities:  []*protos.PhysicalEntity{entity},
 	}
 	_, err = client.RegisterDevices(context.Background(), req)
+	return err
+}
+
+func UpdateDevice(networkID, deviceType, deviceKey string, info interface{}) error {
+	client, err := getDeviceClient()
+	if err != nil {
+		return err
+	}
+
+	serializedInfo, err := serde.Serialize(SerdeDomain, deviceType, info)
+	if err != nil {
+		return err
+	}
+	entity := &protos.PhysicalEntity{
+		DeviceID: deviceKey,
+		Type:     deviceType,
+		Info:     serializedInfo,
+	}
+	req := &protos.RegisterOrUpdateDevicesRequest{
+		NetworkID: networkID,
+		Entities:  []*protos.PhysicalEntity{entity},
+	}
+	_, err = client.UpdateDevices(context.Background(), req)
 	return err
 }
 
@@ -62,6 +85,10 @@ func DeleteDevices(networkID string, deviceIDs []*protos.DeviceID) error {
 	req := &protos.DeleteDevicesRequest{NetworkID: networkID, DeviceIDs: deviceIDs}
 	_, err = client.DeleteDevices(context.Background(), req)
 	return err
+}
+
+func DeleteDevice(networkID, deviceType, deviceKey string) error {
+	return DeleteDevices(networkID, []*protos.DeviceID{{DeviceID: deviceKey, Type: deviceType}})
 }
 
 func GetDevice(networkID, deviceType, deviceKey string) (interface{}, error) {

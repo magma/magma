@@ -56,7 +56,7 @@ func main() {
 
 	// Now do the rest of the stuff
 	fmt.Printf("Reading swagger configs from folder:\n%s\n\n", *inpPtr)
-	inpConfigArr := readFromInpFolder(*inpPtr, *comPtr)
+	inpConfigArr := readFromInpFolder(*inpPtr)
 
 	fmt.Printf("Reading common config definitions from file:\n%s\n\n", *comPtr)
 	commonConfig := readCommonConfig(*comPtr)
@@ -69,10 +69,10 @@ func main() {
 }
 
 // For a list of input file paths, unmarshal the file contents
-func readFromInpFolder(inpPath string, comPath string) []SwaggerConfig {
+func readFromInpFolder(inpPath string) []SwaggerConfig {
 	filePathArr := getFilePaths(inpPath)
 	fileContentArr := getContentsOfFiles(filePathArr)
-	editedContentArr := rmCommonSwaggerRefs(fileContentArr, comPath)
+	editedContentArr := makeAllYmlReferencesLocal(fileContentArr)
 	configArr := unmarshalArrToSwagger(editedContentArr)
 	return configArr
 }
@@ -187,24 +187,18 @@ func marshalFromSwagger(config SwaggerConfig) string {
 	return string(d)
 }
 
-// Remove references to swagger-common.yml before concatenating the
-// swagger config files together
-func rmCommonSwaggerRefs(fileContentArr []string, comPath string) []string {
-	var outArr []string
-	fileName := parseCommonSwaggerFilename(comPath)
-	commonSwaggerRef := strings.Join([]string{"./", fileName}, "")
-	re := regexp.MustCompile(commonSwaggerRef)
+// Change all cross-file references to local intra-file references
+func makeAllYmlReferencesLocal(fileContentArr []string) []string {
+	outArr := make([]string, 0, len(fileContentArr))
+
+	// match on any yml reference to file_name_here.foo.bar#/baz
+	// and change those references to #/baz (strip the prefix)
+	// e.g. $ref: 'foo_bar_baz.blah#/asdf' -> $ref: '#/asdf'
+	ymlRefRe := regexp.MustCompile(`(\$ref:\s*)['"].+(#/.+)['"]`)
 	for _, fileContent := range fileContentArr {
-		fixedContent := re.ReplaceAllString(fileContent, "")
-		outArr = append(outArr, fixedContent)
+		outArr = append(outArr, ymlRefRe.ReplaceAllString(fileContent, "$1'$2'"))
 	}
 	return outArr
-}
-
-// From the path for the common swagger definitions, get the filename
-func parseCommonSwaggerFilename(comPath string) string {
-	re := regexp.MustCompile(".+/")
-	return re.ReplaceAllString(comPath, "")
 }
 
 // Get the text contents from an array of file paths

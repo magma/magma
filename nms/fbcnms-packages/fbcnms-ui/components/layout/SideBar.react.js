@@ -8,11 +8,11 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import Slide from '@material-ui/core/Slide';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   root: {

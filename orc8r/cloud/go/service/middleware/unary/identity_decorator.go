@@ -12,7 +12,11 @@ package unary
 import (
 	"log"
 	"net"
+	"os"
 	"time"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/prometheus/client_golang/prometheus"
@@ -199,23 +203,35 @@ func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity,
 	// ID & add them to the GW Identity
 	var networkId, logicalId string
 
-	// Try to add GW Network ID
-	networkId, err = magmad.FindGatewayNetworkId(gwIdentity.HardwareId)
-	if err != nil {
-		// Log 'lost'/unregistered gateways, but let the call through, we may
-		// have services dealing with unregistered/removed gateways later,
-		// so - let the target RPC return an error if it needs missing Network
-		// ID and/or Logical ID
-		log.Printf(
-			"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",
-			gwIdentity.HardwareId, serialNumber, err, md)
-	} else {
-		// Try to add Logical GW ID
-		logicalId, err = magmad.FindGatewayId(networkId, gwIdentity.HardwareId)
+	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
+	if useConfigurator == "1" {
+		entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{})
 		if err != nil {
 			log.Printf(
-				"Missing Logical Id for HwId: %s for Cert SN: %s; err: %s; metadata: %+v",
+				"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",
 				gwIdentity.HardwareId, serialNumber, err, md)
+		}
+		networkId = entity.NetworkID
+		logicalId = entity.Key
+	} else {
+		// Try to add GW Network ID
+		networkId, err = magmad.FindGatewayNetworkId(gwIdentity.HardwareId)
+		if err != nil {
+			// Log 'lost'/unregistered gateways, but let the call through, we may
+			// have services dealing with unregistered/removed gateways later,
+			// so - let the target RPC return an error if it needs missing Network
+			// ID and/or Logical ID
+			log.Printf(
+				"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",
+				gwIdentity.HardwareId, serialNumber, err, md)
+		} else {
+			// Try to add Logical GW ID
+			logicalId, err = magmad.FindGatewayId(networkId, gwIdentity.HardwareId)
+			if err != nil {
+				log.Printf(
+					"Missing Logical Id for HwId: %s for Cert SN: %s; err: %s; metadata: %+v",
+					gwIdentity.HardwareId, serialNumber, err, md)
+			}
 		}
 	}
 

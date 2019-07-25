@@ -9,7 +9,7 @@
  */
 
 import type {Context} from 'react';
-import type {FeatureID} from 'inventory/server/features';
+import type {FeatureID} from '@fbcnms/types/features';
 
 import {useContext} from 'react';
 

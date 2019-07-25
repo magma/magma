@@ -52,6 +52,13 @@
     owner: "{{ user }}"
   when: full_provision
 
+- name: Create configs dir
+  file:
+    path: /var/opt/magma/configs
+    state: directory
+    owner: "{{ user }}"
+  when: full_provision
+
 #################################
 # Copy service files for mock cores
 #################################
@@ -64,3 +71,30 @@
     - ocs
     - pcrf
     - hss
+
+- name: Set Go environment vars in profile
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    state: present
+    line: "{{ item }}"
+  with_items:
+    - export GO111MODULE=on
+    - export GOPROXY=https://proxy.golang.org
+
+- name: Load service registry service vars
+  include_vars:
+    dir: ../../../../configs/
+    files_matching: service_registry.yml
+    name: service_registry
+
+- name: Add the service entries into /etc/hosts from service_registry.yml
+  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line='127.0.0.1 {{ item }}' state=present
+  with_items: "{{ service_registry.services }}"
+  when: full_provision
+
+- name: Copy magmad_legacy.yml to config override directory
+  copy:
+    src: "{{ magma_root }}/{{ config_dir }}/magmad_legacy.yml"
+    dest: /var/opt/magma/configs/magmad.yml
+    remote_src: yes
+  when: full_provision

@@ -15,6 +15,7 @@ from google.protobuf.json_format import MessageToJson
 from magma.configuration import mconfig_managers
 from orc8r.protos import mconfig_pb2
 from orc8r.protos.mconfig import mconfigs_pb2
+from magma.configuration.exceptions import LoadConfigError
 
 
 class MconfigManagerImplTest(unittest.TestCase):
@@ -53,9 +54,5 @@ class MconfigManagerImplTest(unittest.TestCase):
 
         with mock.patch('builtins.open', mock.mock_open(read_data=fixture)):
             manager = mconfig_managers.MconfigManagerImpl()
-            actual = manager.load_mconfig()
-            expected_configs_by_key = {'magmad': magmad_fixture_any}
-            expected = mconfig_pb2.GatewayConfigs(
-                configs_by_key=expected_configs_by_key,
-            )
-            self.assertEqual(expected, actual)
+            with self.assertRaises(LoadConfigError):
+                manager.load_mconfig()

@@ -176,3 +176,28 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_s1ap_ue_context_mod_resp_fail_t,
   s1ap_ue_context_mod_failure)
+MESSAGE_DEF(
+  S1AP_ENB_CONFIGURATION_TRANSFER_LOG,
+  MESSAGE_PRIORITY_MED,
+  IttiMsgText,
+  s1ap_enb_configuration_transfer_log)
+MESSAGE_DEF(
+  S1AP_PATH_SWITCH_REQUEST_LOG,
+  MESSAGE_PRIORITY_MED,
+  IttiMsgText,
+  s1ap_path_switch_request_log)
+MESSAGE_DEF(
+  S1AP_PATH_SWITCH_REQUEST,
+  MESSAGE_PRIORITY_MED,
+  itti_s1ap_path_switch_request_t,
+  s1ap_path_switch_request)
+MESSAGE_DEF(
+  S1AP_PATH_SWITCH_REQUEST_ACK,
+  MESSAGE_PRIORITY_MED,
+  itti_s1ap_path_switch_request_ack_t,
+  s1ap_path_switch_request_ack)
+MESSAGE_DEF(
+  S1AP_PATH_SWITCH_REQUEST_FAILURE,
+  MESSAGE_PRIORITY_MED,
+  itti_s1ap_path_switch_request_failure_t,
+  s1ap_path_switch_request_failure)

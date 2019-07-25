@@ -9,11 +9,13 @@ LICENSE file in the root directory of this source tree.
 package metrics
 
 import (
+	"fmt"
 	"time"
 
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/checkind/store"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
 
 	"github.com/golang/glog"
 )
@@ -36,39 +38,40 @@ func (reporter *GatewayStatusReporter) ReportCheckinStatus(dur time.Duration) {
 }
 
 func (reporter *GatewayStatusReporter) reportCheckinStatus() error {
-	networks, err := magmad.ListNetworks()
+	networks, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return err
 	}
-	for _, nw := range networks {
-		gateways, err := magmad.ListGateways(nw)
+	for _, networkID := range networks {
+		magmadGatewayTypeVal := orc8r.MagmadGatewayType
+		gateways, _, err := configurator.LoadEntities(networkID, &magmadGatewayTypeVal, nil, nil, nil, configurator.EntityLoadCriteria{})
 		if err != nil {
-			glog.Errorf("error getting gateways for network %v: %v\n", nw, err)
+			glog.Errorf("error getting gateways for network %v: %v\n", networkID, err)
 			continue
 		}
 		numUpGateways := 0
-		for _, gw := range gateways {
-			req := protos.GatewayStatusRequest{NetworkId: nw, LogicalId: gw}
-			status, err := reporter.Store.GetGatewayStatus(&req)
+		for _, gatewayEntity := range gateways {
+			gatewayID := gatewayEntity.Key
+			status, err := state.GetGatewayStatus(networkID, gatewayEntity.PhysicalID)
 			if err != nil {
-				glog.V(2).Infof("error getting status for gateway %v: %v\n", gw, err)
-				continue
+				return fmt.Errorf("Failed to get state for nwID:%s gwID:%s deviceID:%s", networkID, gatewayID, gatewayEntity.PhysicalID)
 			}
 			// last check in more than 5 minutes ago
-			if (time.Now().Unix() - int64(status.Time)/1000) > 60*5 {
-				gwCheckinStatus.WithLabelValues(nw, gw).Set(0)
+			if (time.Now().Unix() - int64(status.CheckinTime)/1000) > 60*5 {
+				gwCheckinStatus.WithLabelValues(networkID, gatewayID).Set(0)
 			} else {
-				gwCheckinStatus.WithLabelValues(nw, gw).Set(1)
+				gwCheckinStatus.WithLabelValues(networkID, gatewayID).Set(1)
 				numUpGateways += 1
 			}
+
 			// report mconfig age
-			mconfigCreatedAt := status.Checkin.GetPlatformInfo().GetConfigInfo().GetMconfigCreatedAt()
+			mconfigCreatedAt := status.PlatformInfo.ConfigInfo.MconfigCreatedAt
 			if mconfigCreatedAt != 0 {
-				gwMconfigAge.WithLabelValues(nw, gw).Set(float64(status.Time/1000 - mconfigCreatedAt))
+				gwMconfigAge.WithLabelValues(networkID, gatewayID).Set(float64(status.CheckinTime/1000 - mconfigCreatedAt))
 			}
 		}
-		upGwCount.WithLabelValues(nw).Set(float64(numUpGateways))
-		totalGwCount.WithLabelValues(nw).Set(float64(len(gateways)))
+		upGwCount.WithLabelValues(networkID).Set(float64(numUpGateways))
+		totalGwCount.WithLabelValues(networkID).Set(float64(len(gateways)))
 	}
 	return nil
 }

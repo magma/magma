@@ -11,6 +11,7 @@ package config_test
 import (
 	"testing"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
@@ -37,7 +38,7 @@ func TestMagmadMconfigBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]proto.Message{}, actual)
 
-	err = config.CreateConfig("network", magmad_config.MagmadGatewayType, "gw1", &magmadprotos.MagmadGatewayConfig{
+	err = config.CreateConfig("network", orc8r.MagmadGatewayType, "gw1", &magmadprotos.MagmadGatewayConfig{
 		AutoupgradeEnabled:      true,
 		AutoupgradePollInterval: 300,
 		CheckinInterval:         60,

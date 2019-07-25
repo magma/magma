@@ -9,3 +9,16 @@ LICENSE file in the root directory of this source tree.
 package lte
 
 const ModuleName = "lte"
+
+const (
+	CellularNetworkType = "cellular_network"
+	CellularGatewayType = "cellular_gateway"
+	CellularEnodebType  = "cellular_enodeb"
+
+	EnodebStateType      = "enodeb"
+	SubscriberStateType  = "subscriber"
+	SubscriberEntityType = "subscriber"
+
+	BaseNameEntityType   = "base_name"
+	PolicyRuleEntityType = "policy"
+)

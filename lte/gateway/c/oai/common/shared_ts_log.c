@@ -162,7 +162,6 @@ void *shared_log_task(__attribute__((unused)) void *args_p)
 {
   MessageDef *received_message_p = NULL;
   long timer_id = -1;
-  int rc = 0;
   int exit_count = 1;
 
   itti_mark_task_ready(TASK_SHARED_TS_LOG);
@@ -215,9 +214,8 @@ void *shared_log_task(__attribute__((unused)) void *args_p)
         } break;
       }
       // Freeing the memory allocated from the memory pool
-      rc =
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-      AssertFatal(rc == EXIT_SUCCESS, "Failed to free memory (%d)!\n", rc);
+
       received_message_p = NULL;
     }
   }
@@ -246,9 +244,7 @@ int shared_log_init(const int max_threadsP)
   gettimeofday(&start_time, NULL);
   g_shared_log.log_start_time_second = start_time.tv_sec;
 
-#if LOG_OAI
   g_shared_log.logger_callback[SH_TS_LOG_TXT] = log_flush_message;
-#endif
 
   bstring b = bfromcstr("Logging thread context hashtable");
   g_shared_log.thread_context_htbl =

@@ -6,13 +6,26 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 syntax = "proto3";
 
-import "configurator.proto";
-import "orc8r/protos/mconfig.proto";
-import "orc8r/protos/common.proto";
+import "magma/orc8r/protos/mconfig.proto";
+import "magma/orc8r/protos/common.proto";
 
 package magma.orc8r.configurator;
 option go_package = "protos";
 
+message GetMconfigRequest {
+    string hardwareID = 1;
+}
+
+message GetMconfigResponse {
+    GatewayConfigs configs = 1;
+    string logicalID = 2;
+}
+
 service SouthboundConfigurator {
     rpc GetMconfig(magma.orc8r.Void) returns (GatewayConfigs) {}
+
+    // GetMconfigInternal exists to support the existing streamer mconfig
+    // policy. This should be removed when we migrate gateway mconfig updates
+    // from streamer to this southbound configurator servicer.
+    rpc GetMconfigInternal(GetMconfigRequest) returns (GetMconfigResponse) {}
 }

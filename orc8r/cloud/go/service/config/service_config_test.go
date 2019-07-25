@@ -25,6 +25,11 @@ foo: 8443
 bar: something
 
 la: test
+
+baz:
+  - first
+  - second
+  - third
 `
 	TestOverrideYML = `---
 # TEST YML
@@ -56,6 +61,14 @@ func TestGetConfigWithoutOverride(t *testing.T) {
 	bar, err := configMap.GetStringParam("bar")
 	assert.NoError(t, err)
 	assert.Equal(t, "something", bar)
+
+	baz, err := configMap.GetStringArrayParam("baz")
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(baz))
+
+	assert.Equal(t, "first", baz[0])
+	assert.Equal(t, "second", baz[1])
+	assert.Equal(t, "third", baz[2])
 
 	os.Remove(filepath.Join(TestConfigDir, serviceFileName))
 	os.Remove(TestConfigOverrideDir)

@@ -26,6 +26,9 @@ var formatsRegistry = strfmt.NewFormats()
 // Config conversion for magmad
 
 func (m *MagmadGatewayConfig) ValidateModel() error {
+	if err := m.ValidateGatewayConfig(); err != nil {
+		return err
+	}
 	return m.Validate(formatsRegistry)
 }
 
@@ -65,6 +68,9 @@ func (m *NetworkRecord) ToProto() *magmadprotos.MagmadNetworkRecord {
 }
 
 func (m *NetworkRecord) ValidateModel() error {
+	if err := m.ValidateNetworkRecord(); err != nil {
+		return err
+	}
 	return m.Validate(formatsRegistry)
 }
 

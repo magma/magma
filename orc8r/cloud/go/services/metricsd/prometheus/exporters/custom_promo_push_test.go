@@ -9,6 +9,7 @@
 package exporters
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -45,8 +46,20 @@ func TestCustomPushExporter_Submit(t *testing.T) {
 	testSubmitGauge(t)
 	testSubmitHistogram(t)
 	testSubmitSummary(t)
+	testSubmitUntyped(t)
 
 	testSubmitInvalidMetrics(t)
+	testSubmitInvalidLabel(t)
+	testSubmitInvalidName(t)
+}
+
+func TestNewCustomPushExporter(t *testing.T) {
+	addrs := []string{"http://prometheus-cache:9091", "prometheus-cache:9091", "https://prometheus-cache:9091"}
+	exp := NewCustomPushExporter(addrs).(*CustomPushExporter)
+	protocolMatch := regexp.MustCompile("(http|https)://")
+	for _, addr := range exp.pushAddresses {
+		assert.True(t, protocolMatch.MatchString(addr))
+	}
 }
 
 func testSubmitGauge(t *testing.T) {
@@ -139,6 +152,28 @@ func testSubmitSummary(t *testing.T) {
 	}
 }
 
+func testSubmitUntyped(t *testing.T) {
+	exp := makeTestCustomPushExporter()
+	err := submitNewMetric(&exp, dto.MetricType_UNTYPED)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, totalMetricCount(&exp))
+
+	err = submitNewMetric(&exp, dto.MetricType_UNTYPED)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, totalMetricCount(&exp))
+
+	assert.Equal(t, len(exp.familiesByName), 1)
+	for _, fam := range exp.familiesByName {
+		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
+		for _, metric := range fam.Metric {
+			assert.True(t, hasLabel(metric.Label, NetworkLabelNetwork, sampleNetworkID))
+			assert.True(t, hasLabel(metric.Label, NetworkLabelGateway, sampleGatewayID))
+			assert.True(t, hasLabel(metric.Label, "testLabel", "testValue"))
+		}
+	}
+
+}
+
 func testSubmitInvalidMetrics(t *testing.T) {
 	// Submitting a metric family with 0 metrics should not register the family
 	exp := makeTestCustomPushExporter()
@@ -152,6 +187,72 @@ func testSubmitInvalidMetrics(t *testing.T) {
 	err := exp.Submit(metrics)
 	assert.NoError(t, err)
 	assert.Equal(t, len(exp.familiesByName), 0)
+}
+
+func testSubmitInvalidName(t *testing.T) {
+	// Submitting a metric with an invalid name should submit a renamed metric
+	testInvalidName(t, "invalid metric name", "invalid_metric_name")
+	testInvalidName(t, "0starts_with_number", "_0starts_with_number")
+	testInvalidName(t, "bad?-/$chars", "bad____chars")
+}
+
+func testInvalidName(t *testing.T, inputName, expectedName string) {
+	exp := makeTestCustomPushExporter()
+	mf := tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, sampleLabels)
+
+	mc := exporters.MetricAndContext{
+		Family: mf,
+		Context: exporters.MetricsContext{
+			MetricName: inputName,
+		},
+	}
+	metrics := []exporters.MetricAndContext{mc}
+
+	err := exp.Submit(metrics)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(exp.familiesByName))
+	for name := range exp.familiesByName {
+		assert.Equal(t, expectedName, name)
+	}
+}
+
+func testSubmitInvalidLabel(t *testing.T) {
+	// Submitting a metric with invalid labelnames should not include that metric
+	exp := makeTestCustomPushExporter()
+	mf := tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 5, sampleLabels)
+	extraMetric := tests.MakePromoGauge(10)
+	mf.Metric[2] = &extraMetric
+	mf.Metric[2].Label = append(mf.Metric[2].Label, &dto.LabelPair{Name: makeStringPointer("1"), Value: makeStringPointer("badLabelName")})
+
+	mc := exporters.MetricAndContext{
+		Family:  mf,
+		Context: sampleContext,
+	}
+	metrics := []exporters.MetricAndContext{mc}
+
+	err := exp.Submit(metrics)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(exp.familiesByName))
+	for _, fam := range exp.familiesByName {
+		assert.Equal(t, 4, len(fam.Metric))
+	}
+
+	// If all metrics are invalid, the family should not be submitted
+	exp = makeTestCustomPushExporter()
+	mf = tests.MakeTestMetricFamily(dto.MetricType_GAUGE, 1, sampleLabels)
+	badMetric := tests.MakePromoGauge(10)
+	mf.Metric[0] = &badMetric
+	mf.Metric[0].Label = append(mf.Metric[0].Label, &dto.LabelPair{Name: makeStringPointer("1"), Value: makeStringPointer("badLabelName")})
+
+	mc = exporters.MetricAndContext{
+		Family:  mf,
+		Context: sampleContext,
+	}
+	metrics = []exporters.MetricAndContext{mc}
+
+	err = exp.Submit(metrics)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(exp.familiesByName))
 }
 
 func totalMetricCount(exp *CustomPushExporter) int {
@@ -193,6 +294,6 @@ func makeTestCustomPushExporter() CustomPushExporter {
 	return CustomPushExporter{
 		familiesByName: make(map[string]*dto.MetricFamily),
 		exportInterval: pushInterval,
-		pushAddress:    "",
+		pushAddresses:  []string{""},
 	}
 }

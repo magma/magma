@@ -1,0 +1,76 @@
+{
+    "counters": {
+        "disable_stats": false,
+        "stat_views": ["proc"]
+    },
+    "server": {
+        "secret": "$RADIUS_SECRET",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "port": $RADIUS_AUTH_PORT,
+                "type": "udp",
+                "modules": [
+                    {
+                      "name": "analytics",
+                      "config": {
+                        "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",
+                        "GraphQLURL": "$ANALYTICS_GRAPHQL_ENDPOINT",
+                        "DryRunGraphQL": false
+                      }
+                    },
+                    {
+                        "name": "eap",
+                        "config": {
+                            "methods": [
+                                {
+                                    "name": "akamagma",
+                                    "config": {
+                                        "FegEndpoint": "$AAA_ENDPOINT"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "acct",
+                "port": $RADIUS_ACCT_PORT,
+                "type": "udp",
+                "modules": [
+                    {
+                        "name": "adaptruckus",
+                        "config": {}
+                    },
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": "3799"
+                        }
+                    },
+                    {
+                      "name": "magmaacct",
+                      "config": {
+                        "FegEndpoint": "$AAA_ENDPOINT"
+                      }
+                    }
+                ]
+            },
+            {
+                "name": "coa_grpc",
+                "port": $RADIUS_COA_GRPC_PORT,
+                "type": "grpc",
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": "3799"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -17,6 +17,7 @@
     - dnsd
     # Magma OAI services
     - mme
+    - sctpd
     # Magma third-party services
     - redis
     - pipelined
@@ -53,6 +54,10 @@
   with_items:
     - create_oai_certs.py
     - generate_oai_config.py
+  when: full_provision
+
+- name: Create symlink for sctpd binary
+  file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/bin/sctpd state=link force=yes
   when: full_provision
 
 - name: Create symlink for OAI mme binary

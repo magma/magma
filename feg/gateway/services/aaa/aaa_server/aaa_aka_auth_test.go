@@ -13,18 +13,17 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/providers/aka"
-
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
+	aaa_client "magma/feg/gateway/services/aaa/client"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/eap"
 	eap_client "magma/feg/gateway/services/eap/client"
 	eapp "magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	eap_test "magma/feg/gateway/services/eap/test"
@@ -62,27 +61,14 @@ var (
 	wrongPlmnID6 = "001011"
 )
 
-type testEapServiceClient struct {
-	protos.AuthenticatorClient
-}
+type testEapServiceClient struct{}
 
 func (c testEapServiceClient) Handle(in *protos.Eap) (*protos.Eap, error) {
-	return c.AuthenticatorClient.Handle(context.Background(), in)
+	return aaa_client.Handle(in)
 }
 
 func (c testEapServiceClient) HandleIdentity(in *protos.EapIdentity) (*protos.Eap, error) {
-	return c.AuthenticatorClient.HandleIdentity(context.Background(), in)
-}
-
-func newTestEapClient(t *testing.T, addr string) testEapServiceClient {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	conn, err := grpc.DialContext(ctx, addr,
-		grpc.WithBackoffMaxDelay(10*time.Second), grpc.WithBlock(), grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("Client dial error: %v", err)
-	}
-	return testEapServiceClient{protos.NewAuthenticatorClient(conn)}
+	return aaa_client.HandleIdentity(in)
 }
 
 // TestEapAkaConcurent tests EAP AKA Provider
@@ -95,9 +81,9 @@ func TestEapAkaConcurent(t *testing.T) {
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
 	servicer, err := servicers.NewEapAkaService(&mconfig.EapAkaConfig{
 		Timeout: &mconfig.EapAkaConfig_Timeouts{
-			ChallengeMs:            300,
+			ChallengeMs:            700,
 			ErrorNotificationMs:    200,
-			SessionMs:              500,
+			SessionMs:              900,
 			SessionAuthenticatedMs: 1000,
 		}})
 	if err != nil {
@@ -107,11 +93,11 @@ func TestEapAkaConcurent(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
-	client := newTestEapClient(t, rtrLis.Addr().String())
+	client := &testEapServiceClient{}
 	done := make(chan error)
 	go eap_test.Auth(t, client, eap_test.IMSI1, 50, done)
 	go eap_test.Auth(t, client, eap_test.IMSI2, 47, done)
@@ -138,28 +124,27 @@ func TestEAPPeerNak(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
-	client := newTestEapClient(t, rtrLis.Addr().String())
 	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
 
-	peap, err := client.HandleIdentity(&protos.EapIdentity{Payload: akaPrimeIdentity, Ctx: eapCtx, Method: 23})
+	peap, err := aaa_client.HandleIdentity(&protos.EapIdentity{Payload: akaPrimeIdentity, Ctx: eapCtx, Method: 23})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
 	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
 		t.Fatalf("Unexpected Identity Responsen\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
 	}
-	peap, err = client.Handle(&protos.Eap{Payload: akaPrimeNak, Ctx: peap.Ctx})
+	peap, err = aaa_client.Handle(&protos.Eap{Payload: akaPrimeNak, Ctx: peap.Ctx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
 	if !reflect.DeepEqual([]byte(peap.GetPayload()), failureEAP) {
 		t.Fatalf("Unexpected AKA' Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), failureEAP)
 	}
-	peap, err = client.Handle(&protos.Eap{Payload: akaAkaPrimeNak, Ctx: eapCtx})
+	peap, err = aaa_client.Handle(&protos.Eap{Payload: akaAkaPrimeNak, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
@@ -183,15 +168,13 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
-	client := newTestEapClient(t, rtrLis.Addr().String())
-
 	tst := eap_test.Units[eap_test.IMSI1]
 	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
-	peap, err := client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	peap, err := aaa_client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
@@ -220,15 +203,13 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
-	client := newTestEapClient(t, rtrLis.Addr().String())
-
 	tst := eap_test.Units[eap_test.IMSI1]
 	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
-	peap, err := client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	peap, err := aaa_client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
@@ -255,15 +236,13 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
-	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA)
+	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.AAA_SERVER)
 	protos.RegisterAuthenticatorServer(rtrSrv.GrpcServer, &testAuthenticator{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
-	client := newTestEapClient(t, rtrLis.Addr().String())
-
 	tst := eap_test.Units[eap_test.IMSI1]
 	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
-	peap, err := client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	peap, err := aaa_client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}

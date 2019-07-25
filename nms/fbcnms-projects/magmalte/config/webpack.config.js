@@ -13,5 +13,6 @@
 const webpackConfig = require('fbcnms-webpack-config/dev-webpack');
 
 module.exports = webpackConfig.createDevWebpackConfig({
+  hot: true,
   projectName: 'nms',
 });

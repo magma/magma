@@ -29,18 +29,18 @@ const (
 // receiver and then reloads alertmanager
 func GetReceiverPostHandler(client *receivers.Client, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		receiver, err := decodeReceiverPostResponse(c)
+		receiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintf("%s", err))
 		}
 		err = client.CreateReceiver(&receiver, getNetworkID(c))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
 		err = reloadAlertmanager(alertmanagerURL)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)
 	}
@@ -53,7 +53,7 @@ func GetGetReceiversHandler(client *receivers.Client) func(c echo.Context) error
 		networkID := getNetworkID(c)
 		recs, err := client.GetReceivers(networkID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, recs)
 	}
@@ -64,28 +64,33 @@ func GetGetRouteHandler(client *receivers.Client) func(c echo.Context) error {
 		networkID := getNetworkID(c)
 		route, err := client.GetRoute(networkID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, route)
 	}
 }
 
-func GetUpdateRouteHandler(client *receivers.Client) func(c echo.Context) error {
+func GetUpdateRouteHandler(client *receivers.Client, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID := getNetworkID(c)
 		newRoute, err := decodeRoutePostRequest(c)
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		err = client.ModifyNetworkRoute(&newRoute, networkID)
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		err = reloadAlertmanager(alertmanagerURL)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)
 	}
 }
 
-func decodeReceiverPostResponse(c echo.Context) (receivers.Receiver, error) {
+func decodeReceiverPostRequest(c echo.Context) (receivers.Receiver, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return receivers.Receiver{}, fmt.Errorf("error reading request body: %v", err)

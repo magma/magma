@@ -14,14 +14,11 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strings"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/configurator"
-	configurator_utils "magma/orc8r/cloud/go/services/configurator/obsidian/handler_utils"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
@@ -29,17 +26,28 @@ import (
 // which can be converted to and from a corresponding configuration object
 // from the config service.
 type ConvertibleUserModel interface {
+	serde.BinaryConvertible
+
 	ValidateModel() error
+
+	// DEPRECATED
 	ToServiceModel() (interface{}, error)
+
+	// DEPRECATED
 	FromServiceModel(serviceModel interface{}) error
 }
 
 type ConfigType int
 
 const (
-	NETWORK        ConfigType = 1
-	NETWORK_ENTITY ConfigType = 2
-	UNRECOGNIZED   ConfigType = 3
+	Network ConfigType = 1
+	Gateway ConfigType = 2
+	// Entity is a network entity in configurator that is not a magmad_gateway.
+	// This distinction is important since the current setup allows a gateway
+	// to have multiple configs. A gateway config is treated as a separate
+	// entity with an association to the gateway entity. With a simple entity,
+	// its config is stored inside the entity.
+	Entity ConfigType = 3
 )
 
 // instantiateNewConvertibleUserModel creates a new, empty instance of the
@@ -131,6 +139,13 @@ func GetReadAllKeysConfigHandler(
 			}
 			return handleGetAllKeys(c, networkID, configType)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkID, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+			return configuratorGetAllKeys(c, networkID, configType)
+		},
 	}
 }
 
@@ -173,6 +188,25 @@ func GetReadConfigHandler(
 				return cerr
 			}
 			return handleGetConfig(c, networkId, configType, configKey, userModel)
+		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorGetNetworkConfig(c, networkId, configType)
+			case Gateway, Entity:
+				configKey, cerr := configKeyGetter(c)
+				if cerr != nil {
+					return cerr
+				}
+				return configuratorGetEntityConfig(c, networkId, configType, configKey)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
 		},
 	}
 }
@@ -236,6 +270,32 @@ func GetCreateConfigHandler(
 			}
 			return handleCreateConfig(c, networkId, configType, configKey, userModel)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, nerr := handlers.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorCreateNetworkConfig(c, networkId, configType, userModel)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateEntityConfig(c, networkId, configType, configKey, userModel)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -255,7 +315,6 @@ func GetCreateGatewayConfigHandler(path string, configType string, userModel Con
 
 func handleCreateConfig(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
 	userModel = instantiateNewConvertibleUserModel(userModel)
-	glog.Errorf("Type of userMode %T value of usermodel %v", userModel, userModel)
 	if err := c.Bind(userModel); err != nil {
 		return handlers.HttpError(err, http.StatusBadRequest)
 	}
@@ -270,66 +329,7 @@ func handleCreateConfig(c echo.Context, networkId string, configType string, con
 	if err := config.CreateConfig(networkId, configType, configKey, iConfig); err != nil {
 		return handlers.HttpError(fmt.Errorf("Error creating config: %s", err), http.StatusInternalServerError)
 	}
-
-	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, iConfig)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Success creating config, but failed to multiplex into configurator: %s", err), http.StatusInternalServerError)
-	}
-
 	return c.JSON(http.StatusCreated, configKey)
-}
-
-// Since the config service does not differentiate between configs that belong
-// to networks vs network entities, this is a bit of a hack that relies on the
-// current naming pattern to differentiate between the two.
-func getConfigTypeForConfigurator(configType string) ConfigType {
-	splittedConfigType := strings.Split(configType, "_")
-	if len(splittedConfigType) > 1 && splittedConfigType[1] == "network" {
-		return NETWORK
-	} else if len(splittedConfigType) == 1 || splittedConfigType[1] == "gateway" {
-		return NETWORK_ENTITY
-	} else {
-		return UNRECOGNIZED
-	}
-}
-
-// case on configType and propagate create/update into configurator
-func multiplexCreateOrUpdateConfigIntoConfigurator(networkID, configType string, configKey string, iConfig interface{}) error {
-	switch getConfigTypeForConfigurator(configType) {
-	case NETWORK:
-		return multiplexCreateOrUpdateNetworkConfig(networkID, configType, iConfig)
-	case NETWORK_ENTITY:
-		return multiplexCreateOrUpdateEntityConfig(networkID, configType, configKey, iConfig)
-	default:
-		return fmt.Errorf("Unexpected config type : %s", configType)
-	}
-}
-
-func multiplexCreateOrUpdateNetworkConfig(networkID, configType string, config interface{}) error {
-	// Create an empty network if it doesn't exist already
-	err := configurator_utils.CreateNetworkIfNotExists(networkID)
-	if err != nil {
-		return err
-	}
-	err = configurator.UpdateNetworkConfig(networkID, configType, config)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex create network config %s:%s into configurator: %v", networkID, configType, err)
-	}
-	return nil
-}
-
-func multiplexCreateOrUpdateEntityConfig(networkID, entityType, entityKey string, config interface{}) error {
-	err := configurator_utils.CreateNetworkEntityIfNotExists(networkID, entityType, entityKey)
-	if err != nil {
-		return err
-	}
-	err = configurator.UpdateEntityConfig(networkID, entityType, entityKey, config)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex create network entity config %s:%s:%s into configurator: %v", networkID, entityType, entityKey, err)
-	}
-	return nil
 }
 
 // GetUpdateConfigHandler returns an obsidian handler for updating a config
@@ -361,6 +361,32 @@ func GetUpdateConfigHandler(
 			}
 			return handleConfigUpdate(c, networkId, configType, configKey, userModel)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, err := handlers.GetNetworkId(c)
+			if err != nil {
+				return err
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateEntityConfig(c, networkId, configType, configKey, userModel)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -394,12 +420,6 @@ func handleConfigUpdate(c echo.Context, networkId string, configType string, con
 	if err := config.UpdateConfig(networkId, configType, configKey, iConfig); err != nil {
 		return handlers.HttpError(fmt.Errorf("Error updating config: %s", err), http.StatusInternalServerError)
 	}
-
-	err = multiplexCreateOrUpdateConfigIntoConfigurator(networkId, configType, configKey, iConfig)
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Success updating config, but failed to multiplex into configurator: %s", err), http.StatusInternalServerError)
-	}
-
 	return c.NoContent(http.StatusOK)
 }
 
@@ -425,6 +445,32 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 			}
 			return handleConfigDelete(c, networkId, configType, configKey)
 		},
+		MigratedHandlerFunc: func(c echo.Context) error {
+			networkId, err := handlers.GetNetworkId(c)
+			if err != nil {
+				return err
+			}
+
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorDeleteNetworkConfig(c, networkId, configType)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteGatewayConfig(c, networkId, configType, configKey)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteEntityConfig(c, networkId, configType, configKey)
+			default:
+				return handlers.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
+			}
+		},
+		MultiplexAfterMigration: true,
 	}
 }
 
@@ -446,50 +492,5 @@ func handleConfigDelete(c echo.Context, networkId string, configType string, con
 	if err := config.DeleteConfig(networkId, configType, configKey); err != nil {
 		return handlers.HttpError(fmt.Errorf("Error deleting config: %s", err), http.StatusInternalServerError)
 	}
-
-	err := multiplexDeleteConfigIntoConfigurator(networkId, configType, configKey)
-	if err != nil {
-		glog.Errorf("Success deleting config, but failed to multiplex into configurator: %s", err)
-	}
-
 	return c.NoContent(http.StatusOK)
-}
-
-// case on configType and propagate delete into configurator
-func multiplexDeleteConfigIntoConfigurator(networkID, configType, configKey string) error {
-	switch getConfigTypeForConfigurator(configType) {
-	case NETWORK:
-		return multiplexDeleteNetworkConfig(networkID, configType)
-	case NETWORK_ENTITY:
-		return multiplexDeleteEntityConfig(networkID, configType, configKey)
-	default:
-		return fmt.Errorf("Unexpected config type : %s", configType)
-	}
-}
-
-func multiplexDeleteNetworkConfig(networkID, configType string) error {
-	// Create an empty network if it doesn't exist already
-	err := configurator_utils.CreateNetworkIfNotExists(networkID)
-	if err != nil {
-		return err
-	}
-	err = configurator.DeleteNetworkConfig(networkID, configType)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex delete network config %s:%s into configurator: %v", networkID, configType, err)
-	}
-	return nil
-}
-
-func multiplexDeleteEntityConfig(networkID, configType, configKey string) error {
-	err := configurator_utils.CreateNetworkEntityIfNotExists(networkID, configType, configKey)
-	if err != nil {
-		return err
-	}
-	err = configurator.DeleteEntityConfig(networkID, configType, configKey)
-	if err != nil {
-		return fmt.Errorf(
-			"Failed to multiplex delete network entity config %s:%s:%s into configurator: %v", networkID, configType, configKey, err)
-	}
-	return nil
 }

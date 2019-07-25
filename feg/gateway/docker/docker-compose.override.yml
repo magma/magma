@@ -6,14 +6,15 @@ services:
     image: feg_gateway_go_base
     build:
       target: base
-      context: ../../../
+      context: ${BUILD_CONTEXT}
       dockerfile: feg/gateway/docker/go/Dockerfile
     volumes:
       - ../../../:/magma
       - ../configs:/etc/magma
       - gwcerts:/var/opt/magma/certs
       - gwconfigs:/var/opt/magma/configs
-    network_mode: host
+    networks:
+      - magma
     command: 
       - /bin/bash
       - -c
@@ -30,26 +31,45 @@ services:
       - gwcerts:/var/opt/magma/certs
       - gwconfigs:/var/opt/magma/configs
     restart: always
-    network_mode: host
+    networks:
+      - magma
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/hss -logtostderr=true -v=0
 
   control_proxy:
-    extra_hosts:
-      - controller.magma.test:127.0.0.1
-      - bootstrapper-controller.magma.test:127.0.0.1
     depends_on:
       - test
+    command:
+      - /bin/bash
+      - -c
+      - |
+         ip -4 route list match 0/0 | awk '{print $$3 " controller.magma.test"}' >> /etc/hosts
+         ip -4 route list match 0/0 | awk '{print $$3 " bootstrapper-controller.magma.test"}' >> /etc/hosts
+         /usr/local/bin/generate_nghttpx_config.py
+         /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt
+
+  csfb:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/go/Dockerfile
 
   magmad:
-    extra_hosts:
-      - controller.magma.test:127.0.0.1
-      - bootstrapper-controller.magma.test:127.0.0.1
     depends_on:
       - test
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/python/Dockerfile
+    command:
+      - /bin/bash
+      - -c
+      - |
+         ip -4 route list match 0/0 | awk '{print $$3 " controller.magma.test"}' >> /etc/hosts
+         ip -4 route list match 0/0 | awk '{print $$3 " bootstrapper-controller.magma.test"}' >> /etc/hosts
+         python3 -m magma.magmad.main
 
-  metricsd:
-    depends_on:
-      - test
+  radius:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: feg/gateway/docker/radius/Dockerfile
 
 volumes:
   gwcerts:

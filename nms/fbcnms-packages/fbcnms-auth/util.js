@@ -12,9 +12,9 @@ import type {FBCNMSMiddleWareRequest} from '@fbcnms/express-middleware';
 import type {UserType} from '@fbcnms/sequelize-models/models/user.js';
 
 import querystring from 'querystring';
+import {User} from '@fbcnms/sequelize-models';
 import {format, parse} from 'url';
 import {injectOrganizationParams} from './organization';
-import {User} from '@fbcnms/sequelize-models';
 
 export function addQueryParamsToUrl(
   url: string,

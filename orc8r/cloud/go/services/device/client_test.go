@@ -59,6 +59,13 @@ func TestDeviceService(t *testing.T) {
 	registerDevicesAssertNoError(t, networkID, bundle2)
 	assertDevicesAreRegistered(t, bundle1, bundle2)
 
+	// Registering a key already registered should fail
+	registerDevicesAssertError(t, "network2", bundle1)
+
+	// Update Devices
+	bundle1.info = 5
+	updateDevicesAssertNoError(t, networkID, bundle1)
+
 	// Test deletion
 	err = device.DeleteDevices(networkID, []*protos.DeviceID{{DeviceID: bundle1.deviceKey, Type: bundle1.deviceType}})
 	assert.NoError(t, err)
@@ -82,13 +89,18 @@ func assertDevicesNotRegistered(t *testing.T, bundles ...idAndInfo) {
 }
 
 func registerDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.CreateOrUpdate(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
+	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
 	assert.NoError(t, err)
 }
 
 func registerDevicesAssertError(t *testing.T, networkID string, bundle idAndInfo) {
-	err := device.CreateOrUpdate(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
+	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
 	assert.Error(t, err)
+}
+
+func updateDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
+	err := device.UpdateDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
+	assert.NoError(t, err)
 }
 
 type Serde struct {

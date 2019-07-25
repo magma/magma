@@ -11,15 +11,11 @@ include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 if (CMAKE_BUILD_TYPE STREQUAL "")
   set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif ()
+
 add_list_string_option(CMAKE_BUILD_TYPE "RelWithDebInfo" "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." Debug Release RelWithDebInfo MinSizeRel)
 message("Build type is ${CMAKE_BUILD_TYPE}")
 
-if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-  add_boolean_option(LOG_OAI True "Thread safe logging API")
-  add_boolean_option(LOG_OAI_MINIMAL True "Thread safe logging API, log only levels above NOTICE")
-endif ()
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_boolean_option(LOG_OAI True "Thread safe logging API")
   add_boolean_option(LINK_GCOV True "Whether to link gcov")
 endif ()
 
@@ -41,35 +37,24 @@ set(CMAKE_C_FLAGS
 # these changes are related to hardcoded path to include .h files
 add_definitions(-DCMAKER)
 
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fstack-protector-all -g -DMALLOC_CHECK_=3 -DDEBUG_IS_ON=1 -DTRACE_IS_ON=1 -O0 -fsanitize=address -fno-omit-frame-pointer")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS} -g -DMALLOC_CHECK_=3  -DDEBUG_IS_ON -O1")
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
-
-# Add Gcov flags
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
-# Add gcov linker flags
-set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 # Generate *.gcno rather than *.c.gcno files for gcov
 set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
 
-# Add LeakSanitizer (lsan) support to the release build of MME so that we can
-# find memory leaks in production.
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
-set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+if (NOT FUZZ)
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -fstack-protector-all -g -DMALLOC_CHECK_=3 -DDEBUG_IS_ON=1 -DTRACE_IS_ON=1 -O0 -fsanitize=address -fno-omit-frame-pointer")
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS} -g -DMALLOC_CHECK_=3  -DDEBUG_IS_ON -O1")
+  set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
 
+  # Add Gcov flags
+  set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
+  # Add gcov linker flags
+  set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 
-################################################################
-# Build options
-################################################################
-add_boolean_option(DAEMONIZE                       False    "Fork executable if true")
-add_boolean_option(DISPLAY_LICENCE_INFO            False    "If a module has a licence banner to show")
-add_integer_option(ITTI_TASK_STACK_SIZE            0        "pthread allocated stack size in bytes of an ITTI task, if 0, use default stack size ")
-
-################################################################
-# NAS LAYER OPTIONS
-################################################################
-add_boolean_option(EPC_BUILD                       False    "BUILD MME-xGW executable")
-add_boolean_option(GTPV1U_LINEAR_TEID_ALLOCATION   False    "Teid allocation id mode versus pseudo random")
+  # Add LeakSanitizer (lsan) support to the release build of MME so that we can
+  # find memory leaks in production.
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
+  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+endif (NOT FUZZ)
 
 ################################################################
 # S1AP LAYER OPTIONS
@@ -81,9 +66,6 @@ add_boolean_option(S1AP_DEBUG_LIST                 False    "Traces, option to b
 ################################################################
 add_boolean_option(SCTP_DUMP_LIST                  False    "Traces, option to be removed soon")
 add_boolean_option(TRACE_HASHTABLE                 False    "Trace hashtables operations ")
-add_boolean_option(LOG_OAI                         False    "Thread safe logging utility")
-add_boolean_option(LOG_OAI_CLEAN_HARD              False    "Thread safe logging utility option for cleaning inner structs")
-add_boolean_option(SECU_DEBUG                      False    "Traces, option to be removed soon")
 add_boolean_option(TRACE_3GPP_SPEC                 True     "Log hits of 3GPP specifications requirements")
 add_boolean_option(ENABLE_OPENFLOW                 False    "Openflow based dataplane")
 add_boolean_option(EMBEDDED_SGW                    False    "Add the SPGW task to the MME binary")
@@ -125,6 +107,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 add_subdirectory(common)
 add_subdirectory(lib)
 add_subdirectory(oai_mme)
+add_subdirectory(oai_fuzz)
 add_subdirectory(tasks)
 
 if (BUILD_TESTS)

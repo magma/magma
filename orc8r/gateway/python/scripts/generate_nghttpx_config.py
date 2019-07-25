@@ -15,7 +15,7 @@ import logging
 
 import os
 from magma.common.service_registry import ServiceRegistry
-from magma.configuration.environment import is_dev_mode
+from magma.configuration.environment import is_dev_mode, is_docker_network_mode
 from magma.configuration.service_configs import get_service_config_value
 
 from generate_service_config import generate_template_config
@@ -46,6 +46,7 @@ def get_context():
         context['use_gateway_cert'] = False
 
     context['dev_mode'] = is_dev_mode()
+    context['docker_network_mode'] = is_docker_network_mode()
 
     context['allow_http_proxy'] = get_service_config_value(
         'control_proxy', 'allow_http_proxy', False)

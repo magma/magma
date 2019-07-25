@@ -17,7 +17,7 @@ import (
 )
 
 func TestValidateGatewayConfig(t *testing.T) {
-	config := protos.NewDefaultGatewayConfig()
+	config := protos.NewDefaultProtosGatewayConfig()
 	err := protos.ValidateGatewayConfig(config)
 	assert.NoError(t, err)
 
@@ -26,7 +26,7 @@ func TestValidateGatewayConfig(t *testing.T) {
 }
 
 func TestValidateNetworkConfig(t *testing.T) {
-	config := protos.NewDefaultNetworkConfig()
+	config := protos.NewDefaultProtosNetworkConfig()
 	err := protos.ValidateNetworkConfig(config)
 	assert.NoError(t, err)
 

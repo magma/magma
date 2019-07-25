@@ -70,6 +70,7 @@ def main() -> None:
     context["controller_hostname"] = os.environ["CONTROLLER_HOSTNAME"]
     context["proxy_backends"] = os.environ["PROXY_BACKENDS"]
     context["obsidian_port"] = OBSIDIAN_PORT
+    context["env"] = os.environ
 
     # Generate the nghttpx config
     conf = _generate_config(args.proxy_type, context)

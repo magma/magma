@@ -293,7 +293,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Common.CellIdentity',
             val_type='int',
-            data='0',
+            data='138777000',
         ))
         # MME IP
         param_val_list.append(cls.get_parameter_value_struct(
@@ -432,7 +432,7 @@ class Tr069MessageBuilder:
         param_val_list.append(cls.get_parameter_value_struct(
             name='Device.Services.FAPService.1.CellConfig.LTE.RAN.Common.CellIdentity',
             val_type='int',
-            data='0',
+            data='138777000',
         ))
         # MME IP
         param_val_list.append(cls.get_parameter_value_struct(

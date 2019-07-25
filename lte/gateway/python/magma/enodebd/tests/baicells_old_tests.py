@@ -8,18 +8,16 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 # pylint: disable=protected-access
-from unittest import TestCase, mock
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.tr069 import models
 from magma.enodebd.tests.test_utils.tr069_msg_builder import \
     Tr069MessageBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
-from magma.enodebd.tests.test_utils.mock_functions import \
-    mock_get_ip_from_if, GET_IP_FROM_IF_PATH
+from magma.enodebd.tests.test_utils.enodeb_handler import EnodebHandlerTestCase
 
 
-class BaicellsOldHandlerTests(TestCase):
+class BaicellsOldHandlerTests(EnodebHandlerTestCase):
     def test_initial_enb_bootup(self) -> None:
         """
         Baicells does not support configuration during initial bootup of
@@ -125,8 +123,7 @@ class BaicellsOldHandlerTests(TestCase):
                         'State machine should end TR-069 session after '
                         'receiving a RebootResponse')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_provision_without_invasive_changes(self, _mock_func) -> None:
+    def test_provision_without_invasive_changes(self) -> None:
         """
         Test the scenario where:
         - eNodeB has already been powered for 10 minutes without configuration
@@ -242,8 +239,7 @@ class BaicellsOldHandlerTests(TestCase):
         self.assertTrue(isinstance(resp, models.GetParameterValues),
                         'State machine should be requesting param values')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_reboot_after_invasive_changes(self, _mock_func) -> None:
+    def test_reboot_after_invasive_changes(self) -> None:
         """
         Test the scenario where:
         - eNodeB has already been powered for 10 minutes without configuration

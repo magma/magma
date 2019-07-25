@@ -25,6 +25,7 @@ from magma.pipelined.app import of_rest_server
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.ifaces import monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
+from lte.protos.mconfig import mconfigs_pb2
 
 
 def main():
@@ -37,7 +38,7 @@ def main():
     # TODO: Remove once Ryu migrates to asyncio
     asyncio.set_event_loop_policy(aioeventlet.EventLoopPolicy())
 
-    service = MagmaService('pipelined')
+    service = MagmaService('pipelined', mconfigs_pb2.PipelineD())
     service_config = service.config
 
     if environment.is_dev_mode():
@@ -76,6 +77,7 @@ def main():
         manager.applications.get('EnforcementController', None),
         manager.applications.get('EnforcementStatsController', None),
         manager.applications.get('DPIController', None),
+        manager.applications.get('UEMacAddressController', None),
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
 

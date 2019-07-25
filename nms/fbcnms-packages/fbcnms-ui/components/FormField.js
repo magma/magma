@@ -10,16 +10,26 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
+  root: {
+    display: 'flex',
+    whiteSpace: 'nowrap',
+  },
   labelName: {
     color: theme.palette.grey.A700,
     fontWeight: 500,
+    marginRight: '4px',
+  },
+  value: {
+    textOverflow: 'ellipsis',
+    overflowWrap: 'break-word',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
   },
 });
 
@@ -32,19 +42,17 @@ class FormField extends React.Component<Props> {
   render() {
     const {classes, label, value} = this.props;
     return (
-      <div>
-        <Grid container spacing={16}>
-          <Grid item xs={4}>
-            <Typography className={classes.labelName} variant="body2">
-              {label}:
-            </Typography>
-          </Grid>
-          <Grid item xs={8}>
-            <Typography variant="body2" color="secondary">
-              {value}
-            </Typography>
-          </Grid>
-        </Grid>
+      <div className={classes.root}>
+        <Typography className={classes.labelName} variant="body2">
+          {label}:
+        </Typography>
+        <Typography
+          className={classes.value}
+          variant="body2"
+          color="secondary"
+          title={value}>
+          {value}
+        </Typography>
       </div>
     );
   }

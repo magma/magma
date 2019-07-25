@@ -61,7 +61,7 @@ service authenticator {
     // handle handles passed EAP payload & returns corresponding EAP result
     rpc handle(eap) returns (eap) {}
     // supported_methods returns sorted list (ascending, by type) of registered EAP Provider Methods
-    rpc supported_methods(void) returns (eap_method_list) {}
+    rpc supported_methods(Void) returns (eap_method_list) {}
 }
 
 // NOTE: Depreciated, use authenticator service instead
@@ -73,5 +73,5 @@ service eap_router {
     // handle handles passed EAP payload & returns corresponding EAP result
     rpc handle(eap) returns (eap) {}
     // supported_methods returns sorted list (ascending, by type) of registered EAP Provider Methods
-    rpc supported_methods(void) returns (eap_method_list) {}
+    rpc supported_methods(Void) returns (eap_method_list) {}
 }

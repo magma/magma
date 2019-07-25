@@ -55,6 +55,7 @@ RUN apt-get -y update && apt-get -y install \
   magma-nghttpx=1.31.1-1 \
   net-tools \
   openssl \
+  iputils-ping \
   pkg-config \
   python-cffi \
   python3-pip \
@@ -74,8 +75,6 @@ COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
-# Add docker config overrides
-COPY feg/gateway/docker/configs /etc/magma
 
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb

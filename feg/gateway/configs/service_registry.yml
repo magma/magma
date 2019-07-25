@@ -4,51 +4,77 @@ services:
   # Example service name that contains dash: hello-world-blah
   # As we use "-" in nghttpx config to connect service name and hostname,
   # "-" is used as a delimiter in dispatcher to parse out service names.
+
+  # Format:
+  # service:
+  #   host:       Host name to register in registry
+  #   ip_address: IP address used by control_proxy
+  #   port:       Port number used by control_proxy
+
+  # Production Services
   magmad:
-    ip_address: 127.0.0.1
+    host: magmad
+    ip_address: magmad
     port: 50052
   control_proxy:
-    ip_address: 127.0.0.1
+    host: control_proxy
+    ip_address: control_proxy
     port: 50053
-  metricsd:
-    ip_address: 127.0.0.1
-    port: 60054
-  # Currently the go services pull their port from magma/platform/registry/config.go
-  # In the future, these services should pull from this file instead. For now,
-  # the ports need to match the platform service registry
   session_proxy:
-    ip_address: 127.0.0.1
-    port: 9097 # TODO remove dependency on platform service registry
+    host: session_proxy
+    ip_address: session_proxy
+    port: 9097
   s6a_proxy:
-    ip_address: 127.0.0.1
-    port: 9098 # TODO remove dependency on platform service registry
+    host: s6a_proxy
+    ip_address: s6a_proxy
+    port: 9098
   swx_proxy:
-    ip_address: 127.0.0.1
+    host: swx_proxy
+    ip_address: swx_proxy
     port: 9110
   eap_aka:
-    ip_address: 127.0.0.1
+    host: eap_aka
+    ip_address: eap_aka
     port: 9123
   aaa_server:
-    ip_address: 127.0.0.1
+    host: aaa_server
+    ip_address: aaa_server
     port: 9109
   csfb:
-    ip_address: 127.0.0.1
+    host: csfb
+    ip_address: csfb
     port: 9101
   feg_hello:
-    ip_address: 127.0.0.1
+    host: feg_hello
+    ip_address: feg_hello
     port: 9093
-  ocs:
+  health:
+    host: health
+    ip_address: health
+    port: 9107
+  redis:
+    host: redis
+    ip_address: redis
+    port: 6380
+
+  # Development/Test Services
+
+  # Since these services won't always be present,
+  # we need to use localhost as the IP to ensure nghttpx doesn't crash
+  # from resolution errors
+  mock_ocs:
+    host: mock_ocs
     ip_address: 127.0.0.1
     port: 9201
-  pcrf:
+  mock_pcrf:
+    host: mock_pcrf
     ip_address: 127.0.0.1
     port: 9202
-  health:
-    ip_address: 127.0.0.1
-    port: 9107
-  hss:
-    ip_address: 127.0.0.1
-    port: 9108
-  vlr:
+  mock_vlr:
+    host: mock_vlr
     ip_address: 127.0.0.1
     port: 9203
+  hss:
+    host: hss
+    ip_address: 127.0.0.1
+    port: 9204

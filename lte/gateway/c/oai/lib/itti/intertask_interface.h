@@ -101,12 +101,6 @@ typedef struct task_info_s {
   const char *const name;
 } task_info_t;
 
-/** \brief Send a broadcast message to every task
- \param message_p Pointer to the message to send
- @returns < 0 on failure, 0 otherwise
- **/
-int itti_send_broadcast_message(MessageDef *message_p);
-
 /** \brief Send a message to a task (could be itself)
  \param task_id Task ID
  \param instance Instance of the task used for virtualization
@@ -117,26 +111,6 @@ int itti_send_msg_to_task(
   task_id_t task_id,
   instance_t instance,
   MessageDef *message);
-
-/** \brief Add a new fd to monitor.
- * NOTE: it is up to the user to read data associated with the fd
- *  \param task_id Task ID of the receiving task
- *  \param fd The file descriptor to monitor
- **/
-void itti_subscribe_event_fd(task_id_t task_id, int fd);
-
-/** \brief Remove a fd from the list of fd to monitor
- *  \param task_id Task ID of the task
- *  \param fd The file descriptor to remove
- **/
-void itti_unsubscribe_event_fd(task_id_t task_id, int fd);
-
-/** \brief Return the list of events excluding the fd associated with itti
- *  \param task_id Task ID of the task
- *  \param events events list
- *  @returns number of events to handle
- **/
-int itti_get_events(task_id_t task_id, struct epoll_event **events);
 
 /** \brief Retrieves a message in the queue associated to task_id.
  * If the queue is empty, the thread is blocked till a new message arrives.
@@ -184,17 +158,6 @@ MessageDef *itti_alloc_new_message(
   task_id_t origin_task_id,
   MessagesIds message_id);
 
-/** \brief Alloc and memset(0) a new itti message.
- * \param origin_task_id Task ID of the sending task
- * \param message_id Message ID
- * \param size size of the payload to send
- * @returns NULL in case of failure or newly allocated mesage ref
- **/
-MessageDef *itti_alloc_new_message_sized(
-  task_id_t origin_task_id,
-  MessagesIds message_id,
-  MessageHeaderSize size);
-
 /** \brief handle signals and wait for all threads to join when the process complete.
  * This function should be called from the main thread after having created all ITTI tasks.
  **/
@@ -210,7 +173,7 @@ void *itti_malloc(
   task_id_t destination_task_id,
   ssize_t size);
 
-int itti_free(task_id_t task_id, void *ptr);
+void itti_free(task_id_t task_id, void *ptr);
 
 #endif /* INTERTASK_INTERFACE_H_ */
 /* @} */

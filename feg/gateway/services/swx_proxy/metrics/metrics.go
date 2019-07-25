@@ -59,10 +59,38 @@ var (
 		Name: "unauthorized_auth_requests_total",
 		Help: "Total number of authentication requests for un-authorized users",
 	})
+
+	// Latency Metrics
+	MARLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "mar_latency",
+		Help:       "Latency of MAR Diameter requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	SARLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "sar_latency",
+		Help:       "Latency of SAR Diameter requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	AuthLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "auth_latency",
+		Help:       "Latency of Authenticate GRPC requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	RegisterLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "register_latency",
+		Help:       "Latency of Register GRPC requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	DeregisterLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "deregister_latency",
+		Help:       "Latency of Deregister GRPC requests (seconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
 )
 
 func init() {
 	prometheus.MustRegister(MARRequests, MARSendFailures, SARRequests,
 		SARSendFailures, SwxTimeouts, SwxUnparseableMsg, SwxInvalidSessions,
-		SwxResultCodes, SwxExperimentalResultCodes, UnauthorizedAuthAttempts)
+		SwxResultCodes, SwxExperimentalResultCodes, UnauthorizedAuthAttempts,
+		MARLatency, SARLatency, AuthLatency, RegisterLatency, DeregisterLatency)
 }

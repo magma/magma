@@ -33,7 +33,6 @@
 #include "assertions.h"
 #include "log.h"
 #include "mme_config.h"
-#include "daemonize.h"
 #include "shared_ts_log.h"
 
 #include "intertask_interface_init.h"
@@ -83,16 +82,9 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
 
-#if DAEMONIZE
-  daemon_start();
-#endif /* DAEMONIZE */
-
   pid_file_name = get_pid_file_name(mme_config.pid_dir);
 
   if (!pid_file_lock(pid_file_name)) {
-#if DAEMONIZE
-    daemon_stop();
-#endif /* DAEMONIZE */
     exit(-EDEADLK);
   }
   free_wrapper((void **) &pid_file_name);

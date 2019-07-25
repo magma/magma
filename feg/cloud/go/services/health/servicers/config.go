@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	fegcfg "magma/feg/cloud/go/services/controller/config"
+	"magma/feg/cloud/go/feg"
 	cfgprotos "magma/feg/cloud/go/services/controller/protos"
 	orc8rcfg "magma/orc8r/cloud/go/services/config"
 
@@ -31,7 +31,7 @@ func GetHealthConfigForNetwork(networkID string) *healthConfig {
 		memAvailableThreshold: defaultMemAvailableThreshold,
 		staleUpdateThreshold:  defaultStaleUpdateThreshold,
 	}
-	config, err := orc8rcfg.GetConfig(networkID, fegcfg.FegNetworkType, networkID)
+	config, err := orc8rcfg.GetConfig(networkID, feg.FegNetworkType, networkID)
 	if err != nil {
 		glog.V(2).Infof("Using default health configuration for network %s; %s", networkID, err)
 		return defaultConfig

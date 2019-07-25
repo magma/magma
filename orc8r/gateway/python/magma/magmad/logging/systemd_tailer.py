@@ -9,11 +9,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import asyncio
 import logging
-
 import snowflake
 from orc8r.protos.logging_service_pb2 import LogEntry
 from systemd import journal
-
 from magma.common.scribe_client import ScribeClient
 
 SERVICE_EXIT_CATEGORY = "perfpipe_magma_gateway_service_exit"

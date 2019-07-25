@@ -64,6 +64,22 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
     });
 }
 
+static CreateSessionRequest copy_wifi_session_info2create_req(
+  const LocalCreateSessionRequest *request,
+  const std::string &sid)
+{
+  CreateSessionRequest create_request;
+
+  create_request.mutable_subscriber()->CopyFrom(request->sid());
+  create_request.set_session_id(sid);
+  create_request.set_ue_ipv4(request->ue_ipv4());
+  create_request.set_apn(request->apn());
+  create_request.set_imei(request->imei());
+  create_request.set_msisdn(request->msisdn());
+
+  return create_request;
+}
+
 static CreateSessionRequest copy_session_info2create_req(
   const LocalCreateSessionRequest *request,
   const std::string &sid)
@@ -99,25 +115,41 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .imei = request->imei(),
                               .plmn_id = request->plmn_id(),
                               .imsi_plmn_id = request->imsi_plmn_id(),
-                              .user_location = request->user_location()};
-  reporter_->report_create_session(
+                              .user_location = request->user_location(),
+                              .rat_type = request->rat_type(),
+                              .mac_addr = request->hardware_addr(),
+                              .radius_session_id = request->radius_session_id()};
+  send_create_session(
     copy_session_info2create_req(request, sid),
+    imsi, sid, cfg, response_callback);
+}
+
+void LocalSessionManagerHandlerImpl::send_create_session(
+  const CreateSessionRequest &request,
+  const std::string &imsi,
+  const std::string &sid,
+  const SessionState::Config &cfg,
+  std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback)
+{
+  reporter_->report_create_session(
+    request,
     [this, imsi, sid, cfg, response_callback](
       Status status, CreateSessionResponse response) {
       if (status.ok()) {
         bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {
-          MLOG(MERROR) << "Failed to init session in Usage Monitor for IMSI "
-                       << imsi;
+          MLOG(MERROR) << "Failed to init session in Usage Monitor "
+                       << "for IMSI " << imsi;
           status =
-            Status(grpc::FAILED_PRECONDITION, "Failed to initialize session");
+            Status(
+              grpc::FAILED_PRECONDITION, "Failed to initialize session");
         } else {
-          MLOG(MINFO) << "Successfully initialized new session in sessiond "
-                      << "for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized new session "
+                      << "in sessiond for subscriber " << imsi;
         }
       } else {
-        MLOG(MERROR) << "Failed to initialize session in OCS for IMSI " << imsi
-                     << ": " << status.error_message();
+        MLOG(MERROR) << "Failed to initialize session in OCS for IMSI "
+                     << imsi << ": " << status.error_message();
       }
       response_callback(status, LocalCreateSessionResponse());
     });

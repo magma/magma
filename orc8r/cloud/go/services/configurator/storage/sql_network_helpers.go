@@ -13,30 +13,31 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
 func getNetworkQueryColumns(criteria NetworkLoadCriteria) []string {
-	ret := []string{fmt.Sprintf("%s.id", networksTable)}
+	ret := []string{fmt.Sprintf("%s.%s", networksTable, nwIDCol)}
 	if criteria.LoadMetadata {
 		ret = append(
 			ret,
-			fmt.Sprintf("%s.name", networksTable),
-			fmt.Sprintf("%s.description", networksTable),
+			fmt.Sprintf("%s.%s", networksTable, nwNameCol),
+			fmt.Sprintf("%s.%s", networksTable, nwDescCol),
 		)
 	}
 	if criteria.LoadConfigs {
 		ret = append(
 			ret,
-			fmt.Sprintf("%s.type", networkConfigTable),
-			fmt.Sprintf("%s.value", networkConfigTable),
+			fmt.Sprintf("%s.%s", networkConfigTable, nwcTypeCol),
+			fmt.Sprintf("%s.%s", networkConfigTable, nwcValCol),
 		)
 	}
-	ret = append(ret, fmt.Sprintf("%s.version", networksTable))
+	ret = append(ret, fmt.Sprintf("%s.%s", networksTable, nwVerCol))
 	return ret
 }
 
@@ -107,11 +108,13 @@ func getNetworkIDsNotFound(networksByID map[string]*Network, queriedIDs []string
 }
 
 func (store *sqlConfiguratorStorage) doesNetworkExist(id string) (bool, error) {
-	query := fmt.Sprintf("SELECT count(1) FROM %s WHERE id = $1", networksTable)
-	row := store.tx.QueryRow(query, id)
-
 	var count int
-	err := row.Scan(&count)
+	err := store.builder.Select("COUNT(1)").
+		From(networksTable).
+		Where(sq.Eq{"id": id}).
+		RunWith(store.tx).
+		QueryRow().
+		Scan(&count)
 	if err != nil {
 		return false, fmt.Errorf("error checking if network id %s exists: %s", id, err)
 	}
@@ -129,14 +132,14 @@ func validateNetworkUpdates(updates []NetworkUpdateCriteria) error {
 
 func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria, stmtCache *sq.StmtCache) error {
 	// Update the network table first
-	updateBuilder := store.builder.Update(networksTable).Where(sq.Eq{"id": update.ID})
+	updateBuilder := store.builder.Update(networksTable).Where(sq.Eq{nwIDCol: update.ID})
 	if update.NewName != nil {
-		updateBuilder = updateBuilder.Set("name", stringPtrToVal(update.NewName))
+		updateBuilder = updateBuilder.Set(nwNameCol, stringPtrToVal(update.NewName))
 	}
 	if update.NewDescription != nil {
-		updateBuilder = updateBuilder.Set("description", stringPtrToVal(update.NewDescription))
+		updateBuilder = updateBuilder.Set(nwDescCol, stringPtrToVal(update.NewDescription))
 	}
-	updateBuilder = updateBuilder.Set("version", sq.Expr(fmt.Sprintf("%s.version+1", networksTable)))
+	updateBuilder = updateBuilder.Set(nwVerCol, sq.Expr(fmt.Sprintf("%s.%s+1", networksTable, nwVerCol)))
 	_, err := updateBuilder.RunWith(stmtCache).Exec()
 	if err != nil {
 		return errors.Wrapf(err, "error updating network %s", update.ID)
@@ -151,11 +154,11 @@ func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria,
 		// INSERT INTO %s (network_id, type, value) VALUES ($1, $2, $3)
 		// ON CONFLICT (network_id, type) DO UPDATE SET value = $4
 		_, err := store.builder.Insert(networkConfigTable).
-			Columns("network_id", "type", "value").
+			Columns(nwcIDCol, nwcTypeCol, nwcValCol).
 			Values(update.ID, configType, configValue).
 			OnConflict(
-				[]sql_utils.UpsertValue{{Column: "value", Value: configValue}},
-				"network_id", "type",
+				[]sqorc.UpsertValue{{Column: nwcValCol, Value: configValue}},
+				nwcIDCol, nwcTypeCol,
 			).
 			RunWith(stmtCache).
 			Exec()
@@ -171,7 +174,7 @@ func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria,
 
 	orClause := make(sq.Or, 0, len(update.ConfigsToDelete))
 	for _, configType := range update.ConfigsToDelete {
-		orClause = append(orClause, sq.Eq{"network_id": update.ID, "type": configType})
+		orClause = append(orClause, sq.Eq{nwcIDCol: update.ID, nwcTypeCol: configType})
 	}
 	_, err = store.builder.Delete(networkConfigTable).Where(orClause).RunWith(store.tx).Exec()
 	if err != nil {
@@ -181,11 +184,11 @@ func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria,
 	return nil
 }
 
-func stringPtrToVal(in *string) interface{} {
-	if *in == "" {
-		return nil
+func stringPtrToVal(value *wrappers.StringValue) interface{} {
+	if value == nil {
+		return ""
 	}
-	return *in
+	return value.Value
 }
 
 func nullStringToValue(in sql.NullString) string {

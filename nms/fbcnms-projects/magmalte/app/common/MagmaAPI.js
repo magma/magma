@@ -8,12 +8,12 @@
  * @format
  */
 
+import type {MagmadConfig, Record, WifiConfig} from './MagmaAPIType';
 import type {Match} from 'react-router-dom';
-import type {WifiConfig, MagmadConfig, Record} from './MagmaAPIType';
 
 import axios from 'axios';
-import {get, map} from 'lodash-es';
 import url from 'url';
+import {get, map} from 'lodash';
 
 import type {CheckindGateway, NetworkUpgradeTier} from './MagmaAPIType';
 

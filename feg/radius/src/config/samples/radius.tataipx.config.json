@@ -1,0 +1,34 @@
+{
+    "counters": {
+        "disable_stats": false,
+        "stat_views": ["proc"]
+    },
+    "server": {
+        "secret": "123456",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "port": 1812,
+                "type": "udp",
+                "modules": [
+                    {
+                        "name": "eap",
+                        "config": {
+                            "methods": [
+                                {
+                                    "name": "akatataipx",
+                                    "config": {
+                                        "IpxEndpoint": "https://carrieridpoc.mvoipctsi.com:36443/ss7gatewaysvcs",
+                                        "Username": "MapFBtclUser",
+                                        "Password": "X70:-1g$M-Q2^0"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
