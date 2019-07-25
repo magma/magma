@@ -4,22 +4,15 @@
 # LICENSE file in the root directory of this source tree.
 #
 ---
-- name: Set up Carrier WiFi Access Gateway for development
-  hosts: cwag
+- name: Set up Carrier WiFi Access Gateway Integration Test VM for development
+  hosts: cwag_test
   become: yes
   vars:
     - magma_root: /home/{{ ansible_user }}/magma
     - user: vagrant
     - full_provision: true
   roles:
-    - role: apt_cache
-    - role: pkgrepo
-      vars:
-        distribution: "bionic"
-    - role: ovs
     - role: golang
-    - role: cwag
-
   tasks:
     - name: Set build environment variables
       lineinfile:
@@ -29,16 +22,6 @@
       with_items:
         - MAGMA_ROOT={{ magma_root }}
       when: full_provision
-    # Only run installation for docker
-    - include_role:
-        name: docker
-        tasks_from: install
-
-    - name: Create snowflake file
-      copy:
-        content: ""
-        dest: /etc/snowflake
-
     # Required by some go libraries
     - name: Install bzr dependency
       apt:
