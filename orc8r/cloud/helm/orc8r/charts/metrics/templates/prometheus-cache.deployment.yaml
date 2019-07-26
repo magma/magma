@@ -50,6 +50,7 @@ spec:
           imagePullPolicy: {{ .Values.prometheusCache.image.pullPolicy }}
           ports:
             - containerPort: 9091
+          args: ["-limit={{ .Values.prometheusCache.limit }}"]
           livenessProbe:
             httpGet:
               path: /
