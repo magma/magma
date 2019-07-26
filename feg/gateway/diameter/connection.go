@@ -208,6 +208,9 @@ func addDestinationToMessage(
 		// apply new realm
 		realmAVP.Data = destRealm
 	}
+	if server.DisableDestHost {
+		return message, nil
+	}
 	hostAVP, err := message.FindAVP(avp.DestinationHost, 0)
 	if err != nil {
 		message.NewAVP(avp.DestinationHost, avp.Mbit, 0, destHost)
