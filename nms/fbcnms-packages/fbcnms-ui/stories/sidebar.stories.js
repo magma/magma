@@ -28,7 +28,7 @@ const Container = () => {
   return (
     <div className={classes.root}>
       <TopPageBar>
-        <Typography>I'm a Header</Typography>
+        <Typography variant="body2">I'm a Header</Typography>
         <Button onClick={() => setIsShown(true)}>Open Drawer</Button>
       </TopPageBar>
       <SideBar isShown={isShown} top={60} onClose={() => setIsShown(false)}>

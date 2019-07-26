@@ -28,13 +28,7 @@ type ConfiguratorStorageFactory interface {
 
 	// StartTransaction returns a ConfiguratorStorage implementation bound to
 	// a transaction. Transaction options can be optionally provided.
-	StartTransaction(ctx context.Context, opts *TxOptions) (ConfiguratorStorage, error)
-}
-
-// TxOptions specifies options for transactions started by
-// ConfiguratorStorageFactory
-type TxOptions struct {
-	ReadOnly bool
+	StartTransaction(ctx context.Context, opts *storage.TxOptions) (ConfiguratorStorage, error)
 }
 
 // ConfiguratorStorage is the interface for the configurator service's access

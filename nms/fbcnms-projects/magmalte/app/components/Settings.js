@@ -31,7 +31,7 @@ const styles = theme => ({
     flex: 1,
   },
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
 });
 
@@ -67,7 +67,7 @@ class Settings extends React.Component<Props, State> {
         {({user, networkIds}) => (
           <>
             <MagmaTopBar title="Settings" />
-            <Paper className={this.props.classes.paper}>
+            <Paper className={this.props.classes.paper} elevation={2}>
               <AppBar position="static" color="default">
                 <Tabs
                   value={this.state.currentTab}

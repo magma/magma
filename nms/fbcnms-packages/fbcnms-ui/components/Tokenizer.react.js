@@ -221,4 +221,4 @@ class Tokenizer extends React.Component<Props, State> {
   }
 }
 
-export default withTheme()(withStyles(styles)(Tokenizer));
+export default withTheme(withStyles(styles)(Tokenizer));

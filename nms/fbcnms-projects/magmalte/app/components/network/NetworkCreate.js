@@ -25,10 +25,10 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles(theme => ({
   container: {
-    marginTop: theme.spacing.unit * 2,
+    marginTop: theme.spacing(2),
   },
   content: {
-    padding: theme.spacing.unit * 2,
+    padding: theme.spacing(2),
   },
 }));
 
@@ -71,10 +71,10 @@ export default function NetworkCreate() {
     <>
       <MagmaTopBar />
       <div className={classes.container}>
-        <Grid container spacing={24}>
+        <Grid container spacing={3}>
           <Grid item xs />
           <Grid item xs={6}>
-            <Paper className={classes.content}>
+            <Paper className={classes.content} elevation={2}>
               <DialogTitle>Create Network</DialogTitle>
               <DialogContent>
                 <FormGroup row>

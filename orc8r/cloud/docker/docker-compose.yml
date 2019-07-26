@@ -35,8 +35,10 @@ services:
     environment:
       CONTROLLER_HOSTNAME: controller.magma.test
       PROXY_BACKENDS: controller  # Uses Docker internal DNS for controller
-      HTTP_PROXY_HOSTNAME: proxy.magma.test
-      HTTP_PROXY_BACKEND: www.magma.test
+      # HTTP_PROXY_HOSTNAME: proxy.magma.test
+      # HTTP_PROXY_BACKEND: www.magma.test
+      HTTP_PROXY_DOCKER_HOSTNAME: docker.io
+      HTTP_PROXY_GITHUB_HOSTNAME: github.com
       TEST_MODE: "1"  # Used to run dev scripts on startup
     restart: always
 
@@ -57,4 +59,8 @@ services:
       # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
       # SQL_DIALECT: maria
     restart: always
-    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -t 30 postgres:5432 && /usr/bin/supervisord"]
+    depends_on:
+      - postgres
+      # - maria
+    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
+    # command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 maria:[port] && /usr/bin/supervisord"]

@@ -43,7 +43,7 @@ const styles = theme => ({
     justifyContent: 'space-between',
   },
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
 });
 
@@ -131,7 +131,7 @@ class Subscribers extends React.Component<Props, State> {
               Add Subscriber
             </Button>
           </div>
-          <Paper>
+          <Paper elevation={2}>
             {this.state.loading ? (
               <LoadingFiller />
             ) : (
@@ -162,7 +162,9 @@ class Subscribers extends React.Component<Props, State> {
           </Paper>
           <div
             style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
-            <Typography color="error">{this.state.errorMessage}</Typography>
+            <Typography color="error" variant="body2">
+              {this.state.errorMessage}
+            </Typography>
           </div>
           <AddEditSubscriberDialog
             key={(this.state.editingSubscriber || {}).id || 'new'}

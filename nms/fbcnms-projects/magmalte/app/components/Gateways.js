@@ -49,7 +49,7 @@ const styles = theme => ({
     justifyContent: 'space-between',
   },
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
 });
 
@@ -120,7 +120,7 @@ class Gateways extends React.Component<Props, State> {
               Add Gateway
             </Button>
           </div>
-          <Paper>
+          <Paper elevation={2}>
             {gateways ? (
               <Table>
                 <TableHead>

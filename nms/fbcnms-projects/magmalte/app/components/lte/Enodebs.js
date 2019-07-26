@@ -44,7 +44,7 @@ const styles = theme => ({
     justifyContent: 'space-between',
   },
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
 });
 
@@ -132,7 +132,7 @@ class Enodebs extends React.Component<Props, State> {
               Add eNodeB
             </Button>
           </div>
-          <Paper>
+          <Paper elevation={2}>
             {enodebs ? (
               <Table>
                 <TableHead>

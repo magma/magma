@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	orc8rStorage "magma/orc8r/cloud/go/storage"
 )
 
 type nbConfiguratorServicer struct {
@@ -33,7 +34,7 @@ func NewNorthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactor
 
 func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *protos.LoadNetworksRequest) (*storage.NetworkLoadResult, error) {
 	res := &storage.NetworkLoadResult{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: true})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return res, err
 	}
@@ -48,7 +49,7 @@ func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *pr
 
 func (srv *nbConfiguratorServicer) ListNetworkIDs(context context.Context, void *commonProtos.Void) (*protos.ListNetworkIDsResponse, error) {
 	res := &protos.ListNetworkIDsResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: true})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return res, err
 	}
@@ -67,7 +68,7 @@ func (srv *nbConfiguratorServicer) ListNetworkIDs(context context.Context, void 
 
 func (srv *nbConfiguratorServicer) CreateNetworks(context context.Context, req *protos.CreateNetworksRequest) (*protos.CreateNetworksResponse, error) {
 	emptyRes := &protos.CreateNetworksResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
@@ -90,7 +91,7 @@ func (srv *nbConfiguratorServicer) CreateNetworks(context context.Context, req *
 
 func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *protos.UpdateNetworksRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return void, err
 	}
@@ -113,7 +114,7 @@ func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *
 
 func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *protos.DeleteNetworksRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return void, err
 	}
@@ -132,7 +133,7 @@ func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *
 
 func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *protos.LoadEntitiesRequest) (*storage.EntityLoadResult, error) {
 	emptyRes := &storage.EntityLoadResult{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
@@ -147,7 +148,7 @@ func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *pr
 
 func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *protos.CreateEntitiesRequest) (*protos.CreateEntitiesResponse, error) {
 	emptyRes := &protos.CreateEntitiesResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
@@ -169,7 +170,7 @@ func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *
 
 func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *protos.UpdateEntitiesRequest) (*protos.UpdateEntitiesResponse, error) {
 	emptyRes := &protos.UpdateEntitiesResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
@@ -194,7 +195,7 @@ func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *
 
 func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *protos.DeleteEntitiesRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return void, err
 	}

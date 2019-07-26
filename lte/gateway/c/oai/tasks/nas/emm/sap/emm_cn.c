@@ -318,13 +318,12 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       LOG_NAS_ESM,
       "No suitable APN found ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       ue_mm_context->mme_ue_s1ap_id);
-    if (!emm_ctx->esm_ctx.esm_proc_data->apn) {
-      /*
-       * If there is a mismatch between the APN sent by UE and the APN provided by HSS,
-       * send Attach Reject to UE
-       */
-       _handle_apn_mismatch(ue_mm_context);
-    }
+    /*
+     * If there is a mismatch between the APN sent by UE and the APN
+     * provided by HSS or if we fail to select the APN provided
+     * by HSS,send Attach Reject to UE
+     */
+     _handle_apn_mismatch(ue_mm_context);
     return RETURNerror;
   }
 

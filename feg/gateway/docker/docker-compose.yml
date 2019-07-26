@@ -44,6 +44,9 @@ services:
   csfb:
     <<: *goservice
     container_name: csfb
+    environment:
+      VLR_ADDR: ${VLR_ADDR}
+      SGS_LOCAL_ADDR: ${SGS_LOCAL_ADDR}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
 
   eap_aka:

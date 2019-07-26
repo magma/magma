@@ -75,7 +75,7 @@ const styles = (theme: Theme) => ({
   titleContainer: {
     display: 'flex',
     alignItems: 'center',
-    paddingRight: theme.spacing.unit * 3,
+    paddingRight: theme.spacing(3),
     marginBottom: '12px',
     marginLeft: '12px',
   },
@@ -233,11 +233,10 @@ class TreeView extends React.Component<Props, State> {
   renderDummyTitleNode(dummyNodeTitle: string) {
     const {
       classes,
-      theme: {
-        spacing: {unit},
-      },
+      theme: {spacing},
     } = this.props;
-    const spacing = unit * 2;
+    const unit = spacing();
+    const spacingPx = unit * 2;
 
     const hoverRightContent = this.getNodeHoverRightContent(null);
     return (
@@ -246,7 +245,7 @@ class TreeView extends React.Component<Props, State> {
           root: classes.leafRoot,
         }}
         disableGutters
-        style={{paddingLeft: spacing + unit}}
+        style={{paddingLeft: spacingPx + unit}}
         key={'dummy_node'}>
         <div className={classes.headerRoot}>
           <div className={classes.headerContainer}>
@@ -264,12 +263,11 @@ class TreeView extends React.Component<Props, State> {
 
   renderNode = (node: Object, parent: ?Object, depth = 0) => {
     const {
-      theme: {
-        spacing: {unit},
-      },
+      theme: {spacing},
       classes,
     } = this.props;
-    const spacing = unit * 2;
+    const unit = spacing();
+    const spacingPx = unit * 2;
     const {selectedId} = this.props;
     const id = this.getNodeId(node);
     const isLeaf = this.isLeaf(node);
@@ -278,7 +276,7 @@ class TreeView extends React.Component<Props, State> {
     const children = this.getNodeChildren(node);
     const key = typeof id !== 'undefined' ? id : title;
     const hoverRightContent = this.getNodeHoverRightContent(node);
-    const paddingLeft = depth * spacing + spacing + unit;
+    const paddingLeft = depth * spacingPx + spacingPx + unit;
 
     const treeItemClasses = classNames({
       [classes.treeItem]: true,
@@ -411,4 +409,4 @@ class TreeView extends React.Component<Props, State> {
   }
 }
 
-export default withTheme()(withStyles(styles)(TreeView));
+export default withTheme(withStyles(styles)(TreeView));

@@ -24,7 +24,7 @@ const (
 	VLRAddrEnv          = "VLR_ADDR"
 	DefaultVLRIPAddress = "127.0.0.1"
 	DefaultVLRPort      = 1357
-	LocalAddrEnv        = "SGS_ADDR"
+	LocalAddrEnv        = "SGS_LOCAL_ADDR"
 	LocalIPAddress      = "127.0.0.1"
 	LocalPort           = 0
 )

@@ -9,6 +9,7 @@
 package blobstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -20,6 +21,7 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 const (
@@ -42,12 +44,22 @@ type sqlBlobStoreFactory struct {
 	builder   sqorc.StatementBuilder
 }
 
-func (fact *sqlBlobStoreFactory) StartTransaction() (TransactionalBlobStorage, error) {
-	tx, err := fact.db.Begin()
+func (fact *sqlBlobStoreFactory) StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error) {
+	tx, err := fact.db.BeginTx(context.Background(), getSqlOpts(opts))
 	if err != nil {
 		return nil, err
 	}
 	return &sqlBlobStorage{tableName: fact.tableName, tx: tx, builder: fact.builder}, nil
+}
+
+func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
+	if opts == nil {
+		return nil
+	}
+	if opts.Isolation == 0 {
+		return &sql.TxOptions{ReadOnly: opts.ReadOnly}
+	}
+	return &sql.TxOptions{ReadOnly: opts.ReadOnly, Isolation: sql.IsolationLevel(opts.Isolation)}
 }
 
 func (fact *sqlBlobStoreFactory) InitializeFactory() error {
@@ -198,6 +210,40 @@ func (store *sqlBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) erro
 	return nil
 }
 
+func (store *sqlBlobStorage) GetExistingKeys(keys []string, filter SearchFilter) ([]string, error) {
+	if err := store.validateTx(); err != nil {
+		return nil, err
+	}
+
+	whereConditions := make(sq.Or, 0, len(keys))
+	for _, key := range keys {
+		and := sq.And{sq.Eq{keyCol: key}}
+		if funk.NotEmpty(filter.NetworkID) {
+			and = append(and, sq.Eq{nidCol: filter.NetworkID})
+		}
+
+		whereConditions = append(whereConditions, and)
+	}
+	rows, err := store.builder.Select(keyCol).Distinct().From(store.tableName).
+		Where(whereConditions).
+		RunWith(store.tx).
+		Query()
+	if err != nil {
+		return nil, err
+	}
+	defer sqorc.CloseRowsLogOnError(rows, "GetExistingKeys")
+	scannedKeys := []string{}
+	for rows.Next() {
+		var key string
+		err = rows.Scan(&key)
+		if err != nil {
+			return nil, err
+		}
+		scannedKeys = append(scannedKeys, key)
+	}
+	return scannedKeys, nil
+}
+
 func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	if err := store.validateTx(); err != nil {
 		return err
@@ -209,6 +255,26 @@ func (store *sqlBlobStorage) Delete(networkID string, ids []storage.TypeAndKey) 
 		RunWith(store.tx).
 		Exec()
 	return err
+}
+
+func (store *sqlBlobStorage) IncrementVersion(networkID string, id storage.TypeAndKey) error {
+	if err := store.validateTx(); err != nil {
+		return err
+	}
+
+	_, err := store.builder.Insert(store.tableName).
+		Columns(nidCol, typeCol, keyCol, verCol).
+		Values(networkID, id.Type, id.Key, 1).
+		OnConflict(
+			[]sqorc.UpsertValue{{Column: verCol, Value: sq.Expr(fmt.Sprintf("%s.%s+1", store.tableName, verCol))}},
+			nidCol, typeCol, keyCol,
+		).
+		RunWith(store.tx).
+		Exec()
+	if err != nil {
+		return errors.Wrapf(err, "Error incrementing version on network %s with type %s and key %s", networkID, id.Type, id.Key)
+	}
+	return nil
 }
 
 func (store *sqlBlobStorage) validateTx() error {

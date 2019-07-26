@@ -63,7 +63,7 @@ func eapAkaIdentityRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, err
 			)
 
 			// Append Identity Attribute data to packet.
-			id := []byte("\x30" + ue.Imsi + IdentityPostfix)
+			id := []byte("\x30" + ue.GetImsi() + IdentityPostfix)
 			p, err = p.Append(
 				eap.NewAttribute(
 					aka.AT_IDENTITY,
@@ -132,7 +132,7 @@ func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.
 	expectedAutn := attrs.autn.Marshaled()[aka.ATT_HDR_LEN:]
 	expectedMac := attrs.mac.Marshaled()[aka.ATT_HDR_LEN:]
 
-	id := []byte("\x30" + ue.Imsi + IdentityPostfix)
+	id := []byte("\x30" + ue.GetImsi() + IdentityPostfix)
 	key := []byte(ue.AuthKey)
 
 	// Calculate SQN using SEQ and IND

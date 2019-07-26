@@ -106,7 +106,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
               Reboot
             </Button>
             <Fade in={this.state.showRebootCheck} timeout={500}>
-              <Check style={{verticalAlign: 'middle'}} nativeColor="green" />
+              <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
             </Fade>
           </FormField>
           <div style={this.props.showRestartCommand ? {} : {display: 'none'}}>
@@ -115,7 +115,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
                 Restart Services
               </Button>
               <Fade in={this.state.showRestartCheck} timeout={500}>
-                <Check style={{verticalAlign: 'middle'}} nativeColor="green" />
+                <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
               </Fade>
             </FormField>
           </div>

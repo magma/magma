@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 
+	"magma/feg/cloud/go/protos/mconfig"
 	fegprotos "magma/feg/cloud/go/services/controller/protos"
 	"magma/orc8r/cloud/go/protos"
 )
@@ -233,4 +234,22 @@ func (m *GatewayFegConfigs) FromServiceModel(magmadModel interface{}) error {
 		m.ServedNetworkIds = []string{}
 	}
 	return nil
+}
+
+func (config *DiameterClientConfigs) ToMconfig() *mconfig.DiamClientConfig {
+	res := &mconfig.DiamClientConfig{}
+	protos.FillIn(config, res)
+	return res
+}
+
+func (config *DiameterServerConfigs) ToMconfig() *mconfig.DiamServerConfig {
+	res := &mconfig.DiamServerConfig{}
+	protos.FillIn(config, res)
+	return res
+}
+
+func (profile *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile {
+	res := &mconfig.HSSConfig_SubscriptionProfile{}
+	protos.FillIn(profile, res)
+	return res
 }

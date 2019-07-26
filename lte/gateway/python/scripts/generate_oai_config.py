@@ -17,9 +17,9 @@ import socket
 import os
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
-
+from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.misc_utils import get_ip_from_if, get_ip_from_if_cidr
-from magma.configuration.mconfig_managers import load_service_mconfig_as_json
+from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
 
 CONFIG_OVERRIDE_DIR = "/var/opt/magma/tmp"
@@ -39,7 +39,7 @@ def _get_dns_ip(iface_config):
     If caching is enabled, use the ip of interface that dnsd listens over.
     Otherwise, just use dns server in yml.
     """
-    if load_service_mconfig_as_json("mme")["enableDnsCaching"]:
+    if load_service_mconfig("mme", MME()).enable_dns_caching:
         iface_name = get_service_config_value("dnsd", iface_config, "")
         return get_ip_from_if(iface_name)
     return get_service_config_value("spgw", "ipv4_dns", "")
@@ -61,14 +61,14 @@ def _get_oai_log_level():
 
 
 def _get_relay_enabled():
-    if load_service_mconfig_as_json("mme")["relayEnabled"]:
+    if load_service_mconfig("mme", MME()).relay_enabled:
         return "yes"
     return "no"
 
 
 def _get_non_eps_service_control():
     non_eps_service_control = \
-        load_service_mconfig_as_json("mme")["nonEpsServiceControl"]
+        load_service_mconfig("mme", MME()).non_eps_service_control
     if non_eps_service_control:
         if non_eps_service_control == 0:
             return "OFF"
@@ -80,21 +80,21 @@ def _get_non_eps_service_control():
 
 
 def _get_lac():
-    lac = load_service_mconfig_as_json("mme")["lac"]
+    lac = load_service_mconfig("mme", MME()).lac
     if lac:
         return lac
     return 0
 
 
 def _get_csfb_mcc():
-    csfb_mcc = load_service_mconfig_as_json("mme")["csfbMcc"]
+    csfb_mcc = load_service_mconfig("mme", MME()).csfb_mcc
     if csfb_mcc:
         return csfb_mcc
     return ""
 
 
 def _get_csfb_mnc():
-    csfb_mnc = load_service_mconfig_as_json("mme")["csfbMnc"]
+    csfb_mnc = load_service_mconfig("mme", MME()).csfb_mnc
     if csfb_mnc:
         return csfb_mnc
     return ""
@@ -106,11 +106,11 @@ def _get_identity():
 
 
 def _get_attached_enodeb_tacs():
-    mme_config = load_service_mconfig_as_json("mme")
+    mme_config = load_service_mconfig("mme", MME())
     # attachedEnodebTacs overrides 'tac', which is being deprecated, but for
     # now, both are supported
-    tac = mme_config["tac"]
-    attached_enodeb_tacs = mme_config["attachedEnodebTacs"]
+    tac = mme_config.tac
+    attached_enodeb_tacs = mme_config.attached_enodeb_tacs
     if len(attached_enodeb_tacs) == 0:
         return [tac]
     return attached_enodeb_tacs

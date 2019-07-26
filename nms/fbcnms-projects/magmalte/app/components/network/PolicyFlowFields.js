@@ -66,7 +66,7 @@ class PolicyFlowFields extends React.Component<Props> {
           <ExpansionPanelSummary
             classes={{root: classes.root, expanded: classes.expanded}}
             expandIcon={<ExpandMoreIcon />}>
-            <Typography>Flow {this.props.index + 1}</Typography>
+            <Typography variant="body2">Flow {this.props.index + 1}</Typography>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails classes={{root: classes.block}}>
             <div className={classes.flex}>

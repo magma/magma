@@ -13,7 +13,6 @@ import (
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
-	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -52,7 +51,7 @@ func GetGWStatusViaHTTPNoError(t *testing.T, url string, networkID string, key s
 	status, response, err := tests.SendHttpRequest("GET", url, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 200, status)
-	expected, err := stateh.GetGWStatus(networkID, key)
+	expected, err := state.GetGatewayStatus(networkID, key)
 	assert.NoError(t, err)
 	expectedJSON, err := json.Marshal(*expected)
 	assert.NoError(t, err)

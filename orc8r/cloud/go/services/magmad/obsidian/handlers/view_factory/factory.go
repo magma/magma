@@ -19,7 +19,7 @@ import (
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
-	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/thoas/go-funk"
@@ -80,13 +80,12 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayID
 			return nil, fmt.Errorf("Error loading record: %s", err)
 		}
 
-		status, err := stateh.GetGWStatus(networkID, gateway.PhysicalID)
+		status, err := state.GetGatewayStatus(networkID, gateway.PhysicalID)
 		if err == magmaerrors.ErrNotFound {
 			status = nil
 		} else if err != nil {
 			return nil, fmt.Errorf("Error loading status: %s", err)
 		}
-
 		ret[gateway.Key] = &GatewayState{
 			GatewayID: gateway.Key,
 			Record:    record.(*models.AccessGatewayRecord),
@@ -97,6 +96,10 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayID
 
 	// load all associated configEntity entities
 	allAssociations := getAllAssociatedConfigEntities(loadedGateways)
+	if len(allAssociations) == 0 {
+		// if allAssociations is length 0 the call below will load all entities
+		return ret, nil
+	}
 	loadedConfigs, _, err := configurator.LoadEntities(networkID, nil, nil, nil, allAssociations, configurator.EntityLoadCriteria{LoadConfig: true})
 	if err != nil {
 		return nil, err

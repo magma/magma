@@ -137,7 +137,11 @@ func NewS6aProxy(
 func (s *s6aProxy) AuthenticationInformation(
 	ctx context.Context, req *protos.AuthenticationInformationRequest) (*protos.AuthenticationInformationAnswer, error,
 ) {
+	airStartTime := time.Now()
 	res, err := s.AuthenticationInformationImpl(req)
+	if err == nil {
+		metrics.AIRLatency.Observe(float64(time.Since(airStartTime)) / float64(time.Millisecond))
+	}
 	metrics.UpdateS6aRecentRequestMetrics(err)
 	return res, err
 }
@@ -147,7 +151,11 @@ func (s *s6aProxy) AuthenticationInformation(
 func (s *s6aProxy) UpdateLocation(
 	ctx context.Context, req *protos.UpdateLocationRequest) (*protos.UpdateLocationAnswer, error,
 ) {
+	ulrStartTime := time.Now()
 	res, err := s.UpdateLocationImpl(req)
+	if err == nil {
+		metrics.ULRLatency.Observe(float64(time.Since(ulrStartTime)) / float64(time.Millisecond))
+	}
 	metrics.UpdateS6aRecentRequestMetrics(err)
 	return res, err
 }

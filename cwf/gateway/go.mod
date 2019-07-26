@@ -39,6 +39,7 @@ require (
 	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 	google.golang.org/grpc v1.21.1
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
+	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0

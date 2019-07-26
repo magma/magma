@@ -86,7 +86,7 @@ function Insights() {
   }
   if (isLoading || !response) {
     return (
-      <Paper>
+      <Paper elevation={2}>
         <LoadingFiller />
       </Paper>
     );
