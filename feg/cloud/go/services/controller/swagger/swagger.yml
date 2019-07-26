@@ -379,6 +379,11 @@ definitions:
         type: string
         example: "magma-fedgw.magma.com"
         x-nullable: false
+      disable_dest_host:
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
 
   diameter_server_configs:
     description: Diameter Configuration of The Server
