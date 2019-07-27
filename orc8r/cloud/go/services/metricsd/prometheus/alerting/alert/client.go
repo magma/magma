@@ -39,15 +39,11 @@ type client struct {
 	rulesDir  string
 }
 
-func NewClient(rulesDir string) (PrometheusAlertClient, error) {
-	fileLocks, err := NewFileLocker(rulesDir)
-	if err != nil {
-		return nil, err
-	}
+func NewClient(fileLocks *FileLocker, rulesDir string) PrometheusAlertClient {
 	return &client{
 		fileLocks: fileLocks,
 		rulesDir:  rulesDir,
-	}, nil
+	}
 }
 
 // ValidateRule checks that a new alert rule is a valid specification
