@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	neturl "net/url"
 
@@ -21,7 +22,6 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/api/v2/models"
-	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
 
@@ -35,6 +35,7 @@ const (
 	AlertUpdateURL         = AlertConfigURL + handlers.URL_SEP + ":" + AlertNamePathParam
 	AlertReceiverConfigURL = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertReceiverPart
 	AlertReceiverUpdateURL = AlertReceiverConfigURL + handlers.URL_SEP + ":" + ReceiverNamePathParam
+	AlertBulkUpdateURL     = AlertConfigURL + "/bulk"
 )
 
 func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Context) error {
@@ -78,6 +79,18 @@ func GetUpdateAlertRuleHandler(configManagerURL string) func(c echo.Context) err
 		}
 		url := alertConfigURL(configManagerURL, networkID)
 		return updateAlertRule(c, url)
+	}
+}
+
+func GetBulkUpdateAlertHandler(configManagerURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID, nerr := handlers.GetNetworkId(c)
+		if nerr != nil {
+			return nerr
+		}
+		url := alertConfigURL(configManagerURL, networkID)
+		url += "/bulk"
+		return bulkUpdateAlerts(c, url)
 	}
 }
 
@@ -208,6 +221,45 @@ func updateAlertRule(c echo.Context, url string) error {
 	return c.JSON(http.StatusOK, nil)
 }
 
+func bulkUpdateAlerts(c echo.Context, url string) error {
+	rules, err := buildRuleListFromContext(c)
+	if err != nil {
+		return err
+	}
+
+	resp, err := sendBulkConfig(rules, url)
+	if err != nil {
+		return err
+	}
+	return c.JSON(http.StatusOK, resp)
+}
+
+func sendBulkConfig(payload interface{}, url string) (string, error) {
+	requestBody, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBody))
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("Error making PUT request: %v\n", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return "", handlers.HttpError(fmt.Errorf("error writing config: %v", body.Message), resp.StatusCode)
+	}
+	contents, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(contents), nil
+}
+
 func viewFiringAlerts(c echo.Context, networkID, alertmanagerApiURL string) error {
 	client := &http.Client{}
 	resp, err := client.Get(alertmanagerApiURL)
@@ -243,28 +295,25 @@ func buildRuleFromContext(c echo.Context) (rulefmt.Rule, error) {
 	if err != nil {
 		return rulefmt.Rule{}, err
 	}
+	return jsonRule.ToRuleFmt()
+}
 
-	modelFor, err := model.ParseDuration(jsonRule.For)
+func buildRuleListFromContext(c echo.Context) ([]rulefmt.Rule, error) {
+	var jsonRules []alert.RuleJSONWrapper
+	err := json.NewDecoder(c.Request().Body).Decode(&jsonRules)
 	if err != nil {
-		return rulefmt.Rule{}, err
+		return []rulefmt.Rule{}, err
 	}
 
-	if jsonRule.Labels == nil {
-		jsonRule.Labels = make(map[string]string)
+	var rules []rulefmt.Rule
+	for _, jsonRule := range jsonRules {
+		rule, err := jsonRule.ToRuleFmt()
+		if err != nil {
+			return []rulefmt.Rule{}, err
+		}
+		rules = append(rules, rule)
 	}
-	if jsonRule.Annotations == nil {
-		jsonRule.Annotations = make(map[string]string)
-	}
-
-	rule := rulefmt.Rule{
-		Record:      jsonRule.Record,
-		Alert:       jsonRule.Alert,
-		Expr:        jsonRule.Expr,
-		For:         modelFor,
-		Labels:      jsonRule.Labels,
-		Annotations: jsonRule.Annotations,
-	}
-	return rule, nil
+	return rules, nil
 }
 
 func alertConfigURL(hostName, networkID string) string {

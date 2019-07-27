@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
 
@@ -104,4 +105,28 @@ type RuleJSONWrapper struct {
 	For         string            `json:"for,omitempty"`
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+func (r *RuleJSONWrapper) ToRuleFmt() (rulefmt.Rule, error) {
+	modelFor, err := model.ParseDuration(r.For)
+	if err != nil {
+		return rulefmt.Rule{}, err
+	}
+
+	if r.Labels == nil {
+		r.Labels = make(map[string]string)
+	}
+	if r.Annotations == nil {
+		r.Annotations = make(map[string]string)
+	}
+
+	rule := rulefmt.Rule{
+		Record:      r.Record,
+		Alert:       r.Alert,
+		Expr:        r.Expr,
+		For:         modelFor,
+		Labels:      r.Labels,
+		Annotations: r.Annotations,
+	}
+	return rule, nil
 }
