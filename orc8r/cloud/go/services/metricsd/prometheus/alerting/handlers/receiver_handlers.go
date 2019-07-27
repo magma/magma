@@ -23,9 +23,14 @@ import (
 )
 
 const (
-	alertmanagerReloadPath = "/-/reload"
+	rootPath     = "/:network_id"
+	ReceiverPath = rootPath + "/receiver"
+	RoutePath    = ReceiverPath + "/route"
+
 	ReceiverNamePathParam  = "receiver"
 	ReceiverNameQueryParam = "receiver"
+
+	alertmanagerReloadPath = "/-/reload"
 )
 
 // GetReceiverPostHandler returns a handler function that creates a new
@@ -38,7 +43,7 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL
 		}
 		err = client.CreateReceiver(receiver, getNetworkID(c))
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		err = reloadAlertmanager(alertmanagerURL)
@@ -107,7 +112,7 @@ func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context
 		networkID := getNetworkID(c)
 		route, err := client.GetRoute(networkID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 		return c.JSON(http.StatusOK, route)
 	}
