@@ -13,7 +13,7 @@ import (
 )
 
 // NetworkDescription network description
-// swagger:model networkDescription
+// swagger:model network_description
 type NetworkDescription string
 
 // Validate validates this network description

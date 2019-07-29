@@ -6,5 +6,5 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-//go:generate bash -c "swaggergen --target=swagger.v1.yml --template=$SWAGGER_V1_TEMPLATE"
-package swagger
+//go:generate bash -c "swaggergen --target=swagger-common.yml --root=$MAGMA_ROOT --template=$SWAGGER_V1_TEMPLATE"
+package models

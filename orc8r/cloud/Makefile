@@ -149,6 +149,7 @@ stop:  # Stops all Magma services
 swagger: swagger_directories tools $(SWAGGER_LIST)
 	combine_swagger --inp=$(SWAGGER_TEMP_GEN) --common=$(SWAGGER_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_YML)
 	rm -rf $(SWAGGER_TEMP_GEN)
+	cp $(MAGMA_ROOT)/orc8r/cloud/go/models/swagger-common.yml $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
 	combine_swagger --inp=$(SWAGGER_V1_TEMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	rm -rf $(SWAGGER_V1_TEMP_GEN)
 

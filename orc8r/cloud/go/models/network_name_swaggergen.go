@@ -12,12 +12,12 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// NetworkDescription network description
-// swagger:model networkDescription
-type NetworkDescription string
+// NetworkName network name
+// swagger:model network_name
+type NetworkName string
 
-// Validate validates this network description
-func (m NetworkDescription) Validate(formats strfmt.Registry) error {
+// Validate validates this network name
+func (m NetworkName) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := validate.MinLength("", "body", string(m), 1); err != nil {
