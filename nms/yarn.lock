@@ -13577,7 +13577,7 @@ relateurl@0.2.x:
   resolved "https://registry.yarnpkg.com/relateurl/-/relateurl-0.2.7.tgz#54dbf377e51440aca90a4cd274600d3ff2d888a9"
   integrity sha1-VNvzd+UUQKypCkzSdGANP/LYiKk=
 
-relay-compiler@^5.0.0:
+relay-compiler@5.0.0, relay-compiler@^5.0.0:
   version "5.0.0"
   resolved "https://registry.yarnpkg.com/relay-compiler/-/relay-compiler-5.0.0.tgz#ca2514bda20ff829550ac87f126d07a1517bf6de"
   integrity sha512-q8gKlPRTJe/TwtIokbdXehy1SxDFIyLBZdsfg60J4OcqyviIx++Vhc+h4lXzBY8LsBVaJjTuolftYcXJLhlE6g==
@@ -13607,6 +13607,16 @@ relay-runtime@5.0.0, relay-runtime@^5.0.0:
   dependencies:
     "@babel/runtime" "^7.0.0"
     fbjs "^1.0.0"
+
+relay-test-utils@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/relay-test-utils/-/relay-test-utils-5.0.0.tgz#66dbec6d0594c43ed7c9e1d8a2c7a51fe4d7d2d8"
+  integrity sha512-q2psUTN1M69eaS8Vqa5pwSqFNO40vodwOvOMOW+FerhXJn1Fa2Td8e0/1Lk/nu6waQp+W/L+h/4JPOvNoGiyOg==
+  dependencies:
+    "@babel/runtime" "^7.0.0"
+    fbjs "^1.0.0"
+    relay-compiler "5.0.0"
+    relay-runtime "5.0.0"
 
 remove-trailing-separator@^1.0.1:
   version "1.1.0"
