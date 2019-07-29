@@ -23,7 +23,7 @@ import (
 )
 
 func TestParseSwaggerDependencyTree(t *testing.T) {
-	actual, err := generate.ParseSwaggerDependencyTree("../testdata/importer2.yml")
+	actual, err := generate.ParseSwaggerDependencyTree("../testdata/importer2.yml", os.Getenv("MAGMA_ROOT"))
 	assert.NoError(t, err)
 
 	expectedFiles := []string{"../testdata/base.yml", "../testdata/importer.yml", "../testdata/importer2.yml"}
@@ -33,7 +33,7 @@ func TestParseSwaggerDependencyTree(t *testing.T) {
 }
 
 func TestParseSwaggerDependencyTree_Cycle(t *testing.T) {
-	actual, err := generate.ParseSwaggerDependencyTree("../testdata/cycle1.yml")
+	actual, err := generate.ParseSwaggerDependencyTree("../testdata/cycle1.yml", os.Getenv("MAGMA_ROOT"))
 	assert.NoError(t, err)
 
 	expectedFiles := []string{"../testdata/cycle1.yml", "../testdata/cycle2.yml"}
@@ -50,23 +50,9 @@ func TestGenerateModels(t *testing.T) {
 
 // outputDir has to match what's specified in the yml
 func runTestGenerateCase(t *testing.T, ymlFile string, outputDir string) {
-	defer func() {
-		_ = recover()
+	defer cleanupActualFiles(outputDir)
 
-		cleanupFiles := []string{}
-		_ = filepath.Walk(outputDir, func(path string, _ os.FileInfo, _ error) error {
-			if strings.HasSuffix(path, "actual") {
-				cleanupFiles = append(cleanupFiles, path)
-			}
-			return nil
-		})
-
-		for _, cleanupFile := range cleanupFiles {
-			_ = os.Remove(cleanupFile)
-		}
-	}()
-
-	err := generate.GenerateModels(ymlFile, "../testdata/template.yml")
+	err := generate.GenerateModels(ymlFile, "../testdata/template.yml", os.Getenv("MAGMA_ROOT"))
 	assert.NoError(t, err)
 
 	// Verify that generated files are the same as the expected golden files
@@ -108,4 +94,20 @@ func parseExpectedFiles(t *testing.T, files []string) map[string]generate.MagmaS
 		expected[expectedAbs] = expectedStruct
 	}
 	return expected
+}
+
+func cleanupActualFiles(outputDir string) {
+	_ = recover()
+
+	cleanupFiles := []string{}
+	_ = filepath.Walk(outputDir, func(path string, _ os.FileInfo, _ error) error {
+		if strings.HasSuffix(path, "actual") {
+			cleanupFiles = append(cleanupFiles, path)
+		}
+		return nil
+	})
+
+	for _, cleanupFile := range cleanupFiles {
+		_ = os.Remove(cleanupFile)
+	}
 }

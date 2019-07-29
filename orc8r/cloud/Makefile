@@ -119,7 +119,7 @@ plugin: $(PLUGIN_LIST)
 $(PLUGIN_LIST): %_plugin:
 	make -C $*/cloud/go plugin
 
-test: $(TEST_LIST)
+test: tools $(TEST_LIST)
 $(TEST_LIST): %_test:
 	make -C $*/cloud/go test
 

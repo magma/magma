@@ -9,7 +9,7 @@ magma-gen-meta:
   output-dir: orc8r/cloud/go/tools/swaggergen/testdata/importer
   types:
     - go-struct-name: ImportingDef
-      filename: importing_def_swaggergen.go
+      filename: importing_def_swaggergen.actual
 
 info:
   title: Test
