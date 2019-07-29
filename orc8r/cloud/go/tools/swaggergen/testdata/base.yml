@@ -7,10 +7,10 @@ magma-gen-meta:
   temp-gen-filename: base-swagger.yml
   output-dir: orc8r/cloud/go/tools/swaggergen/testdata/base
   types:
-    - go-struct-name: Foodef
-      filename: foodef_swaggergen.go
-    - go-struct-name: bardef
-      filename: bardef_swaggergen.go
+    - go-struct-name: BarDef
+      filename: bar_def_swaggergen.actual
+    - go-struct-name: FooDef
+      filename: foo_def_swaggergen.actual
 
 info:
   title: Test
