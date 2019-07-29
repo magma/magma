@@ -1040,7 +1040,8 @@ declare module "@material-ui/core/IconButton/IconButton" {
     color?: Color,
     disabled?: boolean,
     disableRipple?: boolean,
-    rootRef?: Function
+    rootRef?: Function,
+    ref?: ?any
   }>;
 }
 
