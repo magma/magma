@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -34,6 +35,7 @@ const (
 
 const (
 	nwIDCol   = "id"
+	nwTypeCol = "type"
 	nwNameCol = "name"
 	nwDescCol = "description"
 	nwVerCol  = "version"
@@ -112,6 +114,7 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	_, err = fact.builder.CreateTable(networksTable).
 		IfNotExists().
 		Column(nwIDCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+		Column(nwTypeCol).Type(sqorc.ColumnTypeText).EndColumn().
 		Column(nwNameCol).Type(sqorc.ColumnTypeText).EndColumn().
 		Column(nwDescCol).Type(sqorc.ColumnTypeText).EndColumn().
 		Column(nwVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
@@ -119,6 +122,26 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		Exec()
 	if err != nil {
 		err = errors.Wrap(err, "failed to create networks table")
+		return
+	}
+
+	// Adding a type column if it doesn't exist already. This will ensure network
+	// tables that are already created will also have the type column.
+	// TODO Remove after 1-2 months to ensure service isn't disrupted
+	_, gerr := tx.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s text", networksTable, nwTypeCol))
+	if gerr != nil {
+		// Only logging error here because this fails for sqlite3 engine
+		glog.Errorf("Failed to add 'type' field to networks table: %v", err)
+	}
+
+	_, err = fact.builder.CreateIndex("type_idx").
+		IfNotExists().
+		On(networksTable).
+		Columns(nwTypeCol).
+		RunWith(tx).
+		Exec()
+	if err != nil {
+		err = errors.Wrap(err, "failed to create network type index")
 		return
 	}
 
@@ -216,8 +239,8 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 
 	// Create internal network(s)
 	_, err = fact.builder.Insert(networksTable).
-		Columns(nwIDCol, nwNameCol, nwDescCol).
-		Values(InternalNetworkID, internalNetworkName, internalNetworkDescription).
+		Columns(nwIDCol, nwTypeCol, nwNameCol, nwDescCol).
+		Values(InternalNetworkID, internalNetworkType, internalNetworkName, internalNetworkDescription).
 		OnConflict(nil, nwIDCol).
 		RunWith(tx).
 		Exec()
@@ -261,17 +284,13 @@ func (store *sqlConfiguratorStorage) Rollback() error {
 	return store.tx.Rollback()
 }
 
-func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error) {
+func (store *sqlConfiguratorStorage) LoadNetworks(filter NetworkLoadFilter, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error) {
 	emptyRet := NetworkLoadResult{NetworkIDsNotFound: []string{}, Networks: []*Network{}}
-	if len(ids) == 0 {
+	if funk.IsEmpty(filter.Ids) && funk.IsEmpty(filter.TypeFilter) {
 		return emptyRet, nil
 	}
 
-	selectBuilder := store.builder.Select(getNetworkQueryColumns(loadCriteria)...).
-		From(networksTable).
-		Where(sq.Eq{
-			fmt.Sprintf("%s.%s", networksTable, nwIDCol): ids,
-		})
+	selectBuilder := store.getLoadNetworksSelectBuilder(filter, loadCriteria)
 	if loadCriteria.LoadConfigs {
 		selectBuilder = selectBuilder.LeftJoin(
 			fmt.Sprintf(
@@ -292,7 +311,7 @@ func (store *sqlConfiguratorStorage) LoadNetworks(ids []string, loadCriteria Net
 	}
 
 	ret := NetworkLoadResult{
-		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, ids),
+		NetworkIDsNotFound: getNetworkIDsNotFound(loadedNetworksByID, filter.Ids),
 		Networks:           make([]*Network, 0, len(loadedNetworksByID)),
 	}
 	for _, nid := range loadedNetworkIDs {
@@ -346,8 +365,8 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	}
 
 	_, err = store.builder.Insert(networksTable).
-		Columns(nwIDCol, nwNameCol, nwDescCol).
-		Values(network.ID, network.Name, network.Description).
+		Columns(nwIDCol, nwTypeCol, nwNameCol, nwDescCol).
+		Values(network.ID, network.Type, network.Name, network.Description).
 		RunWith(store.tx).
 		Exec()
 	if err != nil {

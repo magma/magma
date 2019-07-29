@@ -39,8 +39,8 @@ message ListNetworkIDsResponse {
 }
 
 message LoadNetworksRequest {
-    repeated string networks = 1;
     storage.NetworkLoadCriteria criteria = 2;
+    storage.NetworkLoadFilter filter = 3;
 }
 
 message CreateNetworksRequest {

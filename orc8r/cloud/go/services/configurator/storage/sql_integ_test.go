@@ -47,7 +47,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 
-	loadNetworksActual, err := store.LoadNetworks([]string{"n1", "n2"}, storage.FullNetworkLoadCriteria)
+	loadNetworksActual, err := store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{"n1", "n2"}}, storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
@@ -67,12 +67,12 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 
-	expectedn1 := storage.Network{ID: "n1", Name: "Network 1", Description: "foo", Configs: map[string][]byte{"hello": []byte("world"), "goodbye": []byte("alsoworld")}}
+	expectedn1 := storage.Network{ID: "n1", Type: "type1", Name: "Network 1", Description: "foo", Configs: map[string][]byte{"hello": []byte("world"), "goodbye": []byte("alsoworld")}}
 	actualNetwork, err := store.CreateNetwork(expectedn1)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedn1, actualNetwork)
 
-	expectedn2 := storage.Network{ID: "n2"}
+	expectedn2 := storage.Network{ID: "n2", Type: "type2"}
 	actualNetwork, err = store.CreateNetwork(expectedn2)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedn2, actualNetwork)
@@ -83,7 +83,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	loadNetworksActual, err = store.LoadNetworks([]string{"n1", "n2", "n3"}, storage.FullNetworkLoadCriteria)
+	loadNetworksActual, err = store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{"n1", "n2", "n3"}}, storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
@@ -137,13 +137,47 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	store, err = factory.StartTransaction(context.Background(), &orc8rStorage.TxOptions{ReadOnly: true})
 	assert.NoError(t, err)
-	loadNetworksActual, err = store.LoadNetworks([]string{"n1", "n2", "n3"}, storage.FullNetworkLoadCriteria)
+	loadNetworksActual, err = store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{"n1", "n2", "n3"}}, storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
 		storage.NetworkLoadResult{
 			Networks:           []*storage.Network{&expectedn1, &expectedn2},
 			NetworkIDsNotFound: []string{"n3"},
+		},
+		loadNetworksActual,
+	)
+	assert.NoError(t, store.Commit())
+
+	// ========================================================================
+	// Create and Load typed networks
+	// ========================================================================
+
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+
+	expectedn3 := storage.Network{ID: "n3", Type: "type1"}
+	actualNetwork, err = store.CreateNetwork(expectedn3)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedn3, actualNetwork)
+
+	expectedn4 := storage.Network{ID: "n4", Type: "type2"}
+	actualNetwork, err = store.CreateNetwork(expectedn4)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedn4, actualNetwork)
+
+	expectedn2.Configs = map[string][]uint8{}
+	expectedn2.Version = 1
+
+	expectedn4.Configs = map[string][]uint8{}
+
+	loadNetworksActual, err = store.LoadNetworks(storage.NetworkLoadFilter{TypeFilter: stringPointer("type2")}, storage.NetworkLoadCriteria{})
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		storage.NetworkLoadResult{
+			Networks:           []*storage.Network{&expectedn2, &expectedn4},
+			NetworkIDsNotFound: []string{},
 		},
 		loadNetworksActual,
 	)
