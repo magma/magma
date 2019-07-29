@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	neturl "net/url"
 
 	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
@@ -20,47 +21,60 @@ import (
 	"github.com/prometheus/alertmanager/config"
 )
 
+const (
+	ReceiverNamePathParam  = "receiver"
+	ReceiverNameQueryParam = "receiver"
+)
+
 func GetConfigureAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
-		if nerr != nil {
-			return nerr
-		}
-		url := makeNetworkReceiverPath(configManagerURL, networkID)
-		return configureAlertReceiver(c, url)
-	}
+	return getHandlerWithReceiverFunc(configManagerURL, configureAlertReceiver)
 }
 
 func GetRetrieveAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
+	return getHandlerWithReceiverFunc(configManagerURL, retrieveAlertReceivers)
+}
+
+func GetUpdateAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
+	return getHandlerWithReceiverFunc(configManagerURL, updateAlertReceiver)
+}
+
+func GetDeleteAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
+	return getHandlerWithReceiverFunc(configManagerURL, deleteAlertReceiver)
+}
+
+// getHandlerWithReceiverFunc returns an echo HandlerFunc that checks the
+// networkID and runs the given handlerImplFunc that communicates with the
+// alertmanager config service
+func getHandlerWithReceiverFunc(configManagerURL string, handlerImplFunc func(echo.Context, string) error) func(echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
 		url := makeNetworkReceiverPath(configManagerURL, networkID)
-		return retrieveAlertReceivers(c, url)
+		return handlerImplFunc(c, url)
 	}
 }
 
 func GetRetrieveAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
-		if nerr != nil {
-			return nerr
-		}
-		url := makeNetworkRoutePath(configManagerURL, networkID)
-		return retrieveAlertRoute(c, url)
-	}
+	return getHandlerWithRouteFunc(configManagerURL, retrieveAlertRoute)
 }
 
 func GetUpdateAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
+	return getHandlerWithRouteFunc(configManagerURL, updateAlertRoute)
+}
+
+// getHandlerWithRouteFunc returns an echo HandlerFunc that checks the
+// networkID and runs the given handlerImplFunc that communicates with the
+// alertmanager config service for routing trees
+func getHandlerWithRouteFunc(configManagerURL string, handlerImplFunc func(echo.Context, string) error) func(echo.Context) error {
 	return func(c echo.Context) error {
 		networkID, nerr := handlers.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
 		url := makeNetworkRoutePath(configManagerURL, networkID)
-		return updateAlertRoute(c, url)
+		return handlerImplFunc(c, url)
 	}
 }
 
@@ -96,6 +110,52 @@ func retrieveAlertReceivers(c echo.Context, url string) error {
 		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding server response %v", err))
 	}
 	return c.JSON(http.StatusOK, recs)
+}
+
+func updateAlertReceiver(c echo.Context, url string) error {
+	receiver, err := buildReceiverFromContext(c)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	receiverName := c.Param(ReceiverNamePathParam)
+	if receiverName == "" {
+		return handlers.HttpError(fmt.Errorf("receiver name not provided"), http.StatusBadRequest)
+	}
+	if receiverName != receiver.Name {
+		return handlers.HttpError(fmt.Errorf("new receiver configuration must have same name"), http.StatusBadRequest)
+	}
+	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
+
+	err = sendConfig(receiver, url, http.MethodPut)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteAlertReceiver(c echo.Context, url string) error {
+	receiverName := c.QueryParam(ReceiverNameQueryParam)
+	if receiverName == "" {
+		return handlers.HttpError(fmt.Errorf("receiver name not provided"), http.StatusBadRequest)
+	}
+	url += fmt.Sprintf("?%s=%s", ReceiverNameQueryParam, neturl.QueryEscape(receiverName))
+
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return handlers.HttpError(err, http.StatusInternalServerError)
+	}
+	if resp.StatusCode != http.StatusOK {
+		var body echo.HTTPError
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		return handlers.HttpError(fmt.Errorf("error deleting receiver: %v", body.Message), resp.StatusCode)
+	}
+	return c.NoContent(http.StatusOK)
 }
 
 func retrieveAlertRoute(c echo.Context, url string) error {

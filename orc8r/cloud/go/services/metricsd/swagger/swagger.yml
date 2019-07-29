@@ -236,6 +236,47 @@ paths:
               $ref: '#/definitions/alert_receiver_config'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete alert receiver
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: receiver
+          description: Receiver name to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Deleted
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_receiver/{receiver}:
+    put:
+      summary: Update existing alert receiver
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: path
+          name: receiver
+          description: Name of receiver to be updated
+          required: true
+          type: string
+        - in: body
+          name: receiver_config
+          description: Updated alert receiver
+          required: true
+          schema:
+            $ref: '#/definitions/alert_receiver_config'
+      responses:
+        '200':
+          description: Updated
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/prometheus/alert_receiver/route:
     get:
       summary: Retrieve alert routing tree
