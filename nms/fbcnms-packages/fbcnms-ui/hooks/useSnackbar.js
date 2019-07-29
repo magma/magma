@@ -13,17 +13,20 @@ import * as React from 'react';
 import SnackbarItem from '../components/SnackbarItem.react';
 import {useCallback, useEffect} from 'react';
 import {useSnackbar as useNotistackSnackbar} from 'notistack';
+import type {EnqueueSnackbarOptions} from 'notistack';
+import type {Variants} from 'notistack';
 
+type AllowedConfig = $Exact<{variant?: Variants} & EnqueueSnackbarOptions>;
 export default function useSnackbar(
   message: string,
-  config: any,
+  config: AllowedConfig,
   show: boolean,
 ) {
   const {enqueueSnackbar} = useNotistackSnackbar();
   const stringConfig = JSON.stringify(config);
   useEffect(() => {
     if (show) {
-      const config = JSON.parse(stringConfig);
+      const config: AllowedConfig = JSON.parse(stringConfig);
       enqueueSnackbar(message, {
         children: key => (
           <SnackbarItem

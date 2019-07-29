@@ -12,10 +12,11 @@ import Button from '@material-ui/core/Button';
 import React, {useState} from 'react';
 import {storiesOf} from '@storybook/react';
 import {useSnackbar} from '../hooks';
+import type {Variants} from 'notistack';
 
 type Props = {
   message: string,
-  variant: string,
+  variant: Variants,
 };
 
 const SnackbarTrigger = ({message, variant}: Props) => {
@@ -30,6 +31,18 @@ storiesOf('Snackbar', module).add('error', () => (
 
 storiesOf('Snackbar', module).add('success', () => (
   <SnackbarTrigger message="Wow, much success" variant="success" />
+));
+
+storiesOf('Snackbar', module).add('default', () => (
+  <SnackbarTrigger message="Wow, much default" variant="default" />
+));
+
+storiesOf('Snackbar', module).add('info', () => (
+  <SnackbarTrigger message="Wow, much info" variant="info" />
+));
+
+storiesOf('Snackbar', module).add('warning', () => (
+  <SnackbarTrigger message="Wow, much warning" variant="warning" />
 ));
 
 storiesOf('Snackbar', module).add('long error', () => (
