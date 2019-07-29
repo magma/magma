@@ -120,31 +120,31 @@ func configurePrometheusAlert(networkID, url string, c echo.Context) error {
 		return handlers.HttpError(fmt.Errorf("invalid rule: %v\n", errs), http.StatusBadRequest)
 	}
 
-	err = sendConfig(rule, url, http.MethodPost)
+	sendErr := sendConfig(rule, url, http.MethodPost)
 	if err != nil {
-		return err
+		return handlers.HttpError(sendErr, sendErr.Code)
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)
 }
 
-func sendConfig(payload interface{}, url string, method string) error {
+func sendConfig(payload interface{}, url string, method string) *echo.HTTPError {
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, err)
 	}
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Error making %s request: %v\n", method, err)
+		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error making %s request: %v", method, err))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return handlers.HttpError(fmt.Errorf("error writing config: %v", body.Message), resp.StatusCode)
+		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error writing config: %v", body.Message))
 	}
 	return nil
 }
@@ -214,9 +214,9 @@ func updateAlertRule(c echo.Context, url string) error {
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 
-	err = sendConfig(rule, url, http.MethodPut)
+	sendErr := sendConfig(rule, url, http.MethodPut)
 	if err != nil {
-		return err
+		return handlers.HttpError(sendErr, sendErr.Code)
 	}
 	return c.JSON(http.StatusOK, nil)
 }
