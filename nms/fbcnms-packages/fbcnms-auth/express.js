@@ -33,6 +33,7 @@ const logger = logging.getLogger(module);
 type Options = {|
   loginSuccessUrl: string,
   loginFailureUrl: string,
+  onboardingUrl?: string,
 |};
 
 export function unprotectedUserRoutes() {
@@ -76,7 +77,9 @@ function userMiddleware(options: Options): express.Router {
     })(req, res, next);
   });
 
-  router.use(expressOnboarding());
+  if (options.onboardingUrl) {
+    router.use(expressOnboarding());
+  }
 
   router.get('/login', async (req: FBCNMSRequest, res) => {
     if (req.isAuthenticated()) {
@@ -86,8 +89,8 @@ function userMiddleware(options: Options): express.Router {
       return;
     }
 
-    if (!(await User.findOne())) {
-      res.redirect('/user/onboarding');
+    if (options.onboardingUrl && !(await User.findOne())) {
+      res.redirect(options.onboardingUrl);
       return;
     }
 
