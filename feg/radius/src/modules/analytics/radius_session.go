@@ -10,9 +10,8 @@ package analytics
 
 import (
 	"encoding/json"
+	"fbc/cwf/radius/modules/analytics/graphql"
 	"time"
-
-	"fbc/lib/go/libgraphql"
 )
 
 // RadiusSession this is the radius session we create in WWW - information returned as mutation result
@@ -133,7 +132,7 @@ mutation create_cwfradius_session($data: CreateCwfradiusSessionData!) {
 
 // Vars returns the variables for the create_cwfradius_session mutation.
 func (c *CreateSessionOp) Vars() (string, error) {
-	return libgraphql.Vars{
+	return graphql.Vars{
 		"acct_session_id":        c.Session.AcctSessionID,
 		"called_station_id":      c.Session.CalledStationID,
 		"calling_station_id":     c.Session.CallingStationID,
@@ -151,7 +150,7 @@ func (c *CreateSessionOp) Vars() (string, error) {
 // UnmarshalJSON implements the json.Unmarshaler interface. Used by the graphql.Client.
 func (c *CreateSessionOp) UnmarshalJSON(b []byte) error {
 	var resp struct {
-		Errors libgraphql.Errors `json:"errors,omitempty"`
+		Errors graphql.Errors `json:"errors,omitempty"`
 		Data   struct {
 			CreateCWFSession struct {
 				Session          *Session `json:"radius_session,omitempty"`
@@ -231,7 +230,7 @@ mutation update_cwfradius_session($data: UpdateCwfradiusSessionData!) {
 
 // Vars returns the variables for the update_cwfradius_session mutation.
 func (u *UpdateSessionOp) Vars() (string, error) {
-	v := libgraphql.Vars{
+	v := graphql.Vars{
 		"radius_session_id":      u.Session.FBID,
 		"acct_session_id":        u.Session.AcctSessionID,
 		"called_station_id":      u.Session.CalledStationID,
@@ -251,7 +250,7 @@ func (u *UpdateSessionOp) Vars() (string, error) {
 // UnmarshalJSON implements the json.Unmarshaler interface. Used by the graphql.Client.
 func (u *UpdateSessionOp) UnmarshalJSON(b []byte) error {
 	var resp struct {
-		Errors libgraphql.Errors `json:"errors,omitempty"`
+		Errors graphql.Errors `json:"errors,omitempty"`
 		Data   struct {
 			UpdateCWFSession struct {
 				Session          *Session `json:"radius_session,omitempty"`
