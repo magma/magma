@@ -84,9 +84,9 @@ func configureAlertReceiver(c echo.Context, url string) error {
 		return handlers.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err = sendConfig(receiver, url, http.MethodPost)
+	sendErr := sendConfig(receiver, url, http.MethodPost)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return handlers.HttpError(sendErr, sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -126,9 +126,9 @@ func updateAlertReceiver(c echo.Context, url string) error {
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
 
-	err = sendConfig(receiver, url, http.MethodPut)
+	sendErr := sendConfig(receiver, url, http.MethodPut)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return handlers.HttpError(sendErr, sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -185,9 +185,9 @@ func updateAlertRoute(c echo.Context, url string) error {
 		return handlers.HttpError(fmt.Errorf("invalid route specification: %v\n", err), http.StatusBadRequest)
 	}
 
-	err = sendConfig(route, url, http.MethodPost)
+	sendErr := sendConfig(route, url, http.MethodPost)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("error updating alert route: %v", err), http.StatusInternalServerError)
+		return handlers.HttpError(fmt.Errorf("error updating alert route: %v", sendErr), sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
 }
