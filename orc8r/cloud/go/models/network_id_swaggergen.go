@@ -12,11 +12,11 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// NetworkID network Id
-// swagger:model networkId
+// NetworkID network id
+// swagger:model network_id
 type NetworkID string
 
-// Validate validates this network Id
+// Validate validates this network id
 func (m NetworkID) Validate(formats strfmt.Registry) error {
 	var res []error
 

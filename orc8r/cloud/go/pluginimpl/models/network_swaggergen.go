@@ -7,6 +7,7 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
+	models1 "magma/orc8r/cloud/go/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -19,7 +20,7 @@ type Network struct {
 
 	// description
 	// Required: true
-	Description NetworkDescription `json:"description"`
+	Description models1.NetworkDescription `json:"description"`
 
 	// dns
 	// Required: true
@@ -30,11 +31,11 @@ type Network struct {
 
 	// id
 	// Required: true
-	ID NetworkID `json:"id"`
+	ID models1.NetworkID `json:"id"`
 
 	// name
 	// Required: true
-	Name NetworkName `json:"name"`
+	Name models1.NetworkName `json:"name"`
 
 	// The type of the network
 	Type string `json:"type,omitempty"`

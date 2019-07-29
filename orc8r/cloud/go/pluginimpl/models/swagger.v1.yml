@@ -4,10 +4,18 @@ swagger: '2.0'
 magma-gen-meta:
   go-package: magma/orc8r/cloud/go/pluginimpl/models
   dependencies:
-    - 'orc8r/cloud/docker/controller/apidocs/v1/swagger-common.yml'
+    - 'orc8r/cloud/go/models/swagger-common.yml'
   temp-gen-filename: orc8r-swagger.yml
   output-dir: orc8r/cloud/go/pluginimpl
-  types: [] # TODO: fill this in later
+  types:
+    - go-struct-name: Network
+      filename: network_swaggergen.go
+    - go-struct-name: NetworkDNSConfig
+      filename: network_dns_config_swaggergen.go
+    - go-struct-name: DNSConfigRecord
+      filename: dns_config_record_swaggergen.go
+    - go-struct-name: NetworkFeatures
+      filename: network_features_swaggergen.go
 
 info:
   title: Orchestrator Network Management
@@ -33,7 +41,7 @@ paths:
               - network1
               - network2
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /networks/{network_id}:
     get:
@@ -41,25 +49,25 @@ paths:
       tags:
         - Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: Network description
           schema:
             $ref: '#/definitions/network'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     delete:
       summary: Delete a network
       tags:
         - Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /networks/{network_id}/type:
     get:
@@ -67,7 +75,7 @@ paths:
       tags:
         - Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: The type of the network
@@ -75,13 +83,13 @@ paths:
             type: string
             example: 'lte'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update the type of a network
       tags:
         - Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: type
           in: body
           required: true
@@ -93,7 +101,7 @@ paths:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
   network:
@@ -106,11 +114,11 @@ definitions:
       - dns
     properties:
       id:
-        $ref: './swagger-common.yml#/definitions/network_id'
+        $ref: './orc8r-swagger-common.yml#/definitions/network_id'
       name:
-        $ref: './swagger-common.yml#/definitions/network_name'
+        $ref: './orc8r-swagger-common.yml#/definitions/network_name'
       description:
-        $ref: './swagger-common.yml#/definitions/network_description'
+        $ref: './orc8r-swagger-common.yml#/definitions/network_description'
       type:
         description: The type of the network
         type: string

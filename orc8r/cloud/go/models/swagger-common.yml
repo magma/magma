@@ -2,12 +2,21 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/pluginimpl/models # TODO: figure out where these defs should go
-  dependencies:
-    - 'orc8r/cloud/docker/controller/apidocs/v1/swagger-common.yml'
-  temp-gen-filename: swagger-common.yml
-  output-dir: orc8r/cloud/go/pluginimpl # TODO: should we generate this at all?
-  types: [] # TODO: fill this in later
+  go-package: magma/orc8r/cloud/go/models
+  dependencies: []
+  temp-gen-filename: orc8r-swagger-common.yml
+  output-dir: orc8r/cloud/go
+  types:
+    - go-struct-name: NetworkID
+      filename: network_id_swaggergen.go
+    - go-struct-name: NetworkName
+      filename: network_name_swaggergen.go
+    - go-struct-name: NetworkDescription
+      filename: network_description_swaggergen.go
+    - go-struct-name: GatewayID
+      filename: gateway_id_swaggergen.go
+    - go-struct-name: Error
+      filename: error_swaggergen.go
 
 info:
   title: Magma
