@@ -36,7 +36,7 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintf("%s", err))
 		}
-		err = client.CreateReceiver(receiver, getNetworkID(c))
+		err = client.CreateReceiver(getNetworkID(c), receiver)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -71,7 +71,7 @@ func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, alertmanagerU
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.UpdateReceiver(&newReceiver, networkID)
+		err = client.UpdateReceiver(networkID, &newReceiver)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -89,7 +89,7 @@ func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, alertmanagerU
 		networkID := getNetworkID(c)
 		receiverName := c.QueryParam(ReceiverNameQueryParam)
 
-		err := client.DeleteReceiver(receiverName, networkID)
+		err := client.DeleteReceiver(networkID, receiverName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -120,7 +120,7 @@ func GetUpdateRouteHandler(client receivers.AlertmanagerClient, alertmanagerURL 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		err = client.ModifyNetworkRoute(&newRoute, networkID)
+		err = client.ModifyNetworkRoute(networkID, &newRoute)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}

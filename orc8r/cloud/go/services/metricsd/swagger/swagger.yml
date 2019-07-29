@@ -157,9 +157,7 @@ paths:
         '200':
           description: List of alert configurations
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/prom_alert_config'
+            $ref: '#/definitions/prom_alert_config_list'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
     delete:
@@ -176,6 +174,28 @@ paths:
       responses:
         '200':
           description: Deleted
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_config/bulk:
+    put:
+      summary: Bulk update/create alerting rules
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: alert_configs
+          description: Alerting rules to be updated or created
+          required: true
+          schema:
+            $ref: '#/definitions/prom_alert_config_list'
+
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/alert_bulk_upload_response'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
@@ -422,6 +442,27 @@ definitions:
         type: string
       annotations:
         $ref: '#/definitions/prom_alert_labels'
+
+  prom_alert_config_list:
+    type: array
+    items:
+        $ref: '#/definitions/prom_alert_config'
+
+  alert_bulk_upload_response:
+    type: object
+    required:
+      - errors
+      - statuses
+    properties:
+      errrors:
+        type: object
+        additionalProperties:
+          type: string
+      statuses:
+        type: object
+        additionalProperties:
+          type: string
+
   prom_alert_labels:
     type: object
     additionalProperties:

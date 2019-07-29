@@ -11,13 +11,13 @@ type AlertmanagerClient struct {
 	mock.Mock
 }
 
-// CreateReceiver provides a mock function with given fields: rec, networkID
-func (_m *AlertmanagerClient) CreateReceiver(rec receivers.Receiver, networkID string) error {
-	ret := _m.Called(rec, networkID)
+// CreateReceiver provides a mock function with given fields: networkID, rec
+func (_m *AlertmanagerClient) CreateReceiver(networkID string, rec receivers.Receiver) error {
+	ret := _m.Called(networkID, rec)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(receivers.Receiver, string) error); ok {
-		r0 = rf(rec, networkID)
+	if rf, ok := ret.Get(0).(func(string, receivers.Receiver) error); ok {
+		r0 = rf(networkID, rec)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -25,13 +25,13 @@ func (_m *AlertmanagerClient) CreateReceiver(rec receivers.Receiver, networkID s
 	return r0
 }
 
-// DeleteReceiver provides a mock function with given fields: receiverName, networkID
-func (_m *AlertmanagerClient) DeleteReceiver(receiverName string, networkID string) error {
-	ret := _m.Called(receiverName, networkID)
+// DeleteReceiver provides a mock function with given fields: networkID, receiverName
+func (_m *AlertmanagerClient) DeleteReceiver(networkID string, receiverName string) error {
+	ret := _m.Called(networkID, receiverName)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(receiverName, networkID)
+		r0 = rf(networkID, receiverName)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -85,13 +85,13 @@ func (_m *AlertmanagerClient) GetRoute(networkID string) (*config.Route, error) 
 	return r0, r1
 }
 
-// ModifyNetworkRoute provides a mock function with given fields: route, networkID
-func (_m *AlertmanagerClient) ModifyNetworkRoute(route *config.Route, networkID string) error {
-	ret := _m.Called(route, networkID)
+// ModifyNetworkRoute provides a mock function with given fields: networkID, route
+func (_m *AlertmanagerClient) ModifyNetworkRoute(networkID string, route *config.Route) error {
+	ret := _m.Called(networkID, route)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*config.Route, string) error); ok {
-		r0 = rf(route, networkID)
+	if rf, ok := ret.Get(0).(func(string, *config.Route) error); ok {
+		r0 = rf(networkID, route)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -99,13 +99,13 @@ func (_m *AlertmanagerClient) ModifyNetworkRoute(route *config.Route, networkID 
 	return r0
 }
 
-// UpdateReceiver provides a mock function with given fields: newRec, networkID
-func (_m *AlertmanagerClient) UpdateReceiver(newRec *receivers.Receiver, networkID string) error {
-	ret := _m.Called(newRec, networkID)
+// UpdateReceiver provides a mock function with given fields: networkID, newRec
+func (_m *AlertmanagerClient) UpdateReceiver(networkID string, newRec *receivers.Receiver) error {
+	ret := _m.Called(networkID, newRec)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*receivers.Receiver, string) error); ok {
-		r0 = rf(newRec, networkID)
+	if rf, ok := ret.Get(0).(func(string, *receivers.Receiver) error); ok {
+		r0 = rf(networkID, newRec)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -41,7 +41,7 @@ var (
 func TestGetReceiverPostHandler(t *testing.T) {
 	client := &mocks.AlertmanagerClient{}
 	postReceiver := GetReceiverPostHandler(client, "")
-	client.On("CreateReceiver", sampleReceiver, testNID).Return(nil)
+	client.On("CreateReceiver", testNID, sampleReceiver).Return(nil)
 
 	bytes, err := json.Marshal(sampleReceiver)
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(string(bytes)))
@@ -55,7 +55,7 @@ func TestGetReceiverPostHandler(t *testing.T) {
 	err = postReceiver(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "CreateReceiver", sampleReceiver, testNID)
+	client.AssertCalled(t, "CreateReceiver", testNID, sampleReceiver)
 }
 
 func TestGetGetReceiversHandler(t *testing.T) {
@@ -84,7 +84,7 @@ func TestGetGetReceiversHandler(t *testing.T) {
 
 func TestGetDeleteReceiverHandler(t *testing.T) {
 	client := &mocks.AlertmanagerClient{}
-	client.On("DeleteReceiver", sampleReceiver.Name, testNID).Return(nil)
+	client.On("DeleteReceiver", testNID, sampleReceiver.Name).Return(nil)
 
 	deleteReceiver := GetDeleteReceiverHandler(client, "")
 
@@ -100,5 +100,5 @@ func TestGetDeleteReceiverHandler(t *testing.T) {
 
 	err := deleteReceiver(c)
 	assert.NoError(t, err)
-	client.AssertCalled(t, "DeleteReceiver", sampleReceiver.Name, testNID)
+	client.AssertCalled(t, "DeleteReceiver", testNID, sampleReceiver.Name)
 }
