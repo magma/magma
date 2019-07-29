@@ -29,7 +29,10 @@ func StartTestService(t *testing.T) {
 	}
 	idGenerator := storage.DefaultIDGenerator{}
 	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sqorc.GetSqlBuilder())
-	storageFactory.InitializeServiceStorage()
+	err = storageFactory.InitializeServiceStorage()
+	if err != nil {
+		t.Fatalf("Could not initialize storage: %s", err)
+	}
 
 	accessd_test_init.StartTestService(t)
 	certifier_test_init.StartTestService(t)

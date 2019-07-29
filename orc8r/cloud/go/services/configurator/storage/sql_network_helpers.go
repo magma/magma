@@ -22,7 +22,10 @@ import (
 )
 
 func getNetworkQueryColumns(criteria NetworkLoadCriteria) []string {
-	ret := []string{fmt.Sprintf("%s.%s", networksTable, nwIDCol)}
+	ret := []string{
+		fmt.Sprintf("%s.%s", networksTable, nwIDCol),
+		fmt.Sprintf("%s.%s", networksTable, nwTypeCol),
+	}
 	if criteria.LoadMetadata {
 		ret = append(
 			ret,
@@ -39,6 +42,18 @@ func getNetworkQueryColumns(criteria NetworkLoadCriteria) []string {
 	}
 	ret = append(ret, fmt.Sprintf("%s.%s", networksTable, nwVerCol))
 	return ret
+}
+
+func (store *sqlConfiguratorStorage) getLoadNetworksSelectBuilder(filter NetworkLoadFilter, criteria NetworkLoadCriteria) sq.SelectBuilder {
+	selectBuilder := store.builder.Select(getNetworkQueryColumns(criteria)...).From(networksTable)
+	if funk.NotEmpty(filter.Ids) {
+		selectBuilder = selectBuilder.Where(sq.Eq{
+			fmt.Sprintf("%s.%s", networksTable, nwIDCol): filter.Ids,
+		})
+	} else if funk.NotEmpty(filter.TypeFilter) {
+		selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("%s.%s", networksTable, nwTypeCol): filter.TypeFilter.Value})
+	}
+	return selectBuilder
 }
 
 func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[string]*Network, []string, error) {
@@ -68,13 +83,14 @@ func scanNetworkRows(rows *sql.Rows, loadCriteria NetworkLoadCriteria) (map[stri
 
 func scanNextNetworkRow(rows *sql.Rows, criteria NetworkLoadCriteria) (Network, error) {
 	var id string
-	var name, description sql.NullString
+	var networkType, name, description sql.NullString
 	var cfgType sql.NullString
 	var cfgValue []byte
 	var version uint64
 
 	scanArgs := []interface{}{
 		&id,
+		&networkType,
 	}
 	if criteria.LoadMetadata {
 		scanArgs = append(scanArgs, &name, &description)
@@ -89,7 +105,7 @@ func scanNextNetworkRow(rows *sql.Rows, criteria NetworkLoadCriteria) (Network, 
 		return Network{}, fmt.Errorf("error while scanning network row: %s", err)
 	}
 
-	ret := Network{ID: id, Name: nullStringToValue(name), Description: nullStringToValue(description), Configs: map[string][]byte{}, Version: version}
+	ret := Network{ID: id, Type: nullStringToValue(networkType), Name: nullStringToValue(name), Description: nullStringToValue(description), Configs: map[string][]byte{}, Version: version}
 	if criteria.LoadConfigs && cfgType.Valid {
 		ret.Configs[cfgType.String] = cfgValue
 	}
@@ -138,6 +154,9 @@ func (store *sqlConfiguratorStorage) updateNetwork(update NetworkUpdateCriteria,
 	}
 	if update.NewDescription != nil {
 		updateBuilder = updateBuilder.Set(nwDescCol, stringPtrToVal(update.NewDescription))
+	}
+	if update.NewType != nil {
+		updateBuilder = updateBuilder.Set(nwTypeCol, stringPtrToVal(update.NewType))
 	}
 	updateBuilder = updateBuilder.Set(nwVerCol, sq.Expr(fmt.Sprintf("%s.%s+1", networksTable, nwVerCol)))
 	_, err := updateBuilder.RunWith(stmtCache).Exec()
