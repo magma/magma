@@ -16,14 +16,18 @@ import (
 )
 
 const (
+	AlertPath       = rootPath + "/alert"
+	AlertUpdatePath = AlertPath + "/:" + RuleNamePathParam
+	AlertBulkPath   = AlertPath + "/bulk"
+
 	prometheusReloadPath = "/-/reload"
 	ruleNameQueryParam   = "alert_name"
 	RuleNamePathParam    = "alert_name"
 )
 
-// GetPostHandler returns a handler that calls the client method WriteAlert() to
+// GetConfigureAlertHandler returns a handler that calls the client method WriteAlert() to
 // write the alert configuration from the body of this request
-func GetPostHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
+func GetConfigureAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		rule, err := decodeRulePostRequest(c)
 		if err != nil {
@@ -53,7 +57,7 @@ func GetPostHandler(client alert.PrometheusAlertClient, prometheusURL string) fu
 	}
 }
 
-func GetGetHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
+func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
 		networkID := getNetworkID(c)
@@ -70,7 +74,7 @@ func GetGetHandler(client alert.PrometheusAlertClient) func(c echo.Context) erro
 	}
 }
 
-func GetDeleteHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
+func GetDeleteAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
 		networkID := getNetworkID(c)
