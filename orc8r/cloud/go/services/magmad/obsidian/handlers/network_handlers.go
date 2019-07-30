@@ -89,7 +89,7 @@ func getNetwork(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	network, err := configurator.LoadNetwork(networkID, true, false)
+	network, err := configurator.LoadNetwork(networkID, true, true)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -128,7 +128,10 @@ func updateNetwork(c echo.Context) error {
 			orc8r.NetworkFeaturesConfig: &models.NetworkFeatures{Features: record.Features},
 		},
 	}
-	configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
+	err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
 	return c.NoContent(http.StatusNoContent)
 }
 
