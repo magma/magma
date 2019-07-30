@@ -34,7 +34,7 @@ func main() {
 	e := echo.New()
 
 	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*rulesDir))
-	alertClient := alert.NewClient(fileLocks, *rulesDir)
+	alertClient := alert.NewClient(fileLocks, *rulesDir, alert.NewFSClient())
 	if err != nil {
 		glog.Errorf("error creating alert client: %v", err)
 		return

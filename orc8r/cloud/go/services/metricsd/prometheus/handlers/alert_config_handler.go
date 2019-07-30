@@ -206,7 +206,7 @@ func deleteAlertRule(c echo.Context, url string) error {
 func updateAlertRule(c echo.Context, url string) error {
 	rule, err := buildRuleFromContext(c)
 	if err != nil {
-		return err
+		return obsidian.HttpError(fmt.Errorf("misconfigured rule: %v", err), http.StatusBadRequest)
 	}
 	alertName := c.Param(AlertNamePathParam)
 	if alertName == "" {
