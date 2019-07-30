@@ -13,7 +13,7 @@ import (
 	"net/http"
 
 	magma_errors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
@@ -29,7 +29,7 @@ func configuratorCreateEntityConfig(c echo.Context, networkID string, entityType
 	}
 	entityExists, err := configurator.DoesEntityExist(networkID, entityType, entityKey)
 	if err != nil {
-		return handlers.HttpError(errors.Wrap(err, fmt.Sprintf("Entity %s,%s does not exist in %s", entityType, entityKey, networkID)), http.StatusInternalServerError)
+		return obsidian.HttpError(errors.Wrap(err, fmt.Sprintf("Entity %s,%s does not exist in %s", entityType, entityKey, networkID)), http.StatusInternalServerError)
 	}
 	if !entityExists {
 		_, err = configurator.CreateEntity(networkID, configurator.NetworkEntity{
@@ -38,12 +38,12 @@ func configuratorCreateEntityConfig(c echo.Context, networkID string, entityType
 			Config: config,
 		})
 		if err != nil {
-			return handlers.HttpError(errors.Wrap(err, "Failed to create entity"), http.StatusInternalServerError)
+			return obsidian.HttpError(errors.Wrap(err, "Failed to create entity"), http.StatusInternalServerError)
 		}
 	} else {
 		err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, config)
 		if err != nil {
-			return handlers.HttpError(errors.Wrap(err, "Failed to create entity config"), http.StatusInternalServerError)
+			return obsidian.HttpError(errors.Wrap(err, "Failed to create entity config"), http.StatusInternalServerError)
 		}
 	}
 	return c.JSON(http.StatusCreated, entityKey)
@@ -55,7 +55,7 @@ func configuratorGetEntityConfig(c echo.Context, networkID string, entityType st
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	if ent.Config == nil {
 		return echo.NewHTTPError(http.StatusNotFound)
@@ -70,7 +70,7 @@ func configuratorUpdateEntityConfig(c echo.Context, networkID string, entityType
 	}
 	err := configurator.CreateOrUpdateEntityConfig(networkID, entityType, entityKey, config)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -78,7 +78,7 @@ func configuratorUpdateEntityConfig(c echo.Context, networkID string, entityType
 func configuratorDeleteEntityConfig(c echo.Context, networkID string, entityType string, entityKey string) error {
 	err := configurator.DeleteEntityConfig(networkID, entityType, entityKey)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -86,10 +86,10 @@ func configuratorDeleteEntityConfig(c echo.Context, networkID string, entityType
 func configuratorGetAllKeys(c echo.Context, networkID, entityType string) error {
 	keysArr, err := configurator.ListEntityKeys(networkID, entityType)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	if keysArr == nil {
-		return handlers.HttpError(errors.New("Keys not found"), http.StatusNotFound)
+		return obsidian.HttpError(errors.New("Keys not found"), http.StatusNotFound)
 	}
 	return c.JSON(http.StatusOK, keysArr)
 }

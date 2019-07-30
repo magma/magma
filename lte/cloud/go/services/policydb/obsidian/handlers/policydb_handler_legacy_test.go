@@ -17,7 +17,7 @@ import (
 
 	lteplugin "magma/lte/cloud/go/plugin"
 	policydb_test_init "magma/lte/cloud/go/services/policydb/test_init"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -36,7 +36,7 @@ func TestPolicyRules(t *testing.T) {
 	restPort := tests.StartObsidian(t)
 
 	testUrlRoot := fmt.Sprintf(
-		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+		"http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	// Test Register Network
 	registerNetworkTestCase := tests.Testcase{

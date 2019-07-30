@@ -15,7 +15,7 @@ import (
 	fegplugin "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/services/controller/obsidian/models"
 	feg_protos "magma/feg/cloud/go/services/controller/protos"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/protos"
@@ -30,7 +30,7 @@ func TestLegacyGetNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
 
 	// Happy path
@@ -57,7 +57,7 @@ func TestLegacySetNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
 
@@ -116,7 +116,7 @@ func TestLegacyGetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
 	gatewayId := registerGateway(t, networkId, "g1", restPort)
@@ -145,7 +145,7 @@ func TestLegacySetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
 	gatewayId := registerGateway(t, networkId, "g2", restPort)
@@ -198,7 +198,7 @@ func registerNetwork(t *testing.T, networkName string, networkId string, port in
 		Name:   "Create Default Federation Network Config Legacy",
 		Method: "POST",
 		Url: fmt.Sprintf("http://localhost:%d%s/networks/%s/configs/federation",
-			port, handlers.REST_ROOT, networkId),
+			port, obsidian.RestRoot, networkId),
 		Payload:  swaggerConfigString,
 		Expected: "\"" + networkId + "\"",
 	})
@@ -225,7 +225,7 @@ func registerGateway(t *testing.T, networkId string, gatewayId string, port int)
 		Method: "POST",
 		Url: fmt.Sprintf(
 			"http://localhost:%d%s/networks/%s/gateways/%s/configs/federation",
-			port, handlers.REST_ROOT, networkId, registeredId),
+			port, obsidian.RestRoot, networkId, registeredId),
 		Payload:  swaggerConfigString,
 		Expected: "\"" + registeredId + "\"",
 	})

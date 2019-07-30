@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package handlers
+package obsidian
 
 import (
 	"errors"

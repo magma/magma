@@ -20,7 +20,7 @@ import (
 	"magma/lte/cloud/go/services/meteringd_records/obsidian/models"
 	meteringd_records_test_init "magma/lte/cloud/go/services/meteringd_records/test_init"
 	sdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
@@ -68,7 +68,7 @@ func TestMeteringdRecords(t *testing.T) {
 	csn := test_utils.StartMockGwAccessControl(t, []string{hwId})
 
 	testUrlRoot := fmt.Sprintf(
-		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+		"http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	// Test Register Network
 	registerNetworkTestCase := tests.Testcase{

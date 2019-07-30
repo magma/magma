@@ -5,7 +5,7 @@ package mocks
 import config "magma/orc8r/cloud/go/service/config"
 import configurator "magma/orc8r/cloud/go/services/configurator"
 import factory "magma/orc8r/cloud/go/services/streamer/mconfig/factory"
-import handlers "magma/orc8r/cloud/go/obsidian/handlers"
+import obsidian "magma/orc8r/cloud/go/obsidian"
 import metricsd "magma/orc8r/cloud/go/services/metricsd"
 import mock "github.com/stretchr/testify/mock"
 
@@ -81,15 +81,15 @@ func (_m *OrchestratorPlugin) GetName() string {
 }
 
 // GetObsidianHandlers provides a mock function with given fields: metricsConfig
-func (_m *OrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []handlers.Handler {
+func (_m *OrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	ret := _m.Called(metricsConfig)
 
-	var r0 []handlers.Handler
-	if rf, ok := ret.Get(0).(func(*config.ConfigMap) []handlers.Handler); ok {
+	var r0 []obsidian.Handler
+	if rf, ok := ret.Get(0).(func(*config.ConfigMap) []obsidian.Handler); ok {
 		r0 = rf(metricsConfig)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]handlers.Handler)
+			r0 = ret.Get(0).([]obsidian.Handler)
 		}
 	}
 

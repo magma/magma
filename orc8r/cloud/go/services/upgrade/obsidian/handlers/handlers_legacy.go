@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"sort"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	"magma/orc8r/cloud/go/services/upgrade/protos"
@@ -25,7 +25,7 @@ import (
 func listReleaseChannelsHandler(c echo.Context) error {
 	channels, err := upgrade_client.ListReleaseChannels()
 	if err != nil {
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 	// Return a deterministic ordering of channels
 	sort.Strings(channels)
@@ -40,7 +40,7 @@ func getReleaseChannelsHandler(c echo.Context) error {
 
 	channel, err := upgrade_client.GetReleaseChannel(channelId)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 
 	swaggerChannel := models.ReleaseChannel{}
@@ -52,7 +52,7 @@ func getReleaseChannelsHandler(c echo.Context) error {
 func createReleaseChannelHandler(c echo.Context) error {
 	restChannel := new(models.ReleaseChannel)
 	if err := c.Bind(restChannel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	// Construct proto model and persist
@@ -61,7 +61,7 @@ func createReleaseChannelHandler(c echo.Context) error {
 	}
 	err := upgrade_client.CreateReleaseChannel(restChannel.Name, channelProto)
 	if err != nil {
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 
 	// Return the ID of the created channel
@@ -75,13 +75,13 @@ func updateReleaseChannelHandler(c echo.Context) error {
 	}
 	restChannel := new(models.ReleaseChannel)
 	if err := c.Bind(restChannel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	// Release channel name is immutable
 	// This could change if release channels are keyed by UUID in their tables
 	if restChannel.Name != channelId {
-		return handlers.HttpError(
+		return obsidian.HttpError(
 			errors.New("Release channel name cannot be modified"),
 			http.StatusBadRequest)
 	}
@@ -91,7 +91,7 @@ func updateReleaseChannelHandler(c echo.Context) error {
 
 	err := upgrade_client.UpdateReleaseChannel(channelId, updatedChannelProto)
 	if err != nil {
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -105,20 +105,20 @@ func deleteReleaseChannelHandler(c echo.Context) error {
 
 	err := upgrade_client.DeleteReleaseChannel(channelId)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
 func listTiersHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
 	tiers, err := upgrade_client.GetTiers(networkId, []string{})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	ret := make([]string, 0, len(tiers))
@@ -147,27 +147,27 @@ func tierInfoModelToProto(model *models.Tier) *protos.TierInfo {
 }
 
 func createTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 	restTier := new(models.Tier)
 	if err := c.Bind(restTier); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	tierProto := tierInfoModelToProto(restTier)
 
 	err := upgrade_client.CreateTier(networkId, restTier.ID, tierProto)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	// Return the ID of the created tier
 	return c.JSON(http.StatusCreated, restTier.ID)
 }
 
 func getTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -178,11 +178,11 @@ func getTierHandler(c echo.Context) error {
 
 	tiers, err := upgrade_client.GetTiers(networkId, []string{tierId})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 	tierProto, ok := tiers[tierId]
 	if !ok {
-		return handlers.HttpError(
+		return obsidian.HttpError(
 			errors.New("Error while loading tier from service"),
 			http.StatusNotFound)
 	}
@@ -204,7 +204,7 @@ func getTierHandler(c echo.Context) error {
 }
 
 func updateTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -214,21 +214,21 @@ func updateTierHandler(c echo.Context) error {
 	}
 	restTier := new(models.Tier)
 	if err := c.Bind(restTier); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	tierProto := tierInfoModelToProto(restTier)
 
 	err := upgrade_client.UpdateTier(networkId, tierId, tierProto)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.NoContent(http.StatusOK)
 }
 
 func deleteTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -239,7 +239,7 @@ func deleteTierHandler(c echo.Context) error {
 
 	err := upgrade_client.DeleteTier(networkId, tierId)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

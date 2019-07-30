@@ -10,11 +10,11 @@ package pluginimpl
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
-	obsidianh "magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/obsidian/handlers/hello"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
@@ -45,6 +45,8 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
 	upgrademodels "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
+
+	"github.com/labstack/echo"
 )
 
 // BaseOrchestratorPlugin is the OrchestratorPlugin for the orc8r module
@@ -104,7 +106,7 @@ func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMa
 	return getMetricsProfiles(metricsConfig)
 }
 
-func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidianh.Handler {
+func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		accessdh.GetObsidianHandlers(),
 		checkinh.GetObsidianHandlers(),
@@ -112,9 +114,18 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 		magmadh.GetObsidianHandlers(),
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
-		hello.GetObsidianHandlers(),
 		stateh.GetObsidianHandlers(),
 		configuratorh.GetObsidianHandlers(),
+		[]obsidian.Handler{{
+			Path:    "/",
+			Methods: obsidian.GET,
+			HandlerFunc: func(c echo.Context) error {
+				return c.JSON(
+					http.StatusOK,
+					"hello",
+				)
+			},
+		}},
 	)
 }
 

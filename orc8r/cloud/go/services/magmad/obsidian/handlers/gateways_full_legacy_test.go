@@ -15,7 +15,7 @@ import (
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
@@ -29,7 +29,7 @@ func TestGetViewsForNetworkLegacy(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	// Set up test
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	// Generate input/output objects
 	networkID := "net1"
@@ -69,7 +69,7 @@ func TestGetViewsForNetworkLegacy(t *testing.T) {
 func TestGetViewsForNetworkEmptyResponseLegacy(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "0")
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	networkID := "badid"
 

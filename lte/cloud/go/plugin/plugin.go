@@ -22,7 +22,7 @@ import (
 	subscriberdbh "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	models3 "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	subscriberdbstreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -87,7 +87,7 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.Config
 	return []metricsd.MetricsProfile{}
 }
 
-func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []handlers.Handler {
+func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		cellularh.GetObsidianHandlers(),
 		meteringdh.GetObsidianHandlers(),

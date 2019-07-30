@@ -11,7 +11,7 @@ package handlers
 import (
 	"net/http"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 
 	"github.com/labstack/echo"
@@ -20,18 +20,18 @@ import (
 // ListFullGatewayViewsLegacy returns the full views of specified gateways in a
 // network.
 func ListFullGatewayViewsLegacy(c echo.Context, factory view_factory.FullGatewayViewFactory) error {
-	networkID, httpErr := handlers.GetNetworkId(c)
+	networkID, httpErr := obsidian.GetNetworkId(c)
 	if httpErr != nil {
 		return httpErr
 	}
 	gatewayIDs := getGatewayIDs(c.QueryParams())
 	gatewayStates, err := getGatewayStates(networkID, gatewayIDs, factory)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	modelStates, err := view_factory.GatewayStateMapToModelList(gatewayStates)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, modelStates)
 }

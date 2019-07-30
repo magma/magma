@@ -1,14 +1,12 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
-
-// Package handlers provides common glue & functionality for all API handlers
-// implemented by "magma/handlers/*" packages
-package handlers
+package obsidian
 
 import (
 	"bytes"
@@ -19,7 +17,6 @@ import (
 	"net/http"
 	"os"
 
-	"magma/orc8r/cloud/go/obsidian/config"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/util"
 
@@ -64,27 +61,8 @@ const (
 )
 
 const (
-	URL_SEP                   = "/"
-	MAGMA_URL_ROOT            = "magma"
-	MAGMA_NETWORKS_URL_PART   = "networks"
-	MAGMA_OPERATORS_URL_PART  = "operators"
-	MAGMA_CHANNELS_URL_PART   = "channels"
-	MAGMA_PROMETHEUS_URL_PART = "prometheus"
-	MAGMA_GRAPHITE_URL_PART   = "graphite"
-	// "/magma"
-	REST_ROOT = URL_SEP + MAGMA_URL_ROOT
-	// "/magma/networks"
-	NETWORKS_ROOT = REST_ROOT + URL_SEP + MAGMA_NETWORKS_URL_PART
-	// "/magma/operators"
-	OPERATORS_ROOT = REST_ROOT + URL_SEP + MAGMA_OPERATORS_URL_PART
-	// "/magma/channels"
-	CHANNELS_ROOT = REST_ROOT + URL_SEP + MAGMA_CHANNELS_URL_PART
-	// "/magma/network/{network_id}/prometheus
-	PROMETHEUS_ROOT = REST_ROOT + URL_SEP + "networks" + URL_SEP + ":network_id" + URL_SEP + MAGMA_PROMETHEUS_URL_PART
-	// "/magma/network/{network_id}/graphite
-	GRAPHITE_ROOT    = REST_ROOT + URL_SEP + "networks" + URL_SEP + ":network_id" + URL_SEP + MAGMA_GRAPHITE_URL_PART
-	WILDCARD         = "*"
-	NETWORK_WILDCARD = "N*"
+	wildcard        = "*"
+	networkWildcard = "N*"
 )
 
 var registries = map[HttpMethod]handlerRegistry{
@@ -245,8 +223,12 @@ func HttpError(err error, code ...int) *echo.HTTPError {
 	return echo.NewHTTPError(status, grpc.ErrorDesc(err))
 }
 
+func CheckWildcardNetworkAccess(c echo.Context) *echo.HTTPError {
+	return CheckNetworkAccess(c, networkWildcard)
+}
+
 func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
-	if !config.TLS {
+	if !TLS {
 		return nil
 	}
 	if c != nil {
@@ -254,14 +236,14 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 			if len(r.TLS.PeerCertificates) > 0 {
 				var cert = r.TLS.PeerCertificates[0]
 				if cert != nil {
-					if cert.Subject.CommonName == WILDCARD ||
-						cert.Subject.CommonName == NETWORK_WILDCARD ||
+					if cert.Subject.CommonName == wildcard ||
+						cert.Subject.CommonName == networkWildcard ||
 						cert.Subject.CommonName == networkId {
 						return nil
 					}
 					for _, san := range cert.DNSNames {
-						if san == WILDCARD ||
-							san == NETWORK_WILDCARD ||
+						if san == wildcard ||
+							san == networkWildcard ||
 							san == networkId {
 							return nil
 						}

@@ -14,7 +14,7 @@ import (
 	"regexp"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 
 	"github.com/labstack/echo"
@@ -23,14 +23,14 @@ import (
 // ListFullGatewayViews returns the full views of specified gateways in a
 // network.
 func ListFullGatewayViews(c echo.Context, factory view_factory.FullGatewayViewFactory) error {
-	networkID, httpErr := handlers.GetNetworkId(c)
+	networkID, httpErr := obsidian.GetNetworkId(c)
 	if httpErr != nil {
 		return httpErr
 	}
 	gatewayIDs := getGatewayIDs(c.QueryParams())
 	gatewayStates, err := getGatewayStates(networkID, gatewayIDs, factory)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	// todo can remove this after the legacy full gateway views is deprecated
 	//  and only uses GatewayStateType

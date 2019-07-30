@@ -14,7 +14,7 @@ import (
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -35,7 +35,7 @@ func TestReleaseChannels(t *testing.T) {
 	upgrade_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, obsidian.RestRoot)
 
 	// List channels when none exist
 	listChannelsTestCase := tests.Testcase{
@@ -140,7 +140,7 @@ func TestTiers(t *testing.T) {
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 	configurator_test_init.StartTestService(t)
-	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	registerNetworkTestCase := tests.Testcase{
 		Name:                      "Register Network",
