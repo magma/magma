@@ -70,6 +70,9 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 		obsidian.Handler{Path: firingAlertURL, Methods: obsidian.GET, HandlerFunc: promH.GetViewFiringAlertHandler(alertmanagerURL)},
 		obsidian.Handler{Path: promH.AlertReceiverConfigURL, Methods: obsidian.POST, HandlerFunc: promH.GetConfigureAlertReceiverHandler(alertmanagerConfigServiceURL)},
 		obsidian.Handler{Path: promH.AlertReceiverConfigURL, Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertReceiverHandler(alertmanagerConfigServiceURL)},
+		obsidian.Handler{Path: promH.AlertReceiverConfigURL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteAlertReceiverHandler(alertmanagerConfigServiceURL)},
+		obsidian.Handler{Path: promH.AlertReceiverUpdateURL, Methods: obsidian.PUT, HandlerFunc: promH.GetUpdateAlertReceiverHandler(alertmanagerConfigServiceURL)},
+
 		obsidian.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertmanagerConfigServiceURL)},
 		obsidian.Handler{Path: promH.AlertReceiverConfigURL + "/route", Methods: obsidian.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertmanagerConfigServiceURL)},
 	)
