@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/config"
@@ -28,7 +29,6 @@ import (
 	"magma/orc8r/cloud/go/services/device"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
-	dnsdmodels "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	magmadmodels "magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -73,8 +73,8 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &magmadmodels.AccessGatewayRecord{}),
 
 		// Config manager serdes
-		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &dnsdmodels.NetworkDNSConfig{}),
-		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &magmadmodels.NetworkFeatures{}),
+		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models.NetworkDNSConfig{}),
+		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &models.NetworkFeatures{}),
 
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &magmadmodels.MagmadGatewayConfig{}),
 		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),

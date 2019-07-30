@@ -14,12 +14,12 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos/mconfig"
-	"magma/lte/cloud/go/services/cellular/obsidian/models"
+	cellular_models "magma/lte/cloud/go/services/cellular/obsidian/models"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
-	models2 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
@@ -34,7 +34,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	if !found || inwConfig == nil {
 		return nil
 	}
-	cellularNwConfig := inwConfig.(*models.NetworkCellularConfigs)
+	cellularNwConfig := inwConfig.(*cellular_models.NetworkCellularConfigs)
 
 	cellGW, err := graph.GetEntity(lte.CellularGatewayType, gatewayID)
 	if err == merrors.ErrNotFound {
@@ -46,7 +46,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	if cellGW.Config == nil {
 		return nil
 	}
-	cellularGwConfig := cellGW.Config.(*models.GatewayCellularConfigs)
+	cellularGwConfig := cellGW.Config.(*cellular_models.GatewayCellularConfigs)
 
 	if err := validateConfigs(cellularNwConfig, cellularGwConfig); err != nil {
 		return err
@@ -137,7 +137,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	return nil
 }
 
-func validateConfigs(nwConfig *models.NetworkCellularConfigs, gwConfig *models.GatewayCellularConfigs) error {
+func validateConfigs(nwConfig *cellular_models.NetworkCellularConfigs, gwConfig *cellular_models.GatewayCellularConfigs) error {
 	if nwConfig == nil {
 		return errors.New("Cellular network config is nil")
 	}
@@ -165,7 +165,10 @@ func shouldEnableDNSCaching(network configurator.Network) bool {
 	if !found || idnsConfig == nil {
 		return false
 	}
-	return idnsConfig.(*models2.NetworkDNSConfig).EnableCaching
+	if idnsConfig.(*models.NetworkDNSConfig).EnableCaching == nil {
+		return false
+	}
+	return *idnsConfig.(*models.NetworkDNSConfig).EnableCaching
 }
 
 type nonEPSServiceMconfigFields struct {
@@ -177,7 +180,7 @@ type nonEPSServiceMconfigFields struct {
 	lac                  int32
 }
 
-func getNonEPSServiceMconfigFields(gwNonEpsService *models.GatewayNonEpsServiceConfigs) nonEPSServiceMconfigFields {
+func getNonEPSServiceMconfigFields(gwNonEpsService *cellular_models.GatewayNonEpsServiceConfigs) nonEPSServiceMconfigFields {
 	if gwNonEpsService == nil {
 		return nonEPSServiceMconfigFields{
 			csfbRat:              mconfig.EnodebD_CSFBRAT_2G,
@@ -230,7 +233,7 @@ func getPipelineDServicesConfig(networkServices []string) ([]mconfig.PipelineD_N
 	return apps, nil
 }
 
-func getFddConfig(fddConfig *models.NetworkRanConfigsFddConfig) *mconfig.EnodebD_FDDConfig {
+func getFddConfig(fddConfig *cellular_models.NetworkRanConfigsFddConfig) *mconfig.EnodebD_FDDConfig {
 	if fddConfig == nil {
 		return nil
 	}
@@ -240,7 +243,7 @@ func getFddConfig(fddConfig *models.NetworkRanConfigsFddConfig) *mconfig.EnodebD
 	}
 }
 
-func getTddConfig(tddConfig *models.NetworkRanConfigsTddConfig) *mconfig.EnodebD_TDDConfig {
+func getTddConfig(tddConfig *cellular_models.NetworkRanConfigsTddConfig) *mconfig.EnodebD_TDDConfig {
 	if tddConfig == nil {
 		return nil
 	}
@@ -261,7 +264,7 @@ func getEnodebConfigsBySerial(enodebs []configurator.NetworkEntity) map[string]*
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		cellularEnbConfig := ienbConfig.(*models.NetworkEnodebConfigs)
+		cellularEnbConfig := ienbConfig.(*cellular_models.NetworkEnodebConfigs)
 		ret[serial] = &mconfig.EnodebD_EnodebConfig{
 			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
 			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
@@ -286,7 +289,7 @@ func getEnodebTacs(enbConfigsBySerial map[string]*mconfig.EnodebD_EnodebConfig) 
 	return ret
 }
 
-func getSubProfiles(epc *models.NetworkEpcConfigs) map[string]*mconfig.SubscriberDB_SubscriptionProfile {
+func getSubProfiles(epc *cellular_models.NetworkEpcConfigs) map[string]*mconfig.SubscriberDB_SubscriptionProfile {
 	if epc.SubProfiles == nil {
 		return map[string]*mconfig.SubscriberDB_SubscriptionProfile{}
 	}
