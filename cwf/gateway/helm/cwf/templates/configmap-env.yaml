@@ -13,7 +13,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cwf-env
+  name: {{ $envAll.Release.Name}}-env
 data:
   .env: |
 {{ tuple "bin/_env.tpl" . | include "template" | indent 4 }}

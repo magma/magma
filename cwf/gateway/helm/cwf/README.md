@@ -2,7 +2,6 @@
 
 This Chart helps in deploying CWF on Kubernetes as pods with help of Virtlet ( https://docs.virtlet.cloud/user-guide/real-cluster/ )
 
-
 ## TL;DR;
 ```bash
 $ cd magma/cwf/gateway/helm

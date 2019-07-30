@@ -107,7 +107,7 @@ roleRef:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cwf
+  name: {{ $envAll.Release.Name}}
   labels:
 {{ tuple $envAll "cwf" "gateway" | include "labels" | indent 4 }}
 spec:
@@ -157,7 +157,7 @@ spec:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
       containers:
-        - name: {{ $envAll.Chart.Name }}
+        - name: {{ $envAll.Release.Name}}
           image: {{ $envAll.Values.image.repository | quote }}
           imagePullPolicy: {{ $envAll.Values.image.pullPolicy }}
 {{ tuple $envAll $envAll.Values.pod.resources.server | include "kubernetes_resources" | indent 10 }}
@@ -174,11 +174,11 @@ spec:
       volumes:
         - name: cwf-bin
           configMap:
-            name: cwf-bin
+            name: {{ $envAll.Release.Name}}-bin
             defaultMode: 0755
         - name: cwf-env
           configMap:
-            name: cwf-env
+            name: {{ $envAll.Release.Name}}-env
             defaultMode: 0755
         - name: orc8r-secrets-certs
           secret:

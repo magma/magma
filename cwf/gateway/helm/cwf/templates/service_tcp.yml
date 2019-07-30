@@ -14,7 +14,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cwf
+  name: {{ $envAll.Release.Name}}-tcp
+{{- if eq .Values.service.type "LoadBalancer" }}
+  annotations:
+    metallb.universe.tf/allow-shared-ip: "true"
+{{- end }}
   labels:
 {{ tuple $envAll "cwf" "gateway" | include "labels" | indent 4 }}
 spec:

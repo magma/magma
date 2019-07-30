@@ -22,7 +22,7 @@ cwf:
   type: cwag
   image:
     docker_registry: ""
-    tag: latest
+    tag: "latest"
     #username:
     #password:
   proxy:
@@ -79,7 +79,14 @@ service:
       port: 22
       targetport: 22
       nodePort: ""
-
+    radiusaccount:
+      port: 1812
+      targetport: 1812
+      nodePort: ""
+    radiusauth:
+      port: 1813
+      targetport: 1813
+      nodePort: ""
 tolerations: []
 
 affinity: {}
