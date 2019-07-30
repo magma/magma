@@ -289,7 +289,9 @@ class TestWrapper(object):
         # if self._test_cloud:
         #    self._cloud_manager.clean_up()
 
-    def multiEnbConfig(self, num_of_enbs, enb_list=[]):
+    def multiEnbConfig(self, num_of_enbs, enb_list=None):
+        if enb_list is None:
+            enb_list = []
         req = s1ap_types.multiEnbConfigReq_t()
         req.numOfEnbs = num_of_enbs
         # ENB Parameter column index initialization
