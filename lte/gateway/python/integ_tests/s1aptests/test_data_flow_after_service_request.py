@@ -12,7 +12,7 @@ import unittest
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import time
+
 
 class TestDataFlowAfterServiceRequest(unittest.TestCase):
 
@@ -59,7 +59,9 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
             # Send UE context release request to move UE to idle mode
             req = s1ap_types.ueCntxtRelReq_t()
             req.ue_Id = ue_id
-            req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
+            req.cause.causeVal = (gpp_types.
+                                  CauseRadioNetwork.
+                                  USER_INACTIVITY.value)
             self._s1ap_wrapper.s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req)
             response = self._s1ap_wrapper.s1_util.get_response()

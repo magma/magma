@@ -12,7 +12,7 @@ import unittest
 import s1ap_types
 import s1ap_wrapper
 import time
-from integ_tests.s1aptests.s1ap_utils import SubscriberUtil
+
 
 class TestAttachMissingImsi(unittest.TestCase):
 
@@ -33,7 +33,8 @@ class TestAttachMissingImsi(unittest.TestCase):
         # Now actually attempt the attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-            s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND, s1ap_types.ueAttachRejInd_t)
+            s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND,
+            s1ap_types.ueAttachRejInd_t)
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
