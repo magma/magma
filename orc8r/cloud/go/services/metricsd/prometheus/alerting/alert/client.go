@@ -37,12 +37,14 @@ type PrometheusAlertClient interface {
 type client struct {
 	fileLocks *FileLocker
 	rulesDir  string
+	fsClient  FSClient
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir string) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, rulesDir string, fsClient FSClient) PrometheusAlertClient {
 	return &client{
 		fileLocks: fileLocks,
 		rulesDir:  rulesDir,
+		fsClient:  fsClient,
 	}
 }
 
@@ -55,13 +57,13 @@ func (c *client) ValidateRule(rule rulefmt.Rule) error {
 	return nil
 }
 
-func (c *client) RuleExists(rulename, networkID string) bool {
+func (c *client) RuleExists(networkID, rulename string) bool {
 	filename := makeFilename(networkID, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	ruleFile, err := c.initializeRuleFile(networkID, filename)
 	if err != nil {
 		return false
 	}
@@ -198,7 +200,7 @@ func (c *client) BulkUpdateRules(networkID string, rules []rulefmt.Rule) (BulkUp
 
 func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
-	err = ioutil.WriteFile(filename, yamlFile, 0666)
+	err = c.fsClient.WriteFile(filename, yamlFile, 0666)
 	if err != nil {
 		return fmt.Errorf("error writing rules file: %v\n", yamlFile)
 	}
@@ -206,7 +208,7 @@ func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 }
 
 func (c *client) initializeRuleFile(networkID, filename string) (*File, error) {
-	if _, err := os.Stat(filename); err == nil {
+	if _, err := c.fsClient.Stat(filename); err == nil {
 		file, err := c.readRuleFile(filename)
 		if err != nil {
 			return nil, err
@@ -218,7 +220,7 @@ func (c *client) initializeRuleFile(networkID, filename string) (*File, error) {
 
 func (c *client) readRuleFile(requestedFile string) (*File, error) {
 	ruleFile := File{}
-	file, err := ioutil.ReadFile(requestedFile)
+	file, err := c.fsClient.ReadFile(requestedFile)
 	if err != nil {
 		return &File{}, fmt.Errorf("error reading rules files: %v", err)
 	}
@@ -257,4 +259,28 @@ func (r BulkUpdateResults) String() string {
 
 func makeFilename(networkID, path string) string {
 	return path + "/" + networkID + rulesFilePostfix
+}
+
+type FSClient interface {
+	WriteFile(filename string, data []byte, perm os.FileMode) error
+	ReadFile(filename string) ([]byte, error)
+	Stat(filename string) (os.FileInfo, error)
+}
+
+type fsclient struct{}
+
+func NewFSClient() FSClient {
+	return &fsclient{}
+}
+
+func (f *fsclient) WriteFile(filename string, data []byte, perm os.FileMode) error {
+	return ioutil.WriteFile(filename, data, perm)
+}
+
+func (f *fsclient) ReadFile(filename string) ([]byte, error) {
+	return ioutil.ReadFile(filename)
+}
+
+func (f *fsclient) Stat(filename string) (os.FileInfo, error) {
+	return os.Stat(filename)
 }
