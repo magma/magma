@@ -9,17 +9,17 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for configurator
-func GetObsidianHandlers() []handlers.Handler {
-	return []handlers.Handler{
+func GetObsidianHandlers() []obsidian.Handler {
+	return []obsidian.Handler{
 		// Network
-		{Path: ListNetworks, Methods: handlers.GET, HandlerFunc: listNetworks},
-		{Path: RegisterNetwork, Methods: handlers.POST, HandlerFunc: registerNetwork},
-		{Path: ManageNetwork, Methods: handlers.GET, HandlerFunc: getNetwork},
-		{Path: ManageNetwork, Methods: handlers.PUT, HandlerFunc: updateNetwork},
-		{Path: ManageNetwork, Methods: handlers.DELETE, HandlerFunc: deleteNetwork},
+		{Path: ListNetworks, Methods: obsidian.GET, HandlerFunc: listNetworks},
+		{Path: RegisterNetwork, Methods: obsidian.POST, HandlerFunc: registerNetwork},
+		{Path: ManageNetwork, Methods: obsidian.GET, HandlerFunc: getNetwork},
+		{Path: ManageNetwork, Methods: obsidian.PUT, HandlerFunc: updateNetwork},
+		{Path: ManageNetwork, Methods: obsidian.DELETE, HandlerFunc: deleteNetwork},
 	}
 }

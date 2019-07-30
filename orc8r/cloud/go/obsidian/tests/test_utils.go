@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
 	access_tests "magma/orc8r/cloud/go/obsidian/access/tests"
-	obsidian_configs "magma/orc8r/cloud/go/obsidian/config"
 	"magma/orc8r/cloud/go/obsidian/server"
 	"magma/orc8r/cloud/go/util"
 )
@@ -77,16 +77,16 @@ func StartObsidian(t *testing.T) int {
 	TestOperatorSerialNumber =
 		access_tests.StartMockAccessControl(t, TEST_ADMIN_OPERATOR_ID)
 
-	obsidian_configs.Port = util.GetFreeTcpPort(obsidian_configs.Port)
-	if obsidian_configs.Port == 0 {
+	obsidian.Port = util.GetFreeTcpPort(obsidian.Port)
+	if obsidian.Port == 0 {
 		t.Fatalf("Failed to get a Free REST Server TCP Port")
 	}
-	obsidian_configs.TLS = false
+	obsidian.TLS = false
 
 	// Start REST server
 	go server.Start()
 	time.Sleep(time.Millisecond * 100) // Some time for http server to start
-	obsidianPort = obsidian_configs.Port
+	obsidianPort = obsidian.Port
 	return obsidianPort
 }
 

@@ -15,11 +15,11 @@ import (
 	"strings"
 	"testing"
 
-	obisidan_config "magma/orc8r/cloud/go/obsidian/config"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/config/obsidian"
+	cfgObsidian "magma/orc8r/cloud/go/services/config/obsidian"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -39,7 +39,7 @@ func TestReadAllKeysConfigHandlerLegacy(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
-	obisidan_config.TLS = false // To bypass access control
+	obsidian.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
 
@@ -53,7 +53,7 @@ func TestReadAllKeysConfigHandlerLegacy(t *testing.T) {
 
 	// 404
 	actual := &fooConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	err = cfgObsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
@@ -64,7 +64,7 @@ func TestReadAllKeysConfigHandlerLegacy(t *testing.T) {
 
 	actual_keys := &[]string{}
 	expected := &[]string{"key"}
-	err = obsidian.GetReadAllKeysConfigHandler("google.com", "foo").HandlerFunc(c)
+	err = cfgObsidian.GetReadAllKeysConfigHandler("google.com", "foo").HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	err = json.Unmarshal(rec.Body.Bytes(), actual_keys)
@@ -83,7 +83,7 @@ func TestGetConfigHandlerLegacy(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
-	obisidan_config.TLS = false // To bypass access control
+	obsidian.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
 
@@ -97,7 +97,7 @@ func TestGetConfigHandlerLegacy(t *testing.T) {
 
 	// 404
 	actual := &fooConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	err = cfgObsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
@@ -106,7 +106,7 @@ func TestGetConfigHandlerLegacy(t *testing.T) {
 	err = config.CreateConfig("network1", "foo", "key", expected)
 	assert.NoError(t, err)
 
-	err = obsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
+	err = cfgObsidian.GetReadConfigHandler("google.com", "foo", mockKeyGetter, actual).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	err = json.Unmarshal(rec.Body.Bytes(), actual)
@@ -119,7 +119,7 @@ func TestGetConfigHandlerLegacy(t *testing.T) {
 	assert.NoError(t, err)
 
 	actualConvertErr := &convertErrConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "convertErr", mockKeyGetter, actualConvertErr).HandlerFunc(c)
+	err = cfgObsidian.GetReadConfigHandler("google.com", "convertErr", mockKeyGetter, actualConvertErr).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 
@@ -129,7 +129,7 @@ func TestGetConfigHandlerLegacy(t *testing.T) {
 	assert.NoError(t, err)
 
 	actualUnmarshalErr := &errConfig{}
-	err = obsidian.GetReadConfigHandler("google.com", "err", mockKeyGetter, actualUnmarshalErr).HandlerFunc(c)
+	err = cfgObsidian.GetReadConfigHandler("google.com", "err", mockKeyGetter, actualUnmarshalErr).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 
@@ -145,7 +145,7 @@ func TestCreateConfigHandlerLegacy(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
-	obisidan_config.TLS = false // To bypass access control
+	obsidian.TLS = false // To bypass access control
 
 	configurator_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
@@ -161,7 +161,7 @@ func TestCreateConfigHandlerLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
+	err = cfgObsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, rec.Code)
 	assert.Equal(t, `"key"`, rec.Body.String())
@@ -178,7 +178,7 @@ func TestCreateConfigHandlerLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetCreateConfigHandler("google.com", "convertErr", mockKeyGetter, &convertErrConfig{}).HandlerFunc(c)
+	err = cfgObsidian.GetCreateConfigHandler("google.com", "convertErr", mockKeyGetter, &convertErrConfig{}).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Validate error")
@@ -191,7 +191,7 @@ func TestCreateConfigHandlerLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
+	err = cfgObsidian.GetCreateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Creating already existing config")
@@ -208,7 +208,7 @@ func TestUpdateConfigHandlerLegacy(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
-	obisidan_config.TLS = false // To bypass access control
+	obsidian.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -226,7 +226,7 @@ func TestUpdateConfigHandlerLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetUpdateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
+	err = cfgObsidian.GetUpdateConfigHandler("google.com", "foo", mockKeyGetter, &fooConfig{}).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	actualFoo, err := config.GetConfig("network1", "foo", "key")
@@ -240,7 +240,7 @@ func TestUpdateConfigHandlerLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetUpdateConfigHandler("google.com", "convertErr", mockKeyGetter, &convertErrConfig{}).HandlerFunc(c)
+	err = cfgObsidian.GetUpdateConfigHandler("google.com", "convertErr", mockKeyGetter, &convertErrConfig{}).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Validate error")
@@ -253,7 +253,7 @@ func TestUpdateConfigHandlerLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetUpdateConfigHandler("google.com", "foo", func(ctx echo.Context) (string, *echo.HTTPError) { return "dne", nil }, &fooConfig{}).HandlerFunc(c)
+	err = cfgObsidian.GetUpdateConfigHandler("google.com", "foo", func(ctx echo.Context) (string, *echo.HTTPError) { return "dne", nil }, &fooConfig{}).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Updating nonexistent config")
@@ -270,7 +270,7 @@ func TestDeleteConfigHandlerLegacy(t *testing.T) {
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
-	obisidan_config.TLS = false // To bypass access control
+	obsidian.TLS = false // To bypass access control
 
 	config_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -287,12 +287,12 @@ func TestDeleteConfigHandlerLegacy(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
+	err = cfgObsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	// Config service error - deleting nonexistent config
-	err = obsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
+	err = cfgObsidian.GetDeleteConfigHandler("google.com", "foo", mockKeyGetter).HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.Contains(t, err.Error(), "Deleting nonexistent config")

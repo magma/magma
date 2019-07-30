@@ -17,7 +17,7 @@ import (
 	lteplugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/lte/cloud/go/services/cellular/test_utils"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -35,7 +35,7 @@ func TestGetNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "cellular_obsidian_test_network"
 	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network 1")
@@ -107,7 +107,7 @@ func TestSetBadNetworkConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "cellular_obsidian_test_network"
 	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network 1")
@@ -194,7 +194,7 @@ func TestSetBadOldConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "cellular_obsidian_test_network"
 	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network 1")
@@ -225,7 +225,7 @@ func TestGetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "cellular_obsidian_test_network"
 	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network 1")
@@ -269,7 +269,7 @@ func TestSetGatewayConfigs(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "cellular_obsidian_test_network"
 	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network 1")
@@ -393,7 +393,7 @@ func TestSetGatewayConfigs(t *testing.T) {
 
 func testSetNetworkConfigs(t *testing.T, config *models.NetworkCellularConfigs, expectedConfig *models.NetworkCellularConfigs) {
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 	networkID := "cellular_obsidian_test_network"
 	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network 1")
 

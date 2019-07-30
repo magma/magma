@@ -16,7 +16,7 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -27,14 +27,14 @@ func addSubscriberHandler(c echo.Context) error {
 	// Get swagger model
 	sub := new(models.Subscriber)
 	if err := c.Bind(sub); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := sub.Verify(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	// Get networkId and subscriberId from REST context
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -48,12 +48,12 @@ func addSubscriberHandler(c echo.Context) error {
 	// Convert swagger model to proto
 	sd := new(protos.SubscriberData)
 	if err := sub.ToMconfig(sd); err != nil {
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 
 	// Call subscriberdb service
 	if err := subscriberdb.AddSubscriber(networkId, sd); err != nil {
-		return handlers.HttpError(err, http.StatusConflict)
+		return obsidian.HttpError(err, http.StatusConflict)
 	}
 	return c.JSON(http.StatusCreated, subscriberId)
 }
@@ -61,7 +61,7 @@ func addSubscriberHandler(c echo.Context) error {
 // REST Handler to list all subscribers, no payload expected
 func listSubscribersHandler(c echo.Context) error {
 	// Get networkId from REST context
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -78,7 +78,7 @@ func listSubscribersHandler(c echo.Context) error {
 func listSubscriberIdsHandler(c echo.Context, networkId string) error {
 	subs, err := subscriberdb.ListSubscribers(networkId)
 	if err != nil {
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 	sidset := make([]models.SubscriberID, len(subs))
 	for i := range subs {
@@ -90,14 +90,14 @@ func listSubscriberIdsHandler(c echo.Context, networkId string) error {
 func listSubscriberDataHandler(c echo.Context, networkId string) error {
 	subsBySid, err := subscriberdb.GetAllSubscriberData(networkId)
 	if err != nil {
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 
 	ret := make(map[string]*models.Subscriber, len(subsBySid))
 	for _, subProto := range subsBySid {
 		subModel := &models.Subscriber{}
 		if err = subModel.FromMconfig(subProto); err != nil {
-			return handlers.HttpError(fmt.Errorf("Error converting subscriber model: %s", err))
+			return obsidian.HttpError(fmt.Errorf("Error converting subscriber model: %s", err))
 		}
 		ret[string(subModel.ID)] = subModel
 	}
@@ -107,7 +107,7 @@ func listSubscriberDataHandler(c echo.Context, networkId string) error {
 // REST Handler to get subscriber info, no payload expected
 func getSubscriberHandler(c echo.Context) error {
 	// Get networkId and subscriberId from REST context
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -119,14 +119,14 @@ func getSubscriberHandler(c echo.Context) error {
 	// Call subscriberdb service
 	data, err := subscriberdb.GetSubscriber(networkId, subscriberId)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 
 	// Create swagger model for response
 	var sub models.Subscriber
 	if err = sub.FromMconfig(data); err != nil {
 		glog.Errorf("Error converting subscriber model: %s", err)
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 	return c.JSON(http.StatusOK, sub)
 }
@@ -136,14 +136,14 @@ func updateSubscriberHandler(c echo.Context) error {
 	// Get swagger model
 	sub := new(models.Subscriber)
 	if err := c.Bind(sub); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := sub.Verify(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	// Get networkId and subscriberId from REST context
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -157,12 +157,12 @@ func updateSubscriberHandler(c echo.Context) error {
 	// Convert swagger model to proto
 	sd := new(protos.SubscriberData)
 	if err := sub.ToMconfig(sd); err != nil {
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 
 	// Call subscriberdb service
 	if err := subscriberdb.UpdateSubscriber(networkId, sd); err != nil {
-		return handlers.HttpError(err, http.StatusConflict)
+		return obsidian.HttpError(err, http.StatusConflict)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -170,7 +170,7 @@ func updateSubscriberHandler(c echo.Context) error {
 // REST handler to delete subscriber, no payload expected
 func deleteSubscriberHandler(c echo.Context) error {
 	// Get networkId and subscriberId from REST context
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -181,7 +181,7 @@ func deleteSubscriberHandler(c echo.Context) error {
 
 	// Call subscriberdb service
 	if err := subscriberdb.DeleteSubscriber(networkId, subscriberId); err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -199,7 +199,7 @@ func getSubscriberId(c echo.Context) string {
 }
 
 func subscriberIdHttpErr() *echo.HTTPError {
-	return handlers.HttpError(
+	return obsidian.HttpError(
 		fmt.Errorf("Invalid/Missing Subscriber ID"),
 		http.StatusBadRequest)
 }

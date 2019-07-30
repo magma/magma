@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
 
 	"github.com/labstack/echo"
@@ -22,7 +22,7 @@ import (
 
 func GetConfigureAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -33,7 +33,7 @@ func GetConfigureAlertReceiverHandler(configManagerURL string) func(c echo.Conte
 
 func GetRetrieveAlertReceiverHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -44,7 +44,7 @@ func GetRetrieveAlertReceiverHandler(configManagerURL string) func(c echo.Contex
 
 func GetRetrieveAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -55,7 +55,7 @@ func GetRetrieveAlertRouteHandler(configManagerURL string) func(c echo.Context) 
 
 func GetUpdateAlertRouteHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -67,12 +67,12 @@ func GetUpdateAlertRouteHandler(configManagerURL string) func(c echo.Context) er
 func configureAlertReceiver(c echo.Context, url string) error {
 	receiver, err := buildReceiverFromContext(c)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	err = sendConfig(receiver, url, http.MethodPost)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -88,7 +88,7 @@ func retrieveAlertReceivers(c echo.Context, url string) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return handlers.HttpError(fmt.Errorf("error reading receivers: %v", body.Message), resp.StatusCode)
+		return obsidian.HttpError(fmt.Errorf("error reading receivers: %v", body.Message), resp.StatusCode)
 	}
 	var recs []receivers.Receiver
 	err = json.NewDecoder(resp.Body).Decode(&recs)
@@ -109,12 +109,12 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return handlers.HttpError(fmt.Errorf("error reading alerting route: %v", body.Message), resp.StatusCode)
+		return obsidian.HttpError(fmt.Errorf("error reading alerting route: %v", body.Message), resp.StatusCode)
 	}
 	var route config.Route
 	err = json.NewDecoder(resp.Body).Decode(&route)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("error decoding server response %v", err), http.StatusInternalServerError)
+		return obsidian.HttpError(fmt.Errorf("error decoding server response %v", err), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, route)
 }
@@ -122,12 +122,12 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 func updateAlertRoute(c echo.Context, url string) error {
 	route, err := buildRouteFromContext(c)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("invalid route specification: %v\n", err), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("invalid route specification: %v\n", err), http.StatusBadRequest)
 	}
 
 	err = sendConfig(route, url, http.MethodPost)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("error updating alert route: %v", err), http.StatusInternalServerError)
+		return obsidian.HttpError(fmt.Errorf("error updating alert route: %v", err), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }

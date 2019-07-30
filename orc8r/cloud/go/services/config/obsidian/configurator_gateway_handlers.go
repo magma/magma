@@ -11,7 +11,7 @@ package obsidian
 import (
 	"net/http"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -47,7 +47,7 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 		Config: config,
 	})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	_, err = configurator.UpdateEntity(networkID, configurator.EntityUpdateCriteria{
@@ -57,7 +57,7 @@ func configuratorCreateGatewayConfig(c echo.Context, networkID string, configTyp
 		AssociationsToAdd: []storage.TypeAndKey{{Type: configType, Key: configKey}},
 	})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, configKey)
 }
@@ -78,7 +78,7 @@ func configuratorDeleteGatewayConfig(c echo.Context, networkID string, configTyp
 
 	err := configurator.DeleteEntity(networkID, configType, configKey)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -107,7 +107,7 @@ func configuratorCreateMagmadGatewayConfig(c echo.Context, networkID string, gat
 	}
 	_, err := configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{gwUpdate, tierUpdate})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, gatewayID)
 }
@@ -122,7 +122,7 @@ func configuratorUpdateMagmadGatewayConfig(c echo.Context, networkID string, gat
 	// fetch previous update tier to compute association change
 	iCurrentConfig, err := configurator.LoadEntityConfig(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	currentConfig := iCurrentConfig.(*models.MagmadGatewayConfig)
 
@@ -155,7 +155,7 @@ func configuratorUpdateMagmadGatewayConfig(c echo.Context, networkID string, gat
 
 	_, err = configurator.UpdateEntities(networkID, updates)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -168,7 +168,7 @@ func configuratorDeleteMagmadGatewayConfig(c echo.Context, networkID, gatewayID 
 	}
 	_, err := configurator.UpdateEntity(networkID, update)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -176,7 +176,7 @@ func configuratorDeleteMagmadGatewayConfig(c echo.Context, networkID, gatewayID 
 func createTierEntityIfDoesNotExist(networkID, tierID string) error {
 	exists, err := configurator.DoesEntityExist(networkID, orc8r.UpgradeTierEntityType, tierID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	if exists {
 		return nil
@@ -190,7 +190,7 @@ func createTierEntityIfDoesNotExist(networkID, tierID string) error {
 	}
 	_, err = configurator.CreateEntity(networkID, entity)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return nil
 }

@@ -18,9 +18,9 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/lte/cloud/go/services/cellular/utils"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/config/obsidian"
+	cfgObsidian "magma/orc8r/cloud/go/services/config/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 	magmad_handlers "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/storage"
@@ -37,19 +37,19 @@ const (
 )
 
 // GetObsidianHandlers returns all obsidian handlers for the cellular service
-func GetObsidianHandlers() []handlers.Handler {
-	defaultUpdateHandler := obsidian.GetUpdateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{})
-	createGatewayConfigHandler := obsidian.GetCreateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
-	updateGatewayConfigHandler := obsidian.GetUpdateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
+func GetObsidianHandlers() []obsidian.Handler {
+	defaultUpdateHandler := cfgObsidian.GetUpdateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{})
+	createGatewayConfigHandler := cfgObsidian.GetCreateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
+	updateGatewayConfigHandler := cfgObsidian.GetUpdateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
 
 	// override create and update migrated handler func
 	createGatewayConfigHandler.MigratedHandlerFunc = createGatewayConfig
 	updateGatewayConfigHandler.MigratedHandlerFunc = updateGatewayConfig
 
-	return []handlers.Handler{
-		obsidian.GetReadNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
-		obsidian.GetCreateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
-		obsidian.GetDeleteNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType),
+	return []obsidian.Handler{
+		cfgObsidian.GetReadNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
+		cfgObsidian.GetCreateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
+		cfgObsidian.GetDeleteNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType),
 		// Patch default config update handler to set TDD/FDD fields in network config
 		{
 			Path:    defaultUpdateHandler.Path,
@@ -69,15 +69,15 @@ func GetObsidianHandlers() []handlers.Handler {
 				return defaultUpdateHandler.MigratedHandlerFunc(cc)
 			},
 		},
-		obsidian.GetReadConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		obsidian.GetCreateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		obsidian.GetUpdateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		obsidian.GetDeleteConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId),
+		cfgObsidian.GetReadConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		cfgObsidian.GetCreateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		cfgObsidian.GetUpdateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		cfgObsidian.GetDeleteConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId),
 		// List all eNodeB devices for a network
-		obsidian.GetReadAllKeysConfigHandler(EnodebListPath, lte.CellularEnodebType),
+		cfgObsidian.GetReadAllKeysConfigHandler(EnodebListPath, lte.CellularEnodebType),
 		// Cellular gateway configs
-		obsidian.GetReadGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{}),
-		obsidian.GetDeleteGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType),
+		cfgObsidian.GetReadGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{}),
+		cfgObsidian.GetDeleteGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType),
 		createGatewayConfigHandler,
 		updateGatewayConfigHandler,
 	}
@@ -86,7 +86,7 @@ func GetObsidianHandlers() []handlers.Handler {
 func getEnodebId(c echo.Context) (string, *echo.HTTPError) {
 	operID := c.Param("enodeb_id")
 	if operID == "" {
-		return operID, handlers.HttpError(
+		return operID, obsidian.HttpError(
 			fmt.Errorf("Invalid/Missing Enodeb ID"),
 			http.StatusBadRequest)
 	}
@@ -95,35 +95,35 @@ func getEnodebId(c echo.Context) (string, *echo.HTTPError) {
 
 func getNetworkConfigFromRequest(c echo.Context) (echo.Context, error) {
 	if c.Request().Body == nil {
-		return nil, handlers.HttpError(fmt.Errorf("Network config is nil"), http.StatusBadRequest)
+		return nil, obsidian.HttpError(fmt.Errorf("Network config is nil"), http.StatusBadRequest)
 	}
 	cfg := &models.NetworkCellularConfigs{}
 
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
-		return nil, handlers.HttpError(err, http.StatusBadRequest)
+		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	err = json.Unmarshal(body, cfg)
 	if err != nil {
-		return nil, handlers.HttpError(err, http.StatusBadRequest)
+		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	// Config does not have a FDD/TDD sub-config set
 	if cfg.Ran.TddConfig == nil && cfg.Ran.FddConfig == nil {
 		band, err := utils.GetBand(int32(cfg.Ran.Earfcndl))
 		if err != nil {
-			return nil, handlers.HttpError(err, http.StatusBadRequest)
+			return nil, obsidian.HttpError(err, http.StatusBadRequest)
 		}
 
 		cfg, err = setAppropriateNetworkSubConfig(band, cfg)
 		if err != nil {
-			return nil, handlers.HttpError(err, http.StatusBadRequest)
+			return nil, obsidian.HttpError(err, http.StatusBadRequest)
 		}
 	}
 
 	body, err = json.Marshal(cfg)
 	if err != nil {
-		return nil, handlers.HttpError(fmt.Errorf("Error converting config to TDD/FDD format"), http.StatusBadRequest)
+		return nil, obsidian.HttpError(fmt.Errorf("Error converting config to TDD/FDD format"), http.StatusBadRequest)
 	}
 	// populate request body with the updated config
 	c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(body))
@@ -158,7 +158,7 @@ func createGatewayConfig(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	iConfig, nerr := obsidian.GetConfigAndValidate(c, &models.GatewayCellularConfigs{})
+	iConfig, nerr := cfgObsidian.GetConfigAndValidate(c, &models.GatewayCellularConfigs{})
 	if nerr != nil {
 		return nerr
 	}
@@ -173,7 +173,7 @@ func createGatewayConfig(c echo.Context) error {
 		Associations: associationsToAdd,
 	})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	_, err = configurator.UpdateEntity(networkID, configurator.EntityUpdateCriteria{
@@ -182,7 +182,7 @@ func createGatewayConfig(c echo.Context) error {
 		AssociationsToSet: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: gatewayID}},
 	})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, gatewayID)
 }
@@ -192,7 +192,7 @@ func updateGatewayConfig(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	iConfig, nerr := obsidian.GetConfigAndValidate(c, &models.GatewayCellularConfigs{})
+	iConfig, nerr := cfgObsidian.GetConfigAndValidate(c, &models.GatewayCellularConfigs{})
 	if nerr != nil {
 		return nerr
 	}
@@ -207,7 +207,7 @@ func updateGatewayConfig(c echo.Context) error {
 		// look up the entity's association to pass in as associationsToDelete.
 		entity, err := configurator.LoadEntity(networkID, lte.CellularGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 		if err != nil {
-			return handlers.HttpError(err, http.StatusInternalServerError)
+			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 		associationsToDelete = entity.Associations
 	}
@@ -220,7 +220,7 @@ func updateGatewayConfig(c echo.Context) error {
 		AssociationsToDelete: associationsToDelete,
 	})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -234,11 +234,11 @@ func getEnodebTKs(enodbSerials []string) []storage.TypeAndKey {
 }
 
 func getIDs(c echo.Context) (string, string, error) {
-	networkID, err := handlers.GetNetworkId(c)
+	networkID, err := obsidian.GetNetworkId(c)
 	if err != nil {
 		return "", "", err
 	}
-	gatewayID, err := handlers.GetLogicalGwId(c)
+	gatewayID, err := obsidian.GetLogicalGwId(c)
 	if err != nil {
 		return "", "", err
 	}

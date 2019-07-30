@@ -16,7 +16,7 @@ import (
 	"reflect"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -68,7 +68,7 @@ type OrchestratorPlugin interface {
 
 	// GetObsidianHandlers returns all the custom obsidian handlers for the
 	// plugin to add functionality to the REST API.
-	GetObsidianHandlers(metricsConfig *config.ConfigMap) []handlers.Handler
+	GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler
 
 	// GetStreamerProviders returns streamer streams to expose to gateways.
 	// These stream providers are the primary mechanism by which gateways
@@ -178,7 +178,7 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles(metricsConfig)...); err != nil {
 		return err
 	}
-	if err := handlers.RegisterAll(orc8rPlugin.GetObsidianHandlers(metricsConfig)); err != nil {
+	if err := obsidian.RegisterAll(orc8rPlugin.GetObsidianHandlers(metricsConfig)); err != nil {
 		return err
 	}
 	if err := providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...); err != nil {

@@ -14,7 +14,7 @@ import (
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -37,7 +37,7 @@ func TestMagmadLegacy(t *testing.T) {
 	restPort := tests.StartObsidian(t)
 
 	testUrlRoot := fmt.Sprintf(
-		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+		"http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	// Test List Networks
 	listCloudsTestCase := tests.Testcase{

@@ -17,7 +17,7 @@ import (
 	"magma/lte/cloud/go/services/cellular/obsidian/models"
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/lte/cloud/go/services/cellular/test_utils"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -36,7 +36,7 @@ func TestGetNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 
@@ -108,7 +108,7 @@ func TestSetBadNetworkConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 
@@ -200,7 +200,7 @@ func TestSetBadOldConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 
@@ -232,7 +232,7 @@ func TestGetGatewayConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 	gatewayId := registerGatewayLegacy(t, networkId, "g1")
@@ -273,7 +273,7 @@ func TestSetGatewayConfigsLegacy(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	magmad_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 	gatewayId := registerGatewayLegacy(t, networkId, "g2")
@@ -350,7 +350,7 @@ func TestSetGatewayConfigsLegacy(t *testing.T) {
 
 func testSetNetworkConfigsLegacy(t *testing.T, config *cellular_protos.CellularNetworkConfig, expectedConfig *cellular_protos.CellularNetworkConfig) {
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkId := registerNetworkLegacy(t, "Test Network 1", "cellular_obsidian_test_network")
 

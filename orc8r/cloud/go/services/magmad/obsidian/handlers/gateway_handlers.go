@@ -16,7 +16,7 @@ import (
 	"sort"
 
 	"magma/orc8r/cloud/go/datastore"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -52,13 +52,13 @@ func getListGateways(factory view_factory.FullGatewayViewFactory) func(echo.Cont
 }
 
 func listGateways(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 	gatewayIDs, err := configurator.ListEntityKeys(networkID, orc8r.MagmadGatewayType)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	// Return a deterministic ordering of IDs
@@ -67,16 +67,16 @@ func listGateways(c echo.Context) error {
 }
 
 func createGateway(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 	record := &magmad_models.AccessGatewayRecord{}
 	if err := c.Bind(record); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := record.Verify(); err != nil {
-		return handlers.HttpError(
+		return obsidian.HttpError(
 			fmt.Errorf("Invalid Gateway Record, Error: %s", err),
 			http.StatusBadRequest)
 	}
@@ -85,7 +85,7 @@ func createGateway(c echo.Context) error {
 	if len(gatewayID) > 0 {
 		r, _ := regexp.Compile("^[a-zA-Z_][0-9a-zA-Z_-]+$")
 		if !r.MatchString(gatewayID) {
-			return handlers.HttpError(
+			return obsidian.HttpError(
 				fmt.Errorf("Gateway ID '%s' is not allowed. Gateway ID can only contain "+
 					"alphanumeric characters and underscore, and should start with a letter or underscore.", gatewayID),
 				http.StatusBadRequest,
@@ -101,7 +101,7 @@ func createGateway(c echo.Context) error {
 	// write into device
 	err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	// write into configurator
 	gwEntity := configurator.NetworkEntity{
@@ -114,22 +114,22 @@ func createGateway(c echo.Context) error {
 	if err != nil {
 		derr := device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID)
 		if derr != nil {
-			return handlers.HttpError(
+			return obsidian.HttpError(
 				fmt.Errorf("Failed to create gateway entity: %v, failed to delete device entity: %v", err, derr),
 				http.StatusInternalServerError)
 		}
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusCreated, gatewayID)
 }
 
 func getGateway(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayID, nerr := handlers.GetLogicalGwId(c)
+	gatewayID, nerr := obsidian.GetLogicalGwId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -138,11 +138,11 @@ func getGateway(c echo.Context) error {
 
 	gatewayEntity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadMetadata: true})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	deviceEntity, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, gatewayEntity.PhysicalID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	record.HwID = &magmad_models.HwGatewayID{ID: gatewayEntity.PhysicalID}
 	record.Name = gatewayEntity.Name
@@ -152,32 +152,32 @@ func getGateway(c echo.Context) error {
 }
 
 func updateGateway(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayID, gerr := handlers.GetLogicalGwId(c)
+	gatewayID, gerr := obsidian.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
 
 	record := magmad_models.MutableGatewayRecord{}
 	if berr := c.Bind(&record); berr != nil {
-		return handlers.HttpError(berr, http.StatusBadRequest)
+		return obsidian.HttpError(berr, http.StatusBadRequest)
 	}
 	if err := record.Verify(); err != nil {
-		return handlers.HttpError(
+		return obsidian.HttpError(
 			fmt.Errorf("Invalid Gateway Record, Error: %s", err),
 			http.StatusBadRequest)
 	}
 
 	err := updateChallengeKey(networkID, gatewayID, record.Key)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	err = updateGatewayName(networkID, gatewayID, record.Name)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -211,36 +211,36 @@ func updateGatewayName(networkID, gatewayID, name string) error {
 }
 
 func deleteGateway(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayID, gerr := handlers.GetLogicalGwId(c)
+	gatewayID, gerr := obsidian.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
 
 	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	err = device.DeleteDevice(networkID, orc8r.AccessGatewayRecordType, physicalID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	err = configurator.DeleteEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
 func rebootGateway(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := handlers.GetLogicalGwId(c)
+	gatewayId, gerr := obsidian.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -248,20 +248,20 @@ func rebootGateway(c echo.Context) error {
 	err := magmad.GatewayReboot(networkId, gatewayId)
 	if err != nil {
 		if datastore.IsErrNotFound(err) {
-			return handlers.HttpError(err, http.StatusNotFound)
+			return obsidian.HttpError(err, http.StatusNotFound)
 		}
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.NoContent(http.StatusOK)
 }
 
 func restartServices(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := handlers.GetLogicalGwId(c)
+	gatewayId, gerr := obsidian.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -269,25 +269,25 @@ func restartServices(c echo.Context) error {
 	var services []string
 	err := c.Bind(&services)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	err = magmad.GatewayRestartServices(networkId, gatewayId, services)
 	if err != nil {
 		if datastore.IsErrNotFound(err) {
-			return handlers.HttpError(err, http.StatusNotFound)
+			return obsidian.HttpError(err, http.StatusNotFound)
 		}
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.NoContent(http.StatusOK)
 }
 
 func gatewayPing(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := handlers.GetLogicalGwId(c)
+	gatewayId, gerr := obsidian.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -297,9 +297,9 @@ func gatewayPing(c echo.Context) error {
 	response, err := magmad.GatewayPing(networkId, gatewayId, pingRequest.Packets, pingRequest.Hosts)
 	if err != nil {
 		if datastore.IsErrNotFound(err) {
-			return handlers.HttpError(err, http.StatusNotFound)
+			return obsidian.HttpError(err, http.StatusNotFound)
 		}
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	var pingResponse magmad_models.PingResponse
 	for _, ping := range response.Pings {
@@ -317,11 +317,11 @@ func gatewayPing(c echo.Context) error {
 }
 
 func gatewayGenericCommand(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := handlers.GetLogicalGwId(c)
+	gatewayId, gerr := obsidian.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -329,11 +329,11 @@ func gatewayGenericCommand(c echo.Context) error {
 	request := magmad_models.GenericCommandParams{}
 	err := c.Bind(&request)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	params, err := view_factory.JSONMapToProtobufStruct(request.Params)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	genericCommandParams := protos.GenericCommandParams{
 		Command: *request.Command,
@@ -342,7 +342,7 @@ func gatewayGenericCommand(c echo.Context) error {
 
 	response, err := magmad.GatewayGenericCommand(networkId, gatewayId, &genericCommandParams)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	resp, err := view_factory.ProtobufStructToJSONMap(response.Response)
@@ -353,11 +353,11 @@ func gatewayGenericCommand(c echo.Context) error {
 }
 
 func tailGatewayLogs(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
+	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := handlers.GetLogicalGwId(c)
+	gatewayId, gerr := obsidian.GetLogicalGwId(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -365,12 +365,12 @@ func tailGatewayLogs(c echo.Context) error {
 	request := magmad_models.TailLogsRequest{}
 	err := c.Bind(&request)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	stream, err := magmad.TailGatewayLogs(networkId, gatewayId, request.Service)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	go func() {
@@ -386,11 +386,11 @@ func tailGatewayLogs(c echo.Context) error {
 			break
 		}
 		if err != nil {
-			return handlers.HttpError(err, http.StatusInternalServerError)
+			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 
 		if _, err := c.Response().Write([]byte(line.Line)); err != nil {
-			return handlers.HttpError(err, http.StatusInternalServerError)
+			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 		c.Response().Flush()
 	}

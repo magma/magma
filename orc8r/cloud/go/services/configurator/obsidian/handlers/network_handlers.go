@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_models "magma/orc8r/cloud/go/services/configurator/obsidian/models"
 
@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	ConfiguratorAPIRoot      = handlers.REST_ROOT + handlers.URL_SEP + "configurator"
-	ConfiguratorNetworksRoot = ConfiguratorAPIRoot + handlers.URL_SEP + "networks"
+	ConfiguratorAPIRoot      = obsidian.RestRoot + obsidian.UrlSep + "configurator"
+	ConfiguratorNetworksRoot = ConfiguratorAPIRoot + obsidian.UrlSep + "networks"
 	ListNetworks             = ConfiguratorNetworksRoot
 	RegisterNetwork          = ConfiguratorNetworksRoot
 	ManageNetwork            = ConfiguratorNetworksRoot + "/:network_id"
@@ -30,20 +30,20 @@ const (
 
 func listNetworks(c echo.Context) error {
 	// Check for wildcard network access
-	nerr := handlers.CheckNetworkAccess(c, handlers.NETWORK_WILDCARD)
+	nerr := obsidian.CheckWildcardNetworkAccess(c)
 	if nerr != nil {
 		return nerr
 	}
 	networks, err := configurator.ListNetworkIDs()
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, networks)
 }
 
 func registerNetwork(c echo.Context) error {
 	// Check for wildcard network access
-	nerr := handlers.CheckNetworkAccess(c, handlers.NETWORK_WILDCARD)
+	nerr := obsidian.CheckWildcardNetworkAccess(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -51,7 +51,7 @@ func registerNetwork(c echo.Context) error {
 	swaggerNetwork := &configurator_models.NetworkRecord{}
 	err := c.Bind(&swaggerNetwork)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	requestedID := c.QueryParam("requested_id")
 	err = VerifyNetworkIDFormat(requestedID)
@@ -66,22 +66,22 @@ func registerNetwork(c echo.Context) error {
 	}
 	createdNetworks, err := configurator.CreateNetworks([]configurator.Network{network})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	return c.JSON(http.StatusCreated, createdNetworks[0].ID)
 }
 
 func getNetwork(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 	networks, _, err := configurator.LoadNetworks([]string{networkID}, true, false)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	if len(networks) == 0 {
-		return handlers.HttpError(fmt.Errorf("Network ID %s not found", networkID), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("Network ID %s not found", networkID), http.StatusBadRequest)
 	}
 	network := networks[0]
 
@@ -93,7 +93,7 @@ func getNetwork(c echo.Context) error {
 }
 
 func updateNetwork(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -101,7 +101,7 @@ func updateNetwork(c echo.Context) error {
 	swaggerNetwork := &configurator_models.NetworkRecord{}
 	err := c.Bind(&swaggerNetwork)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	updateCriteria := configurator.NetworkUpdateCriteria{
@@ -111,20 +111,20 @@ func updateNetwork(c echo.Context) error {
 	}
 	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	return c.JSON(http.StatusOK, fmt.Sprintf("Network:%s updated", networkID))
 }
 
 func deleteNetwork(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
 	err := configurator.DeleteNetworks([]string{networkID})
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -133,7 +133,7 @@ func VerifyNetworkIDFormat(requestedID string) error {
 	if len(requestedID) > 0 {
 		r, _ := regexp.Compile("^[a-z_][0-9a-z_]+$")
 		if !r.MatchString(requestedID) {
-			return handlers.HttpError(
+			return obsidian.HttpError(
 				fmt.Errorf("Network ID '%s' is not allowed. Network ID can only contain "+
 					"lowercase alphanumeric characters and underscore, and should start with a letter or underscore.", requestedID),
 				http.StatusBadRequest,

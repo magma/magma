@@ -13,47 +13,47 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
 )
 
 func listRules(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 	rules, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, rules)
 }
 
 func createRule(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
 	rule := new(models.PolicyRule)
 	if err := c.Bind(rule); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := rule.Verify(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	_, err := configurator.CreateEntity(networkID, rule.ToEntity())
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, rule.ID)
 }
 
 func getRule(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -69,20 +69,20 @@ func getRule(c echo.Context) error {
 		configurator.EntityLoadCriteria{LoadConfig: true},
 	)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, ent.Config)
 }
 
 func updateRule(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
 	rule := new(models.PolicyRule)
 	if err := c.Bind(rule); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	ruleID, herr := getRuleID(c, rule)
 	if herr != nil {
@@ -90,18 +90,18 @@ func updateRule(c echo.Context) error {
 	}
 	rule.ID = ruleID
 	if err := rule.Verify(); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.PolicyRuleEntityType, ruleID, rule)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
 func deleteRule(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -112,7 +112,7 @@ func deleteRule(c echo.Context) error {
 
 	err := configurator.DeleteEntity(networkID, lte.PolicyRuleEntityType, ruleID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }

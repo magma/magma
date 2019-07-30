@@ -15,7 +15,7 @@ import (
 	"net/http"
 	neturl "net/url"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
@@ -31,14 +31,16 @@ const (
 	AlertNameQueryParam = "alert_name"
 	AlertNamePathParam  = "alert_name"
 
-	AlertConfigURL         = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertConfigPart
-	AlertUpdateURL         = AlertConfigURL + handlers.URL_SEP + ":" + AlertNamePathParam
-	AlertReceiverConfigURL = handlers.PROMETHEUS_ROOT + handlers.URL_SEP + alertReceiverPart
+	PrometheusRoot = obsidian.RestRoot + obsidian.UrlSep + "networks" + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
+
+	AlertConfigURL         = PrometheusRoot + obsidian.UrlSep + alertConfigPart
+	AlertUpdateURL         = AlertConfigURL + obsidian.UrlSep + ":" + AlertNamePathParam
+	AlertReceiverConfigURL = PrometheusRoot + obsidian.UrlSep + alertReceiverPart
 )
 
 func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -49,7 +51,7 @@ func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Con
 
 func GetRetrieveAlertRuleHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -60,7 +62,7 @@ func GetRetrieveAlertRuleHandler(configManagerURL string) func(c echo.Context) e
 
 func GetDeleteAlertRuleHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -71,7 +73,7 @@ func GetDeleteAlertRuleHandler(configManagerURL string) func(c echo.Context) err
 
 func GetUpdateAlertRuleHandler(configManagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -82,7 +84,7 @@ func GetUpdateAlertRuleHandler(configManagerURL string) func(c echo.Context) err
 
 func GetViewFiringAlertHandler(alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID, nerr := handlers.GetNetworkId(c)
+		networkID, nerr := obsidian.GetNetworkId(c)
 		if nerr != nil {
 			return nerr
 		}
@@ -93,17 +95,17 @@ func GetViewFiringAlertHandler(alertmanagerURL string) func(c echo.Context) erro
 func configurePrometheusAlert(c echo.Context, url, networkID string) error {
 	rule, err := buildRuleFromContext(c)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("misconfigured rule: %v", err), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("misconfigured rule: %v", err), http.StatusBadRequest)
 	}
 
 	err = alert.SecureRule(&rule, networkID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	errs := rule.Validate()
 	if len(errs) != 0 {
-		return handlers.HttpError(fmt.Errorf("invalid rule: %v\n", errs), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("invalid rule: %v\n", errs), http.StatusBadRequest)
 	}
 
 	err = sendConfig(rule, url, http.MethodPost)
@@ -130,7 +132,7 @@ func sendConfig(payload interface{}, url string, method string) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return handlers.HttpError(fmt.Errorf("error writing config: %v", body.Message), resp.StatusCode)
+		return obsidian.HttpError(fmt.Errorf("error writing config: %v", body.Message), resp.StatusCode)
 	}
 	return nil
 }
@@ -151,13 +153,13 @@ func retrieveAlertRule(c echo.Context, url string) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return handlers.HttpError(fmt.Errorf("error reading rules: %v", body.Message), resp.StatusCode)
+		return obsidian.HttpError(fmt.Errorf("error reading rules: %v", body.Message), resp.StatusCode)
 	}
 
 	var rules []alert.RuleJSONWrapper
 	err = json.NewDecoder(resp.Body).Decode(&rules)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("error decoding server response: %v", err), http.StatusInternalServerError)
+		return obsidian.HttpError(fmt.Errorf("error decoding server response: %v", err), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, rules)
 }
@@ -165,13 +167,13 @@ func retrieveAlertRule(c echo.Context, url string) error {
 func deleteAlertRule(c echo.Context, url string) error {
 	alertName := c.QueryParam(AlertNameQueryParam)
 	if alertName == "" {
-		return handlers.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
 	}
 	url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, neturl.QueryEscape(alertName))
 
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("could not form request: %v", err), http.StatusInternalServerError)
+		return obsidian.HttpError(fmt.Errorf("could not form request: %v", err), http.StatusInternalServerError)
 	}
 
 	client := &http.Client{}
@@ -184,7 +186,7 @@ func deleteAlertRule(c echo.Context, url string) error {
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return handlers.HttpError(fmt.Errorf("error deleting rule: %v", body.Message), resp.StatusCode)
+		return obsidian.HttpError(fmt.Errorf("error deleting rule: %v", body.Message), resp.StatusCode)
 	}
 	return c.JSON(http.StatusOK, nil)
 }
@@ -196,7 +198,7 @@ func updateAlertRule(c echo.Context, url string) error {
 	}
 	alertName := c.Param(AlertNamePathParam)
 	if alertName == "" {
-		return handlers.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
 	}
 	url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 
@@ -218,7 +220,7 @@ func viewFiringAlerts(c echo.Context, networkID, alertmanagerApiURL string) erro
 	var alerts []models.GettableAlert
 	err = json.NewDecoder(resp.Body).Decode(&alerts)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("error decoding alertmanager response: %v", err), http.StatusInternalServerError)
+		return obsidian.HttpError(fmt.Errorf("error decoding alertmanager response: %v", err), http.StatusInternalServerError)
 	}
 	networkAlerts := getAlertsForNetwork(networkID, alerts)
 	return c.JSON(http.StatusOK, networkAlerts)

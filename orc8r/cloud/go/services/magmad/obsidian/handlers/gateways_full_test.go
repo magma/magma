@@ -16,8 +16,7 @@ import (
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/config"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -40,7 +39,7 @@ func TestGetViewsForNetwork(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	// Set up test
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	// Generate input/output objects
 	networkID := "net1"
@@ -80,7 +79,7 @@ func TestGetViewsForNetwork(t *testing.T) {
 func TestGetViewsForNetworkEmptyResponse(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	networkID := "badid"
 
@@ -113,7 +112,7 @@ func TestGetViewsForNetwork_Full(t *testing.T) {
 	restPort := tests.StartObsidian(t)
 
 	testURLRoot := fmt.Sprintf(
-		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+		"http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 	networkID := "magmad_obsidian_test_network"
 	registerNetworkWithIDTestCase := tests.Testcase{
 		Name:                      "Register Network with Requested ID",
@@ -202,7 +201,7 @@ func TestGetGatewayViews_QueryType2(t *testing.T) {
 
 func testGetGatewayViews(t *testing.T, queryString string) {
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	networkID := "net1"
 	gatewayIDs := []string{"gw0", "gw1", "badgw"}
