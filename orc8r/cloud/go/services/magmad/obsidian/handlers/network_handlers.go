@@ -13,6 +13,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -72,7 +73,7 @@ func registerNetwork(c echo.Context) error {
 		Name: record.Name,
 		ID:   requestedID,
 		Configs: map[string]interface{}{
-			orc8r.NetworkFeaturesConfig: &magmad_models.NetworkFeatures{Features: record.Features},
+			orc8r.NetworkFeaturesConfig: &models.NetworkFeatures{Features: record.Features},
 		},
 	}
 
@@ -93,10 +94,10 @@ func getNetwork(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	networkFeatures := &magmad_models.NetworkFeatures{}
+	networkFeatures := &models.NetworkFeatures{}
 	features, ok := network.Configs[orc8r.NetworkFeaturesConfig]
 	if ok {
-		networkFeatures = features.(*magmad_models.NetworkFeatures)
+		networkFeatures = features.(*models.NetworkFeatures)
 	}
 
 	record := magmad_models.NetworkRecord{
@@ -124,7 +125,7 @@ func updateNetwork(c echo.Context) error {
 		ID:      networkID,
 		NewName: &record.Name,
 		ConfigsToAddOrUpdate: map[string]interface{}{
-			orc8r.NetworkFeaturesConfig: &magmad_models.NetworkFeatures{Features: record.Features},
+			orc8r.NetworkFeaturesConfig: &models.NetworkFeatures{Features: record.Features},
 		},
 	}
 	configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{updateCriteria})

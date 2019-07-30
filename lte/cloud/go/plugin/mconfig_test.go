@@ -14,11 +14,11 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/protos/mconfig"
-	"magma/lte/cloud/go/services/cellular/obsidian/models"
+	cellular_models "magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
-	models2 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/protobuf/proto"
@@ -28,12 +28,13 @@ import (
 func TestBuilder_Build(t *testing.T) {
 	builder := &plugin.Builder{}
 
+	trueValue := true
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
 			lte.CellularNetworkType: newDefaultTDDNetworkConfig(),
-			orc8r.DnsdNetworkType: &models2.NetworkDNSConfig{
-				EnableCaching: true,
+			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
+				EnableCaching: &trueValue,
 			},
 		},
 	}
@@ -247,20 +248,20 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func newDefaultTDDNetworkConfig() *models.NetworkCellularConfigs {
-	return &models.NetworkCellularConfigs{
-		Ran: &models.NetworkRanConfigs{
+func newDefaultTDDNetworkConfig() *cellular_models.NetworkCellularConfigs {
+	return &cellular_models.NetworkCellularConfigs{
+		Ran: &cellular_models.NetworkRanConfigs{
 			BandwidthMhz:           20,
 			Earfcndl:               44590,
 			SubframeAssignment:     2,
 			SpecialSubframePattern: 7,
-			TddConfig: &models.NetworkRanConfigsTddConfig{
+			TddConfig: &cellular_models.NetworkRanConfigsTddConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
 				SpecialSubframePattern: 7,
 			},
 		},
-		Epc: &models.NetworkEpcConfigs{
+		Epc: &cellular_models.NetworkEpcConfigs{
 			Mcc: "001",
 			Mnc: "01",
 			Tac: 1,
@@ -271,18 +272,18 @@ func newDefaultTDDNetworkConfig() *models.NetworkCellularConfigs {
 	}
 }
 
-func newDefaultGatewayConfig() *models.GatewayCellularConfigs {
-	return &models.GatewayCellularConfigs{
+func newDefaultGatewayConfig() *cellular_models.GatewayCellularConfigs {
+	return &cellular_models.GatewayCellularConfigs{
 		AttachedEnodebSerials: []string{"enb1"},
-		Ran: &models.GatewayRanConfigs{
+		Ran: &cellular_models.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: true,
 		},
-		Epc: &models.GatewayEpcConfigs{
+		Epc: &cellular_models.GatewayEpcConfigs{
 			NatEnabled: true,
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models.GatewayNonEpsServiceConfigs{
+		NonEpsService: &cellular_models.GatewayNonEpsServiceConfigs{
 			CsfbMcc:              "",
 			CsfbMnc:              "",
 			Lac:                  1,
@@ -293,8 +294,8 @@ func newDefaultGatewayConfig() *models.GatewayCellularConfigs {
 	}
 }
 
-func newDefaultEnodebConfig() *models.NetworkEnodebConfigs {
-	return &models.NetworkEnodebConfigs{
+func newDefaultEnodebConfig() *cellular_models.NetworkEnodebConfigs {
+	return &cellular_models.NetworkEnodebConfigs{
 		Earfcndl:               39150,
 		SubframeAssignment:     2,
 		SpecialSubframePattern: 7,

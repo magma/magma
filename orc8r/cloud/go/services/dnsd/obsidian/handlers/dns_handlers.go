@@ -11,8 +11,8 @@ package handlers
 import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	cfgObsidian "magma/orc8r/cloud/go/services/config/obsidian"
-	"magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	magmad_handlers "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 )
 
