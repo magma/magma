@@ -53,7 +53,7 @@ func (f *File) AddRule(rule rulefmt.Rule) {
 // ReplaceRule replaces an existing rule. Returns error if rule does not
 // exist already
 func (f *File) ReplaceRule(newRule rulefmt.Rule) error {
-	var ruleIdx int
+	ruleIdx := -1
 	for idx, rule := range f.RuleGroups[0].Rules {
 		if rule.Alert == newRule.Alert {
 			ruleIdx = idx
