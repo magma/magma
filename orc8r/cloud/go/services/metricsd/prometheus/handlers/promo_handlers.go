@@ -28,6 +28,8 @@ const (
 	queryPart      = "query"
 	queryRangePart = "query_range"
 
+	PrometheusRoot = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
+
 	QueryURL      = PrometheusRoot + obsidian.UrlSep + queryPart
 	QueryRangeURL = PrometheusRoot + obsidian.UrlSep + queryRangePart
 

@@ -42,6 +42,8 @@ func main() {
 	receiverClient := receivers.NewClient(*alertmanagerConfPath)
 	e.POST(receiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
 	e.GET(receiverPath, handlers.GetGetReceiversHandler(receiverClient))
+	e.DELETE(receiverPath, handlers.GetDeleteReceiverHandler(receiverClient, *alertmanagerURL))
+	e.PUT(receiverPath+"/:"+handlers.ReceiverNamePathParam, handlers.GetUpdateReceiverHandler(receiverClient, *alertmanagerURL))
 
 	e.POST(receiverPath+"/route", handlers.GetUpdateRouteHandler(receiverClient, *alertmanagerURL))
 	e.GET(receiverPath+"/route", handlers.GetGetRouteHandler(receiverClient))
