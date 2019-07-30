@@ -31,11 +31,10 @@ const (
 	AlertNameQueryParam = "alert_name"
 	AlertNamePathParam  = "alert_name"
 
-	PrometheusRoot = obsidian.RestRoot + obsidian.UrlSep + "networks" + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
-
 	AlertConfigURL         = PrometheusRoot + obsidian.UrlSep + alertConfigPart
 	AlertUpdateURL         = AlertConfigURL + obsidian.UrlSep + ":" + AlertNamePathParam
 	AlertReceiverConfigURL = PrometheusRoot + obsidian.UrlSep + alertReceiverPart
+	AlertReceiverUpdateURL = AlertReceiverConfigURL + obsidian.UrlSep + ":" + ReceiverNamePathParam
 )
 
 func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Context) error {
