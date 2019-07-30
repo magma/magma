@@ -94,8 +94,9 @@ func (c *MetricCache) Receive(ctx echo.Context) error {
 	// Check if new datapoints will exceed the specified limit
 	if c.limit > 0 {
 		if c.stats.currentCountDatapoints+newDatapoints > c.limit {
-			fmt.Println("Not accepting push. Would overfill cache limit")
-			return ctx.NoContent(http.StatusNotAcceptable)
+			errString := fmt.Sprintf("Not accepting push of size %d. Would overfill cache limit of %d. Current cache size: %d\n", newDatapoints, c.limit, c.stats.currentCountDatapoints)
+			glog.Error(errString)
+			return ctx.String(http.StatusNotAcceptable, errString)
 		}
 	}
 
