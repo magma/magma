@@ -39,7 +39,7 @@ func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *pr
 		return res, err
 	}
 
-	result, err := store.LoadNetworks(req.Networks, *req.Criteria)
+	result, err := store.LoadNetworks(*req.Filter, *req.Criteria)
 	if err != nil {
 		store.Rollback()
 		return res, err

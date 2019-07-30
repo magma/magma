@@ -40,7 +40,7 @@ func main() {
 	factory := storage.NewSQLConfiguratorStorageFactory(db, &storage.DefaultIDGenerator{}, sqorc.GetSqlBuilder())
 	err = factory.InitializeServiceStorage()
 	if err != nil {
-		glog.Fatalf("Failed to initialize configurator databse: %s", err)
+		glog.Fatalf("Failed to initialize configurator database: %s", err)
 	}
 
 	nbServicer, err := servicers.NewNorthboundConfiguratorServicer(factory)

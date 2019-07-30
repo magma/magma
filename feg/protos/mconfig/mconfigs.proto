@@ -27,6 +27,7 @@ message DiamClientConfig {
     string host = 9; // diameter host
     string dest_realm = 10; // server diameter realm
     string dest_host = 11; // server diameter host
+    bool   disable_dest_host = 12; // don't include dest_host AVP in diameter requests
 }
 
 message DiamServerConfig {

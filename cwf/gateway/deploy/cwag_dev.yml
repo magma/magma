@@ -21,6 +21,14 @@
     - role: cwag
 
   tasks:
+    - name: Set build environment variables
+      lineinfile:
+        dest: /etc/environment
+        state: present
+        line: "{{ item }}"
+      with_items:
+        - MAGMA_ROOT={{ magma_root }}
+      when: full_provision
     # Only run installation for docker
     - include_role:
         name: docker

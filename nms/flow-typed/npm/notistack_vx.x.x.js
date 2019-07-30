@@ -36,9 +36,16 @@ declare module 'notistack' {
     ...MutualProps,
   |};
 
-  declare type EnqueueSnackbarOptions = {|
+  declare export type Variants =
+    | 'default'
+    | 'success'
+    | 'error'
+    | 'info'
+    | 'warning';
+
+  declare export type EnqueueSnackbarOptions = {|
     key?: string | number,
-    variant?: 'default' | 'success' | 'error' | 'info',
+    variant?: Variants,
     persist?: boolean,
     children?: SnackBarKey => Node,
     ...MutualProps,

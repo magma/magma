@@ -29,6 +29,9 @@ type DiameterClientConfigs struct {
 	// dest realm
 	DestRealm string `json:"dest_realm,omitempty"`
 
+	// disable dest host
+	DisableDestHost bool `json:"disable_dest_host,omitempty"`
+
 	// host
 	// Min Length: 1
 	Host string `json:"host,omitempty"`

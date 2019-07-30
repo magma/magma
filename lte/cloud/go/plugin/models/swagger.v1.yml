@@ -1,9 +1,29 @@
 ---
 swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/lte/cloud/go/plugin/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'orc8r/cloud/go/pluginimpl/models/swagger.v1.yml'
+  temp-gen-filename: lte-swagger.yml
+  output-dir: lte/cloud/go/plugin
+  types:
+    - go-struct-name: LteNetwork
+      filename: lte_network_swaggergen.go
+    - go-struct-name: NetworkCellularConfigs
+      filename: network_cellular_configs_swaggergen.go
+    - go-struct-name: NetworkRanConfigs
+      filename: network_ran_configs_swaggergen.go
+    - go-struct-name: NetworkEpcConfigs
+      filename: network_epc_configs_swaggergen.go
+
 info:
   title: LTE Network Management
   description: LTE REST APIs
   version: 1.0.0
+
+basePath: /magma/v1
 
 tags:
   - name: Enodeb
@@ -22,12 +42,13 @@ paths:
           description: List of LTE network IDs
           schema:
             type: array
-            items: string
+            items:
+              type: string
             example:
               - lte_network1
               - lte_network2
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
       summary: Create a new LTE network
       tags:
@@ -43,7 +64,7 @@ paths:
         '201':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}:
     get:
@@ -51,20 +72,20 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: Full description of an LTE network
           schema:
             $ref: '#/definitions/lte_network'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update an entire LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: lte_network
           in: body
           description: Full desired configuration of the network
@@ -75,18 +96,18 @@ paths:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     delete:
       summary: Delete an LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/name:
     get:
@@ -94,7 +115,7 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: Name of the network
@@ -102,13 +123,13 @@ paths:
             type: string
             example: Network Name
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update the name of an LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: name
           in: body
           description: New name for the network
@@ -120,7 +141,7 @@ paths:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/cellular:
     get:
@@ -128,20 +149,20 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: Cellular configuration of the network
           schema:
             $ref: '#/definitions/network_cellular_configs'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update cellular configuration of LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: config
           in: body
           description: New cellular configuration for the network
@@ -152,7 +173,7 @@ paths:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/cellular/epc:
     get:
@@ -160,20 +181,20 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: EPC configuration of the network
           schema:
             $ref: '#/definitions/network_epc_configs'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update EPC configuration of LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: config
           in: body
           description: New EPC configuration for the network
@@ -184,7 +205,7 @@ paths:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/cellular/ran:
     get:
@@ -192,20 +213,20 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: RAN configuration of the network
           schema:
             $ref: '#/definitions/network_ran_configs'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update RAN configuration of LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: config
           in: body
           description: New RAN configuration for the network
@@ -216,7 +237,7 @@ paths:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/cellular/feg_network_id:
     get:
@@ -224,7 +245,7 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: ID of the Federation Gateway network
@@ -232,13 +253,13 @@ paths:
             type: string
             example: feg_network
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update the Federation Gateway network ID
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: feg_network_id
           in: body
           description: Desired federation gateway network ID
@@ -250,7 +271,7 @@ paths:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/dns:
     get:
@@ -258,31 +279,31 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: DNS configuration of the network
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_dns_config'
+            $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update DNS configuration of LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: config
           in: body
           description: New DNS configuration for the network
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_dns_config'
+            $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       responses:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/dns/records:
     get:
@@ -290,23 +311,23 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: Custom DNS records for the network
           schema:
             type: array
             items:
-              $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
     put:
       summary: Change all the DNS records for the LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: records
           in: body
           description: Custom DNS records for the network
@@ -314,12 +335,12 @@ paths:
           schema:
             type: array
             items:
-              $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
+              $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
       responses:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/dns/records/{domain}:
     get:
@@ -327,63 +348,63 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/dns_domain'
       responses:
         '200':
           description: DNS config record
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
+            $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
       summary: Create a DNS record for a specific domain
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/dns_domain'
         - name: record
           in: body
           description: Custom DNS record for the domain
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
-      respones:
+            $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
+      responses:
         '201':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update a DNS record for a specific domain
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/dns_domain'
         - name: record
           in: body
           description: Custom DNS record for the domain
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/dns_config_record'
-      respones:
+            $ref: './orc8r-swagger.yml#/definitions/dns_config_record'
+      responses:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     delete:
       summary: Delete the DNS record for a specific domain
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/dns_domain'
-      respones:
+      responses:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /ltenetworks/{network_id}/features:
     get:
@@ -391,31 +412,31 @@ paths:
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
           description: Feature flags of the network
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_features'
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Update feature flags for LTE network
       tags:
         - LTE Networks
       parameters:
-        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: config
           in: body
           description: New feature flags for the network
           required: true
           schema:
-            $ref: './orc8r.swagger.yml#/definitions/network_features'
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
       responses:
         '204':
           description: Success
         default:
-          $ref: './swagger-common.yml#/responses/UnexpectedError'
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 parameters:
   dns_domain:
@@ -437,17 +458,17 @@ definitions:
       - dns
     properties:
       id:
-        $ref: './swagger-common.yml#/definitions/network_id'
+        $ref: './orc8r-swagger-common.yml#/definitions/network_id'
       name:
-        $ref: './swagger-common.yml#/definitions/network_name'
+        $ref: './orc8r-swagger-common.yml#/definitions/network_name'
       description:
-        $ref: './swagger-common.yml#/definitions/network_description'
+        $ref: './orc8r-swagger-common.yml#/definitions/network_description'
       cellular:
         $ref: '#/definitions/network_cellular_configs'
       dns:
-        $ref: './orc8r.swagger.yml#/definitions/network_dns_config'
+        $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
-        $ref: './orc8r.swagger.yml#/definitions/network_features'
+        $ref: './orc8r-swagger.yml#/definitions/network_features'
 
   network_cellular_configs:
     description: Cellular configuration for a network

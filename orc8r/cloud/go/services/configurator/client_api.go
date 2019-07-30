@@ -146,7 +146,9 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]Net
 		return nil, nil, err
 	}
 	request := &protos.LoadNetworksRequest{
-		Networks: networks,
+		Filter: &storage.NetworkLoadFilter{
+			Ids: networks,
+		},
 		Criteria: &storage.NetworkLoadCriteria{
 			LoadMetadata: loadMetadata,
 			LoadConfigs:  loadConfigs,
@@ -166,6 +168,36 @@ func LoadNetworks(networks []string, loadMetadata bool, loadConfigs bool) ([]Net
 		ret[i] = retNet
 	}
 	return ret, result.NetworkIDsNotFound, nil
+}
+
+func LoadNetworksByType(typeVal string, loadMetadata bool, loadConfigs bool) ([]Network, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+	request := &protos.LoadNetworksRequest{
+		Filter: &storage.NetworkLoadFilter{
+			TypeFilter: strPtrToWrapper(&typeVal),
+		},
+		Criteria: &storage.NetworkLoadCriteria{
+			LoadMetadata: loadMetadata,
+			LoadConfigs:  loadConfigs,
+		},
+	}
+	result, err := client.LoadNetworks(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make([]Network, len(result.Networks))
+	for i, n := range result.Networks {
+		retNet, err := ret[i].fromStorageProto(n)
+		if err != nil {
+			return nil, err
+		}
+		ret[i] = retNet
+	}
+	return ret, nil
 }
 
 func LoadNetwork(networkID string, loadMetadata bool, loadConfigs bool) (Network, error) {

@@ -59,6 +59,7 @@ matrix:
 
       script:
         - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
+        - make -C ${MAGMA_ROOT}/orc8r/cloud tools
         - make -C ${MAGMA_ROOT}/orc8r/cloud precommit
 
     - language: go
