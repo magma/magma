@@ -387,7 +387,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
   if (ue_context_p->sgs_context != NULL) {
     // free the sgs context
     mme_app_ue_sgs_context_free_content(
-      ue_context_p->sgs_context, ue_context_p->imsi);
+      ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
     free_wrapper((void **) &(ue_context_p->sgs_context));
   }
 
@@ -679,9 +679,8 @@ void mme_ue_context_update_coll_keys(
       imsi,
       hashtable_rc_code2string(h_rc));
   }
-  ue_context_p->imsi = imsi;
-  ue_context_p->imsi_len = imsi_len;
-  _directoryd_report_location(ue_context_p->imsi, imsi_len);
+  _directoryd_report_location(ue_context_p->emm_context._imsi64,
+    ue_context_p->emm_context._imsi.length);
 
   h_rc = hashtable_uint64_ts_remove(
     mme_ue_context_p->tun11_ue_context_htbl,
@@ -877,7 +876,8 @@ int mme_insert_ue_context(
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
 
-      _directoryd_report_location(ue_context_p->imsi, ue_context_p->imsi_len);
+      _directoryd_report_location(ue_context_p->emm_context._imsi64,
+        ue_context_p->emm_context._imsi.length);
     }
 
     // filled S11 tun id
@@ -1041,7 +1041,8 @@ void mme_remove_ue_context(
           ue_context_p->mme_ue_s1ap_id);
     }
 
-    _directoryd_remove_location(ue_context_p->imsi, ue_context_p->imsi_len);
+    _directoryd_remove_location(ue_context_p->emm_context._imsi64,
+      ue_context_p->emm_context._imsi.length);
     mme_app_ue_context_free_content(ue_context_p);
     unlock_ue_contexts(ue_context_p);
     free_wrapper((void **) &ue_context_p);
@@ -1733,7 +1734,7 @@ void mme_ue_context_update_ue_sig_connection_state(
       OAILOG_INFO(
         LOG_MME_APP,
         "UE STATE - IDLE. IMSI = " IMSI_64_FMT "\n",
-        ue_context_p->imsi);
+        ue_context_p->emm_context._imsi64);
     }
 
   } else if (
@@ -1776,7 +1777,7 @@ void mme_ue_context_update_ue_sig_connection_state(
     OAILOG_INFO(
       LOG_MME_APP,
       "UE STATE - CONNECTED. IMSI = " IMSI_64_FMT "\n",
-      ue_context_p->imsi);
+      ue_context_p->emm_context._imsi64);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2251,7 +2252,7 @@ void mme_ue_context_update_ue_emm_state(
     OAILOG_INFO(
       LOG_MME_APP,
       "UE STATE - REGISTERED. IMSI = " IMSI_64_FMT "\n",
-      ue_context_p->imsi);
+      ue_context_p->emm_context._imsi64);
   } else if (
     (ue_context_p->mm_state == UE_REGISTERED) &&
     (new_mm_state == UE_UNREGISTERED)) {
@@ -2262,7 +2263,7 @@ void mme_ue_context_update_ue_emm_state(
     OAILOG_INFO(
       LOG_MME_APP,
       "UE STATE - UNREGISTERED. IMSI = " IMSI_64_FMT "\n",
-      ue_context_p->imsi);
+      ue_context_p->emm_context._imsi64);
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2399,7 +2400,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
             OAILOG_ERROR(
               LOG_MME_APP,
               "Failed to send S11 Suspend Notification for imsi " IMSI_64_FMT "\n",
-              ue_mm_context->imsi);
+              ue_mm_context->emm_context._imsi64);
           }
         }
       }

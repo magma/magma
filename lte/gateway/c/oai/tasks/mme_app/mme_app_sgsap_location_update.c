@@ -367,7 +367,7 @@ static int _is_combined_tau(
             LOG_MME_APP,
             "Failed to send SGS Location update accept to NAS for "
             "UE" IMSI_64_FMT "\n",
-            ue_context->imsi);
+            ue_context->emm_context._imsi64);
         }
         if ((mme_ue_context_get_ue_sgs_neaf(
            itti_nas_location_update_req->ue_id) == true)) {
@@ -378,8 +378,8 @@ static int _is_combined_tau(
            /* neaf flag is true*/
            /* send the SGSAP Ue activity indication to MSC/VLR */
            char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-           IMSI64_TO_STRING(ue_context->imsi, imsi_str,
-                ue_context->imsi_len);
+           IMSI64_TO_STRING(ue_context->emm_context._imsi64, imsi_str,
+                ue_context->emm_context._imsi.length);
            _mme_app_send_itti_sgsap_ue_activity_ind(imsi_str,
                                                     strlen(imsi_str));
            mme_ue_context_update_ue_sgs_neaf(
@@ -499,7 +499,7 @@ int mme_app_handle_nas_cs_domain_location_update_req(
     OAILOG_INFO(
       LOG_MME_APP,
       "Sending Location Update message to SGS task with IMSI" IMSI_64_FMT "\n",
-      ue_context->imsi);
+      ue_context->emm_context._imsi64);
     send_itti_sgsap_location_update_req(ue_context);
   } else if(ue_context->sgs_context->ts6_1_timer.id !=
             MME_APP_TIMER_INACTIVE_ID) {
@@ -543,8 +543,9 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
 
   //IMSI
   IMSI64_TO_STRING(
-    ue_context->imsi, sgsap_location_update_req->imsi, ue_context->imsi_len);
-  sgsap_location_update_req->imsi_length = ue_context->imsi_len;
+    ue_context->emm_context._imsi64, sgsap_location_update_req->imsi,
+    ue_context->emm_context._imsi.length);
+  sgsap_location_update_req->imsi_length = ue_context->emm_context._imsi.length;
 
   //EPS Location update type
   //If Combined attach is received, set Location Update type as IMSI_ATTACH
@@ -576,7 +577,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
 
   //IMEISV
   sgsap_location_update_req->presencemask |= SGSAP_IMEISV;
-  imeisv_t *imeisv = &ue_context->imeisv;
+  imeisv_t *imeisv = &ue_context->emm_context._imeisv;
   IMEISV_TO_STRING(imeisv, sgsap_location_update_req->imeisv, MAX_IMEISV_SIZE);
 
   //TAI - TAI List currently not available in MME APP UE Context
@@ -1062,7 +1063,7 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t *fsm_evt)
         LOG_MME_APP,
         "Failed to send SGS Location update accept to NAS for UE " IMSI_64_FMT
         "\n",
-        ue_context_p->imsi);
+        ue_context_p->emm_context._imsi64);
       rc = RETURNerror;
     }
     unlock_ue_contexts(ue_context_p);

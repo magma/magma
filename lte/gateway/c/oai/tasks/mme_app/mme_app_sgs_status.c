@@ -226,7 +226,7 @@ static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
     }
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context,
-                                        ue_context_p->imsi);
+                                        ue_context_p->emm_context._imsi64);
   }
   OAILOG_FUNC_OUT (LOG_MME_APP);
 }
@@ -286,7 +286,7 @@ static void _mme_app_handle_sgs_status_for_loc_upd_req(
   lai_t *lai = NULL;
 
   mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context,
-                                      ue_context_p->imsi);
+                                      ue_context_p->emm_context._imsi64);
   send_cs_domain_loc_updt_fail_to_nas(SGS_PROTOCOL_ERROR_UNSPECIFIED, lai,
                                       ue_context_p->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT (LOG_MME_APP);

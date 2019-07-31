@@ -116,6 +116,8 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
   ue_ctx_p = emm_context_get(&_emm_data, ue_id);
 
   if (ue_ctx_p != NULL) {
+    ue_mm_context_t *ue_mm_context_p =
+      PARENT_STRUCT(ue_ctx_p, struct ue_mm_context_s, emm_context);
     /* check if the non EPS service control is enable and combined attach*/
     if (
       ((_esm_data.conf.features & MME_API_SMS_SUPPORTED) ||
@@ -141,7 +143,7 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
           p_imeisv,
           p_mob_st_clsMark2,
           &ue_ctx_p->originating_tai,
-          &ue_ctx_p->ecgi);
+          &ue_mm_context_p->e_utran_cgi);
       } else {
           if (ue_ctx_p->is_imsi_only_detach == true) {
             OAILOG_DEBUG(

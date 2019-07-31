@@ -77,9 +77,9 @@ static void mme_app_send_sgs_eps_detach_indication(
     sizeof(itti_sgsap_eps_detach_ind_t));
 
   IMSI64_TO_STRING(
-    ue_context_p->imsi,
+    ue_context_p->emm_context._imsi64,
     SGSAP_EPS_DETACH_IND(message_p).imsi,
-    ue_context_p->imsi_len);
+    ue_context_p->emm_context._imsi.length);
   SGSAP_EPS_DETACH_IND(message_p).imsi_length =
     (uint8_t) strlen(SGSAP_IMSI_DETACH_IND(message_p).imsi);
 
@@ -253,9 +253,9 @@ void mme_app_send_sgs_imsi_detach_indication(
     0,
     sizeof(itti_sgsap_imsi_detach_ind_t));
   IMSI64_TO_STRING(
-    ue_context_p->imsi,
+    ue_context_p->emm_context._imsi64,
     SGSAP_IMSI_DETACH_IND(message_p).imsi,
-    ue_context_p->imsi_len);
+    ue_context_p->emm_context._imsi.length);
   SGSAP_IMSI_DETACH_IND(message_p).imsi_length =
     (uint8_t) strlen(SGSAP_IMSI_DETACH_IND(message_p).imsi);
   SGSAP_IMSI_DETACH_IND(message_p).noneps_detach_type = detach_type;
@@ -379,7 +379,7 @@ void mme_app_handle_sgs_imsi_detach_timer_expiry(ue_mm_context_t *ue_context_p)
       ue_context_p->sgs_context->ts9_retransmission_count);
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(
-      ue_context_p->sgs_context, ue_context_p->imsi);
+      ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
     free_wrapper((void **) &(ue_context_p->sgs_context));
     increment_counter(
       "sgs_imsi_detach_timer_expired",
@@ -673,7 +673,7 @@ int mme_app_handle_sgs_imsi_detach_ack(
     }
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(
-      ue_context_p->sgs_context, ue_context_p->imsi);
+      ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
     free_wrapper((void **) &(ue_context_p->sgs_context));
   } else {
     OAILOG_ERROR(

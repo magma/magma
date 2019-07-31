@@ -341,11 +341,6 @@ typedef struct ue_mm_context_s {
   /* Basic identifier for ue. IMSI is encoded on maximum of 15 digits of 4 bits,
    * so usage of an unsigned integer on 64 bits is necessary.
    */
-  imsi64_t imsi; // set by nas_auth_param_req_t
-  uint8_t imsi_len;
-  uint8_t member_present_mask; // bitmask, see significance of bits below
-#define UE_CTXT_MEMBER_IMEI_SV (1 << 0)
-  imeisv_t imeisv; // IMEISV received in Security mode complete
   // int                    len;
 #define IMSI_UNAUTHENTICATED (0x0)
 #define IMSI_AUTHENTICATED (0x1)
@@ -369,8 +364,6 @@ typedef struct ue_mm_context_s {
 
   /* TODO: Add TAI list */
   tai_t serving_cell_tai;
-  tai_list_t tail_list; // Current Tracking area list
-
   tai_t
     tai_last_tau; // TAI of the TA in which the last Tracking Area Update was initiated.
 

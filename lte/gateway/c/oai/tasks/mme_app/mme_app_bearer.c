@@ -258,11 +258,6 @@ int mme_app_handle_nas_pdn_connectivity_req(
    * Consider the UE authenticated
    */
   ue_context_p->imsi_auth = IMSI_AUTHENTICATED;
-  // Shruti ToDo: verify if this check is still needed after Lionel's changes
-  if (nas_pdn_connectivity_req_pP->presencemask & NAS_PRESENT_IMEI_SV) {
-    ue_context_p->member_present_mask |= UE_CTXT_MEMBER_IMEI_SV;
-    ue_context_p->imeisv = nas_pdn_connectivity_req_pP->imeisv;
-  }
   rc = mme_app_send_s11_create_session_req(
     ue_context_p, nas_pdn_connectivity_req_pP->pdn_cid);
   if (rc == RETURNok) {
@@ -376,14 +371,14 @@ void mme_app_handle_conn_est_cnf(
       if (
         (rc = mme_app_send_sgsap_paging_reject(
            ue_context_p,
-           ue_context_p->imsi,
-           ue_context_p->imsi_len,
+           ue_context_p->emm_context._imsi64,
+           ue_context_p->emm_context._imsi.length,
            SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
         OAILOG_WARNING(
           LOG_MME_APP,
           "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
           "SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER" IMSI_64_FMT "\n",
-          ue_context_p->imsi);
+          ue_context_p->emm_context._imsi64);
       }
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
@@ -1898,8 +1893,9 @@ int mme_app_paging_request_helper(
 
   // @TODO Check
   IMSI64_TO_STRING(
-    ue_context_p->imsi, (char *) paging_request->imsi, ue_context_p->imsi_len);
-  paging_request->imsi_length = ue_context_p->imsi_len;
+    ue_context_p->emm_context._imsi64, (char *) paging_request->imsi,
+    ue_context_p->emm_context._imsi.length);
+  paging_request->imsi_length = ue_context_p->emm_context._imsi.length;
   paging_request->mme_code = ue_context_p->emm_context._guti.gummei.mme_code;
   paging_request->m_tmsi = ue_context_p->emm_context._guti.m_tmsi;
   // TODO Pass enb ids based on TAIs
@@ -2007,7 +2003,7 @@ int mme_app_send_s11_suspend_notification(
   OAILOG_DEBUG(
     LOG_MME_APP,
     "Preparing to send Suspend Notification for imsi " IMSI_64_FMT "\n",
-    ue_context_pP->imsi);
+    ue_context_pP->emm_context._imsi64);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_SUSPEND_NOTIFICATION);
   AssertFatal(message_p, "itti_alloc_new_message Failed");
@@ -2019,9 +2015,9 @@ int mme_app_send_s11_suspend_notification(
   suspend_notification_p->teid = pdn_connection->s_gw_teid_s11_s4;
 
   IMSI64_TO_STRING(
-    ue_context_pP->imsi,
+    ue_context_pP->emm_context._imsi64,
     (char *) suspend_notification_p->imsi.digit,
-    ue_context_pP->imsi_len);
+    ue_context_pP->emm_context._imsi.length);
   suspend_notification_p->imsi.length =
     (uint8_t) strlen((const char *) suspend_notification_p->imsi.digit);
 
@@ -2033,7 +2029,7 @@ int mme_app_send_s11_suspend_notification(
   OAILOG_INFO(
     LOG_MME_APP,
     "Send Suspend Notification for IMSI = " IMSI_64_FMT "\n",
-    ue_context_pP->imsi);
+    ue_context_pP->emm_context._imsi64);
   rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -2068,7 +2064,7 @@ void mme_app_handle_suspend_acknowledge(
     " Rx Suspend Acknowledge with MME_S11_TEID " TEID_FMT " IMSI " IMSI_64_FMT
     " \n",
     suspend_acknowledge_pP->teid,
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
   /*
    * Updating statistics
    */
@@ -2154,14 +2150,14 @@ int mme_app_handle_nas_extended_service_req(
           if (
             (rc = mme_app_send_sgsap_paging_reject(
                ue_context_p,
-               ue_context_p->imsi,
-               ue_context_p->imsi_len,
+               ue_context_p->emm_context._imsi64,
+               ue_context_p->emm_context._imsi.length,
                SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
             OAILOG_WARNING(
               LOG_MME_APP,
               "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
               "SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER" IMSI_64_FMT "\n",
-              ue_context_p->imsi);
+              ue_context_p->emm_context._imsi64);
           }
           increment_counter(
             "sgsap_paging_reject", 1, 1, "cause", "call_rejected_by_user");
@@ -2169,7 +2165,7 @@ int mme_app_handle_nas_extended_service_req(
           OAILOG_ERROR(
             LOG_MME_APP,
             "sgs_context is null for ue" IMSI_64_FMT "\n",
-            ue_context_p->imsi);
+            ue_context_p->emm_context._imsi64);
         }
       } else if (
         nas_extended_service_req_pP->csfb_response == CSFB_ACCEPTED_BY_UE) {
@@ -2288,14 +2284,14 @@ int handle_csfb_s1ap_procedure_failure(
       if (
         (mme_app_send_sgsap_paging_reject(
           ue_context_p,
-          ue_context_p->imsi,
-          ue_context_p->imsi_len,
+          ue_context_p->emm_context._imsi64,
+          ue_context_p->emm_context._imsi.length,
           SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
         OAILOG_WARNING(
           LOG_MME_APP,
           "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
           "SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER" IMSI_64_FMT "\n",
-          ue_context_p->imsi);
+          ue_context_p->emm_context._imsi64);
       }
       if (failed_statement) {
         increment_counter(

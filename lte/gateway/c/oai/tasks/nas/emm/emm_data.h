@@ -163,7 +163,6 @@ typedef struct emm_context_s {
   additional_update_type_t additional_update_type;
   uint8_t tau_updt_type; /*TAU Update type - Normal Update, Periodic,
                                             combined TAU,combined TAU with IMSI*/
-  ecgi_t ecgi;           /* E-UTRAN Cell Global Identifier*/
 
   uint num_attach_request; /* Num attach request received               */
 
