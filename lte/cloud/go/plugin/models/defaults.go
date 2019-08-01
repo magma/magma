@@ -8,6 +8,8 @@
 
 package models
 
+import "github.com/go-openapi/swag"
+
 func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 	return &NetworkCellularConfigs{
 		Ran: &NetworkRanConfigs{
@@ -25,6 +27,10 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 			// 16 bytes of \x11
 			LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf: []byte("\x80\x00"),
+
+			RelayEnabled:             swag.Bool(false),
+			CloudSubscriberdbEnabled: swag.Bool(false),
+			DefaultRuleID:            swag.String(""),
 		},
 	}
 }
@@ -43,9 +49,11 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 			Mnc: "01",
 			Tac: 1,
 			// 16 bytes of \x11
-			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:   []byte("\x80\x00"),
-			RelayEnabled: false,
+			LteAuthOp:                []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:               []byte("\x80\x00"),
+			RelayEnabled:             swag.Bool(false),
+			CloudSubscriberdbEnabled: swag.Bool(false),
+			DefaultRuleID:            swag.String(""),
 		},
 	}
 }

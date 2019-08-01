@@ -13,6 +13,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin"
+	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
 	cellular_models "magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -21,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
@@ -28,13 +30,12 @@ import (
 func TestBuilder_Build(t *testing.T) {
 	builder := &plugin.Builder{}
 
-	trueValue := true
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: newDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
-				EnableCaching: &trueValue,
+				EnableCaching: swag.Bool(true),
 			},
 		},
 	}
@@ -68,11 +69,8 @@ func TestBuilder_Build(t *testing.T) {
 	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
-			Earfcndl:               44590,
-			SubframeAssignment:     2,
-			SpecialSubframePattern: 7,
-			Pci:                    260,
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
 			TddConfig: &mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
@@ -156,7 +154,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: newDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
@@ -180,11 +178,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
-			Earfcndl:               44590,
-			SubframeAssignment:     2,
-			SpecialSubframePattern: 7,
-			Pci:                    260,
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
 			TddConfig: &mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
@@ -246,30 +241,6 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	err := builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
-}
-
-func newDefaultTDDNetworkConfig() *cellular_models.NetworkCellularConfigs {
-	return &cellular_models.NetworkCellularConfigs{
-		Ran: &cellular_models.NetworkRanConfigs{
-			BandwidthMhz:           20,
-			Earfcndl:               44590,
-			SubframeAssignment:     2,
-			SpecialSubframePattern: 7,
-			TddConfig: &cellular_models.NetworkRanConfigsTddConfig{
-				Earfcndl:               44590,
-				SubframeAssignment:     2,
-				SpecialSubframePattern: 7,
-			},
-		},
-		Epc: &cellular_models.NetworkEpcConfigs{
-			Mcc: "001",
-			Mnc: "01",
-			Tac: 1,
-			// 16 bytes of \x11
-			LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf: []byte("\x80\x00"),
-		},
-	}
 }
 
 func newDefaultGatewayConfig() *cellular_models.GatewayCellularConfigs {

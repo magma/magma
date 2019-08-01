@@ -16,8 +16,8 @@ import (
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
+	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/cellular/obsidian/models"
-	"magma/lte/cloud/go/services/cellular/utils"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	cfgObsidian "magma/orc8r/cloud/go/services/config/obsidian"
@@ -38,30 +38,19 @@ const (
 
 // GetObsidianHandlers returns all obsidian handlers for the cellular service
 func GetObsidianHandlers() []obsidian.Handler {
-	defaultUpdateHandler := cfgObsidian.GetUpdateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{})
 	createGatewayConfigHandler := cfgObsidian.GetCreateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
 	updateGatewayConfigHandler := cfgObsidian.GetUpdateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
 
-	// override create and update migrated handler func
+	// override create and update handler func
 	createGatewayConfigHandler.HandlerFunc = createGatewayConfig
 	updateGatewayConfigHandler.HandlerFunc = updateGatewayConfig
 
 	return []obsidian.Handler{
-		cfgObsidian.GetReadNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
-		cfgObsidian.GetCreateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
+		cfgObsidian.GetReadNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models2.NetworkCellularConfigs{}),
+		cfgObsidian.GetCreateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models2.NetworkCellularConfigs{}),
+		cfgObsidian.GetUpdateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models2.NetworkCellularConfigs{}),
 		cfgObsidian.GetDeleteNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType),
-		// Patch default config update handler to set TDD/FDD fields in network config
-		{
-			Path:    defaultUpdateHandler.Path,
-			Methods: defaultUpdateHandler.Methods,
-			HandlerFunc: func(c echo.Context) error {
-				cc, err := getNetworkConfigFromRequest(c)
-				if err != nil {
-					return err
-				}
-				return defaultUpdateHandler.HandlerFunc(cc)
-			},
-		},
+
 		cfgObsidian.GetReadConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
 		cfgObsidian.GetCreateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
 		cfgObsidian.GetUpdateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
@@ -90,7 +79,7 @@ func getNetworkConfigFromRequest(c echo.Context) (echo.Context, error) {
 	if c.Request().Body == nil {
 		return nil, obsidian.HttpError(fmt.Errorf("Network config is nil"), http.StatusBadRequest)
 	}
-	cfg := &models.NetworkCellularConfigs{}
+	cfg := &models2.NetworkCellularConfigs{}
 
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
@@ -101,19 +90,6 @@ func getNetworkConfigFromRequest(c echo.Context) (echo.Context, error) {
 		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	// Config does not have a FDD/TDD sub-config set
-	if cfg.Ran.TddConfig == nil && cfg.Ran.FddConfig == nil {
-		band, err := utils.GetBand(cfg.Ran.Earfcndl)
-		if err != nil {
-			return nil, obsidian.HttpError(err, http.StatusBadRequest)
-		}
-
-		cfg, err = setAppropriateNetworkSubConfig(band, cfg)
-		if err != nil {
-			return nil, obsidian.HttpError(err, http.StatusBadRequest)
-		}
-	}
-
 	body, err = json.Marshal(cfg)
 	if err != nil {
 		return nil, obsidian.HttpError(fmt.Errorf("Error converting config to TDD/FDD format"), http.StatusBadRequest)
@@ -121,29 +97,6 @@ func getNetworkConfigFromRequest(c echo.Context) (echo.Context, error) {
 	// populate request body with the updated config
 	c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return c, nil
-}
-
-func setAppropriateNetworkSubConfig(band *utils.LTEBand, config *models.NetworkCellularConfigs) (*models.NetworkCellularConfigs, error) {
-	switch band.Mode {
-	case utils.TDDMode:
-		config.Ran.TddConfig = &models.NetworkRanConfigsTddConfig{
-			Earfcndl:               config.Ran.Earfcndl,
-			SubframeAssignment:     config.Ran.SubframeAssignment,
-			SpecialSubframePattern: config.Ran.SpecialSubframePattern,
-		}
-		return config, nil
-	case utils.FDDMode:
-		earfcndl := config.Ran.Earfcndl
-		// Use the same math as in validateNetworkRANConfig
-		earfcnul := earfcndl - band.StartEarfcnDl + band.StartEarfcnUl
-		config.Ran.FddConfig = &models.NetworkRanConfigsFddConfig{
-			Earfcndl: earfcndl,
-			Earfcnul: earfcnul,
-		}
-		return config, nil
-	default:
-		return nil, fmt.Errorf("Invalid LTE band mode supplied")
-	}
 }
 
 func createGatewayConfig(c echo.Context) error {

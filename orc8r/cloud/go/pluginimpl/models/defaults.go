@@ -8,21 +8,15 @@
 
 package models
 
+import "github.com/go-openapi/swag"
+
 func NewDefaultDNSConfig() *NetworkDNSConfig {
 	return &NetworkDNSConfig{
-		EnableCaching: bPtr(true),
-		LocalTTL:      iPtr(60),
+		EnableCaching: swag.Bool(true),
+		LocalTTL:      swag.Uint32(60),
 	}
 }
 
 func NewDefaultFeaturesConfig() *NetworkFeatures {
 	return &NetworkFeatures{Features: map[string]string{"foo": "bar"}}
-}
-
-func bPtr(b bool) *bool {
-	return &b
-}
-
-func iPtr(i int32) *int32 {
-	return &i
 }

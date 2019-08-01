@@ -31,26 +31,11 @@ const (
 
 func getNetworkHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
-		{
-			Path:        ListNetworksPath,
-			Methods:     obsidian.GET,
-			HandlerFunc: ListNetworks,
-		},
-		{
-			Path:        ListNetworksPath,
-			Methods:     obsidian.POST,
-			HandlerFunc: CreateNetwork,
-		},
-		{
-			Path:        ManageNetworkPath,
-			Methods:     obsidian.GET,
-			HandlerFunc: GetNetwork,
-		},
-		{
-			Path:        ManageNetworkPath,
-			Methods:     obsidian.DELETE,
-			HandlerFunc: DeleteNetwork,
-		},
+		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: ListNetworks},
+		{Path: ListNetworksPath, Methods: obsidian.POST, HandlerFunc: CreateNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: GetNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: UpdateNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: DeleteNetwork},
 	}
 }
 
@@ -94,6 +79,37 @@ func GetNetwork(c echo.Context) error {
 
 	ret := (&models.LteNetwork{}).FromConfiguratorNetwork(network)
 	return c.JSON(http.StatusOK, ret)
+}
+
+func UpdateNetwork(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &models.LteNetwork{}
+	err := c.Bind(payload)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	// check that this is actually an LTE network
+	network, err := configurator.LoadNetwork(nid, false, false)
+	if err == merrors.ErrNotFound {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load network to check type"), http.StatusInternalServerError)
+	}
+	if network.Type != lte.LteNetworkType {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not an LTE network", nid))
+	}
+
+	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{payload.ToUpdateCriteria()})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 func DeleteNetwork(c echo.Context) error {

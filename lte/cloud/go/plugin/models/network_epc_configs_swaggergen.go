@@ -22,7 +22,7 @@ type NetworkEpcConfigs struct {
 
 	// cloud subscriberdb enabled
 	// Required: true
-	CloudSubscriberdbEnabled bool `json:"cloud_subscriberdb_enabled"`
+	CloudSubscriberdbEnabled *bool `json:"cloud_subscriberdb_enabled"`
 
 	// default rule id
 	// Required: true
@@ -55,7 +55,7 @@ type NetworkEpcConfigs struct {
 
 	// relay enabled
 	// Required: true
-	RelayEnabled bool `json:"relay_enabled"`
+	RelayEnabled *bool `json:"relay_enabled"`
 
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
@@ -119,7 +119,7 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateCloudSubscriberdbEnabled(formats strfmt.Registry) error {
 
-	if err := validate.Required("cloud_subscriberdb_enabled", "body", bool(m.CloudSubscriberdbEnabled)); err != nil {
+	if err := validate.Required("cloud_subscriberdb_enabled", "body", m.CloudSubscriberdbEnabled); err != nil {
 		return err
 	}
 
@@ -230,7 +230,7 @@ func (m *NetworkEpcConfigs) validateNetworkServices(formats strfmt.Registry) err
 
 func (m *NetworkEpcConfigs) validateRelayEnabled(formats strfmt.Registry) error {
 
-	if err := validate.Required("relay_enabled", "body", bool(m.RelayEnabled)); err != nil {
+	if err := validate.Required("relay_enabled", "body", m.RelayEnabled); err != nil {
 		return err
 	}
 
