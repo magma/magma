@@ -48,7 +48,7 @@ func getNetworkHandlers() []obsidian.Handler {
 		},
 		{
 			Path:        ManageNetworkPath,
-			Methods:     obsidian.GET,
+			Methods:     obsidian.DELETE,
 			HandlerFunc: DeleteNetwork,
 		},
 	}

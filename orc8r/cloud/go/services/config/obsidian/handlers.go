@@ -11,13 +11,10 @@ package obsidian
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"reflect"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/config"
 
 	"github.com/labstack/echo"
 )
@@ -29,12 +26,6 @@ type ConvertibleUserModel interface {
 	serde.BinaryConvertible
 
 	ValidateModel() error
-
-	// DEPRECATED
-	ToServiceModel() (interface{}, error)
-
-	// DEPRECATED
-	FromServiceModel(serviceModel interface{}) error
 }
 
 type ConfigType int
@@ -49,22 +40,6 @@ const (
 	// its config is stored inside the entity.
 	Entity ConfigType = 3
 )
-
-// instantiateNewConvertibleUserModel creates a new, empty instance of the
-// provided userModel struct. The parameter is expected to be a pointer to a
-// struct which implements ConvertibleUserModel.
-//
-// We need this because the userModel parameters in the functions below are
-// all only instantiated once upon creation of a Handler object, so they
-// will be re-used across obsidian calls unless we reflectively instantiate a
-// zeroed-out copy during each call.
-//
-// If you refactor any of the handler factory functions below, make sure that
-// this function is in each handler's call chain.
-func instantiateNewConvertibleUserModel(userModel ConvertibleUserModel) ConvertibleUserModel {
-	userModelType := reflect.TypeOf(userModel).Elem()
-	return reflect.New(userModelType).Interface().(ConvertibleUserModel)
-}
 
 // ConfigKeyGetter is a function which returns a config key from an
 // echo.Context.
@@ -137,27 +112,9 @@ func GetReadAllKeysConfigHandler(
 			if nerr != nil {
 				return nerr
 			}
-			return handleGetAllKeys(c, networkID, configType)
-		},
-		MigratedHandlerFunc: func(c echo.Context) error {
-			networkID, nerr := obsidian.GetNetworkId(c)
-			if nerr != nil {
-				return nerr
-			}
 			return configuratorGetAllKeys(c, networkID, configType)
 		},
 	}
-}
-
-func handleGetAllKeys(c echo.Context, networkID string, configType string) error {
-	keysArr, err := config.ListKeysForType(networkID, configType)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	if keysArr == nil {
-		return obsidian.HttpError(errors.New("Keys not found"), http.StatusNotFound)
-	}
-	return c.JSON(http.StatusOK, keysArr)
 }
 
 // GetReadConfigHandler returns an obsidian handler for getting a config
@@ -178,18 +135,6 @@ func GetReadConfigHandler(
 		Path:    path,
 		Methods: obsidian.GET,
 		HandlerFunc: func(c echo.Context) error {
-			networkId, nerr := obsidian.GetNetworkId(c)
-			if nerr != nil {
-				return nerr
-			}
-
-			configKey, cerr := configKeyGetter(c)
-			if cerr != nil {
-				return cerr
-			}
-			return handleGetConfig(c, networkId, configType, configKey, userModel)
-		},
-		MigratedHandlerFunc: func(c echo.Context) error {
 			networkId, nerr := obsidian.GetNetworkId(c)
 			if nerr != nil {
 				return nerr
@@ -225,22 +170,6 @@ func GetReadGatewayConfigHandler(path string, configType string, userModel Conve
 	return GetReadConfigHandler(path, configType, obsidian.GetLogicalGwId, userModel)
 }
 
-func handleGetConfig(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
-	iConfig, err := config.GetConfig(networkId, configType, configKey)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	if iConfig == nil {
-		return obsidian.HttpError(errors.New("Config not found"), http.StatusNotFound)
-	}
-
-	userModel = instantiateNewConvertibleUserModel(userModel)
-	if err := userModel.FromServiceModel(iConfig); err != nil {
-		return obsidian.HttpError(fmt.Errorf("Could not fill user config model from config service: %s", err), http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, userModel)
-}
-
 // GetCreateConfigHandler returns an obsidian handler for creating a config
 // using the config service. The returned Handler will have Methods set to POST.
 //
@@ -259,18 +188,6 @@ func GetCreateConfigHandler(
 		Path:    path,
 		Methods: obsidian.POST,
 		HandlerFunc: func(c echo.Context) error {
-			networkId, err := obsidian.GetNetworkId(c)
-			if err != nil {
-				return err
-			}
-
-			configKey, err := configKeyGetter(c)
-			if err != nil {
-				return err
-			}
-			return handleCreateConfig(c, networkId, configType, configKey, userModel)
-		},
-		MigratedHandlerFunc: func(c echo.Context) error {
 			networkId, nerr := obsidian.GetNetworkId(c)
 			if nerr != nil {
 				return nerr
@@ -295,7 +212,6 @@ func GetCreateConfigHandler(
 				return obsidian.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
-		MultiplexAfterMigration: true,
 	}
 }
 
@@ -311,25 +227,6 @@ func GetCreateNetworkConfigHandler(path string, configType string, userModel Con
 // See GetCreateConfigHandler for additional documentation.
 func GetCreateGatewayConfigHandler(path string, configType string, userModel ConvertibleUserModel) obsidian.Handler {
 	return GetCreateConfigHandler(path, configType, obsidian.GetLogicalGwId, userModel)
-}
-
-func handleCreateConfig(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
-	userModel = instantiateNewConvertibleUserModel(userModel)
-	if err := c.Bind(userModel); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := userModel.ValidateModel(); err != nil {
-		return obsidian.HttpError(fmt.Errorf("Invalid config: %s", err), http.StatusBadRequest)
-	}
-
-	iConfig, err := userModel.ToServiceModel()
-	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("Error converting config model: %s", err), http.StatusBadRequest)
-	}
-	if err := config.CreateConfig(networkId, configType, configKey, iConfig); err != nil {
-		return obsidian.HttpError(fmt.Errorf("Error creating config: %s", err), http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusCreated, configKey)
 }
 
 // GetUpdateConfigHandler returns an obsidian handler for updating a config
@@ -355,18 +252,6 @@ func GetUpdateConfigHandler(
 				return err
 			}
 
-			configKey, err := configKeyGetter(c)
-			if err != nil {
-				return err
-			}
-			return handleConfigUpdate(c, networkId, configType, configKey, userModel)
-		},
-		MigratedHandlerFunc: func(c echo.Context) error {
-			networkId, err := obsidian.GetNetworkId(c)
-			if err != nil {
-				return err
-			}
-
 			switch getConfigTypeForConfigurator(configType) {
 			case Network:
 				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
@@ -386,7 +271,6 @@ func GetUpdateConfigHandler(
 				return obsidian.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
-		MultiplexAfterMigration: true,
 	}
 }
 
@@ -404,25 +288,6 @@ func GetUpdateGatewayConfigHandler(path string, configType string, userModel Con
 	return GetUpdateConfigHandler(path, configType, obsidian.GetLogicalGwId, userModel)
 }
 
-func handleConfigUpdate(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
-	userModel = instantiateNewConvertibleUserModel(userModel)
-	if err := c.Bind(userModel); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := userModel.ValidateModel(); err != nil {
-		return obsidian.HttpError(fmt.Errorf("Invalid config: %s", err), http.StatusBadRequest)
-	}
-
-	iConfig, err := userModel.ToServiceModel()
-	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("Error converting config model: %s", err), http.StatusBadRequest)
-	}
-	if err := config.UpdateConfig(networkId, configType, configKey, iConfig); err != nil {
-		return obsidian.HttpError(fmt.Errorf("Error updating config: %s", err), http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusOK)
-}
-
 // GetDeleteConfigHandler returns an obsidian handler for deleting a config
 // from the config service. The returned Handler will have Methods set to DELETE.
 //
@@ -434,18 +299,6 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 		Path:    path,
 		Methods: obsidian.DELETE,
 		HandlerFunc: func(c echo.Context) error {
-			networkId, err := obsidian.GetNetworkId(c)
-			if err != nil {
-				return err
-			}
-
-			configKey, err := configKeyGetter(c)
-			if err != nil {
-				return err
-			}
-			return handleConfigDelete(c, networkId, configType, configKey)
-		},
-		MigratedHandlerFunc: func(c echo.Context) error {
 			networkId, err := obsidian.GetNetworkId(c)
 			if err != nil {
 				return err
@@ -470,7 +323,6 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 				return obsidian.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
 		},
-		MultiplexAfterMigration: true,
 	}
 }
 
@@ -486,11 +338,4 @@ func GetDeleteNetworkConfigHandler(path string, configType string) obsidian.Hand
 // See GetDeleteConfigHandler for additional documentation.
 func GetDeleteGatewayConfigHandler(path string, configType string) obsidian.Handler {
 	return GetDeleteConfigHandler(path, configType, obsidian.GetLogicalGwId)
-}
-
-func handleConfigDelete(c echo.Context, networkId string, configType string, configKey string) error {
-	if err := config.DeleteConfig(networkId, configType, configKey); err != nil {
-		return obsidian.HttpError(fmt.Errorf("Error deleting config: %s", err), http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusOK)
 }

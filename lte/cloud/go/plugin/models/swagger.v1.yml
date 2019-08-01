@@ -503,6 +503,7 @@ definitions:
           - 10
           - 15
           - 20
+        x-nullable: false
       fdd_config:
         type: object
         x-go-custom-tag: 'magma_alt_name:"NetworkRANConfigFDDConfig"'
@@ -514,12 +515,14 @@ definitions:
             type: integer
             format: uint32
             example: 0
+            x-nullable: false
           earfcnul:
             type: integer
             format: uint32
             minimum: 0
             exclusiveMinimum: true
             example: 18000
+            x-nullable: false
       tdd_config:
         type: object
         x-go-custom-tag: 'magma_alt_name:"NetworkRANConfigTDDConfig"'
@@ -532,16 +535,19 @@ definitions:
             type: integer
             format: uint32
             example: 44590
+            x-nullable: false
           subframe_assignment:
             type: integer
             format: uint32
             example: 2
             maximum: 6
+            x-nullable: false
           special_subframe_pattern:
             type: integer
             format: uint32
             example: 7
             maximum: 9
+            x-nullable: false
 
   network_epc_configs:
     description: EPC (evolved packet core) cellular configuration for a network
@@ -561,25 +567,30 @@ definitions:
         type: string
         pattern: '^(\d{3})$'
         example: '001'
+        x-nullable: false
       mnc:
         type: string
         pattern: '^(\d{2,3})$'
         example: '01'
+        x-nullable: false
       tac:
         type: integer
         format: uint32
         minimum: 1
         maximum: 65535
         example: 1
+        x-nullable: false
       lte_auth_op:
         type: string
         format: byte
         example: EREREREREREREREREREREQ==
         minLength: 15
         maxLength: 16
+        x-nullable: false
       lte_auth_amf:
         type: string
         format: byte
+        x-nullable: false
         example: gAA=
       sub_profiles:
         type: object
@@ -594,22 +605,26 @@ definitions:
               format: uint64
               minimum: 0
               exclusiveMinimum: true
+              x-nullable: false
               example: 100000000
             max_dl_bit_rate:
               type: integer
               format: uint64
               minimum: 0
               exclusiveMinimum: true
+              x-nullable: false
               example: 20000000
       default_rule_id:
         type: string
         example: 'default_rule_1'
       relay_enabled:
         type: boolean
+        x-nullable: false
         example: false
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
+        x-nullable: false
       network_services:
         description: Configuration for network services. Services will be instantiated in the listed order.
         type: array

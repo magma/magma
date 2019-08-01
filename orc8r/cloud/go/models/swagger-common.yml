@@ -101,6 +101,7 @@ definitions:
   gateway_id:
     type: string
     minLength: 1
+    x-nullable: false
     example: gw1
   error:
     type: object

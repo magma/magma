@@ -22,7 +22,7 @@ type NetworkEpcConfigs struct {
 
 	// cloud subscriberdb enabled
 	// Required: true
-	CloudSubscriberdbEnabled *bool `json:"cloud_subscriberdb_enabled"`
+	CloudSubscriberdbEnabled bool `json:"cloud_subscriberdb_enabled"`
 
 	// default rule id
 	// Required: true
@@ -31,31 +31,31 @@ type NetworkEpcConfigs struct {
 	// lte auth amf
 	// Required: true
 	// Format: byte
-	LteAuthAmf *strfmt.Base64 `json:"lte_auth_amf"`
+	LteAuthAmf strfmt.Base64 `json:"lte_auth_amf"`
 
 	// lte auth op
 	// Required: true
 	// Max Length: 16
 	// Min Length: 15
 	// Format: byte
-	LteAuthOp *strfmt.Base64 `json:"lte_auth_op"`
+	LteAuthOp strfmt.Base64 `json:"lte_auth_op"`
 
 	// mcc
 	// Required: true
 	// Pattern: ^(\d{3})$
-	Mcc *string `json:"mcc"`
+	Mcc string `json:"mcc"`
 
 	// mnc
 	// Required: true
 	// Pattern: ^(\d{2,3})$
-	Mnc *string `json:"mnc"`
+	Mnc string `json:"mnc"`
 
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
 
 	// relay enabled
 	// Required: true
-	RelayEnabled *bool `json:"relay_enabled"`
+	RelayEnabled bool `json:"relay_enabled"`
 
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
@@ -64,7 +64,7 @@ type NetworkEpcConfigs struct {
 	// Required: true
 	// Maximum: 65535
 	// Minimum: 1
-	Tac *uint32 `json:"tac"`
+	Tac uint32 `json:"tac"`
 }
 
 // Validate validates this network epc configs
@@ -119,7 +119,7 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateCloudSubscriberdbEnabled(formats strfmt.Registry) error {
 
-	if err := validate.Required("cloud_subscriberdb_enabled", "body", m.CloudSubscriberdbEnabled); err != nil {
+	if err := validate.Required("cloud_subscriberdb_enabled", "body", bool(m.CloudSubscriberdbEnabled)); err != nil {
 		return err
 	}
 
@@ -137,7 +137,7 @@ func (m *NetworkEpcConfigs) validateDefaultRuleID(formats strfmt.Registry) error
 
 func (m *NetworkEpcConfigs) validateLteAuthAmf(formats strfmt.Registry) error {
 
-	if err := validate.Required("lte_auth_amf", "body", m.LteAuthAmf); err != nil {
+	if err := validate.Required("lte_auth_amf", "body", strfmt.Base64(m.LteAuthAmf)); err != nil {
 		return err
 	}
 
@@ -148,15 +148,15 @@ func (m *NetworkEpcConfigs) validateLteAuthAmf(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateLteAuthOp(formats strfmt.Registry) error {
 
-	if err := validate.Required("lte_auth_op", "body", m.LteAuthOp); err != nil {
+	if err := validate.Required("lte_auth_op", "body", strfmt.Base64(m.LteAuthOp)); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("lte_auth_op", "body", string(*m.LteAuthOp), 15); err != nil {
+	if err := validate.MinLength("lte_auth_op", "body", string(m.LteAuthOp), 15); err != nil {
 		return err
 	}
 
-	if err := validate.MaxLength("lte_auth_op", "body", string(*m.LteAuthOp), 16); err != nil {
+	if err := validate.MaxLength("lte_auth_op", "body", string(m.LteAuthOp), 16); err != nil {
 		return err
 	}
 
@@ -167,11 +167,11 @@ func (m *NetworkEpcConfigs) validateLteAuthOp(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateMcc(formats strfmt.Registry) error {
 
-	if err := validate.Required("mcc", "body", m.Mcc); err != nil {
+	if err := validate.RequiredString("mcc", "body", string(m.Mcc)); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("mcc", "body", string(*m.Mcc), `^(\d{3})$`); err != nil {
+	if err := validate.Pattern("mcc", "body", string(m.Mcc), `^(\d{3})$`); err != nil {
 		return err
 	}
 
@@ -180,11 +180,11 @@ func (m *NetworkEpcConfigs) validateMcc(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateMnc(formats strfmt.Registry) error {
 
-	if err := validate.Required("mnc", "body", m.Mnc); err != nil {
+	if err := validate.RequiredString("mnc", "body", string(m.Mnc)); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("mnc", "body", string(*m.Mnc), `^(\d{2,3})$`); err != nil {
+	if err := validate.Pattern("mnc", "body", string(m.Mnc), `^(\d{2,3})$`); err != nil {
 		return err
 	}
 
@@ -230,7 +230,7 @@ func (m *NetworkEpcConfigs) validateNetworkServices(formats strfmt.Registry) err
 
 func (m *NetworkEpcConfigs) validateRelayEnabled(formats strfmt.Registry) error {
 
-	if err := validate.Required("relay_enabled", "body", m.RelayEnabled); err != nil {
+	if err := validate.Required("relay_enabled", "body", bool(m.RelayEnabled)); err != nil {
 		return err
 	}
 
@@ -261,15 +261,15 @@ func (m *NetworkEpcConfigs) validateSubProfiles(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateTac(formats strfmt.Registry) error {
 
-	if err := validate.Required("tac", "body", m.Tac); err != nil {
+	if err := validate.Required("tac", "body", uint32(m.Tac)); err != nil {
 		return err
 	}
 
-	if err := validate.MinimumInt("tac", "body", int64(*m.Tac), 1, false); err != nil {
+	if err := validate.MinimumInt("tac", "body", int64(m.Tac), 1, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("tac", "body", int64(*m.Tac), 65535, false); err != nil {
+	if err := validate.MaximumInt("tac", "body", int64(m.Tac), 65535, false); err != nil {
 		return err
 	}
 
@@ -301,12 +301,12 @@ type NetworkEpcConfigsSubProfilesAnon struct {
 	// max dl bit rate
 	// Required: true
 	// Minimum: > 0
-	MaxDlBitRate *uint64 `json:"max_dl_bit_rate"`
+	MaxDlBitRate uint64 `json:"max_dl_bit_rate"`
 
 	// max ul bit rate
 	// Required: true
 	// Minimum: > 0
-	MaxUlBitRate *uint64 `json:"max_ul_bit_rate"`
+	MaxUlBitRate uint64 `json:"max_ul_bit_rate"`
 }
 
 // Validate validates this network epc configs sub profiles anon
@@ -329,11 +329,11 @@ func (m *NetworkEpcConfigsSubProfilesAnon) Validate(formats strfmt.Registry) err
 
 func (m *NetworkEpcConfigsSubProfilesAnon) validateMaxDlBitRate(formats strfmt.Registry) error {
 
-	if err := validate.Required("max_dl_bit_rate", "body", m.MaxDlBitRate); err != nil {
+	if err := validate.Required("max_dl_bit_rate", "body", uint64(m.MaxDlBitRate)); err != nil {
 		return err
 	}
 
-	if err := validate.MinimumInt("max_dl_bit_rate", "body", int64(*m.MaxDlBitRate), 0, true); err != nil {
+	if err := validate.MinimumInt("max_dl_bit_rate", "body", int64(m.MaxDlBitRate), 0, true); err != nil {
 		return err
 	}
 
@@ -342,11 +342,11 @@ func (m *NetworkEpcConfigsSubProfilesAnon) validateMaxDlBitRate(formats strfmt.R
 
 func (m *NetworkEpcConfigsSubProfilesAnon) validateMaxUlBitRate(formats strfmt.Registry) error {
 
-	if err := validate.Required("max_ul_bit_rate", "body", m.MaxUlBitRate); err != nil {
+	if err := validate.Required("max_ul_bit_rate", "body", uint64(m.MaxUlBitRate)); err != nil {
 		return err
 	}
 
-	if err := validate.MinimumInt("max_ul_bit_rate", "body", int64(*m.MaxUlBitRate), 0, true); err != nil {
+	if err := validate.MinimumInt("max_ul_bit_rate", "body", int64(m.MaxUlBitRate), 0, true); err != nil {
 		return err
 	}
 
