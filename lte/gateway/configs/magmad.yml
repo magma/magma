@@ -104,3 +104,17 @@ metricsd:
     - magmad
     - enodebd
     - pipelined
+
+generic_command_config:
+  module: magma.magmad.generic_command.shell_command_executor
+  class: ShellCommandExecutor
+  shell_commands:
+    - name: bash
+      command: "bash {}"
+      allow_params: True
+    - name: fab
+      command: "fab {}"
+      allow_params: True
+    - name: echo
+      command: "echo {}"
+      allow_params: True
