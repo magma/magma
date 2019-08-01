@@ -110,7 +110,7 @@ func getNetworkConfigFromRequest(c echo.Context) (echo.Context, error) {
 
 	// Config does not have a FDD/TDD sub-config set
 	if cfg.Ran.TddConfig == nil && cfg.Ran.FddConfig == nil {
-		band, err := utils.GetBand(int32(cfg.Ran.Earfcndl))
+		band, err := utils.GetBand(cfg.Ran.Earfcndl)
 		if err != nil {
 			return nil, obsidian.HttpError(err, http.StatusBadRequest)
 		}

@@ -27,6 +27,7 @@ import (
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory/mocks"
+	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test_utils "magma/orc8r/cloud/go/services/state/test_utils"
 
@@ -109,6 +110,7 @@ func TestGetViewsForNetwork_Full(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
+	magmad_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 
 	testURLRoot := fmt.Sprintf(

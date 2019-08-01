@@ -517,6 +517,8 @@ definitions:
           earfcnul:
             type: integer
             format: uint32
+            minimum: 0
+            exclusiveMinimum: true
             example: 18000
       tdd_config:
         type: object
@@ -566,12 +568,15 @@ definitions:
       tac:
         type: integer
         format: uint32
+        minimum: 1
         maximum: 65535
         example: 1
       lte_auth_op:
         type: string
         format: byte
         example: EREREREREREREREREREREQ==
+        minLength: 15
+        maxLength: 16
       lte_auth_amf:
         type: string
         format: byte
@@ -580,14 +585,21 @@ definitions:
         type: object
         additionalProperties:
           type: object
+          required:
+            - max_ul_bit_rate
+            - max_dl_bit_rate
           properties:
             max_ul_bit_rate:
               type: integer
               format: uint64
+              minimum: 0
+              exclusiveMinimum: true
               example: 100000000
             max_dl_bit_rate:
               type: integer
               format: uint64
+              minimum: 0
+              exclusiveMinimum: true
               example: 20000000
       default_rule_id:
         type: string
