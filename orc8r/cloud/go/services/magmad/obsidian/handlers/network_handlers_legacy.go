@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"magma/orc8r/cloud/go/obsidian"
-	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
@@ -54,7 +53,7 @@ func registerNetworkHandler(c echo.Context) error {
 
 	var networkId string
 	requestedId := c.QueryParam("requested_id")
-	err = configuratorh.VerifyNetworkIDFormat(requestedId)
+	err = VerifyNetworkIDFormat(requestedId)
 	if err != nil {
 		return err
 	}
