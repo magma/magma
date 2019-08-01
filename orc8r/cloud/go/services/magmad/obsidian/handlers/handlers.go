@@ -27,9 +27,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageNetwork, Methods: obsidian.DELETE, HandlerFunc: deleteNetworkHandler, MigratedHandlerFunc: deleteNetwork, MultiplexAfterMigration: true},
 
 		// Gateway
-		{Path: RegisterAG, Methods: obsidian.GET,
-			HandlerFunc:         getListGatewaysHandler(&view_factory.FullGatewayViewFactoryLegacyImpl{}),
-			MigratedHandlerFunc: getListGateways(&view_factory.FullGatewayViewFactoryImpl{})},
+		{Path: RegisterAG, Methods: obsidian.GET, HandlerFunc: getListGateways(&view_factory.FullGatewayViewFactoryImpl{})},
 		{Path: RegisterAG, Methods: obsidian.POST, HandlerFunc: createGatewayHandler, MigratedHandlerFunc: createGateway, MultiplexAfterMigration: true},
 		{Path: ManageAG, Methods: obsidian.GET, HandlerFunc: getGatewayHandler, MigratedHandlerFunc: getGateway},
 		{Path: ManageAG, Methods: obsidian.PUT, HandlerFunc: updateGatewayHandler, MigratedHandlerFunc: updateGateway, MultiplexAfterMigration: true},

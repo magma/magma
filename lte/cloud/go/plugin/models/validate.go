@@ -62,7 +62,7 @@ func (m *NetworkRanConfigs) ValidateModel() error {
 		if band.Mode != utils.TDDMode {
 			return errors.Errorf("band %d not a FDD band", band.ID)
 		}
-		if !band.EarfcnULInRange(*m.FddConfig.Earfcnul) {
+		if !band.EarfcnULInRange(m.FddConfig.Earfcnul) {
 			return errors.Errorf("EARFCNUL=%d invalid for band %d (%d, %d)", m.FddConfig.Earfcnul, band.ID, band.StartEarfcnUl, band.StartEarfcnDl)
 		}
 	}
@@ -72,10 +72,10 @@ func (m *NetworkRanConfigs) ValidateModel() error {
 
 func (m *NetworkRanConfigs) getEarfcnDl() uint32 {
 	if m.TddConfig != nil {
-		return *m.TddConfig.Earfcndl
+		return m.TddConfig.Earfcndl
 	}
 	if m.FddConfig != nil {
-		return *m.FddConfig.Earfcndl
+		return m.FddConfig.Earfcndl
 	}
 	// This should truly be unreachable
 	return 0

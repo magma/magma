@@ -65,7 +65,7 @@ func TestConfiguratorCreateEntityConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	handler := obsidian.GetCreateConfigHandler("google.com", "cfg_entity", mockKeyGetter, &configType{})
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 	actual, err := configurator.LoadEntity("network1", "cfg_entity", "key", configurator.EntityLoadCriteria{LoadConfig: true})
 	assert.NoError(t, err)
@@ -80,7 +80,7 @@ func TestConfiguratorCreateEntityConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler = obsidian.GetCreateConfigHandler("google.com", "err_gateway", mockKeyGetter, &errValidateType{})
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Equal(t, "Invalid config: hello", err.(*echo.HTTPError).Message)
@@ -112,11 +112,11 @@ func TestConfiguratorDeleteEntityConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler := obsidian.GetDeleteConfigHandler("google.com", "cfg_entity", mockKeyGetter)
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	// Double delete - should be no error
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
@@ -150,7 +150,7 @@ func testEntityUpdate(t *testing.T, succConfigType string, errConfigType string)
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 	assert.NoError(t, err)
 	actual, err := configurator.LoadEntity("network1", succConfigType, "key", configurator.EntityLoadCriteria{LoadConfig: true})
@@ -166,7 +166,7 @@ func testEntityUpdate(t *testing.T, succConfigType string, errConfigType string)
 	c.SetParamValues("network1")
 
 	handler = obsidian.GetUpdateConfigHandler("google.com", errConfigType, mockKeyGetter, &errValidateType{})
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Equal(t, "Invalid config: hello", err.(*echo.HTTPError).Message)
@@ -185,7 +185,7 @@ func testGetEntityConfig(t *testing.T, succConfigType string) {
 	handler := obsidian.GetReadConfigHandler("google.com", succConfigType, mockKeyGetter, &configType{})
 
 	// 404
-	err := handler.MigratedHandlerFunc(c)
+	err := handler.HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
@@ -197,7 +197,7 @@ func testGetEntityConfig(t *testing.T, succConfigType string) {
 		Config: expected,
 	})
 	assert.NoError(t, err)
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	actual := &configType{}

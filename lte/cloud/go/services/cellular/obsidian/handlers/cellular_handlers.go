@@ -43,8 +43,8 @@ func GetObsidianHandlers() []obsidian.Handler {
 	updateGatewayConfigHandler := cfgObsidian.GetUpdateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
 
 	// override create and update migrated handler func
-	createGatewayConfigHandler.MigratedHandlerFunc = createGatewayConfig
-	updateGatewayConfigHandler.MigratedHandlerFunc = updateGatewayConfig
+	createGatewayConfigHandler.HandlerFunc = createGatewayConfig
+	updateGatewayConfigHandler.HandlerFunc = updateGatewayConfig
 
 	return []obsidian.Handler{
 		cfgObsidian.GetReadNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
@@ -60,13 +60,6 @@ func GetObsidianHandlers() []obsidian.Handler {
 					return err
 				}
 				return defaultUpdateHandler.HandlerFunc(cc)
-			},
-			MigratedHandlerFunc: func(c echo.Context) error {
-				cc, err := getNetworkConfigFromRequest(c)
-				if err != nil {
-					return err
-				}
-				return defaultUpdateHandler.MigratedHandlerFunc(cc)
 			},
 		},
 		cfgObsidian.GetReadConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
@@ -142,7 +135,7 @@ func setAppropriateNetworkSubConfig(band *utils.LTEBand, config *models.NetworkC
 	case utils.FDDMode:
 		earfcndl := config.Ran.Earfcndl
 		// Use the same math as in validateNetworkRANConfig
-		earfcnul := earfcndl - uint32(band.StartEarfcnDl) + uint32(band.StartEarfcnUl)
+		earfcnul := earfcndl - band.StartEarfcnDl + band.StartEarfcnUl
 		config.Ran.FddConfig = &models.NetworkRanConfigsFddConfig{
 			Earfcndl: earfcndl,
 			Earfcnul: earfcnul,
