@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"magma/feg/cloud/go/protos"
@@ -91,11 +93,16 @@ type replyFunc func(*HomeSubscriberServer, *diam.Message) (*diam.Message, error)
 // back which is constructed using a replyFunc.
 func (srv *HomeSubscriberServer) handleMessage(reply replyFunc) diam.HandlerFunc {
 	return func(conn diam.Conn, msg *diam.Message) {
+		// Add client connection to connection manager in case of HSS initiated message
+		err := srv.addClientConnection(conn, msg)
+		// If the connection cannot be added, the HSS should still respond properly
+		if err != nil {
+			glog.Error(err)
+		}
 		if msg == nil {
 			glog.Error("Received nil message")
 			return
 		}
-
 		glog.V(2).Infof("Message received in hss service: %s", msg.String())
 
 		answer, err := reply(srv, msg)
@@ -110,6 +117,33 @@ func (srv *HomeSubscriberServer) handleMessage(reply replyFunc) diam.HandlerFunc
 	}
 }
 
+func (srv *HomeSubscriberServer) addClientConnection(conn diam.Conn, msg *diam.Message) error {
+	// Since connection AVPs are from the client's location
+	// the details need to be reversed
+	destHost, err := extractDiameterIdentity(msg, avp.OriginHost)
+	if err != nil {
+		return fmt.Errorf("Error while extracting OriginHost AVP: %s", err.Error())
+	}
+	destRealm, err := extractDiameterIdentity(msg, avp.OriginRealm)
+	if err != nil {
+		return fmt.Errorf("Error while extracting OriginRealm AVP: %s", err.Error())
+	}
+	clientConfig := &diameter.DiameterServerConfig{
+		DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+			Addr:      conn.RemoteAddr().String(),
+			LocalAddr: conn.LocalAddr().String(),
+			Protocol:  srv.Config.GetServer().GetProtocol(),
+		},
+		DestHost:  destHost,
+		DestRealm: destRealm,
+	}
+	// Add client host -> IP address mapping
+	srv.clientMapping[destHost] = conn.RemoteAddr().String()
+
+	// Add client connection to the HSS's connection manager
+	return srv.connMan.AddExistingConnection(conn, srv.smClient, clientConfig)
+}
+
 // getRedirectMessage returns a response message which can be used to redirect
 // the user to a different 3GPP AAA server.
 func getRedirectMessage(msg *diam.Message, sessionID datatype.UTF8String, serverCfg *mconfig.DiamServerConfig, aaaServer datatype.DiameterIdentity) *diam.Message {
@@ -121,4 +155,24 @@ func getRedirectMessage(msg *diam.Message, sessionID datatype.UTF8String, server
 
 func isRATTypeAllowed(ratType uint32) bool {
 	return ratType == swx.RadioAccessTechnologyType_WLAN || ratType == s6a.RadioAccessTechnologyType_EUTRAN
+}
+
+func extractDiameterIdentity(msg *diam.Message, avp int) (string, error) {
+	identityAVP, err := msg.FindAVP(avp, 0)
+	if err != nil {
+		return "", err
+	}
+	identity, ok := identityAVP.Data.(datatype.DiameterIdentity)
+	if !ok {
+		return "", fmt.Errorf("could not convert avp: %d to DiameterIdentity", avp)
+	}
+	identityPieces := strings.Split(identity.String(), "{")
+	if len(identityPieces) != 2 {
+		return "", fmt.Errorf("could not parse diameter identity")
+	}
+	identityPieces = strings.Split(identityPieces[1], "}")
+	if len(identityPieces) != 2 {
+		return "", fmt.Errorf("could not parse diameter identity")
+	}
+	return identityPieces[0], nil
 }
