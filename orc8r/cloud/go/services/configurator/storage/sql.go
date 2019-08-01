@@ -12,13 +12,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"sort"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/golang/glog"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -128,10 +128,11 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 	// Adding a type column if it doesn't exist already. This will ensure network
 	// tables that are already created will also have the type column.
 	// TODO Remove after 1-2 months to ensure service isn't disrupted
-	_, gerr := tx.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s text", networksTable, nwTypeCol))
-	if gerr != nil {
-		// Only logging error here because this fails for sqlite3 engine
-		glog.Errorf("Failed to add 'type' field to networks table: %v", err)
+	_, err = tx.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s text", networksTable, nwTypeCol))
+	// special case sqlite3 because ADD COLUMN IF NOT EXISTS is not supported
+	// and we only run sqlite3 for unit tests
+	if err != nil && os.Getenv("SQL_DRIVER") != "sqlite3" {
+		err = errors.Wrap(err, "failed to add 'type' field to networks table")
 	}
 
 	_, err = fact.builder.CreateIndex("type_idx").

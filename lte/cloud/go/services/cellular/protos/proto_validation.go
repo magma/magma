@@ -83,7 +83,7 @@ func validateNetworkRANConfig(config *NetworkRANConfig) error {
 	}
 
 	earfcnDl := getEarfcnDl(config)
-	band, err := utils.GetBand(earfcnDl)
+	band, err := utils.GetBand(uint32(earfcnDl))
 	if err != nil {
 		return err
 	}
@@ -149,10 +149,10 @@ func validateFDDConfig(earfcnDl int32, band *utils.LTEBand, fddConfig *NetworkRA
 	earfcnUl := fddConfig.GetEarfcnul()
 	// Provide default EARFCNUL if not set
 	if earfcnUl == 0 {
-		fddConfig.Earfcnul = earfcnDl - band.StartEarfcnDl + band.StartEarfcnUl
+		fddConfig.Earfcnul = int32(uint32(earfcnDl) - band.StartEarfcnDl + band.StartEarfcnUl)
 		earfcnUl = fddConfig.GetEarfcnul()
 	}
-	if !band.EarfcnULInRange(earfcnUl) {
+	if !band.EarfcnULInRange(uint32(earfcnUl)) {
 		return fmt.Errorf("EARFCNUL=%d invalid for Band %d (%d, %d)",
 			earfcnUl,
 			band.ID,

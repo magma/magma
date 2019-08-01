@@ -151,6 +151,7 @@ type NetworkRanConfigsFddConfig struct {
 
 	// earfcnul
 	// Required: true
+	// Minimum: > 0
 	Earfcnul *uint32 `json:"earfcnul"`
 }
 
@@ -184,6 +185,10 @@ func (m *NetworkRanConfigsFddConfig) validateEarfcndl(formats strfmt.Registry) e
 func (m *NetworkRanConfigsFddConfig) validateEarfcnul(formats strfmt.Registry) error {
 
 	if err := validate.Required("fdd_config"+"."+"earfcnul", "body", m.Earfcnul); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("fdd_config"+"."+"earfcnul", "body", int64(*m.Earfcnul), 0, true); err != nil {
 		return err
 	}
 

@@ -48,6 +48,28 @@ func ListNetworkIDs() ([]string, error) {
 	return idsWrapper.NetworkIDs, nil
 }
 
+// ListNetworksOfType returns a list of all network IDs which match the given
+// type
+func ListNetworksOfType(networkType string) ([]string, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return nil, err
+	}
+	networks, err := client.LoadNetworks(
+		context.Background(),
+		&protos.LoadNetworksRequest{
+			Criteria: &storage.NetworkLoadCriteria{},
+			Filter: &storage.NetworkLoadFilter{
+				TypeFilter: strPtrToWrapper(&networkType),
+			},
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return funk.Map(networks.Networks, func(n *storage.Network) string { return n.ID }).([]string), nil
+}
+
 func CreateNetwork(network Network) error {
 	_, err := CreateNetworks([]Network{network})
 	return err

@@ -17,7 +17,6 @@ import (
 	"go/printer"
 	"go/token"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -73,10 +72,9 @@ func RewriteGeneratedRefs(targetFilepath string, rootDir string) error {
 
 	// delete all files for models that aren't owned by the target swagger spec
 	for _, dependency := range validDependencyTypes {
-		err = os.Remove(filepath.Join(targetOutputDir, dependency.filename))
-		if err != nil {
-			log.Printf("WARNING: possible error cleaning up generated files: %s", err)
-		}
+		// ignore errors since not all dependent types are guaranteed to have
+		// been generated (only those referenced)
+		_ = os.Remove(filepath.Join(targetOutputDir, dependency.filename))
 	}
 	return nil
 }

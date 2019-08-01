@@ -35,6 +35,8 @@ type NetworkEpcConfigs struct {
 
 	// lte auth op
 	// Required: true
+	// Max Length: 16
+	// Min Length: 15
 	// Format: byte
 	LteAuthOp *strfmt.Base64 `json:"lte_auth_op"`
 
@@ -61,6 +63,7 @@ type NetworkEpcConfigs struct {
 	// tac
 	// Required: true
 	// Maximum: 65535
+	// Minimum: 1
 	Tac *uint32 `json:"tac"`
 }
 
@@ -146,6 +149,14 @@ func (m *NetworkEpcConfigs) validateLteAuthAmf(formats strfmt.Registry) error {
 func (m *NetworkEpcConfigs) validateLteAuthOp(formats strfmt.Registry) error {
 
 	if err := validate.Required("lte_auth_op", "body", m.LteAuthOp); err != nil {
+		return err
+	}
+
+	if err := validate.MinLength("lte_auth_op", "body", string(*m.LteAuthOp), 15); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("lte_auth_op", "body", string(*m.LteAuthOp), 16); err != nil {
 		return err
 	}
 
@@ -254,6 +265,10 @@ func (m *NetworkEpcConfigs) validateTac(formats strfmt.Registry) error {
 		return err
 	}
 
+	if err := validate.MinimumInt("tac", "body", int64(*m.Tac), 1, false); err != nil {
+		return err
+	}
+
 	if err := validate.MaximumInt("tac", "body", int64(*m.Tac), 65535, false); err != nil {
 		return err
 	}
@@ -284,14 +299,57 @@ func (m *NetworkEpcConfigs) UnmarshalBinary(b []byte) error {
 type NetworkEpcConfigsSubProfilesAnon struct {
 
 	// max dl bit rate
-	MaxDlBitRate uint64 `json:"max_dl_bit_rate,omitempty"`
+	// Required: true
+	// Minimum: > 0
+	MaxDlBitRate *uint64 `json:"max_dl_bit_rate"`
 
 	// max ul bit rate
-	MaxUlBitRate uint64 `json:"max_ul_bit_rate,omitempty"`
+	// Required: true
+	// Minimum: > 0
+	MaxUlBitRate *uint64 `json:"max_ul_bit_rate"`
 }
 
 // Validate validates this network epc configs sub profiles anon
 func (m *NetworkEpcConfigsSubProfilesAnon) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateMaxDlBitRate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMaxUlBitRate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsSubProfilesAnon) validateMaxDlBitRate(formats strfmt.Registry) error {
+
+	if err := validate.Required("max_dl_bit_rate", "body", m.MaxDlBitRate); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("max_dl_bit_rate", "body", int64(*m.MaxDlBitRate), 0, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsSubProfilesAnon) validateMaxUlBitRate(formats strfmt.Registry) error {
+
+	if err := validate.Required("max_ul_bit_rate", "body", m.MaxUlBitRate); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("max_ul_bit_rate", "body", int64(*m.MaxUlBitRate), 0, true); err != nil {
+		return err
+	}
+
 	return nil
 }
 
