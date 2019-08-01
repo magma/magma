@@ -1,0 +1,25 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+- name: Build ovs
+  hosts: localvagrant
+  vars:
+    ovs_version: v2.8.1
+    ovs_version_short: 2.8.1
+    gtp_patch_path: ../../../../../../third_party/gtp_ovs
+    WORK_DIR: ~/build-ovs
+    patches:
+      - 0001-datapath-add-vport-gtp-for-GPRS-Tunneling-Protocol.patch
+      - 0002-userspace-Add-L3-tunnel-type-GTP.patch
+      - 0003-Build-symbols-for-gtp-vport-linux-4.9-module-require.patch
+      - 0004-Linux-compat-fixes.patch
+  environment:
+    DATAPATH_CONFIGURE_OPTS: "--with-linux=/lib/modules/`uname -r`/build"
+    DEB_BUILD_OPTIONS: "nocheck parallel=`nproc`"
+  roles:
+    - role: ovs_task
