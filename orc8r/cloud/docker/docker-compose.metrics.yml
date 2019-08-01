@@ -7,6 +7,8 @@ services:
       dockerfile: $PWD/prometheus-cache/Dockerfile
     ports:
       - 9091:9091/tcp
+    command:
+      - '-limit=500000'
     restart: always
 
   prometheus:
@@ -53,3 +55,14 @@ services:
       - $PWD/graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
       - $PWD/graphite/carbon.conf:/opt/graphite/conf/carbon.conf
     image: graphiteapp/graphite-statsd
+
+  grafana:
+    build:
+      context: $PWD/../../../orc8r/cloud
+      dockerfile: $PWD/grafana/Dockerfile
+    environment:
+      - PROMETHEUS_HOST=prometheus
+      - PROMETHEUS_PORT=9090
+    ports:
+      - 3000:3000/tcp
+    restart: always
