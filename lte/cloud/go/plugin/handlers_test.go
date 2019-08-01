@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -169,6 +170,96 @@ func TestGetNetwork(t *testing.T) {
 		Handler:        plugin2.GetNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedN3),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateNetwork(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	e := echo.New()
+
+	// Test 404
+	payloadN1 := &models2.LteNetwork{
+		ID:          "n1",
+		Name:        "updated foobar",
+		Description: "Updated Foo Bar",
+		Cellular:    models2.NewDefaultFDDNetworkConfig(),
+		Features: &models.NetworkFeatures{
+			Features: map[string]string{
+				"bar": "baz",
+				"baz": "quz",
+			},
+		},
+		DNS: &models.NetworkDNSConfig{
+			EnableCaching: swag.Bool(true),
+			LocalTTL:      swag.Uint32(120),
+			Records: []*models.DNSConfigRecord{
+				{
+					Domain:     "foobar.com",
+					ARecord:    []string{"asdf", "hjkl"},
+					AaaaRecord: []string{"abcd", "efgh"},
+				},
+				{
+					Domain:  "facebook.com",
+					ARecord: []string{"google.com"},
+				},
+			},
+		},
+	}
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/ltenetworks/n1",
+		Payload:        models2.NewDefaultTDDNetworkConfig(),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        plugin2.UpdateNetwork,
+		ExpectedStatus: 404,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// seed networks, update n1 again
+	seedNetworks(t)
+
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/ltenetworks/n1",
+		Payload:        payloadN1,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        plugin2.UpdateNetwork,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	assert.NoError(t, err)
+	expected := configurator.Network{
+		ID:          "n1",
+		Type:        lte.LteNetworkType,
+		Name:        "updated foobar",
+		Description: "Updated Foo Bar",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkType:     models2.NewDefaultFDDNetworkConfig(),
+			orc8r.DnsdNetworkType:       payloadN1.DNS,
+			orc8r.NetworkFeaturesConfig: payloadN1.Features,
+		},
+		Version: 1,
+	}
+	assert.Equal(t, expected, actualN1)
+
+	// update n2, should be 400
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/ltenetworks/n2",
+		Payload:        payloadN1,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n2"},
+		Handler:        plugin2.UpdateNetwork,
+		ExpectedStatus: 400,
+		ExpectedError:  "network n2 is not an LTE network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }

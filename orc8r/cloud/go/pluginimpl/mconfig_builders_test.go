@@ -20,6 +20,7 @@ import (
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
@@ -136,8 +137,8 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 
 	nw.Configs = map[string]interface{}{
 		"dnsd_network": &models.NetworkDNSConfig{
-			EnableCaching: toBoolPointer(true),
-			LocalTTL:      toInt32Pointer(100),
+			EnableCaching: swag.Bool(true),
+			LocalTTL:      swag.Uint32(100),
 			Records: []*models.DNSConfigRecord{
 				{
 					ARecord:     []string{"hello", "world"},
@@ -175,12 +176,4 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expected, actual)
-}
-
-func toBoolPointer(b bool) *bool {
-	return &b
-}
-
-func toInt32Pointer(i int32) *int32 {
-	return &i
 }

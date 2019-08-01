@@ -140,7 +140,7 @@ definitions:
         example: false
       local_ttl:
         type: integer
-        format: int32
+        format: uint32
         example: 0
       records:
         type: array

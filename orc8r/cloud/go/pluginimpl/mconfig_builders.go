@@ -18,6 +18,7 @@ import (
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -90,12 +91,8 @@ func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph confi
 	dnsConfig := iConfig.(*models.NetworkDNSConfig)
 	mconfigDnsd := &mconfig.DnsD{}
 	protos.FillIn(dnsConfig, mconfigDnsd)
-	if dnsConfig.LocalTTL != nil {
-		mconfigDnsd.LocalTTL = *dnsConfig.LocalTTL
-	}
-	if dnsConfig.EnableCaching != nil {
-		mconfigDnsd.EnableCaching = *dnsConfig.EnableCaching
-	}
+	mconfigDnsd.LocalTTL = int32(swag.Uint32Value(dnsConfig.LocalTTL))
+	mconfigDnsd.EnableCaching = swag.BoolValue(dnsConfig.EnableCaching)
 	mconfigDnsd.LogLevel = protos.LogLevel_INFO
 	for _, record := range dnsConfig.Records {
 		mconfigRecord := &mconfig.NetworkDNSConfigRecordsItems{}

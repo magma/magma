@@ -619,12 +619,10 @@ definitions:
         example: 'default_rule_1'
       relay_enabled:
         type: boolean
-        x-nullable: false
         example: false
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
-        x-nullable: false
       network_services:
         description: Configuration for network services. Services will be instantiated in the listed order.
         type: array

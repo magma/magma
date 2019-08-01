@@ -25,7 +25,7 @@ type NetworkDNSConfig struct {
 
 	// local ttl
 	// Required: true
-	LocalTTL *int32 `json:"local_ttl"`
+	LocalTTL *uint32 `json:"local_ttl"`
 
 	// records
 	Records []*DNSConfigRecord `json:"records"`
