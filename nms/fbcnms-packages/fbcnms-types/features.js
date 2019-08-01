@@ -20,4 +20,5 @@ export type FeatureID =
   | 'upload_ftth'
   | 'python_api'
   | 'prometheus_metrics_database'
-  | 'site_survey';
+  | 'site_survey'
+  | 'alerts';
