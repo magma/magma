@@ -107,6 +107,7 @@ func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMa
 
 func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
+		// v0 handlers
 		accessdh.GetObsidianHandlers(),
 		checkinh.GetObsidianHandlers(),
 		dnsdh.GetObsidianHandlers(),
@@ -114,6 +115,8 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
 		stateh.GetObsidianHandlers(),
+		// v1 handlers
+		GetObsidianHandlers(),
 		[]obsidian.Handler{{
 			Path:    "/",
 			Methods: obsidian.GET,
