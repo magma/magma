@@ -6,26 +6,28 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"strconv"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/validate"
 )
 
-// GatewayID gateway id
-// swagger:model gateway_id
-type GatewayID string
+// EnodebSerials enodeb serials
+// swagger:model enodeb_serials
+type EnodebSerials []string
 
-// Validate validates this gateway id
-func (m GatewayID) Validate(formats strfmt.Registry) error {
+// Validate validates this enodeb serials
+func (m EnodebSerials) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := validate.MinLength("", "body", string(m), 1); err != nil {
-		return err
-	}
+	for i := 0; i < len(m); i++ {
 
-	if err := validate.Pattern("", "body", string(m), `^[a-z][\da-z_]+$`); err != nil {
-		return err
+		if err := validate.MinLength(strconv.Itoa(i), "body", string(m[i]), 1); err != nil {
+			return err
+		}
+
 	}
 
 	if len(res) > 0 {

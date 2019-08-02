@@ -12,19 +12,15 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// GatewayID gateway id
-// swagger:model gateway_id
-type GatewayID string
+// GatewayDescription gateway description
+// swagger:model gateway_description
+type GatewayDescription string
 
-// Validate validates this gateway id
-func (m GatewayID) Validate(formats strfmt.Registry) error {
+// Validate validates this gateway description
+func (m GatewayDescription) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := validate.MinLength("", "body", string(m), 1); err != nil {
-		return err
-	}
-
-	if err := validate.Pattern("", "body", string(m), `^[a-z][\da-z_]+$`); err != nil {
 		return err
 	}
 

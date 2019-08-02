@@ -15,6 +15,10 @@ magma-gen-meta:
       filename: network_description_swaggergen.go
     - go-struct-name: GatewayID
       filename: gateway_id_swaggergen.go
+    - go-struct-name: GatewayName
+      filename: gateway_name_swaggergen.go
+    - go-struct-name: GatewayDescription
+      filename: gateway_description_swaggergen.go
     - go-struct-name: Error
       filename: error_swaggergen.go
 
@@ -98,11 +102,24 @@ definitions:
     minLength: 1
     x-nullable: false
     example: Foobar network
+
   gateway_id:
     type: string
     minLength: 1
     x-nullable: false
+    pattern: '^[a-z][\da-z_]+$'
     example: gw1
+  gateway_name:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Sample Gateway
+  gateway_description:
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Sample Gateway description
+
   error:
     type: object
     required:

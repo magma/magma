@@ -41,6 +41,9 @@ type LteNetwork struct {
 	// name
 	// Required: true
 	Name models2.NetworkName `json:"name"`
+
+	// state
+	State *models3.GatewayStatus `json:"state,omitempty"`
 }
 
 // Validate validates this lte network
@@ -68,6 +71,10 @@ func (m *LteNetwork) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateState(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -162,6 +169,24 @@ func (m *LteNetwork) validateName(formats strfmt.Registry) error {
 			return ve.ValidateName("name")
 		}
 		return err
+	}
+
+	return nil
+}
+
+func (m *LteNetwork) validateState(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.State) { // not required
+		return nil
+	}
+
+	if m.State != nil {
+		if err := m.State.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("state")
+			}
+			return err
+		}
 	}
 
 	return nil
