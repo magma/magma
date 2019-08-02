@@ -27,11 +27,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// Obsidian integration test for release channel migrated API endpoints backed by configurator
 func TestReleaseChannels(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
 	upgrade_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
