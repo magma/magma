@@ -120,13 +120,6 @@ OAI_DEPS=(
 
 # OVS runtime dependencies
 OVS_DEPS=(
-    "linux-image-4.9.0-8-amd64"
-    "linux-headers-4.9.0-8-amd64"
-    "oai-gtp-4.9.0-8-amd64 >= 4.9"
-    "bridge-utils >= 1.5-9"
-    "openvswitch-switch >= 2.8.0"
-    "openvswitch-datapath-module-4.9.0-8-amd64 >= 2.8.0"
-    "python-openvswitch >= 2.8.0"
     "magma-libfluid >= 0.1.0.4"
     )
 
