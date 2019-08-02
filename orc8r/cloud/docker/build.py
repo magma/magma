@@ -50,16 +50,15 @@ def main() -> None:
         _create_build_context()
         _run_docker(['build'])
     else:
+        _create_build_context()
         # Check if orc8r_cache image exists
         result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
                 stdout=PIPE, stderr=PIPE)
         if result.stdout == b'':
             print("Orc8r_cache image does not exist. Building...")
-            subprocess.run(['docker-compose', '-f', 'docker-compose.cache.yml',
-                            'build'])
+            _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
 
         # Build all images using go-cache base image
-        _create_build_context()
         _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache'])
 
 
