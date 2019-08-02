@@ -42,6 +42,22 @@ paths:
               - network2
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Register a network
+      tags:
+        - Networks
+      parameters:
+        - name: network
+          in: body
+          description: Configuration of the network to create
+          required: true
+          schema:
+            $ref: '#/definitions/network'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
   /networks/{network_id}:
     get:
