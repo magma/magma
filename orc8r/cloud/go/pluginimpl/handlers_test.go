@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -311,4 +312,175 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		ExpectedResult: tests.JSONMarshaler([]string{networkID1}),
 	}
 	tests.RunUnitTest(t, e, listNetworks)
+}
+
+func Test_DeleteNetworkHandlers(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	// add a couple of networks
+	networkID1 := "test_network1"
+	network1 := models.NewDefaultNetwork(networkID1, "name", "desc")
+	postNetwork := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(network1),
+		Handler:        pluginimpl.RegisterNetwork,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler(networkID1),
+	}
+	tests.RunUnitTest(t, e, postNetwork)
+
+	networkID2 := "test_network2"
+	network2 := models.NewDefaultNetwork(networkID2, "name", "desc")
+	postNetwork = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(network2),
+		Handler:        pluginimpl.RegisterNetwork,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler(networkID2),
+	}
+	tests.RunUnitTest(t, e, postNetwork)
+
+	listNetworks := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		Handler:        pluginimpl.ListNetworks,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{networkID1, networkID2}),
+	}
+	tests.RunUnitTest(t, e, listNetworks)
+
+	// delete and get
+	deleteNetwork := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.DeleteNetwork,
+		ExpectedStatus: 204,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, deleteNetwork)
+
+	listNetworks = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		Handler:        pluginimpl.ListNetworks,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{networkID2}),
+	}
+	tests.RunUnitTest(t, e, listNetworks)
+
+	deleteNetwork = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID2),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID2},
+		Handler:        pluginimpl.DeleteNetwork,
+		ExpectedStatus: 204,
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, deleteNetwork)
+
+	listNetworks = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Payload:        nil,
+		Handler:        pluginimpl.ListNetworks,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{}),
+	}
+	tests.RunUnitTest(t, e, listNetworks)
+}
+
+func Test_PutNetworkHandlers(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	// happy path
+	// add a network
+	networkID1 := "test_network1"
+	network1 := models.NewDefaultNetwork(networkID1, "name", "desc")
+	postNetwork := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(network1),
+		Handler:        pluginimpl.RegisterNetwork,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler(networkID1),
+	}
+	tests.RunUnitTest(t, e, postNetwork)
+
+	// change meta data
+	network1.Name = models1.NetworkName("name2")
+	network1.Type = "wifi"
+	network1.Description = models1.NetworkDescription("desc2")
+	putNetwork := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(network1),
+		Handler:        pluginimpl.UpdateNetwork,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putNetwork)
+
+	getNetwork := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.GetNetwork,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(network1),
+	}
+	tests.RunUnitTest(t, e, getNetwork)
+
+	// change configs
+	network1.DNS.EnableCaching = swag.Bool(false)
+	network1.Features.Features["new-feature"] = "foobar"
+	putNetwork = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(network1),
+		Handler:        pluginimpl.UpdateNetwork,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putNetwork)
+
+	getNetwork = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.GetNetwork,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(network1),
+	}
+	tests.RunUnitTest(t, e, getNetwork)
+
+	// try do delete DNS config
+	network1.DNS = nil
+	putNetwork = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(network1),
+		Handler:        pluginimpl.UpdateNetwork,
+		ExpectedStatus: 400,
+		ExpectedError:  "validation failure list:\ndns in body is required",
+	}
+	tests.RunUnitTest(t, e, putNetwork)
 }

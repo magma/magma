@@ -73,6 +73,23 @@ paths:
             $ref: '#/definitions/network'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: network
+          in: body
+          description: Full desired configuration of the network
+          required: true
+          schema:
+            $ref: '#/definitions/network'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     delete:
       summary: Delete a network
       tags:

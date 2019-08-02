@@ -31,8 +31,9 @@ func GetObsidianHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
 		// Magma V1 Network
 		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: ListNetworks},
-		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: GetNetwork},
 		{Path: RegisterNetworkPath, Methods: obsidian.POST, HandlerFunc: RegisterNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: GetNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: DeleteNetwork},
 	}
 }
 
@@ -80,4 +81,39 @@ func GetNetwork(c echo.Context) error {
 	network := networks[0]
 	swaggerNetwork := models.FromConfiguratorNetwork(network)
 	return c.JSON(http.StatusOK, swaggerNetwork)
+}
+
+func UpdateNetwork(c echo.Context) error {
+	// Check for wildcard network access
+	nerr := obsidian.CheckWildcardNetworkAccess(c)
+	if nerr != nil {
+		return nerr
+	}
+	// Bind network record from swagger
+	swaggerNetwork := &models.Network{}
+	err := c.Bind(&swaggerNetwork)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := swaggerNetwork.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	update := swaggerNetwork.ToConfiguratorNetworkUpdateCriteria()
+	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func DeleteNetwork(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	err := configurator.DeleteNetwork(networkID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
 }
