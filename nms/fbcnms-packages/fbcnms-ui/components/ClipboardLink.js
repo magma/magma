@@ -31,21 +31,40 @@ const COPIED_MESSAGE = 'Copied to clipboard!';
  * passed into this component directly.
  */
 export default function ClipboardLink(props: Props) {
-  const [title, setTitle] = useState(props.title);
-  const [showTooltip, setShowTooltip] = useState(false);
-
   if (props.title != null) {
-    return (
-      <Tooltip {...props} title={title} onClose={() => setTitle(props.title)}>
-        {props.children({
-          copyString: content => {
-            copy(content);
-            setTitle(COPIED_MESSAGE);
-          },
-        })}
-      </Tooltip>
-    );
+    return <ClipboardLinkWithTitle {...props} />;
   }
+  return <ClipboardLinkNoTitle {...props} />;
+}
+
+/* Since the logic and states are diffferent depending on whether a title for
+ * the tooltip is passed in, we have 2 different components below for each
+ * scenario.
+ */
+
+// If they pass in a title, we need to change that title briefly to
+// COPIED_MESSAGE whenever the content is copied.
+function ClipboardLinkWithTitle(props: Props) {
+  const [currentTitle, setCurrentTitle] = useState(props.title);
+  return (
+    <Tooltip
+      {...props}
+      title={currentTitle}
+      onClose={() => setCurrentTitle(props.title)}>
+      {props.children({
+        copyString: content => {
+          copy(content);
+          setCurrentTitle(COPIED_MESSAGE);
+        },
+      })}
+    </Tooltip>
+  );
+}
+
+// If they don't pass in a title, there should be no COPIED_MESSAGE tooltip
+// shown until the content is copied.
+function ClipboardLinkNoTitle(props: Props) {
+  const [showTooltip, setShowTooltip] = useState(false);
   return (
     <Tooltip
       {...props}
