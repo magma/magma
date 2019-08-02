@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package view_factory_test
 
 import (
-	"encoding/json"
 	"os"
 	"testing"
 
@@ -57,8 +56,8 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	gatewayID2 := "gw2"
 	hwID1 := "hw1"
 	hwID2 := "hw2"
-	record1 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID1}}
-	record2 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID2}}
+	record1 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID1}, Name: "hw1name"}
+	record2 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID2}, Name: "hw2name"}
 	configuratortu.RegisterNetwork(t, networkID, "xservice1")
 	configuratortu.RegisterGateway(t, networkID, gatewayID1, record1)
 	configuratortu.RegisterGateway(t, networkID, gatewayID2, record2)
@@ -140,11 +139,7 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 		},
 	}
 
-	marshaledExpected, err := json.Marshal(expected)
-	assert.NoError(t, err)
-	marshaledActual, err := json.Marshal(actual)
-	assert.NoError(t, err)
-	assert.Equal(t, marshaledExpected, marshaledActual)
+	assert.Equal(t, expected, actual)
 
 	// add an unrelated entity to gw1 and make sure only the config entities are loaded
 	nonConfigEntity, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
@@ -170,9 +165,5 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 		}
 	}
 	// result should be the same as before, ignoring the non config ents
-	marshaledExpected, err = json.Marshal(expected)
-	assert.NoError(t, err)
-	marshaledActual, err = json.Marshal(actual)
-	assert.NoError(t, err)
-	assert.Equal(t, marshaledExpected, marshaledActual)
+	assert.Equal(t, expected, actual)
 }
