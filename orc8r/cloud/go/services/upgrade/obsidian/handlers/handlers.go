@@ -31,16 +31,16 @@ const (
 // GetObsidianHandlers returns the obsidian handlers for upgrade
 func GetObsidianHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
-		{Path: ReleaseChannelsRootPath, Methods: obsidian.GET, HandlerFunc: listReleaseChannelsHandler, MigratedHandlerFunc: listReleaseChannel},
-		{Path: ReleaseChannelsRootPath, Methods: obsidian.POST, HandlerFunc: createReleaseChannelHandler, MigratedHandlerFunc: createReleaseChannel, MultiplexAfterMigration: true},
-		{Path: ReleaseChannelsManagePath, Methods: obsidian.GET, HandlerFunc: getReleaseChannelsHandler, MigratedHandlerFunc: getReleaseChannel},
-		{Path: ReleaseChannelsManagePath, Methods: obsidian.PUT, HandlerFunc: updateReleaseChannelHandler, MigratedHandlerFunc: updateReleaseChannel, MultiplexAfterMigration: true},
-		{Path: ReleaseChannelsManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteReleaseChannelHandler, MigratedHandlerFunc: deleteReleaseChannel, MultiplexAfterMigration: true},
-		{Path: TiersRootPath, Methods: obsidian.GET, HandlerFunc: listTiersHandler, MigratedHandlerFunc: listTiers},
-		{Path: TiersRootPath, Methods: obsidian.POST, HandlerFunc: createTierHandler, MigratedHandlerFunc: createrTier, MultiplexAfterMigration: true},
-		{Path: TiersManagePath, Methods: obsidian.GET, HandlerFunc: getTierHandler, MigratedHandlerFunc: getTier},
-		{Path: TiersManagePath, Methods: obsidian.PUT, HandlerFunc: updateTierHandler, MigratedHandlerFunc: updateTier, MultiplexAfterMigration: true},
-		{Path: TiersManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteTierHandler, MigratedHandlerFunc: deleteTier, MultiplexAfterMigration: true},
+		{Path: ReleaseChannelsRootPath, Methods: obsidian.GET, HandlerFunc: listReleaseChannel},
+		{Path: ReleaseChannelsRootPath, Methods: obsidian.POST, HandlerFunc: createReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: obsidian.GET, HandlerFunc: getReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: obsidian.PUT, HandlerFunc: updateReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteReleaseChannel},
+		{Path: TiersRootPath, Methods: obsidian.GET, HandlerFunc: listTiers},
+		{Path: TiersRootPath, Methods: obsidian.POST, HandlerFunc: createrTier},
+		{Path: TiersManagePath, Methods: obsidian.GET, HandlerFunc: getTier},
+		{Path: TiersManagePath, Methods: obsidian.PUT, HandlerFunc: updateTier},
+		{Path: TiersManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteTier},
 	}
 }
 
