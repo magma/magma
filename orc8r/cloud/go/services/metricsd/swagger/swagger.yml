@@ -428,9 +428,6 @@ definitions:
     required:
       - alert
       - expr
-      - labels
-      - for
-      - annotations
     properties:
       alert:
         type: string
@@ -484,8 +481,6 @@ definitions:
     type: object
     required:
       - api_url
-      - channel
-      - username
     properties:
       api_url:
         type: string
@@ -504,7 +499,6 @@ definitions:
       - startsAt
       - status
       - updatedAt
-      - generatorURL
       - labels
     properties:
       annotations:
@@ -514,7 +508,7 @@ definitions:
       fingerprint:
         type: string
       receivers:
-        $ref: '#/definitions/alert_receiver_config'
+        $ref: '#/definitions/gettable_alert'
       startsAt:
         type: string
       status:
@@ -525,6 +519,14 @@ definitions:
         type: string
       labels:
         $ref: '#/definitions/prom_alert_labels'
+
+  gettable_alert:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
 
   prom_alert_status:
     type: object

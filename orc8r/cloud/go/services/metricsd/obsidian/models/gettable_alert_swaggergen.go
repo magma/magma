@@ -13,26 +13,20 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// SLACKReceiver slack receiver
-// swagger:model slack_receiver
-type SLACKReceiver struct {
+// GettableAlert gettable alert
+// swagger:model gettable_alert
+type GettableAlert struct {
 
-	// api url
+	// name
 	// Required: true
-	APIURL *string `json:"api_url"`
-
-	// channel
-	Channel string `json:"channel,omitempty"`
-
-	// username
-	Username string `json:"username,omitempty"`
+	Name *string `json:"name"`
 }
 
-// Validate validates this slack receiver
-func (m *SLACKReceiver) Validate(formats strfmt.Registry) error {
+// Validate validates this gettable alert
+func (m *GettableAlert) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAPIURL(formats); err != nil {
+	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -42,9 +36,9 @@ func (m *SLACKReceiver) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKReceiver) validateAPIURL(formats strfmt.Registry) error {
+func (m *GettableAlert) validateName(formats strfmt.Registry) error {
 
-	if err := validate.Required("api_url", "body", m.APIURL); err != nil {
+	if err := validate.Required("name", "body", m.Name); err != nil {
 		return err
 	}
 
@@ -52,7 +46,7 @@ func (m *SLACKReceiver) validateAPIURL(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *SLACKReceiver) MarshalBinary() ([]byte, error) {
+func (m *GettableAlert) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -60,8 +54,8 @@ func (m *SLACKReceiver) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *SLACKReceiver) UnmarshalBinary(b []byte) error {
-	var res SLACKReceiver
+func (m *GettableAlert) UnmarshalBinary(b []byte) error {
+	var res GettableAlert
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
