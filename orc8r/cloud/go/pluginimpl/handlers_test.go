@@ -484,3 +484,151 @@ func Test_PutNetworkHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, putNetwork)
 }
+
+func Test_GetNetworkPartialHandlers(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	// register a network
+	networkID1 := "test_network1"
+	networkName1 := "network1"
+	networkDesc1 := "network 1"
+	type1 := "type1"
+	network1 := configurator.Network{
+		ID:          networkID1,
+		Name:        networkName1,
+		Description: networkDesc1,
+		Type:        type1,
+	}
+	err := configurator.CreateNetwork(network1)
+	assert.NoError(t, err)
+
+	getNetworkName := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.GetNetworkName,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(networkName1),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, getNetworkName)
+
+	getNetworkType := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/type/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.GetNetworkType,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(type1),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, getNetworkType)
+
+	getNetworkDesc := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/description/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.GetNetworkDescription,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(networkDesc1),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, getNetworkDesc)
+}
+
+func Test_PutNetworkPartialHandlers(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	// register a network
+	networkID1 := "test_network1"
+	networkName1 := "network1"
+
+	network1 := configurator.Network{
+		ID:      networkID1,
+		Name:    networkName1,
+		Configs: map[string]interface{}{},
+	}
+	err := configurator.CreateNetwork(network1)
+	assert.NoError(t, err)
+
+	// check for validity
+	network1.Name = ""
+	putNetworkName := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, networkID1),
+		Payload:        tests.JSONMarshaler(network1.Name),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.UpdateNetworkName,
+		ExpectedStatus: 400,
+		ExpectedError:  " in body should be at least 1 chars long",
+	}
+	tests.RunUnitTest(t, e, putNetworkName)
+
+	// happy case
+	network1.Name = "new_name"
+	network1.Version = 1
+	putNetworkName = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, networkID1),
+		Payload:        tests.JSONMarshaler(network1.Name),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.UpdateNetworkName,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putNetworkName)
+
+	actualNetwork, err := configurator.LoadNetwork(networkID1, true, false)
+	assert.NoError(t, err)
+	assert.Equal(t, network1, actualNetwork)
+
+	// happy case
+	network1.Type = "new_type"
+	network1.Version = 2
+	putNetworkType := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/type/", testURLRoot, networkID1),
+		Payload:        tests.JSONMarshaler(network1.Type),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.UpdateNetworkType,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putNetworkType)
+	actualNetwork, err = configurator.LoadNetwork(networkID1, true, false)
+	assert.NoError(t, err)
+	assert.Equal(t, network1, actualNetwork)
+
+	// happy case
+	network1.Description = "new_name"
+	network1.Version = 3
+	putNetworkDesc := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/description/", testURLRoot, networkID1),
+		Payload:        tests.JSONMarshaler(network1.Description),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        pluginimpl.UpdateNetworkDescription,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putNetworkDesc)
+
+	actualNetwork, err = configurator.LoadNetwork(networkID1, true, false)
+	assert.NoError(t, err)
+	assert.Equal(t, network1, actualNetwork)
+}
