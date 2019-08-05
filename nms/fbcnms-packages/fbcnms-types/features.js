@@ -21,4 +21,5 @@ export type FeatureID =
   | 'python_api'
   | 'prometheus_metrics_database'
   | 'site_survey'
-  | 'alerts';
+  | 'alerts'
+  | 'equipment_export';
