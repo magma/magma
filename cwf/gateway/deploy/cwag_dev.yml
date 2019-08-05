@@ -9,7 +9,7 @@
   become: yes
   vars:
     - magma_root: /home/{{ ansible_user }}/magma
-    - user: vagrant
+    - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
     - role: apt_cache
