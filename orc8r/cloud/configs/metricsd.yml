@@ -6,13 +6,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-profile: "default"
-
-graphiteExportAddresses:
-  - "graphite:2003"
-
-graphiteQueryAddress: "graphite"
-graphiteQueryPort: 8080
+profile: "prometheus"
 
 prometheusPushAddresses:
   - "http://prometheus-cache:9091/metrics"

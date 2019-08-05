@@ -140,7 +140,7 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 const (
 	ProfileNamePrometheus = "prometheus"
 	ProfileNameGraphite   = "graphite"
-	ProfileNameDefault    = "default"
+	ProfileNameExportAll  = "exportall"
 )
 
 func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
@@ -162,7 +162,8 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
-	graphiteExportAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.GraphiteExportAddresses)
+	// No-op graphite exporter if graphite parameters are not set
+	graphiteExportAddresses, _ := metricsConfig.GetStringArrayParam(confignames.GraphiteExportAddresses)
 	var graphiteAddresses []graphite_exp.Address
 	for _, address := range graphiteExportAddresses {
 		portIdx := strings.LastIndex(address, ":")
@@ -173,8 +174,8 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		}
 		graphiteAddresses = append(graphiteAddresses, graphite_exp.NewAddress(address[:portIdx], portInt))
 	}
-
 	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddresses)
+
 	// Graphite profile - Exports all service metrics to Graphite
 	graphiteProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameGraphite,
@@ -182,8 +183,9 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		Exporters:  []exporters.Exporter{graphiteExporter},
 	}
 
-	defaultProfile := metricsd.MetricsProfile{
-		Name:       ProfileNameDefault,
+	// ExportAllProfile - Exports to both graphite and prometheus
+	exportAllProfile := metricsd.MetricsProfile{
+		Name:       ProfileNameExportAll,
 		Collectors: controllerCollectors,
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter, graphiteExporter},
 	}
@@ -191,6 +193,6 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 	return []metricsd.MetricsProfile{
 		prometheusProfile,
 		graphiteProfile,
-		defaultProfile,
+		exportAllProfile,
 	}
 }
