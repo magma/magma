@@ -62,6 +62,10 @@ def reboot_enodeb(client, args):
     req.device_serial = args.device_serial
     client.Reboot(req)
 
+@grpc_wrapper
+def reboot_all_enodeb(client, args):
+    client.RebootAll(Void())
+
 
 @grpc_wrapper
 def get_status(client, args):
@@ -195,6 +199,9 @@ def create_parser():
     parser_reboot_enodeb.add_argument(
         'device_serial', help='eNodeB Serial ID')
 
+    parser_reboot_all_enodeb = subparsers.add_parser(
+        'reboot_all_enodeb', help='Reboot all eNodeB')
+
     parser_get_status = subparsers.add_parser(
         'get_status', help='Get enodebd status')
 
@@ -211,6 +218,7 @@ def create_parser():
     parser_set_parameter.set_defaults(func=set_parameter)
     parser_config_enodeb.set_defaults(func=configure_enodeb)
     parser_reboot_enodeb.set_defaults(func=reboot_enodeb)
+    parser_reboot_all_enodeb.set_defaults(func=reboot_all_enodeb)
     parser_get_status.set_defaults(func=get_status)
     parser_get_all_status.set_defaults(func=get_all_status)
     parser_get_enb_status.set_defaults(func=get_enb_status)
