@@ -52,6 +52,10 @@ services:
     host: health
     ip_address: health
     port: 9107
+  radiusd:
+    host: radiusd
+    ip_address: radiusd
+    port: 9115
   redis:
     host: redis
     ip_address: redis
