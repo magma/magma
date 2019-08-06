@@ -39,3 +39,4 @@
     - swx_proxy
     - eap_aka
     - aaa_server
+    - radiusd
