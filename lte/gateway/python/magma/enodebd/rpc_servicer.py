@@ -100,6 +100,14 @@ class EnodebdRpcServicer(EnodebdServicer):
         handler = self._get_handler(request.device_serial)
         handler.reboot_asap()
 
+    @return_void
+    def RebootAll(self, _=None, context=None) -> None:
+        """ Reboot all connected eNodeB devices """
+        serial_list = self.state_machine_manager.get_connected_serial_id_list()
+        for enb_serial in serial_list:
+            handler = self._get_handler(enb_serial)
+            handler.reboot_asap()
+
     def GetStatus(self, _=None, context=None) -> ServiceStatus:
         """
         Get eNodeB status
