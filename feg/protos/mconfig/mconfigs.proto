@@ -135,3 +135,11 @@ message HSSConfig {
     bool stream_subscribers = 6;
 }
 
+message RadiusdConfig {
+    // Port the metrics server is running on
+    uint32 radius_metrics_port = 1;
+    // The path to access the prometheus metrics on the server
+    string radius_metrics_path = 2;
+    // Interval in seconds between fetching and updating metrics
+    uint32 update_interval_secs = 3;
+}
