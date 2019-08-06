@@ -118,3 +118,9 @@ generic_command_config:
     - name: echo
       command: "echo {}"
       allow_params: True
+    - name: reboot_enodeb
+      command: "enodebd_cli.py reboot_enodeb {}"
+      allow_params: True
+    - name: reboot_all_enodeb
+      command: "enodebd_cli.py reboot_all_enodeb"
+      allow_params: False
