@@ -32,3 +32,7 @@
       apt:
         name: tmux
         state: present
+    - name: Install build-essential pkgs
+      apt:
+        name: build-essential
+        state: present

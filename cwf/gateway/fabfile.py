@@ -76,7 +76,7 @@ def _start_gateway():
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'
-            ' build')
+            ' build --parallel')
         run(' docker-compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
