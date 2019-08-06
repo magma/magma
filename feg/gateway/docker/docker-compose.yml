@@ -104,6 +104,11 @@ services:
       S6A_LOCAL_ADDR: :${S6A_LOCAL_PORT}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
 
+  radiusd:
+    <<: *goservice
+    container_name: radiusd
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+
   control_proxy:
     <<: *pyservice
     container_name: control_proxy
