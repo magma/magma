@@ -24,6 +24,7 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
+	checkindmodels "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
@@ -38,6 +39,7 @@ import (
 	graphite_exp "magma/orc8r/cloud/go/services/metricsd/graphite/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	"magma/orc8r/cloud/go/services/state"
 	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
@@ -66,7 +68,7 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
-		&GatewayStatusSerde{},
+		state.NewStateSerde(orc8r.GatewayStateType, &checkindmodels.GatewayStatus{}),
 
 		// Inventory service serdes
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &magmadmodels.AccessGatewayRecord{}),

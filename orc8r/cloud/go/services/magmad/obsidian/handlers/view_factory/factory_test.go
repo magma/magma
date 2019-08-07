@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
+	checkindmodels "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	checkintu "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorti "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -24,6 +24,7 @@ import (
 	storagetu "magma/orc8r/cloud/go/services/magmad/obsidian/handlers/test_utils"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/services/state"
 	stateti "magma/orc8r/cloud/go/services/state/test_init"
 	statetu "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
@@ -41,11 +42,10 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	deviceti.StartTestService(t)
 	stateti.StartTestService(t)
 
-	serde.UnregisterAllSerdes(t)
 	err := serde.RegisterSerdes(
 		storagetu.NewConfig1ConfiguratorManager(),
 		storagetu.NewConfig2ConfiguratorManager(),
-		&pluginimpl.GatewayStatusSerde{},
+		state.NewStateSerde(orc8r.GatewayStateType, &checkindmodels.GatewayStatus{}),
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}),
 	)
 	assert.NoError(t, err)
