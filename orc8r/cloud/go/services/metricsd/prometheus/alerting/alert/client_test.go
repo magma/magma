@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files/mocks"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"

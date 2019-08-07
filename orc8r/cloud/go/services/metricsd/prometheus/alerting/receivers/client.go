@@ -10,10 +10,10 @@ package receivers
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"sync"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/prometheus/alertmanager/config"
@@ -43,12 +43,14 @@ type AlertmanagerClient interface {
 // Client provides methods to create and read receiver configurations
 type client struct {
 	configPath string
+	fsClient   files.FSClient
 	sync.RWMutex
 }
 
-func NewClient(configPath string) AlertmanagerClient {
+func NewClient(configPath string, fsClient files.FSClient) AlertmanagerClient {
 	return &client{
 		configPath: configPath,
+		fsClient:   fsClient,
 	}
 }
 
@@ -149,10 +151,12 @@ func (c *client) ModifyNetworkRoute(networkID string, route *config.Route) error
 		return err
 	}
 	// ensure base route is valid base route for this network
-	route.Receiver = makeBaseRouteName(networkID)
+	baseRoute := c.getBaseRouteForNetwork(networkID, conf)
+	route.Receiver = baseRoute.Receiver
 	if route.Match == nil {
 		route.Match = map[string]string{}
 	}
+
 	route.Match[exporters.NetworkLabelNetwork] = networkID
 
 	for _, childRoute := range route.Routes {
@@ -199,7 +203,7 @@ func (c *client) GetRoute(networkID string) (*config.Route, error) {
 
 func (c *client) readConfigFile() (*Config, error) {
 	configFile := Config{}
-	file, err := ioutil.ReadFile(c.configPath)
+	file, err := c.fsClient.ReadFile(c.configPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config files: %v", err)
 	}
@@ -212,7 +216,7 @@ func (c *client) writeConfigFile(conf *Config) error {
 	if err != nil {
 		return fmt.Errorf("error marshaling config file: %v", err)
 	}
-	err = ioutil.WriteFile(c.configPath, yamlFile, 0660)
+	err = c.fsClient.WriteFile(c.configPath, yamlFile, 0660)
 	if err != nil {
 		return fmt.Errorf("error writing config file: %v", err)
 	}
@@ -241,14 +245,15 @@ func receiverNetworkPrefix(networkID string) string {
 	return strings.Replace(networkID, "_", "", -1) + "_"
 }
 
-func (c *client) getBaseRouteForNetwork(networkID string, conf *Config) (*config.Route, error) {
+func (c *client) getBaseRouteForNetwork(networkID string, conf *Config) *config.Route {
 	baseRouteName := makeBaseRouteName(networkID)
 	for _, route := range conf.Route.Routes {
 		if route.Receiver == baseRouteName {
-			return route, nil
+			return route
 		}
 	}
-	return nil, fmt.Errorf("base route for %s not found", networkID)
+	newBaseRoute := &config.Route{Receiver: makeBaseRouteName(networkID)}
+	return newBaseRoute
 }
 
 func makeBaseRouteName(networkID string) string {
