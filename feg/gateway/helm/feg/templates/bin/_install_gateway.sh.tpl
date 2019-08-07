@@ -81,6 +81,7 @@ if [ "$GW_TYPE" == "$FEG" ]; then
   MODULE_DIR="$GW_TYPE"
 
   # Load kernel module necessary for docker SCTP support
+  sudo modprobe nf_conntrack_proto_sctp
   sudo tee -a /etc/modules <<< nf_conntrack_proto_sctp
 fi
 
