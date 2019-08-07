@@ -24,9 +24,6 @@ const (
 	defaultPort                   = "9093"
 	defaultAlertmanagerURL        = "localhost:9092"
 	defaultAlertmanagerConfigPath = "./alertmanager.yml"
-
-	rootPath     = "/:network_id"
-	receiverPath = rootPath + "/receiver"
 )
 
 func main() {
@@ -40,11 +37,13 @@ func main() {
 	e.GET("/", statusHandler)
 
 	receiverClient := receivers.NewClient(*alertmanagerConfPath)
-	e.POST(receiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
-	e.GET(receiverPath, handlers.GetGetReceiversHandler(receiverClient))
+	e.POST(handlers.ReceiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
+	e.GET(handlers.ReceiverPath, handlers.GetGetReceiversHandler(receiverClient))
+	e.DELETE(handlers.ReceiverPath, handlers.GetDeleteReceiverHandler(receiverClient, *alertmanagerURL))
+	e.PUT(handlers.ReceiverPath+"/:"+handlers.ReceiverNamePathParam, handlers.GetUpdateReceiverHandler(receiverClient, *alertmanagerURL))
 
-	e.POST(receiverPath+"/route", handlers.GetUpdateRouteHandler(receiverClient, *alertmanagerURL))
-	e.GET(receiverPath+"/route", handlers.GetGetRouteHandler(receiverClient))
+	e.POST(handlers.RoutePath, handlers.GetUpdateRouteHandler(receiverClient, *alertmanagerURL))
+	e.GET(handlers.RoutePath, handlers.GetGetRouteHandler(receiverClient))
 
 	glog.Infof("Alertmanager Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))

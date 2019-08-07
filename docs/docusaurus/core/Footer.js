@@ -64,6 +64,13 @@ class Footer extends React.Component {
               rel="noreferrer noopener">
               Stack Overflow
             </a>
+
+            <a
+              href="https://fb.me/magmadevsummit"
+              target="_blank"
+              rel="noreferrer noopener">
+              Magma Dev Summit
+            </a>
           </div>
           <div>
             <h5>More</h5>

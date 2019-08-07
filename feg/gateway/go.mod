@@ -26,6 +26,8 @@ require (
 	github.com/gorilla/mux v1.6.2
 	github.com/ishidawataru/sctp v0.0.0-20180918013207-6e2cb1366111
 	github.com/prometheus/client_golang v0.9.2
+	github.com/prometheus/client_model v0.0.0-20190109181635-f287a105a20e
+	github.com/prometheus/common v0.2.0
 	github.com/shirou/gopsutil v2.18.10+incompatible
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc

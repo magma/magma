@@ -1,0 +1,33 @@
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+{{- if .Values.grafana.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-grafana
+  labels:
+    app.kubernetes.io/component: grafana
+{{ include "metrics.labels" . | indent 4 }}
+    {{- with .Values.grafana.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.grafana.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: grafana
+{{ include "selector-labels" . | indent 4 }}
+  type: {{ .Values.grafana.service.type }}
+  ports:
+{{- range $port := .Values.grafana.service.ports }}
+     - name: {{ $port.name }}
+       port: {{ $port.port }}
+       targetPort: {{ $port.targetPort }}
+{{- end }}
+{{- end }}

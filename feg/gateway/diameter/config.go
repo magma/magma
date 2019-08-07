@@ -15,6 +15,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -24,14 +25,15 @@ const (
 	DiamProductName = "magma"
 	Vendor3GPP      = uint32(10415) // diameter code for a 3GPP application
 
-	AddrFlag      = "addr"
-	NetworkFlag   = "network"
-	HostFlag      = "host"
-	RealmFlag     = "realm"
-	ProductFlag   = "product"
-	LocalAddrFlag = "laddr"
-	DestHostFlag  = "dest_host"
-	DestRealmFlag = "dest_realm"
+	AddrFlag            = "addr"
+	NetworkFlag         = "network"
+	HostFlag            = "host"
+	RealmFlag           = "realm"
+	ProductFlag         = "product"
+	LocalAddrFlag       = "laddr"
+	DestHostFlag        = "dest_host"
+	DestRealmFlag       = "dest_realm"
+	DisableDestHostFlag = "disable_dest_host"
 
 	DefaultWatchdogIntervalSeconds = 3
 )
@@ -46,6 +48,7 @@ var (
 	_ = flag.String(LocalAddrFlag, "", "Client local address to bind to (IP:port OR :port)")
 	_ = flag.String(DestHostFlag, "", "Diameter server host name")
 	_ = flag.String(DestRealmFlag, "", "Diameter server realm")
+	_ = flag.String(DisableDestHostFlag, "", "Disable sending dest-host AVP in requests")
 )
 
 type DiameterServerConnConfig struct {
@@ -56,8 +59,9 @@ type DiameterServerConnConfig struct {
 
 type DiameterServerConfig struct {
 	DiameterServerConnConfig
-	DestHost  string
-	DestRealm string
+	DestHost        string
+	DestRealm       string
+	DisableDestHost bool
 }
 
 // DiameterClientConfig holds information for connecting with a diameter server
@@ -182,6 +186,26 @@ func GetValueOrEnv(flagName, envVariable, defaultValue string) string {
 		}
 	}
 	log.Printf("Using default value: %s for flag: %s", defaultValue, flagName)
+	return defaultValue
+}
+
+// GetBoolValueOrEnv returns value of the flagValue if it exists, then the environment
+// variable if it exists, or defaultValue if not
+func GetBoolValueOrEnv(flagName string, envVariable string, defaultValue bool) bool {
+	flagValue := getFlagValue(flagName)
+	flagValueBool, err := strconv.ParseBool(flagValue)
+	if len(flagValue) != 0 && err == nil {
+		return flagValueBool
+	}
+	if len(envVariable) > 0 {
+		envValue := os.Getenv(envVariable)
+		envValueBool, err := strconv.ParseBool(envValue)
+		if len(envValue) > 0 && err == nil {
+			log.Printf("Using Environment Parameter: %s => %t (default: '%t')", envVariable, envValueBool, defaultValue)
+			return envValueBool
+		}
+	}
+	log.Printf("Using default value: %t for flag: %s", defaultValue, flagName)
 	return defaultValue
 }
 

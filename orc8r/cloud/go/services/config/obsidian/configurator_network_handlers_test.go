@@ -52,7 +52,7 @@ func TestConfiguratorGetNetworkConfig(t *testing.T) {
 	handler := obsidian.GetReadConfigHandler("google.com", "cfg_network", mockKeyGetter, &configType{})
 
 	// 404
-	err := handler.MigratedHandlerFunc(c)
+	err := handler.HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
@@ -60,7 +60,7 @@ func TestConfiguratorGetNetworkConfig(t *testing.T) {
 	expected := &configType{Foo: "foo", Bar: "bar"}
 	err = configurator.UpdateNetworkConfig("network1", "cfg_network", expected)
 	assert.NoError(t, err)
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	actual := &configType{}
@@ -87,7 +87,7 @@ func TestConfiguratorCreateNetworkConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler := obsidian.GetCreateConfigHandler("google.com", "cfg_network", mockKeyGetter, &configType{})
-	err := handler.MigratedHandlerFunc(c)
+	err := handler.HandlerFunc(c)
 	assert.NoError(t, err)
 	actual, err := configurator.GetNetworkConfigsByType("network1", "cfg_network")
 	assert.NoError(t, err)
@@ -102,7 +102,7 @@ func TestConfiguratorCreateNetworkConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler = obsidian.GetCreateConfigHandler("google.com", "err_network", mockKeyGetter, &errValidateType{})
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Equal(t, "Invalid config: hello", err.(*echo.HTTPError).Message)
@@ -125,7 +125,7 @@ func TestConfiguratorUpdateNetworkConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler := obsidian.GetUpdateConfigHandler("google.com", "cfg_network", mockKeyGetter, &configType{})
-	err := handler.MigratedHandlerFunc(c)
+	err := handler.HandlerFunc(c)
 	assert.NoError(t, err)
 	actual, err := configurator.GetNetworkConfigsByType("network1", "cfg_network")
 	assert.NoError(t, err)
@@ -140,7 +140,7 @@ func TestConfiguratorUpdateNetworkConfig(t *testing.T) {
 	c.SetParamNames("network_id")
 	c.SetParamValues("network1")
 
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 	actual, err = configurator.GetNetworkConfigsByType("network1", "cfg_network")
 	assert.NoError(t, err)
@@ -155,7 +155,7 @@ func TestConfiguratorUpdateNetworkConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler = obsidian.GetUpdateConfigHandler("google.com", "err_network", mockKeyGetter, &errValidateType{})
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Equal(t, "Invalid config: hello", err.(*echo.HTTPError).Message)
@@ -178,7 +178,7 @@ func TestConfiguratorDeleteNetworkConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler := obsidian.GetDeleteConfigHandler("google.com", "cfg_network", mockKeyGetter)
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	actual, err := configurator.GetNetworkConfigsByType("network1", "cfg_network")
@@ -186,7 +186,7 @@ func TestConfiguratorDeleteNetworkConfig(t *testing.T) {
 	assert.Nil(t, actual)
 
 	// Double delete - should be no error
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkConfigSerdeDomain)

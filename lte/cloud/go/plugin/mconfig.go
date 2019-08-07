@@ -13,14 +13,16 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
-	"magma/lte/cloud/go/services/cellular/obsidian/models"
+	cellular_models "magma/lte/cloud/go/services/cellular/obsidian/models"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
-	models2 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
@@ -34,7 +36,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	if !found || inwConfig == nil {
 		return nil
 	}
-	cellularNwConfig := inwConfig.(*models.NetworkCellularConfigs)
+	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
 
 	cellGW, err := graph.GetEntity(lte.CellularGatewayType, gatewayID)
 	if err == merrors.ErrNotFound {
@@ -46,7 +48,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	if cellGW.Config == nil {
 		return nil
 	}
-	cellularGwConfig := cellGW.Config.(*models.GatewayCellularConfigs)
+	cellularGwConfig := cellGW.Config.(*cellular_models.GatewayCellularConfigs)
 
 	if err := validateConfigs(cellularNwConfig, cellularGwConfig); err != nil {
 		return err
@@ -73,20 +75,17 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 
 	vals := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
-			Pci:                    int32(gwRan.Pci),
-			Earfcndl:               int32(nwRan.Earfcndl),
-			FddConfig:              getFddConfig(nwRan.FddConfig),
-			TddConfig:              getTddConfig(nwRan.TddConfig),
-			SubframeAssignment:     int32(nwRan.SubframeAssignment),
-			SpecialSubframePattern: int32(nwRan.SpecialSubframePattern),
-			BandwidthMhz:           int32(nwRan.BandwidthMhz),
-			AllowEnodebTransmit:    gwRan.TransmitEnabled,
-			Tac:                    int32(nwEpc.Tac),
-			PlmnidList:             fmt.Sprintf("%s%s", nwEpc.Mcc, nwEpc.Mnc),
-			CsfbRat:                nonEPSServiceMconfig.csfbRat,
-			Arfcn_2G:               nonEPSServiceMconfig.arfcn_2g,
-			EnbConfigsBySerial:     enbConfigsBySerial,
+			LogLevel:            protos.LogLevel_INFO,
+			Pci:                 int32(gwRan.Pci),
+			FddConfig:           getFddConfig(nwRan.FddConfig),
+			TddConfig:           getTddConfig(nwRan.TddConfig),
+			BandwidthMhz:        int32(nwRan.BandwidthMhz),
+			AllowEnodebTransmit: gwRan.TransmitEnabled,
+			Tac:                 int32(nwEpc.Tac),
+			PlmnidList:          fmt.Sprintf("%s%s", nwEpc.Mcc, nwEpc.Mnc),
+			CsfbRat:             nonEPSServiceMconfig.csfbRat,
+			Arfcn_2G:            nonEPSServiceMconfig.arfcn_2g,
+			EnbConfigsBySerial:  enbConfigsBySerial,
 		},
 		"mobilityd": &mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
@@ -104,16 +103,16 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 			CsfbMcc:                  nonEPSServiceMconfig.csfbMcc,
 			CsfbMnc:                  nonEPSServiceMconfig.csfbMnc,
 			Lac:                      nonEPSServiceMconfig.lac,
-			RelayEnabled:             nwEpc.RelayEnabled,
-			CloudSubscriberdbEnabled: nwEpc.CloudSubscriberdbEnabled,
+			RelayEnabled:             swag.BoolValue(nwEpc.RelayEnabled),
+			CloudSubscriberdbEnabled: swag.BoolValue(nwEpc.CloudSubscriberdbEnabled),
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     gwEpc.IPBlock,
 			NatEnabled:    gwEpc.NatEnabled,
-			DefaultRuleId: nwEpc.DefaultRuleID,
-			RelayEnabled:  nwEpc.RelayEnabled,
+			DefaultRuleId: swag.StringValue(nwEpc.DefaultRuleID),
+			RelayEnabled:  swag.BoolValue(nwEpc.RelayEnabled),
 			Services:      pipelineDServices,
 		},
 		"subscriberdb": &mconfig.SubscriberDB{
@@ -121,14 +120,14 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 			LteAuthOp:    nwEpc.LteAuthOp,
 			LteAuthAmf:   nwEpc.LteAuthAmf,
 			SubProfiles:  getSubProfiles(nwEpc),
-			RelayEnabled: nwEpc.RelayEnabled,
+			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
 		},
 		"policydb": &mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
-			RelayEnabled: nwEpc.RelayEnabled,
+			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
 		},
 	}
 	for k, v := range vals {
@@ -137,7 +136,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	return nil
 }
 
-func validateConfigs(nwConfig *models.NetworkCellularConfigs, gwConfig *models.GatewayCellularConfigs) error {
+func validateConfigs(nwConfig *models2.NetworkCellularConfigs, gwConfig *cellular_models.GatewayCellularConfigs) error {
 	if nwConfig == nil {
 		return errors.New("Cellular network config is nil")
 	}
@@ -165,7 +164,7 @@ func shouldEnableDNSCaching(network configurator.Network) bool {
 	if !found || idnsConfig == nil {
 		return false
 	}
-	return idnsConfig.(*models2.NetworkDNSConfig).EnableCaching
+	return swag.BoolValue(idnsConfig.(*models.NetworkDNSConfig).EnableCaching)
 }
 
 type nonEPSServiceMconfigFields struct {
@@ -177,7 +176,7 @@ type nonEPSServiceMconfigFields struct {
 	lac                  int32
 }
 
-func getNonEPSServiceMconfigFields(gwNonEpsService *models.GatewayNonEpsServiceConfigs) nonEPSServiceMconfigFields {
+func getNonEPSServiceMconfigFields(gwNonEpsService *cellular_models.GatewayNonEpsServiceConfigs) nonEPSServiceMconfigFields {
 	if gwNonEpsService == nil {
 		return nonEPSServiceMconfigFields{
 			csfbRat:              mconfig.EnodebD_CSFBRAT_2G,
@@ -230,7 +229,7 @@ func getPipelineDServicesConfig(networkServices []string) ([]mconfig.PipelineD_N
 	return apps, nil
 }
 
-func getFddConfig(fddConfig *models.NetworkRanConfigsFddConfig) *mconfig.EnodebD_FDDConfig {
+func getFddConfig(fddConfig *models2.NetworkRanConfigsFddConfig) *mconfig.EnodebD_FDDConfig {
 	if fddConfig == nil {
 		return nil
 	}
@@ -240,7 +239,7 @@ func getFddConfig(fddConfig *models.NetworkRanConfigsFddConfig) *mconfig.EnodebD
 	}
 }
 
-func getTddConfig(tddConfig *models.NetworkRanConfigsTddConfig) *mconfig.EnodebD_TDDConfig {
+func getTddConfig(tddConfig *models2.NetworkRanConfigsTddConfig) *mconfig.EnodebD_TDDConfig {
 	if tddConfig == nil {
 		return nil
 	}
@@ -261,7 +260,7 @@ func getEnodebConfigsBySerial(enodebs []configurator.NetworkEntity) map[string]*
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		cellularEnbConfig := ienbConfig.(*models.NetworkEnodebConfigs)
+		cellularEnbConfig := ienbConfig.(*cellular_models.NetworkEnodebConfigs)
 		ret[serial] = &mconfig.EnodebD_EnodebConfig{
 			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
 			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
@@ -286,7 +285,7 @@ func getEnodebTacs(enbConfigsBySerial map[string]*mconfig.EnodebD_EnodebConfig) 
 	return ret
 }
 
-func getSubProfiles(epc *models.NetworkEpcConfigs) map[string]*mconfig.SubscriberDB_SubscriptionProfile {
+func getSubProfiles(epc *models2.NetworkEpcConfigs) map[string]*mconfig.SubscriberDB_SubscriptionProfile {
 	if epc.SubProfiles == nil {
 		return map[string]*mconfig.SubscriberDB_SubscriptionProfile{}
 	}

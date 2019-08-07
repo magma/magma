@@ -16,7 +16,7 @@ import (
 
 	"magma/lte/cloud/go/services/policydb"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 
 	"github.com/labstack/echo"
 )
@@ -28,13 +28,13 @@ const (
 
 // listBaseNameHandler returns a list of all charging rule base names in the network
 func listBaseNameHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 	bns, err := policydb.ListBaseNames(networkID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	ruleNames := models.RuleNames{}
 	for _, ruleName := range bns {
@@ -45,28 +45,28 @@ func listBaseNameHandler(c echo.Context) error {
 
 // createBaseNameHandler adds a new charging rule base name to the network
 func createBaseNameHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 	bnr := new(models.BaseNameRecord)
 	if err := c.Bind(bnr); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if _, err := policydb.GetBaseName(networkID, string(bnr.Name)); err == nil {
-		return handlers.HttpError(
+		return obsidian.HttpError(
 			fmt.Errorf("Base Name '%s' already exist", bnr.Name), http.StatusConflict)
 	}
 	// Call policydb service
 	if _, err := policydb.AddBaseName(networkID, string(bnr.Name), []string(bnr.RuleNames)); err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, string(bnr.Name))
 }
 
 // getBaseNameHandler returns the charging rule base name record associated with base_name
 func getBaseNameHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -77,7 +77,7 @@ func getBaseNameHandler(c echo.Context) error {
 	// Call policydb service
 	ruleNames, err := policydb.GetBaseName(networkID, baseName)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 
 	return c.JSON(http.StatusOK, ruleNames)
@@ -85,7 +85,7 @@ func getBaseNameHandler(c echo.Context) error {
 
 // updateBaseNameHandler modifies the charging rule base name
 func updateBaseNameHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -94,22 +94,22 @@ func updateBaseNameHandler(c echo.Context) error {
 		return baseNameHTTPErr()
 	}
 	if _, err := policydb.GetBaseName(networkID, baseName); err != nil {
-		return handlers.HttpError(
+		return obsidian.HttpError(
 			fmt.Errorf("Base Name '%s' is not found exist", baseName), http.StatusNotFound)
 	}
 	ruleNames := models.RuleNames{}
 	if err := c.Bind(&ruleNames); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if _, err := policydb.AddBaseName(networkID, string(baseName), []string(ruleNames)); err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
 
 // deleteBaseNameHandler deletes the charging rule base name
 func deleteBaseNameHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -119,13 +119,13 @@ func deleteBaseNameHandler(c echo.Context) error {
 	}
 	// Call policydb service
 	if err := policydb.DeleteBaseName(networkID, baseName); err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
 func baseNameHTTPErr() *echo.HTTPError {
-	return handlers.HttpError(
+	return obsidian.HttpError(
 		fmt.Errorf("Invalid/Missing Base Name"),
 		http.StatusBadRequest)
 }

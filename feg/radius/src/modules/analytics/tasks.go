@@ -1,0 +1,112 @@
+package analytics
+
+import (
+	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/session"
+	"time"
+
+	"go.uber.org/zap"
+)
+
+type (
+
+	// a task to wrap a GraphQL "CreateSession" operation to be serialized with all operations of this session
+	createSessionTask struct {
+		Logger       *zap.Logger
+		reqCtx       *modules.RequestContext
+		session      *RadiusSession
+		sessionState *session.State
+	}
+
+	// a task to wrap a GraphQL "UpdateSession" operation to be serialized with all operations of this session
+	updateSessionTask struct {
+		Logger       *zap.Logger
+		reqCtx       *modules.RequestContext
+		session      *RadiusSession
+		sessionState *session.State
+	}
+)
+
+// Run to be called by task execution engine
+func (op *createSessionTask) Run() {
+	createRadiusSession(op.Logger, op.reqCtx, op.session, op.sessionState)
+}
+
+// Run to be called by task execution engine
+func (op *updateSessionTask) Run() {
+	updateRadiusSession(op.Logger, op.reqCtx, op.session, op.sessionState)
+}
+
+// do the GraphQL call to create the RadiusSession
+func createRadiusSession(logger *zap.Logger, c *modules.RequestContext, session *RadiusSession, sessionState *session.State) {
+	logger.Debug("Creating a new RADIUS session", zap.Any("radius_session", session))
+	if cfg.DryRunGraphQL {
+		sessionState.RadiusSessionFBID = uint64(time.Now().UnixNano())
+		time.Sleep(time.Millisecond) // provide some delay for GraphQL calls
+		logger.Debug("GraphQL is in dry-run mode !!!", zap.Any("radius_session", session))
+	} else {
+		createOp := NewCreateSessionOp(session)
+		err := graphqlClient.Do(createOp)
+		if err != nil {
+			logger.Error("failed creating session", zap.Any("radius_session", &session),
+				zap.Error(err))
+			return
+		}
+		logger.Warn("session created", zap.Uint64("fbid", sessionState.RadiusSessionFBID))
+		sessionState.RadiusSessionFBID = createOp.Response().FBID
+	}
+
+	// Persist state
+	err := c.SessionStorage.Set(*sessionState)
+	if err != nil {
+		logger.Error("failed to update session", zap.Error(err), zap.Any("session_state", sessionState))
+	}
+}
+
+// do the GraphQL call to update the RadiusSession
+func updateRadiusSession(logger *zap.Logger, c *modules.RequestContext, session *RadiusSession, sessionState *session.State) {
+	if cfg.DryRunGraphQL {
+		time.Sleep(time.Millisecond) // provide some delay for GraphQL calls
+		logger.Debug("GraphQL is in dry-run mode !!!", zap.Any("radius_session", session))
+	} else {
+		updateOp := NewUpdateSessionOp(session)
+		err := graphqlClient.Do(updateOp)
+		if err != nil {
+			logger.Error("failed updating session", zap.Any("radius_session", &session),
+				zap.Error(err))
+			return
+		}
+	}
+
+	// Persist state
+	err := c.SessionStorage.Set(*sessionState)
+	if err != nil {
+		logger.Error("failed to update session", zap.Error(err), zap.Any("session_state", sessionState))
+	}
+}
+
+// push a lazy task to the queue
+// create the queue if it doesnt exist yet
+func pushGraphQLTask(logger *zap.Logger, task Request, sessionState *session.State) {
+	// create a queue if not exist
+	q := graphQLOps[sessionState.AcctSessionID]
+	if q == nil {
+		// no queue for the session - create one
+		q = NewAnalyticsQueue()
+		graphQLOps[sessionState.AcctSessionID] = q
+		logger.Debug("Creating graphql queue", zap.String("acct_session_id", sessionState.AcctSessionID))
+	}
+	q.Push(task)
+}
+
+// cleanSessionTasks drain tasks & delete the queue from the map
+func cleanSessionTasks(logger *zap.Logger, sessionState *session.State) {
+	q := graphQLOps[sessionState.AcctSessionID]
+	if q == nil {
+		return
+	}
+	q.Close(true)
+	delete(graphQLOps, sessionState.AcctSessionID)
+	logger.Debug("drained graphql queue", zap.String("acct_session_id", sessionState.AcctSessionID),
+		zap.Bool("is_exist", q != nil))
+}

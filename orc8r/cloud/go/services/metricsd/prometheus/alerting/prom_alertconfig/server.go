@@ -23,9 +23,6 @@ import (
 const (
 	defaultPort          = "9093"
 	defaultPrometheusURL = "localhost:9090"
-
-	rootPath  = "/:network_id"
-	alertPath = rootPath + "/alert"
 )
 
 func main() {
@@ -36,17 +33,20 @@ func main() {
 
 	e := echo.New()
 
-	alertClient, err := alert.NewClient(*rulesDir)
+	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*rulesDir))
+	alertClient := alert.NewClient(fileLocks, *rulesDir, alert.NewFSClient())
 	if err != nil {
 		glog.Errorf("error creating alert client: %v", err)
 		return
 	}
 	e.GET("/", statusHandler)
 
-	e.POST(alertPath, handlers.GetPostHandler(alertClient, *prometheusURL))
-	e.GET(alertPath, handlers.GetGetHandler(alertClient))
-	e.DELETE(alertPath, handlers.GetDeleteHandler(alertClient, *prometheusURL))
-	e.PUT(alertPath+"/:"+handlers.RuleNamePathParam, handlers.GetUpdateAlertHandler(alertClient, *prometheusURL))
+	e.POST(handlers.AlertPath, handlers.GetConfigureAlertHandler(alertClient, *prometheusURL))
+	e.GET(handlers.AlertPath, handlers.GetRetrieveAlertHandler(alertClient))
+	e.DELETE(handlers.AlertPath, handlers.GetDeleteAlertHandler(alertClient, *prometheusURL))
+	e.PUT(handlers.AlertUpdatePath, handlers.GetUpdateAlertHandler(alertClient, *prometheusURL))
+
+	e.PUT(handlers.AlertBulkPath, handlers.GetBulkAlertUpdateHandler(alertClient, *prometheusURL))
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))

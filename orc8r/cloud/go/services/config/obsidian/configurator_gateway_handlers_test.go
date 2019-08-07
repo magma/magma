@@ -66,7 +66,7 @@ func TestConfiguratorCreateGatewayConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	handler := obsidian.GetCreateConfigHandler("google.com", "cfg_gateway", mockKeyGetter, &configType{})
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 	actual, err := configurator.LoadEntity("network1", "cfg_gateway", "key", configurator.EntityLoadCriteria{LoadConfig: true})
 	assert.NoError(t, err)
@@ -81,7 +81,7 @@ func TestConfiguratorCreateGatewayConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler = obsidian.GetCreateConfigHandler("google.com", "err_gateway", mockKeyGetter, &errValidateType{})
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.Equal(t, "Invalid config: hello", err.(*echo.HTTPError).Message)
@@ -113,7 +113,7 @@ func TestConfiguratorDeleteGatewayConfig(t *testing.T) {
 	c.SetParamValues("network1")
 
 	handler := obsidian.GetDeleteConfigHandler("google.com", "cfg_gateway", mockKeyGetter)
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	actual, err := configurator.LoadEntity("network1", "cfg_gateway", "key", configurator.EntityLoadCriteria{LoadConfig: true})
@@ -121,7 +121,7 @@ func TestConfiguratorDeleteGatewayConfig(t *testing.T) {
 	assert.Equal(t, configurator.NetworkEntity{}, actual)
 
 	// Double delete - should be no error
-	err = handler.MigratedHandlerFunc(c)
+	err = handler.HandlerFunc(c)
 	assert.NoError(t, err)
 
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)

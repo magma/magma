@@ -16,8 +16,7 @@ import (
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/config"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -28,6 +27,7 @@ import (
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory/mocks"
+	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_test_utils "magma/orc8r/cloud/go/services/state/test_utils"
 
@@ -40,7 +40,7 @@ func TestGetViewsForNetwork(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	// Set up test
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	// Generate input/output objects
 	networkID := "net1"
@@ -80,7 +80,7 @@ func TestGetViewsForNetwork(t *testing.T) {
 func TestGetViewsForNetworkEmptyResponse(t *testing.T) {
 	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	networkID := "badid"
 
@@ -110,10 +110,11 @@ func TestGetViewsForNetwork_Full(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
+	magmad_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 
 	testURLRoot := fmt.Sprintf(
-		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+		"http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 	networkID := "magmad_obsidian_test_network"
 	registerNetworkWithIDTestCase := tests.Testcase{
 		Name:                      "Register Network with Requested ID",
@@ -202,7 +203,7 @@ func TestGetGatewayViews_QueryType2(t *testing.T) {
 
 func testGetGatewayViews(t *testing.T, queryString string) {
 	mockStore := &mocks.FullGatewayViewFactory{}
-	config.TLS = false
+	obsidian.TLS = false
 
 	networkID := "net1"
 	gatewayIDs := []string{"gw0", "gw1", "badgw"}

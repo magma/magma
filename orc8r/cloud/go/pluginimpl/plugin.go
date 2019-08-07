@@ -10,13 +10,14 @@ package pluginimpl
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
-	obsidianh "magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/obsidian/handlers/hello"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/config"
@@ -24,11 +25,9 @@ import (
 	accessdh "magma/orc8r/cloud/go/services/accessd/obsidian/handlers"
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
-	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/device"
 	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
-	dnsdmodels "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	magmadmodels "magma/orc8r/cloud/go/services/magmad/obsidian/models"
@@ -45,6 +44,8 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
 	upgrademodels "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
+
+	"github.com/labstack/echo"
 )
 
 // BaseOrchestratorPlugin is the OrchestratorPlugin for the orc8r module
@@ -71,8 +72,8 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &magmadmodels.AccessGatewayRecord{}),
 
 		// Config manager serdes
-		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &dnsdmodels.NetworkDNSConfig{}),
-		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &magmadmodels.NetworkFeatures{}),
+		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models.NetworkDNSConfig{}),
+		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &models.NetworkFeatures{}),
 
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &magmadmodels.MagmadGatewayConfig{}),
 		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &upgrademodels.ReleaseChannel{}),
@@ -104,17 +105,28 @@ func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMa
 	return getMetricsProfiles(metricsConfig)
 }
 
-func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidianh.Handler {
+func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
+		// v0 handlers
 		accessdh.GetObsidianHandlers(),
 		checkinh.GetObsidianHandlers(),
 		dnsdh.GetObsidianHandlers(),
 		magmadh.GetObsidianHandlers(),
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		upgradeh.GetObsidianHandlers(),
-		hello.GetObsidianHandlers(),
 		stateh.GetObsidianHandlers(),
-		configuratorh.GetObsidianHandlers(),
+		// v1 handlers
+		GetObsidianHandlers(),
+		[]obsidian.Handler{{
+			Path:    "/",
+			Methods: obsidian.GET,
+			HandlerFunc: func(c echo.Context) error {
+				return c.JSON(
+					http.StatusOK,
+					"hello",
+				)
+			},
+		}},
 	)
 }
 

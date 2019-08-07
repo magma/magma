@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
@@ -63,7 +63,7 @@ func getURL(restPort int, networkID string, hwID string) string {
 	url := fmt.Sprintf(
 		"http://localhost:%d%s/networks/%s/gateways/%s/gateway_status",
 		restPort,
-		handlers.REST_ROOT,
+		obsidian.RestRoot,
 		networkID,
 		hwID,
 	)

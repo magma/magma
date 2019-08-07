@@ -12,7 +12,7 @@ import (
 	"errors"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/plugin/mocks"
 	"magma/orc8r/cloud/go/registry"
@@ -48,7 +48,7 @@ func TestLoadAllPlugins(t *testing.T) {
 	mockPlugin.On("GetLegacyMconfigBuilders").Return([]factory.MconfigBuilder{})
 	mockPlugin.On("GetMconfigBuilders").Return([]configurator.MconfigBuilder{})
 	mockPlugin.On("GetMetricsProfiles", mock.Anything).Times(1).Return([]metricsd.MetricsProfile{})
-	mockPlugin.On("GetObsidianHandlers", mock.Anything).Return([]handlers.Handler{})
+	mockPlugin.On("GetObsidianHandlers", mock.Anything).Return([]obsidian.Handler{})
 	mockPlugin.On("GetStreamerProviders").Return([]providers.StreamProvider{})
 	err := plugin.LoadAllPlugins(mockLoader{ret: mockPlugin})
 	assert.NoError(t, err)

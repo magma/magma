@@ -22,12 +22,10 @@ type SLACKReceiver struct {
 	APIURL *string `json:"api_url"`
 
 	// channel
-	// Required: true
-	Channel *string `json:"channel"`
+	Channel string `json:"channel,omitempty"`
 
 	// username
-	// Required: true
-	Username *string `json:"username"`
+	Username string `json:"username,omitempty"`
 }
 
 // Validate validates this slack receiver
@@ -35,14 +33,6 @@ func (m *SLACKReceiver) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAPIURL(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateChannel(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateUsername(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -55,24 +45,6 @@ func (m *SLACKReceiver) Validate(formats strfmt.Registry) error {
 func (m *SLACKReceiver) validateAPIURL(formats strfmt.Registry) error {
 
 	if err := validate.Required("api_url", "body", m.APIURL); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *SLACKReceiver) validateChannel(formats strfmt.Registry) error {
-
-	if err := validate.Required("channel", "body", m.Channel); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *SLACKReceiver) validateUsername(formats strfmt.Registry) error {
-
-	if err := validate.Required("username", "body", m.Username); err != nil {
 		return err
 	}
 

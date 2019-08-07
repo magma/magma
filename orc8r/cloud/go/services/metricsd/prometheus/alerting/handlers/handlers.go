@@ -10,19 +10,24 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
 
 const (
+	AlertPath       = rootPath + "/alert"
+	AlertUpdatePath = AlertPath + "/:" + RuleNamePathParam
+	AlertBulkPath   = AlertPath + "/bulk"
+
 	prometheusReloadPath = "/-/reload"
 	ruleNameQueryParam   = "alert_name"
 	RuleNamePathParam    = "alert_name"
 )
 
-// GetPostHandler returns a handler that calls the client method WriteAlert() to
+// GetConfigureAlertHandler returns a handler that calls the client method WriteAlert() to
 // write the alert configuration from the body of this request
-func GetPostHandler(client *alert.Client, prometheusURL string) func(c echo.Context) error {
+func GetConfigureAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		rule, err := decodeRulePostRequest(c)
 		if err != nil {
@@ -35,11 +40,11 @@ func GetPostHandler(client *alert.Client, prometheusURL string) func(c echo.Cont
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		if client.RuleExists(rule.Alert, networkID) {
+		if client.RuleExists(networkID, rule.Alert) {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' already exists", rule.Alert))
 		}
 
-		err = client.WriteRule(rule, networkID)
+		err = client.WriteRule(networkID, rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -52,11 +57,11 @@ func GetPostHandler(client *alert.Client, prometheusURL string) func(c echo.Cont
 	}
 }
 
-func GetGetHandler(client *alert.Client) func(c echo.Context) error {
+func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
 		networkID := getNetworkID(c)
-		rules, err := client.ReadRules(ruleName, networkID)
+		rules, err := client.ReadRules(networkID, ruleName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -69,14 +74,14 @@ func GetGetHandler(client *alert.Client) func(c echo.Context) error {
 	}
 }
 
-func GetDeleteHandler(client *alert.Client, prometheusURL string) func(c echo.Context) error {
+func GetDeleteAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
 		networkID := getNetworkID(c)
 		if ruleName == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
 		}
-		err := client.DeleteRule(ruleName, networkID)
+		err := client.DeleteRule(networkID, ruleName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -88,7 +93,7 @@ func GetDeleteHandler(client *alert.Client, prometheusURL string) func(c echo.Co
 	}
 }
 
-func GetUpdateAlertHandler(client *alert.Client, prometheusURL string) func(c echo.Context) error {
+func GetUpdateAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.Param(RuleNamePathParam)
 		networkID := getNetworkID(c)
@@ -96,7 +101,7 @@ func GetUpdateAlertHandler(client *alert.Client, prometheusURL string) func(c ec
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
 		}
 
-		if !client.RuleExists(ruleName, networkID) {
+		if !client.RuleExists(networkID, ruleName) {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' does not exist", ruleName))
 		}
 
@@ -110,7 +115,7 @@ func GetUpdateAlertHandler(client *alert.Client, prometheusURL string) func(c ec
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.UpdateRule(rule, networkID)
+		err = client.UpdateRule(networkID, rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -120,6 +125,35 @@ func GetUpdateAlertHandler(client *alert.Client, prometheusURL string) func(c ec
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)
+	}
+}
+
+func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID := getNetworkID(c)
+
+		rules, err := decodeBulkRulesPostRequest(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		for _, rule := range rules {
+			err = client.ValidateRule(rule)
+			if err != nil {
+				return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+			}
+		}
+
+		results, err := client.BulkUpdateRules(networkID, rules)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		err = reloadPrometheus(prometheusURL)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, results)
 	}
 }
 
@@ -136,7 +170,24 @@ func decodeRulePostRequest(c echo.Context) (rulefmt.Rule, error) {
 	return payload, nil
 }
 
+func decodeBulkRulesPostRequest(c echo.Context) ([]rulefmt.Rule, error) {
+	body, err := ioutil.ReadAll(c.Request().Body)
+	if err != nil {
+		return []rulefmt.Rule{}, fmt.Errorf("error reading request body: %v", err)
+	}
+	var payload []rulefmt.Rule
+	err = json.Unmarshal(body, &payload)
+	if err != nil {
+		return payload, fmt.Errorf("error unmarshalling payload: %v", err)
+	}
+	return payload, nil
+}
+
 func reloadPrometheus(url string) error {
+	if url == "" {
+		glog.Info("Not reloading prometheus. No url given.")
+		return nil
+	}
 	resp, err := http.Post(fmt.Sprintf("http://%s%s", url, prometheusReloadPath), "text/plain", &bytes.Buffer{})
 	if err != nil {
 		return fmt.Errorf("error reloading prometheus: %v", err)

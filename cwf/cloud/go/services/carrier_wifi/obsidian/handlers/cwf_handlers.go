@@ -12,7 +12,7 @@ package handlers
 import (
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	configuratorhandlers "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
 	networkpath "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 )
@@ -22,6 +22,6 @@ const (
 )
 
 // GetObsidianHandlers returns all obsidian handlers for cwf
-func GetObsidianHandlers() []handlers.Handler {
+func GetObsidianHandlers() []obsidian.Handler {
 	return configuratorhandlers.GetCRUDNetworkConfigHandlers(NetworkConfigPath, cwf.CwfNetworkType, &models.NetworkCarrierWifiConfigs{})
 }

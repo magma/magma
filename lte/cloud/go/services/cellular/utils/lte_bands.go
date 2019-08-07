@@ -12,11 +12,11 @@ import "fmt"
 
 // LTEBand struct for converting EARFCN to Band
 type LTEBand struct {
-	ID            int32
+	ID            uint32
 	Mode          DuplexMode
-	CountEarfcn   int32
-	StartEarfcnDl int32
-	StartEarfcnUl int32
+	CountEarfcn   uint32
+	StartEarfcnDl uint32
+	StartEarfcnUl uint32
 }
 
 // DuplexMode of LTE Band
@@ -45,12 +45,12 @@ var bands = [...]LTEBand{
 }
 
 // EarfcnDLInRange checks that an EARFCN-DL belongs to a band
-func (band LTEBand) EarfcnDLInRange(earfcndl int32) bool {
+func (band LTEBand) EarfcnDLInRange(earfcndl uint32) bool {
 	return band.StartEarfcnDl <= earfcndl && earfcndl < band.StartEarfcnDl+band.CountEarfcn
 }
 
 // EarfcnULInRange checks that an EARFCN-UL belongs to a band
-func (band LTEBand) EarfcnULInRange(earfcnul int32) bool {
+func (band LTEBand) EarfcnULInRange(earfcnul uint32) bool {
 	if band.Mode == FDDMode {
 		return band.StartEarfcnUl <= earfcnul && earfcnul < band.StartEarfcnUl+band.CountEarfcn
 	}
@@ -58,7 +58,7 @@ func (band LTEBand) EarfcnULInRange(earfcnul int32) bool {
 }
 
 // GetBand for a EARFCN-UL
-func GetBand(earfcndl int32) (*LTEBand, error) {
+func GetBand(earfcndl uint32) (*LTEBand, error) {
 	for _, band := range bands {
 		if band.EarfcnDLInRange(earfcndl) {
 			return &band, nil

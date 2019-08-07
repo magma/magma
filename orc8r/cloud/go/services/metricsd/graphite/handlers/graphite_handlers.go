@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"time"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/metricsd/graphite/security"
 	"magma/orc8r/cloud/go/services/metricsd/graphite/third_party/api"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
@@ -24,8 +24,9 @@ import (
 const (
 	queryPart = "query"
 
-	QueryURL = handlers.GRAPHITE_ROOT + handlers.URL_SEP + queryPart
-	Protocol = "http"
+	GraphiteRoot = obsidian.RestRoot + obsidian.UrlSep + "networks" + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "graphite"
+	QueryURL     = GraphiteRoot + obsidian.UrlSep + queryPart
+	Protocol     = "http"
 )
 
 func GetQueryHandler(gc *api.Client) func(c echo.Context) error {
@@ -37,18 +38,18 @@ func GetQueryHandler(gc *api.Client) func(c echo.Context) error {
 func graphiteQuery(c echo.Context, gc *api.Client) error {
 	startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), nil)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
 	defaultTime := time.Now()
 	endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &defaultTime)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+		return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 	}
 
 	preparedQuery, err := prepareQuery(c)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("unable to prepare query: %v", err))
+		return obsidian.HttpError(fmt.Errorf("unable to prepare query: %v", err))
 	}
 
 	renderRequest := api.RenderRequest{
@@ -59,7 +60,7 @@ func graphiteQuery(c echo.Context, gc *api.Client) error {
 
 	res, err := gc.QueryRender(renderRequest)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, wrapGraphiteResult(res))
 }
@@ -69,7 +70,7 @@ func wrapGraphiteResult(res []api.Series) GraphiteResultStruct {
 }
 
 func prepareQuery(c echo.Context) (string, error) {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return "", nerr
 	}

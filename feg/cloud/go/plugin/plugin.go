@@ -16,7 +16,7 @@ import (
 	fegconfig "magma/feg/cloud/go/services/controller/config"
 	fegh "magma/feg/cloud/go/services/controller/obsidian/handlers"
 	"magma/feg/cloud/go/services/controller/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -72,7 +72,7 @@ func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.Config
 	return []metricsd.MetricsProfile{}
 }
 
-func (*FegOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []handlers.Handler {
+func (*FegOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		fegh.GetObsidianHandlers(),
 	)

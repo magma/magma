@@ -14,7 +14,7 @@ import (
 	"reflect"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
@@ -45,7 +45,7 @@ func configuratorCreateNetworkConfig(c echo.Context, networkID string, configTyp
 	}
 	err := configurator.UpdateNetworkConfig(networkID, configType, config)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, networkID)
 }
@@ -53,7 +53,7 @@ func configuratorCreateNetworkConfig(c echo.Context, networkID string, configTyp
 func configuratorGetNetworkConfig(c echo.Context, networkID string, configType string) error {
 	cfg, err := configurator.GetNetworkConfigsByType(networkID, configType)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	if cfg == nil {
 		return echo.NewHTTPError(http.StatusNotFound)
@@ -68,7 +68,7 @@ func configuratorUpdateNetworkConfig(c echo.Context, networkID string, configTyp
 	}
 	err := configurator.UpdateNetworkConfig(networkID, configType, config)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -76,7 +76,7 @@ func configuratorUpdateNetworkConfig(c echo.Context, networkID string, configTyp
 func configuratorDeleteNetworkConfig(c echo.Context, networkID string, configType string) error {
 	err := configurator.DeleteNetworkConfig(networkID, configType)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -84,10 +84,10 @@ func configuratorDeleteNetworkConfig(c echo.Context, networkID string, configTyp
 func GetConfigAndValidate(c echo.Context, iConfig interface{}) (ConvertibleUserModel, error) {
 	cfgInstance := reflect.New(reflect.TypeOf(iConfig).Elem()).Interface().(ConvertibleUserModel)
 	if err := c.Bind(cfgInstance); err != nil {
-		return nil, handlers.HttpError(err, http.StatusBadRequest)
+		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := cfgInstance.ValidateModel(); err != nil {
-		return nil, handlers.HttpError(fmt.Errorf("Invalid config: %s", err), http.StatusBadRequest)
+		return nil, obsidian.HttpError(fmt.Errorf("Invalid config: %s", err), http.StatusBadRequest)
 	}
 	return cfgInstance, nil
 }

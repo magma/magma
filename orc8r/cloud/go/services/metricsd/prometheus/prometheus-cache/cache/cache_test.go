@@ -9,16 +9,32 @@
 package cache
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/labstack/echo"
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
+	"github.com/prometheus/common/expfmt"
 	"github.com/stretchr/testify/assert"
 )
 
 const (
 	timestamp = 1559953047
+
+	sampleReceiveString = `
+# HELP http_requests_total The total number of HTTP requests.
+# TYPE http_requests_total counter
+http_requests_total{method="post",code="200"} 1027 1395066363000
+http_requests_total{method="post",code="400"}    3 1395066363000
+
+# HELP cpu_usage The total number of HTTP requests.
+# TYPE cpu_usage gauge
+cpu_usage{host="A"} 1027 1395066363000
+cpu_usage{host="B"}    3 1395066363000
+`
 )
 
 var (
@@ -26,6 +42,81 @@ var (
 	testValue  = "testValue"
 	testLabels = []*dto.LabelPair{{Name: &testName, Value: &testValue}}
 )
+
+func TestReceiveMetrics(t *testing.T) {
+	cache := NewMetricCache(0)
+	resp, err := receiveString(cache, sampleReceiveString)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.Code)
+
+	// Check Internal Metrics
+	assert.Equal(t, 4, int(getGaugeValue(cache.internalMetrics[internalMetricCacheSize])))
+	assert.Equal(t, 0, int(getGaugeValue(cache.internalMetrics[internalMetricCacheLimit])))
+}
+
+func TestReceiveOverLimit(t *testing.T) {
+	cache := NewMetricCache(1)
+	resp, err := receiveString(cache, sampleReceiveString)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusNotAcceptable, resp.Code)
+
+	assert.Equal(t, 0, int(getGaugeValue(cache.internalMetrics[internalMetricCacheSize])))
+	assert.Equal(t, 1, int(getGaugeValue(cache.internalMetrics[internalMetricCacheLimit])))
+}
+
+func TestReceiveBadMetrics(t *testing.T) {
+	cache := NewMetricCache(0)
+	resp, _ := receiveString(cache, "bad metric string")
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func receiveString(cache *MetricCache, receiveString string) (*httptest.ResponseRecorder, error) {
+	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(receiveString))
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+
+	err := cache.Receive(c)
+	return rec, err
+}
+
+func TestScrape(t *testing.T) {
+	cache := NewMetricCache(0)
+	_, err := receiveString(cache, sampleReceiveString)
+	assert.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+
+	err = cache.Scrape(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// parse the output to make sure it gives valid response
+	var parser expfmt.TextParser
+	parsedFamilies, err := parser.TextToMetricFamilies(rec.Body)
+	assert.NoError(t, err)
+	assert.Equal(t, 4, len(parsedFamilies))
+}
+
+func TestDebugEndpoint(t *testing.T) {
+	cache := NewMetricCache(10)
+	_, err := receiveString(cache, sampleReceiveString)
+	assert.NoError(t, err)
+
+	req := httptest.NewRequest(http.MethodGet, "/debug", nil)
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+
+	err = cache.Debug(c)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	assert.Equal(t, 4, cache.stats.currentCountSeries)
+	assert.Equal(t, 2, cache.stats.currentCountFamilies)
+	assert.Equal(t, 4, cache.stats.currentCountDatapoints)
+	assert.Equal(t, 2, cache.stats.lastReceiveNumFamilies)
+}
 
 func TestCacheMetrics(t *testing.T) {
 	cacheSingleFamily(t, 1)
@@ -134,6 +225,12 @@ mf1 234 2
 mf1 456 3
 `
 	assert.Equal(t, expectedExpositionText, cache.exposeMetrics(cache.familyMap))
+}
+
+func getGaugeValue(gauge prometheus.Gauge) float64 {
+	var dtoMetric dto.Metric
+	gauge.Write(&dtoMetric)
+	return *dtoMetric.Gauge.Value
 }
 
 func makeFamily(familyType dto.MetricType, familyName string, numMetrics int, labels []*dto.LabelPair, timestamp int64) *dto.MetricFamily {

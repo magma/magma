@@ -92,7 +92,7 @@ func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID st
 		return nil, status.Errorf(codes.Internal, "failed to load entity graph: %s", err)
 	}
 
-	nwLoad, err := store.LoadNetworks([]string{networkID}, storage.FullNetworkLoadCriteria)
+	nwLoad, err := store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{networkID}}, storage.FullNetworkLoadCriteria)
 	if err != nil {
 		storage.RollbackLogOnError(store)
 		return nil, status.Errorf(codes.Internal, "failed to load network: %s", err)

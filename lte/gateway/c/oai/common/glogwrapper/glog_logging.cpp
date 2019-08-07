@@ -99,11 +99,11 @@ void init_logging(const char *app_name, uint32_t default_verbosity) {
   }
 }
 
+void flush_log(int32_t log_level) {
+  google::FlushLogFiles(log_level);
+}
 
 void log_string(int32_t log_level, const char *str) {
   VLOG(log_level) << str;
-}
-
-void flush_log(int32_t log_level) {
-  google::FlushLogFiles(log_level);
+  flush_log(log_level);
 }

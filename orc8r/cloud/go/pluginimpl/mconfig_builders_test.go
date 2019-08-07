@@ -13,13 +13,14 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	models3 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	models2 "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
+	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,7 +30,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
 		Key:  "gw1",
-		Config: &models.MagmadGatewayConfig{
+		Config: &magmad_models.MagmadGatewayConfig{
 			AutoupgradeEnabled:      true,
 			AutoupgradePollInterval: 300,
 			CheckinInterval:         60,
@@ -68,10 +69,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	tier := configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType,
 		Key:  "default",
-		Config: &models2.Tier{
+		Config: &upgrade_models.Tier{
 			Name:    "default",
 			Version: "1.0.0-0",
-			Images: []*models2.TierImagesItems0{
+			Images: []*upgrade_models.TierImagesItems0{
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
@@ -112,7 +113,7 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
 		Key:  "gw1",
-		Config: &models.MagmadGatewayConfig{
+		Config: &magmad_models.MagmadGatewayConfig{
 			AutoupgradeEnabled:      true,
 			AutoupgradePollInterval: 300,
 			CheckinInterval:         60,
@@ -135,10 +136,10 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	nw.Configs = map[string]interface{}{
-		"dnsd_network": &models3.NetworkDNSConfig{
-			EnableCaching: true,
-			LocalTTL:      100,
-			Records: []*models3.NetworkDNSConfigRecordsItems0{
+		"dnsd_network": &models.NetworkDNSConfig{
+			EnableCaching: swag.Bool(true),
+			LocalTTL:      swag.Uint32(100),
+			Records: []*models.DNSConfigRecord{
 				{
 					ARecord:     []string{"hello", "world"},
 					AaaaRecord:  []string{"foo", "bar"},

@@ -29,6 +29,7 @@ const (
 	AAA_SERVER    = "AAA_SERVER"
 	EAP           = "EAP"
 	EAP_AKA       = "EAP_AKA"
+	RADIUSD       = "RADIUSD"
 	RADIUS        = "RADIUS"
 	REDIS         = "REDIS"
 	MOCK_VLR      = "MOCK_VLR"
@@ -75,6 +76,7 @@ func init() {
 	addLocalService(AAA_SERVER, 9109)
 	addLocalService(EAP_AKA, 9123)
 	addLocalService(SWX_PROXY, 9110)
+	addLocalService(RADIUSD, 9115)
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)

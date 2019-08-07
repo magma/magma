@@ -11,13 +11,14 @@ package pluginimpl
 import (
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	models3 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
-	models2 "magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
+	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -41,7 +42,7 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 	}
 
 	if magmadGateway.Config != nil {
-		magmadGatewayConfig := magmadGateway.Config.(*models2.MagmadGatewayConfig)
+		magmadGatewayConfig := magmadGateway.Config.(*magmad_models.MagmadGatewayConfig)
 		mconfigOut["magmad"] = &mconfig.MagmaD{
 			LogLevel:                protos.LogLevel_INFO,
 			CheckinInterval:         magmadGatewayConfig.CheckinInterval,
@@ -71,7 +72,7 @@ func getPackageVersionAndImages(magmadGateway configurator.NetworkEntity, graph 
 		return "0.0.0-0", []*mconfig.ImageSpec{}, errors.Wrap(err, "failed to load upgrade tier")
 	}
 
-	tierConfig := tier.Config.(*models.Tier)
+	tierConfig := tier.Config.(*upgrade_models.Tier)
 	retImages := make([]*mconfig.ImageSpec, 0, len(tierConfig.Images))
 	for _, image := range tierConfig.Images {
 		retImages = append(retImages, &mconfig.ImageSpec{Name: image.Name, Order: image.Order})
@@ -87,9 +88,11 @@ func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph confi
 		return nil
 	}
 
-	dnsConfig := iConfig.(*models3.NetworkDNSConfig)
+	dnsConfig := iConfig.(*models.NetworkDNSConfig)
 	mconfigDnsd := &mconfig.DnsD{}
 	protos.FillIn(dnsConfig, mconfigDnsd)
+	mconfigDnsd.LocalTTL = int32(swag.Uint32Value(dnsConfig.LocalTTL))
+	mconfigDnsd.EnableCaching = swag.BoolValue(dnsConfig.EnableCaching)
 	mconfigDnsd.LogLevel = protos.LogLevel_INFO
 	for _, record := range dnsConfig.Records {
 		mconfigRecord := &mconfig.NetworkDNSConfigRecordsItems{}

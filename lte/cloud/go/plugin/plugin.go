@@ -10,6 +10,7 @@ package plugin
 
 import (
 	"magma/lte/cloud/go/lte"
+	models4 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/cellular/config"
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
 	"magma/lte/cloud/go/services/cellular/obsidian/models"
@@ -22,7 +23,7 @@ import (
 	subscriberdbh "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	models3 "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	subscriberdbstreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -52,6 +53,7 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
+		// Legacy serdes
 		&config.CellularNetworkConfigManager{},
 		&config.CellularGatewayConfigManager{},
 		&config.CellularEnodebConfigManager{},
@@ -61,7 +63,7 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		state.NewStateSerde(lte.SubscriberStateType, &models3.SubscriberState{}),
 
 		// Configurator serdes
-		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models.NetworkCellularConfigs{}),
+		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models4.NetworkCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &models.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &models.NetworkEnodebConfigs{}),
 
@@ -87,12 +89,13 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.Config
 	return []metricsd.MetricsProfile{}
 }
 
-func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []handlers.Handler {
+func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		cellularh.GetObsidianHandlers(),
 		meteringdh.GetObsidianHandlers(),
 		policydbh.GetObsidianHandlers(),
 		subscriberdbh.GetObsidianHandlers(),
+		getNetworkHandlers(),
 	)
 }
 

@@ -21,6 +21,7 @@ const (
 	Notify                    = 323
 	PurgeUE                   = 321
 	ReAuth                    = 258
+	RegistrationTermination   = 304
 	Reset                     = 322
 	ServerAssignment          = 301
 	SessionTermination        = 275
@@ -57,6 +58,8 @@ const (
 	RAR = "RAR"
 	RSA = "RSA"
 	RSR = "RSR"
+	RTA = "RTA"
+	RTR = "RTR"
 	SAA = "SAA"
 	SAR = "SAR"
 	STA = "STA"
