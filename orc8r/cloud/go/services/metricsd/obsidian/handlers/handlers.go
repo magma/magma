@@ -44,13 +44,19 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 		)
 	}
 
-	graphiteQueryHost := configMap.GetRequiredStringParam(confignames.GraphiteQueryAddress)
-	graphiteQueryPort := configMap.GetRequiredIntParam(confignames.GraphiteQueryPort)
-	graphiteQueryAddress := fmt.Sprintf("%s://%s:%d", graphiteH.Protocol, graphiteQueryHost, graphiteQueryPort)
+	graphiteQueryHost, _ := configMap.GetStringParam(confignames.GraphiteQueryAddress)
+	graphiteQueryPort, err := configMap.GetIntParam(confignames.GraphiteQueryPort)
+
+	var graphiteQueryAddress string
+	if graphiteQueryHost == "" || err != nil {
+		graphiteQueryAddress = ""
+	} else {
+		graphiteQueryAddress = fmt.Sprintf("%s://%s:%d", graphiteH.Protocol, graphiteQueryHost, graphiteQueryPort)
+	}
 	graphiteClient, err := graphiteAPI.NewFromString(graphiteQueryAddress)
-	if err != nil {
+	if graphiteQueryAddress == "" || err != nil {
 		ret = append(ret,
-			obsidian.Handler{Path: graphiteH.QueryURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+			obsidian.Handler{Path: graphiteH.QueryURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(fmt.Errorf("graphite exporter not configured: %v", err))},
 		)
 	} else {
 		ret = append(ret,
