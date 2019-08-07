@@ -1,6 +1,7 @@
 {
     "javascript.validate.enable": false,
     "eslint.autoFixOnSave": true,
+    "eslint.packageManager": "yarn",
     "jest.pathToJest": "yarn run test",
     "flow.useBundledFlow": false,
     "flow.useLSP": false,
