@@ -154,7 +154,7 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 		return nil, errors.ErrNotFound
 	}
 
-	gwStatus := state.ReportedState.(models.GatewayStatus)
+	gwStatus := state.ReportedState.(*models.GatewayStatus)
 	gwStatus.CheckinTime = state.Time
 	gwStatus.CertExpirationTime = state.CertExpirationTime
 	// Use the hardware ID from the middleware
@@ -162,7 +162,7 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 	// Populate deprecated fields to support API backwards compatibility
 	// TODO: Remove this and related tests when deprecated fields are no longer used
 	gwStatus.FillDeprecatedFields()
-	return &gwStatus, nil
+	return gwStatus, nil
 }
 
 func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {
