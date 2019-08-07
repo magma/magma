@@ -1156,6 +1156,12 @@ int emm_send_tracking_area_update_accept_dl_nas(
   size += EPS_UPDATE_RESULT_MAXIMUM_LENGTH;
   emm_msg->epsupdateresult = EPS_UPDATE_RESULT_TA_UPDATED;
 
+  if (msg->eps_bearer_context_status) {
+    emm_msg->presencemask |=
+      TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
+    emm_msg->epsbearercontextstatus = *msg->eps_bearer_context_status;
+    size += EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH;
+  }
   /* If CSFB is enabled send LAI,Mobile Identity
   *  and Additional Update type
   */
