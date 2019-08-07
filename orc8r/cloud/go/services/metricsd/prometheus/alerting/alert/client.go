@@ -10,9 +10,9 @@ package alert
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"strings"
+
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
 
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"
@@ -37,10 +37,10 @@ type PrometheusAlertClient interface {
 type client struct {
 	fileLocks *FileLocker
 	rulesDir  string
-	fsClient  FSClient
+	fsClient  files.FSClient
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir string, fsClient FSClient) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, rulesDir string, fsClient files.FSClient) PrometheusAlertClient {
 	return &client{
 		fileLocks: fileLocks,
 		rulesDir:  rulesDir,
@@ -259,28 +259,4 @@ func (r BulkUpdateResults) String() string {
 
 func makeFilename(networkID, path string) string {
 	return path + "/" + networkID + rulesFilePostfix
-}
-
-type FSClient interface {
-	WriteFile(filename string, data []byte, perm os.FileMode) error
-	ReadFile(filename string) ([]byte, error)
-	Stat(filename string) (os.FileInfo, error)
-}
-
-type fsclient struct{}
-
-func NewFSClient() FSClient {
-	return &fsclient{}
-}
-
-func (f *fsclient) WriteFile(filename string, data []byte, perm os.FileMode) error {
-	return ioutil.WriteFile(filename, data, perm)
-}
-
-func (f *fsclient) ReadFile(filename string) ([]byte, error) {
-	return ioutil.ReadFile(filename)
-}
-
-func (f *fsclient) Stat(filename string) (os.FileInfo, error) {
-	return os.Stat(filename)
 }
