@@ -18,8 +18,20 @@ const entries = [
   {label: 'AP', id: '3'},
 ];
 
-storiesOf('Tokenizer', module).add('basic', () => (
+storiesOf('Tokenizer', module).add('options', () => {
+  return (
+    <div style={{width: '300px'}}>
+      <Tokenizer
+        searchSource="Options"
+        searchEntries={entries}
+        onEntriesRequested={() => {}}
+      />
+    </div>
+  );
+});
+
+storiesOf('Tokenizer', module).add('userInput', () => (
   <div style={{width: '300px'}}>
-    <Tokenizer searchEntries={entries} onEntriesRequested={() => {}} />
+    <Tokenizer searchSource="UserInput" onEntriesRequested={() => {}} />
   </div>
 ));

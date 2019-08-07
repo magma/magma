@@ -109,7 +109,8 @@ const autoSuggestStyles = theme => ({
 });
 
 type Props = {
-  searchEntries: Array<Entry>,
+  searchSource: 'Options' | 'UserInput',
+  searchEntries?: Array<Entry>,
   onEntriesRequested: (searchTerm: string) => void,
   onChange?: (entries: Array<Entry>) => void,
   onBlur?: () => void,
@@ -134,13 +135,18 @@ class Tokenizer extends React.Component<Props, State> {
     const {
       classes,
       theme,
+      searchSource,
       searchEntries,
       onEntriesRequested,
       onChange,
       onBlur,
     } = this.props;
     const {tokens, searchTerm} = this.state;
-    const unusedSearchEntries = searchEntries.filter(entry =>
+    const entries =
+      searchSource === 'Options' && searchEntries
+        ? searchEntries
+        : [{id: searchTerm, label: searchTerm}];
+    const unusedSearchEntries = entries.filter(entry =>
       tokens.every(token => token.id !== entry.id),
     );
     return (
