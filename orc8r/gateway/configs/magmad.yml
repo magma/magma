@@ -27,11 +27,11 @@ bootstrap_config:
   challenge_key: /var/opt/magma/certs/gw_challenge.key
 
 # Flags indicating the magmad features to be enabled
-enable_config_streamer: False
+enable_config_streamer: True
 enable_upgrade_manager: False
 enable_network_monitor: False
 enable_systemd_tailer: False
-enable_sync_rpc: False
+enable_sync_rpc: True
 enable_kernel_version_checking: False
 
 systemd_tailer_poll_interval: 30 # seconds
