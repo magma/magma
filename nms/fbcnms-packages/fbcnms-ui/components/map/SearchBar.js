@@ -3,7 +3,9 @@
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
  * @format
+ * @flow
  */
 
 'use strict';
@@ -14,11 +16,12 @@ import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Paper from '@material-ui/core/Paper';
-import PropTypes from 'prop-types';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
 import {debounce} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {WithStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   inputPaper: {
@@ -45,7 +48,17 @@ const styles = theme => ({
   },
 });
 
-class SearchBar extends React.Component {
+type Props = {
+  value: string,
+  isLoading?: boolean,
+  autoFocus?: boolean,
+  onChange: (SyntheticInputEvent<*>) => void,
+  onClearInput: () => void,
+  onSearch: string => void,
+  debounceMs: number, // debounce searches at this interval
+} & WithStyles;
+
+class SearchBar extends React.Component<Props> {
   constructor(props) {
     super(props);
 
@@ -69,7 +82,7 @@ class SearchBar extends React.Component {
 
     // If search field was cleared, reset state
     if (value === '') {
-      this.handleClearInput(e);
+      this.handleClearInput();
       return;
     }
     onChange && onChange(e);
@@ -80,18 +93,17 @@ class SearchBar extends React.Component {
     }
   };
 
-  handleBlur = e => {
+  handleBlur = () => {
     // Reset the search field if empty (when trimmed)
     const {value} = this.props;
     if (value.trim().length === 0) {
-      this.handleClearInput(e);
+      this.handleClearInput();
     }
   };
 
-  handleClearInput = e => {
-    // Clear the input field (using onClearInput(), falling back to onChange())
-    const {onChange, onClearInput} = this.props;
-    (onClearInput && onClearInput()) || (onChange && onChange(e));
+  handleClearInput = () => {
+    const {onClearInput} = this.props;
+    onClearInput && onClearInput();
   };
 
   render() {
@@ -132,16 +144,5 @@ class SearchBar extends React.Component {
     );
   }
 }
-
-SearchBar.propTypes = {
-  classes: PropTypes.object.isRequired,
-  value: PropTypes.string,
-  isLoading: PropTypes.bool,
-  autoFocus: PropTypes.bool,
-  onChange: PropTypes.func, // function(event) => void
-  onClearInput: PropTypes.func, // function(void) => void
-  onSearch: PropTypes.func, // function(string) => void
-  debounceMs: PropTypes.number, // debounce searches at this interval
-};
 
 export default withStyles(styles)(SearchBar);
