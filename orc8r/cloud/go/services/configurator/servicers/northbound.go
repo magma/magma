@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	orc8rStorage "magma/orc8r/cloud/go/storage"
 )
 
 type nbConfiguratorServicer struct {
@@ -31,31 +32,24 @@ func NewNorthboundConfiguratorServicer(factory storage.ConfiguratorStorageFactor
 	return &nbConfiguratorServicer{factory}, nil
 }
 
-func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *protos.LoadNetworksRequest) (*protos.LoadNetworksResponse, error) {
-	res := &protos.LoadNetworksResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: true})
+func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *protos.LoadNetworksRequest) (*storage.NetworkLoadResult, error) {
+	res := &storage.NetworkLoadResult{}
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return res, err
 	}
 
-	result, err := store.LoadNetworks(req.Networks, req.Criteria.ToNetworkLoadCriteria())
+	result, err := store.LoadNetworks(*req.Filter, *req.Criteria)
 	if err != nil {
 		store.Rollback()
 		return res, err
 	}
-
-	res.Networks = map[string]*protos.Network{}
-	for _, network := range result.Networks {
-		pNetwork := protos.FromStorageNetwork(network)
-		res.Networks[network.ID] = pNetwork
-	}
-	res.NotFound = result.NetworkIDsNotFound
-	return res, store.Commit()
+	return &result, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) ListNetworkIDs(context context.Context, void *commonProtos.Void) (*protos.ListNetworkIDsResponse, error) {
 	res := &protos.ListNetworkIDsResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: true})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return res, err
 	}
@@ -74,43 +68,43 @@ func (srv *nbConfiguratorServicer) ListNetworkIDs(context context.Context, void 
 
 func (srv *nbConfiguratorServicer) CreateNetworks(context context.Context, req *protos.CreateNetworksRequest) (*protos.CreateNetworksResponse, error) {
 	emptyRes := &protos.CreateNetworksResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
 
-	createdNetworks := []*protos.Network{}
+	createdNetworks := make([]*storage.Network, 0, len(req.Networks))
 	for _, network := range req.Networks {
 		err = networkConfigsAreValid(network.Configs)
 		if err != nil {
 			return emptyRes, err
 		}
-		createdNetwork, err := store.CreateNetwork(network.ToNetwork())
+		createdNetwork, err := store.CreateNetwork(*network)
 		if err != nil {
 			store.Rollback()
 			return emptyRes, err
 		}
-		createdNetworks = append(createdNetworks, protos.FromStorageNetwork(createdNetwork))
+		createdNetworks = append(createdNetworks, &createdNetwork)
 	}
 	return &protos.CreateNetworksResponse{CreatedNetworks: createdNetworks}, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *protos.UpdateNetworksRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return void, err
 	}
 
 	updates := []storage.NetworkUpdateCriteria{}
-	for _, pUpdate := range req.Updates {
-		err = networkConfigsAreValid(pUpdate.ConfigsToAddOrUpdate)
+	for _, update := range req.Updates {
+		err = networkConfigsAreValid(update.ConfigsToAddOrUpdate)
 		if err != nil {
 			return void, err
 		}
-		updates = append(updates, pUpdate.ToNetworkUpdateCriteria())
+		updates = append(updates, *update)
 	}
-	_, err = store.UpdateNetworks(updates)
+	err = store.UpdateNetworks(updates)
 	if err != nil {
 		store.Rollback()
 		return void, err
@@ -120,7 +114,7 @@ func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *
 
 func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *protos.DeleteNetworksRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return void, err
 	}
@@ -129,7 +123,7 @@ func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *
 	for _, networkID := range req.NetworkIDs {
 		deleteRequests = append(deleteRequests, storage.NetworkUpdateCriteria{ID: networkID, DeleteNetwork: true})
 	}
-	_, err = store.UpdateNetworks(deleteRequests)
+	err = store.UpdateNetworks(deleteRequests)
 	if err != nil {
 		store.Rollback()
 		return void, err
@@ -137,55 +131,51 @@ func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *
 	return void, store.Commit()
 }
 
-func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *protos.LoadEntitiesRequest) (*protos.LoadEntitiesResponse, error) {
-	emptyRes := &protos.LoadEntitiesResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *protos.LoadEntitiesRequest) (*storage.EntityLoadResult, error) {
+	emptyRes := &storage.EntityLoadResult{}
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
 
-	loadFilter := protos.ToEntityLoadFilter(req.TypeFilter, req.KeyFilter, req.EntityIDs)
-	loadResult, err := store.LoadEntities(req.NetworkID, loadFilter, req.Criteria.ToEntityLoadCriteria())
+	loadResult, err := store.LoadEntities(req.NetworkID, *req.Filter, *req.Criteria)
 	if err != nil {
 		store.Rollback()
 		return emptyRes, err
 	}
-	return &protos.LoadEntitiesResponse{
-		Entities: protos.FromStorageNetworkEntities(loadResult.Entities),
-		NotFound: protos.FromTKs(loadResult.EntitiesNotFound),
-	}, store.Commit()
+	return &loadResult, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *protos.CreateEntitiesRequest) (*protos.CreateEntitiesResponse, error) {
 	emptyRes := &protos.CreateEntitiesResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
 
-	createdEntities := []*protos.NetworkEntity{}
+	createdEntities := []*storage.NetworkEntity{}
 	for _, entity := range req.Entities {
 		if err := entityConfigIsValid(entity.Type, entity.Config); err != nil {
 			return emptyRes, err
 		}
-		createdEntity, err := store.CreateEntity(req.NetworkID, entity.ToNetworkEntity())
+		createdEntity, err := store.CreateEntity(req.NetworkID, *entity)
 		if err != nil {
 			store.Rollback()
 			return emptyRes, err
 		}
-		createdEntities = append(createdEntities, protos.FromStorageNetworkEntity(createdEntity))
+		createdEntities = append(createdEntities, &createdEntity)
 	}
 	return &protos.CreateEntitiesResponse{CreatedEntities: createdEntities}, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *protos.UpdateEntitiesRequest) (*protos.UpdateEntitiesResponse, error) {
 	emptyRes := &protos.UpdateEntitiesResponse{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return emptyRes, err
 	}
 
-	updatedEntities := map[string]*protos.NetworkEntity{}
+	updatedEntities := map[string]*storage.NetworkEntity{}
 	for _, update := range req.Updates {
 		if update.NewConfig != nil {
 			if err := entityConfigIsValid(update.Type, update.NewConfig.Value); err != nil {
@@ -193,19 +183,19 @@ func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *
 			}
 		}
 
-		updatedEntity, err := store.UpdateEntity(req.NetworkID, update.ToEntityUpdateCriteria())
+		updatedEntity, err := store.UpdateEntity(req.NetworkID, *update)
 		if err != nil {
 			store.Rollback()
 			return emptyRes, err
 		}
-		updatedEntities[update.Key] = protos.FromStorageNetworkEntity(updatedEntity)
+		updatedEntities[update.Key] = &updatedEntity
 	}
 	return &protos.UpdateEntitiesResponse{UpdatedEntities: updatedEntities}, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *protos.DeleteEntitiesRequest) (*commonProtos.Void, error) {
 	void := &commonProtos.Void{}
-	store, err := srv.factory.StartTransaction(context, &storage.TxOptions{ReadOnly: false})
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
 	if err != nil {
 		return void, err
 	}
@@ -213,7 +203,7 @@ func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *
 	for _, entityID := range req.ID {
 		request := storage.EntityUpdateCriteria{
 			Type:         entityID.Type,
-			Key:          entityID.Id,
+			Key:          entityID.Key,
 			DeleteEntity: true,
 		}
 		_, err = store.UpdateEntity(req.NetworkID, request)
@@ -227,7 +217,7 @@ func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *
 
 func networkConfigsAreValid(configs map[string][]byte) error {
 	for typeVal, config := range configs {
-		_, err := serde.Deserialize(configurator.SerdeDomain, typeVal, config)
+		_, err := serde.Deserialize(configurator.NetworkConfigSerdeDomain, typeVal, config)
 		if err != nil {
 			return err
 		}
@@ -236,7 +226,7 @@ func networkConfigsAreValid(configs map[string][]byte) error {
 }
 
 func entityConfigIsValid(typeVal string, config []byte) error {
-	_, err := serde.Deserialize(configurator.SerdeDomain, typeVal, config)
+	_, err := serde.Deserialize(configurator.NetworkEntitySerdeDomain, typeVal, config)
 	if err != nil {
 		return err
 	}

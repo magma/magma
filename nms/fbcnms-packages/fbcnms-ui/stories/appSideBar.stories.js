@@ -8,12 +8,44 @@
  * @format
  */
 
-import {storiesOf} from '@storybook/react';
 import AppSideBar from '../components/layout/AppSideBar.react';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import ListIcon from '@material-ui/icons/List';
-import React from 'react';
+import React, {useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import {storiesOf} from '@storybook/react';
+
+const ExpandablePanel = () => {
+  const [isExpanded, setIsExpanded] = useState();
+  const [showExpandButton, setShowExpandButton] = useState(false);
+  return (
+    <div style={{display: 'flex'}}>
+      <AppSideBar
+        user={{email: 'user@fb.com', isSuperUser: false}}
+        projects={[]}
+        mainItems={[
+          <AssignmentIcon color="primary" style={{margin: '8px'}} />,
+          <ListIcon color="primary" style={{margin: '8px'}} />,
+        ]}
+        secondaryItems={[]}
+        useExpandButton={true}
+        showExpandButton={showExpandButton}
+        onExpandClicked={() => setIsExpanded(!isExpanded)}
+        expanded={isExpanded}
+      />
+      <div
+        onMouseEnter={() => setShowExpandButton(true)}
+        onMouseLeave={() => setShowExpandButton(false)}
+        style={{
+          height: '100vh',
+          width: '300px',
+          backgroundColor: 'blue',
+          visibility: isExpanded ? 'visible' : 'hidden',
+        }}
+      />
+    </div>
+  );
+};
 
 storiesOf('AppSideBar', module)
   .add('default', () => (
@@ -76,4 +108,5 @@ storiesOf('AppSideBar', module)
       ]}
       secondaryItems={[]}
     />
-  ));
+  ))
+  .add('Expand Button', () => <ExpandablePanel />);

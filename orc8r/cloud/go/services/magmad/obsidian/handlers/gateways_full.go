@@ -1,10 +1,10 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
 package handlers
 
@@ -14,9 +14,8 @@ import (
 	"regexp"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/labstack/echo"
 )
@@ -24,20 +23,28 @@ import (
 // ListFullGatewayViews returns the full views of specified gateways in a
 // network.
 func ListFullGatewayViews(c echo.Context, factory view_factory.FullGatewayViewFactory) error {
-	networkID, httpErr := handlers.GetNetworkId(c)
+	networkID, httpErr := obsidian.GetNetworkId(c)
 	if httpErr != nil {
 		return httpErr
 	}
 	gatewayIDs := getGatewayIDs(c.QueryParams())
 	gatewayStates, err := getGatewayStates(networkID, gatewayIDs, factory)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	modelStates, err := models.GatewayStateMapToModelList(gatewayStates)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+	// todo can remove this after the legacy full gateway views is deprecated
+	//  and only uses GatewayStateType
+	gatewayStateTypes := []*view_factory.GatewayStateType{}
+	for _, state := range gatewayStates {
+		gatewayStateTypes = append(gatewayStateTypes,
+			&view_factory.GatewayStateType{
+				Config:    state.Config,
+				GatewayID: state.GatewayID,
+				Record:    state.Record,
+				Status:    state.Status,
+			})
 	}
-	return c.JSON(http.StatusOK, modelStates)
+	return c.JSON(http.StatusOK, gatewayStateTypes)
 }
 
 func getGatewayIDs(queryParams url.Values) []string {

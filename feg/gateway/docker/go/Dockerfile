@@ -1,7 +1,8 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial as base
+ARG baseImage="ubuntu:xenial"
+FROM ${baseImage} as base
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -58,7 +59,12 @@ ENV MAGMA_ROOT /magma
 ENV PIP_CACHE_HOME ~/.pipcache
 ENV PYTHON_BUILD /build/python
 ENV PATH ${PYTHON_BUILD}/bin:${PATH}:${GOBIN}
+ENV GO111MODULE on
+# Use public go modules proxy
+ENV GOPROXY https://proxy.golang.org
+
 RUN printenv > /etc/environment
+
 
 # Copy just the go.mod and go.sum files to download the golang deps.
 # This step allows us to cache the downloads, and prevents reaching out to
@@ -69,8 +75,11 @@ COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
 COPY feg/gateway/go.* $MAGMA_ROOT/feg/gateway/
 COPY feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/go.* $MAGMA_ROOT/feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
+COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/feg/gateway
-RUN go mod download
+RUN go mod download; exit 0
+# Install protoc-gen-go
+RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
 
 # Copy the configs.
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
@@ -83,7 +92,16 @@ RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_n
 COPY feg $MAGMA_ROOT/feg
 COPY lte/cloud $MAGMA_ROOT/lte/cloud
 COPY orc8r/cloud $MAGMA_ROOT/orc8r/cloud
+COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
+# Enable make gen if proto gen is required
+# RUN make -C $MAGMA_ROOT/feg/gateway gen
 RUN make -C $MAGMA_ROOT/feg/gateway build
+
+# -----------------------------------------------------------------------------
+# Go-cache base image
+# -----------------------------------------------------------------------------
+FROM ubuntu:xenial as gocache
+COPY --from=base /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image
@@ -98,8 +116,6 @@ COPY --from=base /var/opt/magma/bin /var/opt/magma/bin
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
-# Add docker config overrides
-COPY feg/gateway/docker/configs /etc/magma
 
 # Create empty envdir directory
 RUN mkdir -p /var/opt/magma/envdir

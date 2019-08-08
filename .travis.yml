@@ -59,6 +59,7 @@ matrix:
 
       script:
         - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
+        - make -C ${MAGMA_ROOT}/orc8r/cloud tools
         - make -C ${MAGMA_ROOT}/orc8r/cloud precommit
 
     - language: go
@@ -81,6 +82,22 @@ matrix:
         - cd ${MAGMA_ROOT}/feg/gateway
         - travis_retry travis_wait go mod download
         - make -C ${MAGMA_ROOT}/feg/gateway precommit
+
+    - language: go
+      name: orc8r gateway go tests
+      go:
+        - 1.12.x
+      os: linux
+      dist: xenial
+
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on GOPROXY=https://proxy.golang.org
+
+      script:
+        - cd ${MAGMA_ROOT}/orc8r/gateway/go
+        - travis_retry travis_wait go mod download
+        - go test ./...
+        - go vet ./...
 
     - language: minimal
       name: LTE gateway python unit tests

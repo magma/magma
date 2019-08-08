@@ -8,7 +8,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 # pylint: disable=protected-access
-from unittest import TestCase, mock
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.tr069 import models
@@ -16,12 +15,11 @@ from magma.enodebd.tests.test_utils.tr069_msg_builder import \
     Tr069MessageBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
+from magma.enodebd.tests.test_utils.enodeb_handler import EnodebHandlerTestCase
 
 
-class CaviumHandlerTests(TestCase):
-    @mock.patch('magma.enodebd.device_config.configuration_init.'
-                'get_ip_from_if')
-    def test_count_plmns_less(self, get_ip_from_if_mock) -> None:
+class CaviumHandlerTests(EnodebHandlerTestCase):
+    def test_count_plmns_less(self) -> None:
         """
         Tests the Cavium provisioning up to GetObjectParameters.
 
@@ -31,8 +29,6 @@ class CaviumHandlerTests(TestCase):
 
         Verifies that the number of PLMNs is correctly accounted.
         """
-        get_ip_from_if_mock.return_value = '127.0.0.1'
-
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
                 .build_acs_state_machine(EnodebDeviceName.CAVIUM)
@@ -84,17 +80,13 @@ class CaviumHandlerTests(TestCase):
                 .device_cfg.get_parameter(ParameterName.NUM_PLMNS)
         self.assertEqual(num_plmns_cur, 2)
 
-    @mock.patch('magma.enodebd.device_config.configuration_init.'
-                'get_ip_from_if')
-    def test_count_plmns_more_defined(self, get_ip_from_if_mock) -> None:
+    def test_count_plmns_more_defined(self) -> None:
         """
         Tests the Cavium provisioning up to GetObjectParameters.
 
         In particular tests when the eNB has more PLMNs than is
         currently defined in our data model (NUM_PLMNS_IN_CONFIG)
         """
-        get_ip_from_if_mock.return_value = '127.0.0.1'
-
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
                 .build_acs_state_machine(EnodebDeviceName.CAVIUM)

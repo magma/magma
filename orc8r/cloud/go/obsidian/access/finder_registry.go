@@ -11,24 +11,25 @@ package access
 import (
 	"strings"
 
+	"magma/orc8r/cloud/go/obsidian"
+
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/protos"
 )
 
 type RequestIdentityFinder func(c echo.Context) []*protos.Identity
 
 var finderRegistry = map[string]RequestIdentityFinder{
-	handlers.MAGMA_NETWORKS_URL_PART:  getNetworkIdentity,
-	handlers.MAGMA_OPERATORS_URL_PART: getOperatorIdentity,
+	obsidian.MagmaNetworksUrlPart:  getNetworkIdentity,
+	obsidian.MagmaOperatorsUrlPart: getOperatorIdentity,
 }
 
 // Network Identity Finder
 func getNetworkIdentity(c echo.Context) []*protos.Identity {
-	if c != nil && strings.HasPrefix(c.Path(), handlers.NETWORKS_ROOT) {
-		nid, err := handlers.GetNetworkId(c)
+	if c != nil && strings.HasPrefix(c.Path(), obsidian.NetworksRoot) {
+		nid, err := obsidian.GetNetworkId(c)
 		if err == nil && len(nid) > 0 {
 			// All checks pass - return a Network Identity
 			return []*protos.Identity{identity.NewNetwork(nid)}
@@ -42,8 +43,8 @@ func getNetworkIdentity(c echo.Context) []*protos.Identity {
 
 // Operator Identity Finder
 func getOperatorIdentity(c echo.Context) []*protos.Identity {
-	if c != nil && strings.HasPrefix(c.Path(), handlers.OPERATORS_ROOT) {
-		oid, err := handlers.GetOperatorId(c)
+	if c != nil && strings.HasPrefix(c.Path(), obsidian.OperatorsRoot) {
+		oid, err := obsidian.GetOperatorId(c)
 		if err == nil && len(oid) > 0 {
 			// All checks pass - return a Network Identity
 			return []*protos.Identity{identity.NewOperator(oid)}

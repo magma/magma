@@ -17,6 +17,9 @@ import (
 // swagger:model network_record
 type NetworkRecord struct {
 
+	// features
+	Features map[string]string `json:"features,omitempty"`
+
 	// name
 	// Required: true
 	// Min Length: 1

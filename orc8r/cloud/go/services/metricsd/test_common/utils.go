@@ -18,6 +18,7 @@ const (
 	CounterMetricName   = "testCounter"
 	HistogramMetricName = "testHistogram"
 	SummaryMetricName   = "testSummary"
+	UntypedMetricName   = "testUntyped"
 )
 
 func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.LabelPair) *dto.MetricFamily {
@@ -33,6 +34,9 @@ func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.La
 	case dto.MetricType_HISTOGRAM:
 		testMetric = MakePromoHistogram([]float64{1, 5, 10}, []float64{})
 		familyName = HistogramMetricName
+	case dto.MetricType_UNTYPED:
+		testMetric = MakePromoUntyped(0)
+		familyName = UntypedMetricName
 	default:
 		testMetric = MakePromoGauge(0)
 		familyName = GaugeMetricName
@@ -96,6 +100,13 @@ func MakePromoHistogram(buckets []float64, observations []float64) dto.Metric {
 		histogram.Observe(obs)
 	}
 	histogram.Write(&metric)
+	return metric
+}
+
+func MakePromoUntyped(value float64) dto.Metric {
+	var metric dto.Metric
+	untyped := prometheus.NewUntypedFunc(prometheus.UntypedOpts{Name: UntypedMetricName, Help: "testUntypedHelp"}, func() float64 { return value })
+	untyped.Write(&metric)
 	return metric
 }
 

@@ -39,6 +39,7 @@ message MagmadGatewayConfig {
 // Network entity to be stored in networks table. Name is required.
 message MagmadNetworkRecord {
     string name = 1;
+    map<string, string> features = 2;
 }
 
 message NetworkRecordRequest {

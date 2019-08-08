@@ -11,25 +11,29 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/services/configurator"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// Obsidian integration test for release channel API endpoints
 func TestReleaseChannels(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
 	upgrade_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, obsidian.RestRoot)
 
 	// List channels when none exist
 	listChannelsTestCase := tests.Testcase{
@@ -126,12 +130,15 @@ func TestReleaseChannels(t *testing.T) {
 	assert.Equal(t, 500, status)
 }
 
+// Obsidian integration test for tiers migrated API endpoints backed by configurator
 func TestTiers(t *testing.T) {
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
 	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
-	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	configurator_test_init.StartTestService(t)
+	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	registerNetworkTestCase := tests.Testcase{
 		Name:                      "Register Network",

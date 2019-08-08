@@ -18,7 +18,9 @@ import (
 	"golang.org/x/net/context"
 )
 
-const ServiceName = "UPGRADE"
+const (
+	ServiceName = "UPGRADE"
+)
 
 func getUpgradeServiceClient() (upgrade_protos.UpgradeServiceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)

@@ -783,6 +783,9 @@ int emm_recv_service_request(
 
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
     emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
+    if (true == is_initial) {
+      emm_ctx->_security.next_hop_chaining_count = 0;
+    }
   }
   if(PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
      ->sgs_context) {

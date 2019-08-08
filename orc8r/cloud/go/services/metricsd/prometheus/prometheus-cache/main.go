@@ -18,20 +18,25 @@ import (
 )
 
 const (
-	defaultPort          = "9091"
-	defaultQueueCapacity = 5
+	defaultPort  = "9091"
+	defaultLimit = -1
 )
 
 func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
-	queueCapacity := flag.Int("queue-capacity", defaultQueueCapacity, fmt.Sprintf("Maximum number of datapoints per unique series stored in cache. Default is %d\n", defaultQueueCapacity))
+	totalMetricsLimit := flag.Int("limit", defaultLimit, fmt.Sprintf("Limit the total metrics in the cache at one time. Will reject a push if cache is full. Default is %d which is no limit.", defaultLimit))
 	flag.Parse()
 
-	metricCache := cache.NewMetricCache(*queueCapacity)
+	metricCache := cache.NewMetricCache(*totalMetricsLimit)
 	e := echo.New()
 
 	e.POST("/metrics", metricCache.Receive)
 	e.GET("/metrics", metricCache.Scrape)
+
+	e.GET("/debug", metricCache.Debug)
+
+	// For liveness probe
+	e.GET("/", func(ctx echo.Context) error { return ctx.NoContent(200) })
 
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
 }

@@ -103,20 +103,21 @@ obj_hash_table_uint64_t *obj_hashtable_uint64_init(
   // upper power of two: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
   //  By Sean Eron Anderson
   // seander@cs.stanford.edu
-  // Individually, the code snippets here are in the public domain (unless otherwise noted) — feel free to use them however you please.
-  // The aggregate collection and descriptions are © 1997-2005 Sean Eron Anderson. The code and descriptions are distributed in the hope
-  // that they will be useful, but WITHOUT ANY WARRANTY and without even the implied warranty of merchantability or fitness for a particular
-  // purpose. As of May 5, 2005, all the code has been tested thoroughly. Thousands of people have read it. Moreover, Professor Randal Bryant,
-  // the Dean of Computer Science at Carnegie Mellon University, has personally tested almost everything with his Uclid code verification system.
-  // What he hasn't tested, I have checked against all possible inputs on a 32-bit machine. To the first person to inform me of a legitimate bug
-  // in the code, I'll pay a bounty of US$10 (by check or Paypal). If directed to a charity, I'll pay US$20.
-  size--;
-  size |= size >> 1;
-  size |= size >> 2;
-  size |= size >> 4;
-  size |= size >> 8;
-  size |= size >> 16;
-  size++;
+  // Individually, the code snippets here are in the public domain (unless
+  // otherwise noted) - feel free to use them however you please.
+  // The aggregate collection and descriptions are copyright 1997-2005 Sean Eron
+  // Anderson. The code and descriptions are distributed in the hope that they
+  // will be useful, but WITHOUT ANY WARRANTY and without even the implied
+  // warranty of merchantability or fitness for a particular purpose. As of May
+  // 5, 2005, all the code has been tested thoroughly. Thousands of people have
+  // read it. Moreover, Professor Randal Bryant, the Dean of Computer Science at
+  // Carnegie Mellon University, has personally tested almost everything with
+  // his Uclid code verification system.  What he hasn't tested, I have checked
+  // against all possible inputs on a 32-bit machine. To the first person to
+  // inform me of a legitimate bug in the code, I'll pay a bounty of US$10 (by
+  // check or Paypal). If directed to a charity, I'll pay US$20.
+  size--; size |= size >> 1; size |= size >> 2; size |= size >> 4; size |= size
+    >> 8; size |= size >> 16; size++;
 
   if (!(hashtblP->nodes = calloc(size, sizeof(obj_hash_node_uint64_t *)))) {
     free_wrapper((void **) &hashtblP);
@@ -185,20 +186,21 @@ obj_hash_table_uint64_t *obj_hashtable_uint64_ts_init(
   // upper power of two: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
   //  By Sean Eron Anderson
   // seander@cs.stanford.edu
-  // Individually, the code snippets here are in the public domain (unless otherwise noted) — feel free to use them however you please.
-  // The aggregate collection and descriptions are © 1997-2005 Sean Eron Anderson. The code and descriptions are distributed in the hope
-  // that they will be useful, but WITHOUT ANY WARRANTY and without even the implied warranty of merchantability or fitness for a particular
-  // purpose. As of May 5, 2005, all the code has been tested thoroughly. Thousands of people have read it. Moreover, Professor Randal Bryant,
-  // the Dean of Computer Science at Carnegie Mellon University, has personally tested almost everything with his Uclid code verification system.
-  // What he hasn't tested, I have checked against all possible inputs on a 32-bit machine. To the first person to inform me of a legitimate bug
-  // in the code, I'll pay a bounty of US$10 (by check or Paypal). If directed to a charity, I'll pay US$20.
-  size--;
-  size |= size >> 1;
-  size |= size >> 2;
-  size |= size >> 4;
-  size |= size >> 8;
-  size |= size >> 16;
-  size++;
+  // Individually, the code snippets here are in the public domain (unless
+  // otherwise noted) - feel free to use them however you please.
+  // The aggregate collection and descriptions are copyright 1997-2005 Sean Eron
+  // Anderson. The code and descriptions are distributed in the hope that they
+  // will be useful, but WITHOUT ANY WARRANTY and without even the implied
+  // warranty of merchantability or fitness for a particular purpose. As of May
+  // 5, 2005, all the code has been tested thoroughly. Thousands of people have
+  // read it. Moreover, Professor Randal Bryant, the Dean of Computer Science at
+  // Carnegie Mellon University, has personally tested almost everything with
+  // his Uclid code verification system.  What he hasn't tested, I have checked
+  // against all possible inputs on a 32-bit machine. To the first person to
+  // inform me of a legitimate bug in the code, I'll pay a bounty of US$10 (by
+  // check or Paypal). If directed to a charity, I'll pay US$20.
+  size--; size |= size >> 1; size |= size >> 2; size |= size >> 4; size |= size
+    >> 8; size |= size >> 16; size++;
 
   if (!(hashtblP->lock_nodes = calloc(size, sizeof(pthread_mutex_t)))) {
     free_wrapper((void **) &hashtblP->nodes);
@@ -235,20 +237,21 @@ obj_hash_table_uint64_t *obj_hashtable_uint64_ts_create(
   // upper power of two: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
   //  By Sean Eron Anderson
   // seander@cs.stanford.edu
-  // Individually, the code snippets here are in the public domain (unless otherwise noted) — feel free to use them however you please.
-  // The aggregate collection and descriptions are © 1997-2005 Sean Eron Anderson. The code and descriptions are distributed in the hope
-  // that they will be useful, but WITHOUT ANY WARRANTY and without even the implied warranty of merchantability or fitness for a particular
-  // purpose. As of May 5, 2005, all the code has been tested thoroughly. Thousands of people have read it. Moreover, Professor Randal Bryant,
-  // the Dean of Computer Science at Carnegie Mellon University, has personally tested almost everything with his Uclid code verification system.
-  // What he hasn't tested, I have checked against all possible inputs on a 32-bit machine. To the first person to inform me of a legitimate bug
-  // in the code, I'll pay a bounty of US$10 (by check or Paypal). If directed to a charity, I'll pay US$20.
-  size--;
-  size |= size >> 1;
-  size |= size >> 2;
-  size |= size >> 4;
-  size |= size >> 8;
-  size |= size >> 16;
-  size++;
+  // Individually, the code snippets here are in the public domain (unless
+  // otherwise noted) - feel free to use them however you please.  The aggregate
+  // collection and descriptions are copyright 1997-2005 Sean Eron Anderson. The
+  // code and descriptions are distributed in the hope that they will be useful,
+  // but WITHOUT ANY WARRANTY and without even the implied warranty of
+  // merchantability or fitness for a particular purpose. As of May 5, 2005, all
+  // the code has been tested thoroughly. Thousands of people have read it.
+  // Moreover, Professor Randal Bryant, the Dean of Computer Science at Carnegie
+  // Mellon University, has personally tested almost everything with his Uclid
+  // code verification system.  What he hasn't tested, I have checked against
+  // all possible inputs on a 32-bit machine. To the first person to inform me
+  // of a legitimate bug in the code, I'll pay a bounty of US$10 (by check or
+  // Paypal). If directed to a charity, I'll pay US$20.
+  size--; size |= size >> 1; size |= size >> 2; size |= size >> 4; size |= size
+    >> 8; size |= size >> 16; size++;
 
   if (!(hashtbl = obj_hashtable_uint64_create(
           size, hashfuncP, freekeyfuncP, display_name_pP))) {
@@ -1130,26 +1133,28 @@ hashtable_rc_t obj_hashtable_uint64_get_keys(
 */
 hashtable_rc_t obj_hashtable_uint64_ts_get_keys(
   const obj_hash_table_uint64_t *const hashtblP,
-  void **keysP,
+  void ***keysP,
   unsigned int *sizeP)
 {
   size_t n = 0;
   obj_hash_node_uint64_t *node = NULL;
   obj_hash_node_uint64_t *next = NULL;
 
-  if (hashtblP == NULL) {
-    keysP = NULL;
+  if ((!hashtblP) || !(hashtblP->num_elements)) {
+    *keysP = NULL;
     return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
   }
 
   *sizeP = 0;
-  keysP = calloc(hashtblP->num_elements, sizeof(void *));
+  *keysP = calloc(hashtblP->num_elements, sizeof(void *));
 
-  if (keysP) {
+  if (*keysP) {
     for (n = 0; n < hashtblP->size; ++n) {
       pthread_mutex_lock(&hashtblP->lock_nodes[n]);
       for (node = hashtblP->nodes[n]; node; node = next) {
-        keysP[*sizeP++] = node->key;
+        (*keysP)[(*sizeP)++] = node->key;
+        PRINT_HASHTABLE(hashtblP, "At index %u Saving key %p into %p \n",
+            (*sizeP)-1, node->key, *keysP[(*sizeP)-1]);
         next = node->next;
       }
       pthread_mutex_unlock(&hashtblP->lock_nodes[n]);
@@ -1188,20 +1193,21 @@ hashtable_rc_t obj_hashtable_uint64_resize(
   // upper power of two: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
   //  By Sean Eron Anderson
   // seander@cs.stanford.edu
-  // Individually, the code snippets here are in the public domain (unless otherwise noted) — feel free to use them however you please.
-  // The aggregate collection and descriptions are © 1997-2005 Sean Eron Anderson. The code and descriptions are distributed in the hope
-  // that they will be useful, but WITHOUT ANY WARRANTY and without even the implied warranty of merchantability or fitness for a particular
-  // purpose. As of May 5, 2005, all the code has been tested thoroughly. Thousands of people have read it. Moreover, Professor Randal Bryant,
-  // the Dean of Computer Science at Carnegie Mellon University, has personally tested almost everything with his Uclid code verification system.
-  // What he hasn't tested, I have checked against all possible inputs on a 32-bit machine. To the first person to inform me of a legitimate bug
-  // in the code, I'll pay a bounty of US$10 (by check or Paypal). If directed to a charity, I'll pay US$20.
-  size--;
-  size |= size >> 1;
-  size |= size >> 2;
-  size |= size >> 4;
-  size |= size >> 8;
-  size |= size >> 16;
-  size++;
+  // Individually, the code snippets here are in the public domain (unless
+  // otherwise noted) - feel free to use them however you please.  The aggregate
+  // collection and descriptions are copyright 1997-2005 Sean Eron Anderson. The
+  // code and descriptions are distributed in the hope that they will be useful,
+  // but WITHOUT ANY WARRANTY and without even the implied warranty of
+  // merchantability or fitness for a particular purpose. As of May 5, 2005, all
+  // the code has been tested thoroughly. Thousands of people have read it.
+  // Moreover, Professor Randal Bryant, the Dean of Computer Science at Carnegie
+  // Mellon University, has personally tested almost everything with his Uclid
+  // code verification system.  What he hasn't tested, I have checked against
+  // all possible inputs on a 32-bit machine. To the first person to inform me
+  // of a legitimate bug in the code, I'll pay a bounty of US$10 (by check or
+  // Paypal). If directed to a charity, I'll pay US$20.
+  size--; size |= size >> 1; size |= size >> 2; size |= size >> 4; size |= size
+    >> 8; size |= size >> 16; size++;
 
   newtbl.size = size;
   newtbl.hashfunc = hashtblP->hashfunc;
@@ -1251,20 +1257,21 @@ hashtable_rc_t obj_hashtable_uint64_ts_resize(
   // upper power of two: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
   //  By Sean Eron Anderson
   // seander@cs.stanford.edu
-  // Individually, the code snippets here are in the public domain (unless otherwise noted) — feel free to use them however you please.
-  // The aggregate collection and descriptions are © 1997-2005 Sean Eron Anderson. The code and descriptions are distributed in the hope
-  // that they will be useful, but WITHOUT ANY WARRANTY and without even the implied warranty of merchantability or fitness for a particular
-  // purpose. As of May 5, 2005, all the code has been tested thoroughly. Thousands of people have read it. Moreover, Professor Randal Bryant,
-  // the Dean of Computer Science at Carnegie Mellon University, has personally tested almost everything with his Uclid code verification system.
-  // What he hasn't tested, I have checked against all possible inputs on a 32-bit machine. To the first person to inform me of a legitimate bug
-  // in the code, I'll pay a bounty of US$10 (by check or Paypal). If directed to a charity, I'll pay US$20.
-  size--;
-  size |= size >> 1;
-  size |= size >> 2;
-  size |= size >> 4;
-  size |= size >> 8;
-  size |= size >> 16;
-  size++;
+  // Individually, the code snippets here are in the public domain (unless
+  // otherwise noted) - feel free to use them however you please.  The aggregate
+  // collection and descriptions are copyright 1997-2005 Sean Eron Anderson. The
+  // code and descriptions are distributed in the hope that they will be useful,
+  // but WITHOUT ANY WARRANTY and without even the implied warranty of
+  // merchantability or fitness for a particular purpose. As of May 5, 2005, all
+  // the code has been tested thoroughly. Thousands of people have read it.
+  // Moreover, Professor Randal Bryant, the Dean of Computer Science at Carnegie
+  // Mellon University, has personally tested almost everything with his Uclid
+  // code verification system.  What he hasn't tested, I have checked against
+  // all possible inputs on a 32-bit machine. To the first person to inform me
+  // of a legitimate bug in the code, I'll pay a bounty of US$10 (by check or
+  // Paypal). If directed to a charity, I'll pay US$20.
+  size--; size |= size >> 1; size |= size >> 2; size |= size >> 4; size |= size
+    >> 8; size |= size >> 16; size++;
 
   newtbl.size = size;
   newtbl.hashfunc = hashtblP->hashfunc;

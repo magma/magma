@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
 
@@ -34,19 +35,36 @@ func (f *File) Rules() []rulefmt.Rule {
 	return f.RuleGroups[0].Rules
 }
 
-// GetRule returns the specific rule by name
-func (f *File) GetRule(rulename string) (*rulefmt.Rule, error) {
+// GetRule returns the specific rule by name. Nil if it isn't found
+func (f *File) GetRule(rulename string) *rulefmt.Rule {
 	for _, rule := range f.RuleGroups[0].Rules {
 		if rule.Alert == rulename {
-			return &rule, nil
+			return &rule
 		}
 	}
-	return nil, fmt.Errorf("could not find rule: %s", rulename)
+	return nil
 }
 
 // AddRule appends a new rule to the list of rules in this file
 func (f *File) AddRule(rule rulefmt.Rule) {
 	f.RuleGroups[0].Rules = append(f.RuleGroups[0].Rules, rule)
+}
+
+// ReplaceRule replaces an existing rule. Returns error if rule does not
+// exist already
+func (f *File) ReplaceRule(newRule rulefmt.Rule) error {
+	ruleIdx := -1
+	for idx, rule := range f.RuleGroups[0].Rules {
+		if rule.Alert == newRule.Alert {
+			ruleIdx = idx
+		}
+	}
+	if ruleIdx < 0 {
+		return fmt.Errorf("rule %s does not exist", newRule.Alert)
+	}
+
+	f.RuleGroups[0].Rules[ruleIdx] = newRule
+	return nil
 }
 
 func (f *File) DeleteRule(name string) error {
@@ -62,7 +80,7 @@ func (f *File) DeleteRule(name string) error {
 
 // SecureRule attaches a label for networkID to the given alert expression to
 // to ensure that only metrics owned by this network can be alerted on
-func SecureRule(rule *rulefmt.Rule, networkID string) error {
+func SecureRule(networkID string, rule *rulefmt.Rule) error {
 	networkLabels := map[string]string{exporters.NetworkLabelNetwork: networkID}
 	restrictor := security.NewQueryRestrictor(networkLabels)
 
@@ -71,6 +89,9 @@ func SecureRule(rule *rulefmt.Rule, networkID string) error {
 		return err
 	}
 	rule.Expr = restrictedExpression
+	if rule.Labels == nil {
+		rule.Labels = make(map[string]string)
+	}
 	rule.Labels[exporters.NetworkLabelNetwork] = networkID
 	return nil
 }
@@ -84,4 +105,28 @@ type RuleJSONWrapper struct {
 	For         string            `json:"for,omitempty"`
 	Labels      map[string]string `json:"labels,omitempty"`
 	Annotations map[string]string `json:"annotations,omitempty"`
+}
+
+func (r *RuleJSONWrapper) ToRuleFmt() (rulefmt.Rule, error) {
+	modelFor, err := model.ParseDuration(r.For)
+	if err != nil {
+		return rulefmt.Rule{}, err
+	}
+
+	if r.Labels == nil {
+		r.Labels = make(map[string]string)
+	}
+	if r.Annotations == nil {
+		r.Annotations = make(map[string]string)
+	}
+
+	rule := rulefmt.Rule{
+		Record:      r.Record,
+		Alert:       r.Alert,
+		Expr:        r.Expr,
+		For:         modelFor,
+		Labels:      r.Labels,
+		Annotations: r.Annotations,
+	}
+	return rule, nil
 }

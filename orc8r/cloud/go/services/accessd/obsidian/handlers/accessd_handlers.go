@@ -9,11 +9,11 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 )
 
 const (
-	operatorsRootPath       = handlers.OPERATORS_ROOT
+	operatorsRootPath       = obsidian.OperatorsRoot
 	operatorsDetailPath     = operatorsRootPath + "/:operator_id"
 	operatorEntitiesPath    = operatorsDetailPath + "/entities"
 	operatorNetworkPath     = operatorEntitiesPath + "/network/:network_id"
@@ -22,66 +22,66 @@ const (
 )
 
 // GetObsidianHandlers returns all the handlers for accessd
-func GetObsidianHandlers() []handlers.Handler {
-	return []handlers.Handler{
+func GetObsidianHandlers() []obsidian.Handler {
+	return []obsidian.Handler{
 		// operator_handlers.go
 		{
 			Path:        operatorsRootPath,
-			Methods:     handlers.GET,
+			Methods:     obsidian.GET,
 			HandlerFunc: GetOperatorsRootHandler,
 		},
 		{
 			Path:        operatorsRootPath,
-			Methods:     handlers.POST,
+			Methods:     obsidian.POST,
 			HandlerFunc: PostOperatorsRootHandler,
 		},
 		{
 			Path:        operatorsDetailPath,
-			Methods:     handlers.GET,
+			Methods:     obsidian.GET,
 			HandlerFunc: GetOperatorsDetailHandler,
 		},
 		{
 			Path:        operatorsDetailPath,
-			Methods:     handlers.DELETE,
+			Methods:     obsidian.DELETE,
 			HandlerFunc: DeleteOperatorsDetailHandler,
 		},
 
 		// permissions_handlers.go
 		{
 			Path:        operatorEntitiesPath,
-			Methods:     handlers.POST,
+			Methods:     obsidian.POST,
 			HandlerFunc: PostOperatorEntityHandler,
 		},
 		{
 			Path:        operatorNetworkPath,
-			Methods:     handlers.DELETE,
+			Methods:     obsidian.DELETE,
 			HandlerFunc: DeleteOperatorEntityPermissionHandler,
 		},
 		{
 			Path:        operatorPermissionsPath,
-			Methods:     handlers.GET,
+			Methods:     obsidian.GET,
 			HandlerFunc: GetOperatorPermissionsHandler,
 		},
 		{
 			Path:        operatorPermissionsPath,
-			Methods:     handlers.PUT,
+			Methods:     obsidian.PUT,
 			HandlerFunc: PutOperatorPermissionsHandler,
 		},
 
 		// certificate_handlers.go
 		{
 			Path:        operatorCertificatePath,
-			Methods:     handlers.GET,
+			Methods:     obsidian.GET,
 			HandlerFunc: GetOperatorCertificateHandler,
 		},
 		{
 			Path:        operatorCertificatePath,
-			Methods:     handlers.POST,
+			Methods:     obsidian.POST,
 			HandlerFunc: PostOperatorCertificateHandler,
 		},
 		{
 			Path:        operatorCertificatePath,
-			Methods:     handlers.DELETE,
+			Methods:     obsidian.DELETE,
 			HandlerFunc: DeleteOperatorCertificateHandler,
 		},
 	}

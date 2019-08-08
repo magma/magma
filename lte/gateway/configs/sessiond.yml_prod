@@ -10,9 +10,17 @@
 log_level: INFO
 rule_update_inteval_sec: 15
 use_proxied_controller: true
-usage_reporting_limit_bytes: 10485760
+
+# Session manager will report the usage when the usage is greater than
+# usage_reporting_threshold * available quota since last update
+# In this way, session manager will report the usage before the subscriber
+# completely uses up the quota. 
+usage_reporting_threshold: 0.8
 
 # Maximum time to wait for the flow to be deleted by pipelined before forcefully
 # terminating the session. This should be at least twice the poll interval of
 # pipelined
 session_force_termination_timeout_ms: 5000
+
+# Set to true to enable sessiond support of carrier wifi
+support_carrier_wifi: false

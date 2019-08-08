@@ -1,13 +1,6 @@
 # Override options for MME
 set (  BYTE_ORDER=LITTLE_ENDIAN )
-set (  DISPLAY_LICENCE_INFO            False )
-set (  ITTI_TASK_STACK_SIZE            2097152 )
-set (  LOG_OAI                         True )
-set (  LOG_OAI_CLEAN_HARD              False )
-set (  MEMORY_CHECK                    False )
-set (  MME_BUILD                       True )
 set (  S1AP_DEBUG_LIST                 False )
-set (  SECU_DEBUG                      False )
 set (  SCTP_DUMP_LIST                  False )
 set (  TRACE_HASHTABLE                 False )
 set (  TRACE_3GPP_SPEC                 False )
@@ -53,12 +46,13 @@ target_link_libraries(mme
         COMMON
         LIB_3GPP LIB_S1AP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
         LIB_HASHTABLE LIB_S6A_PROXY
-        TASK_S1AP TASK_SCTP_SERVER TASK_UDP_SERVER TASK_SGS_SERVICE TASK_SGS
+        TASK_S1AP TASK_SCTP_SERVER TASK_SGS_SERVICE TASK_SGS
         TASK_S6A TASK_MME_APP TASK_S6A_SERVICE TASK_NAS
         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
-    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls fdproto fdcore prometheus-cpp
+    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls fdproto fdcore ${SERVICE303_LIB}
+    prometheus-cpp grpc grpc++
 )
 
 if ( NOT EMBEDDED_SGW )

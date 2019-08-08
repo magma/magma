@@ -15,26 +15,30 @@ const paths = require('./paths');
 const webpack = require('webpack');
 
 type Options = {
+  hot: boolean,
   projectName?: string,
   extraPaths?: string[],
+  entry?: Object,
 };
+
+function entry(value: any[], hot: boolean) {
+  if (!hot) {
+    return value;
+  }
+  return ['webpack-hot-middleware/client', ...value];
+}
 
 function createDevWebpackConfig(options: Options) {
   return {
     mode: 'development',
     devtool: 'source-map',
-    entry: {
-      main: [
-        'webpack/hot/dev-server',
-        'webpack-hot-middleware/client?reload=true',
-        paths.appIndexJs,
-      ],
-      login: [
-        'webpack/hot/dev-server',
-        'webpack-hot-middleware/client?reload=true',
-        paths.loginJs,
-      ],
-    },
+    entry: Object.assign(
+      {
+        main: entry([paths.appIndexJs], options.hot),
+        login: entry([paths.loginJs], options.hot),
+      },
+      options.entry || {},
+    ),
     externals: [
       {
         xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',
@@ -49,10 +53,12 @@ function createDevWebpackConfig(options: Options) {
         ? `/${options.projectName}/static/dist/`
         : '/static/dist/',
     },
-    plugins: [
-      new webpack.HotModuleReplacementPlugin(),
-      new webpack.NoEmitOnErrorsPlugin(),
-    ],
+    plugins: options.hot
+      ? [
+          new webpack.HotModuleReplacementPlugin(),
+          new webpack.NoEmitOnErrorsPlugin(),
+        ]
+      : [new webpack.NoEmitOnErrorsPlugin()],
     module: {
       rules: [
         {

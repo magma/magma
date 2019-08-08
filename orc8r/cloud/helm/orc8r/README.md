@@ -16,6 +16,15 @@ controller:
   image:
     repository: docker.io/controller
 
+metrics:
+  metrics:
+    configImage:
+      repository: docker.io/config-manager
+
+  prometheusCache:
+    image:
+      repository: docker.io/prometheus-cache
+
 $ helm install --name orc8r --namespace magma orc8r --values=vals.yaml
 ```
 
@@ -63,25 +72,38 @@ The following table list the configurable parameters of the orchestrator chart a
 | `controller.image.repository` | Repository for orchestrator controller image. | `nil` |
 | `controller.image.tag` | Tag for orchestrator controller image. | `latest` |
 | `controller.image.pullPolicy` | Pull policy for orchestrator controller image. | `IfNotPresent` |
-| `controller.spec.postgres.db` | Postgres database name. | `magma` |
-| `controller.spec.postgres.host` | Postgres database host. | `postgresql` |
-| `controller.spec.postgres.port` | Postgres database port. | `5432` |
-| `controller.spec.postgres.user` | Postgres username. | `postgres` |
-| `controller.spec.postgres.pass` | Postgres password. | `postgres` |
+| `controller.spec.database.driver` | orc8r database name. | `mysql/postgres` |
+| `controller.spec.database.sql_dialect` | database dialect name. | `maria/psql` |
+| `controller.spec.database.db` | orc8r database name. | `magma` |
+| `controller.spec.database.host` | database host. | `postgresql` |
+| `controller.spec.database.port` | database port. | `5432` |
+| `controller.spec.database.user` | Database username. | `postgres` |
+| `controller.spec.database.pass` | Database password. | `postgres` |
 | `controller.replicas` | Number of instances to deploy for orchestrator controller. | `1` |
 | `controller.resources` | Define resources requests and limits for Pods. | `{}` |
 | `controller.nodeSelector` | Define which Nodes the Pods are scheduled on. | `{}` |
 | `controller.tolerations` | If specified, the pod's tolerations. | `[]` |
 | `controller.affinity` | Assign the orchestrator proxy to run on specific nodes. | `{}` |
+| `nms.magmalte.manifests.configmap` | Enable nms magmalte configmap. | `false` |
+| `nms.magmalte.manifests.secrets` | Enable nms magmalte secrets. | `false` |
+| `nms.magmalte.manifests.deployment` | Enable nms magmalte deployment. | `false` |
+| `nms.magmalte.manifests.service` | Enable nms magmalte service. | `false` |
+| `nms.magmalte.manifests.rbac` | Enable nms magmalte rbac. | `false` |
+| `nms.nginx.manifests.configmap` | Enable nms nginx configmap. | `false` |
+| `nms.nginx.manifests.secrets` | Enable nms nginx secrets. | `false` |
+| `nms.nginx.manifests.deployment` | Enable nms nginx deployment. | `false` |
+| `nms.nginx.manifests.service` | Enable nms nginx service. | `false` |
+| `nms.nginx.manifests.rbac` | Enable nms nginx rbac. | `false` |
 
 ## Running in Minikube
 - Start Minikube with 8192 MB of memory and 4 CPUs. This example uses Kuberenetes version 1.14.1 and uses [Minikube Hypervisor Driver](https://kubernetes.io/docs/tasks/tools/install-minikube/#install-a-hypervisor):
 ```bash
-$ minikube start --memory=8192 --cpus=4 --kubernetes-version=v1.14.1
+$ minikube start --memory=8192 --cpus=4 --kubernetes-version=v1.14.1 --mount --mount-string "<path-to-metrics-configs>:/configs"
 ```
 - Install Helm Tiller:
 ```bash
-$ helm init
+$ kubectl apply -f tiller-rbac-config.yaml
+$ helm init --service-account tiller --history-max 200
 # Wait for tiller to become 'Running'
 $ kubectl get pods -n kube-system | grep tiller
 ```
@@ -89,7 +111,7 @@ $ kubectl get pods -n kube-system | grep tiller
 ```bash
 $ kubectl create namespace magma
 ```
-- Install Postgres Helm chart:
+- Install Postgres Helm chart (ONLY for running in Minikube):
 ```bash
 $ helm install \
     --name postgresql \
@@ -101,9 +123,10 @@ $ helm install \
 ```bash
 cd magma/orc8r/cloud/helm/orc8r
 mkdir -p charts/secrets/.secrets/certs
-# You need to add the following files to the certs directory:a
+# You need to add the following files to the certs directory:
 #   bootstrapper.key certifier.key certifier.pem vpn_ca.crt vpn_ca.key
-#   controller.crt controller.key rootCA.pem
+#   admin_operator.pem admin_operator.key.pem nms_nginx.pem nms_nginx.key.pem
+#   controller.crt controller.key rootCA.pem 
 # The controller.crt, controller.key and rootCA.pem are the certificate info
 # for your public domain name.
 # For local testing, you can do the following after running Orc8r using docker:
@@ -139,7 +162,7 @@ controller:
 $ helm install --name orc8r --namespace magma . --values=vals.yaml
 
 # In the future, if you want to upgrade the helm chart, run:
-$ helm upgrade orc8r . -f --values=vals.yaml
+$ helm upgrade orc8r . --values=vals.yaml
 ```
 - Add the admin in the datastore:
 ```bash
@@ -147,7 +170,7 @@ kubectl exec -it -n magma \
     $(kubectl get pod -n magma -l app.kubernetes.io/component=controller -o jsonpath="{.items[0].metadata.name}") -- \
     /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
-- Port forward traffic to orchestrator proxy:
+- Port forward traffic to orchestrator proxy (if running in Minikube):
 ```bash
 kubectl port-forward -n magma svc/orc8r-proxy 9443:9443
 
@@ -156,3 +179,19 @@ minikube service orc8r-proxy -n magma --https
 ```
 - Orchestrator proxy should be reachable via https://localhost:9443 and
 requires magma client certificate to be installed on browser.
+
+- Create an administrator for the NMS:
+
+```bash
+kubectl exec -it -n magma \
+  $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
+  yarn setAdminPassword <admin user email> <admin user password>
+  
+yarn run v1.16.0
+$ node -r '@fbcnms/babel-register' scripts/setPassword.js xjtian@fb.com magma
+Success
+Done in 1.82s.
+```
+
+- At this point, you should be able to log into the NMS as the admin user you
+just provisioned. The NMS will be reachable through the

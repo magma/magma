@@ -1,9 +1,15 @@
 ---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
 log_level: INFO
 # List of services for magmad to control
 magma_services:
   - control_proxy
-  - metricsd
   - redis
   - session_proxy
   - s6a_proxy
@@ -12,7 +18,7 @@ magma_services:
   - health
   - swx_proxy
   - eap_aka
-  - eap_router
+  - aaa_server
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -21,7 +27,7 @@ non_service303_services:
 
 # Init system to use to control services
 # Supported systems include: [systemd, runit, docker]
-init_system: systemd
+init_system: docker
 
 # bootstrap_manager config
 bootstrap_config:
@@ -32,7 +38,7 @@ bootstrap_config:
 enable_config_streamer: True
 enable_upgrade_manager: False
 enable_network_monitor: False
-enable_systemd_tailer: True
+enable_systemd_tailer: False
 enable_sync_rpc: True
 
 systemd_tailer_poll_interval: 30 # seconds
@@ -47,3 +53,32 @@ mconfig_modules:
   - lte.protos.mconfig.mconfigs_pb2
   - feg.protos.mconfig.mconfigs_pb2
 
+metricsd:
+  log_level: INFO
+  collect_interval: 60 # How frequently to collect metrics samples in seconds
+  sync_interval: 60 # How frequently to sync to cloud in seconds
+  grpc_timeout: 10 # Timeout in seconds
+  queue_length: 1000 # Number of failed samples to enqueue for resend
+  # List of services for metricsd to poll
+  services:
+    - magmad
+    - session_proxy
+    - s6a_proxy
+    - swx_proxy
+    - eap_aka
+    - aaa_server
+    - csfb
+
+generic_command_config:
+  module: magma.magmad.generic_command.shell_command_executor
+  class: ShellCommandExecutor
+  shell_commands:
+    - name: bash
+      command: "bash {}"
+      allow_params: True
+    - name: fab
+      command: "fab {}"
+      allow_params: True
+    - name: echo
+      command: "echo {}"
+      allow_params: True

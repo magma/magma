@@ -8,13 +8,13 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 import Button from '@material-ui/core/Button';
 import React, {useState} from 'react';
 import SideBar from '../components/layout/SideBar.react';
 import TopPageBar from '../components/layout/TopPageBar.react';
 import Typography from '@material-ui/core/Typography';
+import {makeStyles} from '@material-ui/styles';
+import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -28,7 +28,7 @@ const Container = () => {
   return (
     <div className={classes.root}>
       <TopPageBar>
-        <Typography>I'm a Header</Typography>
+        <Typography variant="body2">I'm a Header</Typography>
         <Button onClick={() => setIsShown(true)}>Open Drawer</Button>
       </TopPageBar>
       <SideBar isShown={isShown} top={60} onClose={() => setIsShown(false)}>

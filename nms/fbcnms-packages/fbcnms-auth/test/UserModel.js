@@ -8,8 +8,8 @@
  * @format
  */
 
-import {AccessRoles} from '../roles';
 import bcrypt from 'bcryptjs';
+import {AccessRoles} from '../roles';
 
 export const USERS = [
   {
@@ -37,7 +37,6 @@ export const USERS = [
 
 export const USERS_EXPECTED = [
   {
-    isSuperUser: false,
     networkIDs: [],
     id: 1,
     email: 'valid@123.com',
@@ -45,7 +44,6 @@ export const USERS_EXPECTED = [
     role: 0,
   },
   {
-    isSuperUser: false,
     networkIDs: [],
     id: 2,
     email: 'noorg@123.com',
@@ -53,7 +51,6 @@ export const USERS_EXPECTED = [
     role: 0,
   },
   {
-    isSuperUser: true,
     networkIDs: [],
     id: 3,
     email: 'superuser@123.com',

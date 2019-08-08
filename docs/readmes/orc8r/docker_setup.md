@@ -6,7 +6,9 @@ title: Docker Setup
 
 Orc8r consists of 2 containers: one for the proxy, and one for all the
 controller services. We use supervisord to spin multiple services within
-these containers.
+these containers. There are an additional 5 containers for metrics. These are
+used to monitor system and gateway metrics, but are optional if you don't need
+that for your setup.
 
 NOTE: The multiple services per container model was adopted to model the
 legacy Vagrant setup and for easier migration, and we will soon migrate to
@@ -55,6 +57,14 @@ docker-compose logs -f controller
 To create a shell inside a container, run:
 ```
 docker-compose exec controller bash
+```
+
+Similarly for the metrics containers just specify the docker-compose file
+before running a command, such as:
+```
+docker-compose -f docker-compose.metrics.yml up -d
+docker-compose -f docker-compose.metrics.yml ps
+docker-compose -f docker-compose.metrics.yml down
 ```
 
 ## How to run unit tests

@@ -45,6 +45,20 @@ var registry = &serviceRegistry{
 	serviceLocations:   map[string]ServiceLocation{},
 }
 
+// String implements ServiceLocation stringer interface
+// Returns string in the form: <Service name> @ host:port (also known as: host:port, ...)
+func (sl ServiceLocation) String() string {
+	alsoKnown := ""
+	if len(sl.ProxyAliases) > 0 {
+		aliases := ""
+		for host, port := range sl.ProxyAliases {
+			aliases += fmt.Sprintf(" %s:%d,", host, port)
+		}
+		alsoKnown = " (also known as:" + aliases[:len(aliases)-1] + ")"
+	}
+	return fmt.Sprintf("%s @ %s:%d%s", sl.Name, sl.Host, sl.Port, alsoKnown)
+}
+
 // AddServices adds new services to the registry.
 // If any services already exist, their locations will be overwritten
 func AddServices(locations ...ServiceLocation) {
@@ -101,7 +115,7 @@ func GetServiceProxyAliases(service string) (map[string]int, error) {
 func GetServicePort(service string) (int, error) {
 	registry.RLock()
 	defer registry.RUnlock()
-	location, ok := registry.serviceLocations[string(service)]
+	location, ok := registry.serviceLocations[strings.ToUpper(string(service))]
 	if !ok {
 		return 0, fmt.Errorf("Service %s not registered", service)
 	}

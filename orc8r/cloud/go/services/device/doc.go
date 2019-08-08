@@ -13,10 +13,12 @@ package device
 
 // SerdeDomain is the domain for all Serde implementations for the device
 // service
-const SerdeDomain = "device"
+const (
+	SerdeDomain = "device"
 
-// ServiceName is the name of this service
-const ServiceName = "DEVICE"
+	// ServiceName is the name of this service
+	ServiceName = "DEVICE"
 
-// DBTableName is the name of the sql table used for this service
-const DBTableName = "device"
+	// DBTableName is the name of the sql table used for this service
+	DBTableName = "device"
+)

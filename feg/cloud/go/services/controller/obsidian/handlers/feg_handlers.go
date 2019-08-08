@@ -10,10 +10,10 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"magma/feg/cloud/go/services/controller/config"
+	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/services/controller/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/config/obsidian"
+	"magma/orc8r/cloud/go/obsidian"
+	cfgObsidian "magma/orc8r/cloud/go/services/config/obsidian"
 	magmad_handlers "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 )
 
@@ -24,9 +24,9 @@ const (
 )
 
 // GetObsidianHandlers returns all obsidian handlers for feg controller
-func GetObsidianHandlers() []handlers.Handler {
-	ret := make([]handlers.Handler, 0, 8)
-	ret = append(ret, obsidian.GetCRUDNetworkConfigHandlers(NetworkConfigPath, config.FegNetworkType, &models.NetworkFederationConfigs{})...)
-	ret = append(ret, obsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, config.FegGatewayType, &models.GatewayFegConfigs{})...)
+func GetObsidianHandlers() []obsidian.Handler {
+	ret := make([]obsidian.Handler, 0, 8)
+	ret = append(ret, cfgObsidian.GetCRUDNetworkConfigHandlers(NetworkConfigPath, feg.FegNetworkType, &models.NetworkFederationConfigs{})...)
+	ret = append(ret, cfgObsidian.GetCRUDGatewayConfigHandlers(GatewayConfigPath, feg.FegGatewayType, &models.GatewayFegConfigs{})...)
 	return ret
 }

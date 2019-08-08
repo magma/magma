@@ -14,6 +14,7 @@
 import argparse
 import glob
 import subprocess
+from subprocess import PIPE
 from collections import namedtuple
 from typing import List
 
@@ -44,10 +45,21 @@ def main() -> None:
         _create_build_context()
         _run_docker(['build', 'test'])
         _run_docker(['run', '--rm', 'test', 'make test'])
-    else:
-        # Build all containers
+    elif args.nocache:
+        # Build containers without go-cache in base image
         _create_build_context()
         _run_docker(['build'])
+    else:
+        _create_build_context()
+        # Check if orc8r_cache image exists
+        result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
+                stdout=PIPE, stderr=PIPE)
+        if result.stdout == b'':
+            print("Orc8r_cache image does not exist. Building...")
+            _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
+
+        # Build all images using go-cache base image
+        _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache'])
 
 
 def _run_docker(cmd: List[str]) -> None:
@@ -177,6 +189,8 @@ def _parse_args() -> argparse.Namespace:
                         help="Run unit tests")
     parser.add_argument('--mount', '-m', action='store_true',
                         help='Mount the source code and create a bash shell')
+    parser.add_argument('--nocache', '-n', action='store_true',
+                        help='Build the images without go cache base image')
     args = parser.parse_args()
     return args
 

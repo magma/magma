@@ -20,6 +20,9 @@ import (
 // swagger:model network_federation_configs
 type NetworkFederationConfigs struct {
 
+	// aaa server
+	AaaServer *NetworkFederationConfigsAaaServer `json:"aaa_server,omitempty"`
+
 	// eap aka
 	EapAka *NetworkFederationConfigsEapAka `json:"eap_aka,omitempty"`
 
@@ -48,6 +51,10 @@ type NetworkFederationConfigs struct {
 // Validate validates this network federation configs
 func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateAaaServer(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateEapAka(formats); err != nil {
 		res = append(res, err)
@@ -80,6 +87,24 @@ func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkFederationConfigs) validateAaaServer(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AaaServer) { // not required
+		return nil
+	}
+
+	if m.AaaServer != nil {
+		if err := m.AaaServer.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("aaa_server")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -220,6 +245,43 @@ func (m *NetworkFederationConfigs) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *NetworkFederationConfigs) UnmarshalBinary(b []byte) error {
 	var res NetworkFederationConfigs
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkFederationConfigsAaaServer network federation configs aaa server
+// swagger:model NetworkFederationConfigsAaaServer
+type NetworkFederationConfigsAaaServer struct {
+
+	// accounting enabled
+	AccountingEnabled bool `json:"accounting_enabled,omitempty"`
+
+	// create session on auth
+	CreateSessionOnAuth bool `json:"create_session_on_auth,omitempty"`
+
+	// idle session timeout ms
+	IDLESessionTimeoutMs uint32 `json:"idle_session_timeout_ms,omitempty" magma_alt_name:"IdleSessionTimeoutMs"`
+}
+
+// Validate validates this network federation configs aaa server
+func (m *NetworkFederationConfigsAaaServer) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkFederationConfigsAaaServer) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkFederationConfigsAaaServer) UnmarshalBinary(b []byte) error {
+	var res NetworkFederationConfigsAaaServer
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
@@ -480,16 +542,16 @@ func (m *NetworkFederationConfigsGy) UnmarshalBinary(b []byte) error {
 type NetworkFederationConfigsHealth struct {
 
 	// cloud disable period secs
-	CloudDisablePeriodSecs uint32 `json:"cloud_disable_period_secs,omitempty"`
+	CloudDisablePeriodSecs uint32 `json:"cloud_disable_period_secs,omitempty" magma_alt_name:"CloudDisconnectPeriodSecs"`
 
 	// cpu utilization threshold
 	CPUUtilizationThreshold float32 `json:"cpu_utilization_threshold,omitempty" magma_alt_name:"CpuUtilizationThreshold"`
 
 	// FeG services for the health service to monitor
-	HealthServices []string `json:"health_services"`
+	HealthServices []string `json:"health_services" magma_alt_name:"RequiredServices"`
 
 	// local disable period secs
-	LocalDisablePeriodSecs uint32 `json:"local_disable_period_secs,omitempty"`
+	LocalDisablePeriodSecs uint32 `json:"local_disable_period_secs,omitempty" magma_alt_name:"LocalDisconnectPeriodSecs"`
 
 	// memory available threshold
 	MemoryAvailableThreshold float32 `json:"memory_available_threshold,omitempty"`

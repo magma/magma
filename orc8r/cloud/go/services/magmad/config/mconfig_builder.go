@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/config"
@@ -57,7 +58,7 @@ func (builder *MagmadMconfigBuilder) Build(networkId string, gatewayId string) (
 }
 
 func getMagmadGatewayConfig(networkId string, logicalId string) (*magmad_protos.MagmadGatewayConfig, error) {
-	iGatewayConfigs, err := config.GetConfig(networkId, MagmadGatewayType, logicalId)
+	iGatewayConfigs, err := config.GetConfig(networkId, orc8r.MagmadGatewayType, logicalId)
 	if err != nil || iGatewayConfigs == nil {
 		return nil, err
 	}

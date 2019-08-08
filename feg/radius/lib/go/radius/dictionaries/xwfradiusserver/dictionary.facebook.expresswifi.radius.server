@@ -1,0 +1,20 @@
+# -*- text -*-
+# Copyright 2004-present Facebook. All Rights Reserved.
+#
+# dictionary.facebook.expresswifi.radius.server
+#
+#
+
+VENDOR    Facebook-ExpressWiFi-RADIUS-Server        99999
+
+#
+#    Standard attribute
+#
+BEGIN-VENDOR  Facebook-ExpressWiFi-RADIUS-Server
+
+ATTRIBUTE  XWF-RADIUS-Server-Id            1  integer
+ATTRIBUTE  XWF-Normalized-MAC-Address      2  string
+ATTRIBUTE  XWF-RADIUS-Session-Id           3  string
+ATTRIBUTE  XWF-C-Version                   4  string
+
+END-VENDOR  Facebook-ExpressWiFi-RADIUS-Server

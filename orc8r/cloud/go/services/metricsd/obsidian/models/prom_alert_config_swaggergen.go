@@ -22,20 +22,17 @@ type PromAlertConfig struct {
 	Alert *string `json:"alert"`
 
 	// annotations
-	// Required: true
-	Annotations PromAlertLabels `json:"annotations"`
+	Annotations PromAlertLabels `json:"annotations,omitempty"`
 
 	// expr
 	// Required: true
 	Expr *string `json:"expr"`
 
 	// for
-	// Required: true
-	For *string `json:"for"`
+	For string `json:"for,omitempty"`
 
 	// labels
-	// Required: true
-	Labels PromAlertLabels `json:"labels"`
+	Labels PromAlertLabels `json:"labels,omitempty"`
 }
 
 // Validate validates this prom alert config
@@ -51,10 +48,6 @@ func (m *PromAlertConfig) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateExpr(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateFor(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -79,6 +72,10 @@ func (m *PromAlertConfig) validateAlert(formats strfmt.Registry) error {
 
 func (m *PromAlertConfig) validateAnnotations(formats strfmt.Registry) error {
 
+	if swag.IsZero(m.Annotations) { // not required
+		return nil
+	}
+
 	if err := m.Annotations.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("annotations")
@@ -98,16 +95,11 @@ func (m *PromAlertConfig) validateExpr(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *PromAlertConfig) validateFor(formats strfmt.Registry) error {
-
-	if err := validate.Required("for", "body", m.For); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *PromAlertConfig) validateLabels(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Labels) { // not required
+		return nil
+	}
 
 	if err := m.Labels.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {

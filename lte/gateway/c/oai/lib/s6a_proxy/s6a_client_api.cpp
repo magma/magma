@@ -82,10 +82,10 @@ static void _s6a_handle_authentication_info_ans(
 
   if (status.ok()) {
     if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
-      std::cout << "[ERROR] "
+      std::cout << "[INFO] "
         << "Received S6A-AUTHENTICATION_INFORMATION_ANSWER for IMSI: " << imsi
         << "; Status: " << status.error_message()
-        << "; ErrorCode: " << response.error_code() << std::endl;
+        << "; StatusCode: " << response.error_code() << std::endl;
 
       itti_msg->result.present = S6A_RESULT_BASE;
       itti_msg->result.choice.base = DIAMETER_SUCCESS;
@@ -140,9 +140,9 @@ static void _s6a_handle_update_location_ans(
 
   if (status.ok()) {
     if (response.error_code() < feg::ErrorCode::COMMAND_UNSUPORTED) {
-      std::cout << "[ERROR] Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
+      std::cout << "[INFO] Received S6A-LOCATION-UPDATE_ANSWER for IMSI: "
                       << imsi << "; Status: " << status.error_message()
-                      << "; ErrorCode: " << response.error_code() << std::endl;
+                      << "; StatusCode: " << response.error_code() << std::endl;
 
       itti_msg->result.present = S6A_RESULT_BASE;
       itti_msg->result.choice.base = DIAMETER_SUCCESS;

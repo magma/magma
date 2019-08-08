@@ -10,6 +10,7 @@ package registry
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"magma/orc8r/cloud/go/service/config"
@@ -95,7 +96,12 @@ func getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("127.0.0.1:%d", localPort), nil
+	localAddress, err := GetServiceAddress(CONTROL_PROXY)
+	if err != nil {
+		return "", err
+	}
+	addrPieces := strings.Split(localAddress, ":")
+	return fmt.Sprintf("%s:%d", addrPieces[0], localPort), nil
 }
 
 func getDialOptions(authority string) []grpc.DialOption {

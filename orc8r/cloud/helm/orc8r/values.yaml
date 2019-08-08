@@ -5,10 +5,38 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+## Global values for NMS chart
+nms:
+  magmalte:
+    manifests:
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
+    image:
+      repository: <registry>/magmalte
+      tag: latest
+  nginx:
+    manifests:
+      configmap: false
+      secrets: false
+      deployment: false
+      service: false
+      rbac: false
+
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
+
+## metrics subchart configuration.
+metrics:
+  metrics:
+    create: false
+  graphite:
+    create: false
+  prometheusCache:
+    create: false
 
 # secrets subchart configuration.
 secrets:
@@ -36,6 +64,8 @@ proxy:
         port: 9444
         targetPort: 9444
         nodePort: ""
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
 
   # proxy image
   image:
@@ -47,6 +77,10 @@ proxy:
   spec:
     # magma controller domain name
     hostname: ""
+    http_proxy_hostname: ""
+    http_proxy_backend: ""
+    http_proxy_docker_hostname: ""
+    http_proxy_github_hostname: ""
 
   # Number of proxy replicas desired
   replicas: 1
@@ -84,20 +118,28 @@ controller:
     portStart: 9079
     portEnd: 9108
 
-  # proxy image
+  # controller image
   image:
     repository:
     tag: latest
     pullPolicy: IfNotPresent
 
   spec:
-    # Postgres configuration
-    postgres:
-      db: magma
+    # Postgres/mysql configuration
+    database:
+      driver: postgres      # mysql/postgres
+      sql_dialect: psql # maria/psql
+      db: magma          # DB Name
+      protocol: tcp
       host: postgresql
       port: 5432
       user: postgres
       pass: postgres
+
+  migration:
+    new_handlers: 0
+    new_mconfigs: 0
+    mconfig_whitelist: ""
 
   # Number of controller replicas desired
   replicas: 1

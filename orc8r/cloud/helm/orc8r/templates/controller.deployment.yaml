@@ -92,9 +92,11 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ $serviceName }}
-                  key: postgres.connstr
+                  key: {{ .Values.controller.spec.database.driver }}.connstr
             - name: SQL_DRIVER
-              value: postgres
+              value: {{ .Values.controller.spec.database.driver }}
+            - name: SQL_DIALECT
+              value: {{ .Values.controller.spec.database.sql_dialect }}
             # Hostname override for dispatcher
             - name: SERVICE_HOST_NAME
               valueFrom:
@@ -105,6 +107,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: USE_NEW_HANDLERS
+              value: "{{ .Values.controller.migration.new_handlers }}"
+            - name: USE_NEW_MCONFIGS
+              value: "{{ .Values.controller.migration.new_mconfigs }}"
+            - name: NEW_MCONFIGS_WHITELIST
+              value: {{ .Values.controller.migration.mconfig_whitelist }}
           livenessProbe:
             tcpSocket:
               port: 9081

@@ -7,9 +7,9 @@
  * @flow
  * @format
  */
-import {storiesOf} from '@storybook/react';
-import Tokenizer from '../components/Tokenizer.react';
 import React from 'react';
+import Tokenizer from '../components/Tokenizer.react';
+import {storiesOf} from '@storybook/react';
 
 const entries = [
   {label: 'Chassis', id: '0'},
@@ -18,8 +18,20 @@ const entries = [
   {label: 'AP', id: '3'},
 ];
 
-storiesOf('Tokenizer', module).add('basic', () => (
+storiesOf('Tokenizer', module).add('options', () => {
+  return (
+    <div style={{width: '300px'}}>
+      <Tokenizer
+        searchSource="Options"
+        searchEntries={entries}
+        onEntriesRequested={() => {}}
+      />
+    </div>
+  );
+});
+
+storiesOf('Tokenizer', module).add('userInput', () => (
   <div style={{width: '300px'}}>
-    <Tokenizer searchEntries={entries} onEntriesRequested={() => {}} />
+    <Tokenizer searchSource="UserInput" onEntriesRequested={() => {}} />
   </div>
 ));

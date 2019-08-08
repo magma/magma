@@ -22,13 +22,13 @@ void create_rule_record(
 
 void create_charging_credit(uint64_t volume, ChargingCredit *credit);
 
-void create_update_response(
+void create_credit_update_response(
   const std::string &imsi,
   uint32_t charging_key,
   uint64_t volume,
   CreditUpdateResponse *response);
 
-void create_update_response(
+void create_credit_update_response(
   const std::string &imsi,
   uint32_t charging_key,
   uint64_t volume,
@@ -48,6 +48,15 @@ void create_monitor_update_response(
   uint64_t volume,
   UsageMonitoringUpdateResponse *response);
 
+void create_monitor_update_response(
+  const std::string &imsi,
+  const std::string &m_key,
+  MonitoringLevel level,
+  uint64_t volume,
+  const std::vector<EventTrigger> &event_triggers,
+  const uint64_t revalidation_time_unix_ts,
+  UsageMonitoringUpdateResponse *response);
+
 void create_usage_update(
   const std::string &imsi,
   uint32_t charging_key,
@@ -55,5 +64,16 @@ void create_usage_update(
   uint64_t bytes_tx,
   CreditUsage::UpdateType type,
   CreditUsageUpdate *update);
+
+void create_policy_reauth_request(
+  const std::string &session_id,
+  const std::string &imsi,
+  const std::vector<std::string> &rules_to_remove,
+  const std::vector<StaticRuleInstall> &rules_to_install,
+  const std::vector<DynamicRuleInstall> &dynamic_rules_to_install,
+  const std::vector<EventTrigger> &event_triggers,
+  const uint64_t revalidation_time_unix_ts,
+  const std::vector<UsageMonitoringCredit> &usage_monitoring_credits,
+  PolicyReAuthRequest *request);
 
 } // namespace magma

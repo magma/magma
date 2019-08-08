@@ -24,7 +24,7 @@ module.exports.overrides = [
       jest: true,
       node: true,
     },
-    files: ['**/__mocks__/**/*.js', '**/__tests__/**/*.js'],
+    files: ['**/__mocks__/**/*.js', '**/__tests__/**/*.js', 'testHelpers.js'],
   },
   {
     files: ['fbcnms-packages/**/*.js', 'fbcnms-projects/magmalte/**/*.js'],
@@ -54,6 +54,7 @@ module.exports.overrides = [
       'fbcnms-projects/*/config/webpack.*.js',
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
+      'fbcnms-projects/platform-server/**/*.js',
     ],
     rules: {
       'no-console': 'off',
@@ -63,6 +64,7 @@ module.exports.overrides = [
     files: ['**/tgnms/**/*.js'],
     rules: {
       // tgnms doesn't want this because there's too many errors
+      'flowtype/no-weak-types': 'off',
       'flowtype/require-valid-file-annotation': 'off',
     },
   },

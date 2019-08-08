@@ -38,6 +38,7 @@ The following services run on the federated gateway:
  - `gateway_health` - provides health updates to the orc8r to be used for 
  achieving highly available federated gateway clusters (see **[Magma Product Spec](https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf)**
  for more details)
+ - `radiusd` - fetches metrics from the running radius server and exports them
 
 Associated tools for sending requests and debugging issues can be found
 at `magma/feg/gateway/tools`. 

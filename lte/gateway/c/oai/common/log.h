@@ -52,6 +52,7 @@ extern int fd_g_debug_lvl;
 #include <pthread.h>
 
 #include "bstrlib.h"
+#include "glogwrapper/glog_logging.h"
 
 struct shared_log_queue_item_s;
 
@@ -260,7 +261,6 @@ inline void nopp(void *x, ...)
     nopp(__VA_ARGS__);                                                         \
   } while (0)
 
-#if LOG_OAI
 void log_configure(const log_config_t *const config);
 const char *log_level_int2str(const log_level_t log_level);
 log_level_t log_level_str2int(const char *const log_level_str);
@@ -336,7 +336,7 @@ void log_message(
   const log_proto_t protoP,
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   ...) __attribute__((format(printf, 6, 7)));
 
 const char *const get_short_file_name(
@@ -458,27 +458,6 @@ const char *const get_short_file_name(
 #endif
 #endif
 #include "shared_ts_log.h"
-#else
-#define OAILOG_SPEC(...) NOP(__VA_ARGS__)
-#define OAILOG_LOG_CONFIGURE(a)
-#define OAILOG_LEVEL_STR2INT(a) OAILOG_LEVEL_EMERGENCY
-#define OAILOG_LEVEL_INT2STR(a) "EMERGENCY"
-#define OAILOG_INIT(a, b, c) 0
-#define OAILOG_ITTI_CONNECT()
-#define OAILOG_EXIT()
-#define OAILOG_EMERGENCY(...) NOP(__VA_ARGS__)
-#define OAILOG_ALERT(...) NOP(__VA_ARGS__)
-#define OAILOG_CRITICAL(...) NOP(__VA_ARGS__)
-#define OAILOG_ERROR(...) NOP(__VA_ARGS__)
-#define OAILOG_WARNING(...) NOP(__VA_ARGS__)
-#define OAILOG_NOTICE(...) NOP(__VA_ARGS__)
-#define OAILOG_INFO(...) NOP(__VA_ARGS__)
-#define OAILOG_MESSAGE_START_SYNC(...) NOP(__VA_ARGS__)
-#define OAILOG_MESSAGE_START_ASYNC(...) NOP(__VA_ARGS__)
-#define OAILOG_MESSAGE_ADD_SYNC(...) NOPP(__VA_ARGS__)
-#define OAILOG_MESSAGE_ADD_ASYNC(...) NOPP(__VA_ARGS__)
-#define OAILOG_MESSAGE_FINISH(cOnTeXt) NOPP(cOnTeXt)
-#endif
 
 #if !defined(OAILOG_DEBUG)
 #define OAILOG_DEBUG(...) NOP(__VA_ARGS__)
@@ -508,30 +487,6 @@ const char *const get_short_file_name(
 #define OAILOG_STREAM_HEX(...) NOP(__VA_ARGS__)
 #endif
 
-#if DAEMONIZE
-#define OAI_FPRINTF_ERR(...)                                                   \
-  do {                                                                         \
-    syslog(LOG_ERR, ##__VA_ARGS__);                                            \
-  } while (0)
-#define OAI_FPRINTF_INFO(...)                                                  \
-  do {                                                                         \
-    syslog(LOG_INFO, ##__VA_ARGS__);                                           \
-  } while (0)
-#define OAI_VFPRINTF_ERR(...)                                                  \
-  do {                                                                         \
-    vsyslog(LOG_ERR, ##__VA_ARGS__);                                           \
-  } while (0)
-#define OAI_VFPRINTF_INFO(...)                                                 \
-  do {                                                                         \
-    vsyslog(LOG_INFO, ##__VA_ARGS__);                                          \
-  } while (0)
-#if EMIT_ASN_DEBUG_EXTERN
-#define ASN_DEBUG(...)                                                         \
-  do {                                                                         \
-    vsyslog(LOG_ERR, ##__VA_ARGS__);                                           \
-  } while (0)
-#endif
-#else
 #define OAI_FPRINTF_ERR(...)                                                   \
   do {                                                                         \
     fprintf(stderr, ##__VA_ARGS__);                                            \
@@ -558,6 +513,5 @@ const char *const get_short_file_name(
     vfprintf(stderr, ##__VA_ARGS__);                                           \
     fflush(stderr);                                                            \
   } while (0)
-#endif
 #endif
 #endif /* FILE_LOG_SEEN */

@@ -13,13 +13,13 @@ import (
 	"log"
 	"sync"
 
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
 )
 
 // Handler - is an AKA Subtype
-type Handler func(srvr *EapAkaSrv, ctx *protos.EapContext, req eap.Packet) (eap.Packet, error)
+type Handler func(srvr *EapAkaSrv, ctx *protos.Context, req eap.Packet) (eap.Packet, error)
 
 var akaHandlers struct {
 	rwl sync.RWMutex

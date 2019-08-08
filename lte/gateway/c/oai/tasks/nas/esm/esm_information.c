@@ -80,7 +80,7 @@ int esm_proc_esm_information_request(
 
   OAILOG_INFO(
     LOG_NAS_ESM,
-    "ESM-PROC  - Initiate ESM information ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    "ESM-PROC  - Initiate ESM information ue_id=(" MME_UE_S1AP_ID_FMT ")\n",
     ue_id);
 
   ESM_msg esm_msg = {.header = {0}};
@@ -129,7 +129,7 @@ int esm_proc_esm_information_response(
    */
   nas_stop_T3489(&ue_context->esm_ctx);
 
-  if (apn) {
+  if (apn && (apn->slen > 0)) {
     if (ue_context->esm_ctx.esm_proc_data->apn) {
       bdestroy_wrapper(&ue_context->esm_ctx.esm_proc_data->apn);
     }

@@ -14,22 +14,33 @@ import (
 	"sync"
 
 	"magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/checkind/obsidian/models"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
 )
 
-// StateValue includes reported operational states and additional info
-type StateValue struct {
+// State includes reported operational state and additional info about the reporter
+type State struct {
 	// ID of the entity reporting the state (hwID, cert serial number, etc)
 	ReporterID string
 	// Checkin Time
 	Time uint64
 	// Cert expiration Time
 	CertExpirationTime int64
-	ReportedValue      []byte
+	ReportedState      interface{}
+}
+
+// SerializedStateWithMeta includes reported operational states and additional info
+type SerializedStateWithMeta struct {
+	ReporterID              string
+	Time                    uint64
+	CertExpirationTime      int64
+	SerializedReportedState []byte
 }
 
 // StateID contains the identifying information of a state
@@ -62,11 +73,10 @@ func getStateClient() (protos.StateServiceClient, error) {
 }
 
 // GetState returns the state specified by the networkID, typeVal, and hwID
-func GetState(networkID string, typeVal string, hwID string) (*StateValue, error) {
-	stateValue := &StateValue{}
+func GetState(networkID string, typeVal string, hwID string) (State, error) {
 	client, err := getStateClient()
 	if err != nil {
-		return nil, err
+		return State{}, err
 	}
 
 	stateID := &protos.StateID{
@@ -82,16 +92,16 @@ func GetState(networkID string, typeVal string, hwID string) (*StateValue, error
 		},
 	)
 	if err != nil {
-		return nil, err
+		return State{}, err
 	}
 	if len(ret.States) == 0 {
-		return nil, errors.ErrNotFound
+		return State{}, errors.ErrNotFound
 	}
-	return stateValue, json.Unmarshal(ret.States[0].Value, stateValue)
+	return toState(ret.States[0])
 }
 
 // GetStates returns a map of states specified by the networkID and a list of type and key
-func GetStates(networkID string, stateIDs []StateID) (map[StateID]StateValue, error) {
+func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) {
 	client, err := getStateClient()
 	if err != nil {
 		return nil, err
@@ -107,12 +117,14 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]StateValue, er
 		return nil, err
 	}
 
-	idToValue := map[StateID]StateValue{}
-	for _, state := range res.States {
-		stateID := StateID{Type: state.Type, DeviceID: state.DeviceID}
-		stateValue := StateValue{}
-		json.Unmarshal(state.Value, &stateValue)
-		idToValue[stateID] = stateValue
+	idToValue := map[StateID]State{}
+	for _, pState := range res.States {
+		stateID := StateID{Type: pState.Type, DeviceID: pState.DeviceID}
+		state, err := toState(pState)
+		if err != nil {
+			return nil, err
+		}
+		idToValue[stateID] = state
 	}
 	return idToValue, nil
 }
@@ -133,10 +145,46 @@ func DeleteStates(networkID string, stateIDs []StateID) error {
 	return err
 }
 
+func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus, error) {
+	state, err := GetState(networkID, orc8r.GatewayStateType, deviceID)
+	if err != nil {
+		return nil, err
+	}
+	if state.ReportedState == nil {
+		return nil, errors.ErrNotFound
+	}
+
+	gwStatus := state.ReportedState.(*models.GatewayStatus)
+	gwStatus.CheckinTime = state.Time
+	gwStatus.CertExpirationTime = state.CertExpirationTime
+	// Use the hardware ID from the middleware
+	gwStatus.HardwareID = state.ReporterID
+	// Populate deprecated fields to support API backwards compatibility
+	// TODO: Remove this and related tests when deprecated fields are no longer used
+	gwStatus.FillDeprecatedFields()
+	return gwStatus, nil
+}
+
 func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {
 	ids := []*protos.StateID{}
 	for _, state := range stateIDs {
 		ids = append(ids, &protos.StateID{Type: state.Type, DeviceID: state.DeviceID})
 	}
 	return ids
+}
+
+func toState(pState *protos.State) (State, error) {
+	serialized := &SerializedStateWithMeta{}
+	err := json.Unmarshal(pState.Value, serialized)
+	if err != nil {
+		return State{}, err
+	}
+	iReportedState, err := serde.Deserialize(SerdeDomain, pState.Type, serialized.SerializedReportedState)
+	state := State{
+		ReporterID:         serialized.ReporterID,
+		Time:               serialized.Time,
+		CertExpirationTime: serialized.CertExpirationTime,
+		ReportedState:      iReportedState,
+	}
+	return state, err
 }

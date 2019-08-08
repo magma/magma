@@ -18,7 +18,6 @@ set(COMMON_SRC
   backtrace.c
   common_types.c
   conversions.c
-  daemonize.c
   digest.c
   dynamic_memory_check.c
   enum_string.c
@@ -26,16 +25,15 @@ set(COMMON_SRC
   mcc_mnc_itu.c
   pid_file.c
   shared_ts_log.c
+  log.c
 )
 
-if (LOG_OAI)
-  set(COMMON_SRC ${COMMON_SRC} log.c)
-endif (LOG_OAI)
+add_subdirectory(glogwrapper)
 
 add_library(COMMON ${COMMON_SRC})
 target_link_libraries (COMMON
   lfds710
-  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI
+  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper
 )
 target_include_directories(COMMON PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}

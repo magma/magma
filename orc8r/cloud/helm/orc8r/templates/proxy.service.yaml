@@ -42,3 +42,14 @@ spec:
       nodePort: {{ .nodePort }}
       {{- end }}
     {{- end }}
+{{- if eq .Values.proxy.service.type "LoadBalancer" }}
+  {{- if .Values.proxy.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.proxy.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.proxy.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.proxy.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}

@@ -20,16 +20,20 @@ const TerserPlugin = require('terser-webpack-plugin');
 type Options = {
   projectName?: string,
   extraPaths?: string[],
+  entry?: Object,
 };
 
 function createProductionWebpackConfig(options: Options) {
   return {
     mode: 'production',
     devtool: false,
-    entry: {
-      main: [paths.appIndexJs],
-      login: [paths.loginJs],
-    },
+    entry: Object.assign(
+      {
+        main: [paths.appIndexJs],
+        login: [paths.loginJs],
+      },
+      options.entry || {},
+    ),
     externals: [
       {
         xmlhttprequest: '{XMLHttpRequest:XMLHttpRequest}',

@@ -9,3 +9,8 @@ LICENSE file in the root directory of this source tree.
 package feg
 
 const ModuleName = "feg"
+
+const (
+	FegNetworkType = "federation_network"
+	FegGatewayType = "federation_gateway"
+)

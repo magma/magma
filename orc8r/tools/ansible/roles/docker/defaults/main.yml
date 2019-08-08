@@ -18,6 +18,10 @@ image_version: "{{ lookup('file','image_version') }}"
 
 systemd_stdout: null
 systemd_stderr: syslog
+# will run as "docker-compose {{ systemd_start_args_pre }} up {{ systemd_start_args_post }}"
+# use to specify alternate compose files (pre) or service options (post)
+systemd_start_args_pre: ""
+systemd_start_args_post: ""
 systemd_stop_args: ""
 # override this in your vars config to supply raw content to systemd service definition
 systemd_extra: |

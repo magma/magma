@@ -8,10 +8,10 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import Typography from '@material-ui/core/Typography';
+import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(_theme => ({
   root: {

@@ -12,16 +12,16 @@ import (
 	"errors"
 	"fmt"
 
-	fegprotos "magma/feg/cloud/go/protos"
-	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/crypto"
-	"magma/lte/cloud/go/services/eps_authentication/metrics"
-	"magma/orc8r/cloud/go/identity"
-
 	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	fegprotos "magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/crypto"
+	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/eps_authentication/metrics"
+	"magma/orc8r/cloud/go/identity"
 )
 
 func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fegprotos.AuthenticationInformationRequest) (*fegprotos.AuthenticationInformationAnswer, error) {
@@ -49,6 +49,7 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 	if err != nil {
 		glog.V(2).Infof("failed to lookup subscriber '%s': %v", air.UserName, err.Error())
 		metrics.UnknownSubscribers.Inc()
+		metrics.UnknowSubscribersByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}, err
 	}
 
@@ -73,6 +74,7 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 	if err != nil {
 		glog.V(2).Infof("could not create milenage cipher: %v", err.Error())
 		metrics.AuthErrors.Inc()
+		metrics.AuthErrorsByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHORIZATION_REJECTED},
 			status.Errorf(codes.FailedPrecondition, "Could not create milenage cipher: %s", err.Error())
 	}
@@ -95,6 +97,8 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 		metrics.StorageErrors.Inc()
 		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
 	}
+
+	metrics.AuthSuccessesByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
 
 	return &fegprotos.AuthenticationInformationAnswer{
 		ErrorCode:     fegprotos.ErrorCode_SUCCESS,

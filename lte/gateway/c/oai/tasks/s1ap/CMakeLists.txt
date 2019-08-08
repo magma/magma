@@ -80,7 +80,7 @@ target_link_libraries(TASK_S1AP
     ${CONFIG}
     COMMON
     LIB_BSTR LIB_HASHTABLE
-    TASK_SERVICE303
+    TASK_SERVICE303 TASK_MME_APP
     cpp_redis tacopie
 )
 target_include_directories(TASK_S1AP PUBLIC

@@ -8,28 +8,29 @@
  * @format
  */
 
-import {createMuiTheme} from '@material-ui/core/styles';
 import {
-  blueGrayDark,
-  fadedBlue,
-  gray0,
   blue05,
   blue30,
   blue60,
-  red,
-  redwood,
-  white,
+  blue80,
+  blueGrayDark,
+  fadedBlue,
+  gray0,
   gray00,
   gray50,
   primaryText,
+  red,
+  redwood,
+  white,
 } from './colors';
+import {createMuiTheme} from '@material-ui/core/styles';
 
 export default createMuiTheme({
   palette: {
     primary: {
       light: blue30,
       main: blue60,
-      dark: blueGrayDark,
+      dark: blue80,
     },
     secondary: {
       main: '#606770',
@@ -123,6 +124,9 @@ export default createMuiTheme({
           borderColor: 'rgba(0, 0, 0, 0.87)',
           borderWidth: '1px',
         },
+        '&$disabled': {
+          background: gray0,
+        },
       },
       input: {
         fontSize: '14px',
@@ -149,12 +153,6 @@ export default createMuiTheme({
           opacity: 1,
         },
       },
-      '&$disabled': {
-        background: gray0,
-      },
     },
-  },
-  typography: {
-    useNextVariants: true,
   },
 });

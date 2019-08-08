@@ -6,6 +6,7 @@ package protos // import "magma/feg/gateway/services/eap/protos"
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import protos "magma/feg/gateway/services/aaa/protos"
 
 import (
 	context "golang.org/x/net/context"
@@ -23,338 +24,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type EapType int32
-
-const (
-	// Mandatory EAP Method types
-	EapType_Reserved      EapType = 0
-	EapType_Identity      EapType = 1
-	EapType_Notification  EapType = 2
-	EapType_Legacy_Nak    EapType = 3
-	EapType_MD5_Challenge EapType = 4
-	EapType_Expanded      EapType = 254
-	EapType_Experimental  EapType = 255
-	// EAP Method Authenticator types
-	EapType_TLS      EapType = 13
-	EapType_SIM      EapType = 18
-	EapType_AKA      EapType = 23
-	EapType_AKAPrime EapType = 50
-)
-
-var EapType_name = map[int32]string{
-	0:   "Reserved",
-	1:   "Identity",
-	2:   "Notification",
-	3:   "Legacy_Nak",
-	4:   "MD5_Challenge",
-	254: "Expanded",
-	255: "Experimental",
-	13:  "TLS",
-	18:  "SIM",
-	23:  "AKA",
-	50:  "AKAPrime",
-}
-var EapType_value = map[string]int32{
-	"Reserved":      0,
-	"Identity":      1,
-	"Notification":  2,
-	"Legacy_Nak":    3,
-	"MD5_Challenge": 4,
-	"Expanded":      254,
-	"Experimental":  255,
-	"TLS":           13,
-	"SIM":           18,
-	"AKA":           23,
-	"AKAPrime":      50,
-}
-
-func (x EapType) String() string {
-	return proto.EnumName(EapType_name, int32(x))
-}
-func (EapType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_eap_auth_8497b36a55c9f1df, []int{0}
-}
-
-type EapCode int32
-
-const (
-	EapCode_Undefined EapCode = 0
-	EapCode_Request   EapCode = 1
-	EapCode_Response  EapCode = 2
-	EapCode_Success   EapCode = 3
-	EapCode_Failure   EapCode = 4
-)
-
-var EapCode_name = map[int32]string{
-	0: "Undefined",
-	1: "Request",
-	2: "Response",
-	3: "Success",
-	4: "Failure",
-}
-var EapCode_value = map[string]int32{
-	"Undefined": 0,
-	"Request":   1,
-	"Response":  2,
-	"Success":   3,
-	"Failure":   4,
-}
-
-func (x EapCode) String() string {
-	return proto.EnumName(EapCode_name, int32(x))
-}
-func (EapCode) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_eap_auth_8497b36a55c9f1df, []int{1}
-}
-
-type EapContext struct {
-	SessionId            string   `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Imsi                 string   `protobuf:"bytes,2,opt,name=imsi,proto3" json:"imsi,omitempty"`
-	Msk                  []byte   `protobuf:"bytes,3,opt,name=msk,proto3" json:"msk,omitempty"`
-	Identity             string   `protobuf:"bytes,4,opt,name=identity,proto3" json:"identity,omitempty"`
-	Msisdn               string   `protobuf:"bytes,5,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *EapContext) Reset()         { *m = EapContext{} }
-func (m *EapContext) String() string { return proto.CompactTextString(m) }
-func (*EapContext) ProtoMessage()    {}
-func (*EapContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eap_auth_8497b36a55c9f1df, []int{0}
-}
-func (m *EapContext) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EapContext.Unmarshal(m, b)
-}
-func (m *EapContext) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EapContext.Marshal(b, m, deterministic)
-}
-func (dst *EapContext) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EapContext.Merge(dst, src)
-}
-func (m *EapContext) XXX_Size() int {
-	return xxx_messageInfo_EapContext.Size(m)
-}
-func (m *EapContext) XXX_DiscardUnknown() {
-	xxx_messageInfo_EapContext.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EapContext proto.InternalMessageInfo
-
-func (m *EapContext) GetSessionId() string {
-	if m != nil {
-		return m.SessionId
-	}
-	return ""
-}
-
-func (m *EapContext) GetImsi() string {
-	if m != nil {
-		return m.Imsi
-	}
-	return ""
-}
-
-func (m *EapContext) GetMsk() []byte {
-	if m != nil {
-		return m.Msk
-	}
-	return nil
-}
-
-func (m *EapContext) GetIdentity() string {
-	if m != nil {
-		return m.Identity
-	}
-	return ""
-}
-
-func (m *EapContext) GetMsisdn() string {
-	if m != nil {
-		return m.Msisdn
-	}
-	return ""
-}
-
-type Eap struct {
-	Payload              []byte      `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
-	Ctx                  *EapContext `protobuf:"bytes,2,opt,name=ctx,proto3" json:"ctx,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
-}
-
-func (m *Eap) Reset()         { *m = Eap{} }
-func (m *Eap) String() string { return proto.CompactTextString(m) }
-func (*Eap) ProtoMessage()    {}
-func (*Eap) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eap_auth_8497b36a55c9f1df, []int{1}
-}
-func (m *Eap) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Eap.Unmarshal(m, b)
-}
-func (m *Eap) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Eap.Marshal(b, m, deterministic)
-}
-func (dst *Eap) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Eap.Merge(dst, src)
-}
-func (m *Eap) XXX_Size() int {
-	return xxx_messageInfo_Eap.Size(m)
-}
-func (m *Eap) XXX_DiscardUnknown() {
-	xxx_messageInfo_Eap.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Eap proto.InternalMessageInfo
-
-func (m *Eap) GetPayload() []byte {
-	if m != nil {
-		return m.Payload
-	}
-	return nil
-}
-
-func (m *Eap) GetCtx() *EapContext {
-	if m != nil {
-		return m.Ctx
-	}
-	return nil
-}
-
-type EapIdentity struct {
-	Payload              []byte      `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
-	Ctx                  *EapContext `protobuf:"bytes,2,opt,name=ctx,proto3" json:"ctx,omitempty"`
-	Method               uint32      `protobuf:"varint,3,opt,name=method,proto3" json:"method,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
-}
-
-func (m *EapIdentity) Reset()         { *m = EapIdentity{} }
-func (m *EapIdentity) String() string { return proto.CompactTextString(m) }
-func (*EapIdentity) ProtoMessage()    {}
-func (*EapIdentity) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eap_auth_8497b36a55c9f1df, []int{2}
-}
-func (m *EapIdentity) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_EapIdentity.Unmarshal(m, b)
-}
-func (m *EapIdentity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_EapIdentity.Marshal(b, m, deterministic)
-}
-func (dst *EapIdentity) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EapIdentity.Merge(dst, src)
-}
-func (m *EapIdentity) XXX_Size() int {
-	return xxx_messageInfo_EapIdentity.Size(m)
-}
-func (m *EapIdentity) XXX_DiscardUnknown() {
-	xxx_messageInfo_EapIdentity.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EapIdentity proto.InternalMessageInfo
-
-func (m *EapIdentity) GetPayload() []byte {
-	if m != nil {
-		return m.Payload
-	}
-	return nil
-}
-
-func (m *EapIdentity) GetCtx() *EapContext {
-	if m != nil {
-		return m.Ctx
-	}
-	return nil
-}
-
-func (m *EapIdentity) GetMethod() uint32 {
-	if m != nil {
-		return m.Method
-	}
-	return 0
-}
-
-type Void struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *Void) Reset()         { *m = Void{} }
-func (m *Void) String() string { return proto.CompactTextString(m) }
-func (*Void) ProtoMessage()    {}
-func (*Void) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eap_auth_8497b36a55c9f1df, []int{3}
-}
-func (m *Void) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_Void.Unmarshal(m, b)
-}
-func (m *Void) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_Void.Marshal(b, m, deterministic)
-}
-func (dst *Void) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Void.Merge(dst, src)
-}
-func (m *Void) XXX_Size() int {
-	return xxx_messageInfo_Void.Size(m)
-}
-func (m *Void) XXX_DiscardUnknown() {
-	xxx_messageInfo_Void.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Void proto.InternalMessageInfo
-
-type MethodList struct {
-	Methods              []byte   `protobuf:"bytes,1,opt,name=methods,proto3" json:"methods,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *MethodList) Reset()         { *m = MethodList{} }
-func (m *MethodList) String() string { return proto.CompactTextString(m) }
-func (*MethodList) ProtoMessage()    {}
-func (*MethodList) Descriptor() ([]byte, []int) {
-	return fileDescriptor_eap_auth_8497b36a55c9f1df, []int{4}
-}
-func (m *MethodList) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_MethodList.Unmarshal(m, b)
-}
-func (m *MethodList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_MethodList.Marshal(b, m, deterministic)
-}
-func (dst *MethodList) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MethodList.Merge(dst, src)
-}
-func (m *MethodList) XXX_Size() int {
-	return xxx_messageInfo_MethodList.Size(m)
-}
-func (m *MethodList) XXX_DiscardUnknown() {
-	xxx_messageInfo_MethodList.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MethodList proto.InternalMessageInfo
-
-func (m *MethodList) GetMethods() []byte {
-	if m != nil {
-		return m.Methods
-	}
-	return nil
-}
-
-func init() {
-	proto.RegisterType((*EapContext)(nil), "eap.eap_context")
-	proto.RegisterType((*Eap)(nil), "eap.eap")
-	proto.RegisterType((*EapIdentity)(nil), "eap.eap_identity")
-	proto.RegisterType((*Void)(nil), "eap.void")
-	proto.RegisterType((*MethodList)(nil), "eap.method_list")
-	proto.RegisterEnum("eap.EapType", EapType_name, EapType_value)
-	proto.RegisterEnum("eap.EapCode", EapCode_name, EapCode_value)
-}
-
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
 var _ grpc.ClientConn
@@ -367,7 +36,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type EapServiceClient interface {
-	Handle(ctx context.Context, in *Eap, opts ...grpc.CallOption) (*Eap, error)
+	Handle(ctx context.Context, in *protos.Eap, opts ...grpc.CallOption) (*protos.Eap, error)
 }
 
 type eapServiceClient struct {
@@ -378,8 +47,8 @@ func NewEapServiceClient(cc *grpc.ClientConn) EapServiceClient {
 	return &eapServiceClient{cc}
 }
 
-func (c *eapServiceClient) Handle(ctx context.Context, in *Eap, opts ...grpc.CallOption) (*Eap, error) {
-	out := new(Eap)
+func (c *eapServiceClient) Handle(ctx context.Context, in *protos.Eap, opts ...grpc.CallOption) (*protos.Eap, error) {
+	out := new(protos.Eap)
 	err := c.cc.Invoke(ctx, "/eap.eap_service/handle", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -389,7 +58,7 @@ func (c *eapServiceClient) Handle(ctx context.Context, in *Eap, opts ...grpc.Cal
 
 // EapServiceServer is the server API for EapService service.
 type EapServiceServer interface {
-	Handle(context.Context, *Eap) (*Eap, error)
+	Handle(context.Context, *protos.Eap) (*protos.Eap, error)
 }
 
 func RegisterEapServiceServer(s *grpc.Server, srv EapServiceServer) {
@@ -397,7 +66,7 @@ func RegisterEapServiceServer(s *grpc.Server, srv EapServiceServer) {
 }
 
 func _EapService_Handle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Eap)
+	in := new(protos.Eap)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -409,7 +78,7 @@ func _EapService_Handle_Handler(srv interface{}, ctx context.Context, dec func(i
 		FullMethod: "/eap.eap_service/Handle",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EapServiceServer).Handle(ctx, req.(*Eap))
+		return srv.(EapServiceServer).Handle(ctx, req.(*protos.Eap))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -427,171 +96,16 @@ var _EapService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "protos/eap_auth.proto",
 }
 
-// EapRouterClient is the client API for EapRouter service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type EapRouterClient interface {
-	HandleIdentity(ctx context.Context, in *EapIdentity, opts ...grpc.CallOption) (*Eap, error)
-	Handle(ctx context.Context, in *Eap, opts ...grpc.CallOption) (*Eap, error)
-	SupportedMethods(ctx context.Context, in *Void, opts ...grpc.CallOption) (*MethodList, error)
-}
+func init() { proto.RegisterFile("protos/eap_auth.proto", fileDescriptor_eap_auth_ea87e7dd575c68fa) }
 
-type eapRouterClient struct {
-	cc *grpc.ClientConn
-}
-
-func NewEapRouterClient(cc *grpc.ClientConn) EapRouterClient {
-	return &eapRouterClient{cc}
-}
-
-func (c *eapRouterClient) HandleIdentity(ctx context.Context, in *EapIdentity, opts ...grpc.CallOption) (*Eap, error) {
-	out := new(Eap)
-	err := c.cc.Invoke(ctx, "/eap.eap_router/handle_identity", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *eapRouterClient) Handle(ctx context.Context, in *Eap, opts ...grpc.CallOption) (*Eap, error) {
-	out := new(Eap)
-	err := c.cc.Invoke(ctx, "/eap.eap_router/handle", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *eapRouterClient) SupportedMethods(ctx context.Context, in *Void, opts ...grpc.CallOption) (*MethodList, error) {
-	out := new(MethodList)
-	err := c.cc.Invoke(ctx, "/eap.eap_router/supported_methods", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// EapRouterServer is the server API for EapRouter service.
-type EapRouterServer interface {
-	HandleIdentity(context.Context, *EapIdentity) (*Eap, error)
-	Handle(context.Context, *Eap) (*Eap, error)
-	SupportedMethods(context.Context, *Void) (*MethodList, error)
-}
-
-func RegisterEapRouterServer(s *grpc.Server, srv EapRouterServer) {
-	s.RegisterService(&_EapRouter_serviceDesc, srv)
-}
-
-func _EapRouter_HandleIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EapIdentity)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EapRouterServer).HandleIdentity(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/eap.eap_router/HandleIdentity",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EapRouterServer).HandleIdentity(ctx, req.(*EapIdentity))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _EapRouter_Handle_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Eap)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EapRouterServer).Handle(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/eap.eap_router/Handle",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EapRouterServer).Handle(ctx, req.(*Eap))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _EapRouter_SupportedMethods_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Void)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EapRouterServer).SupportedMethods(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/eap.eap_router/SupportedMethods",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EapRouterServer).SupportedMethods(ctx, req.(*Void))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _EapRouter_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "eap.eap_router",
-	HandlerType: (*EapRouterServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "handle_identity",
-			Handler:    _EapRouter_HandleIdentity_Handler,
-		},
-		{
-			MethodName: "handle",
-			Handler:    _EapRouter_Handle_Handler,
-		},
-		{
-			MethodName: "supported_methods",
-			Handler:    _EapRouter_SupportedMethods_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "protos/eap_auth.proto",
-}
-
-func init() { proto.RegisterFile("protos/eap_auth.proto", fileDescriptor_eap_auth_8497b36a55c9f1df) }
-
-var fileDescriptor_eap_auth_8497b36a55c9f1df = []byte{
-	// 523 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0xd1, 0x6e, 0xd3, 0x30,
-	0x14, 0x5d, 0x96, 0xd2, 0xb5, 0xb7, 0x29, 0xb8, 0x96, 0x80, 0xa8, 0x12, 0x68, 0x8a, 0x84, 0x36,
-	0x4d, 0xa2, 0x45, 0x45, 0x7c, 0x40, 0x19, 0x43, 0xaa, 0xb6, 0x55, 0x28, 0x85, 0x17, 0x5e, 0x22,
-	0x13, 0xdf, 0xb6, 0xd6, 0x12, 0x3b, 0xc4, 0xce, 0x68, 0x7f, 0x80, 0x0f, 0xe0, 0x23, 0xf8, 0x4c,
-	0x40, 0x76, 0xd2, 0xd2, 0x37, 0x1e, 0x78, 0xca, 0x3d, 0xf7, 0x1e, 0xf9, 0x9c, 0x9b, 0x63, 0xc3,
-	0xe3, 0xa2, 0x54, 0x46, 0xe9, 0x31, 0xb2, 0x22, 0x61, 0x95, 0x59, 0x8f, 0x1c, 0xa6, 0x3e, 0xb2,
-	0x22, 0xfa, 0xee, 0x41, 0xcf, 0xf6, 0x53, 0x25, 0x0d, 0x6e, 0x0c, 0x7d, 0x06, 0xa0, 0x51, 0x6b,
-	0xa1, 0x64, 0x22, 0x78, 0xe8, 0x9d, 0x7a, 0xe7, 0xdd, 0xb8, 0xdb, 0x74, 0x66, 0x9c, 0x52, 0x68,
-	0x89, 0x5c, 0x8b, 0xf0, 0xd8, 0x0d, 0x5c, 0x4d, 0x09, 0xf8, 0xb9, 0xbe, 0x0b, 0xfd, 0x53, 0xef,
-	0x3c, 0x88, 0x6d, 0x49, 0x87, 0xd0, 0x11, 0x1c, 0xa5, 0x11, 0x66, 0x1b, 0xb6, 0x1c, 0x73, 0x8f,
-	0xe9, 0x13, 0x68, 0xe7, 0x5a, 0x68, 0x2e, 0xc3, 0x07, 0x6e, 0xd2, 0xa0, 0xe8, 0x12, 0xac, 0x1f,
-	0x1a, 0xc2, 0x49, 0xc1, 0xb6, 0x99, 0x62, 0xb5, 0x78, 0x10, 0xef, 0x20, 0x8d, 0xc0, 0x4f, 0xcd,
-	0xc6, 0x29, 0xf7, 0x26, 0x64, 0x84, 0xac, 0x18, 0x1d, 0x18, 0x8f, 0xed, 0x30, 0xe2, 0x10, 0xd8,
-	0xde, 0x5e, 0xec, 0xbf, 0x4e, 0x73, 0x56, 0xd1, 0xac, 0x15, 0x77, 0xbb, 0xf5, 0xe3, 0x06, 0x45,
-	0x6d, 0x68, 0xdd, 0x2b, 0xc1, 0xa3, 0x33, 0xe8, 0xd5, 0x9d, 0x24, 0x13, 0xda, 0x58, 0xb1, 0x1a,
-	0xea, 0x9d, 0x58, 0x03, 0x2f, 0x7e, 0x7a, 0xd0, 0xb1, 0xa7, 0x9b, 0x6d, 0x81, 0x34, 0x80, 0x4e,
-	0x8c, 0x1a, 0xcb, 0x7b, 0xe4, 0xe4, 0xc8, 0xa2, 0x59, 0xe3, 0x96, 0x78, 0x94, 0x40, 0x30, 0x57,
-	0x46, 0x2c, 0x45, 0xca, 0x8c, 0x50, 0x92, 0x1c, 0xd3, 0x87, 0x00, 0x37, 0xb8, 0x62, 0xe9, 0x36,
-	0x99, 0xb3, 0x3b, 0xe2, 0xd3, 0x01, 0xf4, 0x6f, 0xdf, 0xbd, 0x49, 0x2e, 0xd7, 0x2c, 0xcb, 0x50,
-	0xae, 0x90, 0xb4, 0x68, 0x1f, 0x3a, 0x57, 0x9b, 0x82, 0x49, 0x8e, 0x9c, 0xfc, 0xf2, 0xe8, 0x00,
-	0x82, 0xab, 0x4d, 0x81, 0xa5, 0xc8, 0x51, 0x1a, 0x96, 0x91, 0xdf, 0x1e, 0x3d, 0x01, 0xff, 0xe3,
-	0xcd, 0x82, 0xf4, 0x6d, 0xb1, 0x98, 0xdd, 0x12, 0x6a, 0x8b, 0xe9, 0xf5, 0x94, 0x3c, 0xb5, 0xfa,
-	0xd3, 0xeb, 0xe9, 0x07, 0xcb, 0x26, 0x93, 0x8b, 0x79, 0xed, 0x33, 0x55, 0x1c, 0x69, 0x1f, 0xba,
-	0x9f, 0x24, 0xc7, 0xa5, 0x90, 0xce, 0x68, 0x0f, 0x4e, 0x62, 0xfc, 0x5a, 0xa1, 0x36, 0xc4, 0x6b,
-	0x76, 0x28, 0x94, 0xd4, 0x48, 0x8e, 0xed, 0x68, 0x51, 0xa5, 0x29, 0x6a, 0x4d, 0x7c, 0x0b, 0xde,
-	0x33, 0x91, 0x55, 0x25, 0x92, 0xd6, 0xe4, 0x65, 0x7d, 0xb9, 0xec, 0xb6, 0x22, 0x45, 0xfa, 0x1c,
-	0xda, 0x6b, 0x26, 0x79, 0x86, 0xb4, 0xb3, 0xfb, 0xe3, 0xc3, 0x7d, 0x15, 0x1d, 0x4d, 0x7e, 0x78,
-	0x00, 0x96, 0x5f, 0xaa, 0xca, 0x60, 0x49, 0x5f, 0xc1, 0xa3, 0x9a, 0xfe, 0x37, 0xd0, 0xc1, 0x3e,
-	0xa9, 0x5d, 0xeb, 0xf0, 0x80, 0x7f, 0x09, 0xd0, 0x09, 0x0c, 0x74, 0x55, 0x14, 0xaa, 0x34, 0xc8,
-	0x93, 0x26, 0x1d, 0xda, 0x75, 0x04, 0x9b, 0xe8, 0xb0, 0xbe, 0x08, 0x07, 0xa1, 0x46, 0x47, 0x6f,
-	0xcf, 0x3e, 0xbf, 0xc8, 0xd9, 0x2a, 0x67, 0xe3, 0x25, 0xae, 0xc6, 0x2b, 0x66, 0xf0, 0x1b, 0xdb,
-	0x8e, 0x9b, 0x8d, 0xdc, 0x9b, 0x1a, 0xd7, 0xcf, 0xeb, 0x4b, 0xdb, 0x7d, 0x5f, 0xff, 0x09, 0x00,
-	0x00, 0xff, 0xff, 0x44, 0xc5, 0xc0, 0x69, 0x6f, 0x03, 0x00, 0x00,
+var fileDescriptor_eap_auth_ea87e7dd575c68fa = []byte{
+	// 128 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0x2d, 0x28, 0xca, 0x2f,
+	0xc9, 0x2f, 0xd6, 0x4f, 0x4d, 0x2c, 0x88, 0x4f, 0x2c, 0x2d, 0xc9, 0xd0, 0x03, 0xf3, 0x85, 0x98,
+	0x53, 0x13, 0x0b, 0xa4, 0x38, 0x53, 0x13, 0x0b, 0x20, 0x7c, 0x23, 0x6b, 0x2e, 0x6e, 0x90, 0x8a,
+	0xe2, 0xd4, 0xa2, 0xb2, 0xcc, 0xe4, 0x54, 0x21, 0x1d, 0x2e, 0xb6, 0x8c, 0xc4, 0xbc, 0x94, 0x9c,
+	0x54, 0x21, 0x7e, 0xbd, 0xc4, 0xc4, 0x44, 0x88, 0xa2, 0x62, 0x3d, 0x90, 0x26, 0x74, 0x01, 0x25,
+	0x06, 0x27, 0xf5, 0x28, 0xd5, 0xdc, 0xc4, 0xf4, 0xdc, 0x44, 0xfd, 0xb4, 0xd4, 0x74, 0xfd, 0xf4,
+	0xc4, 0x92, 0xd4, 0xf2, 0xc4, 0x4a, 0x7d, 0xa8, 0x51, 0x60, 0x9b, 0xf5, 0x21, 0xca, 0x93, 0xd8,
+	0xc0, 0xb4, 0x31, 0x20, 0x00, 0x00, 0xff, 0xff, 0xd7, 0xe5, 0xcc, 0x07, 0x95, 0x00, 0x00, 0x00,
 }

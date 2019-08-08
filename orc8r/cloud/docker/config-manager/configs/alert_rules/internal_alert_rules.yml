@@ -1,0 +1,12 @@
+groups:
+
+  - name: internal_alerting_rules
+    rules:
+      - alert: target_down
+        expr: up == 0
+        labels:
+          severity: major
+          network_id: internal
+        annotations:
+          summary: "Instance {{ $labels.instance }} - target is down"
+          description: "{{ $labels.instance  }} is down."

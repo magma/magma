@@ -104,6 +104,9 @@ typedef struct emm_security_context_s {
   uint8_t activated;
   uint8_t direction_encode; // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
   uint8_t direction_decode; // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
+  // security keys for HO
+  uint8_t next_hop[AUTH_NEXT_HOP_SIZE]; /* Next HOP security parameter */
+  uint8_t next_hop_chaining_count; /* Next Hop Chaining Count */
 } emm_security_context_t;
 
 /*

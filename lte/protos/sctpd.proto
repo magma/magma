@@ -19,6 +19,7 @@ message InitReq {
     repeated string ipv6_addrs = 4; // ipv6 addresses to listen on
     uint32 port = 5; // port to listen on
     uint32 ppid = 6; // ppid used with new associations
+    bool force_restart = 7; // whether to force a new sctp connection setup
 }
 
 // InitRes - response with status of sctp initialization

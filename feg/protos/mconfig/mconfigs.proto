@@ -27,6 +27,7 @@ message DiamClientConfig {
     string host = 9; // diameter host
     string dest_realm = 10; // server diameter realm
     string dest_host = 11; // server diameter host
+    bool   disable_dest_host = 12; // don't include dest_host AVP in diameter requests
 }
 
 message DiamServerConfig {
@@ -78,6 +79,7 @@ message SwxConfig {
     bool verify_authorization = 3;
     uint32 CacheTTLSeconds = 4;
 }
+
 message EapAkaConfig {
     orc8r.LogLevel log_level = 1;
     message Timeouts {
@@ -88,6 +90,16 @@ message EapAkaConfig {
     }
     Timeouts timeout = 2;
     repeated string PlmnIds = 3;
+}
+
+message AAAConfig {
+    orc8r.LogLevel log_level = 1;
+    // Idle session TTL
+    uint32 IdleSessionTimeoutMs = 2;
+    // enable accounting & maintain long term user sessions
+    bool AccountingEnabled = 3;
+    // Postpone Auth success until successful accounting CreateSession completion
+    bool CreateSessionOnAuth = 4;
 }
 
 message GatewayHealthConfig {
@@ -123,3 +135,11 @@ message HSSConfig {
     bool stream_subscribers = 6;
 }
 
+message RadiusdConfig {
+    // Port the metrics server is running on
+    uint32 radius_metrics_port = 1;
+    // The path to access the prometheus metrics on the server
+    string radius_metrics_path = 2;
+    // Interval in seconds between fetching and updating metrics
+    uint32 update_interval_secs = 3;
+}

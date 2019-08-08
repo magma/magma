@@ -12,12 +12,12 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
-
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier"
+
+	"github.com/labstack/echo"
 )
 
 func GetOperatorCertificateHandler(c echo.Context) error {
@@ -27,7 +27,7 @@ func GetOperatorCertificateHandler(c echo.Context) error {
 	}
 	certificateSNs, err := getCertificateSNs(operator)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to get certificates for operator %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to get certificates for operator %s: %s",
 			operator.String(), err.Error()))
 	}
 	return c.JSON(http.StatusOK, certificateSNs)
@@ -40,12 +40,12 @@ func PostOperatorCertificateHandler(c echo.Context) error {
 	}
 	modelCSR := &models.CsrType{}
 	if err := c.Bind(modelCSR); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	csr := models.CSRToProto(modelCSR, operator)
 	certificate, err := certifier.SignCSR(csr)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to sign CSR for operator %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to sign CSR for operator %s: %s",
 			operator.String(), err.Error()))
 	}
 	return c.Blob(http.StatusOK, "string", certificate.CertDer)
@@ -58,17 +58,17 @@ func DeleteOperatorCertificateHandler(c echo.Context) error {
 	}
 	certificates, err := certifier.FindCertificates(operator)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to find certificates for %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to find certificates for %s: %s",
 			operator.String(), err.Error()))
 	}
 	for _, certificateSN := range certificates {
 		if err := certifier.RevokeCertificateSN(certificateSN); err != nil {
-			return handlers.HttpError(fmt.Errorf("Failed to revoke certificate %s: %s",
+			return obsidian.HttpError(fmt.Errorf("Failed to revoke certificate %s: %s",
 				certificateSN, err.Error()))
 		}
 	}
 	if err := accessd.DeleteOperator(operator); err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to delete operator %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to delete operator %s: %s",
 			operator.String(), err.Error()))
 	}
 	return c.NoContent(http.StatusNoContent)

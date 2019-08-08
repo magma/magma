@@ -16,8 +16,8 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
 import React from 'react';
+import axios from 'axios';
 import {
   Button,
   Dialog,
@@ -30,10 +30,10 @@ import {
   withStyles,
 } from '@material-ui/core';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {MagmaAPIUrls} from '../../common/MagmaAPI';
+import {merge} from 'lodash';
 import {withRouter} from 'react-router-dom';
-import {merge} from 'lodash-es';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './DataPlanConst';
 

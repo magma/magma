@@ -39,6 +39,7 @@ class MconfigsTest(unittest.TestCase):
         actual = mconfigs.filter_configs_by_key(configs_by_key)
         expected = {
             'magmad': configs_by_key['magmad'],
+            'foo': configs_by_key['foo'],
         }
         self.assertEqual(expected, actual)
 
@@ -63,5 +64,17 @@ class MconfigsTest(unittest.TestCase):
             type_url='type.googleapis.com/magma.mconfig.MagmaD',
             value=magmad_mconfig.SerializeToString(),
         )
-        actual = mconfigs.unpack_mconfig_any(magmad_any)
+        actual = mconfigs.unpack_mconfig_any(magmad_any, mconfigs_pb2.MagmaD())
         self.assertEqual(magmad_mconfig, actual)
+
+    def test_unpack_mconfig_directoryd(self):
+        directoryd_mconfig = mconfigs_pb2.DirectoryD(
+            log_level=5,
+        )
+        magmad_any = Any(
+            type_url='type.googleapis.com/magma.mconfig.DirectoryD',
+            value=directoryd_mconfig.SerializeToString(),
+        )
+
+        actual = mconfigs.unpack_mconfig_any(magmad_any, mconfigs_pb2.DirectoryD())
+        self.assertEqual(directoryd_mconfig, actual)

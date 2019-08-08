@@ -11,8 +11,8 @@ package reporter
 import (
 	"time"
 
+	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
-	fegcfg "magma/feg/cloud/go/services/controller/config"
 	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/servicers"
 	"magma/feg/cloud/go/services/health/storage"
@@ -46,7 +46,7 @@ func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
 	}
 	for _, nw := range networks {
 		// Consider a FeG network to be only those that have FeG Network configs defined
-		config, err := orc8rcfg.GetConfig(nw, fegcfg.FegNetworkType, nw)
+		config, err := orc8rcfg.GetConfig(nw, feg.FegNetworkType, nw)
 		if err != nil || config == nil {
 			continue
 		}

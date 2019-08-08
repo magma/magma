@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	exporter = NewGraphiteExporter("", 0).(*GraphiteExporter)
+	exporter = NewGraphiteExporter([]Address{{Host: "", Port: 0}}).(*GraphiteExporter)
 )
 
 func TestGraphiteGauge_Register(t *testing.T) {

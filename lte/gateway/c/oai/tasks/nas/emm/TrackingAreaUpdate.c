@@ -208,6 +208,9 @@ int emm_proc_tracking_area_update_request(
 
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_context)) {
     emm_context->_security.kenb_ul_count = emm_context->_security.ul_count;
+    if (true == ies->is_initial) {
+      emm_context->_security.next_hop_chaining_count = 0;
+    }
   }
   // Check if it is not periodic update and not combined TAU for CSFB.
   /*If we receive combined TAU/TAU with IMSI attach send Location Update Req to MME instead of
@@ -263,32 +266,6 @@ int emm_proc_tracking_area_update_request(
       bdestroy_wrapper(&ue_mm_context->ue_radio_capability);
     }
   }
-
-  /*
-   * Requirement MME24.301R10_5.5.3.2.4_5a
-   */
-  if (ies->eps_bearer_context_status) {
-    // This IE is not implemented
-    OAILOG_WARNING(
-      LOG_NAS_EMM,
-      "EMM-PROC- Sending Tracking Area Update Reject.EPS Bearer Context Status "
-      "IE not supported. ue_id=" MME_UE_S1AP_ID_FMT ", cause=%d)\n",
-      ue_id,
-      EMM_CAUSE_IE_NOT_IMPLEMENTED);
-    rc = _emm_tracking_area_update_reject(ue_id, EMM_CAUSE_IE_NOT_IMPLEMENTED);
-    increment_counter(
-      "tracking_area_update_req",
-      1,
-      2,
-      "result",
-      "failure",
-      "cause",
-      "eps_bearer_context_status_ie_not_supported");
-    free_emm_tau_request_ies(&ies);
-    unlock_ue_contexts(ue_mm_context);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-  }
-
   /*
    * Store the mobile station classmark2 information recieved in Tracking Area Update request
    * This wil be required for SMS and SGS service request procedure
@@ -635,8 +612,12 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
       emm_sap.u.emm_as.u.establish.tai_list.numberoflists = 0;
       emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_TAU;
 
+      /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
+      if (tau_proc->ies->eps_bearer_context_status) {
+        emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
+          tau_proc->ies->eps_bearer_context_status;
+      }
       // TODO Reminder
-      emm_sap.u.emm_as.u.establish.eps_bearer_context_status = NULL;
       emm_sap.u.emm_as.u.establish.location_area_identification = NULL;
       emm_sap.u.emm_as.u.establish.combined_tau_emm_cause = NULL;
 
@@ -746,6 +727,12 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
        * Set the UE identifier
        */
       emm_as->ue_id = tau_proc->ue_id;
+
+      /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
+      if (tau_proc->ies->eps_bearer_context_status) {
+        emm_as->eps_bearer_context_status =
+          tau_proc->ies->eps_bearer_context_status;
+      }
 
       /*If CSFB is enabled,store LAI,Mobile Identity and
       * Additional Update type to be sent in TAU accept to S1AP

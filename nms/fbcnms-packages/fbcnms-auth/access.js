@@ -18,8 +18,8 @@ const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
 const logger = require('@fbcnms/logging').getLogger(module);
 const openRoutes = require('./openRoutes').default;
 
-import type {FBCNMSPassportRequest} from './passport';
 import type {ExpressResponse, NextFunction} from 'express';
+import type {FBCNMSPassportRequest} from './passport';
 
 type Options = {loginUrl: string};
 // Final type, thus naming it as thus.

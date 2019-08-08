@@ -9,24 +9,24 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
 import type {Gateway} from './GatewayUtils';
+import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import MenuItem from '@material-ui/core/MenuItem';
-import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
-import React from 'react';
-import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
+import axios from 'axios';
+import {MagmaAPIUrls} from '../common/MagmaAPI';
 
+import {toString} from './GatewayUtils';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import {toString} from './GatewayUtils';
 
 const styles = {
   input: {

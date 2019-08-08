@@ -8,24 +8,24 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {ContextRouter} from 'react-router-dom';
 import type {Gateway} from './GatewayUtils';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
-import axios from 'axios';
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormField from './FormField';
-import {GatewayStatus} from './GatewayUtils';
 import Input from '@material-ui/core/Input';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
+import React from 'react';
+import axios from 'axios';
 import moment from 'moment';
+import {GatewayStatus} from './GatewayUtils';
+import {MagmaAPIUrls} from '../common/MagmaAPI';
 
-import {merge} from 'lodash-es';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {merge} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 

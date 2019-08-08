@@ -15,8 +15,8 @@ import (
 	"fmt"
 	"strings"
 
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers"
 	"magma/feg/gateway/services/eap/providers/registry"
 )
@@ -112,7 +112,7 @@ func Handle(msg *protos.Eap) (*protos.Eap, error) {
 // newFailureMsg returns a new *protos.Eap with Payload set to EAP Failure packet
 func newFailureMsg(msg *protos.Eap) *protos.Eap {
 	var (
-		ctx     *protos.EapContext
+		ctx     *protos.Context
 		payload eap.Packet
 	)
 	if msg != nil {

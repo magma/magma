@@ -13,268 +13,247 @@ import (
 	"net/http"
 	"sort"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
-	upgrade_client "magma/orc8r/cloud/go/services/upgrade"
+	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
-	"magma/orc8r/cloud/go/services/upgrade/protos"
 
 	"github.com/labstack/echo"
 )
 
 const (
-	ReleaseChannelsRootPath   = handlers.CHANNELS_ROOT
+	ReleaseChannelsRootPath   = obsidian.RestRoot + obsidian.UrlSep + "channels"
 	ReleaseChannelsManagePath = ReleaseChannelsRootPath + "/:channel_id"
-	TiersRootPath             = handlers.REST_ROOT + "/networks/:network_id/tiers"
+	TiersRootPath             = obsidian.RestRoot + "/networks/:network_id/tiers"
 	TiersManagePath           = TiersRootPath + "/:tier_id"
 )
 
 // GetObsidianHandlers returns the obsidian handlers for upgrade
-func GetObsidianHandlers() []handlers.Handler {
-	return []handlers.Handler{
-		{Path: ReleaseChannelsRootPath, Methods: handlers.GET, HandlerFunc: listReleaseChannelsHandler},
-		{Path: ReleaseChannelsRootPath, Methods: handlers.POST, HandlerFunc: createReleaseChannelHandler},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.GET, HandlerFunc: getReleaseChannelsHandler},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.PUT, HandlerFunc: updateReleaseChannelHandler},
-		{Path: ReleaseChannelsManagePath, Methods: handlers.DELETE, HandlerFunc: deleteReleaseChannelHandler},
-		{Path: TiersRootPath, Methods: handlers.GET, HandlerFunc: listTiersHandler},
-		{Path: TiersRootPath, Methods: handlers.POST, HandlerFunc: createTierHandler},
-		{Path: TiersManagePath, Methods: handlers.GET, HandlerFunc: getTierHandler},
-		{Path: TiersManagePath, Methods: handlers.PUT, HandlerFunc: updateTierHandler},
-		{Path: TiersManagePath, Methods: handlers.DELETE, HandlerFunc: deleteTierHandler},
+func GetObsidianHandlers() []obsidian.Handler {
+	return []obsidian.Handler{
+		{Path: ReleaseChannelsRootPath, Methods: obsidian.GET, HandlerFunc: listReleaseChannel},
+		{Path: ReleaseChannelsRootPath, Methods: obsidian.POST, HandlerFunc: createReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: obsidian.GET, HandlerFunc: getReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: obsidian.PUT, HandlerFunc: updateReleaseChannel},
+		{Path: ReleaseChannelsManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteReleaseChannel},
+		{Path: TiersRootPath, Methods: obsidian.GET, HandlerFunc: listTiers},
+		{Path: TiersRootPath, Methods: obsidian.POST, HandlerFunc: createrTier},
+		{Path: TiersManagePath, Methods: obsidian.GET, HandlerFunc: getTier},
+		{Path: TiersManagePath, Methods: obsidian.PUT, HandlerFunc: updateTier},
+		{Path: TiersManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteTier},
 	}
-}
-
-// List all release channels by ID
-func listReleaseChannelsHandler(c echo.Context) error {
-	channels, err := upgrade_client.ListReleaseChannels()
-	if err != nil {
-		return handlers.HttpError(err)
-	}
-	// Return a deterministic ordering of channels
-	sort.Strings(channels)
-	return c.JSON(http.StatusOK, channels)
-}
-
-func getReleaseChannelsHandler(c echo.Context) error {
-	channelId := c.Param("channel_id")
-	if channelId == "" {
-		return noChannelIdError()
-	}
-
-	channel, err := upgrade_client.GetReleaseChannel(channelId)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
-	}
-
-	swaggerChannel := models.ReleaseChannel{}
-	swaggerChannel.Name = channelId
-	swaggerChannel.SupportedVersions = channel.GetSupportedVersions()
-	return c.JSON(http.StatusOK, swaggerChannel)
-}
-
-func createReleaseChannelHandler(c echo.Context) error {
-	restChannel := new(models.ReleaseChannel)
-	if err := c.Bind(restChannel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-
-	// Construct proto model and persist
-	channelProto := &protos.ReleaseChannel{
-		SupportedVersions: restChannel.SupportedVersions,
-	}
-	err := upgrade_client.CreateReleaseChannel(restChannel.Name, channelProto)
-	if err != nil {
-		return handlers.HttpError(err)
-	}
-
-	// Return the ID of the created channel
-	return c.JSON(http.StatusCreated, restChannel.Name)
-}
-
-func updateReleaseChannelHandler(c echo.Context) error {
-	channelId := c.Param("channel_id")
-	if channelId == "" {
-		return noChannelIdError()
-	}
-	restChannel := new(models.ReleaseChannel)
-	if err := c.Bind(restChannel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-
-	// Release channel name is immutable
-	// This could change if release channels are keyed by UUID in their tables
-	if restChannel.Name != channelId {
-		return handlers.HttpError(
-			errors.New("Release channel name cannot be modified"),
-			http.StatusBadRequest)
-	}
-	updatedChannelProto := &protos.ReleaseChannel{
-		SupportedVersions: restChannel.SupportedVersions,
-	}
-
-	err := upgrade_client.UpdateReleaseChannel(channelId, updatedChannelProto)
-	if err != nil {
-		return handlers.HttpError(err)
-	}
-	return c.NoContent(http.StatusOK)
-}
-
-func deleteReleaseChannelHandler(c echo.Context) error {
-	channelId := c.Param("channel_id")
-	if channelId == "" {
-		return noChannelIdError()
-	}
-
-	err := upgrade_client.DeleteReleaseChannel(channelId)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusNoContent)
 }
 
 func noChannelIdError() error {
-	return handlers.HttpError(
+	return obsidian.HttpError(
 		errors.New("Missing release channel ID"),
 		http.StatusBadRequest,
 	)
 }
 
-func listTiersHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	tiers, err := upgrade_client.GetTiers(networkId, []string{})
+func listReleaseChannel(c echo.Context) error {
+	channelNames, err := configurator.ListInternalEntityKeys(orc8r.UpgradeReleaseChannelEntityType)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-
-	ret := make([]string, 0, len(tiers))
-	for tierId := range tiers {
-		ret = append(ret, tierId)
+	// Return a deterministic ordering of channels
+	sort.Strings(channelNames)
+	if len(channelNames) == 0 {
+		channelNames = nil
 	}
-	// Return a deterministic ordering of tiers
-	sort.Strings(ret)
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, channelNames)
 }
 
-func tierInfoModelToProto(model *models.Tier) *protos.TierInfo {
-	// Copy each image spec into a protobuf
-	var imageArray []*protos.ImageSpec
-	for _, elem := range model.Images {
-		imageArray = append(imageArray, &protos.ImageSpec{
-			Name:  elem.Name,
-			Order: elem.Order})
+func createReleaseChannel(c echo.Context) error {
+	channel := new(models.ReleaseChannel)
+	if err := c.Bind(channel); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	return &protos.TierInfo{
-		Name:    model.Name,
-		Version: model.Version,
-		Images:  imageArray,
+	entity := configurator.NetworkEntity{
+		Type:   orc8r.UpgradeReleaseChannelEntityType,
+		Key:    channel.Name,
+		Name:   channel.Name,
+		Config: channel,
 	}
+	_, err := configurator.CreateInternalEntity(entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return the ID of the created channel
+	return c.JSON(http.StatusCreated, channel.Name)
 }
 
-func createTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
+func updateReleaseChannel(c echo.Context) error {
+	channelID := c.Param("channel_id")
+	if channelID == "" {
+		return noChannelIdError()
 	}
-	restTier := new(models.Tier)
-	if err := c.Bind(restTier); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+	channel := new(models.ReleaseChannel)
+	if err := c.Bind(channel); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	// Release channel name is immutable
+	// This could change if release channels are keyed by UUID in their tables
+	if channel.Name != channelID {
+		return obsidian.HttpError(
+			errors.New("Release channel name cannot be modified"),
+			http.StatusBadRequest)
 	}
 
-	tierProto := tierInfoModelToProto(restTier)
-
-	err := upgrade_client.CreateTier(networkId, restTier.ID, tierProto)
+	update := configurator.EntityUpdateCriteria{
+		Key:       channel.Name,
+		Type:      orc8r.UpgradeReleaseChannelEntityType,
+		NewConfig: channel,
+	}
+	_, err := configurator.UpdateInternalEntity(update)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	// Return the ID of the created tier
-	return c.JSON(http.StatusCreated, restTier.ID)
-}
-
-func getTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	tierId := c.Param("tier_id")
-	if tierId == "" {
-		return noTierIdError()
-	}
-
-	tiers, err := upgrade_client.GetTiers(networkId, []string{tierId})
-	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
-	}
-	tierProto, ok := tiers[tierId]
-	if !ok {
-		return handlers.HttpError(
-			errors.New("Error while loading tier from service"),
-			http.StatusNotFound)
-	}
-
-	var imgList []*models.TierImagesItems0
-	for _, elem := range tierProto.GetImages() {
-		imgList = append(imgList, &models.TierImagesItems0{
-			Name:  elem.Name,
-			Order: elem.Order})
-	}
-
-	restTier := models.Tier{
-		ID:      tierId,
-		Name:    tierProto.GetName(),
-		Version: tierProto.GetVersion(),
-		Images:  imgList,
-	}
-	return c.JSON(http.StatusOK, restTier)
-}
-
-func updateTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	tierId := c.Param("tier_id")
-	if tierId == "" {
-		return noTierIdError()
-	}
-	restTier := new(models.Tier)
-	if err := c.Bind(restTier); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-
-	tierProto := tierInfoModelToProto(restTier)
-
-	err := upgrade_client.UpdateTier(networkId, tierId, tierProto)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusOK)
 }
 
-func deleteTierHandler(c echo.Context) error {
-	networkId, nerr := handlers.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
+func deleteReleaseChannel(c echo.Context) error {
+	channelID := c.Param("channel_id")
+	if channelID == "" {
+		return noChannelIdError()
 	}
-	tierId := c.Param("tier_id")
-	if tierId == "" {
-		return noTierIdError()
+	// the API requires that an error is returned when the channel does not exist
+	exists, err := configurator.DoesInternalEntityExist(orc8r.UpgradeReleaseChannelEntityType, channelID)
+	if err != nil || !exists {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	err := upgrade_client.DeleteTier(networkId, tierId)
+	err = configurator.DeleteInternalEntity(orc8r.UpgradeReleaseChannelEntityType, channelID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
+func getReleaseChannel(c echo.Context) error {
+	channelID := c.Param("channel_id")
+	if channelID == "" {
+		return noChannelIdError()
+	}
+
+	ent, err := configurator.LoadInternalEntity(orc8r.UpgradeReleaseChannelEntityType, channelID, configurator.EntityLoadCriteria{LoadConfig: true, LoadMetadata: true})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
+	releaseChannel := ent.Config.(*models.ReleaseChannel)
+	releaseChannel.Name = ent.Name
+	return c.JSON(http.StatusOK, releaseChannel)
+}
+
 func noTierIdError() error {
-	return handlers.HttpError(
+	return obsidian.HttpError(
 		errors.New("Missing tier ID"),
 		http.StatusBadRequest,
 	)
+}
+
+func listTiers(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	tiers, err := configurator.ListEntityKeys(networkID, orc8r.UpgradeTierEntityType)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return a deterministic ordering of tiers
+	sort.Strings(tiers)
+	return c.JSON(http.StatusOK, tiers)
+}
+
+func createrTier(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tier := new(models.Tier)
+	if err := c.Bind(tier); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	entity := configurator.NetworkEntity{
+		Type:   orc8r.UpgradeTierEntityType,
+		Key:    tier.ID,
+		Config: tier,
+	}
+	_, err := configurator.CreateEntity(networkID, entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	// Return the ID of the created tier
+	return c.JSON(http.StatusCreated, tier.Name)
+}
+
+func getTier(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierID := c.Param("tier_id")
+	if tierID == "" {
+		return noTierIdError()
+	}
+
+	tier, err := configurator.LoadEntity(networkID, orc8r.UpgradeTierEntityType, tierID, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
+	// Return the ID of the created tier
+	return c.JSON(http.StatusCreated, tier.Config)
+}
+
+func updateTier(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierID := c.Param("tier_id")
+	if tierID == "" {
+		return noTierIdError()
+	}
+	tier := new(models.Tier)
+	if err := c.Bind(tier); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	update := configurator.EntityUpdateCriteria{
+		Key:       tier.ID,
+		Type:      orc8r.UpgradeTierEntityType,
+		NewConfig: tier,
+	}
+	_, err := configurator.UpdateEntity(networkID, update)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteTier(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	tierID := c.Param("tier_id")
+	if tierID == "" {
+		return noTierIdError()
+	}
+	// the API requires that an error is returned when the channel does not exist
+	exists, err := configurator.DoesEntityExist(networkID, orc8r.UpgradeTierEntityType, tierID)
+	if err != nil || !exists {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	err = configurator.DeleteEntity(networkID, orc8r.UpgradeTierEntityType, tierID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

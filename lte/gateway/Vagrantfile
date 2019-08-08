@@ -139,4 +139,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
+  config.vm.define :ovs_build, autostart: false do |ovs_build|
+    ovs_build.vm.box = "generic/debian9"
+    ovs_build.vm.hostname = "build-ovs"
+    ovs_build.vm.network "public_network"
+    ovs_build.ssh.forward_agent = true
+    ovs_build.vm.box_check_update = false
+
+    # Enable provisioning with a shell script. Additional provisioners such as
+    # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+    # documentation for more information about their specific syntax and use.
+    config.ssh.insert_key = false
+  end
 end

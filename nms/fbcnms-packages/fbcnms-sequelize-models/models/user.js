@@ -9,12 +9,12 @@
  */
 'use strict';
 
-import {omit} from 'lodash-es';
 import Sequelize from 'sequelize';
 import {AccessRoles} from '@fbcnms/auth/roles';
+import {omit} from 'lodash';
 
-import type {DataTypes, Model} from 'sequelize';
 import type {AssociateProp} from './AssociateTypes.flow';
+import type {DataTypes, Model} from 'sequelize';
 
 // This is the type required for creation
 type UserRawInitType = {
@@ -27,6 +27,7 @@ type UserRawInitType = {
 
 // This is the type read back
 export type UserRawType = {
+  id: number,
   networkIDs: Array<string>,
   isSuperUser: boolean,
 } & UserRawInitType;

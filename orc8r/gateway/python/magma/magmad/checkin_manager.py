@@ -82,6 +82,10 @@ class CheckinManager(SDWatchdogTask):
         # skip checkin based on missing status meta
         self.num_skipped_checkins = 0
 
+        # Initially set status to 1, otherwise on first checkin we report
+        # a failure. This is particularly an issue if magmad restarts frequenty.
+        CHECKIN_STATUS.set(1)
+
         # One time status info
         self._boot_time = psutil.boot_time()
         self._kernel_version = platform.uname().release

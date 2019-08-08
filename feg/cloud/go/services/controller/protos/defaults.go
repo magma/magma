@@ -84,6 +84,11 @@ var defaultConfig = Config{
 		},
 		PlmnIds: []string{},
 	},
+	AaaServer: &AAAConfig{
+		IdleSessionTimeoutMs: 21600000,
+		AccountingEnabled:    false,
+		CreateSessionOnAuth:  false,
+	},
 	ServedNetworkIds: []string{},
 	Health: &HealthConfig{
 		HealthServices:           []string{"S6A_PROXY", "SESSION_PROXY"},
@@ -98,10 +103,10 @@ var defaultConfig = Config{
 	},
 }
 
-func NewDefaultNetworkConfig() *Config {
+func NewDefaultProtosNetworkConfig() *Config {
 	return proto.Clone(&defaultConfig).(*Config)
 }
 
-func NewDefaultGatewayConfig() *Config {
+func NewDefaultProtosGatewayConfig() *Config {
 	return proto.Clone(&defaultConfig).(*Config)
 }

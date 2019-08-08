@@ -4,10 +4,8 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-- name: Get OVS v2.8.1 Tarball
-  get_url:
-    url: 'https://www.openvswitch.org/releases/openvswitch-2.8.1.tar.gz'
-    dest: /tmp
+- name: Copy preferences file for Magma's pkg repo
+  copy: src=magma-preferences dest=/etc/apt/preferences.d/magma-preferences
 
 - name: Install OVS Dependencies for Ubuntu
   package:
@@ -32,35 +30,13 @@
     - build-essential
     - fakeroot
 
-- name: Creates OVS unarchive directory
-  file:
-    path: /tmp/ovs
-    state: directory
-
-- name: Unarchive OVS tarball
-  unarchive:
-    src: /tmp/openvswitch-2.8.1.tar.gz
-    dest: /tmp/ovs/
-    remote_src: yes
-  become: true
-
-- name: Build OVS debian packages
-  command: fakeroot ./debian/rules binary
-  args:
-    chdir: /tmp/ovs/openvswitch-2.8.1
-  environment:
-    DEB_BUILD_OPTIONS: 'parallel=8 nocheck'
-  become: true
-
-- name: Install OVS debian packages
-  apt:
-    deb: "{{ item }}"
+- name: Install OVS v2.8.1 from Magma's pkgrepo
+  apt: pkg={{ item }} state=present update_cache=yes
   with_items:
-    - "/tmp/ovs/libopenvswitch_2.8.1-1_amd64.deb"
-    - "/tmp/ovs/openvswitch-common_2.8.1-1_amd64.deb"
-    - "/tmp/ovs/openvswitch-switch_2.8.1-1_amd64.deb"
-    - "/tmp/ovs/python-openvswitch_2.8.1-1_all.deb"
-  become: true
+    - libopenvswitch
+    - openvswitch-common
+    - openvswitch-switch
+    - python-openvswitch
 
 - name: Start OVS
   service:
@@ -68,3 +44,6 @@
     state: started
     enabled: yes
   become: true
+
+- name: Ensure OVS switch will not auto-upgrade
+  action: shell apt-mark hold openvswitch-switch

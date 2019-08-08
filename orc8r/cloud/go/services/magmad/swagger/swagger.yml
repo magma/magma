@@ -58,7 +58,7 @@ paths:
       parameters:
       - $ref: './swagger-common.yml#/parameters/network_id'
       responses:
-        '201':
+        '200':
           description: Network Configs
           schema:
             $ref: '#/definitions/network_record'
@@ -77,7 +77,7 @@ paths:
         schema:
           $ref: '#/definitions/network_record'
       responses:
-        '200':
+        '204':
           description: Success
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
@@ -368,6 +368,23 @@ definitions:
         minLength: 1
         example: SampleNetwork
         x-nullable: false
+      features:
+        type: object
+        additionalProperties:
+          type: string
+        example:
+          featureName1: featureProp1
+          featureName2: featureProp2
+  network_features:
+    type: object
+    properties:
+      features:
+        type: object
+        additionalProperties:
+          type: string
+        example:
+          featureName1: featureProp1
+          featureName2: featureProp2
   hw_gateway_id:
     type: object
     required:

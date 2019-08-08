@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/lte"
 	cellular "magma/lte/cloud/go/services/cellular/config"
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
 	utils "magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
@@ -85,7 +86,7 @@ func TestEpsAuthSuite(t *testing.T) {
 			},
 		},
 	}
-	err = config.CreateConfig("test", cellular.CellularNetworkType, "test", configProto)
+	err = config.CreateConfig("test", lte.CellularNetworkType, "test", configProto)
 	assert.NoError(t, err)
 
 	testSuite := &EpsAuthTestSuite{}

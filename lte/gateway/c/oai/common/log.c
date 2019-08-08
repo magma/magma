@@ -176,7 +176,7 @@ void log_message_int(
   void **contextP, // Out parameter
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   va_list args);
 static void log_connect_to_server(void);
 static void log_message_finish_sync(log_queue_item_t *messageP);
@@ -264,14 +264,9 @@ static void init_syslog(void)
 
 static void init_console(void)
 {
-#if DAEMONIZE
-  g_oai_log.log_fd = NULL;
-  g_oai_log.is_output_is_fd = false;
-#else
   setvbuf(stdout, NULL, _IONBF, 0);
   g_oai_log.log_fd = stdout;
   g_oai_log.is_output_is_fd = true;
-#endif
 }
 
 //------------------------------------------------------------------------------
@@ -319,7 +314,6 @@ static void *log_task(__attribute__((unused)) void *args_p)
 {
   MessageDef *received_message_p = NULL;
   long timer_id = 0;
-  int rc = 0;
 
   itti_mark_task_ready(TASK_LOG);
   _LOG_START_USE();
@@ -376,7 +370,7 @@ static void *log_task(__attribute__((unused)) void *args_p)
           log_exit();
           MessageDef *terminate_message_p =
             itti_alloc_new_message(TASK_LOG, TERMINATE_MESSAGE);
-          rc = itti_send_msg_to_task(
+          itti_send_msg_to_task(
             TASK_SHARED_TS_LOG, INSTANCE_DEFAULT, terminate_message_p);
           itti_exit_task();
         } break;
@@ -385,9 +379,8 @@ static void *log_task(__attribute__((unused)) void *args_p)
         } break;
       }
       // Freeing the memory allocated from the memory pool
-      rc =
-        itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-      AssertFatal(rc == EXIT_SUCCESS, "Failed to free memory (%d)!\n", rc);
+      itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
+
       received_message_p = NULL;
     }
   }
@@ -471,18 +464,13 @@ static void log_connect_to_server(void)
 //------------------------------------------------------------------------------
 static void log_sync(log_queue_item_t *new_item_p)
 {
-  if (g_oai_log.is_output_is_fd) {
-    fprintf(g_oai_log.log_fd, "%s", bdata(new_item_p->bstr));
-    fflush(g_oai_log.log_fd);
-  } else {
-    syslog(new_item_p->log_level, "%s", bdata(new_item_p->bstr));
-  }
+  log_string(new_item_p->log_level, bdata(new_item_p->bstr));
   // Release the log_item
   free_log_queue_item_sync(&new_item_p);
 }
 static void log_async(shared_log_queue_item_t *new_item_p)
 {
-  shared_log_item(new_item_p);
+  log_string(new_item_p->u_app_log.log.log_level, bdata(new_item_p->bstr));
 }
 //------------------------------------------------------------------------------
 // for sync or async logging
@@ -691,6 +679,9 @@ int log_init(
   const log_level_t default_log_levelP,
   const int max_threadsP)
 {
+  // init glog logging
+  init_logging(app_name, default_log_levelP);
+
   int i = 0;
   struct timeval start_time = {.tv_sec = 0, .tv_usec = 0};
 
@@ -1205,6 +1196,8 @@ void log_message_add_sync(log_queue_item_t *messageP, char *format, ...)
 //------------------------------------------------------------------------------
 static void log_message_finish_sync(log_queue_item_t *messageP)
 {
+  // flush everything
+  flush_log(MIN_LOG_LEVEL);
   int rv = 0;
 
   if (NULL == messageP) {
@@ -1233,6 +1226,8 @@ error_event:
 //------------------------------------------------------------------------------
 void log_message_finish_async(struct shared_log_queue_item_s *messageP)
 {
+  // flush everything
+  flush_log(MIN_LOG_LEVEL);
   int rv = 0;
 
   if (messageP) {
@@ -1509,7 +1504,7 @@ void log_message(
   const log_proto_t protoP,
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   ...)
 {
   va_list args;
@@ -1554,7 +1549,7 @@ void log_message_int(
   void **contextP, // Out parameter
   const char *const source_fileP,
   const unsigned int line_numP,
-  char *format,
+  const char *format,
   va_list args)
 {
   int rv = 0;
@@ -1669,13 +1664,11 @@ error_event:
 //    output: tasks/nas/emm/sap/emm_cn.c
 const char *const get_short_file_name(const char *const source_file_nameP)
 {
-  if (!source_file_nameP)
-    return source_file_nameP;
+  if (!source_file_nameP) return source_file_nameP;
 
-  char *root_startP = strstr(source_file_nameP,LOG_MAGMA_REPO_ROOT);
+  char *root_startP = strstr(source_file_nameP, LOG_MAGMA_REPO_ROOT);
 
-  if (!root_startP)
-    return source_file_nameP; // root pattern not found
+  if (!root_startP) return source_file_nameP; // root pattern not found
 
-  return root_startP+strlen(LOG_MAGMA_REPO_ROOT);
+  return root_startP + strlen(LOG_MAGMA_REPO_ROOT);
 }

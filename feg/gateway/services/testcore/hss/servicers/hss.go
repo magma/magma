@@ -14,12 +14,14 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/testcore/hss/storage"
+	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/crypto"
 	"magma/orc8r/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/diam/dict"
 	"github.com/fiorix/go-diameter/diam/sm"
 	"golang.org/x/net/context"
 )
@@ -28,9 +30,13 @@ const hssProductName = "magma"
 
 // HomeSubscriberServer tracks all the accounts needed for authenticating users.
 type HomeSubscriberServer struct {
-	store    storage.SubscriberStore
-	Config   *mconfig.HSSConfig
-	Milenage *crypto.MilenageCipher
+	store          storage.SubscriberStore
+	Config         *mconfig.HSSConfig
+	Milenage       *crypto.MilenageCipher
+	smClient       *sm.Client
+	connMan        *diameter.ConnectionManager
+	requestTracker *diameter.RequestTracker
+	clientMapping  map[string]string
 
 	// authSqnInd is an index used in the array scheme described by 3GPP TS 33.102 Appendix C.1.2 and C.2.2.
 	// SQN consists of two parts (SQN = SEQ||IND).
@@ -45,9 +51,12 @@ func NewHomeSubscriberServer(store storage.SubscriberStore, config *mconfig.HSSC
 		return nil, err
 	}
 	return &HomeSubscriberServer{
-		store:    store,
-		Config:   config,
-		Milenage: milenage,
+		store:          store,
+		Config:         config,
+		Milenage:       milenage,
+		requestTracker: diameter.NewRequestTracker(),
+		connMan:        diameter.NewConnectionManager(),
+		clientMapping:  map[string]string{},
 	}, nil
 }
 
@@ -109,6 +118,31 @@ func (srv *HomeSubscriberServer) Start(started chan struct{}) error {
 	mux.Handle(diam.ULR, srv.handleMessage(NewULA))
 	mux.Handle(diam.MAR, srv.handleMessage(NewMAA))
 	mux.Handle(diam.SAR, srv.handleMessage(NewSAA))
+
+	clientCfg := diameter.DiameterClientConfig{}
+	clientCfg.FillInDefaults()
+	if clientCfg.WatchdogInterval == 0 {
+		clientCfg.WatchdogInterval = diameter.DefaultWatchdogIntervalSeconds
+	}
+	srv.smClient = &sm.Client{
+		Dict:               dict.Default,
+		Handler:            mux,
+		MaxRetransmits:     clientCfg.Retransmits,
+		RetransmitInterval: time.Second,
+		EnableWatchdog:     true,
+		WatchdogInterval:   time.Second * time.Duration(clientCfg.WatchdogInterval),
+		SupportedVendorID: []*diam.AVP{
+			diam.NewAVP(avp.SupportedVendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+		},
+		VendorSpecificApplicationID: []*diam.AVP{
+			diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.TGPP_SWX_APP_ID)),
+					diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+				},
+			}),
+		},
+	}
 
 	server := &diam.Server{
 		Network: serverCfg.Protocol,

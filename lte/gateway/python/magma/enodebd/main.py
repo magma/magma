@@ -18,6 +18,7 @@ from .tr069.server import tr069_server
 from .enodebd_iptables_rules import set_enodebd_iptables_rule
 from magma.common.service import MagmaService
 from orc8r.protos.service303_pb2 import State
+from lte.protos.mconfig import mconfigs_pb2
 from typing import List
 
 
@@ -32,7 +33,7 @@ def main():
     """
     Top-level function for enodebd
     """
-    service = MagmaService('enodebd')
+    service = MagmaService('enodebd', mconfigs_pb2.EnodebD())
 
     # State machine manager for tracking multiple connected eNB devices.
     state_machine_manager = StateMachineManager(service)

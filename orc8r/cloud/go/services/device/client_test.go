@@ -26,19 +26,10 @@ const (
 	networkID = "network1"
 )
 
-type idAndEntity struct {
-	id     *protos.DeviceID
-	entity *protos.PhysicalEntity
-}
-
-func makeIDAndEntity(deviceID string, typeVal string, value []byte) idAndEntity {
-	id := protos.DeviceID{DeviceID: deviceID, Type: typeVal}
-	entity := protos.PhysicalEntity{
-		DeviceID: deviceID,
-		Type:     typeVal,
-		Info:     value,
-	}
-	return idAndEntity{id: &id, entity: &entity}
+type idAndInfo struct {
+	deviceKey  string
+	deviceType string
+	info       interface{}
 }
 
 func TestDeviceService(t *testing.T) {
@@ -47,70 +38,69 @@ func TestDeviceService(t *testing.T) {
 	assert.NoError(t, err)
 	test_init.StartTestService(t)
 
-	serialized1, err := testSerde.Serialize(1)
-	serialized2, err := testSerde.Serialize(2)
-	bundle1 := makeIDAndEntity("device1", typeVal, serialized1)
-	bundle2 := makeIDAndEntity("device2", typeVal, serialized2)
+	bundle1 := idAndInfo{deviceKey: "device1", deviceType: typeVal, info: 1}
+	bundle2 := idAndInfo{deviceKey: "device2", deviceType: typeVal, info: 2}
 	// Entities that should fail to register
-	unregisteredSerdeBundle := makeIDAndEntity("device2", "unregistered", serialized2)
-	unserializableBundle := makeIDAndEntity("device3", typeVal, []byte("(*_*)"))
+	unregisteredSerdeBundle := idAndInfo{deviceKey: "device2", deviceType: "unregistered", info: 2}
+	unserializableBundle := idAndInfo{deviceKey: "device2", deviceType: typeVal, info: "(*.*)"}
 
 	// Check contract for empty network
-	assertDevicesNotRegistered(t, bundle1.id, bundle2.id)
+	assertDevicesNotRegistered(t, bundle1, bundle2)
 
 	// Check contract for empty requests
-	registerDevicesAssertError(t, networkID)
-	registerDevicesAssertError(t, "", bundle1.entity)
+	registerDevicesAssertError(t, "", bundle1)
 
 	// Registering ill formatted device values should fail
-	registerDevicesAssertError(t, networkID, unregisteredSerdeBundle.entity)
-	registerDevicesAssertError(t, networkID, unserializableBundle.entity)
+	registerDevicesAssertError(t, networkID, unregisteredSerdeBundle)
+	registerDevicesAssertError(t, networkID, unserializableBundle)
 
 	// Register and retrieve devices
-	registerDevicesAssertNoError(t, networkID, bundle1.entity, bundle2.entity)
+	registerDevicesAssertNoError(t, networkID, bundle1)
+	registerDevicesAssertNoError(t, networkID, bundle2)
 	assertDevicesAreRegistered(t, bundle1, bundle2)
 
+	// Registering a key already registered should fail
+	registerDevicesAssertError(t, "network2", bundle1)
+
+	// Update Devices
+	bundle1.info = 5
+	updateDevicesAssertNoError(t, networkID, bundle1)
+
 	// Test deletion
-	err = device.DeleteDevices(networkID, []*protos.DeviceID{bundle1.id})
+	err = device.DeleteDevices(networkID, []*protos.DeviceID{{DeviceID: bundle1.deviceKey, Type: bundle1.deviceType}})
 	assert.NoError(t, err)
-	assertDevicesNotRegistered(t, bundle1.id)
+	assertDevicesNotRegistered(t, bundle1)
 	assertDevicesAreRegistered(t, bundle2)
 }
 
-func assertDevicesAreRegistered(t *testing.T, bundles ...idAndEntity) {
-	deviceIDs := []*protos.DeviceID{}
+func assertDevicesAreRegistered(t *testing.T, bundles ...idAndInfo) {
 	for _, bundle := range bundles {
-		deviceIDs = append(deviceIDs, bundle.id)
+		actualInfo, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey)
+		assert.NoError(t, err)
+		assert.Equal(t, bundle.info, actualInfo)
 	}
-
-	deviceMap, err := device.GetDeviceInfo(networkID, deviceIDs)
-	assert.NoError(t, err)
-	assertDevicesInEntityMap(t, deviceMap, bundles)
 }
 
-func assertDevicesNotRegistered(t *testing.T, deviceIDs ...*protos.DeviceID) {
-	deviceMap, err := device.GetDeviceInfo(networkID, deviceIDs)
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(deviceMap))
+func assertDevicesNotRegistered(t *testing.T, bundles ...idAndInfo) {
+	for _, bundle := range bundles {
+		_, err := device.GetDevice(networkID, bundle.deviceType, bundle.deviceKey)
+		assert.Error(t, err)
+	}
 }
 
-func registerDevicesAssertNoError(t *testing.T, networkID string, entities ...*protos.PhysicalEntity) {
-	err := device.RegisterDevices(networkID, entities)
+func registerDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
+	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
 	assert.NoError(t, err)
 }
 
-func registerDevicesAssertError(t *testing.T, networkID string, entities ...*protos.PhysicalEntity) {
-	err := device.RegisterDevices(networkID, entities)
+func registerDevicesAssertError(t *testing.T, networkID string, bundle idAndInfo) {
+	err := device.RegisterDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
 	assert.Error(t, err)
 }
 
-func assertDevicesInEntityMap(t *testing.T, deviceMap map[string]*protos.PhysicalEntity, bundles []idAndEntity) {
-	for _, bundle := range bundles {
-		entity := deviceMap[bundle.id.DeviceID]
-		assert.NotNil(t, entity)
-		assert.Equal(t, bundle.entity.Info, entity.Info)
-	}
-	assert.Equal(t, len(bundles), len(deviceMap))
+func updateDevicesAssertNoError(t *testing.T, networkID string, bundle idAndInfo) {
+	err := device.UpdateDevice(networkID, bundle.deviceType, bundle.deviceKey, bundle.info)
+	assert.NoError(t, err)
 }
 
 type Serde struct {

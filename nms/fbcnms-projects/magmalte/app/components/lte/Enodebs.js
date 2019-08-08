@@ -8,34 +8,34 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
 import type {Enodeb, EnodebPayload} from './EnodebUtils';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
+import AddEditEnodebDialog from './AddEditEnodebDialog';
+import Button from '@material-ui/core/Button';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
+import IconButton from '@material-ui/core/IconButton';
+import MagmaTopBar from '../MagmaTopBar';
+import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import AddEditEnodebDialog from './AddEditEnodebDialog';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
-import IconButton from '@material-ui/core/IconButton';
-import MagmaTopBar from '../MagmaTopBar';
+import axios from 'axios';
 
-import {DEFAULT_ENODEB} from './EnodebUtils';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {DEFAULT_ENODEB} from './EnodebUtils';
+import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import LoadingFiller from '../LoadingFiller';
 
 const styles = theme => ({
   header: {
@@ -44,7 +44,7 @@ const styles = theme => ({
     justifyContent: 'space-between',
   },
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
 });
 
@@ -132,7 +132,7 @@ class Enodebs extends React.Component<Props, State> {
               Add eNodeB
             </Button>
           </div>
-          <Paper>
+          <Paper elevation={2}>
             {enodebs ? (
               <Table>
                 <TableHead>

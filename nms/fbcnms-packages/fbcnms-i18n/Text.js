@@ -22,7 +22,7 @@ type Props = {
 type TypographyProps = {};
 
 type TransProps = {
-  i18nKey: string,
+  i18nKey?: string,
   count?: number,
   values?: Object,
 };
