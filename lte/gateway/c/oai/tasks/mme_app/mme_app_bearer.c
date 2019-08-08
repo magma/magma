@@ -2482,7 +2482,7 @@ void mme_app_handle_path_switch_request(
   MME_APP_ENB_S1AP_ID_KEY(enb_s1ap_id_key,
         path_switch_req_p->enb_id, path_switch_req_p->enb_ue_s1ap_id);
   // Update enb_s1ap_id_key in hashtable
-  if (ue_context_p->emm_context.is_guti_set) {
+  if (!IS_EMM_CTXT_PRESENT_GUTI(&(ue_context_p->emm_context))) {
     mme_ue_context_update_coll_keys(
       &mme_app_desc.mme_ue_contexts,
       ue_context_p,
