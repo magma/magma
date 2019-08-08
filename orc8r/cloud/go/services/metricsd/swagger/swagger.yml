@@ -488,6 +488,92 @@ definitions:
         type: string
       username:
         type: string
+      color:
+        type: string
+      title:
+        type: string
+      pretext:
+        type: string
+      text:
+        type: string
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/slack_field'
+      short_fields:
+        type: boolean
+      footer:
+        type: string
+      fallback:
+        type: string
+      callback_id:
+        type: string
+      icon_emoji:
+        type: string
+      icon_url:
+        type: string
+      image_url:
+        type: string
+      thumb_url:
+        type: string
+      link_names:
+        type: boolean
+      actions:
+        type: array
+        items:
+          $ref: '#/definitions/slack_action'
+
+  slack_field:
+    type: object
+    required:
+      - title
+      - value
+    properties:
+      title:
+        type: string
+      value:
+        type: string
+      short:
+        type: boolean
+
+  slack_action:
+    type: object
+    required:
+      - type
+      - text
+      - url
+    properties:
+      type:
+        type: string
+      text:
+        type: string
+      url:
+        type: string
+      style:
+        type: string
+      name:
+        type: string
+      value:
+        type: string
+      confirm:
+        $ref: '#/definitions/slack_confirm_field'
+
+  slack_confirm_field:
+    type: object
+    required:
+      - text
+      - title
+      - ok_text
+      - dismiss_text
+    properties:
+      text:
+        type: string
+      title:
+        type: string
+      ok_text:
+        type: string
+      dismiss_text:
+        type: string
 
   prom_firing_alert:
     type: object
