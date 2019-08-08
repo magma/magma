@@ -23,7 +23,7 @@ import (
 )
 
 func StartTestService(t *testing.T) {
-	db, err := sqorc.Open("sqlite3", ":memory:")
+	db, err := sqorc.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
