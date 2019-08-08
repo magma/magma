@@ -7,7 +7,7 @@
  * @flow
  * @format
  */
-import React from 'react';
+import * as React from 'react';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import {makeStyles} from '@material-ui/styles';
 
@@ -25,7 +25,7 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   onClick: () => void,
-  children: any,
+  children: ?React.Node,
 };
 
 const MapButton = (props: Props) => {

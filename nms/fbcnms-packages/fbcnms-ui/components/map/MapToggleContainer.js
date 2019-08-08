@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import * as React from 'react';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -28,7 +28,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {children: any};
+type Props = {children: ?React.Node};
 
 const MapToggleContainer = (props: Props) => {
   const classes = useStyles();
