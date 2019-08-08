@@ -75,6 +75,7 @@ spec:
           ports:
             - containerPort: 9090
           args: ['--config.file=/etc/prometheus/prometheus.yml',
+                 '--storage.tsdb.retention.time={{ .Values.metrics.retention.time }}',
                  '--storage.tsdb.path=/data',
                  '--web.enable-lifecycle']
           livenessProbe:

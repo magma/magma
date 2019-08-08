@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import * as React from 'react';
 import ToggleButtonGroup from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
@@ -19,7 +19,7 @@ const useStyles = makeStyles({
   },
 });
 
-type Props = {children: any};
+type Props = {children: ?React.Node};
 
 const MapToggleButtonGroup = (props: Props) => {
   const classes = useStyles();

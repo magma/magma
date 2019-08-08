@@ -2338,7 +2338,18 @@ declare module "@material-ui/core/styles/withStyles" {
 
   import type {Theme} from "@material-ui/core/styles/createMuiTheme"
 
-  declare type CSSProperties = any; // import type {StandardProperties as CSSProperties} from "csstype";
+  // import type {StandardProperties as CSSProperties} from "csstype";
+
+  // Recursion usually works, but is too lax for the cases we present to flow
+  // (StyleRules | StyleRulesCallback). Thus, we limit how much we can nest.
+  // This is probably good style design either way.
+  declare type CSSProperties = {
+    [string]: string | number | {
+      [string]: string | number | {
+        [string]: string | number
+      }
+    }
+  };
 
   declare type CSSCreateStyleSheetOptions = {|
     media?: string,
@@ -2372,7 +2383,7 @@ declare module "@material-ui/core/styles/withStyles" {
   };
 
   declare module.exports: (
-    stylesOrCreator: StyleRules | StyleRulesCallback,
+    stylesOrCreator: StyleRulesCallback | StyleRules,
     options?: WithStylesOptions,
   ) => <WrappedComponent: ComponentType<*>>(
     Component: WrappedComponent

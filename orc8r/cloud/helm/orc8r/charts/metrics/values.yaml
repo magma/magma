@@ -8,6 +8,10 @@ metrics:
   # Set to 1 if using a minikube setup
   useMinikube:
 
+  # Retention configurations for prometheus
+  retention:
+    time: 30d
+
   # Service configuration.
   service:
     annotations: {}
