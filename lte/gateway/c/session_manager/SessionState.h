@@ -125,6 +125,8 @@ class SessionState {
 
   bool is_radius_cwf_session();
 
+  bool is_same_config(const Config &new_config);
+
  private:
   /**
    * State transitions of a session:

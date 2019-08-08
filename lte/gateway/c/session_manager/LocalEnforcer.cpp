@@ -759,6 +759,25 @@ void LocalEnforcer::check_usage_for_reporting()
     });
 }
 
+bool LocalEnforcer::is_imsi_duplicate(const std::string &imsi)
+{
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    return false;
+  }
+  return true;
+}
+
+bool LocalEnforcer::is_session_duplicate(
+  const std::string &imsi, const magma::SessionState::Config &config)
+{
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    return false;
+  }
+  return it->second->is_same_config(config);
+}
+
 static void mark_rule_failures(
   const bool &activate_success,
   const bool &deactivate_success,
