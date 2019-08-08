@@ -32,6 +32,10 @@ const (
 	MAX_DIAM_RETRIES = 1
 )
 
+type Relay interface {
+	RelayFromFeg() (protos.ErrorCode, error)
+}
+
 type swxProxy struct {
 	config         *SwxProxyConfig
 	smClient       *sm.Client
@@ -39,6 +43,7 @@ type swxProxy struct {
 	requestTracker *diameter.RequestTracker
 	originStateID  uint32
 	cache          *cache.Impl
+	Relay          Relay
 }
 
 type SwxProxyConfig struct {
@@ -117,6 +122,7 @@ func NewSwxProxyWithCache(config *SwxProxyConfig, cache *cache.Impl) (*swxProxy,
 		requestTracker: diameter.NewRequestTracker(),
 		originStateID:  originStateID,
 		cache:          cache,
+		Relay:          &fegRelayClient{},
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.MultimediaAuthentication, Request: false},
@@ -124,6 +130,9 @@ func NewSwxProxyWithCache(config *SwxProxyConfig, cache *cache.Impl) (*swxProxy,
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.ServerAssignment, Request: false},
 		handleSAA(proxy))
+	mux.HandleIdx(
+		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.RegistrationTermination, Request: true},
+		handleRTR(proxy))
 
 	return proxy, nil
 }
