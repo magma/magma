@@ -13,7 +13,6 @@
 #include <assert.h>
 #include <netinet/sctp.h>
 #include <unistd.h>
-
 #include "sctpd.h"
 #include "util.h"
 
