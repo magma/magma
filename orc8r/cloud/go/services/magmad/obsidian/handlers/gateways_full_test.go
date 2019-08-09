@@ -70,7 +70,7 @@ func TestGetViewsForNetwork_Full(t *testing.T) {
 		Url: fmt.Sprintf(
 			"%s/%s/gateways?view=full", testURLRoot, networkID),
 		Payload:  "",
-		Expected: `[{"config":{"magmad_gateway":null},"gateway_id":"my_gateway-1","record":{"hardware_id":"TestAGHwId00001","key":{"key_type":"ECHO"}},"status":null}]`,
+		Expected: `[{"gateway_id":"my_gateway-1","config":{"magmad_gateway":null},"name":"","record":{"hardware_id":"TestAGHwId00001","key":{"key_type":"ECHO"}},"status":null}]`,
 	}
 	tests.RunTest(t, getGatewaysFullView)
 
@@ -95,7 +95,7 @@ func TestGetViewsForNetwork_Full(t *testing.T) {
 		Url: fmt.Sprintf(
 			"%s/%s/gateways?view=full", testURLRoot, networkID),
 		Payload:  "",
-		Expected: fmt.Sprintf(`[{"config":{"magmad_gateway":%s},"gateway_id":"my_gateway-1","record":{"hardware_id":"TestAGHwId00001","key":{"key_type":"ECHO"}},"status":null}]`, expectedCfgStr),
+		Expected: fmt.Sprintf(`[{"gateway_id":"my_gateway-1","config":{"magmad_gateway":%s},"name":"","record":{"hardware_id":"TestAGHwId00001","key":{"key_type":"ECHO"}},"status":null}]`, expectedCfgStr),
 	}
 	tests.RunTest(t, getGatewaysFullView)
 
