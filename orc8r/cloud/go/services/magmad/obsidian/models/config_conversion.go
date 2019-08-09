@@ -81,7 +81,7 @@ func (m *NetworkRecord) ValidateModel() error {
 func (record *AccessGatewayRecord) FromMconfig(cfg *magmadprotos.AccessGatewayRecord) error {
 	if record != nil && cfg != nil {
 		protos.FillIn(cfg, record)
-		record.HwID = hwIdFromMconfig(cfg.HwId)
+		record.HardwareID = hwIdFromMconfig(cfg.HwId).ID
 
 		err := fillKeyFromMconfig(cfg.Key, record.Key)
 		if err != nil {
@@ -100,7 +100,7 @@ func (record *AccessGatewayRecord) ToMconfig() (*magmadprotos.AccessGatewayRecor
 	ret := &magmadprotos.AccessGatewayRecord{}
 	if record != nil && ret != nil {
 		protos.FillIn(record, ret)
-		ret.HwId = hwIdToMconfig(record.HwID)
+		ret.HwId = &protos.AccessGatewayID{Id: record.HardwareID}
 
 		key, err := fillKeyToMconfig(record.Key)
 		if err != nil {

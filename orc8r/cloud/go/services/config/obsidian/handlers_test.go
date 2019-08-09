@@ -249,7 +249,11 @@ func TestUpdateConfigHandler(t *testing.T) {
 
 func TestDeleteConfigHandler(t *testing.T) {
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
-	err := serde.RegisterSerdes(&fooConfigManager{configurator.NetworkEntitySerdeDomain}, &convertErrConfigManager{configurator.NetworkEntitySerdeDomain}, &errConfigManager{configurator.NetworkEntitySerdeDomain})
+	err := serde.RegisterSerdes(
+		&fooConfigManager{configurator.NetworkEntitySerdeDomain},
+		&convertErrConfigManager{configurator.NetworkEntitySerdeDomain},
+		&errConfigManager{configurator.NetworkEntitySerdeDomain},
+	)
 	assert.NoError(t, err)
 	err = serde.RegisterSerdes(configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfig{}))
 	assert.NoError(t, err)
@@ -257,6 +261,8 @@ func TestDeleteConfigHandler(t *testing.T) {
 
 	configurator_test_init.StartTestService(t)
 
+	err = configurator.CreateNetwork(configurator.Network{ID: "network1"})
+	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("network1", configurator.NetworkEntity{Type: "foo", Key: "key", Config: &fooConfig{Foo: "foo", Bar: "bar"}})
 	assert.NoError(t, err)
 
