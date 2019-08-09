@@ -211,6 +211,26 @@ paths:
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/gateways/{gateway_id}/name:
+    put:
+      summary: Update Gateway Name
+      tags:
+        - Gateways
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './swagger-common.yml#/parameters/gateway_id'
+        - in: body
+          name: name
+          description: New name
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/gateways/{gateway_id}/configs:
     post:
       summary: Create Gateway Configs
@@ -811,3 +831,7 @@ definitions:
           type: string
         example: ["4.9.0-6-amd64", "4.9.0-7-amd64"]
         description: deprecated
+  gateway_name:
+    type: string
+    x-nullable: false
+    minLength: 1

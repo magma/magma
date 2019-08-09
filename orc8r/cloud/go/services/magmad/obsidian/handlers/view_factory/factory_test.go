@@ -58,8 +58,8 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	record1 := &models.GatewayDevice{HardwareID: hwID1}
 	record2 := &models.GatewayDevice{HardwareID: hwID2}
 	configuratortu.RegisterNetwork(t, networkID, "xservice1")
-	configuratortu.RegisterGateway(t, networkID, gatewayID1, record1)
-	configuratortu.RegisterGateway(t, networkID, gatewayID2, record2)
+	configuratortu.RegisterGatewayWithName(t, networkID, gatewayID1, "111", record1)
+	configuratortu.RegisterGatewayWithName(t, networkID, gatewayID2, "222", record2)
 
 	// configs for gw1
 	gw1config1 := configurator.NetworkEntity{
@@ -125,6 +125,7 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 				storagetu.NewConfig2ConfiguratorManager().GetType(): cfg2,
 				orc8r.MagmadGatewayType:                             nil,
 			},
+			Name:   "111",
 			Status: checkintu.GetGatewayStatusSwaggerFixture(hwID1),
 			Record: record1,
 		},
@@ -134,6 +135,7 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 				storagetu.NewConfig1ConfiguratorManager().GetType(): cfg1,
 				orc8r.MagmadGatewayType:                             nil,
 			},
+			Name:   "222",
 			Record: record2,
 		},
 	}

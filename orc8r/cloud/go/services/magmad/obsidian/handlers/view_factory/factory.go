@@ -30,7 +30,8 @@ type GatewayState struct {
 	// Configuration of the gateway, represented as a map from configuration types
 	// to configuration objects
 	Config map[string]interface{} `json:"config"`
-
+	// Name of the gateway
+	Name string `json:"name"`
 	// Gateway record
 	Record *models.GatewayDevice `json:"record"`
 	// Status of the gateway
@@ -83,6 +84,7 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayID
 
 		ret[gateway.Key] = &GatewayState{
 			GatewayID: gateway.Key,
+			Name:      gateway.Name,
 			Record:    gatewayRecord,
 			Status:    status,
 			Config:    map[string]interface{}{orc8r.MagmadGatewayType: gateway.Config},

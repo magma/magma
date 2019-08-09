@@ -29,6 +29,10 @@ func RegisterNetwork(t *testing.T, networkID string, networkName string) {
 }
 
 func RegisterGateway(t *testing.T, networkID string, gatewayID string, record *models.GatewayDevice) {
+	RegisterGatewayWithName(t, networkID, gatewayID, "", record)
+}
+
+func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, name string, record *models.GatewayDevice) {
 	var gwEntity configurator.NetworkEntity
 	if record != nil {
 		if device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HardwareID) {
@@ -41,16 +45,19 @@ func RegisterGateway(t *testing.T, networkID string, gatewayID string, record *m
 		gwEntity = configurator.NetworkEntity{
 			Type:       orc8r.MagmadGatewayType,
 			Key:        gatewayID,
+			Name:       name,
 			PhysicalID: record.HardwareID,
 		}
 	} else {
 		gwEntity = configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType,
 			Key:  gatewayID,
+			Name: name,
 		}
 	}
 	_, err := configurator.CreateEntity(networkID, gwEntity)
 	assert.NoError(t, err)
+
 }
 
 // RemoveGateway assumes there is a device entity corresponding to the

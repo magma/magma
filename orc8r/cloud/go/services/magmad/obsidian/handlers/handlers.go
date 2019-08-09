@@ -32,6 +32,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageAG, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageAG, Methods: obsidian.PUT, HandlerFunc: updateGateway},
 		{Path: ManageAG, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
+		{Path: ManageAG + "/name", Methods: obsidian.PUT, HandlerFunc: updateGatewayNameHandler},
 
 		// Gateway Commands
 		{Path: RebootGateway, Methods: obsidian.POST, HandlerFunc: rebootGateway},

@@ -26,6 +26,7 @@ import (
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 )
 
@@ -177,6 +178,32 @@ func updateGateway(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+func updateGatewayNameHandler(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	gatewayID, gerr := obsidian.GetLogicalGwId(c)
+	if gerr != nil {
+		return gerr
+	}
+	payload := magmad_models.GatewayName("")
+	if err := c.Bind(&payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	updateRequest := configurator.EntityUpdateCriteria{
+		Key:     gatewayID,
+		Type:    orc8r.MagmadGatewayType,
+		NewName: swag.String(string(payload)),
+	}
+	_, err := configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateRequest})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func updateChallengeKey(networkID, gatewayID string, challengeKey *models.ChallengeKey) error {
 	deviceID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
@@ -192,16 +219,6 @@ func updateChallengeKey(networkID, gatewayID string, challengeKey *models.Challe
 	}
 	record.Key = challengeKey
 	return device.UpdateDevice(networkID, orc8r.AccessGatewayRecordType, deviceID, record)
-}
-
-func updateGatewayName(networkID, gatewayID, name string) error {
-	updateRequest := configurator.EntityUpdateCriteria{
-		Key:     gatewayID,
-		Type:    orc8r.MagmadGatewayType,
-		NewName: &name,
-	}
-	_, err := configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateRequest})
-	return err
 }
 
 func deleteGateway(c echo.Context) error {
