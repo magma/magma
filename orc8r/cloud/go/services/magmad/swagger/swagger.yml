@@ -447,16 +447,14 @@ definitions:
   access_gateway_record:
     type: object
     required:
-    - hw_id
+    - hardware_id
     - key
     properties:
-      hw_id:
-        $ref: '#/definitions/hw_gateway_id'
-        x-go-custom-tag: 'magma_alt_name:"HwId"'
-      name:
+      hardware_id:
         type: string
         minLength: 1
-        example: South Park's CtPa Town Tower
+        x-nullable: false
+        example: 22ffea10-7fc4-4427-975a-b9e4ce8f6f4d
       key:
         $ref: '#/definitions/challenge_key'
   magmad_gateway_config:
