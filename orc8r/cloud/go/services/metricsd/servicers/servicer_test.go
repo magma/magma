@@ -17,13 +17,13 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 
@@ -66,10 +66,10 @@ func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error 
 func (e *testMetricExporter) Start() {}
 
 func TestCollect(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}))
+	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	ctx := context.Background()
@@ -82,7 +82,7 @@ func TestCollect(t *testing.T) {
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
-	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: gatewayID}})
+	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
 	name := strconv.Itoa(int(MetricName))
 	key := strconv.Itoa(int(LabelName))

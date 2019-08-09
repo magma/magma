@@ -24,12 +24,12 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/magmad"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/golang/protobuf/ptypes"
 	"golang.org/x/net/context"
@@ -288,7 +288,7 @@ func getChallengeKeyFromConfigurator(hwID string) (protos.ChallengeKey_KeyType, 
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record: %s", err))
 	}
-	record, ok := iRecord.(*models.AccessGatewayRecord)
+	record, ok := iRecord.(*models2.GatewayDevice)
 	if !ok {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record"))
 	}

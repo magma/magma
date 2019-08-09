@@ -34,10 +34,10 @@ func ListFullGatewayViews(c echo.Context, factory view_factory.FullGatewayViewFa
 	}
 	// todo can remove this after the legacy full gateway views is deprecated
 	//  and only uses GatewayStateType
-	gatewayStateTypes := []*view_factory.GatewayStateType{}
+	gatewayStateTypes := []*view_factory.GatewayState{}
 	for _, state := range gatewayStates {
 		gatewayStateTypes = append(gatewayStateTypes,
-			&view_factory.GatewayStateType{
+			&view_factory.GatewayState{
 				Config:    state.Config,
 				GatewayID: state.GatewayID,
 				Record:    state.Record,

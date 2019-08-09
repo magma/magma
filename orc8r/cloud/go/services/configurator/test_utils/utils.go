@@ -12,9 +12,9 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -28,21 +28,20 @@ func RegisterNetwork(t *testing.T, networkID string, networkName string) {
 	assert.NoError(t, err)
 }
 
-func RegisterGateway(t *testing.T, networkID string, gatewayID string, record *models.AccessGatewayRecord) {
+func RegisterGateway(t *testing.T, networkID string, gatewayID string, record *models.GatewayDevice) {
 	var gwEntity configurator.NetworkEntity
 	if record != nil {
-		if device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID) {
-			t.Fatalf("Hwid is already registered %s", record.HwID.ID)
+		if device.DoesDeviceExist(networkID, orc8r.AccessGatewayRecordType, record.HardwareID) {
+			t.Fatalf("Hwid is already registered %s", record.HardwareID)
 		}
 		// write into device
-		err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HwID.ID, record)
+		err := device.RegisterDevice(networkID, orc8r.AccessGatewayRecordType, record.HardwareID, record)
 		assert.NoError(t, err)
 
 		gwEntity = configurator.NetworkEntity{
-			Name:       record.Name,
 			Type:       orc8r.MagmadGatewayType,
 			Key:        gatewayID,
-			PhysicalID: record.HwID.ID,
+			PhysicalID: record.HardwareID,
 		}
 	} else {
 		gwEntity = configurator.NetworkEntity{

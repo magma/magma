@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/serde"
@@ -31,7 +32,6 @@ import (
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/stretchr/testify/assert"
@@ -54,11 +54,11 @@ func testWithECHO(
 		t,
 		networkId,
 		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
-			Name: "Test GW echo",
-			Key:  &models.ChallengeKey{KeyType: echoType},
-		})
+		&models.GatewayDevice{
+			HardwareID: testAgHwId,
+			Key:        &models.ChallengeKey{KeyType: echoType},
+		},
+	)
 
 	// check challenge type
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
@@ -96,9 +96,8 @@ func testWithRSA(
 		t,
 		networkId,
 		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
-			Name: "Test GW RSA",
+		&models.GatewayDevice{
+			HardwareID: testAgHwId,
 			Key: &models.ChallengeKey{
 				KeyType: rsaType,
 				Key:     &pubKey,
@@ -146,14 +145,14 @@ func testWithECDSA(
 		t,
 		networkId,
 		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
-			Name: "Test GW ECDSA",
+		&models.GatewayDevice{
+			HardwareID: testAgHwId,
 			Key: &models.ChallengeKey{
 				KeyType: ecdsaType,
 				Key:     &pubKey,
 			},
-		})
+		},
+	)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -194,14 +193,14 @@ func testNegative(
 		t,
 		networkId,
 		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
-			Name: "Test GW ECDSA with bad key type",
+		&models.GatewayDevice{
+			HardwareID: testAgHwId,
 			Key: &models.ChallengeKey{
 				KeyType: "10",
 				Key:     &pubKey,
 			},
-		})
+		},
+	)
 
 	// cannot get challenge because of unsupported key type
 	_, err = srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
@@ -213,14 +212,14 @@ func testNegative(
 		t,
 		networkId,
 		testAgHwId,
-		&models.AccessGatewayRecord{
-			HwID: &models.HwGatewayID{ID: testAgHwId},
-			Name: "Test GW ECDSA",
+		&models.GatewayDevice{
+			HardwareID: testAgHwId,
 			Key: &models.ChallengeKey{
 				KeyType: rsaType,
 				Key:     &pubKey,
 			},
-		})
+		},
+	)
 
 	challenge, err := srv.GetChallenge(ctx, &protos.AccessGatewayID{Id: testAgHwId})
 	assert.NoError(t, err)
@@ -283,10 +282,10 @@ func testNegative(
 }
 
 func TestBootstrapperServer(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}))
+	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	testNetworkID := "bootstrapper_test_network"
 	err := configurator.CreateNetwork(configurator.Network{

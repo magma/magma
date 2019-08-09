@@ -9,6 +9,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 
@@ -17,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/thoas/go-funk"
 )
@@ -29,13 +31,13 @@ const (
 // GetObsidianHandlers returns all obsidian handlers for subscriberdb
 func GetObsidianHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
-		{Path: SubscriberdRootPath, Methods: obsidian.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberManagePath, Methods: obsidian.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberdRootPath, Methods: obsidian.GET, HandlerFunc: listSubscribersHandler, MigratedHandlerFunc: listSubscribers},
-		{Path: SubscriberManagePath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler, MigratedHandlerFunc: getSubscriber},
-		{Path: SubscriberdRootPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberManagePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriberHandler, MigratedHandlerFunc: deleteSubscriber, MultiplexAfterMigration: true},
+		{Path: SubscriberdRootPath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
+		{Path: SubscriberManagePath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
+		{Path: SubscriberdRootPath, Methods: obsidian.GET, HandlerFunc: listSubscribers},
+		{Path: SubscriberManagePath, Methods: obsidian.GET, HandlerFunc: getSubscriber},
+		{Path: SubscriberdRootPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
+		{Path: SubscriberManagePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
+		{Path: SubscriberManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriber},
 	}
 }
 
@@ -167,4 +169,22 @@ func getListSubscribersLoadCriteria(c echo.Context) configurator.EntityLoadCrite
 		return configurator.EntityLoadCriteria{LoadConfig: true}
 	}
 	return configurator.EntityLoadCriteria{}
+}
+
+func getSubscriberId(c echo.Context) string {
+	sidstr := c.Param("subscriber_id")
+	if len(sidstr) > 0 {
+		err := (*models.SubscriberID)(&sidstr).Verify()
+		if err != nil {
+			glog.Errorf("Invalid subscriber ID parameter: %s", sidstr)
+			sidstr = ""
+		}
+	}
+	return sidstr
+}
+
+func subscriberIdHttpErr() *echo.HTTPError {
+	return obsidian.HttpError(
+		fmt.Errorf("Invalid/Missing Subscriber ID"),
+		http.StatusBadRequest)
 }

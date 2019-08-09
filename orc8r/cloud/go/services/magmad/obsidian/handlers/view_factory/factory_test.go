@@ -13,8 +13,8 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
-	checkindmodels "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	checkintu "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorti "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -23,7 +23,6 @@ import (
 	deviceti "magma/orc8r/cloud/go/services/device/test_init"
 	storagetu "magma/orc8r/cloud/go/services/magmad/obsidian/handlers/test_utils"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateti "magma/orc8r/cloud/go/services/state/test_init"
 	statetu "magma/orc8r/cloud/go/services/state/test_utils"
@@ -36,7 +35,7 @@ var cfg1 = &storagetu.Conf1{Value1: 1, Value2: "foo", Value3: []byte("bar")}
 var cfg2 = &storagetu.Conf2{Value1: []string{"foo", "bar"}, Value2: 1}
 
 func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	// Test setup
 	configuratorti.StartTestService(t)
 	deviceti.StartTestService(t)
@@ -45,8 +44,8 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	err := serde.RegisterSerdes(
 		storagetu.NewConfig1ConfiguratorManager(),
 		storagetu.NewConfig2ConfiguratorManager(),
-		state.NewStateSerde(orc8r.GatewayStateType, &checkindmodels.GatewayStatus{}),
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}),
+		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
 	)
 	assert.NoError(t, err)
 
@@ -56,8 +55,8 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	gatewayID2 := "gw2"
 	hwID1 := "hw1"
 	hwID2 := "hw2"
-	record1 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID1}, Name: "hw1name"}
-	record2 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID2}, Name: "hw2name"}
+	record1 := &models.GatewayDevice{HardwareID: hwID1}
+	record2 := &models.GatewayDevice{HardwareID: hwID2}
 	configuratortu.RegisterNetwork(t, networkID, "xservice1")
 	configuratortu.RegisterGateway(t, networkID, gatewayID1, record1)
 	configuratortu.RegisterGateway(t, networkID, gatewayID2, record2)

@@ -20,18 +20,18 @@ import (
 func GetObsidianHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
 		// Network
-		{Path: ListNetworks, Methods: obsidian.GET, HandlerFunc: listNetworksHandler, MigratedHandlerFunc: listNetworks},
-		{Path: RegisterNetwork, Methods: obsidian.POST, HandlerFunc: registerNetworkHandler, MigratedHandlerFunc: registerNetwork, MultiplexAfterMigration: true},
-		{Path: ManageNetwork, Methods: obsidian.GET, HandlerFunc: getNetworkHandler, MigratedHandlerFunc: getNetwork},
-		{Path: ManageNetwork, Methods: obsidian.PUT, HandlerFunc: updateNetworkHandler, MigratedHandlerFunc: updateNetwork, MultiplexAfterMigration: true},
-		{Path: ManageNetwork, Methods: obsidian.DELETE, HandlerFunc: deleteNetworkHandler, MigratedHandlerFunc: deleteNetwork, MultiplexAfterMigration: true},
+		{Path: ListNetworks, Methods: obsidian.GET, HandlerFunc: listNetworks},
+		{Path: RegisterNetwork, Methods: obsidian.POST, HandlerFunc: registerNetwork},
+		{Path: ManageNetwork, Methods: obsidian.GET, HandlerFunc: getNetwork},
+		{Path: ManageNetwork, Methods: obsidian.PUT, HandlerFunc: updateNetwork},
+		{Path: ManageNetwork, Methods: obsidian.DELETE, HandlerFunc: deleteNetwork},
 
 		// Gateway
 		{Path: RegisterAG, Methods: obsidian.GET, HandlerFunc: getListGateways(&view_factory.FullGatewayViewFactoryImpl{})},
-		{Path: RegisterAG, Methods: obsidian.POST, HandlerFunc: createGatewayHandler, MigratedHandlerFunc: createGateway, MultiplexAfterMigration: true},
-		{Path: ManageAG, Methods: obsidian.GET, HandlerFunc: getGatewayHandler, MigratedHandlerFunc: getGateway},
-		{Path: ManageAG, Methods: obsidian.PUT, HandlerFunc: updateGatewayHandler, MigratedHandlerFunc: updateGateway, MultiplexAfterMigration: true},
-		{Path: ManageAG, Methods: obsidian.DELETE, HandlerFunc: deleteGatewayHandler, MigratedHandlerFunc: deleteGateway, MultiplexAfterMigration: true},
+		{Path: RegisterAG, Methods: obsidian.POST, HandlerFunc: createGateway},
+		{Path: ManageAG, Methods: obsidian.GET, HandlerFunc: getGateway},
+		{Path: ManageAG, Methods: obsidian.PUT, HandlerFunc: updateGateway},
+		{Path: ManageAG, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 
 		// Gateway Commands
 		{Path: RebootGateway, Methods: obsidian.POST, HandlerFunc: rebootGateway},

@@ -271,6 +271,7 @@ func GetNetworkId(c echo.Context) (string, *echo.HTTPError) {
 	return nid, CheckNetworkAccess(c, nid)
 }
 
+// DEPRECATED - use GetGatewayID, and use :gateway_id as path param
 func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
 	logicalGwId := c.Param("logical_ag_id")
 	if logicalGwId == "" {
@@ -281,6 +282,7 @@ func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
 	return logicalGwId, nil
 }
 
+// DEPRECATED - use GetNetworkAndGatewayIDs, and use :gateway_id as path param
 func GetNetworkAndGWID(c echo.Context) (string, string, error) {
 	networkID, err := GetNetworkId(c)
 	if err != nil {
@@ -291,6 +293,26 @@ func GetNetworkAndGWID(c echo.Context) (string, string, error) {
 		return "", "", err
 	}
 	return networkID, gatewayID, nil
+}
+
+func GetNetworkAndGatewayIDs(c echo.Context) (string, string, *echo.HTTPError) {
+	networkID, err := GetNetworkId(c)
+	if err != nil {
+		return "", "", err
+	}
+	gwID, err := GetGatewayID(c)
+	if err != nil {
+		return "", "", err
+	}
+	return networkID, gwID, nil
+}
+
+func GetGatewayID(c echo.Context) (string, *echo.HTTPError) {
+	ret := c.Param("gateway_id")
+	if ret == "" {
+		return "", HttpError(fmt.Errorf("Invalid/Missing Gateway ID"), http.StatusBadRequest)
+	}
+	return ret, nil
 }
 
 func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {

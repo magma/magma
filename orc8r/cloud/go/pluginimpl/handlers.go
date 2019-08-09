@@ -39,6 +39,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: ListNetworks},
 		{Path: RegisterNetworkPath, Methods: obsidian.POST, HandlerFunc: RegisterNetwork},
 		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: GetNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: UpdateNetwork},
 		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: DeleteNetwork},
 		{Path: ManageNetworkNamePath, Methods: obsidian.GET, HandlerFunc: GetNetworkName},
 		{Path: ManageNetworkNamePath, Methods: obsidian.PUT, HandlerFunc: UpdateNetworkName},
@@ -91,7 +92,7 @@ func GetNetwork(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("Network %s not found", networkID), http.StatusNotFound)
 	}
 	network := networks[0]
-	swaggerNetwork := models.FromConfiguratorNetwork(network)
+	swaggerNetwork := (&models.Network{}).FromConfiguratorNetwork(network)
 	return c.JSON(http.StatusOK, swaggerNetwork)
 }
 
@@ -105,7 +106,7 @@ func UpdateNetwork(c echo.Context) error {
 	if err := swaggerNetwork.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	update := swaggerNetwork.ToConfiguratorNetworkUpdateCriteria()
+	update := swaggerNetwork.ToUpdateCriteria()
 	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)

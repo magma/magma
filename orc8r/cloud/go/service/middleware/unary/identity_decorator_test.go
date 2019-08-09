@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -26,7 +27,6 @@ import (
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -36,10 +36,10 @@ import (
 const testAgHwID = "Test-AGW-Hw-Id"
 
 func TestIdentityInjector(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &magmad_models.AccessGatewayRecord{}))
+	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	// Make sure to "share" in memory magmad DBs with interceptors
 	networkID := "identity_decorator_test_network"
@@ -50,14 +50,7 @@ func TestIdentityInjector(t *testing.T) {
 	err := configurator.CreateNetwork(testNetwork)
 	assert.NoError(t, err)
 
-	configurator_test_utils.RegisterGateway(
-		t,
-		networkID,
-		testAgHwID,
-		&magmad_models.AccessGatewayRecord{
-			HwID: &magmad_models.HwGatewayID{testAgHwID},
-			Name: "Test GW Name",
-		})
+	configurator_test_utils.RegisterGateway(t, networkID, testAgHwID, &models.GatewayDevice{HardwareID: testAgHwID})
 
 	// Create the service
 	srv, err := service.NewTestOrchestratorService(t, orc8r.ModuleName, checkind.ServiceName)

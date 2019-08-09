@@ -108,7 +108,7 @@ func TestMagmad(t *testing.T) {
 		Method: "POST",
 		Url: fmt.Sprintf(
 			"%s/%s/gateways?requested_id=%s", testURLRoot, networkId, "*00_bad_ag"),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId12345"}, "name": "Test AG Name", "key": {"key_type": "ECHO"}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId12345", "key": {"key_type": "ECHO"}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
@@ -121,7 +121,7 @@ func TestMagmad(t *testing.T) {
 		Method: "POST",
 		Url: fmt.Sprintf(
 			"%s/%s/gateways?requested_id=%s", testURLRoot, networkId, requestedAGId),
-		Payload:  `{"hw_id":{"id":"TestAGHwId00001"}, "name": "Test AG Name",  "key": {"key_type": "ECHO"}}`,
+		Payload:  `{"hardware_id":"TestAGHwId00001", "key": {"key_type": "ECHO"}}`,
 		Expected: fmt.Sprintf(`"%s"`, requestedAGId),
 	}
 	tests.RunTest(t, registerAGWithIdTestCase)
@@ -131,7 +131,7 @@ func TestMagmad(t *testing.T) {
 		Name:     "Register AG",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:  `{"hw_id":{"id":"TestAGHwId00002"}, "name": "Test AG Name", "key": {"key_type": "SOFTWARE_ECDSA_SHA256", "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+Lckvw/eeV8CemEOWpX30/5XhTHKx/mm6T9MpQWuIM8sOKforNm5UPbZrdOTPEBAtGwJB6Uk9crjCIveFe+sN0zw705L94Giza4ny/6ASBcctCm2JJxFccVsocJIraSC"}}`,
+		Payload:  `{"hardware_id":"TestAGHwId00002", "key": {"key_type": "SOFTWARE_ECDSA_SHA256", "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+Lckvw/eeV8CemEOWpX30/5XhTHKx/mm6T9MpQWuIM8sOKforNm5UPbZrdOTPEBAtGwJB6Uk9crjCIveFe+sN0zw705L94Giza4ny/6ASBcctCm2JJxFccVsocJIraSC"}}`,
 		Expected: `"TestAGHwId00002"`,
 	}
 	tests.RunTest(t, registerAGTestCase)
@@ -141,7 +141,7 @@ func TestMagmad(t *testing.T) {
 		Name:                      "Register AG without Key",
 		Method:                    "POST",
 		Url:                       fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId00003"}, "name": "Test AG Name", "key": {}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId00003", "key": {}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
@@ -152,7 +152,7 @@ func TestMagmad(t *testing.T) {
 		Name:                      "Register AG with Key but no Key Content",
 		Method:                    "POST",
 		Url:                       fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId00003"}, "name": "Test AG Name", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256"}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId00003", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256"}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
@@ -163,51 +163,11 @@ func TestMagmad(t *testing.T) {
 		Name:                      "Register AG with Key but Wrong Key Content",
 		Method:                    "POST",
 		Url:                       fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId00003"}, "name": "Test AG Name", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256", "key":"AAAAAAAAAAAAAAAAAAAAAA=="}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId00003", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256", "key":"AAAAAAAAAAAAAAAAAAAAAA=="}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
 	tests.RunTest(t, registerAGTestCaseWrongKeyContent)
-
-	// Test Getting AG record
-	getAGRecordTestCase := tests.Testcase{
-		Name:   "Get AG Record With Specified Name",
-		Method: "GET",
-		Url: fmt.Sprintf("%s/%s/gateways/%s",
-			testURLRoot, networkId, requestedAGId),
-		Payload:  "",
-		Expected: `{"hw_id":{"id":"TestAGHwId00001"},"key":{"key_type":"ECHO"},"name":"Test AG Name"}`,
-	}
-	tests.RunTest(t, getAGRecordTestCase)
-
-	getAGRecordTestCase = tests.Testcase{
-		Name:     "Get AG Record With Default Name",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/gateways/TestAGHwId00002", testURLRoot, networkId),
-		Payload:  "",
-		Expected: `{"hw_id":{"id":"TestAGHwId00002"},"key":{"key":"MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+Lckvw/eeV8CemEOWpX30/5XhTHKx/mm6T9MpQWuIM8sOKforNm5UPbZrdOTPEBAtGwJB6Uk9crjCIveFe+sN0zw705L94Giza4ny/6ASBcctCm2JJxFccVsocJIraSC","key_type":"SOFTWARE_ECDSA_SHA256"},"name":"Test AG Name"}`,
-	}
-	tests.RunTest(t, getAGRecordTestCase)
-
-	// Test Updating AG record
-	setAGRecordTestCase := tests.Testcase{
-		Name:     "Update AG Record Name",
-		Method:   "PUT",
-		Url:      fmt.Sprintf("%s/%s/gateways/TestAGHwId00002", testURLRoot, networkId),
-		Payload:  `{"name": "SoDoSoPaTown Tower", "key": {"key_type": "ECHO"}}`,
-		Expected: "",
-	}
-	tests.RunTest(t, setAGRecordTestCase)
-
-	// Test Getting AG record 2
-	getAGRecordTestCase = tests.Testcase{
-		Name:     "Get AG Record With Modified Name",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/gateways/TestAGHwId00002", testURLRoot, networkId),
-		Payload:  "",
-		Expected: `{"hw_id":{"id":"TestAGHwId00002"}, "key": {"key_type": "ECHO"}, "name": "SoDoSoPaTown Tower"}`,
-	}
-	tests.RunTest(t, getAGRecordTestCase)
 
 	// Test Listing All Registered AGs
 	listAGsTestCase := tests.Testcase{
@@ -255,7 +215,7 @@ func TestMagmad(t *testing.T) {
 		Name:     "Register AG 2",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:  `{"hw_id":{"id":"TestAGHwId12345"}, "key": {"key_type": "ECHO"}}`,
+		Payload:  `{"hardware_id":"TestAGHwId12345", "key": {"key_type": "ECHO"}}`,
 		Expected: `"TestAGHwId12345"`,
 	}
 	tests.RunTest(t, registerAGTestCase)

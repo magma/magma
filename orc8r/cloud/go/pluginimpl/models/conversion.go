@@ -12,6 +12,7 @@ import (
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/swag"
 )
@@ -19,7 +20,7 @@ import (
 func (m *Network) ToConfiguratorNetwork() configurator.Network {
 	return configurator.Network{
 		ID:          string(m.ID),
-		Type:        string(m.Type),
+		Type:        m.Type,
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Configs: map[string]interface{}{
@@ -29,8 +30,7 @@ func (m *Network) ToConfiguratorNetwork() configurator.Network {
 	}
 }
 
-func FromConfiguratorNetwork(n configurator.Network) *Network {
-	m := &Network{}
+func (m *Network) FromConfiguratorNetwork(n configurator.Network) *Network {
 	m.ID = models.NetworkID(n.ID)
 	m.Type = n.Type
 	m.Name = models.NetworkName(n.Name)
@@ -44,7 +44,7 @@ func FromConfiguratorNetwork(n configurator.Network) *Network {
 	return m
 }
 
-func (m *Network) ToConfiguratorNetworkUpdateCriteria() configurator.NetworkUpdateCriteria {
+func (m *Network) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 	return configurator.NetworkUpdateCriteria{
 		ID:             string(m.ID),
 		NewType:        swag.String(m.Type),
@@ -55,4 +55,32 @@ func (m *Network) ToConfiguratorNetworkUpdateCriteria() configurator.NetworkUpda
 			orc8r.NetworkFeaturesConfig: m.Features,
 		},
 	}
+}
+
+func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {
+	gatewayEnt := configurator.NetworkEntity{
+		Type:         orc8r.MagmadGatewayType,
+		Key:          string(m.ID),
+		Name:         string(m.Name),
+		Description:  string(m.Description),
+		Config:       m.Magmad,
+		PhysicalID:   m.Device.HardwareID,
+		Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: string(m.Tier)}},
+	}
+	return []configurator.NetworkEntity{gatewayEnt}
+}
+
+func (m *MagmadGateway) FromBackendModels(ent configurator.NetworkEntity, device *GatewayDevice, status *GatewayStatus) *MagmadGateway {
+	m.ID = models.GatewayID(ent.Key)
+	m.Name = models.GatewayName(ent.Name)
+	m.Description = models.GatewayDescription(ent.Description)
+	m.Magmad = ent.Config.(*MagmadGatewayConfigs)
+	m.Device = device
+	m.Status = status
+	tierTK, err := ent.GetFirstParentOfType(orc8r.UpgradeTierEntityType)
+	if err == nil {
+		m.Tier = TierID(tierTK.Key)
+	}
+
+	return m
 }
