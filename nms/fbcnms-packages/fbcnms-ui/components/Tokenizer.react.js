@@ -16,7 +16,7 @@ import ClearIcon from '@material-ui/icons/Clear';
 import Typography from '@material-ui/core/Typography';
 import {withStyles, withTheme} from '@material-ui/core/styles';
 
-const styles = _theme => ({
+const styles = {
   root: {
     display: 'flex',
     borderRadius: '4px',
@@ -51,7 +51,7 @@ const styles = _theme => ({
     marginRight: '6px',
     padding: '0px',
   },
-});
+};
 
 export type Entry = {
   id: string,
@@ -115,7 +115,7 @@ type Props = {
   onChange?: (entries: Array<Entry>) => void,
   onBlur?: () => void,
   theme: Theme,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 type State = {
   tokens: Array<Entry>,
@@ -173,6 +173,7 @@ class Tokenizer extends React.Component<Props, State> {
           getSuggestionValue={entry => entry.label}
           onSuggestionsFetchRequested={({value}) => onEntriesRequested(value)}
           renderSuggestion={entry => (
+            // $FlowFixMe class doesn't exist
             <div className={classes.entryRoot}>
               <div>{entry.label}</div>
             </div>

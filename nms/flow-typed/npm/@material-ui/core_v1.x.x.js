@@ -2372,8 +2372,10 @@ declare module "@material-ui/core/styles/withStyles" {
     name?: string
   |};
 
-  declare export type WithStyles = {
-    classes: { +[string]: string },
+  declare type ExtractReturnTypeIfFunc = <R>(((theme: Theme) => R) | R) => R;
+
+  declare export type  WithStyles<T> = {
+    classes: {[$Keys<$Call<ExtractReturnTypeIfFunc, T>>]: string},
     innerRef: Ref<any> | {current: ElementRef<any> | null}
   };
 
@@ -2431,7 +2433,7 @@ declare module "@material-ui/core/styles" {
   import type {WithTheme as MuiWithTheme} from "@material-ui/core/styles/withTheme";
 
   declare export type Theme = MuiTheme;
-  declare export type WithStyles = MuiWithStyles;
+  declare export type WithStyles<T> = MuiWithStyles<T>;
   declare export type WithTheme = MuiWithTheme;
 
   declare module.exports: {
@@ -4302,6 +4304,6 @@ declare module "@material-ui/core" {
   } from "@material-ui/core/styles";
 
   declare export type Theme = StylesTheme;
-  declare export type WithStyles = StylesWithStyles;
+  declare export type WithStyles<T> = StylesWithStyles<T>;
   declare export type WithTheme = StylesWithTheme;
 }

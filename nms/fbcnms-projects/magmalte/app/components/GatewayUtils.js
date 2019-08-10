@@ -95,7 +95,7 @@ const styles = {
 };
 
 const GatewayStatusElement = (
-  props: WithStyles & {isGrey: boolean, isActive: boolean},
+  props: WithStyles<typeof styles> & {isGrey: boolean, isActive: boolean},
 ) => {
   if (props.isGrey) {
     return (

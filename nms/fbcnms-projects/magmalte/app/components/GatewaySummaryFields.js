@@ -31,7 +31,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 type Props = ContextRouter &
   WithAlert &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gatewayID: string) => void,
     gateway: Gateway,

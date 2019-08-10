@@ -41,7 +41,7 @@ const styles = {
 };
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     // Only set if we are editing an eNodeB configuration
     editingEnodeb: ?Enodeb,
     onClose: () => void,

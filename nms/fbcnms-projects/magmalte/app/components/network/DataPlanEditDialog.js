@@ -95,7 +95,7 @@ const MegabyteTextField = (props: {
 };
 
 type Props = ContextRouter &
-  WithStyles &
+  WithStyles<typeof styles> &
   WithAlert & {
     onSave: (
       dataPlanId: string,
@@ -132,6 +132,7 @@ class DataPlanEditDialog extends React.Component<Props, State> {
       <Dialog open={true} onClose={this.props.onCancel} scroll="body">
         <DialogTitle>{dataPlanId ? 'Edit' : 'Add'} Data Plan</DialogTitle>
         <DialogContent>
+          {/* // $FlowFixMe class doesn't exist */}
           <FormGroup row className={classes.formGroup}>
             <TextField
               required
