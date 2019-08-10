@@ -55,7 +55,7 @@ type Props = {
   shouldSearchPlaces?: ?(customResults: Array<Result>) => boolean,
   // (result : obj, handleClearInput : func) => <ListItem> or null
   onRenderResult?: ?(result: Result, handleClearInput: () => void) => Node,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 type State = {
   value: string,

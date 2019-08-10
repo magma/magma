@@ -64,7 +64,7 @@ type State = {
   showLteAuthOP: boolean,
 };
 
-type Props = ContextRouter & WithAlert & WithStyles & {};
+type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 class DataPlanConfig extends React.Component<Props, State> {
   state = {

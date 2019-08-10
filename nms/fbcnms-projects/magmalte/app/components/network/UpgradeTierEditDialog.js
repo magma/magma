@@ -30,7 +30,7 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = {};
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onSave: (config: NetworkUpgradeTier) => void,
     onCancel: () => void,
     tierId: ?string,
@@ -91,6 +91,7 @@ class UpgradeTierEditDialog extends React.Component<Props, State> {
           {this.isNewTier() ? 'Add Upgrade Tier' : 'Edit Upgrade Tier'}
         </DialogTitle>
         <DialogContent>
+          {/* // $FlowFixMe class doesn't exist */}
           <FormGroup row className={classes.formGroup}>
             <TextField
               required

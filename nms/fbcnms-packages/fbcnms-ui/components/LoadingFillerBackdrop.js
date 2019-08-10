@@ -30,7 +30,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles & {};
+type Props = WithStyles<typeof styles> & {};
 
 class LoadingFillerBackdrop extends React.Component<Props> {
   render() {

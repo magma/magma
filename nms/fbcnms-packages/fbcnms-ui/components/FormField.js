@@ -33,7 +33,7 @@ const styles = theme => ({
   },
 });
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   label: string,
   value?: ?string | ?number,
 };

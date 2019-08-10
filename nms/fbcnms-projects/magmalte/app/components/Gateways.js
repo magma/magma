@@ -53,7 +53,7 @@ const styles = theme => ({
   },
 });
 
-type Props = ContextRouter & WithAlert & WithStyles & {};
+type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   showDialog: boolean,

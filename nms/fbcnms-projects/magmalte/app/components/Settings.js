@@ -35,7 +35,7 @@ const styles = theme => ({
   },
 });
 
-type Props = ContextRouter & WithStyles;
+type Props = ContextRouter & WithStyles<typeof styles>;
 
 type State = {
   currentTab: number,

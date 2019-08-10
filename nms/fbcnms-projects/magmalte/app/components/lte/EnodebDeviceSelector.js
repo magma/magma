@@ -27,7 +27,7 @@ const styles = theme => ({
   },
 });
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   value: $Values<typeof EnodebDeviceClass>,
   onChange: (SyntheticEvent<>) => void,
   className: string,

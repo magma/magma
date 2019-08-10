@@ -20,7 +20,7 @@ import {withStyles} from '@material-ui/core/styles';
 type Props = {
   action: 'add' | 'remove',
   onClick: () => void,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 const styles = theme => ({
   actionButton: {

@@ -56,7 +56,7 @@ type Props = {
   onClearInput: () => void,
   onSearch: string => void,
   debounceMs: number, // debounce searches at this interval
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 class SearchBar extends React.Component<Props> {
   constructor(props) {
