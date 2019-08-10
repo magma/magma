@@ -10,7 +10,6 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {NetworkUpgradeTier} from '../../common/MagmaAPIType';
-import type {WithStyles} from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -25,16 +24,12 @@ import axios from 'axios';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {MagmaAPIUrls, fetchNetworkUpgradeTier} from '../../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
 
-const styles = {};
-
-type Props = ContextRouter &
-  WithStyles<typeof styles> & {
-    onSave: (config: NetworkUpgradeTier) => void,
-    onCancel: () => void,
-    tierId: ?string,
-  };
+type Props = ContextRouter & {
+  onSave: (config: NetworkUpgradeTier) => void,
+  onCancel: () => void,
+  tierId: ?string,
+};
 
 type State = {
   isLoading: boolean,
@@ -83,7 +78,7 @@ class UpgradeTierEditDialog extends React.Component<Props, State> {
   }
 
   render() {
-    const {classes, tierId: initialTierId} = this.props;
+    const {tierId: initialTierId} = this.props;
     const {isLoading, tier} = this.state;
     return (
       <Dialog open={!isLoading} onClose={this.props.onCancel} scroll="body">
@@ -91,37 +86,33 @@ class UpgradeTierEditDialog extends React.Component<Props, State> {
           {this.isNewTier() ? 'Add Upgrade Tier' : 'Edit Upgrade Tier'}
         </DialogTitle>
         <DialogContent>
-          {/* // $FlowFixMe class doesn't exist */}
-          <FormGroup row className={classes.formGroup}>
+          <FormGroup row>
             <TextField
               required
               label="Tier ID"
               placeholder="E.g. t1"
               margin="normal"
               disabled={!!initialTierId}
-              className={classes.textField}
               value={tier.id}
               onChange={this.handleIdChanged}
             />
           </FormGroup>
-          <FormGroup row className={classes.formGroup}>
+          <FormGroup row>
             <TextField
               required
               label="Tier Name"
               placeholder="E.g. Example Tier"
               margin="normal"
-              className={classes.textField}
               value={tier.name}
               onChange={this.handleNameChanged}
             />
           </FormGroup>
-          <FormGroup row className={classes.formGroup}>
+          <FormGroup row>
             <TextField
               required
               label="Tier Version"
               placeholder="E.g. 1.0.0-0"
               margin="normal"
-              className={classes.textField}
               value={tier.version}
               onChange={this.handleVersionChanged}
             />
@@ -161,4 +152,4 @@ class UpgradeTierEditDialog extends React.Component<Props, State> {
   };
 }
 
-export default withStyles(styles)(withRouter(UpgradeTierEditDialog));
+export default withRouter(UpgradeTierEditDialog);

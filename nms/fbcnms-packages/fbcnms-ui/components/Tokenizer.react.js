@@ -172,12 +172,7 @@ class Tokenizer extends React.Component<Props, State> {
           suggestions={unusedSearchEntries}
           getSuggestionValue={entry => entry.label}
           onSuggestionsFetchRequested={({value}) => onEntriesRequested(value)}
-          renderSuggestion={entry => (
-            // $FlowFixMe class doesn't exist
-            <div className={classes.entryRoot}>
-              <div>{entry.label}</div>
-            </div>
-          )}
+          renderSuggestion={entry => <div>{entry.label}</div>}
           onSuggestionSelected={(e, {suggestion}) => {
             this.setState(
               prevState => ({
