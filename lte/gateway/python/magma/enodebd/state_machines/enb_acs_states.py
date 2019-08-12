@@ -1098,4 +1098,4 @@ class ErrorState(EnodebAcsState):
 
     @classmethod
     def state_description(cls) -> str:
-        return 'Error state - awaiting manual reboot'
+        return 'Error state - awaiting manual restart of enodebd service'
