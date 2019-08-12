@@ -16,8 +16,13 @@
     file: all.yaml
     name: all_vars
 
-- shell: realpath {{ all_vars.WORK_DIR }}
+- name: Converting WORK_DIR to absolute path
+  shell: realpath {{ all_vars.WORK_DIR }}
   register: WORK_DIR_ABSOLUTE
+
+- name: Converting OUTPUT_DIR to absolute path
+  shell: realpath {{ OUTPUT_DIR }}
+  register: OUTPUT_DIR_ABSOLUTE
 
 - name: Removing "{{ WORK_DIR_ABSOLUTE.stdout }}".
   become: yes
@@ -32,6 +37,12 @@
     state: directory
     mode: 0755
   register: GIT_HOME
+
+- name: Update and upgrade apt packages
+  become: yes
+  apt:
+    update_cache: yes
+    upgrade: yes
 
 - name: Install build dependencies.
   become: yes
@@ -116,12 +127,22 @@
   become: yes
   args:
     chdir: "{{ GIT_HOME.path }}/ovs"
-#
+
 - name: Find built .deb
   shell: find /usr/src/*.deb
+  register: aoi_built_packages
+
+- name: Find built .deb
+  shell: find {{ GIT_HOME.path }}/*.deb
   register: built_packages
 
 - name: Copy freshly built .deb packages
-  command: cp {{ item }} {{ OUTPUT_DIR }}
+  command: cp -u {{ item }} {{ OUTPUT_DIR }}
+  with_items:
+    - "{{ aoi_built_packages.stdout_lines }}"
+
+- name: Copy freshly built .deb packages
+  command: cp -u {{ item }} {{ OUTPUT_DIR }}
   with_items:
     - "{{ built_packages.stdout_lines }}"
+  when: OUTPUT_DIR_ABSOLUTE.stdout != GIT_HOME.path
