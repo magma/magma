@@ -592,6 +592,8 @@ definitions:
         $ref: '#/definitions/gateway_status'
       record:
         $ref: '#/definitions/access_gateway_record'
+      name:
+        $ref: '#/definitions/gateway_name'
   disk_partition:
     type: object
     properties:
