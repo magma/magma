@@ -19,11 +19,13 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -260,68 +262,6 @@ func TestMagmad(t *testing.T) {
 	}
 	tests.RunTest(t, getAGConfigTestCase)
 
-	// assert the gateway now has an association to tier entity
-	entity, err := configurator.LoadEntity(networkId, orc8r.UpgradeTierEntityType, "default", configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
-	assert.NoError(t, err)
-	assert.Equal(t, "TestAGHwId12345", entity.Associations[0].Key)
-
-	// empty tier should not be accepted
-	expCfg.Tier = ""
-	marshaledCfg, err = expCfg.MarshalBinary()
-	assert.NoError(t, err)
-	expectedCfgStr = string(marshaledCfg)
-	setAGConfigTestCase := tests.Testcase{
-		Name:   "Set AG Configs With Empty Tier",
-		Method: "PUT",
-		Url: fmt.Sprintf("%s/%s/gateways/TestAGHwId12345/configs",
-			testURLRoot, networkId),
-		Payload:                  expectedCfgStr,
-		Expected:                 `{"message":"Invalid config: Tier ID must be specified"}`,
-		Expect_http_error_status: true,
-	}
-	tests.RunTest(t, setAGConfigTestCase)
-
-	expCfg.Tier = "changed"
-	marshaledCfg, err = expCfg.MarshalBinary()
-	assert.NoError(t, err)
-	expectedCfgStr = string(marshaledCfg)
-
-	// Test Setting (Updating) AG Configs With An Unregistered Tier
-	setAGConfigTestCase = tests.Testcase{
-		Name:   "Set AG Configs With Unregistered Tier",
-		Method: "PUT",
-		Url: fmt.Sprintf("%s/%s/gateways/TestAGHwId12345/configs",
-			testURLRoot, networkId),
-		Payload:  expectedCfgStr,
-		Expected: "",
-	}
-	tests.RunTest(t, setAGConfigTestCase)
-
-	// assert the gateway's tier association has changed
-	entity, err = configurator.LoadEntity(networkId, orc8r.UpgradeTierEntityType, "changed", configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
-	assert.NoError(t, err)
-	assert.Equal(t, "TestAGHwId12345", entity.Associations[0].Key)
-
-	// Test Getting AG Configs After Config Update
-	getAGConfigTestCase2 := tests.Testcase{
-		Name:   "Get AG Configs 2",
-		Method: "GET",
-		Url: fmt.Sprintf("%s/%s/gateways/TestAGHwId12345/configs",
-			testURLRoot, networkId),
-		Payload:  "",
-		Expected: expectedCfgStr,
-	}
-	tests.RunTest(t, getAGConfigTestCase2)
-
-	getRegisteredTier := tests.Testcase{
-		Name:     "Get 'challenge' Tier",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/tiers/changed", testURLRoot, networkId),
-		Payload:  "",
-		Expected: `{"id":"changed","images":null}`,
-	}
-	tests.RunTest(t, getRegisteredTier)
-
 	// Update network wide property
 	//
 	// Get Current Network Record
@@ -415,13 +355,12 @@ func TestMagmad(t *testing.T) {
 }
 
 // Default gateway config struct. Please DO NOT MODIFY this struct in-place
-func NewDefaultGatewayConfig() *models.MagmadGatewayConfig {
-	return &models.MagmadGatewayConfig{
-		AutoupgradeEnabled:      true,
+func NewDefaultGatewayConfig() *models2.MagmadGatewayConfigs {
+	return &models2.MagmadGatewayConfigs{
+		AutoupgradeEnabled:      swag.Bool(true),
 		AutoupgradePollInterval: 300,
 		CheckinInterval:         60,
 		CheckinTimeout:          10,
-		Tier:                    "default",
 		DynamicServices:         []string{},
 	}
 }

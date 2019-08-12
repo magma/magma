@@ -981,9 +981,6 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
-      state:
-        $ref: './orc8r-swagger.yml#/definitions/gateway_status'
-      # TODO: define enodeb status struct
 
   network_cellular_configs:
     description: Cellular configuration for a network

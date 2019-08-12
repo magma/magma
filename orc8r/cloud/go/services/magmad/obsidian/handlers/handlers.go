@@ -11,9 +11,9 @@ package handlers
 import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	cfgObsidian "magma/orc8r/cloud/go/services/config/obsidian"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for magmad
@@ -41,9 +41,9 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: GatewayGenericCommand, Methods: obsidian.POST, HandlerFunc: gatewayGenericCommand},
 		{Path: TailGatewayLogs, Methods: obsidian.POST, HandlerFunc: tailGatewayLogs},
 
-		cfgObsidian.GetReadGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
-		cfgObsidian.GetCreateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
-		cfgObsidian.GetUpdateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &magmad_models.MagmadGatewayConfig{}),
+		{Path: ConfigureAG, Methods: obsidian.GET, HandlerFunc: getGatewayConfig},
+		cfgObsidian.GetCreateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &models.MagmadGatewayConfigs{}),
+		cfgObsidian.GetUpdateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &models.MagmadGatewayConfigs{}),
 		cfgObsidian.GetDeleteGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType),
 	}
 }

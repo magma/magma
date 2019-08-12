@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
 	"github.com/go-openapi/swag"
@@ -30,8 +29,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
 		Key:  "gw1",
-		Config: &magmad_models.MagmadGatewayConfig{
-			AutoupgradeEnabled:      true,
+		Config: &models.MagmadGatewayConfigs{
+			AutoupgradeEnabled:      swag.Bool(true),
 			AutoupgradePollInterval: 300,
 			CheckinInterval:         60,
 			CheckinTimeout:          10,
@@ -113,8 +112,8 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
 		Key:  "gw1",
-		Config: &magmad_models.MagmadGatewayConfig{
-			AutoupgradeEnabled:      true,
+		Config: &models.MagmadGatewayConfigs{
+			AutoupgradeEnabled:      swag.Bool(true),
 			AutoupgradePollInterval: 300,
 			CheckinInterval:         60,
 			CheckinTimeout:          10,

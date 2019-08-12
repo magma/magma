@@ -62,7 +62,7 @@ func (m *ChallengeKey) ValidateModel() error {
 		if m.Key == nil {
 			return fmt.Errorf("No key supplied")
 		}
-		_, err := x509.ParsePKIXPublicKey([]byte(*m.Key))
+		_, err := x509.ParsePKIXPublicKey(*m.Key)
 		if err != nil {
 			return fmt.Errorf("Failed to parse key: %s", err)
 		}
@@ -70,6 +70,13 @@ func (m *ChallengeKey) ValidateModel() error {
 	default:
 		return fmt.Errorf("Unknown key type %s", m.KeyType)
 	}
+}
+
+func (m *MagmadGatewayConfigs) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
 }
 
 func validateNetworkDNSRecordsConfig(records []*DNSConfigRecord) error {

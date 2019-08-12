@@ -617,6 +617,20 @@ definitions:
         x-nullable: false
         minimum: 5
         example: 10
+      dynamic_services:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          x-nullable: false
+        example: []
+      feature_flags:
+        type: object
+        additionalProperties:
+          type: boolean
+        example:
+          newfeature1: true
+          newfeature2: false
 
   tier_id:
     type: string

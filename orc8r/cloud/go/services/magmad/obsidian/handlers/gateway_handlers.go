@@ -16,6 +16,7 @@ import (
 	"sort"
 
 	"magma/orc8r/cloud/go/datastore"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
@@ -407,4 +408,41 @@ func tailGatewayLogs(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// we need to fill in tbe tier ID of the legacy config struct with what the
+// configurator client API returned as the parent assocs of the gateway
+func getGatewayConfig(c echo.Context) error {
+	networkId, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	gatewayId, gerr := obsidian.GetLogicalGwId(c)
+	if gerr != nil {
+		return gerr
+	}
+
+	ent, err := configurator.LoadEntity(networkId, orc8r.MagmadGatewayType, gatewayId, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true})
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	// ignore the error since we'll just be setting tier ID to the empty
+	// string if no such assoc exists
+	tierTK, _ := ent.GetFirstParentOfType(orc8r.UpgradeTierEntityType)
+	cfg := ent.Config.(*models.MagmadGatewayConfigs)
+
+	retConfig := &magmad_models.MagmadGatewayConfig{
+		AutoupgradeEnabled:      swag.BoolValue(cfg.AutoupgradeEnabled),
+		AutoupgradePollInterval: cfg.AutoupgradePollInterval,
+		CheckinInterval:         int32(cfg.CheckinInterval),
+		CheckinTimeout:          int32(cfg.CheckinTimeout),
+		DynamicServices:         cfg.DynamicServices,
+		FeatureFlags:            cfg.FeatureFlags,
+		Tier:                    tierTK.Key,
+	}
+	return c.JSON(http.StatusOK, retConfig)
 }

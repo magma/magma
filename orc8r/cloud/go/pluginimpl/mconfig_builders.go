@@ -15,7 +15,6 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
 	"github.com/go-openapi/swag"
@@ -42,16 +41,15 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 	}
 
 	if magmadGateway.Config != nil {
-		magmadGatewayConfig := magmadGateway.Config.(*magmad_models.MagmadGatewayConfig)
+		magmadGatewayConfig := magmadGateway.Config.(*models.MagmadGatewayConfigs)
 		mconfigOut["magmad"] = &mconfig.MagmaD{
 			LogLevel:                protos.LogLevel_INFO,
-			CheckinInterval:         magmadGatewayConfig.CheckinInterval,
-			CheckinTimeout:          magmadGatewayConfig.CheckinTimeout,
-			AutoupgradeEnabled:      magmadGatewayConfig.AutoupgradeEnabled,
+			CheckinInterval:         int32(magmadGatewayConfig.CheckinInterval),
+			CheckinTimeout:          int32(magmadGatewayConfig.CheckinTimeout),
+			AutoupgradeEnabled:      swag.BoolValue(magmadGatewayConfig.AutoupgradeEnabled),
 			AutoupgradePollInterval: magmadGatewayConfig.AutoupgradePollInterval,
 			PackageVersion:          version,
 			Images:                  images,
-			TierId:                  magmadGatewayConfig.Tier,
 			DynamicServices:         magmadGatewayConfig.DynamicServices,
 			FeatureFlags:            magmadGatewayConfig.FeatureFlags,
 		}
