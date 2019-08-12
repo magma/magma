@@ -517,6 +517,7 @@ definitions:
         items:
           type: string
           minLength: 1
+          format: ipv4
           x-nullable: false
           example: 192.88.99.142
       aaaa_record:
@@ -524,8 +525,9 @@ definitions:
         items:
           type: string
           minLength: 1
+          format: ipv6
           x-nullable: false
-          example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334 # TODO: Regex?
+          example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
       cname_record:
         type: array
         items:

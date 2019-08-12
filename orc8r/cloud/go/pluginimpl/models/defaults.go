@@ -11,6 +11,7 @@ package models
 import (
 	"magma/orc8r/cloud/go/models"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
@@ -20,8 +21,8 @@ func NewDefaultDNSConfig() *NetworkDNSConfig {
 		LocalTTL:      swag.Uint32(60),
 		Records: []*DNSConfigRecord{
 			{
-				ARecord:     []string{"192.88.99.142"},
-				AaaaRecord:  []string{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+				ARecord:     []strfmt.IPv4{"192.88.99.142"},
+				AaaaRecord:  []strfmt.IPv6{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
 				CnameRecord: []string{"cname.example.com"},
 				Domain:      "example.com",
 			},

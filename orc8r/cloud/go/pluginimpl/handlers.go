@@ -67,7 +67,7 @@ func RegisterNetwork(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := swaggerNetwork.ValidateModel(); err != nil {
+	if err := swaggerNetwork.Validate(strfmt.Default); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -103,7 +103,7 @@ func UpdateNetwork(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := swaggerNetwork.ValidateModel(); err != nil {
+	if err := swaggerNetwork.Validate(strfmt.Default); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	update := swaggerNetwork.ToUpdateCriteria()
