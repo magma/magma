@@ -86,7 +86,8 @@ def get_status(client, args):
     print_status_param(meta, 'all_enodeb_configured', 'All eNodeB configured')
     print_status_param(meta, 'all_enodeb_opstate_enabled',
                        'All eNB Opstate enabled')
-    print_status_param(meta, 'all_enodeb_rf_tx_on', 'All eNB RF TX on')
+    print_status_param(meta, 'all_enodeb_rf_tx_configured',
+                       'All eNB RF TX configured to desired state')
     print_status_param(meta, 'any_enodeb_gps_connected',
                        'Any eNB GPS connected')
     print_status_param(meta, 'all_enodeb_ptp_connected',
@@ -107,6 +108,7 @@ def get_all_status(client, args):
         _print_status_line('eNodeB Configured', enb_status.configured)
         _print_status_line('Opstate Enabled', enb_status.opstate_enabled)
         _print_status_line('RF TX on', enb_status.rf_tx_on)
+        _print_status_line('RF TX desired', enb_status.rf_tx_desired)
         _print_status_line('GPS Connected', enb_status.gps_connected)
         _print_status_line('PTP Connected', enb_status.ptp_connected)
         _print_status_line('MME Connected', enb_status.mme_connected)
@@ -136,6 +138,7 @@ def get_enb_status(client, args):
     _print_status_line('eNodeB Configured', enb_status.configured)
     _print_status_line('Opstate Enabled', enb_status.opstate_enabled)
     _print_status_line('RF TX on', enb_status.rf_tx_on)
+    _print_status_line('RF TX desired', enb_status.rf_tx_desired)
     _print_status_line('GPS Connected', enb_status.gps_connected)
     _print_status_line('PTP Connected', enb_status.ptp_connected)
     _print_status_line('MME Connected', enb_status.mme_connected)

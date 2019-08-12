@@ -81,6 +81,7 @@ message SingleEnodebStatus {
   string gps_longitude = 10;
   string gps_latitude = 11;
   string fsm_state = 12;
+  string rf_tx_desired = 13;
 }
 
 // --------------------------------------------------------------------------

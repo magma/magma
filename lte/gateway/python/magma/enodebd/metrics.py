@@ -18,6 +18,8 @@ STAT_OPSTATE_ENABLED = Gauge('enodeb_opstate_enabled',
                              'ENodeB operationally enabled')
 STAT_RF_TX_ENABLED = Gauge('enodeb_rf_tx_enabled',
                            'ENodeB RF transmitter enabled')
+STAT_RF_TX_DESIRED = Gauge('enodeb_rf_tx_desired',
+                           'ENodeB RF transmitter desired state')
 STAT_GPS_CONNECTED = Gauge('enodeb_gps_connected',
                            'ENodeB GPS synchronized')
 STAT_PTP_CONNECTED = Gauge('enodeb_ptp_connected',
