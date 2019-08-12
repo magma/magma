@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -51,6 +52,9 @@ func ListNetworks(c echo.Context) error {
 func CreateNetwork(c echo.Context) error {
 	payload := &models.LteNetwork{}
 	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.Validate(strfmt.Default); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	err := configurator.CreateNetwork(payload.ToConfiguratorNetwork())
@@ -90,6 +94,9 @@ func UpdateNetwork(c echo.Context) error {
 	payload := &models.LteNetwork{}
 	err := c.Bind(payload)
 	if err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.Validate(strfmt.Default); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 

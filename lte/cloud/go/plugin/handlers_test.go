@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -67,7 +68,28 @@ func TestCreateNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
+	// test validation
 	tc := tests.Test{
+		Method: "POST",
+		URL:    "/magma/v1/ltenetworks",
+		Payload: tests.JSONMarshaler(
+			&models2.LteNetwork{
+				Cellular:    models2.NewDefaultTDDNetworkConfig(),
+				Description: "",
+				DNS:         models.NewDefaultDNSConfig(),
+				Features:    models.NewDefaultFeaturesConfig(),
+				ID:          "n1",
+				Name:        "foobar",
+			},
+		),
+		Handler:        plugin2.CreateNetwork,
+		ExpectedStatus: 400,
+		ExpectedError: "validation failure list:\n" +
+			"description in body should be at least 1 chars long",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
 		Method: "POST",
 		URL:    "/magma/v1/ltenetworks",
 		Payload: tests.JSONMarshaler(
@@ -181,7 +203,7 @@ func TestUpdateNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	// Test 404
+	// Test validation failure
 	payloadN1 := &models2.LteNetwork{
 		ID:          "n1",
 		Name:        "updated foobar",
@@ -199,12 +221,12 @@ func TestUpdateNetwork(t *testing.T) {
 			Records: []*models.DNSConfigRecord{
 				{
 					Domain:     "foobar.com",
-					ARecord:    []string{"asdf", "hjkl"},
-					AaaaRecord: []string{"abcd", "efgh"},
+					ARecord:    []strfmt.IPv4{"asdf", "hjkl"},
+					AaaaRecord: []strfmt.IPv6{"abcd", "efgh"},
 				},
 				{
 					Domain:  "facebook.com",
-					ARecord: []string{"google.com"},
+					ARecord: []strfmt.IPv4{"google.com"},
 				},
 			},
 		},
@@ -212,7 +234,38 @@ func TestUpdateNetwork(t *testing.T) {
 	tc := tests.Test{
 		Method:         "PUT",
 		URL:            "/magma/v1/ltenetworks/n1",
-		Payload:        models2.NewDefaultTDDNetworkConfig(),
+		Payload:        payloadN1,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        plugin2.UpdateNetwork,
+		ExpectedStatus: 400,
+		ExpectedError: "validation failure list:\n" +
+			"validation failure list:\n" +
+			"validation failure list:\n" +
+			"a_record.0 in body must be of type ipv4: \"asdf\"\n" +
+			"aaaa_record.0 in body must be of type ipv6: \"abcd\"",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	payloadN1.DNS.Records = []*models.DNSConfigRecord{
+		{
+			Domain:  "foobar.com",
+			ARecord: []strfmt.IPv4{"127.0.0.1", "127.0.0.2"},
+			AaaaRecord: []strfmt.IPv6{
+				"2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+				"1234:0db8:85a3:0000:0000:8a2e:0370:1234",
+			},
+		},
+		{
+			Domain:  "facebook.com",
+			ARecord: []strfmt.IPv4{"127.0.0.3"},
+		},
+	}
+	// Test 404
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/ltenetworks/n1",
+		Payload:        payloadN1,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        plugin2.UpdateNetwork,

@@ -17,9 +17,11 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 type BaseOrchestratorMconfigBuilder struct{}
@@ -95,6 +97,8 @@ func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph confi
 	for _, record := range dnsConfig.Records {
 		mconfigRecord := &mconfig.NetworkDNSConfigRecordsItems{}
 		protos.FillIn(record, mconfigRecord)
+		mconfigRecord.ARecord = funk.Map(record.ARecord, func(a strfmt.IPv4) string { return string(a) }).([]string)
+		mconfigRecord.AaaaRecord = funk.Map(record.AaaaRecord, func(a strfmt.IPv6) string { return string(a) }).([]string)
 		mconfigDnsd.Records = append(mconfigDnsd.Records, mconfigRecord)
 	}
 

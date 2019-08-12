@@ -247,7 +247,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Payload:        tests.JSONMarshaler(network1),
 		Handler:        pluginimpl.RegisterNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "ARecord must be in the form of an IpV4 address.",
+		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\na_record.0 in body must be of type ipv4: \"not ipv4\"",
 	}
 	tests.RunUnitTest(t, e, postNetwork)
 
@@ -260,7 +260,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Payload:        tests.JSONMarshaler(network1),
 		Handler:        pluginimpl.RegisterNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "AaaaRecord must be in the form of an IpV6 address.",
+		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\naaaa_record.0 in body must be of type ipv6: \"not ipv6\"",
 	}
 	tests.RunUnitTest(t, e, postNetwork)
 
