@@ -20,7 +20,7 @@ import (
 func (m *Network) ToConfiguratorNetwork() configurator.Network {
 	return configurator.Network{
 		ID:          string(m.ID),
-		Type:        m.Type,
+		Type:        string(m.Type),
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Configs: map[string]interface{}{
@@ -32,7 +32,7 @@ func (m *Network) ToConfiguratorNetwork() configurator.Network {
 
 func (m *Network) FromConfiguratorNetwork(n configurator.Network) *Network {
 	m.ID = models.NetworkID(n.ID)
-	m.Type = n.Type
+	m.Type = models.NetworkType(n.Type)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
 	if cfg, exists := n.Configs[orc8r.DnsdNetworkType]; exists {
@@ -47,7 +47,7 @@ func (m *Network) FromConfiguratorNetwork(n configurator.Network) *Network {
 func (m *Network) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 	return configurator.NetworkUpdateCriteria{
 		ID:             string(m.ID),
-		NewType:        swag.String(m.Type),
+		NewType:        swag.String(string(m.Type)),
 		NewName:        swag.String(string(m.Name)),
 		NewDescription: swag.String(string(m.Description)),
 		ConfigsToAddOrUpdate: map[string]interface{}{
@@ -83,4 +83,15 @@ func (m *MagmadGateway) FromBackendModels(ent configurator.NetworkEntity, device
 	}
 
 	return m
+}
+
+func fetchNetworkConfig(network configurator.Network, key string) interface{} {
+	if network.Configs == nil {
+		return nil
+	}
+	config, exists := network.Configs[key]
+	if !exists {
+		return nil
+	}
+	return config
 }
