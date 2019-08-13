@@ -57,6 +57,32 @@ func (m *Network) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 	}
 }
 
+func (m *NetworkFeatures) GetFromNetwork(network configurator.Network) interface{} {
+	return fetchNetworkConfig(network, orc8r.NetworkFeaturesConfig)
+}
+
+func (m *NetworkFeatures) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return configurator.NetworkUpdateCriteria{
+		ID: network.ID,
+		ConfigsToAddOrUpdate: map[string]interface{}{
+			orc8r.NetworkFeaturesConfig: m,
+		},
+	}, nil
+}
+
+func (m *NetworkDNSConfig) GetFromNetwork(network configurator.Network) interface{} {
+	return fetchNetworkConfig(network, orc8r.DnsdNetworkType)
+}
+
+func (m *NetworkDNSConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return configurator.NetworkUpdateCriteria{
+		ID: network.ID,
+		ConfigsToAddOrUpdate: map[string]interface{}{
+			orc8r.DnsdNetworkType: m,
+		},
+	}
+}
+
 func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {
 	gatewayEnt := configurator.NetworkEntity{
 		Type:         orc8r.MagmadGatewayType,

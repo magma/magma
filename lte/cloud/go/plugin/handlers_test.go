@@ -9,7 +9,6 @@
 package plugin_test
 
 import (
-	"os"
 	"testing"
 
 	"magma/lte/cloud/go/lte"
@@ -30,7 +29,6 @@ import (
 )
 
 func TestListNetworks(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
@@ -62,7 +60,6 @@ func TestListNetworks(t *testing.T) {
 }
 
 func TestCreateNetwork(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
@@ -124,7 +121,6 @@ func TestCreateNetwork(t *testing.T) {
 }
 
 func TestGetNetwork(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
@@ -197,7 +193,6 @@ func TestGetNetwork(t *testing.T) {
 }
 
 func TestUpdateNetwork(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
@@ -318,7 +313,6 @@ func TestUpdateNetwork(t *testing.T) {
 }
 
 func TestDeleteNetwork(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
