@@ -80,7 +80,7 @@ func (m *NetworkDNSConfig) ToUpdateCriteria(network configurator.Network) (confi
 		ConfigsToAddOrUpdate: map[string]interface{}{
 			orc8r.DnsdNetworkType: m,
 		},
-	}
+	}, nil
 }
 
 func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {
