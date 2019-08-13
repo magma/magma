@@ -233,6 +233,21 @@ func LoadNetwork(networkID string, loadMetadata bool, loadConfigs bool) (Network
 	return networks[0], nil
 }
 
+// LoadNetworkConfig loads network config of type configType registered under the networkID
+func LoadNetworkConfig(networkID, configType string) (interface{}, error) {
+	network, err := LoadNetwork(networkID, false, true)
+	if err != nil {
+		return nil, err
+	}
+	if network.Configs == nil {
+		return nil, merrors.ErrNotFound
+	}
+	if _, exists := network.Configs[configType]; !exists {
+		return nil, merrors.ErrNotFound
+	}
+	return network.Configs[configType], nil
+}
+
 func UpdateNetworkConfig(networkID, configType string, config interface{}) error {
 	updateCriteria := NetworkUpdateCriteria{
 		ID:                   networkID,
