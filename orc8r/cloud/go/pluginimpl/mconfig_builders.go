@@ -15,7 +15,6 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -72,12 +71,12 @@ func getPackageVersionAndImages(magmadGateway configurator.NetworkEntity, graph 
 		return "0.0.0-0", []*mconfig.ImageSpec{}, errors.Wrap(err, "failed to load upgrade tier")
 	}
 
-	tierConfig := tier.Config.(*upgrade_models.Tier)
+	tierConfig := tier.Config.(*models.Tier)
 	retImages := make([]*mconfig.ImageSpec, 0, len(tierConfig.Images))
 	for _, image := range tierConfig.Images {
-		retImages = append(retImages, &mconfig.ImageSpec{Name: image.Name, Order: image.Order})
+		retImages = append(retImages, &mconfig.ImageSpec{Name: swag.StringValue(image.Name), Order: swag.Int64Value(image.Order)})
 	}
-	return tierConfig.Version, retImages, nil
+	return swag.StringValue(tierConfig.Version), retImages, nil
 }
 
 func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {

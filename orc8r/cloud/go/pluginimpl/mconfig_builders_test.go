@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -69,12 +68,12 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	tier := configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType,
 		Key:  "default",
-		Config: &upgrade_models.Tier{
+		Config: &models.Tier{
 			Name:    "default",
-			Version: "1.0.0-0",
-			Images: []*upgrade_models.TierImagesItems0{
-				{Name: "Image1", Order: 42},
-				{Name: "Image2", Order: 1},
+			Version: swag.String("1.0.0-0"),
+			Images: []*models.TierImage{
+				{Name: swag.String("Image1"), Order: swag.Int64(42)},
+				{Name: swag.String("Image2"), Order: swag.Int64(1)},
 			},
 		},
 	}
