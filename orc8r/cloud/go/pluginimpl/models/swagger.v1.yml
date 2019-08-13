@@ -44,11 +44,21 @@ magma-gen-meta:
       filename: system_status_swaggergen.go
     - go-struct-name: TierID
       filename: tier_id_swaggergen.go
+    - go-struct-name: ReleaseChannel
+      filename: release_channel_swaggergen.go
+    - go-struct-name: Tier
+      filename: tier_swaggergen.go
+    - go-struct-name: TierImage
+      filename: tier_image_swaggergen.go
 
 info:
   title: Orchestrator Network Management
   description: Orchestrator REST APIs
   version: 1.0.0
+
+tags:
+  - name: Upgrades
+    description: Configuration to manage upgrades
 
 basePath: /magma/v1
 
@@ -521,6 +531,123 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /channels:
+    get:
+      summary: List all release channels
+      tags:
+        - Upgrades
+      responses:
+        '200':
+          description: List of release channel IDs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/channel_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a new release channel
+      tags:
+        - Upgrades
+      parameters:
+        - in: body
+          name: channel
+          description: The release channel to create
+          required: true
+          schema:
+            $ref: '#/definitions/release_channel'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
+  /networks/{network_id}/upgrade/tiers:
+    get:
+      summary: Get a list of upgrade tiers
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of tier IDs
+          schema:
+            type: array
+            items:
+             $ref: '#/definitions/tier_id'
+            example:
+              - tier1
+              - tier2
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Register a tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: tier
+          in: body
+          description: Configuration of the tier to create
+          required: true
+          schema:
+            $ref: '#/definitions/tier'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/upgrade/tiers/{tier_id}:
+    get:
+      summary: Get upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: tier
+          in: body
+          description: Configuration of the tier to update
+          required: true
+          schema:
+            $ref: '#/definitions/tier'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  channel_id:
+    in: path
+    name: channel_id
+    description: Release Channel ID
+    required: true
+    minLength: 1
+    type: string
+  tier_id:
+    in: path
+    name: tier_id
+    description: Tier ID
+    required: true
+    minLength: 1
+    type: string
+
 definitions:
   network:
     type: object
@@ -959,3 +1086,60 @@ definitions:
             x-omitempty: true
             items:
               $ref: '#/definitions/route'
+  channel_id:
+    type: string
+    minLength: 1
+    x-nullable: false
+    pattern: '^[a-z][\da-z_]+$'
+    example: stable
+  release_channel:
+    type: object
+    x-nullable: false
+    required:
+      - id
+      - supported_versions
+    properties:
+      id:
+        $ref: '#/definitions/channel_id'
+      name:
+        type: string
+      supported_versions:
+        type: array
+        items:
+          type: string
+  tier:
+    type: object
+    required:
+      - id
+      - version
+      - images
+      - gateways
+    properties:
+      id:
+        $ref: '#/definitions/tier_id'
+      name:
+        type: string
+        example: "Default Tier"
+      version:
+        type: string
+        example: "0.3.14-123456789-deadbeef"
+      images:
+        type: array
+        items:
+          $ref: '#/definitions/tier_image'
+      gateways:
+        type: array
+        x-nullable: false
+        uniqueItems: true
+        items:
+          $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+  tier_image:
+    type: object
+    required:
+      - name
+      - order
+    properties:
+      name:
+        type: string
+      order:
+        type: integer
