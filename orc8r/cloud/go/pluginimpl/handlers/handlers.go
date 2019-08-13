@@ -6,13 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package pluginimpl
+package handlers
 
 import (
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 )
 
@@ -49,10 +48,10 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: UpdateGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: DeleteGateway},
 	}
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
 	return ret
 }

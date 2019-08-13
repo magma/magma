@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package pluginimpl_test
+package handlers_test
 
 import (
 	"fmt"
@@ -40,7 +40,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        pluginimpl.ListNetworks,
+		Handler:        handlers.ListNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{}),
 	}
@@ -53,7 +53,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"no_such_network"},
-		Handler:        pluginimpl.GetNetwork,
+		Handler:        handlers.GetNetwork,
 		ExpectedStatus: 404,
 		ExpectedError:  "Not Found",
 	}
@@ -74,7 +74,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		URL:     testURLRoot,
 		Payload: nil,
 
-		Handler:        pluginimpl.ListNetworks,
+		Handler:        handlers.ListNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{networkID1}),
 	}
@@ -91,7 +91,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetwork,
+		Handler:        handlers.GetNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedNetwork1),
 		ExpectedError:  "",
@@ -119,7 +119,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetwork,
+		Handler:        handlers.GetNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedNetwork1),
 		ExpectedError:  "",
@@ -151,7 +151,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetwork,
+		Handler:        handlers.GetNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedNetwork1),
 		ExpectedError:  "",
@@ -172,7 +172,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        pluginimpl.ListNetworks,
+		Handler:        handlers.ListNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{networkID1, networkID2}),
 	}
@@ -193,7 +193,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"description in body should be at least 1 chars long\n" +
@@ -207,7 +207,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"id in body should match '^[a-z][\\da-z_]+$'",
@@ -221,7 +221,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\ndns in body is required",
 	}
@@ -234,7 +234,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\ndomain in body is required",
 	}
@@ -247,7 +247,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\na_record.0 in body must be of type ipv4: \"not ipv4\"",
 	}
@@ -260,7 +260,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\naaaa_record.0 in body must be of type ipv6: \"not ipv6\"",
 	}
@@ -272,7 +272,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 201,
 		ExpectedResult: tests.JSONMarshaler(networkID1),
 	}
@@ -298,7 +298,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetwork,
+		Handler:        handlers.GetNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(network1),
 		ExpectedError:  "",
@@ -309,7 +309,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        pluginimpl.ListNetworks,
+		Handler:        handlers.ListNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{networkID1}),
 	}
@@ -330,7 +330,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 201,
 		ExpectedResult: tests.JSONMarshaler(networkID1),
 	}
@@ -342,7 +342,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network2),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 201,
 		ExpectedResult: tests.JSONMarshaler(networkID2),
 	}
@@ -352,7 +352,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        pluginimpl.ListNetworks,
+		Handler:        handlers.ListNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{networkID1, networkID2}),
 	}
@@ -365,7 +365,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.DeleteNetwork,
+		Handler:        handlers.DeleteNetwork,
 		ExpectedStatus: 204,
 		ExpectedError:  "",
 	}
@@ -375,7 +375,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        pluginimpl.ListNetworks,
+		Handler:        handlers.ListNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{networkID2}),
 	}
@@ -387,7 +387,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID2},
-		Handler:        pluginimpl.DeleteNetwork,
+		Handler:        handlers.DeleteNetwork,
 		ExpectedStatus: 204,
 		ExpectedError:  "",
 	}
@@ -397,7 +397,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        pluginimpl.ListNetworks,
+		Handler:        handlers.ListNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{}),
 	}
@@ -419,7 +419,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.RegisterNetwork,
+		Handler:        handlers.RegisterNetwork,
 		ExpectedStatus: 201,
 		ExpectedResult: tests.JSONMarshaler(networkID1),
 	}
@@ -433,7 +433,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 		Method:         "PUT",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.UpdateNetwork,
+		Handler:        handlers.UpdateNetwork,
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, putNetwork)
@@ -444,7 +444,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetwork,
+		Handler:        handlers.GetNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(network1),
 	}
@@ -457,7 +457,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 		Method:         "PUT",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.UpdateNetwork,
+		Handler:        handlers.UpdateNetwork,
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, putNetwork)
@@ -468,7 +468,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetwork,
+		Handler:        handlers.GetNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(network1),
 	}
@@ -480,7 +480,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 		Method:         "PUT",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        pluginimpl.UpdateNetwork,
+		Handler:        handlers.UpdateNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\ndns in body is required",
 	}
@@ -512,11 +512,11 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 	err := configurator.CreateNetwork(network1)
 	assert.NoError(t, err)
 
-	getName := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
-	getType := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
-	getDesc := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
-	getFeatures := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
-	getDNS := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
+	getName := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
+	getType := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
+	getDesc := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
+	getFeatures := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
+	getDNS := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
 
 	getNetworkName := tests.Test{
 		Method:         "GET",
@@ -603,11 +603,11 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 	err := configurator.CreateNetwork(network1)
 	assert.NoError(t, err)
 
-	updateName := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
-	updateType := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
-	updateDesc := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
-	updateFeatures := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
-	updateDNS := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
+	updateName := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
+	updateType := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
+	updateDesc := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
+	updateFeatures := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
+	updateDNS := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
 
 	// check for validity
 	network1.Name = ""

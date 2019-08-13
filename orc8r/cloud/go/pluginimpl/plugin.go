@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -116,7 +117,7 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 		upgradeh.GetObsidianHandlers(),
 		stateh.GetObsidianHandlers(),
 		// v1 handlers
-		GetObsidianHandlers(),
+		handlers.GetObsidianHandlers(),
 		[]obsidian.Handler{{
 			Path:    "/",
 			Methods: obsidian.GET,

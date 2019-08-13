@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package pluginimpl_test
+package handlers_test
 
 import (
 	"crypto/x509"
@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/security/key"
 	checkind_test_utils "magma/orc8r/cloud/go/services/checkind/test_utils"
@@ -49,7 +50,7 @@ func TestListGateways(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
-		Handler:        pluginimpl.ListGateways,
+		Handler:        handlers.ListGateways,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
@@ -108,7 +109,7 @@ func TestCreateGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
-		Handler:        pluginimpl.CreateGateway,
+		Handler:        handlers.CreateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -240,7 +241,7 @@ func TestCreateGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
-		Handler:        pluginimpl.CreateGateway,
+		Handler:        handlers.CreateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -269,7 +270,7 @@ func TestCreateGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
-		Handler:        pluginimpl.CreateGateway,
+		Handler:        handlers.CreateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -357,7 +358,7 @@ func TestGetGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot + "/g1",
-		Handler:        pluginimpl.GetGateway,
+		Handler:        handlers.GetGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 200,
@@ -380,7 +381,7 @@ func TestGetGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot + "/g2",
-		Handler:        pluginimpl.GetGateway,
+		Handler:        handlers.GetGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g2"},
 		ExpectedStatus: 200,
@@ -392,7 +393,7 @@ func TestGetGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot + "/g3",
-		Handler:        pluginimpl.GetGateway,
+		Handler:        handlers.GetGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g3"},
 		ExpectedStatus: 404,
@@ -466,7 +467,7 @@ func TestUpdateGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot + "/g1",
-		Handler:        pluginimpl.UpdateGateway,
+		Handler:        handlers.UpdateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
@@ -513,7 +514,7 @@ func TestUpdateGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot + "/g3",
-		Handler:        pluginimpl.UpdateGateway,
+		Handler:        handlers.UpdateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g3"},
@@ -562,7 +563,7 @@ func TestDeleteGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "DELETE",
 		URL:            testURLRoot + "/g1",
-		Handler:        pluginimpl.DeleteGateway,
+		Handler:        handlers.DeleteGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 204,
