@@ -48,7 +48,7 @@ def register_vm(vm_type="magma", admin_cert=(
     gateways = _cloud_get('/networks/%s/gateways' % network_id, admin_cert)
     gateway_id = 'gw' + str(len(gateways) + 1)
     print('Provisioning gateway as %s...' % gateway_id)
-    data = {'hw_id': {'id': hardware_id}, 'name': 'TestGateway',
+    data = {'hardware_id': hardware_id, 'name': 'TestGateway',
             'key': {'key_type': 'ECHO'}}
     _cloud_post('/networks/%s/gateways' % network_id,
                 data=data, params={'requested_id': gateway_id}, admin_cert=admin_cert)
