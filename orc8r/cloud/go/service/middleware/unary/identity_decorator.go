@@ -15,6 +15,7 @@ import (
 	"os"
 	"time"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -236,7 +237,7 @@ func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity,
 	}
 
 	// Increment counter of expiring client certificates if needed
-	if time.Until(expiration) < CERT_EXPIRATION_DURATION_THRESHOLD {
+	if expiration.Sub(clock.Now()) < CERT_EXPIRATION_DURATION_THRESHOLD {
 		gwExpiringCert.WithLabelValues(networkId, logicalId).Inc()
 	}
 
@@ -296,15 +297,10 @@ func ensureLocalPeer(ctx context.Context) error {
 	}
 	ip := net.ParseIP(host)
 	if ip == nil {
-		return status.Errorf(
-			codes.PermissionDenied,
-			"Invalid Client Address: %+v",
-			caller.Addr)
+		return status.Errorf(codes.PermissionDenied, "Invalid Client Address: %+v", caller.Addr)
 	}
 	if !ip.IsLoopback() {
-		return status.Errorf(
-			codes.PermissionDenied,
-			"Missing Client Certificate from Client %s", ip.String())
+		return status.Errorf(codes.PermissionDenied, "Missing Client Certificate from Client %s", ip.String())
 	}
 	return nil
 }

@@ -285,6 +285,17 @@ func (elc EntityLoadCriteria) toStorageProto() *storage.EntityLoadCriteria {
 	}
 }
 
+// FullEntityLoadCriteria returns an EntityLoadCriteria that loads everything
+// possible on an entity
+func FullEntityLoadCriteria() EntityLoadCriteria {
+	return EntityLoadCriteria{
+		LoadMetadata:       true,
+		LoadConfig:         true,
+		LoadAssocsToThis:   true,
+		LoadAssocsFromThis: true,
+	}
+}
+
 // EntityLoadResult encapsulates the result of a LoadEntities call
 type EntityLoadResult struct {
 	// Loaded entities

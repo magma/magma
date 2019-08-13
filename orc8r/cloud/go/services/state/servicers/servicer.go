@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/protos"
 	state_service "magma/orc8r/cloud/go/services/state"
 
@@ -74,7 +75,7 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 	hwID := gw.HardwareId
 	networkID := gw.NetworkId
 	certExpiry := protos.GetClientCertExpiration(context)
-	time := uint64(time.Now().UnixNano()) / uint64(time.Millisecond)
+	time := uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
 
 	states, err := addWrapperAndMakeBlobs(validatedStates, hwID, time, certExpiry)
 	if err != nil {

@@ -85,13 +85,12 @@ func (m *NetworkDNSConfig) ToUpdateCriteria(network configurator.Network) (confi
 
 func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {
 	gatewayEnt := configurator.NetworkEntity{
-		Type:         orc8r.MagmadGatewayType,
-		Key:          string(m.ID),
-		Name:         string(m.Name),
-		Description:  string(m.Description),
-		Config:       m.Magmad,
-		PhysicalID:   m.Device.HardwareID,
-		Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: string(m.Tier)}},
+		Type:        orc8r.MagmadGatewayType,
+		Key:         string(m.ID),
+		Name:        string(m.Name),
+		Description: string(m.Description),
+		Config:      m.Magmad,
+		PhysicalID:  m.Device.HardwareID,
 	}
 	return []configurator.NetworkEntity{gatewayEnt}
 }
@@ -120,4 +119,48 @@ func fetchNetworkConfig(network configurator.Network, key string) interface{} {
 		return nil
 	}
 	return config
+}
+
+func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkEntity) []configurator.EntityUpdateCriteria {
+	ret := []configurator.EntityUpdateCriteria{}
+	gatewayUpdate := configurator.EntityUpdateCriteria{
+		Type:      orc8r.MagmadGatewayType,
+		Key:       string(m.ID),
+		NewConfig: m.Magmad,
+	}
+
+	if m.Device.HardwareID != existingEnt.PhysicalID {
+		gatewayUpdate.NewPhysicalID = swag.String(m.Device.HardwareID)
+	}
+	if string(m.Name) != existingEnt.Name {
+		gatewayUpdate.NewName = swag.String(string(m.Name))
+	}
+	if string(m.Description) != existingEnt.Description {
+		gatewayUpdate.NewDescription = swag.String(string(m.Description))
+	}
+
+	oldTierTK, _ := existingEnt.GetFirstParentOfType(orc8r.UpgradeTierEntityType)
+	if oldTierTK.Key != string(m.Tier) {
+		if oldTierTK.Key != "" {
+			ret = append(
+				ret,
+				configurator.EntityUpdateCriteria{
+					Type: orc8r.UpgradeTierEntityType, Key: oldTierTK.Key,
+					AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
+				},
+			)
+		}
+
+		ret = append(
+			ret,
+			configurator.EntityUpdateCriteria{
+				Type: orc8r.UpgradeTierEntityType, Key: string(m.Tier),
+				AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
+			},
+		)
+	}
+
+	// do the tier update to delete the old assoc first
+	ret = append(ret, gatewayUpdate)
+	return ret
 }

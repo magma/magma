@@ -296,21 +296,24 @@ func GetNetworkAndGWID(c echo.Context) (string, string, error) {
 }
 
 func GetNetworkAndGatewayIDs(c echo.Context) (string, string, *echo.HTTPError) {
-	networkID, err := GetNetworkId(c)
+	vals, err := GetParamValues(c, "network_id", "gateway_id")
 	if err != nil {
 		return "", "", err
 	}
-	gwID, err := GetGatewayID(c)
-	if err != nil {
-		return "", "", err
-	}
-	return networkID, gwID, nil
+	return vals[0], vals[1], nil
 }
 
-func GetGatewayID(c echo.Context) (string, *echo.HTTPError) {
-	ret := c.Param("gateway_id")
-	if ret == "" {
-		return "", HttpError(fmt.Errorf("Invalid/Missing Gateway ID"), http.StatusBadRequest)
+// GetParamValues returns a list of the value for each param provided in
+// `paramNames`. Returns a status bad request HTTP error if any param value
+// is blank.
+func GetParamValues(c echo.Context, paramNames ...string) ([]string, *echo.HTTPError) {
+	ret := make([]string, 0, len(paramNames))
+	for _, paramName := range paramNames {
+		val := c.Param(paramName)
+		if val == "" {
+			return []string{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid/missing param %s", paramName))
+		}
+		ret = append(ret, val)
 	}
 	return ret, nil
 }

@@ -29,7 +29,7 @@ import (
 )
 
 func Test_GetNetworkHandlers(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -55,7 +55,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		ParamValues:    []string{"no_such_network"},
 		Handler:        pluginimpl.GetNetwork,
 		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedError:  "Not Found",
 	}
 	tests.RunUnitTest(t, e, getNetwork)
 
@@ -180,7 +180,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 }
 
 func Test_PostNetworkHandlers(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -317,7 +317,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 }
 
 func Test_DeleteNetworkHandlers(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -405,7 +405,7 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 }
 
 func Test_PutNetworkHandlers(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -488,7 +488,7 @@ func Test_PutNetworkHandlers(t *testing.T) {
 }
 
 func Test_GetNetworkPartialHandlers(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
@@ -585,7 +585,7 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 }
 
 func Test_PutNetworkPartialHandlers(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()

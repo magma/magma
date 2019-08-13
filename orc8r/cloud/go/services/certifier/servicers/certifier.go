@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/protos"
@@ -110,7 +111,7 @@ func (srv *CertifierServer) signCSR(
 	signingCert := ca.Cert
 	signingKey := ca.PrivKey
 
-	now := time.Now().UTC()
+	now := clock.Now().UTC()
 	// Provide a cert from an hour ago to account for clock skews
 	notBefore := now.Add(-1 * time.Hour)
 	notAfter := now.Add(validTime)
@@ -296,7 +297,7 @@ func (srv *CertifierServer) GetIdentity(
 	// check timestamp
 	notBefore, _ := ptypes.Timestamp(certInfo.NotBefore)
 	notAfter, _ := ptypes.Timestamp(certInfo.NotAfter)
-	now := time.Now().UTC()
+	now := clock.Now().UTC()
 	if now.After(notAfter) {
 		return &certprotos.CertificateInfo{}, status.Errorf(codes.OutOfRange,
 			"Certificate with serial number '%s' has expired", certSN)
