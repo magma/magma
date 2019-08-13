@@ -300,17 +300,17 @@ TEST_F(LocalEnforcerTest, test_update_session_credit)
 
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
-  create_credit_update_response("IMSI1", 1, 1024, credits->Add());
+  create_credit_update_response("IMSI1", 1, 2048, credits->Add());
   local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
 
   EXPECT_EQ(
-    local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 1024);
+    local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 2048);
 
   insert_static_rule(1, "1", "rule1");
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record("IMSI1", "rule1", 1024, 2048, record_list->Add());
+  create_rule_record("IMSI1", "rule1", 1024, 1024, record_list->Add());
   local_enforcer->aggregate_records(table);
 
   UpdateSessionResponse update_response;
@@ -325,14 +325,14 @@ TEST_F(LocalEnforcerTest, test_update_session_credit)
     "IMSI",
     "1",
     MonitoringLevel::PCC_RULE_LEVEL,
-    1024,
+    2048,
     event_triggers,
     time(NULL),
     monitor_updates_response->Add());
   EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
   local_enforcer->update_session_credit(update_response);
   EXPECT_EQ(
-    local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 1048);
+    local_enforcer->get_charging_credit("IMSI1", 1, ALLOWED_TOTAL), 2072);
 }
 
 TEST_F(LocalEnforcerTest, test_terminate_credit)
@@ -841,7 +841,7 @@ TEST_F(LocalEnforcerTest, test_rar_revalidation_timer)
   // init session first
   CreateSessionResponse response;
   create_credit_update_response(
-    "IMSI1", 1, 1024, response.mutable_credits()->Add());
+    "IMSI1", 1, 3072, response.mutable_credits()->Add());
   local_enforcer->init_session_credit("IMSI1", "session1", test_cfg, response);
   insert_static_rule(1, "", "rule1");
 

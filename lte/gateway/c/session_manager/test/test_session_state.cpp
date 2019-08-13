@@ -139,19 +139,23 @@ TEST_F(SessionStateTest, test_add_used_credit)
   insert_rule(1, "m1", "rule1", true);
   insert_rule(2, "m2", "dyn_rule1", false);
 
-  receive_credit_from_ocs(1, 1024);
-  receive_credit_from_ocs(2, 1024);
+  receive_credit_from_ocs(1, 3000);
+  receive_credit_from_ocs(2, 6000);
 
-  receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
-  receive_credit_from_pcrf("m2", 1024, MonitoringLevel::PCC_RULE_LEVEL);
+  receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
+  receive_credit_from_pcrf("m2", 6000, MonitoringLevel::PCC_RULE_LEVEL);
 
   session_state->add_used_credit("rule1", 2000, 1000);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(1, USED_TX), 2000);
+  EXPECT_EQ(session_state->get_charging_pool().get_credit(1, USED_RX), 1000);
   EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_TX), 2000);
+  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_RX), 1000);
 
   session_state->add_used_credit("dyn_rule1", 4000, 2000);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(2, USED_TX), 4000);
+  EXPECT_EQ(session_state->get_charging_pool().get_credit(2, USED_RX), 2000);
   EXPECT_EQ(session_state->get_monitor_pool().get_credit("m2", USED_TX), 4000);
+  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m2", USED_RX), 2000);
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -167,11 +171,11 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules)
   insert_rule(2, "", "dyn_rule2", false);
   insert_rule(3, "m3", "dyn_rule3", false);
 
-  receive_credit_from_ocs(2, 1024);
-  receive_credit_from_ocs(3, 1024);
+  receive_credit_from_ocs(2, 6000);
+  receive_credit_from_ocs(3, 8000);
 
-  receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
-  receive_credit_from_pcrf("m3", 1024, MonitoringLevel::PCC_RULE_LEVEL);
+  receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
+  receive_credit_from_pcrf("m3", 8000, MonitoringLevel::PCC_RULE_LEVEL);
 
   session_state->add_used_credit("dyn_rule1", 2000, 1000);
   EXPECT_EQ(session_state->get_monitor_pool().get_credit("m1", USED_TX), 2000);
@@ -182,7 +186,9 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules)
   EXPECT_EQ(session_state->get_charging_pool().get_credit(2, USED_RX), 2000);
   session_state->add_used_credit("dyn_rule3", 5000, 3000);
   EXPECT_EQ(session_state->get_charging_pool().get_credit(3, USED_TX), 5000);
+  EXPECT_EQ(session_state->get_charging_pool().get_credit(3, USED_RX), 3000);
   EXPECT_EQ(session_state->get_monitor_pool().get_credit("m3", USED_TX), 5000);
+  EXPECT_EQ(session_state->get_monitor_pool().get_credit("m3", USED_RX), 3000);
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
