@@ -124,6 +124,10 @@ func (c *client) ReadRules(networkID, ruleName string) ([]rulefmt.Rule, error) {
 	c.fileLocks.RLock(filename)
 	defer c.fileLocks.RUnlock(filename)
 
+	if !c.ruleFileExists(filename) {
+		return []rulefmt.Rule{}, nil
+	}
+
 	ruleFile, err := c.readRuleFile(makeFilename(networkID, c.rulesDir))
 	if err != nil {
 		return []rulefmt.Rule{}, err
@@ -216,6 +220,11 @@ func (c *client) initializeRuleFile(networkID, filename string) (*File, error) {
 		return file, nil
 	}
 	return NewFile(networkID), nil
+}
+
+func (c *client) ruleFileExists(filename string) bool {
+	_, err := c.fsClient.Stat(filename)
+	return err == nil
 }
 
 func (c *client) readRuleFile(requestedFile string) (*File, error) {
