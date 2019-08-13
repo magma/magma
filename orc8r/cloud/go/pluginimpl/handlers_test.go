@@ -22,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -54,7 +55,7 @@ func Test_GetNetworkHandlers(t *testing.T) {
 		ParamValues:    []string{"no_such_network"},
 		Handler:        pluginimpl.GetNetwork,
 		ExpectedStatus: 404,
-		ExpectedError:  "Network no_such_network not found",
+		ExpectedError:  "Not found",
 	}
 	tests.RunUnitTest(t, e, getNetwork)
 
@@ -503,6 +504,10 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 		Name:        networkName1,
 		Description: networkDesc1,
 		Type:        type1,
+		Configs: map[string]interface{}{
+			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+		},
 	}
 	err := configurator.CreateNetwork(network1)
 	assert.NoError(t, err)
@@ -510,6 +515,8 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 	getName := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
 	getType := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
 	getDesc := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
+	getFeatures := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
+	getDNS := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
 
 	getNetworkName := tests.Test{
 		Method:         "GET",
@@ -549,6 +556,32 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, getNetworkDesc)
+
+	getNetworkFeatures := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        getFeatures,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(models.NewDefaultFeaturesConfig()),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, getNetworkFeatures)
+
+	getDNSConfig := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, networkID1),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        getDNS,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(models.NewDefaultDNSConfig()),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, getDNSConfig)
 }
 
 func Test_PutNetworkPartialHandlers(t *testing.T) {
@@ -573,6 +606,8 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 	updateName := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
 	updateType := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
 	updateDesc := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
+	updateFeatures := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
+	updateDNS := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
 
 	// check for validity
 	network1.Name = ""
@@ -640,4 +675,74 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 	actualNetwork, err = configurator.LoadNetwork(networkID1, true, false)
 	assert.NoError(t, err)
 	assert.Equal(t, network1, actualNetwork)
+
+	// update full feature happy case
+	newFeatures := &models.NetworkFeatures{
+		Features: map[string]string{
+			"hello": "world!!",
+		},
+	}
+	putNetworkFeatures := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, networkID1),
+		Payload:        tests.JSONMarshaler(newFeatures),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        updateFeatures,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putNetworkFeatures)
+
+	config, err := configurator.LoadNetworkConfig(networkID1, orc8r.NetworkFeaturesConfig)
+	assert.NoError(t, err)
+	assert.Equal(t, newFeatures, config)
+
+	// update full dns validation failure
+	newDNS := models.NewDefaultDNSConfig()
+	newDNS.Records = []*models.DNSConfigRecord{
+		{
+			ARecord:     []strfmt.IPv4{"192-88-99-142"},
+			AaaaRecord:  []strfmt.IPv6{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+			CnameRecord: []string{"facebook.com"},
+			Domain:      "facebook.com",
+		},
+	}
+	putDNS := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, networkID1),
+		Payload:        tests.JSONMarshaler(newDNS),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        updateDNS,
+		ExpectedStatus: 400,
+		ExpectedError: "validation failure list:\n" +
+			"validation failure list:\n" +
+			"a_record.0 in body must be of type ipv4: \"192-88-99-142\"",
+	}
+	tests.RunUnitTest(t, e, putDNS)
+
+	// update full DNS happy case
+	newDNS = models.NewDefaultDNSConfig()
+	newDNS.Records = []*models.DNSConfigRecord{
+		{
+			ARecord:     []strfmt.IPv4{"192.88.99.142"},
+			AaaaRecord:  []strfmt.IPv6{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+			CnameRecord: []string{"facebook.com"},
+			Domain:      "facebook.com",
+		},
+	}
+	putDNS = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, networkID1),
+		Payload:        tests.JSONMarshaler(newDNS),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID1},
+		Handler:        updateDNS,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putDNS)
+
+	config, err = configurator.LoadNetworkConfig(networkID1, orc8r.DnsdNetworkType)
+	assert.NoError(t, err)
+	assert.Equal(t, newDNS, config)
 }

@@ -23,6 +23,10 @@ func (m *NetworkDNSConfig) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *NetworkFeatures) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *MagmadGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

@@ -9,11 +9,12 @@
 package pluginimpl
 
 import (
-	"fmt"
 	"net/http"
 
+	"magma/orc8r/cloud/go/errors"
 	models1 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -30,6 +31,8 @@ const (
 	ManageNetworkNamePath        = ManageNetworkPath + obsidian.UrlSep + "name"
 	ManageNetworkTypePath        = ManageNetworkPath + obsidian.UrlSep + "type"
 	ManageNetworkDescriptionPath = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath    = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkDNSPath         = ManageNetworkPath + obsidian.UrlSep + "dns"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for configurator
@@ -45,6 +48,8 @@ func GetObsidianHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models1.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkTypePath, new(models1.NetworkType), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models1.NetworkDescription), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &models.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
 	return ret
 }
 
@@ -82,16 +87,15 @@ func GetNetwork(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	networks, _, err := configurator.LoadNetworks([]string{networkID}, true, true)
+	network, err := configurator.LoadNetwork(networkID, true, true)
+	if err == errors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	if len(networks) == 0 {
-		return obsidian.HttpError(fmt.Errorf("Network %s not found", networkID), http.StatusNotFound)
-	}
-	network := networks[0]
-	swaggerNetwork := (&models.Network{}).FromConfiguratorNetwork(network)
-	return c.JSON(http.StatusOK, swaggerNetwork)
+	ret := (&models.Network{}).FromConfiguratorNetwork(network)
+	return c.JSON(http.StatusOK, ret)
 }
 
 func UpdateNetwork(c echo.Context) error {
