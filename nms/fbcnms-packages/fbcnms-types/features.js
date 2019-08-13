@@ -22,4 +22,5 @@ export type FeatureID =
   | 'prometheus_metrics_database'
   | 'site_survey'
   | 'alerts'
-  | 'equipment_export';
+  | 'equipment_export'
+  | 'file_categories';
