@@ -474,9 +474,7 @@ definitions:
       description:
         $ref: './orc8r-swagger-common.yml#/definitions/network_description'
       type:
-        description: The type of the network
-        type: string
-        example: LTE
+         $ref: './orc8r-swagger-common.yml#/definitions/network_type'
       dns:
         $ref: '#/definitions/network_dns_config'
       features:

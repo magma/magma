@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -280,7 +281,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 	assert.NoError(t, err)
 	expectedNetwork1 := configurator.Network{
 		ID:          string(network1.ID),
-		Type:        network1.Type,
+		Type:        string(network1.Type),
 		Name:        string(network1.Name),
 		Description: string(network1.Description),
 		Configs: map[string]interface{}{
@@ -506,13 +507,17 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 	err := configurator.CreateNetwork(network1)
 	assert.NoError(t, err)
 
+	getName := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
+	getType := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
+	getDesc := handlers.GetPartialReadNetworkHandler(pluginimpl.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
+
 	getNetworkName := tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, networkID1),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetworkName,
+		Handler:        getName,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(networkName1),
 		ExpectedError:  "",
@@ -525,7 +530,7 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetworkType,
+		Handler:        getType,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(type1),
 		ExpectedError:  "",
@@ -538,7 +543,7 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.GetNetworkDescription,
+		Handler:        getDesc,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(networkDesc1),
 		ExpectedError:  "",
@@ -565,6 +570,10 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 	err := configurator.CreateNetwork(network1)
 	assert.NoError(t, err)
 
+	updateName := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
+	updateType := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
+	updateDesc := handlers.GetPartialUpdateNetworkHandler(pluginimpl.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
+
 	// check for validity
 	network1.Name = ""
 	putNetworkName := tests.Test{
@@ -573,7 +582,7 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 		Payload:        tests.JSONMarshaler(network1.Name),
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.UpdateNetworkName,
+		Handler:        updateName,
 		ExpectedStatus: 400,
 		ExpectedError:  " in body should be at least 1 chars long",
 	}
@@ -588,7 +597,7 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 		Payload:        tests.JSONMarshaler(network1.Name),
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.UpdateNetworkName,
+		Handler:        updateName,
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, putNetworkName)
@@ -606,7 +615,7 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 		Payload:        tests.JSONMarshaler(network1.Type),
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.UpdateNetworkType,
+		Handler:        updateType,
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, putNetworkType)
@@ -623,7 +632,7 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 		Payload:        tests.JSONMarshaler(network1.Description),
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID1},
-		Handler:        pluginimpl.UpdateNetworkDescription,
+		Handler:        updateDesc,
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, putNetworkDesc)
