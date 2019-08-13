@@ -14,11 +14,11 @@ import (
 
 	models1 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 )
 
@@ -34,20 +34,18 @@ const (
 
 // GetObsidianHandlers returns all obsidian handlers for configurator
 func GetObsidianHandlers() []obsidian.Handler {
-	return []obsidian.Handler{
+	ret := []obsidian.Handler{
 		// Magma V1 Network
 		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: ListNetworks},
 		{Path: RegisterNetworkPath, Methods: obsidian.POST, HandlerFunc: RegisterNetwork},
 		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: GetNetwork},
 		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: UpdateNetwork},
 		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: DeleteNetwork},
-		{Path: ManageNetworkNamePath, Methods: obsidian.GET, HandlerFunc: GetNetworkName},
-		{Path: ManageNetworkNamePath, Methods: obsidian.PUT, HandlerFunc: UpdateNetworkName},
-		{Path: ManageNetworkTypePath, Methods: obsidian.GET, HandlerFunc: GetNetworkType},
-		{Path: ManageNetworkTypePath, Methods: obsidian.PUT, HandlerFunc: UpdateNetworkType},
-		{Path: ManageNetworkDescriptionPath, Methods: obsidian.GET, HandlerFunc: GetNetworkDescription},
-		{Path: ManageNetworkDescriptionPath, Methods: obsidian.PUT, HandlerFunc: UpdateNetworkDescription},
 	}
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models1.NetworkName), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkTypePath, new(models1.NetworkType), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models1.NetworkDescription), "")...)
+	return ret
 }
 
 func ListNetworks(c echo.Context) error {
@@ -120,117 +118,6 @@ func DeleteNetwork(c echo.Context) error {
 		return nerr
 	}
 	err := configurator.DeleteNetwork(networkID)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusNoContent)
-}
-
-func GetNetworkName(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	networks, _, err := configurator.LoadNetworks([]string{networkID}, true, false)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	if len(networks) == 0 {
-		return obsidian.HttpError(fmt.Errorf("Network %s not found", networkID), http.StatusNotFound)
-	}
-	return c.JSON(http.StatusOK, networks[0].Name)
-}
-
-func UpdateNetworkName(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	var networkName models1.NetworkName
-	err := c.Bind(&networkName)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := networkName.Validate(strfmt.Default); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	update := configurator.NetworkUpdateCriteria{
-		ID:      networkID,
-		NewName: swag.String(string(networkName)),
-	}
-	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update})
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusNoContent)
-}
-
-func GetNetworkType(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	networks, _, err := configurator.LoadNetworks([]string{networkID}, false, false)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	if len(networks) == 0 {
-		return obsidian.HttpError(fmt.Errorf("Network %s not found", networkID), http.StatusNotFound)
-	}
-	return c.JSON(http.StatusOK, networks[0].Type)
-}
-
-func UpdateNetworkType(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	var networkType string
-	err := c.Bind(&networkType)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	update := configurator.NetworkUpdateCriteria{
-		ID:      networkID,
-		NewType: swag.String(networkType),
-	}
-	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update})
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusNoContent)
-}
-
-func GetNetworkDescription(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	networks, _, err := configurator.LoadNetworks([]string{networkID}, true, false)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	if len(networks) == 0 {
-		return obsidian.HttpError(fmt.Errorf("Network %s not found", networkID), http.StatusNotFound)
-	}
-	return c.JSON(http.StatusOK, networks[0].Description)
-}
-
-func UpdateNetworkDescription(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-	var networkDesc models1.NetworkDescription
-	err := c.Bind(&networkDesc)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	update := configurator.NetworkUpdateCriteria{
-		ID:             networkID,
-		NewDescription: swag.String(string(networkDesc)),
-	}
-	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
