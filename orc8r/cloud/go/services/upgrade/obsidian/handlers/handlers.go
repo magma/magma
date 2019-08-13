@@ -15,9 +15,10 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 )
 
@@ -72,8 +73,8 @@ func createReleaseChannel(c echo.Context) error {
 
 	entity := configurator.NetworkEntity{
 		Type:   orc8r.UpgradeReleaseChannelEntityType,
-		Key:    channel.Name,
-		Name:   channel.Name,
+		Key:    string(channel.Name),
+		Name:   string(channel.Name),
 		Config: channel,
 	}
 	_, err := configurator.CreateInternalEntity(entity)
@@ -95,14 +96,14 @@ func updateReleaseChannel(c echo.Context) error {
 	}
 	// Release channel name is immutable
 	// This could change if release channels are keyed by UUID in their tables
-	if channel.Name != channelID {
+	if string(channel.Name) != channelID {
 		return obsidian.HttpError(
 			errors.New("Release channel name cannot be modified"),
 			http.StatusBadRequest)
 	}
 
 	update := configurator.EntityUpdateCriteria{
-		Key:       channel.Name,
+		Key:       string(channel.Name),
 		Type:      orc8r.UpgradeReleaseChannelEntityType,
 		NewConfig: channel,
 	}
@@ -178,10 +179,10 @@ func createrTier(c echo.Context) error {
 	if err := c.Bind(tier); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-
 	entity := configurator.NetworkEntity{
 		Type:   orc8r.UpgradeTierEntityType,
-		Key:    tier.ID,
+		Key:    string(tier.ID),
+		Name:   tier.Name,
 		Config: tier,
 	}
 	_, err := configurator.CreateEntity(networkID, entity)
@@ -224,8 +225,9 @@ func updateTier(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	update := configurator.EntityUpdateCriteria{
-		Key:       tier.ID,
+		Key:       string(tier.ID),
 		Type:      orc8r.UpgradeTierEntityType,
+		NewName:   swag.String(tier.Name),
 		NewConfig: tier,
 	}
 	_, err := configurator.UpdateEntity(networkID, update)

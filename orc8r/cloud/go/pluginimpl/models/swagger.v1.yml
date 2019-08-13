@@ -1129,7 +1129,6 @@ definitions:
           $ref: '#/definitions/tier_image'
       gateways:
         type: array
-        x-nullable: false
         uniqueItems: true
         items:
           $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
