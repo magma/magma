@@ -16,7 +16,6 @@ import React, {useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import {blue05} from '../theme/colors';
-// $FlowFixMe - useTheme exists
 import {makeStyles, useTheme} from '@material-ui/styles';
 
 const autoSuggestStyles = theme => ({
