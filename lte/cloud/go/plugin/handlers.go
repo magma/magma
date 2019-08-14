@@ -38,7 +38,7 @@ const (
 	ManageNetworkDNSPath         = ManageNetworkPath + obsidian.UrlSep + "dns"
 )
 
-func getNetworkHandlers() []obsidian.Handler {
+func GetNetworkHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
 		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: ListNetworks},
 		{Path: ListNetworksPath, Methods: obsidian.POST, HandlerFunc: CreateNetwork},
