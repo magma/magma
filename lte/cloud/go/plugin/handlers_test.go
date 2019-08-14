@@ -14,6 +14,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	plugin2 "magma/lte/cloud/go/plugin"
 	models2 "magma/lte/cloud/go/plugin/models"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -34,12 +35,15 @@ func TestListNetworks(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
+	obsidianHandlers := plugin2.GetNetworkHandlers()
+	listNetworks := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks", obsidian.GET).HandlerFunc
+
 	// Test empty response
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/ltenetworks",
 		Payload:        nil,
-		Handler:        plugin2.ListNetworks,
+		Handler:        listNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{}),
 		ExpectedError:  "",
@@ -52,7 +56,7 @@ func TestListNetworks(t *testing.T) {
 		Method:         "GET",
 		URL:            "/magma/v1/ltenetworks",
 		Payload:        nil,
-		Handler:        plugin2.ListNetworks,
+		Handler:        listNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{"n1", "n3"}),
 	}
@@ -64,6 +68,9 @@ func TestCreateNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
+
+	obsidianHandlers := plugin2.GetNetworkHandlers()
+	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks", obsidian.POST).HandlerFunc
 
 	// test validation
 	tc := tests.Test{
@@ -79,7 +86,7 @@ func TestCreateNetwork(t *testing.T) {
 				Name:        "foobar",
 			},
 		),
-		Handler:        plugin2.CreateNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"description in body should be at least 1 chars long",
@@ -99,7 +106,7 @@ func TestCreateNetwork(t *testing.T) {
 				Name:        "foobar",
 			},
 		),
-		Handler:        plugin2.CreateNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -126,6 +133,9 @@ func TestGetNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
+	obsidianHandlers := plugin2.GetNetworkHandlers()
+	getNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks/:network_id", obsidian.GET).HandlerFunc
+
 	// Test 404
 	tc := tests.Test{
 		Method:         "GET",
@@ -133,7 +143,7 @@ func TestGetNetwork(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Handler:        plugin2.GetNetwork,
+		Handler:        getNetwork,
 		ExpectedStatus: 404,
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -154,7 +164,7 @@ func TestGetNetwork(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Handler:        plugin2.GetNetwork,
+		Handler:        getNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedN1),
 	}
@@ -167,7 +177,7 @@ func TestGetNetwork(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
-		Handler:        plugin2.GetNetwork,
+		Handler:        getNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "network n2 is not an LTE network",
 	}
@@ -185,7 +195,7 @@ func TestGetNetwork(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n3"},
-		Handler:        plugin2.GetNetwork,
+		Handler:        getNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedN3),
 	}
@@ -197,6 +207,9 @@ func TestUpdateNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
+
+	obsidianHandlers := plugin2.GetNetworkHandlers()
+	updateNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks/:network_id", obsidian.PUT).HandlerFunc
 
 	// Test validation failure
 	payloadN1 := &models2.LteNetwork{
@@ -232,7 +245,7 @@ func TestUpdateNetwork(t *testing.T) {
 		Payload:        payloadN1,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Handler:        plugin2.UpdateNetwork,
+		Handler:        updateNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
@@ -263,7 +276,7 @@ func TestUpdateNetwork(t *testing.T) {
 		Payload:        payloadN1,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Handler:        plugin2.UpdateNetwork,
+		Handler:        updateNetwork,
 		ExpectedStatus: 404,
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -277,7 +290,7 @@ func TestUpdateNetwork(t *testing.T) {
 		Payload:        payloadN1,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Handler:        plugin2.UpdateNetwork,
+		Handler:        updateNetwork,
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -305,7 +318,7 @@ func TestUpdateNetwork(t *testing.T) {
 		Payload:        payloadN1,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
-		Handler:        plugin2.UpdateNetwork,
+		Handler:        updateNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "network n2 is not an LTE network",
 	}
@@ -318,6 +331,9 @@ func TestDeleteNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
+	obsidianHandlers := plugin2.GetNetworkHandlers()
+	deleteNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks/:network_id", obsidian.DELETE).HandlerFunc
+
 	// Test 404
 	tc := tests.Test{
 		Method:         "DELETE",
@@ -325,7 +341,7 @@ func TestDeleteNetwork(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Handler:        plugin2.DeleteNetwork,
+		Handler:        deleteNetwork,
 		ExpectedStatus: 404,
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -346,7 +362,7 @@ func TestDeleteNetwork(t *testing.T) {
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
-		Handler:        plugin2.DeleteNetwork,
+		Handler:        deleteNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "network n2 is not an LTE network",
 	}

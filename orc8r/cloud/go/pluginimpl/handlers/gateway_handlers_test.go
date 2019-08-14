@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -46,11 +47,14 @@ func TestListGateways(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks/n1/gateways"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	listGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways", obsidian.GET).HandlerFunc
+
 	// empty case
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
-		Handler:        handlers.ListGateways,
+		Handler:        listGateways,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
@@ -89,6 +93,9 @@ func TestCreateGateway(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks/n1/gateways"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways", obsidian.POST).HandlerFunc
+
 	// Register device with gateway
 	payload := &models.MagmadGateway{
 		Device: &models.GatewayDevice{
@@ -109,7 +116,7 @@ func TestCreateGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
-		Handler:        handlers.CreateGateway,
+		Handler:        createGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -241,7 +248,7 @@ func TestCreateGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
-		Handler:        handlers.CreateGateway,
+		Handler:        createGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -270,7 +277,7 @@ func TestCreateGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
-		Handler:        handlers.CreateGateway,
+		Handler:        createGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -335,6 +342,9 @@ func TestGetGateway(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks/n1/gateways"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	getGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id", obsidian.GET).HandlerFunc
+
 	// happy path
 	expected := &models.MagmadGateway{
 		ID: "g1",
@@ -358,7 +368,7 @@ func TestGetGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot + "/g1",
-		Handler:        handlers.GetGateway,
+		Handler:        getGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 200,
@@ -381,7 +391,7 @@ func TestGetGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot + "/g2",
-		Handler:        handlers.GetGateway,
+		Handler:        getGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g2"},
 		ExpectedStatus: 200,
@@ -393,7 +403,7 @@ func TestGetGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot + "/g3",
-		Handler:        handlers.GetGateway,
+		Handler:        getGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g3"},
 		ExpectedStatus: 404,
@@ -439,6 +449,9 @@ func TestUpdateGateway(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks/n1/gateways"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	updateGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id", obsidian.PUT).HandlerFunc
+
 	// update everything
 	privateKey, err := key.GenerateKey("P256", 0)
 	assert.NoError(t, err)
@@ -467,7 +480,7 @@ func TestUpdateGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot + "/g1",
-		Handler:        handlers.UpdateGateway,
+		Handler:        updateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
@@ -514,7 +527,7 @@ func TestUpdateGateway(t *testing.T) {
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot + "/g3",
-		Handler:        handlers.UpdateGateway,
+		Handler:        updateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g3"},
@@ -560,10 +573,13 @@ func TestDeleteGateway(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks/n1/gateways"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	deleteGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id", obsidian.DELETE).HandlerFunc
+
 	tc := tests.Test{
 		Method:         "DELETE",
 		URL:            testURLRoot + "/g1",
-		Handler:        handlers.DeleteGateway,
+		Handler:        deleteGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 204,
