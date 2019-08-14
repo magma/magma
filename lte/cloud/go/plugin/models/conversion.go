@@ -9,6 +9,8 @@
 package models
 
 import (
+	"fmt"
+
 	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -59,4 +61,63 @@ func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) *LteNetwork
 		m.Features = cfg.(*models2.NetworkFeatures)
 	}
 	return m
+}
+
+func (m *NetworkCellularConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, m), nil
+}
+
+func (m *NetworkCellularConfigs) GetFromNetwork(network configurator.Network) interface{} {
+	return models2.GetNetworkConfig(network, lte.CellularNetworkType)
+}
+
+func (m FegNetworkID) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	if iCellularConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
+	}
+	iCellularConfig.(*NetworkCellularConfigs).FegNetworkID = m
+	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+}
+
+func (m FegNetworkID) GetFromNetwork(network configurator.Network) interface{} {
+	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	if iCellularConfig == nil {
+		return nil
+	}
+	return iCellularConfig.(*NetworkCellularConfigs).FegNetworkID
+}
+
+func (m *NetworkEpcConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	if iCellularConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
+	}
+	iCellularConfig.(*NetworkCellularConfigs).Epc = m
+	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+}
+
+func (m *NetworkEpcConfigs) GetFromNetwork(network configurator.Network) interface{} {
+	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	if iCellularConfig == nil {
+		return nil
+	}
+	return iCellularConfig.(*NetworkCellularConfigs).Epc
+}
+
+func (m *NetworkRanConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	if iCellularConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
+	}
+	iCellularConfig.(*NetworkCellularConfigs).Ran = m
+	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+}
+
+func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interface{} {
+	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	if iCellularConfig == nil {
+		return nil
+	}
+	return iCellularConfig.(*NetworkCellularConfigs).Ran
 }

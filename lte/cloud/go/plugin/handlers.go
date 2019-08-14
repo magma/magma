@@ -29,13 +29,17 @@ import (
 )
 
 const (
-	LteNetworks                  = "ltenetworks"
-	ListNetworksPath             = obsidian.V1Root + LteNetworks
-	ManageNetworkPath            = ListNetworksPath + "/:network_id"
-	ManageNetworkNamePath        = ManageNetworkPath + obsidian.UrlSep + "name"
-	ManageNetworkDescriptionPath = ManageNetworkPath + obsidian.UrlSep + "description"
-	ManageNetworkFeaturesPath    = ManageNetworkPath + obsidian.UrlSep + "features"
-	ManageNetworkDNSPath         = ManageNetworkPath + obsidian.UrlSep + "dns"
+	LteNetworks                       = "ltenetworks"
+	ListNetworksPath                  = obsidian.V1Root + LteNetworks
+	ManageNetworkPath                 = ListNetworksPath + "/:network_id"
+	ManageNetworkNamePath             = ManageNetworkPath + obsidian.UrlSep + "name"
+	ManageNetworkDescriptionPath      = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath         = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkDNSPath              = ManageNetworkPath + obsidian.UrlSep + "dns"
+	ManageNetworkCellularPath         = ManageNetworkPath + obsidian.UrlSep + "cellular"
+	ManageNetworkCellularEpcPath      = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
+	ManageNetworkCellularRanPath      = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
+	ManageNetworkCellularFegNetworkID = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
 )
 
 func GetNetworkHandlers() []obsidian.Handler {
@@ -50,6 +54,10 @@ func GetNetworkHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8rmodels.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &ltemodels.NetworkCellularConfigs{}, lte.CellularNetworkType)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &ltemodels.NetworkEpcConfigs{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &ltemodels.NetworkRanConfigs{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(ltemodels.FegNetworkID), "")...)
 	return ret
 }
 
