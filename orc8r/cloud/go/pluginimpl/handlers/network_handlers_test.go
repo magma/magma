@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	models1 "magma/orc8r/cloud/go/models"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -35,102 +36,105 @@ func Test_GetNetworkHandlers(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	listNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.GET).HandlerFunc
+	getNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.GET).HandlerFunc
+
 	// Test empty case
-	listNetworks := tests.Test{
+	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.ListNetworks,
+		Handler:        listNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{}),
 	}
-	tests.RunUnitTest(t, e, listNetworks)
+	tests.RunUnitTest(t, e, tc)
 
 	// Test 404
-	getNetwork := tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "no_such_network"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"no_such_network"},
-		Handler:        handlers.GetNetwork,
+		Handler:        getNetwork,
 		ExpectedStatus: 404,
 		ExpectedError:  "Not Found",
 	}
-	tests.RunUnitTest(t, e, getNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// register a network
-	networkID1 := "test_network1"
 	networkName1 := "network1"
 	network1 := configurator.Network{
-		ID:   networkID1,
+		ID:   "n1",
 		Name: networkName1,
 	}
 	err := configurator.CreateNetwork(network1)
 	assert.NoError(t, err)
 
-	listNetworks = tests.Test{
+	tc = tests.Test{
 		Method:  "GET",
 		URL:     testURLRoot,
 		Payload: nil,
 
-		Handler:        handlers.ListNetworks,
+		Handler:        listNetwork,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{networkID1}),
+		ExpectedResult: tests.JSONMarshaler([]string{"n1"}),
 	}
-	tests.RunUnitTest(t, e, listNetworks)
+	tests.RunUnitTest(t, e, tc)
 
 	expectedNetwork1 := models.Network{
-		ID:   models1.NetworkID(networkID1),
+		ID:   models1.NetworkID("n1"),
 		Name: models1.NetworkName(networkName1),
 	}
 
-	getNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        handlers.GetNetwork,
+		ParamValues:    []string{"n1"},
+		Handler:        getNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedNetwork1),
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, getNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// add network features
 	networkFeatures1 := models.NewDefaultFeaturesConfig()
 	update1 := configurator.NetworkUpdateCriteria{
-		ID:                   networkID1,
+		ID:                   "n1",
 		ConfigsToAddOrUpdate: map[string]interface{}{orc8r.NetworkFeaturesConfig: networkFeatures1},
 	}
 	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update1})
 	assert.NoError(t, err)
 
 	expectedNetwork1 = models.Network{
-		ID:       models1.NetworkID(networkID1),
+		ID:       models1.NetworkID("n1"),
 		Name:     models1.NetworkName(networkName1),
 		Features: networkFeatures1,
 	}
 
-	getNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        handlers.GetNetwork,
+		ParamValues:    []string{"n1"},
+		Handler:        getNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedNetwork1),
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, getNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// add dnsd configs and a description
 	dnsdConfig := models.NewDefaultDNSConfig()
 	description1 := "A Network"
 	update1 = configurator.NetworkUpdateCriteria{
-		ID:                   networkID1,
+		ID:                   "n1",
 		NewDescription:       &description1,
 		ConfigsToAddOrUpdate: map[string]interface{}{orc8r.DnsdNetworkType: dnsdConfig},
 	}
@@ -138,25 +142,25 @@ func Test_GetNetworkHandlers(t *testing.T) {
 	assert.NoError(t, err)
 
 	expectedNetwork1 = models.Network{
-		ID:          models1.NetworkID(networkID1),
+		ID:          models1.NetworkID("n1"),
 		Name:        models1.NetworkName(networkName1),
 		Description: models1.NetworkDescription("A Network"),
 		Features:    networkFeatures1,
 		DNS:         dnsdConfig,
 	}
 
-	getNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        handlers.GetNetwork,
+		ParamValues:    []string{"n1"},
+		Handler:        getNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedNetwork1),
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, getNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// register a second network
 	networkID2 := "test_network2"
@@ -168,15 +172,15 @@ func Test_GetNetworkHandlers(t *testing.T) {
 	err = configurator.CreateNetwork(network2)
 	assert.NoError(t, err)
 
-	listNetworks = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.ListNetworks,
+		Handler:        listNetwork,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{networkID1, networkID2}),
+		ExpectedResult: tests.JSONMarshaler([]string{"n1", networkID2}),
 	}
-	tests.RunUnitTest(t, e, listNetworks)
+	tests.RunUnitTest(t, e, tc)
 }
 
 func Test_PostNetworkHandlers(t *testing.T) {
@@ -186,99 +190,112 @@ func Test_PostNetworkHandlers(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.POST).HandlerFunc
+	listNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.GET).HandlerFunc
+	getNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.GET).HandlerFunc
+
 	// test empty name, description
-	networkID1 := "test_network1"
-	network1 := models.NewDefaultNetwork(networkID1, "", "")
-	postNetwork := tests.Test{
+	network1 := models.NewDefaultNetwork("n1", "", "")
+	tc := tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"description in body should be at least 1 chars long\n" +
 			"name in body should be at least 1 chars long",
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// test bad networkID format
 	network1 = models.NewDefaultNetwork("Network*1", "name", "desc")
-	postNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"id in body should match '^[a-z][\\da-z_]+$'",
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// test no DNSConfig
-	network1 = models.NewDefaultNetwork(networkID1, "name", "desc")
+	network1 = models.NewDefaultNetwork("n1", "name", "desc")
 	network1.DNS = nil
-	postNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\ndns in body is required",
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// test bad DNSConfig - domain
-	network1 = models.NewDefaultNetwork(networkID1, "name", "desc")
+	network1 = models.NewDefaultNetwork("n1", "name", "desc")
 	network1.DNS.Records[0].Domain = ""
-	postNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\ndomain in body is required",
+		ExpectedError: "validation failure list:\n" +
+			"validation failure list:\n" +
+			"validation failure list:\n" +
+			"domain in body is required",
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// test bad DNSConfig - ARecord
-	network1 = models.NewDefaultNetwork(networkID1, "name", "desc")
+	network1 = models.NewDefaultNetwork("n1", "name", "desc")
 	network1.DNS.Records[0].ARecord[0] = "not ipv4"
-	postNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\na_record.0 in body must be of type ipv4: \"not ipv4\"",
+		ExpectedError: "validation failure list:\n" +
+			"validation failure list:\n" +
+			"validation failure list:\n" +
+			"a_record.0 in body must be of type ipv4: \"not ipv4\"",
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// test bad DNSConfig - AaaaRecord
-	network1 = models.NewDefaultNetwork(networkID1, "name", "desc")
+	network1 = models.NewDefaultNetwork("n1", "name", "desc")
 	network1.DNS.Records[0].AaaaRecord[0] = "not ipv6"
-	postNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "validation failure list:\nvalidation failure list:\nvalidation failure list:\naaaa_record.0 in body must be of type ipv6: \"not ipv6\"",
+		ExpectedError: "validation failure list:\n" +
+			"validation failure list:\n" +
+			"validation failure list:\n" +
+			"aaaa_record.0 in body must be of type ipv6: \"not ipv6\"",
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// happy case
-	network1 = models.NewDefaultNetwork(networkID1, "name", "desc")
-	postNetwork = tests.Test{
+	network1 = models.NewDefaultNetwork("n1", "name", "desc")
+	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 201,
-		ExpectedResult: tests.JSONMarshaler(networkID1),
+		ExpectedResult: tests.JSONMarshaler("n1"),
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
-	actualNetwork1, err := configurator.LoadNetwork(networkID1, true, true)
+	actualNetwork1, err := configurator.LoadNetwork("n1", true, true)
 	assert.NoError(t, err)
 	expectedNetwork1 := configurator.Network{
 		ID:          string(network1.ID),
@@ -292,28 +309,28 @@ func Test_PostNetworkHandlers(t *testing.T) {
 	}
 	assert.Equal(t, expectedNetwork1, actualNetwork1)
 
-	getNetwork := tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        handlers.GetNetwork,
+		ParamValues:    []string{"n1"},
+		Handler:        getNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(network1),
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, getNetwork)
+	tests.RunUnitTest(t, e, tc)
 
-	listNetworks := tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.ListNetworks,
+		Handler:        listNetwork,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{networkID1}),
+		ExpectedResult: tests.JSONMarshaler([]string{"n1"}),
 	}
-	tests.RunUnitTest(t, e, listNetworks)
+	tests.RunUnitTest(t, e, tc)
 }
 
 func Test_DeleteNetworkHandlers(t *testing.T) {
@@ -323,85 +340,89 @@ func Test_DeleteNetworkHandlers(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.POST).HandlerFunc
+	listNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.GET).HandlerFunc
+	deleteNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.DELETE).HandlerFunc
+
 	// add a couple of networks
-	networkID1 := "test_network1"
-	network1 := models.NewDefaultNetwork(networkID1, "name", "desc")
-	postNetwork := tests.Test{
+	network1 := models.NewDefaultNetwork("n1", "name", "desc")
+	tc := tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 201,
-		ExpectedResult: tests.JSONMarshaler(networkID1),
+		ExpectedResult: tests.JSONMarshaler("n1"),
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	networkID2 := "test_network2"
 	network2 := models.NewDefaultNetwork(networkID2, "name", "desc")
-	postNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network2),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 201,
 		ExpectedResult: tests.JSONMarshaler(networkID2),
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
-	listNetworks := tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.ListNetworks,
+		Handler:        listNetwork,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{networkID1, networkID2}),
+		ExpectedResult: tests.JSONMarshaler([]string{"n1", networkID2}),
 	}
-	tests.RunUnitTest(t, e, listNetworks)
+	tests.RunUnitTest(t, e, tc)
 
 	// delete and get
-	deleteNetwork := tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        handlers.DeleteNetwork,
+		ParamValues:    []string{"n1"},
+		Handler:        deleteNetwork,
 		ExpectedStatus: 204,
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, deleteNetwork)
+	tests.RunUnitTest(t, e, tc)
 
-	listNetworks = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.ListNetworks,
+		Handler:        listNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{networkID2}),
 	}
-	tests.RunUnitTest(t, e, listNetworks)
+	tests.RunUnitTest(t, e, tc)
 
-	deleteNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID2),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{networkID2},
-		Handler:        handlers.DeleteNetwork,
+		Handler:        deleteNetwork,
 		ExpectedStatus: 204,
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, deleteNetwork)
+	tests.RunUnitTest(t, e, tc)
 
-	listNetworks = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
 		Payload:        nil,
-		Handler:        handlers.ListNetworks,
+		Handler:        listNetwork,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{}),
 	}
-	tests.RunUnitTest(t, e, listNetworks)
+	tests.RunUnitTest(t, e, tc)
 }
 
 func Test_PutNetworkHandlers(t *testing.T) {
@@ -411,83 +432,87 @@ func Test_PutNetworkHandlers(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
 
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks", obsidian.POST).HandlerFunc
+	updateNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.PUT).HandlerFunc
+	getNetworkHandler := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id", obsidian.GET).HandlerFunc
+
 	// happy path
 	// add a network
-	networkID1 := "test_network1"
-	network1 := models.NewDefaultNetwork(networkID1, "name", "desc")
-	postNetwork := tests.Test{
+	network1 := models.NewDefaultNetwork("n1", "name", "desc")
+	tc := tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.RegisterNetwork,
+		Handler:        createNetwork,
 		ExpectedStatus: 201,
-		ExpectedResult: tests.JSONMarshaler(networkID1),
+		ExpectedResult: tests.JSONMarshaler("n1"),
 	}
-	tests.RunUnitTest(t, e, postNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// change meta data
 	network1.Name = models1.NetworkName("name2")
 	network1.Type = "wifi"
 	network1.Description = models1.NetworkDescription("desc2")
-	putNetwork := tests.Test{
+	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.UpdateNetwork,
+		Handler:        updateNetwork,
 		ExpectedStatus: 204,
 	}
-	tests.RunUnitTest(t, e, putNetwork)
+	tests.RunUnitTest(t, e, tc)
 
-	getNetwork := tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        handlers.GetNetwork,
+		ParamValues:    []string{"n1"},
+		Handler:        getNetworkHandler,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(network1),
 	}
-	tests.RunUnitTest(t, e, getNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// change configs
 	network1.DNS.EnableCaching = swag.Bool(false)
 	network1.Features.Features["new-feature"] = "foobar"
-	putNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.UpdateNetwork,
+		Handler:        updateNetwork,
 		ExpectedStatus: 204,
 	}
-	tests.RunUnitTest(t, e, putNetwork)
+	tests.RunUnitTest(t, e, tc)
 
-	getNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        handlers.GetNetwork,
+		ParamValues:    []string{"n1"},
+		Handler:        getNetworkHandler,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(network1),
 	}
-	tests.RunUnitTest(t, e, getNetwork)
+	tests.RunUnitTest(t, e, tc)
 
 	// try do delete DNS config
 	network1.DNS = nil
-	putNetwork = tests.Test{
+	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot,
 		Payload:        tests.JSONMarshaler(network1),
-		Handler:        handlers.UpdateNetwork,
+		Handler:        updateNetwork,
 		ExpectedStatus: 400,
 		ExpectedError:  "validation failure list:\ndns in body is required",
 	}
-	tests.RunUnitTest(t, e, putNetwork)
+	tests.RunUnitTest(t, e, tc)
 }
 
-func Test_GetNetworkPartialHandlers(t *testing.T) {
+func Test_GetNetworkMetadataHandlers(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
@@ -495,87 +520,218 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 	testURLRoot := "/magma/v1/networks"
 
 	// register a network
-	networkID1 := "test_network1"
-	networkName1 := "network1"
-	networkDesc1 := "network 1"
-	type1 := "type1"
-	network1 := configurator.Network{
-		ID:          networkID1,
-		Name:        networkName1,
-		Description: networkDesc1,
-		Type:        type1,
-		Configs: map[string]interface{}{
-			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
-			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
-		},
-	}
-	err := configurator.CreateNetwork(network1)
-	assert.NoError(t, err)
+	seedNetworks(t)
 
-	getName := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
-	getType := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
-	getDesc := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
-	getFeatures := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
-	getDNS := handlers.GetPartialReadNetworkHandler(handlers.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	getName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/name", obsidian.GET).HandlerFunc
+	getType := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/type", obsidian.GET).HandlerFunc
+	getDesc := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/description", obsidian.GET).HandlerFunc
 
-	getNetworkName := tests.Test{
+	tc := tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
+		ParamValues:    []string{"n1"},
 		Handler:        getName,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(networkName1),
+		ExpectedResult: tests.JSONMarshaler("network1"),
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, getNetworkName)
+	tests.RunUnitTest(t, e, tc)
 
-	getNetworkType := tests.Test{
+	tc = tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/type/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/type/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
+		ParamValues:    []string{"n1"},
 		Handler:        getType,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(type1),
+		ExpectedResult: tests.JSONMarshaler("type1"),
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, getNetworkType)
+	tests.RunUnitTest(t, e, tc)
 
 	getNetworkDesc := tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/description/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/description/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
+		ParamValues:    []string{"n1"},
 		Handler:        getDesc,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(networkDesc1),
+		ExpectedResult: tests.JSONMarshaler("network 1"),
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, getNetworkDesc)
+}
+
+func Test_PutNetworkMetadataHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	// register a network
+	seedNetworks(t)
+	expectedNetwork1 := configurator.Network{
+		ID:          "n1",
+		Type:        "type1",
+		Name:        "network1",
+		Description: "network 1",
+		Configs:     map[string]interface{}{},
+	}
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	updateName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/name", obsidian.PUT).HandlerFunc
+	updateType := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/type", obsidian.PUT).HandlerFunc
+	updateDesc := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/description", obsidian.PUT).HandlerFunc
+
+	// check for validity
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(""),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        updateName,
+		ExpectedStatus: 400,
+		ExpectedError:  " in body should be at least 1 chars long",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler("new_name"),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        updateName,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualNetwork, err := configurator.LoadNetwork("n1", true, false)
+	assert.NoError(t, err)
+	expectedNetwork1.Version = 1
+	expectedNetwork1.Name = "new_name"
+	assert.Equal(t, expectedNetwork1, actualNetwork)
+
+	// happy case
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/type/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler("new_type"),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        updateType,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	actualNetwork, err = configurator.LoadNetwork("n1", true, false)
+	assert.NoError(t, err)
+	expectedNetwork1.Type = "new_type"
+	expectedNetwork1.Version = 2
+	assert.Equal(t, expectedNetwork1, actualNetwork)
+
+	// happy case
+	putNetworkDesc := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/description/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler("new_name"),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        updateDesc,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, putNetworkDesc)
+
+	actualNetwork, err = configurator.LoadNetwork("n1", true, false)
+	assert.NoError(t, err)
+	expectedNetwork1.Description = "new_name"
+	expectedNetwork1.Version = 3
+	assert.Equal(t, expectedNetwork1, actualNetwork)
+}
+
+func Test_GetNetworkFeaturesHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	seedNetworks(t)
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	getFeatures := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/features", obsidian.GET).HandlerFunc
 
 	getNetworkFeatures := tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
+		ParamValues:    []string{"n1"},
 		Handler:        getFeatures,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(models.NewDefaultFeaturesConfig()),
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, getNetworkFeatures)
+}
 
+func Test_PutNetworkFeaturesHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	seedNetworks(t)
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	updateFeatures := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/features", obsidian.PUT).HandlerFunc
+
+	// update full feature happy case
+	newFeatures := &models.NetworkFeatures{
+		Features: map[string]string{
+			"hello": "world!!",
+		},
+	}
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(newFeatures),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        updateFeatures,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	config, err := configurator.LoadNetworkConfig("n1", orc8r.NetworkFeaturesConfig)
+	assert.NoError(t, err)
+	assert.Equal(t, newFeatures, config)
+}
+
+func Test_GetNetworkDNSHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	seedNetworks(t)
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	getDNS := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns", obsidian.GET).HandlerFunc
 	getDNSConfig := tests.Test{
 		Method:         "GET",
-		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, "n1"),
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
+		ParamValues:    []string{"n1"},
 		Handler:        getDNS,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(models.NewDefaultDNSConfig()),
@@ -584,118 +740,17 @@ func Test_GetNetworkPartialHandlers(t *testing.T) {
 	tests.RunUnitTest(t, e, getDNSConfig)
 }
 
-func Test_PutNetworkPartialHandlers(t *testing.T) {
+func Test_PutNetworkDNSHandlers(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
 
-	// register a network
-	networkID1 := "test_network1"
-	networkName1 := "network1"
+	seedNetworks(t)
 
-	network1 := configurator.Network{
-		ID:      networkID1,
-		Name:    networkName1,
-		Configs: map[string]interface{}{},
-	}
-	err := configurator.CreateNetwork(network1)
-	assert.NoError(t, err)
-
-	updateName := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkNamePath, new(models1.NetworkName)).HandlerFunc
-	updateType := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkTypePath, new(models1.NetworkType)).HandlerFunc
-	updateDesc := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkDescriptionPath, new(models1.NetworkDescription)).HandlerFunc
-	updateFeatures := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkFeaturesPath, &models.NetworkFeatures{}).HandlerFunc
-	updateDNS := handlers.GetPartialUpdateNetworkHandler(handlers.ManageNetworkDNSPath, &models.NetworkDNSConfig{}).HandlerFunc
-
-	// check for validity
-	network1.Name = ""
-	putNetworkName := tests.Test{
-		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, networkID1),
-		Payload:        tests.JSONMarshaler(network1.Name),
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        updateName,
-		ExpectedStatus: 400,
-		ExpectedError:  " in body should be at least 1 chars long",
-	}
-	tests.RunUnitTest(t, e, putNetworkName)
-
-	// happy case
-	network1.Name = "new_name"
-	network1.Version = 1
-	putNetworkName = tests.Test{
-		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/%s/name/", testURLRoot, networkID1),
-		Payload:        tests.JSONMarshaler(network1.Name),
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        updateName,
-		ExpectedStatus: 204,
-	}
-	tests.RunUnitTest(t, e, putNetworkName)
-
-	actualNetwork, err := configurator.LoadNetwork(networkID1, true, false)
-	assert.NoError(t, err)
-	assert.Equal(t, network1, actualNetwork)
-
-	// happy case
-	network1.Type = "new_type"
-	network1.Version = 2
-	putNetworkType := tests.Test{
-		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/%s/type/", testURLRoot, networkID1),
-		Payload:        tests.JSONMarshaler(network1.Type),
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        updateType,
-		ExpectedStatus: 204,
-	}
-	tests.RunUnitTest(t, e, putNetworkType)
-	actualNetwork, err = configurator.LoadNetwork(networkID1, true, false)
-	assert.NoError(t, err)
-	assert.Equal(t, network1, actualNetwork)
-
-	// happy case
-	network1.Description = "new_name"
-	network1.Version = 3
-	putNetworkDesc := tests.Test{
-		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/%s/description/", testURLRoot, networkID1),
-		Payload:        tests.JSONMarshaler(network1.Description),
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        updateDesc,
-		ExpectedStatus: 204,
-	}
-	tests.RunUnitTest(t, e, putNetworkDesc)
-
-	actualNetwork, err = configurator.LoadNetwork(networkID1, true, false)
-	assert.NoError(t, err)
-	assert.Equal(t, network1, actualNetwork)
-
-	// update full feature happy case
-	newFeatures := &models.NetworkFeatures{
-		Features: map[string]string{
-			"hello": "world!!",
-		},
-	}
-	putNetworkFeatures := tests.Test{
-		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/%s/features/", testURLRoot, networkID1),
-		Payload:        tests.JSONMarshaler(newFeatures),
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
-		Handler:        updateFeatures,
-		ExpectedStatus: 204,
-	}
-	tests.RunUnitTest(t, e, putNetworkFeatures)
-
-	config, err := configurator.LoadNetworkConfig(networkID1, orc8r.NetworkFeaturesConfig)
-	assert.NoError(t, err)
-	assert.Equal(t, newFeatures, config)
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	updateDNS := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns", obsidian.PUT).HandlerFunc
 
 	// update full dns validation failure
 	newDNS := models.NewDefaultDNSConfig()
@@ -707,19 +762,19 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 			Domain:      "facebook.com",
 		},
 	}
-	putDNS := tests.Test{
+	tc := tests.Test{
 		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, "n1"),
 		Payload:        tests.JSONMarshaler(newDNS),
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
+		ParamValues:    []string{"n1"},
 		Handler:        updateDNS,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
 			"validation failure list:\n" +
 			"a_record.0 in body must be of type ipv4: \"192-88-99-142\"",
 	}
-	tests.RunUnitTest(t, e, putDNS)
+	tests.RunUnitTest(t, e, tc)
 
 	// update full DNS happy case
 	newDNS = models.NewDefaultDNSConfig()
@@ -731,18 +786,69 @@ func Test_PutNetworkPartialHandlers(t *testing.T) {
 			Domain:      "facebook.com",
 		},
 	}
-	putDNS = tests.Test{
+	tc = tests.Test{
 		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, networkID1),
+		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, "n1"),
 		Payload:        tests.JSONMarshaler(newDNS),
 		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{networkID1},
+		ParamValues:    []string{"n1"},
 		Handler:        updateDNS,
 		ExpectedStatus: 204,
 	}
-	tests.RunUnitTest(t, e, putDNS)
+	tests.RunUnitTest(t, e, tc)
 
-	config, err = configurator.LoadNetworkConfig(networkID1, orc8r.DnsdNetworkType)
+	config, err := configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
 	assert.NoError(t, err)
 	assert.Equal(t, newDNS, config)
+}
+
+func Test_DeleteNetworkDNSHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	deleteDNS := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns", obsidian.DELETE).HandlerFunc
+
+	seedNetworks(t)
+
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, "n1"),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        deleteDNS,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err := configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
+	assert.EqualError(t, err, "Not found")
+}
+
+func seedNetworks(t *testing.T) {
+	_, err := configurator.CreateNetworks(
+		[]configurator.Network{
+			{
+				ID:          "n1",
+				Type:        "type1",
+				Name:        "network1",
+				Description: "network 1",
+				Configs: map[string]interface{}{
+					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+				},
+			},
+			{
+				ID:          "n2",
+				Type:        "blah",
+				Name:        "foobar",
+				Description: "Foo Bar",
+				Configs:     map[string]interface{}{},
+			},
+		},
+	)
+	assert.NoError(t, err)
 }
