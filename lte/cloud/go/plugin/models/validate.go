@@ -9,9 +9,13 @@
 package models
 
 import (
+	"fmt"
+
 	"magma/lte/cloud/go/services/cellular/utils"
+	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"
 )
 
@@ -19,8 +23,30 @@ func (m *NetworkCellularConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
+	if err := m.FegNetworkID.ValidateModel(); err != nil {
+		return err
+	}
 	if err := m.Epc.ValidateModel(); err != nil {
 		return err
+	}
+	if err := m.Ran.ValidateModel(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m FegNetworkID) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	if !swag.IsZero(m) {
+		exists, err := configurator.DoesNetworkExist(string(m))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Failed to search for network %s", string(m)))
+		}
+		if !exists {
+			return errors.New(fmt.Sprintf("Network: %s does not exist", string(m)))
+		}
 	}
 	return nil
 }
@@ -45,8 +71,10 @@ func (m *NetworkRanConfigs) ValidateModel() error {
 
 	tddConfigSet := m.TddConfig != nil
 	fddConfigSet := m.FddConfig != nil
-	if fddConfigSet != tddConfigSet {
+	if tddConfigSet && fddConfigSet {
 		return errors.New("only one of TDD or FDD configs can be set")
+	} else if !tddConfigSet && !fddConfigSet {
+		return errors.New("either TDD or FDD configs must be set")
 	}
 
 	earfcnDl := m.getEarfcnDl()
@@ -59,7 +87,7 @@ func (m *NetworkRanConfigs) ValidateModel() error {
 		return errors.Errorf("band %d not a TDD band", band.ID)
 	}
 	if fddConfigSet {
-		if band.Mode != utils.TDDMode {
+		if band.Mode != utils.FDDMode {
 			return errors.Errorf("band %d not a FDD band", band.ID)
 		}
 		if !band.EarfcnULInRange(m.FddConfig.Earfcnul) {

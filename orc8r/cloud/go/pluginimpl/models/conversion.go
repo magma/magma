@@ -58,29 +58,19 @@ func (m *Network) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 }
 
 func (m *NetworkFeatures) GetFromNetwork(network configurator.Network) interface{} {
-	return fetchNetworkConfig(network, orc8r.NetworkFeaturesConfig)
+	return GetNetworkConfig(network, orc8r.NetworkFeaturesConfig)
 }
 
 func (m *NetworkFeatures) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return configurator.NetworkUpdateCriteria{
-		ID: network.ID,
-		ConfigsToAddOrUpdate: map[string]interface{}{
-			orc8r.NetworkFeaturesConfig: m,
-		},
-	}, nil
+	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.NetworkFeaturesConfig, m), nil
 }
 
 func (m *NetworkDNSConfig) GetFromNetwork(network configurator.Network) interface{} {
-	return fetchNetworkConfig(network, orc8r.DnsdNetworkType)
+	return GetNetworkConfig(network, orc8r.DnsdNetworkType)
 }
 
 func (m *NetworkDNSConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return configurator.NetworkUpdateCriteria{
-		ID: network.ID,
-		ConfigsToAddOrUpdate: map[string]interface{}{
-			orc8r.DnsdNetworkType: m,
-		},
-	}, nil
+	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.DnsdNetworkType, m), nil
 }
 
 func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {
@@ -108,17 +98,6 @@ func (m *MagmadGateway) FromBackendModels(ent configurator.NetworkEntity, device
 	}
 
 	return m
-}
-
-func fetchNetworkConfig(network configurator.Network, key string) interface{} {
-	if network.Configs == nil {
-		return nil
-	}
-	config, exists := network.Configs[key]
-	if !exists {
-		return nil
-	}
-	return config
 }
 
 func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkEntity) []configurator.EntityUpdateCriteria {
@@ -163,4 +142,24 @@ func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkE
 	// do the tier update to delete the old assoc first
 	ret = append(ret, gatewayUpdate)
 	return ret
+}
+
+func GetNetworkConfig(network configurator.Network, key string) interface{} {
+	if network.Configs == nil {
+		return nil
+	}
+	config, exists := network.Configs[key]
+	if !exists {
+		return nil
+	}
+	return config
+}
+
+func GetNetworkConfigUpdateCriteria(networkID string, key string, iConfig interface{}) configurator.NetworkUpdateCriteria {
+	return configurator.NetworkUpdateCriteria{
+		ID: networkID,
+		ConfigsToAddOrUpdate: map[string]interface{}{
+			key: iConfig,
+		},
+	}
 }

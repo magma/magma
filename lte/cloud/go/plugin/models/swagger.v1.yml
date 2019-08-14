@@ -995,8 +995,11 @@ definitions:
       epc:
         $ref: '#/definitions/network_epc_configs'
       feg_network_id:
-        type: string
-        example: 'example_feg_network'
+       $ref: '#/definitions/feg_network_id'
+
+  feg_network_id:
+    type: string
+    example: 'example_feg_network'
 
   network_ran_configs:
     description: RAN (radio access network) cellular configuration for a network

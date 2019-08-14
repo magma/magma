@@ -35,6 +35,7 @@ func (m *NetworkType) ToUpdateCriteria(network configurator.Network) (configurat
 func (m *NetworkType) GetFromNetwork(network configurator.Network) interface{} {
 	return NetworkType(network.Type)
 }
+
 func (m *NetworkDescription) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	return configurator.NetworkUpdateCriteria{
 		ID:             network.ID,
