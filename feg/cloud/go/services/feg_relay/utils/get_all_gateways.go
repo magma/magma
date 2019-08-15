@@ -12,12 +12,20 @@ package utils
 import (
 	"fmt"
 
+	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/services/controller/obsidian/models"
+	merrors "magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/orc8r"
+	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/device"
+
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
-
-	"magma/feg/cloud/go/services/controller/config"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
 )
 
 // GetAllGatewaysIDs returns all Gateways served by calling FeG,
@@ -31,36 +39,53 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 		return res, fmt.Errorf(
 			"Failed to get Identity of calling Federated Gateway from CTX Metadata: %+v", ctxMetadata)
 	}
-	networkId := fegId.GetNetworkId()
-	logicalId := fegId.GetLogicalId()
-	if len(networkId) == 0 || len(logicalId) == 0 {
+	networkID := fegId.GetNetworkId()
+	logicalID := fegId.GetLogicalId()
+	if len(networkID) == 0 || len(logicalID) == 0 {
 		return res, fmt.Errorf("Unregistered Federated Gateway: %s", fegId.String())
 	}
-	cfg, err := config.GetGatewayConfig(networkId, logicalId)
+	cfg, err := getFegCfg(networkID, logicalID)
 	if err != nil {
-		return res, fmt.Errorf("Error getting Federated Gateway %s:%s configs: %v", networkId, logicalId, err)
+		return res, fmt.Errorf("Error getting Federated Gateway %s:%s configs: %v", networkID, logicalID, err)
 	}
 	// Find as many gateways as possible, don't exit on error, just return last error to the caller along with
 	// the list of GWs found
-	for _, network := range cfg.GetServedNetworkIds() {
-		gateways, err := magmad.ListGateways(network)
+	for _, networkID := range cfg.ServedNetworkIds {
+		gateways, _, err := configurator.LoadEntities(networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, nil, configurator.EntityLoadCriteria{})
 		if err != nil {
-			err = fmt.Errorf("List Network '%s' Gateways error: %v", network, err)
+			glog.Errorf("List Network '%s' Gateways error: %v", networkID, err)
 			continue
 		}
-		for _, gw := range gateways {
-			record, err := magmad.FindGatewayRecord(network, gw)
+		for _, gatewayEntity := range gateways {
+			record, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, gatewayEntity.PhysicalID)
 			if err != nil {
-				err = fmt.Errorf("Find Gateway Record Error: %v for Gateway %s:%s", err, network, gw)
+				err = fmt.Errorf("Find Gateway Record Error: %v for Gateway %s:%s", err, networkID, gatewayEntity.Key)
 				continue
 			}
-			hwId := record.GetHwId().GetId()
-			if len(hwId) > 0 {
-				res = append(res, hwId)
+			hardwareID := record.(*orc8rModels.GatewayDevice).HardwareID
+			if len(hardwareID) > 0 {
+				res = append(res, hardwareID)
 			} else {
-				err = fmt.Errorf("Empty Harware ID for Gateway %s:%s", network, gw)
+				err = fmt.Errorf("Empty Harware ID for Gateway %s:%s", networkID, gatewayEntity.Key)
 			}
 		}
 	}
 	return res, err
+}
+
+func getFegCfg(networkID, gatewayID string) (*models.GatewayFegConfigs, error) {
+	fegGateway, err := configurator.LoadEntity(networkID, feg.FegGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil && err != merrors.ErrNotFound {
+		return nil, errors.WithStack(err)
+	}
+	if err == nil && fegGateway.Config != nil {
+		return fegGateway.Config.(*models.GatewayFegConfigs), nil
+	}
+
+	iNetworkConfig, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType)
+	if err != nil {
+		return nil, merrors.ErrNotFound
+	}
+	nwConfig := iNetworkConfig.(*models.NetworkFederationConfigs)
+	return &models.GatewayFegConfigs{NetworkFederationConfigs: *nwConfig}, nil
 }
