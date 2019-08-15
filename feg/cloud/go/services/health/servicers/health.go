@@ -15,8 +15,9 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/storage"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -109,9 +110,10 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 		return healthResponse, errMsg
 	}
 
-	// Get FeGs registered in magmad, then make a health decision based off of the
+	// Get FeGs registered in configurator, then make a health decision based off of the
 	// the number of gateways, which gateway is active, and gateway health
-	gateways, err := magmad.ListGateways(networkID)
+	magmadGatewayTypeVal := orc8r.MagmadGatewayType
+	gateways, _, err := configurator.LoadEntities(networkID, &magmadGatewayTypeVal, nil, nil, nil, configurator.EntityLoadCriteria{})
 	if err != nil {
 		errMsg := fmt.Errorf(
 			"Update Health Error: Could not retrieve gateways registered in network: %s",
@@ -163,7 +165,7 @@ func (srv *HealthServer) analyzeDualFegState(
 	networkID string,
 	gatewayID string,
 	gatewayHealth *fegprotos.HealthStats,
-	clusterGateways []string,
+	clusterGateways []configurator.NetworkEntity,
 ) (fegprotos.HealthResponse_RequestedAction, error) {
 	if gatewayHealth == nil {
 		return fegprotos.HealthResponse_NONE, fmt.Errorf("Nil GatewayHealth provided")
@@ -368,21 +370,21 @@ func isServiceHealthy(
 
 // getOtherGatewayID gets the gatewayID of the gateway in 'gateways' that is not 'gatewayID'
 // If more than two gateways exist in the slice, an empty string is returned
-func getOtherGatewayID(gatewayID string, gateways []string) string {
+func getOtherGatewayID(gatewayID string, gateways []configurator.NetworkEntity) string {
 	if len(gateways) > 2 {
 		return ""
 	}
 	for _, gw := range gateways {
-		if gatewayID != gw {
-			return gw
+		if gatewayID != gw.Key {
+			return gw.Key
 		}
 	}
 	return ""
 }
 
-func isActiveGatewayRegistered(activeID string, gateways []string) bool {
+func isActiveGatewayRegistered(activeID string, gateways []configurator.NetworkEntity) bool {
 	for _, gateway := range gateways {
-		if gateway == activeID {
+		if gateway.Key == activeID {
 			return true
 		}
 	}
