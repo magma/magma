@@ -41,6 +41,10 @@ declare module "@material-ui/core/Avatar" {
   declare module.exports: $Exports<"@material-ui/core/Avatar/Avatar">;
 }
 
+declare module "@material-ui/core/Box" {
+  declare module.exports: $Exports<"@material-ui/core/Box">;
+}
+
 declare module "@material-ui/core/Badge/Badge" {
   import type {ComponentType, Node} from "react";
 
