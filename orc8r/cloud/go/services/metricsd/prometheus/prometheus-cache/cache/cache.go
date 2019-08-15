@@ -35,10 +35,10 @@ const (
 // timestamps with metrics, and stores them in a queue to allow multiple
 // datapoints per metric series to be scraped
 type MetricCache struct {
-	familyMap       map[string]*familyAndMetrics
-	internalMetrics map[string]prometheus.Gauge
-	limit           int
-	stats           cacheStats
+	metricFamiliesByName map[string]*familyAndMetrics
+	internalMetrics      map[string]prometheus.Gauge
+	limit                int
+	stats                cacheStats
 	sync.Mutex
 }
 
@@ -70,9 +70,9 @@ func NewMetricCache(limit int) *MetricCache {
 	cacheLimit.Set(float64(limit))
 
 	return &MetricCache{
-		familyMap:       make(map[string]*familyAndMetrics),
-		internalMetrics: internalMetrics,
-		limit:           limit,
+		metricFamiliesByName: make(map[string]*familyAndMetrics),
+		internalMetrics:      internalMetrics,
+		limit:                limit,
 	}
 }
 
@@ -115,10 +115,10 @@ func (c *MetricCache) cacheMetrics(families map[string]*dto.MetricFamily) {
 	c.Lock()
 	defer c.Unlock()
 	for _, fam := range families {
-		if fAndM, ok := c.familyMap[fam.GetName()]; ok {
-			fAndM.addMetrics(fam.Metric)
+		if families, ok := c.metricFamiliesByName[fam.GetName()]; ok {
+			families.addMetrics(fam.Metric)
 		} else {
-			c.familyMap[fam.GetName()] = newFamilyAndMetrics(fam)
+			c.metricFamiliesByName[fam.GetName()] = newFamilyAndMetrics(fam)
 		}
 	}
 }
@@ -127,7 +127,7 @@ func (c *MetricCache) cacheMetrics(families map[string]*dto.MetricFamily) {
 // metrics for scraping.
 func (c *MetricCache) Scrape(ctx echo.Context) error {
 	c.Lock()
-	scrapeMetrics := c.familyMap
+	scrapeMetrics := c.metricFamiliesByName
 	c.clearMetrics()
 	c.Unlock()
 
@@ -144,12 +144,12 @@ func (c *MetricCache) Scrape(ctx echo.Context) error {
 }
 
 func (c *MetricCache) clearMetrics() {
-	c.familyMap = make(map[string]*familyAndMetrics)
+	c.metricFamiliesByName = make(map[string]*familyAndMetrics)
 }
 
-func (c *MetricCache) exposeMetrics(familyMap map[string]*familyAndMetrics) string {
+func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMetrics) string {
 	respStr := strings.Builder{}
-	for _, fam := range familyMap {
+	for _, fam := range metricFamiliesByName {
 		pullFamily := fam.popSortedDatapoints()
 		familyStr, err := familyToString(pullFamily)
 		if err != nil {
@@ -209,17 +209,17 @@ Current Count Datapoints: %d `, hostname, limitValue, utilizationValue,
 		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints)
 
 	if verbose != "" {
-		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.familyMap), c.exposeInternalMetrics())
+		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.metricFamiliesByName), c.exposeInternalMetrics())
 	}
 
 	return ctx.String(http.StatusOK, debugString)
 }
 
 func (c *MetricCache) updateCountStats() {
-	numFamilies := len(c.familyMap)
+	numFamilies := len(c.metricFamiliesByName)
 	numSeries := 0
 	numDatapoints := 0
-	for _, family := range c.familyMap {
+	for _, family := range c.metricFamiliesByName {
 		numSeries += len(family.metrics)
 		for _, series := range family.metrics {
 			numDatapoints += len(series)
