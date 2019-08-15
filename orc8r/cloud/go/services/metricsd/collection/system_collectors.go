@@ -16,6 +16,7 @@ import (
 	"github.com/coreos/go-systemd/dbus"
 	"github.com/golang/glog"
 	"github.com/prometheus/client_model/go"
+	"github.com/prometheus/procfs"
 )
 
 // DiskUsageMetricCollector is a MetricCollector which return a pair of metric
@@ -65,6 +66,29 @@ func (s *SystemdStatusMetricCollector) GetMetrics() ([]*io_prometheus_client.Met
 		getSystemdStatusesByUnitName(systemdStatuses),
 	)
 	return []*io_prometheus_client.MetricFamily{fam}, nil
+}
+
+// ProcMetricsCollector is a MetricCollector which queries /proc for
+// the number of open file descriptors across all processes running on the
+// machine, returning a single metric family for the count.
+type ProcMetricsCollector struct{}
+
+func (s *ProcMetricsCollector) GetMetrics() ([]*io_prometheus_client.MetricFamily, error) {
+	procs, err := procfs.AllProcs()
+	if err != nil {
+		return []*io_prometheus_client.MetricFamily{}, err
+	}
+	totalFds := 0
+	for _, proc := range procs {
+		numFds, err := proc.FileDescriptorsLen()
+		if err != nil {
+			return []*io_prometheus_client.MetricFamily{}, err
+		}
+		totalFds = totalFds + numFds
+	}
+	return []*io_prometheus_client.MetricFamily{
+		makeOpenFileDescriptorsMetric(uint64(totalFds)),
+	}, nil
 }
 
 // makeTotalDiskSpaceMetric returns a prometheus MetricFamily with a single
@@ -123,4 +147,15 @@ func gatherSystemdStatusMetrics(
 	name := "systemd_status"
 	help := "Status of a systemd service"
 	return MakeMultiGaugeFamily(name, help, metrics)
+}
+
+// makeOpenFileDescriptorsMetric returns a prometheus MetricFamily with a
+// single gauge value that indicates how many file descriptors are currently
+// open across all processes on the current host
+func makeOpenFileDescriptorsMetric(numFileDescriptors uint64) *io_prometheus_client.MetricFamily {
+	name := "num_file_descriptors"
+	help := "Total open file descriptors on the machine"
+
+	gaugeValue := float64(numFileDescriptors)
+	return MakeSingleGaugeFamily(name, help, nil, gaugeValue)
 }

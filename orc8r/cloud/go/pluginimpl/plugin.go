@@ -147,11 +147,14 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 
 	// Controller profile - 1 collector for each service
 	allServices := registry.ListControllerServices()
-	controllerCollectors := make([]collection.MetricCollector, 0, len(allServices)+1)
+	deviceMetricsCollectors := []collection.MetricCollector{&collection.DiskUsageMetricCollector{}, &collection.ProcMetricsCollector{}}
+	controllerCollectors := make([]collection.MetricCollector, 0, len(allServices)+len(deviceMetricsCollectors))
 	for _, srv := range allServices {
 		controllerCollectors = append(controllerCollectors, collection.NewCloudServiceMetricCollector(srv))
 	}
-	controllerCollectors = append(controllerCollectors, &collection.DiskUsageMetricCollector{})
+	for _, metricCollector := range deviceMetricsCollectors {
+		controllerCollectors = append(controllerCollectors, metricCollector)
+	}
 
 	// Prometheus profile - Exports all service metric to Prometheus
 	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.PrometheusPushAddresses)
