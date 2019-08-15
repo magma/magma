@@ -569,6 +569,40 @@ static int _build_csfb_parameters_combined_tau(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
+void static _validate_and_fill_eps_bearer_cntxt_status(
+  eps_bearer_context_status_t *tau_accept_eps_ber_cntx_status,
+  eps_bearer_context_status_t *rcvd_tau_req_eps_eps_ber_cntx_status,
+  ue_mm_context_t *ue_mm_context)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  uint32_t ebi = 0;
+
+  for (i = 0 ; i < BEARERS_PER_UE; i++ ) {
+    bearer_context_t *bearer_context = mme_app_get_bearer_context(
+      ue_mm_context, i);
+    if ((bearer_context) &&
+      bearer_context->bearer_state == BEARER_STATE_ACTIVE) {
+      /* Delete the bearer context if the bearer context rcvd in TAU req
+       * is inactive
+       */
+      ebi = bearer_context->ebi;
+      if (!((rcvd_tau_req_eps_eps_ber_cntx_status & ebi) >> ebi)) {
+        pid = ue_mm_context->bearer_contexts[ebi]->pdn_cx_id;
+        if (ue_mm_context->pdn_contexts[pid]->default_ebi == ebi) {
+          // Delete the PDN connection
+          for (itrn = 0; itrn < ue_mm_context->
+            pdn_contexts[pid].esm_data.n_bearers; i++) {
+          }
+        }
+      }
+      /* Send status of active bearers in TAU Accept*/
+      else {
+        tau_accept_eps_ber_cntx_status = 1 << j;
+      }
+    }
+  }
+
+}
 /** \fn void _emm_tracking_area_update_accept (emm_context_t * emm_context,tau_data_t * data);
     \brief Sends ATTACH ACCEPT message and start timer T3450.
      @param [in]emm_context UE EMM context data
@@ -614,6 +648,10 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
 
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
       if (tau_proc->ies->eps_bearer_context_status) {
+        _validate_and_fill_eps_bearer_cntxt_status(
+          emm_sap.u.emm_as.u.establish.eps_bearer_context_status,
+          tau_proc->ies->eps_bearer_context_status,
+          ue_mm_context);
         emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
           tau_proc->ies->eps_bearer_context_status;
       }
