@@ -792,7 +792,7 @@ int emm_recv_service_request(
     service_type = PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
                    ->sgs_context->csfb_service_type;
     /*
-     * if service request is received for either MO SMS or PS data,
+     * if service request is recieved for either MO SMS or PS data,
      * and if neaf flag is true then send the itti message to SGS
      * For triggering SGS ue activity indication message towards MSC.
      */

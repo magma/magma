@@ -402,7 +402,6 @@ int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t *const guti)
     mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, id);
 
   if (ue_mm_context) {
-    ue_mm_context->emm_context.is_guti_set = true;
     mme_ue_context_update_coll_keys(
       &mme_app_desc.mme_ue_contexts,
       ue_mm_context,
