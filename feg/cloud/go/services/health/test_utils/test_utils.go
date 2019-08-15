@@ -14,10 +14,11 @@ import (
 	"testing"
 	"time"
 
+	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
-	mdprotos "magma/orc8r/cloud/go/services/magmad/protos"
+	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -91,25 +92,20 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 	}
 }
 
-func RegisterNetwork(t *testing.T, networkID string) string {
-	netID, err := magmad.RegisterNetwork(&mdprotos.MagmadNetworkRecord{Name: "Test Feg Network"}, networkID)
+func RegisterNetwork(t *testing.T, networkID string) {
+	err := configurator.CreateNetwork(configurator.Network{
+		ID:   TestFegNetwork,
+		Type: feg.FegNetworkType,
+	})
 	assert.NoError(t, err)
-	assert.Equal(t, networkID, netID)
-
-	return netID
 }
 
-func RegisterGateway(t *testing.T, networkID, hwID, logicalID string) string {
-	gw1Record := &mdprotos.AccessGatewayRecord{
-		HwId: &orcprotos.AccessGatewayID{Id: hwID},
-		Name: logicalID,
-		Key: &orcprotos.ChallengeKey{
-			KeyType: orcprotos.ChallengeKey_ECHO,
+func RegisterGateway(t *testing.T, networkID, hwID, logicalID string) {
+	gwRecord := &models.GatewayDevice{
+		HardwareID: hwID,
+		Key: &models.ChallengeKey{
+			KeyType: "ECHO",
 		},
 	}
-	gwID, err := magmad.RegisterGatewayWithId(networkID, gw1Record, logicalID)
-	assert.NoError(t, err)
-	assert.Equal(t, logicalID, gwID)
-
-	return gwID
+	test_utils.RegisterGateway(t, networkID, logicalID, gwRecord)
 }

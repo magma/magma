@@ -24,7 +24,8 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -35,20 +36,20 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 	// Initialize test services
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	testServicer, err := health_test_init.StartTestService(t)
 	assert.NoError(t, err)
 
 	// Register network and feg then perform mock health updates
-	testNetworkID := test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
-	testGatewayID := test_utils.RegisterGateway(
+	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
+	test_utils.RegisterGateway(
 		t,
 		test_utils.TestFegNetwork,
 		test_utils.TestFegHwId1,
 		test_utils.TestFegLogicalId1,
 	)
-
-	_, err = health.GetActiveGateway(testNetworkID)
+	_, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.Error(t, err)
 
 	// Simulate request coming from feg1
@@ -60,10 +61,10 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err := health.GetActiveGateway(testNetworkID)
+	activeID, err := health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID, healthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, healthyRequest.HealthStats)
 
 	// Now is unhealthy, but should stay ACTIVE since it's the only FeG registered
 	unhealthyRequest := test_utils.GetUnhealthyRequest()
@@ -71,10 +72,10 @@ func TestHealthAPI_SingleFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(testNetworkID)
+	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID, unhealthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, unhealthyRequest.HealthStats)
 }
 
 // Test the health service by simulating two FeGs in the same network
@@ -83,15 +84,16 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	// Initialize test services
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	testServicer, err := health_test_init.StartTestService(t)
 	assert.NoError(t, err)
 
 	// Register network and a feg
-	testNetworkID := test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
-	testGatewayID1 := test_utils.RegisterGateway(
+	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
+	test_utils.RegisterGateway(
 		t,
-		testNetworkID,
+		test_utils.TestFegNetwork,
 		test_utils.TestFegHwId1,
 		test_utils.TestFegLogicalId1,
 	)
@@ -105,15 +107,15 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err := health.GetActiveGateway(testNetworkID)
+	activeID, err := health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID1, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID1, healthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, healthyRequest.HealthStats)
 
 	// Now register a second FeG
-	testGatewayID2 := test_utils.RegisterGateway(
+	test_utils.RegisterGateway(
 		t,
-		testNetworkID,
+		test_utils.TestFegNetwork,
 		test_utils.TestFegHwId2,
 		test_utils.TestFegLogicalId2,
 	)
@@ -126,10 +128,10 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_DOWN, res.Action)
 
-	activeID, err = health.GetActiveGateway(testNetworkID)
+	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID1, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID2, healthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, healthyRequest.HealthStats)
 
 	// Simulate an unhealthy request from the active feg, triggering a failover
 	testServicer.Feg1 = true
@@ -139,10 +141,10 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_DOWN, res.Action)
 
-	activeID, err = health.GetActiveGateway(testNetworkID)
+	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID2, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID1, unhealthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId2, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, unhealthyRequest.HealthStats)
 
 	// Now newly promoted FeG should receive SYSTEM_UP
 	testServicer.Feg1 = false
@@ -151,20 +153,20 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(testNetworkID)
+	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID2, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID2, healthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId2, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, healthyRequest.HealthStats)
 
 	// Now if the active becomes unhealthy, but standby is also unhealthy, failover doesn't occur
 	res, err = updateHealth(t, unhealthyRequest)
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(testNetworkID)
+	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID2, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID2, unhealthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId2, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, unhealthyRequest.HealthStats)
 
 	// If then standby becomes healthy, it will trigger a failover (assuming active is still unhealthy)
 	testServicer.Feg1 = true
@@ -173,10 +175,10 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_UP, res.Action)
 
-	activeID, err = health.GetActiveGateway(testNetworkID)
+	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID1, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID1, healthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, healthyRequest.HealthStats)
 
 	testServicer.Feg1 = false
 
@@ -185,10 +187,10 @@ func TestHealthAPI_DualFeg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.HealthResponse_SYSTEM_DOWN, res.Action)
 
-	activeID, err = health.GetActiveGateway(testNetworkID)
+	activeID, err = health.GetActiveGateway(test_utils.TestFegNetwork)
 	assert.NoError(t, err)
-	assert.Equal(t, testGatewayID1, activeID)
-	checkHealthData(t, testNetworkID, testGatewayID2, unhealthyRequest.HealthStats)
+	assert.Equal(t, test_utils.TestFegLogicalId1, activeID)
+	checkHealthData(t, test_utils.TestFegNetwork, test_utils.TestFegLogicalId2, unhealthyRequest.HealthStats)
 }
 
 func updateHealth(t *testing.T, req *protos.HealthRequest) (*protos.HealthResponse, error) {
