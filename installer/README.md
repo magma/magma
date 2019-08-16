@@ -3,6 +3,7 @@
 Installer to configure infra for proper Magma installation
 
 ## Getting Started
+One of the biggest challenge for anyone to get started with Magma is to satisfy the dependencies including host configuration, packages and environment variables required to successfully install Magma. We want to provide this Magma Infra installer that should take care of not just the pre-requisites but also configurations required before setting up a Magma installation.
 
 This installer will set up the underlying infra for the Magma project up and running on your local machine for development and testing purposes.  Please see Production Deployment section for important notes on how to deploy the project on a production system with automation , HA and scalability. Please reach out to info@irsols.com for access to a pre-installed instance or for production setup.
 
