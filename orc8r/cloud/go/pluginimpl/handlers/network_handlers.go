@@ -9,10 +9,12 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -20,7 +22,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-func ListNetworks(c echo.Context) error {
+func listNetworks(c echo.Context) error {
 	networks, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -31,7 +33,7 @@ func ListNetworks(c echo.Context) error {
 	return c.JSON(http.StatusOK, networks)
 }
 
-func RegisterNetwork(c echo.Context) error {
+func registerNetwork(c echo.Context) error {
 	swaggerNetwork := &models.Network{}
 	err := c.Bind(&swaggerNetwork)
 	if err != nil {
@@ -49,7 +51,7 @@ func RegisterNetwork(c echo.Context) error {
 	return c.JSON(http.StatusCreated, createdNetworks[0].ID)
 }
 
-func GetNetwork(c echo.Context) error {
+func getNetwork(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -65,7 +67,7 @@ func GetNetwork(c echo.Context) error {
 	return c.JSON(http.StatusOK, ret)
 }
 
-func UpdateNetwork(c echo.Context) error {
+func updateNetwork(c echo.Context) error {
 	// Bind network record from swagger
 	swaggerNetwork := &models.Network{}
 	err := c.Bind(&swaggerNetwork)
@@ -83,7 +85,7 @@ func UpdateNetwork(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func DeleteNetwork(c echo.Context) error {
+func deleteNetwork(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -93,4 +95,155 @@ func DeleteNetwork(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func CreateDNSRecord(c echo.Context) error {
+	networkID, domain, nerr := getNetworkIDAndDomain(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	record, nerr := getRecordAndValidate(c, domain)
+	if nerr != nil {
+		return nerr
+	}
+
+	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	if nerr != nil {
+		return nerr
+	}
+
+	// check the domain is not already registered
+	for _, record := range dnsConfig.Records {
+		if record.Domain == domain {
+			return obsidian.HttpError(fmt.Errorf("A record with domain:%s already exists", domain), http.StatusBadRequest)
+		}
+	}
+
+	dnsConfig.Records = append(dnsConfig.Records, record)
+	nerr = updateDNSConfig(networkID, dnsConfig)
+	if nerr != nil {
+		return nerr
+	}
+	return c.JSON(http.StatusCreated, domain)
+}
+
+func UpdateDNSRecord(c echo.Context) error {
+	networkID, domain, nerr := getNetworkIDAndDomain(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	record, nerr := getRecordAndValidate(c, domain)
+	if nerr != nil {
+		return nerr
+	}
+
+	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	if nerr != nil {
+		return nerr
+	}
+
+	for i, existingRecord := range dnsConfig.Records {
+		if existingRecord.Domain == domain {
+			dnsConfig.Records[i] = record
+			nerr = updateDNSConfig(networkID, dnsConfig)
+			if nerr != nil {
+				return nerr
+			}
+			return c.NoContent(http.StatusNoContent)
+		}
+	}
+	return echo.NewHTTPError(http.StatusNotFound)
+}
+
+func ReadDNSRecord(c echo.Context) error {
+	networkID, domain, nerr := getNetworkIDAndDomain(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	if nerr != nil {
+		return nerr
+	}
+	for _, record := range dnsConfig.Records {
+		if record.Domain == domain {
+			return c.JSON(http.StatusOK, record)
+		}
+	}
+	return echo.NewHTTPError(http.StatusNotFound)
+}
+
+func DeleteDNSRecord(c echo.Context) error {
+	networkID, domain, nerr := getNetworkIDAndDomain(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	dnsConfig, nerr := getExistingDNSConfig(networkID)
+	if nerr != nil {
+		return nerr
+	}
+
+	for i, record := range dnsConfig.Records {
+		if record.Domain == domain {
+			if i == len(dnsConfig.Records)-1 {
+				dnsConfig.Records = dnsConfig.Records[:i]
+			} else {
+				dnsConfig.Records = append(dnsConfig.Records[:i], dnsConfig.Records[i+1:]...)
+			}
+			nerr = updateDNSConfig(networkID, dnsConfig)
+			if nerr != nil {
+				return nerr
+			}
+			return c.NoContent(http.StatusNoContent)
+		}
+	}
+	return echo.NewHTTPError(http.StatusNotFound)
+}
+
+func updateDNSConfig(networkID string, dnsConfig *models.NetworkDNSConfig) *echo.HTTPError {
+	err := configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{
+		{
+			ID:                   networkID,
+			ConfigsToAddOrUpdate: map[string]interface{}{orc8r.DnsdNetworkType: dnsConfig},
+		},
+	})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func getNetworkIDAndDomain(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, nerr := obsidian.GetParamValues(c, "network_id", "domain")
+	if nerr != nil {
+		return "", "", nerr
+	}
+	return vals[0], vals[1], nil
+}
+
+func getExistingDNSConfig(networkID string) (*models.NetworkDNSConfig, *echo.HTTPError) {
+	iDNSConfig, err := configurator.LoadNetworkConfig(networkID, orc8r.DnsdNetworkType)
+	if err == merrors.ErrNotFound {
+		return nil, echo.NewHTTPError(http.StatusNotFound)
+	} else if err != nil {
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return iDNSConfig.(*models.NetworkDNSConfig), nil
+}
+
+func getRecordAndValidate(c echo.Context, domain string) (*models.DNSConfigRecord, *echo.HTTPError) {
+	record := &models.DNSConfigRecord{}
+	if err := c.Bind(record); err != nil {
+		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := record.Validate(strfmt.Default); err != nil {
+		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if record.Domain != domain {
+		return nil, obsidian.HttpError(fmt.Errorf("Domain name in param and record don't match"), http.StatusBadRequest)
+	}
+	return record, nil
 }

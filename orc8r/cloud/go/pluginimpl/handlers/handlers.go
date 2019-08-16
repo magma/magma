@@ -16,15 +16,17 @@ import (
 )
 
 const (
-	Networks                     = "networks"
-	ListNetworksPath             = obsidian.V1Root + Networks
-	RegisterNetworkPath          = obsidian.V1Root + Networks
-	ManageNetworkPath            = obsidian.V1Root + Networks + obsidian.UrlSep + ":network_id"
-	ManageNetworkNamePath        = ManageNetworkPath + obsidian.UrlSep + "name"
-	ManageNetworkTypePath        = ManageNetworkPath + obsidian.UrlSep + "type"
-	ManageNetworkDescriptionPath = ManageNetworkPath + obsidian.UrlSep + "description"
-	ManageNetworkFeaturesPath    = ManageNetworkPath + obsidian.UrlSep + "features"
-	ManageNetworkDNSPath         = ManageNetworkPath + obsidian.UrlSep + "dns"
+	Networks                           = "networks"
+	ListNetworksPath                   = obsidian.V1Root + Networks
+	RegisterNetworkPath                = obsidian.V1Root + Networks
+	ManageNetworkPath                  = obsidian.V1Root + Networks + obsidian.UrlSep + ":network_id"
+	ManageNetworkNamePath              = ManageNetworkPath + obsidian.UrlSep + "name"
+	ManageNetworkTypePath              = ManageNetworkPath + obsidian.UrlSep + "type"
+	ManageNetworkDescriptionPath       = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath          = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkDNSPath               = ManageNetworkPath + obsidian.UrlSep + "dns"
+	ManageNetworkDNSRecordsPath        = ManageNetworkDNSPath + obsidian.UrlSep + "records"
+	ManageNetworkDNSRecordByDomainPath = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
 
 	Gateways          = "gateways"
 	ListGatewaysPath  = ManageNetworkPath + obsidian.UrlSep + Gateways
@@ -35,11 +37,16 @@ const (
 func GetObsidianHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
 		// Magma V1 Network
-		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: ListNetworks},
-		{Path: RegisterNetworkPath, Methods: obsidian.POST, HandlerFunc: RegisterNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: GetNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: UpdateNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: DeleteNetwork},
+		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: listNetworks},
+		{Path: RegisterNetworkPath, Methods: obsidian.POST, HandlerFunc: registerNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: getNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: updateNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: deleteNetwork},
+
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.POST, HandlerFunc: CreateDNSRecord},
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.GET, HandlerFunc: ReadDNSRecord},
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.PUT, HandlerFunc: UpdateDNSRecord},
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: DeleteDNSRecord},
 
 		// Magma V1 Gateways
 		{Path: ListGatewaysPath, Methods: obsidian.GET, HandlerFunc: ListGateways},
@@ -53,5 +60,6 @@ func GetObsidianHandlers() []obsidian.Handler {
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(models2.NetworkDNSRecords), "")...)
 	return ret
 }

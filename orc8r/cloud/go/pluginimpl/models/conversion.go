@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/swag"
+	"github.com/pkg/errors"
 )
 
 func (m *Network) ToConfiguratorNetwork() configurator.Network {
@@ -71,6 +72,23 @@ func (m *NetworkDNSConfig) GetFromNetwork(network configurator.Network) interfac
 
 func (m *NetworkDNSConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.DnsdNetworkType, m), nil
+}
+
+func (m NetworkDNSRecords) GetFromNetwork(network configurator.Network) interface{} {
+	iNetworkDnsConfig := GetNetworkConfig(network, orc8r.DnsdNetworkType)
+	if iNetworkDnsConfig == nil {
+		return nil
+	}
+	return iNetworkDnsConfig.(*NetworkDNSConfig).Records
+}
+
+func (m NetworkDNSRecords) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iNetworkDnsConfig := GetNetworkConfig(network, orc8r.DnsdNetworkType)
+	if iNetworkDnsConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, errors.New("No DNS Config registered for this network")
+	}
+	iNetworkDnsConfig.(*NetworkDNSConfig).Records = m
+	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.DnsdNetworkType, iNetworkDnsConfig), nil
 }
 
 func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {

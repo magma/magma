@@ -29,31 +29,39 @@ import (
 )
 
 const (
-	LteNetworks                       = "ltenetworks"
-	ListNetworksPath                  = obsidian.V1Root + LteNetworks
-	ManageNetworkPath                 = ListNetworksPath + "/:network_id"
-	ManageNetworkNamePath             = ManageNetworkPath + obsidian.UrlSep + "name"
-	ManageNetworkDescriptionPath      = ManageNetworkPath + obsidian.UrlSep + "description"
-	ManageNetworkFeaturesPath         = ManageNetworkPath + obsidian.UrlSep + "features"
-	ManageNetworkDNSPath              = ManageNetworkPath + obsidian.UrlSep + "dns"
-	ManageNetworkCellularPath         = ManageNetworkPath + obsidian.UrlSep + "cellular"
-	ManageNetworkCellularEpcPath      = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
-	ManageNetworkCellularRanPath      = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
-	ManageNetworkCellularFegNetworkID = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
+	LteNetworks                        = "ltenetworks"
+	ListNetworksPath                   = obsidian.V1Root + LteNetworks
+	ManageNetworkPath                  = ListNetworksPath + "/:network_id"
+	ManageNetworkNamePath              = ManageNetworkPath + obsidian.UrlSep + "name"
+	ManageNetworkDescriptionPath       = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath          = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkDNSPath               = ManageNetworkPath + obsidian.UrlSep + "dns"
+	ManageNetworkDNSRecordsPath        = ManageNetworkDNSPath + obsidian.UrlSep + "records"
+	ManageNetworkDNSRecordByDomainPath = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
+	ManageNetworkCellularPath          = ManageNetworkPath + obsidian.UrlSep + "cellular"
+	ManageNetworkCellularEpcPath       = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
+	ManageNetworkCellularRanPath       = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
+	ManageNetworkCellularFegNetworkID  = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
 )
 
 func GetNetworkHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: ListNetworks},
-		{Path: ListNetworksPath, Methods: obsidian.POST, HandlerFunc: CreateNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: GetNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: UpdateNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: DeleteNetwork},
+		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: listNetworks},
+		{Path: ListNetworksPath, Methods: obsidian.POST, HandlerFunc: createNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: getNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: updateNetwork},
+		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: deleteNetwork},
+
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.POST, HandlerFunc: handlers.CreateDNSRecord},
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.GET, HandlerFunc: handlers.ReadDNSRecord},
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.PUT, HandlerFunc: handlers.UpdateDNSRecord},
+		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: handlers.DeleteDNSRecord},
 	}
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8rmodels.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(orc8rmodels.NetworkDNSRecords), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &ltemodels.NetworkCellularConfigs{}, lte.CellularNetworkType)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &ltemodels.NetworkEpcConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &ltemodels.NetworkRanConfigs{}, "")...)
@@ -61,7 +69,7 @@ func GetNetworkHandlers() []obsidian.Handler {
 	return ret
 }
 
-func ListNetworks(c echo.Context) error {
+func listNetworks(c echo.Context) error {
 	ids, err := configurator.ListNetworksOfType(lte.LteNetworkType)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -70,7 +78,7 @@ func ListNetworks(c echo.Context) error {
 	return c.JSON(http.StatusOK, ids)
 }
 
-func CreateNetwork(c echo.Context) error {
+func createNetwork(c echo.Context) error {
 	payload := &ltemodels.LteNetwork{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
@@ -85,7 +93,7 @@ func CreateNetwork(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-func GetNetwork(c echo.Context) error {
+func getNetwork(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -106,7 +114,7 @@ func GetNetwork(c echo.Context) error {
 	return c.JSON(http.StatusOK, ret)
 }
 
-func UpdateNetwork(c echo.Context) error {
+func updateNetwork(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -140,7 +148,7 @@ func UpdateNetwork(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func DeleteNetwork(c echo.Context) error {
+func deleteNetwork(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr

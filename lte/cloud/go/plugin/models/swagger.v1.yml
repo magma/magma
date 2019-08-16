@@ -391,7 +391,7 @@ paths:
         - LTE Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/dns_domain'
+        - $ref: './orc8r-swagger.yml#/parameters/dns_domain'
       responses:
         '200':
           description: DNS config record
@@ -405,7 +405,7 @@ paths:
         - LTE Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/dns_domain'
+        - $ref: './orc8r-swagger.yml#/parameters/dns_domain'
         - name: record
           in: body
           description: Custom DNS record for the domain
@@ -423,7 +423,7 @@ paths:
         - LTE Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/dns_domain'
+        - $ref: './orc8r-swagger.yml#/parameters/dns_domain'
         - name: record
           in: body
           description: Custom DNS record for the domain
@@ -441,7 +441,7 @@ paths:
         - LTE Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: '#/parameters/dns_domain'
+        - $ref: './orc8r-swagger.yml#/parameters/dns_domain'
       responses:
         '204':
           description: Success
@@ -949,14 +949,6 @@ paths:
             $ref: './orc8r-swagger.yml#/definitions/gateway_status'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
-parameters:
-  dns_domain:
-    in: path
-    name: domain
-    type: string
-    description: DNS record domain
-    required: true
 
 definitions:
   lte_network:
