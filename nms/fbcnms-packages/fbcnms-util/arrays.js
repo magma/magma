@@ -27,11 +27,11 @@ export function setItem<TItem>(
   return newArray;
 }
 
-export function updateItem<TItem: {}, TValue>(
+export function updateItem<TItem: {}, TProp: $Keys<TItem>>(
   input: $ReadOnlyArray<TItem>,
   index: number,
-  prop: $Keys<TItem>,
-  value: TValue,
+  prop: TProp,
+  value: $ElementType<TItem, TProp>,
 ): Array<TItem> {
   const newArray = [...input];
   newArray[index] = {
