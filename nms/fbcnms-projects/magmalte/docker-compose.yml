@@ -7,7 +7,7 @@ services:
     image: mysql:5
     environment:
       MYSQL_ROOT_PASSWORD: 12345
-      MYSQL_DATABASE: nms
+      MYSQL_DATABASE_IF_NOT_EXIST: nms
       MYSQL_USER: nms
       MYSQL_PASSWORD: password
     restart: always
