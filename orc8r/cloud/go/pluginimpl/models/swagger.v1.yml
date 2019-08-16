@@ -301,6 +301,103 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/dns/records:
+    get:
+      summary: Get the DNS config records for the network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Custom DNS records for the network
+          schema:
+            $ref: '#/definitions/network_dns_records'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+    put:
+      summary: Change all the DNS records for the network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: records
+          in: body
+          description: Custom DNS records for the network
+          required: true
+          schema:
+            $ref: '#/definitions/network_dns_records'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/dns/records/{domain}:
+    get:
+      summary: Get the DNS config record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+      responses:
+        '200':
+          description: DNS config record
+          schema:
+            $ref: '#/definitions/dns_config_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a DNS record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+        - name: record
+          in: body
+          description: Custom DNS record for the domain
+          required: true
+          schema:
+            $ref: '#/definitions/dns_config_record'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a DNS record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+        - name: record
+          in: body
+          description: Custom DNS record for the domain
+          required: true
+          schema:
+            $ref: '#/definitions/dns_config_record'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete the DNS record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/gateways:
     get:
       summary: List all gateways for a network
@@ -647,6 +744,12 @@ parameters:
     required: true
     minLength: 1
     type: string
+  dns_domain:
+    in: path
+    name: domain
+    type: string
+    description: DNS record domain
+    required: true
 
 definitions:
   network:
@@ -686,9 +789,12 @@ definitions:
         format: uint32
         example: 0
       records:
-        type: array
-        items:
-          $ref: '#/definitions/dns_config_record'
+        $ref: '#/definitions/network_dns_records'
+
+  network_dns_records:
+    type: array
+    items:
+      $ref: '#/definitions/dns_config_record'
 
   dns_config_record:
     description: Mapping used for DNS resolving from a domain

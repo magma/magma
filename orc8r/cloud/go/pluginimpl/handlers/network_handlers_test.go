@@ -726,7 +726,10 @@ func Test_GetNetworkDNSHandlers(t *testing.T) {
 
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	getDNS := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns", obsidian.GET).HandlerFunc
-	getDNSConfig := tests.Test{
+	getDNSRecords := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns/records", obsidian.GET).HandlerFunc
+	getDNSRecordByDomain := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns/records/:domain", obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, "n1"),
 		Payload:        nil,
@@ -737,7 +740,47 @@ func Test_GetNetworkDNSHandlers(t *testing.T) {
 		ExpectedResult: tests.JSONMarshaler(models.NewDefaultDNSConfig()),
 		ExpectedError:  "",
 	}
-	tests.RunUnitTest(t, e, getDNSConfig)
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/dns/records", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getDNSRecords,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(models.NewDefaultDNSConfig().Records),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/dns/records/example.com", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "example.com"},
+		Handler:        getDNSRecordByDomain,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(models.NewDefaultDNSConfig().Records[0]),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/dns/records/google.com", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "google.com"},
+		Handler:        getDNSRecordByDomain,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func Test_PutNetworkDNSHandlers(t *testing.T) {
@@ -751,6 +794,8 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	updateDNS := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns", obsidian.PUT).HandlerFunc
+	updateDNSRecords := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns/records", obsidian.PUT).HandlerFunc
+	updateDNSRecordByDomain := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns/records/:domain", obsidian.PUT).HandlerFunc
 
 	// update full dns validation failure
 	newDNS := models.NewDefaultDNSConfig()
@@ -800,6 +845,149 @@ func Test_PutNetworkDNSHandlers(t *testing.T) {
 	config, err := configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
 	assert.NoError(t, err)
 	assert.Equal(t, newDNS, config)
+
+	// update the records only
+	records := []*models.DNSConfigRecord{
+		{
+			ARecord:     []strfmt.IPv4{"192.88.99.142"},
+			AaaaRecord:  []strfmt.IPv6{"2001:0db8:85a3:0000:0000:8a2e:0370:7334"},
+			CnameRecord: []string{"yahoo.com"},
+			Domain:      "yahoo.com",
+		},
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/dns/records/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(records),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        updateDNSRecords,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	config, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
+	assert.NoError(t, err)
+	assert.Equal(t, models.NetworkDNSRecords(records), config.(*models.NetworkDNSConfig).Records)
+
+	// updating a nonexistent record should fail
+	record := &models.DNSConfigRecord{
+		ARecord:     []strfmt.IPv4{"192.88.99.142"},
+		AaaaRecord:  []strfmt.IPv6{"1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
+		CnameRecord: []string{"google.com"},
+		Domain:      "google.com",
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/dns/records/google.com/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(record),
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "google.com"},
+		Handler:        updateDNSRecordByDomain,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case update yahoo.com record
+	record = &models.DNSConfigRecord{
+		ARecord:     []strfmt.IPv4{"192.88.99.142"},
+		AaaaRecord:  []strfmt.IPv6{"1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
+		CnameRecord: []string{"yahoo.com"},
+		Domain:      "yahoo.com",
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/dns/records/yahoo.com/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(record),
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "yahoo.com"},
+		Handler:        updateDNSRecordByDomain,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	config, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
+	assert.NoError(t, err)
+	assert.Equal(t, record, config.(*models.NetworkDNSConfig).Records[0])
+
+	// delete all records
+	records = []*models.DNSConfigRecord{}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/%s/dns/records/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(records),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        updateDNSRecords,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	config, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
+	assert.NoError(t, err)
+	assert.Empty(t, config.(*models.NetworkDNSConfig).Records)
+}
+
+func Test_CreateNetworkDNSRecord(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks"
+
+	seedNetworks(t)
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	postDNSRecord := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns/records/:domain", obsidian.POST).HandlerFunc
+
+	// validation failure
+	record := &models.DNSConfigRecord{
+		ARecord:     []strfmt.IPv4{"192.88.99.142"},
+		AaaaRecord:  []strfmt.IPv6{"a2e:0370:1234"},
+		CnameRecord: []string{"yahoo.com"},
+		Domain:      "yahoo.com",
+	}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/dns/records/yahoo.com/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(record),
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "yahoo.com"},
+		Handler:        postDNSRecord,
+		ExpectedError:  "validation failure list:\naaaa_record.0 in body must be of type ipv6: \"a2e:0370:1234\"",
+		ExpectedStatus: 400,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// cannot register a record with an existing domain
+	record = models.NewDefaultDNSConfig().Records[0]
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/dns/records/example.com/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(record),
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "example.com"},
+		Handler:        postDNSRecord,
+		ExpectedError:  "A record with domain:example.com already exists",
+		ExpectedStatus: 400,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case
+	record = &models.DNSConfigRecord{
+		ARecord:     []strfmt.IPv4{"192.88.99.142"},
+		AaaaRecord:  []strfmt.IPv6{"1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
+		CnameRecord: []string{"google.com"},
+		Domain:      "google.com",
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/%s/dns/records/google.com/", testURLRoot, "n1"),
+		Payload:        tests.JSONMarshaler(record),
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "google.com"},
+		Handler:        postDNSRecord,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func Test_DeleteNetworkDNSHandlers(t *testing.T) {
@@ -811,10 +999,26 @@ func Test_DeleteNetworkDNSHandlers(t *testing.T) {
 
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	deleteDNS := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns", obsidian.DELETE).HandlerFunc
+	deleteDNSByDomain := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/dns/records/:domain", obsidian.DELETE).HandlerFunc
 
 	seedNetworks(t)
 
 	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            fmt.Sprintf("%s/%s/dns/records/%s", testURLRoot, "n1", "example.com"),
+		ParamNames:     []string{"network_id", "domain"},
+		ParamValues:    []string{"n1", "example.com"},
+		Handler:        deleteDNSByDomain,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	config, err := configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
+	assert.NoError(t, err)
+	dnsConfig := config.(*models.NetworkDNSConfig)
+	assert.Empty(t, dnsConfig.Records)
+
+	tc = tests.Test{
 		Method:         "DELETE",
 		URL:            fmt.Sprintf("%s/%s/dns/", testURLRoot, "n1"),
 		ParamNames:     []string{"network_id"},
@@ -824,8 +1028,9 @@ func Test_DeleteNetworkDNSHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err := configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
+	_, err = configurator.LoadNetworkConfig("n1", orc8r.DnsdNetworkType)
 	assert.EqualError(t, err, "Not found")
+
 }
 
 func seedNetworks(t *testing.T) {
