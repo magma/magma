@@ -2,10 +2,9 @@
 #
 # Provided by IRSOLS Inc
 # Setup Docker CE instead of vanilla centos repos
-# version 0.4
-# last modified 07/21/2019
+# version 0.7
+# last modified 08/14/2019
 
-#TODO: Check OS version and change installer accordingly
 # Check Distro
 export DISTRO=`cat /etc/*release| grep centos | head -1 | sed s/ID=//g | sed s/\"//g`
 
@@ -37,17 +36,6 @@ if [[ $DISTRO = centos ]] ; then
  systemctl start docker
  systemctl enable docker
 
- # Install and setup  Docker Compose
- sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
- sudo chmod +x /usr/local/bin/docker-compose
- docker-compose --version
-
-
- # Install and setup docker machine
- base=https://github.com/docker/machine/releases/download/v0.16.0 &&
-   curl -L $base/docker-machine-$(uname -s)-$(uname -m) >/tmp/docker-machine &&
-   sudo install /tmp/docker-machine /usr/local/bin/docker-machine
- docker-machine version
 
 else
     echo "distro is: not Centos"
@@ -73,6 +61,14 @@ sudo apt-get -y install docker-ce docker-ce-cli containerd.io
 
 
 fi
-exit
 
+ # Install and setup  Docker Compose
+ sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+ sudo chmod +x /usr/local/bin/docker-compose
+ docker-compose --version
 
+# Install and setup docker machine
+ base=https://github.com/docker/machine/releases/download/v0.16.0 &&
+   curl -L $base/docker-machine-$(uname -s)-$(uname -m) >/tmp/docker-machine &&
+   sudo install /tmp/docker-machine /usr/local/bin/docker-machine
+ docker-machine version
