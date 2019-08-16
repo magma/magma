@@ -47,7 +47,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 ## Authors
 
 * **IRSOLS DevOps Team ** - *Initial Work* - [IRSOLS Inc](https://github.com/irsols-devops)
-  ** Zee Rizvi ** - [Zeeshan Rizvi] (https://linkedin.com/in/zeeshanrizvi)
+* ** Zeeshan Rizvi ** - [Zeeshan Rizvi] (https://linkedin.com/in/zeeshanrizvi)
 
 ## License
 
@@ -56,4 +56,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 ## Acknowledgments
 
 * Inspiration : FB Magma Open Source project
+
 
