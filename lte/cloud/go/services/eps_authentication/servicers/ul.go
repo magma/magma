@@ -14,7 +14,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/crypto"
-	cellular "magma/lte/cloud/go/services/cellular/protos"
+	"magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/orc8r/cloud/go/identity"
 
@@ -77,7 +77,7 @@ func (srv *EPSAuthServer) UpdateLocation(ctx context.Context, ulr *protos.Update
 			MaxBandwidthDl: uint32(profile.MaxDlBitRate),
 		},
 		Apn: []*protos.UpdateLocationAnswer_APNConfiguration{
-			&protos.UpdateLocationAnswer_APNConfiguration{
+			{
 				Ambr: &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
 					MaxBandwidthUl: uint32(profile.MaxUlBitRate),
 					MaxBandwidthDl: uint32(profile.MaxDlBitRate),
@@ -96,17 +96,18 @@ func (srv *EPSAuthServer) UpdateLocation(ctx context.Context, ulr *protos.Update
 }
 
 // getSubProfile looks up the subscription profile to be used for a subscriber.
-func getSubProfile(profileName string, config *EpsAuthConfig) *cellular.NetworkEPCConfig_SubscriptionProfile {
+func getSubProfile(profileName string, config *EpsAuthConfig) *models.NetworkEpcConfigsSubProfilesAnon {
+
 	profile, ok := config.SubProfiles[profileName]
-	if ok && profile != nil {
-		return profile
+	if ok {
+		return &profile
 	}
 	metrics.UnknownSubProfiles.Inc()
 
 	profile, ok = config.SubProfiles["default"]
-	if ok && profile != nil {
+	if ok {
 		glog.V(2).Infof("Subscriber profile '%s' not found, using default profile instead", profileName)
-		return profile
+		return &profile
 	}
 
 	return nil
