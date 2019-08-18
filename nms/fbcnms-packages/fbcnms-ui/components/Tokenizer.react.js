@@ -110,15 +110,15 @@ const autoSuggestStyles = theme => ({
 
 type Props = {
   searchSource: 'Options' | 'UserInput',
+  tokens: Array<Entry>,
   searchEntries?: Array<Entry>,
   onEntriesRequested: (searchTerm: string) => void,
-  onChange?: (entries: Array<Entry>) => void,
+  onChange: (entries: Array<Entry>) => void,
   onBlur?: () => void,
   theme: Theme,
 } & WithStyles<typeof styles>;
 
 type State = {
-  tokens: Array<Entry>,
   searchTerm: string,
 };
 
@@ -127,7 +127,6 @@ const ENTER_KEY_CODE = 13;
 
 class Tokenizer extends React.Component<Props, State> {
   state = {
-    tokens: [],
     searchTerm: '',
   };
 
@@ -136,12 +135,13 @@ class Tokenizer extends React.Component<Props, State> {
       classes,
       theme,
       searchSource,
+      tokens,
       searchEntries,
       onEntriesRequested,
       onChange,
       onBlur,
     } = this.props;
-    const {tokens, searchTerm} = this.state;
+    const {searchTerm} = this.state;
     const entries =
       searchSource === 'Options' && searchEntries
         ? searchEntries
@@ -157,12 +157,7 @@ class Tokenizer extends React.Component<Props, State> {
             <ClearIcon
               className={classes.chipDeleteIcon}
               onMouseDown={e => {
-                this.setState(
-                  prevState => ({
-                    tokens: prevState.tokens.filter(t => t.id !== token.id),
-                  }),
-                  () => onChange && onChange(this.state.tokens),
-                );
+                onChange(tokens.filter(t => t.id !== token.id));
                 e.preventDefault();
               }}
             />
@@ -174,13 +169,10 @@ class Tokenizer extends React.Component<Props, State> {
           onSuggestionsFetchRequested={({value}) => onEntriesRequested(value)}
           renderSuggestion={entry => <div>{entry.label}</div>}
           onSuggestionSelected={(e, {suggestion}) => {
-            this.setState(
-              prevState => ({
-                tokens: [...prevState.tokens, suggestion],
-                searchTerm: '',
-              }),
-              () => onChange && onChange(this.state.tokens),
-            );
+            this.setState({
+              searchTerm: '',
+            });
+            onChange([...tokens, suggestion]);
           }}
           inputProps={{
             placeholder: '',
@@ -200,16 +192,7 @@ class Tokenizer extends React.Component<Props, State> {
               ) {
                 return;
               }
-
-              this.setState(
-                prevState => ({
-                  tokens: prevState.tokens.slice(
-                    0,
-                    prevState.tokens.length - 1,
-                  ),
-                }),
-                () => onChange && onChange(this.state.tokens),
-              );
+              onChange(tokens.slice(0, tokens.length - 1));
             },
             onChange: (_e, {newValue}) => this.setState({searchTerm: newValue}),
             onBlur: () => onBlur && onBlur(),
