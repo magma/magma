@@ -42,6 +42,7 @@ export const USERS_EXPECTED = [
     email: 'valid@123.com',
     organization: 'validorg',
     role: 0,
+    tabs: [],
   },
   {
     networkIDs: [],
@@ -49,6 +50,7 @@ export const USERS_EXPECTED = [
     email: 'noorg@123.com',
     organization: 'nottakenintoconsideration',
     role: 0,
+    tabs: [],
   },
   {
     networkIDs: [],
@@ -56,5 +58,6 @@ export const USERS_EXPECTED = [
     email: 'superuser@123.com',
     organization: 'validorg',
     role: 3,
+    tabs: [],
   },
 ];

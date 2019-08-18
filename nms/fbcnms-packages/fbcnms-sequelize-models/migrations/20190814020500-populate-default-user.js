@@ -9,50 +9,50 @@
  */
 
 import bcrypt from 'bcryptjs';
-import nullthrows from '@fbcnms/util/nullthrows';
 import type {DataTypes, QueryInterface} from 'sequelize';
 
 module.exports = {
-  up: async (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
-    if (!process.env.FB_TEST_USER) {
+  up: async (queryInterface: QueryInterface, _: DataTypes) => {
+    const email = process.env.FB_TEST_USER;
+    if (!email) {
       return Promise.resolve(null);
     }
 
-    const testuser = nullthrows(process.env.FB_TEST_USER);
-
     const salt = await bcrypt.genSalt(10);
-    const passwordHash = await bcrypt.hash(testuser, salt);
+    const passwordHash = await bcrypt.hash(email, salt);
 
     return queryInterface.bulkInsert(
       'Users',
       [
         {
-          email: testuser,
+          email: email,
           organization: 'master',
           password: passwordHash,
           role: 3,
-          createdAt: '2019-07-07 15:19:42',
-          updatedAt: '2019-07-07 15:19:42',
+          createdAt: new Date(),
+          updatedAt: new Date(),
           networkIDs: '[]',
+          tabs: '[]',
         },
         {
-          email: testuser,
+          email: email,
           organization: 'fb-test',
           password: passwordHash,
           role: 3,
-          createdAt: '2019-07-07 15:19:42',
-          updatedAt: '2019-07-07 15:19:42',
+          createdAt: new Date(),
+          updatedAt: new Date(),
           networkIDs: '["mpk_test"]',
+          tabs: '["inventory", "nms"]',
         },
       ],
       {},
     );
   },
 
-  down: (queryInterface: QueryInterface, _Sequelize: DataTypes) => {
-    if (!process.env.FB_TEST_USER) {
-      return Promise.resolve(null);
+  down: (queryInterface: QueryInterface, _: DataTypes) => {
+    if (process.env.FB_TEST_USER) {
+      return queryInterface.bulkDelete('Users', null, {});
     }
-    return queryInterface.bulkDelete('Users', null, {});
+    return Promise.resolve(null);
   },
 };
