@@ -99,6 +99,25 @@ matrix:
         - go test ./...
         - go vet ./...
 
+    - name: devmand docker image tests
+      os: linux
+      dist: xenial
+
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR
+
+      before_script:
+        - cd ${MAGMA_ROOT}/devmand/docker
+        - ./scripts/build_all
+
+      script:
+        - cd ${MAGMA_ROOT}/devmand/docker
+        - ./scripts/test
+
+      after_success:
+        - cd ${MAGMA_ROOT}/devmand/docker
+        - ./scripts/push
+
     - language: minimal
       name: LTE gateway python unit tests
       os: linux
@@ -131,4 +150,3 @@ notifications:
     on_success: change
     on_failure: always
     on_pull_requests: false
-
