@@ -120,6 +120,26 @@ func DeleteSubscriber(id string) error {
 	return err
 }
 
+// DeRegisterSubscriber de-registers a subscriber by their Id.
+// If the subscriber is not found, an error is returned instead.
+// Input: The id of the subscriber to be deleted.
+func DeregisterSubscriber(id string) error {
+	err := verifyID(id)
+	if err != nil {
+		errMsg := fmt.Errorf("Invalid DeregisterSubscriberRequest provided: %s", err)
+		return errors.New(errMsg.Error())
+	}
+	cli, err := getHSSClient()
+	if err != nil {
+		return err
+	}
+	subID := &lteprotos.SubscriberID{
+		Id: id,
+	}
+	_, err = cli.DeregisterSubscriber(context.Background(), subID)
+	return err
+}
+
 func VerifySubscriberData(sub *lteprotos.SubscriberData) error {
 	if sub == nil {
 		return fmt.Errorf("subscriber is nil")
