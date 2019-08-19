@@ -62,9 +62,9 @@ mkdir -p "$INSTALL_DIR"
 MAGMA_GITHUB_URL="https://github.com/facebookincubator/magma.git"
 git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
-# TODO: Add this back once this code is included in a github version
-#TAG=$(git -C $INSTALL_DIR/magma tag | tail -1)
-#git -C $INSTALL_DIR/magma checkout "tags/$TAG"
+
+source .env
+git -C $INSTALL_DIR/magma checkout "$IMAGE_VERSION"
 
 # Ensure this script hasn't changed
 if ! cmp "$INSTALL_DIR"/magma/orc8r/tools/docker/install_gateway.sh install_gateway.sh; then
@@ -92,7 +92,8 @@ if [ "$GW_TYPE" == "$FEG" ]; then
 fi
 
 cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose.yml .
-cp "$INSTALL_DIR"/magma/orc8r/tools/docker/upgrade_gateway.sh .
+cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services.sh .
+cp "$INSTALL_DIR"/magma/orc8r/tools/docker/recreate_services_cron .
 
 # Install Docker
 sudo apt-get update
@@ -140,11 +141,11 @@ cp control_proxy.yml /etc/magma/
 cp docker-compose.yml /var/opt/magma/docker/
 cp .env /var/opt/magma/docker/
 
-# Copy upgrade script for future usage
-cp upgrade_gateway.sh /var/opt/magma/docker/
+# Copy recreate_services scripts to complete auto-upgrades
+cp recreate_services.sh /var/opt/magma/docker/
+cp recreate_services_cron /etc/cron.d/
 
 cd /var/opt/magma/docker
-source .env
 
 echo "Logging into docker registry at $DOCKER_REGISTRY"
 docker login "$DOCKER_REGISTRY"
