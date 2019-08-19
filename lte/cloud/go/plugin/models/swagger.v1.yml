@@ -1144,6 +1144,51 @@ definitions:
           - 'metering'
           - 'dpi'
           - 'policy_enforcement'
+      mobility:
+        type: object
+        description: Configuration for IP Allocation (Mobility).
+        required:
+          - ip_allocation_mode
+        properties:
+          ip_allocation_mode:
+            type: string
+            x-nullable: false
+            enum:
+              - 'NAT'
+              - 'STATIC'
+              - 'DHCP_PASSTHROUGH'
+              - 'DHCP_BROADCAST'
+            example: 'NAT'
+          reserved_addresses:
+            type: array
+            items:
+              type: string
+              format: ipv4
+              example: 192.168.0.1
+          nat:
+            type: object
+            properties:
+              ip_blocks:
+                type: array
+                items:
+                  type: string
+                  minLength: 5
+                  maxLength: 49
+                  example: '192.168.0.0/16'
+          static:
+            type: object
+            properties:
+              ip_blocks_by_tac:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: string
+                    minLength: 5
+                    maxLength: 49
+                example:
+                  1: ['192.168.0.0/16']
+                  2: ['172.10.0.0/16', '172.20.0.0/16']
 
   lte_gateway:
     type: object

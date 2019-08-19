@@ -10,6 +10,7 @@ package models
 
 import (
 	"fmt"
+	"net"
 
 	"magma/lte/cloud/go/services/cellular/utils"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -56,6 +57,10 @@ func (m *NetworkEpcConfigs) ValidateModel() error {
 		return err
 	}
 
+	if err := m.Mobility.validateMobility(); err != nil {
+		return err
+	}
+
 	for name := range m.SubProfiles {
 		if name == "" {
 			return errors.New("profile name should be non-empty")
@@ -71,6 +76,7 @@ func (m *NetworkRanConfigs) ValidateModel() error {
 
 	tddConfigSet := m.TddConfig != nil
 	fddConfigSet := m.FddConfig != nil
+
 	if tddConfigSet && fddConfigSet {
 		return errors.New("only one of TDD or FDD configs can be set")
 	} else if !tddConfigSet && !fddConfigSet {
@@ -107,4 +113,49 @@ func (m *NetworkRanConfigs) getEarfcnDl() uint32 {
 	}
 	// This should truly be unreachable
 	return 0
+}
+
+func (m *NetworkEpcConfigsMobility) validateMobility() error {
+	mobilityNatConfigSet := m.Nat != nil
+	mobilityStaticConfigSet := m.Static != nil
+	// TODO: Add validation for DHCP once is added to EPC config
+
+	if mobilityNatConfigSet && mobilityStaticConfigSet {
+		return errors.New("only one of the mobility IP allocation modes can be set")
+	}
+
+	if mobilityNatConfigSet {
+		if m.IPAllocationMode != NATAllocationMode {
+			return errors.New("invalid config set for NAT allocation mode")
+		}
+
+		if err := validateIPBlocks(m.Nat.IPBlocks); err != nil {
+			return errors.New("invalid IP block on config")
+		}
+	}
+	if mobilityStaticConfigSet {
+		if m.IPAllocationMode != StaticAllocationMode {
+			return errors.New("invalid config set for STATIC allocation mode")
+		}
+
+		for _, ipBlocks := range m.Static.IPBlocksByTac {
+			if err := validateIPBlocks(ipBlocks); err != nil {
+				return errors.New("invalid IP block on config")
+			}
+		}
+	}
+
+	return nil
+}
+
+// validateIPBlocks parses and validates IP networks containing subnet masks.
+// Returns an error in case any IP network in list is invalid.
+func validateIPBlocks(ipBlocks []string) error {
+	for _, ipBlock := range ipBlocks {
+		_, _, err := net.ParseCIDR(ipBlock)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
