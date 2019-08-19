@@ -108,6 +108,11 @@ services:
     network_mode: host
     restart: always
 
+  radiusd:
+    <<: *feggoservice
+    container_name: radiusd
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+
   redis:
     <<: *pyservice
     container_name: redis
