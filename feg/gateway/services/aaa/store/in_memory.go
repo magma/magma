@@ -25,6 +25,7 @@ import (
 // Session - struct to save an authenticated session state
 type memSession struct {
 	*protos.Context
+	imsi            string
 	cleanupTimerCtx unsafe.Pointer // *cleanupTimerCtx
 	mu              sync.Mutex
 }
@@ -72,13 +73,14 @@ func (s *memSession) StopTimeout() bool {
 
 // SessionTable - synchronized map of authenticated sessions
 type memSessionTable struct {
-	sm  map[string]*memSession
-	rwl sync.RWMutex // R/W lock synchronizing maps access
+	sm   map[string]*memSession
+	sids map[string]string // Session IDs by IMSI: SID[IMSI]
+	rwl  sync.RWMutex      // R/W lock synchronizing maps access
 }
 
 // NewSessionTable - returns a new initialized session table
 func NewMemorySessionTable() aaa.SessionTable {
-	return &memSessionTable{sm: map[string]*memSession{}}
+	return &memSessionTable{sm: map[string]*memSession{}, sids: map[string]string{}}
 }
 
 // AddSession - adds a new session to the table & returns the newly created session pointer.
@@ -101,22 +103,22 @@ func (st *memSessionTable) AddSession(
 		tout = aaa.MinimalSessionTimeout
 	}
 
-	s := &memSession{Context: pc}
-
+	imsi := pc.GetImsi()
+	s := &memSession{Context: pc, imsi: imsi}
 	st.rwl.Lock()
 	if oldSession, ok := st.sm[sid]; ok {
 		if len(overwrite) > 0 && overwrite[0] {
 			oldSession.StopTimeout()
-			go func() {
-				oldImsi := "<nil>"
-				if oldSession != nil {
-					oldSession.Lock()
-					oldImsi = oldSession.GetImsi()
-					oldSession.Unlock()
+			if oldSession != nil {
+				oldImsi := oldSession.imsi
+				if oldImsi != imsi {
+					if oldSid, ok := st.sids[oldImsi]; ok && oldSid == sid {
+						delete(st.sids, oldImsi)
+					}
 				}
 				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
-					sid, oldImsi, s.GetImsi())
-			}()
+					sid, oldImsi, imsi)
+			}
 		} else {
 			st.rwl.Unlock() // return old session is "best effort", done outside of the table lock
 			return oldSession, fmt.Errorf("Session with SID: %s already exist", sid)
@@ -124,6 +126,7 @@ func (st *memSessionTable) AddSession(
 	}
 
 	st.sm[sid] = s
+	st.sids[imsi] = sid
 	st.rwl.Unlock()
 
 	setTimeoutUnsafe(st, sid, tout, s, notifier)
@@ -134,13 +137,21 @@ func (st *memSessionTable) AddSession(
 func (st *memSessionTable) GetSession(sid string) aaa.Session {
 	var s *memSession
 	if st != nil {
-		var ok bool
 		st.rwl.RLock()
-		if s, ok = st.sm[sid]; ok && s != nil {
-		}
+		s, _ = st.sm[sid]
 		st.rwl.RUnlock()
 	}
 	return s
+}
+
+// FindSession returns session corresponding to the given sid or nil if not found
+func (st *memSessionTable) FindSession(imsi string) (sid string) {
+	if st != nil {
+		st.rwl.RLock()
+		sid, _ = st.sids[imsi]
+		st.rwl.RUnlock()
+	}
+	return sid
 }
 
 // RemoveSession - removes the session with the given SID and returns it
@@ -151,6 +162,9 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 		st.rwl.Lock()
 		if s, found = st.sm[sid]; found {
 			delete(st.sm, sid)
+			if oldSid, ok := st.sids[s.imsi]; ok && oldSid == sid {
+				delete(st.sids, s.imsi)
+			}
 		}
 		st.rwl.Unlock()
 		if found && s != nil {
@@ -198,6 +212,9 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 			if ms, ok := ctx.owner.sm[ctx.sidKey]; ok && ms == ctx.s {
 				if atomic.CompareAndSwapPointer((*unsafe.Pointer)(&ms.cleanupTimerCtx), unsafe.Pointer(ctx), nil) {
 					delete(ctx.owner.sm, ctx.sidKey)
+					if oldSid, ok := ctx.owner.sids[ms.imsi]; ok && oldSid == ctx.sidKey {
+						delete(ctx.owner.sids, ms.imsi)
+					}
 					deleted = true
 				}
 			}
