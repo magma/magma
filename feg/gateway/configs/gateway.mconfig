@@ -12,6 +12,14 @@
       "autoupgradeEnabled": false,
       "autoupgradePollInterval": 300,
       "package_version": "0.0.0-0"
+    },
+    "radiusd": {
+      "@type": "type.googleapis.com/magma.mconfig.RadiusdConfig",
+      "logLevel": "INFO",
+      "radiusMetricsHost": "radius",
+      "radiusMetricsPort": 9100,
+      "radiusMetricsPath": "metrics",
+      "updateIntervalSecs": 60
     }
   }
 }

@@ -142,4 +142,6 @@ message RadiusdConfig {
     string radius_metrics_path = 2;
     // Interval in seconds between fetching and updating metrics
     uint32 update_interval_secs = 3;
+    // Hostname for prometheus metrics
+    string radius_metrics_host = 4;
 }
