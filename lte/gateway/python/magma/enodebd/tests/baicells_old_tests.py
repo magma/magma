@@ -8,18 +8,16 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 # pylint: disable=protected-access
-from unittest import TestCase, mock
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.tr069 import models
 from magma.enodebd.tests.test_utils.tr069_msg_builder import \
     Tr069MessageBuilder
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
     EnodebAcsStateMachineBuilder
-from magma.enodebd.tests.test_utils.mock_functions import \
-    mock_get_ip_from_if, GET_IP_FROM_IF_PATH
+from magma.enodebd.tests.test_utils.enodeb_handler import EnodebHandlerTestCase
 
 
-class BaicellsOldHandlerTests(TestCase):
+class BaicellsOldHandlerTests(EnodebHandlerTestCase):
     def test_initial_enb_bootup(self) -> None:
         """
         Baicells does not support configuration during initial bootup of
@@ -125,8 +123,7 @@ class BaicellsOldHandlerTests(TestCase):
                         'State machine should end TR-069 session after '
                         'receiving a RebootResponse')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_provision_without_invasive_changes(self, _mock_func) -> None:
+    def test_provision_without_invasive_changes(self) -> None:
         """
         Test the scenario where:
         - eNodeB has already been powered for 10 minutes without configuration
@@ -242,8 +239,7 @@ class BaicellsOldHandlerTests(TestCase):
         self.assertTrue(isinstance(resp, models.GetParameterValues),
                         'State machine should be requesting param values')
 
-    @mock.patch(GET_IP_FROM_IF_PATH, side_effect=mock_get_ip_from_if)
-    def test_reboot_after_invasive_changes(self, _mock_func) -> None:
+    def test_reboot_after_invasive_changes(self) -> None:
         """
         Test the scenario where:
         - eNodeB has already been powered for 10 minutes without configuration
@@ -379,3 +375,85 @@ class BaicellsOldHandlerTests(TestCase):
                         'enodebd should be requesting params')
         self.assertTrue(len(resp.ParameterNames.string) > 1,
                         'Should be requesting transient params.')
+
+    def test_reboot_without_getting_optional(self) -> None:
+        """
+        The state machine should not skip figuring out which optional
+        parameters are present.
+        """
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder \
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS_OLD)
+
+        # Send an Inform message, wait for an InformResponse
+        inform_msg = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003',
+                                           ['2 PERIODIC'])
+        resp = acs_state_machine.handle_tr069_message(inform_msg)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        # And now reboot the eNodeB
+        acs_state_machine.transition('reboot')
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.Reboot))
+        req = Tr069MessageBuilder.get_reboot_response()
+        resp = acs_state_machine.handle_tr069_message(req)
+
+        # After the reboot has been received, enodebd should end the
+        # provisioning session
+        self.assertTrue(isinstance(resp, models.DummyInput),
+                        'After sending command to reboot the Baicells eNodeB, '
+                        'enodeb should end the TR-069 session.')
+
+        # At this point, sometime after the eNodeB reboots, we expect it to
+        # send an Inform indicating reboot. Since it should be in REM process,
+        # we hold off on finishing configuration, and end TR-069 sessions.
+        req = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003',
+                                           ['1 BOOT', 'M Reboot'])
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.DummyInput),
+                        'After receiving a post-reboot Inform, enodebd '
+                        'should end TR-069 sessions for 10 minutes to wait '
+                        'for REM process to finish.')
+
+        # Pretend that we have waited, and now we are in normal operation again
+        acs_state_machine.transition('wait_inform_post_reboot')
+        req = \
+            Tr069MessageBuilder.get_inform('48BF74',
+                                           'BaiStation_V100R001C00B110SPC002',
+                                           '120200002618AGP0003',
+                                           ['2 PERIODIC'])
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.InformResponse),
+                        'After receiving a post-reboot Inform, enodebd '
+                        'should end TR-069 sessions for 10 minutes to wait '
+                        'for REM process to finish.')
+
+        # Since we haven't figured out the presence of optional parameters, the
+        # state machine should be requesting them now. There are three for the
+        # Baicells state machine.
+        req = models.DummyInput()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'enodebd should be requesting params')
+        self.assertTrue(len(resp.ParameterNames.string) == 1,
+                        'Should be requesting optional params.')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param')
+        self.assertTrue(len(resp.ParameterNames.string) == 1,
+                        'Should be requesting optional params.')
+        req = Tr069MessageBuilder.get_fault()
+        resp = acs_state_machine.handle_tr069_message(req)
+        self.assertTrue(isinstance(resp, models.GetParameterValues),
+                        'State machine should be requesting param')
+        self.assertTrue(len(resp.ParameterNames.string) == 1,
+                        'Should be requesting optional params.')

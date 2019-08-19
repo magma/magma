@@ -31,7 +31,8 @@ add_library(SERVICE303_LIB
 )
 
 target_link_libraries(SERVICE303_LIB
-  SERVICE_REGISTRY LOGGING prometheus-cpp
+  prometheus-cpp protobuf grpc grpc++
+  SERVICE_REGISTRY LOGGING
 )
 
 # copy headers to build directory so they can be shared with OAI,
@@ -42,5 +43,6 @@ add_custom_command(TARGET SERVICE303_LIB POST_BUILD
                    $<TARGET_FILE_DIR:SERVICE303_LIB>)
 
 target_include_directories(SERVICE303_LIB PUBLIC
-                  $<TARGET_FILE_DIR:SERVICE303_LIB>
+  $<TARGET_FILE_DIR:SERVICE303_LIB>
+  "/usr/local/include/prometheus"
 )

@@ -28,7 +28,6 @@
 #include "intertask_interface.h"
 #include "s6a_defs.h"
 #include "s6a_messages.h"
-#include "msc.h"
 #include "log.h"
 #include "common_defs.h"
 #include "bstrlib.h"
@@ -97,14 +96,6 @@ int s6a_pua_cb(
     CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
     s6a_purge_ue_ans_p->result.present = S6A_RESULT_BASE;
     s6a_purge_ue_ans_p->result.choice.base = hdr_p->avp_value->u32;
-    MSC_LOG_TX_MESSAGE(
-      MSC_S6A_MME,
-      MSC_MMEAPP_MME,
-      NULL,
-      0,
-      "0 S6A_PURGE_UE_ANS imsi %s %s",
-      s6a_purge_ue_ans_p->imsi,
-      retcode_2_string(hdr_p->avp_value->u32));
 
     if (hdr_p->avp_value->u32 != ER_DIAMETER_SUCCESS) {
       OAILOG_ERROR(

@@ -13,8 +13,9 @@ import (
 	"fmt"
 	"log"
 
+	"magma/feg/gateway/services/aaa/protos"
+	aaa "magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 
 	"google.golang.org/grpc/codes"
@@ -53,7 +54,7 @@ func EapErrorResPacketWithMac(id uint8, code uint16, K_aut []byte, rpcCode codes
 func EapErrorRes(
 	id uint8, code uint16,
 	rpcCode codes.Code,
-	ctx *protos.EapContext,
+	ctx *aaa.Context,
 	f string, a ...interface{}) (*protos.Eap, error) {
 
 	Errorf(rpcCode, f, a...) // log only

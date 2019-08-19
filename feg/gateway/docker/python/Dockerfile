@@ -55,15 +55,22 @@ RUN apt-get -y update && apt-get -y install \
   magma-nghttpx=1.31.1-1 \
   net-tools \
   openssl \
+  iputils-ping \
   pkg-config \
   python-cffi \
   python3-pip \
-  redis-server
+  redis-server \
+  git
 
 # Install docker.
 RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
     sh /tmp/get_docker.sh && \
     rm /tmp/get_docker.sh
+
+# Install docker-compose for upgrades
+RUN curl -L "https://github.com/docker/compose/releases/download/1.25.0-rc1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose
+RUN chmod 755 /usr/bin/docker-compose
+
 
 # Install python code.
 COPY orc8r/gateway/python /tmp/orc8r
@@ -74,8 +81,6 @@ COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
-# Add docker config overrides
-COPY feg/gateway/docker/configs /etc/magma
 
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb

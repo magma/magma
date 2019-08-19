@@ -11,58 +11,39 @@ package handlers
 import (
 	"net/http"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/serde"
-	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
-	stateservice "magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/errors"
+	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/services/state"
 
 	"github.com/labstack/echo"
 )
 
-const AgStatusUrl = handlers.NETWORKS_ROOT + "/:network_id/gateways/:device_id/gateway_status"
+const AgStatusURL = obsidian.NetworksRoot + "/:network_id/gateways/:gw_hardware_id/gateway_status"
 
 // GetObsidianHandlers returns all handlers for state
-func GetObsidianHandlers() []handlers.Handler {
-	return []handlers.Handler{
+func GetObsidianHandlers() []obsidian.Handler {
+	return []obsidian.Handler{
 		{
-			Path:        AgStatusUrl,
-			Methods:     handlers.GET,
+			Path:        AgStatusURL,
+			Methods:     obsidian.GET,
 			HandlerFunc: AGStatusByDeviceIDHandler,
 		},
 	}
 }
 
 func AGStatusByDeviceIDHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	deviceID := c.Param("device_id")
-	gwStatusModel, err := GetGWStatus(networkID, deviceID)
+	deviceID := c.Param("gw_hardware_id")
+	gwStatusModel, err := state.GetGatewayStatus(networkID, deviceID)
+	if err == errors.ErrNotFound || gwStatusModel == nil {
+		return c.NoContent(http.StatusNotFound)
+	}
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, &gwStatusModel)
-}
-
-func GetGWStatus(networkID string, deviceID string) (*checkind_models.GatewayStatus, error) {
-	state, err := stateservice.GetState(networkID, "gw_state", deviceID)
-	if err != nil {
-		return nil, err
-	}
-	deserializedValue, err := serde.Deserialize(
-		stateservice.SerdeDomain,
-		"gw_state",
-		state.ReportedValue,
-	)
-	gwStatus := deserializedValue.(checkind_models.GatewayStatus)
-	gwStatus.CheckinTime = state.Time
-	gwStatus.CertExpirationTime = state.CertExpirationTime
-	// Use the hardware ID from the middleware
-	gwStatus.HardwareID = state.ReporterID
-	// Populate deprecated fields to support API backwards compatibility
-	// TODO: Remove this and related tests when deprecated fields are no longer used
-	gwStatus.FillDeprecatedFields()
-	return &gwStatus, nil
 }

@@ -9,26 +9,26 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
 import type {Gateway} from './GatewayUtils';
+import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 import Button from '@material-ui/core/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import React from 'react';
 import Divider from '@material-ui/core/Divider';
-import Typography from '@material-ui/core/Typography';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import Select from '@material-ui/core/Select';
+import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
+import {MagmaAPIUrls} from '../common/MagmaAPI';
 
-import {merge} from 'lodash-es';
+import {merge} from 'lodash';
+import {toString} from './GatewayUtils';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-import {toString} from './GatewayUtils';
 
 const styles = _theme => ({
   input: {
@@ -44,7 +44,7 @@ const styles = _theme => ({
 });
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gatewayID: string) => void,
     gateway: Gateway,

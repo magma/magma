@@ -12,8 +12,10 @@ import (
 	"fmt"
 	"os"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/cloud/go/services/magmad"
 
@@ -77,6 +79,10 @@ func setHwIdFlag() error {
 }
 
 func getHwId(networkId string, logicalId string) (string, error) {
+	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
+	if useConfigurator == "1" {
+		return configurator.GetPhysicalIDOfEntity(networkId, orc8r.MagmadGatewayType, logicalId)
+	}
 	gwRecord, err := magmad.FindGatewayRecord(networkId, logicalId)
 	if err != nil {
 		return "", err

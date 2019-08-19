@@ -1,7 +1,8 @@
 # ------------------------------------------------------------------------------
 # Base image (for tests, precommit, codegen, etc.)
 # ------------------------------------------------------------------------------
-FROM ubuntu:xenial as base
+ARG baseImage="ubuntu:xenial"
+FROM ${baseImage} as base
 
 # Install the runtime deps from apt
 RUN apt-get update && \
@@ -18,6 +19,8 @@ ENV GO111MODULE on
 ENV GOBIN /build/bin
 ENV PLUGIN_DIR /build/plugins
 ENV PATH ${PATH}:${GOBIN}
+# Use public go modules proxy
+ENV GOPROXY https://proxy.golang.org
 
 # Install protobuf compiler
 RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
@@ -56,6 +59,12 @@ FROM base as builder
 
 RUN . /etc/profile.d/env.sh && make build
 
+# -----------------------------------------------------------------------------
+# Go-cache base image
+# -----------------------------------------------------------------------------
+FROM ubuntu:xenial as gocache
+COPY --from=builder /root/.cache /root/.cache
+
 # ------------------------------------------------------------------------------
 # Production image
 # ------------------------------------------------------------------------------
@@ -79,6 +88,8 @@ ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,EPS_AUTHENTICATION,METRICSD,CHECKI
 ENV SERVICE_HOST_NAME localhost
 # TODO: fix metricsd for fetching host level metrics
 ENV HOST_NAME dev
+
+COPY src/magma/orc8r/cloud/docker/wait-for-it.sh /usr/local/bin
 
 # Copy the configs
 COPY configs /etc/magma/configs

@@ -1,0 +1,38 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+---
+- name: Set up Carrier WiFi Access Gateway Integration Test VM for development
+  hosts: cwag_test
+  become: yes
+  vars:
+    - magma_root: /home/{{ ansible_user }}/magma
+    - user: "{{ ansible_user }}"
+    - full_provision: true
+  roles:
+    - role: golang
+  tasks:
+    - name: Set build environment variables
+      lineinfile:
+        dest: /etc/environment
+        state: present
+        line: "{{ item }}"
+      with_items:
+        - MAGMA_ROOT={{ magma_root }}
+      when: full_provision
+    # Required by some go libraries
+    - name: Install bzr dependency
+      apt:
+        name: bzr
+        state: present
+    # Required to start the UE Simulator in the background
+    - name: Install tmux
+      apt:
+        name: tmux
+        state: present
+    - name: Install build-essential pkgs
+      apt:
+        name: build-essential
+        state: present

@@ -197,6 +197,12 @@
     OCTET_STRING_TO_INT32(aSN, x);                                             \
   } while (0)
 
+#define BIT_STRING_TO_INT16(aSN, x)                                            \
+  do {                                                                         \
+    DevCheck((aSN)->bits_unused == 0, (aSN)->bits_unused, 0, 0);               \
+    OCTET_STRING_TO_INT16(aSN, x);                                             \
+  } while (0)
+
 #define BIT_STRING_TO_CELL_IDENTITY(aSN, vALUE)                                \
   do {                                                                         \
     DevCheck((aSN)->bits_unused == 4, (aSN)->bits_unused, 4, 0);               \

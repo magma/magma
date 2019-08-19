@@ -26,6 +26,9 @@ var formatsRegistry = strfmt.NewFormats()
 // Config conversion for magmad
 
 func (m *MagmadGatewayConfig) ValidateModel() error {
+	if err := m.ValidateGatewayConfig(); err != nil {
+		return err
+	}
 	return m.Validate(formatsRegistry)
 }
 
@@ -65,44 +68,10 @@ func (m *NetworkRecord) ToProto() *magmadprotos.MagmadNetworkRecord {
 }
 
 func (m *NetworkRecord) ValidateModel() error {
+	if err := m.ValidateNetworkRecord(); err != nil {
+		return err
+	}
 	return m.Validate(formatsRegistry)
-}
-
-// AccessGatewayRecord's FromMconfig fills in models.AccessGatewayRecord struct
-// from passed protos.AccessGatewayRecord.
-// For now the 'fill in" is automatic & relies on Go reflect based
-// protos.FillIn function, so be carefull how you name & 'type' your fields
-func (record *AccessGatewayRecord) FromMconfig(cfg *magmadprotos.AccessGatewayRecord) error {
-	if record != nil && cfg != nil {
-		protos.FillIn(cfg, record)
-		record.HwID = hwIdFromMconfig(cfg.HwId)
-
-		err := fillKeyFromMconfig(cfg.Key, record.Key)
-		if err != nil {
-			return err
-		}
-		return record.Verify()
-	}
-	return nil
-}
-
-// AccessGatewayRecord's ToMconfig fills in passed protos.AccessGatewayRecord
-// struct from receiver's models.AccessGatewayRecord
-// For now the 'fill in" is automatic & relies on Go reflect based
-// protos.FillIn function, so be carefull how you name & 'type' your fields
-func (record *AccessGatewayRecord) ToMconfig() (*magmadprotos.AccessGatewayRecord, error) {
-	ret := &magmadprotos.AccessGatewayRecord{}
-	if record != nil && ret != nil {
-		protos.FillIn(record, ret)
-		ret.HwId = hwIdToMconfig(record.HwID)
-
-		key, err := fillKeyToMconfig(record.Key)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to fill in the key")
-		}
-		ret.Key = key
-	}
-	return ret, nil
 }
 
 // Verify validates given GatewayConfigs
@@ -179,20 +148,6 @@ func (record *MutableGatewayRecord) Verify() error {
 		err = models.ValidateErrorf("Key Validation Error: %s", err)
 	}
 	return err
-}
-
-func hwIdFromMconfig(id *protos.AccessGatewayID) *HwGatewayID {
-	if id == nil {
-		return nil
-	}
-	return &HwGatewayID{ID: id.Id}
-}
-
-func hwIdToMconfig(id *HwGatewayID) *protos.AccessGatewayID {
-	if id == nil {
-		return nil
-	}
-	return &protos.AccessGatewayID{Id: id.ID}
 }
 
 func fillKeyFromMconfig(mkey *protos.ChallengeKey, key *ChallengeKey) error {

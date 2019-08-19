@@ -44,7 +44,6 @@ func TestServiceRun(t *testing.T) {
 	conn, err := registry.GetConnection(checkind.ServiceName)
 	assert.NoError(t, err, "err in getting connection to service")
 	client := protos.NewService303Client(conn)
-	defer conn.Close()
 
 	actualServiceInfo, err := client.GetServiceInfo(context.Background(), new(protos.Void))
 

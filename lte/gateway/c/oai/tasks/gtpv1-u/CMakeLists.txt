@@ -1,8 +1,7 @@
 
 set (GTPV1U_SRC
     gtpv1u_task.c
-    gtpv1u_teid_pool.c
-    )
+)
 
 if (ENABLE_OPENFLOW)  # Use openflow
   set (GTPV1U_SRC ${GTPV1U_SRC} gtp_tunnel_openflow.c)

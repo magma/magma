@@ -11,7 +11,10 @@ package exporters
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -26,20 +29,30 @@ const (
 	pushInterval = time.Second * 30
 )
 
-// CustomPushExporter pushes metrics to a custom prometheus pushgateway
+var (
+	prometheusNameRegex = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
+	nonPromoChars       = regexp.MustCompile("[^a-zA-Z\\d_]")
+)
+
+// CustomPushExporter pushes metrics to one or more custom prometheus pushgateways
 type CustomPushExporter struct {
 	familiesByName map[string]*io_prometheus_client.MetricFamily
 	exportInterval time.Duration
-	pushAddress    string
+	pushAddresses  []string
 	sync.Mutex
 }
 
 // NewCustomPushExporter creates a new exporter to a custom pushgateway
-func NewCustomPushExporter(pushAddress string) mxd_exp.Exporter {
+func NewCustomPushExporter(pushAddresses []string) mxd_exp.Exporter {
+	for i, addr := range pushAddresses {
+		if !strings.HasPrefix(addr, "http") {
+			pushAddresses[i] = fmt.Sprintf("http://%s", addr)
+		}
+	}
 	return &CustomPushExporter{
 		familiesByName: make(map[string]*io_prometheus_client.MetricFamily),
 		exportInterval: pushInterval,
-		pushAddress:    pushAddress,
+		pushAddresses:  pushAddresses,
 	}
 }
 
@@ -56,40 +69,81 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 		if len(metricAndContext.Family.Metric) == 0 {
 			continue
 		}
-		familyName := metricAndContext.Context.MetricName
-		for _, metric := range metricAndContext.Family.Metric {
-			metricType := getMetricType(metric)
-			familyType := *metricAndContext.Family.Type
-			// Metrics must be of the same type as their family. Otherwise prometheus
-			// scrape fails.
-			if metricType != familyType {
-				glog.Errorf("metric type %s not same as family %s: %s\n", metricType, familyType, familyName)
+		originalFamily := metricAndContext.Family
+		originalFamily.Name = sanitizePrometheusName(metricAndContext.Context.MetricName)
+		// Convert all families to gauges to avoid name collisions of different
+		// types.
+		convertedFamilies := convertFamilyToGauges(originalFamily)
+		for _, fam := range convertedFamilies {
+			familyName := fam.GetName()
+			fam.Metric = dropInvalidMetrics(fam.Metric, familyName)
+			// if all metrics from this family were dropped, don't submit it
+			if len(fam.Metric) == 0 {
 				continue
 			}
-			addContextLabelsToMetric(metric, metricAndContext.Context)
-			metric.TimestampMs = &timeStamp
-		}
-		if baseFamily, ok := e.familiesByName[familyName]; ok {
-			addMetricsToFamily(baseFamily, metricAndContext.Family)
-		} else {
-			e.familiesByName[familyName] = metricAndContext.Family
+			for _, metric := range fam.Metric {
+				addContextLabelsToMetric(metric, metricAndContext.Context)
+				metric.TimestampMs = &timeStamp
+			}
+			if baseFamily, ok := e.familiesByName[familyName]; ok {
+				addMetricsToFamily(baseFamily, fam)
+			} else {
+				e.familiesByName[familyName] = fam
+			}
 		}
 	}
 	return nil
 }
 
+// dropInvalidMetrics because invalid label names would cause the entire scrape
+// to fail. Drop them here and log to allow good metrics through
+func dropInvalidMetrics(metrics []*io_prometheus_client.Metric, familyName string) []*io_prometheus_client.Metric {
+	validMetrics := make([]*io_prometheus_client.Metric, 0, len(metrics))
+	for _, metric := range metrics {
+		if err := validateLabels(metric); err != nil {
+			glog.Errorf("Dropping metric %s because of invalid label: %v", familyName, err)
+		} else {
+			validMetrics = append(validMetrics, metric)
+		}
+	}
+	return validMetrics
+}
+
 func addContextLabelsToMetric(metric *io_prometheus_client.Metric, ctx mxd_exp.MetricsContext) {
-	metric.Label = append(
-		metric.Label,
-		&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelGateway), Value: &ctx.GatewayID},
-		&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelNetwork), Value: &ctx.NetworkID},
-	)
+	networkAdded, gatewayAdded := false, false
+	for _, label := range metric.Label {
+		if label.GetName() == NetworkLabelNetwork {
+			label.Value = makeStringPointer(ctx.NetworkID)
+			networkAdded = true
+		}
+		if label.GetName() == NetworkLabelGateway {
+			label.Value = makeStringPointer(ctx.GatewayID)
+			gatewayAdded = true
+		}
+	}
+	if !networkAdded {
+		metric.Label = append(metric.Label,
+			&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelNetwork), Value: &ctx.NetworkID},
+		)
+	}
+	if !gatewayAdded {
+		metric.Label = append(metric.Label,
+			&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelGateway), Value: &ctx.GatewayID},
+		)
+	}
+}
+
+func validateLabels(metric *io_prometheus_client.Metric) error {
+	for _, label := range metric.Label {
+		if !prometheusNameRegex.MatchString(label.GetName()) {
+			return fmt.Errorf("label %s invalid", label.GetName())
+		}
+	}
+	return nil
 }
 
 func addMetricsToFamily(baseFamily *io_prometheus_client.MetricFamily, newFamily *io_prometheus_client.MetricFamily) {
-	for _, metric := range newFamily.GetMetric() {
-		baseFamily.Metric = append(baseFamily.Metric, metric)
-	}
+	baseFamily.Metric = append(baseFamily.Metric, newFamily.Metric...)
 }
 
 func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
@@ -101,19 +155,6 @@ func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 	return buf.String(), nil
 }
 
-func getMetricType(metric *io_prometheus_client.Metric) io_prometheus_client.MetricType {
-	if metric.Counter != nil {
-		return io_prometheus_client.MetricType_COUNTER
-	} else if metric.Gauge != nil {
-		return io_prometheus_client.MetricType_GAUGE
-	} else if metric.Summary != nil {
-		return io_prometheus_client.MetricType_SUMMARY
-	} else if metric.Histogram != nil {
-		return io_prometheus_client.MetricType_HISTOGRAM
-	}
-	return io_prometheus_client.MetricType_UNTYPED
-}
-
 // Start runs exportEvery() in a goroutine to continuously push metrics at every
 // push interval
 func (e *CustomPushExporter) Start() {
@@ -122,41 +163,53 @@ func (e *CustomPushExporter) Start() {
 
 func (e *CustomPushExporter) exportEvery() {
 	for range time.Tick(e.exportInterval) {
-		err := e.export()
-		if err != nil {
-			glog.Errorf("error in pushing to pushgateway: %v", err)
+		errs := e.export()
+		if len(errs) > 0 {
+			glog.Errorf("error in pushing to pushgateway: %v", errs)
 		}
 	}
 }
 
-func (e *CustomPushExporter) export() error {
-	err := e.pushFamilies()
+func (e *CustomPushExporter) export() []error {
+	errs := e.pushFamilies()
 	e.resetFamilies()
-	return err
+	return errs
 }
 
-func (e *CustomPushExporter) pushFamilies() error {
+func (e *CustomPushExporter) pushFamilies() []error {
+	var errs []error
 	if len(e.familiesByName) == 0 {
-		return nil
+		return []error{}
 	}
-	body := bytes.Buffer{}
+	bodyBuilder := strings.Builder{}
+
+	e.Lock()
 	for _, fam := range e.familiesByName {
 		familyString, err := familyToString(fam)
 		if err != nil {
-			return err
+			errs = append(errs, err)
+			continue
 		}
-		body.WriteString(familyString)
-		body.WriteString("\n")
+		bodyBuilder.WriteString(familyString)
+		bodyBuilder.WriteString("\n")
 	}
+	e.Unlock()
+
+	body := bodyBuilder.String()
 	client := http.Client{}
-	resp, err := client.Post(e.pushAddress, "text/plain", &body)
-	if err != nil {
-		return fmt.Errorf("error making request: %v", err)
+	for _, address := range e.pushAddresses {
+		resp, err := client.Post(address, "text/plain", bytes.NewBufferString(body))
+		if err != nil {
+			errs = append(errs, fmt.Errorf("error making request: %v", err))
+			continue
+		}
+		if resp.StatusCode != http.StatusOK {
+			respBody, _ := ioutil.ReadAll(resp.Body)
+			errs = append(errs, fmt.Errorf("error pushing to pushgateway %s: %v", address, string(respBody)))
+			continue
+		}
 	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error pushing to pushgateway: %v", err)
-	}
-	return nil
+	return errs
 }
 
 func (e *CustomPushExporter) resetFamilies() {
@@ -165,4 +218,13 @@ func (e *CustomPushExporter) resetFamilies() {
 
 func makeStringPointer(str string) *string {
 	return &str
+}
+
+func sanitizePrometheusName(name string) *string {
+	sanitizedName := string(nonPromoChars.ReplaceAllString(name, "_"))
+	// If still doesn't match, must be because digit is first character.
+	if !prometheusNameRegex.MatchString(sanitizedName) {
+		sanitizedName = "_" + sanitizedName
+	}
+	return &sanitizedName
 }

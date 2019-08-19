@@ -1,0 +1,10 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+[cwag]
+cwag ansible_ssh_host=192.168.70.101 ansible_ssh_port=22 ansible_user=vagrant ansible_python_interpreter=/usr/bin/python3
+
+[cwag_test]
+cwag_test ansible_ssh_host=192.168.70.102 ansible_ssh_port=22 ansible_user=vagrant ansible_python_interpreter=/usr/bin/python3

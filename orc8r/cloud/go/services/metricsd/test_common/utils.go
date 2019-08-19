@@ -13,17 +13,33 @@ import (
 	dto "github.com/prometheus/client_model/go"
 )
 
+const (
+	GaugeMetricName     = "testGauge"
+	CounterMetricName   = "testCounter"
+	HistogramMetricName = "testHistogram"
+	SummaryMetricName   = "testSummary"
+	UntypedMetricName   = "testUntyped"
+)
+
 func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.LabelPair) *dto.MetricFamily {
 	var testMetric dto.Metric
+	var familyName string
 	switch metricType {
 	case dto.MetricType_COUNTER:
 		testMetric = MakePromoCounter(0)
+		familyName = CounterMetricName
 	case dto.MetricType_SUMMARY:
 		testMetric = MakePromoSummary(map[float64]float64{0.1: 0.01}, []float64{})
+		familyName = SummaryMetricName
 	case dto.MetricType_HISTOGRAM:
 		testMetric = MakePromoHistogram([]float64{1, 5, 10}, []float64{})
+		familyName = HistogramMetricName
+	case dto.MetricType_UNTYPED:
+		testMetric = MakePromoUntyped(0)
+		familyName = UntypedMetricName
 	default:
 		testMetric = MakePromoGauge(0)
+		familyName = GaugeMetricName
 	}
 
 	testMetric.Label = labels
@@ -32,7 +48,7 @@ func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.La
 		metrics = append(metrics, &testMetric)
 	}
 	return &dto.MetricFamily{
-		Name:   MakeStringPointer("testFamily"),
+		Name:   MakeStringPointer(familyName),
 		Help:   MakeStringPointer("testFamilyHelp"),
 		Type:   MakeMetricTypePointer(metricType),
 		Metric: metrics,
@@ -41,7 +57,7 @@ func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.La
 
 func MakePromoGauge(value float64) dto.Metric {
 	var metric dto.Metric
-	gauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: "testGauge", Help: "testGaugeHelp"})
+	gauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: GaugeMetricName, Help: "testGaugeHelp"})
 	gauge.Set(value)
 	gauge.Write(&metric)
 	return metric
@@ -49,7 +65,7 @@ func MakePromoGauge(value float64) dto.Metric {
 
 func MakePromoCounter(value float64) dto.Metric {
 	var metric dto.Metric
-	counter := prometheus.NewCounter(prometheus.CounterOpts{Name: "testCounter", Help: "testCounterHelp"})
+	counter := prometheus.NewCounter(prometheus.CounterOpts{Name: CounterMetricName, Help: "testCounterHelp"})
 	counter.Add(value)
 	counter.Write(&metric)
 	return metric
@@ -59,7 +75,7 @@ func MakePromoSummary(objectives map[float64]float64, observations []float64) dt
 	var metric dto.Metric
 	summary := prometheus.NewSummary(
 		prometheus.SummaryOpts{
-			Name:       "testSummary",
+			Name:       SummaryMetricName,
 			Help:       "testSummaryHelp",
 			Objectives: objectives,
 		},
@@ -75,7 +91,7 @@ func MakePromoHistogram(buckets []float64, observations []float64) dto.Metric {
 	var metric dto.Metric
 	histogram := prometheus.NewHistogram(
 		prometheus.HistogramOpts{
-			Name:    "testHistogram",
+			Name:    HistogramMetricName,
 			Help:    "testHistogramHelp",
 			Buckets: buckets,
 		},
@@ -84,6 +100,13 @@ func MakePromoHistogram(buckets []float64, observations []float64) dto.Metric {
 		histogram.Observe(obs)
 	}
 	histogram.Write(&metric)
+	return metric
+}
+
+func MakePromoUntyped(value float64) dto.Metric {
+	var metric dto.Metric
+	untyped := prometheus.NewUntypedFunc(prometheus.UntypedOpts{Name: UntypedMetricName, Help: "testUntypedHelp"}, func() float64 { return value })
+	untyped.Write(&metric)
 	return metric
 }
 

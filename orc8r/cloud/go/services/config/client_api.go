@@ -30,7 +30,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -40,23 +39,22 @@ const (
 	SerdeDomain = "config_manager"
 )
 
-func getConfigServiceClient() (protos.ConfigServiceClient, *grpc.ClientConn, error) {
+func getConfigServiceClient() (protos.ConfigServiceClient, error) {
 	conn, err := service_registry.GetConnection(ServiceName)
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewConfigServiceClient(conn), conn, err
+	return protos.NewConfigServiceClient(conn), err
 }
 
 // Retrieve a specific config.
 func GetConfig(networkId string, configType string, key string) (interface{}, error) {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	req := &protos.GetOrDeleteConfigRequest{NetworkId: networkId, Type: configType, Key: key}
 	val, err := client.GetConfig(context.Background(), req)
@@ -68,11 +66,10 @@ func GetConfig(networkId string, configType string, key string) (interface{}, er
 
 // Fetch all configs matching a type.
 func GetConfigsByType(networkId string, configType string) (map[storage.TypeAndKey]interface{}, error) {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	req := &protos.GetOrDeleteConfigsRequest{
 		NetworkId: networkId,
@@ -87,11 +84,10 @@ func GetConfigsByType(networkId string, configType string) (map[storage.TypeAndK
 
 // Fetch all configs matching a key.
 func GetConfigsByKey(networkId string, key string) (map[storage.TypeAndKey]interface{}, error) {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	req := &protos.GetOrDeleteConfigsRequest{
 		NetworkId: networkId,
@@ -106,11 +102,10 @@ func GetConfigsByKey(networkId string, key string) (map[storage.TypeAndKey]inter
 
 // List all configuration keys for a specific type.
 func ListKeysForType(networkId string, configType string) ([]string, error) {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 
 	req := &protos.ListKeysForTypeRequest{NetworkId: networkId, Type: configType}
 	keys, err := client.ListKeysForType(context.Background(), req)
@@ -126,11 +121,10 @@ func ListKeysForType(networkId string, configType string) ([]string, error) {
 // Create a new config. This will error out if there is an existing config
 // with the same type and key.
 func CreateConfig(networkId string, configType string, key string, value interface{}) error {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	marshaledValue, err := serde.Serialize(SerdeDomain, configType, value)
 	if err != nil {
@@ -145,11 +139,10 @@ func CreateConfig(networkId string, configType string, key string, value interfa
 // Update an existing config. This will error out if there is no existing
 // config with a matching type and key.
 func UpdateConfig(networkId string, configType string, key string, updatedValue interface{}) error {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	marshaledValue, err := serde.Serialize(SerdeDomain, configType, updatedValue)
 	if err != nil {
@@ -164,11 +157,10 @@ func UpdateConfig(networkId string, configType string, key string, updatedValue 
 // Delete an existing config. This will error out if there is no existing
 // config with a matching type and key.
 func DeleteConfig(networkId string, configType string, key string) error {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &protos.GetOrDeleteConfigRequest{NetworkId: networkId, Type: configType, Key: key}
 	_, err = client.DeleteConfig(context.Background(), req)
@@ -177,11 +169,10 @@ func DeleteConfig(networkId string, configType string, key string) error {
 
 // Delete all configs matching a type
 func DeleteConfigsByType(networkId string, configType string) error {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &protos.GetOrDeleteConfigsRequest{
 		NetworkId: networkId,
@@ -193,11 +184,10 @@ func DeleteConfigsByType(networkId string, configType string) error {
 
 // Delete all configs matching a key
 func DeleteConfigsByKey(networkId string, key string) error {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &protos.GetOrDeleteConfigsRequest{
 		NetworkId: networkId,
@@ -210,11 +200,10 @@ func DeleteConfigsByKey(networkId string, key string) error {
 
 // Delete all the configs for all entities in a network
 func DeleteAllNetworkConfigs(networkId string) error {
-	client, conn, err := getConfigServiceClient()
+	client, err := getConfigServiceClient()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 
 	req := &protos.NetworkIdRequest{NetworkId: networkId}
 	_, err = client.DeleteAllConfigsForNetwork(context.Background(), req)

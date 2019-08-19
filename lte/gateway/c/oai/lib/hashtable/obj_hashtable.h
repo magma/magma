@@ -265,7 +265,7 @@ hashtable_rc_t obj_hashtable_uint64_ts_get(
   uint64_t *const dataP) __attribute__((hot));
 hashtable_rc_t obj_hashtable_uint64_ts_get_keys(
   const obj_hash_table_uint64_t *const hashtblP,
-  void **keysP,
+  void ***keysP,
   unsigned int *sizeP);
 hashtable_rc_t obj_hashtable_uint64_ts_resize(
   obj_hash_table_uint64_t *const hashtblP,

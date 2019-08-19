@@ -7,15 +7,14 @@
  * @format
  */
 
-import React from 'react';
-
-import {BrowserRouter} from 'react-router-dom';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import {MuiThemeProvider} from '@material-ui/core/styles';
-
 import {addDecorator} from '@storybook/react/dist/client/preview';
+import {BrowserRouter} from 'react-router-dom';
 import {configure} from '@storybook/react';
+import {MuiThemeProvider} from '@material-ui/core/styles';
+import {SnackbarProvider} from 'notistack';
 import defaultTheme from '@fbcnms/ui/theme/default';
+import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import React from 'react';
 
 // automatically import all files ending in *.stories.js
 const req = require.context('../stories', true, /.stories.js$/);
@@ -27,7 +26,15 @@ addDecorator(story => (
   <BrowserRouter>
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
-        {story()}
+        <SnackbarProvider
+          maxSnack={3}
+          autoHideDuration={10000}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}>
+          {story()}
+        </SnackbarProvider>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>
   </BrowserRouter>

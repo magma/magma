@@ -67,6 +67,15 @@ message FlowRequest {
 message FlowResponse {
 }
 
+// UEMacFlowRequest is used to link a subscriber ID to a MAC address.
+// This is used for Carrier WiFi data session establishment
+message UEMacFlowRequest {
+  SubscriberID sid = 1;
+
+  // UE MAC address
+  string mac_addr = 2;
+}
+
 message TableAssignment {
   string app_name = 1;
   uint64 main_table = 2;
@@ -110,6 +119,13 @@ service Pipelined {
 
   // Update flow stats
   rpc UpdateFlowStats (FlowRequest) returns (FlowResponse) {};
+
+  // -----------
+  // UE MAC App:
+  // -----------
+
+  // Add a flow for a subscriber by matching the provided UE MAC address
+  rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
   // --------
   // Debugging:

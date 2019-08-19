@@ -590,5 +590,54 @@ declare module 'webpack' {
     callback?: Callback
   ): WebpackMultiCompiler;
 
-  declare module.exports: typeof builder;
+  // Typed plugins that we use for FBC Platform
+  declare type Plugins = {
+    NoEmitOnErrorsPlugin: () => WebpackPluginInstance,
+    ContextReplacementPlugin: (
+      resourceRegExp: RegExp,
+      newContentResource?: string,
+      newContentRecursive?: boolean,
+      newContentRegExp?: RegExp,
+    ) => WebpackPluginInstance,
+    ContextReplacementPlugin: (
+      resourceRegExp: RegExp,
+      newContentRegExp?: RegExp,
+    ) => WebpackPluginInstance,
+    HotModuleReplacementPlugin: (
+      multiStep?: boolean,
+      fullBuildTimeout?: number,
+      requestTimeout?: number,
+    ) => WebpackPluginInstance,
+  };
+
+  // Untyped plugins that we don't use, but might in the future
+  declare type UntypedPlugins = {
+    BabelMinifyWebpackPlugin: (...any) => WebpackPluginInstance,
+    BannerPlugin: (...any) => WebpackPluginInstance,
+    CommonsChunkPlugin: (...any) => WebpackPluginInstance,
+    CompressionWebpackPlugin: (...any) => WebpackPluginInstance,
+    CopyWebpackPlugin: (...any) => WebpackPluginInstance,
+    DefinePlugin: (...any) => WebpackPluginInstance,
+    DllPlugin: (...any) => WebpackPluginInstance,
+    EnvironmentPlugin: (...any) => WebpackPluginInstance,
+    ExtractTextWebpackPlugin: (...any) => WebpackPluginInstance,
+    HtmlWebpackPlugin: (...any) => WebpackPluginInstance,
+    I18nWebpackPlugin: (...any) => WebpackPluginInstance,
+    IgnorePlugin: (...any) => WebpackPluginInstance,
+    LimitChunkCountPlugin: (...any) => WebpackPluginInstance,
+    LoaderOptionsPlugin: (...any) => WebpackPluginInstance,
+    MinChunkSizePlugin: (...any) => WebpackPluginInstance,
+    MiniCssExtractPlugin: (...any) => WebpackPluginInstance,
+    NormalModuleReplacementPlugin: (...any) => WebpackPluginInstance,
+    NpmInstallWebpackPlugin: (...any) => WebpackPluginInstance,
+    ProgressPlugin: (...any) => WebpackPluginInstance,
+    ProvidePlugin: (...any) => WebpackPluginInstance,
+    SourceMapDevToolPlugin: (...any) => WebpackPluginInstance,
+    EvalSourceMapDevToolPlugin: (...any) => WebpackPluginInstance,
+    UglifyjsWebpackPlugin: (...any) => WebpackPluginInstance,
+    TerserPlugin: (...any) => WebpackPluginInstance,
+    ZopfliWebpackPlugin: (...any) => WebpackPluginInstance,
+  }
+
+  declare module.exports: typeof builder & Plugins & UntypedPlugins;
 }

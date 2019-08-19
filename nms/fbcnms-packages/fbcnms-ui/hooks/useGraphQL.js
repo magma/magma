@@ -8,8 +8,8 @@
  * @format
  */
 
-import {useEffect, useState} from 'react';
 import {Environment, fetchQuery} from 'relay-runtime';
+import {useEffect, useState} from 'react';
 
 export default function(
   env: Environment,
@@ -20,12 +20,9 @@ export default function(
   const [response, setResponse] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const queryText = query().text;
   const variablesJSON = JSON.stringify(variables);
   useEffect(() => {
-    if (!Object.keys(variables).length) {
-      return;
-    }
+    const variables = JSON.parse(variablesJSON);
 
     setError(null);
     setIsLoading(true);
@@ -38,7 +35,7 @@ export default function(
         setError(error);
         setIsLoading(false);
       });
-  }, [queryText, variablesJSON]);
+  }, [env, query, variablesJSON]);
 
   return {error, response, isLoading};
 }

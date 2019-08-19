@@ -8,15 +8,15 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {MagmadConfig} from '../common/MagmaAPIType';
+import type {WithStyles} from '@material-ui/core';
 
-import MenuItem from '@material-ui/core/MenuItem';
-import InputLabel from '@material-ui/core/InputLabel';
-import Select from '@material-ui/core/Select';
-import React from 'react';
-import TextField from '@material-ui/core/TextField';
 import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
+import Select from '@material-ui/core/Select';
+import TextField from '@material-ui/core/TextField';
 
 import {withStyles} from '@material-ui/core/styles';
 
@@ -28,7 +28,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   configs: MagmadConfig,
   configChangeHandler: (string, any) => void,
 };

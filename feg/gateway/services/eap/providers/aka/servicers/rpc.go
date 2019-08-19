@@ -15,9 +15,9 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/client"
-	"magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
@@ -35,7 +35,7 @@ func (s *EapAkaSrv) Handle(ctx context.Context, req *protos.Eap) (*protos.Eap, e
 	p := eap.Packet(req.GetPayload())
 	eapCtx := req.GetCtx()
 	if eapCtx == nil {
-		eapCtx = &protos.EapContext{}
+		eapCtx = &protos.Context{}
 	}
 	if p == nil {
 		return aka.EapErrorRes(0, aka.NOTIFICATION_FAILURE, codes.InvalidArgument, eapCtx, "Nil Request")

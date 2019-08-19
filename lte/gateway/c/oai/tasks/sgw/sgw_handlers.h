@@ -71,4 +71,5 @@ int sgw_handle_nw_initiated_actv_bearer_req(
 int sgw_handle_nw_initiated_actv_bearer_rsp(
   const itti_s11_nw_init_actv_bearer_rsp_t
  *const s11_actv_bearer_rsp);
+bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p);
 #endif /* FILE_SGW_HANDLERS_SEEN */

@@ -17,30 +17,38 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"
 )
 
 const (
+	rootPath     = "/:network_id"
+	ReceiverPath = rootPath + "/receiver"
+	RoutePath    = ReceiverPath + "/route"
+
+	ReceiverNamePathParam  = "receiver"
+	ReceiverNameQueryParam = "receiver"
+
 	alertmanagerReloadPath = "/-/reload"
 )
 
 // GetReceiverPostHandler returns a handler function that creates a new
 // receiver and then reloads alertmanager
-func GetReceiverPostHandler(client *receivers.Client, alertmanagerURL string) func(c echo.Context) error {
+func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		receiver, err := decodeReceiverPostResponse(c)
+		receiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintf("%s", err))
 		}
-		err = client.CreateReceiver(&receiver, getNetworkID(c))
+		err = client.CreateReceiver(getNetworkID(c), receiver)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
 		err = reloadAlertmanager(alertmanagerURL)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)
 	}
@@ -48,44 +56,89 @@ func GetReceiverPostHandler(client *receivers.Client, alertmanagerURL string) fu
 
 // GetGetReceiversHandler returns a handler function to retrieve receivers for
 // a network
-func GetGetReceiversHandler(client *receivers.Client) func(c echo.Context) error {
+func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID := getNetworkID(c)
 		recs, err := client.GetReceivers(networkID)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, recs)
 	}
 }
 
-func GetGetRouteHandler(client *receivers.Client) func(c echo.Context) error {
+// GetUpdateReceiverHandler returns a handler function to update a receivers
+func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		networkID := getNetworkID(c)
-		route, err := client.GetRoute(networkID)
+		newReceiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		return c.JSON(http.StatusOK, route)
-	}
-}
 
-func GetUpdateRouteHandler(client *receivers.Client) func(c echo.Context) error {
-	return func(c echo.Context) error {
-		networkID := getNetworkID(c)
-		newRoute, err := decodeRoutePostRequest(c)
+		err = client.UpdateReceiver(networkID, &newReceiver)
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		err = client.ModifyNetworkRoute(&newRoute, networkID)
+
+		err = reloadAlertmanager(alertmanagerURL)
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		return c.NoContent(http.StatusOK)
 	}
 }
 
-func decodeReceiverPostResponse(c echo.Context) (receivers.Receiver, error) {
+func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID := getNetworkID(c)
+		receiverName := c.QueryParam(ReceiverNameQueryParam)
+
+		err := client.DeleteReceiver(networkID, receiverName)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		err = reloadAlertmanager(alertmanagerURL)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID := getNetworkID(c)
+		route, err := client.GetRoute(networkID)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		return c.JSON(http.StatusOK, route)
+	}
+}
+
+func GetUpdateRouteHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		networkID := getNetworkID(c)
+		newRoute, err := decodeRoutePostRequest(c)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+		err = client.ModifyNetworkRoute(networkID, &newRoute)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+		}
+
+		err = reloadAlertmanager(alertmanagerURL)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		return c.NoContent(http.StatusOK)
+	}
+}
+
+func decodeReceiverPostRequest(c echo.Context) (receivers.Receiver, error) {
 	body, err := ioutil.ReadAll(c.Request().Body)
 	if err != nil {
 		return receivers.Receiver{}, fmt.Errorf("error reading request body: %v", err)
@@ -112,9 +165,17 @@ func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
 }
 
 func reloadAlertmanager(url string) error {
+	if url == "" {
+		glog.Info("Not reloading alertmanager: No url given")
+		return nil
+	}
 	resp, err := http.Post(fmt.Sprintf("http://%s%s", url, alertmanagerReloadPath), "text/plain", &bytes.Buffer{})
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("code: %d error reloading alertmanager: %v", resp.StatusCode, err)
+	if err != nil {
+		return fmt.Errorf("error reloading alertmanager: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("code: %d error reloading alertmanager: %s", resp.StatusCode, msg)
 	}
 	return nil
 }

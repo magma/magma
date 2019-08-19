@@ -44,7 +44,6 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "conversions.h"
 #include "intertask_interface.h"
@@ -459,7 +458,6 @@ ue_mm_context_t *mme_ue_context_exists_mme_ue_s1ap_id(
         "ECM_IDLE" :
         (ue_context_p->ecm_state == ECM_CONNECTED) ? "ECM_CONNECTED" :
                                                      "UNKNOWN");
-    // unlock_ue_contexts(ue_context_p);
   }
   return ue_context_p;
 }
@@ -471,7 +469,6 @@ struct ue_mm_context_s *mme_ue_context_exists_imsi(
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   uint64_t mme_ue_s1ap_id64 = 0;
 
-  mme_ue_context_dump_coll_keys();
   h_rc = hashtable_uint64_ts_get(
     mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl,
     (const hash_key_t) imsi,
@@ -483,7 +480,6 @@ struct ue_mm_context_s *mme_ue_context_exists_imsi(
   } else {
     OAILOG_WARNING(
       LOG_MME_APP, " No IMSI hashtable for IMSI " IMSI_64_FMT "\n", imsi);
-    mme_ue_context_dump_coll_keys();
   }
   return NULL;
 }
@@ -1995,7 +1991,7 @@ void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context_p)
 
 //------------------------------------------------------------------------------
 void mme_app_handle_s1ap_ue_context_release_req(
-  const itti_s1ap_ue_context_release_req_t const *s1ap_ue_context_release_req)
+  const itti_s1ap_ue_context_release_req_t* const s1ap_ue_context_release_req)
 
 {
   _mme_app_handle_s1ap_ue_context_release(
@@ -2006,7 +2002,7 @@ void mme_app_handle_s1ap_ue_context_release_req(
 }
 
 void mme_app_handle_s1ap_ue_context_modification_fail(
-  const itti_s1ap_ue_context_mod_resp_fail_t const *s1ap_ue_context_mod_fail)
+  const itti_s1ap_ue_context_mod_resp_fail_t *const s1ap_ue_context_mod_fail)
 //------------------------------------------------------------------------------
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -2052,7 +2048,7 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
 }
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
-  const itti_s1ap_ue_context_mod_resp_t const *s1ap_ue_context_mod_resp)
+  const itti_s1ap_ue_context_mod_resp_t *const s1ap_ue_context_mod_resp)
 //------------------------------------------------------------------------------
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -2092,7 +2088,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
 }
 //------------------------------------------------------------------------------
 void mme_app_handle_enb_deregister_ind(
-  const itti_s1ap_eNB_deregistered_ind_t const *eNB_deregistered_ind)
+  const itti_s1ap_eNB_deregistered_ind_t *const eNB_deregistered_ind)
 {
   for (int i = 0; i < eNB_deregistered_ind->nb_ue_to_deregister; i++) {
     _mme_app_handle_s1ap_ue_context_release(
@@ -2174,11 +2170,6 @@ void mme_app_handle_s1ap_ue_context_release_complete(
     s1ap_ue_context_release_complete->mme_ue_s1ap_id);
 
   if (!ue_context_p) {
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      "0 S1AP_UE_CONTEXT_RELEASE_COMPLETE Unknown mme_ue_s1ap_id 0x%06" PRIX32
-      " ",
-      s1ap_ue_context_release_complete->mme_ue_s1ap_id);
     OAILOG_ERROR(
       LOG_MME_APP,
       "UE context doesn't exist for enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT

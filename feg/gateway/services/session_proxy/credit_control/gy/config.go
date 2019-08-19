@@ -16,8 +16,8 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	managed_configs "magma/feg/gateway/mconfig"
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
 // OCS Environment Variables
@@ -32,6 +32,7 @@ const (
 	OCSHostEnv         = "OCS_HOST"
 	OCSRealmEnv        = "OCS_REALM"
 	OCSApnOverwriteEnv = "OCS_APN_OVERWRITE"
+	DisableDestHostEnv = "DISABLE_DEST_HOST"
 
 	GyInitMethodFlag    = "gy_init_method"
 	OCSApnOverwriteFlag = "ocs_apn_overwrite"
@@ -88,8 +89,9 @@ func GetOCSConfiguration() *diameter.DiameterServerConfig {
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, "127.0.0.1:3869"),
 			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, "tcp"),
 			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, "")},
-			DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, ""),
-			DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, ""),
+			DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, ""),
+			DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, ""),
+			DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
 		}
 	}
 	gyCfg := configsPtr.GetGy().GetServer()
@@ -97,8 +99,9 @@ func GetOCSConfiguration() *diameter.DiameterServerConfig {
 		Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, gyCfg.GetAddress()),
 		Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, gyCfg.GetProtocol()),
 		LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, GyLocalAddr, gyCfg.GetLocalAddress())},
-		DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost()),
-		DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm()),
+		DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, OCSHostEnv, gyCfg.GetDestHost()),
+		DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, OCSRealmEnv, gyCfg.GetDestRealm()),
+		DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, gyCfg.GetDisableDestHost()),
 	}
 }
 

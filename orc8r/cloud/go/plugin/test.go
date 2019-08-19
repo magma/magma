@@ -25,14 +25,15 @@ var testPlugins = &testPluginRegistry{plugins: map[string]OrchestratorPlugin{}}
 
 var testMetricsConfigMap = &config.ConfigMap{
 	RawMap: map[interface{}]interface{}{
-		confignames.Profile:                     "",
-		confignames.PrometheusAddress:           "",
-		confignames.PrometheusCustomPushAddress: "",
-		confignames.GraphiteAddress:             "",
-		confignames.GraphiteReceivePort:         0,
-		confignames.GraphiteQueryPort:           0,
-		confignames.AlertConfigWebServerURL:     "",
-		confignames.AlertmanagerApiURL:          "",
+		confignames.Profile:                      "",
+		confignames.PrometheusPushAddresses:      []string{""},
+		confignames.PrometheusQueryAddress:       "",
+		confignames.GraphiteExportAddresses:      []string{"nil:0"},
+		confignames.GraphiteQueryAddress:         "",
+		confignames.GraphiteQueryPort:            0,
+		confignames.PrometheusConfigServiceURL:   "",
+		confignames.AlertmanagerConfigServiceURL: "",
+		confignames.AlertmanagerApiURL:           "",
 	},
 }
 
@@ -46,6 +47,7 @@ func RegisterPluginForTests(_ *testing.T, plugin OrchestratorPlugin) error {
 	testPlugins.Lock()
 	defer testPlugins.Unlock()
 	if _, ok := testPlugins.plugins[plugin.GetName()]; !ok {
+		testPlugins.plugins[plugin.GetName()] = plugin
 		return registerPlugin(plugin, testMetricsConfigMap)
 	}
 	// plugin has already been registered, no-op

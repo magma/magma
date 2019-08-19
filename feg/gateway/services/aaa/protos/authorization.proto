@@ -1,0 +1,37 @@
+// Copyright (c) 2019-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+
+syntax = "proto3";
+
+import "context.proto";
+
+package aaa.protos;
+option go_package = "magma/feg/gateway/services/aaa/protos";
+
+// update_request with usages & included context
+message change_request {
+    context ctx = 1;
+    string json_trfic_classes = 2;
+}
+
+message disconnect_request {
+    context ctx = 1;
+}
+
+message coa_response {
+    enum coa_response_type_enum {
+        NAK = 0;
+        ACK = 1;
+    }
+    coa_response_type_enum coa_response_type = 1;
+    context ctx = 2;
+}
+
+service authorization {
+    rpc change(change_request) returns (coa_response) {}
+    rpc disconnect(disconnect_request) returns (coa_response) {}
+}

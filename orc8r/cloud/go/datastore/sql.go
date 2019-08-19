@@ -12,169 +12,272 @@ import (
 	"database/sql"
 	"fmt"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 
+	sq "github.com/Masterminds/squirrel"
+	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
+)
+
+const (
+	// escaped for mysql compat
+	keyCol     = "\"key\""
+	valueCol   = "value"
+	genCol     = "generation_number"
+	deletedCol = "deleted"
 )
 
 type SqlDb struct {
-	db *sql.DB
+	db      *sql.DB
+	builder sqorc.StatementBuilder
 }
 
-type SqlQueryable interface {
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	Exec(query string, args ...interface{}) (sql.Result, error)
-}
-
-func NewSqlDb(driver string, source string) (*SqlDb, error) {
-	db, err := sql_utils.Open(driver, source)
+func NewSqlDb(driver string, source string, sqlBuilder sqorc.StatementBuilder) (*SqlDb, error) {
+	db, err := sqorc.Open(driver, source)
 	if err != nil {
 		return nil, err
 	}
 
-	store := new(SqlDb)
-	store.db = db
-	return store, nil
+	return &SqlDb{
+		db:      db,
+		builder: sqlBuilder,
+	}, nil
 }
 
-func initTable(queryable SqlQueryable, table string) error {
-	_, err := queryable.Exec(fmt.Sprintf(
-		`CREATE TABLE IF NOT EXISTS %s (key text PRIMARY KEY, value bytea,
-		generation_number INTEGER NOT NULL DEFAULT 0,
-		deleted BOOLEAN NOT NULL DEFAULT FALSE)`, table))
-	return err
+func (store *SqlDb) getInitFn(table string) func(*sql.Tx) error {
+	return func(tx *sql.Tx) error {
+		_, err := store.builder.CreateTable(table).
+			IfNotExists().
+			// table builder escapes all columns by default
+			Column(keyCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
+			Column(valueCol).Type(sqorc.ColumnTypeBytes).EndColumn().
+			Column(genCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
+			Column(deletedCol).Type(sqorc.ColumnTypeBool).NotNull().Default("FALSE").EndColumn().
+			RunWith(tx).
+			Exec()
+		if err != nil {
+			return errors.Wrap(err, "failed to init table")
+		}
+		return nil
+	}
 }
 
 func (store *SqlDb) Put(table string, key string, value []byte) error {
-	// Create a transaction for the lookup and insert/update operation.
-	// This also guarantees the atomicity of generation number increment.
-	tx, err := store.db.Begin()
-	if err != nil {
-		return err
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		// Check if the data is already present and query for its generation number
+		var generationNumber uint64
+		err := store.builder.Select(genCol).
+			From(table).
+			Where(sq.Eq{keyCol: key}).
+			RunWith(tx).
+			QueryRow().
+			Scan(&generationNumber)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, errors.Wrap(err, "failed to query for existing generation number")
+		}
+
+		rowExists := err == nil
+		if rowExists {
+			return store.builder.Update(table).
+				Set(valueCol, value).
+				Set(genCol, generationNumber+1).
+				Where(sq.Eq{keyCol: key}).
+				RunWith(tx).
+				Exec()
+		} else {
+			return store.builder.Insert(table).
+				Columns(keyCol, valueCol).
+				Values(key, value).
+				RunWith(tx).
+				Exec()
+		}
 	}
-
-	err = initTable(tx, table)
-	if err != nil {
-		return err
-	}
-
-	// Check if the data is already present and query for its generation number
-	var generationNumber uint64
-	err = tx.QueryRow(fmt.Sprintf(
-		"SELECT generation_number FROM %s WHERE key = $1",
-		table), key).Scan(&generationNumber)
-
-	if err != nil {
-		// Insert the new data
-		_, err = tx.Exec(fmt.Sprintf(
-			"INSERT INTO %s (key, value) VALUES($1, $2)", table), key, value)
-	} else {
-		// Update existing data and increment generation number
-		_, err = tx.Exec(fmt.Sprintf(
-			"UPDATE %s SET value = $1, generation_number = $2 WHERE key = $3",
-			table), value, generationNumber+1, key)
-	}
-
-	if err != nil {
-		// Error occured with the operation. Rollback the transaction.
-		tx.Rollback()
-		return err
-	}
-
-	return tx.Commit()
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	return err
 }
 
 func (store *SqlDb) PutMany(table string, valuesToPut map[string][]byte) (map[string]error, error) {
-	rowKeys := make([]string, len(valuesToPut))
-	for k := range valuesToPut {
-		rowKeys = append(rowKeys, k)
-	}
-
-	err := initTable(store.db, table)
-	if err != nil {
-		return map[string]error{}, err
-	}
-
-	existingRows, err := store.GetMany(table, rowKeys)
-	if err != nil {
-		return map[string]error{}, err
-	}
-
-	updateStmt, err := store.db.Prepare(fmt.Sprintf(
-		"UPDATE %s SET value = $1, generation_number = $2 WHERE key = $3", table))
-	if err != nil {
-		return map[string]error{}, err
-	}
-	defer updateStmt.Close()
-
-	insertStmt, err := store.db.Prepare(fmt.Sprintf(
-		"INSERT INTO %s (key, value) VALUES($1, $2)", table))
-	if err != nil {
-		return map[string]error{}, err
-	}
-	defer insertStmt.Close()
-
-	errorMap := make(map[string]error)
-	for key, newValue := range valuesToPut {
-		if existingValue, keyExists := existingRows[key]; keyExists {
-			newGeneration := existingValue.Generation + 1
-			_, err = updateStmt.Exec(newValue, newGeneration, key)
-		} else {
-			_, err = insertStmt.Exec(key, newValue)
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		ret := map[string]error{}
+		rowKeys := make([]string, len(valuesToPut))
+		for k := range valuesToPut {
+			rowKeys = append(rowKeys, k)
 		}
 
+		existingRows, err := store.getMany(tx, table, rowKeys)
 		if err != nil {
-			errorMap[key] = err
+			return ret, errors.Wrap(err, "failed to query for existing rows")
+		}
+
+		rowsToUpdate := [][3]interface{}{} // (val, gen, key)
+		rowsToInsert := [][2]interface{}{} // (key, val)
+		for key, newValue := range valuesToPut {
+			if existingValue, keyExists := existingRows[key]; keyExists {
+				rowsToUpdate = append(rowsToUpdate, [3]interface{}{newValue, existingValue.Generation + 1, key})
+			} else {
+				rowsToInsert = append(rowsToInsert, [2]interface{}{key, newValue})
+			}
+		}
+
+		// Let squirrel cache prepared statements for us on update
+		sc := sq.NewStmtCache(tx)
+		defer sqorc.ClearStatementCacheLogOnError(sc, "PutMany")
+
+		// Update existing rows
+		for _, row := range rowsToUpdate {
+			_, err := store.builder.Update(table).
+				Set(valueCol, row[0]).
+				Set(genCol, row[1]).
+				Where(sq.Eq{keyCol: row[2]}).
+				RunWith(sc).
+				Exec()
+			if err != nil {
+				ret[row[2].(string)] = err
+			}
+		}
+
+		// Insert fresh rows
+		if !funk.IsEmpty(rowsToInsert) {
+			insertBuilder := store.builder.Insert(table).
+				Columns(keyCol, valueCol)
+			for _, row := range rowsToInsert {
+				insertBuilder = insertBuilder.Values(row[0], row[1])
+			}
+			_, err := insertBuilder.RunWith(tx).Exec()
+			if err != nil {
+				return ret, errors.Wrap(err, "failed to create new entries")
+			}
+		}
+
+		if funk.IsEmpty(ret) {
+			return ret, nil
+		} else {
+			return ret, errors.New("failed to write entries, see return value for specific errors")
 		}
 	}
 
-	return errorMap, nil
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	return ret.(map[string]error), err
 }
 
 func (store *SqlDb) Get(table string, key string) ([]byte, uint64, error) {
-	var value []byte
-	var generationNumber uint64
-	if err := initTable(store.db, table); err != nil {
-		return value, generationNumber, err
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		var value []byte
+		var generationNumber uint64
+		err := store.builder.Select(valueCol, genCol).
+			From(table).
+			Where(sq.Eq{keyCol: key}).
+			RunWith(tx).
+			QueryRow().Scan(&value, &generationNumber)
+		if err == sql.ErrNoRows {
+			return ValueWrapper{}, ErrNotFound
+		}
+		return ValueWrapper{Value: value, Generation: generationNumber}, err
 	}
-	err := store.db.QueryRow(fmt.Sprintf(
-		"SELECT value, generation_number FROM %s WHERE key = $1",
-		table), key).Scan(&value, &generationNumber)
-	if err == sql.ErrNoRows {
-		return value, generationNumber, ErrNotFound
+
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	if err != nil {
+		return nil, 0, err
 	}
-	return value, generationNumber, err
+	vw := ret.(ValueWrapper)
+	return vw.Value, vw.Generation, nil
 }
 
 func (store *SqlDb) GetMany(table string, keys []string) (map[string]ValueWrapper, error) {
-	valuesByKey := make(map[string]ValueWrapper)
-	if err := initTable(store.db, table); err != nil {
-		return valuesByKey, err
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		return store.getMany(tx, table, keys)
 	}
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	return ret.(map[string]ValueWrapper), err
+}
+
+func (store *SqlDb) Delete(table string, key string) error {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		return store.builder.Delete(table).Where(sq.Eq{keyCol: key}).RunWith(tx).Exec()
+	}
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	return err
+}
+
+func (store *SqlDb) DeleteMany(table string, keys []string) (map[string]error, error) {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		return store.builder.Delete(table).Where(sq.Eq{keyCol: keys}).RunWith(tx).Exec()
+	}
+	_, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	return map[string]error{}, err
+}
+
+func (store *SqlDb) ListKeys(table string) ([]string, error) {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		rows, err := store.builder.Select(keyCol).From(table).RunWith(tx).Query()
+		if err != nil {
+			return []string{}, errors.Wrap(err, "failed to query for keys")
+		}
+		defer sqorc.CloseRowsLogOnError(rows, "ListKeys")
+
+		keys := []string{}
+		for rows.Next() {
+			var key string
+			if err = rows.Scan(&key); err != nil {
+				return []string{}, errors.Wrap(err, "failed to read key")
+			}
+			keys = append(keys, key)
+		}
+		return keys, nil
+	}
+
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	return ret.([]string), err
+}
+
+func (store *SqlDb) DeleteTable(table string) error {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		return tx.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", table))
+	}
+	// No initFn param because why would we create a table that we're dropping
+	_, err := sqorc.ExecInTx(store.db, func(*sql.Tx) error { return nil }, txFn)
+	return err
+}
+
+func (store *SqlDb) DoesKeyExist(table string, key string) (bool, error) {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		var placeHolder uint64
+		err := store.builder.Select("1").From(table).
+			Where(sq.Eq{keyCol: key}).
+			Limit(1).
+			RunWith(tx).
+			QueryRow().Scan(&placeHolder)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return false, nil
+			}
+			return false, err
+		}
+		return true, nil
+	}
+	ret, err := sqorc.ExecInTx(store.db, store.getInitFn(table), txFn)
+	return ret.(bool), err
+}
+
+func (store *SqlDb) getMany(tx *sql.Tx, table string, keys []string) (map[string]ValueWrapper, error) {
+	valuesByKey := make(map[string]ValueWrapper)
 	if len(keys) == 0 {
 		return valuesByKey, nil
 	}
 
-	queryString, queryArgs := getSelectInQueryAndArgs(table, keys)
-	rows, err := store.db.Query(queryString, queryArgs...)
+	rows, err := store.builder.Select(keyCol, valueCol, genCol).
+		From(table).
+		Where(sq.Eq{keyCol: keys}).
+		RunWith(tx).
+		Query()
 	if err != nil {
 		return valuesByKey, err
 	}
-	defer rows.Close()
+	defer sqorc.CloseRowsLogOnError(rows, "getMany")
 	return getSqlRowsAsMap(rows)
-}
-
-func getSelectInQueryAndArgs(table string, keys []string) (string, []interface{}) {
-	inList := sql_utils.GetPlaceholderArgList(1, len(keys))
-	queryString := fmt.Sprintf(
-		"SELECT key, value, generation_number FROM %s WHERE key IN %s",
-		table, inList)
-	queryArgs := make([]interface{}, len(keys))
-	for i := range keys {
-		queryArgs[i] = keys[i]
-	}
-	return queryString, queryArgs
 }
 
 func getSqlRowsAsMap(rows *sql.Rows) (map[string]ValueWrapper, error) {
@@ -197,77 +300,4 @@ func getSqlRowsAsMap(rows *sql.Rows) (map[string]ValueWrapper, error) {
 	}
 
 	return valuesByKey, nil
-}
-
-func (store *SqlDb) Delete(table string, key string) error {
-	_, err := store.db.Exec(fmt.Sprintf(
-		"DELETE FROM %s WHERE key = $1", table), key)
-	return err
-}
-
-func (store *SqlDb) DeleteMany(table string, keys []string) (map[string]error, error) {
-	err := initTable(store.db, table)
-	if err != nil {
-		return map[string]error{}, err
-	}
-
-	stmt, err := store.db.Prepare(
-		fmt.Sprintf("DELETE FROM %s WHERE key = $1", table))
-	if err != nil {
-		return map[string]error{}, err
-	}
-
-	errMap := make(map[string]error)
-	for _, k := range keys {
-		_, err = stmt.Exec(k)
-		if err != nil {
-			errMap[k] = err
-		}
-	}
-	return errMap, nil
-}
-
-func (store *SqlDb) ListKeys(table string) ([]string, error) {
-	if err := initTable(store.db, table); err != nil {
-		return nil, err
-	}
-
-	rows, err := store.db.Query(fmt.Sprintf("SELECT key FROM %s", table))
-	if err != nil {
-		return nil, err
-	}
-
-	keys := make([]string, 0)
-	for rows.Next() {
-		var key string
-		if err = rows.Scan(&key); err != nil {
-			rows.Close()
-			return nil, err
-		}
-		keys = append(keys, key)
-	}
-	return keys, rows.Err()
-}
-
-func (store *SqlDb) DeleteTable(table string) error {
-	_, err := store.db.Exec("DROP TABLE IF EXISTS " + table)
-	return err
-}
-
-func (store *SqlDb) DoesKeyExist(table string, key string) (bool, error) {
-	var placeHolder uint64
-	if err := initTable(store.db, table); err != nil {
-		return false, err
-	}
-	err := store.db.QueryRow(
-		fmt.Sprintf("SELECT 1 FROM %s WHERE key = $1 LIMIT 1", table),
-		key,
-	).Scan(&placeHolder)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, err
-	}
-	return true, nil
 }

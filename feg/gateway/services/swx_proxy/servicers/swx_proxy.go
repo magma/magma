@@ -16,6 +16,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/swx_proxy/cache"
+	"magma/feg/gateway/services/swx_proxy/metrics"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -31,6 +32,10 @@ const (
 	MAX_DIAM_RETRIES = 1
 )
 
+type Relay interface {
+	RelayFromFeg() (protos.ErrorCode, error)
+}
+
 type swxProxy struct {
 	config         *SwxProxyConfig
 	smClient       *sm.Client
@@ -38,6 +43,7 @@ type swxProxy struct {
 	requestTracker *diameter.RequestTracker
 	originStateID  uint32
 	cache          *cache.Impl
+	Relay          Relay
 }
 
 type SwxProxyConfig struct {
@@ -116,6 +122,7 @@ func NewSwxProxyWithCache(config *SwxProxyConfig, cache *cache.Impl) (*swxProxy,
 		requestTracker: diameter.NewRequestTracker(),
 		originStateID:  originStateID,
 		cache:          cache,
+		Relay:          &fegRelayClient{},
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.MultimediaAuthentication, Request: false},
@@ -123,6 +130,9 @@ func NewSwxProxyWithCache(config *SwxProxyConfig, cache *cache.Impl) (*swxProxy,
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.ServerAssignment, Request: false},
 		handleSAA(proxy))
+	mux.HandleIdx(
+		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.RegistrationTermination, Request: true},
+		handleRTR(proxy))
 
 	return proxy, nil
 }
@@ -135,7 +145,12 @@ func (s *swxProxy) Authenticate(
 	ctx context.Context,
 	req *protos.AuthenticationRequest,
 ) (*protos.AuthenticationAnswer, error) {
-	return s.AuthenticateImpl(req)
+	authStartTime := time.Now()
+	res, err := s.AuthenticateImpl(req)
+	if err == nil {
+		metrics.AuthLatency.Observe(time.Since(authStartTime).Seconds())
+	}
+	return res, err
 }
 
 // Register sends SAR (code 301) over diameter connection,
@@ -144,7 +159,12 @@ func (s *swxProxy) Register(
 	ctx context.Context,
 	req *protos.RegistrationRequest,
 ) (*protos.RegistrationAnswer, error) {
-	return s.RegisterImpl(req, ServerAssignmentType_REGISTRATION)
+	registerStartTime := time.Now()
+	res, err := s.RegisterImpl(req, ServerAssignmentType_REGISTRATION)
+	if err == nil {
+		metrics.RegisterLatency.Observe(time.Since(registerStartTime).Seconds())
+	}
+	return res, err
 }
 
 // Deregister sends SAR (code 301) over diameter connection,
@@ -153,7 +173,12 @@ func (s *swxProxy) Deregister(
 	ctx context.Context,
 	req *protos.RegistrationRequest,
 ) (*protos.RegistrationAnswer, error) {
-	return s.RegisterImpl(req, ServerAssignnmentType_USER_DEREGISTRATION)
+	deregisterStartTime := time.Now()
+	res, err := s.RegisterImpl(req, ServerAssignnmentType_USER_DEREGISTRATION)
+	if err == nil {
+		metrics.DeregisterLatency.Observe(time.Since(deregisterStartTime).Seconds())
+	}
+	return res, err
 }
 
 func (s *swxProxy) genSID() string {

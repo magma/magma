@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -47,6 +47,12 @@ int derive_key_nas(
   uint8_t nas_enc_alg_id,
   const uint8_t *kasme_32,
   uint8_t *knas);
+
+int derive_NH(
+  const uint8_t *kasme_32,
+  const uint8_t *syncInput,
+  uint8_t *next_hop,
+  uint8_t *next_hop_chaining_count);
 
 #define derive_key_nas_enc(aLGiD, kASME, kNAS)                                 \
   derive_key_nas(NAS_ENC_ALG, aLGiD, kASME, kNAS)
@@ -95,7 +101,5 @@ int nas_stream_encrypt_eea2(
 int nas_stream_encrypt_eia2(
   nas_stream_cipher_t *const stream_cipher,
   uint8_t const out[4]);
-
-#undef SECU_DEBUG
 
 #endif /* FILE_SECU_DEFS_SEEN */

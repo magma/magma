@@ -18,4 +18,5 @@
     - role: feg_dev
       vars:
         user: "{{ ansible_user }}"
+        config_dir: "feg/gateway/configs"
     - role: feg_services

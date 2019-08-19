@@ -212,6 +212,26 @@ definitions:
               maxLength: 6
               pattern: '^(\d{5,6})$'
               example: '123456'
+      aaa_server:
+        type: object
+        properties:
+          idle_session_timeout_ms:
+            type: integer
+            format: uint32
+            x-nullable: false
+            example: 21600000
+            default: 21600000
+            x-go-custom-tag: 'magma_alt_name:"IdleSessionTimeoutMs"'
+          accounting_enabled:
+            type: boolean
+            x-nullable: false
+            example: false
+            default: false
+          create_session_on_auth:
+            type: boolean
+            x-nullable: false
+            example: false
+            default: false
       served_network_ids:
         type: array
         items:
@@ -230,6 +250,7 @@ definitions:
             example:
             - S6A_PROXY
             - SESSION_PROXY
+            x-go-custom-tag: 'magma_alt_name:"RequiredServices"'
           update_interval_secs:
             type: integer
             format: uint32
@@ -238,10 +259,12 @@ definitions:
             type: integer
             format: uint32
             example: 10
+            x-go-custom-tag: 'magma_alt_name:"CloudDisconnectPeriodSecs"'
           local_disable_period_secs:
             type: integer
             format: uint32
             example: 1
+            x-go-custom-tag: 'magma_alt_name:"LocalDisconnectPeriodSecs"'
           update_failure_threshold:
             type: integer
             format: uint32
@@ -356,6 +379,11 @@ definitions:
         type: string
         example: "magma-fedgw.magma.com"
         x-nullable: false
+      disable_dest_host:
+        type: boolean
+        x-nullable: false
+        example: false
+        default: false
 
   diameter_server_configs:
     description: Diameter Configuration of The Server

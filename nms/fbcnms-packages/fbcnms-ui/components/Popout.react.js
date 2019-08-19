@@ -8,9 +8,9 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
 import * as React from 'react';
 import Popover from '@material-ui/core/Popover';
+import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   content: React.Element<any> | string,

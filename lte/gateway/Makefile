@@ -5,13 +5,20 @@ GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
 
 OAI_FLAGS = -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True
+FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_session_manager
+build: build_python build_common build_oai build_sctpd build_session_manager
 
 test: test_python test_oai test_session_manager
+
+# Requires install of afl from http://lcamtuf.coredump.cx/afl/
+fuzz: build_fuzz
+	mkdir -p ~/fuzz/input ~/fuzz/output && \
+	echo "testtest" > ~/fuzz/input/sample1 && \
+	afl-fuzz -i ~/fuzz/input/ -o ~/fuzz/output/ -m 300M ~/build/c/oai_fuzz/oai_fuzz/oai_fuzz nas
 
 clean: clean_python
 	rm -rf $(C_BUILD)
@@ -32,10 +39,10 @@ run: build restart
 status:
 	sudo service magma@* status
 
-# run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
+# run_cmake BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS, ENV
 define run_cmake
 mkdir -p $(1)
-cd $(1) && cmake $(2) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(3) -GNinja
+cd $(1) && $(4) cmake $(2) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(3) -GNinja
 ninja -C $(1)
 endef
 
@@ -65,11 +72,18 @@ build_common:
 build_oai: build_common
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
+build_sctpd: build_common
+	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
+
+# Requires install of afl from http://lcamtuf.coredump.cx/afl/
+build_fuzz:
+	$(call run_cmake, $(C_BUILD)/oai_fuzz, $(GATEWAY_C_DIR)/oai, $(FUZZ_FLAGS), CC=afl-gcc CXX=afl-g++ AFL_USE_ASAN=1)
+
 build_session_manager: build_common
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
 # Catch all for c services that don't have custom flags
-# This works with build_dpi and build_session_manager
+# This works with build_dpi
 build_%:
 	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, )
 

@@ -12,15 +12,10 @@ import (
 	"fmt"
 	"reflect"
 
+	"magma/lte/cloud/go/lte"
 	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/config"
-)
-
-const (
-	CellularNetworkType = "cellular_network"
-	CellularGatewayType = "cellular_gateway"
-	CellularEnodebType  = "cellular_enodeb"
 )
 
 type CellularNetworkConfigManager struct{}
@@ -30,7 +25,7 @@ func (*CellularNetworkConfigManager) GetDomain() string {
 }
 
 func (*CellularNetworkConfigManager) GetType() string {
-	return CellularNetworkType
+	return lte.CellularNetworkType
 }
 
 func (*CellularNetworkConfigManager) Serialize(config interface{}) ([]byte, error) {
@@ -60,7 +55,7 @@ func (*CellularGatewayConfigManager) GetDomain() string {
 }
 
 func (*CellularGatewayConfigManager) GetType() string {
-	return CellularGatewayType
+	return lte.CellularGatewayType
 }
 
 func (*CellularGatewayConfigManager) Serialize(config interface{}) ([]byte, error) {
@@ -90,7 +85,7 @@ func (*CellularEnodebConfigManager) GetDomain() string {
 }
 
 func (*CellularEnodebConfigManager) GetType() string {
-	return CellularEnodebType
+	return lte.CellularEnodebType
 }
 
 func (*CellularEnodebConfigManager) Serialize(config interface{}) ([]byte, error) {

@@ -20,13 +20,20 @@ const fbStrict = require('eslint-config-fb-strict');
 // Also supports 'let' and 'const'.
 const variableNamePattern = String.raw`\s*[a-zA-Z_$][a-zA-Z_$\d]*\s*`;
 const atLeastOneVariablePattern =
-  '{?' + variableNamePattern +
-  '(?:,' + variableNamePattern + ')*}?';
+  '\\{?' + variableNamePattern +
+  '(?:,' + variableNamePattern + ')*\\}?';
 const importStatement = String.raw`^(?:var|let|const|import type|import)\s+` +
   atLeastOneVariablePattern;
 const maxLenIgnorePattern =
-  '(?:' + importStatement + '|})' +
+  '(?:' + importStatement + '|\\})' +
   String.raw`\s*(?:=\s*require\(|from)[a-zA-Z_+./"'\s\d\-]+\)?[^;\n]*[;\n]`;
+
+const restrictedImportsRule = ['error',{
+  'paths':[{
+    'name': 'lodash-es',
+    'message': 'Please use lodash directly.',
+  }],
+}];
 
 module.exports = Object.assign({}, fbStrict, {
   env: {
@@ -65,6 +72,7 @@ module.exports = Object.assign({}, fbStrict, {
     'react',
     'react-hooks',
     'relay',
+    'sort-imports-es6-autofix',
   ],
   rules: {
     'comma-dangle': ['warn', 'always-multiline'],
@@ -76,6 +84,8 @@ module.exports = Object.assign({}, fbStrict, {
     }],
     'no-alert': 'off',
     'no-console': ['warn', {allow: ['error', 'warn']}],
+    'no-restricted-modules': restrictedImportsRule,
+    'no-restricted-imports': restrictedImportsRule,
     'no-undef': 'error',
     'no-unused-vars': ['error', {
       'vars': 'all',
@@ -86,7 +96,8 @@ module.exports = Object.assign({}, fbStrict, {
     'no-var': 'error',
     'prefer-const': ['warn', {destructuring: 'all'}],
     'sort-keys': 'off',
-    strict: 'off',
+    'no-warning-comments': [1, {'terms': ['$FlowFixMe'], 'location': 'anywhere'}],
+    'strict': 'off',
 
     // Import Plugin
     // https://github.com/benmosher/eslint-plugin-import
@@ -112,6 +123,7 @@ module.exports = Object.assign({}, fbStrict, {
     // Flow Plugin
     // The following rules are made available via `eslint-plugin-flowtype`
     'flowtype/define-flow-type': 1,
+    'flowtype/no-weak-types': [1],
     'flowtype/use-flow-type': 1,
     // The following is disabled for many file types in overrides
     'flowtype/require-valid-file-annotation': [2, 'always'],
@@ -149,6 +161,16 @@ module.exports = Object.assign({}, fbStrict, {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
 
+    // Relay Plugin
+    'relay/unused-fields': 'off',
+
+    // sort-imports autofix plugin (sort-imports doesnt autofix)
+    'sort-imports-es6-autofix/sort-imports-es6': [2, {
+      'ignoreCase': false,
+      'ignoreMemberSort': false,
+      'memberSyntaxSortOrder': ['none', 'all', 'single', 'multiple'],
+    }],
+
     // Jest Plugin
     // The following rules are made available via `eslint-plugin-jest`.
     // 'jest/no-disabled-tests': 1,
@@ -169,5 +191,24 @@ module.exports = Object.assign({}, fbStrict, {
      'rules': {
        'flowtype/require-valid-file-annotation': 'off',
      },
+   },
+   {
+     'files': [
+       '**/__tests__/*.js',
+     ],
+     'rules': {
+       'no-warning-comments': [0],
+     },
+   },
+   {
+     'files': [
+       'flow-typed/**/*.js',
+     ],
+     'rules': {
+       'flowtype/no-weak-types': [0],
+     },
    }],
+   'extends': [
+    'plugin:relay/recommended',
+  ],
 });

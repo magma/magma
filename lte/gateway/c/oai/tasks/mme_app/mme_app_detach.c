@@ -32,7 +32,6 @@
 
 #include "log.h"
 #include "assertions.h"
-#include "msc.h"
 #include "intertask_interface.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
@@ -95,15 +94,6 @@ void mme_app_send_delete_session_request(
   S11_DELETE_SESSION_REQUEST(message_p).peer_ip =
     ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   mme_config_unlock(&mme_config);
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0  S11_DELETE_SESSION_REQUEST teid %u lbi %u",
-    S11_DELETE_SESSION_REQUEST(message_p).teid,
-    S11_DELETE_SESSION_REQUEST(message_p).lbi);
 
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);

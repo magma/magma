@@ -12,27 +12,27 @@ import type {ContextRouter, Match} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
-import axios from 'axios';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import PolicyRuleEditDialog from './PolicyRuleEditDialog';
+import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import PolicyRuleEditDialog from './PolicyRuleEditDialog';
+import axios from 'axios';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {withRouter, Route} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
-import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {findIndex} from 'lodash-es';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {MagmaAPIUrls} from '../../common/MagmaAPI';
+import {Route, withRouter} from 'react-router-dom';
+import {findIndex} from 'lodash';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = {};
 
@@ -41,7 +41,7 @@ type State = {
   rules: ?Array<Rule>,
 };
 
-type Props = WithStyles & ContextRouter & WithAlert & {};
+type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
 
 class PoliciesConfig extends React.Component<Props, State> {
   state = {
@@ -121,6 +121,7 @@ class PoliciesConfig extends React.Component<Props, State> {
   }
 
   renderAddDialog = () => (
+    // $FlowFixMe: missing rule prop. Please fix.
     <PolicyRuleEditDialog
       onCancel={this.handleCloseDialog}
       onSave={this.onAddRule}
@@ -139,6 +140,7 @@ class PoliciesConfig extends React.Component<Props, State> {
     );
     return (
       <PolicyRuleEditDialog
+        // $FlowFixMe: rule is nullable. Please fix.
         rule={rule}
         onCancel={this.handleCloseDialog}
         onSave={this.onEditRule}

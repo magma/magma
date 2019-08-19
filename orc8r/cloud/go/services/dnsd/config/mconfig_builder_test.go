@@ -11,6 +11,7 @@ package config_test
 import (
 	"testing"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/protos"
@@ -33,7 +34,7 @@ func TestDNSDBuilder_Build(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]proto.Message{}, actual)
 
-	err = config.CreateConfig("network", dnsd_config.DnsdNetworkType, "network", &dnsd_protos.NetworkDNSConfig{EnableCaching: false, LocalTTL: 0})
+	err = config.CreateConfig("network", orc8r.DnsdNetworkType, "network", &dnsd_protos.NetworkDNSConfig{EnableCaching: false, LocalTTL: 0})
 	assert.NoError(t, err)
 
 	actual, err = builder.Build("network", "gw")
@@ -51,7 +52,7 @@ func TestDNSDBuilder_Build(t *testing.T) {
 	networkUpdate := &dnsd_protos.NetworkDNSConfig{
 		EnableCaching: true,
 	}
-	config.UpdateConfig("network", dnsd_config.DnsdNetworkType, "network", networkUpdate)
+	config.UpdateConfig("network", orc8r.DnsdNetworkType, "network", networkUpdate)
 
 	actual, err = builder.Build("network", "gw")
 	assert.NoError(t, err)

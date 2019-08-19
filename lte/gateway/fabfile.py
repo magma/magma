@@ -37,6 +37,8 @@ Magma packages released to different channels have different version schemes.
 in `release/magma.lockfile`
 
     fab dev package
+    # optionally upload to aws (if you are configured for it)
+    fab dev package upload_to_aws
 """
 
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
@@ -94,7 +96,14 @@ def package(vcs='hg', all_deps="False",
         if all_deps:
             pkg.download_all_pkgs()
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')
-        pkg.upload_pkgs_to_aws()
+
+
+def upload_to_aws():
+    # If a host list isn't specified, default to the magma vagrant vm
+    if not env.hosts:
+        setup_env_vagrant()
+
+    pkg.upload_pkgs_to_aws()
 
 
 def connect_gateway_to_cloud(control_proxy_setting_path=None, cert_path=DEFAULT_CERT):

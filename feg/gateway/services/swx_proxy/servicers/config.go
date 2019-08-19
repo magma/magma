@@ -13,8 +13,8 @@ import (
 
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/services/swx_proxy/cache"
+	"magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/glog"
 )
@@ -22,14 +22,15 @@ import (
 const (
 	SwxProxyServiceName = "swx_proxy"
 
-	HSSAddrEnv        = "HSS_ADDR"
-	SwxNetworkEnv     = "SWX_NETWORK"
-	SwxDiamHostEnv    = "SWX_DIAM_HOST"
-	SwxDiamRealmEnv   = "SWX_DIAM_REALM"
-	SwxDiamProductEnv = "SWX_DIAM_PRODUCT"
-	SwxLocalAddrEnv   = "SWX_LOCAL_ADDR"
-	HSSHostEnv        = "HSS_HOST"
-	HSSRealmEnv       = "HSS_REALM"
+	HSSAddrEnv         = "HSS_ADDR"
+	SwxNetworkEnv      = "SWX_NETWORK"
+	SwxDiamHostEnv     = "SWX_DIAM_HOST"
+	SwxDiamRealmEnv    = "SWX_DIAM_REALM"
+	SwxDiamProductEnv  = "SWX_DIAM_PRODUCT"
+	SwxLocalAddrEnv    = "SWX_LOCAL_ADDR"
+	HSSHostEnv         = "HSS_HOST"
+	HSSRealmEnv        = "HSS_REALM"
+	DisableDestHostEnv = "DISABLE_DEST_HOST"
 
 	DefaultSwxDiamRealm        = "epc.mnc070.mcc722.3gppnetwork.org"
 	DefaultSwxDiamHost         = "feg-swx.epc.mnc070.mcc722.3gppnetwork.org"
@@ -53,8 +54,9 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
 				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, "sctp"),
 				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, "")},
-				DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
-				DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
+				DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
+				DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
+				DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
 			},
 			VerifyAuthorization: DefaultVerifyAuthorization,
 			CacheTTLSeconds:     uint32(cache.DefaultTtl.Seconds()),
@@ -80,8 +82,9 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.GetServer().GetAddress()),
 			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, SwxNetworkEnv, configsPtr.GetServer().GetProtocol()),
 			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, SwxLocalAddrEnv, configsPtr.GetServer().GetLocalAddress())},
-			DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.GetServer().GetDestHost()),
-			DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
+			DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.GetServer().GetDestHost()),
+			DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
+			DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, configsPtr.GetServer().GetDisableDestHost()),
 		},
 		VerifyAuthorization: configsPtr.GetVerifyAuthorization(),
 		CacheTTLSeconds:     ttl,

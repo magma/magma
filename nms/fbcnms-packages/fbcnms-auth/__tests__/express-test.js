@@ -8,6 +8,8 @@
  * @format
  */
 
+import OrganizationLocalStrategy from '@fbcnms/auth/strategies/OrganizationLocalStrategy';
+
 import bodyParser from 'body-parser';
 import express from 'express';
 import fbcPassport from '../passport';
@@ -15,7 +17,7 @@ import passport from 'passport';
 import request from 'supertest';
 import userMiddleware from '../express';
 import {USERS, USERS_EXPECTED} from '../test/UserModel';
-import {sequelize, User} from '@fbcnms/sequelize-models';
+import {User, sequelize} from '@fbcnms/sequelize-models';
 
 import {configureAccess} from '../access';
 
@@ -62,6 +64,7 @@ function getApp(orgName: string, loggedInEmail: ?string) {
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded());
   fbcPassport.use();
+  passport.use(new OrganizationLocalStrategy());
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(configureAccess({loginUrl: '/user/login'}));
@@ -213,6 +216,7 @@ describe('user tests', () => {
               organization: 'validorg',
               networkIDs: params.networkIDs,
               role: 0,
+              tabs: [],
             },
           });
       });
@@ -270,6 +274,7 @@ describe('user tests', () => {
       password: 'mynewpassword',
       superUser: false,
       verificationType: 0,
+      tabs: ['validtab'],
     };
     it('can update a user', async () => {
       const app = getApp('validorg', 'superuser@123.com');
@@ -279,12 +284,12 @@ describe('user tests', () => {
         .expect(stripDates)
         .expect({
           user: {
-            isSuperUser: false,
             networkIDs: [],
             id: 1,
             email: 'valid@123.com',
             organization: 'validorg',
             role: 0,
+            tabs: ['validtab'],
           },
         })
         .expect(200);

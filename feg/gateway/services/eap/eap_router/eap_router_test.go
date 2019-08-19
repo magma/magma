@@ -19,11 +19,12 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"magma/feg/cloud/go/protos"
+	cp "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/aaa/protos"
 	eap_client "magma/feg/gateway/services/eap/client"
-	eap_protos "magma/feg/gateway/services/eap/protos"
+	eapp "magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	eap_test "magma/feg/gateway/services/eap/test"
@@ -35,15 +36,15 @@ type testEapRouter struct {
 	supportedMethods []byte
 }
 
-func (s *testEapRouter) HandleIdentity(ctx context.Context, in *eap_protos.EapIdentity) (*eap_protos.Eap, error) {
+func (s *testEapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
 	resp, err := eap_client.HandleIdentityResponse(
-		uint8(in.GetMethod()), &eap_protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
+		uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
 		err = nil
 	}
 	return resp, err
 }
-func (s *testEapRouter) Handle(ctx context.Context, in *eap_protos.Eap) (*eap_protos.Eap, error) {
+func (s *testEapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
 	resp, err := eap_client.Handle(in)
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
 		err = nil
@@ -51,8 +52,8 @@ func (s *testEapRouter) Handle(ctx context.Context, in *eap_protos.Eap) (*eap_pr
 	return resp, err
 
 }
-func (s *testEapRouter) SupportedMethods(ctx context.Context, in *eap_protos.Void) (*eap_protos.MethodList, error) {
-	return &eap_protos.MethodList{Methods: s.supportedMethods}, nil
+func (s *testEapRouter) SupportedMethods(ctx context.Context, in *protos.Void) (*protos.EapMethodList, error) {
+	return &protos.EapMethodList{Methods: s.supportedMethods}, nil
 }
 
 var (
@@ -62,14 +63,14 @@ var (
 )
 
 type testEapServiceClient struct {
-	eap_protos.EapRouterClient
+	protos.EapRouterClient
 }
 
-func (c testEapServiceClient) Handle(in *eap_protos.Eap) (*eap_protos.Eap, error) {
+func (c testEapServiceClient) Handle(in *protos.Eap) (*protos.Eap, error) {
 	return c.EapRouterClient.Handle(context.Background(), in)
 }
 
-func (c testEapServiceClient) HandleIdentity(in *eap_protos.EapIdentity) (*eap_protos.Eap, error) {
+func (c testEapServiceClient) HandleIdentity(in *protos.EapIdentity) (*protos.Eap, error) {
 	return c.EapRouterClient.HandleIdentity(context.Background(), in)
 }
 
@@ -81,14 +82,14 @@ func newTestEapClient(t *testing.T, addr string) testEapServiceClient {
 	if err != nil {
 		t.Fatalf("Client dial error: %v", err)
 	}
-	return testEapServiceClient{eap_protos.NewEapRouterClient(conn)}
+	return testEapServiceClient{protos.NewEapRouterClient(conn)}
 }
 
 // TestEapAkaConcurent tests EAP AKA Provider
 func TestEapAkaConcurent(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
@@ -103,11 +104,11 @@ func TestEapAkaConcurent(t *testing.T) {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
-	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
 	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	eap_protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
@@ -134,31 +135,31 @@ func TestEAPPeerNak(t *testing.T) {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
-	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
 	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	eap_protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
-	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
+	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
 
-	peap, err := client.HandleIdentity(&eap_protos.EapIdentity{Payload: akaPrimeIdentity, Ctx: eapCtx, Method: 23})
+	peap, err := client.HandleIdentity(&protos.EapIdentity{Payload: akaPrimeIdentity, Ctx: eapCtx, Method: 23})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
 	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
 		t.Fatalf("Unexpected Identity Responsen\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
 	}
-	peap, err = client.Handle(&eap_protos.Eap{Payload: akaPrimeNak, Ctx: peap.Ctx})
+	peap, err = client.Handle(&protos.Eap{Payload: akaPrimeNak, Ctx: peap.Ctx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
 	if !reflect.DeepEqual([]byte(peap.GetPayload()), failureEAP) {
 		t.Fatalf("Unexpected AKA' Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), failureEAP)
 	}
-	peap, err = client.Handle(&eap_protos.Eap{Payload: akaAkaPrimeNak, Ctx: eapCtx})
+	peap, err = client.Handle(&protos.Eap{Payload: akaAkaPrimeNak, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
@@ -170,7 +171,7 @@ func TestEAPPeerNak(t *testing.T) {
 func TestEAPAkaWrongPlmnId(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.NoUseSwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
@@ -179,18 +180,18 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
-	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
 	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	eap_protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
 
 	tst := eap_test.Units[eap_test.IMSI1]
-	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
-	peap, err := client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
+	peap, err := client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
@@ -205,7 +206,7 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 func TestEAPAkaPlmnId5(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
@@ -216,18 +217,18 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 	}
 
 	servicer.SetChallengeTimeout(time.Millisecond * 10)
-	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
 	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	eap_protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
 
 	tst := eap_test.Units[eap_test.IMSI1]
-	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
-	peap, err := client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
+	peap, err := client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
@@ -241,7 +242,7 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 func TestEAPAkaPlmnId6(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	eapSrv, eapLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP_AKA)
@@ -251,18 +252,18 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 		return
 	}
 	servicer.SetChallengeTimeout(time.Millisecond * 10)
-	eap_protos.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
+	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
 	rtrSrv, rtrLis := test_utils.NewTestService(t, registry.ModuleName, registry.EAP)
-	eap_protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
+	protos.RegisterEapRouterServer(rtrSrv.GrpcServer, &testEapRouter{supportedMethods: eap_client.SupportedTypes()})
 	go rtrSrv.RunTest(rtrLis)
 
 	client := newTestEapClient(t, rtrLis.Addr().String())
 
 	tst := eap_test.Units[eap_test.IMSI1]
-	eapCtx := &eap_protos.EapContext{SessionId: eap.CreateSessionId()}
-	peap, err := client.Handle(&eap_protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
+	eapCtx := &protos.Context{SessionId: eap.CreateSessionId()}
+	peap, err := client.Handle(&protos.Eap{Payload: tst.EapIdentityResp, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}

@@ -19,7 +19,8 @@
       "nonEpsServiceControl": 0,
       "csfbMcc": "001",
       "csfbMnc": "01",
-      "lac": 1
+      "lac": 1,
+      "attachedEnodebTacs": []
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
@@ -46,10 +47,6 @@
       "autoupgradePollInterval": 300,
       "package_version": "0.0.0-0",
       "dynamic_services": []
-    },
-    "metricsd": {
-      "@type": "type.googleapis.com/magma.mconfig.MetricsD",
-      "logLevel": "INFO"
     },
     "pipelined": {
       "@type": "type.googleapis.com/magma.mconfig.PipelineD",

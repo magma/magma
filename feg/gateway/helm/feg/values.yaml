@@ -1,0 +1,125 @@
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+# Default values for agw.
+# This is a YAML-formatted file.
+# Declare name/value pairs to be passed into your templates.
+# name: value
+
+release_group: null
+
+# Reference to one or more secrets to be used when pulling images
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# - name: orc8r-secrets-registry
+
+## Key Values for docker inside VM
+feg:
+  type: feg
+  image:
+    docker_registry: ""
+    tag: "latest"
+    #username:
+    #password:
+  proxy:
+    local_port: 8443
+    cloud_address: orc8r-proxy.magma.svc.cluster.local
+    cloud_port: 9443
+    bootstrap_address: bootstrap-legacy.magma.svc.cluster.local
+    bootstrap_port: 443
+  repo:
+    url: https://github.com/facebookincubator/magma/
+    branch: master
+  bind:
+    S6A_LOCAL_PORT: 3868
+    S6A_HOST_PORT: 3869
+    S6A_NETWORK: sctp
+    SWX_LOCAL_PORT: 3868
+    SWX_HOST_PORT: 3868
+    SWX_NETWORK: sctp
+    GX_LOCAL_PORT: 3907
+    GX_HOST_PORT: 0
+    GX_NETWORK: tcp
+    GY_LOCAL_PORT: 3906
+    GY_HOST_PORT: 0
+    GY_NETWORK: tcp
+
+## Key Values for VM running using virtlet runtime
+image:
+  repository: virtlet.cloud/cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+labels:
+  node_selector_key: extraRuntime
+  node_selector_value: virtlet
+
+pod:
+  replicas:
+    server: 1
+  resources:
+    enabled: true
+    server:
+      requests:
+        memory: "2048Mi"
+        cpu: "100m"
+      limits:
+        memory: "4096Mi"
+        cpu: "2000m"
+
+service:
+  type: LoadBalancer
+  ports:
+    local:
+      port: 8443
+      targetport: 8443
+      nodePort: ""
+    cloud:
+      port: 9443
+      targetport: 9443
+      nodePort: ""
+    bootstrap:
+      port: 9444
+      targetport: 9444
+      nodePort: ""
+    ssh:
+      port: 22
+      targetport: 22
+      nodePort: ""
+
+tolerations: []
+
+affinity: {}
+
+virtlet:
+  vcpuCount: 2
+  rootVolumeSize: 20Gi
+  diskDriver: virtio
+  sshKeys: |
+    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCaJEcFDXEK2ZbX0ZLS1EIYFZRbDAc
+  ssh_pwauth: True
+  user:
+    users:
+    - name: testuser
+      gecos: User
+      primary-group: testuser
+      groups: users
+      lock_passwd: false
+      shell: /bin/bash
+      # the password is "testuser"
+      passwd: "$6$rounds=4096$wPs4Hz4tfs$a8ssMnlvH.3GX88yxXKF2cKMlVULsnydoOKgkuStTErTq2dzKZiIx9R/pPWWh5JLxzoZEx7lsSX5T2jW5WISi1"
+      sudo: ALL=(ALL) NOPASSWD:ALL
+
+manifests:
+  deployment: true
+  service: true
+  configmap_env: true
+  configmap_bin: true
+  secrets: true
+  rbac: true

@@ -21,7 +21,9 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
+	"magma/orc8r/cloud/go/sqorc"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
 
@@ -43,7 +45,7 @@ func main() {
 	}
 
 	// Init the datastore
-	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}
@@ -78,7 +80,10 @@ func main() {
 	go func() {
 		for now := range gc {
 			log.Printf("%v - Removing Stale Certificates", now)
-			servicer.CollectGarbage(context.Background(), &protos.Void{})
+			_, err := servicer.CollectGarbage(context.Background(), &protos.Void{})
+			if err != nil {
+				glog.Errorf("error collecting garbage for certifier: %s", err)
+			}
 		}
 	}()
 

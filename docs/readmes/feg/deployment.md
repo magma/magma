@@ -1,46 +1,71 @@
 ---
 id: deployment
-title: Packaging, Deployment, and Upgrades
+title: Deployment
 hide_title: true
 ---
-# Packaging, Deployment, and Upgrades
+# Deployment
 
-All necessary federated gateway components are packaged using a fabric
-command located at `magma/feg/gateway/fabfile.py`. To run this command:
-
-```console
-HOST [magma]$ cd magma/feg/gateway
-HOST [magma/feg/gateway]$ fab package
-```
-
-This command will create a zip called `magma_feg_<hash>.zip` that is
-pushed to S3 on AWS. It can then be copied from S3 and installed on any host.
+The FeG installation process assumes that the necessary FeG docker images
+are available in a docker registry. If this isn't the case, refer to
+the [FeG Docker Setup](docker_setup)
+for how to build and publish the images.
 
 ## Installation
 
-To install this zip, run:
+The installation is done using `install_gateway.sh` located at `magma/orc8r/tools/docker`.
+There are 3 files needed in addition to the install script:
+
+* rootCA.pem
+* control_proxy.yml
+* .env
+
+To install:
 
 ```console
-INSTALL-HOST [/home]$ mkdir -p /tmp/images/
-INSTALL-HOST [/home]$ cp magma_feg_<hash>.zip /tmp/images
-INSTALL-HOST [/home]$ cd /tmp/images
-INSTALL-HOST [/tmp/images]$ sudo unzip -o magma_feg_<hash>.zip
-INSTALL-HOST [/tmp/images]$ sudo ./install.sh
+INSTALL_HOST [~/]$ sudo ./install_gateway.sh
 ```
 
-After this completes, you should see: `Installed Succesfully!!`
+After this completes, you should see: `Installed successfully!!`
+
+## Registration
+
+After installation, the next step is to register the gateway with the Orchestrator.
+To do so:
+
+```console
+INSTALL_HOST [~/]$ cd /var/opt/magma/docker
+INSTALL_HOST [/var/opt/magma/docker]$ docker-compose exec magmad /usr/local/bin/show_gateway_info.py
+```
+
+This will output a hardware ID and a challenge key. This information must be registered with
+the NMS. To do this, go to NMS and select Network Management in the lower left hand corner.
+Then select the appropriate network that the gateway should be added to. Navigate to the
+"Configure Gateways" tab and click "Add Gateway". Here you will be prompted for the gateway
+information that was shown, as well as a gateway name and gateway ID.
+To verify that the gateway was correctly registered, run:
+
+```console
+INSTALL_HOST [~/]$ cd /var/opt/magma/docker
+INSTALL_HOST [/var/opt/magma/docker]$ docker-compose exec magmad /usr/local/bin/checkin_cli.py
+```
+
+## Configuration
+
+The final step is to configure the gateway. To do this, go to NMS and click on the edit icon
+at the right side of the newly listed gateway. Select the `Magma` tab and enter the appropriate
+configs.
+
+At this point more specific configuration can be added (LTE, WiFi, etc.). This is dependent
+upon the deployment.
 
 ## Upgrades
 
-If running in an Active/Standby configuration, the standard procedure for
-upgrades is as follows:
+The installation process places the `upgrade_gateway.sh` script at `/var/opt/magma/docker`.
+To upgrade, run:
 
-1. Find which gateway is currently standby
-2. Stop the services on standby gateway
-3. Wait 30 seconds
-4. Upgrade standby gateway
-5. Stop services on active gateway
-6. Wait 30 seconds (standby will get promoted to active)
-7. Upgrade (former) active gateway
+```console
+INSTALL_HOST [~/]$ cd /var/opt/magma/docker
+INSTALL_HOST [/var/opt/magma/docker]$ sudo ./upgrade_gateway.sh <github_tag>
+```
 
-Please note that this sequence will lead to an outage for 30-40 seconds.
+This will upgrade the gateway with the github version supplied.

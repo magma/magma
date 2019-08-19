@@ -55,7 +55,7 @@ func (p Packet) Validate() error {
 	if lp < EapHeaderLen {
 		return io.ErrShortBuffer
 	}
-	if p.Len() > lp {
+	if p.Len() != lp {
 		return fmt.Errorf("Invalid Packet Length: header => %d, actual => %d", p.Len(), lp)
 	}
 	return nil
@@ -69,6 +69,11 @@ func (p Packet) Len() int {
 // Identifier returns EAP Message Identifier
 func (p Packet) Identifier() uint8 {
 	return p[EapMsgIdentifier]
+}
+
+// IsSuccess returns if the EAP Packet Code is Success (3)
+func (p Packet) IsSuccess() bool {
+	return len(p) > EapMsgCode && p[EapMsgCode] == SuccessCode
 }
 
 // Type returns EAP Method Type or 0 - reserved if not available

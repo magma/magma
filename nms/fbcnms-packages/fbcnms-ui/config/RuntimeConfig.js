@@ -8,7 +8,7 @@
  * @format
  */
 
-const TEST_SUBDOMAIN = 'fb-test';
+const TEST_SUBDOMAIN = '-test';
 const LOCALHOST = 'localhost';
 const PHB_SUBDOMAIN = 'purpleheadband.cloud';
 

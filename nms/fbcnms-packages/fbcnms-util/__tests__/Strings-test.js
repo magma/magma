@@ -8,7 +8,7 @@
  * @format
  */
 
-import {hexToBase64, base64ToHex} from '../strings';
+import {base64ToHex, hexToBase64} from '../strings';
 
 describe('base64ToHex', () => {
   test('converted to hex', () => {

@@ -120,8 +120,6 @@ struct gtp_tunnel_ops {
       uint32_t i_tei, struct ipv4flow_dl *flow_dl);
 };
 
-uint32_t gtpv1u_new_teid(void);
-
 #if ENABLE_OPENFLOW
 const struct gtp_tunnel_ops *gtp_tunnel_ops_init_openflow(void);
 #else

@@ -16,43 +16,39 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/labstack/echo"
-
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
-	"magma/orc8r/cloud/go/obsidian/config"
-	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/obsidian/metrics"
+
+	"github.com/labstack/echo"
 )
 
 func Start() {
 	e := echo.New()
 
-	handlers.AttachAll(e)
+	obsidian.AttachAll(e)
 	// metrics middleware is used before all other middlewares
-	e.Use(metrics.CollectStats)
+	e.Use(CollectStats)
 	// Serve static pages for the API docs
-	e.Static(config.StaticURLPrefix, config.StaticFolder+"/apidocs")
-	e.Static(config.StaticURLPrefix+"/swagger-ui/dist",
-		config.StaticFolder+"/swagger-ui/dist")
+	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
+	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
 
-	portStr := fmt.Sprintf(":%d", config.Port)
-	log.Printf("Starting %s on %s", config.Product, portStr)
+	portStr := fmt.Sprintf(":%d", obsidian.Port)
+	log.Printf("Starting %s on %s", obsidian.Product, portStr)
 
 	var err error
-	if config.TLS {
+	if obsidian.TLS {
 		var caCerts []byte
-		caCerts, err = ioutil.ReadFile(config.ClientCAPoolPath)
+		caCerts, err = ioutil.ReadFile(obsidian.ClientCAPoolPath)
 		if err != nil {
 			log.Fatal(err)
 		}
 		caCertPool := x509.NewCertPool()
 		ok := caCertPool.AppendCertsFromPEM(caCerts)
 		if ok {
-			log.Printf("Loaded %d Client CA Certificate[s] from '%s'",
-				len(caCertPool.Subjects()), config.ClientCAPoolPath)
+			log.Printf("Loaded %d Client CA Certificate[s] from '%s'", len(caCertPool.Subjects()), obsidian.ClientCAPoolPath)
 		} else {
 			log.Printf(
-				"ERROR: No Certificates found in '%s'", config.ClientCAPoolPath)
+				"ERROR: No Certificates found in '%s'", obsidian.ClientCAPoolPath)
 		}
 		// Possible clientCertVerification values:
 		// 	NoClientCert
@@ -61,7 +57,7 @@ func Start() {
 		// 	VerifyClientCertIfGiven
 		// 	RequireAndVerifyClientCert
 		clientCertVerification := tls.RequireAndVerifyClientCert
-		if config.AllowAnyClientCert {
+		if obsidian.AllowAnyClientCert {
 			clientCertVerification = tls.RequireAnyClientCert
 		}
 		s := e.TLSServer
@@ -84,13 +80,12 @@ func Start() {
 				//tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 			},
 		}
-		s.TLSConfig.Certificates[0], err = tls.LoadX509KeyPair(
-			config.ServerCertPemPath,
-			config.ServerKeyPemPath)
+		s.TLSConfig.Certificates[0], err = tls.LoadX509KeyPair(obsidian.ServerCertPemPath, obsidian.ServerKeyPemPath)
 		if err != nil {
 			log.Fatalf(
 				"ERROR loading server certificate ('%s') and/or key ('%s'): %s",
-				config.ServerCertPemPath, config.ServerKeyPemPath, err)
+				obsidian.ServerCertPemPath, obsidian.ServerKeyPemPath, err,
+			)
 		}
 		s.TLSConfig.BuildNameToCertificate()
 		s.Addr = portStr

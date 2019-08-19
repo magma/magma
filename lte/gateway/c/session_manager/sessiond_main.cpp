@@ -24,6 +24,9 @@
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
 #define SESSIOND_VERSION "1.0"
+#define MIN_USAGE_REPORTING_THRESHOLD 0.4
+#define MAX_USAGE_REPORTING_THRESHOLD 1.1
+#define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -139,23 +142,50 @@ int main(int argc, char *argv[])
     pipelined_client->rpc_response_loop();
   });
 
-  auto reporting_limit = config["usage_reporting_limit_bytes"].as<uint64_t>();
-  magma::SessionCredit::USAGE_REPORTING_LIMIT = reporting_limit;
+  std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
+  std::thread aaa_client_thread;
+  if (config["support_carrier_wifi"].as<bool>()) {
+    aaa_client = std::make_shared<aaa::AsyncAAAClient>();
+    aaa_client_thread = std::thread([&]() {
+      MLOG(MINFO) << "Started AAA client response thread";
+      aaa_client->rpc_response_loop();
+    });
+  } else {
+    aaa_client = nullptr;
+  }
 
-  auto monitor = magma::LocalEnforcer(
-    rule_store,
-    pipelined_client,
-    config["session_force_termination_timeout_ms"].as<long>());
+  auto reporting_threshold = config["usage_reporting_threshold"].as<float>();
+  if (reporting_threshold <= MIN_USAGE_REPORTING_THRESHOLD ||
+      reporting_threshold >= MAX_USAGE_REPORTING_THRESHOLD) {
+    MLOG(MWARNING) << "Usage reporting threshold should be between "
+                   << MIN_USAGE_REPORTING_THRESHOLD << " and "
+                   << MAX_USAGE_REPORTING_THRESHOLD << ", apply default value: "
+                   << DEFAULT_USAGE_REPORTING_THRESHOLD;
+    reporting_threshold = DEFAULT_USAGE_REPORTING_THRESHOLD;
+  }
+  magma::SessionCredit::USAGE_REPORTING_THRESHOLD = reporting_threshold;
+  magma::SessionCredit::EXTRA_QUOTA_MARGIN =
+    config["extra_quota_margin"].as<uint64_t>();
+  magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
+   config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  magma::SessionCloudReporter reporter(evb, get_controller_channel(config));
+  auto reporter = std::make_shared<magma::SessionCloudReporterImpl>(
+    evb, get_controller_channel(config));
   std::thread reporter_thread([&]() {
     MLOG(MINFO) << "Started reporter thread";
-    reporter.rpc_response_loop();
+    reporter->rpc_response_loop();
   });
+
+  auto monitor = magma::LocalEnforcer(
+    reporter,
+    rule_store,
+    pipelined_client,
+    aaa_client,
+    config["session_force_termination_timeout_ms"].as<long>());
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    &monitor, &reporter);
+    &monitor, reporter.get());
   auto proxy_handler =
     std::make_unique<magma::SessionProxyResponderHandlerImpl>(&monitor);
 
@@ -188,6 +218,10 @@ int main(int argc, char *argv[])
   proxy_thread.join();
   rule_manager_thread.join();
   policy_loader_thread.join();
+
+  if (config["support_carrier_wifi"].as<bool>()) {
+    aaa_client_thread.join();
+  }
 
   return 0;
 }

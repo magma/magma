@@ -20,7 +20,6 @@ import (
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 type s6aProxyClient struct {
@@ -30,17 +29,17 @@ type s6aProxyClient struct {
 
 // getS6aProxyClient is a utility function to get a RPC connection to the
 // S6a Proxy service
-func getS6aProxyClient() (*s6aProxyClient, *grpc.ClientConn, error) {
+func getS6aProxyClient() (*s6aProxyClient, error) {
 	conn, err := registry.GetConnection(registry.S6A_PROXY)
 	if err != nil {
 		errMsg := fmt.Sprintf("S6a Proxy client initialization error: %s", err)
 		glog.Error(errMsg)
-		return nil, conn, errors.New(errMsg)
+		return nil, errors.New(errMsg)
 	}
 	return &s6aProxyClient{
 		protos.NewS6AProxyClient(conn),
 		protos.NewServiceHealthClient(conn),
-	}, conn, err
+	}, err
 }
 
 // AuthenticationInformation sends AIR over diameter connection,
@@ -49,11 +48,10 @@ func AuthenticationInformation(req *protos.AuthenticationInformationRequest) (*p
 	if req == nil {
 		return nil, errors.New("Invalid AuthenticationInformationRequest")
 	}
-	cli, conn, err := getS6aProxyClient()
+	cli, err := getS6aProxyClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	return cli.AuthenticationInformation(context.Background(), req)
 }
 
@@ -63,11 +61,10 @@ func UpdateLocation(req *protos.UpdateLocationRequest) (*protos.UpdateLocationAn
 	if req == nil {
 		return nil, errors.New("Invalid UpdateLocation")
 	}
-	cli, conn, err := getS6aProxyClient()
+	cli, err := getS6aProxyClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	return cli.UpdateLocation(context.Background(), req)
 }
 
@@ -77,10 +74,9 @@ func PurgeUE(req *protos.PurgeUERequest) (*protos.PurgeUEAnswer, error) {
 	if req == nil {
 		return nil, errors.New("Invalid PurgeUE Request")
 	}
-	cli, conn, err := getS6aProxyClient()
+	cli, err := getS6aProxyClient()
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	return cli.PurgeUE(context.Background(), req)
 }

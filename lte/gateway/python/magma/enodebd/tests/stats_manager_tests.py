@@ -40,6 +40,7 @@ class StatsManagerTest(TestCase):
         handler = EnodebAcsStateMachineBuilder\
             .build_acs_state_machine(EnodebDeviceName.BAICELLS)
         handler.device_cfg.set_parameter(ParameterName.RF_TX_STATUS, True)
+        handler.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER, '123454')
         with mock.patch('magma.enodebd.stats_manager.StatsManager'
                         '._clear_stats') as func:
             self.mgr._check_rf_tx_for_handler(handler)

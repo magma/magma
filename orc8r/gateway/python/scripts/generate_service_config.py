@@ -14,15 +14,14 @@ The templates should be in /etc/magma/templates and the final config will be in
 """
 
 import argparse
-import json
 import logging
 
 import os
-from google.protobuf.json_format import MessageToJson
 from jinja2 import Template
 from magma.common.serialization_utils import write_to_file_atomically
 from magma.configuration.exceptions import LoadConfigError
-from magma.configuration.mconfig_managers import load_service_mconfig
+from magma.configuration.mconfig_managers \
+    import load_service_mconfig_as_json
 from magma.configuration.service_configs import load_service_config
 from snowflake import make_snowflake
 
@@ -94,9 +93,8 @@ def generate_template_config(service, template, out_dirname, context):
 
     template_context.update(context)
     try:
-        mconfig = load_service_mconfig(service)
-        template_context.update(json.loads(MessageToJson(
-            mconfig, including_default_value_fields=True)))
+        mconfig = load_service_mconfig_as_json(service)
+        template_context.update(mconfig)
     except LoadConfigError as err:
         logging.warning(err)
 

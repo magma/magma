@@ -9,9 +9,13 @@ LICENSE file in the root directory of this source tree.
 package streamer
 
 import (
-	"magma/lte/cloud/go/services/subscriberdb"
+	"sort"
+
+	"magma/lte/cloud/go/lte"
+	protos2 "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
@@ -24,30 +28,40 @@ func (provider *SubscribersProvider) GetStreamName() string {
 }
 
 func (provider *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	networkId, err := magmad.FindGatewayNetworkId(gatewayId)
-	if err != nil {
-		return nil, err
-	}
-	subscriberIds, err := subscriberdb.ListSubscribers(networkId)
+	ent, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
 	}
 
-	ret := make([]*protos.DataUpdate, 0, len(subscriberIds))
-	for _, subscriberId := range subscriberIds {
-		subscriberData, err := subscriberdb.GetSubscriber(networkId, subscriberId)
-		if err != nil {
-			return nil, err
-		}
-		marshaledSubscriber, err := proto.Marshal(subscriberData)
-		if err != nil {
-			return nil, err
-		}
+	subEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return nil, err
+	}
 
-		update := new(protos.DataUpdate)
-		update.Key = subscriberId
-		update.Value = marshaledSubscriber
+	subProtos := make([]*protos2.SubscriberData, 0, len(subEnts))
+	for _, sub := range subEnts {
+		subdata := sub.Config.(*models.Subscriber)
+		subProto := &protos2.SubscriberData{}
+		err = subdata.ToMconfig(subProto)
+		if err != nil {
+			return nil, err
+		}
+		subProto.NetworkId = &protos.NetworkID{Id: ent.NetworkID}
+		subProtos = append(subProtos, subProto)
+	}
+	return subscribersToUpdates(subProtos)
+}
+
+func subscribersToUpdates(subs []*protos2.SubscriberData) ([]*protos.DataUpdate, error) {
+	ret := make([]*protos.DataUpdate, 0, len(subs))
+	for _, sub := range subs {
+		marshaledProto, err := proto.Marshal(sub)
+		if err != nil {
+			return nil, err
+		}
+		update := &protos.DataUpdate{Key: protos2.SidString(sub.Sid), Value: marshaledProto}
 		ret = append(ret, update)
 	}
+	sort.Slice(ret, func(i, j int) bool { return ret[i].Key < ret[j].Key })
 	return ret, nil
 }

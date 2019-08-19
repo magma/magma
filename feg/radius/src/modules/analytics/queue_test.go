@@ -1,0 +1,72 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
+package analytics
+
+import (
+	"math/rand"
+	"testing"
+	"time"
+
+	"go.uber.org/atomic"
+
+	"github.com/stretchr/testify/require"
+)
+
+// maxTimeBetweenTasks the time of random sleep between firing tasks & for task execution.
+const maxTimeBetweenTasks = 10 // msec
+
+func TestAnalyticsQueue(t *testing.T) {
+	numTasks := 100
+	for withDrain := 0; withDrain < 2; withDrain++ {
+		isDrain := false
+		if withDrain == 1 {
+			isDrain = true
+		}
+		lastExecTaskID := atomic.NewInt32(0)
+		queue := NewAnalyticsQueue()
+		for i := 1; i <= numTasks; i++ {
+			t := LazyExecSerializerOrderedTask{
+				Testing:        t,
+				Assertions:     require.New(t),
+				LastExecTaskID: lastExecTaskID,
+				TaskID:         i,
+			}
+			queue.Push(&t)
+			sl := rand.Intn(maxTimeBetweenTasks)
+			time.Sleep(time.Duration(sl) * time.Millisecond)
+		}
+		queue.Close(isDrain)
+
+		// Assert
+		queueSize := queue.Count()
+		if isDrain {
+			require.Equal(t, 0, queueSize)
+		} else {
+			require.True(t, numTasks >= queueSize)
+		}
+	}
+}
+
+// LazyExecSerializerOrderedTask a task that will test the ordered execution.
+type LazyExecSerializerOrderedTask struct {
+	Testing        *testing.T
+	Assertions     *require.Assertions
+	LastExecTaskID *atomic.Int32 // this needs to be atomic bcz go-routines that execute & update this might run on different cores
+	TaskID         int
+}
+
+func (t *LazyExecSerializerOrderedTask) Run() {
+	expectedID := 1 + t.LastExecTaskID.Load()
+	// check order of tasks is maintained
+	require.True(t.Testing, int32(t.TaskID) == expectedID, "expecting task ID %d but executing ID %d", expectedID, t.TaskID)
+	// update the last executed task as self.
+	t.LastExecTaskID.Store(int32(t.TaskID))
+	sl := rand.Intn(maxTimeBetweenTasks)
+	time.Sleep(time.Duration(sl) * time.Millisecond)
+}

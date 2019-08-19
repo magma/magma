@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/services/magmad"
 	"magma/orc8r/cloud/go/services/magmad/protos"
 	"magma/orc8r/cloud/go/services/magmad/servicers"
+	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/golang/glog"
 )
@@ -29,7 +30,7 @@ func main() {
 
 	// Init the Datastore
 	ds, err :=
-		datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+		datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		glog.Fatalf("Failed to initialize datastore: %s", err)
 	}

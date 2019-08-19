@@ -40,4 +40,5 @@
     - export GOBIN={{ gobin }}
     - export PATH=$PATH:{{ go_bin_path }}:{{ makebin }}
     - export GO111MODULE=auto
+    - export GOPROXY=https://proxy.golang.org
   when: full_provision

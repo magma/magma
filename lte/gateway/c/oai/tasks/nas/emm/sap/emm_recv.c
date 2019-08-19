@@ -783,13 +783,16 @@ int emm_recv_service_request(
 
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
     emm_ctx->_security.kenb_ul_count = emm_ctx->_security.ul_count;
+    if (true == is_initial) {
+      emm_ctx->_security.next_hop_chaining_count = 0;
+    }
   }
   if(PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
      ->sgs_context) {
     service_type = PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
                    ->sgs_context->csfb_service_type;
     /*
-     * if service request is received for either MO SMS or PS data,
+     * if service request is recieved for either MO SMS or PS data,
      * and if neaf flag is true then send the itti message to SGS
      * For triggering SGS ue activity indication message towards MSC.
      */

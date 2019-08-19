@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 
+	"magma/feg/cloud/go/protos/mconfig"
 	fegprotos "magma/feg/cloud/go/services/controller/protos"
 	"magma/orc8r/cloud/go/protos"
 )
@@ -39,6 +40,8 @@ func (m *NetworkFederationConfigs) ToServiceModel() (interface{}, error) {
 		Gx:               &fegprotos.GxConfig{Server: &fegprotos.DiamClientConfig{}},
 		Gy:               &fegprotos.GyConfig{Server: &fegprotos.DiamClientConfig{}},
 		Swx:              &fegprotos.SwxConfig{Server: &fegprotos.DiamClientConfig{}},
+		EapAka:           &fegprotos.EapAkaConfig{},
+		AaaServer:        &fegprotos.AAAConfig{},
 		ServedNetworkIds: []string{},
 		Health:           &fegprotos.HealthConfig{},
 	}
@@ -50,6 +53,7 @@ func (m *NetworkFederationConfigs) ToServiceModel() (interface{}, error) {
 	protos.FillIn(m.Swx, magmadConfig.Swx)
 	protos.FillIn(m.Health, magmadConfig.Health)
 	protos.FillIn(m.EapAka, magmadConfig.EapAka)
+	protos.FillIn(m.AaaServer, magmadConfig.AaaServer)
 	if err := fegprotos.ValidateNetworkConfig(magmadConfig); err != nil {
 		return nil, err
 	}
@@ -108,6 +112,9 @@ func (m *NetworkFederationConfigs) FromServiceModel(magmadModel interface{}) err
 	if m.EapAka == nil {
 		m.EapAka = &NetworkFederationConfigsEapAka{}
 	}
+	if m.AaaServer == nil {
+		m.AaaServer = &NetworkFederationConfigsAaaServer{}
+	}
 	protos.FillIn(magmadConfig.S6A, m.S6a)
 	protos.FillIn(magmadConfig.Hss, m.Hss)
 	protos.FillIn(magmadConfig.Gx, m.Gx)
@@ -115,6 +122,7 @@ func (m *NetworkFederationConfigs) FromServiceModel(magmadModel interface{}) err
 	protos.FillIn(magmadConfig.Swx, m.Swx)
 	protos.FillIn(magmadConfig.Health, m.Health)
 	protos.FillIn(magmadConfig.EapAka, m.EapAka)
+	protos.FillIn(magmadConfig.AaaServer, m.AaaServer)
 	if m.ServedNetworkIds == nil {
 		m.ServedNetworkIds = []string{}
 	}
@@ -141,6 +149,7 @@ func (m *GatewayFegConfigs) ToServiceModel() (interface{}, error) {
 		ServedNetworkIds: []string{},
 		Health:           &fegprotos.HealthConfig{},
 		EapAka:           &fegprotos.EapAkaConfig{},
+		AaaServer:        &fegprotos.AAAConfig{},
 	}
 
 	protos.FillIn(m, magmadConfig)
@@ -151,6 +160,7 @@ func (m *GatewayFegConfigs) ToServiceModel() (interface{}, error) {
 	protos.FillIn(m.Swx, magmadConfig.Swx)
 	protos.FillIn(m.Health, magmadConfig.Health)
 	protos.FillIn(m.EapAka, magmadConfig.EapAka)
+	protos.FillIn(m.AaaServer, magmadConfig.AaaServer)
 	if err := fegprotos.ValidateGatewayConfig(magmadConfig); err != nil {
 		return nil, err
 	}
@@ -209,6 +219,9 @@ func (m *GatewayFegConfigs) FromServiceModel(magmadModel interface{}) error {
 	if m.EapAka == nil {
 		m.EapAka = &NetworkFederationConfigsEapAka{}
 	}
+	if m.AaaServer == nil {
+		m.AaaServer = &NetworkFederationConfigsAaaServer{}
+	}
 	protos.FillIn(magmadConfig.S6A, m.S6a)
 	protos.FillIn(magmadConfig.Hss, m.Hss)
 	protos.FillIn(magmadConfig.Gx, m.Gx)
@@ -216,8 +229,27 @@ func (m *GatewayFegConfigs) FromServiceModel(magmadModel interface{}) error {
 	protos.FillIn(magmadConfig.Swx, m.Swx)
 	protos.FillIn(magmadConfig.Health, m.Health)
 	protos.FillIn(magmadConfig.EapAka, m.EapAka)
+	protos.FillIn(magmadConfig.AaaServer, m.AaaServer)
 	if m.ServedNetworkIds == nil {
 		m.ServedNetworkIds = []string{}
 	}
 	return nil
+}
+
+func (config *DiameterClientConfigs) ToMconfig() *mconfig.DiamClientConfig {
+	res := &mconfig.DiamClientConfig{}
+	protos.FillIn(config, res)
+	return res
+}
+
+func (config *DiameterServerConfigs) ToMconfig() *mconfig.DiamServerConfig {
+	res := &mconfig.DiamServerConfig{}
+	protos.FillIn(config, res)
+	return res
+}
+
+func (profile *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile {
+	res := &mconfig.HSSConfig_SubscriptionProfile{}
+	protos.FillIn(profile, res)
+	return res
 }

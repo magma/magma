@@ -11,8 +11,10 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
-#include "RuleStore.h"
+#include "AAAClient.h"
+#include "CloudReporter.h"
 #include "PipelinedClient.h"
+#include "RuleStore.h"
 #include "SessionState.h"
 
 namespace magma {
@@ -31,8 +33,10 @@ class LocalEnforcer {
   LocalEnforcer();
 
   LocalEnforcer(
+    std::shared_ptr<SessionCloudReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
+    std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms);
 
   void attachEventBase(folly::EventBase *evb);
@@ -121,13 +125,20 @@ class LocalEnforcer {
     PolicyReAuthRequest request,
     PolicyReAuthAnswer &answer_out);
 
+  bool is_imsi_duplicate(const std::string &imsi);
+
+  bool is_session_duplicate(
+    const std::string &imsi, const magma::SessionState::Config &config);
+
  private:
   struct RulesToProcess {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
   };
+  std::shared_ptr<SessionCloudReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
+  std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
   folly::EventBase *evb_;
   long session_force_termination_timeout_ms_;
@@ -167,7 +178,7 @@ class LocalEnforcer {
    * Rules need to be deactivated are categorized as either staic or dynamic
    * rule and put in the vector.
    */
-  void process_policy_reauth_request(
+  void get_rules_from_policy_reauth_request(
     const PolicyReAuthRequest &request,
     const std::unique_ptr<SessionState> &session,
     RulesToProcess *rules_to_activate,
@@ -205,6 +216,28 @@ class LocalEnforcer {
   void schedule_dynamic_rule_deactivation(
     const std::string &imsi,
     const DynamicRuleInstall &dynamic_rule);
+
+  /**
+   * Get the monitoring credits from PolicyReAuthRequest (RAR) message
+   * and add the credits to UsageMonitoringCreditPool of the session
+   */
+  void receive_monitoring_credit_from_rar(
+    const PolicyReAuthRequest &request,
+    const std::unique_ptr<SessionState> &session);
+
+  /**
+   * Check if REVALIDATION_TIMEOUT is one of the event triggers
+   */
+  bool revalidation_required(
+    const google::protobuf::RepeatedField<int> &event_triggers);
+
+  void schedule_revalidation(
+    const google::protobuf::Timestamp &revalidation_time);
+
+  void check_usage_for_reporting();
+
+  void execute_actions(
+    const std::vector<std::unique_ptr<ServiceAction>> &actions);
 };
 
 } // namespace magma

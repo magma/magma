@@ -11,7 +11,6 @@
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
 
-using google::protobuf::RepeatedPtrField;
 using grpc::Status;
 
 namespace magma {

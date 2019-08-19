@@ -139,11 +139,32 @@ class SessionCredit {
   void reauth();
 
   /**
-   * Limit for the total usage (tx + rx) in credit updates.
-   * If the used counts are greater than the limits, then the credit
-   * updates will be sent over multiple transactions.
+   * Returns true when there will be no more quora granted
    */
-  static uint64_t USAGE_REPORTING_LIMIT;
+  bool no_more_grant();
+
+  /**
+   * A threshold represented as a ratio for triggering usage update before
+   * an user completely used up the quota
+   * Session manager will send usage update when
+   * (available bytes since last update) * USAGE_REPORTING_THRESHOLD >=
+   * (used bytes since last update)
+   */
+  static float USAGE_REPORTING_THRESHOLD;
+
+  /**
+   * Extra number of bytes an user could use after the quota is exhausted.
+   * Session manager will deactivate the service when
+   * used quota >= (granted quota + EXTRA_QUOTA_MARGIN)
+   */
+  static uint64_t EXTRA_QUOTA_MARGIN;
+
+  /**
+   * Set to true to terminate service when the quota of a session is exhausted.
+   * An user can still use up to the extra margin.
+   * Set to false to allow users to use without any constraint.
+   */
+  static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
 
  private:
   bool reporting_;
@@ -152,11 +173,17 @@ class SessionCredit {
   ServiceState service_state_;
   std::time_t expiry_time_;
   uint64_t buckets_[MAX_VALUES];
+  /**
+   * Limit for the total usage (tx + rx) in credit updates to prevent
+   * session manager from reporting more usage than granted
+   */
+  uint64_t usage_reporting_limit_;
 
  private:
-  bool quota_exhausted();
+  bool quota_exhausted(
+    float usage_reporting_threshold = 1, uint64_t extra_quota_margin = 0);
 
-  bool max_overage_reached();
+  bool should_deactivate_service();
 
   bool validity_timer_expired();
 

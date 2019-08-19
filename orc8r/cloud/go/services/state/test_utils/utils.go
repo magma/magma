@@ -6,29 +6,29 @@ import (
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
-	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
-	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
 
-func ReportGatewayStatus(t *testing.T, ctx context.Context, req *checkind_models.GatewayStatus) {
+func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayStatus) {
 	conn, err := registry.GetConnection(state.ServiceName)
 	assert.NoError(t, err)
 	client := protos.NewStateServiceClient(conn)
 
-	serializedGWStatus, err := serde.Serialize(state.SerdeDomain, "gw_state", req)
+	serializedGWStatus, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, req)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
-			Type:     "gw_state",
+			Type:     orc8r.GatewayStateType,
 			DeviceID: req.HardwareID,
 			Value:    serializedGWStatus,
 		},
@@ -51,7 +51,7 @@ func GetGWStatusViaHTTPNoError(t *testing.T, url string, networkID string, key s
 	status, response, err := tests.SendHttpRequest("GET", url, "")
 	assert.NoError(t, err)
 	assert.Equal(t, 200, status)
-	expected, err := stateh.GetGWStatus(networkID, key)
+	expected, err := state.GetGatewayStatus(networkID, key)
 	assert.NoError(t, err)
 	expectedJSON, err := json.Marshal(*expected)
 	assert.NoError(t, err)

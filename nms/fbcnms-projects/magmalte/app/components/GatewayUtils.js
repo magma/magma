@@ -8,12 +8,12 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {
   CellularConfig,
   MagmadConfig,
   Record,
 } from '../common/MagmaAPIType';
+import type {WithStyles} from '@material-ui/core';
 
 import {withStyles} from '@material-ui/core/styles';
 
@@ -95,7 +95,7 @@ const styles = {
 };
 
 const GatewayStatusElement = (
-  props: WithStyles & {isGrey: boolean, isActive: boolean},
+  props: WithStyles<typeof styles> & {isGrey: boolean, isActive: boolean},
 ) => {
   if (props.isGrey) {
     return (

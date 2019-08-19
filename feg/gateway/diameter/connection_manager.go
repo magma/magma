@@ -13,7 +13,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/sm"
+	"github.com/fiorix/go-diameter/diam/sm/smpeer"
 )
 
 // ConnectionManager holds a map of connections keyed by the server ip/protocol
@@ -50,6 +52,27 @@ func (cm *ConnectionManager) GetConnection(client *sm.Client, server *DiameterSe
 	conn = newConnection(client, server)
 	cm.connMap[server.DiameterServerConnConfig] = conn
 	return conn, nil
+}
+
+// AddExistingConnection adds an already in-use connection to the connection manager.
+// This is used for servers that need to maintain a connection mapping to clients
+// If a connection already exists for the provided server config, update the
+// connection manager with the new connection. This is threadsafe
+func (cm *ConnectionManager) AddExistingConnection(conn diam.Conn, client *sm.Client, server *DiameterServerConfig) error {
+	cm.rwl.Lock()
+	defer cm.rwl.Unlock()
+	meta, ok := smpeer.FromContext(conn.Context())
+	if !ok {
+		return errors.New("ConnectionManager: Cannot add existing connection - could not fetch connection context")
+	}
+	diameterConnection := &Connection{
+		server:   server,
+		client:   client,
+		conn:     conn,
+		metadata: meta,
+	}
+	cm.connMap[server.DiameterServerConnConfig] = diameterConnection
+	return nil
 }
 
 // CleanupAllConnections does exactly that

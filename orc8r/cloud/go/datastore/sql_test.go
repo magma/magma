@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/datastore"
+	"magma/orc8r/cloud/go/sqorc"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,7 @@ func TestDatastoreBasics(t *testing.T) {
 	value := []byte("Hello world!")
 	table := "test_table"
 	// Create an in-memory sqlite datastore for testing
-	ds, err := datastore.NewSqlDb("sqlite3", ":memory:")
+	ds, err := datastore.NewSqlDb("sqlite3", ":memory:", sqorc.GetSqlBuilder())
 	assert.NoError(t, err)
 
 	// Add the key to the datastore
@@ -59,7 +60,7 @@ func TestDatastoreBasics(t *testing.T) {
 }
 
 func TestDatastoreBulkOperations(t *testing.T) {
-	ds, err := datastore.NewSqlDb("sqlite3", ":memory:")
+	ds, err := datastore.NewSqlDb("sqlite3", ":memory:", sqorc.GetSqlBuilder())
 	assert.NoError(t, err)
 
 	// Bulk insert KV's, no updates

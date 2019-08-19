@@ -30,6 +30,16 @@ message ReportStatesRequest {
     repeated State states = 1;
 }
 
+message ReportStatesResponse {
+    repeated IDAndError unreportedStates = 1;
+}
+
+message IDAndError {
+    string type = 1;
+    string deviceID = 2;
+    string error = 3;
+}
+
 message DeleteStatesRequest {
     string networkID = 1;
     repeated StateID ids = 2;
@@ -37,6 +47,6 @@ message DeleteStatesRequest {
 
 service StateService {
     rpc GetStates (GetStatesRequest) returns (GetStatesResponse) {}
-    rpc ReportStates(ReportStatesRequest) returns (Void) {}
+    rpc ReportStates(ReportStatesRequest) returns (ReportStatesResponse) {}
     rpc DeleteStates(DeleteStatesRequest) returns (Void) {}
 }

@@ -1,0 +1,241 @@
+# Default values for metrics.
+imagePullSecrets: []
+
+metrics:
+  # Enable/Disable chart
+  create: true
+
+  # Set to 1 if using a minikube setup
+  useMinikube:
+
+  # Retention configurations for prometheus
+  retention:
+    time: 30d
+
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prometheus
+        port: 9090
+        targetPort: 9090
+      - name: alertmanager
+        port: 9093
+        targetPort: 9093
+      - name: prom-configmanager
+        port: 9100
+        targetPort: 9100
+      - name: alertmanager-config
+        port: 9101
+        targetPort: 9101
+
+  environment:
+    promAlertconfigPort: "9100"
+    rulesDir: "/etc/configs/alert_rules"
+    prometheusURL: "localhost:9090"
+    alertmanagerConfigPort: "9101"
+    alertmanagerConfPath: "/etc/configs/alertmanager.yml"
+    alertmanagerURL: "localhost:9093"
+
+  volumes:
+    # Default volume configurations for metrics data
+    prometheusData:
+      volumeSpec:
+        hostPath:
+          path: /prometheusData
+          type: DirectoryOrCreate
+    prometheusConfig:
+      volumeSpec:
+        hostPath:
+          path: /configs/prometheus
+          type: DirectoryOrCreate
+
+  prometheusImage:
+    repository: docker.io/prom/prometheus
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  alertmanagerImage:
+    repository: docker.io/prom/alertmanager
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  configImage:
+    repository:
+    tag: latest
+    pullPolicy: Always
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign metrics to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+graphite:
+  # Enable/Disable chart
+  create: true
+  # Service configuration.
+  service:
+    annotations: {}
+    type: ClusterIP
+    ports:
+      - name: graphite-web
+        port: 80
+        targetPort: 80
+      - name: carbon-cache
+        port: 2003
+        targetPort: 2003
+
+  volumes:
+    # Default volume configurations for graphite data
+    graphiteData:
+      volumeSpec:
+        hostPath:
+          path: /graphiteData
+          type: DirectoryOrCreate
+
+  image:
+    repository: docker.io/graphiteapp/graphite-statsd
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign graphite to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+prometheusCache:
+  # Enable/Disable chart
+  create: true
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prometheus-cache
+        port: 9091
+        targetPort: 9091
+
+  image:
+    repository:
+    tag: latest
+    pullPolicy: Always
+
+  # Maximum number of datapoints in the cache at one time. Unlimited if <= 0.
+  limit: 0
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign graphite to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+grafana:
+  # Enable/Disable chart
+  create: true
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: grafana
+        port: 3000
+        targetPort: 3000
+
+  environment:
+    prometheusHost: "orc8r-metrics"
+    prometheusPort: "9090"
+
+  volumes:
+    # Default volume configurations for grafana data.
+    grafanaData:
+      volumeSpec:
+        emptyDir: {}
+
+  image:
+    repository:
+    tag: latest
+    pullPolicy: Always
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign graphite to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}

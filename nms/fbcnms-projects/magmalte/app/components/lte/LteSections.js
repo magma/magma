@@ -10,7 +10,6 @@
 
 import type {Section} from '../layout/Section';
 
-import React from 'react';
 import BarChartIcon from '@material-ui/icons/BarChart';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Configure from '../network/Configure';
@@ -20,6 +19,7 @@ import Insights from '../insights/Insights';
 import Metrics from '../insights/Metrics';
 import PeopleIcon from '@material-ui/icons/People';
 import PublicIcon from '@material-ui/icons/Public';
+import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Subscribers from '../Subscribers';

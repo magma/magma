@@ -16,9 +16,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"magma/feg/cloud/go/protos"
+	cp "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	eap_protos "magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	"magma/orc8r/cloud/go/test_utils"
 )
@@ -31,12 +31,12 @@ type testSwxProxy struct{}
 // waits (blocks) for MAA & returns its RPC representation
 func (s testSwxProxy) Authenticate(
 	ctx context.Context,
-	req *protos.AuthenticationRequest,
-) (*protos.AuthenticationAnswer, error) {
-	return &protos.AuthenticationAnswer{
+	req *cp.AuthenticationRequest,
+) (*cp.AuthenticationAnswer, error) {
+	return &cp.AuthenticationAnswer{
 		UserName: req.GetUserName(),
-		SipAuthVectors: []*protos.AuthenticationAnswer_SIPAuthVector{
-			&protos.AuthenticationAnswer_SIPAuthVector{
+		SipAuthVectors: []*cp.AuthenticationAnswer_SIPAuthVector{
+			&cp.AuthenticationAnswer_SIPAuthVector{
 				AuthenticationScheme: req.AuthenticationScheme,
 				RandAutn: []byte(
 					"\x01\x23\x45\x67\x89\xab\xcd\xef\x01\x23\x45\x67\x89\xab\xcd\xef" +
@@ -53,18 +53,18 @@ func (s testSwxProxy) Authenticate(
 // waits (blocks) for SAA & returns its RPC representation
 func (s testSwxProxy) Register(
 	ctx context.Context,
-	req *protos.RegistrationRequest,
-) (*protos.RegistrationAnswer, error) {
-	return &protos.RegistrationAnswer{}, nil
+	req *cp.RegistrationRequest,
+) (*cp.RegistrationAnswer, error) {
+	return &cp.RegistrationAnswer{}, nil
 }
 
 // Deregister sends SAR (code 301) over diameter connection,
 // waits (blocks) for SAA & returns its RPC representation
 func (s testSwxProxy) Deregister(
 	ctx context.Context,
-	req *protos.RegistrationRequest,
-) (*protos.RegistrationAnswer, error) {
-	return &protos.RegistrationAnswer{}, nil
+	req *cp.RegistrationRequest,
+) (*cp.RegistrationAnswer, error) {
+	return &cp.RegistrationAnswer{}, nil
 }
 
 const (
@@ -146,11 +146,11 @@ func TestChallengeEAPTemplate(t *testing.T) {
 func TestAkaChallenge(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service testSwxProxy
-	protos.RegisterSwxProxyServer(srv.GrpcServer, service)
+	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
 	go srv.RunTest(lis)
 
 	akaSrv, _ := servicers.NewEapAkaService(nil)
-	p, err := identityResponse(akaSrv, &eap_protos.EapContext{}, eap.Packet(testEapIdentityResp))
+	p, err := identityResponse(akaSrv, &protos.Context{}, eap.Packet(testEapIdentityResp))
 
 	if err != nil {
 		t.Fatalf("Unexpected identityResponse error: %v", err)

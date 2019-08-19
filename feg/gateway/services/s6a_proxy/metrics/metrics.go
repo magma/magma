@@ -14,9 +14,9 @@ import (
 	"time"
 
 	mconfigprotos "magma/feg/cloud/go/protos/mconfig"
-	"magma/feg/gateway/mconfig"
 	"magma/feg/gateway/registry"
 	service_health_metrics "magma/feg/gateway/service_health/metrics"
+	"magma/orc8r/gateway/mconfig"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
@@ -66,6 +66,17 @@ var (
 	S6aFailuresSinceLastSuccess = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "s6a_failures_since_last_success",
 		Help: "The total number of s6a request failures since the last successful request completed",
+	})
+	// Latencies
+	AIRLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "air_lat",
+		Help:       "Latency of AIR requests (milliseconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+	})
+	ULRLatency = prometheus.NewSummary(prometheus.SummaryOpts{
+		Name:       "ulr_lat",
+		Help:       "Latency of ULR requests (milliseconds).",
+		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 	})
 )
 
@@ -123,7 +134,7 @@ func NewS6aHealthTracker() *S6aHealthTracker {
 func init() {
 	prometheus.MustRegister(AIRRequests, AIRSendFailures, ULRRequests,
 		ULRSendFailures, S6aTimeouts, S6aUnparseableMsg, S6aResultCodes,
-		S6aSuccessTimestamp, S6aFailuresSinceLastSuccess)
+		S6aSuccessTimestamp, S6aFailuresSinceLastSuccess, AIRLatency, ULRLatency)
 }
 
 func UpdateS6aRecentRequestMetrics(err error) {

@@ -10,17 +10,17 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import {withStyles} from '@material-ui/core/styles';
 import AddIcon from '@material-ui/icons/Add';
-import classNames from 'classnames';
 import Fab from '@material-ui/core/Fab';
 import React from 'react';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
+import classNames from 'classnames';
+import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
   action: 'add' | 'remove',
   onClick: () => void,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 const styles = theme => ({
   actionButton: {

@@ -11,14 +11,19 @@ package servicers_test
 import (
 	"errors"
 	"flag"
+	"os"
 	"strconv"
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/serde"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	"magma/orc8r/cloud/go/services/device"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 
@@ -61,7 +66,10 @@ func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error 
 func (e *testMetricExporter) Start() {}
 
 func TestCollect(t *testing.T) {
-	magmad_test_init.StartTestService(t)
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	ctx := context.Background()
@@ -69,21 +77,12 @@ func TestCollect(t *testing.T) {
 	srv.RegisterExporter(e)
 
 	// Create test network
-	testNetworkId, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: "Test Network Name"},
-		"metricsd_servicer_test_network")
-	if err != nil {
-		t.Fatalf("Magmad Register Network '%s' Error: %s", testNetworkId, err)
-	}
+	networkID := "metricsd_servicer_test_network"
+	configurator_test_utils.RegisterNetwork(t, networkID, "Test Network Name")
 
 	// Register a fake gateway
-	gatewayId := "2876171d-bf38-4254-b4da-71a713952904"
-	hwId := protos.AccessGatewayID{Id: gatewayId}
-	logicalId, err := magmad.RegisterGateway(testNetworkId,
-		&magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "bla"})
-	if err != nil || logicalId == "" {
-		t.Fatalf("Magmad Register Error: %s, logical ID: %#v", err, logicalId)
-	}
+	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
+	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
 	name := strconv.Itoa(int(MetricName))
 	key := strconv.Itoa(int(LabelName))
@@ -92,7 +91,7 @@ func TestCollect(t *testing.T) {
 	int_val := uint64(1)
 	counter_type := dto.MetricType_COUNTER
 	counters := protos.MetricsContainer{
-		GatewayId: gatewayId,
+		GatewayId: gatewayID,
 		Family: []*dto.MetricFamily{{
 			Type: &counter_type,
 			Name: &name,
@@ -103,7 +102,7 @@ func TestCollect(t *testing.T) {
 
 	gauge_type := dto.MetricType_GAUGE
 	gauges := protos.MetricsContainer{
-		GatewayId: gatewayId,
+		GatewayId: gatewayID,
 		Family: []*dto.MetricFamily{{
 			Type: &gauge_type,
 			Name: &name,
@@ -114,7 +113,7 @@ func TestCollect(t *testing.T) {
 
 	summary_type := dto.MetricType_SUMMARY
 	summaries := protos.MetricsContainer{
-		GatewayId: gatewayId,
+		GatewayId: gatewayID,
 		Family: []*dto.MetricFamily{{
 			Type: &summary_type,
 			Name: &name,
@@ -125,7 +124,7 @@ func TestCollect(t *testing.T) {
 
 	histogram_type := dto.MetricType_HISTOGRAM
 	histograms := protos.MetricsContainer{
-		GatewayId: gatewayId,
+		GatewayId: gatewayID,
 		Family: []*dto.MetricFamily{{
 			Type: &histogram_type,
 			Name: &name,
@@ -138,10 +137,12 @@ func TestCollect(t *testing.T) {
 								UpperBound: &float}}}}}}}}
 
 	// Collect counters
-	_, err = srv.Collect(ctx, &counters)
+	_, err := srv.Collect(ctx, &counters)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
+	// check that label protos are converted
+	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	// clear queue
 	e.queue = e.queue[:0]
 
@@ -150,6 +151,7 @@ func TestCollect(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
+	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Collect summaries
@@ -158,6 +160,7 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, 2, len(e.queue))
 	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[0].Value())
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
+	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Collect histograms
@@ -168,6 +171,7 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[1].Value())
 	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[2].Value())
 	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[3].Value())
+	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Test Collect with empty collection

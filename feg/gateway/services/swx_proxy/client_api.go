@@ -14,6 +14,7 @@ package swx_proxy
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"magma/feg/cloud/go/protos"
@@ -24,38 +25,25 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Wrapper for GRPC Client to extend it with Cleanup
+// Wrapper for GRPC Client
 // functionality
 type swxProxyClient struct {
 	protos.SwxProxyClient
 	cc *grpc.ClientConn
 }
 
-func (cl *swxProxyClient) Cleanup() {
-	if cl != nil && cl.cc != nil {
-		cl.cc.Close()
-	}
-}
-
 // getSwxProxyClient is a utility function to get a RPC connection to the
 // Swx Proxy service
 func getSwxProxyClient() (*swxProxyClient, error) {
-	conn, err := registry.GetConnection(registry.SWX_PROXY)
+	var conn *grpc.ClientConn
+	var err error
+	if os.Getenv("USE_REMOTE_SWX_PROXY") == "1" {
+		conn, err = registry.NewCloudRegistry().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
+	} else {
+		conn, err = registry.GetConnection(registry.SWX_PROXY)
+	}
 	if err != nil {
 		errMsg := fmt.Sprintf("Swx Proxy client initialization error: %s", err)
-		glog.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	return &swxProxyClient{
-		protos.NewSwxProxyClient(conn),
-		conn,
-	}, err
-}
-
-func getRemoteSwxProxyClient() (*swxProxyClient, error) {
-	conn, err := registry.NewCloudRegistry().GetCloudConnection(strings.ToLower(registry.SWX_PROXY))
-	if err != nil {
-		errMsg := fmt.Sprintf("Remote Swx Proxy client initialization error: %s", err)
 		glog.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
@@ -77,7 +65,6 @@ func Authenticate(req *protos.AuthenticationRequest) (*protos.AuthenticationAnsw
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Authenticate(context.Background(), req)
 }
 
@@ -93,7 +80,6 @@ func Register(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, erro
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Register(context.Background(), req)
 }
 
@@ -109,40 +95,7 @@ func Deregister(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, er
 	if err != nil {
 		return nil, err
 	}
-	defer cli.Cleanup()
 	return cli.Deregister(context.Background(), req)
-}
-
-// AuthenticateRemote sends MAR (code 303) to a remote swx_proxy service,
-// waits (blocks) for MAA & returns its RPC representation
-func AuthenticateRemote(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
-	err := verifyAuthenticationRequest(req)
-	if err != nil {
-		errMsg := fmt.Errorf("Invalid AuthenticationRequest provided: %s", err)
-		return nil, errors.New(errMsg.Error())
-	}
-	cli, err := getRemoteSwxProxyClient()
-	if err != nil {
-		return nil, err
-	}
-	defer cli.Cleanup()
-	return cli.Authenticate(context.Background(), req)
-}
-
-// RegisterRemote sends SAR (Code 301) with ServerAssignmentType to REGISTRATION
-// to a remote swx_proxy service, waits (blocks) for SAA & returns its RPC representation
-func RegisterRemote(req *protos.RegistrationRequest) (*protos.RegistrationAnswer, error) {
-	err := verifyRegistrationRequest(req)
-	if err != nil {
-		errMsg := fmt.Errorf("Invalid RegistrationRequest provided: %s", err)
-		return nil, errors.New(errMsg.Error())
-	}
-	cli, err := getRemoteSwxProxyClient()
-	if err != nil {
-		return nil, err
-	}
-	defer cli.Cleanup()
-	return cli.Register(context.Background(), req)
 }
 
 func verifyAuthenticationRequest(req *protos.AuthenticationRequest) error {

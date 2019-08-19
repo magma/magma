@@ -22,6 +22,9 @@ import (
 var formatsRegistry strfmt.Registry = strfmt.NewFormats()
 
 func (m *NetworkDNSConfig) ValidateModel() error {
+	if err := m.ValidateNetworkConfig(); err != nil {
+		return err
+	}
 	return m.Validate(formatsRegistry)
 }
 

@@ -40,7 +40,6 @@
 #include "common_defs.h"
 #include "emm_esmDef.h"
 #include "esm_msg.h"
-#include "msc.h"
 #include "nas_timer.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -81,7 +80,7 @@ int esm_proc_esm_information_request(
 
   OAILOG_INFO(
     LOG_NAS_ESM,
-    "ESM-PROC  - Initiate ESM information ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    "ESM-PROC  - Initiate ESM information ue_id=(" MME_UE_S1AP_ID_FMT ")\n",
     ue_id);
 
   ESM_msg esm_msg = {.header = {0}};
@@ -130,7 +129,7 @@ int esm_proc_esm_information_response(
    */
   nas_stop_T3489(&ue_context->esm_ctx);
 
-  if (apn) {
+  if (apn && (apn->slen > 0)) {
     if (ue_context->esm_ctx.esm_proc_data->apn) {
       bdestroy_wrapper(&ue_context->esm_ctx.esm_proc_data->apn);
     }
@@ -277,14 +276,6 @@ static int _esm_information(
   emm_sap.u.emm_esm.ctx = ue_context;
   emm_esm->msg = bstrcpy(data->msg);
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMESM_UNITDATA_REQ (ESM_INFORMATION_REQUEST) ue id " MME_UE_S1AP_ID_FMT
-    " ",
-    ue_id);
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
@@ -297,8 +288,6 @@ static int _esm_information(
       0 /*usec*/,
       _esm_information_t3489_handler,
       data);
-    MSC_LOG_EVENT(
-      MSC_NAS_EMM_MME, "T3489 started UE " MME_UE_S1AP_ID_FMT " ", ue_id);
 
     OAILOG_INFO(
       LOG_NAS_EMM,

@@ -11,12 +11,10 @@ package obsidian
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
-	"reflect"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
-	"magma/orc8r/cloud/go/services/config"
+	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/serde"
 
 	"github.com/labstack/echo"
 )
@@ -25,26 +23,23 @@ import (
 // which can be converted to and from a corresponding configuration object
 // from the config service.
 type ConvertibleUserModel interface {
+	serde.BinaryConvertible
+
 	ValidateModel() error
-	ToServiceModel() (interface{}, error)
-	FromServiceModel(serviceModel interface{}) error
 }
 
-// instantiateNewConvertibleUserModel creates a new, empty instance of the
-// provided userModel struct. The parameter is expected to be a pointer to a
-// struct which implements ConvertibleUserModel.
-//
-// We need this because the userModel parameters in the functions below are
-// all only instantiated once upon creation of a Handler object, so they
-// will be re-used across obsidian calls unless we reflectively instantiate a
-// zeroed-out copy during each call.
-//
-// If you refactor any of the handler factory functions below, make sure that
-// this function is in each handler's call chain.
-func instantiateNewConvertibleUserModel(userModel ConvertibleUserModel) ConvertibleUserModel {
-	userModelType := reflect.TypeOf(userModel).Elem()
-	return reflect.New(userModelType).Interface().(ConvertibleUserModel)
-}
+type ConfigType int
+
+const (
+	Network ConfigType = 1
+	Gateway ConfigType = 2
+	// Entity is a network entity in configurator that is not a magmad_gateway.
+	// This distinction is important since the current setup allows a gateway
+	// to have multiple configs. A gateway config is treated as a separate
+	// entity with an association to the gateway entity. With a simple entity,
+	// its config is stored inside the entity.
+	Entity ConfigType = 3
+)
 
 // ConfigKeyGetter is a function which returns a config key from an
 // echo.Context.
@@ -61,8 +56,8 @@ func GetCRUDConfigHandlers(
 	configType string,
 	configKeyGetter ConfigKeyGetter,
 	userModel ConvertibleUserModel,
-) []handlers.Handler {
-	return []handlers.Handler{
+) []obsidian.Handler {
+	return []obsidian.Handler{
 		GetReadConfigHandler(path, configType, configKeyGetter, userModel),
 		GetCreateConfigHandler(path, configType, configKeyGetter, userModel),
 		GetUpdateConfigHandler(path, configType, configKeyGetter, userModel),
@@ -76,8 +71,8 @@ func GetCRUDNetworkConfigHandlers(
 	path string,
 	configType string,
 	userModel ConvertibleUserModel,
-) []handlers.Handler {
-	return []handlers.Handler{
+) []obsidian.Handler {
+	return []obsidian.Handler{
 		GetReadNetworkConfigHandler(path, configType, userModel),
 		GetCreateNetworkConfigHandler(path, configType, userModel),
 		GetUpdateNetworkConfigHandler(path, configType, userModel),
@@ -91,8 +86,8 @@ func GetCRUDGatewayConfigHandlers(
 	path string,
 	configType string,
 	userModel ConvertibleUserModel,
-) []handlers.Handler {
-	return []handlers.Handler{
+) []obsidian.Handler {
+	return []obsidian.Handler{
 		GetReadGatewayConfigHandler(path, configType, userModel),
 		GetCreateGatewayConfigHandler(path, configType, userModel),
 		GetUpdateGatewayConfigHandler(path, configType, userModel),
@@ -108,29 +103,18 @@ func GetCRUDGatewayConfigHandlers(
 func GetReadAllKeysConfigHandler(
 	path string,
 	configType string,
-) handlers.Handler {
-	return handlers.Handler{
+) obsidian.Handler {
+	return obsidian.Handler{
 		Path:    path,
-		Methods: handlers.GET,
+		Methods: obsidian.GET,
 		HandlerFunc: func(c echo.Context) error {
-			networkID, nerr := handlers.GetNetworkId(c)
+			networkID, nerr := obsidian.GetNetworkId(c)
 			if nerr != nil {
 				return nerr
 			}
-			return handleGetAllKeys(c, networkID, configType)
+			return configuratorGetAllKeys(c, networkID, configType)
 		},
 	}
-}
-
-func handleGetAllKeys(c echo.Context, networkID string, configType string) error {
-	keysArr, err := config.ListKeysForType(networkID, configType)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	if keysArr == nil {
-		return handlers.HttpError(errors.New("Keys not found"), http.StatusNotFound)
-	}
-	return c.JSON(http.StatusOK, keysArr)
 }
 
 // GetReadConfigHandler returns an obsidian handler for getting a config
@@ -146,21 +130,28 @@ func GetReadConfigHandler(
 	configType string,
 	configKeyGetter ConfigKeyGetter,
 	userModel ConvertibleUserModel,
-) handlers.Handler {
-	return handlers.Handler{
+) obsidian.Handler {
+	return obsidian.Handler{
 		Path:    path,
-		Methods: handlers.GET,
+		Methods: obsidian.GET,
 		HandlerFunc: func(c echo.Context) error {
-			networkId, nerr := handlers.GetNetworkId(c)
+			networkId, nerr := obsidian.GetNetworkId(c)
 			if nerr != nil {
 				return nerr
 			}
 
-			configKey, cerr := configKeyGetter(c)
-			if cerr != nil {
-				return cerr
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorGetNetworkConfig(c, networkId, configType)
+			case Gateway, Entity:
+				configKey, cerr := configKeyGetter(c)
+				if cerr != nil {
+					return cerr
+				}
+				return configuratorGetEntityConfig(c, networkId, configType, configKey)
+			default:
+				return obsidian.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
-			return handleGetConfig(c, networkId, configType, configKey, userModel)
 		},
 	}
 }
@@ -168,31 +159,15 @@ func GetReadConfigHandler(
 // GetReadNetworkConfigHandler returns an obsidian handler for getting a
 // network config from the config service.
 // See GetReadConfigHandler for additional documentation.
-func GetReadNetworkConfigHandler(path string, configType string, userModel ConvertibleUserModel) handlers.Handler {
-	return GetReadConfigHandler(path, configType, handlers.GetNetworkId, userModel)
+func GetReadNetworkConfigHandler(path string, configType string, userModel ConvertibleUserModel) obsidian.Handler {
+	return GetReadConfigHandler(path, configType, obsidian.GetNetworkId, userModel)
 }
 
 // GetReadGatewayConfigHandler returns an obsidian handler for getting a
 // gateway config from the config service.
 // See GetReadConfigHandler for additional documentation.
-func GetReadGatewayConfigHandler(path string, configType string, userModel ConvertibleUserModel) handlers.Handler {
-	return GetReadConfigHandler(path, configType, handlers.GetLogicalGwId, userModel)
-}
-
-func handleGetConfig(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
-	iConfig, err := config.GetConfig(networkId, configType, configKey)
-	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
-	}
-	if iConfig == nil {
-		return handlers.HttpError(errors.New("Config not found"), http.StatusNotFound)
-	}
-
-	userModel = instantiateNewConvertibleUserModel(userModel)
-	if err := userModel.FromServiceModel(iConfig); err != nil {
-		return handlers.HttpError(fmt.Errorf("Could not fill user config model from config service: %s", err), http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, userModel)
+func GetReadGatewayConfigHandler(path string, configType string, userModel ConvertibleUserModel) obsidian.Handler {
+	return GetReadConfigHandler(path, configType, obsidian.GetLogicalGwId, userModel)
 }
 
 // GetCreateConfigHandler returns an obsidian handler for creating a config
@@ -208,21 +183,34 @@ func GetCreateConfigHandler(
 	configType string,
 	configKeyGetter ConfigKeyGetter,
 	userModel ConvertibleUserModel,
-) handlers.Handler {
-	return handlers.Handler{
+) obsidian.Handler {
+	return obsidian.Handler{
 		Path:    path,
-		Methods: handlers.POST,
+		Methods: obsidian.POST,
 		HandlerFunc: func(c echo.Context) error {
-			networkId, err := handlers.GetNetworkId(c)
-			if err != nil {
-				return err
+			networkId, nerr := obsidian.GetNetworkId(c)
+			if nerr != nil {
+				return nerr
 			}
 
-			configKey, err := configKeyGetter(c)
-			if err != nil {
-				return err
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorCreateNetworkConfig(c, networkId, configType, userModel)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorCreateEntityConfig(c, networkId, configType, configKey, userModel)
+			default:
+				return obsidian.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
-			return handleCreateConfig(c, networkId, configType, configKey, userModel)
 		},
 	}
 }
@@ -230,34 +218,15 @@ func GetCreateConfigHandler(
 // GetCreateNetworkConfigHandler returns an obsidian handler for creating a
 // network config using the config service.
 // See GetCreateConfigHandler for additional documentation.
-func GetCreateNetworkConfigHandler(path string, configType string, userModel ConvertibleUserModel) handlers.Handler {
-	return GetCreateConfigHandler(path, configType, handlers.GetNetworkId, userModel)
+func GetCreateNetworkConfigHandler(path string, configType string, userModel ConvertibleUserModel) obsidian.Handler {
+	return GetCreateConfigHandler(path, configType, obsidian.GetNetworkId, userModel)
 }
 
 // GetCreateGatewayConfigHandler returns an obsidian handler for creating a
 // gateway config using the config service.
 // See GetCreateConfigHandler for additional documentation.
-func GetCreateGatewayConfigHandler(path string, configType string, userModel ConvertibleUserModel) handlers.Handler {
-	return GetCreateConfigHandler(path, configType, handlers.GetLogicalGwId, userModel)
-}
-
-func handleCreateConfig(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
-	userModel = instantiateNewConvertibleUserModel(userModel)
-	if err := c.Bind(userModel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	if err := userModel.ValidateModel(); err != nil {
-		return handlers.HttpError(fmt.Errorf("Invalid config: %s", err), http.StatusBadRequest)
-	}
-
-	iConfig, err := userModel.ToServiceModel()
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Error converting config model: %s", err), http.StatusBadRequest)
-	}
-	if err := config.CreateConfig(networkId, configType, configKey, iConfig); err != nil {
-		return handlers.HttpError(fmt.Errorf("Error creating config: %s", err), http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusCreated, configKey)
+func GetCreateGatewayConfigHandler(path string, configType string, userModel ConvertibleUserModel) obsidian.Handler {
+	return GetCreateConfigHandler(path, configType, obsidian.GetLogicalGwId, userModel)
 }
 
 // GetUpdateConfigHandler returns an obsidian handler for updating a config
@@ -273,21 +242,34 @@ func GetUpdateConfigHandler(
 	configType string,
 	configKeyGetter ConfigKeyGetter,
 	userModel ConvertibleUserModel,
-) handlers.Handler {
-	return handlers.Handler{
+) obsidian.Handler {
+	return obsidian.Handler{
 		Path:    path,
-		Methods: handlers.PUT,
+		Methods: obsidian.PUT,
 		HandlerFunc: func(c echo.Context) error {
-			networkId, err := handlers.GetNetworkId(c)
+			networkId, err := obsidian.GetNetworkId(c)
 			if err != nil {
 				return err
 			}
 
-			configKey, err := configKeyGetter(c)
-			if err != nil {
-				return err
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorUpdateNetworkConfig(c, networkId, configType, userModel)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateGatewayConfig(c, networkId, configType, configKey, userModel)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorUpdateEntityConfig(c, networkId, configType, configKey, userModel)
+			default:
+				return obsidian.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
-			return handleConfigUpdate(c, networkId, configType, configKey, userModel)
 		},
 	}
 }
@@ -295,34 +277,15 @@ func GetUpdateConfigHandler(
 // GetUpdateNetworkConfigHandler returns an obsidian handler for updating a
 // network config using the config service.
 // See GetUpdateConfigHandler for additional documentation
-func GetUpdateNetworkConfigHandler(path string, configType string, userModel ConvertibleUserModel) handlers.Handler {
-	return GetUpdateConfigHandler(path, configType, handlers.GetNetworkId, userModel)
+func GetUpdateNetworkConfigHandler(path string, configType string, userModel ConvertibleUserModel) obsidian.Handler {
+	return GetUpdateConfigHandler(path, configType, obsidian.GetNetworkId, userModel)
 }
 
 // GetUpdateGatewayConfigHandler returns an obsidian handler for updating a
 // gateway config using the config service.
 // See GetUpdateConfigHandler for additional documentation
-func GetUpdateGatewayConfigHandler(path string, configType string, userModel ConvertibleUserModel) handlers.Handler {
-	return GetUpdateConfigHandler(path, configType, handlers.GetLogicalGwId, userModel)
-}
-
-func handleConfigUpdate(c echo.Context, networkId string, configType string, configKey string, userModel ConvertibleUserModel) error {
-	userModel = instantiateNewConvertibleUserModel(userModel)
-	if err := c.Bind(userModel); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
-	}
-	if err := userModel.ValidateModel(); err != nil {
-		return handlers.HttpError(fmt.Errorf("Invalid config: %s", err), http.StatusBadRequest)
-	}
-
-	iConfig, err := userModel.ToServiceModel()
-	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Error converting config model: %s", err), http.StatusBadRequest)
-	}
-	if err := config.UpdateConfig(networkId, configType, configKey, iConfig); err != nil {
-		return handlers.HttpError(fmt.Errorf("Error updating config: %s", err), http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusOK)
+func GetUpdateGatewayConfigHandler(path string, configType string, userModel ConvertibleUserModel) obsidian.Handler {
+	return GetUpdateConfigHandler(path, configType, obsidian.GetLogicalGwId, userModel)
 }
 
 // GetDeleteConfigHandler returns an obsidian handler for deleting a config
@@ -331,21 +294,34 @@ func handleConfigUpdate(c echo.Context, networkId string, configType string, con
 // path is the URI for the handler to serve.
 // configKeyGetter is a function which returns the desired config key value
 // from the request's echo context.
-func GetDeleteConfigHandler(path string, configType string, configKeyGetter ConfigKeyGetter) handlers.Handler {
-	return handlers.Handler{
+func GetDeleteConfigHandler(path string, configType string, configKeyGetter ConfigKeyGetter) obsidian.Handler {
+	return obsidian.Handler{
 		Path:    path,
-		Methods: handlers.DELETE,
+		Methods: obsidian.DELETE,
 		HandlerFunc: func(c echo.Context) error {
-			networkId, err := handlers.GetNetworkId(c)
+			networkId, err := obsidian.GetNetworkId(c)
 			if err != nil {
 				return err
 			}
 
-			configKey, err := configKeyGetter(c)
-			if err != nil {
-				return err
+			switch getConfigTypeForConfigurator(configType) {
+			case Network:
+				return configuratorDeleteNetworkConfig(c, networkId, configType)
+			case Gateway:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteGatewayConfig(c, networkId, configType, configKey)
+			case Entity:
+				configKey, err := configKeyGetter(c)
+				if err != nil {
+					return err
+				}
+				return configuratorDeleteEntityConfig(c, networkId, configType, configKey)
+			default:
+				return obsidian.HttpError(errors.New("not implemented"), http.StatusNotImplemented)
 			}
-			return handleConfigDelete(c, networkId, configType, configKey)
 		},
 	}
 }
@@ -353,20 +329,13 @@ func GetDeleteConfigHandler(path string, configType string, configKeyGetter Conf
 // GetDeleteNetworkConfigHandler returns an obsidian handler for deleting
 // a network config using the config service.
 // See GetDeleteConfigHandler for additional documentation.
-func GetDeleteNetworkConfigHandler(path string, configType string) handlers.Handler {
-	return GetDeleteConfigHandler(path, configType, handlers.GetNetworkId)
+func GetDeleteNetworkConfigHandler(path string, configType string) obsidian.Handler {
+	return GetDeleteConfigHandler(path, configType, obsidian.GetNetworkId)
 }
 
 // GetDeleteGatewayConfigHandler returns an obsidian handler for deleting
 // a gateway config using the config service.
 // See GetDeleteConfigHandler for additional documentation.
-func GetDeleteGatewayConfigHandler(path string, configType string) handlers.Handler {
-	return GetDeleteConfigHandler(path, configType, handlers.GetLogicalGwId)
-}
-
-func handleConfigDelete(c echo.Context, networkId string, configType string, configKey string) error {
-	if err := config.DeleteConfig(networkId, configType, configKey); err != nil {
-		return handlers.HttpError(fmt.Errorf("Error deleting config: %s", err), http.StatusInternalServerError)
-	}
-	return c.NoContent(http.StatusOK)
+func GetDeleteGatewayConfigHandler(path string, configType string) obsidian.Handler {
+	return GetDeleteConfigHandler(path, configType, obsidian.GetLogicalGwId)
 }

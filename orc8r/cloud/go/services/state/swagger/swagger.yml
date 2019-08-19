@@ -6,14 +6,14 @@ info:
   version: 1.0.0
 
 paths:
-  /networks/{network_id}/gateways/{device_id}/gateway_status:
+  /networks/{network_id}/gateways/{gw_hardware_id}/gateway_status:
     get:
-      summary: Retrieve Gateway Status By DeviceID
+      summary: Retrieve Gateway Status By Gateway Hardware ID
       tags:
       - Gateways
       parameters:
       - $ref: './swagger-common.yml#/parameters/network_id'
-      - $ref: './swagger-common.yml#/parameters/device_id'
+      - $ref: '#/parameters/gw_hardware_id'
       responses:
         '200':
           description: Requested Gateway Status
@@ -23,6 +23,14 @@ paths:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 # Copied over from checkind/swagger. The checkind one will be deleted after
 # the checkind service is fully migrated over to the state service
+parameters:
+  gw_hardware_id:
+    in: path
+    name: gw_hardware_id
+    description: Hardware ID of a gateway
+    required: true
+    type: string
+
 definitions:
   disk_partition:
     type: object

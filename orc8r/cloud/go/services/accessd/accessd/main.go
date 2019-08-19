@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/accessd/servicers"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 func main() {
@@ -30,7 +31,7 @@ func main() {
 
 	// Init the Datastore
 	ds, err :=
-		datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+		datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}

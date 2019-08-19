@@ -77,6 +77,9 @@ class PipelinedController(Enum):
     Subscriber = Controller(
         'magma.pipelined.app.subscriber', 'subscriber'
     )
+    UEMac = Controller(
+        'magma.pipelined.app.ue_mac', 'ue_mac'
+    )
 
 
 def assert_pipelined_not_running():

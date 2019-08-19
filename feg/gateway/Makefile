@@ -53,4 +53,11 @@ build_only:
 run_local_hss:
 	sudo service magma@hss start
 
-precommit: fmt gen build_only test vet
+precommit: fmt test vet
+
+cover:
+	go test ./... -coverprofile ./cover.tmp >/dev/null
+	go tool cover -func=./cover.tmp | tail -n 1
+	find . -name '*.go' | xargs wc -l | tail -n 1
+	rm ./cover.tmp
+

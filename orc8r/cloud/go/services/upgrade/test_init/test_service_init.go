@@ -22,6 +22,6 @@ func StartTestService(t *testing.T) {
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, upgrade.ServiceName)
 	protos.RegisterUpgradeServiceServer(
 		srv.GrpcServer,
-		servicers.NewUpgradeService(test_utils.GetMockDatastoreInstance()))
+		servicers.NewUpgradeService(test_utils.NewMockDatastore()))
 	go srv.RunTest(lis)
 }

@@ -62,7 +62,6 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "nas_timer.h"
 #include "common_types.h"
 #include "3gpp_24.008.h"
@@ -527,7 +526,6 @@ int emm_proc_attach_request(
   //     * Notify ESM that all EPS bearer contexts allocated for this UE have
   //     * to be locally deactivated
   //     */
-  //    MSC_LOG_TX_MESSAGE (MSC_NAS_EMM_MME, MSC_NAS_ESM_MME, NULL, 0, "0 ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ ue id " MME_UE_S1AP_ID_FMT " ", ue_id);
   //    esm_sap_t                               esm_sap = {0};
   //
   //    esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
@@ -1053,18 +1051,6 @@ static int _emm_attach_abort(
       "EMM-PROC  - Abort the attach procedure (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       attach_proc->ue_id);
 
-    /*
-     * Notify ESM that the network locally refused PDN connectivity
-     * to the UE
-     */
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0"
-      "EMMCN_IMPLICIT_DETACH_UE ue id " MME_UE_S1AP_ID_FMT " ",
-      attach_proc->ue_id);
     // Trigger clean up
     emm_sap_t emm_sap = {0};
     emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
@@ -1495,17 +1481,6 @@ static int _emm_attach(emm_context_t *emm_context)
 
   if (attach_proc) {
     if (attach_proc->ies->esm_msg) {
-      /*
-       * Notify ESM that PDN connectivity is requested
-       */
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_ESM_MME,
-        NULL,
-        0,
-        "0 ESM_PDN_CONNECTIVITY_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
-
       esm_sap_t esm_sap = {0};
       esm_sap.primitive = ESM_UNITDATA_IND;
       esm_sap.is_standalone = false;
@@ -1840,13 +1815,6 @@ static int _emm_send_attach_accept(emm_context_t *emm_context)
       emm_context, &emm_sap.u.emm_as.u.establish);
 
     REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__2);
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0 EMMAS_ESTABLISH_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     rc = emm_sap_send(&emm_sap);
 
     if (RETURNerror != rc) {

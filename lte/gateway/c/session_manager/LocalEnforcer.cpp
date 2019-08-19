@@ -14,8 +14,10 @@
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
+#include <grpcpp/channel.h>
 
 #include "LocalEnforcer.h"
+#include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
 namespace {
@@ -47,20 +49,16 @@ static void mark_rule_failures(
   PolicyReAuthAnswer &answer_out);
 
 LocalEnforcer::LocalEnforcer(
+  std::shared_ptr<SessionCloudReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
   std::shared_ptr<PipelinedClient> pipelined_client,
+  std::shared_ptr<aaa::AAAClient> aaa_client,
   long session_force_termination_timeout_ms):
+  reporter_(reporter),
   rule_store_(rule_store),
   pipelined_client_(pipelined_client),
+  aaa_client_(aaa_client),
   session_force_termination_timeout_ms_(session_force_termination_timeout_ms)
-{
-}
-
-LocalEnforcer::LocalEnforcer():
-  LocalEnforcer(
-    std::make_shared<StaticRuleStore>(),
-    std::make_shared<AsyncPipelinedClient>(),
-    0)
 {
 }
 
@@ -128,18 +126,30 @@ void LocalEnforcer::aggregate_records(const RuleRecordTable &records)
   finish_report();
 }
 
-static void execute_actions(
-  PipelinedClient &pipelined_client,
+void LocalEnforcer::execute_actions(
   const std::vector<std::unique_ptr<ServiceAction>> &actions)
 {
   for (auto &action_p : actions) {
     if (action_p->get_type() == TERMINATE_SERVICE) {
-      pipelined_client.deactivate_flows_for_rules(
+      pipelined_client_->deactivate_flows_for_rules(
         action_p->get_imsi(),
         action_p->get_rule_ids(),
         action_p->get_rule_definitions());
+
+      // tell AAA service to terminate radius session if necessary
+      auto it = session_map_.find(action_p->get_imsi());
+      if (it == session_map_.end()) {
+        MLOG(MWARNING) << "Could not find session with IMSI "
+                       << action_p->get_imsi();
+      } else if (it->second->is_radius_cwf_session()) {
+        MLOG(MDEBUG) << "Asking AAA service to terminate session with "
+                     << "Radius ID: " << it->second->get_radius_session_id()
+                     << ", IMSI: " << action_p->get_imsi();
+        aaa_client_->terminate_session(
+          it->second->get_radius_session_id(), action_p->get_imsi());
+      }
     } else if (action_p->get_type() == ACTIVATE_SERVICE) {
-      pipelined_client.activate_flows_for_rules(
+      pipelined_client_->activate_flows_for_rules(
         action_p->get_imsi(),
         action_p->get_ip_addr(),
         action_p->get_rule_ids(),
@@ -155,7 +165,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates()
   for (auto &session_pair : session_map_) {
     session_pair.second->get_updates(&request, &actions);
   }
-  execute_actions(*pipelined_client_, actions);
+  execute_actions(actions);
   return request;
 }
 
@@ -399,6 +409,17 @@ bool LocalEnforcer::init_session_credit(
   }
   session_map_[imsi] = std::unique_ptr<SessionState>(session_state);
 
+  if (session_state->is_radius_cwf_session()) {
+    MLOG(MDEBUG) << "Adding UE MAC flow for subscriber " << imsi;
+    SubscriberID sid;
+    sid.set_id(imsi);
+    bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
+      sid, session_state->get_mac_addr());
+    if (!add_ue_mac_flow_success) {
+      MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
+    }
+  }
+
   auto ip_addr = session_state->get_subscriber_ip_addr();
 
   RulesToProcess rules_to_activate;
@@ -477,6 +498,9 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
     it->second->get_charging_pool().receive_credit(response);
   }
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
+    if (revalidation_required(usage_monitor_resp.event_triggers())) {
+      schedule_revalidation(usage_monitor_resp.revalidation_time());
+    }
     auto it = session_map_.find(usage_monitor_resp.sid());
     if (it == session_map_.end()) {
       MLOG(MERROR) << "Could not find session for IMSI "
@@ -570,10 +594,12 @@ void LocalEnforcer::init_policy_reauth(
     return;
   }
 
+  receive_monitoring_credit_from_rar(request, it->second);
+
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
 
-  process_policy_reauth_request(
+  get_rules_from_policy_reauth_request(
     request, it->second, &rules_to_activate, &rules_to_deactivate);
 
   auto ip_addr = it->second->get_subscriber_ip_addr();
@@ -602,13 +628,33 @@ void LocalEnforcer::init_policy_reauth(
   mark_rule_failures(activate_success, deactivate_success, request, answer_out);
 }
 
-void LocalEnforcer::process_policy_reauth_request(
+void LocalEnforcer::receive_monitoring_credit_from_rar(
+  const PolicyReAuthRequest &request,
+  const std::unique_ptr<SessionState> &session)
+{
+  UsageMonitoringUpdateResponse monitoring_credit;
+  monitoring_credit.set_session_id(request.session_id());
+  monitoring_credit.set_sid("IMSI" + request.session_id());
+  monitoring_credit.set_success(true);
+  UsageMonitoringCredit* credit = monitoring_credit.mutable_credit();
+
+  for (const auto &usage_monitoring_credit : request.usage_monitoring_credits()) {
+    credit->CopyFrom(usage_monitoring_credit);
+    session->get_monitor_pool().receive_credit(monitoring_credit);
+  }
+}
+
+void LocalEnforcer::get_rules_from_policy_reauth_request(
   const PolicyReAuthRequest &request,
   const std::unique_ptr<SessionState> &session,
   RulesToProcess *rules_to_activate,
   RulesToProcess *rules_to_deactivate)
 {
   MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
+  if (revalidation_required(request.event_triggers())) {
+    schedule_revalidation(request.revalidation_time());
+  }
+
   for (const auto &rule_id : request.rules_to_remove()) {
     // Try to remove as dynamic rule first
     PolicyRule dy_rule;
@@ -663,6 +709,73 @@ void LocalEnforcer::process_policy_reauth_request(
       rules_to_deactivate->dynamic_rules.push_back(dynamic_rule.policy_rule());
     }
   }
+}
+
+bool LocalEnforcer::revalidation_required(
+  const google::protobuf::RepeatedField<int> &event_triggers)
+{
+  auto it = std::find(
+    event_triggers.begin(), event_triggers.end(), REVALIDATION_TIMEOUT);
+  return it != event_triggers.end();
+}
+
+void LocalEnforcer::schedule_revalidation(
+  const google::protobuf::Timestamp &revalidation_time)
+{
+  auto delta = time_difference_from_now(revalidation_time);
+  evb_->runInEventBaseThread([=] {
+    evb_->timer().scheduleTimeoutFn(
+      std::move([=] {
+        MLOG(MDEBUG) << "Revalidation timeout!";
+        check_usage_for_reporting();
+      }),
+      delta);
+  });
+}
+
+void LocalEnforcer::check_usage_for_reporting()
+{
+  auto request = collect_updates();
+  if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
+    return; // nothing to report
+  }
+  MLOG(MDEBUG) << "Sending " << request.updates_size()
+               << " charging updates and " << request.usage_monitors_size()
+               << " monitor updates to OCS and PCRF";
+
+  // report to cloud
+  (*reporter_).report_updates(
+    request, [this, request](Status status, UpdateSessionResponse response) {
+      if (!status.ok()) {
+        reset_updates(request);
+        MLOG(MERROR) << "Update of size " << request.updates_size()
+                     << " to OCS failed entirely: " << status.error_message();
+      } else {
+        MLOG(MDEBUG) << "Received updated responses from OCS and PCRF";
+        update_session_credit(response);
+        // Check if we need to report more updates
+        check_usage_for_reporting();
+      }
+    });
+}
+
+bool LocalEnforcer::is_imsi_duplicate(const std::string &imsi)
+{
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    return false;
+  }
+  return true;
+}
+
+bool LocalEnforcer::is_session_duplicate(
+  const std::string &imsi, const magma::SessionState::Config &config)
+{
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    return false;
+  }
+  return it->second->is_same_config(config);
 }
 
 static void mark_rule_failures(

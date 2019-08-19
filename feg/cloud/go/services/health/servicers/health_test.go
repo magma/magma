@@ -17,15 +17,18 @@ import (
 	"magma/feg/cloud/go/services/health/servicers"
 	"magma/feg/cloud/go/services/health/storage/mocks"
 	"magma/feg/cloud/go/services/health/test_utils"
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/device"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHealthServer_GetHealth(t *testing.T) {
+	configurator_test_init.StartTestService(t)
 	healthStore := &mocks.HealthStorage{}
 	clusterStore := &mocks.ClusterStorage{}
 	service := servicers.NewTestHealthServer(healthStore, clusterStore)
@@ -61,37 +64,26 @@ func TestHealthServer_GetHealth(t *testing.T) {
 
 // Test that a single feg will always remain ACTIVE
 func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	healthStore := &mocks.HealthStorage{}
 	clusterStore := &mocks.ClusterStorage{}
 	service := servicers.NewTestHealthServer(healthStore, clusterStore)
 
-	testNetworkID, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: test_utils.TestFegNetwork},
-		test_utils.TestFegNetwork,
-	)
-	assert.NoError(t, err)
-
-	logicalId, err := magmad.RegisterGatewayWithId(
-		testNetworkID,
-		&magmad_protos.AccessGatewayRecord{
-			HwId: &orcprotos.AccessGatewayID{Id: test_utils.TestFegHwId1},
-		},
-		test_utils.TestFegLogicalId1,
-	)
-	assert.NoError(t, err)
-	assert.Equal(t, test_utils.TestFegLogicalId1, logicalId)
+	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
+	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	test_utils.RegisterGateway(t, test_utils.TestFegNetwork, test_utils.TestFegHwId1, test_utils.TestFegLogicalId1)
 
 	// Use Healthy Request metrics
 	healthyRequest := test_utils.GetHealthyRequest()
-	clusterState := getClusterState(logicalId)
+	clusterState := getClusterState(test_utils.TestFegLogicalId1)
 
 	// Ensure FeG is active and receives SYSTEM_UP
-	healthStore.On("UpdateHealth", testNetworkID, logicalId, healthyRequest.HealthStats).
+	healthStore.On("UpdateHealth", test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, healthyRequest.HealthStats).
 		Return(nil).Once()
-	clusterStore.On("DoesKeyExist", testNetworkID, testNetworkID).Return(false, nil)
-	clusterStore.On("UpdateClusterState", testNetworkID, testNetworkID, logicalId).Return(nil)
-	clusterStore.On("GetClusterState", testNetworkID, testNetworkID).Return(clusterState, nil)
+	clusterStore.On("DoesKeyExist", test_utils.TestFegNetwork, test_utils.TestFegNetwork).Return(false, nil)
+	clusterStore.On("UpdateClusterState", test_utils.TestFegNetwork, test_utils.TestFegNetwork, test_utils.TestFegLogicalId1).Return(nil)
+	clusterStore.On("GetClusterState", test_utils.TestFegNetwork, test_utils.TestFegNetwork).Return(clusterState, nil)
 
 	res, err := service.UpdateHealth(context.Background(), healthyRequest)
 	assert.NoError(t, err)
@@ -102,10 +94,10 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 	// Ensure we stay active with only one feg, even if it is unhealthy
 	unhealthyRequest := test_utils.GetUnhealthyRequest()
 
-	healthStore.On("UpdateHealth", testNetworkID, logicalId, unhealthyRequest.HealthStats).
+	healthStore.On("UpdateHealth", test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, unhealthyRequest.HealthStats).
 		Return(nil)
-	clusterStore.On("DoesKeyExist", testNetworkID, testNetworkID).Return(true, nil)
-	clusterStore.On("GetClusterState", testNetworkID, testNetworkID).Return(clusterState, nil)
+	clusterStore.On("DoesKeyExist", test_utils.TestFegNetwork, test_utils.TestFegNetwork).Return(true, nil)
+	clusterStore.On("GetClusterState", test_utils.TestFegNetwork, test_utils.TestFegNetwork).Return(clusterState, nil)
 
 	res, err = service.UpdateHealth(context.Background(), unhealthyRequest)
 	assert.NoError(t, err)
@@ -115,7 +107,8 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 }
 
 func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	healthStore := &mocks.HealthStorage{}
 	clusterStore := &mocks.ClusterStorage{}
 	service := servicers.NewTestHealthServer(healthStore, clusterStore)
@@ -153,7 +146,8 @@ func TestHealthServer_UpdateHealth_DualFeg_HealthyActive(t *testing.T) {
 }
 
 func TestNewHealthServer_UpdateHealth_FailoverFromActive(t *testing.T) {
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	healthStore := &mocks.HealthStorage{}
 	clusterStore := &mocks.ClusterStorage{}
 	service := servicers.NewTestHealthServer(healthStore, clusterStore)
@@ -179,7 +173,8 @@ func TestNewHealthServer_UpdateHealth_FailoverFromActive(t *testing.T) {
 }
 
 func TestNewHealthServer_UpdateHealth_FailoverFromStandby(t *testing.T) {
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	healthStore := &mocks.HealthStorage{}
 	clusterStore := &mocks.ClusterStorage{}
 	service := servicers.NewTestHealthServer(healthStore, clusterStore)
@@ -209,7 +204,8 @@ func TestNewHealthServer_UpdateHealth_FailoverFromStandby(t *testing.T) {
 }
 
 func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	healthStore := &mocks.HealthStorage{}
 	clusterStore := &mocks.ClusterStorage{}
 	service := servicers.NewTestHealthServer(healthStore, clusterStore)
@@ -246,20 +242,21 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 }
 
 func registerTwoFegs(t *testing.T) (string, string, string) {
-	testNetworkID := test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
-	logicalId := test_utils.RegisterGateway(
+	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
+	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	test_utils.RegisterGateway(
 		t,
-		testNetworkID,
+		test_utils.TestFegNetwork,
 		test_utils.TestFegHwId1,
 		test_utils.TestFegLogicalId1,
 	)
-	logicalId2 := test_utils.RegisterGateway(
+	test_utils.RegisterGateway(
 		t,
-		testNetworkID,
+		test_utils.TestFegNetwork,
 		test_utils.TestFegHwId2,
 		test_utils.TestFegLogicalId2,
 	)
-	return testNetworkID, logicalId, logicalId2
+	return test_utils.TestFegNetwork, test_utils.TestFegLogicalId1, test_utils.TestFegLogicalId2
 }
 
 func getClusterState(logicalID string) *protos.ClusterState {

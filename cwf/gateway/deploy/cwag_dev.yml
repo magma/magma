@@ -1,0 +1,46 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+---
+- name: Set up Carrier WiFi Access Gateway for development
+  hosts: cwag
+  become: yes
+  vars:
+    - magma_root: /home/{{ ansible_user }}/magma
+    - user: "{{ ansible_user }}"
+    - full_provision: true
+  roles:
+    - role: apt_cache
+    - role: pkgrepo
+      vars:
+        distribution: "bionic"
+    - role: ovs
+    - role: golang
+    - role: cwag
+
+  tasks:
+    - name: Set build environment variables
+      lineinfile:
+        dest: /etc/environment
+        state: present
+        line: "{{ item }}"
+      with_items:
+        - MAGMA_ROOT={{ magma_root }}
+      when: full_provision
+    # Only run installation for docker
+    - include_role:
+        name: docker
+        tasks_from: install
+
+    - name: Create snowflake file
+      copy:
+        content: ""
+        dest: /etc/snowflake
+
+    # Required by some go libraries
+    - name: Install bzr dependency
+      apt:
+        name: bzr
+        state: present

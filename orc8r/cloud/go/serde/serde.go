@@ -8,6 +8,13 @@
 
 package serde
 
+import (
+	"encoding"
+	"reflect"
+
+	"github.com/pkg/errors"
+)
+
 // Serde (SERializer-DEserializer) implements logic to serialize/deserialize
 // a specific piece of data.
 type Serde interface {
@@ -26,4 +33,45 @@ type Serde interface {
 
 	// Deserialize a piece of data
 	Deserialize(in []byte) (interface{}, error)
+}
+
+// BinaryConvertible wraps encoding.BinaryMarshaler and
+// encoding.BinaryUnmarshaler for use in generic serde factory functions.
+type BinaryConvertible interface {
+	encoding.BinaryMarshaler
+	encoding.BinaryUnmarshaler
+}
+
+// NewBinarySerde returns a Serde implementation for a structure which
+// implements BinaryConvertible. `dataInstance` is expected to be a pointer.
+func NewBinarySerde(domain string, serdeType string, dataInstance BinaryConvertible) Serde {
+	return &binarySerde{domain: domain, serdeType: serdeType, dataInstance: dataInstance}
+}
+
+type binarySerde struct {
+	domain       string
+	serdeType    string
+	dataInstance BinaryConvertible
+}
+
+func (s *binarySerde) GetDomain() string {
+	return s.domain
+}
+
+func (s *binarySerde) GetType() string {
+	return s.serdeType
+}
+
+func (s *binarySerde) Serialize(in interface{}) ([]byte, error) {
+	bm, ok := in.(BinaryConvertible)
+	if !ok {
+		return nil, errors.Errorf("structure does not implement BinaryConvertible")
+	}
+	return bm.MarshalBinary()
+}
+
+func (s *binarySerde) Deserialize(in []byte) (interface{}, error) {
+	model := reflect.New(reflect.TypeOf(s.dataInstance).Elem()).Interface().(BinaryConvertible)
+	err := model.UnmarshalBinary(in)
+	return model, err
 }

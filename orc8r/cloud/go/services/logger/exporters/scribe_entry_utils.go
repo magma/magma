@@ -11,8 +11,11 @@ package exporters
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/magmad"
 
 	"github.com/golang/glog"
@@ -51,15 +54,22 @@ func ConvertToScribeLogEntries(entries []*protos.LogEntry) ([]*ScribeLogEntry, e
 		}
 		scribeMsg.Int["time"] = entry.Time
 		// add gatewayId and networkId if it's a logEntry logged from a gateway
-		nwId, gwId, err := getNwIdGwId(entry.HwId)
+		var networkID, gatewayID string
+		var err error
+		useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
+		if useConfigurator == "1" {
+			networkID, gatewayID, err = configurator.GetNetworkAndEntityIDForPhysicalID(entry.HwId)
+		} else {
+			networkID, gatewayID, err = getNwIdGwId(entry.HwId)
+		}
 		if err != nil {
 			glog.Errorf("Error retrieving nwId and gwId for hwId %s in scribeExporter: %v\n", entry.HwId, err)
 		} else if len(entry.HwId) != 0 { // it's a gateway log, add networkId and gatewayId
 			if scribeMsg.Normal == nil {
 				scribeMsg.Normal = map[string]string{}
 			}
-			scribeMsg.Normal["networkId"] = nwId
-			scribeMsg.Normal["gatewayId"] = gwId
+			scribeMsg.Normal["networkId"] = networkID
+			scribeMsg.Normal["gatewayId"] = gatewayID
 		}
 		// marshall scribeMsg into json
 		msgJson, err := json.Marshal(scribeMsg)

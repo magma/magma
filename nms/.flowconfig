@@ -3,9 +3,11 @@
 ; Ignore components that we dont care if they match our flow
 .*/node_modules/bcryptjs/.*
 .*/node_modules/config-chain/test/.*
+.*/node_modules/cross-domain-safe-weakmap/.*
 .*/node_modules/eslint.*
 .*/node_modules/findup/.*
 .*/node_modules/jsonlint-lines-primitives/.*
+.*/node_modules/zalgo-promise/.*
 
 ; Huge libraries that we dont need flow for, just speed up because we dont care
 .*/node_modules/@material-ui/.*
@@ -45,6 +47,7 @@
 .*/node_modules/express-graphql/.*
 .*/node_modules/graphql/.*
 .*/node_modules/mapbox-gl/src/.*
+.*/node_modules/react-beautiful-dnd/.*
 
 [options]
 esproposal.optional_chaining=enable
@@ -81,4 +84,4 @@ untyped-import
 untyped-type-import
 
 [version]
-0.94.0
+^0.105.0
