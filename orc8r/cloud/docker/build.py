@@ -27,6 +27,9 @@ SRC_ROOT = 'src'
 HOST_MAGMA_ROOT = '../../../.'
 DEFAULT_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'modules.yml')
 FB_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'fb/config/modules.yml')
+METRICS_DOCKER_FILE = 'docker-compose.metrics.yml'
+ORC8R_DOCKER_FILE = 'docker-compose.yml'
+OVERRIDE_DOCKER_FILE = 'docker-compose.override.yml'
 
 # Root directory where external modules will be mounted
 GUEST_MODULE_ROOT = 'modules'
@@ -48,7 +51,13 @@ def main() -> None:
     elif args.nocache:
         # Build containers without go-cache in base image
         _create_build_context()
-        _run_docker(['build'])
+        if args.all:
+            # Build all containers
+            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', METRICS_DOCKER_FILE,
+                         '-f', OVERRIDE_DOCKER_FILE, 'build'])
+        else:
+            # Build all non-metrics containers
+            _run_docker(['build'])
     else:
         _create_build_context()
         # Check if orc8r_cache image exists
@@ -58,8 +67,15 @@ def main() -> None:
             print("Orc8r_cache image does not exist. Building...")
             _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
 
-        # Build all images using go-cache base image
-        _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache'])
+        # Build images using go-cache base image
+        if args.all:
+            # Build all containers
+            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', METRICS_DOCKER_FILE,
+                         '-f', OVERRIDE_DOCKER_FILE, 'build', '--build-arg',
+                         'baseImage=orc8r_cache'])
+        else:
+            # Build all non-metrics containers
+            _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache'])
 
 
 def _run_docker(cmd: List[str]) -> None:
@@ -191,6 +207,8 @@ def _parse_args() -> argparse.Namespace:
                         help='Mount the source code and create a bash shell')
     parser.add_argument('--nocache', '-n', action='store_true',
                         help='Build the images without go cache base image')
+    parser.add_argument('--all', '-a', action='store_true',
+                        help='Build all containers, including metrics containers')
     args = parser.parse_args()
     return args
 
