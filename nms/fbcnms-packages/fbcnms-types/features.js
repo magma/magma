@@ -23,4 +23,5 @@ export type FeatureID =
   | 'site_survey'
   | 'alerts'
   | 'equipment_export'
+  | 'import_exported_equipemnt'
   | 'file_categories';
