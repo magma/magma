@@ -21,20 +21,28 @@ const useStyles = makeStyles(theme => ({
     height: '30px',
     border: 0,
   },
+  selected: {
+    color: theme.palette.blue60,
+  },
+  notSelected: {
+    color: theme.palette.black,
+  },
 }));
 
 type Props = {
   onClick: () => void,
-  children: ?React.Node,
+  icon: React.Node,
+  isSelected?: boolean,
 };
 
 const MapButton = (props: Props) => {
-  const {onClick} = props;
+  const {onClick, isSelected, icon} = props;
   const classes = useStyles();
-
   return (
     <ToggleButton value={1} className={classes.button} onClick={onClick}>
-      {props.children}
+      <span className={isSelected ? classes.selected : classes.notSelected}>
+        {icon}
+      </span>
     </ToggleButton>
   );
 };
