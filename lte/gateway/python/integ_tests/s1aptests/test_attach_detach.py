@@ -10,7 +10,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 import unittest
 
 import s1ap_types
-import time
 
 from integ_tests.s1aptests import s1ap_wrapper
 
@@ -45,7 +44,6 @@ class TestAttachDetach(unittest.TestCase):
             self._s1ap_wrapper._s1_util.receive_emm_info()
             print("************************* Running UE detach for UE id ",
                   req.ue_id)
-            time.sleep(1) 
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
                 req.ue_id, detach_type[i], wait_for_s1[i])
