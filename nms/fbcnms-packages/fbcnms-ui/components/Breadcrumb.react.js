@@ -9,9 +9,10 @@
  */
 
 import * as React from 'react';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
+import {gray8} from '@fbcnms/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -23,21 +24,38 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column',
   },
   subtext: {
-    fontSize: theme.typography.pxToRem(11),
-    color: theme.palette.text.secondary,
+    fontSize: theme.typography.pxToRem(13),
   },
-  arrowIcon: {
-    color: theme.palette.grey[600],
+  slash: {
+    color: gray8,
+    margin: '0 6px',
   },
   breadcrumbName: {
+    whiteSpace: 'nowrap',
+    fontWeight: 500,
+    color: theme.palette.blueGrayDark,
     cursor: 'pointer',
-    fontWeight: 'bold',
-    '&:hover': {
-      textDecoration: 'underline',
-    },
   },
   parentBreadcrumb: {
-    color: theme.palette.grey.A200,
+    color: gray8,
+    '&:hover': {
+      color: theme.palette.primary.main,
+    },
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: '100px',
+    display: 'inline-block',
+  },
+  largeText: {
+    fontSize: '20px',
+    lineHeight: '24px',
+    fontWeight: 500,
+  },
+  smallText: {
+    fontSize: '14px',
+    lineHeight: '18px',
+    fontWeight: 500,
   },
 }));
 
@@ -58,32 +76,34 @@ const Breadcrumb = (props: Props) => {
   const {data, isLastBreadcrumb, size} = props;
   const {id, name, subtext, onClick} = data;
   const classes = useStyles();
+  const textClass = size === 'small' ? classes.smallText : classes.largeText;
   return (
     <div key={id} className={classes.root}>
       <div className={classes.upperSection}>
-        <Typography
-          className={classNames({
-            [classes.breadcrumbName]: true,
-            [classes.parentBreadcrumb]: !isLastBreadcrumb,
-          })}
-          variant={size === 'large' || size === 'default' ? 'h6' : 'body2'}
-          onClick={() => onClick && onClick(id)}>
-          {name}
-        </Typography>
-        {typeof subtext === 'string' ? (
-          <Typography className={classes.subtext}>{subtext}</Typography>
-        ) : (
-          subtext
-        )}
+        <Tooltip
+          placement="top"
+          title={
+            typeof subtext === 'string' ? (
+              <Typography className={classes.subtext}>{subtext}</Typography>
+            ) : (
+              subtext ?? ''
+            )
+          }>
+          <Typography
+            className={classNames({
+              [classes.breadcrumbName]: true,
+              [classes.parentBreadcrumb]: !isLastBreadcrumb,
+              [textClass]: true,
+            })}
+            onClick={() => onClick && onClick(id)}>
+            {name}
+          </Typography>
+        </Tooltip>
       </div>
       {!isLastBreadcrumb && (
-        <KeyboardArrowRightIcon
-          className={classes.arrowIcon}
-          fontSize={size}
-          style={{
-            height: size === 'large' || size === 'default' ? '32px' : '21px',
-          }}
-        />
+        <Typography className={classNames([classes.slash, textClass])}>
+          {'/'}
+        </Typography>
       )}
     </div>
   );

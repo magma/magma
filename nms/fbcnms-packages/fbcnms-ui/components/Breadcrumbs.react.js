@@ -11,19 +11,20 @@
 import type {BreadcrumbData} from './Breadcrumb.react';
 
 import Breadcrumb from './Breadcrumb.react';
-import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import Popover from '@material-ui/core/Popover';
 import React, {useState} from 'react';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {gray8} from '@fbcnms/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   breadcrumbs: {
     display: 'flex',
     alignItems: 'flex-start',
+    minWidth: '200px',
   },
   moreIcon: {
     display: 'flex',
@@ -31,12 +32,10 @@ const useStyles = makeStyles(theme => ({
   },
   moreIconButton: {
     cursor: 'pointer',
+    color: gray8,
     '&:hover': {
       color: theme.palette.primary.main,
     },
-  },
-  arrowIcon: {
-    color: theme.palette.grey[600],
   },
   collapsedBreadcrumbsList: {
     minWidth: '100px',
@@ -45,6 +44,20 @@ const useStyles = makeStyles(theme => ({
     fontSize: theme.typography.pxToRem(11),
     color: theme.palette.text.secondary,
     marginLeft: '8px',
+  },
+  largeText: {
+    fontSize: '20px',
+    lineHeight: '24px',
+    fontWeight: 500,
+  },
+  smallText: {
+    fontSize: '14px',
+    lineHeight: '18px',
+    fontWeight: 500,
+  },
+  slash: {
+    color: gray8,
+    margin: '0 6px',
   },
 }));
 
@@ -74,9 +87,7 @@ const Breadcrumbs = (props: Props) => {
     collapsedBreadcrumbs.length + (hasCollapsedBreadcrumbs ? 1 : 0),
   );
 
-  const arrowStyle = {
-    height: size === 'large' || size === 'default' ? '32px' : '21px',
-  };
+  const textClass = size === 'small' ? classes.smallText : classes.largeText;
 
   return (
     <div className={classes.breadcrumbs}>
@@ -90,20 +101,18 @@ const Breadcrumbs = (props: Props) => {
         />
       ))}
       {hasCollapsedBreadcrumbs && (
-        <div className={classes.moreIcon} style={arrowStyle}>
-          <MoreHorizIcon
-            className={classes.moreIconButton}
-            fontSize={size}
+        <div className={classes.moreIcon}>
+          <Typography
+            className={classNames([classes.moreIconButton, textClass])}
             onClick={e => {
               toggleBreadcrumbsMenuOpen(true);
               setAnchorEl(e.currentTarget);
-            }}
-          />
-          <KeyboardArrowRightIcon
-            className={classes.arrowIcon}
-            style={arrowStyle}
-            fontSize={size}
-          />
+            }}>
+            {'...'}
+          </Typography>
+          <Typography className={classNames([classes.slash, textClass])}>
+            {'/'}
+          </Typography>
         </div>
       )}
       {endBreadcrumbs.map((b, i) => (
