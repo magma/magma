@@ -89,6 +89,12 @@ export default createMuiTheme({
         boxShadow: 'none',
       },
     },
+    MuiFormControl: {
+      marginDense: {
+        marginTop: '0px',
+        marginBottom: '0px',
+      },
+    },
     MuiToggleButtonGroup: {
       '&$selected': {
         boxShadow: 'none',
