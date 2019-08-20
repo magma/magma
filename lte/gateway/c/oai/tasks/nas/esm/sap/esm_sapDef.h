@@ -151,6 +151,7 @@ typedef struct esm_eps_dedicated_bearer_context_activate_s {
   bitrate_t mbr_dl;
   traffic_flow_template_t *tft;
   protocol_configuration_options_t *pco;
+  teid_t gtp_teid;
 } esm_eps_dedicated_bearer_context_activate_t;
 
 /*

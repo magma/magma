@@ -65,5 +65,11 @@ int sgw_handle_modify_ue_ambr_request(
   teid_t teid,
   bitrate_t mbr_ul,
   bitrate_t mbr_dl);
+int sgw_handle_nw_initiated_actv_bearer_req(
+  const itti_s5_nw_init_actv_bearer_request_t
+  *const itti_s5_actv_bearer_req);
+int sgw_handle_nw_initiated_actv_bearer_rsp(
+  const itti_s11_nw_init_actv_bearer_rsp_t
+ *const s11_actv_bearer_rsp);
 bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p);
 #endif /* FILE_SGW_HANDLERS_SEEN */

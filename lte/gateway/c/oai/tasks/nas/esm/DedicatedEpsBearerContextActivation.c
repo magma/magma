@@ -116,6 +116,7 @@ int esm_proc_dedicated_eps_bearer_context(
   const bitrate_t mbr_ul,
   traffic_flow_template_t *tft,
   protocol_configuration_options_t *pco,
+  teid_t gtp_teid,
   esm_cause_t *esm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -151,7 +152,8 @@ int esm_proc_dedicated_eps_bearer_context(
       mbr_dl,
       mbr_ul,
       tft,
-      pco);
+      pco,
+      gtp_teid);
 
     if (*default_ebi == ESM_EBI_UNASSIGNED) {
       /*
@@ -469,12 +471,16 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
         rc =
           esm_ebr_stop_timer(esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi);
       }
-    }
-    if (esm_ebr_timer_data->msg) {
-      bdestroy_wrapper(&esm_ebr_timer_data->msg);
-    }
+      //Send dedicated_eps_bearer_reject to MME
+      nas_itti_dedicated_eps_bearer_reject(esm_ebr_timer_data->ue_id,esm_ebr_timer_data->ebi);
+
+      if (esm_ebr_timer_data->msg) {
+        bdestroy_wrapper(&esm_ebr_timer_data->msg);
+      }
     free_wrapper((void **) &esm_ebr_timer_data);
   }
+
+    }
 
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }
