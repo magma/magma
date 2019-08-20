@@ -57,8 +57,10 @@ func (m *NetworkEpcConfigs) ValidateModel() error {
 		return err
 	}
 
-	if err := m.Mobility.validateMobility(); err != nil {
-		return err
+	if m.Mobility != nil {
+		if err := m.Mobility.validateMobility(); err != nil {
+			return err
+		}
 	}
 
 	for name := range m.SubProfiles {
