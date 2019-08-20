@@ -79,8 +79,14 @@ export default createMuiTheme({
       root: {
         borderRadius: 4,
         cursor: 'pointer',
-        fontSize: 14,
-        padding: '6px 30px',
+        fontSize: '14px',
+        textTransform: 'capitalize',
+        padding: '8px 12px',
+        fontWeight: 500,
+        lineHeight: '16px',
+      },
+      contained: {
+        boxShadow: 'none',
       },
     },
     MuiToggleButtonGroup: {
