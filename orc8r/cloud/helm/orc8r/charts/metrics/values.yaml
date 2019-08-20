@@ -64,8 +64,8 @@ metrics:
 
   configImage:
     repository:
-    tag: latest
-    pullPolicy: Always
+    tag:
+    pullPolicy: IfNotPresent
 
   # Number of metrics replicas desired
   replicas: 1
@@ -158,8 +158,8 @@ prometheusCache:
 
   image:
     repository:
-    tag: latest
-    pullPolicy: Always
+    tag:
+    pullPolicy: IfNotPresent
 
   # Maximum number of datapoints in the cache at one time. Unlimited if <= 0.
   limit: 0
@@ -213,8 +213,8 @@ grafana:
 
   image:
     repository:
-    tag: latest
-    pullPolicy: Always
+    tag:
+    pullPolicy: IfNotPresent
 
   # Number of metrics replicas desired
   replicas: 1
