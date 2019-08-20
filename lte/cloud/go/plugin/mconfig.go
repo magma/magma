@@ -48,7 +48,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	if cellGW.Config == nil {
 		return nil
 	}
-	cellularGwConfig := cellGW.Config.(*cellular_models.GatewayCellularConfigs)
+	cellularGwConfig := cellGW.Config.(*models2.GatewayCellularConfigs)
 
 	if err := validateConfigs(cellularNwConfig, cellularGwConfig); err != nil {
 		return err
@@ -80,7 +80,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 			FddConfig:           getFddConfig(nwRan.FddConfig),
 			TddConfig:           getTddConfig(nwRan.TddConfig),
 			BandwidthMhz:        int32(nwRan.BandwidthMhz),
-			AllowEnodebTransmit: gwRan.TransmitEnabled,
+			AllowEnodebTransmit: swag.BoolValue(gwRan.TransmitEnabled),
 			Tac:                 int32(nwEpc.Tac),
 			PlmnidList:          fmt.Sprintf("%s%s", nwEpc.Mcc, nwEpc.Mnc),
 			CsfbRat:             nonEPSServiceMconfig.csfbRat,
@@ -110,7 +110,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     gwEpc.IPBlock,
-			NatEnabled:    gwEpc.NatEnabled,
+			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
 			DefaultRuleId: swag.StringValue(nwEpc.DefaultRuleID),
 			RelayEnabled:  swag.BoolValue(nwEpc.RelayEnabled),
 			Services:      pipelineDServices,
@@ -136,7 +136,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 	return nil
 }
 
-func validateConfigs(nwConfig *models2.NetworkCellularConfigs, gwConfig *cellular_models.GatewayCellularConfigs) error {
+func validateConfigs(nwConfig *models2.NetworkCellularConfigs, gwConfig *models2.GatewayCellularConfigs) error {
 	if nwConfig == nil {
 		return errors.New("Cellular network config is nil")
 	}
@@ -176,7 +176,7 @@ type nonEPSServiceMconfigFields struct {
 	lac                  int32
 }
 
-func getNonEPSServiceMconfigFields(gwNonEpsService *cellular_models.GatewayNonEpsServiceConfigs) nonEPSServiceMconfigFields {
+func getNonEPSServiceMconfigFields(gwNonEpsService *models2.GatewayNonEpsConfigs) nonEPSServiceMconfigFields {
 	if gwNonEpsService == nil {
 		return nonEPSServiceMconfigFields{
 			csfbRat:              mconfig.EnodebD_CSFBRAT_2G,
@@ -193,12 +193,12 @@ func getNonEPSServiceMconfigFields(gwNonEpsService *cellular_models.GatewayNonEp
 		}
 
 		return nonEPSServiceMconfigFields{
-			csfbRat:              mconfig.EnodebD_CSFBRat(gwNonEpsService.CsfbRat),
+			csfbRat:              mconfig.EnodebD_CSFBRat(swag.Uint32Value(gwNonEpsService.CsfbRat)),
 			arfcn_2g:             arfcn2g,
-			nonEpsServiceControl: mconfig.MME_NonEPSServiceControl(gwNonEpsService.NonEpsServiceControl),
+			nonEpsServiceControl: mconfig.MME_NonEPSServiceControl(swag.Uint32Value(gwNonEpsService.NonEpsServiceControl)),
 			csfbMcc:              gwNonEpsService.CsfbMcc,
 			csfbMnc:              gwNonEpsService.CsfbMnc,
-			lac:                  int32(gwNonEpsService.Lac),
+			lac:                  int32(swag.Uint32Value(gwNonEpsService.Lac)),
 		}
 	}
 }
