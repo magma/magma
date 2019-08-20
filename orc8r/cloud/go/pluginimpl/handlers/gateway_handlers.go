@@ -25,7 +25,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func ListGateways(c echo.Context) error {
+func ListGatewaysHandler(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -39,7 +39,7 @@ func ListGateways(c echo.Context) error {
 	return c.JSON(http.StatusOK, ids)
 }
 
-func CreateGateway(c echo.Context) error {
+func CreateGatewayHandler(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -53,6 +53,13 @@ func CreateGateway(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
+	if nerr := CreateMagmadGatewayFromModel(nid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusCreated)
+}
+
+func CreateMagmadGatewayFromModel(nid string, payload *models.MagmadGateway) *echo.HTTPError {
 	// must associate to an existing tier
 	tierExists, err := configurator.DoesEntityExist(nid, orc8r.UpgradeTierEntityType, string(payload.Tier))
 	if err != nil {
@@ -105,17 +112,24 @@ func CreateGateway(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed up associate gateway to upgrade tier"), http.StatusInternalServerError)
 	}
-	return c.NoContent(http.StatusCreated)
+	return nil
 }
 
-func GetGateway(c echo.Context) error {
+func GetGatewayHandler(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
+	ret, nerr := LoadMagmadGatewayModel(nid, gid)
+	if nerr != nil {
+		return nerr
+	}
+	return c.JSON(http.StatusOK, ret)
+}
 
+func LoadMagmadGatewayModel(networkID string, gatewayID string) (*models.MagmadGateway, *echo.HTTPError) {
 	ent, err := configurator.LoadEntity(
-		nid, orc8r.MagmadGatewayType, gid,
+		networkID, orc8r.MagmadGatewayType, gatewayID,
 		configurator.EntityLoadCriteria{
 			LoadMetadata:       true,
 			LoadConfig:         true,
@@ -124,19 +138,19 @@ func GetGateway(c echo.Context) error {
 		},
 	)
 	if err == merrors.ErrNotFound {
-		return echo.ErrNotFound
+		return nil, echo.ErrNotFound
 	}
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	dev, err := device.GetDevice(nid, orc8r.AccessGatewayRecordType, ent.PhysicalID)
+	dev, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, ent.PhysicalID)
 	if err != nil && err != merrors.ErrNotFound {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	status, err := state.GetGatewayStatus(nid, ent.PhysicalID)
+	status, err := state.GetGatewayStatus(networkID, ent.PhysicalID)
 	if err != nil && err != merrors.ErrNotFound {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	// If the gateway/network is malformed, we could get no corresponding
@@ -145,11 +159,10 @@ func GetGateway(c echo.Context) error {
 	if dev != nil {
 		devCasted = dev.(*models.GatewayDevice)
 	}
-	ret := (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, status)
-	return c.JSON(http.StatusOK, ret)
+	return (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, status), nil
 }
 
-func UpdateGateway(c echo.Context) error {
+func UpdateGatewayHandler(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
@@ -163,6 +176,13 @@ func UpdateGateway(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
+	if nerr := UpdateMagmadGatewayFromModel(nid, gid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func UpdateMagmadGatewayFromModel(nid string, gid string, payload *models.MagmadGateway) *echo.HTTPError {
 	// load the old ent to check if tier changed
 	existingEnt, err := configurator.LoadEntity(
 		nid, orc8r.MagmadGatewayType, gid,
@@ -184,10 +204,10 @@ func UpdateGateway(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.NoContent(http.StatusNoContent)
+	return nil
 }
 
-func DeleteGateway(c echo.Context) error {
+func DeleteGatewayHandler(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr

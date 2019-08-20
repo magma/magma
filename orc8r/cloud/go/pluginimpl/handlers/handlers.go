@@ -49,11 +49,11 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: DeleteDNSRecord},
 
 		// Magma V1 Gateways
-		{Path: ListGatewaysPath, Methods: obsidian.GET, HandlerFunc: ListGateways},
-		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: CreateGateway},
-		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: GetGateway},
-		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: UpdateGateway},
-		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: DeleteGateway},
+		{Path: ListGatewaysPath, Methods: obsidian.GET, HandlerFunc: ListGatewaysHandler},
+		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: CreateGatewayHandler},
+		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: GetGatewayHandler},
+		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: UpdateGatewayHandler},
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: DeleteGatewayHandler},
 	}
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)

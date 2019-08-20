@@ -10,13 +10,16 @@ package models
 
 import (
 	"fmt"
+	"sort"
 
 	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
@@ -120,4 +123,76 @@ func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interfa
 		return nil
 	}
 	return iCellularConfig.(*NetworkCellularConfigs).Ran
+}
+
+func (m *LteGateway) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *LteGateway) FromBackendModels(
+	magmadGateway, cellularGateway configurator.NetworkEntity,
+	device *models2.GatewayDevice,
+	status *models2.GatewayStatus,
+) *LteGateway {
+	// delegate most of the fillin to magmad gateway struct
+	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	// TODO: we should change this to a reflection based shallow copy
+	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+
+	m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
+	for _, tk := range cellularGateway.Associations {
+		if tk.Type == lte.CellularEnodebType {
+			m.ConnectedEnodebSerials = append(m.ConnectedEnodebSerials, tk.Key)
+		}
+	}
+	sort.Strings(m.ConnectedEnodebSerials)
+
+	return m
+}
+
+func (m *LteGateway) GetMagmadGateway() *models2.MagmadGateway {
+	return &models2.MagmadGateway{
+		Description: m.Description,
+		Device:      m.Device,
+		ID:          m.ID,
+		Magmad:      m.Magmad,
+		Name:        m.Name,
+		Tier:        m.Tier,
+	}
+}
+
+func (m *LteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
+	ret := configurator.NetworkEntity{
+		Type:        lte.CellularGatewayType,
+		Key:         string(m.ID),
+		Name:        string(m.Name),
+		Description: string(m.Description),
+		Config:      m.Cellular,
+	}
+	for _, enbSerial := range m.ConnectedEnodebSerials {
+		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+	}
+	return ret
+}
+
+func (m *LteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:              orc8r.MagmadGatewayType,
+		Key:               string(m.ID),
+		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: string(m.ID)}},
+	}
+}
+
+func (m *LteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:           lte.CellularGatewayType,
+		Key:            string(m.ID),
+		NewName:        swag.String(string(m.Name)),
+		NewDescription: swag.String(string(m.Description)),
+		NewConfig:      m.Cellular,
+	}
+	for _, enbSerial := range m.ConnectedEnodebSerials {
+		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+	}
+	return ret
 }

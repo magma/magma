@@ -526,7 +526,7 @@ func LoadEntities(
 	physicalID *string,
 	ids []storage2.TypeAndKey,
 	criteria EntityLoadCriteria,
-) ([]NetworkEntity, []storage2.TypeAndKey, error) {
+) (NetworkEntities, []storage2.TypeAndKey, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return nil, nil, err

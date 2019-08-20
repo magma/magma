@@ -21,8 +21,8 @@ type GatewayCellularConfigs struct {
 	// Required: true
 	Epc *GatewayEpcConfigs `json:"epc"`
 
-	// non eps
-	NonEps *GatewayNonEpsConfigs `json:"non_eps,omitempty"`
+	// non eps service
+	NonEpsService *GatewayNonEpsConfigs `json:"non_eps_service,omitempty"`
 
 	// ran
 	// Required: true
@@ -37,7 +37,7 @@ func (m *GatewayCellularConfigs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateNonEps(formats); err != nil {
+	if err := m.validateNonEpsService(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -69,16 +69,16 @@ func (m *GatewayCellularConfigs) validateEpc(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *GatewayCellularConfigs) validateNonEps(formats strfmt.Registry) error {
+func (m *GatewayCellularConfigs) validateNonEpsService(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.NonEps) { // not required
+	if swag.IsZero(m.NonEpsService) { // not required
 		return nil
 	}
 
-	if m.NonEps != nil {
-		if err := m.NonEps.Validate(formats); err != nil {
+	if m.NonEpsService != nil {
+		if err := m.NonEpsService.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("non_eps")
+				return ve.ValidateName("non_eps_service")
 			}
 			return err
 		}

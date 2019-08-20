@@ -9,10 +9,7 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
@@ -25,6 +22,7 @@ import (
 	magmad_handlers "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 )
 
@@ -38,13 +36,6 @@ const (
 
 // GetObsidianHandlers returns all obsidian handlers for the cellular service
 func GetObsidianHandlers() []obsidian.Handler {
-	createGatewayConfigHandler := cfgObsidian.GetCreateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
-	updateGatewayConfigHandler := cfgObsidian.GetUpdateGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{})
-
-	// override create and update handler func
-	createGatewayConfigHandler.HandlerFunc = createGatewayConfig
-	updateGatewayConfigHandler.HandlerFunc = updateGatewayConfig
-
 	return []obsidian.Handler{
 		cfgObsidian.GetReadNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models2.NetworkCellularConfigs{}),
 		cfgObsidian.GetCreateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models2.NetworkCellularConfigs{}),
@@ -57,11 +48,12 @@ func GetObsidianHandlers() []obsidian.Handler {
 		cfgObsidian.GetDeleteConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId),
 		// List all eNodeB devices for a network
 		cfgObsidian.GetReadAllKeysConfigHandler(EnodebListPath, lte.CellularEnodebType),
+
 		// Cellular gateway configs
-		cfgObsidian.GetReadGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType, &models.GatewayCellularConfigs{}),
+		{Path: GatewayConfigPath, Methods: obsidian.POST, HandlerFunc: createGatewayConfig},
+		{Path: GatewayConfigPath, Methods: obsidian.GET, HandlerFunc: getGatewayConfig},
+		{Path: GatewayConfigPath, Methods: obsidian.PUT, HandlerFunc: updateGatewayConfig},
 		cfgObsidian.GetDeleteGatewayConfigHandler(GatewayConfigPath, lte.CellularGatewayType),
-		createGatewayConfigHandler,
-		updateGatewayConfigHandler,
 	}
 }
 
@@ -75,28 +67,48 @@ func getEnodebId(c echo.Context) (string, *echo.HTTPError) {
 	return operID, nil
 }
 
-func getNetworkConfigFromRequest(c echo.Context) (echo.Context, error) {
-	if c.Request().Body == nil {
-		return nil, obsidian.HttpError(fmt.Errorf("Network config is nil"), http.StatusBadRequest)
-	}
-	cfg := &models2.NetworkCellularConfigs{}
-
-	body, err := ioutil.ReadAll(c.Request().Body)
-	if err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	err = json.Unmarshal(body, cfg)
-	if err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+func getGatewayConfig(c echo.Context) error {
+	networkID, gatewayID, nerr := getIDs(c)
+	if nerr != nil {
+		return nerr
 	}
 
-	body, err = json.Marshal(cfg)
+	ent, err := configurator.LoadEntity(
+		networkID, lte.CellularGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{
+			LoadConfig:         true,
+			LoadAssocsFromThis: true,
+		},
+	)
 	if err != nil {
-		return nil, obsidian.HttpError(fmt.Errorf("Error converting config to TDD/FDD format"), http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	// populate request body with the updated config
-	c.Request().Body = ioutil.NopCloser(bytes.NewBuffer(body))
-	return c, nil
+
+	loadedConfig := ent.Config.(*models2.GatewayCellularConfigs)
+	retConfig := &models.GatewayCellularConfigs{
+		Epc: &models.GatewayEpcConfigs{
+			NatEnabled: swag.BoolValue(loadedConfig.Epc.NatEnabled),
+			IPBlock:    loadedConfig.Epc.IPBlock,
+		},
+		Ran: &models.GatewayRanConfigs{
+			TransmitEnabled: swag.BoolValue(loadedConfig.Ran.TransmitEnabled),
+			Pci:             loadedConfig.Ran.Pci,
+		},
+		NonEpsService: &models.GatewayNonEpsServiceConfigs{
+			Arfcn2g:              loadedConfig.NonEpsService.Arfcn2g,
+			CsfbMcc:              loadedConfig.NonEpsService.CsfbMcc,
+			CsfbMnc:              loadedConfig.NonEpsService.CsfbMnc,
+			CsfbRat:              swag.Uint32Value(loadedConfig.NonEpsService.CsfbRat),
+			Lac:                  swag.Uint32Value(loadedConfig.NonEpsService.Lac),
+			NonEpsServiceControl: swag.Uint32Value(loadedConfig.NonEpsService.NonEpsServiceControl),
+		},
+	}
+	for _, tk := range ent.Associations {
+		if tk.Type == lte.CellularEnodebType {
+			retConfig.AttachedEnodebSerials = append(retConfig.AttachedEnodebSerials, tk.Key)
+		}
+	}
+	return c.JSON(http.StatusOK, retConfig)
 }
 
 func createGatewayConfig(c echo.Context) error {

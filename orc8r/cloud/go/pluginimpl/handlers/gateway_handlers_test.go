@@ -140,7 +140,7 @@ func TestCreateGateway(t *testing.T) {
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "foo-bar-baz-123-42")
 	assert.NoError(t, err)
 
-	expectedEnts := []configurator.NetworkEntity{
+	expectedEnts := configurator.NetworkEntities{
 		{
 			NetworkID: "n1", Type: orc8r.MagmadGatewayType, Key: "g1",
 			Name: string(payload.Name), Description: string(payload.Description),
@@ -209,7 +209,7 @@ func TestCreateGateway(t *testing.T) {
 	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hello-world-42")
 	assert.NoError(t, err)
 
-	expectedEnts = []configurator.NetworkEntity{
+	expectedEnts = configurator.NetworkEntities{
 		{
 			NetworkID: "n1", Type: orc8r.MagmadGatewayType, Key: "g2",
 			Name: string(payload.Name), Description: string(payload.Description),
@@ -502,7 +502,7 @@ func TestUpdateGateway(t *testing.T) {
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
 	assert.NoError(t, err)
 
-	expectedEnts := []configurator.NetworkEntity{
+	expectedEnts := configurator.NetworkEntities{
 		{
 			NetworkID: "n1", Type: orc8r.MagmadGatewayType, Key: "g1",
 			Name: string(payload.Name), Description: string(payload.Description),
@@ -599,7 +599,7 @@ func TestDeleteGateway(t *testing.T) {
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
 	assert.NoError(t, err)
 
-	expectedEnts := []configurator.NetworkEntity{
+	expectedEnts := configurator.NetworkEntities{
 		{NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1", GraphID: "2"},
 	}
 	assert.Equal(t, expectedEnts, actualEnts)

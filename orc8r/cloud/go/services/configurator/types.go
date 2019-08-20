@@ -203,6 +203,16 @@ func (ent NetworkEntity) GetTypeAndKey() storage2.TypeAndKey {
 	return storage2.TypeAndKey{Type: ent.Type, Key: ent.Key}
 }
 
+type NetworkEntities []NetworkEntity
+
+func (ne NetworkEntities) ToEntitiesByID() map[storage2.TypeAndKey]NetworkEntity {
+	ret := make(map[storage2.TypeAndKey]NetworkEntity, len(ne))
+	for _, ent := range ne {
+		ret[ent.GetTypeAndKey()] = ent
+	}
+	return ret
+}
+
 // EntityGraph represents a DAG of associated network entities
 type EntityGraph struct {
 	Entities     []NetworkEntity

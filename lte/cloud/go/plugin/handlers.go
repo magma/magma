@@ -22,6 +22,9 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rmodels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/device"
+	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
@@ -171,4 +174,207 @@ func deleteNetwork(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func ListGateways(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ids, err := configurator.ListEntityKeys(nid, lte.CellularGatewayType)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	// for each ID, we want to load the cellular gateway and the magmad gateway
+	entityTKs := make([]storage.TypeAndKey, 0, len(ids)*2)
+	for _, id := range ids {
+		entityTKs = append(
+			entityTKs,
+			storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id},
+			storage.TypeAndKey{Type: lte.CellularGatewayType, Key: id},
+		)
+	}
+	ents, _, err := configurator.LoadEntities(nid, nil, nil, nil, entityTKs, configurator.FullEntityLoadCriteria())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	entsByTK := ents.ToEntitiesByID()
+
+	// for each magmad gateway, we have to load its corresponding device and
+	// its reported status
+	deviceIDs := make([]string, 0, len(ids))
+	for tk, ent := range entsByTK {
+		if tk.Type == orc8r.MagmadGatewayType && ent.PhysicalID != "" {
+			deviceIDs = append(deviceIDs, ent.PhysicalID)
+		}
+	}
+	devicesByID, err := device.GetDevices(nid, orc8r.AccessGatewayRecordType, deviceIDs)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
+	}
+	statusesByID, err := state.GetGatewayStatuses(nid, deviceIDs)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, makeLTEGateways(entsByTK, devicesByID, statusesByID))
+}
+
+func CreateGateway(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.LteGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	if nerr := handlers.CreateMagmadGatewayFromModel(nid, payload.GetMagmadGateway()); nerr != nil {
+		return nerr
+	}
+
+	if _, err := configurator.CreateEntity(nid, payload.ToConfiguratorEntity()); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to create cellular gateway"), http.StatusInternalServerError)
+	}
+	if _, err := configurator.UpdateEntity(nid, payload.GetMagmadGatewayUpdateCriteria()); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to associate cellular and magmad gateways"), http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusCreated)
+}
+
+func GetGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
+	if nerr != nil {
+		return nerr
+	}
+
+	ent, err := configurator.LoadEntity(
+		nid, lte.CellularGatewayType, gid,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load cellular gateway"), http.StatusInternalServerError)
+	}
+
+	ret := &ltemodels.LteGateway{
+		ID:          magmadModel.ID,
+		Name:        magmadModel.Name,
+		Description: magmadModel.Description,
+		Device:      magmadModel.Device,
+		Status:      magmadModel.Status,
+		Tier:        magmadModel.Tier,
+		Magmad:      magmadModel.Magmad,
+		Cellular:    ent.Config.(*ltemodels.GatewayCellularConfigs),
+	}
+	for _, tk := range ent.Associations {
+		if tk.Type == lte.CellularEnodebType {
+			ret.ConnectedEnodebSerials = append(ret.ConnectedEnodebSerials, tk.Key)
+		}
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func UpdateGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.LteGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.LoadEntity(
+		nid, lte.CellularGatewayType, gid,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load cellular gateway"), http.StatusInternalServerError)
+	}
+
+	if nerr := handlers.UpdateMagmadGatewayFromModel(nid, gid, payload.GetMagmadGateway()); nerr != nil {
+		return nerr
+	}
+	if _, err := configurator.UpdateEntity(nid, payload.ToEntityUpdateCriteria()); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to update cellular gateway"), http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func DeleteGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	err := configurator.DeleteEntities(
+		nid,
+		[]storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: gid},
+			{Type: lte.CellularGatewayType, Key: gid},
+		},
+	)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+
+}
+
+type cellularAndMagmadGateway struct {
+	magmadGateway, cellularGateway configurator.NetworkEntity
+}
+
+func makeLTEGateways(
+	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	devicesByID map[string]interface{},
+	statusesByID map[string]*orc8rmodels.GatewayStatus,
+) map[string]*ltemodels.LteGateway {
+	gatewayEntsByKey := map[string]*cellularAndMagmadGateway{}
+	for tk, ent := range entsByTK {
+		existing, found := gatewayEntsByKey[tk.Key]
+		if !found {
+			existing = &cellularAndMagmadGateway{}
+			gatewayEntsByKey[tk.Key] = existing
+		}
+
+		switch ent.Type {
+		case orc8r.MagmadGatewayType:
+			existing.magmadGateway = ent
+		case lte.CellularGatewayType:
+			existing.cellularGateway = ent
+		}
+	}
+
+	ret := make(map[string]*ltemodels.LteGateway, len(gatewayEntsByKey))
+	for key, ents := range gatewayEntsByKey {
+		hwID := ents.magmadGateway.PhysicalID
+		var devCasted *orc8rmodels.GatewayDevice
+		if devicesByID[hwID] != nil {
+			devCasted = devicesByID[hwID].(*orc8rmodels.GatewayDevice)
+		}
+		ret[key] = (&ltemodels.LteGateway{}).FromBackendModels(ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
+	}
+	return ret
 }

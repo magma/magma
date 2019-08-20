@@ -9,20 +9,30 @@
 package plugin_test
 
 import (
+	"crypto/x509"
 	"fmt"
 	"testing"
+	"time"
 
 	"magma/lte/cloud/go/lte"
 	plugin2 "magma/lte/cloud/go/plugin"
 	models2 "magma/lte/cloud/go/plugin/models"
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/security/key"
+	test_utils2 "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/device"
+	test_init3 "magma/orc8r/cloud/go/services/device/test_init"
+	test_init2 "magma/orc8r/cloud/go/services/state/test_init"
+	"magma/orc8r/cloud/go/services/state/test_utils"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -697,6 +707,424 @@ func TestCellularDelete(t *testing.T) {
 
 	_, err := configurator.LoadNetworkConfig("n1", lte.CellularNetworkType)
 	assert.EqualError(t, err, "Not found")
+}
+
+func TestListAndGetGateways(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.GetUnfreezeClockDeferFunc(t)()
+
+	test_init.StartTestService(t)
+	test_init2.StartTestService(t)
+	test_init3.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	// Create 2 gateways, 1 with state and device, the other without
+	// g2 will associate to 2 enodebs
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebType, Key: "enb2"},
+			{
+				Type: lte.CellularGatewayType, Key: "g1",
+				Config: &models2.GatewayCellularConfigs{
+					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				},
+			},
+			{
+				Type: lte.CellularGatewayType, Key: "g2",
+				Config: &models2.GatewayCellularConfigs{
+					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				},
+				Associations: []storage.TypeAndKey{
+					{Type: lte.CellularEnodebType, Key: "enb1"},
+					{Type: lte.CellularEnodebType, Key: "enb2"},
+				},
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID: "hw1",
+				Config: &models.MagmadGatewayConfigs{
+					AutoupgradeEnabled:      swag.Bool(true),
+					AutoupgradePollInterval: 300,
+					CheckinInterval:         15,
+					CheckinTimeout:          5,
+				},
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g2",
+				Name: "barfoo", Description: "bar foo",
+				PhysicalID: "hw2",
+				Config: &models.MagmadGatewayConfigs{
+					AutoupgradeEnabled:      swag.Bool(true),
+					AutoupgradePollInterval: 300,
+					CheckinInterval:         15,
+					CheckinTimeout:          5,
+				},
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g2"}},
+			},
+			{
+				Type: orc8r.UpgradeTierEntityType, Key: "t1",
+				Associations: []storage.TypeAndKey{
+					{Type: orc8r.MagmadGatewayType, Key: "g1"},
+					{Type: orc8r.MagmadGatewayType, Key: "g2"},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	assert.NoError(t, err)
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	test_utils.ReportGatewayStatus(t, ctx, test_utils2.GetGatewayStatusSwaggerFixture("hw1"))
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks/n1/gateways"
+
+	expected := map[string]*models2.LteGateway{
+		"g1": {
+			ID: "g1",
+			Device: &models.GatewayDevice{
+				HardwareID: "hw1",
+				Key:        &models.ChallengeKey{KeyType: "ECHO"},
+			},
+			Name: "foobar", Description: "foo bar",
+			Tier: "t1",
+			Magmad: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
+			},
+			Cellular: &models2.GatewayCellularConfigs{
+				Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+			},
+			Status: test_utils2.GetGatewayStatusSwaggerFixture("hw1"),
+		},
+		"g2": {
+			ID:   "g2",
+			Name: "barfoo", Description: "bar foo",
+			Tier: "t1",
+			Magmad: &models.MagmadGatewayConfigs{
+				AutoupgradeEnabled:      swag.Bool(true),
+				AutoupgradePollInterval: 300,
+				CheckinInterval:         15,
+				CheckinTimeout:          5,
+			},
+			Cellular: &models2.GatewayCellularConfigs{
+				Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+				Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+			},
+			ConnectedEnodebSerials: []string{"enb1", "enb2"},
+		},
+	}
+	expected["g1"].Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+	expected["g1"].Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        plugin2.ListGateways,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expected),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedGet := &models2.LteGateway{
+		ID: "g1",
+		Device: &models.GatewayDevice{
+			HardwareID: "hw1",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		Name: "foobar", Description: "foo bar",
+		Tier: "t1",
+		Magmad: &models.MagmadGatewayConfigs{
+			AutoupgradeEnabled:      swag.Bool(true),
+			AutoupgradePollInterval: 300,
+			CheckinInterval:         15,
+			CheckinTimeout:          5,
+		},
+		Cellular: &models2.GatewayCellularConfigs{
+			Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+		},
+		Status: test_utils2.GetGatewayStatusSwaggerFixture("hw1"),
+	}
+	expectedGet.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+	expectedGet.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        plugin2.GetGateway,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: expectedGet,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedGet = &models2.LteGateway{
+		ID:   "g2",
+		Name: "barfoo", Description: "bar foo",
+		Tier: "t1",
+		Magmad: &models.MagmadGatewayConfigs{
+			AutoupgradeEnabled:      swag.Bool(true),
+			AutoupgradePollInterval: 300,
+			CheckinInterval:         15,
+			CheckinTimeout:          5,
+		},
+		Cellular: &models2.GatewayCellularConfigs{
+			Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+			Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+		},
+		ConnectedEnodebSerials: []string{"enb1", "enb2"},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        plugin2.GetGateway,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g2"},
+		ExpectedStatus: 200,
+		ExpectedResult: expectedGet,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateGateway(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.GetUnfreezeClockDeferFunc(t)()
+
+	test_init.StartTestService(t)
+	test_init3.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebType, Key: "enb2"},
+			{Type: lte.CellularEnodebType, Key: "enb3"},
+			{
+				Type: lte.CellularGatewayType, Key: "g1",
+				Config: &models2.GatewayCellularConfigs{
+					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				},
+				Associations: []storage.TypeAndKey{
+					{Type: lte.CellularEnodebType, Key: "enb1"},
+					{Type: lte.CellularEnodebType, Key: "enb2"},
+				},
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID: "hw1",
+				Config: &models.MagmadGatewayConfigs{
+					AutoupgradeEnabled:      swag.Bool(true),
+					AutoupgradePollInterval: 300,
+					CheckinInterval:         15,
+					CheckinTimeout:          5,
+				},
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			},
+			{
+				Type: orc8r.UpgradeTierEntityType, Key: "t1",
+				Associations: []storage.TypeAndKey{
+					{Type: orc8r.MagmadGatewayType, Key: "g1"},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks/n1/gateways"
+
+	// update everything
+	privateKey, err := key.GenerateKey("P256", 0)
+	assert.NoError(t, err)
+	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
+	assert.NoError(t, err)
+	pubkeyB64 := strfmt.Base64(marshaledPubKey)
+	payload := &models2.LteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "hw1",
+			Key:        &models.ChallengeKey{KeyType: "SOFTWARE_ECDSA_SHA256", Key: &pubkeyB64},
+		},
+		ID:          "g1",
+		Name:        "barbaz",
+		Description: "bar baz",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         25,
+			CheckinTimeout:          15,
+			AutoupgradePollInterval: 200,
+			AutoupgradeEnabled:      swag.Bool(false),
+			FeatureFlags:            map[string]bool{"foo": false},
+			DynamicServices:         []string{"d1", "d2"},
+		},
+		Tier: "t1",
+		Cellular: &models2.GatewayCellularConfigs{
+			Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(false), IPBlock: "172.10.10.0/24"},
+			Ran: &models2.GatewayRanConfigs{Pci: 123, TransmitEnabled: swag.Bool(false)},
+		},
+		ConnectedEnodebSerials: []string{"enb1", "enb3"},
+	}
+
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        plugin2.UpdateGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualEnts, _, err := configurator.LoadEntities(
+		"n1", nil, nil, nil,
+		[]storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: lte.CellularGatewayType, Key: "g1"},
+			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	assert.NoError(t, err)
+
+	expectedEnts := configurator.NetworkEntities{
+		{
+			NetworkID: "n1", Type: lte.CellularGatewayType, Key: "g1",
+			Name: string(payload.Name), Description: string(payload.Description),
+			Config:             payload.Cellular,
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebType, Key: "enb1"},
+				{Type: lte.CellularEnodebType, Key: "enb3"},
+			},
+			GraphID: "10",
+			Version: 1,
+		},
+		{
+			NetworkID: "n1", Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: string(payload.Name), Description: string(payload.Description),
+			PhysicalID:         "hw1",
+			Config:             payload.Magmad,
+			Associations:       []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			GraphID:            "10",
+			Version:            1,
+		},
+		{
+			NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1",
+			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			GraphID:      "10",
+		},
+	}
+	assert.Equal(t, expectedEnts, actualEnts)
+	assert.Equal(t, payload.Device, actualDevice)
+}
+
+func TestDeleteGateway(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.GetUnfreezeClockDeferFunc(t)()
+
+	test_init.StartTestService(t)
+	test_init3.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebType, Key: "enb2"},
+			{
+				Type: lte.CellularGatewayType, Key: "g1",
+				Config: &models2.GatewayCellularConfigs{
+					Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
+					Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
+				},
+				Associations: []storage.TypeAndKey{
+					{Type: lte.CellularEnodebType, Key: "enb1"},
+					{Type: lte.CellularEnodebType, Key: "enb2"},
+				},
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID: "hw1",
+				Config: &models.MagmadGatewayConfigs{
+					AutoupgradeEnabled:      swag.Bool(true),
+					AutoupgradePollInterval: 300,
+					CheckinInterval:         15,
+					CheckinTimeout:          5,
+				},
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			},
+			{
+				Type: orc8r.UpgradeTierEntityType, Key: "t1",
+				Associations: []storage.TypeAndKey{
+					{Type: orc8r.MagmadGatewayType, Key: "g1"},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks/n1/gateways"
+
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            testURLRoot,
+		Handler:        plugin2.DeleteGateway,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualEnts, _, err := configurator.LoadEntities(
+		"n1", nil, nil, nil,
+		[]storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: lte.CellularGatewayType, Key: "g1"},
+			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	assert.NoError(t, err)
+
+	expectedEnts := configurator.NetworkEntities{
+		{NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1", GraphID: "11"},
+	}
+	assert.Equal(t, expectedEnts, actualEnts)
+	assert.Equal(t, &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, actualDevice)
 }
 
 // n1, n3 are lte networks, n2 is not

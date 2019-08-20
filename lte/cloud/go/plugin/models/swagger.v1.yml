@@ -1233,7 +1233,7 @@ definitions:
         $ref: '#/definitions/gateway_epc_configs'
       ran:
         $ref: '#/definitions/gateway_ran_configs'
-      non_eps:
+      non_eps_service:
         $ref: '#/definitions/gateway_non_eps_configs'
 
   gateway_ran_configs:
