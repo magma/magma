@@ -15,7 +15,7 @@ import (
 	"magma/lte/cloud/go/plugin"
 	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
-	cellular_models "magma/lte/cloud/go/services/cellular/obsidian/models"
+	cellularModels "magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
@@ -243,30 +243,29 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func newDefaultGatewayConfig() *cellular_models.GatewayCellularConfigs {
-	return &cellular_models.GatewayCellularConfigs{
-		AttachedEnodebSerials: []string{"enb1"},
-		Ran: &cellular_models.GatewayRanConfigs{
+func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
+	return &models2.GatewayCellularConfigs{
+		Ran: &models2.GatewayRanConfigs{
 			Pci:             260,
-			TransmitEnabled: true,
+			TransmitEnabled: swag.Bool(true),
 		},
-		Epc: &cellular_models.GatewayEpcConfigs{
-			NatEnabled: true,
+		Epc: &models2.GatewayEpcConfigs{
+			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &cellular_models.GatewayNonEpsServiceConfigs{
+		NonEpsService: &models2.GatewayNonEpsConfigs{
 			CsfbMcc:              "",
 			CsfbMnc:              "",
-			Lac:                  1,
-			CsfbRat:              0,
+			Lac:                  swag.Uint32(1),
+			CsfbRat:              swag.Uint32(0),
 			Arfcn2g:              []uint32{},
-			NonEpsServiceControl: 0,
+			NonEpsServiceControl: swag.Uint32(0),
 		},
 	}
 }
 
-func newDefaultEnodebConfig() *cellular_models.NetworkEnodebConfigs {
-	return &cellular_models.NetworkEnodebConfigs{
+func newDefaultEnodebConfig() *cellularModels.NetworkEnodebConfigs {
+	return &cellularModels.NetworkEnodebConfigs{
 		Earfcndl:               39150,
 		SubframeAssignment:     2,
 		SpecialSubframePattern: 7,
