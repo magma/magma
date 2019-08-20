@@ -136,8 +136,8 @@ func cacheSingleFamily(t *testing.T, metricsInFamily int) {
 
 	cache.cacheMetrics(metrics)
 	// 1 family, 1 series with multiple datapoints
-	assert.Equal(t, len(cache.familyMap), 1)
-	for _, family := range cache.familyMap {
+	assert.Equal(t, len(cache.metricFamiliesByName), 1)
+	for _, family := range cache.metricFamiliesByName {
 		assert.Equal(t, 1, len(family.metrics))
 		for _, metric := range family.metrics {
 			assert.Equal(t, metricsInFamily, len(metric))
@@ -153,8 +153,8 @@ func cacheMultipleFamilies(t *testing.T) {
 
 	cache.cacheMetrics(metrics)
 	// 2 families each with 1 series
-	assert.Equal(t, len(cache.familyMap), 2)
-	for familyName, family := range cache.familyMap {
+	assert.Equal(t, len(cache.metricFamiliesByName), 2)
+	for familyName, family := range cache.metricFamiliesByName {
 		if strings.HasPrefix(familyName, "mf1") {
 			assert.Equal(t, 1, len(family.metrics))
 			for _, metric := range family.metrics {
@@ -179,8 +179,8 @@ func cacheMultipleSeries(t *testing.T) {
 	cache.cacheMetrics(mf1Map)
 	cache.cacheMetrics(mf2Map)
 	// 1 family with 2 unique series
-	assert.Equal(t, len(cache.familyMap), 1)
-	for _, family := range cache.familyMap {
+	assert.Equal(t, len(cache.metricFamiliesByName), 1)
+	for _, family := range cache.metricFamiliesByName {
 		assert.Equal(t, 2, len(family.metrics))
 	}
 }
@@ -224,7 +224,7 @@ mf1 123 1
 mf1 234 2
 mf1 456 3
 `
-	assert.Equal(t, expectedExpositionText, cache.exposeMetrics(cache.familyMap))
+	assert.Equal(t, expectedExpositionText, cache.exposeMetrics(cache.metricFamiliesByName))
 }
 
 func getGaugeValue(gauge prometheus.Gauge) float64 {

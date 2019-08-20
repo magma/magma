@@ -49,7 +49,7 @@ type ConfiguratorStorage interface {
 	// LoadNetworks returns a set of networks corresponding to the provided
 	// load criteria. Any networks which aren't found are excluded from the
 	// returned value.
-	LoadNetworks(ids []string, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error)
+	LoadNetworks(filter NetworkLoadFilter, loadCriteria NetworkLoadCriteria) (NetworkLoadResult, error)
 
 	// LoadAllNetworks returns all networks registered
 	LoadAllNetworks(loadCriteria NetworkLoadCriteria) ([]Network, error)
@@ -110,7 +110,7 @@ func CommitLogOnError(store ConfiguratorStorage) {
 // InternalNetworkID is the ID of the network under which all non-tenant
 // entities are organized under.
 const InternalNetworkID = "network_magma_internal"
-
+const internalNetworkType = "Internal"
 const internalNetworkName = "Internal Magma Network"
 const internalNetworkDescription = "Internal network to hold non-network entities"
 

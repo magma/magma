@@ -14,12 +14,15 @@ import (
 
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/meteringd_records"
-	meteringd_test_init "magma/lte/cloud/go/services/meteringd_records/test_init"
+	meteringdTestInit "magma/lte/cloud/go/services/meteringd_records/test_init"
+	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -51,48 +54,29 @@ func UpdateFlowsTest(csn string, tbl *protos.FlowTable) error {
 }
 
 func TestMeteringdRecordsControllerClientMethods(t *testing.T) {
-	magmad_test_init.StartTestService(t)
-	meteringd_test_init.StartTestService(t)
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	meteringdTestInit.StartTestService(t)
 	csns := test_utils.StartMockGwAccessControl(t, []string{testAgHwId1, testAgHwId2})
 
 	//
 	// Build fake network
 	//
-	testNetworkId, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: "Test Network Name"},
-		"meteringd_records_test_network")
-	if err != nil {
-		t.Fatalf("Magmad Register Network '%s' Error: %s", testNetworkId, err)
-	}
+	testNetworkID := "meteringd_records_test_network"
+	configuratorTestUtils.RegisterNetwork(t, testNetworkID, "Test Network Name")
+	t.Logf("New Registered Network: %s", testNetworkID)
 
-	t.Logf("New Registered Network: %s", testNetworkId)
-
-	hwId1 := orcprotos.AccessGatewayID{Id: testAgHwId1}
-	logicalId1, err := magmad.RegisterGateway(testNetworkId,
-		&magmad_protos.AccessGatewayRecord{HwId: &hwId1, Name: "Test GW Name"})
-
-	if err != nil || logicalId1 == "" {
-		t.Fatalf(
-			"Magmad Register Error: %s, logical ID: %#v",
-			err, logicalId1)
-	}
-	hwId2 := orcprotos.AccessGatewayID{Id: testAgHwId2}
-	logicalId2, err := magmad.RegisterGateway(testNetworkId,
-		&magmad_protos.AccessGatewayRecord{HwId: &hwId2, Name: "Test GW Name"})
-
-	if err != nil || logicalId2 == "" {
-		t.Fatalf(
-			"Magmad Register Error: %s, logical ID: %#v",
-			err, logicalId1)
-	}
+	configuratorTestUtils.RegisterGateway(t, testNetworkID, testAgHwId1, &models.GatewayDevice{HardwareID: testAgHwId1})
+	configuratorTestUtils.RegisterGateway(t, testNetworkID, testAgHwId2, &models.GatewayDevice{HardwareID: testAgHwId2})
 
 	// Create fake gateway context ids
 	id1 := &orcprotos.Identity{}
-	idgw1 := orcprotos.Identity_Gateway{HardwareId: hwId1.Id, NetworkId: testNetworkId, LogicalId: logicalId1}
+	idgw1 := orcprotos.Identity_Gateway{HardwareId: testAgHwId1, NetworkId: testNetworkID, LogicalId: testAgHwId1}
 	id1.SetGateway(&idgw1)
 
 	id2 := &orcprotos.Identity{}
-	idgw2 := orcprotos.Identity_Gateway{HardwareId: hwId2.Id, NetworkId: testNetworkId, LogicalId: logicalId2}
+	idgw2 := orcprotos.Identity_Gateway{HardwareId: testAgHwId2, NetworkId: testNetworkID, LogicalId: testAgHwId2}
 	id1.SetGateway(&idgw1)
 	id2.SetGateway(&idgw2)
 
@@ -101,9 +85,9 @@ func TestMeteringdRecordsControllerClientMethods(t *testing.T) {
 	//
 
 	// Ensure there are no flows to start
-	_, err = meteringd_records.GetRecord(testNetworkId, "doesn't exist")
+	_, err := meteringd_records.GetRecord(testNetworkID, "doesn't exist")
 	assert.Error(t, err)
-	actualRecordSet, err := meteringd_records.ListSubscriberRecords(testNetworkId, testSubId1)
+	actualRecordSet, err := meteringd_records.ListSubscriberRecords(testNetworkID, testSubId1)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actualRecordSet))
 
@@ -131,22 +115,22 @@ func TestMeteringdRecordsControllerClientMethods(t *testing.T) {
 	//
 
 	// One for the first subscriber
-	actualRecordSet, err = meteringd_records.ListSubscriberRecords(testNetworkId, testSubId1)
+	actualRecordSet, err = meteringd_records.ListSubscriberRecords(testNetworkID, testSubId1)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actualRecordSet))
 	// Fill in gateway ID for expected records
-	record1.GatewayId = logicalId1
+	record1.GatewayId = testAgHwId1
 	assert.Equal(t, orcprotos.TestMarshal(record1), orcprotos.TestMarshal(actualRecordSet[0]))
 
 	// Two for the second subscriber
-	actualRecordSet, err = meteringd_records.ListSubscriberRecords(testNetworkId, testSubId2)
+	actualRecordSet, err = meteringd_records.ListSubscriberRecords(testNetworkID, testSubId2)
 	assert.NoError(t, err)
 	sort.Slice(actualRecordSet, func(i, j int) bool { return actualRecordSet[i].GetId().GetId() < actualRecordSet[j].GetId().GetId() })
 
 	assert.Equal(t, 2, len(actualRecordSet))
 	// Fill in gateway ID for expected records
-	record2.GatewayId = logicalId1
-	record3.GatewayId = logicalId2
+	record2.GatewayId = testAgHwId1
+	record3.GatewayId = testAgHwId2
 	assert.Equal(t, orcprotos.TestMarshal(record2), orcprotos.TestMarshal(actualRecordSet[0]))
 	assert.Equal(t, orcprotos.TestMarshal(record3), orcprotos.TestMarshal(actualRecordSet[1]))
 }

@@ -28,7 +28,7 @@ magma-gen-meta:
 ```
 
 Think of `dependencies` as an `import` statement. These filepaths should be
-relative to MAGMA_ROOT.
+relative to the --root command line flag (defaults to $MAGMA_ROOT).
 
 `temp-gen-filename` is what you want this file to be named when its contents
 are copied into the working directory when a dependent swagger spec is being
@@ -40,7 +40,7 @@ file using this filename, as if the file was in the same directory, e.g.:
 ```
 
 `output-dir` specifies where you want to generate the models to, relative
-to MAGMA_ROOT.
+to --root.
 
 During the code generation step, swaggergen will read the entire dependency
 tree for the target swagger spec and copy all files in that tree to the
@@ -60,6 +60,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"magma/orc8r/cloud/go/tools/swaggergen/generate"
 )
@@ -67,6 +68,7 @@ import (
 func main() {
 	targetFile := flag.String("target", "", "Target swagger spec to generate code from")
 	templateFile := flag.String("template", "", "swagger template file for code generation")
+	rootDir := flag.String("root", os.Getenv("MAGMA_ROOT"), "Root path to resolve dependency and output directories based on")
 	flag.Parse()
 
 	if *targetFile == "" {
@@ -75,10 +77,19 @@ func main() {
 	if *templateFile == "" {
 		log.Fatal("template file must be specified")
 	}
+	if *rootDir == "" {
+		log.Fatal("root dir must be specified, or MAGMA_ROOT has to be in env")
+	}
 
 	fmt.Printf("Generating swagger types for %s\n", *targetFile)
-	err := generate.GenerateModels(*targetFile, *templateFile)
+	err := generate.GenerateModels(*targetFile, *templateFile, *rootDir)
 	if err != nil {
 		log.Fatalf("Failed to generate swagger models: %v\n", err)
+	}
+
+	fmt.Printf("Rewriting generated swagger types for %s\n", *targetFile)
+	err = generate.RewriteGeneratedRefs(*targetFile, *rootDir)
+	if err != nil {
+		log.Fatalf("Failed to rewrite generated swagger models: %v\n", err)
 	}
 }

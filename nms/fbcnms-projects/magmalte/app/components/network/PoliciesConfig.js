@@ -41,7 +41,7 @@ type State = {
   rules: ?Array<Rule>,
 };
 
-type Props = WithStyles & ContextRouter & WithAlert & {};
+type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
 
 class PoliciesConfig extends React.Component<Props, State> {
   state = {

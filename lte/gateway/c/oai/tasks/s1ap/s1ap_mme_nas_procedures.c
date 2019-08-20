@@ -446,7 +446,14 @@ int s1ap_generate_downlink_nas_transport(
 
     message.procedureCode = S1ap_ProcedureCode_id_downlinkNASTransport;
     message.direction = S1AP_PDU_PR_initiatingMessage;
+    if (ue_ref->s1_ue_state == S1AP_UE_WAITING_CRR) {
+      OAILOG_ERROR(
+        LOG_S1AP, "Already triggred UE Context Release Command and UE is"
+        "in S1AP_UE_WAITING_CRR, so dropping the DownlinkNASTransport \n");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    } else {
     ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
+    }
     downlinkNasTransport = &message.msg.s1ap_DownlinkNASTransportIEs;
     /*
      * Setting UE informations with the ones fount in ue_ref

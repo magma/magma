@@ -44,7 +44,6 @@
 #define S5_NW_INITIATED_DEACTIVATE_BEARER_RESP(mSGpTR)                         \
   (mSGpTR)->ittiMsg.s5_nw_init_deactv_bearer_response
 
-
 typedef struct itti_s5_create_bearer_request_s {
   teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
   teid_t S1u_teid;     ///< Tunnel Endpoint Identifier

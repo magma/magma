@@ -38,7 +38,7 @@ const styles = {
 };
 
 type Props = ContextRouter &
-  WithStyles &
+  WithStyles<typeof styles> &
   WithAlert & {
     onCancel: () => void,
     onSave: PolicyRule => void,

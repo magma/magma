@@ -29,7 +29,7 @@ module.exports = {
           node: 'current',
           chrome: '58',
         },
-        corejs: 3,
+        corejs: 2,
         useBuiltIns: 'entry',
       },
     ],

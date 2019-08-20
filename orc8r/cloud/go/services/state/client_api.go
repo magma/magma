@@ -15,12 +15,13 @@ import (
 
 	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/checkind/obsidian/models"
 
 	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
 	"google.golang.org/grpc"
 )
 
@@ -153,16 +154,33 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 	if state.ReportedState == nil {
 		return nil, errors.ErrNotFound
 	}
+	return fillInGatewayStatusState(state), nil
+}
 
-	gwStatus := state.ReportedState.(models.GatewayStatus)
+func GetGatewayStatuses(networkID string, deviceIDs []string) (map[string]*models.GatewayStatus, error) {
+	stateIDs := funk.Map(deviceIDs, func(id string) StateID { return StateID{Type: orc8r.GatewayStateType, DeviceID: id} }).([]StateID)
+	res, err := GetStates(networkID, stateIDs)
+	if err != nil {
+		return map[string]*models.GatewayStatus{}, err
+	}
+
+	ret := make(map[string]*models.GatewayStatus, len(res))
+	for stateID, state := range res {
+		ret[stateID.DeviceID] = fillInGatewayStatusState(state)
+	}
+	return ret, nil
+}
+
+func fillInGatewayStatusState(state State) *models.GatewayStatus {
+	if state.ReportedState == nil {
+		return nil
+	}
+
+	gwStatus := state.ReportedState.(*models.GatewayStatus)
 	gwStatus.CheckinTime = state.Time
 	gwStatus.CertExpirationTime = state.CertExpirationTime
-	// Use the hardware ID from the middleware
 	gwStatus.HardwareID = state.ReporterID
-	// Populate deprecated fields to support API backwards compatibility
-	// TODO: Remove this and related tests when deprecated fields are no longer used
-	gwStatus.FillDeprecatedFields()
-	return &gwStatus, nil
+	return gwStatus
 }
 
 func toProtosStateIDs(stateIDs []StateID) []*protos.StateID {

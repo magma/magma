@@ -73,7 +73,7 @@ func setLogLevel(service string, logLevel string) error {
 
 func setLogLevelOrGwLogLevel(service string, logLevel string) error {
 	if isGatewayServiceQuery {
-		return service303.GWService303SetLogLevel(gateway_registry.GwServiceType(service), hwId, &protos.LogLevelMessage{Level: protos.LogLevel(protos.LogLevel_value[logLevel])})
+		return service303.GWService303SetLogLevel(gateway_registry.GwServiceType(service), hardwareID, &protos.LogLevelMessage{Level: protos.LogLevel(protos.LogLevel_value[logLevel])})
 	} else {
 		return client.Service303SetLogLevel(service, &protos.LogLevelMessage{Level: protos.LogLevel(protos.LogLevel_value[logLevel])})
 	}

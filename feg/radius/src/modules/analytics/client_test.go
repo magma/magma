@@ -16,8 +16,7 @@ import (
 	"os/user"
 	"testing"
 
-	"fbc/lib/go/libgraphql"
-
+	"fbc/cwf/radius/modules/analytics/graphql"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +27,7 @@ func TestIntegration(t *testing.T) {
 	}
 	u, err := user.Current()
 	require.NoError(t, err, "failed getting user")
-	c := libgraphql.NewClient(libgraphql.ClientConfig{
+	c := graphql.NewClient(graphql.ClientConfig{
 		Token:    accessToken,
 		Endpoint: fmt.Sprintf("https://graph.%s.sb.expresswifi.com/graphql", u.Username),
 		HTTPClient: &http.Client{Transport: &http.Transport{

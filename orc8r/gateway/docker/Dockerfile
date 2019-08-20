@@ -43,6 +43,7 @@ RUN apt-key add /tmp/jfrog.pub && \
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
   curl \
+  fabric \
   libc-ares2 \
   libev4 \
   libevent-openssl-2.0-5 \
@@ -53,6 +54,7 @@ RUN apt-get -y update && apt-get -y install \
   libsystemd-dev \
   magma-nghttpx=1.31.1-1 \
   net-tools \
+  openssh-server \
   openssl \
   pkg-config \
   python-cffi \

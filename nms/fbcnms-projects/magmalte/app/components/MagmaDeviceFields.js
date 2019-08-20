@@ -28,7 +28,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   configs: MagmadConfig,
   configChangeHandler: (string, any) => void,
 };

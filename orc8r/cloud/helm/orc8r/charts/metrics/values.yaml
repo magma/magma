@@ -8,6 +8,10 @@ metrics:
   # Set to 1 if using a minikube setup
   useMinikube:
 
+  # Retention configurations for prometheus
+  retention:
+    time: 30d
+
   # Service configuration.
   service:
     annotations: {}
@@ -60,8 +64,8 @@ metrics:
 
   configImage:
     repository:
-    tag: latest
-    pullPolicy: Always
+    tag:
+    pullPolicy: IfNotPresent
 
   # Number of metrics replicas desired
   replicas: 1
@@ -154,11 +158,63 @@ prometheusCache:
 
   image:
     repository:
-    tag: latest
-    pullPolicy: Always
+    tag:
+    pullPolicy: IfNotPresent
 
   # Maximum number of datapoints in the cache at one time. Unlimited if <= 0.
   limit: 0
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign graphite to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+grafana:
+  # Enable/Disable chart
+  create: true
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: grafana
+        port: 3000
+        targetPort: 3000
+
+  environment:
+    prometheusHost: "orc8r-metrics"
+    prometheusPort: "9090"
+
+  volumes:
+    # Default volume configurations for grafana data.
+    grafanaData:
+      volumeSpec:
+        emptyDir: {}
+
+  image:
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
 
   # Number of metrics replicas desired
   replicas: 1

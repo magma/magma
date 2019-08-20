@@ -28,7 +28,7 @@ const styles = {
 
 type Props = {
   children: any,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 type State = {
   error: ?Error,

@@ -7,6 +7,8 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
+	models2 "magma/orc8r/cloud/go/models"
+	models3 "magma/orc8r/cloud/go/pluginimpl/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -23,22 +25,22 @@ type LteNetwork struct {
 
 	// description
 	// Required: true
-	Description NetworkDescription `json:"description"`
+	Description models2.NetworkDescription `json:"description"`
 
 	// dns
 	// Required: true
-	DNS *NetworkDNSConfig `json:"dns"`
+	DNS *models3.NetworkDNSConfig `json:"dns"`
 
 	// features
-	Features *NetworkFeatures `json:"features,omitempty"`
+	Features *models3.NetworkFeatures `json:"features,omitempty"`
 
 	// id
 	// Required: true
-	ID NetworkID `json:"id"`
+	ID models2.NetworkID `json:"id"`
 
 	// name
 	// Required: true
-	Name NetworkName `json:"name"`
+	Name models2.NetworkName `json:"name"`
 }
 
 // Validate validates this lte network

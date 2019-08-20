@@ -20,16 +20,14 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-	"os"
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
-	"magma/orc8r/cloud/go/services/magmad"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/golang/protobuf/ptypes"
 	"golang.org/x/net/context"
@@ -62,20 +60,10 @@ func (srv *BootstrapperServer) GetChallenge(ctx context.Context, hwId *protos.Ac
 	var keyType protos.ChallengeKey_KeyType
 
 	// case based on the env variable whether to use magmad or configurator
-	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
-	if useConfigurator == "1" {
-		var err error
-		keyType, _, err = getChallengeKeyFromConfigurator(hwId.Id)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// retrieve the challenge key type
-		gatewayRecord, err := magmad.FindGatewayRecordWithHwId(hwId.Id)
-		if err != nil {
-			return nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record: %s", err))
-		}
-		keyType = gatewayRecord.Key.KeyType
+	var err error
+	keyType, _, err = getChallengeKey(hwId.Id)
+	if err != nil {
+		return nil, err
 	}
 
 	if keyType != protos.ChallengeKey_ECHO &&
@@ -111,28 +99,12 @@ func (srv *BootstrapperServer) RequestSign(
 	ctx context.Context, resp *protos.Response) (*protos.Certificate, error) {
 
 	hwId := resp.HwId.Id
-	var keyType protos.ChallengeKey_KeyType
-	var key []byte
-
-	// case based on the env variable whether to use magmad or configurator
-	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
-	if useConfigurator == "1" {
-		var err error
-		keyType, key, err = getChallengeKeyFromConfigurator(hwId)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// retrieve the challenge key type
-		gatewayRecord, err := magmad.FindGatewayRecordWithHwId(hwId)
-		if err != nil {
-			return nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record: %s", err))
-		}
-		keyType = gatewayRecord.Key.KeyType
-		key = gatewayRecord.Key.Key
+	keyType, key, err := getChallengeKey(hwId)
+	if err != nil {
+		return nil, err
 	}
 
-	err := srv.verifyChallenge(resp.Challenge)
+	err = srv.verifyChallenge(resp.Challenge)
 	if err != nil {
 		return nil, errorLogger(status.Errorf(
 			codes.Aborted, "Failed to verify challenge: %s", err))
@@ -278,7 +250,7 @@ func verifySoftwareECDSASHA256(resp *protos.Response, key []byte) error {
 	return nil
 }
 
-func getChallengeKeyFromConfigurator(hwID string) (protos.ChallengeKey_KeyType, []byte, error) {
+func getChallengeKey(hwID string) (protos.ChallengeKey_KeyType, []byte, error) {
 	var empty protos.ChallengeKey_KeyType
 	entity, err := configurator.LoadEntityForPhysicalID(hwID, configurator.EntityLoadCriteria{})
 	if err != nil {
@@ -288,7 +260,7 @@ func getChallengeKeyFromConfigurator(hwID string) (protos.ChallengeKey_KeyType, 
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record: %s", err))
 	}
-	record, ok := iRecord.(*models.AccessGatewayRecord)
+	record, ok := iRecord.(*models2.GatewayDevice)
 	if !ok {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record"))
 	}

@@ -117,7 +117,7 @@ TEST(test_get_action, test_session_credit)
 {
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, false);
-  credit.add_used_credit(1025, 0);
+  credit.add_used_credit(1024, 0);
   auto cont_action = credit.get_action();
   EXPECT_EQ(cont_action, CONTINUE_SERVICE);
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, true);
@@ -131,19 +131,38 @@ TEST(test_get_action, test_session_credit)
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
-TEST(test_failures, test_session_credit)
+TEST(test_last_grant_exhausted, test_session_credit)
 {
   SessionCredit credit;
   credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, true);
-  credit.add_used_credit(1025, 0);
+  credit.add_used_credit(1024, 0);
   EXPECT_EQ(credit.get_action(), TERMINATE_SERVICE);
+}
 
-  SessionCredit credit2;
-  credit2.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, false);
-  credit2.add_used_credit(10, 0);
-  EXPECT_EQ(credit2.get_action(), CONTINUE_SERVICE);
-  credit2.mark_failure();
-  EXPECT_EQ(credit2.get_action(), TERMINATE_SERVICE);
+TEST(test_tolerance_quota_exhausted, test_session_credit)
+{
+  SessionCredit credit;
+  credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, false);
+  // continue the service when there was still available tolerance quota
+  credit.add_used_credit(1024, 0);
+  EXPECT_EQ(credit.get_action(), CONTINUE_SERVICE);
+  // terminate the service when granted quota and tolerance quota are exhausted
+  credit.add_used_credit(1024, 0);
+  EXPECT_EQ(credit.get_action(), TERMINATE_SERVICE);
+}
+
+TEST(test_failures, test_session_credit)
+{
+  SessionCredit credit;
+  credit.receive_credit(1024, HIGH_CREDIT, HIGH_CREDIT, 0, false);
+  credit.add_used_credit(1024, 0);
+  EXPECT_EQ(credit.get_action(), CONTINUE_SERVICE);
+  credit.mark_failure();
+  EXPECT_EQ(credit.get_action(), CONTINUE_SERVICE);
+  // extra tolerance quota exhauted
+  credit.add_used_credit(1024, 0);
+  credit.mark_failure();
+  EXPECT_EQ(credit.get_action(), TERMINATE_SERVICE);
 }
 
 TEST(test_add_rx_tx_credit, test_session_credit)

@@ -110,6 +110,7 @@ void _detach_t3422_handler(void *args)
   DevAssert(data);
 
   mme_ue_s1ap_id_t ue_id = data->ue_id;
+  uint8_t detach_type = data->detach_type;
 
   /*
    * Increment the retransmission counter
@@ -137,7 +138,7 @@ void _detach_t3422_handler(void *args)
       DevAssert(emm_ctx);
       //emm_ctx->t3422_arg = NULL;
     }
-    if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
+    if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
       emm_detach_request_params.switch_off = 0;
       emm_detach_request_params.type = 0;

@@ -16,7 +16,7 @@ import {withStyles} from '@material-ui/core/styles';
 type Props = {
   onClick: () => void,
   children: any,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 const styles = theme => ({
   root: {

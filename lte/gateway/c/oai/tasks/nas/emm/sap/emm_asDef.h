@@ -273,6 +273,7 @@ typedef struct emm_as_data_s {
     ms_identity; /* MS identity This IE may be included to assign or unassign a new TMSI to a UE during a combined TA/LA update. */
   uint8_t *additional_update_result; /* TAU Additional update result   */
   uint32_t *emm_cause;               /* EMM failure cause code        */
+  uint16_t *eps_bearer_context_status; /* TAU EPS bearer context status   */
   uint32_t sgs_loc_updt_status;
   uint32_t *sgs_reject_cause;
   uint8_t

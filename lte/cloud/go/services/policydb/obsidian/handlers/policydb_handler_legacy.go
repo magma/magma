@@ -17,28 +17,28 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
 )
 
 const (
-	policiesRootPath     = handlers.REST_ROOT + "/networks/:network_id/policies"
+	policiesRootPath     = obsidian.RestRoot + "/networks/:network_id/policies"
 	policyRuleRootPath   = policiesRootPath + "/rules"
 	policyRuleManagePath = policyRuleRootPath + "/:rule_id"
 )
 
 // listRulesHandler returns a list of all policy rules in the network
 func listRulesHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
 	rules, err := policydb.ListRuleIds(networkID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, rules)
@@ -46,7 +46,7 @@ func listRulesHandler(c echo.Context) error {
 
 // createRuleHandler adds a single policy rule to the network
 func createRuleHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -59,14 +59,14 @@ func createRuleHandler(c echo.Context) error {
 
 	// Call policydb service
 	if err := policydb.AddRule(networkID, ruleProto); err != nil {
-		return handlers.HttpError(err, http.StatusConflict)
+		return obsidian.HttpError(err, http.StatusConflict)
 	}
 	return c.JSON(http.StatusCreated, ruleProto.GetId())
 }
 
 // getRuleHandler returns the policy rule associated with the input rule id
 func getRuleHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -78,21 +78,21 @@ func getRuleHandler(c echo.Context) error {
 	// Call policydb service
 	ruleProto, err := policydb.GetRule(networkID, ruleID)
 	if err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 
 	// Create swagger model for response
 	var rule models.PolicyRule
 	if err = rule.FromProto(ruleProto); err != nil {
 		glog.Errorf("Error converting policy rule model: %s", err)
-		return handlers.HttpError(err)
+		return obsidian.HttpError(err)
 	}
 	return c.JSON(http.StatusOK, rule)
 }
 
 // updateRuleHandler modifies the policy rule
 func updateRuleHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -105,14 +105,14 @@ func updateRuleHandler(c echo.Context) error {
 
 	// Call policydb service
 	if err := policydb.UpdateRule(networkID, ruleProto); err != nil {
-		return handlers.HttpError(err, http.StatusConflict)
+		return obsidian.HttpError(err, http.StatusConflict)
 	}
 	return c.NoContent(http.StatusOK)
 }
 
 // deleteRuleHandler deletes the policy rule
 func deleteRuleHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -123,7 +123,7 @@ func deleteRuleHandler(c echo.Context) error {
 
 	// Call policydb service
 	if err := policydb.DeleteRule(networkID, ruleID); err != nil {
-		return handlers.HttpError(err, http.StatusNotFound)
+		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -135,7 +135,7 @@ func getRuleID(c echo.Context, rule *models.PolicyRule) (string, *echo.HTTPError
 		if rule.ID != ruleID {
 			msg := fmt.Errorf("Rule ID payload doesn't match URL param %s vs %s",
 				rule.ID, ruleID)
-			return ruleID, handlers.HttpError(msg, http.StatusBadRequest)
+			return ruleID, obsidian.HttpError(msg, http.StatusBadRequest)
 		}
 		rule.ID = ruleID
 	} else {
@@ -156,7 +156,7 @@ func getRuleProto(c echo.Context) (*protos.PolicyRule, *echo.HTTPError) {
 	// Get swagger model
 	rule := new(models.PolicyRule)
 	if err := c.Bind(rule); err != nil {
-		return ruleProto, handlers.HttpError(err, http.StatusBadRequest)
+		return ruleProto, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	// Get the rule ID from the URL or request payload
@@ -167,19 +167,19 @@ func getRuleProto(c echo.Context) (*protos.PolicyRule, *echo.HTTPError) {
 
 	// Verify the payload
 	if err := rule.Verify(); err != nil {
-		return ruleProto, handlers.HttpError(err, http.StatusBadRequest)
+		return ruleProto, obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	// Convert swagger model to proto
 	if err := rule.ToProto(ruleProto); err != nil {
-		return ruleProto, handlers.HttpError(err)
+		return ruleProto, obsidian.HttpError(err)
 	}
 
 	return ruleProto, nil
 }
 
 func ruleIDHTTPErr() *echo.HTTPError {
-	return handlers.HttpError(
+	return obsidian.HttpError(
 		fmt.Errorf("Invalid/Missing Flow Rule ID"),
 		http.StatusBadRequest)
 }

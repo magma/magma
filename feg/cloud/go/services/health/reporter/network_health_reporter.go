@@ -16,9 +16,10 @@ import (
 	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/servicers"
 	"magma/feg/cloud/go/services/health/storage"
-	orc8rcfg "magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 )
 
@@ -40,38 +41,38 @@ func (reporter *NetworkHealthStatusReporter) ReportHealthStatus(dur time.Duratio
 }
 
 func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
-	networks, err := magmad.ListNetworks()
+	networks, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return err
 	}
-	for _, nw := range networks {
+	for _, networkID := range networks {
+		config, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType)
 		// Consider a FeG network to be only those that have FeG Network configs defined
-		config, err := orc8rcfg.GetConfig(nw, feg.FegNetworkType, nw)
 		if err != nil || config == nil {
 			continue
 		}
-		gateways, err := magmad.ListGateways(nw)
+		gateways, _, err := configurator.LoadEntities(networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, nil, configurator.EntityLoadCriteria{})
 		if err != nil {
-			glog.Errorf("error getting gateways for network %v: %v\n", nw, err)
+			glog.Errorf("error getting gateways for network %v: %v\n", networkID, err)
 			continue
 		}
 		healthyGateways := 0
 		for _, gw := range gateways {
-			healthStatus, err := reporter.Store.GetHealth(nw, gw)
+			healthStatus, err := reporter.Store.GetHealth(networkID, gw.Key)
 			if err != nil {
-				glog.V(2).Infof("error getting health for network %s, gateway %s: %v\n", nw, gw, err)
+				glog.V(2).Infof("error getting health for network %s, gateway %s: %v\n", networkID, gw.Key, err)
 				continue
 			}
-			status, _, err := servicers.AnalyzeHealthStats(healthStatus, nw)
+			status, _, err := servicers.AnalyzeHealthStats(healthStatus, networkID)
 			if err != nil {
-				glog.V(2).Infof("error analyzing health stats for network %s, gateway %s: %v", nw, gw, err)
+				glog.V(2).Infof("error analyzing health stats for network %s, gateway %s: %v", networkID, gw.Key, err)
 			}
 			if status == protos.HealthStatus_HEALTHY {
 				healthyGateways++
 			}
 		}
-		metrics.TotalGatewayCount.WithLabelValues(nw).Set(float64(len(gateways)))
-		metrics.HealthyGatewayCount.WithLabelValues(nw).Set(float64(healthyGateways))
+		metrics.TotalGatewayCount.WithLabelValues(networkID).Set(float64(len(gateways)))
+		metrics.HealthyGatewayCount.WithLabelValues(networkID).Set(float64(healthyGateways))
 	}
 	return nil
 }

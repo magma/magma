@@ -9,12 +9,9 @@ package pluginimpl
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
 	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
-	"magma/orc8r/cloud/go/services/device"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 )
 
@@ -31,31 +28,6 @@ import (
 // swagger now seems stable enough for storage, and going straight from
 // swagger struct to the datastore means that we no longer have to
 // define the same struct twice (swagger <-> proto).
-
-// GatewayRecordSerde is an inventory serde for the AccessGatewayRecord type
-type GatewayRecordSerde struct{}
-
-func (*GatewayRecordSerde) GetDomain() string {
-	return device.SerdeDomain
-}
-
-func (*GatewayRecordSerde) GetType() string {
-	return orc8r.AccessGatewayRecordType
-}
-
-func (*GatewayRecordSerde) Serialize(in interface{}) ([]byte, error) {
-	agr, ok := in.(*models.AccessGatewayRecord)
-	if !ok {
-		return []byte{}, fmt.Errorf("Could not serialize gateway record. Expected *models.AccessGatewayRecord, got %T", in)
-	}
-	return agr.MarshalBinary()
-}
-
-func (*GatewayRecordSerde) Deserialize(in []byte) (interface{}, error) {
-	ret := &models.AccessGatewayRecord{}
-	err := ret.UnmarshalBinary(in)
-	return ret, err
-}
 
 type GatewayStatusSerde struct{}
 

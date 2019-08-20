@@ -57,7 +57,7 @@ type EditingSubscriber = {
 };
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     open: boolean,
     onClose: () => void,
     onSave: (subscriberID: string) => void,

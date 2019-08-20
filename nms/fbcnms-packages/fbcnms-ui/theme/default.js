@@ -17,6 +17,7 @@ import {
   fadedBlue,
   gray0,
   gray00,
+  gray1,
   gray50,
   primaryText,
   red,
@@ -63,6 +64,7 @@ export default createMuiTheme({
     blue30: blue30,
     blue60: blue60,
     gray00: gray00,
+    gray1: gray1,
     gray50: gray50,
     primaryText: primaryText,
   },
@@ -77,8 +79,20 @@ export default createMuiTheme({
       root: {
         borderRadius: 4,
         cursor: 'pointer',
-        fontSize: 14,
-        padding: '6px 30px',
+        fontSize: '14px',
+        textTransform: 'capitalize',
+        padding: '8px 12px',
+        fontWeight: 500,
+        lineHeight: '16px',
+      },
+      contained: {
+        boxShadow: 'none',
+      },
+    },
+    MuiFormControl: {
+      marginDense: {
+        marginTop: '0px',
+        marginBottom: '0px',
       },
     },
     MuiToggleButtonGroup: {

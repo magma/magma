@@ -216,6 +216,7 @@ describe('user tests', () => {
               organization: 'validorg',
               networkIDs: params.networkIDs,
               role: 0,
+              tabs: [],
             },
           });
       });
@@ -273,6 +274,7 @@ describe('user tests', () => {
       password: 'mynewpassword',
       superUser: false,
       verificationType: 0,
+      tabs: ['validtab'],
     };
     it('can update a user', async () => {
       const app = getApp('validorg', 'superuser@123.com');
@@ -287,6 +289,7 @@ describe('user tests', () => {
             email: 'valid@123.com',
             organization: 'validorg',
             role: 0,
+            tabs: ['validtab'],
           },
         })
         .expect(200);

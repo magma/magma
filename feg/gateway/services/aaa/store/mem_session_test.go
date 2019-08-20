@@ -9,6 +9,9 @@ LICENSE file in the root directory of this source tree.
 package store_test
 
 import (
+	"math/rand"
+	"strconv"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -21,6 +24,7 @@ import (
 
 var (
 	sharedSid     = aaa.CreateSessionId()
+	sharedImsi    = "0123456789123456"
 	sharedSession aaa.Session
 )
 
@@ -29,7 +33,7 @@ func TestInMemSessionTable(t *testing.T) {
 
 	st := store.NewMemorySessionTable()
 	var err error
-	sharedSession, err = st.AddSession(&protos.Context{SessionId: sharedSid}, time.Minute*10, nil)
+	sharedSession, err = st.AddSession(&protos.Context{SessionId: sharedSid, Imsi: sharedImsi}, time.Minute*10, nil)
 	assert.NoError(t, err)
 	assert.NotNil(t, sharedSession)
 
@@ -44,11 +48,11 @@ func TestInMemSessionTable(t *testing.T) {
 	}
 }
 
-type callbackDone bool
+type callbackDone int32
 
 func (done *callbackDone) timeoutCallback(s aaa.Session) error {
 	if done != nil {
-		*done = true
+		atomic.StoreInt32((*int32)(done), 1)
 	}
 	return nil
 }
@@ -56,16 +60,21 @@ func (done *callbackDone) timeoutCallback(s aaa.Session) error {
 func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	defer func() { c <- struct{}{} }()
 
-	shared, err := st.AddSession(&protos.Context{SessionId: sharedSid}, time.Minute*10, nil)
+	shared, err := st.AddSession(
+		&protos.Context{SessionId: sharedSid,
+			Imsi: strconv.FormatUint(rand.Uint64(), 10)[:15]},
+		time.Minute*10, nil)
 	assert.Error(t, err)
-	assert.Equal(t, shared, sharedSession)
+	assert.Equal(t, sharedSid, st.FindSession(sharedImsi))
 
 	shared.Lock()
+	assert.Equal(t, shared, sharedSession)
+	assert.Equal(t, sharedImsi, shared.GetCtx().GetImsi())
+	shared.Unlock()
 
 	sid := aaa.CreateSessionId()
-	pc := &protos.Context{SessionId: sid}
-
-	shared.Unlock()
+	imsi := strconv.FormatUint(rand.Uint64(), 10)[:15]
+	pc := &protos.Context{SessionId: sid, Imsi: imsi}
 
 	// Test Crete session
 	var done callbackDone
@@ -82,15 +91,19 @@ func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	// Test Find session
 	s1 := st.GetSession(sid)
 	assert.Equal(t, s, s1)
+	checkSid := st.FindSession(imsi)
+	assert.Equal(t, sid, checkSid)
 	s1.Lock()
 
 	// Test timeout cleanup
 	time.Sleep(time.Millisecond * 300)
 	s1.Unlock()
 
-	assert.True(t, bool(done))
+	assert.NotEqual(t, 0, atomic.LoadInt32((*int32)(&done)))
 	s2 := st.GetSession(sid)
 	assert.Nil(t, s2)
+	checkSid = st.FindSession(imsi)
+	assert.Equal(t, "", checkSid)
 
 	// Test Remove session
 	s, err = st.AddSession(pc, time.Minute, nil) // don't expire
@@ -98,8 +111,12 @@ func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	assert.NotNil(t, s)
 	s1 = st.GetSession(sid)
 	assert.Equal(t, s, s1)
+	checkSid = st.FindSession(imsi)
+	assert.Equal(t, sid, checkSid)
 	s2 = st.RemoveSession(sid)
 	assert.Equal(t, s1, s2)
+	checkSid = st.FindSession(imsi)
+	assert.Equal(t, "", checkSid)
 
 	// Test SetTimeout
 	s, err = st.AddSession(pc, time.Minute, nil)
@@ -107,12 +124,12 @@ func runTest(t *testing.T, st aaa.SessionTable, c chan struct{}) {
 	assert.NotNil(t, s)
 	s1 = st.GetSession(sid)
 	assert.Equal(t, s, s1)
-	done = false
+	atomic.StoreInt32((*int32)(&done), 0)
 	success := st.SetTimeout(sid, time.Millisecond*5, (&done).timeoutCallback)
 	assert.True(t, success)
 	time.Sleep(time.Millisecond * 300)
 
-	assert.True(t, bool(done))
+	assert.NotEqual(t, 0, atomic.LoadInt32((*int32)(&done)))
 	s2 = st.GetSession(sid)
 	assert.Nil(t, s2)
 

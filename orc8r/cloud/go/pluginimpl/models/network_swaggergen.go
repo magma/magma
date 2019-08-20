@@ -7,6 +7,7 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
+	models1 "magma/orc8r/cloud/go/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -19,7 +20,7 @@ type Network struct {
 
 	// description
 	// Required: true
-	Description NetworkDescription `json:"description"`
+	Description models1.NetworkDescription `json:"description"`
 
 	// dns
 	// Required: true
@@ -30,14 +31,14 @@ type Network struct {
 
 	// id
 	// Required: true
-	ID NetworkID `json:"id"`
+	ID models1.NetworkID `json:"id"`
 
 	// name
 	// Required: true
-	Name NetworkName `json:"name"`
+	Name models1.NetworkName `json:"name"`
 
-	// The type of the network
-	Type string `json:"type,omitempty"`
+	// type
+	Type models1.NetworkType `json:"type,omitempty"`
 }
 
 // Validate validates this network
@@ -61,6 +62,10 @@ func (m *Network) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateType(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -135,6 +140,22 @@ func (m *Network) validateName(formats strfmt.Registry) error {
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("name")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *Network) validateType(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Type) { // not required
+		return nil
+	}
+
+	if err := m.Type.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("type")
 		}
 		return err
 	}

@@ -5,6 +5,7 @@ declare module "@material-ui/styles/ThemeProvider" {
 
 declare module "@material-ui/styles" {
   import type {ComponentType, Node} from "react";
+  import type {Theme} from '@material-ui/core';
   declare class ServerStyleSheets {
     collect:(Node) => Node,
   }
@@ -12,6 +13,7 @@ declare module "@material-ui/styles" {
     makeStyles: (color: Object) => (props: any) => any,
     StylesProvider: ComponentType<{generateClassName?:()=>string}>,
     ServerStyleSheets: Class<ServerStyleSheets>,
-    createGenerateClassName:() => () => string
+    createGenerateClassName:() => () => string,
+    useTheme:() => Theme,
   };
 }

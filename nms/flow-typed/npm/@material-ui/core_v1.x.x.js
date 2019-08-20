@@ -41,6 +41,10 @@ declare module "@material-ui/core/Avatar" {
   declare module.exports: $Exports<"@material-ui/core/Avatar/Avatar">;
 }
 
+declare module "@material-ui/core/Box" {
+  declare module.exports: $Exports<"@material-ui/core/Box">;
+}
+
 declare module "@material-ui/core/Badge/Badge" {
   import type {ComponentType, Node} from "react";
 
@@ -1040,7 +1044,8 @@ declare module "@material-ui/core/IconButton/IconButton" {
     color?: Color,
     disabled?: boolean,
     disableRipple?: boolean,
-    rootRef?: Function
+    rootRef?: Function,
+    ref?: ?any
   }>;
 }
 
@@ -2337,7 +2342,18 @@ declare module "@material-ui/core/styles/withStyles" {
 
   import type {Theme} from "@material-ui/core/styles/createMuiTheme"
 
-  declare type CSSProperties = any; // import type {StandardProperties as CSSProperties} from "csstype";
+  // import type {StandardProperties as CSSProperties} from "csstype";
+
+  // Recursion usually works, but is too lax for the cases we present to flow
+  // (StyleRules | StyleRulesCallback). Thus, we limit how much we can nest.
+  // This is probably good style design either way.
+  declare type CSSProperties = {
+    [string]: string | number | {
+      [string]: string | number | {
+        [string]: string | number
+      }
+    }
+  };
 
   declare type CSSCreateStyleSheetOptions = {|
     media?: string,
@@ -2360,8 +2376,10 @@ declare module "@material-ui/core/styles/withStyles" {
     name?: string
   |};
 
-  declare export type WithStyles = {
-    classes: { +[string]: string },
+  declare type ExtractReturnTypeIfFunc = <R>(((theme: Theme) => R) | R) => R;
+
+  declare export type  WithStyles<T> = {
+    classes: {[$Keys<$Call<ExtractReturnTypeIfFunc, T>>]: string},
     innerRef: Ref<any> | {current: ElementRef<any> | null}
   };
 
@@ -2371,7 +2389,7 @@ declare module "@material-ui/core/styles/withStyles" {
   };
 
   declare module.exports: (
-    stylesOrCreator: StyleRules | StyleRulesCallback,
+    stylesOrCreator: StyleRulesCallback | StyleRules,
     options?: WithStylesOptions,
   ) => <WrappedComponent: ComponentType<*>>(
     Component: WrappedComponent
@@ -2419,7 +2437,7 @@ declare module "@material-ui/core/styles" {
   import type {WithTheme as MuiWithTheme} from "@material-ui/core/styles/withTheme";
 
   declare export type Theme = MuiTheme;
-  declare export type WithStyles = MuiWithStyles;
+  declare export type WithStyles<T> = MuiWithStyles<T>;
   declare export type WithTheme = MuiWithTheme;
 
   declare module.exports: {
@@ -4290,6 +4308,6 @@ declare module "@material-ui/core" {
   } from "@material-ui/core/styles";
 
   declare export type Theme = StylesTheme;
-  declare export type WithStyles = StylesWithStyles;
+  declare export type WithStyles<T> = StylesWithStyles<T>;
   declare export type WithTheme = StylesWithTheme;
 }

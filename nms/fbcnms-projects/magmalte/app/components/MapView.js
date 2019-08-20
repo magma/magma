@@ -65,7 +65,7 @@ type State = {
   map: ?mapboxgl.Map,
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   geojson: MagmaFeatureCollection,
   mapLayers?: Array<LayerSpecification>,
   MapMarker: ComponentType<MapMarkerProps>,

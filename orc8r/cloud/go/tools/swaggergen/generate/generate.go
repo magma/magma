@@ -16,7 +16,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/prometheus/common/log"
 	"gopkg.in/yaml.v2"
 )
 
@@ -117,17 +116,19 @@ type MagmaGenType struct {
 	Filename     string
 }
 
+const tmpGenDir = "tmpgen"
+
 // GenerateModels parses the magma-gen-meta key of the given swagger YML file,
 // copies the files that the target file depends on into the current working
 // directory, shells out to `swagger generate models`, then cleans up the
 // dependency files.
-func GenerateModels(targetFilepath string, templateFilepath string) error {
+func GenerateModels(targetFilepath string, templateFilepath string, rootDir string) error {
 	absTargetFilepath, err := filepath.Abs(targetFilepath)
 	if err != nil {
 		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
 	}
 
-	allConfigs, err := ParseSwaggerDependencyTree(absTargetFilepath)
+	allConfigs, err := ParseSwaggerDependencyTree(absTargetFilepath, rootDir)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -135,7 +136,7 @@ func GenerateModels(targetFilepath string, templateFilepath string) error {
 	defer func() {
 		// we always want to do the cleanup step
 		r := recover()
-		CleanUpTempGenFiles(allConfigs)
+		_ = os.RemoveAll("tmpgen")
 		if r != nil {
 			// repanic after cleaning up
 			panic(r)
@@ -150,10 +151,11 @@ func GenerateModels(targetFilepath string, templateFilepath string) error {
 	}
 
 	// Shell out to go-swagger
-	outputDir := filepath.Join(os.Getenv("MAGMA_ROOT"), allConfigs[absTargetFilepath].MagmaGenMeta.OutputDir)
+	targetConfig := allConfigs[absTargetFilepath]
+	outputDir := filepath.Join(os.Getenv("MAGMA_ROOT"), targetConfig.MagmaGenMeta.OutputDir)
 	cmd := exec.Command(
 		"swagger", "generate", "model",
-		"-f", allConfigs[absTargetFilepath].MagmaGenMeta.TempGenFilename,
+		"-f", filepath.Join(tmpGenDir, targetConfig.MagmaGenMeta.TempGenFilename),
 		"-t", outputDir,
 		"-C", templateFilepath,
 	)
@@ -174,14 +176,10 @@ func GenerateModels(targetFilepath string, templateFilepath string) error {
 // swagger spec file specified by the rootFilepath parameter.
 // The returned value maps between the absolute specified dependency filepath
 // and the parsed struct for the dependency file.
-func ParseSwaggerDependencyTree(rootFilepath string) (map[string]MagmaSwaggerConfig, error) {
+func ParseSwaggerDependencyTree(rootFilepath string, rootDir string) (map[string]MagmaSwaggerConfig, error) {
 	absRootFilepath, err := filepath.Abs(rootFilepath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "root filepath %s is invalid", rootFilepath)
-	}
-	magmaRoot, err := filepath.Abs(os.Getenv("MAGMA_ROOT"))
-	if err != nil {
-		return nil, errors.Wrap(err, "MAGMA_ROOT env var is invalid")
 	}
 
 	targetConfig, err := readSwaggerSpec(absRootFilepath)
@@ -205,7 +203,7 @@ func ParseSwaggerDependencyTree(rootFilepath string) (map[string]MagmaSwaggerCon
 		allConfigs[nextConfig.path] = nextConfig.MagmaSwaggerConfig
 
 		for _, dependencyPath := range nextConfig.MagmaGenMeta.Dependencies {
-			absDependencyPath, err := filepath.Abs(filepath.Join(magmaRoot, dependencyPath))
+			absDependencyPath, err := filepath.Abs(filepath.Join(rootDir, dependencyPath))
 			if err != nil {
 				return nil, errors.Wrapf(err, "dependency filepath %s is invalid", dependencyPath)
 			}
@@ -231,6 +229,11 @@ func ParseSwaggerDependencyTree(rootFilepath string) (map[string]MagmaSwaggerCon
 }
 
 func StripAndWriteSwaggerConfigs(allConfigs map[string]MagmaSwaggerConfig) error {
+	err := os.Mkdir(tmpGenDir, 0777)
+	if err != nil {
+		return errors.Wrap(err, "could not create temporary gen directory")
+	}
+
 	for path, msc := range allConfigs {
 		sanitized := msc.ToSwaggerConfig()
 		marshaledSanitized, err := yaml.Marshal(sanitized)
@@ -238,21 +241,12 @@ func StripAndWriteSwaggerConfigs(allConfigs map[string]MagmaSwaggerConfig) error
 			return errors.Wrapf(err, "could not re-marshal swagger config %s", path)
 		}
 
-		err = ioutil.WriteFile(msc.MagmaGenMeta.TempGenFilename, marshaledSanitized, 0664)
+		err = ioutil.WriteFile(filepath.Join(tmpGenDir, msc.MagmaGenMeta.TempGenFilename), marshaledSanitized, 0666) // \m/
 		if err != nil {
 			return errors.Wrapf(err, "could not write dependency swagger config %s", msc.MagmaGenMeta.TempGenFilename)
 		}
 	}
 	return nil
-}
-
-func CleanUpTempGenFiles(allConfigs map[string]MagmaSwaggerConfig) {
-	for _, msc := range allConfigs {
-		err := os.Remove(msc.MagmaGenMeta.TempGenFilename)
-		if err != nil && err != os.ErrNotExist {
-			log.Errorf("Failed to clean up temporary file %s", msc.MagmaGenMeta.TempGenFilename)
-		}
-	}
 }
 
 func readSwaggerSpec(filepath string) (MagmaSwaggerConfig, error) {

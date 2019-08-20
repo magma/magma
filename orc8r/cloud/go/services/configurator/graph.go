@@ -106,3 +106,16 @@ func (eg *EntityGraph) cacheGraphHelpers() {
 		eg.reverseEdgesByTK[edge.To] = append(eg.reverseEdgesByTK[edge.To], edge.From)
 	}
 }
+
+// GetFirstParentOfType iterates through the parent associations of the entity
+// and returns the TypeAndKey of first association that matches the target
+// type.
+// Returns ErrNotFound if no such association is found.
+func (ent NetworkEntity) GetFirstParentOfType(target string) (storage.TypeAndKey, error) {
+	for _, tk := range ent.ParentAssociations {
+		if tk.Type == target {
+			return tk, nil
+		}
+	}
+	return storage.TypeAndKey{}, merrors.ErrNotFound
+}

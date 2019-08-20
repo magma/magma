@@ -12,6 +12,7 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	lteplugin "magma/lte/cloud/go/plugin"
@@ -20,15 +21,15 @@ import (
 	"magma/lte/cloud/go/services/meteringd_records/obsidian/models"
 	meteringd_records_test_init "magma/lte/cloud/go/services/meteringd_records/test_init"
 	sdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -55,9 +56,9 @@ func UpdateFlowsTest(csn string, tbl *protos.FlowTable) error {
 // TestMeteringdRecords is Obsidian Metering Records Integration Test intended to be run
 // on cloud VM
 func TestMeteringdRecords(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	sdb_test_init.StartTestService(t)
@@ -68,7 +69,7 @@ func TestMeteringdRecords(t *testing.T) {
 	csn := test_utils.StartMockGwAccessControl(t, []string{hwId})
 
 	testUrlRoot := fmt.Sprintf(
-		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+		"http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	// Test Register Network
 	registerNetworkTestCase := tests.Testcase{
@@ -87,7 +88,7 @@ func TestMeteringdRecords(t *testing.T) {
 		Name:     "Register AG",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways", testUrlRoot, networkId),
-		Payload:  fmt.Sprintf(`{"hw_id": {"id":"%s"}, "name": "Test AG Name", "key": {"key_type": "ECHO"}}}`, hwId),
+		Payload:  fmt.Sprintf(`{"hardware_id":"%s", "key": {"key_type": "ECHO"}}}`, hwId),
 		Expected: fmt.Sprintf(`"%s"`, hwId),
 	}
 	tests.RunTest(t, registerAGTestCase)

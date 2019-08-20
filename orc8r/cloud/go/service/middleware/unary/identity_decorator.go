@@ -12,10 +12,9 @@ package unary
 import (
 	"log"
 	"net"
-	"os"
 	"time"
 
-	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/protobuf/ptypes"
@@ -31,7 +30,6 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
-	"magma/orc8r/cloud/go/services/magmad"
 )
 
 // SetIdentityFromContext is an identity decorator implements Identity injector
@@ -201,47 +199,22 @@ func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity,
 	// At this point we should have a valid GW Identity with HardwareId, so
 	// the Gateway is authenticated. Now we'll try to find GW Network & Logical
 	// ID & add them to the GW Identity
-	var networkId, logicalId string
-
-	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
-	if useConfigurator == "1" {
-		entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{})
-		if err != nil {
-			log.Printf(
-				"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",
-				gwIdentity.HardwareId, serialNumber, err, md)
-		}
-		networkId = entity.NetworkID
-		logicalId = entity.Key
-	} else {
-		// Try to add GW Network ID
-		networkId, err = magmad.FindGatewayNetworkId(gwIdentity.HardwareId)
-		if err != nil {
-			// Log 'lost'/unregistered gateways, but let the call through, we may
-			// have services dealing with unregistered/removed gateways later,
-			// so - let the target RPC return an error if it needs missing Network
-			// ID and/or Logical ID
-			log.Printf(
-				"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",
-				gwIdentity.HardwareId, serialNumber, err, md)
-		} else {
-			// Try to add Logical GW ID
-			logicalId, err = magmad.FindGatewayId(networkId, gwIdentity.HardwareId)
-			if err != nil {
-				log.Printf(
-					"Missing Logical Id for HwId: %s for Cert SN: %s; err: %s; metadata: %+v",
-					gwIdentity.HardwareId, serialNumber, err, md)
-			}
-		}
+	entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		log.Printf(
+			"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",
+			gwIdentity.HardwareId, serialNumber, err, md)
 	}
+	networkID := entity.NetworkID
+	logicalID := entity.Key
 
 	// Increment counter of expiring client certificates if needed
-	if time.Until(expiration) < CERT_EXPIRATION_DURATION_THRESHOLD {
-		gwExpiringCert.WithLabelValues(networkId, logicalId).Inc()
+	if expiration.Sub(clock.Now()) < CERT_EXPIRATION_DURATION_THRESHOLD {
+		gwExpiringCert.WithLabelValues(networkID, logicalID).Inc()
 	}
 
 	// Create "decorated" GW Identity & return it
-	return identity.NewGateway(gwIdentity.HardwareId, networkId, logicalId), expSeconds, nil
+	return identity.NewGateway(gwIdentity.HardwareId, networkID, logicalID), expSeconds, nil
 }
 
 // getCertifierIdentity retrieves 'raw' identity associated with the Certificate
@@ -296,15 +269,10 @@ func ensureLocalPeer(ctx context.Context) error {
 	}
 	ip := net.ParseIP(host)
 	if ip == nil {
-		return status.Errorf(
-			codes.PermissionDenied,
-			"Invalid Client Address: %+v",
-			caller.Addr)
+		return status.Errorf(codes.PermissionDenied, "Invalid Client Address: %+v", caller.Addr)
 	}
 	if !ip.IsLoopback() {
-		return status.Errorf(
-			codes.PermissionDenied,
-			"Missing Client Certificate from Client %s", ip.String())
+		return status.Errorf(codes.PermissionDenied, "Missing Client Certificate from Client %s", ip.String())
 	}
 	return nil
 }

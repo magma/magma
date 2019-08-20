@@ -16,8 +16,10 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorh "magma/orc8r/cloud/go/services/configurator/obsidian/handlers"
@@ -34,6 +36,7 @@ const (
 )
 
 func TestGetNetworkConfigCRUDHandlers(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	fooNetworkSerde := configurator.NewNetworkConfigSerde(fooConfigType, &FooConfigs{})
 	err := serde.RegisterSerdes(fooNetworkSerde)
@@ -148,7 +151,7 @@ func getURL(restPort int, networkID string, configType string) string {
 	url := fmt.Sprintf(
 		"http://localhost:%d%s/networks/%s/configs/%s",
 		restPort,
-		handlers.REST_ROOT,
+		obsidian.RestRoot,
 		networkID,
 		configType,
 	)

@@ -11,55 +11,8 @@ package view_factory
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/protos"
-	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
-
 	"github.com/golang/protobuf/ptypes/struct"
 )
-
-// GatewayStateType is the manually defined model type for Gateway State
-type GatewayStateType struct {
-	Config    map[string]interface{}         `json:"config"`
-	GatewayID string                         `json:"gateway_id"`
-	Record    *models.AccessGatewayRecord    `json:"record"`
-	Status    *checkind_models.GatewayStatus `json:"status"`
-}
-
-// GatewayStateToModel converts a storage.GatewayState object to the equivalent
-// model.GatewayStateType
-func GatewayStateToModel(state *GatewayState) (*GatewayStateType, error) {
-	modelState := &GatewayStateType{
-		GatewayID: state.GatewayID,
-		Config:    state.Config,
-	}
-	modelStatus, err := gatewayStatusToModel(state.LegacyStatus)
-	if err != nil {
-		return nil, err
-	}
-	modelRecord, err := gatewayRecordToModel(state.LegacyRecord)
-	if err != nil {
-		return nil, err
-	}
-	modelState.Status = modelStatus
-	modelState.Record = modelRecord
-	return modelState, nil
-}
-
-// GatewayStateMapToModelList converts a map of storage.GatewayState objects
-// to an equivalent list of model.GatewayStateType objects
-func GatewayStateMapToModelList(states map[string]*GatewayState) ([]*GatewayStateType, error) {
-	models := make([]*GatewayStateType, 0, len(states))
-	for _, state := range states {
-		gatewayState, err := GatewayStateToModel(state)
-		if err != nil {
-			return nil, err
-		}
-		models = append(models, gatewayState)
-	}
-	return models, nil
-}
 
 // JSONMapToProtobufStruct converts a map[string]interface{} JSON object to
 // the equivalent protobuf Struct
@@ -88,24 +41,6 @@ func ProtobufStructToJSONMap(s *structpb.Struct) (map[string]interface{}, error)
 		m[key] = val
 	}
 	return m, nil
-}
-
-func gatewayStatusToModel(status *protos.GatewayStatus) (*checkind_models.GatewayStatus, error) {
-	if status == nil {
-		return nil, nil
-	}
-	modelStatus := &checkind_models.GatewayStatus{}
-	err := modelStatus.FromMconfig(status)
-	return modelStatus, err
-}
-
-func gatewayRecordToModel(record *magmadprotos.AccessGatewayRecord) (*models.AccessGatewayRecord, error) {
-	if record == nil {
-		return nil, nil
-	}
-	modelRecord := &models.AccessGatewayRecord{}
-	err := modelRecord.FromMconfig(record)
-	return modelRecord, err
 }
 
 func jsonValueToProtobufValue(jsonValue interface{}) (*structpb.Value, error) {

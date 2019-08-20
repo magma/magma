@@ -10,8 +10,9 @@ package alert
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
+	"strings"
+
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
 
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"
@@ -21,26 +22,34 @@ const (
 	rulesFilePostfix = "_rules.yml"
 )
 
-// Client provides thread-safe methods for writing, reading, and modifying
-// alert configuration files
-type Client struct {
-	fileLocks *FileLocker
-	rulesDir  string
+// PrometheusAlertClient provides thread-safe methods for writing, reading,
+// and modifying alert configuration files
+type PrometheusAlertClient interface {
+	ValidateRule(rule rulefmt.Rule) error
+	RuleExists(networkID, rulename string) bool
+	WriteRule(networkID string, rule rulefmt.Rule) error
+	UpdateRule(networkID string, rule rulefmt.Rule) error
+	ReadRules(networkID, ruleName string) ([]rulefmt.Rule, error)
+	DeleteRule(networkID, ruleName string) error
+	BulkUpdateRules(networkID string, rules []rulefmt.Rule) (BulkUpdateResults, error)
 }
 
-func NewClient(rulesDir string) (*Client, error) {
-	fileLocks, err := NewFileLocker(rulesDir)
-	if err != nil {
-		return nil, err
-	}
-	return &Client{
+type client struct {
+	fileLocks *FileLocker
+	rulesDir  string
+	fsClient  files.FSClient
+}
+
+func NewClient(fileLocks *FileLocker, rulesDir string, fsClient files.FSClient) PrometheusAlertClient {
+	return &client{
 		fileLocks: fileLocks,
 		rulesDir:  rulesDir,
-	}, nil
+		fsClient:  fsClient,
+	}
 }
 
 // ValidateRule checks that a new alert rule is a valid specification
-func (c *Client) ValidateRule(rule rulefmt.Rule) error {
+func (c *client) ValidateRule(rule rulefmt.Rule) error {
 	errs := rule.Validate()
 	if len(errs) != 0 {
 		return fmt.Errorf("invalid rule: %v", errs)
@@ -48,13 +57,13 @@ func (c *Client) ValidateRule(rule rulefmt.Rule) error {
 	return nil
 }
 
-func (c *Client) RuleExists(rulename, networkID string) bool {
+func (c *client) RuleExists(networkID, rulename string) bool {
 	filename := makeFilename(networkID, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	ruleFile, err := c.initializeRuleFile(networkID, filename)
 	if err != nil {
 		return false
 	}
@@ -63,13 +72,13 @@ func (c *Client) RuleExists(rulename, networkID string) bool {
 
 // WriteRule takes an alerting rule and writes it to the rules file for the
 // given networkID
-func (c *Client) WriteRule(rule rulefmt.Rule, networkID string) error {
+func (c *client) WriteRule(networkID string, rule rulefmt.Rule) error {
 	filename := makeFilename(networkID, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	ruleFile, err := c.initializeRuleFile(networkID, filename)
 	if err != nil {
 		return err
 	}
@@ -82,18 +91,18 @@ func (c *Client) WriteRule(rule rulefmt.Rule, networkID string) error {
 	return nil
 }
 
-func (c *Client) UpdateRule(rule rulefmt.Rule, networkID string) error {
+func (c *client) UpdateRule(networkID string, rule rulefmt.Rule) error {
 	filename := makeFilename(networkID, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(filename, networkID)
+	ruleFile, err := c.initializeRuleFile(networkID, filename)
 	if err != nil {
 		return err
 	}
 
-	err = SecureRule(&rule, networkID)
+	err = SecureRule(networkID, &rule)
 	if err != nil {
 		return err
 	}
@@ -110,10 +119,14 @@ func (c *Client) UpdateRule(rule rulefmt.Rule, networkID string) error {
 	return nil
 }
 
-func (c *Client) ReadRules(ruleName string, networkID string) ([]rulefmt.Rule, error) {
+func (c *client) ReadRules(networkID, ruleName string) ([]rulefmt.Rule, error) {
 	filename := makeFilename(networkID, c.rulesDir)
 	c.fileLocks.RLock(filename)
 	defer c.fileLocks.RUnlock(filename)
+
+	if !c.ruleFileExists(filename) {
+		return []rulefmt.Rule{}, nil
+	}
 
 	ruleFile, err := c.readRuleFile(makeFilename(networkID, c.rulesDir))
 	if err != nil {
@@ -129,7 +142,7 @@ func (c *Client) ReadRules(ruleName string, networkID string) ([]rulefmt.Rule, e
 	return []rulefmt.Rule{*foundRule}, nil
 }
 
-func (c *Client) DeleteRule(ruleName string, networkID string) error {
+func (c *client) DeleteRule(networkID, ruleName string) error {
 	filename := makeFilename(networkID, c.rulesDir)
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
@@ -151,17 +164,55 @@ func (c *Client) DeleteRule(ruleName string, networkID string) error {
 	return nil
 }
 
-func (c *Client) writeRuleFile(ruleFile *File, filename string) error {
+func (c *client) BulkUpdateRules(networkID string, rules []rulefmt.Rule) (BulkUpdateResults, error) {
+	filename := makeFilename(networkID, c.rulesDir)
+	c.fileLocks.Lock(filename)
+	defer c.fileLocks.Unlock(filename)
+
+	ruleFile, err := c.readRuleFile(filename)
+	if err != nil {
+		return BulkUpdateResults{}, err
+	}
+
+	results := NewBulkUpdateResults()
+	for _, newRule := range rules {
+		ruleName := newRule.Alert
+		err := SecureRule(networkID, &newRule)
+		if err != nil {
+			results.Errors[ruleName] = err
+			continue
+		}
+		if ruleFile.GetRule(ruleName) != nil {
+			err := ruleFile.ReplaceRule(newRule)
+			if err != nil {
+				results.Errors[ruleName] = err
+			} else {
+				results.Statuses[ruleName] = "updated"
+			}
+		} else {
+			ruleFile.AddRule(newRule)
+			results.Statuses[ruleName] = "created"
+		}
+	}
+
+	err = c.writeRuleFile(ruleFile, filename)
+	if err != nil {
+		return results, err
+	}
+	return results, nil
+}
+
+func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 	yamlFile, err := yaml.Marshal(ruleFile)
-	err = ioutil.WriteFile(filename, yamlFile, 0666)
+	err = c.fsClient.WriteFile(filename, yamlFile, 0666)
 	if err != nil {
 		return fmt.Errorf("error writing rules file: %v\n", yamlFile)
 	}
 	return nil
 }
 
-func (c *Client) initializeRuleFile(filename, networkID string) (*File, error) {
-	if _, err := os.Stat(filename); err == nil {
+func (c *client) initializeRuleFile(networkID, filename string) (*File, error) {
+	if _, err := c.fsClient.Stat(filename); err == nil {
 		file, err := c.readRuleFile(filename)
 		if err != nil {
 			return nil, err
@@ -171,14 +222,48 @@ func (c *Client) initializeRuleFile(filename, networkID string) (*File, error) {
 	return NewFile(networkID), nil
 }
 
-func (c *Client) readRuleFile(requestedFile string) (*File, error) {
+func (c *client) ruleFileExists(filename string) bool {
+	_, err := c.fsClient.Stat(filename)
+	return err == nil
+}
+
+func (c *client) readRuleFile(requestedFile string) (*File, error) {
 	ruleFile := File{}
-	file, err := ioutil.ReadFile(requestedFile)
+	file, err := c.fsClient.ReadFile(requestedFile)
 	if err != nil {
 		return &File{}, fmt.Errorf("error reading rules files: %v", err)
 	}
 	err = yaml.Unmarshal(file, &ruleFile)
 	return &ruleFile, err
+}
+
+type BulkUpdateResults struct {
+	Errors   map[string]error
+	Statuses map[string]string
+}
+
+func NewBulkUpdateResults() BulkUpdateResults {
+	return BulkUpdateResults{
+		Errors:   make(map[string]error, 0),
+		Statuses: make(map[string]string, 0),
+	}
+}
+
+func (r BulkUpdateResults) String() string {
+	str := strings.Builder{}
+	if len(r.Errors) > 0 {
+		str.WriteString("Errors: \n")
+		for name, err := range r.Errors {
+			str.WriteString(fmt.Sprintf("\t%s: %s\n", name, err))
+		}
+	}
+	if len(r.Statuses) > 0 {
+		str.WriteString("Statuses: \n")
+		for name, status := range r.Statuses {
+			str.WriteString(fmt.Sprintf("\t%s: %s\n", name, status))
+		}
+	}
+	return str.String()
 }
 
 func makeFilename(networkID, path string) string {

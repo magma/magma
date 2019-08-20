@@ -27,6 +27,7 @@ message DiamClientConfig {
     string host = 9; // diameter host
     string dest_realm = 10; // server diameter realm
     string dest_host = 11; // server diameter host
+    bool   disable_dest_host = 12; // don't include dest_host AVP in diameter requests
 }
 
 message DiamServerConfig {
@@ -134,3 +135,13 @@ message HSSConfig {
     bool stream_subscribers = 6;
 }
 
+message RadiusdConfig {
+    // Port the metrics server is running on
+    uint32 radius_metrics_port = 1;
+    // The path to access the prometheus metrics on the server
+    string radius_metrics_path = 2;
+    // Interval in seconds between fetching and updating metrics
+    uint32 update_interval_secs = 3;
+    // Hostname for prometheus metrics
+    string radius_metrics_host = 4;
+}

@@ -14,16 +14,18 @@ import (
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
+	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +37,7 @@ func TestMagmad(t *testing.T) {
 	restPort := tests.StartObsidian(t)
 
 	testURLRoot := fmt.Sprintf(
-		"http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+		"http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	// Test List Networks
 	listCloudsTestCase := tests.Testcase{
@@ -108,7 +110,7 @@ func TestMagmad(t *testing.T) {
 		Method: "POST",
 		Url: fmt.Sprintf(
 			"%s/%s/gateways?requested_id=%s", testURLRoot, networkId, "*00_bad_ag"),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId12345"}, "name": "Test AG Name", "key": {"key_type": "ECHO"}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId12345", "key": {"key_type": "ECHO"}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
@@ -121,7 +123,7 @@ func TestMagmad(t *testing.T) {
 		Method: "POST",
 		Url: fmt.Sprintf(
 			"%s/%s/gateways?requested_id=%s", testURLRoot, networkId, requestedAGId),
-		Payload:  `{"hw_id":{"id":"TestAGHwId00001"}, "name": "Test AG Name",  "key": {"key_type": "ECHO"}}`,
+		Payload:  `{"hardware_id":"TestAGHwId00001", "key": {"key_type": "ECHO"}}`,
 		Expected: fmt.Sprintf(`"%s"`, requestedAGId),
 	}
 	tests.RunTest(t, registerAGWithIdTestCase)
@@ -131,7 +133,7 @@ func TestMagmad(t *testing.T) {
 		Name:     "Register AG",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:  `{"hw_id":{"id":"TestAGHwId00002"}, "name": "Test AG Name", "key": {"key_type": "SOFTWARE_ECDSA_SHA256", "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+Lckvw/eeV8CemEOWpX30/5XhTHKx/mm6T9MpQWuIM8sOKforNm5UPbZrdOTPEBAtGwJB6Uk9crjCIveFe+sN0zw705L94Giza4ny/6ASBcctCm2JJxFccVsocJIraSC"}}`,
+		Payload:  `{"hardware_id":"TestAGHwId00002", "key": {"key_type": "SOFTWARE_ECDSA_SHA256", "key": "MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+Lckvw/eeV8CemEOWpX30/5XhTHKx/mm6T9MpQWuIM8sOKforNm5UPbZrdOTPEBAtGwJB6Uk9crjCIveFe+sN0zw705L94Giza4ny/6ASBcctCm2JJxFccVsocJIraSC"}}`,
 		Expected: `"TestAGHwId00002"`,
 	}
 	tests.RunTest(t, registerAGTestCase)
@@ -141,7 +143,7 @@ func TestMagmad(t *testing.T) {
 		Name:                      "Register AG without Key",
 		Method:                    "POST",
 		Url:                       fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId00003"}, "name": "Test AG Name", "key": {}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId00003", "key": {}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
@@ -152,7 +154,7 @@ func TestMagmad(t *testing.T) {
 		Name:                      "Register AG with Key but no Key Content",
 		Method:                    "POST",
 		Url:                       fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId00003"}, "name": "Test AG Name", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256"}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId00003", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256"}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
@@ -163,51 +165,11 @@ func TestMagmad(t *testing.T) {
 		Name:                      "Register AG with Key but Wrong Key Content",
 		Method:                    "POST",
 		Url:                       fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:                   `{"hw_id":{"id":"TestAGHwId00003"}, "name": "Test AG Name", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256", "key":"AAAAAAAAAAAAAAAAAAAAAA=="}}`,
+		Payload:                   `{"hardware_id":"TestAGHwId00003", "key": {"key_type":  "SOFTWARE_ECDSA_SHA256", "key":"AAAAAAAAAAAAAAAAAAAAAA=="}}`,
 		Skip_payload_verification: true,
 		Expect_http_error_status:  true,
 	}
 	tests.RunTest(t, registerAGTestCaseWrongKeyContent)
-
-	// Test Getting AG record
-	getAGRecordTestCase := tests.Testcase{
-		Name:   "Get AG Record With Specified Name",
-		Method: "GET",
-		Url: fmt.Sprintf("%s/%s/gateways/%s",
-			testURLRoot, networkId, requestedAGId),
-		Payload:  "",
-		Expected: `{"hw_id":{"id":"TestAGHwId00001"},"key":{"key_type":"ECHO"},"name":"Test AG Name"}`,
-	}
-	tests.RunTest(t, getAGRecordTestCase)
-
-	getAGRecordTestCase = tests.Testcase{
-		Name:     "Get AG Record With Default Name",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/gateways/TestAGHwId00002", testURLRoot, networkId),
-		Payload:  "",
-		Expected: `{"hw_id":{"id":"TestAGHwId00002"},"key":{"key":"MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAE+Lckvw/eeV8CemEOWpX30/5XhTHKx/mm6T9MpQWuIM8sOKforNm5UPbZrdOTPEBAtGwJB6Uk9crjCIveFe+sN0zw705L94Giza4ny/6ASBcctCm2JJxFccVsocJIraSC","key_type":"SOFTWARE_ECDSA_SHA256"},"name":"Test AG Name"}`,
-	}
-	tests.RunTest(t, getAGRecordTestCase)
-
-	// Test Updating AG record
-	setAGRecordTestCase := tests.Testcase{
-		Name:     "Update AG Record Name",
-		Method:   "PUT",
-		Url:      fmt.Sprintf("%s/%s/gateways/TestAGHwId00002", testURLRoot, networkId),
-		Payload:  `{"name": "SoDoSoPaTown Tower", "key": {"key_type": "ECHO"}}`,
-		Expected: "",
-	}
-	tests.RunTest(t, setAGRecordTestCase)
-
-	// Test Getting AG record 2
-	getAGRecordTestCase = tests.Testcase{
-		Name:     "Get AG Record With Modified Name",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/gateways/TestAGHwId00002", testURLRoot, networkId),
-		Payload:  "",
-		Expected: `{"hw_id":{"id":"TestAGHwId00002"}, "key": {"key_type": "ECHO"}, "name": "SoDoSoPaTown Tower"}`,
-	}
-	tests.RunTest(t, getAGRecordTestCase)
 
 	// Test Listing All Registered AGs
 	listAGsTestCase := tests.Testcase{
@@ -255,7 +217,7 @@ func TestMagmad(t *testing.T) {
 		Name:     "Register AG 2",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways", testURLRoot, networkId),
-		Payload:  `{"hw_id":{"id":"TestAGHwId12345"}, "key": {"key_type": "ECHO"}}`,
+		Payload:  `{"hardware_id":"TestAGHwId12345", "key": {"key_type": "ECHO"}}`,
 		Expected: `"TestAGHwId12345"`,
 	}
 	tests.RunTest(t, registerAGTestCase)
@@ -299,68 +261,6 @@ func TestMagmad(t *testing.T) {
 		Expected: expectedCfgStr,
 	}
 	tests.RunTest(t, getAGConfigTestCase)
-
-	// assert the gateway now has an association to tier entity
-	entity, err := configurator.LoadEntity(networkId, orc8r.UpgradeTierEntityType, "default", configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
-	assert.NoError(t, err)
-	assert.Equal(t, "TestAGHwId12345", entity.Associations[0].Key)
-
-	// empty tier should not be accepted
-	expCfg.Tier = ""
-	marshaledCfg, err = expCfg.MarshalBinary()
-	assert.NoError(t, err)
-	expectedCfgStr = string(marshaledCfg)
-	setAGConfigTestCase := tests.Testcase{
-		Name:   "Set AG Configs With Empty Tier",
-		Method: "PUT",
-		Url: fmt.Sprintf("%s/%s/gateways/TestAGHwId12345/configs",
-			testURLRoot, networkId),
-		Payload:                  expectedCfgStr,
-		Expected:                 `{"message":"Invalid config: Tier ID must be specified"}`,
-		Expect_http_error_status: true,
-	}
-	tests.RunTest(t, setAGConfigTestCase)
-
-	expCfg.Tier = "changed"
-	marshaledCfg, err = expCfg.MarshalBinary()
-	assert.NoError(t, err)
-	expectedCfgStr = string(marshaledCfg)
-
-	// Test Setting (Updating) AG Configs With An Unregistered Tier
-	setAGConfigTestCase = tests.Testcase{
-		Name:   "Set AG Configs With Unregistered Tier",
-		Method: "PUT",
-		Url: fmt.Sprintf("%s/%s/gateways/TestAGHwId12345/configs",
-			testURLRoot, networkId),
-		Payload:  expectedCfgStr,
-		Expected: "",
-	}
-	tests.RunTest(t, setAGConfigTestCase)
-
-	// assert the gateway's tier association has changed
-	entity, err = configurator.LoadEntity(networkId, orc8r.UpgradeTierEntityType, "changed", configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
-	assert.NoError(t, err)
-	assert.Equal(t, "TestAGHwId12345", entity.Associations[0].Key)
-
-	// Test Getting AG Configs After Config Update
-	getAGConfigTestCase2 := tests.Testcase{
-		Name:   "Get AG Configs 2",
-		Method: "GET",
-		Url: fmt.Sprintf("%s/%s/gateways/TestAGHwId12345/configs",
-			testURLRoot, networkId),
-		Payload:  "",
-		Expected: expectedCfgStr,
-	}
-	tests.RunTest(t, getAGConfigTestCase2)
-
-	getRegisteredTier := tests.Testcase{
-		Name:     "Get 'challenge' Tier",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/tiers/changed", testURLRoot, networkId),
-		Payload:  "",
-		Expected: `{"id":"changed","images":null}`,
-	}
-	tests.RunTest(t, getRegisteredTier)
 
 	// Update network wide property
 	//
@@ -455,13 +355,12 @@ func TestMagmad(t *testing.T) {
 }
 
 // Default gateway config struct. Please DO NOT MODIFY this struct in-place
-func NewDefaultGatewayConfig() *models.MagmadGatewayConfig {
-	return &models.MagmadGatewayConfig{
-		AutoupgradeEnabled:      true,
+func NewDefaultGatewayConfig() *models2.MagmadGatewayConfigs {
+	return &models2.MagmadGatewayConfigs{
+		AutoupgradeEnabled:      swag.Bool(true),
 		AutoupgradePollInterval: 300,
 		CheckinInterval:         60,
 		CheckinTimeout:          10,
-		Tier:                    "default",
 		DynamicServices:         []string{},
 	}
 }

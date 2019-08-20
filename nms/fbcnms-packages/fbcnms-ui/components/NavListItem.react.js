@@ -36,6 +36,7 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: theme.palette.primary.main,
   },
   tooltip: {
+    position: 'relative',
     '&&': {
       padding: '8px 12px',
       backgroundColor: theme.palette.blueGrayDark,

@@ -11,22 +11,20 @@ package tests
 import (
 	"context"
 	"encoding/json"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
+	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/state"
-	test_service "magma/orc8r/cloud/go/services/state/test_init"
+	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 
 	"github.com/golang/glog"
@@ -51,20 +49,19 @@ func makeStateBundle(typeVal string, key string, value interface{}) stateBundle 
 }
 
 func TestStateService(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
-	configurator_test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	// Set up test networkID, hwID, and encode into context
-	test_service.StartTestService(t)
+	stateTestInit.StartTestService(t)
 	err := serde.RegisterSerdes(
 		&Serde{},
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}))
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models2.GatewayDevice{}))
 	assert.NoError(t, err)
 
 	networkID := "state_service_test_network"
-	configurator_test_utils.RegisterNetwork(t, networkID, "State Service Test")
+	configuratorTestUtils.RegisterNetwork(t, networkID, "State Service Test")
 	gatewayID := testAgHwId
-	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: testAgHwId}})
+	configuratorTestUtils.RegisterGateway(t, networkID, gatewayID, &models2.GatewayDevice{HardwareID: testAgHwId})
 	ctx := test_utils.GetContextWithCertificate(t, testAgHwId)
 
 	// Create States, IDs, values

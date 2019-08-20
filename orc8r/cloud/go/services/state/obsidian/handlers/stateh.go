@@ -12,27 +12,27 @@ import (
 	"net/http"
 
 	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/state"
 
 	"github.com/labstack/echo"
 )
 
-const AgStatusURL = handlers.NETWORKS_ROOT + "/:network_id/gateways/:gw_hardware_id/gateway_status"
+const AgStatusURL = obsidian.NetworksRoot + "/:network_id/gateways/:gw_hardware_id/gateway_status"
 
 // GetObsidianHandlers returns all handlers for state
-func GetObsidianHandlers() []handlers.Handler {
-	return []handlers.Handler{
+func GetObsidianHandlers() []obsidian.Handler {
+	return []obsidian.Handler{
 		{
 			Path:        AgStatusURL,
-			Methods:     handlers.GET,
+			Methods:     obsidian.GET,
 			HandlerFunc: AGStatusByDeviceIDHandler,
 		},
 	}
 }
 
 func AGStatusByDeviceIDHandler(c echo.Context) error {
-	networkID, nerr := handlers.GetNetworkId(c)
+	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -42,7 +42,7 @@ func AGStatusByDeviceIDHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNotFound)
 	}
 	if err != nil {
-		return handlers.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return c.JSON(http.StatusOK, &gwStatusModel)

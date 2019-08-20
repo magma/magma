@@ -13,7 +13,7 @@ import (
 	cwfconfig "magma/cwf/cloud/go/services/carrier_wifi/config"
 	cwfhandlers "magma/cwf/cloud/go/services/carrier_wifi/obsidian/handlers"
 	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
@@ -62,7 +62,7 @@ func (*CwfOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.Config
 	return []metricsd.MetricsProfile{}
 }
 
-func (*CwfOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []handlers.Handler {
+func (*CwfOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		cwfhandlers.GetObsidianHandlers(),
 	)

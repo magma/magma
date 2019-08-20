@@ -10,7 +10,6 @@
 #include "sctpd.h"
 
 #include <memory>
-
 #include <grpcpp/grpcpp.h>
 
 #include "sctpd_downlink_impl.h"
@@ -39,11 +38,11 @@ int main()
   builder.AddListeningPort(DOWNSTREAM_SOCK, grpc::InsecureServerCredentials());
   builder.RegisterService(&service);
 
-  auto server = builder.BuildAndStart();
+  auto sctpd_dl_server = builder.BuildAndStart();
 
   MLOG(MINFO) << "sctp downlink server started, waiting for init";
 
-  server->Wait();
+  sctpd_dl_server->Wait();
 
   return 0;
 }

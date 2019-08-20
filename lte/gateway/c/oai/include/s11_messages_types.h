@@ -88,7 +88,7 @@ typedef struct itti_s11_nw_init_actv_bearer_request_s {
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
   fteid_t s1_u_sgw_fteid; ///S1U SGW FTEID
   ebi_t lbi; //Linked Bearer ID
-} itti_s11_nw_init_actv_bearer_request_t;
+}itti_s11_nw_init_actv_bearer_request_t;
 
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_nw_initiated_ded_bearer_actv_rsp_t
@@ -102,7 +102,7 @@ typedef struct itti_s11_nw_init_actv_bearer_rsp_s {
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
   bearer_contexts_within_create_bearer_response_t
     bearer_contexts; ///< Several IEs with this type and instance value shall be
-} itti_s11_nw_init_actv_bearer_rsp_t;
+}itti_s11_nw_init_actv_bearer_rsp_t;
 
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_nw_init_deactv_bearer_request_t
@@ -767,7 +767,7 @@ typedef struct itti_s11_modify_bearer_request_s {
   ///< An MME/SGSN which supports location information
   ///< change shall include this IE for UE-initiated Service
   ///< Request procedure if the PGW has requested location
-  ///< information change reporting and the UE’s location info
+  ///< information change reporting and the UE's location info
   ///< has changed.
   ///< The SGW shall include this IE on S5/S8 if it receives the
   ///< ULI from MME/SGSN.
@@ -1221,7 +1221,7 @@ typedef struct itti_s11_paging_request_s {
 } itti_s11_paging_request_t;
 
 /**
- * Message used to notify SPGW that a paging 
+ * Message used to notify SPGW that a paging
  */
 typedef struct itti_s11_paging_response_s {
   const char *imsi;

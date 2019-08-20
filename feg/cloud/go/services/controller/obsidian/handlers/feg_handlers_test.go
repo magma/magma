@@ -15,16 +15,16 @@ import (
 
 	fegplugin "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/services/controller/test_utils"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -35,7 +35,7 @@ func TestGetNetworkConfigs(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 	networkID := "feg_obsidian_test_network"
 	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
 
@@ -72,7 +72,7 @@ func TestSetNetworkConfigs(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "feg_obsidian_test_network"
 	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
@@ -138,7 +138,7 @@ func TestGetGatewayConfigs(t *testing.T) {
 	config_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "feg_obsidian_test_network"
 	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
@@ -180,7 +180,7 @@ func TestSetGatewayConfigs(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "feg_obsidian_test_network"
 	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
@@ -231,7 +231,7 @@ func registerNetworkWithDefaultConfig(t *testing.T, networkName string, networkI
 		Name:   "Create Default Federation Network Config",
 		Method: "POST",
 		Url: fmt.Sprintf("http://localhost:%d%s/networks/%s/configs/federation",
-			port, handlers.REST_ROOT, networkID),
+			port, obsidian.RestRoot, networkID),
 		Payload:  string(marshaledConfig),
 		Expected: "\"" + networkID + "\"",
 	})
@@ -239,11 +239,7 @@ func registerNetworkWithDefaultConfig(t *testing.T, networkName string, networkI
 }
 
 func registerGatewayWithDefaultConfig(t *testing.T, networkID string, gatewayID string, port int) {
-	gatewayRecord := &magmad_models.AccessGatewayRecord{
-		HwID: &magmad_models.HwGatewayID{
-			ID: gatewayID,
-		},
-	}
+	gatewayRecord := &models.GatewayDevice{HardwareID: gatewayID}
 	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, gatewayRecord)
 
 	config := test_utils.NewDefaultGatewayConfig()
@@ -255,7 +251,7 @@ func registerGatewayWithDefaultConfig(t *testing.T, networkID string, gatewayID 
 		Method: "POST",
 		Url: fmt.Sprintf(
 			"http://localhost:%d%s/networks/%s/gateways/%s/configs/federation",
-			port, handlers.REST_ROOT, networkID, gatewayID),
+			port, obsidian.RestRoot, networkID, gatewayID),
 		Payload:  string(marshaledConfig),
 		Expected: "\"" + gatewayID + "\"",
 	})

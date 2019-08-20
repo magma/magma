@@ -62,6 +62,10 @@ def reboot_enodeb(client, args):
     req.device_serial = args.device_serial
     client.Reboot(req)
 
+@grpc_wrapper
+def reboot_all_enodeb(client, args):
+    client.RebootAll(Void())
+
 
 @grpc_wrapper
 def get_status(client, args):
@@ -82,7 +86,8 @@ def get_status(client, args):
     print_status_param(meta, 'all_enodeb_configured', 'All eNodeB configured')
     print_status_param(meta, 'all_enodeb_opstate_enabled',
                        'All eNB Opstate enabled')
-    print_status_param(meta, 'all_enodeb_rf_tx_on', 'All eNB RF TX on')
+    print_status_param(meta, 'all_enodeb_rf_tx_configured',
+                       'All eNB RF TX configured to desired state')
     print_status_param(meta, 'any_enodeb_gps_connected',
                        'Any eNB GPS connected')
     print_status_param(meta, 'all_enodeb_ptp_connected',
@@ -103,6 +108,7 @@ def get_all_status(client, args):
         _print_status_line('eNodeB Configured', enb_status.configured)
         _print_status_line('Opstate Enabled', enb_status.opstate_enabled)
         _print_status_line('RF TX on', enb_status.rf_tx_on)
+        _print_status_line('RF TX desired', enb_status.rf_tx_desired)
         _print_status_line('GPS Connected', enb_status.gps_connected)
         _print_status_line('PTP Connected', enb_status.ptp_connected)
         _print_status_line('MME Connected', enb_status.mme_connected)
@@ -132,6 +138,7 @@ def get_enb_status(client, args):
     _print_status_line('eNodeB Configured', enb_status.configured)
     _print_status_line('Opstate Enabled', enb_status.opstate_enabled)
     _print_status_line('RF TX on', enb_status.rf_tx_on)
+    _print_status_line('RF TX desired', enb_status.rf_tx_desired)
     _print_status_line('GPS Connected', enb_status.gps_connected)
     _print_status_line('PTP Connected', enb_status.ptp_connected)
     _print_status_line('MME Connected', enb_status.mme_connected)
@@ -195,6 +202,9 @@ def create_parser():
     parser_reboot_enodeb.add_argument(
         'device_serial', help='eNodeB Serial ID')
 
+    parser_reboot_all_enodeb = subparsers.add_parser(
+        'reboot_all_enodeb', help='Reboot all eNodeB')
+
     parser_get_status = subparsers.add_parser(
         'get_status', help='Get enodebd status')
 
@@ -211,6 +221,7 @@ def create_parser():
     parser_set_parameter.set_defaults(func=set_parameter)
     parser_config_enodeb.set_defaults(func=configure_enodeb)
     parser_reboot_enodeb.set_defaults(func=reboot_enodeb)
+    parser_reboot_all_enodeb.set_defaults(func=reboot_all_enodeb)
     parser_get_status.set_defaults(func=get_status)
     parser_get_all_status.set_defaults(func=get_all_status)
     parser_get_enb_status.set_defaults(func=get_enb_status)

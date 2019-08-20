@@ -51,7 +51,7 @@ type SubProfiles = {
   [string]: {max_dl_bit_rate?: number, max_ul_bit_rate?: number},
 };
 
-type Props = ContextRouter & WithAlert & WithStyles & {};
+type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   subscribers: Array<Subscriber>,

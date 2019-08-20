@@ -119,6 +119,21 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .rat_type = request->rat_type(),
                               .mac_addr = request->hardware_addr(),
                               .radius_session_id = request->radius_session_id()};
+  if (enforcer_->is_imsi_duplicate(imsi)) {
+    if (enforcer_->is_session_duplicate(imsi, cfg)) {
+      MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
+                  << ", not creating session";
+      return;
+    }
+    MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                << ", terminating the old session";
+    EndSession(
+      context,
+      &request->sid(),
+      [&](grpc::Status status, LocalEndSessionResponse response) {
+        return;
+      });
+  }
   send_create_session(
     copy_session_info2create_req(request, sid),
     imsi, sid, cfg, response_callback);

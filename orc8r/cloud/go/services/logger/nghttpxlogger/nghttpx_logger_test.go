@@ -14,6 +14,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -42,29 +43,46 @@ func (parser *mockParser) Parse(str string) (*nghttpxlogger.NghttpxMessage, erro
 }
 
 func TestNghttpxLogger_Run(t *testing.T) {
-
 	mockExporter := test_init.StartTestServiceWithMockExporterExposed(t)
-
 	mockExporter.On("Submit", mock.AnythingOfType("[]*protos.LogEntry")).Return(nil)
 	parser := mockParser{}
+
 	logger, err := nghttpxlogger.NewNghttpLogger(time.Second, &parser)
 	assert.NoError(t, err)
 	// create temp file
 	f, err := ioutil.TempFile("", "nghttpxlogger-test-")
 	assert.NoError(t, err)
 	fileName := f.Name()
-	// start tailing logfile
+	defer func() {
+		r := recover()
+		_ = f.Close()
+		_ = os.Remove(fileName)
+		if r != nil {
+			panic(r)
+		}
+	}()
+
+	// start tailing logfile, logrotate after 3 seconds
+	// a bit of a hack to prevent timing races with this test - we'll use a
+	// mutex to prevent truncation from happening at the same time as a write
+	// in real life, copytruncate log rotation could probably result in the
+	// tailer losing a line, but we are ok with this.
+	l := &sync.Mutex{}
 	logger.Run(fileName)
-	// logrotate the logfile after 5 seconds
-	go SimulateLogRotation(fileName, t)
+	go SimulateLogRotation(t, fileName, l)
+
 	// write lines to file
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 6; i++ {
 		// this line has to be in format "<string> <int>" for testing purpose. See Parse() on mockParser.
-		f.Write([]byte(fmt.Sprintf("testLine %v\n", i+1)))
+		l.Lock()
+		_, err := f.Write([]byte(fmt.Sprintf("testLine %v\n", i+1)))
+		l.Unlock()
+		assert.NoError(t, err)
 		time.Sleep(time.Second)
 	}
+
 	// assert
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 6; i++ {
 		msg := nghttpxlogger.NghttpxMessage{Time: int64(i + 1), Normal: map[string]string{"status": "testLine"}}
 		logEntries := []*protos.LogEntry{
 			{
@@ -75,15 +93,16 @@ func TestNghttpxLogger_Run(t *testing.T) {
 		}
 		mockExporter.AssertCalled(t, "Submit", logEntries)
 	}
-	mockExporter.AssertNumberOfCalls(t, "Submit", 10)
-	f.Close()
-	os.Remove(fileName)
+	mockExporter.AssertNumberOfCalls(t, "Submit", 6)
 	mockExporter.AssertExpectations(t)
 }
 
-func SimulateLogRotation(fileName string, t *testing.T) {
-	time.Sleep(5 * time.Second)
-	//copytruncate is used for logrotatino for nghttpx.log
+func SimulateLogRotation(t *testing.T, fileName string, lock *sync.Mutex) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	time.Sleep(3 * time.Second)
+	//copytruncate is used for logrotation for nghttpx.log
 	err := os.Truncate(fileName, 0)
 	assert.NoError(t, err)
 }

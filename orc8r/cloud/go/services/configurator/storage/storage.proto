@@ -16,6 +16,7 @@ import "google/protobuf/wrappers.proto";
 // entities within the network.
 message Network {
     string ID = 1;
+    string Type = 2;
 
     string name = 10;
     string description = 11;
@@ -26,6 +27,16 @@ message Network {
     map<string, bytes> configs = 20;
 
     uint64 version = 30;
+}
+
+message NetworkLoadFilter {
+    // If IDs is provided, the query will return all entities matching the
+    // provided ids. TypeFilter is ignored if IDs is
+    // provided.
+    repeated string ids = 1;
+    // If TypeFilter is provided, the query will return all entities matching
+    // the given type.
+    google.protobuf.StringValue type_filter = 2;
 }
 
 
@@ -52,11 +63,12 @@ message NetworkUpdateCriteria {
     // Set DeleteNetwork to true to delete the network
     bool delete_network = 10;
 
-    // Set NewName or NewDescription to nil to indicate that no update is
+    // Set NewName, NewDescription, or NewType to nil to indicate that no update is
     // desired. To clear the value of name or description, set these fields to
     // a wrapper to an empty string.
     google.protobuf.StringValue new_name = 20;
     google.protobuf.StringValue new_description = 21;
+    google.protobuf.StringValue new_type = 22;
 
     // New config values to add or existing ones to update
     map<string, bytes> configs_to_add_or_update = 30;

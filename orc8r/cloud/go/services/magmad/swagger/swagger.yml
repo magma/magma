@@ -211,6 +211,26 @@ paths:
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/gateways/{gateway_id}/name:
+    put:
+      summary: Update Gateway Name
+      tags:
+        - Gateways
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - $ref: './swagger-common.yml#/parameters/gateway_id'
+        - in: body
+          name: name
+          description: New name
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/gateways/{gateway_id}/configs:
     post:
       summary: Create Gateway Configs
@@ -427,16 +447,14 @@ definitions:
   access_gateway_record:
     type: object
     required:
-    - hw_id
+    - hardware_id
     - key
     properties:
-      hw_id:
-        $ref: '#/definitions/hw_gateway_id'
-        x-go-custom-tag: 'magma_alt_name:"HwId"'
-      name:
+      hardware_id:
         type: string
         minLength: 1
-        example: South Park's CtPa Town Tower
+        x-nullable: false
+        example: 22ffea10-7fc4-4427-975a-b9e4ce8f6f4d
       key:
         $ref: '#/definitions/challenge_key'
   magmad_gateway_config:
@@ -574,6 +592,8 @@ definitions:
         $ref: '#/definitions/gateway_status'
       record:
         $ref: '#/definitions/access_gateway_record'
+      name:
+        $ref: '#/definitions/gateway_name'
   disk_partition:
     type: object
     properties:
@@ -811,3 +831,7 @@ definitions:
           type: string
         example: ["4.9.0-6-amd64", "4.9.0-7-amd64"]
         description: deprecated
+  gateway_name:
+    type: string
+    x-nullable: false
+    minLength: 1

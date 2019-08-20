@@ -23,6 +23,7 @@ type UserRawInitType = {
   password: string,
   role: number,
   networkIDs?: Array<string>,
+  tabs?: Array<string>,
 };
 
 // This is the type read back
@@ -53,6 +54,13 @@ export default (
         defaultValue: [],
         get() {
           return this.getDataValue('networkIDs') || [];
+        },
+      },
+      tabs: {
+        type: types.JSON,
+        allowNull: true,
+        get() {
+          return this.getDataValue('tabs') || [];
         },
       },
     },

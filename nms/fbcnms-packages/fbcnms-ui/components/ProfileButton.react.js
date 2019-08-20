@@ -21,17 +21,15 @@ import {useRouter} from '@fbcnms/ui/hooks';
 const useStyles = makeStyles(theme => ({
   accountButton: {
     backgroundColor: theme.palette.common.white,
-    width: '28px',
-    height: '28px',
-    fontSize: '28px',
+    width: '36px',
+    height: '36px',
+    fontSize: '36px',
     cursor: 'pointer',
     borderRadius: '100%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    border: `1px solid ${theme.palette.common.white}`,
     '&:hover, &$openButton': {
-      border: `1px solid ${theme.palette.primary.main}`,
       '& $accountButtonIcon': {
         fill: theme.palette.primary.main,
       },
@@ -40,8 +38,8 @@ const useStyles = makeStyles(theme => ({
   openButton: {},
   accountButtonIcon: {
     '&&': {
-      fill: theme.palette.grey.A200,
-      fontSize: '15px',
+      fill: theme.palette.blueGrayDark,
+      fontSize: '19px',
     },
   },
   itemGutters: {

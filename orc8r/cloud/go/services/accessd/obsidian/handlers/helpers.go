@@ -9,29 +9,30 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"github.com/labstack/echo"
 	"net/http"
 
 	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
-	"magma/orc8r/cloud/go/obsidian/handlers"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/models"
 	"magma/orc8r/cloud/go/services/certifier"
+
+	"github.com/labstack/echo"
 )
 
 func getOperatorForRead(c echo.Context) (*protos.Identity, *echo.HTTPError) {
 	caller, err := access.RequestOperator(c)
 	if err != nil {
-		return nil, handlers.HttpError(err)
+		return nil, obsidian.HttpError(err)
 	}
 	operator, httpErr := getOperator(c)
 	if httpErr != nil {
 		return nil, httpErr
 	}
 	if err := accessd.CheckReadPermission(caller, operator); err != nil {
-		return nil, handlers.HttpError(err, http.StatusForbidden)
+		return nil, obsidian.HttpError(err, http.StatusForbidden)
 	}
 	return operator, nil
 }
@@ -39,20 +40,20 @@ func getOperatorForRead(c echo.Context) (*protos.Identity, *echo.HTTPError) {
 func getOperatorForWrite(c echo.Context) (*protos.Identity, *echo.HTTPError) {
 	caller, err := access.RequestOperator(c)
 	if err != nil {
-		return nil, handlers.HttpError(err)
+		return nil, obsidian.HttpError(err)
 	}
 	operator, httpErr := getOperator(c)
 	if httpErr != nil {
 		return nil, httpErr
 	}
 	if err := accessd.CheckWritePermission(caller, operator); err != nil {
-		return nil, handlers.HttpError(err, http.StatusForbidden)
+		return nil, obsidian.HttpError(err, http.StatusForbidden)
 	}
 	return operator, nil
 }
 
 func getOperator(c echo.Context) (*protos.Identity, *echo.HTTPError) {
-	operatorID, httpErr := handlers.GetOperatorId(c)
+	operatorID, httpErr := obsidian.GetOperatorId(c)
 	if httpErr != nil {
 		return nil, httpErr
 	}
@@ -60,7 +61,7 @@ func getOperator(c echo.Context) (*protos.Identity, *echo.HTTPError) {
 }
 
 func getNetwork(c echo.Context) (*protos.Identity, *echo.HTTPError) {
-	networkID, httpErr := handlers.GetNetworkId(c)
+	networkID, httpErr := obsidian.GetNetworkId(c)
 	if httpErr != nil {
 		return nil, httpErr
 	}

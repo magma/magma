@@ -11,7 +11,6 @@ package magmad
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
@@ -23,20 +22,9 @@ import (
 )
 
 func getGWMagmadClient(networkID string, gatewayID string) (protos.MagmadClient, context.Context, error) {
-	var hwID string
-	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
-	if useConfigurator == "1" {
-		var err error
-		hwID, err = configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
-		if err != nil {
-			return nil, nil, err
-		}
-	} else {
-		gwRecord, err := FindGatewayRecord(networkID, gatewayID)
-		if err != nil {
-			return nil, nil, err
-		}
-		hwID = gwRecord.HwId.Id
+	hwID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err != nil {
+		return nil, nil, err
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwMagmad, hwID)
 	if err != nil {

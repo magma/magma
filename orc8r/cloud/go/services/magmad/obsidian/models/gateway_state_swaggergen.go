@@ -23,6 +23,9 @@ type GatewayState struct {
 	// Required: true
 	GatewayID GatewayID `json:"gateway_id"`
 
+	// name
+	Name GatewayName `json:"name,omitempty"`
+
 	// record
 	Record *AccessGatewayRecord `json:"record,omitempty"`
 
@@ -35,6 +38,10 @@ func (m *GatewayState) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateGatewayID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -57,6 +64,22 @@ func (m *GatewayState) validateGatewayID(formats strfmt.Registry) error {
 	if err := m.GatewayID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("gateway_id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayState) validateName(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Name) { // not required
+		return nil
+	}
+
+	if err := m.Name.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
 		}
 		return err
 	}

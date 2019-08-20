@@ -32,17 +32,17 @@ var mockResult = sqlmock.NewResult(1, 1)
 func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 	runFactory := func(ids []string, loadCriteria storage.NetworkLoadCriteria) func(store storage.ConfiguratorStorage) (interface{}, error) {
 		return func(store storage.ConfiguratorStorage) (interface{}, error) {
-			return store.LoadNetworks(ids, loadCriteria)
+			return store.LoadNetworks(storage.NetworkLoadFilter{Ids: ids}, loadCriteria)
 		}
 	}
 
 	idsOnly := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.version FROM cfg_networks").
+			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_networks.version FROM cfg_networks").
 				WillReturnRows(
-					sqlmock.NewRows([]string{"id", "version"}).
-						AddRow("hello", 1).
-						AddRow("world", 2),
+					sqlmock.NewRows([]string{"id", "type", "version"}).
+						AddRow("hello", "", 1).
+						AddRow("world", "", 2),
 				)
 		},
 		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{}),
@@ -58,11 +58,11 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 
 	metadataLoad := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.name, cfg_networks.description, cfg_networks.version FROM cfg_networks").
+			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_networks.name, cfg_networks.description, cfg_networks.version FROM cfg_networks").
 				WillReturnRows(
-					sqlmock.NewRows([]string{"id", "name", "description", "version"}).
-						AddRow("hello", "Hello", "Hello network", 1).
-						AddRow("world", "World", "World network", 2),
+					sqlmock.NewRows([]string{"id", "type", "name", "description", "version"}).
+						AddRow("hello", "", "Hello", "Hello network", 1).
+						AddRow("world", "", "World", "World network", 2),
 				)
 		},
 		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{LoadMetadata: true}),
@@ -91,12 +91,12 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 	// 1 network has 2 configs, 1 has no configs
 	idsAndConfigs := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT cfg_networks.id, cfg_network_configs.type, cfg_network_configs.value, cfg_networks.version FROM cfg_networks").
+			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_network_configs.type, cfg_network_configs.value, cfg_networks.version FROM cfg_networks").
 				WillReturnRows(
-					sqlmock.NewRows([]string{"id", "type", "value", "version"}).
-						AddRow("hello", "foo", []byte("foo"), 1).
-						AddRow("hello", "bar", []byte("bar"), 1).
-						AddRow("world", nil, nil, 3),
+					sqlmock.NewRows([]string{"id", "type", "type", "value", "version"}).
+						AddRow("hello", "", "foo", []byte("foo"), 1).
+						AddRow("hello", "", "bar", []byte("bar"), 1).
+						AddRow("world", "", nil, nil, 3),
 				)
 		},
 		run: runFactory([]string{"hello", "world", "foobar"}, storage.NetworkLoadCriteria{LoadConfigs: true}),
@@ -124,12 +124,12 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 	// Same setup as above, plus 1 network not found
 	fullLoad := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.name, cfg_networks.description, cfg_network_configs.type, cfg_network_configs.value, cfg_networks.version FROM cfg_networks").
+			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_networks.name, cfg_networks.description, cfg_network_configs.type, cfg_network_configs.value, cfg_networks.version FROM cfg_networks").
 				WillReturnRows(
-					sqlmock.NewRows([]string{"id", "name", "description", "type", "value", "version"}).
-						AddRow("hello", "Hello", "Hello network", "foo", []byte("foo"), 1).
-						AddRow("hello", "Hello", "Hello network", "bar", []byte("bar"), 1).
-						AddRow("world", "World", "World network", nil, nil, 2),
+					sqlmock.NewRows([]string{"id", "type", "name", "description", "type", "value", "version"}).
+						AddRow("hello", "", "Hello", "Hello network", "foo", []byte("foo"), 1).
+						AddRow("hello", "", "Hello", "Hello network", "bar", []byte("bar"), 1).
+						AddRow("world", "", "World", "World network", nil, nil, 2),
 				)
 		},
 		run: runFactory([]string{"hello", "world", "foobar"}, storage.NetworkLoadCriteria{LoadMetadata: true, LoadConfigs: true}),
@@ -160,8 +160,8 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 
 	noneFound := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.version FROM cfg_networks").
-				WillReturnRows(sqlmock.NewRows([]string{"id", "version"}))
+			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_networks.version FROM cfg_networks").
+				WillReturnRows(sqlmock.NewRows([]string{"id", "", "version"}))
 		},
 		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{}),
 
@@ -173,7 +173,7 @@ func TestSqlConfiguratorStorage_LoadNetworks(t *testing.T) {
 
 	queryError := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.version FROM cfg_networks").
+			m.ExpectQuery("SELECT cfg_networks.id, cfg_networks.type, cfg_networks.version FROM cfg_networks").
 				WillReturnError(errors.New("mock query error"))
 		},
 		run: runFactory([]string{"hello", "world"}, storage.NetworkLoadCriteria{}),
@@ -203,7 +203,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 			m.ExpectExec("INSERT INTO cfg_networks").
-				WithArgs("n1", "", "").
+				WithArgs("n1", "", "", "").
 				WillReturnResult(mockResult)
 		},
 		run: runFactory(storage.Network{ID: "n1"}),
@@ -218,7 +218,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 			m.ExpectExec("INSERT INTO cfg_networks").
-				WithArgs("n2", "hello", "world").
+				WithArgs("n2", "", "hello", "world").
 				WillReturnResult(mockResult)
 		},
 		run: runFactory(storage.Network{ID: "n2", Name: "hello", Description: "world"}),
@@ -228,6 +228,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 
 	everythingNw := storage.Network{
 		ID:          "n3",
+		Type:        "lte",
 		Name:        "hello",
 		Description: "world",
 		Configs: map[string][]byte{
@@ -242,7 +243,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 			m.ExpectExec("INSERT INTO cfg_networks").
-				WithArgs("n3", "hello", "world").
+				WithArgs("n3", "lte", "hello", "world").
 				WillReturnResult(mockResult)
 
 			m.ExpectExec("INSERT INTO cfg_network_configs").
@@ -264,7 +265,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 			m.ExpectExec("INSERT INTO cfg_networks").
-				WithArgs("n4", "", "").
+				WithArgs("n4", "", "", "").
 				WillReturnError(errors.New("mock exec error"))
 		},
 		run: runFactory(storage.Network{ID: "n4"}),
@@ -287,7 +288,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 			m.ExpectExec("INSERT INTO cfg_networks").
-				WithArgs("n5", "", "").
+				WithArgs("n5", "", "", "").
 				WillReturnResult(mockResult)
 
 			m.ExpectExec("INSERT INTO cfg_network_configs").

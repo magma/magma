@@ -125,6 +125,11 @@ class LocalEnforcer {
     PolicyReAuthRequest request,
     PolicyReAuthAnswer &answer_out);
 
+  bool is_imsi_duplicate(const std::string &imsi);
+
+  bool is_session_duplicate(
+    const std::string &imsi, const magma::SessionState::Config &config);
+
  private:
   struct RulesToProcess {
     std::vector<std::string> static_rules;

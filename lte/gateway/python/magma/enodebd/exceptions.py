@@ -24,3 +24,11 @@ class IncorrectDeviceHandlerError(Exception):
         """
         super().__init__()
         self.device_name = device_name
+
+
+class UnrecognizedEnodebError(Exception):
+    """
+    Indicates that the Access Gateway does not recognize the eNodeB.
+    The Access Gateway will not interact with the eNodeB in question.
+    """
+    pass

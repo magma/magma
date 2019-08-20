@@ -100,6 +100,28 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, 0, len(networks))
 	assert.Equal(t, 1, len(notFound))
 
+	// Create Networks With Type
+	createdTypedLteNetworks, err := configurator.CreateNetworks([]configurator.Network{
+		{
+			Name: "lte network 1",
+			Type: "lte",
+			ID:   "test_network3",
+		},
+		{
+			Name: "lte network 2",
+			Type: "lte",
+			ID:   "test_network4",
+		},
+	})
+	assert.NoError(t, err)
+
+	createdTypedLteNetworks[0].Name = ""
+	createdTypedLteNetworks[1].Name = ""
+
+	networks, err = configurator.LoadNetworksByType("lte", false, false)
+	assert.NoError(t, err)
+	assert.Equal(t, createdTypedLteNetworks, networks)
+
 	// Test Basic Entity Interface
 	entityID1 := storage.TypeAndKey{Type: "foo", Key: "bar"}
 	entity1 := configurator.NetworkEntity{

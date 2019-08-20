@@ -16,7 +16,7 @@ import ClearIcon from '@material-ui/icons/Clear';
 import Typography from '@material-ui/core/Typography';
 import {withStyles, withTheme} from '@material-ui/core/styles';
 
-const styles = _theme => ({
+const styles = {
   root: {
     display: 'flex',
     borderRadius: '4px',
@@ -51,7 +51,7 @@ const styles = _theme => ({
     marginRight: '6px',
     padding: '0px',
   },
-});
+};
 
 export type Entry = {
   id: string,
@@ -109,15 +109,16 @@ const autoSuggestStyles = theme => ({
 });
 
 type Props = {
-  searchEntries: Array<Entry>,
+  searchSource: 'Options' | 'UserInput',
+  tokens: Array<Entry>,
+  searchEntries?: Array<Entry>,
   onEntriesRequested: (searchTerm: string) => void,
-  onChange?: (entries: Array<Entry>) => void,
+  onChange: (entries: Array<Entry>) => void,
   onBlur?: () => void,
   theme: Theme,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 type State = {
-  tokens: Array<Entry>,
   searchTerm: string,
 };
 
@@ -126,7 +127,6 @@ const ENTER_KEY_CODE = 13;
 
 class Tokenizer extends React.Component<Props, State> {
   state = {
-    tokens: [],
     searchTerm: '',
   };
 
@@ -134,13 +134,19 @@ class Tokenizer extends React.Component<Props, State> {
     const {
       classes,
       theme,
+      searchSource,
+      tokens,
       searchEntries,
       onEntriesRequested,
       onChange,
       onBlur,
     } = this.props;
-    const {tokens, searchTerm} = this.state;
-    const unusedSearchEntries = searchEntries.filter(entry =>
+    const {searchTerm} = this.state;
+    const entries =
+      searchSource === 'Options' && searchEntries
+        ? searchEntries
+        : [{id: searchTerm, label: searchTerm}];
+    const unusedSearchEntries = entries.filter(entry =>
       tokens.every(token => token.id !== entry.id),
     );
     return (
@@ -151,12 +157,7 @@ class Tokenizer extends React.Component<Props, State> {
             <ClearIcon
               className={classes.chipDeleteIcon}
               onMouseDown={e => {
-                this.setState(
-                  prevState => ({
-                    tokens: prevState.tokens.filter(t => t.id !== token.id),
-                  }),
-                  () => onChange && onChange(this.state.tokens),
-                );
+                onChange(tokens.filter(t => t.id !== token.id));
                 e.preventDefault();
               }}
             />
@@ -166,19 +167,12 @@ class Tokenizer extends React.Component<Props, State> {
           suggestions={unusedSearchEntries}
           getSuggestionValue={entry => entry.label}
           onSuggestionsFetchRequested={({value}) => onEntriesRequested(value)}
-          renderSuggestion={entry => (
-            <div className={classes.entryRoot}>
-              <div>{entry.label}</div>
-            </div>
-          )}
+          renderSuggestion={entry => <div>{entry.label}</div>}
           onSuggestionSelected={(e, {suggestion}) => {
-            this.setState(
-              prevState => ({
-                tokens: [...prevState.tokens, suggestion],
-                searchTerm: '',
-              }),
-              () => onChange && onChange(this.state.tokens),
-            );
+            this.setState({
+              searchTerm: '',
+            });
+            onChange([...tokens, suggestion]);
           }}
           inputProps={{
             placeholder: '',
@@ -198,16 +192,7 @@ class Tokenizer extends React.Component<Props, State> {
               ) {
                 return;
               }
-
-              this.setState(
-                prevState => ({
-                  tokens: prevState.tokens.slice(
-                    0,
-                    prevState.tokens.length - 1,
-                  ),
-                }),
-                () => onChange && onChange(this.state.tokens),
-              );
+              onChange(tokens.slice(0, tokens.length - 1));
             },
             onChange: (_e, {newValue}) => this.setState({searchTerm: newValue}),
             onBlur: () => onBlur && onBlur(),

@@ -5992,6 +5992,36 @@ var tgppswxXML = `<?xml version="1.0" encoding="UTF-8"?>
                 <rule avp="AVP" required="false"/>
             </answer>
         </command>
+        <command code="304" short="RT" name="Registration-Termination">
+            <request>
+                <!-- http://www.qtc.jp/3GPP/Specs/29273-920.pdf Section 8.2.2.4 -->
+                <rule avp="Session-Id" required="true" max="1"/>
+                <rule avp="DRMP" required="false" max="1" />
+                <rule avp="Vendor-Specific-Application-Id" required="true" max="1"/>
+                <rule avp="Auth-Session-State" required="true" max="1"/>
+                <rule avp="Origin-Host" required="true" max="1"/>
+                <rule avp="Origin-Realm" required="true" max="1"/>
+                <rule avp="Destination-Host" required="false" max="1"/>
+                <rule avp="Destination-Realm" required="true" max="1"/>
+                <rule avp="User-Name" required="true" max="1"/>
+                <rule avp="Deregistration-Reason" required="true" max="1"/>
+                <rule avp="Supported-Features" required="false"/>
+                <rule avp="AVP" required="false"/>
+            </request>
+            <answer>
+                <!-- http://www.qtc.jp/3GPP/Specs/29273-920.pdf Section 8.2.2.4 -->
+                <rule avp="Session-Id" required="true" max="1"/>
+                <rule avp="DRMP" required="false" max="1" />
+                <rule avp="Vendor-Specific-Application-Id" required="true" max="1"/>
+                <rule avp="Result-Code" required="false" max="1"/>
+                <rule avp="Experimental-Result" required="false" max="1"/>
+                <rule avp="Auth-Session-State" required="true" max="1"/>
+                <rule avp="Origin-Host" required="true" max="1"/>
+                <rule avp="Origin-Realm" required="true" max="1"/>
+                <rule avp="Supported-Features" required="false"/>
+                <rule avp="AVP" required="false"/>
+            </answer>
+        </command>
 
         <avp name="RAT-Type" code="1032" must="M,V" may="P" may-encrypt="Y" vendor-id="10415">
             <!-- http://www.qtc.jp/3GPP/Specs/29273-920.pdf Section 5.2.3.6 -->
@@ -6131,6 +6161,30 @@ var tgppswxXML = `<?xml version="1.0" encoding="UTF-8"?>
                 <item code="13" name="PGW_UPDATE"/>
                 <item code="14" name="RESTORATION"/>
             </data>
+        </avp>
+
+        <avp name="Deregistration-Reason" code="615" must="M,V" may-encrypt="N" vendor-id="10415">
+             <!-- https://www.etsi.org/deliver/etsi_ts/129200_129299/129229/10.05.00_60/ts_129229v100500p.pdf -->
+             <data type="Grouped">
+                <rule avp="Reason-Code" required="true"/>
+                <rule avp="Reason-Info" required="false"/>
+                <rule avp="AVP" required="false"/>
+             </data>
+        </avp>
+
+        <avp name="Reason-Code" code="616" must="M,V" may-encrypt="N" vendor-id="10415">
+             <!-- https://www.etsi.org/deliver/etsi_ts/129200_129299/129229/10.05.00_60/ts_129229v100500p.pdf -->
+             <data type="Enumerated">
+                <item code="0" name="PERMANENT_TERMINATION"/>
+                <item code="1" name="NEW_SERVER_ASSIGNMENT"/>
+                <item code="2" name="SERVER_CHANGE"/>
+                <item code="3" name="REMOVE_S_CSCF"/>
+             </data>
+        </avp>
+
+        <avp name="Reason-Info" code="617" must="M,V" may-encrypt="N" vendor-id="10415">
+             <!-- https://www.etsi.org/deliver/etsi_ts/129200_129299/129229/10.05.00_60/ts_129229v100500p.pdf -->
+             <data type="UTF8String"/>
         </avp>
 
         <avp name="Non-3GPP-User-Data" code="1500" must="M,V" may-encrypt="N" vendor-id="10415">

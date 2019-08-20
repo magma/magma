@@ -157,9 +157,7 @@ paths:
         '200':
           description: List of alert configurations
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/prom_alert_config'
+            $ref: '#/definitions/prom_alert_config_list'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
     delete:
@@ -176,6 +174,28 @@ paths:
       responses:
         '200':
           description: Deleted
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_config/bulk:
+    put:
+      summary: Bulk update/create alerting rules
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: alert_configs
+          description: Alerting rules to be updated or created
+          required: true
+          schema:
+            $ref: '#/definitions/prom_alert_config_list'
+
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/alert_bulk_upload_response'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
@@ -236,6 +256,47 @@ paths:
               $ref: '#/definitions/alert_receiver_config'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete alert receiver
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: receiver
+          description: Receiver name to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Deleted
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_receiver/{receiver}:
+    put:
+      summary: Update existing alert receiver
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: path
+          name: receiver
+          description: Name of receiver to be updated
+          required: true
+          type: string
+        - in: body
+          name: receiver_config
+          description: Updated alert receiver
+          required: true
+          schema:
+            $ref: '#/definitions/alert_receiver_config'
+      responses:
+        '200':
+          description: Updated
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/prometheus/alert_receiver/route:
     get:
       summary: Retrieve alert routing tree
@@ -367,9 +428,6 @@ definitions:
     required:
       - alert
       - expr
-      - labels
-      - for
-      - annotations
     properties:
       alert:
         type: string
@@ -381,6 +439,27 @@ definitions:
         type: string
       annotations:
         $ref: '#/definitions/prom_alert_labels'
+
+  prom_alert_config_list:
+    type: array
+    items:
+        $ref: '#/definitions/prom_alert_config'
+
+  alert_bulk_upload_response:
+    type: object
+    required:
+      - errors
+      - statuses
+    properties:
+      errors:
+        type: object
+        additionalProperties:
+          type: string
+      statuses:
+        type: object
+        additionalProperties:
+          type: string
+
   prom_alert_labels:
     type: object
     additionalProperties:
@@ -402,14 +481,98 @@ definitions:
     type: object
     required:
       - api_url
-      - channel
-      - username
     properties:
       api_url:
         type: string
       channel:
         type: string
       username:
+        type: string
+      color:
+        type: string
+      title:
+        type: string
+      pretext:
+        type: string
+      text:
+        type: string
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/slack_field'
+      short_fields:
+        type: boolean
+      footer:
+        type: string
+      fallback:
+        type: string
+      callback_id:
+        type: string
+      icon_emoji:
+        type: string
+      icon_url:
+        type: string
+      image_url:
+        type: string
+      thumb_url:
+        type: string
+      link_names:
+        type: boolean
+      actions:
+        type: array
+        items:
+          $ref: '#/definitions/slack_action'
+
+  slack_field:
+    type: object
+    required:
+      - title
+      - value
+    properties:
+      title:
+        type: string
+      value:
+        type: string
+      short:
+        type: boolean
+
+  slack_action:
+    type: object
+    required:
+      - type
+      - text
+      - url
+    properties:
+      type:
+        type: string
+      text:
+        type: string
+      url:
+        type: string
+      style:
+        type: string
+      name:
+        type: string
+      value:
+        type: string
+      confirm:
+        $ref: '#/definitions/slack_confirm_field'
+
+  slack_confirm_field:
+    type: object
+    required:
+      - text
+      - title
+      - ok_text
+      - dismiss_text
+    properties:
+      text:
+        type: string
+      title:
+        type: string
+      ok_text:
+        type: string
+      dismiss_text:
         type: string
 
   prom_firing_alert:
@@ -422,7 +585,6 @@ definitions:
       - startsAt
       - status
       - updatedAt
-      - generatorURL
       - labels
     properties:
       annotations:
@@ -432,7 +594,7 @@ definitions:
       fingerprint:
         type: string
       receivers:
-        $ref: '#/definitions/alert_receiver_config'
+        $ref: '#/definitions/gettable_alert'
       startsAt:
         type: string
       status:
@@ -443,6 +605,14 @@ definitions:
         type: string
       labels:
         $ref: '#/definitions/prom_alert_labels'
+
+  gettable_alert:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
 
   prom_alert_status:
     type: object

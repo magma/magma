@@ -80,7 +80,7 @@ func getMetrics(service string) error {
 
 func getMetricsOrGwMetrics(service string) (*protos.MetricsContainer, error) {
 	if isGatewayServiceQuery {
-		return service303.GWService303GetMetrics(gateway_registry.GwServiceType(service), hwId)
+		return service303.GWService303GetMetrics(gateway_registry.GwServiceType(service), hardwareID)
 	} else {
 		return client.Service303GetMetrics(service)
 	}

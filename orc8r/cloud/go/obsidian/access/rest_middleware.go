@@ -14,8 +14,7 @@ import (
 	"strings"
 
 	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/obsidian/config"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 
@@ -54,11 +53,9 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 				"Missing Client Credentials")
 		}
 
-		// Bypass farther identity Checks for static docs GET and Channels GET,
-		// having an operator cert should be enough
-		if urlPath := c.Path(); perm != accessprotos.AccessControl_READ ||
-			!(strings.HasPrefix(urlPath, config.StaticURLPrefix) ||
-				strings.HasPrefix(urlPath, handlers.CHANNELS_ROOT)) {
+		// Bypass farther identity Checks for static docs GET having an
+		// operator cert should be enough
+		if urlPath := c.Path(); perm != accessprotos.AccessControl_READ || !(strings.HasPrefix(urlPath, obsidian.StaticURLPrefix)) {
 			// Get Request's Entities' Ids
 			ids := FindRequestedIdentities(c)
 
