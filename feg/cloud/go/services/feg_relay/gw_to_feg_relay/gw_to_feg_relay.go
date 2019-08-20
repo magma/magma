@@ -29,7 +29,6 @@ import (
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
-	"magma/orc8r/cloud/go/services/magmad"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -202,25 +201,14 @@ func getActiveFeGForNetwork(fegNetworkID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve active FeG for network: %s; %s", fegNetworkID, err)
 	}
-	useConfigurator := os.Getenv(orc8r.UseConfiguratorEnv)
-	var hwId string
-	if useConfigurator == "1" {
-		var err error
-		hwId, err = configurator.GetPhysicalIDOfEntity(fegNetworkID, orc8r.MagmadGatewayType, activeGW)
-		if err != nil {
-			return "", fmt.Errorf("Unable to retrieve hardware ID for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
-		}
-	} else {
-		record, err := magmad.FindGatewayRecord(fegNetworkID, activeGW)
-		if err != nil {
-			return "", fmt.Errorf("Unable to retrieve Gateway Record for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
-		}
-		hwId = record.GetHwId().GetId()
+	hardwareID, err := configurator.GetPhysicalIDOfEntity(fegNetworkID, orc8r.MagmadGatewayType, activeGW)
+	if err != nil {
+		return "", fmt.Errorf("Unable to retrieve hardware ID for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
 	}
-	if len(hwId) == 0 {
+	if len(hardwareID) == 0 {
 		return "", fmt.Errorf("Unable to retrieve Hardware ID for active feg: %s in network: %s", activeGW, fegNetworkID)
 	}
-	return hwId, nil
+	return hardwareID, nil
 }
 
 func getDispatcherHttpServerAddr(hwId string) (string, error) {
