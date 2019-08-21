@@ -124,6 +124,11 @@ export default createMuiTheme({
         height: '24px',
       },
     },
+    MuiTableRow: {
+      root: {
+        backgroundColor: 'white',
+      },
+    },
     MuiIconButton: {
       root: {
         color: blue60,
