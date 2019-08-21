@@ -509,14 +509,6 @@ int s1ap_mme_handle_s1_setup_request(
       s1SetupRequest_p->eNBname.size);
     enb_association->enb_name[s1SetupRequest_p->eNBname.size] = '\0';
   }
-  // associating one more key i.e enb_id with enb_association
-  hashtable_rc_t hash_rc = hashtable_ts_insert(
-    &state->enbs,
-    (const hash_key_t) enb_id,
-    (void *) enb_association);
-  if (HASH_TABLE_OK != hash_rc) {
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
 
   s1ap_dump_enb(enb_association);
   rc = s1ap_generate_s1_setup_response(state, enb_association);
@@ -2598,10 +2590,11 @@ int s1ap_mme_handle_enb_configuration_transfer(
   uint8_t *enb_id_buf = NULL;
   enb_description_t *enb_association = NULL;
   enb_description_t *target_enb_association = NULL;
+  hashtable_element_array_t *enb_array = NULL;
   uint32_t target_enb_id = 0;
-  void *data = NULL;
   uint8_t *buffer = NULL;
   uint32_t length = 0;
+  uint32_t idx = 0;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -2649,16 +2642,19 @@ int s1ap_mme_handle_enb_configuration_transfer(
       OAILOG_INFO(LOG_S1AP, "macro eNB id: %u\n", target_enb_id);
     }
   }
-  // retrieve enb_description using target_enb_id
-  if (
-    HASH_TABLE_OK ==
-    hashtable_ts_get(
-      &state->enbs, (const hash_key_t) target_enb_id, (void **) &data)) {
-    target_enb_association = (enb_description_t *)(uintptr_t) data;
-    if (!target_enb_association) {
-      OAILOG_ERROR(
-        LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
-      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  // retrieve enb_description using hash table and match target_enb_id
+  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
+    for (idx = 0; idx < enb_array->num_elements; idx++) {
+       target_enb_association =
+          (enb_description_t *)(uintptr_t) enb_array->elements[idx];
+       if (target_enb_association->enb_id == target_enb_id) {
+          break;
+       }
+    }
+    if (target_enb_association->enb_id != target_enb_id) {
+       OAILOG_ERROR(
+         LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
+       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
 
