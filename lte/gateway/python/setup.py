@@ -70,8 +70,7 @@ setup(
     install_requires=[
         'Cython>=0.29.1',
         'pystemd==0.5.0',
-        # Waiting for a new fire release (v0.1.3 is too old)
-        'fire==0.2.0',
+        'fire>=0.2.0',
         'envoy>=0.0.3',
         # lxml required by spyne.
         'lxml==4.2.1',
