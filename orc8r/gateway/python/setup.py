@@ -52,6 +52,7 @@ setup(
         'pystemd==0.5.0',
         'docker>=4.0.2',
         'fire>=0.2.0',
+        'glob2>=0.7',
         'aioh2==0.2.2',
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
         'redis-collections>=0.4.2',

@@ -11,8 +11,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 import subprocess
 
 import os
-import sys
 import fire as fire
+from termcolor import colored
 
 from magma.common.health.docker_health_service import DockerHealthChecker
 from magma.common.health.health_service import GenericHealthChecker
@@ -105,8 +105,7 @@ class HealthCLI:
 
 if __name__ == '__main__':
     health_cli = HealthCLI()
-
     try:
-        fire.Fire(health_cli.status)
+        fire.Fire(health_cli)
     except Exception as e:
-        print('Error:', e)
+        print(colored('Error:', 'red'), e)

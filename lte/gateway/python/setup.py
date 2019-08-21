@@ -72,6 +72,7 @@ setup(
         'pystemd==0.5.0',
         'fire>=0.2.0',
         'envoy>=0.0.3',
+        'glob2>=0.7',
         # lxml required by spyne.
         'lxml==4.2.1',
         'ryu>=4.30',
