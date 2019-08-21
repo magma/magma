@@ -176,6 +176,7 @@ const Typeahead = (props: Props) => {
           )}
           onSuggestionSelected={(e, data) => {
             const suggestion: Suggestion = data.suggestion;
+            setSearchTerm('');
             setSelectedSuggestion(suggestion);
             onEntitySelected(suggestion);
           }}
