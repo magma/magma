@@ -71,6 +71,7 @@
 extern sgw_app_t sgw_app;
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops *gtp_tunnel_ops;
+extern void print_bearer_ids_helper(ebi_t[], uint32_t);
 
 static uint32_t g_gtpv1u_teid = 0;
 
@@ -2262,7 +2263,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
 
   OAILOG_INFO(
     LOG_SPGW_APP,
-    "Received pcrf_dedicated_bearer_actv_rsp from MME with EBI %d\n",
+    "Received nw_initiated_bearer_actv_rsp from MME with EBI %d\n",
     s11_actv_bearer_rsp->bearer_contexts.
     bearer_contexts[msg_bearer_index].eps_bearer_id);
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
@@ -2376,7 +2377,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
 }
 
 /*
- * Handle NW initiated Dedicated Bearer Deactivation from PGW
+ * Handle NW-initiated dedicated bearer deactivation from PGW
  */
 uint32_t sgw_handle_nw_initiated_deactv_bearer_req(
   const itti_s5_nw_init_deactv_bearer_request_t
@@ -2384,11 +2385,10 @@ uint32_t sgw_handle_nw_initiated_deactv_bearer_req(
 {
   MessageDef *message_p = NULL;
   uint32_t rc = RETURNok;
-  uint32_t i = 0;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   OAILOG_INFO(LOG_SPGW_APP,
-    "Received Dedicated Bearer Req Dectivation from PGW for TEID %u\n",
+    "Received nw_initiated_deactv_bearer_req from PGW for TEID %u\n",
      itti_s5_deactiv_ded_bearer_req->s11_mme_teid);
 
   //Build and send ITTI message to MME APP
@@ -2404,25 +2404,24 @@ uint32_t sgw_handle_nw_initiated_deactv_bearer_req(
       s11_pcrf_bearer_deactv_request,
       itti_s5_deactiv_ded_bearer_req,
       sizeof(itti_s11_nw_init_deactv_bearer_request_t));
-
-    for (i = 0; i < itti_s5_deactiv_ded_bearer_req->no_of_bearers; i++) {
-      OAILOG_INFO(
-        LOG_SPGW_APP,
-        "Sending S11_PCRF_BEARER_DEACTV_REQUEST to MME with EBI %d\n",
-        s11_pcrf_bearer_deactv_request->ebi[i]);
-    }
+    OAILOG_INFO(
+      LOG_SPGW_APP,
+      "Sending nw_initiated_deactv_bearer_req to MME with %d EBIs\n",
+      itti_s5_deactiv_ded_bearer_req->no_of_bearers);
+    print_bearer_ids_helper(s11_pcrf_bearer_deactv_request->ebi,
+      itti_s5_deactiv_ded_bearer_req->no_of_bearers);
     rc = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
   } else {
     OAILOG_ERROR(
       LOG_SPGW_APP,
-      "itti_alloc_new_message failed for S5_NW_INITIATED_DEACTV_BEARER_REQ\n");
+      "itti_alloc_new_message failed for nw_initiated_deactv_bearer_req\n");
     rc = RETURNerror;
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
 /*
- * Handle NW initiated Dedicated Bearer Dectivation Rsp from MME
+ * Handle NW-initiated dedicated bearer dectivation rsp from MME
  */
 
 int sgw_handle_nw_initiated_deactv_bearer_rsp(
@@ -2439,14 +2438,13 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
 
   OAILOG_INFO(
     LOG_SPGW_APP,
-    "Received pcrf_dedicated_bearer_deactv_rsp from MME\n");
+    "Received nw_initiated_deactv_bearer_rsp from MME\n");
 
   no_of_bearers =
     s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.num_bearer_context;
   //--------------------------------------
   // Get EPS bearer entry
   //--------------------------------------
-
   hash_rc = hashtable_ts_get(
     sgw_app.s11_bearer_context_information_hashtable,
     s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4,
@@ -2554,7 +2552,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
   if (message_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "itti_alloc_new_message failed for S5_NW_INITIATED_DEACTV_BEARER_RESP\n");
+      "itti_alloc_new_message failed for nw_initiated_deactv_bearer_rsp\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   itti_s5_nw_init_deactv_bearer_rsp_t *deact_ded_bearer_rsp =
@@ -2569,12 +2567,14 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
     deact_ded_bearer_rsp->cause.cause_value =
       s11_pcrf_ded_bearer_deactv_rsp->bearer_contexts.
       bearer_contexts[i].cause.cause_value;
-
-    OAILOG_INFO(
-      LOG_MME_APP,
-      "Sending S5_NW_INITIATED_DEACTIVATE_BEARER_RESP to PGW with EBI %d\n",
-      deact_ded_bearer_rsp->ebi[i]);
   }
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Sending nw_initiated_deactv_bearer_rsp to PGW with %d EBIs\n",
+    deact_ded_bearer_rsp->no_of_bearers);
+  print_bearer_ids_helper(deact_ded_bearer_rsp->ebi,
+    deact_ded_bearer_rsp->no_of_bearers);
+
   rc = itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);

@@ -1053,7 +1053,8 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
 
     OAILOG_NOTICE(
       LOG_S1AP,
-      "Send S1AP E_RABRelease Command message MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
+      "Send S1AP E_RABRelease Command message MME_UE_S1AP_ID = "
+      MME_UE_S1AP_ID_FMT
       " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
       (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
       (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID);

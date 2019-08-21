@@ -247,6 +247,7 @@ int esm_proc_eps_bearer_context_deactivate_request(
    * Send deactivate EPS bearer context request message and
    * * * * start timer T3495
    */
+  /*Currently we only support single bearear deactivation at NAS*/
   rc = _eps_bearer_deactivate(ue_context, ebi, msg);
   msg = NULL;
 
@@ -341,7 +342,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
       ->pdn_contexts[pid]->s_gw_teid_s11_s4;
 
-    //If bid == 0,default bearer is deleted
+    //If bearer id == 0, default bearer is deleted
     if (PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
       ->pdn_contexts[pid]->default_ebi == ebi) {
       delete_default_bearer = true;

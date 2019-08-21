@@ -861,6 +861,7 @@ static int _emm_cn_deactivate_dedicated_bearer_req(
   esm_sap.ue_id = msg->ue_id;
   esm_sap.data.eps_bearer_context_deactivate.
     is_pcrf_initiated = true;
+  /*Currently we only support deactivation of a single bearer at NAS*/
   esm_sap.data.eps_bearer_context_deactivate.no_of_bearers =
     msg->no_of_bearers;
   memcpy(

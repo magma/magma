@@ -284,6 +284,7 @@ int esm_sap_send(esm_sap_t *msg)
 
       if (msg->data.eps_bearer_context_deactivate.
         is_pcrf_initiated) {
+        /*Currently we support single bearear deactivation*/
         rc = _esm_sap_send(
           DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST,
           msg->is_standalone,
@@ -1094,11 +1095,12 @@ static int _esm_sap_send(
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: {
-      if (mme_config.eps_network_feature_support.
+      if (
+        mme_config.eps_network_feature_support.
         ims_voice_over_ps_session_in_s1) {
         const esm_eps_bearer_context_deactivate_t *msg =
           &data->eps_bearer_context_deactivate;
-
+        /*Currently we support single bearear deactivation only at NAS*/
         if (RETURNok == rc) {
           rc = esm_send_deactivate_eps_bearer_context_request(
             (proc_tid_t) 0,
@@ -1109,7 +1111,7 @@ static int _esm_sap_send(
           esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
         }
       }
-      } break;
+    } break;
 
     case PDN_CONNECTIVITY_REJECT: break;
 
