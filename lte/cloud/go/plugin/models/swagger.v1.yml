@@ -27,6 +27,10 @@ magma-gen-meta:
       filename: gateway_non_eps_configs_swaggergen.go
     - go-struct-name: LteGateway
       filename: lte_gateway_swaggergen.go
+    - go-struct-name: Enodeb
+      filename: enodeb_swaggergen.go
+    - go-struct-name: EnodebConfiguration
+      filename: enodeb_configuration_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -36,7 +40,7 @@ info:
 basePath: /magma/v1
 
 tags:
-  - name: Enodeb
+  - name: EnodeBs
     description: eNodeB devices attached to the network
   - name: LTE Networks
     description: Endpoints related to LTE networks
@@ -950,6 +954,94 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /ltenetworks/{network_id}/enodebs:
+    get:
+      summary: List all enodeBs in the network
+      tags:
+        - EnodeBs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: All enodeBs registered in the network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/enodeb'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Register a new enodeB
+      tags:
+        - EnodeBs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: enodeb
+          in: body
+          description: Configuration of the enodeB
+          required: true
+          schema:
+            $ref: '#/definitions/enodeb'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ltenetworks/{network_id}/enodebs/{enodeb_serial}:
+    get:
+      summary: Retrieve a specific enodeB configuration
+      tags:
+        - EnodeBs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/enodeb_serial'
+      responses:
+        '200':
+          description: The requested enodeB's configuration
+          schema:
+            $ref: '#/definitions/enodeb'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an enodeB's configuration
+      tags:
+        - EnodeBs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/enodeb_serial'
+        - name: enodeb
+          in: body
+          description: Desired configuration of the enodeB
+          required: true
+          schema:
+            $ref: '#/definitions/enodeb'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Unregister an enodeB
+      tags:
+        - EnodeBs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/enodeb_serial'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  enodeb_serial:
+    in: path
+    name: enodeb_serial
+    description: EnodeB serial number
+    required: true
+    type: string
+
 definitions:
   lte_network:
     type: object
@@ -1327,3 +1419,96 @@ definitions:
     example:
       - 'SN1234567890'
       - 'SN09876554321'
+
+  enodeb:
+    description: Representation of an enodeB
+    type: object
+    minLength: 1
+    required:
+      - serial
+      - name
+      - config
+    properties:
+      serial:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: 1202000038269KP0037
+      name:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: Foobar EnodeB
+      config:
+        $ref: '#/definitions/enodeb_configuration'
+      attached_gateway_id:
+        type: string
+        example: gw1
+        readOnly: true
+
+  enodeb_configuration:
+    description: Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
+    type: object
+    minLength: 1
+    required:
+      - cell_id
+      - device_class
+    properties:
+      earfcndl:
+        type: integer
+        format: uint32
+        example: 44590
+        x-nullable: false
+      subframe_assignment:
+        type: integer
+        format: uint32
+        example: 2
+        maximum: 6
+        x-nullable: false
+      special_subframe_pattern:
+        type: integer
+        format: uint32
+        example: 7
+        maximum: 9
+        x-nullable: false
+      pci:
+        type: integer
+        format: uint32
+        minimum: 0
+        exclusiveMinimum: true
+        maximum: 503
+        x-nullable: false
+        example: 260
+      bandwidth_mhz:
+        type: integer
+        format: uint32
+        example: 20
+        enum:
+          - 3
+          - 5
+          - 10
+          - 15
+          - 20
+      tac:
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 65535
+        example: 1
+        x-nullable: false
+      transmit_enabled:
+        type: boolean
+        example: true
+      cell_id:
+        type: integer
+        format: uint32
+        maximum: 268435455
+        example: 138777000
+      device_class:
+        type: string
+        example: 'Baicells ID TDD/FDD'
+        enum:
+          - 'Baicells Nova-233 G2 OD FDD'
+          - 'Baicells Nova-243 OD TDD'
+          - 'Baicells ID TDD/FDD'
+          - 'NuRAN Cavium OC-LTE'
