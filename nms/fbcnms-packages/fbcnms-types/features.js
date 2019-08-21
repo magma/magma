@@ -24,4 +24,5 @@ export type FeatureID =
   | 'alerts'
   | 'equipment_export'
   | 'import_exported_equipemnt'
-  | 'file_categories';
+  | 'file_categories'
+  | 'work_order_map';
