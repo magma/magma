@@ -25,12 +25,11 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/security/key"
-	test_utils2 "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
-	test_init3 "magma/orc8r/cloud/go/services/device/test_init"
-	test_init2 "magma/orc8r/cloud/go/services/state/test_init"
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 
@@ -716,8 +715,8 @@ func TestListAndGetGateways(t *testing.T) {
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
 	test_init.StartTestService(t)
-	test_init2.StartTestService(t)
-	test_init3.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -790,7 +789,7 @@ func TestListAndGetGateways(t *testing.T) {
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportGatewayStatus(t, ctx, test_utils2.GetGatewayStatusSwaggerFixture("hw1"))
+	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
 
 	expected := map[string]*models2.LteGateway{
 		"g1": {
@@ -811,7 +810,7 @@ func TestListAndGetGateways(t *testing.T) {
 				Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			Status: test_utils2.GetGatewayStatusSwaggerFixture("hw1"),
+			Status: models.NewDefaultGatewayStatus("hw1"),
 		},
 		"g2": {
 			ID:   "g2",
@@ -862,7 +861,7 @@ func TestListAndGetGateways(t *testing.T) {
 			Epc: &models2.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 			Ran: &models2.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 		},
-		Status: test_utils2.GetGatewayStatusSwaggerFixture("hw1"),
+		Status: models.NewDefaultGatewayStatus("hw1"),
 	}
 	expectedGet.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 	expectedGet.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
@@ -912,7 +911,7 @@ func TestUpdateGateway(t *testing.T) {
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
 	test_init.StartTestService(t)
-	test_init3.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -1056,7 +1055,7 @@ func TestDeleteGateway(t *testing.T) {
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
 	test_init.StartTestService(t)
-	test_init3.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 

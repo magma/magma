@@ -16,7 +16,7 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/protos"
-	state_service "magma/orc8r/cloud/go/services/state"
+	stateService "magma/orc8r/cloud/go/services/state"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -116,7 +116,7 @@ func (srv *stateServicer) DeleteStates(context context.Context, req *protos.Dele
 }
 
 func wrapStateWithAdditionalInfo(state *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
-	wrap := state_service.SerializedStateWithMeta{
+	wrap := stateService.SerializedStateWithMeta{
 		ReporterID:              hwID,
 		Time:                    time,
 		CertExpirationTime:      certExpiry,

@@ -10,7 +10,6 @@ package handlers_test
 
 import (
 	"crypto/x509"
-	"os"
 	"testing"
 	"time"
 
@@ -23,12 +22,11 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/security/key"
-	checkind_test_utils "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 
@@ -80,7 +78,7 @@ func TestListGateways(t *testing.T) {
 func TestCreateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -289,13 +287,14 @@ func TestCreateGateway(t *testing.T) {
 
 func TestGetGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
-	state_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -337,7 +336,7 @@ func TestGetGateway(t *testing.T) {
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportGatewayStatus(t, ctx, checkind_test_utils.GetGatewayStatusSwaggerFixture("hw1"))
+	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks/n1/gateways"
@@ -360,7 +359,7 @@ func TestGetGateway(t *testing.T) {
 			CheckinInterval:         15,
 			CheckinTimeout:          5,
 		},
-		Status: checkind_test_utils.GetGatewayStatusSwaggerFixture("hw1"),
+		Status: models.NewDefaultGatewayStatus("hw1"),
 	}
 	expected.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 	expected.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
@@ -414,10 +413,9 @@ func TestGetGateway(t *testing.T) {
 
 func TestUpdateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
-
+	stateTestInit.StartTestService(t)
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -539,10 +537,9 @@ func TestUpdateGateway(t *testing.T) {
 
 func TestDeleteGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 

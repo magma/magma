@@ -235,13 +235,12 @@ func getExistingDNSConfig(networkID string) (*models.NetworkDNSConfig, *echo.HTT
 }
 
 func getRecordAndValidate(c echo.Context, domain string) (*models.DNSConfigRecord, *echo.HTTPError) {
-	record := &models.DNSConfigRecord{}
-	if err := c.Bind(record); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
+	payload, nerr := GetAndValidatePayload(c, &models.DNSConfigRecord{})
+	if nerr != nil {
+		return nil, nerr
 	}
-	if err := record.Validate(strfmt.Default); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
-	}
+	record := payload.(*models.DNSConfigRecord)
+
 	if record.Domain != domain {
 		return nil, obsidian.HttpError(fmt.Errorf("Domain name in param and record don't match"), http.StatusBadRequest)
 	}
