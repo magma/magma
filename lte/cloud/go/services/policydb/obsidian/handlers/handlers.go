@@ -14,17 +14,17 @@ import "magma/orc8r/cloud/go/obsidian"
 func GetObsidianHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
 		// base names
-		{Path: policyBaseNameRootPath, Methods: obsidian.GET, HandlerFunc: listBaseNameHandler, MigratedHandlerFunc: listBaseNames},
-		{Path: policyBaseNameRootPath, Methods: obsidian.POST, HandlerFunc: createBaseNameHandler, MigratedHandlerFunc: createBaseName, MultiplexAfterMigration: true},
-		{Path: policyBaseNameManagePath, Methods: obsidian.GET, HandlerFunc: getBaseNameHandler, MigratedHandlerFunc: getBaseName},
-		{Path: policyBaseNameManagePath, Methods: obsidian.PUT, HandlerFunc: updateBaseNameHandler, MigratedHandlerFunc: updateBaseName, MultiplexAfterMigration: true},
-		{Path: policyBaseNameManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteBaseNameHandler, MigratedHandlerFunc: deleteBaseName, MultiplexAfterMigration: true},
+		{Path: policyBaseNameRootPath, Methods: obsidian.GET, HandlerFunc: listBaseNames},
+		{Path: policyBaseNameRootPath, Methods: obsidian.POST, HandlerFunc: createBaseName},
+		{Path: policyBaseNameManagePath, Methods: obsidian.GET, HandlerFunc: getBaseName},
+		{Path: policyBaseNameManagePath, Methods: obsidian.PUT, HandlerFunc: updateBaseName},
+		{Path: policyBaseNameManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteBaseName},
 
 		// rules
-		{Path: policyRuleRootPath, Methods: obsidian.GET, HandlerFunc: listRulesHandler, MigratedHandlerFunc: listRules},
-		{Path: policyRuleRootPath, Methods: obsidian.POST, HandlerFunc: createRuleHandler, MigratedHandlerFunc: createRule, MultiplexAfterMigration: true},
-		{Path: policyRuleManagePath, Methods: obsidian.GET, HandlerFunc: getRuleHandler, MigratedHandlerFunc: getRule},
-		{Path: policyRuleManagePath, Methods: obsidian.PUT, HandlerFunc: updateRuleHandler, MigratedHandlerFunc: updateRule, MultiplexAfterMigration: true},
-		{Path: policyRuleManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteRuleHandler, MigratedHandlerFunc: deleteRule, MultiplexAfterMigration: true},
+		{Path: policyRuleRootPath, Methods: obsidian.GET, HandlerFunc: listRules},
+		{Path: policyRuleRootPath, Methods: obsidian.POST, HandlerFunc: createRule},
+		{Path: policyRuleManagePath, Methods: obsidian.GET, HandlerFunc: getRule},
+		{Path: policyRuleManagePath, Methods: obsidian.PUT, HandlerFunc: updateRule},
+		{Path: policyRuleManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteRule},
 	}
 }

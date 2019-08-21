@@ -14,35 +14,57 @@ import * as React from 'react';
 import Autosuggest from 'react-autosuggest';
 import ClearIcon from '@material-ui/icons/Clear';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {blue05, gray10, gray11, gray12, gray9} from '@fbcnms/ui/theme/colors';
 import {withStyles, withTheme} from '@material-ui/core/styles';
 
 const styles = {
   root: {
     display: 'flex',
     borderRadius: '4px',
-    backgroundColor: '#ecf3ff',
     alignItems: 'center',
     padding: '4px',
+  },
+  searchRoot: {
+    backgroundColor: blue05,
+  },
+  enumRoot: {
+    border: `1.43px solid ${gray9}`,
+    width: '280px',
+    '&:hover': {
+      border: `1.43px solid ${gray10}`,
+    },
+    flexWrap: 'wrap',
+    flexGrow: 1,
+    flexDirection: 'row',
+    minHeight: '32px',
   },
   chip: {
     display: 'flex',
     alignItems: 'center',
     borderRadius: '4px',
-    backgroundColor: '#ecf3ff',
+    backgroundColor: blue05,
     border: '1px solid white',
     padding: '0px 6px',
     height: '20px',
     marginRight: '8px',
   },
+  enumChip: {
+    marginRight: '4px',
+    marginBottom: '4px',
+  },
   chipDeleteIcon: {
     fontSize: '14px',
-    color: '#ccd0d5',
+    color: gray11,
     margin: '0px',
     padding: '0px',
     cursor: 'pointer',
     '&:hover': {
       color: '#444950',
     },
+  },
+  enumChipDeleteIcon: {
+    color: gray12,
   },
   chipLabel: {
     color: '#1d2129',
@@ -53,12 +75,14 @@ const styles = {
   },
 };
 
+type SearchSource = 'Options' | 'UserInput';
+
 export type Entry = {
   id: string,
   label: string,
 };
 
-const autoSuggestStyles = theme => ({
+const autoSuggestStyles = (theme: Theme, searchSource: SearchSource) => ({
   container: {
     position: 'relative',
     flexGrow: 1,
@@ -70,7 +94,7 @@ const autoSuggestStyles = theme => ({
     fontSize: '14px',
     color: theme.typography.subtitle1.color,
     border: 'none',
-    backgroundColor: '#ecf3ff',
+    backgroundColor: searchSource == 'Options' ? blue05 : 'inherit',
   },
   inputFocused: {
     outlineWidth: 0,
@@ -109,7 +133,7 @@ const autoSuggestStyles = theme => ({
 });
 
 type Props = {
-  searchSource: 'Options' | 'UserInput',
+  searchSource: SearchSource,
   tokens: Array<Entry>,
   searchEntries?: Array<Entry>,
   onEntriesRequested: (searchTerm: string) => void,
@@ -150,12 +174,25 @@ class Tokenizer extends React.Component<Props, State> {
       tokens.every(token => token.id !== entry.id),
     );
     return (
-      <div className={classes.root}>
+      <div
+        className={classNames({
+          [classes.root]: true,
+          [classes.enumRoot]: searchSource === 'UserInput',
+          [classes.searchRoot]: searchSource === 'Options',
+        })}>
         {tokens.map(token => (
-          <div key={token.id} className={classes.chip}>
+          <div
+            key={token.id}
+            className={classNames({
+              [classes.chip]: true,
+              [classes.enumChip]: searchSource === 'UserInput',
+            })}>
             <Typography className={classes.chipLabel}>{token.label}</Typography>
             <ClearIcon
-              className={classes.chipDeleteIcon}
+              className={classNames({
+                [classes.chipDeleteIcon]: true,
+                [classes.enumChipDeleteIcon]: searchSource === 'UserInput',
+              })}
               onMouseDown={e => {
                 onChange(tokens.filter(t => t.id !== token.id));
                 e.preventDefault();
@@ -198,7 +235,7 @@ class Tokenizer extends React.Component<Props, State> {
             onBlur: () => onBlur && onBlur(),
             autoFocus: true,
           }}
-          theme={autoSuggestStyles(theme)}
+          theme={autoSuggestStyles(theme, searchSource)}
           highlightFirstSuggestion={true}
         />
       </div>

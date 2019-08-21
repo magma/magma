@@ -95,7 +95,7 @@ func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.Confi
 		meteringdh.GetObsidianHandlers(),
 		policydbh.GetObsidianHandlers(),
 		subscriberdbh.GetObsidianHandlers(),
-		GetNetworkHandlers(),
+		GetHandlers(),
 	)
 }
 

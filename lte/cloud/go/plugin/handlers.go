@@ -45,9 +45,13 @@ const (
 	ManageNetworkCellularEpcPath       = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
 	ManageNetworkCellularRanPath       = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
 	ManageNetworkCellularFegNetworkID  = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
+
+	Gateways          = "gateways"
+	ListGatewaysPath  = ManageNetworkPath + obsidian.UrlSep + Gateways
+	ManageGatewayPath = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
 )
 
-func GetNetworkHandlers() []obsidian.Handler {
+func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
 		{Path: ListNetworksPath, Methods: obsidian.GET, HandlerFunc: listNetworks},
 		{Path: ListNetworksPath, Methods: obsidian.POST, HandlerFunc: createNetwork},
@@ -59,6 +63,12 @@ func GetNetworkHandlers() []obsidian.Handler {
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.GET, HandlerFunc: handlers.ReadDNSRecord},
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.PUT, HandlerFunc: handlers.UpdateDNSRecord},
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: handlers.DeleteDNSRecord},
+
+		{Path: ListGatewaysPath, Methods: obsidian.GET, HandlerFunc: listGateways},
+		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
+		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
+		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 	}
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
@@ -176,7 +186,7 @@ func deleteNetwork(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func ListGateways(c echo.Context) error {
+func listGateways(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -222,7 +232,7 @@ func ListGateways(c echo.Context) error {
 	return c.JSON(http.StatusOK, makeLTEGateways(entsByTK, devicesByID, statusesByID))
 }
 
-func CreateGateway(c echo.Context) error {
+func createGateway(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -250,7 +260,7 @@ func CreateGateway(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-func GetGateway(c echo.Context) error {
+func getGateway(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
@@ -287,7 +297,7 @@ func GetGateway(c echo.Context) error {
 	return c.JSON(http.StatusOK, ret)
 }
 
-func UpdateGateway(c echo.Context) error {
+func updateGateway(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
@@ -322,7 +332,7 @@ func UpdateGateway(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func DeleteGateway(c echo.Context) error {
+func deleteGateway(c echo.Context) error {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr

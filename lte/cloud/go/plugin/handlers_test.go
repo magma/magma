@@ -46,7 +46,7 @@ func TestListNetworks(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetNetworkHandlers()
+	obsidianHandlers := plugin2.GetHandlers()
 	listNetworks := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks", obsidian.GET).HandlerFunc
 
 	// Test empty response
@@ -80,7 +80,7 @@ func TestCreateNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetNetworkHandlers()
+	obsidianHandlers := plugin2.GetHandlers()
 	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks", obsidian.POST).HandlerFunc
 
 	// test validation
@@ -144,7 +144,7 @@ func TestGetNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetNetworkHandlers()
+	obsidianHandlers := plugin2.GetHandlers()
 	getNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks/:network_id", obsidian.GET).HandlerFunc
 
 	// Test 404
@@ -219,7 +219,7 @@ func TestUpdateNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetNetworkHandlers()
+	obsidianHandlers := plugin2.GetHandlers()
 	updateNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks/:network_id", obsidian.PUT).HandlerFunc
 
 	// Test validation failure
@@ -342,7 +342,7 @@ func TestDeleteNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetNetworkHandlers()
+	obsidianHandlers := plugin2.GetHandlers()
 	deleteNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/ltenetworks/:network_id", obsidian.DELETE).HandlerFunc
 
 	// Test 404
@@ -394,7 +394,7 @@ func TestCellularPartialGet(t *testing.T) {
 
 	seedNetworks(t)
 
-	handlers := plugin2.GetNetworkHandlers()
+	handlers := plugin2.GetHandlers()
 	getCellular := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular", testURLRoot), obsidian.GET).HandlerFunc
 	getEpc := tests.GetHandlerByPathAndMethod(t, handlers,
@@ -522,7 +522,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	testURLRoot := "/magma/v1/ltenetworks"
 
 	seedNetworks(t)
-	handlers := plugin2.GetNetworkHandlers()
+	handlers := plugin2.GetHandlers()
 	updateCellular := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular", testURLRoot), obsidian.PUT).HandlerFunc
 	updateEpc := tests.GetHandlerByPathAndMethod(t, handlers,
@@ -691,7 +691,7 @@ func TestCellularDelete(t *testing.T) {
 
 	seedNetworks(t)
 
-	handlers := plugin2.GetNetworkHandlers()
+	handlers := plugin2.GetHandlers()
 	deleteCellular := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular", testURLRoot), obsidian.DELETE).HandlerFunc
 
@@ -720,6 +720,13 @@ func TestListAndGetGateways(t *testing.T) {
 	test_init3.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/gateways"
+
+	handlers := plugin2.GetHandlers()
+	listGateways := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+	getGateway := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:gateway_id", testURLRoot), obsidian.GET).HandlerFunc
 
 	// Create 2 gateways, 1 with state and device, the other without
 	// g2 will associate to 2 enodebs
@@ -785,9 +792,6 @@ func TestListAndGetGateways(t *testing.T) {
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, test_utils2.GetGatewayStatusSwaggerFixture("hw1"))
 
-	e := echo.New()
-	testURLRoot := "/magma/v1/networks/n1/gateways"
-
 	expected := map[string]*models2.LteGateway{
 		"g1": {
 			ID: "g1",
@@ -832,7 +836,7 @@ func TestListAndGetGateways(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
-		Handler:        plugin2.ListGateways,
+		Handler:        listGateways,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 200,
@@ -865,7 +869,7 @@ func TestListAndGetGateways(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
-		Handler:        plugin2.GetGateway,
+		Handler:        getGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 200,
@@ -892,7 +896,7 @@ func TestListAndGetGateways(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
-		Handler:        plugin2.GetGateway,
+		Handler:        getGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g2"},
 		ExpectedStatus: 200,
@@ -911,6 +915,11 @@ func TestUpdateGateway(t *testing.T) {
 	test_init3.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/gateways/:gateway_id"
+	handlers := plugin2.GetHandlers()
+	updateGateway := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	_, err = configurator.CreateEntities(
 		"n1",
@@ -953,9 +962,6 @@ func TestUpdateGateway(t *testing.T) {
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
 	assert.NoError(t, err)
 
-	e := echo.New()
-	testURLRoot := "/magma/v1/networks/n1/gateways"
-
 	// update everything
 	privateKey, err := key.GenerateKey("P256", 0)
 	assert.NoError(t, err)
@@ -989,7 +995,7 @@ func TestUpdateGateway(t *testing.T) {
 	tc := tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot,
-		Handler:        plugin2.UpdateGateway,
+		Handler:        updateGateway,
 		Payload:        payload,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
@@ -1054,6 +1060,11 @@ func TestDeleteGateway(t *testing.T) {
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/gateways/:gateway_id"
+	handlers := plugin2.GetHandlers()
+	deleteGateway := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
+
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
@@ -1094,13 +1105,10 @@ func TestDeleteGateway(t *testing.T) {
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
 	assert.NoError(t, err)
 
-	e := echo.New()
-	testURLRoot := "/magma/v1/networks/n1/gateways"
-
 	tc := tests.Test{
 		Method:         "DELETE",
 		URL:            testURLRoot,
-		Handler:        plugin2.DeleteGateway,
+		Handler:        deleteGateway,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 204,
