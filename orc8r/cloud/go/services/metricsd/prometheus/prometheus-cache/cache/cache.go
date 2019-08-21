@@ -131,7 +131,7 @@ func (c *MetricCache) Scrape(ctx echo.Context) error {
 	c.clearMetrics()
 	c.Unlock()
 
-	expositionString := c.exposeMetrics(scrapeMetrics)
+	expositionString := c.exposeMetrics(scrapeMetrics, 100)
 	expositionString += c.exposeInternalMetrics()
 
 	c.stats.lastScrapeTime = time.Now().Unix()
@@ -147,18 +147,45 @@ func (c *MetricCache) clearMetrics() {
 	c.metricFamiliesByName = make(map[string]*familyAndMetrics)
 }
 
-func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMetrics) string {
-	respStr := strings.Builder{}
+func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMetrics, workers int) string {
+	fams := make(chan *familyAndMetrics, workers)
+	results := make(chan string, workers)
+	respStr := make(chan string, 1)
+
+	for i := 0; i < workers; i++ {
+		go processFamilyWorker(fams, results)
+	}
+
+	go processFamilyStringsWorker(results, respStr, len(metricFamiliesByName))
+
 	for _, fam := range metricFamiliesByName {
+		fams <- fam
+	}
+	close(fams)
+
+	return <-respStr
+}
+
+func processFamilyWorker(fams <-chan *familyAndMetrics, results chan<- string) {
+	for fam := range fams {
 		pullFamily := fam.popSortedDatapoints()
 		familyStr, err := familyToString(pullFamily)
 		if err != nil {
 			glog.Errorf("metric %s dropped. error converting metric to string: %v", *pullFamily.Name, err)
 		} else {
-			respStr.WriteString(familyStr)
+			results <- familyStr
 		}
 	}
-	return respStr.String()
+}
+
+func processFamilyStringsWorker(results <-chan string, respStrChannel chan<- string, total int) {
+	respStr := strings.Builder{}
+
+	for i := 0; i < total; i++ {
+		familyStr := <-results
+		respStr.WriteString(familyStr)
+	}
+	respStrChannel <- respStr.String()
 }
 
 func (c *MetricCache) exposeInternalMetrics() string {
@@ -209,7 +236,7 @@ Current Count Datapoints: %d `, hostname, limitValue, utilizationValue,
 		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints)
 
 	if verbose != "" {
-		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.metricFamiliesByName), c.exposeInternalMetrics())
+		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.metricFamiliesByName, 1), c.exposeInternalMetrics())
 	}
 
 	return ctx.String(http.StatusOK, debugString)

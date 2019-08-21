@@ -27,13 +27,24 @@ const (
 	sampleReceiveString = `
 # HELP http_requests_total The total number of HTTP requests.
 # TYPE http_requests_total counter
-http_requests_total{method="post",code="200"} 1027 1395066363000
+http_requests_total{method="post",code="200"} 1027 1395066363410
+http_requests_total{method="post",code="400"}    3 1395066363021
+http_requests_total{method="post",code="400"}    3 1395066363010
+http_requests_total{method="post",code="400"}    3 1395066363330
 http_requests_total{method="post",code="400"}    3 1395066363000
-
-# HELP cpu_usage The total number of HTTP requests.
+# HELP cpu_usage The total CPU usage.
 # TYPE cpu_usage gauge
 cpu_usage{host="A"} 1027 1395066363000
-cpu_usage{host="B"}    3 1395066363000
+cpu_usage{host="B"}    3 1395066363100
+cpu_usage{host="B"}    3 1395066363030
+cpu_usage{host="B"}    3 1395066363130
+cpu_usage{host="B"}    3 1395066363040
+# HELP memory_usage The total memory usage.
+# TYPE memory_usage gauge
+memory_usage{host="A"} 5 1395066363920
+memory_usage{host="A"} 5 1395066363130
+memory_usage{host="A"} 5 1395066363430
+memory_usage{host="A"} 5 1395066363590
 `
 )
 
@@ -50,7 +61,7 @@ func TestReceiveMetrics(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 
 	// Check Internal Metrics
-	assert.Equal(t, 4, int(getGaugeValue(cache.internalMetrics[internalMetricCacheSize])))
+	assert.Equal(t, 14, int(getGaugeValue(cache.internalMetrics[internalMetricCacheSize])))
 	assert.Equal(t, 0, int(getGaugeValue(cache.internalMetrics[internalMetricCacheLimit])))
 }
 
@@ -92,15 +103,22 @@ func TestScrape(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
+	// since families are processed in an arbitrary order
+	// we can't check the string exactly. we can check
+	// how many lines it has. the rest of the tests check
+	// whether the metrics are sorted properly. there are 4 extra
+	// debug statements but 1 less newline in the output.
+	assert.Equal(t, strings.Count(sampleReceiveString, "\n")+4-1, strings.Count(rec.Body.String(), "\n"))
+
 	// parse the output to make sure it gives valid response
 	var parser expfmt.TextParser
 	parsedFamilies, err := parser.TextToMetricFamilies(rec.Body)
 	assert.NoError(t, err)
-	assert.Equal(t, 4, len(parsedFamilies))
+	assert.Equal(t, 5, len(parsedFamilies))
 }
 
 func TestDebugEndpoint(t *testing.T) {
-	cache := NewMetricCache(10)
+	cache := NewMetricCache(20)
 	_, err := receiveString(cache, sampleReceiveString)
 	assert.NoError(t, err)
 
@@ -112,10 +130,10 @@ func TestDebugEndpoint(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	assert.Equal(t, 4, cache.stats.currentCountSeries)
-	assert.Equal(t, 2, cache.stats.currentCountFamilies)
-	assert.Equal(t, 4, cache.stats.currentCountDatapoints)
-	assert.Equal(t, 2, cache.stats.lastReceiveNumFamilies)
+	assert.Equal(t, 5, cache.stats.currentCountSeries)
+	assert.Equal(t, 3, cache.stats.currentCountFamilies)
+	assert.Equal(t, 14, cache.stats.currentCountDatapoints)
+	assert.Equal(t, 3, cache.stats.lastReceiveNumFamilies)
 }
 
 func TestCacheMetrics(t *testing.T) {
@@ -224,7 +242,7 @@ mf1 123 1
 mf1 234 2
 mf1 456 3
 `
-	assert.Equal(t, expectedExpositionText, cache.exposeMetrics(cache.metricFamiliesByName))
+	assert.Equal(t, expectedExpositionText, cache.exposeMetrics(cache.metricFamiliesByName, 1))
 }
 
 func getGaugeValue(gauge prometheus.Gauge) float64 {
