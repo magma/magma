@@ -9,6 +9,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
@@ -18,6 +19,11 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
+)
+
+const (
+	policyBaseNameRootPath   = policiesRootPath + "/base_names"
+	policyBaseNameManagePath = policyBaseNameRootPath + "/:base_name"
 )
 
 func listBaseNames(c echo.Context) error {
@@ -119,4 +125,14 @@ func deleteBaseName(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func baseNameHTTPErr() *echo.HTTPError {
+	return obsidian.HttpError(
+		fmt.Errorf("Invalid/Missing Base Name"),
+		http.StatusBadRequest)
+}
+
+func getBaseNameParam(c echo.Context) string {
+	return c.Param("base_name")
 }
