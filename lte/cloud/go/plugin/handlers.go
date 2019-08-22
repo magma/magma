@@ -46,9 +46,14 @@ const (
 	ManageNetworkCellularRanPath       = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
 	ManageNetworkCellularFegNetworkID  = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
 
-	Gateways          = "gateways"
-	ListGatewaysPath  = ManageNetworkPath + obsidian.UrlSep + Gateways
-	ManageGatewayPath = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	Gateways                     = "gateways"
+	ListGatewaysPath             = ManageNetworkPath + obsidian.UrlSep + Gateways
+	ManageGatewayPath            = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	ManageGatewayNamePath        = ManageGatewayPath + obsidian.UrlSep + "name"
+	ManageGatewayDescriptionPath = ManageGatewayPath + obsidian.UrlSep + "description"
+	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
+	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
+	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "state"
 )
 
 func GetHandlers() []obsidian.Handler {

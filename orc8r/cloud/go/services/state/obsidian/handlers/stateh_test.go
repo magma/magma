@@ -16,7 +16,6 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	checkindTestUtils "magma/orc8r/cloud/go/services/checkind/test_utils"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -43,7 +42,7 @@ func TestState(t *testing.T) {
 	ctx := test_utils.GetContextWithCertificate(t, testAgHwId)
 
 	// put one checkin state into state service
-	gwStatus := checkindTestUtils.GetGatewayStatusSwaggerFixture(testAgHwId)
+	gwStatus := models.NewDefaultGatewayStatus(testAgHwId)
 	test_utils.ReportGatewayStatus(t, ctx, gwStatus)
 
 	getStateNoError(t, restPort, testNetworkID)

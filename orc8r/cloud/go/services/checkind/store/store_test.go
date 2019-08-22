@@ -14,12 +14,12 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/protos"
-	checkin_store "magma/orc8r/cloud/go/services/checkind/store"
-	checkin_test_utils "magma/orc8r/cloud/go/services/checkind/test_utils"
-	logger_test_init "magma/orc8r/cloud/go/services/logger/test_init"
+	checkinStore "magma/orc8r/cloud/go/services/checkind/store"
+	checkinTestUtils "magma/orc8r/cloud/go/services/checkind/test_utils"
+	loggerTestInit "magma/orc8r/cloud/go/services/logger/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	magmadProtos "magma/orc8r/cloud/go/services/magmad/protos"
+	magmadTestInit "magma/orc8r/cloud/go/services/magmad/test_init"
 	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
@@ -28,23 +28,23 @@ import (
 const testAgHwId = "test_ag_HW_id"
 
 func TestCheckinStore(t *testing.T) {
-	magmad_test_init.StartTestService(t)
-	logger_test_init.StartTestService(t)
+	magmadTestInit.StartTestService(t)
+	loggerTestInit.StartTestService(t)
 	testNetworkName := "Gateway Checkin Test Network"
-	store, err := checkin_store.NewCheckinStore(test_utils.NewMockDatastore())
+	store, err := checkinStore.NewCheckinStore(test_utils.NewMockDatastore())
 	assert.NoError(t, err)
 
 	testNetworkId, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: testNetworkName},
+		&magmadProtos.MagmadNetworkRecord{Name: testNetworkName},
 		"checkind_store_test_network")
 	assert.NoError(t, err)
 
 	logicalId, err :=
-		magmad.RegisterGateway(testNetworkId, &magmad_protos.AccessGatewayRecord{HwId: &protos.AccessGatewayID{Id: testAgHwId}})
+		magmad.RegisterGateway(testNetworkId, &magmadProtos.AccessGatewayRecord{HwId: &protos.AccessGatewayID{Id: testAgHwId}})
 	assert.NoError(t, err)
 	assert.NotEqual(t, logicalId, "")
 
-	status := checkin_test_utils.GetGatewayStatusProtoFixture(testAgHwId)
+	status := checkinTestUtils.GetGatewayStatusProtoFixture(testAgHwId)
 
 	err = store.UpdateGatewayStatus(status)
 	assert.NoError(t, err)

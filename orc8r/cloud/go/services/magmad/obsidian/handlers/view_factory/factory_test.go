@@ -9,13 +9,11 @@ LICENSE file in the root directory of this source tree.
 package view_factory_test
 
 import (
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
-	checkintu "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorti "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratortu "magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -35,7 +33,6 @@ var cfg1 = &storagetu.Conf1{Value1: 1, Value2: "foo", Value3: []byte("bar")}
 var cfg2 = &storagetu.Conf2{Value1: []string{"foo", "bar"}, Value2: 1}
 
 func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	// Test setup
 	configuratorti.StartTestService(t)
 	deviceti.StartTestService(t)
@@ -103,7 +100,7 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 
 	// put status into gw1
 	ctx := statetu.GetContextWithCertificate(t, hwID1)
-	gwStatus := checkintu.GetGatewayStatusSwaggerFixture(hwID1)
+	gwStatus := models.NewDefaultGatewayStatus(hwID1)
 	statetu.ReportGatewayStatus(t, ctx, gwStatus)
 
 	fact := &view_factory.FullGatewayViewFactoryImpl{}
@@ -126,7 +123,7 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 				orc8r.MagmadGatewayType:                             nil,
 			},
 			Name:   "111",
-			Status: checkintu.GetGatewayStatusSwaggerFixture(hwID1),
+			Status: models.NewDefaultGatewayStatus(hwID1),
 			Record: record1,
 		},
 		gatewayID2: {

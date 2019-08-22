@@ -11,7 +11,6 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 
 	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
@@ -20,12 +19,10 @@ import (
 	"github.com/labstack/echo"
 )
 
-// PartialNetworkModels describe models that represents a portion of network
+// PartialNetworkModel describe models that represents a portion of network
 // that can be read, updated, and deleted.
-type PartialNetworkModels interface {
-	// ValidateModel validates the model to be according to swagger spec, as
-	// well as other custom validations
-	ValidateModel() error
+type PartialNetworkModel interface {
+	ValidatableModel
 	// GetFromNetwork grabs the desired model from the configurator network.
 	// Returns nil if it is not there.
 	GetFromNetwork(network configurator.Network) interface{}
@@ -36,7 +33,7 @@ type PartialNetworkModels interface {
 
 // GetPartialNetworkHandlers returns a set of GET/PUT/DELETE handlers according to the parameters.
 // If the configKey is not "", it will add a delete handler for the network config for that key.
-func GetPartialNetworkHandlers(path string, model PartialNetworkModels, configKey string) []obsidian.Handler {
+func GetPartialNetworkHandlers(path string, model PartialNetworkModel, configKey string) []obsidian.Handler {
 	ret := []obsidian.Handler{
 		GetPartialReadNetworkHandler(path, model),
 		GetPartialUpdateNetworkHandler(path, model),
@@ -61,7 +58,7 @@ func GetPartialNetworkHandlers(path string, model PartialNetworkModels, configKe
 // 		getNameHandler := handlers.GetPartialReadNetworkHandler(URL, &models.NetworkName{})
 //
 //      would return a GET handler that can read the network name of a network with the specified ID.
-func GetPartialReadNetworkHandler(path string, model PartialNetworkModels) obsidian.Handler {
+func GetPartialReadNetworkHandler(path string, model PartialNetworkModel) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.GET,
@@ -98,7 +95,7 @@ func GetPartialReadNetworkHandler(path string, model PartialNetworkModels) obsid
 // 		putNameHandler := handlers.GetPartialUpdateNetworkHandler(URL, &models.NetworkName{})
 //
 //      would return a PUT handler that will intake a NetworkName model and update the corresponding network
-func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModels) obsidian.Handler {
+func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModel) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.PUT,
@@ -107,7 +104,7 @@ func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModels) obs
 			if nerr != nil {
 				return nerr
 			}
-			requestedUpdate, nerr := getPayload(c, model)
+			requestedUpdate, nerr := GetAndValidatePayload(c, model)
 			if nerr != nil {
 				return nerr
 			}
@@ -119,7 +116,7 @@ func GetPartialUpdateNetworkHandler(path string, model PartialNetworkModels) obs
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
 
-			updateCriteria, err := requestedUpdate.ToUpdateCriteria(network)
+			updateCriteria, err := requestedUpdate.(PartialNetworkModel).ToUpdateCriteria(network)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
@@ -158,16 +155,4 @@ func GetPartialDeleteNetworkHandler(path string, key string) obsidian.Handler {
 			return c.NoContent(http.StatusNoContent)
 		},
 	}
-}
-
-func getPayload(c echo.Context, model interface{}) (PartialNetworkModels, *echo.HTTPError) {
-	iModel := reflect.New(reflect.TypeOf(model).Elem()).Interface().(PartialNetworkModels)
-	if err := c.Bind(iModel); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	// Run validations specified by the swagger spec
-	if err := iModel.ValidateModel(); err != nil {
-		return nil, obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	return iModel, nil
 }

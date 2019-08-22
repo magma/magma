@@ -45,15 +45,12 @@ func CreateGatewayHandler(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &models.MagmadGateway{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := payload.ValidateModel(); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+	payload, nerr := GetAndValidatePayload(c, &models.MagmadGateway{})
+	if nerr != nil {
+		return nerr
 	}
 
-	if nerr := CreateMagmadGatewayFromModel(nid, payload); nerr != nil {
+	if nerr := CreateMagmadGatewayFromModel(nid, payload.(*models.MagmadGateway)); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -168,15 +165,12 @@ func UpdateGatewayHandler(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &models.MagmadGateway{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := payload.ValidateModel(); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
+	payload, nerr := GetAndValidatePayload(c, &models.MagmadGateway{})
+	if nerr != nil {
+		return nerr
 	}
 
-	if nerr := UpdateMagmadGatewayFromModel(nid, gid, payload); nerr != nil {
+	if nerr := UpdateMagmadGatewayFromModel(nid, gid, payload.(*models.MagmadGateway)); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -222,4 +216,27 @@ func DeleteGatewayHandler(c echo.Context) error {
 	// datapoints from real world usage, let's skip that for now
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func GetStateHandler(c echo.Context) error {
+	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	state, err := state.GetGatewayStatus(networkID, physicalID)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.JSON(http.StatusOK, state)
 }

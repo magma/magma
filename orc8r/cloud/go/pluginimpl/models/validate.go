@@ -31,6 +31,10 @@ func (m NetworkDNSRecords) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m DNSConfigRecord) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *MagmadGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

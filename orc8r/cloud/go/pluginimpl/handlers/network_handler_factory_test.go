@@ -37,7 +37,7 @@ type (
 	}
 )
 
-func TestGetReadNetworkConfigHandler(t *testing.T) {
+func Test_GetPartialReadNetworkHandler(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	serde.RegisterSerdes(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
