@@ -94,4 +94,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
   s1ap_state_t *state,
   itti_s1ap_e_rab_setup_req_t *const e_rab_setup_req);
 
+int s1ap_generate_s1ap_e_rab_rel_cmd(
+  s1ap_state_t *state,
+  itti_s1ap_e_rab_rel_cmd_t *const e_rab_rel_cmd);
 #endif /* FILE_S1AP_MME_NAS_PROCEDURES_SEEN */

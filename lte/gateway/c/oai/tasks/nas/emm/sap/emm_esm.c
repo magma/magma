@@ -40,6 +40,7 @@ static const char *_emm_esm_primitive_str[] = {
   "EMMESM_UNITDATA_REQ",
   "EMMESM_ACTIVATE_BEARER_REQ",
   "EMMESM_UNITDATA_IND",
+  "EMMESM_DEACTIVATE_BEARER_REQ",
 };
 
 /****************************************************************************/
@@ -113,6 +114,14 @@ int emm_esm_send(const emm_esm_t *msg)
         msg->u.activate_bearer.gbr_ul,
         msg->u.activate_bearer.msg);
       break;
+
+    case _EMMESM_DEACTIVATE_BEARER_REQ:
+      rc = lowerlayer_deactivate_bearer_req(
+        msg->ue_id,
+        msg->u.deactivate_bearer.ebi,
+        msg->u.deactivate_bearer.msg);
+      break;
+
 
     default: break;
   }

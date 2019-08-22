@@ -97,6 +97,7 @@
 #include "mme_app_desc.h"
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
+#include "dynamic_memory_check.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

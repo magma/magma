@@ -131,8 +131,10 @@ typedef struct esm_pdn_disconnect_s {
  */
 typedef struct esm_eps_bearer_context_deactivate_s {
 #define ESM_SAP_ALL_EBI 0xff
-  ebi_t ebi; /* EPS bearer identity of the EPS bearer context
+  uint32_t no_of_bearers;
+  ebi_t ebi[BEARERS_PER_UE]; /* EPS bearer identity of the EPS bearer context
              * to be deactivated                */
+  bool is_pcrf_initiated;
 } esm_eps_bearer_context_deactivate_t;
 
 /*
