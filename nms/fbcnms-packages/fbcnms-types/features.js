@@ -15,6 +15,7 @@ export type FeatureID =
   | 'audit_log_view'
   | 'third_party_devices'
   | 'network_topology'
+  | 'magma_network_management'
   | 'upload_rural'
   | 'upload_xwf'
   | 'upload_ftth'
