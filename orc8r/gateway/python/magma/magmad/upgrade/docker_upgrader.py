@@ -14,6 +14,7 @@ import pathlib
 import subprocess
 
 from magma.common.service import MagmaService
+from magma.configuration.service_configs import load_service_config
 from magma.magmad.upgrade.magma_upgrader import compare_package_versions
 from magma.magmad.upgrade.upgrader import UpgraderFactory
 from magma.magmad.upgrade.upgrader2 import ImageNameT, run_command, \
@@ -145,8 +146,16 @@ async def download_update(
     await run_command("mkdir -p {}".format(MAGMA_GITHUB_PATH), shell=True,
                       check=True)
 
-    git_clone_cmd = "git -C {} clone {}".format(MAGMA_GITHUB_PATH,
-                                                MAGMA_GITHUB_URL)
+    control_proxy_config = load_service_config('control_proxy')
+    await run_command("cp {} /usr/local/share/ca-certificates/rootCA.crt".
+                      format(control_proxy_config['rootca_cert']), shell=True,
+                      check=True)
+    await run_command("update-ca-certificates", shell=True, check=True)
+
+    git_clone_cmd = "git -c http.proxy=https://{}:{} -C {} clone {}".format(
+        control_proxy_config['bootstrap_address'],
+        control_proxy_config['bootstrap_port'], MAGMA_GITHUB_PATH,
+        MAGMA_GITHUB_URL)
     await run_command(git_clone_cmd, shell=True, check=True)
     git_checkout_cmd = "git -C {}/magma checkout {}".format(MAGMA_GITHUB_PATH,
                                                       new_version)

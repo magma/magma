@@ -74,7 +74,7 @@ services:
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
       - /etc/snowflake:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
-    command: python3 -m magma.magmad.main
+    command: python3.5 -m magma.magmad.main
 
   pipelined:
     <<: *ltepyservice
