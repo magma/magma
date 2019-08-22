@@ -16,8 +16,7 @@
     "@babel/register": "^7.0.0",
     "@fbcnms/util": "0.1.0",
     "babel-plugin-lodash": "^3.3.4",
-    "babel-plugin-relay": "^5.0.0",
-    "core-js": "^2.6.9"
+    "babel-plugin-relay": "^5.0.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",
@@ -52,8 +51,11 @@
     "jest": "echo 'Dont run jest directly, use \"yarn run test\"' && exit 1",
     "test": "NODE_ENV=test jest"
   },
-  "workspaces": [
-    "fbcnms-packages/*",
-    "fbcnms-projects/*"
-  ]
+  "workspaces": {
+    "nohoist": ["**/core-js", "**/core-js/**", "**/relay-compiler"],
+    "packages": [
+      "fbcnms-packages/*",
+      "fbcnms-projects/*"
+    ]
+  }
 }
