@@ -136,6 +136,7 @@ type Props = {
   searchSource: SearchSource,
   tokens: Array<Entry>,
   searchEntries?: Array<Entry>,
+  placeholder: string,
   onEntriesRequested: (searchTerm: string) => void,
   onChange: (entries: Array<Entry>) => void,
   onBlur?: () => void,
@@ -150,6 +151,10 @@ const BACKSPACE_KEY_CODE = 8;
 const ENTER_KEY_CODE = 13;
 
 class Tokenizer extends React.Component<Props, State> {
+  static defaultProps = {
+    placeholder: '',
+  };
+
   state = {
     searchTerm: '',
   };
@@ -164,6 +169,7 @@ class Tokenizer extends React.Component<Props, State> {
       onEntriesRequested,
       onChange,
       onBlur,
+      placeholder,
     } = this.props;
     const {searchTerm} = this.state;
     const entries =
@@ -212,7 +218,7 @@ class Tokenizer extends React.Component<Props, State> {
             onChange([...tokens, suggestion]);
           }}
           inputProps={{
-            placeholder: '',
+            placeholder: placeholder,
             value: searchTerm,
             onKeyDown: e => {
               if (
