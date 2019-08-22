@@ -115,6 +115,9 @@ func TestScrape(t *testing.T) {
 	parsedFamilies, err := parser.TextToMetricFamilies(rec.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(parsedFamilies))
+
+	// check that Scrape handles errors
+	assertWorkerPoolHandlesError(t)
 }
 
 func TestDebugEndpoint(t *testing.T) {
@@ -243,6 +246,67 @@ mf1 234 2
 mf1 456 3
 `
 	assert.Equal(t, expectedExpositionText, cache.exposeMetrics(cache.metricFamiliesByName, 1))
+}
+
+func assertWorkerPoolHandlesError(t *testing.T) {
+	cache := NewMetricCache(0)
+	counterValues := []float64{123, 234, 456}
+	counterTimes := []int64{1, 2, 3}
+	counter1 := dto.Counter{
+		Value: &counterValues[0],
+	}
+	counter2 := dto.Counter{
+		Value: &counterValues[1],
+	}
+	counter3 := dto.Counter{
+		Value: &counterValues[2],
+	}
+	familyName := "mf1"
+	blankFamilyName := "" // for error
+
+	mf := dto.MetricFamily{
+		Name: &familyName,
+		Metric: []*dto.Metric{{
+			Counter:     &counter3,
+			TimestampMs: &counterTimes[2],
+		},
+			{
+				Counter:     &counter1,
+				TimestampMs: &counterTimes[0],
+			},
+			{
+				Counter:     &counter2,
+				TimestampMs: &counterTimes[1],
+			},
+		},
+	}
+
+	errorFamily := dto.MetricFamily{
+		Name: &blankFamilyName,
+		Metric: []*dto.Metric{{
+			Counter:     &counter3,
+			TimestampMs: &counterTimes[2],
+		},
+			{
+				Counter:     &counter1,
+				TimestampMs: &counterTimes[0],
+			},
+			{
+				Counter:     &counter2,
+				TimestampMs: &counterTimes[1],
+			},
+		},
+	}
+
+	metrics := map[string]*dto.MetricFamily{"mf": &mf, "errorFamily": &errorFamily}
+	cache.cacheMetrics(metrics)
+
+	expectedExpositionText := `# TYPE mf1 counter
+mf1 123 1
+mf1 234 2
+mf1 456 3
+`
+	assert.Equal(t, expectedExpositionText, cache.exposeMetrics(cache.metricFamiliesByName, 5))
 }
 
 func getGaugeValue(gauge prometheus.Gauge) float64 {

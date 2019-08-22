@@ -29,6 +29,8 @@ import (
 const (
 	internalMetricCacheSize  = "cache_size"
 	internalMetricCacheLimit = "cache_limit"
+	scrapeWorkerPoolSize     = 100
+	debugWorkerPoolSize      = 1
 )
 
 // MetricCache serves as a replacement for the prometheus pushgateway. Accepts
@@ -131,7 +133,7 @@ func (c *MetricCache) Scrape(ctx echo.Context) error {
 	c.clearMetrics()
 	c.Unlock()
 
-	expositionString := c.exposeMetrics(scrapeMetrics, 100)
+	expositionString := c.exposeMetrics(scrapeMetrics, scrapeWorkerPoolSize)
 	expositionString += c.exposeInternalMetrics()
 
 	c.stats.lastScrapeTime = time.Now().Unix()
@@ -152,8 +154,11 @@ func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMe
 	results := make(chan string, workers)
 	respStr := make(chan string, 1)
 
+	waitGroup := &sync.WaitGroup{}
+
 	for i := 0; i < workers; i++ {
-		go processFamilyWorker(fams, results)
+		waitGroup.Add(1)
+		go processFamilyWorker(fams, results, waitGroup)
 	}
 
 	go processFamilyStringsWorker(results, respStr, len(metricFamiliesByName))
@@ -161,12 +166,16 @@ func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMe
 	for _, fam := range metricFamiliesByName {
 		fams <- fam
 	}
+
 	close(fams)
+	waitGroup.Wait()
+	close(results)
 
 	return <-respStr
 }
 
-func processFamilyWorker(fams <-chan *familyAndMetrics, results chan<- string) {
+func processFamilyWorker(fams <-chan *familyAndMetrics, results chan<- string, waitGroup *sync.WaitGroup) {
+	defer waitGroup.Done()
 	for fam := range fams {
 		pullFamily := fam.popSortedDatapoints()
 		familyStr, err := familyToString(pullFamily)
@@ -181,8 +190,8 @@ func processFamilyWorker(fams <-chan *familyAndMetrics, results chan<- string) {
 func processFamilyStringsWorker(results <-chan string, respStrChannel chan<- string, total int) {
 	respStr := strings.Builder{}
 
-	for i := 0; i < total; i++ {
-		familyStr := <-results
+	for result := range results {
+		familyStr := result
 		respStr.WriteString(familyStr)
 	}
 	respStrChannel <- respStr.String()
@@ -236,7 +245,7 @@ Current Count Datapoints: %d `, hostname, limitValue, utilizationValue,
 		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints)
 
 	if verbose != "" {
-		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.metricFamiliesByName, 1), c.exposeInternalMetrics())
+		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.metricFamiliesByName, debugWorkerPoolSize), c.exposeInternalMetrics())
 	}
 
 	return ctx.String(http.StatusOK, debugString)
