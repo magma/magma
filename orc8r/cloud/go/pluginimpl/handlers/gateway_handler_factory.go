@@ -25,18 +25,18 @@ import (
 // entity that can be read and updated.
 type PartialGatewayModel interface {
 	ValidatableModel
-	// GetFromEntity grabs the desired model from the configurator network entity.
-	// Returns nil if it is not there.
-	GetFromEntity(entity configurator.NetworkEntity) interface{}
-	// ToUpdateCriteria takes in the existing network entity and applies the
-	// change from the model to create a list of EntityUpdateCriteria.
-	ToUpdateCriteria(entity configurator.NetworkEntity) ([]configurator.EntityUpdateCriteria, error)
+	// FromBackendModels the same PartialGatewayModel from the configurator
+	// entities attached to the networkID and gatewayID.
+	FromBackendModels(networkID string, gatewayID string) error
+	// ToUpdateCriteria returns a list of EntityUpdateCriteria needed to apply
+	// the change in the model.
+	ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error)
 }
 
 // GetPartialGatewayHandlers returns both GET and PUT handlers for modifying the portion of a
 // network entity specified by the model.
 // - path : the url at which the handler will be registered.
-// - model: the input and output of the handler and it also provides GetFromEntity
+// - model: the input and output of the handler and it also provides FromBackendModels
 //   and ToUpdateCriteria to go between the configurator model.
 func GetPartialGatewayHandlers(path string, model PartialGatewayModel) []obsidian.Handler {
 	return []obsidian.Handler{
@@ -46,10 +46,10 @@ func GetPartialGatewayHandlers(path string, model PartialGatewayModel) []obsidia
 }
 
 // GetPartialReadGatewayHandler returns a GET obsidian handler at the specified path.
-// This function loads a portion of the gateway specified by the model's GetFromEntity function.
+// This function loads a portion of the gateway specified by the model's FromBackendModels function.
 // Example:
-//      (m *MagmadGatewayConfigs) GetFromEntity(ent configurator.NetworkEntity) interface{} {
-// 			return entity.Configs
+//      (m *MagmadGatewayConfigs) FromBackendModels(networkID, gatewayID) (PartialGatewayModel, error) {
+// 			return configurator.LoadEntityConfig(networkID, orc8r.MagmadGatewayType, gatewayID)
 // 		}
 // 		getMagmadConfigsHandler := handlers.GetPartialReadGatewayHandler(URL, &models.MagmadGatewayConfigs{})
 //
@@ -64,18 +64,13 @@ func GetPartialReadGatewayHandler(path string, model PartialGatewayModel) obsidi
 				return nerr
 			}
 
-			entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadConfig: true, LoadMetadata: true, LoadAssocsFromThis: true})
+			err := model.FromBackendModels(networkID, gatewayID)
 			if err == errors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
-
-			got := model.GetFromEntity(entity)
-			if got == nil {
-				return obsidian.HttpError(errors.ErrNotFound, http.StatusNotFound)
-			}
-			return c.JSON(http.StatusOK, got)
+			return c.JSON(http.StatusOK, model)
 		},
 	}
 }
@@ -83,11 +78,13 @@ func GetPartialReadGatewayHandler(path string, model PartialGatewayModel) obsidi
 // GetPartialUpdateGatewayHandler returns a PUT obsidian handler at the specified path.
 // This function updates a portion of the network entity specified by the model's ToUpdateCriteria function.
 // Example:
-//      (m *MagmadGatewayConfigs) ToUpdateCriteria(ent configurator.NetworkEntity) (configurator.EntityUpdateCriteria, error) {
-// 			return configurator.EntityUpdateCriteria{
-// 				Key: ent.Key,
-//				Type: ent.Type,
-//				NewConfig: m,
+//      (m *MagmadGatewayConfigs) ToUpdateCriteria(networkID, gatewayID) ([]configurator.EntityUpdateCriteria, error) {
+// 			return []configurator.EntityUpdateCriteria{
+//				{
+// 					Key: gatewayID,
+//					Type: orc8r.MagmadGatewayType,
+//					NewConfig: m,
+//				}
 //          }
 // 		}
 // 		updateMagmadConfigsHandler := handlers.GetPartialUpdateGatewayHandler(URL, &models.MagmadGatewayConfigs{})
@@ -108,14 +105,7 @@ func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel) obsi
 				return nerr
 			}
 
-			entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadConfig: true, LoadMetadata: true, LoadAssocsFromThis: true})
-			if err == errors.ErrNotFound {
-				return obsidian.HttpError(err, http.StatusNotFound)
-			} else if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
-			}
-
-			updates, err := requestedUpdate.(PartialGatewayModel).ToUpdateCriteria(entity)
+			updates, err := requestedUpdate.(PartialGatewayModel).ToUpdateCriteria(networkID, gatewayID)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
