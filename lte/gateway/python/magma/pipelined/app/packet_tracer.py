@@ -35,7 +35,7 @@ class PacketTracingController(MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
-        self.logger.debug('Tracer connected (dp.id): {}'.format(datapath.id))
+        self.logger.debug('Tracer connected (dp.id): %d', datapath.id)
 
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
@@ -57,7 +57,7 @@ class PacketTracingController(MagmaController):
         drop_tables.discard(0)
         drop_tables = drop_tables.difference(self.drop_flows_installed)
         for table in drop_tables:
-            self.logger.debug('Installing drop flow for {}'.format(table))
+            self.logger.debug('Installing drop flow for %d', table)
             flows.add_trace_packet_output_flow(datapath=self._datapath,
                                                table=table,
                                                match=MagmaMatch(),
@@ -82,7 +82,7 @@ class PacketTracingController(MagmaController):
         :return: table_id which caused the drop or -1 if it wasn't dropped
         """
         assert isinstance(packet, bytes)
-        self.logger.debug('Trace packet: {}'.format(Packet(packet)))
+        self.logger.debug('Trace packet: %s', str(Packet(packet)))
         self.send_event_to_observers(EventSendPacket(pkt=packet, imsi=imsi))
 
         start = time.time()
@@ -100,10 +100,11 @@ class PacketTracingController(MagmaController):
         return table_id
 
     def cleanup_on_disconnect(self, datapath):
-        self.logger.debug('Tracer disconnected (dp.id): {}'.format(datapath.id))
+        self.logger.debug('Tracer disconnected (dp.id): %d', datapath.id)
         assert self._datapath.id == datapath.id
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
+    # pylint: disable=try-except-raise
     def _event_loop(self):
         """
         Override the event loop because it was getting stuck with no timeout
@@ -124,6 +125,7 @@ class PacketTracingController(MagmaController):
             handlers = self.get_handlers(ev, state)
             for handler in handlers:
                 # noinspection PyBroadException
+                # pylint: disable=broad-except
                 try:
                     handler(ev)
                 except hub.TaskExit:
@@ -157,7 +159,7 @@ class PacketTracingController(MagmaController):
             raise ValueError('Could not handle packet of type: '
                              '{}'.format(type(pkt)))
 
-        self.logger.debug('Tracer sending packet: {}'.format(Packet(data)))
+        self.logger.debug('Tracer sending packet: %s', str(Packet(data)))
         datapath = get_datapath(self, dpid=self._datapath.id)
         ofp = datapath.ofproto
         ofp_parser = datapath.ofproto_parser
@@ -183,5 +185,5 @@ class PacketTracingController(MagmaController):
         if ev.msg.match[TEST_PACKET_REG] != TestPacket.ON.value:
             return
         pkt = Packet(data=ev.msg.data)
-        self.logger.debug('Tracer received packet: {}'.format(pkt))
+        self.logger.debug('Tracer received packet %s', str(pkt))
         self.dropped_table[pkt.data] = ev.msg.table_id
