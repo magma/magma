@@ -103,19 +103,22 @@ func TestScrape(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
-	// since families are processed in an arbitrary order
-	// we can't check the string exactly. we can check
-	// how many lines it has. the rest of the tests check
-	// whether the metrics are sorted properly. there are 4 extra
-	// debug statements but 1 less newline in the output.
-	assert.Equal(t, strings.Count(sampleReceiveString, "\n")+4-1, strings.Count(rec.Body.String(), "\n"))
-
 	// parse the output to make sure it gives valid response
 	var parser expfmt.TextParser
 	parsedFamilies, err := parser.TextToMetricFamilies(rec.Body)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(parsedFamilies))
 
+	// make sure all metrics are returned.
+	// there are 2 extra internal metrics
+	sum := 0
+	for _, family := range parsedFamilies {
+		sum += len(family.Metric)
+	}
+	assert.Equal(t, 16, sum)
+}
+
+func TestScrapeBadMetrics(t *testing.T) {
 	// check that Scrape handles errors
 	assertWorkerPoolHandlesError(t)
 }
