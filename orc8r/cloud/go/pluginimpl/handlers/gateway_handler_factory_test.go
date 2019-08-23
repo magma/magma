@@ -75,7 +75,7 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 		Payload:        nil,
 		Handler:        getGatewayName.HandlerFunc,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler("gateway 1"),
+		ExpectedResult: tests.JSONMarshaler(testName{Name: "gateway 1"}),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -105,8 +105,8 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 		ParamValues:    []string{networkID, "test_gateway_1"},
 		Payload:        tests.JSONMarshaler(&testName{Name: "updated Name!"}),
 		Handler:        updateGatewayName.HandlerFunc,
-		ExpectedStatus: 404,
-		ExpectedError:  "Not found",
+		ExpectedStatus: 400,
+		ExpectedError:  "Gateway test_gateway_1 does not exist",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -202,15 +202,27 @@ func (m *testName) ValidateModel() error {
 	return nil
 }
 
-func (m *testName) GetFromEntity(entity configurator.NetworkEntity) interface{} {
-	return entity.Name
+func (m *testName) FromBackendModels(networkID string, gatewayID string) error {
+	entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadMetadata: true})
+	if err != nil {
+		return err
+	}
+	m.Name = entity.Name
+	return nil
 }
 
-func (m *testName) ToUpdateCriteria(entity configurator.NetworkEntity) ([]configurator.EntityUpdateCriteria, error) {
+func (m *testName) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	exists, err := configurator.DoesEntityExist(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, fmt.Errorf("Gateway %s does not exist", gatewayID)
+	}
 	return []configurator.EntityUpdateCriteria{
 		{
-			Type:    entity.Type,
-			Key:     entity.Key,
+			Type:    orc8r.MagmadGatewayType,
+			Key:     gatewayID,
 			NewName: swag.String(m.Name),
 		},
 	}, nil
