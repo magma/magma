@@ -25,16 +25,21 @@ def exec_commandline(command, exception=None):
 
 
 class PacketTracerCLI:
-    BRIDGE_NAME = "gtp_br0"
+    """
+    Packet tracer for magma OVS tables.
+    Use to generate traffic from packets and send it through magma OVS tables.
+    PacketTracer reports which OVS table caused a drop of the packet.
+    """
+    __BRIDGE_NAME = "gtp_br0"
 
     def dump_ports(self, port=None):
-        command = 'ovs-ofctl dump-ports {} {}'.format(self.BRIDGE_NAME, port) \
-            if port else 'ovs-ofctl dump-ports {}'.format(self.BRIDGE_NAME)
+        command = 'ovs-ofctl dump-ports {} {}'.format(self.__BRIDGE_NAME, port)\
+            if port else 'ovs-ofctl dump-ports {}'.format(self.__BRIDGE_NAME)
         print(exec_commandline(command)[1].decode('utf-8'))
 
     def dump_flows(self):
         flows = exec_commandline('ovs-ofctl dump-flows {}'.format(
-            self.BRIDGE_NAME
+            self.__BRIDGE_NAME
         ))[1].decode('utf-8')
         flows = flows.split('\n')
         flows = [' '.join([i for i in flow.split()
@@ -44,6 +49,11 @@ class PacketTracerCLI:
         print('\n'.join(flows))
 
     def raw(self, data):
+        """
+        Send a packet constructed from raw bytes through the magma switch and
+        display which tabled caused a drop
+        (-1 if the packet wasn't dropped by any table)
+        """
         data = bytes(data)
         pkt = Packet(data)
 
@@ -60,28 +70,40 @@ class PacketTracerCLI:
         else:
             print('Dropped by table: {}'.format(table_id))
 
-    def icmp(self):
-        pkt = ethernet.ethernet(dst='5e:cc:cc:b1:49:4b') / \
-              ipv4.ipv4(src='192.168.70.2',
-                        dst='192.168.70.3',
-                        proto=1) / \
+    def icmp(self,
+             src_mac='00:00:00:00:00:00', src_ip='192.168.70.2',
+             dst_mac='ff:ff:ff:ff:ff:ff', dst_ip='192.168.70.3'):
+        """
+        Send an ICMP packet through the magma switch and display which tabled
+        caused a drop (-1 if the packet wasn't dropped by any table)
+        """
+        pkt = ethernet.ethernet(src=src_mac, dst=dst_mac) / \
+              ipv4.ipv4(src=src_ip, dst=dst_ip, proto=1) / \
               icmp.icmp()
         pkt.serialize()
         self.raw(data=pkt.data)
 
-    def arp(self):
+    def arp(self,
+            src_mac='00:00:00:00:00:00', src_ip='192.168.70.2',
+            dst_mac='ff:ff:ff:ff:ff:ff', dst_ip='192.168.70.3'):
+        """
+        Send an ARP packet through the magma switch and display which tabled
+        caused a drop (-1 if the packet wasn't dropped by any table)
+        """
         pkt = ethernet.ethernet(ethertype=ETH_TYPE_ARP,
-                                src='fe:ee:ee:ee:ee:ef',
-                                dst='ff:ff:ff:ff:ff:ff') / \
+                                src=src_mac, dst=dst_mac) / \
               arp.arp(hwtype=arp.ARP_HW_TYPE_ETHERNET, proto=ETH_TYPE_IP,
                       hlen=6, plen=4,
                       opcode=arp.ARP_REQUEST,
-                      src_mac='fe:ee:ee:ee:ee:ef', src_ip='192.168.70.2',
-                      dst_mac='00:00:00:00:00:00', dst_ip='192.168.70.3')
+                      src_mac=src_mac, src_ip=src_ip,
+                      dst_mac=dst_mac, dst_ip=dst_ip)
         pkt.serialize()
         self.raw(data=pkt.data)
 
 
 if __name__ == '__main__':
     cli = PacketTracerCLI()
-    fire.Fire(cli)
+    try:
+        fire.Fire(cli)
+    except Exception as e:
+        print(e)

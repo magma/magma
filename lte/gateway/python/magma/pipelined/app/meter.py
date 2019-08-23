@@ -116,7 +116,7 @@ class MeterController(MagmaController):
             imsi = _get_encoded_imsi_from_packetin(msg)
         except MagmaOFError as e:
             # No packet direction, but intended for this table
-            self.logging.error("Error obtaining IMSI from pkt-in: %s", e)
+            self.logger.error("Error obtaining IMSI from pkt-in: %s", e)
             return
 
         # Set inbound/outbound tracking flows
