@@ -4,11 +4,13 @@ import time
 from eventlet import queue
 from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.inout import EGRESS
+from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.events import EventSendPacket
 from magma.pipelined.openflow.flows import DROP_PRIORITY
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Trace, PACKET_TRACER_REG
+from magma.pipelined.openflow.registers import TestPacket, TEST_PACKET_REG, \
+    IMSI_REG
 from ryu.app.ofctl.api import get_datapath
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER
@@ -56,11 +58,11 @@ class PacketTracingController(MagmaController):
         drop_tables = drop_tables.difference(self.drop_flows_installed)
         for table in drop_tables:
             self.logger.debug('Installing drop flow for {}'.format(table))
-            flows.add_trace_packet_drop_flow(datapath=self._datapath,
-                                             table=table,
-                                             match=MagmaMatch(),
-                                             instructions=[],
-                                             priority=DROP_PRIORITY)
+            flows.add_trace_packet_output_flow(datapath=self._datapath,
+                                               table=table,
+                                               match=MagmaMatch(),
+                                               instructions=[],
+                                               priority=DROP_PRIORITY)
             self.drop_flows_installed.add(table)
 
     def trace_packet(self, packet, timeout=2):
@@ -158,8 +160,13 @@ class PacketTracingController(MagmaController):
         ofp = datapath.ofproto
         ofp_parser = datapath.ofproto_parser
         actions = [
-            ofp_parser.NXActionRegLoad2(dst=PACKET_TRACER_REG,
-                                        value=Trace.ON.value),
+            # Turn on test-packet as we're just tracing it
+            ofp_parser.NXActionRegLoad2(dst=TEST_PACKET_REG,
+                                        value=TestPacket.ON.value),
+            # Random IMSI so that the packet can pass through imsi match table
+            ofp_parser.NXActionRegLoad2(dst=IMSI_REG,
+                                        value=encode_imsi('001010000000013')),
+            # Submit to table=0 because otherwise the packet will be dropped!
             ofp_parser.NXActionResubmitTable(table_id=0),
         ]
         datapath.send_packet_out(in_port=ofp.OFPP_LOCAL,
@@ -171,7 +178,7 @@ class PacketTracingController(MagmaController):
         """
         Receive the table_id which caused the packet to be dropped
         """
-        if ev.msg.match[PACKET_TRACER_REG] != Trace.ON.value:
+        if ev.msg.match[TEST_PACKET_REG] != TestPacket.ON.value:
             return
         pkt = Packet(data=ev.msg.data)
         self.logger.debug('Tracer received packet: {}'.format(pkt))

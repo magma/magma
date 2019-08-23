@@ -12,7 +12,7 @@ from copy import copy
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
-from magma.pipelined.openflow.registers import Trace, PACKET_TRACER_REG
+from magma.pipelined.openflow.registers import TestPacket, TEST_PACKET_REG
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ OVS_COOKIE_MATCH_ALL = 0xffffffff
 
 def add_drop_flow(datapath, table, match, actions=None, instructions=None,
                   priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
-                  idle_timeout=0, hard_timeout=0):
+                  idle_timeout=0, hard_timeout=0, install_trace_flow=True):
     """
     Add a flow to a table that drops the packet
 
@@ -45,6 +45,7 @@ def add_drop_flow(datapath, table, match, actions=None, instructions=None,
         cookie (hex): cookie value for the flow
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
+        install_trace_flow (bool): whether to install the packet-tracing flow
 
     Raises:
         MagmaOFError: if the flow can't be added
@@ -57,17 +58,19 @@ def add_drop_flow(datapath, table, match, actions=None, instructions=None,
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
-    add_trace_packet_drop_flow(datapath, table, match,
-                               instructions=instructions, priority=priority + 1,
-                               retries=retries, cookie=cookie,
-                               idle_timeout=idle_timeout,
-                               hard_timeout=hard_timeout)
+    if install_trace_flow:
+        add_trace_packet_output_flow(datapath, table, match,
+                                     instructions=instructions,
+                                     priority=priority + 1,
+                                     retries=retries, cookie=cookie,
+                                     idle_timeout=idle_timeout,
+                                     hard_timeout=hard_timeout)
 
 
 def add_output_flow(datapath, table, match, actions=None, instructions=None,
                     priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
                     idle_timeout=0, hard_timeout=0, output_port=None,
-                    max_len=None):
+                    max_len=None, install_trace_flow=True):
     """
     Add a flow to a table that sends the packet to the specified port
 
@@ -89,6 +92,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         hard_timeout (int): hard timeout for the flow
         output_port (int): the port to send the packet
         max_len (int): Max length to send to controller
+        install_trace_flow (bool): whether to install the packet-tracing flow
 
     Raises:
         MagmaOFError: if the flow can't be added
@@ -102,18 +106,20 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
-    add_trace_packet_drop_flow(datapath, table, match,
-                               instructions=instructions, priority=priority + 1,
-                               retries=retries, cookie=cookie,
-                               idle_timeout=idle_timeout,
-                               hard_timeout=hard_timeout)
+    if install_trace_flow:
+        add_trace_packet_output_flow(datapath, table, match,
+                                     instructions=instructions,
+                                     priority=priority + 1,
+                                     retries=retries, cookie=cookie,
+                                     idle_timeout=idle_timeout,
+                                     hard_timeout=hard_timeout)
 
 
-def add_trace_packet_drop_flow(datapath, table, match,
-                               instructions=None,
-                               priority=MINIMUM_PRIORITY, retries=3,
-                               cookie=0x0,
-                               idle_timeout=0, hard_timeout=0):
+def add_trace_packet_output_flow(datapath, table, match,
+                                 instructions=None,
+                                 priority=MINIMUM_PRIORITY, retries=3,
+                                 cookie=0x0,
+                                 idle_timeout=0, hard_timeout=0):
     """
     Add a flow to a table that sends the packet to the user-space.
     This is used to trace packets and send the test-packet to the user space.
@@ -141,17 +147,15 @@ def add_trace_packet_drop_flow(datapath, table, match,
         Exception: If the actions contain NXActionResubmitTable.
     """
     trace_match = copy(match)
-    trace_match.update({PACKET_TRACER_REG: Trace.ON.value})
+    trace_match.update({TEST_PACKET_REG: TestPacket.ON.value})
 
     ofproto = datapath.ofproto
-    parser = datapath.ofproto_parser
-    trace_actions = [parser.OFPActionOutput(port=ofproto.OFPP_CONTROLLER,
-                                            max_len=ofproto.OFPCML_NO_BUFFER)]
-    trace_mod = get_add_drop_flow_msg(
-        datapath, table, trace_match, actions=trace_actions,
+    mod = get_add_output_flow_msg(
+        datapath, table, trace_match, actions=[],
         instructions=instructions, priority=priority,
-        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout)
-    messages.send_msg(datapath, trace_mod, retries)
+        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
+        output_port=ofproto.OFPP_CONTROLLER, max_len=ofproto.OFPCML_NO_BUFFER)
+    messages.send_msg(datapath, mod, retries)
 
 
 def add_resubmit_next_service_flow(datapath, table, match, actions=None,

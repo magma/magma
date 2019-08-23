@@ -18,8 +18,8 @@ from magma.pipelined.app.base import MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, IMSI_REG, Trace, \
-    PACKET_TRACER_REG
+from magma.pipelined.openflow.registers import Direction, IMSI_REG, TestPacket,\
+    TEST_PACKET_REG
 
 
 class MeterController(MagmaController):
@@ -90,12 +90,14 @@ class MeterController(MagmaController):
                               priority=flows.MINIMUM_PRIORITY,
                               cookie=self.DEFAULT_FLOW_COOKIE,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              max_len=ofproto.OFPCML_NO_BUFFER)
+                              max_len=ofproto.OFPCML_NO_BUFFER,
+                              install_trace_flow=False)
         flows.add_output_flow(datapath, self.tbl_num, outbound_match, [],
                               priority=flows.MINIMUM_PRIORITY,
                               cookie=self.DEFAULT_FLOW_COOKIE,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              max_len=ofproto.OFPCML_NO_BUFFER)
+                              max_len=ofproto.OFPCML_NO_BUFFER,
+                              install_trace_flow=False)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _install_new_ingress_egress_flows(self, ev):
@@ -103,7 +105,7 @@ class MeterController(MagmaController):
         For every packet not already matched by a flow rule, install a pair of
         flows to track all packets to/from the corresponding IMSI.
         """
-        if ev.msg.match[PACKET_TRACER_REG] == Trace.ON.value:
+        if ev.msg.match[TEST_PACKET_REG] == TestPacket.ON.value:
             return
 
         msg = ev.msg

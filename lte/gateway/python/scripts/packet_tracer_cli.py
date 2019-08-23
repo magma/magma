@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 import fire
@@ -33,11 +34,19 @@ class PacketTracerCLI:
     __BRIDGE_NAME = "gtp_br0"
 
     def dump_ports(self, port=None):
+        if os.geteuid():
+            print('Error: Insufficient permissions. Please run with `venvsudo`')
+            return
+
         command = 'ovs-ofctl dump-ports {} {}'.format(self.__BRIDGE_NAME, port)\
             if port else 'ovs-ofctl dump-ports {}'.format(self.__BRIDGE_NAME)
         print(exec_commandline(command)[1].decode('utf-8'))
 
     def dump_flows(self):
+        if os.geteuid():
+            print('Error: Insufficient permissions. Please run with `venvsudo`')
+            return
+
         flows = exec_commandline('ovs-ofctl dump-flows {}'.format(
             self.__BRIDGE_NAME
         ))[1].decode('utf-8')
@@ -63,7 +72,7 @@ class PacketTracerCLI:
         client = PipelinedStub(chan)
 
         print('Sending: {}'.format(pkt))
-        table_id = client.TracePacket(SerializedRyuPacket(pkt=data))
+        table_id = client.TracePacket(SerializedRyuPacket(pkt=data)).table_id
 
         if table_id == -1:
             print('Successfully passed through all the tables!')
