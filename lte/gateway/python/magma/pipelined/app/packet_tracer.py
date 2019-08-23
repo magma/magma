@@ -171,7 +171,8 @@ class PacketTracingController(MagmaController):
         """
         Receive the table_id which caused the packet to be dropped
         """
-        msg = ev.msg
-        pkt = Packet(data=msg.data)
+        if ev.msg.match[PACKET_TRACER_REG] != Trace.ON.value:
+            return
+        pkt = Packet(data=ev.msg.data)
         self.logger.debug('Tracer received packet: {}'.format(pkt))
-        self.dropped_table[pkt.data] = msg.table_id
+        self.dropped_table[pkt.data] = ev.msg.table_id

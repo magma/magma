@@ -18,7 +18,8 @@ from magma.pipelined.app.base import MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, IMSI_REG
+from magma.pipelined.openflow.registers import Direction, IMSI_REG, Trace, \
+    PACKET_TRACER_REG
 
 
 class MeterController(MagmaController):
@@ -102,6 +103,9 @@ class MeterController(MagmaController):
         For every packet not already matched by a flow rule, install a pair of
         flows to track all packets to/from the corresponding IMSI.
         """
+        if ev.msg.match[PACKET_TRACER_REG] == Trace.ON.value:
+            return
+
         msg = ev.msg
         datapath = msg.datapath
         parser = datapath.ofproto_parser
