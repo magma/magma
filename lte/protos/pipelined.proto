@@ -88,6 +88,7 @@ message AllTableAssignments {
 
 message SerializedRyuPacket {
   bytes pkt = 1;
+  string imsi = 2;
 }
 
 message PacketDropTableId {

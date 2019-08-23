@@ -271,7 +271,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         manager = AppManager.get_instance()
         drop_table_id = manager.applications[PacketTracingController.__name__] \
-            .trace_packet(request.pkt)
+            .trace_packet(request.pkt, request.imsi)
 
         return PacketDropTableId(table_id=drop_table_id)
 

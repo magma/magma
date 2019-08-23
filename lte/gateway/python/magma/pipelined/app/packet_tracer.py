@@ -65,7 +65,7 @@ class PacketTracingController(MagmaController):
                                                priority=DROP_PRIORITY)
             self.drop_flows_installed.add(table)
 
-    def trace_packet(self, packet, timeout=2):
+    def trace_packet(self, packet, imsi, timeout=2):
         """
         Send a packet and wait until it is processed and the dropped_table dict
         shows which table caused a drop.
@@ -77,12 +77,13 @@ class PacketTracingController(MagmaController):
         EventSendPacket which will be handled on the Ryu event-loop thread.
 
         :param packet: bytes of the packet
+        :param imsi: IMSI string (like 001010000000013 or IMSI001010000000013)
         :param timeout: timeout after which to stop waiting for a packet
         :return: table_id which caused the drop or -1 if it wasn't dropped
         """
         assert isinstance(packet, bytes)
         self.logger.debug('Trace packet: {}'.format(Packet(packet)))
-        self.send_event_to_observers(EventSendPacket(pkt=packet))
+        self.send_event_to_observers(EventSendPacket(pkt=packet, imsi=imsi))
 
         start = time.time()
         while packet not in self.dropped_table:
@@ -146,6 +147,7 @@ class PacketTracingController(MagmaController):
         self.install_drop_flows()
 
         pkt = ev.packet
+        imsi = ev.imsi
         if isinstance(pkt, (bytes, bytearray)):
             data = bytearray(pkt)
         elif isinstance(pkt, Packet):
@@ -163,9 +165,9 @@ class PacketTracingController(MagmaController):
             # Turn on test-packet as we're just tracing it
             ofp_parser.NXActionRegLoad2(dst=TEST_PACKET_REG,
                                         value=TestPacket.ON.value),
-            # Random IMSI so that the packet can pass through imsi match table
+            # Add IMSI metadata
             ofp_parser.NXActionRegLoad2(dst=IMSI_REG,
-                                        value=encode_imsi('001010000000013')),
+                                        value=encode_imsi(imsi)),
             # Submit to table=0 because otherwise the packet will be dropped!
             ofp_parser.NXActionResubmitTable(table_id=0),
         ]
