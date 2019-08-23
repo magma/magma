@@ -86,6 +86,14 @@ message AllTableAssignments {
   repeated TableAssignment table_assignments = 1;
 }
 
+message SerializedRyuPacket {
+  bytes pkt = 1;
+}
+
+message PacketDropTableId {
+  int32 table_id = 1;
+}
+
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
@@ -126,6 +134,16 @@ service Pipelined {
 
   // Add a flow for a subscriber by matching the provided UE MAC address
   rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
+
+
+  // ------------------
+  // Packet tracer App:
+  // ------------------
+
+  // Initiate a packet send through the switch which will report the
+  // table_id that caused a failure in the end
+  rpc TracePacket (SerializedRyuPacket) returns (PacketDropTableId) {}
+
 
   // --------
   // Debugging:

@@ -7,15 +7,18 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 import logging
+from copy import copy
 
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
+from magma.pipelined.openflow.registers import Trace, PACKET_TRACER_REG
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_PRIORITY = 10
-MINIMUM_PRIORITY = 0
+DROP_PRIORITY = 0
+MINIMUM_PRIORITY = 1
 MAXIMUM_PRIORITY = 65535
 OVS_COOKIE_MATCH_ALL = 0xffffffff
 
@@ -53,6 +56,12 @@ def add_drop_flow(datapath, table, match, actions=None, instructions=None,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
+
+    add_trace_packet_drop_flow(datapath, table, match,
+                               instructions=instructions, priority=priority + 1,
+                               retries=retries, cookie=cookie,
+                               idle_timeout=idle_timeout,
+                               hard_timeout=hard_timeout)
 
 
 def add_output_flow(datapath, table, match, actions=None, instructions=None,
@@ -92,6 +101,57 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         output_port=output_port, max_len=max_len)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
+
+    add_trace_packet_drop_flow(datapath, table, match,
+                               instructions=instructions, priority=priority + 1,
+                               retries=retries, cookie=cookie,
+                               idle_timeout=idle_timeout,
+                               hard_timeout=hard_timeout)
+
+
+def add_trace_packet_drop_flow(datapath, table, match,
+                               instructions=None,
+                               priority=MINIMUM_PRIORITY, retries=3,
+                               cookie=0x0,
+                               idle_timeout=0, hard_timeout=0):
+    """
+    Add a flow to a table that sends the packet to the user-space.
+    This is used to trace packets and send the test-packet to the user space.
+    This flow should be installed to send the packet to the user-space instead
+    of dropping it if the packet is a test-packet.
+    PacketTracingController will handle the rest.
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow excluding trace bit match
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        retries (int): Number of times to retry pushing the flow on failure
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+
+    Raises:
+        MagmaOFError: if the flow can't be added
+        Exception: If the actions contain NXActionResubmitTable.
+    """
+    trace_match = copy(match)
+    trace_match.update({PACKET_TRACER_REG: Trace.ON.value})
+
+    ofproto = datapath.ofproto
+    parser = datapath.ofproto_parser
+    trace_actions = [parser.OFPActionOutput(port=ofproto.OFPP_CONTROLLER,
+                                            max_len=ofproto.OFPCML_NO_BUFFER)]
+    trace_mod = get_add_drop_flow_msg(
+        datapath, table, trace_match, actions=trace_actions,
+        instructions=instructions, priority=priority,
+        cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout)
+    messages.send_msg(datapath, trace_mod, retries)
 
 
 def add_resubmit_next_service_flow(datapath, table, match, actions=None,

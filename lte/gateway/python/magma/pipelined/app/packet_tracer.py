@@ -1,0 +1,125 @@
+import logging
+import time
+
+from eventlet import queue
+from magma.pipelined.app.base import MagmaController
+from magma.pipelined.openflow import flows
+from magma.pipelined.openflow.events import EventSendPacket
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.registers import Trace, PACKET_TRACER_REG
+from ryu.app.ofctl.api import get_datapath
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER
+from ryu.controller.handler import set_ev_cls
+from ryu.lib import hub
+from ryu.lib.packet.packet import Packet
+
+
+class PacketTracingController(MagmaController):
+    APP_NAME = "packet_tracer"
+    _EVENTS = [EventSendPacket]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._datapath = None
+        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+        self.next_table = self._service_manager.get_next_table_num(
+            self.APP_NAME
+        )
+        self.dropped_table = {}
+
+    def initialize_on_connect(self, datapath):
+        self._datapath = datapath
+
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                                             match=MagmaMatch(),
+                                             priority=flows.MINIMUM_PRIORITY,
+                                             resubmit_table=self.next_table)
+
+    def trace_packet(self, packet):
+        """
+        Send a packet and wait until it is processed and the dropped_table dict
+        shows which table caused a drop
+        :param packet: bytes of the packet
+        :return: table_id which caused the drop
+        """
+        assert isinstance(packet, bytes)
+        self.dropped_table[packet] = None
+        self.send_event_to_observers(EventSendPacket(pkt=packet))
+
+        while self.dropped_table[packet] is None:
+            time.sleep(0.1)
+        table_id = self.dropped_table[packet]
+        del self.dropped_table[packet]
+        return table_id
+
+    def cleanup_on_disconnect(self, datapath):
+        assert self._datapath.id == datapath.id
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+
+    def _event_loop(self):
+        """
+        Override the event loop because it was getting stuck with no timeout
+        The only difference from the base _event_loop is that
+        we set a timeout on receiving an event and continue
+        if the queue is empty
+        """
+        LOG = logging.getLogger('ryu.base.app_manager')
+        while self.is_active or not self.events.empty():
+            try:
+                ev, state = self.events.get(timeout=0.1)
+            except queue.Empty:
+                continue
+
+            self._events_sem.release()
+            if ev == self._event_stop:
+                continue
+            handlers = self.get_handlers(ev, state)
+            for handler in handlers:
+                # noinspection PyBroadException
+                try:
+                    handler(ev)
+                except hub.TaskExit:
+                    # Normal exit.
+                    # Propagate upwards, so we leave the event loop.
+                    raise
+                except Exception:
+                    LOG.exception(
+                        '%s: Exception occurred during handler processing. '
+                        'Backtrace from offending handler '
+                        '[%s] servicing event [%s] follows.',
+                        self.name, handler.__name__, ev.__class__.__name__)
+
+    @set_ev_cls(EventSendPacket)
+    def send_packet(self, ev):
+        pkt = ev.packet
+        if isinstance(pkt, (bytes, bytearray)):
+            data = bytearray(pkt)
+        elif isinstance(pkt, Packet):
+            pkt.serialize()
+            data = pkt.data
+        else:
+            raise ValueError('Could not handle packet of type: '
+                             '{}'.format(type(pkt)))
+
+        datapath = get_datapath(self, dpid=self._datapath.id)
+        ofp = datapath.ofproto
+        ofp_parser = datapath.ofproto_parser
+        actions = [
+            ofp_parser.NXActionRegLoad2(dst=PACKET_TRACER_REG,
+                                        value=Trace.ON.value),
+            ofp_parser.NXActionResubmitTable(table_id=0),
+        ]
+        datapath.send_packet_out(in_port=ofp.OFPP_LOCAL,
+                                 actions=actions,
+                                 data=data)
+
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    def handle_packet_in_user_space(self, ev):
+        """
+        Receive the table_id which caused the packet to be dropped
+        """
+        msg = ev.msg
+        pkt = Packet(data=msg.data)
+        self.dropped_table[pkt.data] = msg.table_id
