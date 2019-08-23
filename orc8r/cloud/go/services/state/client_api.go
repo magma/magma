@@ -103,6 +103,10 @@ func GetState(networkID string, typeVal string, hwID string) (State, error) {
 
 // GetStates returns a map of states specified by the networkID and a list of type and key
 func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) {
+	if len(stateIDs) == 0 {
+		return map[StateID]State{}, nil
+	}
+
 	client, err := GetStateClient()
 	if err != nil {
 		return nil, err

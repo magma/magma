@@ -28,9 +28,15 @@ const (
 	ManageNetworkDNSRecordsPath        = ManageNetworkDNSPath + obsidian.UrlSep + "records"
 	ManageNetworkDNSRecordByDomainPath = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
 
-	Gateways          = "gateways"
-	ListGatewaysPath  = ManageNetworkPath + obsidian.UrlSep + Gateways
-	ManageGatewayPath = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	Gateways                     = "gateways"
+	ListGatewaysPath             = ManageNetworkPath + obsidian.UrlSep + Gateways
+	ManageGatewayPath            = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	ManageGatewayNamePath        = ManageGatewayPath + obsidian.UrlSep + "name"
+	ManageGatewayDescriptionPath = ManageGatewayPath + obsidian.UrlSep + "description"
+	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
+	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
+	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "state"
+	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
 )
 
 // GetObsidianHandlers returns all plugin-level obsidian handlers for orc8r
@@ -54,6 +60,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: GetGatewayHandler},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: UpdateGatewayHandler},
 		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: DeleteGatewayHandler},
+		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: GetStateHandler},
 	}
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)
@@ -61,5 +68,11 @@ func GetObsidianHandlers() []obsidian.Handler {
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(models2.NetworkDNSRecords), "")...)
+
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayConfigPath, &models2.MagmadGatewayConfigs{})...)
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayTierPath, new(models2.TierID))...)
+	ret = append(ret, GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
 	return ret
 }

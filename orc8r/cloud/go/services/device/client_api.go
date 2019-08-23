@@ -111,6 +111,9 @@ func GetDevice(networkID, deviceType, deviceKey string) (interface{}, error) {
 }
 
 func GetDevices(networkID string, deviceType string, deviceIDs []string) (map[string]interface{}, error) {
+	if len(deviceIDs) == 0 {
+		return map[string]interface{}{}, nil
+	}
 	client, err := getDeviceClient()
 	if err != nil {
 		return nil, err
