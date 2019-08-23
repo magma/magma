@@ -54,6 +54,7 @@ const (
 	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
 	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
 	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "state"
+	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -74,6 +75,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
+		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 	}
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
@@ -84,6 +86,12 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &ltemodels.NetworkEpcConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &ltemodels.NetworkRanConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(ltemodels.FegNetworkID), "")...)
+
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rmodels.TierID))...)
+	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
 	return ret
 }
 
@@ -233,7 +241,6 @@ func listGateways(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 	}
-
 	return c.JSON(http.StatusOK, makeLTEGateways(entsByTK, devicesByID, statusesByID))
 }
 
