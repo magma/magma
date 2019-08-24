@@ -8,6 +8,7 @@
     "start": "yarn run start:dev",
     "start:dev": "nodemon scripts/server",
     "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
+    "migrate": "node -r @fbcnms/babel-register scripts/migrate.js",
     "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js"
   },
   "dependencies": {
