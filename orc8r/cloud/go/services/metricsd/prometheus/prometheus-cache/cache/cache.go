@@ -41,6 +41,7 @@ type MetricCache struct {
 	limit                int
 	stats                cacheStats
 	sync.Mutex
+	scrapeTimeout int
 }
 
 type cacheStats struct {
@@ -57,7 +58,7 @@ type cacheStats struct {
 	currentCountDatapoints int
 }
 
-func NewMetricCache(limit int) *MetricCache {
+func NewMetricCache(limit int, scrapeTimeout int) *MetricCache {
 	if limit > 0 {
 		glog.Infof("Prometheus-Cache created with a limit of %d\n", limit)
 	} else {
@@ -74,6 +75,7 @@ func NewMetricCache(limit int) *MetricCache {
 		metricFamiliesByName: make(map[string]*familyAndMetrics),
 		internalMetrics:      internalMetrics,
 		limit:                limit,
+		scrapeTimeout:        scrapeTimeout,
 	}
 }
 
@@ -151,7 +153,7 @@ func (c *MetricCache) clearMetrics() {
 func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMetrics, workers int) string {
 	fams := make(chan *familyAndMetrics, workers)
 	results := make(chan string, workers)
-	respStr := make(chan string, 1)
+	respStrChannel := make(chan string, 1)
 
 	waitGroup := &sync.WaitGroup{}
 
@@ -160,7 +162,7 @@ func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMe
 		go processFamilyWorker(fams, results, waitGroup)
 	}
 
-	go processFamilyStringsWorker(results, respStr)
+	go processFamilyStringsWorker(results, respStrChannel)
 
 	for _, fam := range metricFamiliesByName {
 		fams <- fam
@@ -170,7 +172,12 @@ func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMe
 	waitGroup.Wait()
 	close(results)
 
-	return <-respStr
+	select {
+	case respStr := <-respStrChannel:
+		return respStr
+	case <-time.After(time.Duration(c.scrapeTimeout) * time.Second):
+		return ""
+	}
 }
 
 func processFamilyWorker(fams <-chan *familyAndMetrics, results chan<- string, waitGroup *sync.WaitGroup) {

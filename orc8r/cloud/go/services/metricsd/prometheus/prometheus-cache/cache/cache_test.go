@@ -55,7 +55,7 @@ var (
 )
 
 func TestReceiveMetrics(t *testing.T) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	resp, err := receiveString(cache, sampleReceiveString)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.Code)
@@ -66,7 +66,7 @@ func TestReceiveMetrics(t *testing.T) {
 }
 
 func TestReceiveOverLimit(t *testing.T) {
-	cache := NewMetricCache(1)
+	cache := NewMetricCache(1, 10)
 	resp, err := receiveString(cache, sampleReceiveString)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNotAcceptable, resp.Code)
@@ -76,7 +76,7 @@ func TestReceiveOverLimit(t *testing.T) {
 }
 
 func TestReceiveBadMetrics(t *testing.T) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	resp, _ := receiveString(cache, "bad metric string")
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 }
@@ -91,7 +91,7 @@ func receiveString(cache *MetricCache, receiveString string) (*httptest.Response
 }
 
 func TestScrape(t *testing.T) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	_, err := receiveString(cache, sampleReceiveString)
 	assert.NoError(t, err)
 
@@ -124,7 +124,7 @@ func TestScrapeBadMetrics(t *testing.T) {
 }
 
 func TestDebugEndpoint(t *testing.T) {
-	cache := NewMetricCache(20)
+	cache := NewMetricCache(20, 10)
 	_, err := receiveString(cache, sampleReceiveString)
 	assert.NoError(t, err)
 
@@ -154,7 +154,7 @@ func TestCacheMetrics(t *testing.T) {
 }
 
 func cacheSingleFamily(t *testing.T, metricsInFamily int) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	mf := makeFamily(dto.MetricType_GAUGE, "metricA", metricsInFamily, testLabels, timestamp)
 	metrics := map[string]*dto.MetricFamily{"metricA": mf}
 
@@ -170,7 +170,7 @@ func cacheSingleFamily(t *testing.T, metricsInFamily int) {
 }
 
 func cacheMultipleFamilies(t *testing.T) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	mf1 := makeFamily(dto.MetricType_GAUGE, "mf1", 5, testLabels, timestamp)
 	mf2 := makeFamily(dto.MetricType_GAUGE, "mf2", 10, testLabels, timestamp)
 	metrics := map[string]*dto.MetricFamily{"mf1": mf1, "mf2": mf2}
@@ -194,7 +194,7 @@ func cacheMultipleFamilies(t *testing.T) {
 }
 
 func cacheMultipleSeries(t *testing.T) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	mf1 := makeFamily(dto.MetricType_GAUGE, "mf1", 1, testLabels, timestamp)
 	mf2 := makeFamily(dto.MetricType_GAUGE, "mf1", 1, []*dto.LabelPair{}, timestamp)
 	mf1Map := map[string]*dto.MetricFamily{"mf1": mf1}
@@ -210,7 +210,7 @@ func cacheMultipleSeries(t *testing.T) {
 }
 
 func assertTimestampsSortedProperly(t *testing.T) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	counterValues := []float64{123, 234, 456}
 	counterTimes := []int64{1, 2, 3}
 	counter1 := dto.Counter{
@@ -252,7 +252,7 @@ mf1 456 3
 }
 
 func assertWorkerPoolHandlesError(t *testing.T) {
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 	counterValues := []float64{123, 234, 456}
 	counterTimes := []int64{1, 2, 3}
 	counter1 := dto.Counter{
