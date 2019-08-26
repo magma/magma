@@ -1287,7 +1287,6 @@ static int _emm_cn_cs_domain_mm_information_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-//------------------------------------------------------------------------------
 static int _emm_cn_pdn_disconnect_rsp(
   emm_cn_pdn_disconnect_rsp_t *msg)
 {
@@ -1472,5 +1471,3 @@ int emm_cn_send(const emm_cn_t *msg)
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
-
-

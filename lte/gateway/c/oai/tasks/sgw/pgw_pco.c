@@ -311,7 +311,6 @@ int pgw_process_pco_link_mtu_request(
   return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 }
 
-//------------------------------------------------------------------------------
 int pgw_process_pco_pcscf_ip_address_req(
   protocol_configuration_options_t *const pco_resp,
   const pco_protocol_or_container_id_t *const poc_id)
