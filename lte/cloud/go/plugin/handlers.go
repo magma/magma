@@ -46,15 +46,20 @@ const (
 	ManageNetworkCellularRanPath       = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
 	ManageNetworkCellularFegNetworkID  = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
 
-	Gateways                     = "gateways"
-	ListGatewaysPath             = ManageNetworkPath + obsidian.UrlSep + Gateways
-	ManageGatewayPath            = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
-	ManageGatewayNamePath        = ManageGatewayPath + obsidian.UrlSep + "name"
-	ManageGatewayDescriptionPath = ManageGatewayPath + obsidian.UrlSep + "description"
-	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
-	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
-	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "state"
-	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
+	Gateways                         = "gateways"
+	ListGatewaysPath                 = ManageNetworkPath + obsidian.UrlSep + Gateways
+	ManageGatewayPath                = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	ManageGatewayNamePath            = ManageGatewayPath + obsidian.UrlSep + "name"
+	ManageGatewayDescriptionPath     = ManageGatewayPath + obsidian.UrlSep + "description"
+	ManageGatewayConfigPath          = ManageGatewayPath + obsidian.UrlSep + "magmad"
+	ManageGatewayDevicePath          = ManageGatewayPath + obsidian.UrlSep + "device"
+	ManageGatewayStatePath           = ManageGatewayPath + obsidian.UrlSep + "state"
+	ManageGatewayTierPath            = ManageGatewayPath + obsidian.UrlSep + "tier"
+	ManageGatewayCellularPath        = ManageGatewayPath + obsidian.UrlSep + "cellular"
+	ManageGatewayCellularEpcPath     = ManageGatewayCellularPath + obsidian.UrlSep + "epc"
+	ManageGatewayCellularRanPath     = ManageGatewayCellularPath + obsidian.UrlSep + "ran"
+	ManageGatewayCellularNonEpsPath  = ManageGatewayCellularPath + obsidian.UrlSep + "non_eps"
+	ManageGatewayCellularEnodebsPath = ManageGatewayCellularPath + obsidian.UrlSep + "connected_enodeb_serial"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -92,6 +97,11 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rmodels.TierID))...)
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularPath, &ltemodels.GatewayCellularConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEpcPath, &ltemodels.GatewayEpcConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &ltemodels.GatewayRanConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &ltemodels.GatewayNonEpsConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEnodebsPath, &ltemodels.EnodebSerials{})...)
 	return ret
 }
 

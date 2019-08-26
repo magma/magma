@@ -1134,6 +1134,329 @@ func TestDeleteGateway(t *testing.T) {
 	assert.Equal(t, &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, actualDevice)
 }
 
+func TestGetCellularGatewayConfig(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/gateways/:gateway_id"
+	handlers := plugin2.GetHandlers()
+	getCellular := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular", testURLRoot), obsidian.GET).HandlerFunc
+	getEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.GET).HandlerFunc
+	getRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.GET).HandlerFunc
+	getNonEps := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/non_eps", testURLRoot), obsidian.GET).HandlerFunc
+	getEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/connected_enodeb_serial", testURLRoot), obsidian.GET).HandlerFunc
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebType, Key: "enb2"},
+			{
+				Type: lte.CellularGatewayType, Key: "g1",
+				Config: newDefaultGatewayConfig(),
+				Associations: []storage.TypeAndKey{
+					{Type: lte.CellularEnodebType, Key: "enb1"},
+					{Type: lte.CellularEnodebType, Key: "enb2"},
+				},
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID:   "hw1",
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	// 404
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/cellular", testURLRoot),
+		Handler:        getCellular,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g2"},
+		ExpectedResult: newDefaultGatewayConfig(),
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/cellular", testURLRoot),
+		Handler:        getCellular,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedResult: newDefaultGatewayConfig(),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/cellular/epc", testURLRoot),
+		Handler:        getEpc,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedResult: newDefaultGatewayConfig().Epc,
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/cellular/ran", testURLRoot),
+		Handler:        getRan,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedResult: newDefaultGatewayConfig().Ran,
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/cellular/non_eps", testURLRoot),
+		Handler:        getNonEps,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedResult: newDefaultGatewayConfig().NonEpsService,
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/cellular/connected_enodeb_serial", testURLRoot),
+		Handler:        getEnodebs,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedResult: tests.JSONMarshaler([]string{"enb1", "enb2"}),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateCellularGatewayConfig(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/gateways/:gateway_id"
+	handlers := plugin2.GetHandlers()
+	updateCellular := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular", testURLRoot), obsidian.PUT).HandlerFunc
+	updateEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.PUT).HandlerFunc
+	updateRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.PUT).HandlerFunc
+	updateNonEps := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/non_eps", testURLRoot), obsidian.PUT).HandlerFunc
+	updateEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/connected_enodeb_serial", testURLRoot), obsidian.PUT).HandlerFunc
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebType, Key: "enb2"},
+			{Type: lte.CellularGatewayType, Key: "g1"},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Associations: []storage.TypeAndKey{{Type:lte.CellularGatewayType, Key: "g1"}},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/cellular", testURLRoot),
+		Handler:        updateCellular,
+		Payload:        newDefaultGatewayConfig(),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected := map[storage.TypeAndKey]configurator.NetworkEntity{
+		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			GraphID:      "6",
+			Version:      0,
+		},
+		storage.TypeAndKey{Type: lte.CellularGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayType, Key: "g1",
+			Config:  newDefaultGatewayConfig(),
+			GraphID: "6",
+			Version: 1,
+		},
+	}
+
+	entities, _, err := configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.ToEntitiesByID())
+
+	modifiedCellularConfig := newDefaultGatewayConfig()
+	modifiedCellularConfig.Epc.NatEnabled = swag.Bool(false)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/cellular/epc", testURLRoot),
+		Handler:        updateEpc,
+		Payload:        modifiedCellularConfig.Epc,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			GraphID:      "6",
+			Version:      0,
+		},
+		storage.TypeAndKey{Type: lte.CellularGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayType, Key: "g1",
+			Config:  modifiedCellularConfig,
+			GraphID: "6",
+			Version: 2,
+		},
+	}
+	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.ToEntitiesByID())
+
+	modifiedCellularConfig.Ran.TransmitEnabled = swag.Bool(false)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/cellular/ran", testURLRoot),
+		Handler:        updateRan,
+		Payload:        modifiedCellularConfig.Ran,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			GraphID:      "6",
+			Version:      0,
+		},
+		storage.TypeAndKey{Type: lte.CellularGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayType, Key: "g1",
+			Config:  modifiedCellularConfig,
+			GraphID: "6",
+			Version: 3,
+		},
+	}
+	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.ToEntitiesByID())
+
+	// validation failure
+	modifiedCellularConfig.NonEpsService.CsfbMcc = "0"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/cellular/ran", testURLRoot),
+		Handler:        updateNonEps,
+		Payload:        modifiedCellularConfig.NonEpsService,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "validation failure list:\ncsfb_mcc in body should match '^(\\d{3})$'",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case
+	modifiedCellularConfig.NonEpsService.CsfbMcc = "123"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/cellular/ran", testURLRoot),
+		Handler:        updateNonEps,
+		Payload:        modifiedCellularConfig.NonEpsService,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			GraphID:      "6",
+			Version:      0,
+		},
+		storage.TypeAndKey{Type: lte.CellularGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayType, Key: "g1",
+			Config:  modifiedCellularConfig,
+			GraphID: "6",
+			Version: 4,
+		},
+	}
+	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.ToEntitiesByID())
+
+	// happy case
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            fmt.Sprintf("%s/cellular/connected_enodeb_serial", testURLRoot),
+		Handler:        updateEnodebs,
+		Payload:        tests.JSONMarshaler([]string{"enb1", "enb2"}),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			GraphID:      "2",
+			Version:      0,
+		},
+		storage.TypeAndKey{Type: lte.CellularGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayType, Key: "g1",
+			Config:  modifiedCellularConfig,
+			GraphID: "2",
+			Version: 5,
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebType, Key: "enb1"},
+				{Type: lte.CellularEnodebType, Key: "enb2"},
+			},
+		},
+	}
+	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.ToEntitiesByID())
+}
+
 // n1, n3 are lte networks, n2 is not
 func seedNetworks(t *testing.T) {
 	_, err := configurator.CreateNetworks(
