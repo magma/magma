@@ -26,7 +26,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "common_defs.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
@@ -101,13 +100,6 @@ int lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring *nas_msg)
         (char *const) emm_sap.u.emm_reg.u.ll_success.msg_digest,
         &emm_sap.u.emm_reg.u.ll_success.digest_len);
     }
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_MME,
-      NULL,
-      0,
-      "EMMREG_LOWERLAYER_SUCCESS ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     rc = emm_sap_send(&emm_sap);
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -157,13 +149,6 @@ int lowerlayer_failure(mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring *nas_msg)
         (char *const) emm_sap.u.emm_reg.u.ll_failure.msg_digest,
         &emm_sap.u.emm_reg.u.ll_failure.digest_len);
     }
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_MME,
-      NULL,
-      0,
-      "EMMREG_LOWERLAYER_FAILURE ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     rc = emm_sap_send(&emm_sap);
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -212,13 +197,6 @@ int lowerlayer_non_delivery_indication(
         (char *const) emm_sap.u.emm_reg.u.non_delivery_ho.msg_digest,
         &emm_sap.u.emm_reg.u.non_delivery_ho.digest_len);
     }
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_MME,
-      NULL,
-      0,
-      "EMMREG_LOWERLAYER_NON_DELIVERY ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     rc = emm_sap_send(&emm_sap);
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -283,13 +261,6 @@ int lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause)
     OAILOG_INFO(LOG_NAS_EMM, "Unknown ue id " MME_UE_S1AP_ID_FMT "\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "EMMREG_LOWERLAYER_RELEASE ue id " MME_UE_S1AP_ID_FMT " ",
-    emm_sap.u.emm_reg.ue_id);
   rc = emm_sap_send(&emm_sap);
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -303,7 +274,7 @@ int lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause)
  **      been received from lower layers                           **
  **                                                                        **
  ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      data:      Data transfered from lower layers          **
+ **      data:      Data transferred from lower layers          **
  **      Others:    None                                       **
  **                                                                        **
  ** Outputs:     None                                                      **
@@ -336,10 +307,10 @@ int lowerlayer_data_ind(mme_ue_s1ap_id_t ue_id, const_bstring data)
  ** Name:    lowerlayer_data_req()                                     **
  **                                                                        **
  ** Description: Notify the EPS Mobility Management entity that data have  **
- **      to be transfered to lower layers                          **
+ **      to be transferred to lower layers                          **
  **                                                                        **
  ** Inputs:  ue_id:      UE lower layer identifier                  **
- **          data:      Data to be transfered to lower layers      **
+ **          data:      Data to be transferred to lower layers      **
  **      Others:    None                                       **
  **                                                                        **
  ** Outputs:     None                                                      **
@@ -371,13 +342,6 @@ int lowerlayer_data_req(mme_ue_s1ap_id_t ue_id, bstring data)
    * Setup EPS NAS security data
    */
   emm_as_set_security_data(&emm_sap.u.emm_as.u.data.sctx, sctx, false, true);
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "EMMAS_DATA_REQ  (STATUS) ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_id);
   rc = emm_sap_send(&emm_sap);
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -419,17 +383,6 @@ int lowerlayer_activate_bearer_req(
    */
   emm_as_set_security_data(
     &emm_sap.u.emm_as.u.activate_bearer_context_req.sctx, sctx, false, true);
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "EMMAS_ERAB_SETUP_REQ  (STATUS) ue id " MME_UE_S1AP_ID_FMT
-    " ebi %u gbr_dl %" PRIu64 " gbr_ul %" PRIu64 " ",
-    ue_id,
-    ebi,
-    emm_sap.u.emm_as.u.activate_bearer_context_req.gbr_dl,
-    emm_sap.u.emm_as.u.activate_bearer_context_req.gbr_ul);
   rc = emm_sap_send(&emm_sap);
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -463,15 +416,6 @@ int lowerlayer_deactivate_bearer_req(
    */
   emm_as_set_security_data(
     &emm_sap.u.emm_as.u.deactivate_bearer_context_req.sctx, sctx, false, true);
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_EMM_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "EMMAS_ERAB_SETUP_REQ  (STATUS) ue id " MME_UE_S1AP_ID_FMT
-    " ebi %u gbr_dl %" PRIu64 " gbr_ul %" PRIu64 " ",
-    ue_id,
-    ebi);
   rc = emm_sap_send(&emm_sap);
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -524,7 +468,7 @@ void emm_as_set_security_data(
      * * * * NAS signalling messages with the selected NAS ciphering and
      * * * * NAS integrity algorithms
      */
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "EPS security context exists is new %u KSI %u SQN %u count %u\n",
       is_new,
@@ -576,7 +520,7 @@ void emm_as_set_security_data(
       memcpy(data->knas_enc, context->knas_enc, sizeof(data->knas_enc));
     }
   } else {
-    OAILOG_DEBUG(LOG_NAS_EMM, "NO Valid Security Context Available\n");
+    OAILOG_WARNING(LOG_NAS_EMM, "NO Valid Security Context Available\n");
     /*
      * No valid EPS security context exists
      */

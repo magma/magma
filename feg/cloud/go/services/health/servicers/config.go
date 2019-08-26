@@ -9,9 +9,9 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	fegcfg "magma/feg/cloud/go/services/controller/config"
-	cfgprotos "magma/feg/cloud/go/services/controller/protos"
-	orc8rcfg "magma/orc8r/cloud/go/services/config"
+	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/services/controller/obsidian/models"
+	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/glog"
 )
@@ -31,38 +31,38 @@ func GetHealthConfigForNetwork(networkID string) *healthConfig {
 		memAvailableThreshold: defaultMemAvailableThreshold,
 		staleUpdateThreshold:  defaultStaleUpdateThreshold,
 	}
-	config, err := orc8rcfg.GetConfig(networkID, fegcfg.FegNetworkType, networkID)
+	config, err := configurator.GetNetworkConfigsByType(networkID, feg.FegNetworkType)
 	if err != nil {
 		glog.V(2).Infof("Using default health configuration for network %s; %s", networkID, err)
 		return defaultConfig
 	}
-	cloudFegConfig, ok := config.(*cfgprotos.Config)
+	cloudFegConfig, ok := config.(*models.NetworkFederationConfigs)
 	if !ok {
 		glog.V(2).Infof("Using default health configuration for network %s; Invalid config format", networkID)
 		return defaultConfig
 	}
-	healthParams := cloudFegConfig.GetHealth()
+	healthParams := cloudFegConfig.Health
 	if healthParams == nil {
 		glog.V(2).Infof("Using default health configuration for network %s; Health config not found", networkID)
 		return defaultConfig
 	}
-	if healthParams.GetCpuUtilizationThreshold() == 0 {
+	if healthParams.CPUUtilizationThreshold == 0 {
 		glog.V(2).Infof("Using default health configuration for network %s; Cpu utilization threshold cannot be 0", networkID)
 		return defaultConfig
 	}
-	if healthParams.GetMemoryAvailableThreshold() == 0 {
+	if healthParams.MemoryAvailableThreshold == 0 {
 		glog.V(2).Infof("Using default health configuration for network %s; Memory available threshold cannot be 0", networkID)
 		return defaultConfig
 	}
-	staleUpdateThreshold := healthParams.GetUpdateFailureThreshold() * healthParams.GetUpdateIntervalSecs()
+	staleUpdateThreshold := healthParams.UpdateFailureThreshold * healthParams.UpdateIntervalSecs
 	if staleUpdateThreshold == 0 {
 		glog.V(2).Infof("Using default health configuration for network %s; Stale update threshold cannot be 0", networkID)
 		return defaultConfig
 	}
 	return &healthConfig{
-		services:              healthParams.GetHealthServices(),
-		cpuUtilThreshold:      healthParams.GetCpuUtilizationThreshold(),
-		memAvailableThreshold: healthParams.GetMemoryAvailableThreshold(),
+		services:              healthParams.HealthServices,
+		cpuUtilThreshold:      healthParams.CPUUtilizationThreshold,
+		memAvailableThreshold: healthParams.MemoryAvailableThreshold,
 		staleUpdateThreshold:  staleUpdateThreshold,
 	}
 }

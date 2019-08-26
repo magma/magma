@@ -41,7 +41,6 @@
 #include "common_defs.h"
 #include "emm_esmDef.h"
 #include "esm_data.h"
-#include "msc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -120,8 +119,11 @@ int esm_proc_default_eps_bearer_context(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-PROC  - Default EPS bearer context activation "
-    "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d,  QCI %u)\n",
-    ue_id,
+    "(ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    ue_id);
+  OAILOG_DEBUG(
+    LOG_NAS_ESM,
+    "(pid=%d,  QCI %u)\n",
     pid,
     qci);
   /*
@@ -152,11 +154,12 @@ int esm_proc_default_eps_bearer_context(
       /*
        * No resource available
        */
-      OAILOG_WARNING(
+      OAILOG_ERROR(
         LOG_NAS_ESM,
         "ESM-PROC  - Failed to create new default EPS "
-        "bearer context (ebi=%d)\n",
-        *ebi);
+        "bearer context (ebi=%d) for ue_id (%u)\n",
+        *ebi,
+        ue_id);
       *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
@@ -164,8 +167,9 @@ int esm_proc_default_eps_bearer_context(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
-  OAILOG_WARNING(
-    LOG_NAS_ESM, "ESM-PROC  - Failed to assign new EPS bearer context\n");
+  OAILOG_ERROR(
+    LOG_NAS_ESM, "ESM-PROC  - Failed to assign new EPS bearer context for ue_id (%u)\n",
+    ue_id);
   *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
 }
@@ -605,13 +609,6 @@ static int _default_eps_bearer_activate(
    * Notify EMM that an activate default EPS bearer context request message
    * has to be sent to the UE
    */
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMESM_UNITDATA_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_id);
   emm_esm_data_t *emm_esm = &emm_sap.u.emm_esm.u.data;
 
   emm_sap.primitive = EMMESM_UNITDATA_REQ;
@@ -672,13 +669,6 @@ static int _default_eps_bearer_activate_in_bearer_setup_req(
    * Notify EMM that an activate default EPS bearer context request message
    * has to be sent to the UE
    */
-  MSC_LOG_TX_MESSAGE(
-    MSC_NAS_ESM_MME,
-    MSC_NAS_EMM_MME,
-    NULL,
-    0,
-    "0 EMMESM_UNITDATA_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_id);
   emm_esm_activate_bearer_req_t *emm_esm_activate =
     &emm_sap.u.emm_esm.u.activate_bearer;
 

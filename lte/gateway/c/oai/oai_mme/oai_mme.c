@@ -32,14 +32,11 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "mme_config.h"
-#include "daemonize.h"
 #include "shared_ts_log.h"
 
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
-#include "udp_primitives_server.h"
 #include "s1ap_mme.h"
 #include "mme_app_extern.h"
 #include "nas_defs.h"
@@ -85,16 +82,9 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
 
-#if DAEMONIZE
-  daemon_start();
-#endif /* DAEMONIZE */
-
   pid_file_name = get_pid_file_name(mme_config.pid_dir);
 
   if (!pid_file_lock(pid_file_name)) {
-#if DAEMONIZE
-    daemon_stop();
-#endif /* DAEMONIZE */
     exit(-EDEADLK);
   }
   free_wrapper((void **) &pid_file_name);
@@ -104,7 +94,6 @@ int main(int argc, char *argv[])
    */
   // Intialize loggers and configured log levels.
   OAILOG_LOG_CONFIGURE(&mme_config.log_config);
-  MSC_INIT(MSC_MME, THREAD_MAX + TASK_MAX);
   CHECK_INIT_RETURN(service303_init(&(mme_config.service303_config)));
 
   // Service started, but not healthy yet
@@ -113,7 +102,6 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
   CHECK_INIT_RETURN(nas_init(&mme_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
-  CHECK_INIT_RETURN(udp_init());
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(sgw_init(&spgw_config));
   CHECK_INIT_RETURN(pgw_init(&spgw_config));

@@ -104,6 +104,9 @@ typedef struct emm_security_context_s {
   uint8_t activated;
   uint8_t direction_encode; // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
   uint8_t direction_decode; // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
+  // security keys for HO
+  uint8_t next_hop[AUTH_NEXT_HOP_SIZE]; /* Next HOP security parameter */
+  uint8_t next_hop_chaining_count; /* Next Hop Chaining Count */
 } emm_security_context_t;
 
 /*
@@ -218,7 +221,6 @@ typedef struct emm_context_s {
   imei_t _imei;          /* The IMEI provided by the UE                     */
   imeisv_t _imeisv;      /* The IMEISV provided by the UE                   */
   //bool                   _guti_is_new; /* The GUTI assigned to the UE is new              */
-  bool is_guti_set;     /* is GUTI has been set                            */
   guti_t _guti;         /* The GUTI assigned to the UE                     */
   guti_t _old_guti;     /* The old GUTI (GUTI REALLOCATION)                */
   tai_list_t _tai_list; /* TACs the the UE is registered to                */

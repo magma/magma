@@ -10,7 +10,7 @@ package servicers
 
 import (
 	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/crypto"
+	"magma/lte/cloud/go/crypto"
 
 	"golang.org/x/net/context"
 )

@@ -11,8 +11,8 @@
 import type {NetworkUpgradeTier} from '../../common/MagmaAPIType';
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
+import React from 'react';
 import Select from '@material-ui/core/Select';
 
 import {withStyles} from '@material-ui/core/styles';
@@ -23,7 +23,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   gatewayID: string,
   onChange: (gatewayID: string, newTierID: string) => void,
   tierID: ?string,

@@ -13,7 +13,7 @@ import logging
 
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.exceptions import LoadConfigError
-from magma.configuration.mconfig_managers import load_service_mconfig
+from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.configuration.service_configs import load_service_config
 
 from generate_service_config import generate_template_config
@@ -30,7 +30,7 @@ def get_context():
     ip = "127.0.0.1"
     enable_caching = False
     try:
-        mconfig = load_service_mconfig('lighttpd')
+        mconfig = load_service_mconfig_as_json('lighttpd')
         enable_caching = mconfig.enable_caching
     except LoadConfigError:
         logging.info("Using default values for service 'lighttpd'")

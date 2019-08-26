@@ -67,10 +67,10 @@
   (mSGpTR)->ittiMsg.s11_suspend_acknowledge
 #define S11_MODIFY_UE_AMBR_REQUEST(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.s11_modify_ue_ambr_request
-#define S11_NW_INITIATED_BEARER_ACTV_REQ(mSGpTR)                               \
-  (mSGpTR)->ittiMsg.s11_nw_initiated_ded_bearer_actv_request
-#define S11_NW_INITIATED_BEARER_ACTV_RESP(mSGpTR)                              \
-  (mSGpTR)->ittiMsg.s11_nw_init_ded_bearer_actv_rsp
+#define S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST(mSGpTR)                       \
+  (mSGpTR)->ittiMsg.s11_nw_init_actv_bearer_request
+#define S11_NW_INITIATED_ACTIVATE_BEARER_RESP(mSGpTR)                          \
+  (mSGpTR)->ittiMsg.s11_nw_init_actv_bearer_rsp
 #define S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST(mSGpTR)                     \
   (mSGpTR)->ittiMsg.s11_nw_init_deactv_bearer_request
 #define S11_NW_INITIATED_DEACTIVATE_BEARER_RESP(mSGpTR)                        \
@@ -88,7 +88,7 @@ typedef struct itti_s11_nw_init_actv_bearer_request_s {
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
   fteid_t s1_u_sgw_fteid; ///S1U SGW FTEID
   ebi_t lbi; //Linked Bearer ID
-} itti_s11_nw_init_actv_bearer_request_t;
+}itti_s11_nw_init_actv_bearer_request_t;
 
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_nw_initiated_ded_bearer_actv_rsp_t
@@ -102,7 +102,7 @@ typedef struct itti_s11_nw_init_actv_bearer_rsp_s {
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
   bearer_contexts_within_create_bearer_response_t
     bearer_contexts; ///< Several IEs with this type and instance value shall be
-} itti_s11_nw_init_actv_bearer_rsp_t;
+}itti_s11_nw_init_actv_bearer_rsp_t;
 
 //-----------------------------------------------------------------------------
 /** @struct itti_s11_nw_init_deactv_bearer_request_t
@@ -111,8 +111,8 @@ typedef struct itti_s11_nw_init_actv_bearer_rsp_s {
 typedef struct itti_s11_nw_init_deactv_bearer_request_s {
   uint32_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
-  bool delete_default_bearer;
   teid_t s11_mme_teid; ///< MME TEID
+  bool delete_default_bearer;
 } itti_s11_nw_init_deactv_bearer_request_t;
 
 //-----------------------------------------------------------------------------
@@ -767,7 +767,7 @@ typedef struct itti_s11_modify_bearer_request_s {
   ///< An MME/SGSN which supports location information
   ///< change shall include this IE for UE-initiated Service
   ///< Request procedure if the PGW has requested location
-  ///< information change reporting and the UE’s location info
+  ///< information change reporting and the UE's location info
   ///< has changed.
   ///< The SGW shall include this IE on S5/S8 if it receives the
   ///< ULI from MME/SGSN.
@@ -1222,7 +1222,7 @@ typedef struct itti_s11_paging_request_s {
 } itti_s11_paging_request_t;
 
 /**
- * Message used to notify SPGW that a paging 
+ * Message used to notify SPGW that a paging
  */
 typedef struct itti_s11_paging_response_s {
   const char *imsi;

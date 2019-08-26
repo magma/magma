@@ -21,7 +21,7 @@ import (
 type GraphiteMetric interface {
 	Update(metric *dto.Metric)
 	Register(metric *dto.Metric, name string, exporter *GraphiteExporter)
-	Export(exporter *GraphiteExporter) error
+	Export(client *graphite.Graphite) error
 }
 
 type graphiteBase struct {
@@ -54,8 +54,8 @@ func (c *GraphiteCounter) Register(metric *dto.Metric, name string, exporter *Gr
 	c.setTimeNow()
 }
 
-func (c *GraphiteCounter) Export(exporter *GraphiteExporter) error {
-	err := exporter.graphite.SendMetric(graphite.Metric{
+func (c *GraphiteCounter) Export(client *graphite.Graphite) error {
+	err := client.SendMetric(graphite.Metric{
 		Name:      c.name,
 		Value:     floatToString(c.value),
 		Timestamp: c.updateTime,
@@ -87,8 +87,8 @@ func (g *GraphiteGauge) Register(metric *dto.Metric, name string, exporter *Grap
 	exporter.registeredMetrics[g.name] = g
 }
 
-func (g *GraphiteGauge) Export(exporter *GraphiteExporter) error {
-	err := exporter.graphite.SendMetric(graphite.Metric{
+func (g *GraphiteGauge) Export(client *graphite.Graphite) error {
+	err := client.SendMetric(graphite.Metric{
 		Name:      g.name,
 		Value:     floatToString(g.value),
 		Timestamp: g.updateTime,
@@ -124,7 +124,7 @@ func (s *GraphiteSummary) Register(metric *dto.Metric, name string, exporter *Gr
 	s.setTimeNow()
 }
 
-func (s *GraphiteSummary) Export(exporter *GraphiteExporter) error {
+func (s *GraphiteSummary) Export(client *graphite.Graphite) error {
 	sumMetric := graphite.Metric{
 		Name:      makeGraphiteSumName(s.name),
 		Value:     floatToString(s.sumValue),
@@ -136,7 +136,7 @@ func (s *GraphiteSummary) Export(exporter *GraphiteExporter) error {
 		Value:     floatToString(s.countValue),
 		Timestamp: s.updateTime,
 	}
-	err := exporter.graphite.SendMetrics([]graphite.Metric{sumMetric, countMetric})
+	err := client.SendMetrics([]graphite.Metric{sumMetric, countMetric})
 	if err != nil {
 		return fmt.Errorf("could not send metric %v to graphite: %v", s.name, err)
 	}
@@ -198,7 +198,7 @@ func (h *GraphiteHistogram) Update(metric *dto.Metric) {
 	}
 }
 
-func (h *GraphiteHistogram) Export(exporter *GraphiteExporter) error {
+func (h *GraphiteHistogram) Export(client *graphite.Graphite) error {
 	var metricsToSend []graphite.Metric
 	sumMetric := graphite.Metric{
 		Name:      makeGraphiteSumName(h.name),
@@ -231,7 +231,7 @@ func (h *GraphiteHistogram) Export(exporter *GraphiteExporter) error {
 		}
 		metricsToSend = append(metricsToSend, bucketCountMetric)
 	}
-	err := exporter.graphite.SendMetrics(metricsToSend)
+	err := client.SendMetrics(metricsToSend)
 	if err != nil {
 		return fmt.Errorf("error sending histogram metrics to graphite: %v", err)
 	}

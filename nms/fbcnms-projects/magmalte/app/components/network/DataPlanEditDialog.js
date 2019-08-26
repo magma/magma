@@ -14,10 +14,9 @@ import type {
 } from '../../common/MagmaAPIType';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
 import React from 'react';
+import axios from 'axios';
 import {
   Button,
   Dialog,
@@ -27,17 +26,14 @@ import {
   FormGroup,
   InputAdornment,
   TextField,
-  withStyles,
 } from '@material-ui/core';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {MagmaAPIUrls} from '../../common/MagmaAPI';
+import {merge} from 'lodash';
 import {withRouter} from 'react-router-dom';
-import {merge} from 'lodash-es';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './DataPlanConst';
-
-const styles = {};
 
 // Calculates the bitrate value in bps based on the default
 // value input in the form, and the previous (default) bitrate
@@ -95,7 +91,6 @@ const MegabyteTextField = (props: {
 };
 
 type Props = ContextRouter &
-  WithStyles &
   WithAlert & {
     onSave: (
       dataPlanId: string,
@@ -126,24 +121,23 @@ class DataPlanEditDialog extends React.Component<Props, State> {
     this.setState({editedMaxUlBitRate: evt.target.value});
 
   render() {
-    const {classes, dataPlanId} = this.props;
+    const {dataPlanId} = this.props;
     const dataPlan = this._getDataPlan();
     return (
       <Dialog open={true} onClose={this.props.onCancel} scroll="body">
         <DialogTitle>{dataPlanId ? 'Edit' : 'Add'} Data Plan</DialogTitle>
         <DialogContent>
-          <FormGroup row className={classes.formGroup}>
+          <FormGroup row>
             <TextField
               required
               label="Name"
               margin="normal"
               disabled={!!dataPlanId}
-              className={classes.textField}
               value={this._getDataPlanIdField()}
               onChange={this.handleNameChanged}
             />
           </FormGroup>
-          <FormGroup row className={classes.formGroup}>
+          <FormGroup row>
             <MegabyteTextField
               label="Download Limit"
               dataPlan={dataPlan}
@@ -152,7 +146,7 @@ class DataPlanEditDialog extends React.Component<Props, State> {
               onChange={this.handleDownloadLimitChanged}
             />
           </FormGroup>
-          <FormGroup row className={classes.formGroup}>
+          <FormGroup row>
             <MegabyteTextField
               label="Upload Limit"
               dataPlan={dataPlan}
@@ -218,4 +212,4 @@ class DataPlanEditDialog extends React.Component<Props, State> {
   };
 }
 
-export default withStyles(styles)(withAlert(withRouter(DataPlanEditDialog)));
+export default withAlert(withRouter(DataPlanEditDialog));

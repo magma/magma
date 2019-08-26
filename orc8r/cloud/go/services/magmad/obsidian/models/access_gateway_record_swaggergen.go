@@ -17,32 +17,25 @@ import (
 // swagger:model access_gateway_record
 type AccessGatewayRecord struct {
 
-	// hw id
+	// hardware id
 	// Required: true
-	HwID *HwGatewayID `json:"hw_id" magma_alt_name:"HwId"`
+	// Min Length: 1
+	HardwareID string `json:"hardware_id"`
 
 	// key
 	// Required: true
 	Key *ChallengeKey `json:"key"`
-
-	// name
-	// Min Length: 1
-	Name string `json:"name,omitempty"`
 }
 
 // Validate validates this access gateway record
 func (m *AccessGatewayRecord) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateHwID(formats); err != nil {
+	if err := m.validateHardwareID(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if err := m.validateKey(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -52,19 +45,14 @@ func (m *AccessGatewayRecord) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *AccessGatewayRecord) validateHwID(formats strfmt.Registry) error {
+func (m *AccessGatewayRecord) validateHardwareID(formats strfmt.Registry) error {
 
-	if err := validate.Required("hw_id", "body", m.HwID); err != nil {
+	if err := validate.RequiredString("hardware_id", "body", string(m.HardwareID)); err != nil {
 		return err
 	}
 
-	if m.HwID != nil {
-		if err := m.HwID.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("hw_id")
-			}
-			return err
-		}
+	if err := validate.MinLength("hardware_id", "body", string(m.HardwareID), 1); err != nil {
+		return err
 	}
 
 	return nil
@@ -83,19 +71,6 @@ func (m *AccessGatewayRecord) validateKey(formats strfmt.Registry) error {
 			}
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (m *AccessGatewayRecord) validateName(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Name) { // not required
-		return nil
-	}
-
-	if err := validate.MinLength("name", "body", string(m.Name), 1); err != nil {
-		return err
 	}
 
 	return nil

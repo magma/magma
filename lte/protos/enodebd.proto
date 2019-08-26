@@ -81,6 +81,7 @@ message SingleEnodebStatus {
   string gps_longitude = 10;
   string gps_latitude = 11;
   string fsm_state = 12;
+  string rf_tx_desired = 13;
 }
 
 // --------------------------------------------------------------------------
@@ -101,6 +102,9 @@ service Enodebd {
 
   // Reboot eNodeB
   rpc Reboot (EnodebIdentity) returns (magma.orc8r.Void);
+
+  // Reboot every connected eNodeB
+  rpc RebootAll (magma.orc8r.Void) returns (magma.orc8r.Void);
 
   // Get current status
   rpc GetStatus (magma.orc8r.Void) returns (magma.orc8r.ServiceStatus);

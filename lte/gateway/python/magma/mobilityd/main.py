@@ -8,12 +8,13 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from magma.common.service import MagmaService
-from .rpc_servicer import MobilityServiceRpcServicer
+from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
+from lte.protos.mconfig import mconfigs_pb2
 
 
 def main():
     """ main() for MobilityD """
-    service = MagmaService('mobilityd')
+    service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
 
     # Add all servicers to the server
     mobility_service_servicer = MobilityServiceRpcServicer(

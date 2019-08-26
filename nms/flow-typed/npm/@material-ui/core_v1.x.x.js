@@ -41,17 +41,22 @@ declare module "@material-ui/core/Avatar" {
   declare module.exports: $Exports<"@material-ui/core/Avatar/Avatar">;
 }
 
+declare module "@material-ui/core/Box" {
+  declare module.exports: $Exports<"@material-ui/core/Box">;
+}
+
 declare module "@material-ui/core/Badge/Badge" {
   import type {ComponentType, Node} from "react";
 
   declare type Color = "default" | "primary" | "secondary" | "error";
-
+  declare type BadgeVariant = "standard" | "dot";
   declare module.exports: ComponentType<{
-    badgeContent: Node,
+    badgeContent?: Node,
     children: Node,
     className?: string,
     classes?: Object,
-    color?: Color
+    color?: Color,
+    variant?: BadgeVariant
   }>;
 }
 
@@ -104,7 +109,7 @@ declare module "@material-ui/core/Button/Button" {
   import type {ComponentType, ElementType, Node} from "react";
 
   declare type Color = "default" | "inherit" | "primary" | "secondary";
-  declare type Variant = "text" | "flat" | "outlined" | "contained" | "raised" | "fab" | "extendedFab"
+  declare type Variant = "text" | "outlined" | "contained" | "extendedFab"
   declare type Size = "small" | "medium" | "large"
 
   declare module.exports: ComponentType<{
@@ -212,7 +217,7 @@ declare module "@material-ui/core/CardActions/CardActions" {
     children?: Node,
     className?: string,
     classes?: Object,
-    disableActionSpacing?: boolean
+    disableSpacing?: boolean
   }>;
 }
 
@@ -559,8 +564,8 @@ declare module "@material-ui/core/Divider/Divider" {
     absolute?: boolean,
     className?: string,
     classes?: Object,
-    inset?: boolean,
-    light?: boolean
+    light?: boolean,
+    variant?: 'fullWidth' | 'inset' | 'middle'
   }>;
 }
 
@@ -858,7 +863,7 @@ declare module "@material-ui/core/Grid/Grid" {
     | "flex-end"
     | "space-between"
     | "space-around";
-  declare type Spacing = 0 | 8 | 16 | 24 | 32 | 40;
+  declare type Spacing = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
   declare type Wrap = "nowrap" | "wrap" | "wrap-reverse";
   declare type GridProps = {
     children?: Node,
@@ -1039,7 +1044,8 @@ declare module "@material-ui/core/IconButton/IconButton" {
     color?: Color,
     disabled?: boolean,
     disableRipple?: boolean,
-    rootRef?: Function
+    rootRef?: Function,
+    ref?: ?any
   }>;
 }
 
@@ -1667,6 +1673,15 @@ declare module "@material-ui/core/RadioGroup/RadioGroup" {
   }>;
 }
 
+declare module "@material-ui/core/RootRef" {
+  import type {ComponentType, Node,Ref} from "react";
+
+  declare module.exports: ComponentType<{
+    children?: Node,
+    rootRef?: Function
+  }>;
+}
+
 declare module "@material-ui/core/Select" {
   declare module.exports: $Exports<"@material-ui/core/Select/Select">;
 }
@@ -2162,7 +2177,7 @@ declare module "@material-ui/core/styles/createPalette" {
       mainShade?: number | string,
       lightShade?: number | string,
       darkShade?: number | string,
-    ) => void,
+    ) => PaletteColor,
     [string]: any,
   };
 
@@ -2192,15 +2207,6 @@ declare module "@material-ui/core/styles/createTypography" {
     | "overline"
     | "srOnly"
     | "inherit"
-
-    // deprecated
-    | "display1"
-    | "display2"
-    | "display3"
-    | "display4"
-    | "headline"
-    | "title"
-    | "subheading"
 
   declare type FontStyle = {
     fontFamily: $PropertyType<CSSProperties, "fontFamily">,
@@ -2272,7 +2278,7 @@ declare module "@material-ui/core/styles/shape" {
 
 declare module "@material-ui/core/styles/spacing" {
   declare export type Spacing = {
-    unit: number
+    (unit?: number): number
   };
 
   declare export type SpacingOptions = $Shape<Spacing>;
@@ -2336,7 +2342,18 @@ declare module "@material-ui/core/styles/withStyles" {
 
   import type {Theme} from "@material-ui/core/styles/createMuiTheme"
 
-  declare type CSSProperties = any; // import type {StandardProperties as CSSProperties} from "csstype";
+  // import type {StandardProperties as CSSProperties} from "csstype";
+
+  // Recursion usually works, but is too lax for the cases we present to flow
+  // (StyleRules | StyleRulesCallback). Thus, we limit how much we can nest.
+  // This is probably good style design either way.
+  declare type CSSProperties = {
+    [string]: string | number | {
+      [string]: string | number | {
+        [string]: string | number
+      }
+    }
+  };
 
   declare type CSSCreateStyleSheetOptions = {|
     media?: string,
@@ -2359,8 +2376,10 @@ declare module "@material-ui/core/styles/withStyles" {
     name?: string
   |};
 
-  declare export type WithStyles = {
-    classes: { +[string]: string },
+  declare type ExtractReturnTypeIfFunc = <R>(((theme: Theme) => R) | R) => R;
+
+  declare export type  WithStyles<T> = {
+    classes: {[$Keys<$Call<ExtractReturnTypeIfFunc, T>>]: string},
     innerRef: Ref<any> | {current: ElementRef<any> | null}
   };
 
@@ -2370,7 +2389,7 @@ declare module "@material-ui/core/styles/withStyles" {
   };
 
   declare module.exports: (
-    stylesOrCreator: StyleRules | StyleRulesCallback,
+    stylesOrCreator: StyleRulesCallback | StyleRules,
     options?: WithStylesOptions,
   ) => <WrappedComponent: ComponentType<*>>(
     Component: WrappedComponent
@@ -2392,7 +2411,7 @@ declare module "@material-ui/core/styles/withTheme" {
     innerRef: void | (Ref<any> | {current: ElementRef<any> | null})
   };
 
-  declare module.exports: () => <Props: {}, WrappedComponent: ComponentType<Props>>(
+  declare module.exports: <Props: {}, WrappedComponent: ComponentType<Props>>(
     Component: WrappedComponent
   ) => ComponentType<$Diff<ElementConfig<WrappedComponent>, WithThemeHOC>>;
 }
@@ -2418,7 +2437,7 @@ declare module "@material-ui/core/styles" {
   import type {WithTheme as MuiWithTheme} from "@material-ui/core/styles/withTheme";
 
   declare export type Theme = MuiTheme;
-  declare export type WithStyles = MuiWithStyles;
+  declare export type WithStyles<T> = MuiWithStyles<T>;
   declare export type WithTheme = MuiWithTheme;
 
   declare module.exports: {
@@ -2599,15 +2618,16 @@ declare module "@material-ui/core/TableBody/TableBody" {
 declare module "@material-ui/core/TableCell/TableCell" {
   import type {ComponentType, ElementType, Node} from "react";
 
-  declare type Padding = "default" | "checkbox" | "dense" | "none";
+  declare type Padding = "default" | "checkbox" | "none";
+  declare type Size = "small" | "medium";
 
   declare module.exports: ComponentType<{
     children?: Node,
     classes?: Object,
     className?: string,
     component?: ElementType,
-    numeric?: boolean,
-    padding?: Padding
+    padding?: Padding,
+    size?: Size
   }>;
 }
 
@@ -2747,11 +2767,9 @@ declare module "@material-ui/core/Tabs/Tabs" {
     children?: Node,
     classes?: Object,
     className?: string,
-    fullWidth?: boolean,
     indicatorClassName?: string,
     indicatorColor?: IndicatorColor,
     onChange?: (event: SyntheticEvent<*>, value: any) => void,
-    scrollable?: boolean,
     scrollButtons?: ScrollButtons,
     TabScrollButton?: ComponentType<*>,
     textColor?: TextColor,
@@ -3031,9 +3049,9 @@ declare module "@material-ui/core/Typography/Typography" {
     | "textPrimary"
     | "textSecondary"
     | "error"
-    | "default";
+    | "initial";
 
-  declare module.exports: ComponentType<{
+  declare export type TypographyProps = {
     align?: Align,
     children?: Node,
     classes?: Object,
@@ -3041,11 +3059,13 @@ declare module "@material-ui/core/Typography/Typography" {
     component?: ElementType,
     color?: Color,
     gutterBottom?: boolean,
-    headlineMapping?: { [key: Variant]: string },
+    variantMapping?: { [key: Variant]: string },
     noWrap?: boolean,
     paragraph?: boolean,
     variant?: Variant
-  }>;
+  }
+
+  declare module.exports: ComponentType<TypographyProps>;
 }
 
 declare module "@material-ui/core/utils/addEventListener" {
@@ -4288,6 +4308,6 @@ declare module "@material-ui/core" {
   } from "@material-ui/core/styles";
 
   declare export type Theme = StylesTheme;
-  declare export type WithStyles = StylesWithStyles;
+  declare export type WithStyles<T> = StylesWithStyles<T>;
   declare export type WithTheme = StylesWithTheme;
 }

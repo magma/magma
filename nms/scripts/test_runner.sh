@@ -13,7 +13,6 @@ ROOT_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && hg root)
 source "$ROOT_DIR/xplat/js/env-utils/setup_env_vars.sh"
 
 pushd "$ROOT_DIR/xplat/fbc" >/dev/null
-  "$INSTALL_NODE_MODULES"
+  # Run tests
   "$YARN_BINARY" run test "$@"
 popd >/dev/null
-

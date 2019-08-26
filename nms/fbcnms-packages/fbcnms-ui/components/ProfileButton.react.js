@@ -8,30 +8,28 @@
  * @format
  */
 
-import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
-import classNames from 'classnames';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popout from '@fbcnms/ui/components/Popout.react';
 import ProfileIcon from '../icons/ProfileIcon.react';
 import React, {useState} from 'react';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   accountButton: {
     backgroundColor: theme.palette.common.white,
-    width: '28px',
-    height: '28px',
-    fontSize: '28px',
+    width: '36px',
+    height: '36px',
+    fontSize: '36px',
     cursor: 'pointer',
     borderRadius: '100%',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    border: `1px solid ${theme.palette.common.white}`,
     '&:hover, &$openButton': {
-      border: `1px solid ${theme.palette.primary.main}`,
       '& $accountButtonIcon': {
         fill: theme.palette.primary.main,
       },
@@ -40,8 +38,8 @@ const useStyles = makeStyles(theme => ({
   openButton: {},
   accountButtonIcon: {
     '&&': {
-      fill: theme.palette.grey.A200,
-      fontSize: '15px',
+      fill: theme.palette.blueGrayDark,
+      fontSize: '19px',
     },
   },
   itemGutters: {
@@ -74,7 +72,7 @@ type Props = {
 
 const ProfileButton = (props: Props) => {
   const {user} = props;
-  const {email, isSuperUser} = user;
+  const {email} = user;
   const {relativeUrl, history} = useRouter();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
@@ -87,20 +85,18 @@ const ProfileButton = (props: Props) => {
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
             <Typography className={classes.profileItemText}>{email}</Typography>
           </ListItem>
-          {isSuperUser && (
-            <ListItem
-              classes={{gutters: classes.itemGutters}}
-              button
-              onClick={() => {
-                toggleProfileMenu(false);
-                history.push(relativeUrl('/settings'));
-              }}
-              component="a">
-              <Typography className={classes.profileItemText}>
-                Settings
-              </Typography>
-            </ListItem>
-          )}
+          <ListItem
+            classes={{gutters: classes.itemGutters}}
+            button
+            onClick={() => {
+              toggleProfileMenu(false);
+              history.push(relativeUrl('/settings'));
+            }}
+            component="a">
+            <Typography className={classes.profileItemText}>
+              Settings
+            </Typography>
+          </ListItem>
           <ListItem
             classes={{gutters: classes.itemGutters}}
             button

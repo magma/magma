@@ -172,6 +172,7 @@ const (
 	DeferredLocationEventType                  = 1230
 	DeliveryReportRequested                    = 1216
 	DeliveryStatus                             = 2104
+	DeregistrationReason                       = 615
 	DestinationHost                            = 293
 	DestinationInterface                       = 2002
 	DestinationRealm                           = 283
@@ -475,7 +476,9 @@ const (
 	RATType                                    = 1032
 	ReadReplyReportRequested                   = 1222
 	RealTimeTariffInformation                  = 2305
+	ReasonCode                                 = 616
 	ReasonHeader                               = 3401
+	ReasonInfo                                 = 617
 	ReAuthRequestType                          = 285
 	ReceivedTalkBurstTime                      = 1284
 	ReceivedTalkBurstVolume                    = 1285
@@ -512,6 +515,7 @@ const (
 	RestrictionFilterRule                      = 438
 	ResultCode                                 = 268
 	ResynchronizationInfo                      = 1411
+	RevalidationTime                           = 1042
 	RoamingRestrictedDueToUnsupportedFeature   = 1457
 	RoleOfNode                                 = 829
 	RouteHeaderReceived                        = 3403

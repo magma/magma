@@ -18,7 +18,13 @@ jest.mock('@material-ui/core/Slide', () => () => <div />);
 
 it('renders without crashing', () => {
   const tree = renderer.create(
-    <SnackbarProvider maxSnack={3} autoHideDuration={10000}>
+    <SnackbarProvider
+      maxSnack={3}
+      autoHideDuration={10000}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'right',
+      }}>
       <Test />
     </SnackbarProvider>,
   );

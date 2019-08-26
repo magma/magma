@@ -14,8 +14,9 @@
 
 namespace magma {
 
-uint64_t SessionCredit::USAGE_REPORTING_LIMIT =
-  std::numeric_limits<uint64_t>::max();
+float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
+uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
+bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 
 SessionCredit::SessionCredit(ServiceState start_state):
   reporting_(false),
@@ -42,7 +43,8 @@ void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx)
 {
   buckets_[USED_TX] += used_tx;
   buckets_[USED_RX] += used_rx;
-  if (quota_exhausted() && is_final_) {
+
+  if (should_deactivate_service()) {
     MLOG(MDEBUG) << "Quota exhausted. Deactivating service";
     service_state_ = SERVICE_NEEDS_DEACTIVATION;
   }
@@ -58,7 +60,9 @@ void SessionCredit::reset_reporting_credit()
 void SessionCredit::mark_failure()
 {
   reset_reporting_credit();
-  service_state_ = SERVICE_NEEDS_DEACTIVATION;
+  if (should_deactivate_service()) {
+    service_state_ = SERVICE_NEEDS_DEACTIVATION;
+  }
 }
 
 void SessionCredit::receive_credit(
@@ -87,6 +91,8 @@ void SessionCredit::receive_credit(
                << buckets_[REPORTING_TX];
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
+  usage_reporting_limit_ =
+    buckets_[ALLOWED_TOTAL] - buckets_[REPORTED_RX] - buckets_[REPORTED_TX];
   MLOG(MDEBUG) << "receive_credit:"
                << "reported rx " << buckets_[REPORTED_RX] << "reported_tx "
                << buckets_[REPORTED_TX] << "reporting_rx "
@@ -106,33 +112,62 @@ void SessionCredit::receive_credit(
   }
   if (
     !quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
-                           service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
+                            service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
     MLOG(MDEBUG) << "Quota available. Activating service";
     service_state_ = SERVICE_NEEDS_ACTIVATION;
   }
 }
 
-bool SessionCredit::quota_exhausted()
+bool SessionCredit::quota_exhausted(
+  float usage_reporting_threshold, uint64_t extra_quota_margin)
 {
-  uint64_t used_tot = buckets_[USED_TX] + buckets_[USED_RX];
+  // used quota since last report
+  uint64_t total_reported_usage = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
+  uint64_t total_usage_since_report =
+    buckets_[USED_TX] + buckets_[USED_RX] - total_reported_usage;
+  uint64_t tx_usage_since_report =
+    buckets_[USED_TX] - buckets_[REPORTED_TX];
+  uint64_t rx_usage_since_report =
+    buckets_[USED_RX] - buckets_[REPORTED_RX];
+
+  // available quota since last report
+  auto total_usage_reporting_threshold = extra_quota_margin +
+    (buckets_[ALLOWED_TOTAL] - total_reported_usage) * usage_reporting_threshold;
+
+  // reported tx/rx could be greater than allowed tx/rx
+  // because some OCS/PCRF might not track tx/rx,
+  // and 0 is added to the allowed credit when an credit update is received
+  auto tx_usage_reporting_threshold = buckets_[ALLOWED_TX] > buckets_[REPORTED_TX] ?
+    (buckets_[ALLOWED_TX] - buckets_[REPORTED_TX]) * usage_reporting_threshold :
+    0;
+  auto rx_usage_reporting_threshold = buckets_[ALLOWED_RX] > buckets_[REPORTED_RX] ?
+    (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) * usage_reporting_threshold :
+    0;
+
+  tx_usage_reporting_threshold += extra_quota_margin;
+  rx_usage_reporting_threshold += extra_quota_margin;
+
+  MLOG(MDEBUG) << " Is Quota exhausted?"
+               << "\n Total used: " << buckets_[USED_TX] + buckets_[USED_RX]
+               << "\n Allowed total: " << buckets_[ALLOWED_TOTAL]
+               << "\n Reported total: " << total_reported_usage;
+
   bool is_exhausted = false;
-  if ((buckets_[ALLOWED_TX] > 0) || (buckets_[ALLOWED_RX] > 0)) {
-    is_exhausted = used_tot > buckets_[ALLOWED_TOTAL] ||
-                   buckets_[USED_TX] > buckets_[ALLOWED_TX] ||
-                   buckets_[USED_RX] > buckets_[ALLOWED_RX];
-  } else {
-    MLOG(MDEBUG) << " Is Quota exhausted ? "
-                 << "Total_used:  " << used_tot
-                 << " Allowed Total: " << buckets_[ALLOWED_TOTAL];
-    is_exhausted = used_tot > buckets_[ALLOWED_TOTAL];
-  }
+  is_exhausted = total_usage_since_report >= total_usage_reporting_threshold ||
+    (buckets_[ALLOWED_TX] > 0) && (tx_usage_since_report >= tx_usage_reporting_threshold) ||
+    (buckets_[ALLOWED_RX] > 0) && (rx_usage_since_report >= rx_usage_reporting_threshold);
   if (is_exhausted == true) {
-    MLOG(MDEBUG) << " YES Quota exhausted "
-                 << "Total_used:  " << used_tot
-                 << " Allowed Total: " << buckets_[ALLOWED_TOTAL];
+    MLOG(MDEBUG) << " YES Quota exhausted ";
   }
   return is_exhausted;
+}
+
+bool SessionCredit::should_deactivate_service()
+{
+  return SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
+    ((no_more_grant() && quota_exhausted()) ||
+      quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));
 }
 
 bool SessionCredit::validity_timer_expired()
@@ -149,7 +184,7 @@ CreditUpdateType SessionCredit::get_update_type()
   } else if (is_final_ && quota_exhausted()) {
     // Don't request updates if there's no quota left
     return CREDIT_NO_UPDATE;
-  } else if (quota_exhausted()) {
+  } else if (quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD, 0)) {
     return CREDIT_QUOTA_EXHAUSTED;
   } else if (validity_timer_expired()) {
     return CREDIT_VALIDITY_TIMER_EXPIRED;
@@ -169,9 +204,8 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
   if (!is_termination && !is_final_) {
     // Apply reporting limits since the user is not getting terminated.
     // The limits are applied on total usage (ie. tx + rx)
-    uint64_t limit = SessionCredit::USAGE_REPORTING_LIMIT;
-    tx = std::min(tx, limit);
-    rx = std::min(rx, limit - tx);
+    tx = std::min(tx, usage_reporting_limit_);
+    rx = std::min(rx, usage_reporting_limit_ - tx);
   }
 
   if (get_update_type() == CREDIT_REAUTH_REQUIRED) {
@@ -228,6 +262,11 @@ bool SessionCredit::is_reauth_required()
 void SessionCredit::reauth()
 {
   reauth_state_ = REAUTH_REQUIRED;
+}
+
+bool SessionCredit::no_more_grant()
+{
+  return is_final_;
 }
 
 } // namespace magma

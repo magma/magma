@@ -9,12 +9,13 @@
  */
 'use strict';
 
-import 'babel-polyfill';
-import {BrowserRouter} from 'react-router-dom';
-import ReactDOM from 'react-dom';
-import React from 'react';
+import '@fbcnms/babel-register/polyfill';
+
 import Main from './components/Main';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import nullthrows from '@fbcnms/util/nullthrows';
+import {BrowserRouter} from 'react-router-dom';
 
 import {} from './common/axiosConfig';
 

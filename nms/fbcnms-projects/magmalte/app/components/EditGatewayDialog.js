@@ -9,18 +9,18 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
 import type {Gateway} from './GatewayUtils';
+import type {WithStyles} from '@material-ui/core';
 
 import AppBar from '@material-ui/core/AppBar';
 import Dialog from '@material-ui/core/Dialog';
-import React from 'react';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import GatewayMagmadFields from './GatewayMagmadFields';
-import GatewaySummaryFields from './GatewaySummaryFields';
 import GatewayCellularFields from './GatewayCellularFields';
 import GatewayCommandFields from './GatewayCommandFields';
+import GatewayMagmadFields from './GatewayMagmadFields';
+import GatewaySummaryFields from './GatewaySummaryFields';
+import React from 'react';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 
 import {fetchDevice} from '../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
@@ -34,7 +34,7 @@ const styles = {
 };
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gateway: {[string]: any}) => void,
     gateway: ?Gateway,

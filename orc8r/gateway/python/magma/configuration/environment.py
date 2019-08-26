@@ -15,3 +15,10 @@ def is_dev_mode() -> bool:
     Returns whether the environment is set for dev mode
     """
     return os.environ.get('MAGMA_DEV_MODE') == '1'
+
+
+def is_docker_network_mode() -> bool:
+    """
+    Returns whether the environment is set for dev mode
+    """
+    return os.environ.get('DOCKER_NETWORK_MODE') == '1'

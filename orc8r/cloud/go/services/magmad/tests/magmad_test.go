@@ -403,6 +403,61 @@ func TestForceRemoveNetworkErrorDropTables(t *testing.T) {
 	mockeryStore.AssertExpectations(t)
 }
 
+func TestNetworkConfig(t *testing.T) {
+	magmad_test_service.StartTestService(t)
+
+	testNetworkID := "magmad_test_network"
+	testNetworkName := "Test Network Namee"
+	testFeatures := map[string]string{"f1": "v1", "f2": "v2"}
+	_, err := magmad.RegisterNetwork(&magmad_protos.MagmadNetworkRecord{Name: testNetworkName, Features: testFeatures}, testNetworkID)
+	assert.NoError(t, err)
+
+	networkRecord, err := magmad.GetNetwork(testNetworkID)
+	assert.NoError(t, err)
+	assert.NotNil(t, networkRecord)
+	assert.Equal(t, networkRecord.Name, testNetworkName)
+	assert.Equal(t, len(networkRecord.Features), 2)
+
+	v, exists := networkRecord.Features["f1"]
+	assert.True(t, exists)
+	assert.NotNil(t, v)
+	assert.Equal(t, v, "v1")
+	v, exists = networkRecord.Features["f2"]
+	assert.True(t, exists)
+	assert.NotNil(t, v)
+	assert.Equal(t, v, "v2")
+
+	testNetworkNameUpdate := "Test Network Name"
+	testFeaturesUpdate := map[string]string{"new-f1": "new-v1", "new-f2": "new-v2", "new-f3": "new-v3"}
+	err = magmad.UpdateNetwork(testNetworkID, &magmad_protos.MagmadNetworkRecord{Name: testNetworkNameUpdate, Features: testFeaturesUpdate})
+	assert.NoError(t, err)
+
+	networkRecord, err = magmad.GetNetwork(testNetworkID)
+	assert.NoError(t, err)
+	assert.NotNil(t, networkRecord)
+	assert.Equal(t, networkRecord.Name, testNetworkNameUpdate)
+	assert.Equal(t, len(networkRecord.Features), 3)
+
+	_, exists = networkRecord.Features["f1"]
+	assert.False(t, exists)
+	_, exists = networkRecord.Features["f2"]
+	assert.False(t, exists)
+
+	v, exists = networkRecord.Features["new-f1"]
+	assert.True(t, exists)
+	assert.NotNil(t, v)
+	assert.Equal(t, v, "new-v1")
+	v, exists = networkRecord.Features["new-f2"]
+	assert.True(t, exists)
+	assert.NotNil(t, v)
+	assert.Equal(t, v, "new-v2")
+	v, exists = networkRecord.Features["new-f3"]
+	assert.True(t, exists)
+	assert.NotNil(t, v)
+	assert.Equal(t, v, "new-v3")
+
+}
+
 func setupMockeryStoreForForceDeleteTests(
 	t *testing.T,
 	networkId string,

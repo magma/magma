@@ -24,7 +24,6 @@
 #include <stdlib.h>
 
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
@@ -99,22 +98,29 @@ ebi_t esm_ebr_context_create(
   esm_ctx = &emm_context->esm_ctx;
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
-
+  if (ue_mm_context == NULL) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-PROC  - ue_mm_context null\n ");
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+  }
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-PROC  - Create new %s EPS bearer context (ebi=%d) "
-    "for PDN connection (pid=%d)\n",
+    "for PDN connection (pid=%d) for ue_id (%u)\n",
     (is_default) ? "default" : "dedicated",
     ebi,
-    pid);
+    pid,
+    ue_mm_context->mme_ue_s1ap_id);
 
   if (pid < MAX_APN_PER_UE) {
     if (ue_mm_context->pdn_contexts[pid] == NULL) {
       OAILOG_ERROR(
         LOG_NAS_ESM,
         "ESM-PROC  - PDN connection %d has not been "
-        "allocated\n",
-        pid);
+        "allocated for (ue_id = %u)\n",
+        pid,
+        ue_mm_context->mme_ue_s1ap_id);
     }
     /*
      * Check the total number of active EPS bearers
@@ -136,7 +142,7 @@ ebi_t esm_ebr_context_create(
         (ue_mm_context->bearer_contexts[bidx]) &&
         (ESM_EBR_INACTIVE !=
          ue_mm_context->bearer_contexts[bidx]->esm_ebr_context.status)) {
-        OAILOG_ERROR(
+        OAILOG_WARNING(
           LOG_NAS_ESM,
           "ESM-PROC  - A EPS bearer context "
           "is already allocated\n");
@@ -158,8 +164,6 @@ ebi_t esm_ebr_context_create(
     }
 
     if (bearer_context) {
-      MSC_LOG_EVENT(
-        MSC_NAS_ESM_MME, "0 Create Bearer ebi %u cid %u pti %u", ebi, pid, pti);
       bearer_context->transaction_identifier = pti;
       /*
        * Increment the total number of active EPS bearers

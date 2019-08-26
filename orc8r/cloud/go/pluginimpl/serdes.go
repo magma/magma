@@ -8,12 +8,10 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
-	"fmt"
-	"reflect"
+	"encoding/json"
 
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/device"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/orc8r"
+	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 )
 
@@ -31,55 +29,22 @@ import (
 // swagger struct to the datastore means that we no longer have to
 // define the same struct twice (swagger <-> proto).
 
-// GatewayRecordSerde is an inventory serde for the AccessGatewayRecord type
-type GatewayRecordSerde struct{}
+type GatewayStatusSerde struct{}
 
-func (*GatewayRecordSerde) GetDomain() string {
-	return device.SerdeDomain
-}
-
-func (*GatewayRecordSerde) GetType() string {
-	return "access_gateway_record"
-}
-
-func (*GatewayRecordSerde) Serialize(in interface{}) ([]byte, error) {
-	agr, ok := in.(*models.AccessGatewayRecord)
-	if !ok {
-		return []byte{}, fmt.Errorf("Could not serialize gateway record. Expected *models.AccessGatewayRecord, got %T", in)
-	}
-	return agr.MarshalBinary()
-}
-
-func (*GatewayRecordSerde) Deserialize(in []byte) (interface{}, error) {
-	ret := &models.AccessGatewayRecord{}
-	err := ret.UnmarshalBinary(in)
-	return ret, err
-}
-
-// CheckinRequestSerde is a state serde for the CheckinRequest type
-type CheckinRequestSerde struct{}
-
-func (*CheckinRequestSerde) GetDomain() string {
+func (*GatewayStatusSerde) GetDomain() string {
 	return state.SerdeDomain
 }
 
-func (s *CheckinRequestSerde) GetType() string {
-	return "checkin_request"
+func (s *GatewayStatusSerde) GetType() string {
+	return orc8r.GatewayStateType
 }
 
-func (s *CheckinRequestSerde) Serialize(in interface{}) ([]byte, error) {
-	castedState, ok := in.(*protos.CheckinRequest)
-	if !ok {
-		return nil, fmt.Errorf(
-			"Invalid gateway state type. Expected *CheckinRequest, received %s",
-			reflect.TypeOf(in),
-		)
-	}
-	return protos.MarshalIntern(castedState)
+func (s *GatewayStatusSerde) Serialize(in interface{}) ([]byte, error) {
+	return json.Marshal(in)
 }
 
-func (s *CheckinRequestSerde) Deserialize(in []byte) (interface{}, error) {
-	response := &protos.CheckinRequest{}
-	err := protos.Unmarshal(in, response)
+func (s *GatewayStatusSerde) Deserialize(in []byte) (interface{}, error) {
+	response := checkind_models.GatewayStatus{}
+	err := json.Unmarshal(in, &response)
 	return response, err
 }

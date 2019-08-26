@@ -9,72 +9,112 @@ LICENSE file in the root directory of this source tree.
 package streamer
 
 import (
-	"magma/lte/cloud/go/services/policydb"
+	"sort"
+
+	"magma/lte/cloud/go/lte"
+	protos2 "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 )
 
+const (
+	policyStreamName   = "policydb"
+	baseNameStreamName = "base_names"
+)
+
 type PoliciesProvider struct{}
 
 func (provider *PoliciesProvider) GetStreamName() string {
-	return "policydb"
+	return policyStreamName
 }
 
 func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	networkId, err := magmad.FindGatewayNetworkId(gatewayId)
-	if err != nil {
-		return nil, err
-	}
-	policies, err := policydb.GetAllRules(networkId)
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
 	}
 
-	ret := make([]*protos.DataUpdate, 0, len(policies))
-	for _, policy := range policies {
+	ruleEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.PolicyRuleEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return nil, err
+	}
+
+	ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts))
+	for _, rule := range ruleEnts {
+		ruleConfig := rule.Config.(*models.PolicyRule)
+		ruleProto := &protos2.PolicyRule{}
+		err = ruleConfig.ToProto(ruleProto)
+		if err != nil {
+			return nil, err
+		}
+		ruleProtos = append(ruleProtos, ruleProto)
+	}
+	return rulesToUpdates(ruleProtos)
+}
+
+func rulesToUpdates(rules []*protos2.PolicyRule) ([]*protos.DataUpdate, error) {
+	ret := make([]*protos.DataUpdate, 0, len(rules))
+	for _, policy := range rules {
 		marshaledPolicy, err := proto.Marshal(policy)
 		if err != nil {
 			return nil, err
 		}
-
-		update := new(protos.DataUpdate)
-		update.Key = policy.Id
-		update.Value = marshaledPolicy
-		ret = append(ret, update)
+		ret = append(ret, &protos.DataUpdate{Key: policy.Id, Value: marshaledPolicy})
 	}
+	sort.Slice(ret, func(i, j int) bool { return ret[i].Key < ret[j].Key })
 	return ret, nil
 }
 
 type BaseNamesProvider struct{}
 
 func (provider *BaseNamesProvider) GetStreamName() string {
-	return "base_names"
+	return baseNameStreamName
 }
 
 func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	networkId, err := magmad.FindGatewayNetworkId(gatewayId)
-	if err != nil {
-		return nil, err
-	}
-	baseNameRecords, err := policydb.GetAllBaseNames(networkId)
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
 	}
 
-	ret := make([]*protos.DataUpdate, 0, len(baseNameRecords))
-	for _, baseNameRecord := range baseNameRecords {
-		marshaledBaseNameSet, err := proto.Marshal(baseNameRecord.GetRuleNamesSet())
+	bnEnts, err := configurator.LoadAllEntitiesInNetwork(
+		gwEnt.NetworkID,
+		lte.BaseNameEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts))
+	for _, bn := range bnEnts {
+		bnConfig := bn.Config.(*models.BaseNameRecord)
+		ruleNames := make([]string, 0, len(bn.Associations))
+		for _, assoc := range bn.Associations {
+			ruleNames = append(ruleNames, assoc.Key)
+		}
+		bnProto := &protos2.ChargingRuleBaseNameRecord{
+			Name:         string(bnConfig.Name),
+			RuleNamesSet: &protos2.ChargingRuleNameSet{RuleNames: ruleNames},
+		}
+		bnProtos = append(bnProtos, bnProto)
+	}
+	return bnsToUpdates(bnProtos)
+}
+
+func bnsToUpdates(bns []*protos2.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
+	ret := make([]*protos.DataUpdate, 0, len(bns))
+	for _, bn := range bns {
+		marshaledBN, err := proto.Marshal(bn)
 		if err != nil {
 			return nil, err
 		}
-
-		update := new(protos.DataUpdate)
-		update.Key = baseNameRecord.GetName()
-		update.Value = marshaledBaseNameSet
-		ret = append(ret, update)
+		ret = append(ret, &protos.DataUpdate{Key: bn.Name, Value: marshaledBN})
 	}
+	sort.Slice(ret, func(i, j int) bool { return ret[i].Key < ret[j].Key })
 	return ret, nil
 }

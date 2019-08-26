@@ -14,6 +14,7 @@ from magma.common.service import MagmaService
 from magma.configuration.service_configs import get_service_config_value
 from magma.redirectd.redirect_server import run_flask
 from magma.redirectd.scribe_logging import RedirectScribeLogger
+from lte.protos.mconfig import mconfigs_pb2
 
 
 def main():
@@ -22,7 +23,7 @@ def main():
 
     Initializes the scribe logger, starts the server threads
     """
-    service = MagmaService('redirectd')
+    service = MagmaService('redirectd', mconfigs_pb2.RedirectD())
 
     scribe_logger = None
     if service.config.get('scribe_logging_enabled', False):

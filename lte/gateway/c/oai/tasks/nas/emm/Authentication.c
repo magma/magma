@@ -26,7 +26,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "common_types.h"
@@ -167,7 +166,7 @@ int emm_proc_authentication_ksi(
     OAILOG_INFO(
       LOG_NAS_EMM,
       "ue_id=" MME_UE_S1AP_ID_FMT
-      " EMM-PROC  - Initiate authentication KSI = %d\n",
+      " EMM-PROC  - Initiate Authentication KSI = %d\n",
       ue_id,
       ksi);
 
@@ -181,10 +180,21 @@ int emm_proc_authentication_ksi(
       if (emm_specific_proc) {
         if (EMM_SPEC_PROC_TYPE_ATTACH == emm_specific_proc->type) {
           auth_proc->is_cause_is_attach = true;
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for ue_id (%u)\n",
+            emm_specific_proc->type,
+            ue_id);
         } else if (EMM_SPEC_PROC_TYPE_TAU == emm_specific_proc->type) {
           auth_proc->is_cause_is_attach = false;
+          OAILOG_DEBUG(
+            LOG_NAS_EMM,
+            "Auth proc cause is EMM_SPEC_PROC_TYPE_TAU (%d) for ue_id (%u)\n",
+            emm_specific_proc->type,
+            ue_id);
         }
       }
+      // Set the RAND value
       auth_proc->ksi = ksi;
       if (rand) {
         memcpy(auth_proc->rand, rand, AUTH_RAND_SIZE);
@@ -225,13 +235,6 @@ int emm_proc_authentication_ksi(
       /*
        * Notify EMM that common procedure has been initiated
        */
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "EMMREG_COMMON_PROC_REQ (AUTH) ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
       emm_sap_t emm_sap = {0};
 
       emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
@@ -468,20 +471,20 @@ static int _auth_info_proc_success_cb(struct emm_context_s *emm_ctx)
         auth_info_proc->vector[i]->xres.size);
       emm_ctx->_vector[destination_index].xres_size =
         auth_info_proc->vector[i]->xres.size;
-      OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  - Received Vector %u:\n", i);
-      OAILOG_INFO(
+      OAILOG_DEBUG(LOG_NAS_EMM, "EMM-PROC  - Received Vector %u:\n", i);
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received XRES ..: " XRES_FORMAT "\n",
         XRES_DISPLAY(emm_ctx->_vector[destination_index].xres));
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received RAND ..: " RAND_FORMAT "\n",
         RAND_DISPLAY(emm_ctx->_vector[destination_index].rand));
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received AUTN ..: " AUTN_FORMAT "\n",
         AUTN_DISPLAY(emm_ctx->_vector[destination_index].autn));
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "EMM-PROC  - Received KASME .: " KASME_FORMAT " " KASME_FORMAT "\n",
         KASME_DISPLAY_1(emm_ctx->_vector[destination_index].kasme),
@@ -667,10 +670,6 @@ int emm_proc_authentication_failure(
        *  Ask for a new vector.
        */
         REQUIREMENT_3GPP_24_301(R10_5_4_2_4__3);
-        MSC_LOG_EVENT(
-          MSC_NAS_EMM_MME,
-          " SQN SYNCH_FAILURE ue id " MME_UE_S1AP_ID_FMT " ",
-          ue_mm_context->mme_ue_s1ap_id);
 
         auth_proc->sync_fail_count += 1;
         if (EMM_AUTHENTICATION_SYNC_FAILURE_MAX > auth_proc->sync_fail_count) {
@@ -943,10 +942,8 @@ int emm_proc_authentication_complete(
 
   OAILOG_INFO(
     LOG_NAS_EMM,
-    "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT
-    ", cause=%d)\n",
-    ue_id,
-    emm_cause);
+    "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+    ue_id);
   emm_ctx = &ue_mm_context->emm_context;
   nas_emm_auth_proc_t *auth_proc =
     get_nas_common_procedure_authentication(emm_ctx);
@@ -1022,13 +1019,6 @@ int emm_proc_authentication_complete(
     /*
    * Notify EMM that the authentication procedure successfully completed
    */
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "EMMREG_COMMON_PROC_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     OAILOG_DEBUG(
       LOG_NAS_EMM,
       "EMM-PROC  - Notify EMM that the authentication procedure successfully "
@@ -1294,6 +1284,10 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
     } else {
+      OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "UE MM context NULL for ue_id = (%u)!\n",
+        auth_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
     /*
@@ -1302,13 +1296,6 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
     emm_as_set_security_data(
       &emm_sap.u.emm_as.u.security.sctx, &emm_ctx->_security, false, true);
     REQUIREMENT_3GPP_24_301(R10_5_4_2_2);
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "EMMAS_SECURITY_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-      auth_proc->ue_id);
     rc = emm_sap_send(&emm_sap);
 
     if (rc != RETURNerror) {
@@ -1402,13 +1389,6 @@ static int _authentication_ll_failure(
     nas_emm_auth_proc_t *auth_proc = (nas_emm_auth_proc_t *) emm_proc;
     emm_sap_t emm_sap = {0};
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0 EMMREG_PROC_ABORT ue id " MME_UE_S1AP_ID_FMT " ",
-      auth_proc->ue_id);
     emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
     emm_sap.u.emm_reg.ue_id = auth_proc->ue_id;
     emm_sap.u.emm_reg.ctx = emm_context;

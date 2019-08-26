@@ -46,7 +46,7 @@ add_library(LIB_S1AP
     s1ap_common.c
 )
 target_link_libraries(LIB_S1AP
-    LIB_BSTR LIB_HASHTABLE LIB_MSC
+    LIB_BSTR LIB_HASHTABLE
 )
 target_include_directories(LIB_S1AP PUBLIC
     ${S1AP_C_DIR}
@@ -80,7 +80,7 @@ target_link_libraries(TASK_S1AP
     ${CONFIG}
     COMMON
     LIB_BSTR LIB_HASHTABLE
-    TASK_SERVICE303
+    TASK_SERVICE303 TASK_MME_APP
     cpp_redis tacopie
 )
 target_include_directories(TASK_S1AP PUBLIC

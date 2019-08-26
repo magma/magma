@@ -8,31 +8,31 @@
  * @format
  */
 
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
 import type {Subscriber} from './AddEditSubscriberDialog';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithStyles} from '@material-ui/core';
 
 import AddEditSubscriberDialog from './AddEditSubscriberDialog';
-import axios from 'axios';
-import LoadingFiller from './LoadingFiller';
-import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableFooter from '@material-ui/core/TableFooter';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaTopBar from './MagmaTopBar';
+import Paper from '@material-ui/core/Paper';
+import React from 'react';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableFooter from '@material-ui/core/TableFooter';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
 
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -43,7 +43,7 @@ const styles = theme => ({
     justifyContent: 'space-between',
   },
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
 });
 
@@ -51,7 +51,7 @@ type SubProfiles = {
   [string]: {max_dl_bit_rate?: number, max_ul_bit_rate?: number},
 };
 
-type Props = ContextRouter & WithAlert & WithStyles & {};
+type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   subscribers: Array<Subscriber>,
@@ -131,7 +131,7 @@ class Subscribers extends React.Component<Props, State> {
               Add Subscriber
             </Button>
           </div>
-          <Paper>
+          <Paper elevation={2}>
             {this.state.loading ? (
               <LoadingFiller />
             ) : (
@@ -162,7 +162,9 @@ class Subscribers extends React.Component<Props, State> {
           </Paper>
           <div
             style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
-            <Typography color="error">{this.state.errorMessage}</Typography>
+            <Typography color="error" variant="body2">
+              {this.state.errorMessage}
+            </Typography>
           </div>
           <AddEditSubscriberDialog
             key={(this.state.editingSubscriber || {}).id || 'new'}

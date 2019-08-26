@@ -25,7 +25,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "common_types.h"
@@ -111,6 +110,7 @@ void _detach_t3422_handler(void *args)
   DevAssert(data);
 
   mme_ue_s1ap_id_t ue_id = data->ue_id;
+  uint8_t detach_type = data->detach_type;
 
   /*
    * Increment the retransmission counter
@@ -138,7 +138,7 @@ void _detach_t3422_handler(void *args)
       DevAssert(emm_ctx);
       //emm_ctx->t3422_arg = NULL;
     }
-    if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
+    if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
       emm_detach_request_params.switch_off = 0;
       emm_detach_request_params.type = 0;
@@ -380,10 +380,6 @@ int emm_proc_detach_request(
   emm_context_t *emm_ctx = &ue_mm_context->emm_context;
 
   if (params->switch_off) {
-    MSC_LOG_EVENT(
-      MSC_NAS_EMM_MME,
-      "0 Removing UE context ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_not_sent");
     rc = RETURNok;
@@ -435,13 +431,6 @@ int emm_proc_detach_request(
     /*
      * Notify EMM FSM that the UE has been implicitly detached
      */
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0 EMMREG_DETACH_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     emm_sap.primitive = EMMREG_DETACH_REQ;
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;

@@ -12,13 +12,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 import ipaddress
 import logging
 
+from generate_service_config import generate_template_config
 from magma.common.misc_utils import get_ip_from_if_cidr
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import load_service_config
 from orc8r.protos.mconfig.mconfigs_pb2 import DnsD
-
-from generate_service_config import generate_template_config
 
 CONFIG_OVERRIDE_DIR = '/var/opt/magma/tmp'
 
@@ -31,7 +30,7 @@ def _get_addresses(cfg, mconfig):
     Currently uses record types A record, AAAA record and CNAME record.
     """
     # Start with list of addresses from YML
-    addresses = cfg['addresses']
+    addresses = cfg.get('addresses', [])
     for record in mconfig.records:
         # Unpack each record type into list NOTE: list concat doesn't work here
         domain_records = [
@@ -52,9 +51,9 @@ def get_context():
     context = {}
     cfg = load_service_config("dnsd")
     try:
-        mconfig = load_service_mconfig("dnsd")
+        mconfig = load_service_mconfig('dnsd', DnsD())
     except LoadConfigError as err:
-        logging.warn("Error! Using default config because: %s", err)
+        logging.warning("Error! Using default config because: %s", err)
         mconfig = DnsD()
     ip = get_ip_from_if_cidr(cfg['enodeb_interface'])
     dhcp_block_size = cfg['dhcp_block_size']

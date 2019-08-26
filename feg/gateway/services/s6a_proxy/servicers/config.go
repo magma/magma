@@ -16,19 +16,20 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
-	managed_configs "magma/feg/gateway/mconfig"
+	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
 // S6a Environment Variables to overwrite default configs
 const (
-	HSSAddrEnv        = "HSS_ADDR"
-	S6aNetworkEnv     = "S6A_NETWORK"
-	S6aDiamHostEnv    = "S6A_DIAM_HOST"
-	S6aDiamRealmEnv   = "S6A_DIAM_REALM"
-	S6aDiamProductEnv = "S6A_DIAM_PRODUCT"
-	S6aLocalAddrEnv   = "S6A_LOCAL_ADDR"
-	HSSHostEnv        = "HSS_HOST"
-	HSSRealmEnv       = "HSS_REALM"
+	HSSAddrEnv         = "HSS_ADDR"
+	S6aNetworkEnv      = "S6A_NETWORK"
+	S6aDiamHostEnv     = "S6A_DIAM_HOST"
+	S6aDiamRealmEnv    = "S6A_DIAM_REALM"
+	S6aDiamProductEnv  = "S6A_DIAM_PRODUCT"
+	S6aLocalAddrEnv    = "S6A_LOCAL_ADDR"
+	HSSHostEnv         = "HSS_HOST"
+	HSSRealmEnv        = "HSS_REALM"
+	DisableDestHostEnv = "DISABLE_DEST_HOST"
 
 	S6aProxyServiceName = "s6a_proxy"
 	DefaultS6aDiamRealm = "epc.mnc070.mcc722.3gppnetwork.org"
@@ -58,8 +59,9 @@ func GetS6aProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterSer
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
 				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, S6aNetworkEnv, "sctp"),
 				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, S6aLocalAddrEnv, "")},
-				DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
-				DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
+				DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, ""),
+				DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
+				DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
 			}
 	}
 
@@ -77,7 +79,8 @@ func GetS6aProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterSer
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.Server.Address),
 			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, S6aNetworkEnv, configsPtr.Server.Protocol),
 			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, S6aLocalAddrEnv, configsPtr.Server.LocalAddress)},
-			DestHost:  diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.Server.DestHost),
-			DestRealm: diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.Server.DestRealm),
+			DestHost:        diameter.GetValueOrEnv(diameter.DestHostFlag, HSSHostEnv, configsPtr.Server.DestHost),
+			DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.Server.DestRealm),
+			DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, configsPtr.GetServer().GetDisableDestHost()),
 		}
 }

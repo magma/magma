@@ -20,6 +20,7 @@ import (
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/sqorc"
 )
 
 const (
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	// Init the Datastore
-	healthDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	healthDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}
@@ -44,7 +45,7 @@ func main() {
 		log.Fatalf("Failed to initialize health store: %s", err)
 	}
 
-	clusterDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE)
+	clusterDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
 	if err != nil {
 		log.Fatalf("Failed to initialize datastore: %s", err)
 	}
@@ -55,9 +56,6 @@ func main() {
 
 	// Add servicers to the service
 	healthServer := servicers.NewHealthServer(healthStore, clusterStore)
-	if err != nil {
-		log.Fatalf("Health Servicer Initialization Error: %s", err)
-	}
 	protos.RegisterHealthServer(srv.GrpcServer, healthServer)
 
 	// create a networkHealthStatusReporter to monitor and periodically log metrics

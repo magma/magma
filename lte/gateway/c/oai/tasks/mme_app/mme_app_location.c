@@ -35,7 +35,6 @@
 
 #include "bstrlib.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "common_types.h"
 #include "conversions.h"
@@ -67,6 +66,9 @@ int mme_app_send_s6a_update_location_req(
   s6a_update_location_req_t *s6a_ulr_p = NULL;
   int rc = RETURNok;
 
+  OAILOG_INFO(
+    TASK_MME_APP, "Sending S6A UPDATE LOCATION REQ to S6A, ue_id = %u\n",
+    ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_UPDATE_LOCATION_REQ);
 
   if (message_p == NULL) {
@@ -99,14 +101,26 @@ int mme_app_send_s6a_update_location_req(
 
   memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
   s6a_ulr_p->rat_type = RAT_EUTRAN;
+  OAILOG_DEBUG(
+    TASK_MME_APP, "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
+    s6a_ulr_p->rat_type,
+    ue_context_p->mme_ue_s1ap_id);
   /*
    * Check if we already have UE data
    * set the skip subscriber data flas as true in case we are sending ULR against recieved HSS Reset
    */
   if (ue_context_p->location_info_confirmed_in_hss == true) {
     s6a_ulr_p->skip_subscriber_data = 1;
+    OAILOG_DEBUG(
+      TASK_MME_APP, "S6A Location information confirmed in HSS (%d) for (ue_id = %u)\n",
+      ue_context_p->location_info_confirmed_in_hss,
+      ue_context_p->mme_ue_s1ap_id);
   } else {
     s6a_ulr_p->skip_subscriber_data = 0;
+    OAILOG_DEBUG(
+      TASK_MME_APP, "S6A Location information not confirmed in HSS (%d) for (ue_id = %u)\n",
+      ue_context_p->location_info_confirmed_in_hss,
+      ue_context_p->mme_ue_s1ap_id);
   }
 
   //Check if we have voice domain preference IE and send to S6a task
@@ -115,18 +129,12 @@ int mme_app_send_s6a_update_location_req(
       ue_context_p->emm_context.volte_params.voice_domain_preference_and_ue_usage_setting;
     s6a_ulr_p->presencemask |= S6A_PDN_CONFIG_VOICE_DOM_PREF;
   }
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S6A_MME,
-    NULL,
-    0,
-    "0 S6A_UPDATE_LOCATION_REQ imsi %s",
-    s6a_ulr_p->imsi);
   OAILOG_DEBUG(
     LOG_MME_APP,
-    "0 S6A_UPDATE_LOCATION_REQ imsi %s with length %d",
+    "0 S6A_UPDATE_LOCATION_REQ imsi %s with length %d for (ue_id = %u)\n",
     s6a_ulr_p->imsi,
-    s6a_ulr_p->imsi_length);
+    s6a_ulr_p->imsi_length,
+    ue_context_p->mme_ue_s1ap_id);
   rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
   /*
    * Do not start this timer in case we are sending ULR after receiving HSS reset
@@ -211,17 +219,13 @@ int mme_app_handle_s6a_update_location_ans(
 
   IMSI_STRING_TO_IMSI64((char *) ula_pP->imsi, &imsi64);
   OAILOG_DEBUG(
-    LOG_MME_APP, "%s Handling imsi " IMSI_64_FMT "\n", __FUNCTION__, imsi64);
+    LOG_MME_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   if (
     (ue_mm_context = mme_ue_context_exists_imsi(
        &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "That's embarrassing as we don't know this IMSI\n");
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      "0 S6A_UPDATE_LOCATION unknown imsi " IMSI_64_FMT " ",
-      imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ula_pP->result.present == S6A_RESULT_BASE) {
@@ -235,12 +239,14 @@ int mme_app_handle_s6a_update_location_ans(
         "ULR/ULA procedure returned non success (ULA.result.choice.base=%d)\n",
         ula_pP->result.choice.base);
       if (_handle_ula_failure(ue_mm_context) == RETURNok) {
-        OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS\n");
+        OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
+        ue_mm_context->mme_ue_s1ap_id);
         unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
       } else {
         OAILOG_ERROR(
-          LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS\n");
+          LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
+          ue_mm_context->mme_ue_s1ap_id);
         unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
@@ -255,12 +261,14 @@ int mme_app_handle_s6a_update_location_ans(
       "ULR/ULA procedure returned non success (ULA.result.present=%d)\n",
       ula_pP->result.present);
     if (_handle_ula_failure(ue_mm_context) == RETURNok) {
-      OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS\n");
+      OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
+      ue_mm_context->mme_ue_s1ap_id);
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     } else {
       OAILOG_ERROR(
-        LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS\n");
+        LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
+        ue_mm_context->mme_ue_s1ap_id);
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
@@ -318,6 +326,10 @@ int mme_app_handle_s6a_update_location_ans(
   message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONFIG_RSP);
 
   if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Message pointer is NULL while allocating new message for PDN Config Rsp, (ue_id = %u)\n",
+      ue_mm_context->mme_ue_s1ap_id);
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -338,16 +350,16 @@ int mme_app_handle_s6a_update_location_ans(
     MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER * 60;
 
   /*
-   * Set the flag: send_ue_purge_request to indicate that 
-   * Update Location procedure is completed. 
-   * During UE initiated detach/Implicit detach this MME would send PUR to hss, 
+   * Set the flag: send_ue_purge_request to indicate that
+   * Update Location procedure is completed.
+   * During UE initiated detach/Implicit detach this MME would send PUR to hss,
    * if this flag is true.
   */
   ue_mm_context->send_ue_purge_request = true;
   /*
-   * Set the flag: location_info_confirmed_in_hss to false to indicate that 
-   * Update Location procedure is completed. 
-   * During HSS Reset 
+   * Set the flag: location_info_confirmed_in_hss to false to indicate that
+   * Update Location procedure is completed.
+   * During HSS Reset
    * if this flag is true.
   */
   if (ue_mm_context->location_info_confirmed_in_hss == true) {
@@ -356,13 +368,8 @@ int mme_app_handle_s6a_update_location_ans(
 
   nas_pdn_config_rsp = &message_p->ittiMsg.nas_pdn_config_rsp;
   nas_pdn_config_rsp->ue_id = ue_mm_context->mme_ue_s1ap_id;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "0 NAS_PDN_CONFIG_RESP imsi %s",
-    ula_pP->imsi);
+  OAILOG_INFO(LOG_MME_APP, "Sending PDN CONFIG RSP to NAS for (ue_id = %u)\n",
+    nas_pdn_config_rsp->ue_id);
   rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
 
   unlock_ue_contexts(ue_mm_context);
@@ -385,8 +392,7 @@ int mme_app_handle_s6a_cancel_location_req(
   IMSI_STRING_TO_IMSI64((char *) clr_pP->imsi, &imsi);
   OAILOG_DEBUG(
     LOG_MME_APP,
-    "%s S6a Cancel Location Request for imsi " IMSI_64_FMT "\n",
-    __FUNCTION__,
+    "S6a Cancel Location Request for imsi " IMSI_64_FMT "\n",
     imsi);
 
   if (
@@ -396,25 +402,28 @@ int mme_app_handle_s6a_cancel_location_req(
     OAILOG_ERROR(
       LOG_MME_APP,
       "S6a Cancel Location Request: Failed to send Cancel Location Answer from "
-      "MME app \n");
+      "MME app for imsi " IMSI_64_FMT "\n",
+      imsi);
   }
 
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
        &mme_app_desc.mme_ue_contexts, imsi)) == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "IMSI is not present in the MME context \n");
+    OAILOG_ERROR(LOG_MME_APP, "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
+      imsi);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (clr_pP->cancellation_type != SUBSCRIPTION_WITHDRAWL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "S6a Cancel Location Request: Cancellation_type not supported %d \n",
-      clr_pP->cancellation_type);
+      "S6a Cancel Location Request: Cancellation_type not supported %d for imsi " IMSI_64_FMT "\n",
+      clr_pP->cancellation_type,
+      imsi);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  /* 
-   * set the flag: hss_initiated_detach to indicate that, 
+  /*
+   * set the flag: hss_initiated_detach to indicate that,
    * hss has initiated detach and MME shall not send PUR to hss
    */
   ue_context_p->hss_initiated_detach = true;
@@ -425,27 +434,41 @@ int mme_app_handle_s6a_cancel_location_req(
    * connected mode and then send Detach Request
    */
   if (ue_context_p->ecm_state == ECM_IDLE) {
-    // Initiate Implicit Detach for the UE
-    // Stop Mobile reachability timer,if running
-    if (
-      ue_context_p->mobile_reachability_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Mobile Reachability timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
+
+    if (!mme_config.eps_network_feature_support.
+      ims_voice_over_ps_session_in_s1) {
+      // Initiate Implicit Detach for the UE
+      // Stop Mobile reachability timer,if running
+      if (
+        ue_context_p->mobile_reachability_timer.id !=
+          MME_APP_TIMER_INACTIVE_ID) {
+        if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "Failed to stop Mobile Reachability timer for UE id  %d \n",
+            ue_context_p->mme_ue_s1ap_id);
+        }
+        ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
       }
-      ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    }
-    // Stop Implicit detach timer,if running
-    if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-      if (timer_remove(ue_context_p->implicit_detach_timer.id, NULL)) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Implicit Detach timer for UE id  %d \n",
-          ue_context_p->mme_ue_s1ap_id);
+      // Stop Implicit detach timer,if running
+      if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
+        if (timer_remove(ue_context_p->implicit_detach_timer.id, NULL)) {
+          OAILOG_ERROR(
+            LOG_MME_APP,
+            "Failed to stop Implicit Detach timer for UE id  %d \n",
+            ue_context_p->mme_ue_s1ap_id);
+        }
+        ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
       }
-      ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
+    } else {
+      /* Page the UE to bring it back to connected mode
+       * and then send Detach Request
+      */
+      mme_app_paging_request_helper(
+        ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
+      // Set the flag and send detach to UE after receiving service req
+      ue_context_p->emm_context.nw_init_bearer_deactv = true;
+
     }
     // Send Implicit Detach Ind to NAS
     message_p =
@@ -457,7 +480,8 @@ int mme_app_handle_s6a_cancel_location_req(
   } else {
     // Send N/W Initiated Detach Request to NAS
 
-    OAILOG_INFO(LOG_MME_APP, "Sending Detach to NAS \n");
+    OAILOG_INFO(LOG_MME_APP, "Sending Detach to NAS for (ue_id = %u)\n",
+      ue_context_p->mme_ue_s1ap_id);
     rc = mme_app_send_nas_detach_request(
       ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH);
 
@@ -499,8 +523,6 @@ int mme_app_send_s6a_cancel_location_ans(
 
   s6a_cla_p->result = cla_result;
   s6a_cla_p->msg_cla_p = msg_cla_p;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME, MSC_S6A_MME, NULL, 0, "0 S6A_CANCEL_LOCATION_ANS ");
   rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

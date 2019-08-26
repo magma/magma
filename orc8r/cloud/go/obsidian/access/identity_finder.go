@@ -11,15 +11,15 @@ package access
 import (
 	"strings"
 
-	"github.com/labstack/echo"
-
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/protos"
+
+	"github.com/labstack/echo"
 )
 
 const (
-	MAGMA_ROOT_PART     = handlers.REST_ROOT + handlers.URL_SEP
+	MAGMA_ROOT_PART     = obsidian.RestRoot + obsidian.UrlSep
 	MAGMA_ROOT_PART_LEN = len(MAGMA_ROOT_PART)
 )
 
@@ -35,7 +35,7 @@ func FindRequestedIdentities(c echo.Context) []*protos.Identity {
 	if c != nil {
 		path := c.Path()
 		if strings.HasPrefix(path, MAGMA_ROOT_PART) {
-			parts := strings.Split(path[MAGMA_ROOT_PART_LEN:], handlers.URL_SEP)
+			parts := strings.Split(path[MAGMA_ROOT_PART_LEN:], obsidian.UrlSep)
 			if len(parts) > 0 {
 				finder, ok := finderRegistry[parts[0]]
 				if ok {

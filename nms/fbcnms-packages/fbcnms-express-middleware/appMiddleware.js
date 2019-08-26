@@ -24,8 +24,9 @@ export default function appMiddleware(): Middleware {
   const router = express.Router();
   [
     helmet(),
-    // parse json
-    bodyParser.json({limit: '1mb'}),
+    // parse json. Strict disabled because magma wants gateway name update
+    // to be just a string (e.g. "name") which is not actually legit
+    bodyParser.json({limit: '1mb', strict: false}),
     // parse application/x-www-form-urlencoded
     bodyParser.urlencoded({limit: '1mb', extended: false}),
     cookieParser(),

@@ -1,0 +1,39 @@
+#########################################
+# eNB Database
+#########################################
+
+beginCfg eNbDB
+
+numENBEntries = 5
+
+# ENB 0
+########################
+ENB_Entry = 1
+CELL_ID = 1
+TAC = 1
+PLMN_ID 0 0 1 0 1 0
+# ENB 1
+########################
+ENB_Entry = 2
+CELL_ID = 2
+TAC = 1
+PLMN_ID 0 0 1 0 1 0
+# ENB 2
+########################
+ENB_Entry = 3
+CELL_ID = 3
+TAC = 1
+PLMN_ID 0 0 1 0 1 0
+# ENB 3
+########################
+ENB_Entry = 4
+CELL_ID = 4
+TAC = 1
+PLMN_ID 0 0 1 0 1 0
+# ENB 4
+########################
+ENB_Entry = 5
+CELL_ID = 5
+TAC = 1
+PLMN_ID 0 0 1 0 1 0
+endCfg

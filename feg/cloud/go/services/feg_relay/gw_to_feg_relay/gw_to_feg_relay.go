@@ -18,17 +18,17 @@ import (
 	"os"
 	"strings"
 
-	feg_config "magma/feg/cloud/go/services/controller/config"
-	feg_protos "magma/feg/cloud/go/services/controller/protos"
+	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/services/controller/obsidian/models"
 	"magma/feg/cloud/go/services/health"
-	lte_config "magma/lte/cloud/go/services/cellular/config"
-	lte_protos "magma/lte/cloud/go/services/cellular/protos"
+	"magma/lte/cloud/go/lte"
+	ltemodels "magma/lte/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/http2"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary"
-	"magma/orc8r/cloud/go/services/config"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
-	"magma/orc8r/cloud/go/services/magmad"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -165,24 +165,24 @@ func getFeGHwIdForNetwork(agNwId string) (string, error) {
 	if err == nil {
 		return fegEnvHwID, nil
 	}
-	cfg, err := config.GetConfig(agNwId, lte_config.CellularNetworkType, agNwId)
+	cfg, err := configurator.GetNetworkConfigsByType(agNwId, lte.CellularNetworkType)
 	if err != nil || cfg == nil {
 		return "", fmt.Errorf("Unable to retrieve cellular config for AG network: %s", agNwId)
 	}
-	cellularConfig, ok := cfg.(*lte_protos.CellularNetworkConfig)
+	cellularConfig, ok := cfg.(*ltemodels.NetworkCellularConfigs)
 	if !ok {
 		return "", fmt.Errorf("Invalid cellular config found for AG network: %s", agNwId)
 	}
-	fegNetworkID := cellularConfig.FegNetworkId
+	fegNetworkID := cellularConfig.FegNetworkID
 	if fegNetworkID == "" {
 		return "", fmt.Errorf("FegNetworkID is not set in cellular config for network: %s", agNwId)
 	}
 
-	fegCfg, err := config.GetConfig(fegNetworkID, feg_config.FegNetworkType, fegNetworkID)
+	fegCfg, err := configurator.GetNetworkConfigsByType(string(fegNetworkID), feg.FegNetworkType)
 	if err != nil || fegCfg == nil {
 		return "", fmt.Errorf("Unable to retrieve config for FeG network: %s", fegNetworkID)
 	}
-	fegNetworkConfig, ok := fegCfg.(*feg_protos.Config)
+	fegNetworkConfig, ok := fegCfg.(*models.NetworkFederationConfigs)
 	if !ok {
 		return "", fmt.Errorf("Invalid feg config found for FeG network: %s", fegNetworkID)
 	}
@@ -190,7 +190,7 @@ func getFeGHwIdForNetwork(agNwId string) (string, error) {
 	servedNetworkIDs := fegNetworkConfig.ServedNetworkIds
 	for _, network := range servedNetworkIDs {
 		if agNwId == network {
-			return getActiveFeGForNetwork(fegNetworkID)
+			return getActiveFeGForNetwork(string(fegNetworkID))
 		}
 	}
 	return "", fmt.Errorf("Federated Gateway Network: %s is not configured to serve network: %s", fegNetworkID, agNwId)
@@ -201,15 +201,14 @@ func getActiveFeGForNetwork(fegNetworkID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("Unable to retrieve active FeG for network: %s; %s", fegNetworkID, err)
 	}
-	record, err := magmad.FindGatewayRecord(fegNetworkID, activeGW)
+	hardwareID, err := configurator.GetPhysicalIDOfEntity(fegNetworkID, orc8r.MagmadGatewayType, activeGW)
 	if err != nil {
-		return "", fmt.Errorf("Unable to retrieve Gateway Record for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
+		return "", fmt.Errorf("Unable to retrieve hardware ID for active feg: %s in network: %s; %s", activeGW, fegNetworkID, err)
 	}
-	hwId := record.GetHwId().GetId()
-	if len(hwId) == 0 {
+	if len(hardwareID) == 0 {
 		return "", fmt.Errorf("Unable to retrieve Hardware ID for active feg: %s in network: %s", activeGW, fegNetworkID)
 	}
-	return hwId, nil
+	return hardwareID, nil
 }
 
 func getDispatcherHttpServerAddr(hwId string) (string, error) {

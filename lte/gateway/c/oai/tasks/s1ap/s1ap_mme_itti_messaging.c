@@ -70,6 +70,10 @@ int s1ap_mme_itti_nas_uplink_ind(
 {
   MessageDef *message_p = NULL;
 
+  OAILOG_INFO(
+    LOG_S1AP,
+    "Sending NAS Uplink indication to MME_APP, mme_ue_s1ap_id = (%u) \n",
+    ue_id);
   message_p = itti_alloc_new_message(TASK_S1AP, NAS_UPLINK_DATA_IND);
   NAS_UL_DATA_IND(message_p).ue_id = ue_id;
   NAS_UL_DATA_IND(message_p).nas_msg = *payload;
@@ -136,6 +140,12 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   AssertFatal(
     (nas_msg_length < 1000), "Bad length for NAS message %lu", nas_msg_length);
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
+
+  OAILOG_INFO(
+    LOG_S1AP,
+    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id : " ENB_UE_S1AP_ID_FMT
+    "\n",
+    enb_ue_s1ap_id);
 
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id = assoc_id;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
@@ -225,4 +235,46 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   // but let's see
   itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
+}
+
+//------------------------------------------------------------------------------
+int s1ap_mme_itti_s1ap_path_switch_request(
+  const sctp_assoc_id_t assoc_id,
+  const uint32_t enb_id,
+  const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+  const e_rab_to_be_switched_in_downlink_list_t const
+    *e_rab_to_be_switched_dl_list,
+  const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+  const ecgi_t const *ecgi,
+  const tai_t const *tai,
+  const uint16_t encryption_algorithm_capabilities,
+  const uint16_t integrity_algorithm_capabilities)
+{
+
+  MessageDef *message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
+  if (NULL == message_p) {
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  S1AP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id = assoc_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_id = enb_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).e_rab_to_be_switched_dl_list =
+    *e_rab_to_be_switched_dl_list;
+  S1AP_PATH_SWITCH_REQUEST(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
+  S1AP_PATH_SWITCH_REQUEST(message_p).tai = *tai;
+  S1AP_PATH_SWITCH_REQUEST(message_p).ecgi = *ecgi;
+  S1AP_PATH_SWITCH_REQUEST(message_p).encryption_algorithm_capabilities =
+    encryption_algorithm_capabilities;
+  S1AP_PATH_SWITCH_REQUEST(message_p).integrity_algorithm_capabilities =
+    integrity_algorithm_capabilities;
+
+  OAILOG_DEBUG(
+    LOG_S1AP,
+    "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n"
+    , mme_ue_s1ap_id);
+
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }

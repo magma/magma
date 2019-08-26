@@ -11,7 +11,6 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -24,6 +23,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
+import axios from 'axios';
 
 import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
@@ -57,7 +57,7 @@ type EditingSubscriber = {
 };
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     open: boolean,
     onClose: () => void,
     onSave: (subscriberID: string) => void,

@@ -9,8 +9,8 @@
  */
 
 import express from 'express';
-import request from 'supertest';
 import i18nextMiddleware from 'i18next-express-middleware';
+import request from 'supertest';
 import {getLocaleHandler} from '..';
 
 test('if requested locale is loaded, serve it', async () => {

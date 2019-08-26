@@ -289,6 +289,20 @@ void mme_app_handle_delete_dedicated_bearer_rej(
 void mme_app_handle_pdn_disconnect_req(
   itti_mme_app_pdn_disconnect_req_t *const mme_app_pdn_disconnect_req);
 
+void mme_app_handle_path_switch_request(
+    itti_s1ap_path_switch_request_t *const path_switch_req_p);
+
+bool is_e_rab_id_present(
+    e_rab_to_be_switched_in_downlink_list_t e_rab_to_be_switched_dl_list,
+    ebi_t bearer_id);
+
+void mme_app_handle_path_switch_req_ack(
+    itti_s11_modify_bearer_response_t  *const s11_modify_bearer_response,
+    struct ue_mm_context_s *ue_context_p);
+
+void mme_app_handle_path_switch_req_failure(
+    struct ue_mm_context_s *ue_context_p);
+
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_write_lock(mMEsTATS)                                         \

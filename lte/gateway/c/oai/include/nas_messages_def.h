@@ -170,4 +170,3 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_erab_rel_cmd_t,
   itti_erab_rel_cmd)
-

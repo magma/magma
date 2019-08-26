@@ -104,7 +104,6 @@ func registerGateways(t *testing.T) {
 func insertStatuses(t *testing.T) map[string]*protos.CheckinRequest {
 	conn, err := registry.GetConnection(checkind.ServiceName)
 	assert.NoError(t, err)
-	defer conn.Close()
 	client := protos.NewCheckindClient(conn)
 	checkinRequest1 := test_utils.GetCheckinRequestProtoFixture(gw1HardwareID)
 	_, err = client.Checkin(context.Background(), checkinRequest1)

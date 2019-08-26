@@ -19,40 +19,37 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/golang/glog"
-	"google.golang.org/grpc"
 )
 
 // getClient is a utility function to get an RPC connection to
 // ServiceHealth
-func getClient(service string) (protos.ServiceHealthClient, *grpc.ClientConn, error) {
+func getClient(service string) (protos.ServiceHealthClient, error) {
 	conn, err := registry.GetConnection(service)
 	if err != nil {
 		initErr := errors.NewInitError(err, service)
 		glog.Error(initErr)
-		return nil, nil, initErr
+		return nil, initErr
 	}
-	return protos.NewServiceHealthClient(conn), conn, nil
+	return protos.NewServiceHealthClient(conn), nil
 }
 
 // Disable disables service functionality for the period of time
 // specified in the DisableMessage for the service provided
 func Disable(service string, req *protos.DisableMessage) error {
-	client, conn, err := getClient(service)
+	client, err := getClient(service)
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = client.Disable(context.Background(), req)
 	return err
 }
 
 // Enable enables service functionality for the service provided
 func Enable(service string) error {
-	client, conn, err := getClient(service)
+	client, err := getClient(service)
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
 	_, err = client.Enable(context.Background(), &orcprotos.Void{})
 	return err
 }
@@ -60,11 +57,10 @@ func Enable(service string) error {
 // GetHealthStatus returns a HealthStatus object that indicates the current health of
 // the service provided
 func GetHealthStatus(service string) (*protos.HealthStatus, error) {
-	client, conn, err := getClient(service)
+	client, err := getClient(service)
 	if err != nil {
 		return nil, err
 	}
-	defer conn.Close()
 	healthStatus, err := client.GetHealthStatus(context.Background(), &orcprotos.Void{})
 	return healthStatus, err
 }

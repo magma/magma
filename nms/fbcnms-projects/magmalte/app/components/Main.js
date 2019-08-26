@@ -8,26 +8,26 @@
  * @format
  */
 
-import React from 'react';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from './context/AppContext';
 import AppDrawer from '@fbcnms/ui/components/layout/AppDrawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import defaultTheme from '@fbcnms/ui/theme/default';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import NetworkContext from './context/NetworkContext';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import React from 'react';
 import SectionLinks from './layout/SectionLinks';
 import SectionRoutes from './layout/SectionRoutes';
+import VersionTooltip from './VersionTooltip';
+import defaultTheme from '@fbcnms/ui/theme/default';
+import {MuiThemeProvider} from '@material-ui/core/styles';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {TopBarContextProvider} from '@fbcnms/ui/components/layout/TopBarContext';
-import VersionTooltip from './VersionTooltip';
 
 import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {hot} from 'react-hot-loader';
 import {makeStyles} from '@material-ui/styles';
-import {sortBy} from 'lodash-es';
+import {sortBy} from 'lodash';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -95,18 +95,24 @@ function Main() {
   }
 
   return (
-    <SnackbarProvider maxSnack={3} autoHideDuration={10000}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
+    <MuiThemeProvider theme={defaultTheme}>
+      <MuiStylesThemeProvider theme={defaultTheme}>
+        <SnackbarProvider
+          maxSnack={3}
+          autoHideDuration={10000}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}>
           <AppContext.Provider value={appContext}>
             <TopBarContextProvider>
               <CssBaseline />
               <Index />
             </TopBarContextProvider>
           </AppContext.Provider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </SnackbarProvider>
+        </SnackbarProvider>
+      </MuiStylesThemeProvider>
+    </MuiThemeProvider>
   );
 }
 

@@ -53,7 +53,7 @@ bool MConfigLoader::load_service_mconfig(
   // Check if service exists
   auto service_it = configs_it->find(service_name);
   if (service_it == configs_it->end()) {
-    MLOG(MERROR) << "Couldn't find pipelined config";
+    MLOG(MERROR) << "Couldn't find " << service_name << " config";
     return false;
   }
   service_it->erase("@type"); // @type param makes parsing fail
@@ -62,7 +62,7 @@ bool MConfigLoader::load_service_mconfig(
   auto status = google::protobuf::util::JsonStringToMessage(
     service_it->dump(), message);
   if (!status.ok()) {
-    MLOG(MERROR) << "Couldn't parse pipelined config";
+    MLOG(MERROR) << "Couldn't parse " << service_name << " config";
   }
   return status.ok();
 }

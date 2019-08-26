@@ -12,15 +12,14 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"errors"
 	"strings"
 
 	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 
 	"github.com/golang/glog"
-	prometheus_proto "github.com/prometheus/client_model/go"
+	prometheusProto "github.com/prometheus/client_model/go"
 	"golang.org/x/net/context"
 )
 
@@ -38,7 +37,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	}
 
 	hardwareID := in.GetGatewayId()
-	networkID, gatewayID, err := srv.getNetworkAndGatewayID(hardwareID)
+	networkID, gatewayID, err := configurator.GetNetworkAndEntityIDForPhysicalID(hardwareID)
 	if err != nil {
 		return new(protos.Void), err
 	}
@@ -57,7 +56,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 // Pulls metrics off the given input channel and sends them to all exporters
 // after some preprocessing. Should be run in a goroutine as this blocks
 // forever.
-func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prometheus_proto.MetricFamily, hostName string) error {
+func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prometheusProto.MetricFamily, hostName string) error {
 	for family := range inputChan {
 		for _, e := range srv.exporters {
 			decodedName := protos.GetDecodedName(family)
@@ -75,6 +74,9 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *promethe
 				OriginatingEntity: networkID + "." + gatewayID,
 				DecodedName:       decodedName,
 			}
+			for _, metric := range family.Metric {
+				metric.Label = protos.GetDecodedLabel(metric)
+			}
 			err := e.Submit([]exporters.MetricAndContext{{Family: family, Context: ctx}})
 			if err != nil {
 				glog.Error(err)
@@ -87,18 +89,6 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *promethe
 func (srv *MetricsControllerServer) RegisterExporter(e exporters.Exporter) []exporters.Exporter {
 	srv.exporters = append(srv.exporters, e)
 	return srv.exporters
-}
-
-func (srv *MetricsControllerServer) getNetworkAndGatewayID(hardwareID string) (string, string, error) {
-	if len(hardwareID) == 0 {
-		return "", "", errors.New("Empty Hardware ID")
-	}
-	networkID, err := magmad.FindGatewayNetworkId(hardwareID)
-	if err != nil {
-		return "", "", err
-	}
-	gatewayID, err := magmad.FindGatewayId(networkID, hardwareID)
-	return networkID, gatewayID, err
 }
 
 func metricsContainerToMetricAndContexts(
@@ -114,6 +104,9 @@ func metricsContainerToMetricAndContexts(
 			GatewayID:         gatewayID,
 			OriginatingEntity: networkID + "." + gatewayID,
 			DecodedName:       protos.GetDecodedName(fam),
+		}
+		for _, metric := range fam.Metric {
+			metric.Label = protos.GetDecodedLabel(metric)
 		}
 		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}

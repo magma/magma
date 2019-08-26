@@ -87,3 +87,8 @@ services:
     host: "localhost"
     port: 9106
     proxy_type: "clientcert"
+
+  configurator:
+    host: "localhost"
+    port: 9108
+    proxy_type: "clientcert"

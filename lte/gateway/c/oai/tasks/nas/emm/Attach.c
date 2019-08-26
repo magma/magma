@@ -62,7 +62,6 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
-#include "msc.h"
 #include "nas_timer.h"
 #include "common_types.h"
 #include "3gpp_24.008.h"
@@ -245,10 +244,10 @@ int emm_proc_attach_request(
 
   OAILOG_INFO(
     LOG_NAS_EMM,
-    "EMM-PROC  ATTACH - EPS attach type = %s (%d) initial %u requested "
-    "(ue_id=" MME_UE_S1AP_ID_FMT ") (imsi = " IMSI_64_FMT ") \n",
-    _emm_attach_type_str[ies->type],
-    ies->type,
+    "EMM-PROC:  ATTACH - EPS attach type = %s (%d)\n", _emm_attach_type_str[ies->type], ies->type);
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "is_initial request = %u\n (ue_id=" MME_UE_S1AP_ID_FMT ") \n(imsi = " IMSI_64_FMT ") \n",
     ies->is_initial,
     ue_id,
     imsi64);
@@ -282,6 +281,9 @@ int emm_proc_attach_request(
     no_attach_proc.ue_id = ue_id;
     no_attach_proc.emm_cause = ue_ctx.emm_context.emm_cause;
     no_attach_proc.esm_msg_out = NULL;
+  OAILOG_ERROR(
+    LOG_NAS_EMM,
+    "EMM-PROC  - Sending Attach Reject to UE (ue_id = " MME_UE_S1AP_ID_FMT ")\n", ue_id);
     rc = _emm_attach_reject(
       &ue_ctx.emm_context, (struct nas_base_proc_s *) &no_attach_proc);
     increment_counter(
@@ -437,6 +439,9 @@ int emm_proc_attach_request(
             "action",
             "ignored_duplicate_req_retx_attach_accept");
           // Clean up new UE context that was created to handle new attach request
+          OAILOG_DEBUG(
+            LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
+            ue_id);
           nas_itti_detach_req(ue_id);
           unlock_ue_contexts(ue_mm_context);
           unlock_ue_contexts(imsi_ue_mm_ctx);
@@ -484,6 +489,9 @@ int emm_proc_attach_request(
              * and shall ignore the second ATTACH REQUEST message.
              */
           // Clean up new UE context that was created to handle new attach request
+          OAILOG_DEBUG(
+            LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
+            ue_id);
           nas_itti_detach_req(ue_id);
           OAILOG_WARNING(
             LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
@@ -519,7 +527,6 @@ int emm_proc_attach_request(
   //     * Notify ESM that all EPS bearer contexts allocated for this UE have
   //     * to be locally deactivated
   //     */
-  //    MSC_LOG_TX_MESSAGE (MSC_NAS_EMM_MME, MSC_NAS_ESM_MME, NULL, 0, "0 ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ ue id " MME_UE_S1AP_ID_FMT " ", ue_id);
   //    esm_sap_t                               esm_sap = {0};
   //
   //    esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
@@ -700,8 +707,15 @@ int emm_proc_attach_complete(
       * After sending set it to false
       */
       if (emm_ctx->csfbparams.newTmsiAllocated) {
+        OAILOG_DEBUG(
+          LOG_NAS_EMM,
+          " CSFB newTmsiAllocated = (%d) true!\n", emm_ctx->csfbparams.newTmsiAllocated);
         char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
         IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
+
+        OAILOG_INFO(
+          LOG_NAS_EMM, " Sending SGSAP TMSI REALLOCATION COMPLETE to SGS for ue_id = (%u)\n",
+          ue_id);
         nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
         emm_ctx->csfbparams.newTmsiAllocated = false;
         /* update the neaf flag to false after sending the Tmsi Reallocation Complete message to SGS */
@@ -747,6 +761,9 @@ int emm_proc_attach_complete(
     }
   } else {
     NOT_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);
+    OAILOG_WARNING(
+      LOG_NAS_EMM,
+      "UE Context not found..\n");
     OAILOG_INFO(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT
@@ -773,6 +790,10 @@ int emm_proc_attach_complete(
       /*
        * Send EMM Information after handling Attach Complete message
        * */
+      OAILOG_INFO(
+        LOG_NAS_EMM,
+        " Sending EMM INFORMATION for ue_id = (%u)\n",
+        ue_id);
       emm_proc_emm_informtion(ue_mm_context);
       increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
     }
@@ -792,6 +813,10 @@ int emm_proc_attach_complete(
      * ESM procedure failed and, received message has been discarded or
      * Status message has been returned; ignore ESM procedure failure
      */
+    OAILOG_WARNING(
+      LOG_NAS_EMM,
+      "Ignore ESM procedure failure/received message has been discarded for ue_id = (%u)\n",
+      ue_id);
     rc = RETURNok;
   }
 
@@ -1027,18 +1052,6 @@ static int _emm_attach_abort(
       "EMM-PROC  - Abort the attach procedure (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       attach_proc->ue_id);
 
-    /*
-     * Notify ESM that the network locally refused PDN connectivity
-     * to the UE
-     */
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0"
-      "EMMCN_IMPLICIT_DETACH_UE ue id " MME_UE_S1AP_ID_FMT " ",
-      attach_proc->ue_id);
     // Trigger clean up
     emm_sap_t emm_sap = {0};
     emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
@@ -1094,6 +1107,10 @@ static int _emm_attach_run_procedure(emm_context_t *emm_context)
         emm_ctx_set_valid_imsi(emm_context, attach_proc->ies->imsi, imsi64);
         emm_context_upsert_imsi(&_emm_data, emm_context);
         rc = _emm_start_attach_proc_authentication(emm_context, attach_proc);
+        if (rc != RETURNok) {
+          OAILOG_ERROR(
+            LOG_NAS_EMM, "Failed to start attach authentication procedure!\n");
+        }
       } else {
         // force identification, even if not necessary
         rc = emm_proc_identification(
@@ -1124,6 +1141,8 @@ static int _emm_attach_success_identification_cb(emm_context_t *emm_context)
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
+  OAILOG_INFO(
+    LOG_NAS_EMM, "ATTACH - Identification procedure success!\n");
   nas_emm_attach_proc_t *attach_proc =
     get_nas_specific_procedure_attach(emm_context);
 
@@ -1141,6 +1160,10 @@ static int _emm_attach_failure_identification_cb(emm_context_t *emm_context)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
+
+  OAILOG_ERROR(
+    LOG_NAS_EMM, "ATTACH - Identification procedure failed!\n");
+
   AssertFatal(0, "Cannot happen...\n");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -1169,6 +1192,8 @@ static int _emm_attach_success_authentication_cb(emm_context_t *emm_context)
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
+  OAILOG_INFO(
+    LOG_NAS_EMM, "ATTACH - Authentication procedure success!\n");
   nas_emm_attach_proc_t *attach_proc =
     get_nas_specific_procedure_attach(emm_context);
 
@@ -1184,6 +1209,8 @@ static int _emm_attach_failure_authentication_cb(emm_context_t *emm_context)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
+  OAILOG_ERROR(
+    LOG_NAS_EMM, "ATTACH - Authentication procedure failed!\n");
   nas_emm_attach_proc_t *attach_proc =
     get_nas_specific_procedure_attach(emm_context);
 
@@ -1230,7 +1257,7 @@ static int _emm_start_attach_proc_security(
       /*
        * Failed to initiate the security mode control procedure
        */
-      OAILOG_WARNING(
+      OAILOG_ERROR(
         LOG_NAS_EMM,
         "ue_id=" MME_UE_S1AP_ID_FMT
         "EMM-PROC  - Failed to initiate security mode control procedure\n",
@@ -1259,6 +1286,8 @@ static int _emm_attach_success_security_cb(emm_context_t *emm_context)
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
+  OAILOG_INFO(
+    LOG_NAS_EMM, "ATTACH - Security procedure success!\n");
   nas_emm_attach_proc_t *attach_proc =
     get_nas_specific_procedure_attach(emm_context);
 
@@ -1273,6 +1302,8 @@ static int _emm_attach_failure_security_cb(emm_context_t *emm_context)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
+  OAILOG_ERROR(
+    LOG_NAS_EMM, "ATTACH - Security procedure failed!\n");
   nas_emm_attach_proc_t *attach_proc =
     get_nas_specific_procedure_attach(emm_context);
 
@@ -1451,17 +1482,6 @@ static int _emm_attach(emm_context_t *emm_context)
 
   if (attach_proc) {
     if (attach_proc->ies->esm_msg) {
-      /*
-       * Notify ESM that PDN connectivity is requested
-       */
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_ESM_MME,
-        NULL,
-        0,
-        "0 ESM_PDN_CONNECTIVITY_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
-
       esm_sap_t esm_sap = {0};
       esm_sap.primitive = ESM_UNITDATA_IND;
       esm_sap.is_standalone = false;
@@ -1483,6 +1503,10 @@ static int _emm_attach(emm_context_t *emm_context)
          */
         bdestroy_wrapper(&attach_proc->ies->esm_msg);
         attach_proc->esm_msg_out = esm_sap.send;
+        OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "Sending Attach Reject to UE ue_id = (%u), emm_cause = (%d)\n",
+          ue_id, attach_proc->emm_cause);
         rc = _emm_attach_reject(
           emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
       } else {
@@ -1490,6 +1514,11 @@ static int _emm_attach(emm_context_t *emm_context)
          * ESM procedure failed and, received message has been discarded or
          * Status message has been returned; ignore ESM procedure failure
          */
+        OAILOG_WARNING(
+          LOG_NAS_EMM,
+          "Ignore ESM procedure failure &"
+          "received message has been discarded for ue_id = (%u)\n",
+          ue_id);
         rc = RETURNok;
       }
     } else {
@@ -1501,7 +1530,7 @@ static int _emm_attach(emm_context_t *emm_context)
     /*
      * The attach procedure failed
      */
-    OAILOG_WARNING(
+    OAILOG_ERROR(
       LOG_NAS_EMM,
       "ue_id=" MME_UE_S1AP_ID_FMT
       " EMM-PROC  - Failed to respond to Attach Request\n",
@@ -1510,6 +1539,10 @@ static int _emm_attach(emm_context_t *emm_context)
     /*
      * Do not accept the UE to attach to the network
      */
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "Sending Attach Reject to UE ue_id = (%u), emm_cause = (%d)\n",
+      ue_id, attach_proc->emm_cause);
     rc = _emm_attach_reject(
       emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
     increment_counter(
@@ -1557,22 +1590,16 @@ static void _encode_csfb_parameters_attach_accept(
         //CSFB-Encode Mobile Identity
         if (emm_ctx->csfbparams.presencemask & MOBILE_IDENTITY) {
           establish_p->ms_identity = &emm_ctx->csfbparams.mobileid;
-          OAILOG_DEBUG(
-            LOG_NAS_EMM,
-            "TMSI  digit1 %d\n",
-            establish_p->ms_identity->tmsi.tmsi[0]);
-          OAILOG_DEBUG(
-            LOG_NAS_EMM,
-            "TMSI  digit2 %d\n",
-            establish_p->ms_identity->tmsi.tmsi[1]);
-          OAILOG_DEBUG(
-            LOG_NAS_EMM,
-            "TMSI  digit3 %d\n",
-            establish_p->ms_identity->tmsi.tmsi[2]);
-          OAILOG_DEBUG(
-            LOG_NAS_EMM,
-            "TMSI  digit4 %d\n",
-            establish_p->ms_identity->tmsi.tmsi[3]);
+        OAILOG_DEBUG(
+          LOG_NAS_EMM,
+          "TMSI  digit1 %d\n"
+          "TMSI  digit2 %d\n"
+          "TMSI  digit3 %d\n"
+          "TMSI  digit4 %d\n",
+          establish_p->ms_identity->tmsi.tmsi[0],
+          establish_p->ms_identity->tmsi.tmsi[1],
+          establish_p->ms_identity->tmsi.tmsi[2],
+          establish_p->ms_identity->tmsi.tmsi[3]);
         }
     } else if (emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) {
       establish_p->emm_cause = emm_ctx->emm_cause;
@@ -1586,6 +1613,10 @@ static void _encode_csfb_parameters_attach_accept(
       establish_p->additional_update_result =
         &emm_ctx->csfbparams.additional_updt_res;
     }
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "Additional update type = (%u)\n",
+      emm_ctx->additional_update_type);
   }
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
@@ -1682,6 +1713,10 @@ static int _emm_send_attach_accept(emm_context_t *emm_context)
             &emm_context->_tai_list,
             sizeof(tai_list_t));
         } else {
+          OAILOG_ERROR(
+            LOG_NAS_EMM,
+            "Failed to assign mme api new guti for ue_id = %u\n",
+            ue_id);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
         }
       } else {
@@ -1703,7 +1738,7 @@ static int _emm_send_attach_accept(emm_context_t *emm_context)
        * Implicit GUTI reallocation;
        * include the new assigned GUTI in the Attach Accept message
        */
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "ue_id=" MME_UE_S1AP_ID_FMT
         " EMM-PROC  - Implicit GUTI reallocation, include the new assigned "
@@ -1716,7 +1751,7 @@ static int _emm_send_attach_accept(emm_context_t *emm_context)
       /*
        * include the new assigned GUTI in the Attach Accept message
        */
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "ue_id=" MME_UE_S1AP_ID_FMT
         " EMM-PROC  - Include the new assigned GUTI in the Attach Accept "
@@ -1781,13 +1816,6 @@ static int _emm_send_attach_accept(emm_context_t *emm_context)
       emm_context, &emm_sap.u.emm_as.u.establish);
 
     REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__2);
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0 EMMAS_ESTABLISH_CNF ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     rc = emm_sap_send(&emm_sap);
 
     if (RETURNerror != rc) {
@@ -1998,14 +2026,14 @@ static bool _emm_attach_ies_have_changed(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   if (ies1->type != ies2->type) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: type EMM_ATTACH_TYPE\n",
       ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
   }
   if (ies1->is_native_sc != ies2->is_native_sc) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT
       " Attach IEs changed: Is native securitty context\n",
@@ -2013,7 +2041,7 @@ static bool _emm_attach_ies_have_changed(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
   }
   if (ies1->ksi != ies2->ksi) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: KSI %d -> %d \n",
       ue_id,
@@ -2035,7 +2063,7 @@ static bool _emm_attach_ies_have_changed(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
   }
   if ((ies1->guti) && (!ies2->guti)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed:  GUTI " GUTI_FMT
       " -> None\n",
@@ -2045,7 +2073,7 @@ static bool _emm_attach_ies_have_changed(
   }
 
   if ((!ies1->guti) && (ies2->guti)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed:  GUTI None ->  " GUTI_FMT
       "\n",
@@ -2056,7 +2084,7 @@ static bool _emm_attach_ies_have_changed(
 
   if ((ies1->guti) && (ies2->guti)) {
     if (memcmp(ies1->guti, ies2->guti, sizeof(*ies1->guti))) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed:  guti/tmsi " GUTI_FMT
         " -> " GUTI_FMT "\n",
@@ -2072,7 +2100,7 @@ static bool _emm_attach_ies_have_changed(
    */
   if ((ies1->imsi) && (!ies2->imsi)) {
     imsi64_t imsi641 = imsi_to_imsi64(ies1->imsi);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed:  IMSI " IMSI_64_FMT
       " -> None\n",
@@ -2083,7 +2111,7 @@ static bool _emm_attach_ies_have_changed(
 
   if ((!ies1->imsi) && (ies2->imsi)) {
     imsi64_t imsi642 = imsi_to_imsi64(ies2->imsi);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT
       " Attach IEs changed:  IMSI None ->  " IMSI_64_FMT "\n",
@@ -2096,7 +2124,7 @@ static bool _emm_attach_ies_have_changed(
     imsi64_t imsi641 = imsi_to_imsi64(ies1->imsi);
     imsi64_t imsi642 = imsi_to_imsi64(ies2->imsi);
     if (memcmp(ies1->guti, ies2->guti, sizeof(*ies1->guti))) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed:  IMSI " IMSI_64_FMT
         " -> " IMSI_64_FMT "\n",
@@ -2114,7 +2142,7 @@ static bool _emm_attach_ies_have_changed(
     char imei_str[16];
 
     IMEI_TO_STRING(ies1->imei, imei_str, 16);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: imei %s/NULL (ctxt)\n",
       ue_id,
@@ -2126,7 +2154,7 @@ static bool _emm_attach_ies_have_changed(
     char imei_str[16];
 
     IMEI_TO_STRING(ies2->imei, imei_str, 16);
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: imei NULL/%s (ctxt)\n",
       ue_id,
@@ -2141,7 +2169,7 @@ static bool _emm_attach_ies_have_changed(
 
       IMEI_TO_STRING(ies1->imei, imei_str, 16);
       IMEI_TO_STRING(ies2->imei, imei2_str, 16);
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: imei %s/%s (ctxt)\n",
         ue_id,
@@ -2157,7 +2185,7 @@ static bool _emm_attach_ies_have_changed(
   if (
     (ies1->last_visited_registered_tai) &&
     (!ies2->last_visited_registered_tai)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: LVR TAI " TAI_FMT
       "/NULL\n",
@@ -2169,7 +2197,7 @@ static bool _emm_attach_ies_have_changed(
   if (
     (!ies1->last_visited_registered_tai) &&
     (ies2->last_visited_registered_tai)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: LVR TAI NULL/" TAI_FMT
       "\n",
@@ -2186,7 +2214,7 @@ static bool _emm_attach_ies_have_changed(
         ies1->last_visited_registered_tai,
         ies2->last_visited_registered_tai,
         sizeof(*ies2->last_visited_registered_tai)) != 0) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: LVR TAI " TAI_FMT
         "/" TAI_FMT "\n",
@@ -2201,7 +2229,7 @@ static bool _emm_attach_ies_have_changed(
    * Originating TAI
    */
   if ((ies1->originating_tai) && (!ies2->originating_tai)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig TAI " TAI_FMT
       "/NULL\n",
@@ -2211,7 +2239,7 @@ static bool _emm_attach_ies_have_changed(
   }
 
   if ((!ies1->originating_tai) && (ies2->originating_tai)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig TAI NULL/" TAI_FMT
       "\n",
@@ -2226,7 +2254,7 @@ static bool _emm_attach_ies_have_changed(
         ies1->originating_tai,
         ies2->originating_tai,
         sizeof(*ies2->originating_tai)) != 0) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig TAI " TAI_FMT
         "/" TAI_FMT "\n",
@@ -2241,7 +2269,7 @@ static bool _emm_attach_ies_have_changed(
    * Originating ECGI
    */
   if ((ies1->originating_ecgi) && (!ies2->originating_ecgi)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig ECGI\n",
       ue_id);
@@ -2249,7 +2277,7 @@ static bool _emm_attach_ies_have_changed(
   }
 
   if ((!ies1->originating_ecgi) && (ies2->originating_ecgi)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig ECGI\n",
       ue_id);
@@ -2262,7 +2290,7 @@ static bool _emm_attach_ies_have_changed(
         ies1->originating_ecgi,
         ies2->originating_ecgi,
         sizeof(*ies2->originating_ecgi)) != 0) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig ECGI\n",
         ue_id);
@@ -2277,7 +2305,7 @@ static bool _emm_attach_ies_have_changed(
         &ies1->ue_network_capability,
         &ies2->ue_network_capability,
         sizeof(ies1->ue_network_capability))) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: UE network capability\n",
       ue_id);
@@ -2288,7 +2316,7 @@ static bool _emm_attach_ies_have_changed(
    * MS network capability
    */
   if ((ies1->ms_network_capability) && (!ies2->ms_network_capability)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: MS network capability\n",
       ue_id);
@@ -2296,7 +2324,7 @@ static bool _emm_attach_ies_have_changed(
   }
 
   if ((!ies1->ms_network_capability) && (ies2->ms_network_capability)) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: MS network capability\n",
       ue_id);
@@ -2309,7 +2337,7 @@ static bool _emm_attach_ies_have_changed(
         ies1->ms_network_capability,
         ies2->ms_network_capability,
         sizeof(*ies2->ms_network_capability)) != 0) {
-      OAILOG_INFO(
+      OAILOG_DEBUG(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: MS network capability\n",
         ue_id);

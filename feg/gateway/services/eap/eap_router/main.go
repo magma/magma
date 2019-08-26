@@ -15,8 +15,8 @@ import (
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap/client"
-	"magma/feg/gateway/services/eap/protos"
 	"magma/orc8r/cloud/go/service"
 )
 
@@ -58,6 +58,6 @@ func (s *eapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 	return resp, err
 }
 
-func (s *eapRouter) SupportedMethods(ctx context.Context, in *protos.Void) (*protos.MethodList, error) {
-	return &protos.MethodList{Methods: s.supportedMethods}, nil
+func (s *eapRouter) SupportedMethods(ctx context.Context, in *protos.Void) (*protos.EapMethodList, error) {
+	return &protos.EapMethodList{Methods: s.supportedMethods}, nil
 }

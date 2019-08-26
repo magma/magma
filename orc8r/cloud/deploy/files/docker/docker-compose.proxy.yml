@@ -38,6 +38,8 @@ services:
       - /var/opt/magma/configs:/var/opt/magma/configs
       - /var/opt/magma/envdir:/var/opt/magma/envdir
     command: /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/metricsd -logtostderr=true -v=0
+    environment:
+      CONTROLLER_SERVICES: METRICSD
     restart: always
     logging:
       driver: "json-file"

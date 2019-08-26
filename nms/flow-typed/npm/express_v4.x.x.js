@@ -104,7 +104,9 @@ declare class express$Response extends http$ServerResponse mixins express$Reques
 
 declare type express$NextFunction = (err?: ?Error | 'route') => mixed;
 declare type express$Middleware =
+  // $FlowFixMe found when upgrading to flow 0.102.0
   ((req: $Subtype<express$Request>, res: express$Response, next: express$NextFunction) => mixed) |
+  // $FlowFixMe found when upgrading to flow 0.102.0
   ((error: Error, req: $Subtype<express$Request>, res: express$Response, next: express$NextFunction) => mixed);
 declare interface express$RouteMethodType<T> {
   (middleware: express$Middleware): T;
@@ -155,6 +157,7 @@ declare class express$Router extends express$Route {
   param(
     param: string,
     callback: (
+      // $FlowFixMe found when upgrading to flow 0.102.0
       req: $Subtype<express$Request>,
       res: express$Response,
       next: express$NextFunction,

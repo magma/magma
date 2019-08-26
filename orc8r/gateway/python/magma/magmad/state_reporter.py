@@ -10,7 +10,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 from typing import Optional, List, Dict
-from google.protobuf.json_format import MessageToJson
 import snowflake
 
 from orc8r.protos.common_pb2 import Void
@@ -33,12 +32,9 @@ class StateReporter(SDWatchdogTask):
     Periodically collects operational states from service303 states and reports
     them to the cloud state service.
     """
-    GET_STATE_TIMEOUT = 20
-    GET_STATE_INTERVAL = 60
-
     def __init__(self, service: MagmaService, checkin_manager: CheckinRequest):
         super().__init__(
-            self.GET_STATE_INTERVAL,
+            max(5, service.mconfig.checkin_interval),
             service.loop
         )
 
@@ -61,7 +57,7 @@ class StateReporter(SDWatchdogTask):
             states = []
             future = client.GetOperationalStates.future(
                 Void(),
-                self.GET_STATE_TIMEOUT,
+                self._service.mconfig.checkin_timeout,
             )
             result = await grpc_async_wrapper(future, self._loop)
             for i in range(len(result.states)):
@@ -89,19 +85,23 @@ class StateReporter(SDWatchdogTask):
 
     async def _send_to_state_service(
             self,
-            request: ReportStatesRequest)-> None:
+            request: ReportStatesRequest) -> None:
         chan = ServiceRegistry.get_rpc_channel(
             'state',
             ServiceRegistry.CLOUD
         )
         state_client = StateServiceStub(chan)
         try:
-            await grpc_async_wrapper(
+            response = await grpc_async_wrapper(
                 state_client.ReportStates.future(
                     request,
-                    self.GET_STATE_TIMEOUT,
+                    self._service.mconfig.checkin_timeout,
                 ),
                 self._loop)
+            for idAndError in response.unreportedStates:
+                logging.error(
+                    "Failed to report state for (%s,%s): %s",
+                    idAndError.type, idAndError.deviceID, idAndError.error)
         except Exception as err:
             logging.error("Failed to make a ReportStates request: %s", err)
 
@@ -113,14 +113,6 @@ class StateReporter(SDWatchdogTask):
                           value=gw_state.encode('utf-8'))
             return state
         return None
-
-    def _get_checkin_request_as_state(self) -> State:
-        request = self._checkin_manager.get_latest_checkin_request()
-        value = MessageToJson(request)
-        state = State(type="checkin_request",
-                      deviceID=snowflake.snowflake(),
-                      value=value.encode('utf-8'))
-        return state
 
     def _construct_service_info(self) -> Dict[str, ServiceInfo]:
         info = {}

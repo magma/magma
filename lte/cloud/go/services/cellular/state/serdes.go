@@ -11,12 +11,9 @@ package state
 import (
 	"encoding/json"
 
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/state"
-)
-
-const (
-	enodebStateType = "enodebd"
 )
 
 // EnodebStateSerde is used to serialize/deserialize enodeb operational states
@@ -28,7 +25,7 @@ func (*EnodebStateSerde) GetDomain() string {
 }
 
 func (*EnodebStateSerde) GetType() string {
-	return enodebStateType
+	return lte.EnodebStateType
 }
 
 func (*EnodebStateSerde) Serialize(in interface{}) ([]byte, error) {

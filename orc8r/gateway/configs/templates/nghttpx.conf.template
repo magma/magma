@@ -6,8 +6,8 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 #
 
-{% if dev_mode %}
-# Listening interfaces (open for development)
+{% if dev_mode or docker_network_mode %}
+# Listening interfaces
 frontend=0.0.0.0,{{ local_port }};no-tls
 {% else %}
 # Listening interfaces

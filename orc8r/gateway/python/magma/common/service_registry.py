@@ -145,7 +145,12 @@ class ServiceRegistry:
             channel = create_grpc_channel(ip, port, authority)
         elif should_use_proxy:
             # Connect to the cloud via local control proxy
-            (ip, port) = ('127.0.0.1', proxy_config['local_port'])
+            try:
+                (ip, unused_port) = ServiceRegistry.get_service_address("control_proxy")
+                (ip, port) = (ip, proxy_config['local_port'])
+            except ValueError as err:
+                logging.error(err)
+                (ip, port) = ('127.0.0.1', proxy_config['local_port'])
             channel = create_grpc_channel(ip, port, authority)
         else:
             # Connect to the cloud directly

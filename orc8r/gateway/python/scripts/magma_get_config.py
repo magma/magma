@@ -35,21 +35,26 @@ def main():
     args = parser.parse_args()
 
     # import after parsing command line because import is sluggish
-    from magma.configuration.mconfig_managers import load_service_mconfig
+    from magma.configuration.mconfig_managers \
+        import load_service_mconfig_as_json
 
     # set up logging
     logging.basicConfig(
         level=logging.INFO,
         format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
 
-    mconfig = load_service_mconfig(args.service)
+    mconfig_json = load_service_mconfig_as_json(args.service)
 
     # if a variable was not specified, pretty print config and exit
     if args.variable is None:
-        print(mconfig, end="")
+        for k, v in mconfig_json.items():
+            # Keys shouldn't have spaces in them, but just in case
+            # Values also shouldn't have newlines, but if they do, this will
+            # print differently than if called with --variable
+            print(k.replace(" ", "_"), str(v).replace("\n", r"\n"))
         sys.exit(0)
 
-    var = getattr(mconfig, args.variable)
+    var = mconfig_json[args.variable]
 
     if args.test:
         if var:

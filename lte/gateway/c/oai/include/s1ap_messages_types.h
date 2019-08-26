@@ -42,6 +42,7 @@
 #include "3gpp_36.331.h"
 #include "3gpp_23.003.h"
 #include "TrackingAreaIdentity.h"
+#include "nas/securityDef.h"
 
 #define S1AP_ENB_DEREGISTERED_IND(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s1ap_eNB_deregistered_ind
@@ -69,6 +70,14 @@
   (mSGpTR)->ittiMsg.s1ap_initial_ue_message
 #define S1AP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_nas_dl_data_req
 #define S1AP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.s1ap_paging_request
+#define S1AP_E_RAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_cmd
+#define S1AP_E_RAB_REL_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_rsp
+#define S1AP_PATH_SWITCH_REQUEST(mSGpTR)                          \
+  (mSGpTR)->ittiMsg.s1ap_path_switch_request
+#define S1AP_PATH_SWITCH_REQUEST_ACK(mSGpTR)                      \
+  (mSGpTR)->ittiMsg.s1ap_path_switch_request_ack
+#define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                      \
+  (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
 
 #define S1AP_E_RAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_cmd
 #define S1AP_E_RAB_REL_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_rsp
@@ -311,4 +320,30 @@ typedef struct itti_s1ap_e_rab_rel_rsp_s {
 
 } itti_s1ap_e_rab_rel_rsp_t;
 
+typedef struct itti_s1ap_path_switch_request_s {
+  uint32_t sctp_assoc_id;
+  uint32_t enb_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
+  e_rab_to_be_switched_in_downlink_list_t e_rab_to_be_switched_dl_list;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  tai_t tai;
+  ecgi_t ecgi;
+  uint16_t encryption_algorithm_capabilities;
+  uint16_t integrity_algorithm_capabilities;
+} itti_s1ap_path_switch_request_t;
+
+typedef struct itti_s1ap_path_switch_request_ack_s {
+  uint32_t sctp_assoc_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  // Security key
+  uint8_t NH[AUTH_NEXT_HOP_SIZE]; /* Next Hop security key*/
+  uint8_t NCC;                    /* next hop chaining count */
+} itti_s1ap_path_switch_request_ack_t;
+
+typedef struct itti_s1ap_path_switch_request_failure_s {
+  uint32_t sctp_assoc_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+} itti_s1ap_path_switch_request_failure_t;
 #endif /* FILE_S1AP_MESSAGES_TYPES_SEEN */

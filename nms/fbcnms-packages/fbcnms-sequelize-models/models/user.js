@@ -9,12 +9,12 @@
  */
 'use strict';
 
-import {omit} from 'lodash-es';
 import Sequelize from 'sequelize';
 import {AccessRoles} from '@fbcnms/auth/roles';
+import {omit} from 'lodash';
 
-import type {DataTypes, Model} from 'sequelize';
 import type {AssociateProp} from './AssociateTypes.flow';
+import type {DataTypes, Model} from 'sequelize';
 
 // This is the type required for creation
 type UserRawInitType = {
@@ -23,10 +23,12 @@ type UserRawInitType = {
   password: string,
   role: number,
   networkIDs?: Array<string>,
+  tabs?: Array<string>,
 };
 
 // This is the type read back
 export type UserRawType = {
+  id: number,
   networkIDs: Array<string>,
   isSuperUser: boolean,
 } & UserRawInitType;
@@ -52,6 +54,13 @@ export default (
         defaultValue: [],
         get() {
           return this.getDataValue('networkIDs') || [];
+        },
+      },
+      tabs: {
+        type: types.JSON,
+        allowNull: true,
+        get() {
+          return this.getDataValue('tabs') || [];
         },
       },
     },

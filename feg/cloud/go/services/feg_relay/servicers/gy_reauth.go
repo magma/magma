@@ -34,6 +34,5 @@ func (srv *FegToGwRelayServer) ChargingReAuth(
 		return &protos.ChargingReAuthAnswer{Result: protos.ChargingReAuthAnswer_OTHER_FAILURE},
 			fmt.Errorf("unable to get connection to the gateway ID: %s", hwID)
 	}
-	defer conn.Close()
 	return protos.NewSessionProxyResponderClient(conn).ChargingReAuth(ctx, req)
 }

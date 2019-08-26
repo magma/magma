@@ -19,33 +19,10 @@ import (
 	"sort"
 	"strings"
 
+	"magma/orc8r/cloud/go/tools/swaggergen/generate"
+
 	"gopkg.in/yaml.v2"
 )
-
-// SwaggerConfig is used only for marshalling / unmarshalling from yml
-type SwaggerConfig struct {
-	Swagger string
-	Info    struct {
-		Title       string
-		Description string
-		Version     string
-	}
-	BasePath    string `yaml:"basePath"`
-	Consumes    []string
-	Produces    []string
-	Schemes     []string
-	Tags        []TagDefinition
-	Paths       map[string]interface{}
-	Responses   map[string]interface{}
-	Parameters  map[string]interface{}
-	Definitions map[string]interface{}
-}
-
-// TagDefinition is used only for marshalling / unmarshalling from yml
-type TagDefinition struct {
-	Description string
-	Name        string
-}
 
 func main() {
 	// Parse options
@@ -56,7 +33,7 @@ func main() {
 
 	// Now do the rest of the stuff
 	fmt.Printf("Reading swagger configs from folder:\n%s\n\n", *inpPtr)
-	inpConfigArr := readFromInpFolder(*inpPtr, *comPtr)
+	inpConfigArr := readFromInpFolder(*inpPtr)
 
 	fmt.Printf("Reading common config definitions from file:\n%s\n\n", *comPtr)
 	commonConfig := readCommonConfig(*comPtr)
@@ -69,22 +46,22 @@ func main() {
 }
 
 // For a list of input file paths, unmarshal the file contents
-func readFromInpFolder(inpPath string, comPath string) []SwaggerConfig {
+func readFromInpFolder(inpPath string) []generate.SwaggerConfig {
 	filePathArr := getFilePaths(inpPath)
 	fileContentArr := getContentsOfFiles(filePathArr)
-	editedContentArr := rmCommonSwaggerRefs(fileContentArr, comPath)
+	editedContentArr := makeAllYmlReferencesLocal(fileContentArr)
 	configArr := unmarshalArrToSwagger(editedContentArr)
 	return configArr
 }
 
 // Unmarshal the common swagger config from its file path
-func readCommonConfig(inpPath string) SwaggerConfig {
+func readCommonConfig(inpPath string) generate.SwaggerConfig {
 	contents := getFileContents(inpPath)
 	return unmarshalToSwagger(contents)
 }
 
-func combineConfigs(common SwaggerConfig, inpArr []SwaggerConfig) SwaggerConfig {
-	out := SwaggerConfig{}
+func combineConfigs(common generate.SwaggerConfig, inpArr []generate.SwaggerConfig) generate.SwaggerConfig {
+	out := generate.SwaggerConfig{}
 	out.Swagger = common.Swagger
 	out.Info = common.Info
 	out.BasePath = common.BasePath
@@ -92,7 +69,7 @@ func combineConfigs(common SwaggerConfig, inpArr []SwaggerConfig) SwaggerConfig 
 	out.Produces = common.Produces
 	out.Schemes = common.Schemes
 
-	var allTags [][]TagDefinition
+	var allTags [][]generate.TagDefinition
 	var allInpPaths []map[string]interface{}
 	var allInpResponses []map[string]interface{}
 	var allInpParameters []map[string]interface{}
@@ -131,7 +108,7 @@ func combineSubConfig(common map[string]interface{}, inpArr []map[string]interfa
 	return outSubConfig
 }
 
-func combineTags(common []TagDefinition, inpArr [][]TagDefinition) []TagDefinition {
+func combineTags(common []generate.TagDefinition, inpArr [][]generate.TagDefinition) []generate.TagDefinition {
 	outTags := make(map[string]string)
 	for _, tagArr := range inpArr {
 		for _, tag := range tagArr {
@@ -142,15 +119,15 @@ func combineTags(common []TagDefinition, inpArr [][]TagDefinition) []TagDefiniti
 		outTags[tag.Name] = tag.Description
 	}
 	keys := keysOfStrMap(outTags)
-	uniqueOutTags := make([]TagDefinition, len(keys))
+	uniqueOutTags := make([]generate.TagDefinition, len(keys))
 	for i := 0; i < len(keys); i++ {
 		key := keys[i]
-		uniqueOutTags[i] = TagDefinition{Name: key, Description: outTags[key]}
+		uniqueOutTags[i] = generate.TagDefinition{Name: key, Description: outTags[key]}
 	}
 	return uniqueOutTags
 }
 
-func writeOutConfig(outConfig SwaggerConfig, outPath string) {
+func writeOutConfig(outConfig generate.SwaggerConfig, outPath string) {
 	strConfig := marshalFromSwagger(outConfig)
 	f, err := os.Create(outPath)
 	if err != nil {
@@ -161,8 +138,8 @@ func writeOutConfig(outConfig SwaggerConfig, outPath string) {
 	f.Sync()
 }
 
-func unmarshalArrToSwagger(fileContentArr []string) []SwaggerConfig {
-	var configArr []SwaggerConfig
+func unmarshalArrToSwagger(fileContentArr []string) []generate.SwaggerConfig {
+	var configArr []generate.SwaggerConfig
 	for _, fileContent := range fileContentArr {
 		config := unmarshalToSwagger(fileContent)
 		configArr = append(configArr, config)
@@ -170,8 +147,8 @@ func unmarshalArrToSwagger(fileContentArr []string) []SwaggerConfig {
 	return configArr
 }
 
-func unmarshalToSwagger(fileContents string) SwaggerConfig {
-	config := SwaggerConfig{}
+func unmarshalToSwagger(fileContents string) generate.SwaggerConfig {
+	config := generate.SwaggerConfig{}
 	err := yaml.Unmarshal([]byte(fileContents), &config)
 	if err != nil {
 		panic(err)
@@ -179,7 +156,7 @@ func unmarshalToSwagger(fileContents string) SwaggerConfig {
 	return config
 }
 
-func marshalFromSwagger(config SwaggerConfig) string {
+func marshalFromSwagger(config generate.SwaggerConfig) string {
 	d, err := yaml.Marshal(&config)
 	if err != nil {
 		panic(err)
@@ -187,24 +164,18 @@ func marshalFromSwagger(config SwaggerConfig) string {
 	return string(d)
 }
 
-// Remove references to swagger-common.yml before concatenating the
-// swagger config files together
-func rmCommonSwaggerRefs(fileContentArr []string, comPath string) []string {
-	var outArr []string
-	fileName := parseCommonSwaggerFilename(comPath)
-	commonSwaggerRef := strings.Join([]string{"./", fileName}, "")
-	re := regexp.MustCompile(commonSwaggerRef)
+// Change all cross-file references to local intra-file references
+func makeAllYmlReferencesLocal(fileContentArr []string) []string {
+	outArr := make([]string, 0, len(fileContentArr))
+
+	// match on any yml reference to file_name_here.foo.bar#/baz
+	// and change those references to #/baz (strip the prefix)
+	// e.g. $ref: 'foo_bar_baz.blah#/asdf' -> $ref: '#/asdf'
+	ymlRefRe := regexp.MustCompile(`(\$ref:\s*)['"].+(#/.+)['"]`)
 	for _, fileContent := range fileContentArr {
-		fixedContent := re.ReplaceAllString(fileContent, "")
-		outArr = append(outArr, fixedContent)
+		outArr = append(outArr, ymlRefRe.ReplaceAllString(fileContent, "$1'$2'"))
 	}
 	return outArr
-}
-
-// From the path for the common swagger definitions, get the filename
-func parseCommonSwaggerFilename(comPath string) string {
-	re := regexp.MustCompile(".+/")
-	return re.ReplaceAllString(comPath, "")
 }
 
 // Get the text contents from an array of file paths

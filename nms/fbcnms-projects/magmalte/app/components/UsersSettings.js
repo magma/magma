@@ -9,10 +9,14 @@
  */
 
 import type {EditUser} from '@fbcnms/ui/components/auth/EditUserDialog';
-import type {WithStyles} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithStyles} from '@material-ui/core';
 
-import axios from 'axios';
+import Button from '@material-ui/core/Button';
+import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
+import EditUserDialog from '@fbcnms/ui/components/auth/EditUserDialog';
+import IconButton from '@material-ui/core/IconButton';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -20,11 +24,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
-import EditUserDialog from '@fbcnms/ui/components/auth/EditUserDialog';
-import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
-import IconButton from '@material-ui/core/IconButton';
+import axios from 'axios';
 import {UserRoles} from '@fbcnms/auth/types';
 
 import renderList from '@fbcnms/util/renderList';
@@ -42,7 +42,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles &
+type Props = WithStyles<typeof styles> &
   WithAlert & {
     allNetworkIDs: Array<string>,
   };

@@ -10,11 +10,11 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
-import TextField from '@material-ui/core/TextField';
-import IconButton from '@material-ui/core/IconButton';
-import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
+import IconButton from '@material-ui/core/IconButton';
+import React from 'react';
+import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
+import TextField from '@material-ui/core/TextField';
 
 import {withStyles} from '@material-ui/core/styles';
 
@@ -39,7 +39,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   keyValuePairs: Array<[string, string]>,
   onChange: (Array<[string, string]>) => void,
 };

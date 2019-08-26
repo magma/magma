@@ -31,7 +31,7 @@ void AsyncEvbResponse<ResponseType>::handle_response()
   });
 }
 
-SessionCloudReporter::SessionCloudReporter(
+SessionCloudReporterImpl::SessionCloudReporterImpl(
   folly::EventBase *base,
   std::shared_ptr<grpc::Channel> channel):
   base_(base),
@@ -39,7 +39,7 @@ SessionCloudReporter::SessionCloudReporter(
 {
 }
 
-void SessionCloudReporter::report_updates(
+void SessionCloudReporterImpl::report_updates(
   const UpdateSessionRequest &request,
   std::function<void(grpc::Status, UpdateSessionResponse)> callback)
 {
@@ -49,7 +49,7 @@ void SessionCloudReporter::report_updates(
     cloud_response->get_context(), request, &queue_)));
 }
 
-void SessionCloudReporter::report_create_session(
+void SessionCloudReporterImpl::report_create_session(
   const CreateSessionRequest &request,
   std::function<void(grpc::Status, CreateSessionResponse)> callback)
 {
@@ -59,7 +59,7 @@ void SessionCloudReporter::report_create_session(
     cloud_response->get_context(), request, &queue_)));
 }
 
-void SessionCloudReporter::report_terminate_session(
+void SessionCloudReporterImpl::report_terminate_session(
   const SessionTerminateRequest &request,
   std::function<void(grpc::Status, SessionTerminateResponse)> callback)
 {

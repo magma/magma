@@ -220,6 +220,10 @@ declare module "@material-ui/icons/ArrowForward" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/ArrowRight" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/ArrowUpward" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -929,6 +933,10 @@ declare module "@material-ui/icons/DeleteForever" {
 }
 
 declare module "@material-ui/icons/DeleteSweep" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
+declare module "@material-ui/icons/DeleteOutline" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
@@ -3112,6 +3120,10 @@ declare module "@material-ui/icons/SignalCellular4Bar" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/SignalCellularAlt" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/SignalCellularConnectedNoInternet0Bar" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -3918,6 +3930,7 @@ declare module "@material-ui/icons" {
       ArrowDropDownCircle: $Exports<"@material-ui/icons/ArrowDropDownCircle">,
       ArrowDropUp: $Exports<"@material-ui/icons/ArrowDropUp">,
       ArrowForward: $Exports<"@material-ui/icons/ArrowForward">,
+      ArrowRight: $Exports<"@material-ui/icons/ArrowRight">,
       ArrowUpward: $Exports<"@material-ui/icons/ArrowUpward">,
       ArtTrack: $Exports<"@material-ui/icons/ArtTrack">,
       AspectRatio: $Exports<"@material-ui/icons/AspectRatio">,
@@ -4641,6 +4654,7 @@ declare module "@material-ui/icons" {
       SignalCellular2Bar: $Exports<"@material-ui/icons/SignalCellular2Bar">,
       SignalCellular3Bar: $Exports<"@material-ui/icons/SignalCellular3Bar">,
       SignalCellular4Bar: $Exports<"@material-ui/icons/SignalCellular4Bar">,
+      SignalCellularAlt: $Exports<"@material-ui/icons/SignalCellularAlt">,
       SignalCellularConnectedNoInternet0Bar: $Exports<"@material-ui/icons/SignalCellularConnectedNoInternet0Bar">,
       SignalCellularConnectedNoInternet1Bar: $Exports<"@material-ui/icons/SignalCellularConnectedNoInternet1Bar">,
       SignalCellularConnectedNoInternet2Bar: $Exports<"@material-ui/icons/SignalCellularConnectedNoInternet2Bar">,

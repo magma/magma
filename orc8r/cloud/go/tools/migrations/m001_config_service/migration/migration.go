@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"sort"
 
-	"magma/orc8r/cloud/go/sql_utils"
+	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations"
 
 	"github.com/golang/glog"
@@ -47,37 +47,32 @@ const DnsdGatewayType = "dnsd_gateway" // Technically this is unused
 const MagmadGatewayType = "magmad_gateway"
 const MagmadNetworkType = "magmad_network"
 const MeshType = "mesh"
-const TerragraphNetworkType = "terragraph_network"
-const TerragraphGatewayType = "terragraph_gateway"
 const WifiNetworkType = "wifi_network"
 const WifiGatewayType = "wifi_gateway"
 
 const CellularConfigKey = "cellular"
 const DnsConfigKey = "dns"
 const MagmadConfigKey = "magmad"
-const TerragraphConfigKey = "terragraph"
 const WifiConfigKey = "wifi"
 
 var newNetworkTypesByOldKey = map[string]string{
-	CellularConfigKey:   CellularNetworkType,
-	DnsConfigKey:        DnsdNetworkType,
-	MagmadConfigKey:     MagmadNetworkType,
-	TerragraphConfigKey: TerragraphNetworkType,
-	WifiConfigKey:       WifiNetworkType,
+	CellularConfigKey: CellularNetworkType,
+	DnsConfigKey:      DnsdNetworkType,
+	MagmadConfigKey:   MagmadNetworkType,
+	WifiConfigKey:     WifiNetworkType,
 }
 
 var newGatewayTypesByOldKey = map[string]string{
-	CellularConfigKey:   CellularGatewayType,
-	DnsConfigKey:        DnsdGatewayType,
-	MagmadConfigKey:     MagmadGatewayType,
-	TerragraphConfigKey: TerragraphGatewayType,
-	WifiConfigKey:       WifiGatewayType,
+	CellularConfigKey: CellularGatewayType,
+	DnsConfigKey:      DnsdGatewayType,
+	MagmadConfigKey:   MagmadGatewayType,
+	WifiConfigKey:     WifiGatewayType,
 }
 
 // Entry point for the migration. Everything runs in 1 serializable postgres
 // transaction so we don't end up in some weird half-migrated state.
 func Migrate(dbDriver string, dbSource string) error {
-	db, err := sql_utils.Open(dbDriver, dbSource)
+	db, err := sqorc.Open(dbDriver, dbSource)
 	if err != nil {
 		return fmt.Errorf("Could not open DB connection: %s", err)
 	}

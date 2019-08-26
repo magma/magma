@@ -19,11 +19,12 @@ from .subscription_profile import get_default_sub_profile
 from .streamer_callback import SubscriberDBStreamerCallback
 from .store.sqlite import SqliteStore
 from .protocols.s6a_proxy_servicer import S6aProxyRpcServicer
+from lte.protos.mconfig import mconfigs_pb2
 
 
 def main():
     """ main() for subscriberdb """
-    service = MagmaService('subscriberdb')
+    service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(service.config['db_path'], loop=service.loop)

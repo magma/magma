@@ -121,6 +121,18 @@ typedef struct e_rab_rel_list_s {
   e_rab_rel_item_t item[MAX_NO_OF_E_RABS];
 } e_rab_rel_list_t;
 
+typedef struct e_rab_switched_in_downlink_item_s {
+  e_rab_id_t e_rab_id;
+  bstring transport_layer_address;
+  teid_t gtp_teid;
+} e_rab_switched_in_downlink_item_t;
+
+// 9.1.5.8 PATH SWITCH REQUEST
+typedef struct e_rab_to_be_switched_in_downlink_list_s {
+  uint16_t no_of_items;
+#define MAX_NO_OF_E_RABS 16 /* Spec says 256 */
+  e_rab_switched_in_downlink_item_t item[MAX_NO_OF_E_RABS];
+} e_rab_to_be_switched_in_downlink_list_t;
 
 #include "S1ap-Cause.h"
 

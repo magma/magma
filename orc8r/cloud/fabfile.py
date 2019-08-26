@@ -102,7 +102,6 @@ def _package_vagrant_zip(service, folder, cloud_host, commit_hash):
         if service == "metrics":
             run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
             run('cp -pr roles/third_party/graphite %s/ansible/roles.' % folder)
-            run('mkdir -p %s/bin' % folder)  # To make CodeDeploy happy
         else:
             run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
 
@@ -169,7 +168,9 @@ def _copy_go_binaries(service, folder):
     if service == 'controller':
         run('cp -pr go/bin %s' % folder)
     if service == 'metrics':
+        run('mkdir -p %s/bin' % folder)
         run('cp -pr go/bin/prometheus-cache %s/bin/.' % folder)
+        run('cp -pr go/bin/alerting %s/bin/.' % folder)
 
 
 def _push_archive_to_s3(service, folder, zip_name):

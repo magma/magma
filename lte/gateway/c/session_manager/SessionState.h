@@ -33,6 +33,9 @@ class SessionState {
     std::string plmn_id;
     std::string imsi_plmn_id;
     std::string user_location;
+    RATType rat_type;
+    std::string mac_addr; // MAC Address for WLAN
+    std::string radius_session_id;
   };
 
  public:
@@ -115,6 +118,14 @@ class SessionState {
   std::string get_session_id();
 
   std::string get_subscriber_ip_addr();
+
+  std::string get_mac_addr();
+
+  std::string get_radius_session_id();
+
+  bool is_radius_cwf_session();
+
+  bool is_same_config(const Config &new_config);
 
  private:
   /**

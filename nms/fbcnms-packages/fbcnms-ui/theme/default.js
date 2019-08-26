@@ -8,28 +8,30 @@
  * @format
  */
 
-import {createMuiTheme} from '@material-ui/core/styles';
 import {
-  blueGrayDark,
-  fadedBlue,
-  gray0,
   blue05,
   blue30,
   blue60,
+  blue80,
+  blueGrayDark,
+  fadedBlue,
+  gray0,
+  gray00,
+  gray1,
+  gray50,
+  primaryText,
   red,
   redwood,
   white,
-  gray00,
-  gray50,
-  primaryText,
 } from './colors';
+import {createMuiTheme} from '@material-ui/core/styles';
 
 export default createMuiTheme({
   palette: {
     primary: {
       light: blue30,
       main: blue60,
-      dark: blueGrayDark,
+      dark: blue80,
     },
     secondary: {
       main: '#606770',
@@ -62,6 +64,7 @@ export default createMuiTheme({
     blue30: blue30,
     blue60: blue60,
     gray00: gray00,
+    gray1: gray1,
     gray50: gray50,
     primaryText: primaryText,
   },
@@ -76,8 +79,20 @@ export default createMuiTheme({
       root: {
         borderRadius: 4,
         cursor: 'pointer',
-        fontSize: 14,
-        padding: '6px 30px',
+        fontSize: '14px',
+        textTransform: 'capitalize',
+        padding: '8px 12px',
+        fontWeight: 500,
+        lineHeight: '16px',
+      },
+      contained: {
+        boxShadow: 'none',
+      },
+    },
+    MuiFormControl: {
+      marginDense: {
+        marginTop: '0px',
+        marginBottom: '0px',
       },
     },
     MuiToggleButtonGroup: {
@@ -96,6 +111,22 @@ export default createMuiTheme({
           color: white,
           backgroundColor: blue60,
         },
+      },
+    },
+    MuiListItemText: {
+      root: {
+        marginBottom: '0px',
+        marginTop: '0px',
+      },
+    },
+    MuiSelect: {
+      selectMenu: {
+        height: '24px',
+      },
+    },
+    MuiTableRow: {
+      root: {
+        backgroundColor: 'white',
       },
     },
     MuiIconButton: {
@@ -123,12 +154,16 @@ export default createMuiTheme({
           borderColor: 'rgba(0, 0, 0, 0.87)',
           borderWidth: '1px',
         },
+        '&$disabled': {
+          background: gray0,
+        },
       },
       input: {
         fontSize: '14px',
         lineHeight: '14px',
-        paddingBottom: '15px',
-        paddingTop: '15px',
+        paddingBottom: '12px',
+        paddingTop: '12px',
+        height: '24px',
       },
       inputMarginDense: {
         paddingTop: '9px',
@@ -149,12 +184,6 @@ export default createMuiTheme({
           opacity: 1,
         },
       },
-      '&$disabled': {
-        background: gray0,
-      },
     },
-  },
-  typography: {
-    useNextVariants: true,
   },
 });

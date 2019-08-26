@@ -10,44 +10,56 @@ package handlers_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	fegplugin "magma/feg/cloud/go/plugin"
-	"magma/feg/cloud/go/services/controller/obsidian/models"
-	feg_protos "magma/feg/cloud/go/services/controller/protos"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/feg/cloud/go/services/controller/test_utils"
+	"magma/orc8r/cloud/go/obsidian"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
+	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetNetworkConfigs(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
-
-	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
+	networkID := "feg_obsidian_test_network"
+	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
 
 	// Happy path
-	expectedConfig := &models.NetworkFederationConfigs{}
-	expectedConfig.FromServiceModel(feg_protos.NewDefaultGatewayConfig())
-	marshaledCfg, err := expectedConfig.MarshalBinary()
+	config := test_utils.NewDefaultNetworkConfig()
+	marshaledConfig, err := config.MarshalBinary()
 	assert.NoError(t, err)
-	expected := string(marshaledCfg)
+	expected := string(marshaledConfig)
 	happyPathTestCase := obsidian_test.Testcase{
 		Name:     "Get FeG Network Config",
 		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkId),
+		Url:      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkID),
 		Payload:  "",
 		Expected: expected,
 	}
 	obsidian_test.RunTest(t, happyPathTestCase)
+
+	deleteConfigTestCase := obsidian_test.Testcase{
+		Name:   "Delete Federation Network Config",
+		Method: "DELETE",
+		Url:    fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkID),
+	}
+	_, _, err = obsidian_test.RunTest(t, deleteConfigTestCase)
+	assert.NoError(t, err)
 
 	// No good way to test invalid configs from datastore without dropping down
 	// to raw magmad api/grpc or datastore fixtures, so let's skip that
@@ -55,87 +67,105 @@ func TestGetNetworkConfigs(t *testing.T) {
 }
 
 func TestSetNetworkConfigs(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
-	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
+	networkID := "feg_obsidian_test_network"
+	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
 
 	// Happy path
-	config := feg_protos.NewDefaultNetworkConfig()
-	config.S6A.Server.Address = "192.168.11.22:555"
+	config := test_utils.NewDefaultNetworkConfig()
+	config.S6a.Server.Address = "192.168.11.22:555"
 	config.Gx.Server.DestHost = "pcrf.mno.com"
 	config.Gy.Server.DestHost = "ocs.mno.com"
 	config.ServedNetworkIds = []string{"lte_network_A", "lte_network_B"}
-	swaggerConfig := &models.NetworkFederationConfigs{}
-	swaggerConfig.FromServiceModel(config)
-	assert.Len(t, swaggerConfig.ServedNetworkIds, 2)
-	assert.Subset(t, swaggerConfig.ServedNetworkIds, config.ServedNetworkIds)
-	marshaledCfg, err := swaggerConfig.MarshalBinary()
+	marshaledConfig, err := config.MarshalBinary()
 	assert.NoError(t, err)
-	swaggerConfigString := string(marshaledCfg)
+	expected := string(marshaledConfig)
 
 	setConfigTestCase := obsidian_test.Testcase{
 		Name:     "Set Federation Network Config",
 		Method:   "PUT",
-		Url:      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkId),
-		Payload:  swaggerConfigString,
+		Url:      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkID),
+		Payload:  expected,
 		Expected: "",
 	}
 	obsidian_test.RunTest(t, setConfigTestCase)
 	getConfigTestCase := obsidian_test.Testcase{
 		Name:     "Get Updated Federation Network Config",
 		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkId),
+		Url:      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkID),
 		Payload:  "",
-		Expected: swaggerConfigString,
+		Expected: expected,
 	}
 	obsidian_test.RunTest(t, getConfigTestCase)
 
 	// Fail swagger validation
-	config.S6A.Server.Protocol = "foobar"
-	swaggerConfig.FromServiceModel(config)
-	marshaledCfg, err = swaggerConfig.MarshalBinary()
+	config.S6a.Server.Protocol = "foobar"
+	marshaledConfig, err = config.MarshalBinary()
 	assert.NoError(t, err)
-	swaggerConfigString = string(marshaledCfg)
+	expected = string(marshaledConfig)
 
 	setConfigTestCase = obsidian_test.Testcase{
 		Name:                     "Set Invalid Federation Network Config",
 		Method:                   "PUT",
-		Url:                      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkId),
-		Payload:                  swaggerConfigString,
+		Url:                      fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkID),
+		Payload:                  expected,
 		Expected:                 `{"message":"Invalid config: validation failure list:\nvalidation failure list:\nvalidation failure list:\nprotocol in body should be one of [tcp tcp4 tcp6 sctp sctp4 sctp6]"}`,
 		Expect_http_error_status: true,
 	}
 	status, _, err := obsidian_test.RunTest(t, setConfigTestCase)
 	assert.Equal(t, 400, status)
 
+	deleteConfigTestCase := obsidian_test.Testcase{
+		Name:   "Delete Federation Network Config",
+		Method: "DELETE",
+		Url:    fmt.Sprintf("%s/%s/configs/federation", testUrlRoot, networkID),
+	}
+	_, _, err = obsidian_test.RunTest(t, deleteConfigTestCase)
+	assert.NoError(t, err)
 }
 
 func TestGetGatewayConfigs(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	configurator_test_init.StartTestService(t)
+	config_test_init.StartTestService(t)
+	device_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
-	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
-	gatewayId := registerGateway(t, networkId, "g1", restPort)
+	networkID := "feg_obsidian_test_network"
+	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
+	gatewayID := "g1"
+	registerGatewayWithDefaultConfig(t, networkID, gatewayID, restPort)
 
 	// Happy path
-	expectedConfig := &models.GatewayFegConfigs{}
-	expectedConfig.FromServiceModel(feg_protos.NewDefaultGatewayConfig())
-	marshaledCfg, err := expectedConfig.MarshalBinary()
+	config := test_utils.NewDefaultGatewayConfig()
+	marshaledConfig, err := config.MarshalBinary()
 	assert.NoError(t, err)
-	expected := string(marshaledCfg)
+	expected := string(marshaledConfig)
 	happyPathTestCase := obsidian_test.Testcase{
 		Name:     "Get Federation Gateway Config",
 		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkId, gatewayId),
+		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkID, gatewayID),
 		Payload:  "",
 		Expected: expected,
 	}
 	obsidian_test.RunTest(t, happyPathTestCase)
+
+	deleteConfigTestCase := obsidian_test.Testcase{
+		Name:   "Delete Federation Gateway Config",
+		Method: "DELETE",
+		Url:    fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkID, gatewayID),
+	}
+	_, _, err = obsidian_test.RunTest(t, deleteConfigTestCase)
+	assert.NoError(t, err)
 
 	// No good way to test invalid configs from datastore without dropping down
 	// to raw magmad api/grpc or datastore fixtures, so let's skip that
@@ -143,92 +173,87 @@ func TestGetGatewayConfigs(t *testing.T) {
 }
 
 func TestSetGatewayConfigs(t *testing.T) {
+	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
-	magmad_test_init.StartTestService(t)
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
-	networkId := registerNetwork(t, "Test Network 1", "feg_obsidian_test_network", restPort)
-	gatewayId := registerGateway(t, networkId, "g2", restPort)
+	networkID := "feg_obsidian_test_network"
+	registerNetworkWithDefaultConfig(t, "Test Network 1", networkID, restPort)
+	gatewayID := "g2"
+	registerGatewayWithDefaultConfig(t, networkID, gatewayID, restPort)
 
 	// Happy path
-	gatewayConfig := feg_protos.NewDefaultGatewayConfig()
-	gatewayConfig.S6A.Server.Address = "192.168.11.22:555"
-	swaggerConfig := &models.GatewayFegConfigs{}
-	swaggerConfig.FromServiceModel(gatewayConfig)
-
-	assert.Equal(t, gatewayConfig.S6A.Server.Address, swaggerConfig.S6a.Server.Address)
-
-	marshaledCfg, err := swaggerConfig.MarshalBinary()
+	config := test_utils.NewDefaultGatewayConfig()
+	config.S6a.Server.Address = "192.168.11.22:555"
+	marshaledConfig, err := config.MarshalBinary()
 	assert.NoError(t, err)
-	swaggerConfigString := string(marshaledCfg)
+	expected := string(marshaledConfig)
 
 	setConfigTestCase := obsidian_test.Testcase{
 		Name:     "Set Federation Gateway Config",
 		Method:   "PUT",
-		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkId, gatewayId),
-		Payload:  swaggerConfigString,
+		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkID, gatewayID),
+		Payload:  expected,
 		Expected: "",
 	}
 	obsidian_test.RunTest(t, setConfigTestCase)
 	getConfigTestCase := obsidian_test.Testcase{
 		Name:     "Get Updated Federation Gateway Config",
 		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkId, gatewayId),
+		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkID, gatewayID),
 		Payload:  "",
-		Expected: swaggerConfigString,
+		Expected: expected,
 	}
 	obsidian_test.RunTest(t, getConfigTestCase)
+
+	deleteConfigTestCase := obsidian_test.Testcase{
+		Name:   "Delete Federation Gateway Config",
+		Method: "DELETE",
+		Url:    fmt.Sprintf("%s/%s/gateways/%s/configs/federation", testUrlRoot, networkID, gatewayID),
+	}
+	_, _, err = obsidian_test.RunTest(t, deleteConfigTestCase)
+	assert.NoError(t, err)
 }
 
-func registerNetwork(t *testing.T, networkName string, networkId string, port int) string {
-	networkId, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: networkName},
-		networkId)
+func registerNetworkWithDefaultConfig(t *testing.T, networkName string, networkID string, port int) {
+	configurator_test_utils.RegisterNetwork(t, networkID, networkName)
+
+	config := test_utils.NewDefaultNetworkConfig()
+	marshaledConfig, err := config.MarshalBinary()
 	assert.NoError(t, err)
 
-	config := feg_protos.NewDefaultNetworkConfig()
-	swaggerConfig := &models.NetworkFederationConfigs{}
-	err = swaggerConfig.FromServiceModel(config)
-	assert.NoError(t, err)
-	marshaledCfg, err := swaggerConfig.MarshalBinary()
-	assert.NoError(t, err)
-	swaggerConfigString := string(marshaledCfg)
-
-	obsidian_test.RunTest(t, obsidian_test.Testcase{
+	_, _, err = obsidian_test.RunTest(t, obsidian_test.Testcase{
 		Name:   "Create Default Federation Network Config",
 		Method: "POST",
 		Url: fmt.Sprintf("http://localhost:%d%s/networks/%s/configs/federation",
-			port, handlers.REST_ROOT, networkId),
-		Payload:  swaggerConfigString,
-		Expected: "\"" + networkId + "\"",
+			port, obsidian.RestRoot, networkID),
+		Payload:  string(marshaledConfig),
+		Expected: "\"" + networkID + "\"",
 	})
-	return networkId
+	assert.NoError(t, err)
 }
 
-func registerGateway(t *testing.T, networkId string, gatewayId string, port int) string {
-	gatewayRecord := &magmad_protos.AccessGatewayRecord{
-		HwId: &protos.AccessGatewayID{Id: gatewayId},
-	}
-	registeredId, err := magmad.RegisterGateway(networkId, gatewayRecord)
+func registerGatewayWithDefaultConfig(t *testing.T, networkID string, gatewayID string, port int) {
+	gatewayRecord := &models.GatewayDevice{HardwareID: gatewayID}
+	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, gatewayRecord)
+
+	config := test_utils.NewDefaultGatewayConfig()
+	marshaledConfig, err := config.MarshalBinary()
 	assert.NoError(t, err)
 
-	config := feg_protos.NewDefaultGatewayConfig()
-	swaggerConfig := &models.GatewayFegConfigs{}
-	err = swaggerConfig.FromServiceModel(config)
-	assert.NoError(t, err)
-	marshaledCfg, err := swaggerConfig.MarshalBinary()
-	assert.NoError(t, err)
-	swaggerConfigString := string(marshaledCfg)
-
-	obsidian_test.RunTest(t, obsidian_test.Testcase{
+	_, _, err = obsidian_test.RunTest(t, obsidian_test.Testcase{
 		Name:   "Create Default Federation Gateway Config",
 		Method: "POST",
 		Url: fmt.Sprintf(
 			"http://localhost:%d%s/networks/%s/gateways/%s/configs/federation",
-			port, handlers.REST_ROOT, networkId, registeredId),
-		Payload:  swaggerConfigString,
-		Expected: "\"" + registeredId + "\"",
+			port, obsidian.RestRoot, networkID, gatewayID),
+		Payload:  string(marshaledConfig),
+		Expected: "\"" + gatewayID + "\"",
 	})
-	return registeredId
+	assert.NoError(t, err)
 }

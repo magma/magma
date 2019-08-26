@@ -7,10 +7,11 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import json
 import logging
 from collections import namedtuple
 from lte.protos.mconfig import mconfigs_pb2
-from typing import Any, Union
+from typing import Any, Optional, Union
 from magma.common.misc_utils import get_ip_from_if
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.device_config.enodeb_config_postprocessor import \
@@ -21,10 +22,15 @@ from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.lte_utils import DuplexMode, \
     map_earfcndl_to_duplex_mode, map_earfcndl_to_band_earfcnul_mode
+from magma.configuration.exceptions import LoadConfigError
+from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 
 
 # LTE constants
 DEFAULT_S1_PORT = 36412
+# This is a known working value for supported eNB devices.
+# Cell Identity is a 28 bit number, but not all values are supported.
+DEFAULT_CELL_IDENTITY = 138777000
 
 
 SingleEnodebConfig = namedtuple('SingleEnodebConfig',
@@ -32,7 +38,8 @@ SingleEnodebConfig = namedtuple('SingleEnodebConfig',
                                  'special_subframe_pattern',
                                  'pci', 'plmnid_list', 'tac',
                                  'bandwidth_mhz', 'cell_id',
-                                 'allow_enodeb_transmit'])
+                                 'allow_enodeb_transmit',
+                                 'mme_address', 'mme_port'])
 
 
 def config_assert(condition: bool, message: str = None) -> None:
@@ -66,7 +73,9 @@ def build_desired_config(
     # Determine configuration parameters
     _set_management_server(cfg_desired)
 
-    enb_config = _get_enb_config(mconfig, device_config)
+    # Attempt to load device configuration from YANG before service mconfig
+    enb_config = _get_enb_yang_config(device_config) or \
+                 _get_enb_config(mconfig, device_config)
 
     _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
                                enb_config.earfcndl)
@@ -78,13 +87,18 @@ def build_desired_config(
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
     _set_cell_id(cfg_desired, enb_config.cell_id)
-    _set_s1_connection(
-        cfg_desired, get_ip_from_if(service_config['s1_interface']))
     _set_perf_mgmt(
         cfg_desired,
         get_ip_from_if(service_config['tr069']['interface']),
         service_config['tr069']['perf_mgmt_port'])
     _set_misc_static_params(device_config, cfg_desired, data_model)
+    if enb_config.mme_address is not None and enb_config.mme_port is not None:
+        _set_s1_connection(cfg_desired,
+                           enb_config.mme_address,
+                           enb_config.mme_port)
+    else:
+        _set_s1_connection(
+            cfg_desired, get_ip_from_if(service_config['s1_interface']))
 
     # Enable LTE if we should
     cfg_desired.set_parameter(ParameterName.ADMIN_STATE,
@@ -94,6 +108,52 @@ def build_desired_config(
     return cfg_desired
 
 
+def _get_enb_yang_config(
+        device_config: EnodebConfiguration,
+) -> Optional[SingleEnodebConfig]:
+    """"
+    Proof of concept configuration function to load eNB configs from YANG
+    data model. Attempts to load configuration from YANG for the eNodeB if
+    an entry exists with a matching serial number.
+    Args:
+        device_config: eNodeB device configuration
+    Returns:
+        None or a SingleEnodebConfig from YANG with matching serial number
+    """
+    enb = []
+    mme_list = []
+    mme_address = None
+    mme_port = None
+    try:
+        enb_serial = \
+            device_config.get_parameter(ParameterName.SERIAL_NUMBER)
+        config = json.loads(
+            load_service_mconfig_as_json('yang').get('value', '{}'))
+        enb.extend(filter(lambda entry: entry['serial'] == enb_serial,
+                          config.get('cellular', {}).get('enodeb', [])))
+    except (ValueError, KeyError, LoadConfigError):
+        return None
+    if len(enb) == 0:
+        return None
+    enb_config = enb[0].get('config', {})
+    mme_list.extend(enb_config.get('mme', []))
+    if len(mme_list) > 0:
+        mme_address = mme_list[0].get('host')
+        mme_port = mme_list[0].get('port')
+    single_enodeb_config = SingleEnodebConfig(
+        earfcndl=enb_config.get('earfcndl'),
+        subframe_assignment=enb_config.get('subframe_assignment'),
+        special_subframe_pattern=enb_config.get('special_subframe_pattern'),
+        pci=enb_config.get('pci'),
+        plmnid_list=",".join(enb_config.get('plmnid', [])),
+        tac=enb_config.get('tac'),
+        bandwidth_mhz=enb_config.get('bandwidth_mhz'),
+        cell_id=enb_config.get('cell_id'),
+        allow_enodeb_transmit=enb_config.get('transmit_enabled'),
+        mme_address=mme_address,
+        mme_port=mme_port)
+    return single_enodeb_config
+
 def _get_enb_config(
     mconfig: mconfigs_pb2.EnodebD,
     device_config: EnodebConfiguration,
@@ -101,7 +161,7 @@ def _get_enb_config(
     # For fields that are specified per eNB
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:
-        enb_serial =\
+        enb_serial = \
             device_config.get_parameter(ParameterName.SERIAL_NUMBER)
         if enb_serial in mconfig.enb_configs_by_serial:
             enb_config = mconfig.enb_configs_by_serial[enb_serial]
@@ -126,7 +186,7 @@ def _get_enb_config(
         allow_enodeb_transmit = mconfig.allow_enodeb_transmit
         tac = mconfig.tac
         bandwidth_mhz = mconfig.bandwidth_mhz
-        cell_id = 0
+        cell_id = DEFAULT_CELL_IDENTITY
         if mconfig.tdd_config is not None and str(mconfig.tdd_config) != '':
             earfcndl = mconfig.tdd_config.earfcndl
             subframe_assignment = mconfig.tdd_config.subframe_assignment
@@ -153,7 +213,9 @@ def _get_enb_config(
         tac=tac,
         bandwidth_mhz=bandwidth_mhz,
         cell_id=cell_id,
-        allow_enodeb_transmit=allow_enodeb_transmit)
+        allow_enodeb_transmit=allow_enodeb_transmit,
+        mme_address=None,
+        mme_port=None)
     return single_enodeb_config
 
 

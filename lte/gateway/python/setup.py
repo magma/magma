@@ -29,6 +29,7 @@ setup(
         'magma.enodebd.devices.experimental',
         'magma.enodebd.state_machines',
         'magma.enodebd.tr069',
+        'magma.health',
         'magma.mobilityd',
         'magma.pipelined',
         'magma.pipelined.app',
@@ -46,6 +47,7 @@ setup(
         'magma.subscriberdb.store',
     ],
     scripts=[
+        'scripts/agw_health_cli.py',
         'scripts/create_oai_certs.py',
         'scripts/enodebd_cli.py',
         'scripts/fake_user.py',
@@ -66,17 +68,32 @@ setup(
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[
+        'Cython>=0.29.1',
+        'pystemd==0.5.0',
+        'fire>=0.2.0',
         'envoy>=0.0.3',
+        'glob2>=0.7',
         # lxml required by spyne.
         'lxml==4.2.1',
-        'ryu==4.13',
+        'ryu>=4.30',
         'spyne==2.12.16',
-        'scapy==2.4.2',
+        # scapy version 2.4.2 has an issue of not having LICENSE file in pypi
+        # version resulting in error (this is a temporary fix)
+        'scapy==2.4.3rc3',
         'flask>=1.0.2',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',
         'pycrypto>=2.6.1',
+        # pin recursive dependencies of ryu and others
+        'chardet==3.0.4',
+        'docker==4.0.2',
+        'urllib3==1.25.3',
+        'websocket-client==0.56.0',
+        'requests==2.22.0',
+        'certifi==2019.6.16',
+        'idna==2.8',
+        'python-dateutil==2.8',
     ],
     extras_require={
         'dev': [
@@ -85,7 +102,6 @@ setup(
             # update it in lte/gateway/python/Makefile
             'grpcio-tools==1.16.1',
             'nose==1.3.7',
-            'scapy==2.4.2',
             'pyroute2',
             'iperf3',
         ]

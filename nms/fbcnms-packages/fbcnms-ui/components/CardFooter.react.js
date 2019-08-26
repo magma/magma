@@ -10,9 +10,9 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import {withStyles} from '@material-ui/core/styles';
 import * as React from 'react';
 import CardActions from '@material-ui/core/CardActions';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
   cardRoot: {
@@ -30,7 +30,7 @@ export type FooterAlign = 'left' | 'right';
 type Props = {
   alignItems: FooterAlign,
   children: React.Node,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 const CardFooter = (props: Props) => {
   const {alignItems, children, classes} = props;

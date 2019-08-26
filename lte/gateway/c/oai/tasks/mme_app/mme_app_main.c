@@ -35,7 +35,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
@@ -144,6 +143,9 @@ void *mme_app_thread(void *args)
 
 
       case NAS_PDN_CONFIG_REQ: {
+        OAILOG_INFO(
+          TASK_MME_APP, "Received PDN CONFIG REQ from NAS_MME for ue_id = (%u)\n",
+          received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
         struct ue_mm_context_s *ue_context_p = NULL;
         ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
           &mme_app_desc.mme_ue_contexts,
@@ -151,10 +153,16 @@ void *mme_app_thread(void *args)
         if (ue_context_p) {
           mme_app_send_s6a_update_location_req(ue_context_p);
           unlock_ue_contexts(ue_context_p);
+        } else {
+          OAILOG_ERROR(
+            TASK_MME_APP, "UE context NULL for ue_id = (%u)\n",
+            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
         }
       } break;
 
       case NAS_PDN_CONNECTIVITY_REQ: {
+        OAILOG_INFO(
+          TASK_MME_APP, "Received PDN CONNECTIVITY REQ from NAS_MME\n");
         mme_app_handle_nas_pdn_connectivity_req(
           &received_message_p->ittiMsg.nas_pdn_connectivity_req);
       } break;
@@ -189,36 +197,33 @@ void *mme_app_thread(void *args)
       } break;
 
       case S11_MODIFY_BEARER_RESPONSE: {
+        OAILOG_INFO(
+          TASK_MME_APP, "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
         ue_context_p = mme_ue_context_exists_s11_teid(
           &mme_app_desc.mme_ue_contexts,
           received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
         if (ue_context_p == NULL) {
-          MSC_LOG_RX_DISCARDED_MESSAGE(
-            MSC_MMEAPP_MME,
-            MSC_S11_MME,
-            NULL,
-            0,
-            "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT " ",
-            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
           OAILOG_WARNING(
             LOG_MME_APP,
             "We didn't find this teid in list of UE: %08x\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
         } else {
-          MSC_LOG_RX_MESSAGE(
-            MSC_MMEAPP_MME,
-            MSC_S11_MME,
-            NULL,
-            0,
-            "0 MODIFY_BEARER_RESPONSE local S11 teid " TEID_FMT
-            " IMSI " IMSI_64_FMT " ",
-            received_message_p->ittiMsg.s11_modify_bearer_response.teid,
-            ue_context_p->emm_context._imsi64);
-          /*
-           * Updating statistics
-           */
-          update_mme_app_stats_s1u_bearer_add();
+          OAILOG_DEBUG(
+            TASK_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
+            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
+
+          if (ue_context_p->path_switch_req != true) {
+            /* Updating statistics */
+            update_mme_app_stats_s1u_bearer_add();
+          }
+          if (ue_context_p->path_switch_req == true) {
+            mme_app_handle_path_switch_req_ack(
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
+            ue_context_p->path_switch_req = false;
+          }
+
           unlock_ue_contexts(ue_context_p);
         }
       } break;
@@ -268,6 +273,7 @@ void *mme_app_thread(void *args)
         /*
          * We received the update location answer message from HSS -> Handle it
          */
+        OAILOG_INFO(LOG_MME_APP, "Received S6A Update Location Answer from S6A\n");
         mme_app_handle_s6a_update_location_ans(
           &received_message_p->ittiMsg.s6a_update_location_ans);
       } break;
@@ -354,34 +360,31 @@ void *mme_app_thread(void *args)
             ue_context_p->ulr_response_timer.id) {
             mme_app_handle_ulr_timer_expiry(ue_context_p);
           } else if (
-            (ue_context_p->sgs_context != NULL) &&
-            (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-             ue_context_p->sgs_context->ts6_1_timer.id)) {
-            mme_app_handle_ts6_1_timer_expiry(ue_context_p);
-          } else if (
             received_message_p->ittiMsg.timer_has_expired.timer_id ==
             ue_context_p->ue_context_modification_timer.id) {
             // UE Context modification Timer expiry handler
             increment_counter(
               "ue_context_modification_timer expired", 1, NO_LABELS);
             mme_app_handle_ue_context_modification_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts8_timer.id) {
-            mme_app_handle_sgs_eps_detach_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts9_timer.id) {
-            mme_app_handle_sgs_imsi_detach_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts10_timer.id) {
-            mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(ue_context_p);
-          } else if (
-            received_message_p->ittiMsg.timer_has_expired.timer_id ==
-            ue_context_p->sgs_context->ts13_timer.id) {
-            mme_app_handle_sgs_implicit_eps_detach_timer_expiry(ue_context_p);
-          } else {
+          } else if (ue_context_p->sgs_context != NULL){
+              if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                  ue_context_p->sgs_context->ts6_1_timer.id) {
+                  mme_app_handle_ts6_1_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts8_timer.id) {
+                mme_app_handle_sgs_eps_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts9_timer.id) {
+                mme_app_handle_sgs_imsi_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts10_timer.id) {
+                mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(ue_context_p);
+              } else if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+                ue_context_p->sgs_context->ts13_timer.id) {
+                mme_app_handle_sgs_implicit_eps_detach_timer_expiry(ue_context_p);
+              }
+          }
+          else {
             OAILOG_WARNING(
               LOG_MME_APP,
               "Timer expired but no associated timer_id for UE "
@@ -447,12 +450,16 @@ void *mme_app_thread(void *args)
 
       case NAS_CS_DOMAIN_LOCATION_UPDATE_REQ: {
         /*Received SGS Location Update Request message from NAS task*/
+        OAILOG_INFO(
+          TASK_MME_APP, "Received CS DOMAIN LOCATION UPDATE REQ from NAS\n");
         mme_app_handle_nas_cs_domain_location_update_req(
           &received_message_p->ittiMsg.nas_cs_domain_location_update_req);
       } break;
 
       case SGSAP_LOCATION_UPDATE_ACC: {
         /*Received SGSAP Location Update Accept message from SGS task*/
+        OAILOG_INFO(
+          TASK_MME_APP, "Received SGSAP Location Update Accept from SGS\n");
         mme_app_handle_sgsap_location_update_acc(
           &received_message_p->ittiMsg.sgsap_location_update_acc);
       } break;
@@ -529,6 +536,11 @@ void *mme_app_thread(void *args)
       case MME_APP_PDN_DISCONNECT_REQ: {
         mme_app_handle_pdn_disconnect_req(
           &MME_APP_PDN_DISCONNECT_REQ(received_message_p));
+      } break;
+
+      case S1AP_PATH_SWITCH_REQUEST: {
+        mme_app_handle_path_switch_request(
+          &S1AP_PATH_SWITCH_REQUEST(received_message_p));
       } break;
 
       case TERMINATE_MESSAGE: {

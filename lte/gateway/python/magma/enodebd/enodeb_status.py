@@ -10,10 +10,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 import os
 from collections import namedtuple
-from typing import Any, Dict, List
+from typing import Any, Dict, List, NamedTuple, Optional, Union
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.device_config.configuration_util import \
+    get_enb_rf_tx_desired
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import \
@@ -39,11 +41,18 @@ CACHED_GPS_COORD_FILE_PATH = os.path.join(
 _gps_lat_cached = None
 _gps_lon_cached = None
 
-EnodebStatus = namedtuple('EnodebStatus',
-                          ['enodeb_configured', 'gps_latitude',
-                           'gps_longitude', 'enodeb_connected',
-                           'opstate_enabled', 'rf_tx_on', 'gps_connected',
-                           'ptp_connected', 'mme_connected', 'enodeb_state'])
+EnodebStatus = NamedTuple('EnodebStatus',
+                          [('enodeb_configured', str),
+                           ('gps_latitude', str),
+                           ('gps_longitude', str),
+                           ('enodeb_connected', str),
+                           ('opstate_enabled', str),
+                           ('rf_tx_on', str),
+                           ('rf_tx_desired', str),
+                           ('gps_connected', str),
+                           ('ptp_connected', str),
+                           ('mme_connected', str),
+                           ('enodeb_state', str)])
 
 # TODO: Remove after checkins support multiple eNB status
 MagmaOldEnodebdStatus = namedtuple('MagmaOldEnodebdStatus',
@@ -54,21 +63,22 @@ MagmaOldEnodebdStatus = namedtuple('MagmaOldEnodebdStatus',
                                     'enodeb_connected',
                                     'opstate_enabled',
                                     'rf_tx_on',
+                                    'rf_tx_desired',
                                     'gps_connected',
                                     'ptp_connected',
                                     'mme_connected',
                                     'enodeb_state'])
 
-MagmaEnodebdStatus = namedtuple('MagmaEnodebdStatus',
-                                ['n_enodeb_connected',
-                                 'all_enodeb_configured',
-                                 'all_enodeb_opstate_enabled',
-                                 'all_enodeb_rf_tx_on',
-                                 'any_enodeb_gps_connected',
-                                 'all_enodeb_ptp_connected',
-                                 'all_enodeb_mme_connected',
-                                 'gateway_gps_longitude',
-                                 'gateway_gps_latitude'])
+MagmaEnodebdStatus = NamedTuple('MagmaEnodebdStatus',
+                                [('n_enodeb_connected', str),
+                                 ('all_enodeb_configured', str),
+                                 ('all_enodeb_opstate_enabled', str),
+                                 ('all_enodeb_rf_tx_configured', str),
+                                 ('any_enodeb_gps_connected', str),
+                                 ('all_enodeb_ptp_connected', str),
+                                 ('all_enodeb_mme_connected', str),
+                                 ('gateway_gps_longitude', str),
+                                 ('gateway_gps_latitude', str)])
 
 
 def update_status_metrics(status: EnodebStatus) -> None:
@@ -79,6 +89,7 @@ def update_status_metrics(status: EnodebStatus) -> None:
         'enodeb_configured': metrics.STAT_ENODEB_CONFIGURED,
         'opstate_enabled': metrics.STAT_OPSTATE_ENABLED,
         'rf_tx_on': metrics.STAT_RF_TX_ENABLED,
+        'rf_tx_desired': metrics.STAT_RF_TX_DESIRED,
         'gps_connected': metrics.STAT_GPS_CONNECTED,
         'ptp_connected': metrics.STAT_PTP_CONNECTED,
         'mme_connected': metrics.STAT_MME_CONNECTED,
@@ -121,6 +132,7 @@ def get_service_status_old(
                 enodeb_connected=enb_status.enodeb_connected,
                 opstate_enabled=enb_status.opstate_enabled,
                 rf_tx_on=enb_status.rf_tx_on,
+                rf_tx_desired=enb_status.rf_tx_desired,
                 gps_connected=enb_status.gps_connected,
                 ptp_connected=enb_status.ptp_connected,
                 mme_connected=enb_status.mme_connected,
@@ -133,6 +145,7 @@ def get_service_status_old(
         enodeb_connected='0',
         opstate_enabled='0',
         rf_tx_on='0',
+        rf_tx_desired='N/A',
         gps_connected='0',
         ptp_connected='0',
         mme_connected='0',
@@ -151,12 +164,17 @@ def _get_enodebd_status(
     n_enodeb_connected = 0
     all_enodeb_configured = True
     all_enodeb_opstate_enabled = True
-    all_enodeb_rf_tx_on = True
+    all_enodeb_rf_tx_configured = True
     any_enodeb_gps_connected = False
     all_enodeb_ptp_connected = True
     all_enodeb_mme_connected = True
     gateway_gps_longitude = '0.0'
     gateway_gps_latitude = '0.0'
+
+    def _is_rf_tx_configured(enb_status: EnodebStatus) -> bool:
+        value = enb_status.rf_tx_on
+        desired = enb_status.rf_tx_desired
+        return value == desired
 
     for _enb_serial, enb_status in enb_status_by_serial.items():
         n_enodeb_connected += 1
@@ -164,8 +182,8 @@ def _get_enodebd_status(
             all_enodeb_configured = False
         if enb_status.opstate_enabled == '0':
             all_enodeb_opstate_enabled = False
-        if enb_status.rf_tx_on == '0':
-            all_enodeb_rf_tx_on = False
+        if not _is_rf_tx_configured(enb_status):
+            all_enodeb_rf_tx_configured = False
         if enb_status.ptp_connected == '0':
             all_enodeb_ptp_connected = False
         if enb_status.mme_connected == '0':
@@ -180,7 +198,7 @@ def _get_enodebd_status(
         n_enodeb_connected=str(n_enodeb_connected),
         all_enodeb_configured=str(all_enodeb_configured),
         all_enodeb_opstate_enabled=str(all_enodeb_opstate_enabled),
-        all_enodeb_rf_tx_on=str(all_enodeb_rf_tx_on),
+        all_enodeb_rf_tx_configured=str(all_enodeb_rf_tx_configured),
         any_enodeb_gps_connected=str(any_enodeb_gps_connected),
         all_enodeb_ptp_connected=str(all_enodeb_ptp_connected),
         all_enodeb_mme_connected=str(all_enodeb_mme_connected),
@@ -210,6 +228,7 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
         - enodeb_configured
         - opstate_enabled
         - rf_tx_on
+        - rf_tx_desired
         - gps_connected
         - ptp_connected
         - mme_connected
@@ -231,6 +250,9 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
     enodeb_connected = '1' if enodeb.is_enodeb_connected() else '0'
     opstate_enabled = _parse_param_as_bool(enodeb, ParameterName.OP_STATE)
     rf_tx_on = _parse_param_as_bool(enodeb, ParameterName.RF_TX_STATUS)
+    enb_serial = enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
+    rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
+    rf_tx_desired = _format_bool(rf_tx_desired, 'RF TX Status Desired')
     mme_connected = _parse_param_as_bool(enodeb, ParameterName.MME_STATUS)
 
     try:
@@ -272,6 +294,7 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
                         enodeb_connected=enodeb_connected,
                         opstate_enabled=opstate_enabled,
                         rf_tx_on=rf_tx_on,
+                        rf_tx_desired=rf_tx_desired,
                         gps_connected=gps_connected,
                         ptp_connected=ptp_connected,
                         mme_connected=mme_connected,
@@ -301,6 +324,7 @@ def get_single_enb_status(
     enb_status.configured = status.enodeb_configured
     enb_status.opstate_enabled = status.opstate_enabled
     enb_status.rf_tx_on = status.rf_tx_on
+    enb_status.rf_tx_desired = status.rf_tx_desired
     enb_status.gps_connected = status.gps_connected
     enb_status.ptp_connected = status.ptp_connected
     enb_status.mme_connected = status.mme_connected
@@ -320,7 +344,7 @@ def get_operational_states(
     for serial_id in state_machine_manager.get_connected_serial_id_list():
         enb_state = get_single_enb_status(serial_id, state_machine_manager)
         state = State(
-            type="enodebd",
+            type="enodeb",
             deviceID=serial_id,
             value=MessageToJson(enb_state).encode('utf-8')
         )
@@ -336,6 +360,7 @@ def _empty_enb_status() -> SingleEnodebStatus:
     enb_status.configured = '0'
     enb_status.opstate_enabled = '0'
     enb_status.rf_tx_on = '0'
+    enb_status.rf_tx_desired = 'N/A'
     enb_status.gps_connected = '0'
     enb_status.ptp_connected = '0'
     enb_status.mme_connected = '0'
@@ -349,21 +374,26 @@ def _parse_param_as_bool(
     enodeb: EnodebAcsStateMachine,
     param_name: ParameterName
 ) -> str:
-    """
-    Returns '1' for true, and '0' for false
-    """
+    """ Returns '1' for true, and '0' for false """
     try:
-        param = enodeb.get_parameter(param_name)
-        pval = str(param).lower().strip()
-        if pval in {'true', '1'}:
-            return '1'
-        elif pval in {'false', '0'}:
-            return '0'
-        else:
-            logging.warning(
-                '%s parameter not understood (%s)', param_name, param)
-            return '0'
+        return _format_bool(enodeb.get_parameter(param_name), param_name)
     except (KeyError, ConfigurationError):
+        return '0'
+
+
+def _format_bool(
+    param_value: Union[bool, str, int],
+    param_name: Optional[Union[ParameterName, str]] = None,
+) -> str:
+    """ Returns '1' for true, and '0' for false """
+    pval = str(param_value).lower().strip()
+    if pval in {'true', '1'}:
+        return '1'
+    elif pval in {'false', '0'}:
+        return '0'
+    else:
+        logging.warning(
+            '%s parameter not understood (%s)', param_name, param_value)
         return '0'
 
 

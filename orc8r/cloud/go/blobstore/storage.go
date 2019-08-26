@@ -20,13 +20,17 @@ type Blob struct {
 	Version uint64
 }
 
+type SearchFilter struct {
+	NetworkID *string
+}
+
 // BlobStorageFactory is an API to create a storage API bound to a transaction.
 type BlobStorageFactory interface {
 	InitializeFactory() error
 	// StartTransaction opens a transaction for all following blob storage
 	// operations, and returns a TransactionalBlobStorage instance tied to the
 	// opened transaction.
-	StartTransaction() (TransactionalBlobStorage, error)
+	StartTransaction(opts *storage.TxOptions) (TransactionalBlobStorage, error)
 }
 
 // TransactionalBlobStorage is the client API for blob storage operations
@@ -60,8 +64,17 @@ type TransactionalBlobStorage interface {
 	// storage implementation.
 	CreateOrUpdate(networkID string, blobs []Blob) error
 
+	// GetExistingKeys takes in a list of keys and returns a list of keys
+	// that exist from the input. The filter specifies whether to look at the
+	// entire storage or just in a network.
+	GetExistingKeys(keys []string, filter SearchFilter) ([]string, error)
+
 	// Delete deletes specified blobs from storage.
 	Delete(networkID string, ids []storage.TypeAndKey) error
+
+	// IncrementVersion is an atomic upsert (INSERT DO ON CONFLICT) that
+	// increments the version column or inserts 1 if it does not exist.
+	IncrementVersion(networkID string, id storage.TypeAndKey) error
 }
 
 // GetBlobsByTypeAndKey returns a computed view of a list of blobs as a map of

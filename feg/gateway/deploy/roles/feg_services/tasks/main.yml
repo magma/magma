@@ -38,4 +38,5 @@
     - radius
     - swx_proxy
     - eap_aka
-    - eap_router
+    - aaa_server
+    - radiusd

@@ -16,10 +16,9 @@ import (
 	"path/filepath"
 
 	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/testcore"
+	"magma/feg/gateway/registry"
 	lteprotos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/tools/commands"
 )
 
@@ -161,6 +160,23 @@ func deleteSubscriber(_ *commands.Command, _ []string) int {
 	return 0
 }
 
+// deregisterSubscriber handles the DEREG command (deregisters a subscriber from the hss)
+func deregisterSubscriber(_ *commands.Command, _ []string) int {
+	client, err := connectToHss()
+	if err != nil {
+		fmt.Printf("Failed to connect to hss: %v\n", err)
+		return 1
+	}
+	id := &lteprotos.SubscriberID{Id: subscriberID}
+	_, err = client.DeregisterSubscriber(context.Background(), id)
+	if err != nil {
+		fmt.Printf("Failed to deregister subscriber: %v\n", err)
+		return 1
+	}
+
+	return 0
+}
+
 func init() {
 	getCmd := cmdRegistry.Add(
 		"GET",
@@ -209,6 +225,18 @@ func init() {
 		delFlags.PrintDefaults()
 	}
 	delFlags.StringVar(&subscriberID, "subscriber_id", subscriberID, "IMSI of the subscriber to delete")
+
+	deregCmd := cmdRegistry.Add(
+		"DEREG",
+		"Deregister a subscriber",
+		deregisterSubscriber)
+	deregFlags := deregCmd.Flags()
+	deregFlags.Usage = func() {
+		fmt.Fprintf(os.Stderr, // std Usage() & PrintDefaults() use Stderr
+			"\tUsage: %s [OPTIONS] %s [%s OPTIONS] <IMSI>\n", os.Args[0], deregCmd.Name(), deregCmd.Name())
+		deregFlags.PrintDefaults()
+	}
+	deregFlags.StringVar(&subscriberID, "subscriber_id", subscriberID, "IMSI of the subscriber to deregister")
 }
 
 // addSubscriberDataFlags adds all of the flags needed to fill a SubscriberData proto.
@@ -242,7 +270,7 @@ func addSubscriberDataFlags(flags *flag.FlagSet) {
 
 // connectToHss establishes a grpc connection to the hss configurator service.
 func connectToHss() (protos.HSSConfiguratorClient, error) {
-	conn, err := registry.GetConnection(testcore.MockHSSServiceName)
+	conn, err := registry.GetConnection(registry.MOCK_HSS)
 	if err != nil {
 		return nil, err
 	}

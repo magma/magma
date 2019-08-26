@@ -37,7 +37,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "conversions.h"
 #include "common_types.h"
@@ -77,12 +76,28 @@
 #include "nas/securityDef.h"
 #include "service303.h"
 #include "sgs_messages_types.h"
+#include "secu_defs.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
 #else
 #define TASK_SPGW TASK_S11
 #endif
+
+void print_bearer_ids_helper(ebi_t ebi[], uint32_t no_of_bearers)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+
+  char buf[128], *pos = buf;
+  for (int i = 0 ; i != no_of_bearers ; i++) {
+    if (i) {
+      pos += sprintf(pos, ", ");
+    }
+    pos += sprintf(pos, "%d", ebi[i]);
+  }
+  OAILOG_INFO(LOG_MME_APP, " EBIs in the list %s\n", buf);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
 
 //------------------------------------------------------------------------------
 int _send_pcrf_bearer_actv_rsp(
@@ -92,78 +107,64 @@ int _send_pcrf_bearer_actv_rsp(
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef *message_p =
-    itti_alloc_new_message(TASK_MME_APP,
-    S11_NW_INITIATED_ACTIVATE_BEARER_RESP);
+    itti_alloc_new_message(TASK_MME_APP, S11_NW_INITIATED_ACTIVATE_BEARER_RESP);
   if (message_p == NULL) {
-   OAILOG_ERROR(
-     LOG_MME_APP,
-       "Cannot allocte memory to S11_NW_INITIATED_BEARER_ACTV_RSP\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP,RETURNerror);
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Cannot allocte memory to S11_NW_INITIATED_BEARER_ACTV_RSP\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   itti_s11_nw_init_actv_bearer_rsp_t *s11_nw_init_actv_bearer_rsp =
     &message_p->ittiMsg.s11_nw_init_actv_bearer_rsp;
 
- //Fetch PDN context
-  pdn_cid_t cid =
-  ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+  //Fetch PDN context
+  pdn_cid_t cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
   pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
   //Fill SGW S11 CP TEID
   s11_nw_init_actv_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
   int msg_bearer_index = 0;
 
-  bearer_context_t *bc =
-    mme_app_get_bearer_context(ue_context_p,ebi);
-    s11_nw_init_actv_bearer_rsp->cause.cause_value = cause;
-    s11_nw_init_actv_bearer_rsp->bearer_contexts
-      .bearer_contexts[msg_bearer_index]
-      .eps_bearer_id = ebi;
-    s11_nw_init_actv_bearer_rsp->bearer_contexts
-      .bearer_contexts[msg_bearer_index]
-      .cause.cause_value = REQUEST_ACCEPTED;
-    //  FTEID eNB
-    s11_nw_init_actv_bearer_rsp->bearer_contexts
-      .bearer_contexts[msg_bearer_index]
-      .s1u_enb_fteid = bc->enb_fteid_s1u;
+  bearer_context_t *bc = mme_app_get_bearer_context(ue_context_p, ebi);
+  s11_nw_init_actv_bearer_rsp->cause.cause_value = cause;
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+    .eps_bearer_id = ebi;
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+    .cause.cause_value = REQUEST_ACCEPTED;
+  //  FTEID eNB
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+    .s1u_enb_fteid = bc->enb_fteid_s1u;
 
-    /* FTEID SGW S1U
-     * This IE shall be sent on the S11 interface.
-    It shall be used to fetch context*/
+  /* FTEID SGW S1U
+   * This IE shall be sent on the S11 interface.
+  It shall be used to fetch context*/
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+    .s1u_sgw_fteid = bc->s_gw_fteid_s1u;
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
+  //Saved TFT to be sent to SGW in order to save in the SPGW context
+  if (bc->saved_tft) {
+    memcpy(
+      &s11_nw_init_actv_bearer_rsp->tft,
+      bc->saved_tft,
+      sizeof(traffic_flow_template_t));
+  }
+  //Saved QoS to be sent to SGW in order to save in the SPGW context
+  if (bc->saved_qos) {
+    memcpy(
+      &s11_nw_init_actv_bearer_rsp->eps_bearer_qos,
+      bc->saved_qos,
+      sizeof(bearer_qos_t));
+  }
+
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Sending create_dedicated_bearer_rsp to SGW with EBI %d %d\n",
+    ebi,
     s11_nw_init_actv_bearer_rsp->bearer_contexts
       .bearer_contexts[msg_bearer_index]
-      .s1u_sgw_fteid =
-      bc->s_gw_fteid_s1u;
-    s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
-    //Saved TFT to be sent to SGW in order to save in the SPGW context
-    if (bc->saved_tft) {
-      memcpy(
-        &s11_nw_init_actv_bearer_rsp->tft,
-        bc->saved_tft,
-        sizeof(traffic_flow_template_t));
-    }
-    //Saved QoS to be sent to SGW in order to save in the SPGW context
-    if (bc->saved_qos) {
-      memcpy(
-        &s11_nw_init_actv_bearer_rsp->eps_bearer_qos,
-        bc->saved_qos,
-        sizeof(bearer_qos_t));
-    }
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 S11_PCRF_BEARER_ACTV_RSP teid %u",
-    s11_nw_init_actv_bearer_rsp->teid);
-
-  OAILOG_INFO(LOG_MME_APP,"Sending create_dedicated_bearer_rsp to SGW with EBI %d %d\n",
-    ebi,s11_nw_init_actv_bearer_rsp->bearer_contexts
-        .bearer_contexts[msg_bearer_index]
-        .eps_bearer_id);
+      .eps_bearer_id);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP,RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
-
 
 //---------------------------------------------------------------------------
 static bool mme_app_construct_guti(
@@ -189,8 +190,9 @@ int mme_app_handle_nas_pdn_connectivity_req(
   OAILOG_DEBUG(
     LOG_MME_APP,
     "Received NAS_PDN_CONNECTIVITY_REQ from NAS Handling imsi " IMSI_64_FMT
-    "\n",
-    imsi64);
+    " pdn type = (%d)\n",
+    imsi64,
+    nas_pdn_connectivity_req_pP->pdn_type);
 
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
@@ -199,10 +201,6 @@ int mme_app_handle_nas_pdn_connectivity_req(
       LOG_MME_APP,
       "UE id is not present for this IMSI" IMSI_64_FMT
       "Seems to be duplicate attach Request scenario\n",
-      imsi64);
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      " NAS_PDN_CONNECTIVITY_REQ Unknown imsi " IMSI_64_FMT,
       imsi64);
     mme_ue_context_dump_coll_keys();
     /*
@@ -216,7 +214,8 @@ int mme_app_handle_nas_pdn_connectivity_req(
       OAILOG_ERROR(
         LOG_MME_APP,
         "ERROR***** Invalid UE Id received from NAS in PDN Connectivity "
-        "Request\n");
+        "Request, (ue_id %u)\n",
+        ue_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
     ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
@@ -309,10 +308,6 @@ void mme_app_handle_conn_est_cnf(
     &mme_app_desc.mme_ue_contexts, nas_conn_est_cnf_pP->ue_id);
 
   if (!ue_context_p) {
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      " NAS_CONNECTION_ESTABLISHMENT_CNF Unknown ue " MME_UE_S1AP_ID_FMT " ",
-      nas_conn_est_cnf_pP->ue_id);
     OAILOG_ERROR(
       LOG_MME_APP,
       "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT "\n",
@@ -331,6 +326,11 @@ void mme_app_handle_conn_est_cnf(
     * send IMSI Detach towads UE to re-attach for non-eps services
     * otherwise send itti SGS Service request message to SGS
     */
+  OAILOG_DEBUG(
+    LOG_MME_APP,
+    "CSFB Service Type = (%d) for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
+    ue_context_p->sgs_context->csfb_service_type,
+    nas_conn_est_cnf_pP->ue_id);
     if (ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MT_SMS) {
       /* send SGS SERVICE request message to SGS */
       if (
@@ -339,13 +339,19 @@ void mme_app_handle_conn_est_cnf(
            ue_context_p->sgs_context->service_indicator, ue_context_p))) {
         OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to send CS-Service Request to SGS-Task for ue-id :%u \n",
+          "Failed to send CS-Service Request to SGS-Task for (ue_id = %u) \n",
           ue_context_p->mme_ue_s1ap_id);
       }
     } else if (
       ue_context_p->sgs_context->csfb_service_type ==
       CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI) {
       //Send itti detach request message to NAS to trigger N/W initiated imsi detach request towards UE
+      OAILOG_DEBUG(
+        LOG_MME_APP,
+        "Sending itti detach request to NAS-MME (ue_id = " MME_UE_S1AP_ID_FMT ")\n"
+        "csfb service type = CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI\n",
+        ue_context_p->mme_ue_s1ap_id);
+
       mme_app_send_nas_detach_request(
         ue_context_p->mme_ue_s1ap_id, SGS_INITIATED_IMSI_DETACH);
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
@@ -416,6 +422,9 @@ void mme_app_handle_conn_est_cnf(
       establishment_cnf_p->cs_fallback_indicator      = CSFB_REQUIRED;
     }
   }
+  OAILOG_DEBUG(
+    LOG_MME_APP,
+    "CSFB Fallback indicator = (%d)\n",establishment_cnf_p->cs_fallback_indicator );
   // Copy UE radio capabilities into message if it exists
   OAILOG_DEBUG(
     LOG_MME_APP,
@@ -477,20 +486,6 @@ void mme_app_handle_conn_est_cnf(
   OAILOG_DEBUG(
     LOG_MME_APP,
     "security_capabilities_integrity_algorithms  0x%04X\n",
-    establishment_cnf_p->ue_security_capabilities_integrity_algorithms);
-
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S1AP_MME,
-    NULL,
-    0,
-    "0 MME_APP_CONNECTION_ESTABLISHMENT_CNF ebi %u s1u_sgw teid " TEID_FMT
-    " qci %u prio level %u sea 0x%x sia 0x%x",
-    establishment_cnf_p->e_rab_id[0],
-    establishment_cnf_p->gtp_teid[0],
-    establishment_cnf_p->e_rab_level_qos_qci[0],
-    establishment_cnf_p->e_rab_level_qos_priority_level[0],
-    establishment_cnf_p->ue_security_capabilities_encryption_algorithms,
     establishment_cnf_p->ue_security_capabilities_integrity_algorithms);
 
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
@@ -563,7 +558,7 @@ void mme_app_handle_initial_ue_message(
   emm_context_t *ue_nas_ctx = NULL;
   enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
 
-  OAILOG_DEBUG(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP\n");
+  OAILOG_INFO(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP\n");
 
   DevAssert(INVALID_MME_UE_S1AP_ID == initial_pP->mme_ue_s1ap_id);
 
@@ -606,11 +601,15 @@ void mme_app_handle_initial_ue_message(
 
             OAILOG_ERROR(
               LOG_MME_APP,
-              "MME_APP_INITAIL_UE_MESSAGE.ERROR***** enb_s1ap_id_key %ld has "
-              "valid value.\n",
+              "MME_APP_INITAIL_UE_MESSAGE: enb_s1ap_id_key %ld has "
+              "valid value \n",
               ue_context_p->enb_s1ap_id_key);
             //inform s1ap to do local cleanup of enb_ue_s1ap_id from the ue context
             ue_context_p->ue_context_rel_cause = S1AP_INVALID_ENB_ID;
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              " Sending UE Context Release to S1AP for ue_id =(%u)\n",
+              ue_context_p->mme_ue_s1ap_id);
             mme_app_itti_ue_context_release(
               ue_context_p, ue_context_p->ue_context_rel_cause);
             hashtable_uint64_ts_remove(
@@ -704,8 +703,8 @@ void mme_app_handle_initial_ue_message(
     }
     OAILOG_DEBUG(
       LOG_MME_APP,
-      "MME_APP_INITAIL_UE_MESSAGE.Allocated new MME UE context and new "
-      "mme_ue_s1ap_id. %d\n",
+      "Allocated new MME UE context and new "
+      "(mme_ue_s1ap_id = %d)\n",
       ue_context_p->mme_ue_s1ap_id);
     ue_context_p->enb_ue_s1ap_id = initial_pP->enb_ue_s1ap_id;
     MME_APP_ENB_S1AP_ID_KEY(
@@ -729,19 +728,16 @@ void mme_app_handle_initial_ue_message(
   }
   OAILOG_INFO(
     LOG_MME_APP,
-    "INITIAL_UE_MESSAGE RCVD.mme_ue_s1ap_id = %d, enb_ue_s1ap_id = %d. Is "
-    "S-TMSI Valid = %d \n",
+    "INITIAL_UE_MESSAGE RCVD \n"
+    "mme_ue_s1ap_id  = %d\n"
+    "enb_ue_s1ap_id  = %d\n",
     ue_context_p->mme_ue_s1ap_id,
-    ue_context_p->enb_ue_s1ap_id,
-    initial_pP->is_s_tmsi_valid);
+    ue_context_p->enb_ue_s1ap_id);
+  OAILOG_DEBUG(
+    LOG_MME_APP, "Is S-TMSI Valid - (%d)\n",initial_pP->is_s_tmsi_valid);
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "0 NAS_INITIAL_UE_MESSAGE ue id " MME_UE_S1AP_ID_FMT " ",
-    ue_context_p->mme_ue_s1ap_id);
+  OAILOG_INFO(LOG_MME_APP, "Sending NAS Establishment Indication to NAS for ue_id = (%d)\n",
+    ue_context_p->mme_ue_s1ap_id );
   nas_proc_establish_ind(
     ue_context_p->mme_ue_s1ap_id,
     is_mm_ctx_new,
@@ -769,10 +765,6 @@ void mme_app_handle_erab_setup_req(
     &mme_app_desc.mme_ue_contexts, itti_erab_setup_req->ue_id);
 
   if (!ue_context_p) {
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      " NAS_ERAB_SETUP_REQ Unknown ue " MME_UE_S1AP_ID_FMT " ",
-      itti_erab_setup_req->ue_id);
     OAILOG_ERROR(
       LOG_MME_APP,
       "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT "\n",
@@ -832,16 +824,6 @@ void mme_app_handle_erab_setup_req(
       itti_erab_setup_req->nas_msg;
     itti_erab_setup_req->nas_msg = NULL;
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S1AP_MME,
-      NULL,
-      0,
-      "0 S1AP_E_RAB_SETUP_REQ ue id " MME_UE_S1AP_ID_FMT
-      " ebi %u teid " TEID_FMT " ",
-      ue_context_p->mme_ue_s1ap_id,
-      s1ap_e_rab_setup_req->e_rab_to_be_setup_list.item[0].e_rab_id,
-      s1ap_e_rab_setup_req->e_rab_to_be_setup_list.item[0].gtp_teid);
     itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   } else {
     OAILOG_DEBUG(
@@ -872,13 +854,6 @@ void mme_app_handle_delete_session_rsp(
     &mme_app_desc.mme_ue_contexts, delete_sess_resp_pP->teid);
 
   if (!ue_context_p) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 DELETE_SESSION_RESPONSE local S11 teid " TEID_FMT " ",
-      delete_sess_resp_pP->teid);
     OAILOG_WARNING(
       LOG_MME_APP,
       "We didn't find this teid in list of UE: %08x\n",
@@ -898,15 +873,6 @@ void mme_app_handle_delete_session_rsp(
     increment_counter("mme_spgw_delete_session_rsp", 1, 1, "result", "failure");
   }
   increment_counter("mme_spgw_delete_session_rsp", 1, 1, "result", "success");
-  MSC_LOG_RX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 DELETE_SESSION_RESPONSE local S11 teid " TEID_FMT " IMSI " IMSI_64_FMT
-    " ",
-    delete_sess_resp_pP->teid,
-    ue_context_p->emm_context._imsi64);
   /*
    * Updating statistics
    */
@@ -948,6 +914,7 @@ void mme_app_handle_delete_session_rsp(
       "Deleting UE context associated in MME for "
       "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n ",
       ue_context_p->mme_ue_s1ap_id);
+    unlock_ue_contexts(ue_context_p);
     mme_remove_ue_context(&mme_app_desc.mme_ue_contexts, ue_context_p);
     // return now, otherwize will unlock ue context already free
     OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -971,6 +938,12 @@ void mme_app_handle_delete_session_rsp(
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
       }
     } else {
+        OAILOG_INFO(
+      LOG_MME_APP,
+      "**** Pruthvi Sendinf mme_app_itti_ue_context_release after receiving delete session rsp from SGW "
+      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n ",
+      ue_context_p->mme_ue_s1ap_id);
+ 
       // Notify S1AP to send UE Context Release Command to eNB or free s1 context locally.
       mme_app_itti_ue_context_release(
         ue_context_p, ue_context_p->ue_context_rel_cause);
@@ -993,37 +966,25 @@ int mme_app_handle_create_sess_resp(
   ebi_t bearer_id = 0;
   int rc = RETURNok;
 
-  DevAssert(create_sess_resp_pP);
-  OAILOG_DEBUG(
+  OAILOG_INFO(
     LOG_MME_APP, "Received S11_CREATE_SESSION_RESPONSE from S+P-GW\n");
+  DevAssert(create_sess_resp_pP);
   ue_context_p = mme_ue_context_exists_s11_teid(
     &mme_app_desc.mme_ue_contexts, create_sess_resp_pP->teid);
 
   if (ue_context_p == NULL) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 CREATE_SESSION_RESPONSE local S11 teid " TEID_FMT " ",
-      create_sess_resp_pP->teid);
-
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this teid in list of UE: %08x\n",
       create_sess_resp_pP->teid);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  MSC_LOG_RX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 CREATE_SESSION_RESPONSE local S11 teid " TEID_FMT " IMSI " IMSI_64_FMT
-    " ",
+  OAILOG_DEBUG(
+    LOG_MME_APP, "MME S11 teid = %u, cause = %d, ue_id = %u\n",
     create_sess_resp_pP->teid,
-    ue_context_p->emm_context._imsi64);
+    create_sess_resp_pP->cause.cause_value,
+    ue_context_p->mme_ue_s1ap_id);
 
   proc_tid_t transaction_identifier = 0;
   pdn_cid_t pdn_cx_id = 0;
@@ -1039,6 +1000,10 @@ int mme_app_handle_create_sess_resp(
   if (create_sess_resp_pP->cause.cause_value != REQUEST_ACCEPTED) {
     // Send PDN CONNECTIVITY FAIL message  to NAS layer
     increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "failure");
+    OAILOG_DEBUG(
+      LOG_MME_APP, "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
+      create_sess_resp_pP->cause.cause_value,
+      ue_context_p->mme_ue_s1ap_id);
     message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONNECTIVITY_FAIL);
     itti_nas_pdn_connectivity_fail_t *nas_pdn_connectivity_fail =
       &message_p->ittiMsg.nas_pdn_connectivity_fail;
@@ -1056,6 +1021,13 @@ int mme_app_handle_create_sess_resp(
     nas_pdn_connectivity_fail->ue_id = ue_context_p->mme_ue_s1ap_id;
     nas_pdn_connectivity_fail->cause =
       (pdn_conn_rsp_cause_t)(create_sess_resp_pP->cause.cause_value);
+    OAILOG_ERROR(
+      LOG_MME_APP, "Sending NAS PDN connectivity failure for ue_id = (%u)"
+      ", bearer id = (%d)"
+      ", pti = (%d)\n",
+      ue_context_p->mme_ue_s1ap_id,
+      bearer_id,
+      transaction_identifier);
     rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -1113,6 +1085,12 @@ int mme_app_handle_create_sess_resp(
     current_bearer_p->p_gw_fteid_s5_s8_up =
       create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
         .s5_s8_u_pgw_fteid;
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "S1U S-GW teid   = (%u)\n"
+      "S5/S8U PGW teid = (%u)\n",
+      current_bearer_p->s_gw_fteid_s1u.teid,
+      current_bearer_p->p_gw_fteid_s5_s8_up.teid);
 
     // if modified by pgw
     if (create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
@@ -1195,18 +1173,12 @@ int mme_app_handle_create_sess_resp(
     clear_protocol_configuration_options(&create_sess_resp_pP->pco);
   }
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "0 NAS_PDN_CONNECTIVITY_RSP sgw_s1u_teid %u ebi %u qci %u prio %u",
-    current_bearer_p->s_gw_fteid_s1u.teid,
-    bearer_id,
-    current_bearer_p->qci,
-    current_bearer_p->priority_level);
-
   //Send PDN Connectivity Rsp to NAS
+  OAILOG_INFO(
+    TASK_MME_APP, "Sending PDN CONNECTIVITY RESPONSE to NAS for ue_id = (%d)\n"
+    " bearer ID = (%d)\n",
+    ue_context_p->mme_ue_s1ap_id,
+    bearer_id);
   rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -1220,20 +1192,17 @@ void mme_app_handle_initial_context_setup_rsp(
   struct ue_mm_context_s *ue_context_p = NULL;
   MessageDef *message_p = NULL;
 
-  OAILOG_DEBUG(
-    LOG_MME_APP, "Received MME_APP_INITIAL_CONTEXT_SETUP_RSP from S1AP\n");
+  OAILOG_INFO(
+    LOG_MME_APP, "Received MME_APP_INITIAL_CONTEXT_SETUP_RSP from S1AP for ue_id = (%u)\n",
+    initial_ctxt_setup_rsp_pP->ue_id);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc.mme_ue_contexts, initial_ctxt_setup_rsp_pP->ue_id);
 
   if (ue_context_p == NULL) {
     OAILOG_DEBUG(
       LOG_MME_APP,
-      "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
-      "\n",
-      initial_ctxt_setup_rsp_pP->ue_id);
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      " MME_APP_INITIAL_CONTEXT_SETUP_RSP Unknown ue %u",
+      " We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
+      "\n UE Context NULL...\n",
       initial_ctxt_setup_rsp_pP->ue_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1331,15 +1300,9 @@ void mme_app_handle_initial_context_setup_rsp(
    * S11 stack specific parameter. Not used in standalone epc mode
    */
   s11_modify_bearer_request->trxn = NULL;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 S11_MODIFY_BEARER_REQUEST teid %u ebi %u",
-    s11_modify_bearer_request->teid,
-    s11_modify_bearer_request->bearer_contexts_to_be_modified.bearer_contexts[0]
-      .eps_bearer_id);
+  OAILOG_INFO(
+    TASK_MME_APP, "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
+    initial_ctxt_setup_rsp_pP->ue_id, s11_modify_bearer_request->teid);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   /*
    * During Service request procedure,after initial context setup response
@@ -1373,28 +1336,12 @@ void mme_app_handle_release_access_bearers_resp(
     &mme_app_desc.mme_ue_contexts, rel_access_bearers_rsp_pP->teid);
 
   if (ue_context_p == NULL) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 RELEASE_ACCESS_BEARERS_RESPONSE local S11 teid " TEID_FMT " ",
-      rel_access_bearers_rsp_pP->teid);
     OAILOG_DEBUG(
       LOG_MME_APP,
       "We didn't find this teid in list of UE: %" PRIX32 "\n",
       rel_access_bearers_rsp_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  MSC_LOG_RX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 RELEASE_ACCESS_BEARERS_RESPONSE local S11 teid " TEID_FMT
-    " IMSI " IMSI_64_FMT " ",
-    rel_access_bearers_rsp_pP->teid,
-    ue_context_p->emm_context._imsi64);
   /*
    * Updating statistics
    */
@@ -1428,13 +1375,6 @@ void mme_app_handle_s11_create_bearer_req(
     &mme_app_desc.mme_ue_contexts, create_bearer_request_pP->teid);
 
   if (ue_context_p == NULL) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 CREATE_BEARERS_REQUEST local S11 teid " TEID_FMT " ",
-      create_bearer_request_pP->teid);
     OAILOG_DEBUG(
       LOG_MME_APP,
       "We didn't find this teid in list of UE: %" PRIX32 "\n",
@@ -1448,15 +1388,6 @@ void mme_app_handle_s11_create_bearer_req(
     mme_app_get_bearer_context(ue_context_p, linked_eps_bearer_id);
   if (!linked_bc) {
     // May create default EPS bearer ?
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 CREATE_BEARERS_REQUEST ue id " MME_UE_S1AP_ID_FMT
-      " local S11 teid " TEID_FMT " ",
-      ue_context_p->mme_ue_s1ap_id,
-      create_bearer_request_pP->teid);
     OAILOG_DEBUG(
       LOG_MME_APP,
       "We didn't find the linked bearer id %" PRIu8
@@ -1468,18 +1399,6 @@ void mme_app_handle_s11_create_bearer_req(
   }
 
   pdn_cid_t cid = linked_bc->pdn_cx_id;
-
-  MSC_LOG_RX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_S11_MME,
-    NULL,
-    0,
-    "0 CREATE_BEARERS_REQUEST ue id " MME_UE_S1AP_ID_FMT
-    " PDN id %u IMSI " IMSI_64_FMT " n ebi %u",
-    ue_context_p->mme_ue_s1ap_id,
-    cid,
-    ue_context_p->emm_context._imsi64,
-    create_bearer_request_pP->bearer_contexts.num_bearer_context);
 
   mme_app_s11_proc_create_bearer_t *s11_proc_create_bearer =
     mme_app_create_s11_procedure_create_bearer(ue_context_p);
@@ -1538,24 +1457,12 @@ void mme_app_handle_s11_create_bearer_req(
         MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).pco, &msg_bc->pco);
     }
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_NAS_MME,
-      NULL,
-      0,
-      "0 MME_APP_CREATE_DEDICATED_BEARER_REQ mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-      " qci %u ebi %u cid %u",
-      MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).ue_id,
-      dedicated_bc->qci,
-      dedicated_bc->ebi,
-      cid);
     itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-//------------------------------------------------------------------------------
 void mme_app_handle_e_rab_setup_rsp(
   itti_s1ap_e_rab_setup_rsp_t *const e_rab_setup_rsp)
 {
@@ -1571,10 +1478,6 @@ void mme_app_handle_e_rab_setup_rsp(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",
-      e_rab_setup_rsp->mme_ue_s1ap_id);
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      " S1AP_E_RAB_SETUP_RSP Unknown ue " MME_UE_S1AP_ID_FMT "\n",
       e_rab_setup_rsp->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1700,13 +1603,6 @@ void mme_app_handle_e_rab_setup_rsp(
       }
     }
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 S11_CREATE_BEARER_RESPONSE teid %u",
-      s11_create_bearer_response->teid);
     itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, message_p);
   } else {
     // not send S11 response
@@ -1775,12 +1671,6 @@ void mme_app_handle_implicit_detach_timer_expiry(
   DevAssert(message_p != NULL);
   message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
     ue_context_p->mme_ue_s1ap_id;
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "0 NAS_IMPLICIT_DETACH_UE_IND_MESSAGE");
   itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -1988,7 +1878,7 @@ static void notify_s1ap_new_ue_mme_s1ap_id_association(
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, " NULL UE context ptr\n");
+    OAILOG_ERROR(LOG_MME_APP, " NULL UE context pointer!\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   message_p =
@@ -2002,7 +1892,7 @@ static void notify_s1ap_new_ue_mme_s1ap_id_association(
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   OAILOG_DEBUG(
     LOG_MME_APP,
-    " Sent MME_APP_S1AP_MME_UE_ID_NOTIFICATION to S1AP for UE Id %u\n",
+    " Sent MME_APP_S1AP_MME_UE_ID_NOTIFICATION to S1AP for (ue_id = %u)\n",
     notification_p->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2553,9 +2443,9 @@ void mme_app_handle_create_dedicated_bearer_rsp(
     s11_proc_create->bearer_status[EBI_TO_INDEX(ebi)] = S11_PROC_BEARER_SUCCESS;
     // if received all bearers creation results
     if (s11_proc_create->num_status_received == s11_proc_create->num_bearers) {
-        //Send Rsp to SGW if SPGW is embedded
-        bearer_context_t *bc =
-          mme_app_get_bearer_context(ue_context_p, create_dedicated_bearer_rsp->ebi);
+      //Send Rsp to SGW if SPGW is embedded
+      bearer_context_t *bc = mme_app_get_bearer_context(
+        ue_context_p, create_dedicated_bearer_rsp->ebi);
       if (bc == NULL) {
         OAILOG_ERROR(
         LOG_MME_APP,
@@ -2687,7 +2577,7 @@ void mme_app_handle_modify_ue_ambr_request(
 }
 
 /**
- * This Function handles PCRF initiated
+ * This Function handles NW initiated
  * Dedicated bearer activation Request message from SGW
  */
 void mme_app_handle_nw_init_ded_bearer_actv_req(
@@ -2707,14 +2597,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     &mme_app_desc.mme_ue_contexts, nw_init_bearer_actv_req_p->s11_mme_teid);
 
   if (ue_context_p == NULL) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 PCRF initiated Bearer Actv Req local S11 teid " TEID_FMT " ",
-      mme_teid_S11->teid);
-
     OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this teid in list of UE: %08x\n",
@@ -2725,15 +2607,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
   bearer_context_t *linked_bc =
     mme_app_get_bearer_context(ue_context_p, linked_eps_bearer_id);
   if (!linked_bc) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 CREATE_BEARERS_REQUEST ue id " MME_UE_S1AP_ID_FMT
-      " local S11 teid " TEID_FMT " ",
-      ue_context_p->mme_ue_s1ap_id,
-      nw_init_bearer_actv_req_p->teid);
     OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find the linked bearer id %" PRIu8
@@ -2778,18 +2651,6 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
       &nw_init_bearer_actv_req_p->pco);
   }
 
-  MSC_LOG_TX_MESSAGE(
-    MSC_MMEAPP_MME,
-    MSC_NAS_MME,
-    NULL,
-    0,
-    "0 MME_APP_CREATE_DEDICATED_BEARER_REQ mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-    " qci %u ebi %u cid %u",
-    MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).ue_id,
-    dedicated_bc->qci,
-    dedicated_bc->ebi,
-    cid);
-
   OAILOG_INFO(
     LOG_MME_APP,
     "Sending MME_APP_CREATE_DEDICATED_BEARER_REQ to NAS with UE ID"
@@ -2801,15 +2662,13 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-//------------------------------------------------------------------------------
 void _send_delete_dedicated_bearer_rsp(
   struct ue_mm_context_s *ue_context_p,
   bool delete_default_bearer,
   ebi_t ebi[],
   uint32_t num_bearer_context,
   teid_t s_gw_teid_s11_s4,
-  gtpv2c_cause_value_t cause
-  )
+  gtpv2c_cause_value_t cause)
 {
   itti_s11_nw_init_deactv_bearer_rsp_t *s11_deact_ded_bearer_rsp = NULL;
   MessageDef *message_p = NULL;
@@ -2822,12 +2681,13 @@ void _send_delete_dedicated_bearer_rsp(
   }
   message_p =
     itti_alloc_new_message(TASK_MME_APP,
-      S11_NW_INITIATED_DEACTIVATE_BEARER_RESP);
+    S11_NW_INITIATED_DEACTIVATE_BEARER_RESP);
   s11_deact_ded_bearer_rsp =
     &message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp;
 
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP,
+    OAILOG_ERROR(
+      LOG_MME_APP,
       "itti_alloc_new_message failed for"
       "S11_NW_INITIATED_DEACTIVATE_BEARER_RESP\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2842,27 +2702,25 @@ void _send_delete_dedicated_bearer_rsp(
     *s11_deact_ded_bearer_rsp->lbi = ebi[0];
     s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[0].
       cause.cause_value = cause;
-    OAILOG_INFO(
-      LOG_MME_APP,
-      " Sending S11_PCRF_DED_BEARER_DEACTV_RESPONSE to SGW, (ebi = %d)\n",
-      ebi[0]);
   } else {
     for (i = 0; i < num_bearer_context; i++) {
       s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].
         eps_bearer_id = ebi[i];
       s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].
         cause.cause_value = cause;
-      OAILOG_INFO(
-        LOG_MME_APP,
-        " Sending S11_PCRF_DED_BEARER_DEACTV_RESPONSE to SGW, (ebi = %d)\n",
-        s11_deact_ded_bearer_rsp->bearer_contexts.bearer_contexts[i].
-          eps_bearer_id);
     }
   }
+  /*Print bearer ids to be sent in nw_initiated_deactv_bearer_rsp*/
+  print_bearer_ids_helper(ebi, num_bearer_context);
   s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context =
     num_bearer_context;
   s11_deact_ded_bearer_rsp->imsi = ue_context_p->imsi;
   s11_deact_ded_bearer_rsp->s_gw_teid_s11_s4 = s_gw_teid_s11_s4;
+
+  OAILOG_INFO(
+    LOG_MME_APP,
+    " Sending nw_initiated_deactv_bearer_rsp to SGW with %d bearers\n",
+    num_bearer_context);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2870,8 +2728,8 @@ void _send_delete_dedicated_bearer_rsp(
 
 
 /**
- * This Function handles PCRF initiated
- * Dedicated bearer Deactivation Request message from SGW
+ * This Function handles NW-initiated
+ * dedicated bearer deactivation request message from SGW
  */
 void mme_app_handle_nw_init_bearer_deactv_req(
   itti_s11_nw_init_deactv_bearer_request_t
@@ -2881,30 +2739,25 @@ void mme_app_handle_nw_init_bearer_deactv_req(
   uint32_t i = 0;
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef *message_p = NULL;
+  ebi_t ebi[BEARERS_PER_UE];
+  uint32_t num_bearers_deleted = 0;
 
-  for (i = 0; i< nw_init_bearer_deactv_req_p->no_of_bearers; i++) {
-    OAILOG_INFO(
-      LOG_MME_APP,
-      "Received Dedicated bearer deactivation Request from SGW with EBI %d\n",
-      nw_init_bearer_deactv_req_p->ebi[i]);
-  }
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Received nw_initiated_deactv_bearer_req from SGW\n");
+
+  /*Print bearer ids received in the message*/
+  print_bearer_ids_helper(nw_init_bearer_deactv_req_p->ebi,
+    nw_init_bearer_deactv_req_p->no_of_bearers);
   ue_context_p = mme_ue_context_exists_s11_teid(
     &mme_app_desc.mme_ue_contexts, nw_init_bearer_deactv_req_p->s11_mme_teid);
 
   if (ue_context_p == NULL) {
-    MSC_LOG_RX_DISCARDED_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S11_MME,
-      NULL,
-      0,
-      "0 PCRF initiated Bearer Dectv Req local S11 teid " TEID_FMT " ",
-      nw_init_bearer_deactv_req_p->s11_mme_teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-//Fetch PDN context
-  pdn_cid_t cid =
-  ue_context_p->bearer_contexts
+  //Fetch PDN context
+  pdn_cid_t cid = ue_context_p->bearer_contexts
     [EBI_TO_INDEX(nw_init_bearer_deactv_req_p->ebi[0])]->pdn_cx_id;
   pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
 
@@ -2937,13 +2790,14 @@ void mme_app_handle_nw_init_bearer_deactv_req(
       itti_alloc_new_message(TASK_MME_APP, MME_APP_DELETE_DEDICATED_BEARER_REQ);
       if (message_p == NULL) {
         OAILOG_INFO(
-        LOG_MME_APP,
-        "itti_alloc_new_message failed for"
-        "MME_APP_DELETE_DEDICATED_BEARER_REQ\n");
+          LOG_MME_APP,
+          "itti_alloc_new_message failed for"
+          "nw_initiated_deactv_bearer_req\n");
         OAILOG_FUNC_OUT(LOG_MME_APP);
       }
-      MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).delete_default_bearer =
-        nw_init_bearer_deactv_req_p->delete_default_bearer;
+      /* MME_APP_DELETE_DEDICATED_BEARER_REQ ITTI message is used to inform NAS
+       * about dedicated/default bearer deactivation
+       */
       MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).ue_id =
         ue_context_p->mme_ue_s1ap_id;
       MME_APP_DELETE_DEDICATED_BEARER_REQ(message_p).no_of_bearers =
@@ -2956,30 +2810,221 @@ void mme_app_handle_nw_init_bearer_deactv_req(
       itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
     } else {
       /* If UE is in IDLE state remove bearer context
-       * send Create Bearer Rsp to SPGW
+       * send delete dedicated bearer rsp to SPGW
        */
       for (i = 0; i < nw_init_bearer_deactv_req_p->no_of_bearers; i++) {
-        if ((ue_context_p->bearer_contexts[i]) &&
-          (ue_context_p->bearer_contexts[i]->ebi ==
-            nw_init_bearer_deactv_req_p->ebi[i])) {
-          mme_app_free_bearer_context(&ue_context_p->bearer_contexts[i]);
-          break;
+        /*Fetch bearer context*/
+        bearer_context_t *bearer_context = mme_app_get_bearer_context(
+          ue_context_p, nw_init_bearer_deactv_req_p->ebi[i]);
+        if (bearer_context) {
+          mme_app_free_bearer_context(&bearer_context);
+          num_bearers_deleted ++;
+          ebi[i] = nw_init_bearer_deactv_req_p->ebi[i];
+        } else {
+          OAILOG_ERROR(
+            LOG_MME_APP, "Bearer context does not exist for ebi %d\n",
+            nw_init_bearer_deactv_req_p->ebi[i]);
         }
       }
-      if (i < nw_init_bearer_deactv_req_p->no_of_bearers) {
-        //Send delete_dedicated_bearer_rsp to SPGW
-        _send_delete_dedicated_bearer_rsp(
-          ue_context_p,
-          nw_init_bearer_deactv_req_p->delete_default_bearer,
-          nw_init_bearer_deactv_req_p->ebi,
-          nw_init_bearer_deactv_req_p->no_of_bearers,
-          pdn_context->s_gw_teid_s11_s4,
-          REQUEST_ACCEPTED);
+      //Send delete_dedicated_bearer_rsp to SPGW
+      _send_delete_dedicated_bearer_rsp(
+        ue_context_p,
+        nw_init_bearer_deactv_req_p->delete_default_bearer,
+        ebi,
+        num_bearers_deleted,
+        pdn_context->s_gw_teid_s11_s4,
+        REQUEST_ACCEPTED);
+     }
+  }
+  unlock_ue_contexts(ue_context_p);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_handle_path_switch_request(
+  itti_s1ap_path_switch_request_t *const path_switch_req_p)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  struct ue_mm_context_s *ue_context_p = NULL;
+  ue_network_capability_t ue_network_capability;
+  enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+  e_rab_to_be_switched_in_downlink_list_t e_rab_to_be_switched_dl_list =
+    path_switch_req_p->e_rab_to_be_switched_dl_list;
+  bearer_context_t *current_bearer_p = NULL;
+  ebi_t bearer_id = 0;
+  pdn_cid_t cid = 0;
+  int idx = 0;
+  pdn_context_t *pdn_context = NULL;
+  MessageDef *message_p = NULL;
+
+  OAILOG_DEBUG(LOG_MME_APP, "Received PATH_SWITCH_REQUEST from S1AP\n");
+
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc.mme_ue_contexts, path_switch_req_p->mme_ue_s1ap_id);
+  if (!ue_context_p) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      " PATH_SWITCH_REQUEST RECEIVED, Failed to find UE context for "
+      "mme_ue_s1ap_id 0x%06" PRIX32 " \n",
+      path_switch_req_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
+    /* Remove existing enb_s1ap_id_key which is mapped with suorce eNB  */
+    hashtable_uint64_ts_remove(
+          mme_app_desc.mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+          (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+    ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+  }
+  // Update MME UE context with new enb_ue_s1ap_id
+  ue_context_p->enb_ue_s1ap_id = path_switch_req_p->enb_ue_s1ap_id;
+  // regenerate the enb_s1ap_id_key as enb_ue_s1ap_id is changed.
+  MME_APP_ENB_S1AP_ID_KEY(enb_s1ap_id_key,
+        path_switch_req_p->enb_id, path_switch_req_p->enb_ue_s1ap_id);
+  // Update enb_s1ap_id_key in hashtable
+  if (!IS_EMM_CTXT_PRESENT_GUTI(&(ue_context_p->emm_context))) {
+    mme_ue_context_update_coll_keys(
+      &mme_app_desc.mme_ue_contexts,
+      ue_context_p,
+      enb_s1ap_id_key,
+      ue_context_p->mme_ue_s1ap_id,
+      ue_context_p->emm_context._imsi64,
+      ue_context_p->emm_context._imsi.length,
+      ue_context_p->mme_teid_s11,
+      &ue_context_p->emm_context._guti);
+  }
+  ue_context_p->sctp_assoc_id_key = path_switch_req_p->sctp_assoc_id;
+  ue_context_p->e_utran_cgi = path_switch_req_p->ecgi;
+  ue_context_p->serving_cell_tai = path_switch_req_p->tai;
+  ue_network_capability.eea =
+    path_switch_req_p->encryption_algorithm_capabilities;
+  ue_network_capability.eia =
+    path_switch_req_p->integrity_algorithm_capabilities;
+  if ((ue_network_capability.eea != ue_context_p->emm_context
+    ._ue_network_capability.eea) || (ue_network_capability.eia !=
+    ue_context_p->emm_context._ue_network_capability.eia)) {
+    /* clear ue security capabilities and store security capabilities
+     * recieved in PATH_SWITCH REQUEST */
+    emm_ctx_clear_ue_nw_cap(&ue_context_p->emm_context);
+    emm_ctx_set_valid_ue_nw_cap(&ue_context_p->emm_context,
+      &ue_network_capability);
+  }
+  /*Build and send Modify Bearer Request*/
+  message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
+  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  itti_s11_modify_bearer_request_t *s11_modify_bearer_request =
+    &message_p->ittiMsg.s11_modify_bearer_request;
+  s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
+
+  for (idx = 0; idx < e_rab_to_be_switched_dl_list.no_of_items; idx++) {
+    bearer_id = e_rab_to_be_switched_dl_list.item[idx].e_rab_id;
+    if ((current_bearer_p =
+      mme_app_get_bearer_context(ue_context_p, bearer_id)) == NULL) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Bearer Contex for bearer_id %d does not exist for ue_id %d\n",
+        bearer_id, ue_context_p->mme_ue_s1ap_id);
+    } else {
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+      .bearer_contexts[idx].eps_bearer_id = e_rab_to_be_switched_dl_list
+      .item[idx].e_rab_id;
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+      .bearer_contexts[idx].s1_eNB_fteid.teid = e_rab_to_be_switched_dl_list
+      .item[idx].gtp_teid;
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+      .bearer_contexts[idx].s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
+      if (4 == blength(e_rab_to_be_switched_dl_list.item[idx]
+        .transport_layer_address)) {
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .bearer_contexts[idx].s1_eNB_fteid.ipv4 = 1;
+        memcpy(&s11_modify_bearer_request->bearer_contexts_to_be_modified
+          .bearer_contexts[idx].s1_eNB_fteid.ipv4_address,
+          e_rab_to_be_switched_dl_list.item[idx].transport_layer_address
+          ->data, blength(e_rab_to_be_switched_dl_list.item[idx]
+          .transport_layer_address));
+      } else if (16 == blength(e_rab_to_be_switched_dl_list.item[idx]
+               .transport_layer_address)) {
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .bearer_contexts[idx].s1_eNB_fteid.ipv6 = 1;
+        memcpy(&s11_modify_bearer_request->bearer_contexts_to_be_modified
+          .bearer_contexts[idx].s1_eNB_fteid.ipv6_address,
+          e_rab_to_be_switched_dl_list.item[idx].transport_layer_address
+          ->data, blength(e_rab_to_be_switched_dl_list.item[idx]
+          .transport_layer_address));
       } else {
-        OAILOG_ERROR(LOG_MME_APP, "Cannot delete bearer context");
+        AssertFatal(
+          0, "TODO IP address %d bytes",
+          blength(
+            e_rab_to_be_switched_dl_list.item[idx].transport_layer_address));
+      }
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+        .num_bearer_context++;
+
+      OAILOG_DEBUG(
+        LOG_MME_APP,
+        "Build MBR for ue_id %d\t bearer_id %d\t enb_teid %u\t sgw_teid %u\n",
+        ue_context_p->mme_ue_s1ap_id, bearer_id, s11_modify_bearer_request
+        ->bearer_contexts_to_be_modified.bearer_contexts[idx].s1_eNB_fteid.teid, current_bearer_p->s_gw_fteid_s1u.teid);
+    }
+
+    if (!idx) {
+      cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(bearer_id)]->pdn_cx_id;
+      pdn_context = ue_context_p->pdn_contexts[cid];
+      s11_modify_bearer_request->peer_ip =
+        pdn_context->s_gw_address_s11_s4.address.ipv4_address;
+      s11_modify_bearer_request->teid = pdn_context->s_gw_teid_s11_s4;
+    }
+  }
+  if (pdn_context->esm_data.n_bearers == e_rab_to_be_switched_dl_list
+    .no_of_items) {
+    s11_modify_bearer_request->bearer_contexts_to_be_removed
+      .num_bearer_context = 0;
+  } else {
+    /* find the bearer which are present in current UE context and not present
+     * in Path Switch Request, add them to bearer_contexts_to_be_removed list
+     * */
+    for (idx = 0; idx < pdn_context->esm_data.n_bearers; idx++) {
+      bearer_id = ue_context_p->bearer_contexts[idx]->ebi;
+      if (is_e_rab_id_present(
+        e_rab_to_be_switched_dl_list, bearer_id) == true) {
+        continue;
+      } else {
+        s11_modify_bearer_request->bearer_contexts_to_be_removed
+        .bearer_contexts[idx].eps_bearer_id = bearer_id;
+        s11_modify_bearer_request->bearer_contexts_to_be_removed
+        .bearer_contexts[idx].s4u_sgsn_fteid.teid =
+        ue_context_p->bearer_contexts[idx]->enb_fteid_s1u.teid;
+        s11_modify_bearer_request->bearer_contexts_to_be_removed
+        .bearer_contexts[idx].s4u_sgsn_fteid.interface_type =
+        ue_context_p->bearer_contexts[idx]->enb_fteid_s1u.interface_type;
+        if (ue_context_p->bearer_contexts[idx]->enb_fteid_s1u.ipv4) {
+          s11_modify_bearer_request->bearer_contexts_to_be_removed
+          .bearer_contexts[idx].s4u_sgsn_fteid.ipv4 = 1;
+          s11_modify_bearer_request->bearer_contexts_to_be_removed
+          .bearer_contexts[idx].s4u_sgsn_fteid.ipv4_address =
+          ue_context_p->bearer_contexts[idx]->enb_fteid_s1u.ipv4_address;
+        } else if (ue_context_p->bearer_contexts[idx]->enb_fteid_s1u.ipv6) {
+          s11_modify_bearer_request->bearer_contexts_to_be_removed
+          .bearer_contexts[idx].s4u_sgsn_fteid.ipv6 = 1;
+          s11_modify_bearer_request->bearer_contexts_to_be_removed
+          .bearer_contexts[idx].s4u_sgsn_fteid.ipv6_address =
+          ue_context_p->bearer_contexts[idx]->enb_fteid_s1u.ipv6_address;
+        }
+        s11_modify_bearer_request->bearer_contexts_to_be_removed
+          .num_bearer_context++;
       }
     }
   }
+  /*
+   * S11 stack specific parameter. Not used in standalone epc mode
+   */
+  s11_modify_bearer_request->trxn = NULL;
+  OAILOG_DEBUG(
+    LOG_MME_APP,
+    "MME_APP send S11_MODIFY_BEARER_REQUEST to teid %u \n",
+    s11_modify_bearer_request->teid);
+  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  ue_context_p->path_switch_req = true;
+
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2994,10 +3039,6 @@ void mme_app_handle_erab_rel_cmd(
     &mme_app_desc.mme_ue_contexts, itti_erab_rel_cmd->ue_id);
 
   if (!ue_context_p) {
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      " NAS_ERAB_REL_CMD Unknown ue " MME_UE_S1AP_ID_FMT " ",
-      itti_erab_rel_cmd->ue_id);
     OAILOG_ERROR(
       LOG_MME_APP,
       "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT "\n",
@@ -3037,14 +3078,6 @@ void mme_app_handle_erab_rel_cmd(
       itti_erab_rel_cmd->nas_msg;
     itti_erab_rel_cmd->nas_msg = NULL;
 
-    MSC_LOG_TX_MESSAGE(
-      MSC_MMEAPP_MME,
-      MSC_S1AP_MME,
-      NULL,
-      0,
-      "0 S1AP_E_RAB_REL_CMD ue id " MME_UE_S1AP_ID_FMT
-      ue_context_p->mme_ue_s1ap_id,
-      itti_erab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id);
     OAILOG_INFO(
       LOG_MME_APP,
       "Sending ERAB REL CMD to S1AP with UE ID %d and EBI %d",
@@ -3072,14 +3105,10 @@ void mme_app_handle_e_rab_rel_rsp(
     &mme_app_desc.mme_ue_contexts, e_rab_rel_rsp->mme_ue_s1ap_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",
-      e_rab_rel_rsp->mme_ue_s1ap_id);
-    MSC_LOG_EVENT(
-      MSC_MMEAPP_MME,
-      " S1AP_E_RAB_REL_RSP Unknown ue " MME_UE_S1AP_ID_FMT "\n",
       e_rab_rel_rsp->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -3111,7 +3140,7 @@ void mme_app_handle_delete_dedicated_bearer_rsp(
     &mme_app_desc.mme_ue_contexts, delete_dedicated_bearer_rsp->ue_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",
@@ -3144,7 +3173,7 @@ void mme_app_handle_delete_dedicated_bearer_rej(
     &mme_app_desc.mme_ue_contexts, delete_dedicated_bearer_rej->ue_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",
@@ -3165,7 +3194,6 @@ void mme_app_handle_delete_dedicated_bearer_rej(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-//------------------------------------------------------------------------------
 void mme_app_handle_pdn_disconnect_req(
   itti_mme_app_pdn_disconnect_req_t *const mme_app_pdn_disconnect_req)
 {
@@ -3191,5 +3219,98 @@ void mme_app_handle_pdn_disconnect_req(
 
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
+}
 
+bool is_e_rab_id_present(
+  e_rab_to_be_switched_in_downlink_list_t e_rab_to_be_switched_dl_list,
+  ebi_t bearer_id)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  uint8_t idx = 0;
+  bool rc = false;
+
+  for (; idx < e_rab_to_be_switched_dl_list.no_of_items; ++idx) {
+    if (bearer_id != e_rab_to_be_switched_dl_list.item[idx].e_rab_id) {
+      continue;
+    } else {
+      rc = true;
+      break;
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+}
+//------------------------------------------------------------------------------
+void mme_app_handle_path_switch_req_ack(
+  itti_s11_modify_bearer_response_t  *const s11_modify_bearer_response,
+  ue_mm_context_t *ue_context_p)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  emm_context_t *emm_ctx = &ue_context_p->emm_context;
+  MessageDef *message_p = NULL;
+
+  if (s11_modify_bearer_response->bearer_contexts_modified.num_bearer_context
+    == 0) {
+    mme_app_handle_path_switch_req_failure(ue_context_p);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  OAILOG_DEBUG(LOG_MME_APP, "Build PATH_SWITCH_REQUEST_ACK for ue_id %d\n",
+    ue_context_p->mme_ue_s1ap_id);
+  message_p = itti_alloc_new_message(
+    TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_ACK);
+  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  itti_s1ap_path_switch_request_ack_t *s1ap_path_switch_req_ack =
+    &message_p->ittiMsg.s1ap_path_switch_request_ack;
+
+  s1ap_path_switch_req_ack->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
+  s1ap_path_switch_req_ack->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
+  s1ap_path_switch_req_ack->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
+  memcpy(s1ap_path_switch_req_ack->NH, emm_ctx->_security.next_hop,
+    AUTH_NEXT_HOP_SIZE);
+  s1ap_path_switch_req_ack->NCC = emm_ctx->_security.next_hop_chaining_count;
+  /* Generate NH key parameter */
+  if (emm_ctx->_security.vector_index != 0) {
+    OAILOG_DEBUG(
+    LOG_MME_APP,
+    "Invalid Vector index %d for ue_id %d \n",
+    emm_ctx->_security.vector_index, ue_context_p->mme_ue_s1ap_id);
+  }
+  derive_NH(emm_ctx->_vector[emm_ctx->_security.vector_index].kasme,
+    emm_ctx->_security.next_hop,
+    emm_ctx->_security.next_hop,
+    &emm_ctx->_security.next_hop_chaining_count);
+
+  OAILOG_DEBUG(
+    LOG_MME_APP,
+    "MME_APP send PATH_SWITCH_REQUEST_ACK to S1AP for ue_id %d \n",
+    ue_context_p->mme_ue_s1ap_id);
+  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+//------------------------------------------------------------------------------
+void mme_app_handle_path_switch_req_failure(
+  ue_mm_context_t *ue_context_p)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  MessageDef *message_p = NULL;
+
+  OAILOG_DEBUG(LOG_MME_APP, "Build PATH_SWITCH_REQUEST_FAILURE for ue_id %d\n",
+    ue_context_p->mme_ue_s1ap_id);
+  message_p = itti_alloc_new_message(
+    TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_FAILURE);
+  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  itti_s1ap_path_switch_request_failure_t *s1ap_path_switch_req_failure =
+    &message_p->ittiMsg.s1ap_path_switch_request_failure;
+
+  s1ap_path_switch_req_failure->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
+  s1ap_path_switch_req_failure->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
+  s1ap_path_switch_req_failure->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
+
+  OAILOG_DEBUG(
+    LOG_MME_APP,
+    "MME_APP send PATH_SWITCH_REQUEST_FAILURE to S1AP for ue_id %d \n",
+    ue_context_p->mme_ue_s1ap_id);
+  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }

@@ -12,18 +12,17 @@ import type {
   CheckindGateway,
   NetworkUpgradeTier,
 } from '../../common/MagmaAPIType';
+import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {ContextRouter} from 'react-router-dom';
 
-import axios from 'axios';
-import React from 'react';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import LoadingFiller from '../LoadingFiller';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -33,16 +32,17 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
+import axios from 'axios';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {Route, withRouter} from 'react-router-dom';
 
 import {
-  fetchAllNetworkUpgradeTiers,
-  fetchAllGateways,
   MagmaAPIUrls,
+  fetchAllGateways,
+  fetchAllNetworkUpgradeTiers,
 } from '../../common/MagmaAPI';
-import {get, map, merge, sortBy} from 'lodash-es';
+import {get, map, merge, sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 type State = {
@@ -53,7 +53,7 @@ type State = {
   supportedVersions: ?(string[]),
 };
 
-type Props = WithAlert & WithStyles & ContextRouter & {};
+type Props = WithAlert & WithStyles<typeof styles> & ContextRouter & {};
 
 const styles = _theme => ({
   header: {

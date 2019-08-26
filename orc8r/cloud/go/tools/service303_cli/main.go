@@ -12,10 +12,11 @@ import (
 	"fmt"
 	"os"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
-	"magma/orc8r/cloud/go/services/magmad"
 
 	"github.com/spf13/cobra"
 )
@@ -29,9 +30,9 @@ var services []string
 var gwServices []gateway_registry.GwServiceType
 
 var isGatewayServiceQuery bool
-var hwId string
-var networkId string
-var gatewayId string
+var hardwareID string
+var networkID string
+var gatewayID string
 
 func main() {
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
@@ -40,9 +41,9 @@ func main() {
 	gwServices = gateway_registry.ListAllGwServices()
 
 	rootCmd.PersistentFlags().BoolVar(&isGatewayServiceQuery, "gateway-service", false, "query a gateway service")
-	rootCmd.PersistentFlags().StringVar(&hwId, "hwid", "", "the hardware id of the gateway to send command to")
-	rootCmd.PersistentFlags().StringVar(&networkId, "network", "", "the network id")
-	rootCmd.PersistentFlags().StringVar(&gatewayId, "gateway", "", "the gateway id")
+	rootCmd.PersistentFlags().StringVar(&hardwareID, "hwid", "", "the hardware id of the gateway to send command to")
+	rootCmd.PersistentFlags().StringVar(&networkID, "network", "", "the network id")
+	rootCmd.PersistentFlags().StringVar(&gatewayID, "gateway", "", "the gateway id")
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(2)
@@ -50,14 +51,14 @@ func main() {
 }
 
 func validateGlobalFlags() error {
-	if !isGatewayServiceQuery && hwId == "" && networkId == "" && gatewayId == "" {
+	if !isGatewayServiceQuery && hardwareID == "" && networkID == "" && gatewayID == "" {
 		return nil
 	}
 	if isGatewayServiceQuery {
-		if hwId != "" && networkId == "" && gatewayId == "" {
+		if hardwareID != "" && networkID == "" && gatewayID == "" {
 			return nil
 		}
-		if hwId == "" && networkId != "" && gatewayId != "" {
+		if hardwareID == "" && networkID != "" && gatewayID != "" {
 			return nil
 		}
 	}
@@ -65,23 +66,15 @@ func validateGlobalFlags() error {
 }
 
 func setHwIdFlag() error {
-	if networkId == "" || gatewayId == "" {
+	if networkID == "" || gatewayID == "" {
 		return nil
 	}
 	var err error
-	hwId, err = getHwId(networkId, gatewayId)
+	hardwareID, err = configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func getHwId(networkId string, logicalId string) (string, error) {
-	gwRecord, err := magmad.FindGatewayRecord(networkId, logicalId)
-	if err != nil {
-		return "", err
-	}
-	return gwRecord.HwId.Id, nil
 }
 
 func isValidService(service string, services []string) bool {

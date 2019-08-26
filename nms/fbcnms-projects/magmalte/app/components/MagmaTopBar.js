@@ -8,13 +8,13 @@
  * @format
  */
 
-import React, {useContext} from 'react';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import AppContext from './context/AppContext';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Divider from '@material-ui/core/Divider';
 import MenuItem from '@material-ui/core/MenuItem';
 import NetworkContext from './context/NetworkContext';
+import React, {useContext} from 'react';
 import TopBar from '@fbcnms/ui/components/layout/TopBar';
 import TopBarAnchoredMenu from '@fbcnms/ui/components/layout/TopBarAnchoredMenu';
 import {Link} from 'react-router-dom';

@@ -47,6 +47,7 @@ from magma.pipelined.app.inout import EGRESS, INGRESS, InOutController
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.app.subscriber import SubscriberController
+from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
 from ryu.base.app_manager import AppManager
@@ -113,6 +114,13 @@ class _TableManager:
         for app in app_names:
             self._tables_by_app[app] = Tables(main_table=table_num)
 
+    def register_apps_for_table0_service(self, app_names: List[str]):
+        """
+        Register the apps for a service with main table 0
+        """
+        for app in app_names:
+            self._tables_by_app[app] = Tables(main_table=0)
+
     def get_table_num(self, app_name: str) -> int:
         if app_name not in self._tables_by_app:
             raise Exception('App is not registered: %s' % app_name)
@@ -159,10 +167,10 @@ class _TableManager:
     def get_all_table_assignments(self) -> 'OrderedDict[str, Tables]':
         resp = OrderedDict(sorted(self._tables_by_app.items(),
                                   key=lambda kv: (kv[1].main_table, kv[0])))
-        # Even though pipelined does not manage table 0, include it for
-        # completeness.
-        resp['mme'] = Tables(main_table=0)
-        resp.move_to_end('mme', last=False)
+        # Include table 0 when it is managed by the EPC, for completeness.
+        if 'ue_mac' not in self._tables_by_app:
+            resp['mme'] = Tables(main_table=0)
+            resp.move_to_end('mme', last=False)
         return resp
 
 
@@ -182,6 +190,7 @@ class ServiceManager:
 
     App = namedtuple('App', ['name', 'module'])
 
+    UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
@@ -213,6 +222,10 @@ class ServiceManager:
     # Mapping between the app names defined in pipelined.yml and the names and
     # modules of their corresponding Ryu apps in PipelineD.
     STATIC_SERVICE_TO_APPS = {
+        UE_MAC_ADDRESS_SERVICE_NAME: [
+            App(name=UEMacAddressController.APP_NAME,
+                module=UEMacAddressController.__module__),
+        ],
         ARP_SERVICE_NAME: [
             App(name=ArpController.APP_NAME, module=ArpController.__module__),
         ],
@@ -261,6 +274,10 @@ class ServiceManager:
         for service in services_with_tables:
             app_names = [app.name for app in
                          self.STATIC_SERVICE_TO_APPS[service]]
+            # UE MAC service must be registered with Table 0
+            if service == self.UE_MAC_ADDRESS_SERVICE_NAME:
+                self._table_manager.register_apps_for_table0_service(app_names)
+                continue
             self._table_manager.register_apps_for_service(app_names)
 
     def _init_dynamic_services(self):

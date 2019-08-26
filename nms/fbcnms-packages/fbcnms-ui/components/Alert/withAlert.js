@@ -10,7 +10,7 @@
 
 'use strict';
 
-import type {ComponentType, Node} from 'react';
+import type {ComponentType, ElementConfig, Node} from 'react';
 
 import Alert from './Alert';
 import React from 'react';
@@ -34,14 +34,17 @@ export type DialogMapKey = DialogProps & {
 };
 
 export type WithAlert = {|
-  alert: (Node | Error, ?Node) => Promise<*>,
-  confirm: (Node | DialogProps) => Promise<*>,
+  alert: (Node | Error, ?Node) => Promise<boolean>,
+  confirm: (Node | DialogProps) => Promise<boolean>,
 |};
 
-function withAlert<Props: {}>(
-  Component: ComponentType<Props>,
-): ComponentType<Props> {
-  return class extends React.Component<Props, State> {
+function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
+  Component: TComponent,
+): ComponentType<$Diff<ElementConfig<TComponent>, WithAlert>> {
+  return class extends React.Component<
+    $Diff<ElementConfig<TComponent>, WithAlert>,
+    State,
+  > {
     state = {
       dialogs: new Map<DialogMapKey, boolean>(),
     };
@@ -58,10 +61,10 @@ function withAlert<Props: {}>(
       this.setState({dialogs: this.state.dialogs.set(alert, false)});
     }
 
-    addDialog(props: DialogProps): Promise<*> {
+    addDialog(props: DialogProps): Promise<boolean> {
       let dialog: DialogMapKey;
       this.lastKey = this.lastKey + 1;
-      return new Promise<*>(resolve => {
+      return new Promise<boolean>(resolve => {
         dialog = {
           ...props,
           key: this.lastKey,
@@ -81,16 +84,20 @@ function withAlert<Props: {}>(
       });
     }
 
-    alert = (message: Node | Error, confirmLabel?: Node = 'Ok'): Promise<*> => {
+    alert = (
+      message: Node | Error,
+      confirmLabel?: Node = 'OK',
+    ): Promise<boolean> => {
       return this.addDialog({
         message: message instanceof Error ? String(message) : message,
         confirmLabel,
       }).catch(() => {
         /* always resolve */
+        return false;
       });
     };
 
-    confirm = (messageOrProps: DialogProps | Node): Promise<*> => {
+    confirm = (messageOrProps: DialogProps | Node): Promise<boolean> => {
       let dialogProps: DialogProps;
       const confirmLabel = <>Confirm</>;
       const cancelLabel = <>Cancel</>;

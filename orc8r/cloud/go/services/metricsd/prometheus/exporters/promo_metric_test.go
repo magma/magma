@@ -24,16 +24,16 @@ import (
 
 var (
 	testNetworkLabels = prometheus.Labels{
-		exporters.NetworkLabelInstance: "testInstance",
-		exporters.NetworkLabelGateway:  "testGateway",
-		exporters.NetworkLabelService:  "testService",
-		exporters.NetworkLabelHost:     "testHost",
+		exporters.NetworkLabelNetwork: "testInstance",
+		exporters.NetworkLabelGateway: "testGateway",
+		exporters.NetworkLabelService: "testService",
+		exporters.NetworkLabelHost:    "testHost",
 	}
 
 	testPushgatewayLabels = prometheus.Labels{
-		exporters.NetworkLabelInstance: "testInstance",
-		exporters.NetworkLabelGateway:  "testGateway",
-		exporters.NetworkLabelService:  "testService",
+		exporters.NetworkLabelNetwork: "testInstance",
+		exporters.NetworkLabelGateway: "testGateway",
+		exporters.NetworkLabelService: "testService",
 	}
 )
 

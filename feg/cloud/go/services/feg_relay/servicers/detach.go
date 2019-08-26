@@ -34,7 +34,6 @@ func (srv *FegToGwRelayServer) EPSDetachAckUnverified(
 	if err != nil {
 		return &protos.Void{}, err
 	}
-	defer conn.Close()
 	client := fegprotos.NewCSFBGatewayServiceClient(conn)
 	return client.EPSDetachAc(ctx, req)
 }
@@ -58,7 +57,6 @@ func (srv *FegToGwRelayServer) IMSIDetachAckUnverified(
 	if err != nil {
 		return &protos.Void{}, err
 	}
-	defer conn.Close()
 	client := fegprotos.NewCSFBGatewayServiceClient(conn)
 	return client.IMSIDetachAc(ctx, req)
 }

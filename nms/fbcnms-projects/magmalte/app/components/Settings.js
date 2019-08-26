@@ -8,34 +8,34 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {ContextRouter} from 'react-router-dom';
+import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import AppContext from './context/AppContext';
+import MagmaTopBar from './MagmaTopBar';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
-import UsersSettings from './UsersSettings';
+import React from 'react';
 import SecuritySettings from './SecuritySettings';
-import MagmaTopBar from './MagmaTopBar';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
+import UsersSettings from './UsersSettings';
 
-import {findIndex} from 'lodash-es';
-import {withStyles} from '@material-ui/core/styles';
 import {Route, Switch, withRouter} from 'react-router-dom';
+import {findIndex} from 'lodash';
+import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   tabs: {
     flex: 1,
   },
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
 });
 
-type Props = ContextRouter & WithStyles;
+type Props = ContextRouter & WithStyles<typeof styles>;
 
 type State = {
   currentTab: number,
@@ -67,7 +67,7 @@ class Settings extends React.Component<Props, State> {
         {({user, networkIds}) => (
           <>
             <MagmaTopBar title="Settings" />
-            <Paper className={this.props.classes.paper}>
+            <Paper className={this.props.classes.paper} elevation={2}>
               <AppBar position="static" color="default">
                 <Tabs
                   value={this.state.currentTab}

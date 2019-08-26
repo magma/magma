@@ -35,4 +35,7 @@ service HSSConfigurator {
   // Throws NOT_FOUND if the subscriber is missing.
   //
   rpc GetSubscriberData (lte.SubscriberID) returns (lte.SubscriberData) {}
+
+  // De-register an authenticated subscriber
+  rpc DeregisterSubscriber (lte.SubscriberID) returns (orc8r.Void) {}
 }

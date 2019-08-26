@@ -9,24 +9,24 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
+import type {Gateway} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {Gateway} from './GatewayUtils';
 
-import axios from 'axios';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 import Button from '@material-ui/core/Button';
 import Check from '@material-ui/icons/Check';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import React from 'react';
 import Divider from '@material-ui/core/Divider';
 import Fade from '@material-ui/core/Fade';
-import Typography from '@material-ui/core/Typography';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
-import grey from '@material-ui/core/colors/grey';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import axios from 'axios';
+import grey from '@material-ui/core/colors/grey';
+import {MagmaAPIUrls} from '../common/MagmaAPI';
 
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withRouter} from 'react-router-dom';
@@ -44,7 +44,7 @@ const styles = _theme => ({
 
 type Props = ContextRouter &
   WithAlert &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gatewayID: string) => void,
     gateway: Gateway,
@@ -106,7 +106,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
               Reboot
             </Button>
             <Fade in={this.state.showRebootCheck} timeout={500}>
-              <Check style={{verticalAlign: 'middle'}} nativeColor="green" />
+              <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
             </Fade>
           </FormField>
           <div style={this.props.showRestartCommand ? {} : {display: 'none'}}>
@@ -115,7 +115,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
                 Restart Services
               </Button>
               <Fade in={this.state.showRestartCheck} timeout={500}>
-                <Check style={{verticalAlign: 'middle'}} nativeColor="green" />
+                <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
               </Fade>
             </FormField>
           </div>

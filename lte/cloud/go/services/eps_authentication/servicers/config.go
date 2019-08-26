@@ -1,38 +1,39 @@
 package servicers
 
 import (
+	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/plugin/models"
+	"magma/orc8r/cloud/go/services/configurator"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	cellular "magma/lte/cloud/go/services/cellular/config"
-	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
-	"magma/orc8r/cloud/go/services/config"
 )
 
 // EpsAuthConfig stores all the configs needed to run the service.
 type EpsAuthConfig struct {
 	LteAuthOp   []byte
 	LteAuthAmf  []byte
-	SubProfiles map[string]*cellular_protos.NetworkEPCConfig_SubscriptionProfile
+	SubProfiles map[string]models.NetworkEpcConfigsSubProfilesAnon
 }
 
 // getConfig returns the EpsAuthConfig config for a given networkId.
 func getConfig(networkID string) (*EpsAuthConfig, error) {
-	configs, err := config.GetConfig(networkID, cellular.CellularNetworkType, networkID)
+	iCellularConfigs, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkType)
 	if err != nil {
 		return nil, err
 	}
-	if configs == nil {
+	if iCellularConfigs == nil {
 		return nil, status.Error(codes.NotFound, "got nil when looking up config")
 	}
-	cellularConfig, ok := configs.(*cellular_protos.CellularNetworkConfig)
+	cellularConfig, ok := iCellularConfigs.(*models.NetworkCellularConfigs)
 	if !ok {
 		return nil, status.Error(codes.FailedPrecondition, "failed to convert config")
 	}
-	epc := cellularConfig.GetEpc()
+	epc := cellularConfig.Epc
 	result := &EpsAuthConfig{
-		LteAuthOp:   epc.GetLteAuthOp(),
-		LteAuthAmf:  epc.GetLteAuthAmf(),
-		SubProfiles: epc.GetSubProfiles(),
+		LteAuthOp:   epc.LteAuthOp,
+		LteAuthAmf:  epc.LteAuthAmf,
+		SubProfiles: epc.SubProfiles,
 	}
 	return result, nil
 }

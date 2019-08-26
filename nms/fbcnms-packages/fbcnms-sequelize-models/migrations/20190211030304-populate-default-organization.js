@@ -18,8 +18,18 @@ module.exports = {
         {
           id: '1',
           customDomains: '[]',
+          name: 'master',
+          networkIDs: '[]',
+          tabs: '["admin"]',
+          createdAt: '2019-02-11 20:05:05',
+          updatedAt: '2019-02-11 20:05:05',
+        },
+        {
+          id: '2',
+          customDomains: '[]',
           name: 'fb-test',
           networkIDs: '["mpk_test"]',
+          tabs: '["nms", "inventory", "workorders"]',
           createdAt: '2019-02-11 20:05:05',
           updatedAt: '2019-02-11 20:05:05',
         },

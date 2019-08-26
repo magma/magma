@@ -1,0 +1,9 @@
+VENDOR    Test-Vendor        9999
+
+BEGIN-VENDOR    Test-Vendor
+
+ATTRIBUTE  test_struct  4  tlv
+ATTRIBUTE  field1       4.1 string
+ATTRIBUTE  field2       4.2 integer64
+
+END-VENDOR      Test-Vendor

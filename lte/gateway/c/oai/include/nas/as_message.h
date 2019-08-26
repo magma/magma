@@ -114,7 +114,8 @@ Description Defines the messages supported by the Access Stratum sublayer
 
 /* Deactivate Bearer */
 #define AS_DEACTIVATE_BEARER_CONTEXT 0xa
-#define AS_DEACTIVATE_BEARER_CONTEXT_REQ (AS_DEACTIVATE_BEARER_CONTEXT | AS_REQUEST)
+#define AS_DEACTIVATE_BEARER_CONTEXT_REQ \
+  (AS_DEACTIVATE_BEARER_CONTEXT | AS_REQUEST)
 
 /* NAS Cause */
 typedef enum nas_cause_s {

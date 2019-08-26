@@ -7,7 +7,6 @@ magma_services:
   - subscriberdb
   - mobilityd
   - directoryd
-  - metricsd
   - enodebd
   - sessiond
   - mme
@@ -15,12 +14,14 @@ magma_services:
   - redis
   - dnsd
   - policydb
+  - sctpd
 
 # List of services that don't provide service303 interface
 non_service303_services:
   - control_proxy
   - dnsd
   - redis
+  - sctpd
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
 registered_dynamic_services:
@@ -34,6 +35,7 @@ linked_services:
     - pipelined
     - mobilityd
     - sessiond
+    - sctpd
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
@@ -82,3 +84,43 @@ mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
   - lte.protos.mconfig.mconfigs_pb2
   - feg.protos.mconfig.mconfigs_pb2
+
+metricsd:
+  log_level: INFO
+  collect_interval: 60 # How frequently to collect metrics samples in seconds
+  sync_interval: 60 # How frequently to sync to cloud in seconds
+  grpc_timeout: 30 # Timeout in seconds
+  queue_length: 1000 # Number of failed samples to enqueue for resend
+
+  # An optional function  to mutate metrics before they are sent to the cloud
+  # A string in the form path.to.module.fn_name
+  # @see magma.magmad.metrics_collector.example_metrics_postprocessor
+  post_processing_fn: magma.magmad.metrics_collector.do_nothing_metrics_postprocessor
+  # List of services for metricsd to poll
+  services:
+    - subscriberdb
+    - mobilityd
+    - mme
+    - magmad
+    - enodebd
+    - pipelined
+
+generic_command_config:
+  module: magma.magmad.generic_command.shell_command_executor
+  class: ShellCommandExecutor
+  shell_commands:
+    - name: bash
+      command: "bash {}"
+      allow_params: True
+    - name: fab
+      command: "fab {}"
+      allow_params: True
+    - name: echo
+      command: "echo {}"
+      allow_params: True
+    - name: reboot_enodeb
+      command: "enodebd_cli.py reboot_enodeb {}"
+      allow_params: True
+    - name: reboot_all_enodeb
+      command: "enodebd_cli.py reboot_all_enodeb"
+      allow_params: False

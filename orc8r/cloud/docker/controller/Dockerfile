@@ -1,7 +1,8 @@
 # ------------------------------------------------------------------------------
 # Base image (for tests, precommit, codegen, etc.)
 # ------------------------------------------------------------------------------
-FROM ubuntu:xenial as base
+ARG baseImage="ubuntu:xenial"
+FROM ${baseImage} as base
 
 # Install the runtime deps from apt
 RUN apt-get update && \
@@ -18,6 +19,8 @@ ENV GO111MODULE on
 ENV GOBIN /build/bin
 ENV PLUGIN_DIR /build/plugins
 ENV PATH ${PATH}:${GOBIN}
+# Use public go modules proxy
+ENV GOPROXY https://proxy.golang.org
 
 # Install protobuf compiler
 RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \
@@ -56,6 +59,12 @@ FROM base as builder
 
 RUN . /etc/profile.d/env.sh && make build
 
+# -----------------------------------------------------------------------------
+# Go-cache base image
+# -----------------------------------------------------------------------------
+FROM ubuntu:xenial as gocache
+COPY --from=builder /root/.cache /root/.cache
+
 # ------------------------------------------------------------------------------
 # Production image
 # ------------------------------------------------------------------------------
@@ -71,6 +80,17 @@ ARG CNTLR_FILES=src/magma/orc8r/cloud/docker/controller
 COPY ${CNTLR_FILES}/setup_swagger_ui /usr/local/bin/setup_swagger_ui
 RUN /usr/local/bin/setup_swagger_ui
 
+# Create an empty envdir for overriding in production
+RUN mkdir -p /var/opt/magma/envdir
+# TODO: automatically read the services from the plugins
+ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,EPS_AUTHENTICATION,METRICSD,CHECKIND,UPGRADE,MAGMAD,CERTIFIER,BOOTSTRAPPER,METERINGD_RECORDS,ACCESSD,MESH,OBSIDIAN,LOGGER,DISPATCHER,CONFIG,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE
+# TODO: fix dispatcher to work on containers
+ENV SERVICE_HOST_NAME localhost
+# TODO: fix metricsd for fetching host level metrics
+ENV HOST_NAME dev
+
+COPY src/magma/orc8r/cloud/docker/wait-for-it.sh /usr/local/bin
+
 # Copy the configs
 COPY configs /etc/magma/configs
 
@@ -80,13 +100,7 @@ COPY --from=builder /build/plugins /var/opt/magma/plugins
 COPY --from=builder /${CNTLR_FILES}/apidocs /var/opt/magma/static/apidocs
 
 # Copy the scripts from the context
-COPY ${CNTLR_FILES}/../envdir /var/opt/magma/envdir
 COPY ${CNTLR_FILES}/create_test_controller_certs /usr/local/bin/create_test_controller_certs
-
-# Override the dev environments to suit Docker
-# TODO: Remove this step after removing vagrant
-RUN echo false > /var/opt/magma/envdir/SHOULD_INIT_METERING_TABLES && \
-    echo "dbname=magma_dev user=magma_dev password=magma_dev host=datastore sslmode=disable" > /var/opt/magma/envdir/DATABASE_SOURCE
 
 # Copy the supervisor configs
 COPY ${CNTLR_FILES}/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -86,7 +86,7 @@ typedef struct emm_esm_activate_bearer_req_s {
   bitrate_t mbr_ul;
   bitrate_t gbr_dl;
   bitrate_t gbr_ul;
-  bstring msg; /* ESM message to be transfered     */
+  bstring msg; /* ESM message to be transferred     */
 } emm_esm_activate_bearer_req_t;
 
 /*
@@ -94,17 +94,16 @@ typedef struct emm_esm_activate_bearer_req_s {
  * ----------------------------------
  */
 typedef struct emm_esm_data_s {
-  bstring msg; /* ESM message to be transfered     */
+  bstring msg; /* ESM message to be transferred     */
 } emm_esm_data_t;
 
 /*
  * EMMESM primitive for Deactivate EPS bearer context request
  */
 typedef struct emm_esm_deactivate_bearer_req_s {
-  ebi_t   ebi; /*bearer to de-activate */
-  bstring msg; /* ESM message to be transfered     */
-}emm_esm_deactivate_bearer_req_t;
-
+  ebi_t ebi; /*bearer to de-activate */
+  bstring msg; /* ESM message to be transferred     */
+} emm_esm_deactivate_bearer_req_t;
 /*
  * ---------------------------------
  * Structure of EMMESM-SAP primitive

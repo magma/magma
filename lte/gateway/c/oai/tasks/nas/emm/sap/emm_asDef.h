@@ -189,7 +189,7 @@ typedef struct emm_as_establish_s {
 #define EMM_AS_NAS_INFO_EXTSR 0x05  /* Extended Service Request  */
 #define EMM_AS_NAS_INFO_NONE 0xFF   /* No Nas Message  */
   uint8_t nas_info; /* Type of initial NAS information to transfer   */
-  bstring nas_msg;  /* NAS message to be transfered within
+  bstring nas_msg;  /* NAS message to be transferred within
                                                        * initial NAS information message   */
 
   uint8_t eps_update_result;           /* TAU EPS update result   */
@@ -264,7 +264,7 @@ typedef struct emm_as_data_s {
 #define EMM_AS_NAS_DATA_INFO_SR 0x08     /* Service Reject in DL NAS */
 #define EMM_AS_NAS_DL_NAS_TRANSPORT 0x09 /* Downlink Nas Transport */
   uint8_t nas_info; /* Type of NAS information to transfer  */
-  bstring nas_msg;  /* NAS message to be transfered     */
+  bstring nas_msg;  /* NAS message to be transferred     */
   bstring full_network_name;
   bstring short_network_name;
   uint8_t daylight_saving_time;
@@ -273,6 +273,7 @@ typedef struct emm_as_data_s {
     ms_identity; /* MS identity This IE may be included to assign or unassign a new TMSI to a UE during a combined TA/LA update. */
   uint8_t *additional_update_result; /* TAU Additional update result   */
   uint32_t *emm_cause;               /* EMM failure cause code        */
+  uint16_t *eps_bearer_context_status; /* TAU EPS bearer context status   */
   uint32_t sgs_loc_updt_status;
   uint32_t *sgs_reject_cause;
   uint8_t
@@ -295,14 +296,14 @@ typedef struct emm_as_activate_bearer_context_req_s {
   bitrate_t gbr_dl;
   bitrate_t gbr_ul;
   emm_as_security_data_t sctx; /* EPS NAS security context         */
-  bstring nas_msg;             /* NAS message to be transfered     */
+  bstring nas_msg;             /* NAS message to be transferred     */
 } emm_as_activate_bearer_context_req_t;
 
 typedef struct emm_as_deactivate_bearer_context_req_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
   ebi_t ebi;              /* EPS rab id                       */
   emm_as_security_data_t sctx; /* EPS NAS security context         */
-  bstring nas_msg;             /* NAS message to be transfered     */
+  bstring nas_msg;             /* NAS message to be transferred     */
 } emm_as_deactivate_bearer_context_req_t;
 
 /*

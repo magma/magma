@@ -5,13 +5,11 @@ hide_title: true
 ---
 # FeG Docker Setup
 
-*NOTE: Docker support for FeG is not yet official*
-
-The FeG can be run in two different modes: development or production.
-The development mode is setup to make tests easy to run and it runs all of the
-services in one container. On the other hand, in the production environment,
-each service runs in its own container. In production, containers are optimized
-for size and so many utilities are removed.
+The FeG runs each service in its own Docker container.
+Production services are defined in `docker-compose.yml`.
+Development services are defined in `docker-compose.override.yml`. 
+The development `test` service is used to run unit tests and regenerate Swagger/Protobuf code.
+The development `test` service can also be used to perform other development-related procedures.
 
 ## Requirements
 
@@ -24,44 +22,41 @@ limit of the docker daemon to at least 4GB to build the images. Otherwise,
 when building the Go image, you may see an error message similar to this:
 `/usr/local/go/pkg/tool/linux_amd64/link: signal: killed`.
 
-The certificates (eg. rootCA.key) are expected to be in the `.cache/test_certs`
-folder. That folder is mounted into the appropriate containers.
+The `rootCA.pem` certificate must be located in the `.cache/test_certs` folder,
+so that it can be mounted into the appropriate containers from there.
 
 ## Development
 
-Follow these steps to run the FeG in a docker container for development:
+Follow these steps to run the FeG services:
 1. `cd magma/feg/gateway/docker`
-2. `docker-compose up -d`
-3. `docker exec -ti feg /bin/bash`
+2. `docker-compose build`
+3. `docker-compose up -d`
 
-Now, your shell should be inside a container with the source code
-and configs mounted. The code can be changed externally, and commands such as
-`make gen build test precommit run` should succeed.
-Please run `make precommit` in this container before submitting a patch.
+Each service should now be running in each of its containers. 
+By default, both production and development services should be running. 
+To place a shell into the test container, run the command:
 
-The development environment has a single container, `feg`, which is used to
-run all of the magma services. Systemd is used for managing the services,
-and so it should be set as the init system in `magmad.yml`.
+`docker-compose exec test /bin/bash`
 
-## Production
+The test container contains the mounted source code and configuration settings.
+The mounted source code and configuration settings can be changed externally 
+and the changes will be reflected inside the test container. 
+Run the command `make precommit` in the container before submitting a patch.
 
-Follow these steps to run the FeG in docker containers for production:
-1. `cd magma/feg/gateway/docker`
-2. `docker-compose -f docker-compose.prod.yml up -d`
+To make changes to currently running FeG services, the containers must be rebuilt and restarted:
+1. `docker-compose down`
+2. `docker-compose build`
+3. `docker-compose up -d` 
 
-Each service should now be running in its own docker container. Docker is used
-to manage the services, and so it should be set as the init system in
-`magmad.yml`. Also, ensure that `enable_systemd_tailer = False` in `magmad.yml`.
-
-To manage the containers the following commands are useful:
-* `docker-compose -f docker-compose.prod.yml ps` (get status of each container)
-* `docker-compose -f docker-compose.prod.yml logs -f` (tail logs of all containers)
-* `docker logs -f <service name>` (tail logs of a particular service)
-* `docker-compose -f docker-compose.prod.yml down` (stop all services)
+To manage the containers, the following commands are useful:
+* `docker-compose ps` (get status of each container)
+* `docker-compose logs -f` (tail logs of all containers)
+* `docker-compose logs -f <service name>` (tail logs of a particular service)
+* `docker-compose down` (stop all services)
 
 ## Publishing the images
 
-To push the production images to a private docker registry, use the following script:
+To push production images to a private docker registry, use the following script:
 ```
 [/magma/feg/gateway/docker]$ ../../../orc8r/tools/docker/publish.sh -r <REGISTRY> -i gateway_python
 [/magma/feg/gateway/docker]$ ../../../orc8r/tools/docker/publish.sh -r <REGISTRY> -i gateway_go

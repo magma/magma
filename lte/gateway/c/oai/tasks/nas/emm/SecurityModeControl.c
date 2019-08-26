@@ -51,7 +51,6 @@
 #include <stdlib.h>
 
 #include "log.h"
-#include "msc.h"
 #include "assertions.h"
 #include "3gpp_requirements_24.301.h"
 #include "common_types.h"
@@ -188,11 +187,14 @@ int emm_proc_security_mode_control(
 
   OAILOG_INFO(
     LOG_NAS_EMM,
-    "EMM-PROC  - Initiate security mode control procedure "
+    "EMM-PROC  - Initiate security mode control procedure, "
     "KSI = %d\n",
     ksi);
 
   if (!(emm_ctx)) {
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "Emm Context NULL!\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -272,7 +274,7 @@ int emm_proc_security_mode_control(
       emm_ctx_set_attribute_present(emm_ctx, EMM_CTXT_MEMBER_SECURITY);
     }
   } else {
-    OAILOG_WARNING(LOG_NAS_EMM, "EMM-PROC  - No EPS security context exists\n");
+    OAILOG_ERROR(LOG_NAS_EMM, "EMM-PROC  - No EPS security context exists\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -339,10 +341,14 @@ int emm_proc_security_mode_control(
      * Set the EPS encryption algorithms selected to the UE
      */
     smc_proc->selected_eea = emm_ctx->_security.selected_algorithms.encryption;
+    OAILOG_DEBUG(LOG_NAS_EMM, "EPS encryption algorithm selected is (%d) for ue_id (%u)\n",
+      smc_proc->selected_eea, ue_id);
     /*
      * Set the EPS integrity algorithms selected to the UE
      */
     smc_proc->selected_eia = emm_ctx->_security.selected_algorithms.integrity;
+    OAILOG_DEBUG(LOG_NAS_EMM, "EPS integrity algorithm selected is (%d) for ue_id (%u)\n",
+      smc_proc->selected_eia, ue_id);
 
     smc_proc->is_new = security_context_is_new;
 
@@ -359,13 +365,6 @@ int emm_proc_security_mode_control(
       /*
        * Notify EMM that common procedure has been initiated
        */
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "EMMREG_COMMON_PROC_REQ (SMC) ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
       emm_sap_t emm_sap = {0};
 
       emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
@@ -469,13 +468,6 @@ int emm_proc_security_mode_complete(
       /*
        * Notify EMM that the authentication procedure successfully completed
        */
-      MSC_LOG_TX_MESSAGE(
-        MSC_NAS_EMM_MME,
-        MSC_NAS_EMM_MME,
-        NULL,
-        0,
-        "EMMREG_COMMON_PROC_CNF (SMC) ue id " MME_UE_S1AP_ID_FMT " ",
-        ue_id);
       emm_sap_t emm_sap = {0};
       emm_sap.primitive = EMMREG_COMMON_PROC_CNF;
       emm_sap.u.emm_reg.ue_id = ue_id;
@@ -498,13 +490,6 @@ int emm_proc_security_mode_complete(
     /*
      * Notify EMM that the authentication procedure failed
      */
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "EMMREG_COMMON_PROC_REJ (SMC) ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     emm_sap_t emm_sap = {0};
     emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
     emm_sap.u.emm_reg.ue_id = ue_id;
@@ -604,13 +589,6 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     emm_sap.u.emm_reg.u.common.common_proc = &smc_proc->emm_com_proc;
     emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
       smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "EMMREG_COMMON_PROC_REJ (SMC) ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     rc = emm_sap_send(&emm_sap);
   }
   nas_itti_detach_req(ue_id);
@@ -762,6 +740,10 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
     } else {
+      OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "UE MM Context NULL! for ue_id = (%u)\n",
+        smc_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
 
@@ -778,13 +760,6 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
       &emm_ctx->_security,
       smc_proc->is_new,
       false);
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "EMMAS_SECURITY_REQ ue id " MME_UE_S1AP_ID_FMT " ",
-      smc_proc->ue_id);
     rc = emm_sap_send(&emm_sap);
 
     if (rc != RETURNerror) {
@@ -828,13 +803,6 @@ static int _security_ll_failure(
     emm_sap.u.emm_reg.u.common.common_proc = &smc_proc->emm_com_proc;
     emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
       smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-    MSC_LOG_TX_MESSAGE(
-      MSC_NAS_EMM_MME,
-      MSC_NAS_EMM_MME,
-      NULL,
-      0,
-      "0 EMMREG_PROC_ABORT (security) ue id " MME_UE_S1AP_ID_FMT " ",
-      ue_id);
     rc = emm_sap_send(&emm_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -915,8 +883,6 @@ static int _security_abort(
         "EMM-PROC  - Stop timer T3460 (%ld)\n",
         smc_proc->T3460.id);
       nas_stop_T3460(ue_id, &smc_proc->T3460, NULL);
-      MSC_LOG_EVENT(
-        MSC_NAS_EMM_MME, "T3460 stopped UE " MME_UE_S1AP_ID_FMT " ", ue_id);
     }
     /*
    * Release retransmission timer parameters

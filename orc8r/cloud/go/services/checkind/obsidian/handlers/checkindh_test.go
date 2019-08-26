@@ -12,16 +12,14 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	checkindTestInit "magma/orc8r/cloud/go/services/checkind/test_init"
-	"magma/orc8r/cloud/go/services/checkind/test_utils"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmadProtos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmadTestInit "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/services/configurator"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	stateTestUtils "magma/orc8r/cloud/go/services/state/test_utils"
 
@@ -34,40 +32,45 @@ const testAgHwId = "Test-AGW-Hw-Id"
 // on cloud VM
 func TestCheckind(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	magmadTestInit.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	checkindTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 
 	// create a test network with a single GW
-	testNetworkID, err := magmad.RegisterNetwork(
-		&magmadProtos.MagmadNetworkRecord{Name: "Test Network 1"},
-		"checkind_obsidian_test_network")
+	networkID := "checkind_obsidian_test_network"
+	err := configurator.CreateNetwork(
+		configurator.Network{
+			Name: "Test Network 1",
+			ID:   networkID,
+		},
+	)
 	assert.NoError(t, err)
 
-	t.Logf("New Registered Network: %s", testNetworkID)
-
-	hwID := protos.AccessGatewayID{Id: testAgHwId}
-	logicalID, err := magmad.RegisterGateway(testNetworkID, &magmadProtos.AccessGatewayRecord{HwId: &hwID, Name: "Test GW Name"})
+	_, err = configurator.CreateEntity(networkID, configurator.NetworkEntity{
+		Key:        testAgHwId,
+		Type:       "magmad_gateway",
+		PhysicalID: testAgHwId,
+	})
 	assert.NoError(t, err)
-	assert.NotEqual(t, logicalID, "")
 
-	ctx := stateTestUtils.GetContextWithCertificate(t, testAgHwId)
 	// put one checkin state into state service
-	checkinRequest := test_utils.GetCheckinRequestProtoFixture(testAgHwId)
-	stateTestUtils.ReportCheckin(t, ctx, checkinRequest)
+	ctx := stateTestUtils.GetContextWithCertificate(t, testAgHwId)
+	gwStatus := models.NewDefaultGatewayStatus(testAgHwId)
+	stateTestUtils.ReportGatewayStatus(t, ctx, gwStatus)
 
-	getGWStatusNoError(t, restPort, testNetworkID, logicalID)
-	getGWStatusNotFoundError(t, restPort, testNetworkID)
+	getGWStatusNoError(t, restPort, networkID, testAgHwId)
+	getGWStatusNotFoundError(t, restPort, networkID)
 
-	magmad.ForceRemoveNetwork(testNetworkID)
+	err = configurator.DeleteNetwork(networkID)
+	assert.NoError(t, err)
 }
 
 func getURL(restPort int, networkID string, logicalID string) string {
 	url := fmt.Sprintf(
 		"http://localhost:%d%s/networks/%s/gateways/%s/status",
 		restPort,
-		handlers.REST_ROOT,
+		obsidian.RestRoot,
 		networkID,
 		logicalID,
 	)

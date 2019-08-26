@@ -12,34 +12,34 @@ import type {ComponentType} from 'react';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import DataPlanConfig from './DataPlanConfig';
-import PoliciesConfig from './PoliciesConfig';
+import MagmaTopBar from '../MagmaTopBar';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkConfig from './NetworkConfig';
-import UpgradeConfig from './UpgradeConfig';
 import Paper from '@material-ui/core/Paper';
-import Tabs from '@material-ui/core/Tabs';
+import PoliciesConfig from './PoliciesConfig';
+import React from 'react';
 import Tab from '@material-ui/core/Tab';
-import MagmaTopBar from '../MagmaTopBar';
+import Tabs from '@material-ui/core/Tabs';
+import UpgradeConfig from './UpgradeConfig';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {findIndex} from 'lodash-es';
 import {Route, Switch, withRouter} from 'react-router-dom';
+import {findIndex} from 'lodash';
 
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   paper: {
-    margin: theme.spacing.unit * 3,
+    margin: theme.spacing(3),
   },
   tabs: {
     flex: 1,
   },
 });
 
-type Props = WithStyles & ContextRouter & {};
+type Props = WithStyles<typeof styles> & ContextRouter & {};
 
 type State = {
   currentTab: number,
@@ -107,7 +107,7 @@ class Configure extends React.Component<Props, State> {
     return (
       <>
         <MagmaTopBar title="Configure" />
-        <Paper className={this.props.classes.paper}>
+        <Paper className={this.props.classes.paper} elevation={2}>
           <AppBar position="static" color="default">
             <Tabs
               value={currentTab}

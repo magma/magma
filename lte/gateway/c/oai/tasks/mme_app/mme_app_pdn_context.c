@@ -33,7 +33,6 @@
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
-#include "msc.h"
 #include "common_types.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_pdn_context.h"
@@ -121,11 +120,6 @@ pdn_context_t *mme_app_create_pdn_context(
         // TODO pdn_context->apn_in_use     =
 
         ue_mm_context->pdn_contexts[pdn_cid] = pdn_context;
-        MSC_LOG_EVENT(
-          MSC_NAS_ESM_MME,
-          "0 Create PDN cid %u APN %s",
-          pdn_cid,
-          apn_configuration->service_selection);
 
         OAILOG_FUNC_RETURN(LOG_MME_APP, pdn_context);
       } else {

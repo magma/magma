@@ -34,7 +34,6 @@
 
 #include "assertions.h"
 #include "conversions.h"
-#include "msc.h"
 #include "log.h"
 #include "service303.h"
 #include "intertask_interface.h"
