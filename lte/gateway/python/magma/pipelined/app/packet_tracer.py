@@ -7,7 +7,7 @@ from magma.pipelined.app.inout import EGRESS
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.events import EventSendPacket
-from magma.pipelined.openflow.flows import DROP_PRIORITY
+from magma.pipelined.openflow.flows import MINIMUM_PRIORITY
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import TestPacket, TEST_PACKET_REG, \
     IMSI_REG
@@ -62,7 +62,7 @@ class PacketTracingController(MagmaController):
                                                table=table,
                                                match=MagmaMatch(),
                                                instructions=[],
-                                               priority=DROP_PRIORITY)
+                                               priority=MINIMUM_PRIORITY)
             self.drop_flows_installed.add(table)
 
     def trace_packet(self, packet, imsi, timeout=2):

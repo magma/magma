@@ -17,15 +17,14 @@ from magma.pipelined.openflow.registers import TestPacket, TEST_PACKET_REG
 logger = logging.getLogger(__name__)
 
 DEFAULT_PRIORITY = 10
-DROP_PRIORITY = 0
-MINIMUM_PRIORITY = 1
+MINIMUM_PRIORITY = 0
 MAXIMUM_PRIORITY = 65535
 OVS_COOKIE_MATCH_ALL = 0xffffffff
 
 
 def add_drop_flow(datapath, table, match, actions=None, instructions=None,
                   priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
-                  idle_timeout=0, hard_timeout=0, install_trace_flow=True):
+                  idle_timeout=0, hard_timeout=0, install_trace_flow=False):
     """
     Add a flow to a table that drops the packet
 
@@ -70,7 +69,7 @@ def add_drop_flow(datapath, table, match, actions=None, instructions=None,
 def add_output_flow(datapath, table, match, actions=None, instructions=None,
                     priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
                     idle_timeout=0, hard_timeout=0, output_port=None,
-                    max_len=None, install_trace_flow=True):
+                    max_len=None, install_trace_flow=False):
     """
     Add a flow to a table that sends the packet to the specified port
 
