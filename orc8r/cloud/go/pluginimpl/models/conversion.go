@@ -19,6 +19,7 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 func (m *Network) ToConfiguratorNetwork() configurator.Network {
@@ -264,4 +265,45 @@ func GetNetworkConfigUpdateCriteria(networkID string, key string, iConfig interf
 			key: iConfig,
 		},
 	}
+}
+
+func (m *Tier) ToNetworkEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type: orc8r.UpgradeTierEntityType, Key: string(m.ID),
+		Name:         m.Name,
+		Config:       m,
+		Associations: getGatewayTKs(m.Gateways),
+	}
+}
+
+func (m *Tier) ToUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type: orc8r.UpgradeTierEntityType, Key: string(m.ID),
+		NewName:           swag.String(m.Name),
+		NewConfig:         m,
+		AssociationsToSet: getGatewayTKs(m.Gateways),
+	}
+}
+
+func (m *Tier) FromBackendModel(entity configurator.NetworkEntity) *Tier {
+	tier := entity.Config.(*Tier)
+	tier.Name = entity.Name
+	tier.Gateways = getGatewayIDs(entity.Associations)
+	return tier
+}
+
+func getGatewayTKs(gateways []models.GatewayID) []storage.TypeAndKey {
+	return funk.Map(
+		gateways,
+		func(gw models.GatewayID) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: string(gw)}
+		}).([]storage.TypeAndKey)
+}
+
+func getGatewayIDs(gatewayTKs []storage.TypeAndKey) []models.GatewayID {
+	return funk.Map(
+		gatewayTKs,
+		func(tk storage.TypeAndKey) models.GatewayID {
+			return models.GatewayID(tk.Key)
+		}).([]models.GatewayID)
 }

@@ -1270,7 +1270,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			{Type: lte.CellularGatewayType, Key: "g1"},
 			{
 				Type: orc8r.MagmadGatewayType, Key: "g1",
-				Associations: []storage.TypeAndKey{{Type:lte.CellularGatewayType, Key: "g1"}},
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
 			},
 		},
 	)

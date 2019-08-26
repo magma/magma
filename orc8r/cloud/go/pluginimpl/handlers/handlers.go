@@ -37,6 +37,13 @@ const (
 	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
 	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "state"
 	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
+
+	Channels          = "channels"
+	ListChannelsPath  = obsidian.V1Root + Channels
+	ManageChannelPath = obsidian.V1Root + Channels + obsidian.UrlSep + ":channel_id"
+	Tiers             = "tiers"
+	ListTiersPath     = ManageNetworkPath + obsidian.UrlSep + Tiers
+	ManageTiersPath   = ListTiersPath + obsidian.UrlSep + ":tier_id"
 )
 
 // GetObsidianHandlers returns all plugin-level obsidian handlers for orc8r
@@ -61,6 +68,18 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: UpdateGatewayHandler},
 		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: DeleteGatewayHandler},
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: GetStateHandler},
+
+		// Upgrades
+		{Path: ListChannelsPath, Methods: obsidian.GET, HandlerFunc: listChannelsHandler},
+		{Path: ListChannelsPath, Methods: obsidian.POST, HandlerFunc: createChannelHandler},
+		{Path: ManageChannelPath, Methods: obsidian.GET, HandlerFunc: readChannelHandler},
+		{Path: ManageChannelPath, Methods: obsidian.PUT, HandlerFunc: updateChannelHandler},
+		{Path: ManageChannelPath, Methods: obsidian.DELETE, HandlerFunc: deleteChannelHandler},
+		{Path: ListTiersPath, Methods: obsidian.GET, HandlerFunc: listTiersHandler},
+		{Path: ListTiersPath, Methods: obsidian.POST, HandlerFunc: createTierHandler},
+		{Path: ManageTiersPath, Methods: obsidian.GET, HandlerFunc: readTierHandler},
+		{Path: ManageTiersPath, Methods: obsidian.PUT, HandlerFunc: updateTierHandler},
+		{Path: ManageTiersPath, Methods: obsidian.DELETE, HandlerFunc: deleteTierHandler},
 	}
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)
