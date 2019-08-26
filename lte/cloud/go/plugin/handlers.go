@@ -270,7 +270,7 @@ func createGateway(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.LteGateway{}
+	payload := &ltemodels.MutableLteGateway{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -335,7 +335,7 @@ func updateGateway(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.LteGateway{}
+	payload := &ltemodels.MutableLteGateway{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}

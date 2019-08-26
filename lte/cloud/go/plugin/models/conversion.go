@@ -150,7 +150,11 @@ func (m *LteGateway) FromBackendModels(
 	return m
 }
 
-func (m *LteGateway) GetMagmadGateway() *models2.MagmadGateway {
+func (m *MutableLteGateway) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
 	return &models2.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
@@ -161,7 +165,7 @@ func (m *LteGateway) GetMagmadGateway() *models2.MagmadGateway {
 	}
 }
 
-func (m *LteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
+func (m *MutableLteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
 	ret := configurator.NetworkEntity{
 		Type:        lte.CellularGatewayType,
 		Key:         string(m.ID),
@@ -175,7 +179,7 @@ func (m *LteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
 	return ret
 }
 
-func (m *LteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
+func (m *MutableLteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type:              orc8r.MagmadGatewayType,
 		Key:               string(m.ID),
@@ -183,7 +187,7 @@ func (m *LteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateC
 	}
 }
 
-func (m *LteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+func (m *MutableLteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
 		Type:           lte.CellularGatewayType,
 		Key:            string(m.ID),

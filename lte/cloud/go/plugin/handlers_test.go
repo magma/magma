@@ -967,7 +967,7 @@ func TestUpdateGateway(t *testing.T) {
 	marshaledPubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(privateKey))
 	assert.NoError(t, err)
 	pubkeyB64 := strfmt.Base64(marshaledPubKey)
-	payload := &models2.LteGateway{
+	payload := &models2.MutableLteGateway{
 		Device: &models.GatewayDevice{
 			HardwareID: "hw1",
 			Key:        &models.ChallengeKey{KeyType: "SOFTWARE_ECDSA_SHA256", Key: &pubkeyB64},
@@ -1462,7 +1462,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
-	test_init3.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -1598,7 +1598,7 @@ func TestCreateEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
-	test_init3.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -1688,7 +1688,7 @@ func TestUpdateEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
-	test_init3.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -1799,7 +1799,7 @@ func TestDeleteEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 
 	test_init.StartTestService(t)
-	test_init3.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 

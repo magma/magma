@@ -27,6 +27,8 @@ magma-gen-meta:
       filename: gateway_non_eps_configs_swaggergen.go
     - go-struct-name: LteGateway
       filename: lte_gateway_swaggergen.go
+    - go-struct-name: MutableLteGateway
+      filename: mutable_lte_gateway_swaggergen.go
     - go-struct-name: Enodeb
       filename: enodeb_swaggergen.go
     - go-struct-name: EnodebConfiguration
@@ -495,8 +497,8 @@ paths:
         '200':
           description: List of all LTE gateways inside the network
           schema:
-            type: array
-            items:
+            type: object
+            additionalProperties:
               $ref: '#/definitions/lte_gateway'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
@@ -511,7 +513,7 @@ paths:
           description: Full desired configuration of the gateway
           required: true
           schema:
-            $ref: '#/definitions/lte_gateway'
+            $ref: '#/definitions/mutable_lte_gateway'
       responses:
         '201':
           description: Success
@@ -545,7 +547,7 @@ paths:
           description: Full desired configuration of the gateway
           required: true
           schema:
-            $ref: '#/definitions/lte_gateway'
+            $ref: '#/definitions/mutable_lte_gateway'
       responses:
         '204':
           description: Success
@@ -1313,6 +1315,36 @@ definitions:
         $ref: '#/definitions/enodeb_serials'
       status:
         $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+
+  mutable_lte_gateway:
+    type: object
+    description: LTE gateway object with read-only fields omitted
+    required:
+      - device
+      - id
+      - name
+      - description
+      - magmad
+      - tier
+      - cellular
+      - connected_enodeb_serials
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      cellular:
+        $ref: '#/definitions/gateway_cellular_configs'
+      connected_enodeb_serials:
+        $ref: '#/definitions/enodeb_serials'
 
   gateway_cellular_configs:
     type: object
