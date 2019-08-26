@@ -639,20 +639,6 @@ uint32_t pgw_handle_nw_init_activate_bearer_rsp(
     LOG_PGW_APP,
     "Sending Create Bearer Rsp to PCRF with EBI %d\n",
     act_ded_bearer_rsp->ebi);
-#if 1
-
-  sleep(10);
-  Imsi_t imsi;
-  ebi_t ebi[] = {6}; /*6*/
-  strcpy((char*)imsi.digit,"001010000000001");
-  imsi.length = 15;
-  uint32_t ret = RETURNerror;
-  ret = pgw_handle_nw_initiated_bearer_deactv_req(&imsi, 1, ebi);
-  if (ret != RETURNok) {
-      OAILOG_DEBUG(
-              LOG_PGW_APP, "Failed to Handle deactivate ded bearer request message\n");
-  }
-#endif
 
   //Send Create Bearer Rsp to PCRF
   //TODO-Uncomment once implemented at PCRF
@@ -671,9 +657,6 @@ uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
   ebi_t ebi[BEARERS_PER_UE];
 
   memcpy(ebi,deact_ded_bearer_rsp->ebi,deact_ded_bearer_rsp->no_of_bearers);
-  OAILOG_INFO(
-    LOG_PGW_APP,
-    "********** Pruthvi Rcvd nw_init_deactivate_bearer_rsp\n");
 
   print_bearer_ids_helper(ebi, deact_ded_bearer_rsp->no_of_bearers);
   //Send Delete Bearer Rsp to PCRF

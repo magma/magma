@@ -79,9 +79,6 @@
 #define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                      \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
 
-#define S1AP_E_RAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_cmd
-#define S1AP_E_RAB_REL_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_rsp
-
 // NOT a ITTI message
 typedef struct s1ap_initial_ue_message_s {
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;

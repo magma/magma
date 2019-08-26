@@ -938,12 +938,6 @@ void mme_app_handle_delete_session_rsp(
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
       }
     } else {
-        OAILOG_INFO(
-      LOG_MME_APP,
-      "**** Pruthvi Sendinf mme_app_itti_ue_context_release after receiving delete session rsp from SGW "
-      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n ",
-      ue_context_p->mme_ue_s1ap_id);
- 
       // Notify S1AP to send UE Context Release Command to eNB or free s1 context locally.
       mme_app_itti_ue_context_release(
         ue_context_p, ue_context_p->ue_context_rel_cause);

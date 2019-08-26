@@ -324,7 +324,6 @@ int mme_app_send_s11_create_session_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-//------------------------------------------------------------------------------
 void mme_app_itti_pdn_disconnect_rsp(
   const mme_ue_s1ap_id_t ue_idP,
   const ebi_t lbi)
@@ -337,4 +336,3 @@ void mme_app_itti_pdn_disconnect_rsp(
   itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
-

@@ -68,7 +68,6 @@
 #include "pgw_handlers.h"
 #include "conversions.h"
 #include "mme_config.h"
-#include "unistd.h"
 
 extern sgw_app_t sgw_app;
 extern spgw_config_t spgw_config;
@@ -1232,28 +1231,6 @@ int sgw_handle_modify_bearer_request(
             sgw_no_pcef_create_dedicated_bearer(modify_bearer_pP->teid);
           }
         }
-    // For testing
-#if 1
-        Imsi_t imsi;
-        traffic_flow_template_t tft;
-        bearer_qos_t qos;
-        strcpy((char*)imsi.digit,"001010000000001");
-        imsi.length = 15;
-        ebi_t lbi = 5;
-        //Fill QoS
-        qos.pci = 1;
-        qos.pl = 1;
-        qos.pvi = 0;
-        qos.qci =1;
-        qos.gbr.br_ul = 100;
-        qos.gbr.br_dl = 200;
-        qos.mbr.br_ul = 300;
-        qos.mbr.br_dl = 400;
-        memset(&tft,0,sizeof(traffic_flow_template_t));
-        sleep(5);
-        pgw_handle_nw_initiated_bearer_actv_req(&imsi, lbi, &tft, &tft, &qos);
-
-#endif
       }
     }
   } else {
