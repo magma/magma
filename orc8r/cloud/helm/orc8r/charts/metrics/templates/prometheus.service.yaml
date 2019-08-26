@@ -4,28 +4,28 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
-{{- if .Values.metrics.create }}
+{{- if .Values.prometheus.create }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-metrics
+  name: {{ .Release.Name }}-prometheus
   labels:
-    app.kubernetes.io/component: metrics
+    app.kubernetes.io/component: prometheus
 {{ include "metrics.labels" . | indent 4 }}
-    {{- with .Values.metrics.service.labels }}
+    {{- with .Values.prometheus.service.labels }}
 {{ toYaml . | indent 4}}
     {{- end}}
-  {{- with .Values.metrics.service.annotations }}
+  {{- with .Values.prometheus.service.annotations }}
   annotations:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
   selector:
-    app.kubernetes.io/component: metrics
+    app.kubernetes.io/component: prometheus
 {{ include "selector-labels" . | indent 4 }}
-  type: {{ .Values.metrics.service.type }}
+  type: {{ .Values.prometheus.service.type }}
   ports:
-{{- range $port := .Values.metrics.service.ports }}
+{{- range $port := .Values.prometheus.service.ports }}
      - name: {{ $port.name }}
        port: {{ $port.port }}
        targetPort: {{ $port.targetPort }}

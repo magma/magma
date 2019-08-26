@@ -2,8 +2,25 @@
 imagePullSecrets: []
 
 metrics:
+  # Default volume configurations for metrics data - shared across prometheus,
+  # alertmanager, and configmanager pods
+  volumes:
+    prometheusData:
+      volumeSpec:
+        hostPath:
+          path: /prometheusData
+          type: DirectoryOrCreate
+    prometheusConfig:
+      volumeSpec:
+        hostPath:
+          path: /configs/prometheus
+          type: DirectoryOrCreate
+
+prometheus:
   # Enable/Disable chart
   create: true
+
+  replicas: 1
 
   # Set to 1 if using a minikube setup
   useMinikube:
@@ -12,7 +29,6 @@ metrics:
   retention:
     time: 30d
 
-  # Service configuration.
   service:
     annotations: {}
     labels: {}
@@ -21,9 +37,63 @@ metrics:
       - name: prometheus
         port: 9090
         targetPort: 9090
+
+  image:
+    repository: docker.io/prom/prometheus
+    tag: v2.12.0
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+alertmanager:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
       - name: alertmanager
         port: 9093
         targetPort: 9093
+
+  image:
+    repository: docker.io/prom/alertmanager
+    tag: v0.18.0
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
+
+configmanager:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
       - name: prom-configmanager
         port: 9100
         targetPort: 9100
@@ -39,61 +109,29 @@ metrics:
     alertmanagerConfPath: "/etc/configs/alertmanager.yml"
     alertmanagerURL: "localhost:9093"
 
-  volumes:
-    # Default volume configurations for metrics data
-    prometheusData:
-      volumeSpec:
-        hostPath:
-          path: /prometheusData
-          type: DirectoryOrCreate
-    prometheusConfig:
-      volumeSpec:
-        hostPath:
-          path: /configs/prometheus
-          type: DirectoryOrCreate
-
-  prometheusImage:
-    repository: docker.io/prom/prometheus
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  alertmanagerImage:
-    repository: docker.io/prom/alertmanager
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  configImage:
+  image:
     repository:
     tag:
     pullPolicy: IfNotPresent
 
-  # Number of metrics replicas desired
-  replicas: 1
-
-  # Resource limits & requests
   resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-  # Define which Nodes the Pods are scheduled on.
-  # ref: https://kubernetes.io/docs/user-guide/node-selection/
   nodeSelector: {}
-
-  # Tolerations for use with node taints
-  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
-
-  # Assign metrics to run on specific nodes
-  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  affinity: {}
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
 
 graphite:
   # Enable/Disable chart
-  create: true
+  create: false
   # Service configuration.
   service:
     annotations: {}
