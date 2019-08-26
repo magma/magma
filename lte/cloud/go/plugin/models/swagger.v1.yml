@@ -33,6 +33,10 @@ magma-gen-meta:
       filename: enodeb_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
+    - go-struct-name: Subscriber
+      filename: subscriber_swaggergen.go
+    - go-struct-name: LteSubscription
+      filename: lte_subscription_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -1036,11 +1040,98 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /ltenetworks/{network_id}/subscribers:
+    get:
+      summary: List subscribers in the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of all the subscribers in the network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/subscriber'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new subscriber to the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: subscriber
+          description: Subscriber that needs to be added
+          required: true
+          schema:
+            $ref: '#/definitions/subscriber'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ltenetworks/{network_id}/subscribers/{subscriber_id}:
+    get:
+      summary: Retrieve the subscriber info
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '200':
+          description: Subscriber Info
+          schema:
+            $ref: '#/definitions/subscriber'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify subscriber info
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+        - in: body
+          name: subscriber
+          description: Subscriber Info
+          required: true
+          schema:
+            $ref: '#/definitions/subscriber'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Remove a subscriber from the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   enodeb_serial:
     in: path
     name: enodeb_serial
     description: EnodeB serial number
+    required: true
+    type: string
+
+  subscriber_id:
+    in: path
+    name: subscriber_id
+    description: Subscriber ID
     required: true
     type: string
 
@@ -1541,3 +1632,45 @@ definitions:
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
+
+  subscriber:
+    type: object
+    required:
+      - id
+      - lte
+    properties:
+      id:
+        type: string
+        pattern: '^(IMSI\d{10,15})$'
+        example: IMSI208950000000010
+        x-nullable: false
+      lte:
+        $ref: '#/definitions/lte_subscription'
+
+  lte_subscription:
+    type: object
+    required:
+      - state
+      - auth_algo
+      - auth_key
+    properties:
+      state:
+        type: string
+        enum:
+          - INACTIVE
+          - ACTIVE
+        x-nullable: false
+      auth_algo:
+        type: string
+        enum:
+          - MILENAGE
+        x-nullable: false
+      auth_key:
+        type: string
+        format: byte
+        example: "AAAAAAAAAAAAAAAAAAAAAA=="
+        x-nullable: false
+      auth_opc:
+        type: string
+        format: byte
+        example: 'AAECAwQFBgcICQoLDA0ODw=='

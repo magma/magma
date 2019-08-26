@@ -12,8 +12,8 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	models2 "magma/lte/cloud/go/plugin/models"
 	protos2 "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -40,9 +40,8 @@ func (provider *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any
 
 	subProtos := make([]*protos2.SubscriberData, 0, len(subEnts))
 	for _, sub := range subEnts {
-		subdata := sub.Config.(*models.Subscriber)
 		subProto := &protos2.SubscriberData{}
-		err = subdata.ToMconfig(subProto)
+		subProto, err = subscriberToMconfig(sub)
 		if err != nil {
 			return nil, err
 		}
@@ -64,4 +63,22 @@ func subscribersToUpdates(subs []*protos2.SubscriberData) ([]*protos.DataUpdate,
 	}
 	sort.Slice(ret, func(i, j int) bool { return ret[i].Key < ret[j].Key })
 	return ret, nil
+}
+
+func subscriberToMconfig(ent configurator.NetworkEntity) (*protos2.SubscriberData, error) {
+	sub := &protos2.SubscriberData{}
+	t, err := protos2.SidProto(ent.Key)
+	if err != nil {
+		return nil, err
+	}
+	sub.Sid = t
+
+	cfg := ent.Config.(*models2.LteSubscription)
+	sub.Lte = &protos2.LTESubscription{
+		State:    protos2.LTESubscription_LTESubscriptionState(protos2.LTESubscription_LTESubscriptionState_value[cfg.State]),
+		AuthAlgo: protos2.LTESubscription_LTEAuthAlgo(protos2.LTESubscription_LTEAuthAlgo_value[cfg.AuthAlgo]),
+		AuthKey:  cfg.AuthKey,
+		AuthOpc:  cfg.AuthOpc,
+	}
+	return sub, nil
 }

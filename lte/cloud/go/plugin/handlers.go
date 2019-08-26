@@ -64,6 +64,10 @@ const (
 	Enodebs          = "enodebs"
 	ListEnodebsPath  = ManageNetworkPath + obsidian.UrlSep + Enodebs
 	ManageEnodebPath = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
+
+	Subscribers          = "subscribers"
+	ListSubscribersPath  = ManageNetworkPath + obsidian.UrlSep + Subscribers
+	ManageSubscriberPath = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -91,6 +95,12 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageEnodebPath, Methods: obsidian.GET, HandlerFunc: getEnodeb},
 		{Path: ManageEnodebPath, Methods: obsidian.PUT, HandlerFunc: updateEnodeb},
 		{Path: ManageEnodebPath, Methods: obsidian.DELETE, HandlerFunc: deleteEnodeb},
+
+		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribers},
+		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
+		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriber},
+		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
+		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriber},
 	}
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
@@ -536,6 +546,118 @@ func deleteEnodeb(c echo.Context) error {
 
 func getNetworkAndEnbIDs(c echo.Context) (string, string, *echo.HTTPError) {
 	vals, err := obsidian.GetParamValues(c, "network_id", "enodeb_serial")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
+}
+
+func listSubscribers(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := make(map[string]*ltemodels.Subscriber, len(ents))
+	for _, ent := range ents {
+		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent)
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func createSubscriber(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Subscriber{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
+		Type:   lte.SubscriberEntityType,
+		Key:    payload.ID,
+		Config: payload.Lte,
+	})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusCreated)
+}
+
+func getSubscriber(c echo.Context) error {
+	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadConfig: true})
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func updateSubscriber(c echo.Context) error {
+	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Subscriber{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{})
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
+	}
+
+	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, payload.Lte)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteSubscriber(c echo.Context) error {
+	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	err := configurator.DeleteEntity(networkID, lte.SubscriberEntityType, subscriberID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "subscriber_id")
 	if err != nil {
 		return "", "", err
 	}

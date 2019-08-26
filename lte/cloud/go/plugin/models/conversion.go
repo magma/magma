@@ -328,3 +328,9 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 		NewConfig: m.Config,
 	}
 }
+
+func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
+	m.ID = ent.Key
+	m.Lte = ent.Config.(*LteSubscription)
+	return m
+}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // Subscriber subscriber
@@ -17,10 +18,13 @@ import (
 type Subscriber struct {
 
 	// id
-	ID SubscriberID `json:"id,omitempty"`
+	// Required: true
+	// Pattern: ^(IMSI\d{10,15})$
+	ID string `json:"id"`
 
 	// lte
-	Lte *LteSubscription `json:"lte,omitempty"`
+	// Required: true
+	Lte *LteSubscription `json:"lte"`
 }
 
 // Validate validates this subscriber
@@ -43,14 +47,11 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 
 func (m *Subscriber) validateID(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.ID) { // not required
-		return nil
+	if err := validate.RequiredString("id", "body", string(m.ID)); err != nil {
+		return err
 	}
 
-	if err := m.ID.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("id")
-		}
+	if err := validate.Pattern("id", "body", string(m.ID), `^(IMSI\d{10,15})$`); err != nil {
 		return err
 	}
 
@@ -59,8 +60,8 @@ func (m *Subscriber) validateID(formats strfmt.Registry) error {
 
 func (m *Subscriber) validateLte(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.Lte) { // not required
-		return nil
+	if err := validate.Required("lte", "body", m.Lte); err != nil {
+		return err
 	}
 
 	if m.Lte != nil {

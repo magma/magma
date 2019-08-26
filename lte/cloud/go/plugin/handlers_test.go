@@ -1844,6 +1844,344 @@ func TestDeleteEnodeb(t *testing.T) {
 	assert.EqualError(t, err, "Not found")
 }
 
+func TestCreateSubscriber(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/subscribers"
+	handlers := plugin2.GetHandlers()
+	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
+
+	tc := tests.Test{
+		Method: "POST",
+		URL:    testURLRoot,
+		Payload: &models2.Subscriber{
+			ID: "IMSI1234567890",
+			Lte: &models2.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
+			},
+		},
+		Handler:        createSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.SubscriberEntityType,
+		Key:       "IMSI1234567890",
+		Config: &models2.LteSubscription{
+			AuthAlgo: "MILENAGE",
+			AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:    "ACTIVE",
+		},
+		GraphID: "2",
+	}
+	assert.Equal(t, expected, actual)
+
+	// validation failure
+	tc = tests.Test{
+		Method: "POST",
+		URL:    testURLRoot,
+		Payload: &models2.Subscriber{
+			ID: "IMSI1234567898",
+			Lte: &models2.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
+			},
+		},
+		Handler:        createSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "expected lte auth key to be 16 bytes but got 15 bytes",
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestListSubscribers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/subscribers"
+	handlers := plugin2.GetHandlers()
+	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*models2.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+				Config: &models2.LteSubscription{
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:    "ACTIVE",
+				},
+			},
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
+				Config: &models2.LteSubscription{
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:    "ACTIVE",
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*models2.Subscriber{
+			"IMSI1234567890": {
+				ID: "IMSI1234567890",
+				Lte: &models2.LteSubscription{
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:    "ACTIVE",
+				},
+			},
+			"IMSI0987654321": {
+				ID: "IMSI0987654321",
+				Lte: &models2.LteSubscription{
+					AuthAlgo: "MILENAGE",
+					AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:    "ACTIVE",
+				},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetSubscriber(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/subscribers/:subscriber_id"
+	handlers := plugin2.GetHandlers()
+	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Config: &models2.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 200,
+		ExpectedResult: &models2.Subscriber{
+			ID: "IMSI1234567890",
+			Lte: &models2.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
+			},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+
+}
+
+func TestUpdateSubscriber(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/subscribers/:subscriber_id"
+	handlers := plugin2.GetHandlers()
+	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
+
+	tc := tests.Test{
+		Method:  "PUT",
+		URL:     testURLRoot,
+		Handler: updateSubscriber,
+		Payload: &models2.Subscriber{
+			ID: "IMSI1234567890",
+			Lte: &models2.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
+			},
+		},
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Config: &models2.LteSubscription{
+				AuthKey: []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc: []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:   "ACTIVE",
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc = tests.Test{
+		Method:  "PUT",
+		URL:     testURLRoot,
+		Handler: updateSubscriber,
+		Payload: &models2.Subscriber{
+			ID: "IMSI1234567890",
+			Lte: &models2.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				State:    "INACTIVE",
+			},
+		},
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.SubscriberEntityType,
+		Key:       "IMSI1234567890",
+		Config: &models2.LteSubscription{
+			AuthAlgo: "MILENAGE",
+			AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			State:    "INACTIVE",
+		},
+		GraphID: "2",
+		Version: 1,
+	}
+	assert.Equal(t, expected, actual)
+}
+
+func TestDeleteSubscriber(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/subscribers/:subscriber_id"
+	handlers := plugin2.GetHandlers()
+	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
+
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Config: &models2.LteSubscription{
+				AuthAlgo: "MILENAGE",
+				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:    "ACTIVE",
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            testURLRoot,
+		Handler:        deleteSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadAllEntitiesInNetwork("n1", lte.SubscriberEntityType, configurator.EntityLoadCriteria{})
+	assert.Equal(t, 0, len(actual))
+}
+
 // n1, n3 are lte networks, n2 is not
 func seedNetworks(t *testing.T) {
 	_, err := configurator.CreateNetworks(
