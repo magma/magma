@@ -176,6 +176,7 @@ func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMe
 	case respStr := <-respStrChannel:
 		return respStr
 	case <-time.After(time.Duration(c.scrapeTimeout) * time.Second):
+		glog.Errorf("Timeout reached for building metrics string. Returning empty string.")
 		return ""
 	}
 }
