@@ -1453,31 +1453,28 @@ definitions:
     required:
       - cell_id
       - device_class
+      - transmit_enabled
     properties:
       earfcndl:
         type: integer
         format: uint32
         example: 44590
-        x-nullable: false
       subframe_assignment:
         type: integer
         format: uint32
         example: 2
         maximum: 6
-        x-nullable: false
       special_subframe_pattern:
         type: integer
         format: uint32
         example: 7
         maximum: 9
-        x-nullable: false
       pci:
         type: integer
         format: uint32
         minimum: 0
         exclusiveMinimum: true
         maximum: 503
-        x-nullable: false
         example: 260
       bandwidth_mhz:
         type: integer
@@ -1495,7 +1492,6 @@ definitions:
         minimum: 1
         maximum: 65535
         example: 1
-        x-nullable: false
       transmit_enabled:
         type: boolean
         example: true
@@ -1512,3 +1508,4 @@ definitions:
           - 'Baicells Nova-243 OD TDD'
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
+        x-nullable: false

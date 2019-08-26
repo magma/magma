@@ -60,6 +60,10 @@ const (
 	ManageGatewayCellularRanPath     = ManageGatewayCellularPath + obsidian.UrlSep + "ran"
 	ManageGatewayCellularNonEpsPath  = ManageGatewayCellularPath + obsidian.UrlSep + "non_eps"
 	ManageGatewayCellularEnodebsPath = ManageGatewayCellularPath + obsidian.UrlSep + "connected_enodeb_serial"
+
+	Enodebs          = "enodebs"
+	ListEnodebsPath  = ManageNetworkPath + obsidian.UrlSep + Enodebs
+	ManageEnodebPath = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -81,6 +85,12 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
+
+		{Path: ListEnodebsPath, Methods: obsidian.GET, HandlerFunc: listEnodebs},
+		{Path: ListEnodebsPath, Methods: obsidian.POST, HandlerFunc: createEnodeb},
+		{Path: ManageEnodebPath, Methods: obsidian.GET, HandlerFunc: getEnodeb},
+		{Path: ManageEnodebPath, Methods: obsidian.PUT, HandlerFunc: updateEnodeb},
+		{Path: ManageEnodebPath, Methods: obsidian.DELETE, HandlerFunc: deleteEnodeb},
 	}
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
@@ -409,4 +419,125 @@ func makeLTEGateways(
 		ret[key] = (&ltemodels.LteGateway{}).FromBackendModels(ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
 	}
 	return ret
+}
+
+func listEnodebs(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ents, err := configurator.LoadAllEntitiesInNetwork(
+		nid, lte.CellularEnodebType,
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+	)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := make(map[string]*ltemodels.Enodeb, len(ents))
+	for _, ent := range ents {
+		ret[ent.Key] = (&ltemodels.Enodeb{}).FromBackendModels(ent)
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func createEnodeb(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Enodeb{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if payload.AttachedGatewayID != "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "attached_gateway_id is a read-only property")
+	}
+
+	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
+		Type:       lte.CellularEnodebType,
+		Key:        payload.Serial,
+		Name:       payload.Name,
+		PhysicalID: payload.Serial,
+		Config:     payload.Config,
+	})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusCreated)
+}
+
+func getEnodeb(c echo.Context) error {
+	nid, eid, nerr := getNetworkAndEnbIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ent, err := configurator.LoadEntity(
+		nid, lte.CellularEnodebType, eid,
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+	)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := (&ltemodels.Enodeb{}).FromBackendModels(ent)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func updateEnodeb(c echo.Context) error {
+	nid, eid, nerr := getNetworkAndEnbIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Enodeb{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if payload.AttachedGatewayID != "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "attached_gateway_id is a read-only property")
+	}
+	if payload.Serial != eid {
+		return echo.NewHTTPError(http.StatusBadRequest, "serial in body must match serial in path")
+	}
+
+	_, err := configurator.UpdateEntity(nid, payload.ToEntityUpdateCriteria())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteEnodeb(c echo.Context) error {
+	nid, eid, nerr := getNetworkAndEnbIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	err := configurator.DeleteEntity(nid, lte.CellularEnodebType, eid)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getNetworkAndEnbIDs(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "enodeb_serial")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
 }

@@ -170,6 +170,14 @@ func (m *EnodebSerials) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *Enodeb) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *EnodebConfiguration) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 // validateIPBlocks parses and validates IP networks containing subnet masks.
 // Returns an error in case any IP network in list is invalid.
 func validateIPBlocks(ipBlocks []string) error {

@@ -303,3 +303,24 @@ func (m *EnodebSerials) ToUpdateCriteria(networkID string, gatewayID string) ([]
 		},
 	}, nil
 }
+
+func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
+	m.Name = ent.Name
+	m.Serial = ent.Key
+	m.Config = ent.Config.(*EnodebConfiguration)
+	for _, tk := range ent.ParentAssociations {
+		if tk.Type == lte.CellularGatewayType {
+			m.AttachedGatewayID = tk.Key
+		}
+	}
+	return m
+}
+
+func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:      lte.CellularEnodebType,
+		Key:       m.Serial,
+		NewName:   swag.String(m.Name),
+		NewConfig: m.Config,
+	}
+}

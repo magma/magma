@@ -1457,6 +1457,393 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	assert.Equal(t, expected, entities.ToEntitiesByID())
 }
 
+func TestListAndGetEnodebs(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	test_init3.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/enodebs"
+
+	handlers := plugin2.GetHandlers()
+	listEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+	getEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:enodeb_serial", testURLRoot), obsidian.GET).HandlerFunc
+
+	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
+		{
+			Type:       lte.CellularEnodebType,
+			Key:        "abcdefg",
+			Name:       "abc enodeb",
+			PhysicalID: "abcdefg",
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+		},
+		{
+			Type:       lte.CellularEnodebType,
+			Key:        "vwxyz",
+			Name:       "xyz enodeb",
+			PhysicalID: "vwxyz",
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           15,
+				CellID:                 swag.Uint32(4321),
+				DeviceClass:            "Baicells Nova-243 OD TDD",
+				Earfcndl:               39550,
+				Pci:                    261,
+				SpecialSubframePattern: 8,
+				SubframeAssignment:     3,
+				Tac:                    2,
+				TransmitEnabled:        swag.Bool(false),
+			},
+		},
+		{
+			Type: lte.CellularGatewayType, Key: "gw1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: "abcdefg"}},
+		},
+	})
+	assert.NoError(t, err)
+
+	expected := map[string]*models2.Enodeb{
+		"abcdefg": {
+			AttachedGatewayID: "gw1",
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			Name:   "abc enodeb",
+			Serial: "abcdefg",
+		},
+		"vwxyz": {
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           15,
+				CellID:                 swag.Uint32(4321),
+				DeviceClass:            "Baicells Nova-243 OD TDD",
+				Earfcndl:               39550,
+				Pci:                    261,
+				SpecialSubframePattern: 8,
+				SubframeAssignment:     3,
+				Tac:                    2,
+				TransmitEnabled:        swag.Bool(false),
+			},
+			Name:   "xyz enodeb",
+			Serial: "vwxyz",
+		},
+	}
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listEnodebs,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expected),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getEnodeb,
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "abcdefg"},
+		ExpectedStatus: 200,
+		ExpectedResult: expected["abcdefg"],
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getEnodeb,
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "vwxyz"},
+		ExpectedStatus: 200,
+		ExpectedResult: expected["vwxyz"],
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getEnodeb,
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "hello"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestCreateEnodeb(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	test_init3.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/enodebs"
+
+	handlers := plugin2.GetHandlers()
+	createEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
+
+	tc := tests.Test{
+		Method:  "POST",
+		URL:     testURLRoot,
+		Handler: createEnodeb,
+		Payload: &models2.Enodeb{
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           15,
+				CellID:                 swag.Uint32(4321),
+				DeviceClass:            "Baicells Nova-243 OD TDD",
+				Earfcndl:               39550,
+				Pci:                    261,
+				SpecialSubframePattern: 8,
+				SubframeAssignment:     3,
+				Tac:                    2,
+				TransmitEnabled:        swag.Bool(false),
+			},
+			Name:   "foobar",
+			Serial: "abcdef",
+		},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebType, "abcdef", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.CellularEnodebType, Key: "abcdef",
+		Name:       "foobar",
+		PhysicalID: "abcdef",
+		GraphID:    "2",
+		Config: &models2.EnodebConfiguration{
+			BandwidthMhz:           15,
+			CellID:                 swag.Uint32(4321),
+			DeviceClass:            "Baicells Nova-243 OD TDD",
+			Earfcndl:               39550,
+			Pci:                    261,
+			SpecialSubframePattern: 8,
+			SubframeAssignment:     3,
+			Tac:                    2,
+			TransmitEnabled:        swag.Bool(false),
+		},
+	}
+	assert.Equal(t, expected, actual)
+
+	tc = tests.Test{
+		Method:  "POST",
+		URL:     testURLRoot,
+		Handler: createEnodeb,
+		Payload: &models2.Enodeb{
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           15,
+				CellID:                 swag.Uint32(4321),
+				DeviceClass:            "Baicells Nova-243 OD TDD",
+				Earfcndl:               39550,
+				Pci:                    261,
+				SpecialSubframePattern: 8,
+				SubframeAssignment:     3,
+				Tac:                    2,
+				TransmitEnabled:        swag.Bool(false),
+			},
+			Name:              "foobar",
+			Serial:            "abcdef",
+			AttachedGatewayID: "gw1",
+		},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "attached_gateway_id is a read-only property",
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateEnodeb(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	test_init3.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/enodebs/:enodeb_serial"
+
+	handlers := plugin2.GetHandlers()
+	updateEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
+
+	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
+		{
+			Type:       lte.CellularEnodebType,
+			Key:        "abcdefg",
+			Name:       "abc enodeb",
+			PhysicalID: "abcdefg",
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+		},
+	})
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:  "PUT",
+		URL:     testURLRoot,
+		Handler: updateEnodeb,
+		Payload: &models2.Enodeb{
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           15,
+				CellID:                 swag.Uint32(4321),
+				DeviceClass:            "Baicells Nova-243 OD TDD",
+				Earfcndl:               39550,
+				Pci:                    261,
+				SpecialSubframePattern: 8,
+				SubframeAssignment:     3,
+				Tac:                    2,
+				TransmitEnabled:        swag.Bool(false),
+			},
+			Name:   "foobar",
+			Serial: "abcdefg",
+		},
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "abcdefg"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebType, "abcdefg", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.CellularEnodebType, Key: "abcdefg",
+		Name:       "foobar",
+		PhysicalID: "abcdefg",
+		GraphID:    "2",
+		Config: &models2.EnodebConfiguration{
+			BandwidthMhz:           15,
+			CellID:                 swag.Uint32(4321),
+			DeviceClass:            "Baicells Nova-243 OD TDD",
+			Earfcndl:               39550,
+			Pci:                    261,
+			SpecialSubframePattern: 8,
+			SubframeAssignment:     3,
+			Tac:                    2,
+			TransmitEnabled:        swag.Bool(false),
+		},
+		Version: 1,
+	}
+	assert.Equal(t, expected, actual)
+
+	tc = tests.Test{
+		Method:  "PUT",
+		URL:     testURLRoot,
+		Handler: updateEnodeb,
+		Payload: &models2.Enodeb{
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           15,
+				CellID:                 swag.Uint32(4321),
+				DeviceClass:            "Baicells Nova-243 OD TDD",
+				Earfcndl:               39550,
+				Pci:                    261,
+				SpecialSubframePattern: 8,
+				SubframeAssignment:     3,
+				Tac:                    2,
+				TransmitEnabled:        swag.Bool(false),
+			},
+			Name:              "foobar",
+			Serial:            "abcdef",
+			AttachedGatewayID: "gw1",
+		},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "attached_gateway_id is a read-only property",
+	}
+}
+
+func TestDeleteEnodeb(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	test_init3.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/enodebs/:enodeb_serial"
+
+	handlers := plugin2.GetHandlers()
+	deleteEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
+
+	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
+		{
+			Type:       lte.CellularEnodebType,
+			Key:        "abcdefg",
+			Name:       "abc enodeb",
+			PhysicalID: "abcdefg",
+			Config: &models2.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+		},
+	})
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            testURLRoot,
+		Handler:        deleteEnodeb,
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "abcdefg"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.LoadEntity("n1", lte.CellularEnodebType, "abcdefg", configurator.FullEntityLoadCriteria())
+	assert.EqualError(t, err, "Not found")
+}
+
 // n1, n3 are lte networks, n2 is not
 func seedNetworks(t *testing.T) {
 	_, err := configurator.CreateNetworks(

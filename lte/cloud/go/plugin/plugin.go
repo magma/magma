@@ -13,7 +13,6 @@ import (
 	models4 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/cellular/config"
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
-	"magma/lte/cloud/go/services/cellular/obsidian/models"
 	cellular_state "magma/lte/cloud/go/services/cellular/state"
 	meteringdh "magma/lte/cloud/go/services/meteringd_records/obsidian/handlers"
 	policydbh "magma/lte/cloud/go/services/policydb/obsidian/handlers"
@@ -65,7 +64,7 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models4.NetworkCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &models4.GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &models.NetworkEnodebConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &models4.EnodebConfiguration{}),
 
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &models2.PolicyRule{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &models2.BaseNameRecord{}),
