@@ -691,9 +691,50 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+  /channels/{channel_id}:
+    get:
+      summary: Get release channel by id
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: '#/parameters/channel_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/release_channel'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a release channel
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: '#/parameters/channel_id'
+        - name: release channel
+          in: body
+          description: New channel configuration
+          required: true
+          schema:
+            $ref: '#/definitions/release_channel'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a release channel
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: '#/parameters/channel_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-
-  /networks/{network_id}/upgrade/tiers:
+  /networks/{network_id}/tiers:
     get:
       summary: Get a list of upgrade tiers
       tags:
@@ -730,7 +771,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /networks/{network_id}/upgrade/tiers/{tier_id}:
+  /networks/{network_id}/tiers/{tier_id}:
     get:
       summary: Get upgrade tier
       tags:
@@ -739,7 +780,7 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/tier_id'
       responses:
-        '201':
+        '200':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
@@ -757,7 +798,19 @@ paths:
           schema:
             $ref: '#/definitions/tier'
       responses:
-        '200':
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '204':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'

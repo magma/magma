@@ -77,3 +77,11 @@ func (m *MagmadGatewayConfigs) ValidateModel() error {
 func (m TierID) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
+
+func (m *ReleaseChannel) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *Tier) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
