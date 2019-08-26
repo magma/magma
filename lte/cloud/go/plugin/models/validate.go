@@ -150,6 +150,26 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 	return nil
 }
 
+func (m *GatewayCellularConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayRanConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayEpcConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayNonEpsConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *EnodebSerials) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 // validateIPBlocks parses and validates IP networks containing subnet masks.
 // Returns an error in case any IP network in list is invalid.
 func validateIPBlocks(ipBlocks []string) error {
