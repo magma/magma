@@ -1,6 +1,6 @@
 {
   "docs": {
-    "Basics": ["basics/introduction", "basics/prerequisites", "basics/quick_start_guide"],
+    "Basics": ["basics/introduction", "basics/prerequisites"],
     "Orchestrator": ["orc8r/docker_setup", "orc8r/nms_setup", "orc8r/rest_apis"],
     "Access Gateway": ["lte/readme_agw", "lte/setup_deb", "lte/setup", "lte/config_agw", "lte/enodebd"],
     "Federated Gateway": ["feg/readme", "feg/deployment", "feg/faq", "feg/docker_setup"],
