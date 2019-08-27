@@ -2182,6 +2182,81 @@ func TestDeleteSubscriber(t *testing.T) {
 	assert.Equal(t, 0, len(actual))
 }
 
+func TestActivateDeactivateSubscriber(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/ltenetworks/:network_id/subscribers/:subscriber_id"
+	handlers := plugin2.GetHandlers()
+	activateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/activate", obsidian.POST).HandlerFunc
+	deactivateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/deactivate", obsidian.POST).HandlerFunc
+
+	expected := configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		Config: &models2.LteSubscription{
+			AuthAlgo: "MILENAGE",
+			AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:    "ACTIVE",
+		},
+	}
+	_, err = configurator.CreateEntity("n1", expected)
+	assert.NoError(t, err)
+	expected.NetworkID = "n1"
+	expected.GraphID = "2"
+	expected.Version = 1
+
+	// activate already activated subscriber
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot + "/activate",
+		Handler:        activateSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// deactivate
+	tc.URL = testURLRoot + "/deactivate"
+	tc.Handler = deactivateSubscriber
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected.Config.(*models2.LteSubscription).State = "INACTIVE"
+	expected.Version = 2
+	assert.Equal(t, expected, actual)
+
+	// deactivate deactivated sub
+	tests.RunUnitTest(t, e, tc)
+	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected.Config.(*models2.LteSubscription).State = "INACTIVE"
+	expected.Version = 3
+	assert.Equal(t, expected, actual)
+
+	// activate
+	tc.URL = testURLRoot + "/activate"
+	tc.Handler = activateSubscriber
+	tests.RunUnitTest(t, e, tc)
+	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected.Config.(*models2.LteSubscription).State = "ACTIVE"
+	expected.Version = 4
+	assert.Equal(t, expected, actual)
+}
+
 // n1, n3 are lte networks, n2 is not
 func seedNetworks(t *testing.T) {
 	_, err := configurator.CreateNetworks(

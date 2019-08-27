@@ -65,9 +65,11 @@ const (
 	ListEnodebsPath  = ManageNetworkPath + obsidian.UrlSep + Enodebs
 	ManageEnodebPath = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
 
-	Subscribers          = "subscribers"
-	ListSubscribersPath  = ManageNetworkPath + obsidian.UrlSep + Subscribers
-	ManageSubscriberPath = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
+	Subscribers              = "subscribers"
+	ListSubscribersPath      = ManageNetworkPath + obsidian.UrlSep + Subscribers
+	ManageSubscriberPath     = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
+	ActivateSubscriberPath   = ManageSubscriberPath + obsidian.UrlSep + "activate"
+	DeactivateSubscriberPath = ManageSubscriberPath + obsidian.UrlSep + "deactivate"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -101,6 +103,8 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriber},
 		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
 		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriber},
+		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateACTIVE)},
+		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateINACTIVE)},
 	}
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
@@ -654,6 +658,31 @@ func deleteSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
+		if nerr != nil {
+			return nerr
+		}
+
+		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID)
+		switch {
+		case err == merrors.ErrNotFound:
+			return echo.ErrNotFound
+		case err != nil:
+			return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
+		}
+
+		newConfig := cfg.(*ltemodels.LteSubscription)
+		newConfig.State = desiredState
+		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		return c.NoContent(http.StatusOK)
+	}
 }
 
 func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {
