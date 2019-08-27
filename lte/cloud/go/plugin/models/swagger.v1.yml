@@ -54,7 +54,7 @@ tags:
     description: Endpoints related to LTE gateway management
 
 paths:
-  /ltenetworks:
+  /lte:
     get:
       summary: List all LTE network IDs
       tags:
@@ -88,7 +88,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}:
+  /lte/{network_id}:
     get:
       summary: Describe an LTE network
       tags:
@@ -131,7 +131,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/name:
+  /lte/{network_id}/name:
     get:
       summary: Get name of an LTE network
       tags:
@@ -163,7 +163,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/description:
+  /lte/{network_id}/description:
     get:
       summary: Get description of an LTE network
       tags:
@@ -195,7 +195,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular:
+  /lte/{network_id}/cellular:
     get:
       summary: Get cellular configuration of LTE network
       tags:
@@ -227,7 +227,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular/epc:
+  /lte/{network_id}/cellular/epc:
     get:
       summary: Get EPC configuration of LTE network
       tags:
@@ -259,7 +259,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular/ran:
+  /lte/{network_id}/cellular/ran:
     get:
       summary: Get RAN configuration of LTE network
       tags:
@@ -291,7 +291,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular/feg_network_id:
+  /lte/{network_id}/cellular/feg_network_id:
     get:
       summary: Get Federation Gateway network ID for the network
       tags:
@@ -325,7 +325,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/dns:
+  /lte/{network_id}/dns:
     get:
       summary: Get DNS configuration of LTE network
       tags:
@@ -357,7 +357,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/dns/records:
+  /lte/{network_id}/dns/records:
     get:
       summary: Get the DNS config records for the LTE network
       tags:
@@ -394,7 +394,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/dns/records/{domain}:
+  /lte/{network_id}/dns/records/{domain}:
     get:
       summary: Get the DNS config record for a specific domain
       tags:
@@ -458,7 +458,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/features:
+  /lte/{network_id}/features:
     get:
       summary: Get feature flags for LTE network
       tags:
@@ -490,7 +490,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways:
+  /lte/{network_id}/gateways:
     get:
       summary: List all gateways for an LTE network
       tags:
@@ -524,7 +524,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}:
+  /lte/{network_id}/gateways/{gateway_id}:
     get:
       summary: Get a specific LTE gateway
       tags:
@@ -570,7 +570,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/name:
+  /lte/{network_id}/gateways/{gateway_id}/name:
     get:
       summary: Get the name of an LTE gateway
       tags:
@@ -603,7 +603,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/description:
+  /lte/{network_id}/gateways/{gateway_id}/description:
     get:
       summary: Get the description of an LTE gateway
       tags:
@@ -636,7 +636,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/device:
+  /lte/{network_id}/gateways/{gateway_id}/device:
     get:
       summary: Get the physical device for an LTE gateway
       tags:
@@ -670,7 +670,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/magmad:
+  /lte/{network_id}/gateways/{gateway_id}/magmad:
     get:
       summary: Get magmad agent configuration
       tags:
@@ -704,7 +704,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular:
+  /lte/{network_id}/gateways/{gateway_id}/cellular:
     get:
       summary: Get gateway cellular configuration
       tags:
@@ -738,7 +738,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular/ran:
+  /lte/{network_id}/gateways/{gateway_id}/cellular/ran:
     get:
       summary: Get gateway RAN configuration
       tags:
@@ -772,7 +772,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular/epc:
+  /lte/{network_id}/gateways/{gateway_id}/cellular/epc:
     get:
       summary: Get gateway EPC configuration
       tags:
@@ -806,7 +806,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular/non_eps:
+  /lte/{network_id}/gateways/{gateway_id}/cellular/non_eps:
     get:
       summary: Get gateway Non-EPS configuration
       tags:
@@ -840,7 +840,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/connected_enodeb_serials:
+  /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials:
     get:
       summary: Get the SNs of all enodeBs connected to a gateway
       tags:
@@ -911,7 +911,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/tier:
+  /lte/{network_id}/gateways/{gateway_id}/tier:
     get:
       summary: Get the ID of the upgrade tier a gateway belongs to
       tags:
@@ -944,7 +944,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/status:
+  /lte/{network_id}/gateways/{gateway_id}/status:
     get:
       summary: Get the status of a gateway
       tags:
@@ -960,7 +960,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/enodebs:
+  /lte/{network_id}/enodebs:
     get:
       summary: List all enodeBs in the network
       tags:
@@ -994,7 +994,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/enodebs/{enodeb_serial}:
+  /lte/{network_id}/enodebs/{enodeb_serial}:
     get:
       summary: Retrieve a specific enodeB configuration
       tags:
@@ -1040,7 +1040,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/subscribers:
+  /lte/{network_id}/subscribers:
     get:
       summary: List subscribers in the network
       tags:
@@ -1074,7 +1074,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/subscribers/{subscriber_id}:
+  /lte/{network_id}/subscribers/{subscriber_id}:
     get:
       summary: Retrieve the subscriber info
       tags:
@@ -1120,7 +1120,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/subscribers/{subscriber_id}/activate:
+  /lte/{network_id}/subscribers/{subscriber_id}/activate:
     post:
       summary: Activate a subscriber
       tags:
@@ -1134,7 +1134,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/subscribers/{subscriber_id}/deactivate:
+  /lte/{network_id}/subscribers/{subscriber_id}/deactivate:
     post:
       summary: Deactivate a subscriber
       tags:
