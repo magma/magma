@@ -118,10 +118,11 @@ def _copy_module(module: MagmaModule) -> None:
             os.path.join(dst, 'tools'),
         )
 
-    shutil.copytree(
-        os.path.join(module.host_path, 'cloud', 'configs'),
-        os.path.join(BUILD_CONTEXT, 'configs', module.name),
-    )
+    if os.path.isdir(os.path.join(module.host_path, 'cloud', 'configs')):
+        shutil.copytree(
+            os.path.join(module.host_path, 'cloud', 'configs'),
+            os.path.join(BUILD_CONTEXT, 'configs', module.name),
+        )
 
     # Copy the go.mod file for caching the go downloads
     # Use module_dest to preserve relative paths between go modules
