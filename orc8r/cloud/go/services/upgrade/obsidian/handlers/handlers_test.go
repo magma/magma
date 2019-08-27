@@ -17,16 +17,14 @@ import (
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReleaseChannels(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	upgrade_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, obsidian.RestRoot)
 
@@ -128,9 +126,8 @@ func TestReleaseChannels(t *testing.T) {
 // Obsidian integration test for tiers migrated API endpoints backed by configurator
 func TestTiers(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
-	configurator_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	registerNetworkTestCase := tests.Testcase{
