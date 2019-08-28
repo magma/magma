@@ -132,6 +132,7 @@ int nas_itti_erab_rel_cmd(
           sizeof(ebi_t));
       }
     }
+    unlock_ue_contexts(ue_mm_context);
   }
   NAS_ERAB_REL_CMD(message_p).ue_id = ue_id;
   NAS_ERAB_REL_CMD(message_p).ebi = ebi;

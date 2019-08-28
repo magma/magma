@@ -266,7 +266,6 @@ int esm_proc_eps_bearer_context_deactivate_request(
         LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE PENDING\n", ebi);
     }
   }
-  emm_context_unlock(ue_context);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
@@ -392,7 +391,6 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-
 /*
    --------------------------------------------------------------------------
                 Timer handlers
@@ -526,7 +524,6 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
 
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }
-
 /*
    --------------------------------------------------------------------------
                 MME specific local functions

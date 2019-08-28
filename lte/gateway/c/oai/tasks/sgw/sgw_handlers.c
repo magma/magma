@@ -218,6 +218,7 @@ int sgw_handle_create_session_request(
      * OAILOG_FUNC_RETURN(LOG_SPGW_APP,  RETURNerror);
      * }
      */
+
     memset(
       &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
          .pdn_connection,
@@ -252,7 +253,6 @@ int sgw_handle_create_session_request(
       .pdn_connection.default_bearer =
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
         .eps_bearer_id;
-    //obj_hashtable_ts_insert(s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connections, pdn_connection->apn_in_use, strlen(pdn_connection->apn_in_use), pdn_connection);
 
     //--------------------------------------
     // EPS bearer entry
@@ -279,7 +279,6 @@ int sgw_handle_create_session_request(
       // TO DO free_wrapper new_bearer_ctxt_info_p and by cascade...
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
-
     eps_bearer_ctxt_p->eps_bearer_qos =
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
         .bearer_level_qos;
