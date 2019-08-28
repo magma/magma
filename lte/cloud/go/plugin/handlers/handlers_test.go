@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package plugin_test
+package handlers_test
 
 import (
 	"crypto/x509"
@@ -16,6 +16,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	plugin2 "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/plugin/handlers"
 	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
@@ -45,7 +46,7 @@ func TestListNetworks(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetHandlers()
+	obsidianHandlers := handlers.GetHandlers()
 	listNetworks := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte", obsidian.GET).HandlerFunc
 
 	// Test empty response
@@ -79,7 +80,7 @@ func TestCreateNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetHandlers()
+	obsidianHandlers := handlers.GetHandlers()
 	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte", obsidian.POST).HandlerFunc
 
 	// test validation
@@ -143,7 +144,7 @@ func TestGetNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetHandlers()
+	obsidianHandlers := handlers.GetHandlers()
 	getNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id", obsidian.GET).HandlerFunc
 
 	// Test 404
@@ -218,7 +219,7 @@ func TestUpdateNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetHandlers()
+	obsidianHandlers := handlers.GetHandlers()
 	updateNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id", obsidian.PUT).HandlerFunc
 
 	// Test validation failure
@@ -341,7 +342,7 @@ func TestDeleteNetwork(t *testing.T) {
 	test_init.StartTestService(t)
 	e := echo.New()
 
-	obsidianHandlers := plugin2.GetHandlers()
+	obsidianHandlers := handlers.GetHandlers()
 	deleteNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id", obsidian.DELETE).HandlerFunc
 
 	// Test 404
@@ -393,7 +394,7 @@ func TestCellularPartialGet(t *testing.T) {
 
 	seedNetworks(t)
 
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	getCellular := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular", testURLRoot), obsidian.GET).HandlerFunc
 	getEpc := tests.GetHandlerByPathAndMethod(t, handlers,
@@ -521,7 +522,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	testURLRoot := "/magma/v1/lte"
 
 	seedNetworks(t)
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	updateCellular := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular", testURLRoot), obsidian.PUT).HandlerFunc
 	updateEpc := tests.GetHandlerByPathAndMethod(t, handlers,
@@ -690,7 +691,7 @@ func TestCellularDelete(t *testing.T) {
 
 	seedNetworks(t)
 
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	deleteCellular := tests.GetHandlerByPathAndMethod(t, handlers,
 		fmt.Sprintf("%s/:network_id/cellular", testURLRoot), obsidian.DELETE).HandlerFunc
 
@@ -723,7 +724,7 @@ func TestListAndGetGateways(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/gateways"
 
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	listGateways := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 	getGateway := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:gateway_id", testURLRoot), obsidian.GET).HandlerFunc
 
@@ -917,7 +918,7 @@ func TestUpdateGateway(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/gateways/:gateway_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	updateGateway := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	_, err = configurator.CreateEntities(
@@ -1061,7 +1062,7 @@ func TestDeleteGateway(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/gateways/:gateway_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	deleteGateway := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
 	_, err = configurator.CreateEntities(
@@ -1145,7 +1146,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/gateways/:gateway_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	getCellular := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular", testURLRoot), obsidian.GET).HandlerFunc
 	getEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.GET).HandlerFunc
 	getRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.GET).HandlerFunc
@@ -1255,7 +1256,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/gateways/:gateway_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	updateCellular := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular", testURLRoot), obsidian.PUT).HandlerFunc
 	updateEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.PUT).HandlerFunc
 	updateRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.PUT).HandlerFunc
@@ -1469,7 +1470,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/enodebs"
 
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	listEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 	getEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:enodeb_serial", testURLRoot), obsidian.GET).HandlerFunc
 
@@ -1605,7 +1606,7 @@ func TestCreateEnodeb(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/enodebs"
 
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	createEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
 	tc := tests.Test{
@@ -1695,7 +1696,7 @@ func TestUpdateEnodeb(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/enodebs/:enodeb_serial"
 
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	updateEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
@@ -1806,7 +1807,7 @@ func TestDeleteEnodeb(t *testing.T) {
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/enodebs/:enodeb_serial"
 
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	deleteEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
@@ -1855,7 +1856,7 @@ func TestCreateSubscriber(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
 	tc := tests.Test{
@@ -1926,7 +1927,7 @@ func TestListSubscribers(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	tc := tests.Test{
@@ -2007,7 +2008,7 @@ func TestGetSubscriber(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	tc := tests.Test{
@@ -2067,7 +2068,7 @@ func TestUpdateSubscriber(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	tc := tests.Test{
@@ -2151,7 +2152,7 @@ func TestDeleteSubscriber(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
 	_, err = configurator.CreateEntity(
@@ -2193,7 +2194,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
-	handlers := plugin2.GetHandlers()
+	handlers := handlers.GetHandlers()
 	activateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/activate", obsidian.POST).HandlerFunc
 	deactivateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot+"/deactivate", obsidian.POST).HandlerFunc
 
@@ -2289,4 +2290,25 @@ func seedNetworks(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
+}
+
+func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
+	return &models2.GatewayCellularConfigs{
+		Ran: &models2.GatewayRanConfigs{
+			Pci:             260,
+			TransmitEnabled: swag.Bool(true),
+		},
+		Epc: &models2.GatewayEpcConfigs{
+			NatEnabled: swag.Bool(true),
+			IPBlock:    "192.168.128.0/24",
+		},
+		NonEpsService: &models2.GatewayNonEpsConfigs{
+			CsfbMcc:              "001",
+			CsfbMnc:              "01",
+			Lac:                  swag.Uint32(1),
+			CsfbRat:              swag.Uint32(0),
+			Arfcn2g:              []uint32{},
+			NonEpsServiceControl: swag.Uint32(0),
+		},
+	}
 }

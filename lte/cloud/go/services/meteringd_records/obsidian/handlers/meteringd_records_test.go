@@ -126,9 +126,7 @@ func TestMeteringdRecords(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test Listing All Subscriber Flow Records
-	expectedRecord := &models.FlowRecord{}
-	err = expectedRecord.FromProto(record)
-	assert.NoError(t, err)
+	expectedRecord := (&models.FlowRecord{}).FromProto(record)
 	marshaledRecord, err := expectedRecord.MarshalBinary()
 	assert.NoError(t, err)
 	expected := string(marshaledRecord)
@@ -141,15 +139,4 @@ func TestMeteringdRecords(t *testing.T) {
 		Expected: fmt.Sprintf("[%s]", expected),
 	}
 	tests.RunTest(t, listFlowRecordsTestCase)
-
-	// Test Get Flow Records
-	getFlowRecordTestCase := tests.Testcase{
-		Name:     "Get Flow Record",
-		Method:   "GET",
-		Url:      fmt.Sprintf("%s/%s/flow_records/test", testUrlRoot, networkId),
-		Payload:  "",
-		Expected: fmt.Sprintf(`{"bytes_rx":1553,"bytes_tx":1554,"pkts_rx":5432,"pkts_tx":1234,"subscriber_id":"%s"}`, sId),
-	}
-	tests.RunTest(t, getFlowRecordTestCase)
-
 }
