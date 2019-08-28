@@ -13,7 +13,6 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
-	fegconfig "magma/feg/cloud/go/services/controller/config"
 	fegh "magma/feg/cloud/go/services/controller/obsidian/handlers"
 	"magma/feg/cloud/go/services/controller/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
@@ -24,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 )
 
@@ -49,16 +47,6 @@ func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
 		// configurator serdes
 		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &models.NetworkFederationConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &models.GatewayFegConfigs{}),
-
-		// legacy config service serdes
-		&fegconfig.FegNetworkConfigManager{},
-		&fegconfig.FegGatewayConfigManager{},
-	}
-}
-
-func (*FegOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
-	return []factory.MconfigBuilder{
-		&fegconfig.Builder{},
 	}
 }
 

@@ -44,6 +44,9 @@ module.exports = {
         '\\.(css|less)$': 'identity-obj-proxy',
       },
       name: 'app',
+      setupFiles: [
+        '<rootDir>/fbcnms-packages/fbcnms-babel-register/polyfill.js',
+      ],
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',

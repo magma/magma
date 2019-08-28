@@ -32,6 +32,7 @@ const AddLocation = () => {
     <>
       <div style={{marginBottom: '20px'}}>{selectedLocationName}</div>
       <Typeahead
+        required={true}
         suggestions={entries}
         onEntitySelected={suggestion => setSelectLocationName(suggestion.name)}
         onSuggestionsFetchRequested={value => {
@@ -57,6 +58,7 @@ const SearchBar = () => {
     <>
       <div style={{marginBottom: '20px'}}>{selectedLocationName}</div>
       <Typeahead
+        required={false}
         suggestions={entries}
         onEntitySelected={suggestion => {
           setSelectLocationName(suggestion.name);

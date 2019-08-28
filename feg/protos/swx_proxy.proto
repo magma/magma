@@ -28,6 +28,12 @@ service SwxProxy {
     rpc Deregister (RegistrationRequest) returns (RegistrationAnswer) {}
 }
 
+service SwxGatewayService {
+    // TerminateRegistration - handler of SWx Registration-Termination,
+    // see: http://www.qtc.jp/3GPP/Specs/29273-920.pdf Section 8.2.2.4
+    rpc TerminateRegistration(RegistrationTerminationRequest) returns (RegistrationAnswer) {}
+}
+
 // AuthenticationRequest (Section 8.2.2.1)
 message AuthenticationRequest {
     // Subscriber identifier
@@ -92,3 +98,18 @@ message RegistrationRequest {
 // ServerAssignmentAnswer with ServerAssignmentType set to (DE)/REGISTRATION (Section 8.2.2.3)
 message RegistrationAnswer {}
 
+// RegistrationTerminationRequest, see: http://www.qtc.jp/3GPP/Specs/29273-920.pdf Section 8.2.2.4
+message RegistrationTerminationRequest {
+    // Subscriber identifier
+    string user_name = 1;
+    // ReasonCode -> DeregistrationReason:ReasonCode
+    // see: https://www.etsi.org/deliver/etsi_ts/129200_129299/129229/10.05.00_60/ts_129229v100500p.pdf
+    enum ReasonCode {
+        PERMANENT_TERMINATION = 0;
+        NEW_SERVER_ASSIGNMENT = 1;
+        SERVER_CHANGE = 2;
+        REMOVE_S_CSCF = 3;
+    }
+    ReasonCode reason_code = 2;
+    string reason_info = 3;
+}

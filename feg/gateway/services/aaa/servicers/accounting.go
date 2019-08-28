@@ -11,6 +11,7 @@ package servicers
 
 import (
 	"net"
+	"strings"
 	"time"
 
 	"magma/feg/gateway/registry"
@@ -85,8 +86,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	}
 	var err error
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(
-			&lte_protos.SubscriberID{Id: req.GetCtx().GetImsi(), Type: lte_protos.SubscriberID_IMSI})
+		_, err = session_manager.EndSession(makeSID(req.GetCtx().GetImsi()))
 	}
 	return &protos.AcctResp{}, err
 }
@@ -101,7 +101,7 @@ func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *pro
 			"Invalid MAC Address: %v", err)
 	}
 	req := &lte_protos.LocalCreateSessionRequest{
-		Sid:             &lte_protos.SubscriberID{Id: aaaCtx.GetImsi(), Type: lte_protos.SubscriberID_IMSI},
+		Sid:             makeSID(aaaCtx.GetImsi()),
 		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
 		RatType:         lte_protos.RATType_TGPP_WLAN,
 		HardwareAddr:    mac,
@@ -149,8 +149,7 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	var err, radErr error
 
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(
-			&lte_protos.SubscriberID{Id: aaaCtx.GetImsi(), Type: lte_protos.SubscriberID_IMSI})
+		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)
@@ -176,4 +175,12 @@ func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {
 		return srv.EndTimedOutSession(s.GetCtx())
 	}
 	return nil
+}
+
+func makeSID(imsi string) *lte_protos.SubscriberID {
+	const imsiPrefix = "IMSI"
+	if !strings.HasPrefix(imsi, imsiPrefix) {
+		imsi = imsiPrefix + imsi
+	}
+	return &lte_protos.SubscriberID{Id: imsi, Type: lte_protos.SubscriberID_IMSI}
 }

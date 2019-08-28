@@ -23,3 +23,11 @@ func (m *NetworkType) ValidateModel() error {
 func (m *NetworkDescription) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
+
+func (m *GatewayName) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayDescription) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

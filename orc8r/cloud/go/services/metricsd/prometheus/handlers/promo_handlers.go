@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
@@ -28,10 +29,14 @@ const (
 	queryPart      = "query"
 	queryRangePart = "query_range"
 
-	PrometheusRoot = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
+	PrometheusRoot   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
+	PrometheusV1Root = handlers.ManageNetworkPath + obsidian.UrlSep + "prometheus"
 
 	QueryURL      = PrometheusRoot + obsidian.UrlSep + queryPart
 	QueryRangeURL = PrometheusRoot + obsidian.UrlSep + queryRangePart
+
+	QueryV1URL      = PrometheusV1Root + obsidian.UrlSep + queryPart
+	QueryRangeV1URL = PrometheusV1Root + obsidian.UrlSep + queryRangePart
 
 	defaultStepWidth = "15s"
 )

@@ -150,7 +150,11 @@ func (m *LteGateway) FromBackendModels(
 	return m
 }
 
-func (m *LteGateway) GetMagmadGateway() *models2.MagmadGateway {
+func (m *MutableLteGateway) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
 	return &models2.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
@@ -161,7 +165,7 @@ func (m *LteGateway) GetMagmadGateway() *models2.MagmadGateway {
 	}
 }
 
-func (m *LteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
+func (m *MutableLteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
 	ret := configurator.NetworkEntity{
 		Type:        lte.CellularGatewayType,
 		Key:         string(m.ID),
@@ -175,7 +179,7 @@ func (m *LteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
 	return ret
 }
 
-func (m *LteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
+func (m *MutableLteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type:              orc8r.MagmadGatewayType,
 		Key:               string(m.ID),
@@ -183,7 +187,7 @@ func (m *LteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateC
 	}
 }
 
-func (m *LteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+func (m *MutableLteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
 		Type:           lte.CellularGatewayType,
 		Key:            string(m.ID),
@@ -195,4 +199,138 @@ func (m *LteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria 
 		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
 	}
 	return ret
+}
+
+func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayType, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *cellularConfig.(*GatewayCellularConfigs)
+	return nil
+}
+
+func (m *GatewayCellularConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	return []configurator.EntityUpdateCriteria{
+		{
+			Type: lte.CellularGatewayType, Key: gatewayID,
+			NewConfig: m,
+		},
+	}, nil
+}
+
+func (m *GatewayEpcConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	gatewayConfig := &GatewayCellularConfigs{}
+	err := gatewayConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *gatewayConfig.Epc
+	return nil
+}
+
+func (m *GatewayEpcConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.Epc = m
+	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+}
+
+func (m *GatewayRanConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *cellularConfig.Ran
+	return nil
+}
+
+func (m *GatewayRanConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.Ran = m
+	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+}
+
+func (m *GatewayNonEpsConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *cellularConfig.NonEpsService
+	return nil
+}
+
+func (m *GatewayNonEpsConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.NonEpsService = m
+	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+}
+
+func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) error {
+	cellularGatewayEntity, err := configurator.LoadEntity(networkID, lte.CellularGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	if err != nil {
+		return err
+	}
+	enodebSerials := EnodebSerials{}
+	for _, assoc := range cellularGatewayEntity.Associations {
+		if assoc.Type == lte.CellularEnodebType {
+			enodebSerials = append(enodebSerials, assoc.Key)
+		}
+	}
+	*m = enodebSerials
+	return nil
+}
+
+func (m *EnodebSerials) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	enodebSerials := []storage.TypeAndKey{}
+	for _, enodebSerial := range *m {
+		enodebSerials = append(enodebSerials, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enodebSerial})
+	}
+	return []configurator.EntityUpdateCriteria{
+		{
+			Type:              lte.CellularGatewayType,
+			Key:               gatewayID,
+			AssociationsToSet: enodebSerials,
+		},
+	}, nil
+}
+
+func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
+	m.Name = ent.Name
+	m.Serial = ent.Key
+	m.Config = ent.Config.(*EnodebConfiguration)
+	for _, tk := range ent.ParentAssociations {
+		if tk.Type == lte.CellularGatewayType {
+			m.AttachedGatewayID = tk.Key
+		}
+	}
+	return m
+}
+
+func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:      lte.CellularEnodebType,
+		Key:       m.Serial,
+		NewName:   swag.String(m.Name),
+		NewConfig: m.Config,
+	}
+}
+
+func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
+	m.ID = ent.Key
+	m.Lte = ent.Config.(*LteSubscription)
+	return m
 }

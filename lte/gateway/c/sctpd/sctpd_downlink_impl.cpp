@@ -79,5 +79,12 @@ Status SctpdDownlinkImpl::SendDl(
   return Status::OK;
 }
 
+void SctpdDownlinkImpl::stop()
+{
+  if (_sctp_connection != nullptr) {
+    _sctp_connection->Close();
+  }
+}
+
 } // namespace sctpd
 } // namespace magma

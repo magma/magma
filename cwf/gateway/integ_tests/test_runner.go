@@ -116,7 +116,7 @@ func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, erro
 		seq := RandSeq()
 
 		ue := MakeUE(imsi, key, opc, seq)
-		sub := MakeSubscriber(imsi, key, opc, seq)
+		sub := MakeSubscriber(imsi, key, opc, seq+1)
 
 		err = uesim.AddUE(ue)
 		if err != nil {

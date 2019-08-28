@@ -9,6 +9,9 @@
 package models
 
 import (
+	"fmt"
+
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -16,6 +19,7 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 func (m *Network) ToConfiguratorNetwork() configurator.Network {
@@ -138,15 +142,13 @@ func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkE
 
 	oldTierTK, _ := existingEnt.GetFirstParentOfType(orc8r.UpgradeTierEntityType)
 	if oldTierTK.Key != string(m.Tier) {
-		if oldTierTK.Key != "" {
-			ret = append(
-				ret,
-				configurator.EntityUpdateCriteria{
-					Type: orc8r.UpgradeTierEntityType, Key: oldTierTK.Key,
-					AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
-				},
-			)
-		}
+		ret = append(
+			ret,
+			configurator.EntityUpdateCriteria{
+				Type: orc8r.UpgradeTierEntityType, Key: oldTierTK.Key,
+				AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}},
+			},
+		)
 
 		ret = append(
 			ret,
@@ -160,6 +162,89 @@ func (m *MagmadGateway) ToEntityUpdateCriteria(existingEnt configurator.NetworkE
 	// do the tier update to delete the old assoc first
 	ret = append(ret, gatewayUpdate)
 	return ret
+}
+
+func (m *MagmadGatewayConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	exists, err := configurator.DoesEntityExist(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, fmt.Errorf("Gateway %s does not exist", gatewayID)
+	}
+
+	return []configurator.EntityUpdateCriteria{
+		{
+			Key:       gatewayID,
+			Type:      orc8r.MagmadGatewayType,
+			NewConfig: m,
+		},
+	}, nil
+}
+
+func (m *MagmadGatewayConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	config, err := configurator.LoadEntityConfig(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *config.(*MagmadGatewayConfigs)
+	return nil
+}
+
+func (m *TierID) FromBackendModels(networkID string, gatewayID string) error {
+	entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
+	if err != nil {
+		return err
+	}
+	for _, parentAssoc := range entity.ParentAssociations {
+		if parentAssoc.Type == orc8r.UpgradeTierEntityType {
+			*m = TierID(parentAssoc.Key)
+			return nil
+		}
+	}
+	return nil
+}
+
+func (m *TierID) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	tierID := string(*m)
+	updateCriteria := []configurator.EntityUpdateCriteria{}
+
+	exists, err := configurator.DoesEntityExist(networkID, orc8r.UpgradeTierEntityType, tierID)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to look up tier")
+	}
+	if !exists {
+		return nil, fmt.Errorf("Tier %s does not exist", tierID)
+	}
+
+	// Remove association from old tier
+	entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
+	if err != nil {
+		return nil, err
+	}
+
+	tierTK, err := entity.GetFirstParentOfType(orc8r.UpgradeTierEntityType)
+	if err != merrors.ErrNotFound {
+		if tierTK.Key == tierID {
+			// no change
+			return []configurator.EntityUpdateCriteria{}, nil
+		}
+		deleteCurrentTierAssoc := configurator.EntityUpdateCriteria{
+			Type:                 tierTK.Type,
+			Key:                  tierTK.Key,
+			AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+		}
+		updateCriteria = append(updateCriteria, deleteCurrentTierAssoc)
+	}
+
+	// Add association to new tier
+	addNewTierAssoc := configurator.EntityUpdateCriteria{
+		Type:              orc8r.UpgradeTierEntityType,
+		Key:               tierID,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+	}
+	updateCriteria = append(updateCriteria, addNewTierAssoc)
+	return updateCriteria, nil
 }
 
 func GetNetworkConfig(network configurator.Network, key string) interface{} {
@@ -180,4 +265,45 @@ func GetNetworkConfigUpdateCriteria(networkID string, key string, iConfig interf
 			key: iConfig,
 		},
 	}
+}
+
+func (m *Tier) ToNetworkEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type: orc8r.UpgradeTierEntityType, Key: string(m.ID),
+		Name:         m.Name,
+		Config:       m,
+		Associations: getGatewayTKs(m.Gateways),
+	}
+}
+
+func (m *Tier) ToUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type: orc8r.UpgradeTierEntityType, Key: string(m.ID),
+		NewName:           swag.String(m.Name),
+		NewConfig:         m,
+		AssociationsToSet: getGatewayTKs(m.Gateways),
+	}
+}
+
+func (m *Tier) FromBackendModel(entity configurator.NetworkEntity) *Tier {
+	tier := entity.Config.(*Tier)
+	tier.Name = entity.Name
+	tier.Gateways = getGatewayIDs(entity.Associations)
+	return tier
+}
+
+func getGatewayTKs(gateways []models.GatewayID) []storage.TypeAndKey {
+	return funk.Map(
+		gateways,
+		func(gw models.GatewayID) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: string(gw)}
+		}).([]storage.TypeAndKey)
+}
+
+func getGatewayIDs(gatewayTKs []storage.TypeAndKey) []models.GatewayID {
+	return funk.Map(
+		gatewayTKs,
+		func(tk storage.TypeAndKey) models.GatewayID {
+			return models.GatewayID(tk.Key)
+		}).([]models.GatewayID)
 }

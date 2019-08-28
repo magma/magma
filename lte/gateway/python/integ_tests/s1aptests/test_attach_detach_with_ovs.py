@@ -44,10 +44,11 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         detach procedures.
         """
         datapath = get_datapath()
+        MAX_NUM_RETRIES = 5
 
         print("Checking for default table 0 flows")
         flows = get_flows(datapath, {"table_id": self.SPGW_TABLE,
-                                          "priority": 0})
+                                     "priority": 0})
         self.assertEqual(len(flows), 1,
                          "There should only be 1 default table 0 flow")
 
@@ -64,9 +65,16 @@ class TestAttachDetachWithOVS(unittest.TestCase):
 
         # UPLINK
         print("Checking for uplink flow")
-        uplink_flows = get_flows(datapath,
-                                      {"table_id": self.SPGW_TABLE,
-                                       "match": {"in_port": self.GTP_PORT}})
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(MAX_NUM_RETRIES):
+            print("Get uplink flows: attempt ", i)
+            uplink_flows = get_flows(datapath,
+                                     {"table_id": self.SPGW_TABLE,
+                                      "match": {"in_port": self.GTP_PORT}})
+            if len(uplink_flows) > 0:
+                break
+
         self.assertEqual(len(uplink_flows), 1, "Uplink flow missing for UE")
         self.assertIsNotNone(uplink_flows[0]["match"]["tunnel_id"],
                              "Uplink flow missing tunnel id match")
@@ -76,11 +84,19 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         print("Checking for downlink flow")
         ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(req.ue_id))
         # Ryu can't match on ipv4_dst, so match on uplink in port
-        downlink_flows = get_flows(datapath,
-                                        {"table_id": self.SPGW_TABLE,
-                                         "match": {"nw_dst": ue_ip,
-                                                   "eth_type": 2048}})
-        self.assertEqual(len(downlink_flows), 1, "Downlink flow missing for UE")
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(MAX_NUM_RETRIES):
+            print("Get downlink flows: attempt ", i)
+            downlink_flows = get_flows(datapath,
+                                       {"table_id": self.SPGW_TABLE,
+                                        "match": {"nw_dst": ue_ip,
+                                                  "eth_type": 2048}})
+            if len(downlink_flows) > 0:
+                break
+
+        self.assertEqual(len(downlink_flows), 1,
+                         "Downlink flow missing for UE")
         self.assertEqual(downlink_flows[0]["match"]["ipv4_dst"], ue_ip,
                          "UE IP match missing from downlink flow")
 
@@ -99,7 +115,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
 
         print("Checking that uplink/downlink flows were deleted")
         flows = get_flows(datapath, {"table_id": self.SPGW_TABLE,
-                                          "priority": 0})
+                                     "priority": 0})
         self.assertEqual(len(flows), 1,
                          "There should only be 1 default table 0 flow")
 

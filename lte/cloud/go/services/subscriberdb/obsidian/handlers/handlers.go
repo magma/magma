@@ -14,6 +14,7 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -43,11 +44,11 @@ func GetObsidianHandlers() []obsidian.Handler {
 
 func createSubscriber(c echo.Context) error {
 	// Get swagger model
-	sub := new(models.Subscriber)
+	sub := new(models2.Subscriber)
 	if err := c.Bind(sub); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := sub.Verify(); err != nil {
+	if err := sub.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -58,15 +59,15 @@ func createSubscriber(c echo.Context) error {
 	}
 	subscriberID := getSubscriberId(c)
 	if len(subscriberID) != 0 {
-		sub.ID = models.SubscriberID(subscriberID)
+		sub.ID = subscriberID
 	} else {
-		subscriberID = string(sub.ID)
+		subscriberID = sub.ID
 	}
 
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
 		Type:   lte.SubscriberEntityType,
 		Key:    subscriberID,
-		Config: sub,
+		Config: sub.Lte,
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -87,11 +88,14 @@ func listSubscribers(c echo.Context) error {
 
 	// if configs were loaded we'll return those, otherwise just the sids
 	sids := make([]string, 0, len(ents))
-	entConfs := make(map[string]*models.Subscriber, len(ents))
+	entConfs := make(map[string]*models2.Subscriber, len(ents))
 	for _, ent := range ents {
 		sids = append(sids, ent.Key)
 		if ent.Config != nil {
-			entConfs[ent.Key] = ent.Config.(*models.Subscriber)
+			entConfs[ent.Key] = &models2.Subscriber{
+				ID:  ent.Key,
+				Lte: ent.Config.(*models2.LteSubscription),
+			}
 		}
 	}
 
@@ -116,15 +120,16 @@ func getSubscriber(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, ent.Config.(*models.Subscriber))
+	ret := &models2.Subscriber{ID: ent.Key, Lte: ent.Config.(*models2.LteSubscription)}
+	return c.JSON(http.StatusOK, ret)
 }
 
 func updateSubscriber(c echo.Context) error {
-	sub := new(models.Subscriber)
+	sub := new(models2.Subscriber)
 	if err := c.Bind(sub); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := sub.Verify(); err != nil {
+	if err := sub.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -134,12 +139,12 @@ func updateSubscriber(c echo.Context) error {
 	}
 	subscriberID := getSubscriberId(c)
 	if len(subscriberID) != 0 { // SID is in URL
-		sub.ID = models.SubscriberID(subscriberID)
+		sub.ID = subscriberID
 	} else {
-		subscriberID = string(sub.ID)
+		subscriberID = sub.ID
 	}
 
-	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, sub)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, sub.Lte)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

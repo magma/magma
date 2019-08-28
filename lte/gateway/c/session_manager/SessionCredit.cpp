@@ -70,7 +70,8 @@ void SessionCredit::receive_credit(
   uint64_t tx_volume,
   uint64_t rx_volume,
   uint32_t validity_time,
-  bool is_final)
+  bool is_final,
+  ChargingCredit_FinalAction final_action)
 {
   MLOG(MDEBUG) << "receive_credit:"
                << "total allowed octets:  " << buckets_[ALLOWED_TOTAL]
@@ -106,6 +107,7 @@ void SessionCredit::receive_credit(
                << buckets_[REPORTING_RX] << "reporting_tx "
                << buckets_[REPORTING_TX];
   is_final_ = is_final;
+  final_action_ = final_action;
 
   if (reauth_state_ == REAUTH_PROCESSING) {
     reauth_state_ = REAUTH_NOT_NEEDED; // done
@@ -232,16 +234,26 @@ ServiceActionType SessionCredit::get_action()
 {
   if (service_state_ == SERVICE_NEEDS_DEACTIVATION) {
     MLOG(MDEBUG) << "Service State: " << service_state_;
-    // received used credits, but service should be disabled
     service_state_ = SERVICE_DISABLED;
-    return TERMINATE_SERVICE;
+    return get_action_for_deactivating_service();
   } else if (service_state_ == SERVICE_NEEDS_ACTIVATION) {
     MLOG(MDEBUG) << "Service State: " << service_state_;
-    // didn't receive used credits, but service should be enabled
     service_state_ = SERVICE_ENABLED;
     return ACTIVATE_SERVICE;
   }
   return CONTINUE_SERVICE;
+}
+
+ServiceActionType SessionCredit::get_action_for_deactivating_service()
+{
+  if (no_more_grant() && final_action_ == ChargingCredit_FinalAction_REDIRECT) {
+    return REDIRECT;
+  } else if (no_more_grant() &&
+    final_action_ == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+    return RESTRICT_ACCESS;
+  } else {
+    return TERMINATE_SERVICE;
+  }
 }
 
 bool SessionCredit::is_reporting()

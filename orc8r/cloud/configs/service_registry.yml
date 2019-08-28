@@ -33,11 +33,6 @@ services:
     port: 9086
     proxy_type: "internal"
 
-  upgrade:
-    host: "localhost"
-    port: 9087
-    proxy_type: "internal"
-
   bootstrapper:
     host: "localhost"
     port: 9088

@@ -102,8 +102,7 @@ func TestHandlers(t *testing.T) {
 		Url: fmt.Sprintf("%s/%s/subscribers/IMSI12333344444",
 			testUrlRoot,
 			networkId),
-		Payload: `{"lte":{"state":"ACTIVE", "auth_algo":"MILENAGE",
-			"auth_key":"AAAAAAAAAAAAAAAAAAAAAA=="}}`,
+		Payload:  `{"id": "IMSI12333344444", "lte":{"auth_algo":"MILENAGE", "auth_key":"AAAAAAAAAAAAAAAAAAAAAA==", "auth_opc": "AAAAAAAAAAAAAAAAAAAAAA==", "state":"ACTIVE"}}`,
 		Expected: `"IMSI12333344444"`,
 	}
 	tests.RunTest(t, addSubUrlTestCase)
@@ -114,7 +113,7 @@ func TestHandlers(t *testing.T) {
 		Method: "PUT",
 		Url: fmt.Sprintf(
 			"%s/%s/subscribers/IMSI12333344444", testUrlRoot, networkId),
-		Payload: `{"lte":{"state":"ACTIVE", "auth_algo":"MILENAGE",
+		Payload: `{"id": "IMSI12333344444", "lte":{"state":"ACTIVE", "auth_algo":"MILENAGE",
 			"auth_key":"AAAAAAAAAAAAAAAAAAAAAA=="}}`,
 		Expected: "",
 	}
@@ -139,9 +138,7 @@ func TestHandlers(t *testing.T) {
 		Method: "PUT",
 		Url: fmt.Sprintf(
 			"%s/%s/subscribers/IMSI12333344444", testUrlRoot, networkId),
-		Payload: `{"lte":{"state":"ACTIVE", "auth_algo":"MILENAGE",
-			"auth_key":"AAAAAAAAAAAAAAAAAAAAAA==",
-			"auth_opc":null}}`,
+		Payload:  `{"id": "IMSI12333344444", "lte":{"state":"ACTIVE", "auth_algo":"MILENAGE", "auth_key":"AAAAAAAAAAAAAAAAAAAAAA==", "auth_opc":""}}`,
 		Expected: "",
 	}
 	tests.RunTest(t, updateSubscriberTestCase)
@@ -181,12 +178,8 @@ func TestHandlers(t *testing.T) {
 		Method: "GET",
 		Url: fmt.Sprintf("%s/%s/subscribers/%s",
 			testUrlRoot, networkId, "IMSI12333333333"),
-		Payload: "",
-		Expected: `{"id":"IMSI12333333333", "lte":{"state":"ACTIVE",
-			"auth_algo":"MILENAGE",
-			"auth_key":"AAAAAAAAAAAAAAAAAAAAAA==",
-			"auth_opc":"AAECAwQFBgcICQoLDA0ODw=="},
-			"sub_profile":"superfast"}`,
+		Payload:  "",
+		Expected: `{"id":"IMSI12333333333", "lte":{"auth_algo":"MILENAGE", "auth_key":"AAAAAAAAAAAAAAAAAAAAAA==", "auth_opc":"AAECAwQFBgcICQoLDA0ODw==", "state":"ACTIVE"}}`,
 	}
 	tests.RunTest(t, getSubscriberTestCase)
 	// Test getting all subscriber data
@@ -195,24 +188,22 @@ func TestHandlers(t *testing.T) {
 		Method:  "GET",
 		Url:     fmt.Sprintf("%s/%s/subscribers?fields=all", testUrlRoot, networkId),
 		Payload: "",
-		Expected: `
-			{
+		Expected: `{
 				"IMSI12333333333": {
 					"id": "IMSI12333333333",
 					"lte": {
-						"state":"ACTIVE",
 						"auth_algo":"MILENAGE",
 						"auth_key":"AAAAAAAAAAAAAAAAAAAAAA==",
-						"auth_opc":"AAECAwQFBgcICQoLDA0ODw=="
-					},
-					"sub_profile":"superfast"
+						"auth_opc":"AAECAwQFBgcICQoLDA0ODw==",
+						"state":"ACTIVE"
+					}
 				},
 				"IMSI12333344444": {
 					"id": "IMSI12333344444",
 					"lte": {
-						"state":"ACTIVE",
 						"auth_algo":"MILENAGE",
-						"auth_key":"AAAAAAAAAAAAAAAAAAAAAA=="
+						"auth_key":"AAAAAAAAAAAAAAAAAAAAAA==",
+						"state":"ACTIVE"
 					}
 				}
 			}
@@ -226,7 +217,7 @@ func TestHandlers(t *testing.T) {
 		Method: "PUT",
 		Url: fmt.Sprintf(
 			"%s/%s/subscribers/IMSI12333333333", testUrlRoot, networkId),
-		Payload: `{"lte":{"state":"ACTIVE", "auth_algo":"MILENAGE",
+		Payload: `{"id": "IMSI12333333333", "lte":{"state":"ACTIVE", "auth_algo":"MILENAGE",
 			"auth_key":"AAAAAAAAAAAAAAAAAAAAAA==",
 			"auth_opc":"AAAAAAAAAAAAAAAAAAAAAA=="}}`,
 		Expected: "",
