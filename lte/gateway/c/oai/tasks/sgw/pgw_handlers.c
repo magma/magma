@@ -657,7 +657,6 @@ uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
   ebi_t ebi[BEARERS_PER_UE];
 
   memcpy(ebi,deact_ded_bearer_rsp->ebi,deact_ded_bearer_rsp->no_of_bearers);
-
   print_bearer_ids_helper(ebi, deact_ded_bearer_rsp->no_of_bearers);
   //Send Delete Bearer Rsp to PCRF
   //TODO-Uncomment once implemented at PCRF

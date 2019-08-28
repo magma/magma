@@ -1092,7 +1092,6 @@ int nas_proc_notify_service_reject(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-//------------------------------------------------------------------------------
 int nas_proc_pdn_disconnect_rsp(
   emm_cn_pdn_disconnect_rsp_t *emm_cn_pdn_disconnect_rsp)
 {
