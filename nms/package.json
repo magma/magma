@@ -52,7 +52,11 @@
     "test": "NODE_ENV=test jest"
   },
   "workspaces": {
-    "nohoist": ["**/core-js", "**/core-js/**", "**/relay-compiler"],
+    "nohoist": [
+      "@fbcnms/relay/core-js",
+      "@fbcnms/relay/core-js/**",
+      "@fbcnms/relay/relay-compiler"
+    ],
     "packages": [
       "fbcnms-packages/*",
       "fbcnms-projects/*"
