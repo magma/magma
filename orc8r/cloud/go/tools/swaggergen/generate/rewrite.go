@@ -170,12 +170,12 @@ func findLeafIdent(fset *token.FileSet, n ast.Node) *ast.Ident {
 		return findLeafIdent(fset, t.X)
 	case *ast.ArrayType:
 		return findLeafIdent(fset, t.Elt)
-	case *ast.SelectorExpr:
-		return nil
 	case *ast.MapType:
 		// again making a quick hacky assumption that generated types won't be
 		// used as map keys
 		return findLeafIdent(fset, t.Value)
+	case *ast.SelectorExpr, *ast.InterfaceType:
+		return nil
 	default:
 		panic(fmt.Sprintf("Unsupported AST type %T; implement support yourself!", t))
 	}

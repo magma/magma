@@ -6,16 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package view_factory_test
+package models_test
 
 import (
 	"encoding/json"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
+	"magma/orc8r/cloud/go/models"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/ptypes/struct"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -35,7 +35,7 @@ func TestJSONMapToProtobufStruct(t *testing.T) {
 	err = jsonpb.UnmarshalString(string(marshaled), expectedProtobufStruct)
 	assert.NoError(t, err)
 
-	actualProtobufStruct, err := view_factory.JSONMapToProtobufStruct(jsonMap)
+	actualProtobufStruct, err := models.JSONMapToProtobufStruct(jsonMap)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedProtobufStruct, actualProtobufStruct)
@@ -57,7 +57,7 @@ func TestProtobufStructToJSONMap(t *testing.T) {
 	err = jsonpb.UnmarshalString(string(marshaled), protobufStruct)
 	assert.NoError(t, err)
 
-	actualJsonMap, err := view_factory.ProtobufStructToJSONMap(protobufStruct)
+	actualJsonMap, err := models.ProtobufStructToJSONMap(protobufStruct)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedJsonMap, actualJsonMap)

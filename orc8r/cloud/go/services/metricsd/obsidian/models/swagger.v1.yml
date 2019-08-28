@@ -55,8 +55,8 @@ info:
   version: 1.0.0
 
 tags:
-- name: Metrics
-  description: Viewing collected gateway metrics
+  - name: Metrics
+    description: Viewing collected gateway metrics
 
 basePath: /magma/v1
 
