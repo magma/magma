@@ -1,0 +1,24 @@
+FROM ubuntu:latest
+ENV MAGMA_ROOT /root/magma
+RUN apt-get update && \
+    apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev && \
+    apt-get -y upgrade openssh-server && \
+    alias python=python3 && \
+    pip3 install ansible
+
+RUN mkdir -p /etc/ansible && \
+    mkdir -p $MAGMA_ROOT
+
+COPY lte/gateway/docker/deploy/ansible.cfg /etc/ansible/
+
+# Generating an ssh key
+RUN mkdir -p ~/.ssh &&  \
+    cd ~/.ssh && \
+    ssh-keygen -N "" -f ~/.ssh/id_rsa && \
+    chmod 600 id_rsa
+
+# Copying lte/ inside the container
+COPY lte $MAGMA_ROOT/lte
+COPY third_party $MAGMA_ROOT/third_party
+
+WORKDIR $MAGMA_ROOT

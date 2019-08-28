@@ -8,8 +8,13 @@
 
 - name: Build ovs
   hosts: ovs_build
+  roles:
+    - role: ovs_prepare
+
+- name: Build ovs
+  hosts: ovs_build
   environment:
     DATAPATH_CONFIGURE_OPTS: "--with-linux=/lib/modules/`uname -r`/build"
     DEB_BUILD_OPTIONS: "nocheck parallel=`nproc`"
   roles:
-    - role: ovs_task
+    - role: ovs_build
