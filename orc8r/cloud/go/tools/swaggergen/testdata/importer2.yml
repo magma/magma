@@ -11,6 +11,8 @@ magma-gen-meta:
   types:
     - go-struct-name: ImportingChainDef
       filename: importing_chain_def_swaggergen.actual
+    - go-struct-name: BazArray
+      filename: baz_array_swaggergen.actual
 
 info:
   title: Test
@@ -57,3 +59,9 @@ definitions:
         $ref: './base-swagger.yml#/definitions/bar_def'
       baz:
         $ref: './importer-swagger.yml#/definitions/importing_def'
+      baz_array:
+        $ref: '#/definitions/baz_array'
+  baz_array:
+    type: array
+    items:
+      $ref: './importer-swagger.yml#/definitions/importing_def'
