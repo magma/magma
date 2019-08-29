@@ -270,7 +270,7 @@ func GetNetworkConfigUpdateCriteria(networkID string, key string, iConfig interf
 func (m *Tier) ToNetworkEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType, Key: string(m.ID),
-		Name:         m.Name,
+		Name:         string(m.Name),
 		Config:       m,
 		Associations: getGatewayTKs(m.Gateways),
 	}
@@ -279,7 +279,7 @@ func (m *Tier) ToNetworkEntity() configurator.NetworkEntity {
 func (m *Tier) ToUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type: orc8r.UpgradeTierEntityType, Key: string(m.ID),
-		NewName:           swag.String(m.Name),
+		NewName:           swag.String(string(m.Name)),
 		NewConfig:         m,
 		AssociationsToSet: getGatewayTKs(m.Gateways),
 	}
@@ -287,9 +287,126 @@ func (m *Tier) ToUpdateCriteria() configurator.EntityUpdateCriteria {
 
 func (m *Tier) FromBackendModel(entity configurator.NetworkEntity) *Tier {
 	tier := entity.Config.(*Tier)
-	tier.Name = entity.Name
+	tier.Name = TierName(entity.Name)
 	tier.Gateways = getGatewayIDs(entity.Associations)
 	return tier
+}
+
+func (m *TierName) ToUpdateCriteria(networkID string, key string) (configurator.EntityUpdateCriteria, error) {
+	return configurator.EntityUpdateCriteria{
+		Type: orc8r.UpgradeTierEntityType, Key: key,
+		NewName: swag.String(string(*m)),
+	}, nil
+}
+
+func (m *TierName) FromBackendModels(networkID string, key string) error {
+	entity, err := configurator.LoadEntity(networkID, orc8r.UpgradeTierEntityType, key, configurator.EntityLoadCriteria{LoadMetadata: true})
+	if err != nil {
+		return err
+	}
+	*m = TierName(entity.Name)
+	return nil
+}
+
+func (m *TierVersion) FromBackendModels(networkID string, key string) error {
+	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
+	if err != nil {
+		return err
+	}
+	*m = iConfig.(*Tier).Version
+	return nil
+}
+
+func (m *TierVersion) ToUpdateCriteria(networkID, key string) (configurator.EntityUpdateCriteria, error) {
+	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
+	if err != nil {
+		return configurator.EntityUpdateCriteria{}, err
+	}
+	tier := iConfig.(*Tier)
+	tier.Version = *m
+	return configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier}, nil
+}
+
+func (m *TierVersion) ToString() string {
+	return string(*m)
+}
+
+func (m *TierImages) FromBackendModels(networkID string, key string) error {
+	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
+	if err != nil {
+		return err
+	}
+	*m = iConfig.(*Tier).Images
+	return nil
+}
+
+func (m *TierImages) ToUpdateCriteria(networkID, key string) (configurator.EntityUpdateCriteria, error) {
+	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
+	if err != nil {
+		return configurator.EntityUpdateCriteria{}, err
+	}
+	tier := iConfig.(*Tier)
+	tier.Images = *m
+	return configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier}, nil
+}
+
+func (m *TierGateways) FromBackendModels(networkID string, key string) error {
+	tierEnt, err := configurator.LoadEntity(networkID, orc8r.UpgradeTierEntityType, key, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	if err != nil {
+		return err
+	}
+	*m = getGatewayIDs(tierEnt.Associations)
+	return nil
+}
+
+func (m *TierGateways) ToUpdateCriteria(networkID, key string) (configurator.EntityUpdateCriteria, error) {
+	return configurator.EntityUpdateCriteria{
+		Type: orc8r.UpgradeTierEntityType, Key: key,
+		AssociationsToSet: getGatewayTKs(*m),
+	}, nil
+}
+
+func (m *TierGateways) ToAddGatewayUpdateCriteria(tierID, gatewayID string) configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type: orc8r.UpgradeTierEntityType, Key: tierID,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+	}
+}
+
+func (m *TierGateways) ToDeleteGatewayUpdateCriteria(tierID, gatewayID string) configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type: orc8r.UpgradeTierEntityType, Key: tierID,
+		AssociationsToDelete: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}},
+	}
+}
+
+func (m *TierImage) ToUpdateCriteria(networkID string, key string) (configurator.EntityUpdateCriteria, error) {
+	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
+	if err != nil {
+		return configurator.EntityUpdateCriteria{}, err
+	}
+	tier := iConfig.(*Tier)
+	tier.Images = append(tier.Images, m)
+	return configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier}, nil
+}
+
+func (m *TierImage) ToDeleteImageUpdateCriteria(networkID, tierID, imageName string) (configurator.EntityUpdateCriteria, error) {
+	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, tierID)
+	if err != nil {
+		return configurator.EntityUpdateCriteria{}, err
+	}
+	tier := iConfig.(*Tier)
+	for i, image := range tier.Images {
+		if swag.StringValue(image.Name) == imageName {
+			if i == len(tier.Images)-1 {
+				tier.Images = tier.Images[:i]
+			} else {
+				tier.Images = append(tier.Images[:i], tier.Images[i+1:]...)
+			}
+			return configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: tierID, NewConfig: tier}, nil
+		}
+	}
+	return configurator.EntityUpdateCriteria{}, merrors.ErrNotFound
 }
 
 func getGatewayTKs(gateways []models.GatewayID) []storage.TypeAndKey {

@@ -242,7 +242,7 @@ func Test_Tiers(t *testing.T) {
 			"gateways in body is required\n" +
 			"id in body should match '^[a-z][\\da-z_]+$'\n" +
 			"images in body is required\n" +
-			"version in body is required",
+			"version in body should be at least 1 chars long",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -251,7 +251,7 @@ func Test_Tiers(t *testing.T) {
 		Method:         "POST",
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		Payload:        &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: swag.String("1.2.3.4")},
+		Payload:        &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: "1.2.3.4"},
 		URL:            tiersRoot,
 		Handler:        createTier,
 		ExpectedStatus: 500,
@@ -261,7 +261,7 @@ func Test_Tiers(t *testing.T) {
 
 	// happy case create
 	test_utils.RegisterGateway(t, "n1", "g1", nil)
-	tier := &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: swag.String("1.2.3.4")}
+	tier := &models.Tier{ID: models.TierID("tier1"), Images: []*models.TierImage{}, Gateways: []models1.GatewayID{"g1"}, Version: "1.2.3.4"}
 	tc = tests.Test{
 		Method:         "POST",
 		ParamNames:     []string{"network_id"},
@@ -279,7 +279,7 @@ func Test_Tiers(t *testing.T) {
 		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
-			Name:         tier.Name,
+			Name:         string(tier.Name),
 			Config:       tier,
 			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 			GraphID:      "4",
@@ -314,7 +314,7 @@ func Test_Tiers(t *testing.T) {
 		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
-			Name:         tier.Name,
+			Name:         string(tier.Name),
 			Config:       tier,
 			Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g2"}},
 			GraphID:      "4",
@@ -402,4 +402,421 @@ func Test_Tiers(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expected, entities.ToEntitiesByID())
+}
+
+func TestPartialTierReads(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	tiersRoot := "/magma/v1/networks/:network_id/tiers"
+	manageTiers := tiersRoot + "/:tier_id"
+
+	// register a network, gateways and a tier
+	test_utils.RegisterNetwork(t, "n1", "network 1")
+	test_utils.RegisterGateway(t, "n1", "g1", nil)
+	tier := &models.Tier{
+		Gateways: models.TierGateways([]models1.GatewayID{"g1"}),
+		ID:       models.TierID("tier1"),
+		Images:   models.TierImages{{Name: swag.String("image1"), Order: swag.Int64(0)}},
+		Name:     "tier 1",
+		Version:  "1-1-1-1",
+	}
+
+	_, err := configurator.CreateEntity("n1", configurator.NetworkEntity{
+		Type: orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:         string(tier.Name),
+		Config:       tier,
+		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+	})
+	assert.NoError(t, err)
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	getTierName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/name", obsidian.GET).HandlerFunc
+	getTierVersion := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/version", obsidian.GET).HandlerFunc
+	getTierImages := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/images", obsidian.GET).HandlerFunc
+	getTierGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/gateways", obsidian.GET).HandlerFunc
+
+	// happy case name
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            manageTiers + "/name",
+		Handler:        getTierName,
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(models.TierName("tier 1")),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case version
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            manageTiers + "/version",
+		Handler:        getTierVersion,
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(models.TierVersion("1-1-1-1")),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            manageTiers + "/version",
+		Handler:        getTierVersion,
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier2"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case images
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            manageTiers + "/images",
+		Handler:        getTierImages,
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(tier.Images),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case gateways
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            manageTiers + "/gateways",
+		Handler:        getTierGateways,
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(tier.Gateways),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestPartialTierUpdates(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	test_init.StartTestService(t)
+
+	e := echo.New()
+	tiersRoot := "/magma/v1/networks/:network_id/tiers"
+	manageTiers := tiersRoot + "/:tier_id"
+
+	// register a network, gateways and a tier
+	test_utils.RegisterNetwork(t, "n1", "network 1")
+	test_utils.RegisterGateway(t, "n1", "g1", nil)
+	test_utils.RegisterGateway(t, "n1", "g2", nil)
+	test_utils.RegisterGateway(t, "n1", "g3", nil)
+	tier := &models.Tier{
+		Gateways: models.TierGateways([]models1.GatewayID{"g1"}),
+		ID:       models.TierID("tier1"),
+		Images:   models.TierImages{{Name: swag.String("image1"), Order: swag.Int64(0)}},
+		Name:     "tier 1",
+		Version:  "1-1-1-1",
+	}
+
+	_, err := configurator.CreateEntity("n1", configurator.NetworkEntity{
+		Type: orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:         string(tier.Name),
+		Config:       tier,
+		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+	})
+	assert.NoError(t, err)
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	updateTierName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/name", obsidian.PUT).HandlerFunc
+	updateTierVersion := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/version", obsidian.PUT).HandlerFunc
+	updateTierImages := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/images", obsidian.PUT).HandlerFunc
+	updateTierGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/gateways", obsidian.PUT).HandlerFunc
+	createTierImage := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/images", obsidian.POST).HandlerFunc
+	deleteTierImage := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/images/:image_name", obsidian.DELETE).HandlerFunc
+	createTierGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/gateways", obsidian.POST).HandlerFunc
+	deleteTierGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, manageTiers+"/gateways/:gateway_id", obsidian.DELETE).HandlerFunc
+
+	// happy case name
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            manageTiers + "/name",
+		Handler:        updateTierName,
+		Payload:        tests.JSONMarshaler("new name 1"),
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedTier := configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:         "new name 1",
+		Config:       tier,
+		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		GraphID:      "2",
+		Version:      1,
+	}
+	actualTier, err := configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
+
+	// happy case version
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            manageTiers + "/version",
+		Handler:        updateTierVersion,
+		Payload:        tests.JSONMarshaler("2-2-2-2"),
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tier.Version = "2-2-2-2"
+	expectedTier = configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:         "new name 1",
+		Config:       tier,
+		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		GraphID:      "2",
+		Version:      2,
+	}
+	actualTier, err = configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
+
+	// happy case images
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            manageTiers + "/images",
+		Handler:        updateTierImages,
+		Payload:        tests.JSONMarshaler(models.TierImages{}),
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tier.Images = models.TierImages{}
+	expectedTier = configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:         "new name 1",
+		Config:       tier,
+		Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+		GraphID:      "2",
+		Version:      3,
+	}
+	actualTier, err = configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
+
+	// happy case gateways
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            manageTiers + "/images",
+		Handler:        updateTierGateways,
+		Payload:        tests.JSONMarshaler(models.TierGateways{"g1", "g2"}),
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedTier = configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:   "new name 1",
+		Config: tier,
+		Associations: []storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: orc8r.MagmadGatewayType, Key: "g2"},
+		},
+		GraphID: "2",
+		Version: 4,
+	}
+	actualTier, err = configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
+
+	// happy case add a new image
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            manageTiers + "/images",
+		Handler:        createTierImage,
+		Payload:        tests.JSONMarshaler(models.TierImage{Order: swag.Int64(1), Name: swag.String("image2")}),
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tier.Images = models.TierImages{{Order: swag.Int64(1), Name: swag.String("image2")}}
+	expectedTier = configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:   "new name 1",
+		Config: tier,
+		Associations: []storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: orc8r.MagmadGatewayType, Key: "g2"},
+		},
+		GraphID: "2",
+		Version: 5,
+	}
+	actualTier, err = configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
+
+	// delete err
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            manageTiers + "/images/:image_name",
+		Handler:        deleteTierImage,
+		ParamNames:     []string{"network_id", "tier_id", "image_name"},
+		ParamValues:    []string{"n1", "tier1", "image1"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case delete
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            manageTiers + "/images/:image_name",
+		Handler:        deleteTierImage,
+		ParamNames:     []string{"network_id", "tier_id", "image_name"},
+		ParamValues:    []string{"n1", "tier1", "image2"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tier.Images = models.TierImages{}
+	expectedTier = configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:   "new name 1",
+		Config: tier,
+		Associations: []storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: orc8r.MagmadGatewayType, Key: "g2"},
+		},
+		GraphID: "2",
+		Version: 6,
+	}
+	actualTier, err = configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
+
+	// fail to add a non-existent gw
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            manageTiers + "/gateways",
+		Payload:        tests.JSONMarshaler("g4"),
+		Handler:        createTierGateway,
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 500,
+		ExpectedError:  "could not find entities matching [type:\"magmad_gateway\" key:\"g4\" ]",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case add gateway
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            manageTiers + "/gateways",
+		Payload:        tests.JSONMarshaler("g3"),
+		Handler:        createTierGateway,
+		ParamNames:     []string{"network_id", "tier_id"},
+		ParamValues:    []string{"n1", "tier1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedTier = configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:   "new name 1",
+		Config: tier,
+		Associations: []storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: orc8r.MagmadGatewayType, Key: "g2"},
+			{Type: orc8r.MagmadGatewayType, Key: "g3"},
+		},
+		GraphID: "2",
+		Version: 7,
+	}
+	actualTier, err = configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
+
+	// happy case remove gateway
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            manageTiers + "/gateway/:gateway_id",
+		Handler:        deleteTierGateway,
+		ParamNames:     []string{"network_id", "tier_id", "gateway_id"},
+		ParamValues:    []string{"n1", "tier1", "g3"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedTier = configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
+		Name:   "new name 1",
+		Config: tier,
+		Associations: []storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: orc8r.MagmadGatewayType, Key: "g2"},
+		},
+		GraphID: "2",
+		Version: 8,
+	}
+	actualTier, err = configurator.LoadEntity(
+		"n1",
+		orc8r.UpgradeTierEntityType,
+		"tier1",
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadConfig: true, LoadMetadata: true},
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedTier, actualTier)
 }

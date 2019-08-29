@@ -38,12 +38,18 @@ const (
 	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "state"
 	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
 
-	Channels          = "channels"
-	ListChannelsPath  = obsidian.V1Root + Channels
-	ManageChannelPath = obsidian.V1Root + Channels + obsidian.UrlSep + ":channel_id"
-	Tiers             = "tiers"
-	ListTiersPath     = ManageNetworkPath + obsidian.UrlSep + Tiers
-	ManageTiersPath   = ListTiersPath + obsidian.UrlSep + ":tier_id"
+	Channels               = "channels"
+	ListChannelsPath       = obsidian.V1Root + Channels
+	ManageChannelPath      = obsidian.V1Root + Channels + obsidian.UrlSep + ":channel_id"
+	Tiers                  = "tiers"
+	ListTiersPath          = ManageNetworkPath + obsidian.UrlSep + Tiers
+	ManageTiersPath        = ListTiersPath + obsidian.UrlSep + ":tier_id"
+	ManageTierNamePath     = ManageTiersPath + obsidian.UrlSep + "name"
+	ManageTierVersionPath  = ManageTiersPath + obsidian.UrlSep + "version"
+	ManageTierImagesPath   = ManageTiersPath + obsidian.UrlSep + "images"
+	ManageTierImagePath    = ManageTierImagesPath + obsidian.UrlSep + ":image_name"
+	ManageTierGatewaysPath = ManageTiersPath + obsidian.UrlSep + "gateways"
+	ManageTierGatewayPath  = ManageTierGatewaysPath + obsidian.UrlSep + ":gateway_id"
 )
 
 // GetObsidianHandlers returns all plugin-level obsidian handlers for orc8r
@@ -80,6 +86,10 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageTiersPath, Methods: obsidian.GET, HandlerFunc: readTierHandler},
 		{Path: ManageTiersPath, Methods: obsidian.PUT, HandlerFunc: updateTierHandler},
 		{Path: ManageTiersPath, Methods: obsidian.DELETE, HandlerFunc: deleteTierHandler},
+		{Path: ManageTierImagesPath, Methods: obsidian.POST, HandlerFunc: createTierImage},
+		{Path: ManageTierImagePath, Methods: obsidian.DELETE, HandlerFunc: deleteImage},
+		{Path: ManageTierGatewaysPath, Methods: obsidian.POST, HandlerFunc: createTierGateway},
+		{Path: ManageTierGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteTierGateway},
 	}
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)
@@ -93,5 +103,10 @@ func GetObsidianHandlers() []obsidian.Handler {
 	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayConfigPath, &models2.MagmadGatewayConfigs{})...)
 	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayTierPath, new(models2.TierID))...)
 	ret = append(ret, GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+
+	ret = append(ret, GetPartialEntityHandlers(ManageTierNamePath, "tier_id", new(models2.TierName))...)
+	ret = append(ret, GetPartialEntityHandlers(ManageTierVersionPath, "tier_id", new(models2.TierVersion))...)
+	ret = append(ret, GetPartialEntityHandlers(ManageTierImagesPath, "tier_id", new(models2.TierImages))...)
+	ret = append(ret, GetPartialEntityHandlers(ManageTierGatewaysPath, "tier_id", new(models2.TierGateways))...)
 	return ret
 }
