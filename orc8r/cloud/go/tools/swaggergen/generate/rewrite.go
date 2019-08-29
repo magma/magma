@@ -141,15 +141,27 @@ func findIdentsToChange(fset *token.FileSet, fileNode ast.Node, validDependentTy
 	ret := map[*ast.Ident]bool{}
 	ast.Inspect(fileNode, func(n ast.Node) bool {
 		switch n.(type) {
-		// we only care about fields when doing the replacements
-		case *ast.Field:
-			ident := findLeafIdent(fset, n)
-			if ident == nil {
-				break
-			}
-
-			if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
-				ret[ident] = true
+		case *ast.TypeSpec:
+			typeSpec := n.(*ast.TypeSpec)
+			switch typeSpec.Type.(type) {
+			case *ast.StructType:
+				for _, field := range typeSpec.Type.(*ast.StructType).Fields.List {
+					ident := findLeafIdent(fset, field)
+					if ident == nil {
+						break
+					}
+					if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
+						ret[ident] = true
+					}
+				}
+			case *ast.ArrayType:
+				ident := findLeafIdent(fset, typeSpec.Type)
+				if ident == nil {
+					break
+				}
+				if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
+					ret[ident] = true
+				}
 			}
 		}
 		return true
