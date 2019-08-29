@@ -347,26 +347,6 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
-  graphite_return_object:
-    type: array
-    items:
-      $ref: '#/definitions/graphite_target_data'
-  graphite_target_data:
-    type: object
-    required:
-      - target
-      - tags
-      - datapoints
-    properties:
-      datapoints:
-        $ref: '#/definitions/metric_datapoints'
-      target:
-        type: string
-      tags:
-        type: object
-        additionalProperties:
-          type: string
-
   promql_return_object:
     type: object
     required:

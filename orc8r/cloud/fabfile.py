@@ -101,7 +101,6 @@ def _package_vagrant_zip(service, folder, cloud_host, commit_hash):
 
         if service == "metrics":
             run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
-            run('cp -pr roles/third_party/graphite %s/ansible/roles.' % folder)
         else:
             run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
 
