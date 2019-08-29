@@ -14,8 +14,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
-	graphiteH "magma/orc8r/cloud/go/services/metricsd/graphite/handlers"
-	graphiteAPI "magma/orc8r/cloud/go/services/metricsd/graphite/third_party/api"
 	promH "magma/orc8r/cloud/go/services/metricsd/prometheus/handlers"
 
 	"github.com/labstack/echo"
@@ -45,26 +43,6 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			// V1
 			obsidian.Handler{Path: promH.QueryV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryHandler(pAPI)},
 			obsidian.Handler{Path: promH.QueryRangeV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryRangeHandler(pAPI)},
-		)
-	}
-
-	graphiteQueryHost, _ := configMap.GetStringParam(confignames.GraphiteQueryAddress)
-	graphiteQueryPort, err := configMap.GetIntParam(confignames.GraphiteQueryPort)
-
-	var graphiteQueryAddress string
-	if graphiteQueryHost == "" || err != nil {
-		graphiteQueryAddress = ""
-	} else {
-		graphiteQueryAddress = fmt.Sprintf("%s://%s:%d", graphiteH.Protocol, graphiteQueryHost, graphiteQueryPort)
-	}
-	graphiteClient, err := graphiteAPI.NewFromString(graphiteQueryAddress)
-	if graphiteQueryAddress == "" || err != nil {
-		ret = append(ret,
-			obsidian.Handler{Path: graphiteH.QueryURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(fmt.Errorf("graphite exporter not configured: %v", err))},
-		)
-	} else {
-		ret = append(ret,
-			obsidian.Handler{Path: graphiteH.QueryURL, Methods: obsidian.GET, HandlerFunc: graphiteH.GetQueryHandler(graphiteClient)},
 		)
 	}
 

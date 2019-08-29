@@ -9,10 +9,7 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -33,7 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
-	graphiteExp "magma/orc8r/cloud/go/services/metricsd/graphite/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/state"
@@ -123,7 +119,6 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 
 const (
 	ProfileNamePrometheus = "prometheus"
-	ProfileNameGraphite   = "graphite"
 	ProfileNameExportAll  = "exportall"
 )
 
@@ -149,37 +144,15 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
-	// No-op graphite exporter if graphite parameters are not set
-	graphiteExportAddresses, _ := metricsConfig.GetStringArrayParam(confignames.GraphiteExportAddresses)
-	var graphiteAddresses []graphiteExp.Address
-	for _, address := range graphiteExportAddresses {
-		portIdx := strings.LastIndex(address, ":")
-		portStr := address[portIdx+1:]
-		portInt, err := strconv.Atoi(portStr)
-		if err != nil {
-			panic(fmt.Errorf("graphite address improperly formed: %s\n", address))
-		}
-		graphiteAddresses = append(graphiteAddresses, graphiteExp.NewAddress(address[:portIdx], portInt))
-	}
-	graphiteExporter := graphiteExp.NewGraphiteExporter(graphiteAddresses)
-
-	// Graphite profile - Exports all service metrics to Graphite
-	graphiteProfile := metricsd.MetricsProfile{
-		Name:       ProfileNameGraphite,
-		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{graphiteExporter},
-	}
-
-	// ExportAllProfile - Exports to both graphite and prometheus
+	// ExportAllProfile - Exports to all exporters
 	exportAllProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameExportAll,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{prometheusCustomPushExporter, graphiteExporter},
+		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
 	return []metricsd.MetricsProfile{
 		prometheusProfile,
-		graphiteProfile,
 		exportAllProfile,
 	}
 }
