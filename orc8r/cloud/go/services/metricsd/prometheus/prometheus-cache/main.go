@@ -18,16 +18,18 @@ import (
 )
 
 const (
-	defaultPort  = "9091"
-	defaultLimit = -1
+	defaultPort          = "9091"
+	defaultLimit         = -1
+	defaultScrapeTimeout = 10 // seconds
 )
 
 func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
 	totalMetricsLimit := flag.Int("limit", defaultLimit, fmt.Sprintf("Limit the total metrics in the cache at one time. Will reject a push if cache is full. Default is %d which is no limit.", defaultLimit))
+	scrapeTimeout := flag.Int("scrapeTimeout", defaultScrapeTimeout, fmt.Sprintf("Timeout for scrape calls. Default is %d", defaultScrapeTimeout))
 	flag.Parse()
 
-	metricCache := cache.NewMetricCache(*totalMetricsLimit)
+	metricCache := cache.NewMetricCache(*totalMetricsLimit, *scrapeTimeout)
 	e := echo.New()
 
 	e.POST("/metrics", metricCache.Receive)
