@@ -12,24 +12,21 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	lteplugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/meteringd_records"
 	"magma/lte/cloud/go/services/meteringd_records/obsidian/models"
-	meteringd_records_test_init "magma/lte/cloud/go/services/meteringd_records/test_init"
-	sdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
+	meteringdRecordsTestInit "magma/lte/cloud/go/services/meteringd_records/test_init"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -56,13 +53,11 @@ func UpdateFlowsTest(csn string, tbl *protos.FlowTable) error {
 // TestMeteringdRecords is Obsidian Metering Records Integration Test intended to be run
 // on cloud VM
 func TestMeteringdRecords(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
-	sdb_test_init.StartTestService(t)
-	meteringd_records_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	meteringdRecordsTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 
 	hwId := "TestAGHwId00003"
