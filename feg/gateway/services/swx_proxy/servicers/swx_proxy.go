@@ -11,12 +11,14 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fmt"
 	"time"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/metrics"
+	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
@@ -44,6 +46,7 @@ type swxProxy struct {
 	originStateID  uint32
 	cache          *cache.Impl
 	Relay          Relay
+	healthTracker  *metrics.SwxHealthTracker
 }
 
 type SwxProxyConfig struct {
@@ -179,6 +182,64 @@ func (s *swxProxy) Deregister(
 		metrics.DeregisterLatency.Observe(time.Since(deregisterStartTime).Seconds())
 	}
 	return res, err
+}
+
+// Disable closes all existing diameter connections and disables
+// connection creation for the time specified in the request
+func (s *swxProxy) Disable(ctx context.Context, req *protos.DisableMessage) (*orcprotos.Void, error) {
+	if req == nil {
+		return nil, fmt.Errorf("Nil Disable Request")
+	}
+	s.connMan.DisableFor(time.Duration(req.DisablePeriodSecs) * time.Second)
+	return &orcprotos.Void{}, nil
+}
+
+// Enable enables diameter connection creation
+// If creation is already enabled, Enable has no effect
+func (s *swxProxy) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
+	s.connMan.Enable()
+	return &orcprotos.Void{}, nil
+}
+
+// GetHealthStatus retrieves a health status object which contains the current
+// health of the service
+func (s *swxProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*protos.HealthStatus, error) {
+	currentMetrics, err := metrics.GetCurrentHealthMetrics()
+	if err != nil {
+		return &protos.HealthStatus{
+			Health:        protos.HealthStatus_UNHEALTHY,
+			HealthMessage: fmt.Sprintf("Error occured while retrieving health metrics: %s", err),
+		}, err
+	}
+	deltaMetrics, err := s.healthTracker.Metrics.GetDelta(currentMetrics)
+	if err != nil {
+		return &protos.HealthStatus{
+			Health:        protos.HealthStatus_UNHEALTHY,
+			HealthMessage: err.Error(),
+		}, err
+	}
+	reqTotal := deltaMetrics.MarTotal + deltaMetrics.SarTotal +
+		deltaMetrics.MarSendFailures + deltaMetrics.SarSendFailures
+	failureTotal := deltaMetrics.MarSendFailures + deltaMetrics.SarSendFailures +
+		deltaMetrics.Timeouts + deltaMetrics.UnparseableMsg
+
+	exceedsThreshold := reqTotal >= int64(s.healthTracker.MinimumRequestThreshold) &&
+		float32(failureTotal)/float32(reqTotal) >= s.healthTracker.RequestFailureThreshold
+	if exceedsThreshold {
+		unhealthyMsg := fmt.Sprintf("Metric Request Failure Ratio >= threshold %f; %d / %d",
+			s.healthTracker.RequestFailureThreshold,
+			failureTotal,
+			reqTotal,
+		)
+		return &protos.HealthStatus{
+			Health:        protos.HealthStatus_UNHEALTHY,
+			HealthMessage: unhealthyMsg,
+		}, nil
+	}
+	return &protos.HealthStatus{
+		Health:        protos.HealthStatus_HEALTHY,
+		HealthMessage: "All metrics appear healthy",
+	}, nil
 }
 
 func (s *swxProxy) genSID() string {
