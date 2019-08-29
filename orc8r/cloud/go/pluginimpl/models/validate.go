@@ -85,3 +85,23 @@ func (m *ReleaseChannel) ValidateModel() error {
 func (m *Tier) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
+
+func (m *TierName) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierVersion) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierGateways) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierImages) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierImage) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

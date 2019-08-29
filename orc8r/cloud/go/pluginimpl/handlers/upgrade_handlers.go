@@ -189,6 +189,88 @@ func deleteTierHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func createTierImage(c echo.Context) error {
+	networkID, tierID, nerr := getNetworkAndTierIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	image, nerr := GetAndValidatePayload(c, &models.TierImage{})
+	if nerr != nil {
+		return nerr
+	}
+
+	update, err := image.(*models.TierImage).ToUpdateCriteria(networkID, tierID)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	_, err = configurator.UpdateEntity(networkID, update)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteImage(c echo.Context) error {
+	networkID, tierID, nerr := getNetworkAndTierIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "image_name")
+	if nerr != nil {
+		return nerr
+	}
+	update, err := (&models.TierImage{}).ToDeleteImageUpdateCriteria(networkID, tierID, params[0])
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	_, err = configurator.UpdateEntity(networkID, update)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func createTierGateway(c echo.Context) error {
+	networkID, tierID, nerr := getNetworkAndTierIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	var gatewayID string
+	if err := c.Bind(&gatewayID); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	update := (&models.TierGateways{}).ToAddGatewayUpdateCriteria(tierID, gatewayID)
+	_, err := configurator.UpdateEntity(networkID, update)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteTierGateway(c echo.Context) error {
+	networkID, tierID, nerr := getNetworkAndTierIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	_, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	update := (&models.TierGateways{}).ToDeleteGatewayUpdateCriteria(tierID, gatewayID)
+	_, err := configurator.UpdateEntity(networkID, update)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func getChannelID(c echo.Context) (string, *echo.HTTPError) {
 	channelID := c.Param("channel_id")
 	if channelID == "" {
