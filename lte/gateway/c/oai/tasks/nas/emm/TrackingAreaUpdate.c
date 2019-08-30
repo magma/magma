@@ -56,6 +56,8 @@
 #include "mme_app_desc.h"
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
+#include "esm_ebr.h"
+#include "esm_ebr_context.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -575,33 +577,65 @@ void static _validate_and_fill_eps_bearer_cntxt_status(
   ue_mm_context_t *ue_mm_context)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  uint32_t ebi = 0;
+  ebi_t ebi = 0;
+  ebi_t ebi_relsd = 0;
+  uint32_t itrn = 0;
+  int bidx = 0;
+  uint8_t pos = 0;
+  pdn_cid_t pid = 0;
+  int rc = RETURNok;
 
-  for (i = 0 ; i < BEARERS_PER_UE; i++ ) {
-    bearer_context_t *bearer_context = mme_app_get_bearer_context(
-      ue_mm_context, i);
+  for (itrn = 0 ; itrn < BEARERS_PER_UE; itrn++ ) {
+    bearer_context_t *bearer_context =
+      mme_app_get_bearer_context(ue_mm_context, itrn);
+    pos = itrn + 1;
     if ((bearer_context) &&
       bearer_context->bearer_state == BEARER_STATE_ACTIVE) {
       /* Delete the bearer context if the bearer context rcvd in TAU req
        * is inactive
        */
       ebi = bearer_context->ebi;
-      if (!((rcvd_tau_req_eps_eps_ber_cntx_status & ebi) >> ebi)) {
+      /*In the rcdv TAU Req message status of EBIs starts from bit 1
+      */
+      pos = ebi + 1;
+      if (!(((*rcvd_tau_req_eps_eps_ber_cntx_status) & pos) >> pos)) {
         pid = ue_mm_context->bearer_contexts[ebi]->pdn_cx_id;
-        if (ue_mm_context->pdn_contexts[pid]->default_ebi == ebi) {
-          // Delete the PDN connection
-          for (itrn = 0; itrn < ue_mm_context->
-            pdn_contexts[pid].esm_data.n_bearers; i++) {
+        ebi_relsd = esm_ebr_context_release(
+          &ue_mm_context->emm_context, ebi, &pid, &bidx);
+
+        if (ebi_relsd == ESM_EBI_UNASSIGNED) {
+          OAILOG_WARNING(
+          LOG_NAS_ESM, "Failed to release EPS bearer context\n");
+        } else {
+          /*
+           * Set the EPS bearer context state to INACTIVE
+           */
+          rc = esm_ebr_set_status(
+            &ue_mm_context->emm_context, ebi_relsd, ESM_EBR_INACTIVE, false);
+
+          if (rc != RETURNok) {
+            /*
+             * The EPS bearer context was already in INACTIVE state
+             */
+            OAILOG_WARNING(
+              LOG_NAS_ESM, "EBI %d was already INACTIVE\n", ebi_relsd);
+          }
+          /*
+           * Release EPS bearer data
+           */
+          rc = esm_ebr_release(&ue_mm_context->emm_context, ebi_relsd);
+
+          if (rc != RETURNok) {
+            OAILOG_WARNING(
+            LOG_NAS_ESM, "Failed to release EPS bearer data\n");
           }
         }
-      }
-      /* Send status of active bearers in TAU Accept*/
-      else {
-        tau_accept_eps_ber_cntx_status = 1 << j;
+      } else {
+          /* Send status of active bearers in TAU Accept*/
+        (*tau_accept_eps_ber_cntx_status) |= 1 << pos;
       }
     }
   }
-
 }
 /** \fn void _emm_tracking_area_update_accept (emm_context_t * emm_context,tau_data_t * data);
     \brief Sends ATTACH ACCEPT message and start timer T3450.
