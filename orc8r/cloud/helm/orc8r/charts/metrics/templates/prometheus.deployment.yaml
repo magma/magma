@@ -50,7 +50,7 @@ spec:
         - name: "prometheus-data"
 {{ toYaml .Values.metrics.volumes.prometheusData.volumeSpec | indent 10 }}
 
-  {{ if .Values.metrics.useMinikube }}
+  {{ if .Values.prometheus.useMinikube }}
       initContainers:
         - name: volume-mount
           image: busybox

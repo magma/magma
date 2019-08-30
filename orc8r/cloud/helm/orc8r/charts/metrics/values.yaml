@@ -104,10 +104,10 @@ configmanager:
   environment:
     promAlertconfigPort: "9100"
     rulesDir: "/etc/configs/alert_rules"
-    prometheusURL: "localhost:9090"
+    prometheusURL: "orc8r-prometheus:9090"
     alertmanagerConfigPort: "9101"
     alertmanagerConfPath: "/etc/configs/alertmanager.yml"
-    alertmanagerURL: "localhost:9093"
+    alertmanagerURL: "orc8r-alertmanager:9093"
 
   image:
     repository:
