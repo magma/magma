@@ -188,7 +188,7 @@ grafana:
         targetPort: 3000
 
   environment:
-    prometheusHost: "orc8r-metrics"
+    prometheusHost: "orc8r-prometheus"
     prometheusPort: "9090"
 
   volumes:
