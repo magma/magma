@@ -9,7 +9,7 @@
  */
 
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
-import AppContext from './context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import AppDrawer from '@fbcnms/ui/components/layout/AppDrawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';

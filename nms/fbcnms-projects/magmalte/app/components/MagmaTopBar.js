@@ -9,7 +9,7 @@
  */
 
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import AppContext from './context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Divider from '@material-ui/core/Divider';
 import MenuItem from '@material-ui/core/MenuItem';

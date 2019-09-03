@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
 import AppBar from '@material-ui/core/AppBar';
-import AppContext from './context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import MagmaTopBar from './MagmaTopBar';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
