@@ -29,6 +29,7 @@ message EnodebdStatus {
   google.protobuf.BoolValue enodeb_configured = 7;
   google.protobuf.FloatValue gps_latitude = 8;
   google.protobuf.FloatValue gps_longitude = 9;
+  google.protobuf.BoolValue rf_tx_desired = 10;
 }
 
 message ServiceStatus {

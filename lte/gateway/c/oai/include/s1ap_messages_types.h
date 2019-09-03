@@ -70,12 +70,15 @@
   (mSGpTR)->ittiMsg.s1ap_initial_ue_message
 #define S1AP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_nas_dl_data_req
 #define S1AP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.s1ap_paging_request
+#define S1AP_E_RAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_cmd
+#define S1AP_E_RAB_REL_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_rsp
 #define S1AP_PATH_SWITCH_REQUEST(mSGpTR)                          \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request
 #define S1AP_PATH_SWITCH_REQUEST_ACK(mSGpTR)                      \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_ack
 #define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                      \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
+
 // NOT a ITTI message
 typedef struct s1ap_initial_ue_message_s {
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
@@ -288,6 +291,31 @@ typedef struct itti_s1ap_e_rab_setup_rsp_s {
   e_rab_list_t e_rab_failed_to_setup_list;
 
 } itti_s1ap_e_rab_setup_rsp_t;
+
+typedef struct itti_s1ap_e_rab_rel_cmd_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+
+  // Applicable for non-GBR E-RABs
+  bool ue_aggregate_maximum_bit_rate_present;
+  ue_aggregate_maximum_bit_rate_t ue_aggregate_maximum_bit_rate;
+
+  // E-RAB to Be Released List
+  e_rab_list_t e_rab_to_be_rel_list;
+  bstring nas_pdu;
+} itti_s1ap_e_rab_rel_cmd_t;
+
+typedef struct itti_s1ap_e_rab_rel_rsp_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+
+  // E-RAB to Be Setup List
+  e_rab_list_t e_rab_rel_list;
+
+  // Optional
+  e_rab_list_t e_rab_failed_to_rel_list;
+
+} itti_s1ap_e_rab_rel_rsp_t;
 
 typedef struct itti_s1ap_path_switch_request_s {
   uint32_t sctp_assoc_id;

@@ -22,7 +22,7 @@ type NetworkRanConfigs struct {
 	// bandwidth mhz
 	// Required: true
 	// Enum: [3 5 10 15 20]
-	BandwidthMhz *uint32 `json:"bandwidth_mhz"`
+	BandwidthMhz uint32 `json:"bandwidth_mhz"`
 
 	// fdd config
 	FddConfig *NetworkRanConfigsFddConfig `json:"fdd_config,omitempty"`
@@ -75,12 +75,12 @@ func (m *NetworkRanConfigs) validateBandwidthMhzEnum(path, location string, valu
 
 func (m *NetworkRanConfigs) validateBandwidthMhz(formats strfmt.Registry) error {
 
-	if err := validate.Required("bandwidth_mhz", "body", m.BandwidthMhz); err != nil {
+	if err := validate.Required("bandwidth_mhz", "body", uint32(m.BandwidthMhz)); err != nil {
 		return err
 	}
 
 	// value enum
-	if err := m.validateBandwidthMhzEnum("bandwidth_mhz", "body", *m.BandwidthMhz); err != nil {
+	if err := m.validateBandwidthMhzEnum("bandwidth_mhz", "body", m.BandwidthMhz); err != nil {
 		return err
 	}
 
@@ -147,11 +147,12 @@ type NetworkRanConfigsFddConfig struct {
 
 	// earfcndl
 	// Required: true
-	Earfcndl *uint32 `json:"earfcndl"`
+	Earfcndl uint32 `json:"earfcndl"`
 
 	// earfcnul
 	// Required: true
-	Earfcnul *uint32 `json:"earfcnul"`
+	// Minimum: > 0
+	Earfcnul uint32 `json:"earfcnul"`
 }
 
 // Validate validates this network ran configs fdd config
@@ -174,7 +175,7 @@ func (m *NetworkRanConfigsFddConfig) Validate(formats strfmt.Registry) error {
 
 func (m *NetworkRanConfigsFddConfig) validateEarfcndl(formats strfmt.Registry) error {
 
-	if err := validate.Required("fdd_config"+"."+"earfcndl", "body", m.Earfcndl); err != nil {
+	if err := validate.Required("fdd_config"+"."+"earfcndl", "body", uint32(m.Earfcndl)); err != nil {
 		return err
 	}
 
@@ -183,7 +184,11 @@ func (m *NetworkRanConfigsFddConfig) validateEarfcndl(formats strfmt.Registry) e
 
 func (m *NetworkRanConfigsFddConfig) validateEarfcnul(formats strfmt.Registry) error {
 
-	if err := validate.Required("fdd_config"+"."+"earfcnul", "body", m.Earfcnul); err != nil {
+	if err := validate.Required("fdd_config"+"."+"earfcnul", "body", uint32(m.Earfcnul)); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("fdd_config"+"."+"earfcnul", "body", int64(m.Earfcnul), 0, true); err != nil {
 		return err
 	}
 
@@ -214,17 +219,17 @@ type NetworkRanConfigsTddConfig struct {
 
 	// earfcndl
 	// Required: true
-	Earfcndl *uint32 `json:"earfcndl"`
+	Earfcndl uint32 `json:"earfcndl"`
 
 	// special subframe pattern
 	// Required: true
 	// Maximum: 9
-	SpecialSubframePattern *uint32 `json:"special_subframe_pattern"`
+	SpecialSubframePattern uint32 `json:"special_subframe_pattern"`
 
 	// subframe assignment
 	// Required: true
 	// Maximum: 6
-	SubframeAssignment *uint32 `json:"subframe_assignment"`
+	SubframeAssignment uint32 `json:"subframe_assignment"`
 }
 
 // Validate validates this network ran configs tdd config
@@ -251,7 +256,7 @@ func (m *NetworkRanConfigsTddConfig) Validate(formats strfmt.Registry) error {
 
 func (m *NetworkRanConfigsTddConfig) validateEarfcndl(formats strfmt.Registry) error {
 
-	if err := validate.Required("tdd_config"+"."+"earfcndl", "body", m.Earfcndl); err != nil {
+	if err := validate.Required("tdd_config"+"."+"earfcndl", "body", uint32(m.Earfcndl)); err != nil {
 		return err
 	}
 
@@ -260,11 +265,11 @@ func (m *NetworkRanConfigsTddConfig) validateEarfcndl(formats strfmt.Registry) e
 
 func (m *NetworkRanConfigsTddConfig) validateSpecialSubframePattern(formats strfmt.Registry) error {
 
-	if err := validate.Required("tdd_config"+"."+"special_subframe_pattern", "body", m.SpecialSubframePattern); err != nil {
+	if err := validate.Required("tdd_config"+"."+"special_subframe_pattern", "body", uint32(m.SpecialSubframePattern)); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("tdd_config"+"."+"special_subframe_pattern", "body", int64(*m.SpecialSubframePattern), 9, false); err != nil {
+	if err := validate.MaximumInt("tdd_config"+"."+"special_subframe_pattern", "body", int64(m.SpecialSubframePattern), 9, false); err != nil {
 		return err
 	}
 
@@ -273,11 +278,11 @@ func (m *NetworkRanConfigsTddConfig) validateSpecialSubframePattern(formats strf
 
 func (m *NetworkRanConfigsTddConfig) validateSubframeAssignment(formats strfmt.Registry) error {
 
-	if err := validate.Required("tdd_config"+"."+"subframe_assignment", "body", m.SubframeAssignment); err != nil {
+	if err := validate.Required("tdd_config"+"."+"subframe_assignment", "body", uint32(m.SubframeAssignment)); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("tdd_config"+"."+"subframe_assignment", "body", int64(*m.SubframeAssignment), 6, false); err != nil {
+	if err := validate.MaximumInt("tdd_config"+"."+"subframe_assignment", "body", int64(m.SubframeAssignment), 6, false); err != nil {
 		return err
 	}
 

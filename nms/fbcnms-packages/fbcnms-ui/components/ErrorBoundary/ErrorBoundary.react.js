@@ -28,7 +28,8 @@ const styles = {
 
 type Props = {
   children: any,
-} & WithStyles;
+  onError?: ?(error: Error) => void,
+} & WithStyles<typeof styles>;
 
 type State = {
   error: ?Error,
@@ -44,7 +45,7 @@ class ErrorBoundary extends React.Component<Props, State> {
     this.setState({
       error: error,
     });
-    // TODO: Log JS errors here
+    this.props.onError && this.props.onError(error);
   }
 
   render() {

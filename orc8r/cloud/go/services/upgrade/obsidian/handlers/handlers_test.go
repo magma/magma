@@ -11,31 +11,22 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/services/configurator"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	"magma/orc8r/cloud/go/services/upgrade/obsidian/models"
-	upgrade_test_init "magma/orc8r/cloud/go/services/upgrade/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// Obsidian integration test for release channel migrated API endpoints backed by configurator
 func TestReleaseChannels(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{})
-	upgrade_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/channels", restPort, obsidian.RestRoot)
 
 	// List channels when none exist
 	listChannelsTestCase := tests.Testcase{
@@ -76,7 +67,7 @@ func TestReleaseChannels(t *testing.T) {
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s", testUrlRoot, "stable"),
 		Payload:  "",
-		Expected: `{"name": "stable", "supported_versions": ["1.0.0-0", "1.1.0-0"]}`,
+		Expected: `{"id":"","name":"stable","supported_versions":["1.0.0-0","1.1.0-0"]}`,
 	}
 	tests.RunTest(t, getChannelTestCase)
 
@@ -89,7 +80,7 @@ func TestReleaseChannels(t *testing.T) {
 		Expected: "",
 	}
 	tests.RunTest(t, updateChannelTestCase)
-	getChannelTestCase.Expected = `{"name": "stable", "supported_versions": ["1.3.0-0"]}`
+	getChannelTestCase.Expected = `{"id":"","name":"stable","supported_versions":["1.3.0-0"]}`
 	tests.RunTest(t, getChannelTestCase)
 
 	// Delete release channel
@@ -134,13 +125,10 @@ func TestReleaseChannels(t *testing.T) {
 
 // Obsidian integration test for tiers migrated API endpoints backed by configurator
 func TestTiers(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{})
-	upgrade_test_init.StartTestService(t)
 	restPort := tests.StartObsidian(t)
-	configurator_test_init.StartTestService(t)
-	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	configuratorTestInit.StartTestService(t)
+	netUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	registerNetworkTestCase := tests.Testcase{
 		Name:                      "Register Network",
@@ -166,8 +154,8 @@ func TestTiers(t *testing.T) {
 	tests.RunTest(t, listTiersTestCase)
 
 	// Create 2 tiers
-	const tier1contentsA string = `{"id": "t1", "name": "t1", "version": "1.1.0-0"}`
-	const tier2contentsA string = `{"id": "t2", "name": "t2", "version": "none", "images": [{"name": "v002", "order": 10}, {"name": "v001", "order": 15}]}`
+	const tier1contentsA string = `{"gateways":null,"id":"t1","images":null,"name":"t1","version":"1.1.0-0"}`
+	const tier2contentsA string = `{"gateways":null,"id":"t2","images":[{"name":"v002","order":10},{"name":"v001","order":15}],"name":"t2","version":"none"}`
 	createTierTestCase := tests.Testcase{
 		Name:                      "Create Tier",
 		Method:                    "POST",
@@ -188,7 +176,7 @@ func TestTiers(t *testing.T) {
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s", testUrlRoot, "t1"),
 		Payload:  "",
-		Expected: `{"id": "t1", "name": "t1", "version": "1.1.0-0", "images": null}`,
+		Expected: `{"gateways":null,"id":"t1","images":null,"name":"t1","version":"1.1.0-0"}`,
 	}
 	tests.RunTest(t, getTierTestCase1)
 
@@ -207,15 +195,15 @@ func TestTiers(t *testing.T) {
 		Name:     "Update Tier",
 		Method:   "PUT",
 		Url:      fmt.Sprintf("%s/%s", testUrlRoot, "t1"),
-		Payload:  `{"id": "t1", "name": "t1v2", "version": "1.3.0-0", "images": null}`,
+		Payload:  `{"gateways":null, "id": "t1", "name": "t1v2", "version": "1.3.0-0", "images": null}`,
 		Expected: "",
 	}
 	tests.RunTest(t, updateTierTestCase)
-	getTierTestCase1.Expected = `{"id": "t1", "name": "t1v2", "version": "1.3.0-0", "images": null}`
+	getTierTestCase1.Expected = `{"gateways":null,"id":"t1","name":"t1v2","version":"1.3.0-0","images":null}`
 	tests.RunTest(t, getTierTestCase1)
 
 	// Update tier1 to have images
-	const tier1contentsC string = `{"id": "t1", "name": "t1v3", "version": "none", "images": [{"name": "v003", "order": 12}, {"name": "v002", "order": 14}]}`
+	const tier1contentsC string = `{"gateways":null,"id":"t1","images":[{"name":"v003","order":12},{"name":"v002","order":14}],"name":"t1v3","version":"none"}`
 	updateTierTestCase.Payload = tier1contentsC
 	tests.RunTest(t, updateTierTestCase)
 	getTierTestCase1.Expected = tier1contentsC

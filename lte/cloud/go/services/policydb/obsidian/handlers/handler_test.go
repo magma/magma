@@ -11,35 +11,30 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	lteplugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	policydb_test_init "magma/lte/cloud/go/services/policydb/test_init"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 
+	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 )
 
 // Integration test for the migrated configurator-based handlers
 func TestPolicyDBHandlers(t *testing.T) {
-	err := os.Setenv(orc8r.UseConfiguratorEnv, "1")
-	assert.NoError(t, err)
-	err = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
+	err := plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	assert.NoError(t, err)
 	err = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	assert.NoError(t, err)
-	configurator_test_init.StartTestService(t)
-	policydb_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 
-	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, handlers.REST_ROOT)
+	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	// Register Network
 	registerNetworkTestCase := tests.Testcase{
@@ -70,10 +65,10 @@ func TestPolicyDBHandlers(t *testing.T) {
 		ID: "Test",
 		FlowList: []*models.FlowDescription{
 			{
-				Action: strPtr("PERMIT"),
+				Action: swag.String("PERMIT"),
 				Match: &models.FlowMatch{
 					Direction: "UPLINK",
-					IPProto:   strPtr("IPPROTO_ICMP"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
 					IPV4Dst:   "42.42.42.42",
 					IPV4Src:   "192.168.0.1/24",
 					TCPDst:    2,
@@ -83,8 +78,8 @@ func TestPolicyDBHandlers(t *testing.T) {
 				},
 			},
 		},
-		Priority:     uint32Ptr(5),
-		RatingGroup:  uint32Ptr(2),
+		Priority:     swag.Uint32(5),
+		RatingGroup:  swag.Uint32(2),
 		TrackingType: "ONLY_OCS",
 	}
 	marshaledTestRule, err := json.Marshal(testRule)
@@ -112,9 +107,9 @@ func TestPolicyDBHandlers(t *testing.T) {
 
 	// Test Update Rule Using URL based ID
 	testRule.FlowList = []*models.FlowDescription{
-		{Match: &models.FlowMatch{IPProto: strPtr("IPPROTO_ICMP"), Direction: "DOWNLINK"}},
+		{Match: &models.FlowMatch{IPProto: swag.String("IPPROTO_ICMP"), Direction: "DOWNLINK"}},
 	}
-	testRule.Priority, testRule.RatingGroup, testRule.TrackingType = uint32Ptr(10), uint32Ptr(3), "ONLY_OCS"
+	testRule.Priority, testRule.RatingGroup, testRule.TrackingType = swag.Uint32(10), swag.Uint32(3), "ONLY_OCS"
 	marshaledTestRule, err = json.Marshal(testRule)
 	assert.NoError(t, err)
 
@@ -196,19 +191,19 @@ func TestPolicyDBHandlers(t *testing.T) {
 		ID: "Test_mult",
 		FlowList: []*models.FlowDescription{
 			{
-				Action: strPtr("DENY"),
+				Action: swag.String("DENY"),
 				Match: &models.FlowMatch{
 					Direction: "UPLINK",
-					IPProto:   strPtr("IPPROTO_TCP"),
+					IPProto:   swag.String("IPPROTO_TCP"),
 					TCPDst:    2,
 					TCPSrc:    1,
 				},
 			},
 			{
-				Action: strPtr("PERMIT"),
+				Action: swag.String("PERMIT"),
 				Match: &models.FlowMatch{
 					Direction: "UPLINK",
-					IPProto:   strPtr("IPPROTO_ICMP"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
 					IPV4Dst:   "42.42.42.42",
 					IPV4Src:   "192.168.0.1/24",
 					TCPDst:    2,
@@ -218,8 +213,8 @@ func TestPolicyDBHandlers(t *testing.T) {
 				},
 			},
 		},
-		Priority:     uint32Ptr(5),
-		RatingGroup:  uint32Ptr(2),
+		Priority:     swag.Uint32(5),
+		RatingGroup:  swag.Uint32(2),
 		TrackingType: "ONLY_OCS",
 	}
 	marshaledTestRule, err = json.Marshal(testRule)
@@ -246,8 +241,8 @@ func TestPolicyDBHandlers(t *testing.T) {
 
 	testRule = &models.PolicyRule{
 		ID:           "Test_qos",
-		Priority:     uint32Ptr(5),
-		RatingGroup:  uint32Ptr(2),
+		Priority:     swag.Uint32(5),
+		RatingGroup:  swag.Uint32(2),
 		TrackingType: "ONLY_OCS",
 		Qos: &models.FlowQos{
 			MaxReqBwUl: 2000,
@@ -277,8 +272,8 @@ func TestPolicyDBHandlers(t *testing.T) {
 
 	testRule = &models.PolicyRule{
 		ID:           "Test_redirect",
-		Priority:     uint32Ptr(5),
-		RatingGroup:  uint32Ptr(2),
+		Priority:     swag.Uint32(5),
+		RatingGroup:  swag.Uint32(2),
 		TrackingType: "ONLY_OCS",
 		Redirect: &models.RedirectInformation{
 			Support:       "ENABLED",
@@ -388,12 +383,4 @@ func TestPolicyDBHandlers(t *testing.T) {
 		Expected: `[]`,
 	}
 	_, _, _ = tests.RunTest(t, getAllBaseNameTestCase)
-}
-
-func strPtr(s string) *string {
-	return &s
-}
-
-func uint32Ptr(u uint32) *uint32 {
-	return &u
 }

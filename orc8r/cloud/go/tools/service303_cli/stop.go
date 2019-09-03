@@ -69,7 +69,7 @@ func stopService(service string) error {
 
 func stopServiceOrGwService(service string) error {
 	if isGatewayServiceQuery {
-		return service303.GWService303StopService(gateway_registry.GwServiceType(service), hwId)
+		return service303.GWService303StopService(gateway_registry.GwServiceType(service), hardwareID)
 	} else {
 		return client.Service303StopService(service)
 	}

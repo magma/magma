@@ -13,12 +13,9 @@ import (
 
 	magmaerrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
-	checkind_models "magma/orc8r/cloud/go/services/checkind/obsidian/models"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	magmadprotos "magma/orc8r/cloud/go/services/magmad/protos"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 
@@ -29,20 +26,16 @@ import (
 // information on configuration parameters, status, and record
 type GatewayState struct {
 	// ID of the gateway
-	GatewayID string
+	GatewayID string `json:"gateway_id"`
 	// Configuration of the gateway, represented as a map from configuration types
 	// to configuration objects
-	Config map[string]interface{}
-
+	Config map[string]interface{} `json:"config"`
+	// Name of the gateway
+	Name string `json:"name"`
 	// Gateway record
-	Record *models.AccessGatewayRecord
+	Record *models.GatewayDevice `json:"record"`
 	// Status of the gateway
-	Status *checkind_models.GatewayStatus
-
-	// Gateway record
-	LegacyRecord *magmadprotos.AccessGatewayRecord // Deprecated
-	// Status of the gateway
-	LegacyStatus *protos.GatewayStatus // Deprecated
+	Status *models.GatewayStatus `json:"status"`
 }
 
 // FullGatewayViewFactory constructs `GatewayState`s for specified gateways
@@ -70,7 +63,7 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViewsForNetwork(networkID string)
 func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayIDs []string) (map[string]*GatewayState, error) {
 	ret := make(map[string]*GatewayState, len(gatewayIDs))
 	gatewayTKs := funk.Map(gatewayIDs, func(id string) storage.TypeAndKey { return storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id} }).([]storage.TypeAndKey)
-	loadedGateways, _, err := configurator.LoadEntities(networkID, nil, nil, nil, gatewayTKs, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	loadedGateways, _, err := configurator.LoadEntities(networkID, nil, nil, nil, gatewayTKs, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadMetadata: true})
 	if err != nil {
 		return nil, err
 	}
@@ -86,9 +79,13 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayID
 		} else if err != nil {
 			return nil, fmt.Errorf("Error loading status: %s", err)
 		}
+
+		gatewayRecord := record.(*models.GatewayDevice)
+
 		ret[gateway.Key] = &GatewayState{
 			GatewayID: gateway.Key,
-			Record:    record.(*models.AccessGatewayRecord),
+			Name:      gateway.Name,
+			Record:    gatewayRecord,
 			Status:    status,
 			Config:    map[string]interface{}{orc8r.MagmadGatewayType: gateway.Config},
 		}

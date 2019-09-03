@@ -23,7 +23,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   gatewayID: string,
   onChange: (gatewayID: string, newTierID: string) => void,
   tierID: ?string,

@@ -29,6 +29,7 @@ const FIELD_MAP = {
   organization: 'organization',
   password: 'password',
   superUser: 'role',
+  tabs: 'tabs',
 };
 
 export function addQueryParamsToUrl(
@@ -113,6 +114,19 @@ export async function getPropsToUpdate(
           }
           userProperties[prop] = body[prop];
           break;
+        case 'tabs':
+          const tabsUnsafe = body[prop];
+          if (Array.isArray(tabsUnsafe)) {
+            const tabs: Array<string> = tabsUnsafe.map(it => {
+              if (typeof it !== 'string') {
+                throw new Error('Invalid tab name');
+              }
+              return it;
+            });
+            userProperties[prop] = tabs;
+            break;
+          }
+          throw new Error('Invalid tab name');
         default:
           userProperties[prop] = body[prop];
           break;

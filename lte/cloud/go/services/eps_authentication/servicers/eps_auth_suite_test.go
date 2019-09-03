@@ -13,14 +13,13 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/lte"
-	cellular "magma/lte/cloud/go/services/cellular/config"
-	cellular_protos "magma/lte/cloud/go/services/cellular/protos"
+	"magma/lte/cloud/go/plugin/models"
 	utils "magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	orc8rprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/config"
-	"magma/orc8r/cloud/go/services/config/test_init"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
@@ -63,30 +62,34 @@ func (suite *EpsAuthTestSuite) SetupTest() {
 
 func TestEpsAuthSuite(t *testing.T) {
 	test_init.StartTestService(t)
-	err := serde.RegisterSerdes(&cellular.CellularNetworkConfigManager{})
+	err := serde.RegisterSerdes(configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models.NetworkCellularConfigs{}))
 	assert.NoError(t, err)
 
-	configProto := &cellular_protos.CellularNetworkConfig{
-		Ran: &cellular_protos.NetworkRANConfig{},
-		Epc: &cellular_protos.NetworkEPCConfig{
+	cellularConfig := &models.NetworkCellularConfigs{
+		Ran: &models.NetworkRanConfigs{},
+		Epc: &models.NetworkEpcConfigs{
 			Mcc:        "123",
 			Mnc:        "123",
 			Tac:        1,
 			LteAuthOp:  []byte("\xcd\xc2\x02\xd5\x12> \xf6+mgj\xc7,\xb3\x18"),
 			LteAuthAmf: []byte("\x80\x00"),
-			SubProfiles: map[string]*cellular_protos.NetworkEPCConfig_SubscriptionProfile{
-				"default": &cellular_protos.NetworkEPCConfig_SubscriptionProfile{
+			SubProfiles: map[string]models.NetworkEpcConfigsSubProfilesAnon{
+				"default": {
 					MaxUlBitRate: 1000,
 					MaxDlBitRate: 2000,
 				},
-				"test_profile": &cellular_protos.NetworkEPCConfig_SubscriptionProfile{
+				"test_profile": {
 					MaxUlBitRate: 7000,
 					MaxDlBitRate: 5000,
 				},
 			},
 		},
 	}
-	err = config.CreateConfig("test", lte.CellularNetworkType, "test", configProto)
+	err = configurator.CreateNetwork(configurator.Network{
+		ID:      "test",
+		Type:    "lte",
+		Configs: map[string]interface{}{lte.CellularNetworkType: cellularConfig},
+	})
 	assert.NoError(t, err)
 
 	testSuite := &EpsAuthTestSuite{}

@@ -164,7 +164,13 @@ function userMiddleware(options: Options): express.Router {
           throw new Error('Email not included!');
         }
 
-        const allowedProps = ['email', 'networkIDs', 'password', 'superUser'];
+        const allowedProps = [
+          'email',
+          'networkIDs',
+          'password',
+          'superUser',
+          'tabs',
+        ];
         let userProperties = await getPropsToUpdate(
           allowedProps,
           body,
@@ -196,7 +202,7 @@ function userMiddleware(options: Options): express.Router {
         }
 
         // Create object to pass into update()
-        const allowedProps = ['networkIDs', 'password', 'superUser'];
+        const allowedProps = ['networkIDs', 'password', 'superUser', 'tabs'];
 
         const userProperties = await getPropsToUpdate(
           allowedProps,

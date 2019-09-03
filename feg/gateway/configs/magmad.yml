@@ -36,7 +36,7 @@ bootstrap_config:
 
 # Flags indicating the magmad features to be enabled
 enable_config_streamer: True
-enable_upgrade_manager: False
+enable_upgrade_manager: True
 enable_network_monitor: False
 enable_systemd_tailer: False
 enable_sync_rpc: True
@@ -44,9 +44,9 @@ enable_sync_rpc: True
 systemd_tailer_poll_interval: 30 # seconds
 
 upgrader_factory:
-  module: magma.magmad.upgrade.feg_upgrader
-  class: FegUpgraderFactory
-  http_base_url: https://api.magma.test/s3/feg
+  module: magma.magmad.upgrade.docker_upgrader
+  class: DockerUpgraderFactory
+  gateway_module: feg
 
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
@@ -68,3 +68,17 @@ metricsd:
     - eap_aka
     - aaa_server
     - csfb
+
+generic_command_config:
+  module: magma.magmad.generic_command.shell_command_executor
+  class: ShellCommandExecutor
+  shell_commands:
+    - name: bash
+      command: "bash {}"
+      allow_params: True
+    - name: fab
+      command: "fab {}"
+      allow_params: True
+    - name: echo
+      command: "echo {}"
+      allow_params: True

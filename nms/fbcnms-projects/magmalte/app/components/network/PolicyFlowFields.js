@@ -49,7 +49,7 @@ const styles = {
   removeIcon: {alignSelf: 'baseline'},
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   index: number,
   flow: PolicyFlow,
   handleActionChange: (number, string) => void,

@@ -51,9 +51,8 @@ setup(
         'Cython>=0.29.1',
         'pystemd==0.5.0',
         'docker>=4.0.2',
-        # Waiting for a new fire release (v0.1.3 is too old)
-        'fire @ git+https://www.github.com/google/python-fire@'
-        '024fbad9424cfdb0d3c93c86c856aedbac0f9d48',
+        'fire>=0.2.0',
+        'glob2>=0.7',
         'aioh2==0.2.2',
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
         'redis-collections>=0.4.2',
@@ -74,5 +73,7 @@ setup(
         'click>=5.1',
         'pycares>=2.3.0',
         'python-dateutil>=1.4',
+        # force same requests version as lte/gateway/python/setup.py
+        'requests==2.22.0',
     ]
 )

@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package test_init
 
 import (
+	"fmt"
+	"sync"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -23,11 +25,11 @@ import (
 )
 
 func StartTestService(t *testing.T) {
-	db, err := sqorc.Open("sqlite3", ":memory:")
+	db, err := sqorc.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	idGenerator := storage.DefaultIDGenerator{}
+	idGenerator := sequentialIDGenerator{nextID: 1}
 	storageFactory := storage.NewSQLConfiguratorStorageFactory(db, &idGenerator, sqorc.GetSqlBuilder())
 	err = storageFactory.InitializeServiceStorage()
 	if err != nil {
@@ -51,4 +53,17 @@ func StartTestService(t *testing.T) {
 	protos.RegisterSouthboundConfiguratorServer(srv.GrpcServer, sb)
 
 	go srv.RunTest(lis)
+}
+
+type sequentialIDGenerator struct {
+	sync.Mutex
+	nextID uint64
+}
+
+func (s *sequentialIDGenerator) New() string {
+	s.Lock()
+	defer s.Unlock()
+	ret := fmt.Sprintf("%d", s.nextID)
+	s.nextID++
+	return ret
 }

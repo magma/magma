@@ -8,14 +8,14 @@ LICENSE file in the root directory of this source tree.
 
 package plugin
 
-import "magma/orc8r/cloud/go/obsidian/handlers"
+import "magma/orc8r/cloud/go/obsidian"
 
 // FlattenHandlerLists turns a variadic list of obsidian handlers into a
 // single flattened list of handlers. This is typically used to merge handlers
 // from different services into a single collection to return in an impl
 // of OrchestratorPlugin.
-func FlattenHandlerLists(handlersIn ...[]handlers.Handler) []handlers.Handler {
-	var ret []handlers.Handler
+func FlattenHandlerLists(handlersIn ...[]obsidian.Handler) []obsidian.Handler {
+	var ret []obsidian.Handler
 	for _, h := range handlersIn {
 		ret = append(ret, h...)
 	}

@@ -58,6 +58,12 @@
   (mSGpTR)->ittiMsg.mme_app_create_dedicated_bearer_rsp
 #define MME_APP_CREATE_DEDICATED_BEARER_REJ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.mme_app_create_dedicated_bearer_rej
+#define MME_APP_DELETE_DEDICATED_BEARER_REQ(mSGpTR)                            \
+  (mSGpTR)->ittiMsg.mme_app_delete_dedicated_bearer_req
+#define MME_APP_DELETE_DEDICATED_BEARER_RSP(mSGpTR)                            \
+  (mSGpTR)->ittiMsg.mme_app_delete_dedicated_bearer_rsp
+#define MME_APP_DELETE_DEDICATED_BEARER_REJ(mSGpTR)                            \
+  (mSGpTR)->ittiMsg.mme_app_delete_dedicated_bearer_rej
 
 typedef struct itti_mme_app_connection_establishment_cnf_s {
   mme_ue_s1ap_id_t ue_id;
@@ -137,6 +143,7 @@ typedef struct itti_mme_app_create_dedicated_bearer_req_s {
   bearer_qos_t bearer_qos;
   traffic_flow_template_t *tft;
   protocol_configuration_options_t *pco;
+  teid_t gtp_teid;
 } itti_mme_app_create_dedicated_bearer_req_t;
 
 typedef struct itti_mme_app_create_dedicated_bearer_rsp_s {
@@ -156,5 +163,32 @@ typedef struct itti_mme_app_s1ap_mme_ue_id_notification_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   sctp_assoc_id_t sctp_assoc_id;
 } itti_mme_app_s1ap_mme_ue_id_notification_t;
+
+typedef struct itti_mme_app_delete_dedicated_bearer_req_s {
+  /* UE identifier */
+  uint32_t no_of_bearers;
+  ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
+  mme_ue_s1ap_id_t ue_id;
+} itti_mme_app_delete_dedicated_bearer_req_t;
+
+
+typedef struct itti_mme_app_delete_dedicated_bearer_rsp_s {
+  /* UE identifier */
+  uint32_t no_of_bearers;
+  ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
+  mme_ue_s1ap_id_t ue_id;
+  bool delete_default_bearer;
+  teid_t s_gw_teid_s11_s4;
+} itti_mme_app_delete_dedicated_bearer_rsp_t;
+
+typedef struct itti_mme_app_delete_dedicated_bearer_rej_s {
+  /* UE identifier */
+  mme_ue_s1ap_id_t ue_id;
+  uint32_t no_of_bearers;
+  ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
+  teid_t s_gw_teid_s11_s4;
+  bool delete_default_bearer;
+} itti_mme_app_delete_dedicated_bearer_rej_t;
+
 
 #endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */

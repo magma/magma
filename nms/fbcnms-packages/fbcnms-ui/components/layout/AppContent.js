@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import {gray7} from '@fbcnms/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
@@ -21,6 +22,7 @@ const useStyles = makeStyles({
     height: '100vh',
     overflow: 'auto',
     overflowX: 'hidden',
+    backgroundColor: gray7,
   },
 });
 

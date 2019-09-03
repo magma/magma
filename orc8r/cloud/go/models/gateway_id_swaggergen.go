@@ -24,6 +24,10 @@ func (m GatewayID) Validate(formats strfmt.Registry) error {
 		return err
 	}
 
+	if err := validate.Pattern("", "body", string(m), `^[a-z][\da-z_]+$`); err != nil {
+		return err
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}

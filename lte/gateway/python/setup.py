@@ -57,6 +57,7 @@ setup(
         'scripts/mobility_cli.py',
         'scripts/ocs_cli.py',
         'scripts/packet_ryu_cli.py',
+        'scripts/packet_tracer_cli.py',
         'scripts/pcrf_cli.py',
         'scripts/pipelined_cli.py',
         'scripts/policydb_cli.py',
@@ -70,10 +71,9 @@ setup(
     install_requires=[
         'Cython>=0.29.1',
         'pystemd==0.5.0',
-        # Waiting for a new fire release (v0.1.3 is too old)
-        'fire @ git+https://www.github.com/google/python-fire@'
-        '024fbad9424cfdb0d3c93c86c856aedbac0f9d48',
+        'fire>=0.2.0',
         'envoy>=0.0.3',
+        'glob2>=0.7',
         # lxml required by spyne.
         'lxml==4.2.1',
         'ryu>=4.30',
@@ -86,6 +86,15 @@ setup(
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',
         'pycrypto>=2.6.1',
+        # pin recursive dependencies of ryu and others
+        'chardet==3.0.4',
+        'docker==4.0.2',
+        'urllib3==1.25.3',
+        'websocket-client==0.56.0',
+        'requests==2.22.0',
+        'certifi==2019.6.16',
+        'idna==2.8',
+        'python-dateutil==2.8',
     ],
     extras_require={
         'dev': [

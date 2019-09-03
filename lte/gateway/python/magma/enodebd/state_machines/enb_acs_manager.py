@@ -12,6 +12,8 @@ from typing import Any, Optional, List
 from magma.common.service import MagmaService
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
+from magma.enodebd.device_config.configuration_util import is_enb_registered
+from magma.enodebd.exceptions import UnrecognizedEnodebError
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.acs_state_utils import \
     get_device_name_from_inform
@@ -41,12 +43,19 @@ class StateMachineManager:
         """ Delegate message handling to the appropriate eNB state machine """
         client_ip = self._get_client_ip(ctx)
         if isinstance(tr069_message, models.Inform):
-            self._update_device_mapping(client_ip, tr069_message)
-        handler = self._get_handler(client_ip)
+            try:
+                self._update_device_mapping(client_ip, tr069_message)
+            except UnrecognizedEnodebError as err:
+                logging.warning('Received TR-069 Inform message from an '
+                                'unrecognized device. '
+                                'Ending TR-069 session with empty HTTP '
+                                'response. Error: (%s)', err)
+                return models.DummyInput()
 
+        handler = self._get_handler(client_ip)
         if handler is None:
-            logging.warning('Received non-Inform tr069 msg from unknown eNB. '
-                            'Ending session with empty HTTP response.')
+            logging.warning('Received non-Inform TR-069 message from unknown '
+                            'eNB. Ending session with empty HTTP response.')
             return models.DummyInput()
 
         return handler.handle_tr069_message(tr069_message)
@@ -82,6 +91,9 @@ class StateMachineManager:
         messages can be handled correctly.
         """
         enb_serial = self._parse_msg_for_serial(inform)
+        if not is_enb_registered(self._service.mconfig, enb_serial):
+            raise UnrecognizedEnodebError('eNB not registered to this Access '
+                                          'Gateway (serial #%s)' % enb_serial)
         self._associate_serial_to_ip(client_ip, enb_serial)
         handler = self._get_handler(client_ip)
         if handler is None:

@@ -26,6 +26,39 @@ services:
     command: mysqld --sql_mode="ANSI_QUOTES"
     restart: always
 
+  controller:
+    volumes:
+      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
+    environment:
+      TEST_MODE: "1"  # Used to run dev scripts on startup
+      SQL_DRIVER: postgres
+      DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
+      SQL_DIALECT: psql
+
+      # To use MariaDB, use these connection parameters instead:
+      # SQL_DRIVER: mysql
+      # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
+      # SQL_DIALECT: maria
+
+      USE_NEW_HANDLERS: '1'
+      USE_NEW_MCONFIGS: '1'
+    links:
+      - fluentd
+    depends_on:
+      - postgres
+      - fluentd
+      # - maria
+    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
+    # command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 maria:[port] && /usr/bin/supervisord"]
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: ':24224'
+        tag: orc8r.controller
+        fluentd-retry-wait: '1s'
+        fluentd-max-retries: '30'
+    restart: always
+
   proxy:
     ports:
       - 9443:9443/tcp  # API/controller port
@@ -40,27 +73,45 @@ services:
       HTTP_PROXY_DOCKER_HOSTNAME: docker.io
       HTTP_PROXY_GITHUB_HOSTNAME: github.com
       TEST_MODE: "1"  # Used to run dev scripts on startup
-    restart: always
-
-  controller:
-    volumes:
-      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
-    environment:
-      TEST_MODE: "1"  # Used to run dev scripts on startup
-      SQL_DRIVER: postgres
-      DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
-      SQL_DIALECT: psql
-
-      USE_NEW_HANDLERS: '1'
-      USE_NEW_MCONFIGS: '1'
-
-      # To use MariaDB, use these connection parameters instead:
-      # SQL_DRIVER: mysql
-      # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
-      # SQL_DIALECT: maria
-    restart: always
     depends_on:
-      - postgres
-      # - maria
-    command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
-    # command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 maria:[port] && /usr/bin/supervisord"]
+      - fluentd
+    links:
+      - fluentd
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: ':24224'
+        tag: orc8r.proxy
+        fluentd-retry-wait: '1s'
+        fluentd-max-retries: '30'
+    restart: always
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.3.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+      - 9300:9300
+    volumes:
+      - $PWD/../../../.cache/orc8r/elasticdata:/usr/share/elasticsearch/data
+    restart: always
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.3.1
+    ports:
+      - 5601:5601
+    links:
+      - elasticsearch
+
+  fluentd:
+    build: ./fluentd
+    container_name: fluentd
+    links:
+      - elasticsearch
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    volumes:
+      - ./fluentd/conf:/fluentd/etc

@@ -458,7 +458,6 @@ ue_mm_context_t *mme_ue_context_exists_mme_ue_s1ap_id(
         "ECM_IDLE" :
         (ue_context_p->ecm_state == ECM_CONNECTED) ? "ECM_CONNECTED" :
                                                      "UNKNOWN");
-    // unlock_ue_contexts(ue_context_p);
   }
   return ue_context_p;
 }
@@ -470,7 +469,6 @@ struct ue_mm_context_s *mme_ue_context_exists_imsi(
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   uint64_t mme_ue_s1ap_id64 = 0;
 
-  mme_ue_context_dump_coll_keys();
   h_rc = hashtable_uint64_ts_get(
     mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl,
     (const hash_key_t) imsi,
@@ -482,7 +480,6 @@ struct ue_mm_context_s *mme_ue_context_exists_imsi(
   } else {
     OAILOG_WARNING(
       LOG_MME_APP, " No IMSI hashtable for IMSI " IMSI_64_FMT "\n", imsi);
-    mme_ue_context_dump_coll_keys();
   }
   return NULL;
 }

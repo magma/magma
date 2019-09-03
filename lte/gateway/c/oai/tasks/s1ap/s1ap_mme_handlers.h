@@ -184,6 +184,12 @@ int s1ap_mme_handle_ue_context_modification_failure(
   const sctp_stream_id_t stream,
   struct s1ap_message_s *message_p);
 
+int s1ap_mme_handle_erab_rel_response(
+  s1ap_state_t *state,
+  const sctp_assoc_id_t assoc_id,
+  const sctp_stream_id_t stream,
+  struct s1ap_message_s *message);
+
 int s1ap_mme_handle_enb_configuration_transfer(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,

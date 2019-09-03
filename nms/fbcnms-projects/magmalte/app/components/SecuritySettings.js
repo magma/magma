@@ -38,7 +38,7 @@ const styles = theme => ({
   },
 });
 
-type Props = WithAlert & ContextRouter & WithStyles & {};
+type Props = WithAlert & ContextRouter & WithStyles<typeof styles> & {};
 
 type State = {
   error: string,

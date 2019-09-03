@@ -25,6 +25,9 @@ type ImportingChainDef struct {
 	// Required: true
 	Baz *ImportingDef `json:"baz"`
 
+	// baz array
+	BazArray BazArray `json:"baz_array,omitempty"`
+
 	// foo
 	// Required: true
 	Foo *FooDef `json:"foo"`
@@ -39,6 +42,10 @@ func (m *ImportingChainDef) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateBaz(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateBazArray(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -83,6 +90,22 @@ func (m *ImportingChainDef) validateBaz(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *ImportingChainDef) validateBazArray(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.BazArray) { // not required
+		return nil
+	}
+
+	if err := m.BazArray.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("baz_array")
+		}
+		return err
 	}
 
 	return nil

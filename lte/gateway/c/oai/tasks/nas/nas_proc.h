@@ -146,5 +146,6 @@ int nas_proc_cs_service_notification(
   itti_nas_cs_service_notification_t *const cs_service_notification);
 int nas_proc_notify_service_reject(
   itti_nas_notify_service_reject_t *const service_reject_p);
-
+int nas_proc_delete_dedicated_bearer(
+  emm_cn_deactivate_dedicated_bearer_req_t *emm_cn_deactivate);
 #endif /* FILE_NAS_PROC_SEEN*/

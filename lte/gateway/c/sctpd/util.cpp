@@ -67,7 +67,6 @@ int create_sctp_sock(const InitReq &req)
 fail:
   close(sd);
   free(addrs);
-  exit(EXIT_FAILURE);
   return -1;
 }
 
@@ -85,11 +84,22 @@ int set_sctp_opts(
   init.sinit_max_init_timeo = init_timeout;
 
   if (setsockopt(sd, IPPROTO_SCTP, SCTP_INITMSG, &init, sizeof(init)) < 0) {
-    MLOG_perror("setsockopt");
+    MLOG_perror("setsockopt sctp");
     return -1;
   }
 
   int on = 1;
+
+  struct linger sctp_linger;
+  sctp_linger.l_onoff = on;
+  sctp_linger.l_linger = 0;  // send an ABORT
+  if (
+    setsockopt(sd, SOL_SOCKET, SO_LINGER, &sctp_linger, sizeof(sctp_linger)) < 0
+    ) {
+    MLOG_perror("setsockopt linger");
+    return -1;
+  }
+
   struct sctp_event_subscribe event;
   event.sctp_association_event = on;
   event.sctp_shutdown_event = on;

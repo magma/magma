@@ -33,8 +33,6 @@ imagePullSecrets: []
 metrics:
   metrics:
     create: false
-  graphite:
-    create: false
   prometheusCache:
     create: false
 

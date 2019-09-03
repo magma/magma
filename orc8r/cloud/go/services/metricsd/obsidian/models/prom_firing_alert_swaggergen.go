@@ -30,8 +30,7 @@ type PromFiringAlert struct {
 	Fingerprint *string `json:"fingerprint"`
 
 	// generator URL
-	// Required: true
-	GeneratorURL *string `json:"generatorURL"`
+	GeneratorURL string `json:"generatorURL,omitempty"`
 
 	// labels
 	// Required: true
@@ -39,7 +38,7 @@ type PromFiringAlert struct {
 
 	// receivers
 	// Required: true
-	Receivers *AlertReceiverConfig `json:"receivers"`
+	Receivers *GettableAlert `json:"receivers"`
 
 	// starts at
 	// Required: true
@@ -67,10 +66,6 @@ func (m *PromFiringAlert) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateFingerprint(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateGeneratorURL(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -124,15 +119,6 @@ func (m *PromFiringAlert) validateEndsAt(formats strfmt.Registry) error {
 func (m *PromFiringAlert) validateFingerprint(formats strfmt.Registry) error {
 
 	if err := validate.Required("fingerprint", "body", m.Fingerprint); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *PromFiringAlert) validateGeneratorURL(formats strfmt.Registry) error {
-
-	if err := validate.Required("generatorURL", "body", m.GeneratorURL); err != nil {
 		return err
 	}
 

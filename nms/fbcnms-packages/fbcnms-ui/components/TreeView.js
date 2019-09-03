@@ -31,7 +31,7 @@ type TreeNode = {
   children: TreeNode[],
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   /** The data to render as a tree view */
   tree: TreeNode[],
   /** ID of the selected node */

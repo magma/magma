@@ -28,8 +28,10 @@ import (
 // server
 func TestConnectionManager(t *testing.T) {
 	const (
-		Host  = datatype.DiameterIdentity("test.test.com")
-		Realm = datatype.DiameterIdentity("test.com")
+		ServerHost  = datatype.DiameterIdentity("test.test.com")
+		ServerRealm = datatype.DiameterIdentity("test.com")
+		ClientHost  = datatype.DiameterIdentity("test.magma.com")
+		ClientRealm = datatype.DiameterIdentity("magma.com")
 	)
 
 	var (
@@ -37,9 +39,10 @@ func TestConnectionManager(t *testing.T) {
 			Addr:     "127.0.0.1:0", // Addr will be updated by startTestServer to reflect assigned port
 			Protocol: "tcp"},
 		}
-		mux = sm.New(&sm.Settings{
-			OriginHost:  Host,
-			OriginRealm: Realm,
+		serverConnMan = NewConnectionManager()
+		mux           = sm.New(&sm.Settings{
+			OriginHost:  ClientHost,
+			OriginRealm: ClientRealm,
 			VendorID:    datatype.Unsigned32(Vendor3GPP),
 			ProductName: datatype.UTF8String("connection manager"),
 		})
@@ -54,9 +57,20 @@ func TestConnectionManager(t *testing.T) {
 				diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.CHARGING_CONTROL_APP_ID)),
 			},
 		}
+		serverSmCli = &sm.Client{
+			Dict:               dict.Default,
+			Handler:            mux,
+			MaxRetransmits:     3,
+			RetransmitInterval: time.Second,
+			EnableWatchdog:     true,
+			WatchdogInterval:   5 * time.Second,
+			AuthApplicationID: []*diam.AVP{
+				diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.CHARGING_CONTROL_APP_ID)),
+			},
+		}
 		testServerMux = sm.New(&sm.Settings{
-			OriginHost:  Host,
-			OriginRealm: Realm,
+			OriginHost:  ServerHost,
+			OriginRealm: ServerRealm,
 			VendorID:    datatype.Unsigned32(Vendor3GPP),
 			ProductName: datatype.UTF8String("hello"),
 		})
@@ -65,8 +79,8 @@ func TestConnectionManager(t *testing.T) {
 
 		newMessage = func() *diam.Message {
 			m := diam.NewRequest(diam.CreditControl, diam.CHARGING_CONTROL_APP_ID, nil)
-			m.NewAVP(avp.OriginHost, avp.Mbit, 0, Host)
-			m.NewAVP(avp.OriginRealm, avp.Mbit, 0, Realm)
+			m.NewAVP(avp.OriginHost, avp.Mbit, 0, ClientHost)
+			m.NewAVP(avp.OriginRealm, avp.Mbit, 0, ClientRealm)
 			return m
 		}
 
@@ -85,16 +99,16 @@ func TestConnectionManager(t *testing.T) {
 			}
 		}
 
-		verifyRequest = func(message *diam.Message) error {
+		verifyRequest = func(conn diam.Conn, message *diam.Message, server *DiameterServerConfig) error {
 			host, _ := message.FindAVP(avp.DestinationHost, 0)
 			realm, _ := message.FindAVP(avp.DestinationRealm, 0)
 			if host == nil {
-				return fmt.Errorf("Missing Destinatin-Host AVP; realm: %+v", realm)
+				return fmt.Errorf("Missing Destination-Host AVP; realm: %+v", realm)
 			}
 			if realm == nil {
-				return fmt.Errorf("Missing Destinatin-Realm AVP; host: %+v", host)
+				return fmt.Errorf("Missing Destination-Realm AVP; host: %+v", host)
 			}
-			return nil
+			return serverConnMan.AddExistingConnection(conn, serverSmCli, server)
 		}
 	)
 
@@ -115,8 +129,8 @@ func TestConnectionManager(t *testing.T) {
 	handlerChan := make(chan error)
 	testServerMux.HandleIdx(
 		diam.CommandIndex{AppID: diam.CHARGING_CONTROL_APP_ID, Code: diam.CreditControl, Request: true},
-		diam.HandlerFunc(func(_ diam.Conn, m *diam.Message) {
-			handlerChan <- verifyRequest(m)
+		diam.HandlerFunc(func(conn diam.Conn, m *diam.Message) {
+			handlerChan <- verifyRequest(conn, m, serverConfig)
 		}))
 	err = conn.SendRequest(newMessage(), 0)
 	assert.NoError(t, err)
@@ -126,6 +140,10 @@ func TestConnectionManager(t *testing.T) {
 	case <-time.After(time.Second):
 		t.Fatal("SendRequest timeout")
 	}
+	serverConn, ok := serverConnMan.connMap[serverConfig.DiameterServerConnConfig]
+	assert.True(t, ok)
+	assert.Equal(t, serverConn.conn.LocalAddr(), conn.conn.RemoteAddr())
+	assert.Equal(t, serverConn.conn.RemoteAddr(), conn.conn.LocalAddr())
 
 	// Test retries
 	// On first call to Write, return error, next time, return nil

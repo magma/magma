@@ -14,6 +14,7 @@ magma_services:
   - eap_aka
   - aaa_server
   - redis
+  - radiusd
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -70,3 +71,4 @@ metricsd:
     - sessiond
     - eap_aka
     - aaa_server
+    - radiusd

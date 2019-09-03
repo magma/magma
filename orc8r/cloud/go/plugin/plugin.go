@@ -16,14 +16,13 @@ import (
 	"reflect"
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 
 	"github.com/golang/glog"
@@ -51,11 +50,6 @@ type OrchestratorPlugin interface {
 	// for many core orchestrator services.
 	GetSerdes() []serde.Serde
 
-	// GetLegacyMconfigBuilders returns a list of MconfigBuilders to register
-	// with the config streamer application. These builders are responsible for
-	// constructing gateway mconfigs from cloud-stored configs.
-	GetLegacyMconfigBuilders() []factory.MconfigBuilder
-
 	// GetMconfigBuilders returns a list of MconfigBuilders to register with
 	// the configurator service. These builder are responsible for constructing
 	// mconfigs to pass down to gateways.
@@ -68,7 +62,7 @@ type OrchestratorPlugin interface {
 
 	// GetObsidianHandlers returns all the custom obsidian handlers for the
 	// plugin to add functionality to the REST API.
-	GetObsidianHandlers(metricsConfig *config.ConfigMap) []handlers.Handler
+	GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler
 
 	// GetStreamerProviders returns streamer streams to expose to gateways.
 	// These stream providers are the primary mechanism by which gateways
@@ -174,11 +168,10 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 	if err := serde.RegisterSerdes(orc8rPlugin.GetSerdes()...); err != nil {
 		return err
 	}
-	factory.RegisterMconfigBuilders(orc8rPlugin.GetLegacyMconfigBuilders()...)
 	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles(metricsConfig)...); err != nil {
 		return err
 	}
-	if err := handlers.RegisterAll(orc8rPlugin.GetObsidianHandlers(metricsConfig)); err != nil {
+	if err := obsidian.RegisterAll(orc8rPlugin.GetObsidianHandlers(metricsConfig)); err != nil {
 		return err
 	}
 	if err := providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...); err != nil {

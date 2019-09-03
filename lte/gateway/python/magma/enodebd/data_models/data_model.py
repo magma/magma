@@ -48,7 +48,8 @@ class DataModel(ABC):
         if not param_info.is_optional:
             return True
         if param_name not in self._presence_by_param:
-            raise KeyError('Parameter presence not yet marked in data model')
+            raise KeyError('Parameter presence not yet marked in data '
+                           'model: %s' % param_name)
         return self._presence_by_param[param_name]
 
     def set_parameter_presence(

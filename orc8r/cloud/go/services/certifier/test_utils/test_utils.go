@@ -16,6 +16,7 @@ import (
 	"math/big"
 	"time"
 
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
 
@@ -64,7 +65,7 @@ func createCSR(validTime time.Duration, cn string, id *protos.Identity) (*protos
 
 func CreateSignedCertAndPrivKey(validTime time.Duration) (*x509.Certificate, interface{}, error) {
 	priv, err := key.GenerateKey("", 2048)
-	notBefore := time.Now().UTC()
+	notBefore := clock.Now().UTC()
 	notAfter := notBefore.Add(validTime)
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)

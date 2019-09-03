@@ -19,18 +19,28 @@ import (
 	"magma/orc8r/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/diam/dict"
 	"github.com/fiorix/go-diameter/diam/sm"
 	"golang.org/x/net/context"
 )
 
-const hssProductName = "magma"
+const (
+	hssProductName = "magma"
+	maxDiamRetries = 1
+	timeoutSeconds = 10
+)
 
 // HomeSubscriberServer tracks all the accounts needed for authenticating users.
 type HomeSubscriberServer struct {
-	store    storage.SubscriberStore
-	Config   *mconfig.HSSConfig
-	Milenage *crypto.MilenageCipher
+	store          storage.SubscriberStore
+	Config         *mconfig.HSSConfig
+	Milenage       *crypto.MilenageCipher
+	smClient       *sm.Client
+	connMan        *diameter.ConnectionManager
+	requestTracker *diameter.RequestTracker
+	clientMapping  map[string]string
 
 	// authSqnInd is an index used in the array scheme described by 3GPP TS 33.102 Appendix C.1.2 and C.2.2.
 	// SQN consists of two parts (SQN = SEQ||IND).
@@ -45,9 +55,12 @@ func NewHomeSubscriberServer(store storage.SubscriberStore, config *mconfig.HSSC
 		return nil, err
 	}
 	return &HomeSubscriberServer{
-		store:    store,
-		Config:   config,
-		Milenage: milenage,
+		store:          store,
+		Config:         config,
+		Milenage:       milenage,
+		requestTracker: diameter.NewRequestTracker(),
+		connMan:        diameter.NewConnectionManager(),
+		clientMapping:  map[string]string{},
 	}, nil
 }
 
@@ -89,6 +102,17 @@ func (srv *HomeSubscriberServer) DeleteSubscriber(ctx context.Context, req *ltep
 	return &protos.Void{}, err
 }
 
+// DeRegisterSubscriber de-registers a subscriber by their Id.
+// If the subscriber is not found, an error is returned instead.
+// Input: The id of the subscriber to be deregistered.
+func (srv *HomeSubscriberServer) DeregisterSubscriber(ctx context.Context, req *lteprotos.SubscriberID) (*protos.Void, error) {
+	sub, err := srv.store.GetSubscriberData(req.Id)
+	if err != nil {
+		return &protos.Void{}, storage.ConvertStorageErrorToGrpcStatus(err)
+	}
+	return &protos.Void{}, srv.TerminateRegistration(sub)
+}
+
 // Start begins the server and blocks, listening to the network
 // Input: a channel to signal when the server is started
 // Output: error if the server could not be started
@@ -109,6 +133,34 @@ func (srv *HomeSubscriberServer) Start(started chan struct{}) error {
 	mux.Handle(diam.ULR, srv.handleMessage(NewULA))
 	mux.Handle(diam.MAR, srv.handleMessage(NewMAA))
 	mux.Handle(diam.SAR, srv.handleMessage(NewSAA))
+	mux.HandleIdx(
+		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.RegistrationTermination, Request: false},
+		handleRTA(srv))
+
+	clientCfg := diameter.DiameterClientConfig{}
+	clientCfg.FillInDefaults()
+	if clientCfg.WatchdogInterval == 0 {
+		clientCfg.WatchdogInterval = diameter.DefaultWatchdogIntervalSeconds
+	}
+	srv.smClient = &sm.Client{
+		Dict:               dict.Default,
+		Handler:            mux,
+		MaxRetransmits:     clientCfg.Retransmits,
+		RetransmitInterval: time.Second,
+		EnableWatchdog:     true,
+		WatchdogInterval:   time.Second * time.Duration(clientCfg.WatchdogInterval),
+		SupportedVendorID: []*diam.AVP{
+			diam.NewAVP(avp.SupportedVendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+		},
+		VendorSpecificApplicationID: []*diam.AVP{
+			diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+				AVP: []*diam.AVP{
+					diam.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.TGPP_SWX_APP_ID)),
+					diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
+				},
+			}),
+		},
+	}
 
 	server := &diam.Server{
 		Network: serverCfg.Protocol,

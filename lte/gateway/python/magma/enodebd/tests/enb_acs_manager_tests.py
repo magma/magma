@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 # pylint: disable=protected-access
-from unittest import TestCase, mock
+from unittest import TestCase
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from magma.enodebd.tr069 import models
 from magma.enodebd.tests.test_utils.enb_acs_builder import \
@@ -98,6 +98,32 @@ class StateMachineManagerTests(TestCase):
         self.assertTrue(isinstance(resp2, models.GetParameterValues),
                         'State machine should be requesting param values')
 
+    def test_handle_registered_enb(self):
+        """
+        When we have a config with eNB registered per serial, we should accept
+        TR-069 sessions from any registered eNB, and ereject from unregistered
+        eNB devices.
+        """
+        manager = self._get_manager_multi_enb()
+        ip1 = "192.168.60.145"
+        ctx1 = get_spyne_context_with_ip(ip1)
+        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
+                                                    'BaiBS_RTS_3.1.6',
+                                                    '120200002618AGP0003')
+        resp1 = manager.handle_tr069_message(ctx1, inform_msg)
+        self.assertTrue(isinstance(resp1, models.InformResponse),
+                        'Should respond with an InformResponse')
+
+        ip2 = "192.168.60.146"
+        ctx2 = get_spyne_context_with_ip(ip2)
+        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
+                                                    'BaiBS_RTS_3.1.6',
+                                                    'unregistered_ip')
+
+        resp2 = manager.handle_tr069_message(ctx2, inform_msg)
+        self.assertTrue(isinstance(resp2, models.DummyInput),
+                        'Should respond with an empty HTTP response')
+
     def test_ip_change(self) -> None:
         manager = self._get_manager()
 
@@ -172,4 +198,8 @@ class StateMachineManagerTests(TestCase):
 
     def _get_manager(self) -> StateMachineManager:
         service = EnodebAcsStateMachineBuilder.build_magma_service()
+        return StateMachineManager(service)
+
+    def _get_manager_multi_enb(self) -> StateMachineManager:
+        service = EnodebAcsStateMachineBuilder.build_multi_enb_magma_service()
         return StateMachineManager(service)

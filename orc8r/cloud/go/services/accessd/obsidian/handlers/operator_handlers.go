@@ -12,20 +12,20 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/labstack/echo"
-
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/accessd/obsidian/models"
 	accessprotos "magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
+
+	"github.com/labstack/echo"
 )
 
 func GetOperatorsRootHandler(c echo.Context) error {
 	operators, err := accessd.ListOperators()
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Permission Denied"), http.StatusForbidden)
+		return obsidian.HttpError(fmt.Errorf("Permission Denied"), http.StatusForbidden)
 	}
 	operatorIDs := make([]string, len(operators))
 	for i, operator := range operators {
@@ -37,27 +37,27 @@ func GetOperatorsRootHandler(c echo.Context) error {
 func PostOperatorsRootHandler(c echo.Context) error {
 	createOpRecord := new(models.CreateOperatorRecord)
 	if err := c.Bind(createOpRecord); err != nil {
-		return handlers.HttpError(err, http.StatusBadRequest)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	operator := identity.NewOperator(string(createOpRecord.Operator))
 	allOperators, err := accessd.ListOperators()
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Permission Denied"), http.StatusForbidden)
+		return obsidian.HttpError(fmt.Errorf("Permission Denied"), http.StatusForbidden)
 	}
 	for _, listedOperator := range allOperators {
 		if operator.HashString() == listedOperator.HashString() {
-			return handlers.HttpError(fmt.Errorf("Operator already exists"), http.StatusBadRequest)
+			return obsidian.HttpError(fmt.Errorf("Operator already exists"), http.StatusBadRequest)
 		}
 	}
 	accessControlEntities := models.ACLToProto(createOpRecord.Entities)
 	if err := accessd.SetOperator(operator, accessControlEntities); err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to create operator %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to create operator %s: %s",
 			operator.String(), err.Error()))
 	}
 	csr := models.CSRToProto(createOpRecord.Csr, operator)
 	certificate, err := certifier.SignCSR(csr)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to sign CSR: %s", err.Error()))
+		return obsidian.HttpError(fmt.Errorf("Failed to sign CSR: %s", err.Error()))
 	}
 	return c.Blob(http.StatusCreated, "string", certificate.CertDer)
 }
@@ -69,7 +69,7 @@ func GetOperatorsDetailHandler(c echo.Context) error {
 	}
 	certificateSNs, err := getCertificateSNs(operator)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to get certificates for operator %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to get certificates for operator %s: %s",
 			operator.String(), err.Error()))
 	}
 	accessControlEntities, err := accessd.GetOperatorACL(operator)
@@ -92,7 +92,7 @@ func DeleteOperatorsDetailHandler(c echo.Context) error {
 	}
 	certificateSNs, err := certifier.FindCertificates(operator)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to find certificates for %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to find certificates for %s: %s",
 			operator.String(), err.Error()))
 	}
 	for _, certificate := range certificateSNs {
@@ -100,7 +100,7 @@ func DeleteOperatorsDetailHandler(c echo.Context) error {
 	}
 	err = accessd.DeleteOperator(operator)
 	if err != nil {
-		return handlers.HttpError(fmt.Errorf("Failed to delete operator %s: %s",
+		return obsidian.HttpError(fmt.Errorf("Failed to delete operator %s: %s",
 			operator.String(), err.Error()))
 	}
 	return c.NoContent(http.StatusNoContent)

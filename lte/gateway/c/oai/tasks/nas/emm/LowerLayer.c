@@ -274,7 +274,7 @@ int lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause)
  **      been received from lower layers                           **
  **                                                                        **
  ** Inputs:  ue_id:      UE lower layer identifier                  **
- **      data:      Data transfered from lower layers          **
+ **      data:      Data transferred from lower layers          **
  **      Others:    None                                       **
  **                                                                        **
  ** Outputs:     None                                                      **
@@ -307,10 +307,10 @@ int lowerlayer_data_ind(mme_ue_s1ap_id_t ue_id, const_bstring data)
  ** Name:    lowerlayer_data_req()                                     **
  **                                                                        **
  ** Description: Notify the EPS Mobility Management entity that data have  **
- **      to be transfered to lower layers                          **
+ **      to be transferred to lower layers                          **
  **                                                                        **
  ** Inputs:  ue_id:      UE lower layer identifier                  **
- **          data:      Data to be transfered to lower layers      **
+ **          data:      Data to be transferred to lower layers      **
  **      Others:    None                                       **
  **                                                                        **
  ** Outputs:     None                                                      **
@@ -387,6 +387,40 @@ int lowerlayer_activate_bearer_req(
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+
+//------------------------------------------------------------------------------
+int lowerlayer_deactivate_bearer_req(
+  const mme_ue_s1ap_id_t ue_id,
+  const ebi_t ebi,
+  bstring data)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNok;
+  emm_sap_t emm_sap = {0};
+  emm_security_context_t *sctx = NULL;
+  ue_mm_context_t *ue_mm_context =
+    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+
+  emm_sap.primitive = EMMAS_ERAB_REL_CMD;
+  emm_sap.u.emm_as.u.deactivate_bearer_context_req.ebi = ebi;
+  emm_sap.u.emm_as.u.deactivate_bearer_context_req.ue_id = ue_id;
+
+  if (ue_mm_context) {
+    sctx = &ue_mm_context->emm_context._security;
+  }
+
+  emm_sap.u.emm_as.u.deactivate_bearer_context_req.nas_msg = data;
+  data = NULL;
+  /*
+   * Setup EPS NAS security data
+   */
+  emm_as_set_security_data(
+    &emm_sap.u.emm_as.u.deactivate_bearer_context_req.sctx, sctx, false, true);
+  rc = emm_sap_send(&emm_sap);
+  unlock_ue_contexts(ue_mm_context);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
 
 /*
    --------------------------------------------------------------------------

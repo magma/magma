@@ -13,7 +13,6 @@
 #include <assert.h>
 #include <netinet/sctp.h>
 #include <unistd.h>
-
 #include "sctpd.h"
 #include "util.h"
 
@@ -78,6 +77,13 @@ Status SctpdDownlinkImpl::SendDl(
 
   res->set_result(SendDlRes::SEND_DL_OK);
   return Status::OK;
+}
+
+void SctpdDownlinkImpl::stop()
+{
+  if (_sctp_connection != nullptr) {
+    _sctp_connection->Close();
+  }
 }
 
 } // namespace sctpd

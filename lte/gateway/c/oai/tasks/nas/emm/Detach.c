@@ -110,6 +110,7 @@ void _detach_t3422_handler(void *args)
   DevAssert(data);
 
   mme_ue_s1ap_id_t ue_id = data->ue_id;
+  uint8_t detach_type = data->detach_type;
 
   /*
    * Increment the retransmission counter
@@ -137,7 +138,7 @@ void _detach_t3422_handler(void *args)
       DevAssert(emm_ctx);
       //emm_ctx->t3422_arg = NULL;
     }
-    if (data->detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
+    if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
       emm_detach_request_params.switch_off = 0;
       emm_detach_request_params.type = 0;
@@ -167,7 +168,9 @@ void _clear_emm_ctxt(emm_context_t *emm_context)
   esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
   esm_sap.ue_id = ue_id;
   esm_sap.ctx = emm_context;
-  esm_sap.data.eps_bearer_context_deactivate.ebi = ESM_SAP_ALL_EBI;
+  esm_sap.data.eps_bearer_context_deactivate.ebi[0] = ESM_SAP_ALL_EBI;
+  esm_sap.data.eps_bearer_context_deactivate.is_pcrf_initiated = false;
+
   esm_sap_send(&esm_sap);
 
   if (emm_context->esm_msg) {

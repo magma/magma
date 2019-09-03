@@ -56,7 +56,9 @@ type SessionTable interface {
 	// existing session.
 	AddSession(pc *protos.Context, tout time.Duration, cb TimeoutNotifier, overwrite ...bool) (s Session, err error)
 	// GetSession returns session corresponding to the given sid or nil if not found
-	GetSession(sid string) (lockedSession Session)
+	GetSession(sid string) (session Session)
+	// FindSession returns session ID corresponding to the given IMSI (empty string if not found)
+	FindSession(imsi string) (sessionId string)
 	// RemoveSession - removes the session with the given SID and returns it, returns nil if not found
 	RemoveSession(sid string) Session
 	// SetTimeout - [Re]sets the session's cleanup timeout to fire after tout duration

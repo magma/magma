@@ -6,8 +6,6 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"strconv"
-
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -25,10 +23,10 @@ type NetworkDNSConfig struct {
 
 	// local ttl
 	// Required: true
-	LocalTTL *int32 `json:"local_ttl"`
+	LocalTTL *uint32 `json:"local_ttl"`
 
 	// records
-	Records []*DNSConfigRecord `json:"records"`
+	Records NetworkDNSRecords `json:"records,omitempty"`
 }
 
 // Validate validates this network dns config
@@ -77,20 +75,11 @@ func (m *NetworkDNSConfig) validateRecords(formats strfmt.Registry) error {
 		return nil
 	}
 
-	for i := 0; i < len(m.Records); i++ {
-		if swag.IsZero(m.Records[i]) { // not required
-			continue
+	if err := m.Records.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("records")
 		}
-
-		if m.Records[i] != nil {
-			if err := m.Records[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("records" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
+		return err
 	}
 
 	return nil

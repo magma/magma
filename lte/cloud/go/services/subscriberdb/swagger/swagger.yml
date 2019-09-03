@@ -137,11 +137,6 @@ definitions:
         x-go-custom-tag: 'magma_alt_name:"Id"'
       lte:
         $ref: '#/definitions/lte_subscription'
-      sub_profile:
-        type: string
-        minLength: 1
-        description: Subscription profile name
-        example: 'default'
   # this is a read-only object
   subscriber_state:
     type: object

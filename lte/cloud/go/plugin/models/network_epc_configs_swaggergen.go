@@ -31,22 +31,27 @@ type NetworkEpcConfigs struct {
 	// lte auth amf
 	// Required: true
 	// Format: byte
-	LteAuthAmf *strfmt.Base64 `json:"lte_auth_amf"`
+	LteAuthAmf strfmt.Base64 `json:"lte_auth_amf"`
 
 	// lte auth op
 	// Required: true
+	// Max Length: 16
+	// Min Length: 15
 	// Format: byte
-	LteAuthOp *strfmt.Base64 `json:"lte_auth_op"`
+	LteAuthOp strfmt.Base64 `json:"lte_auth_op"`
 
 	// mcc
 	// Required: true
 	// Pattern: ^(\d{3})$
-	Mcc *string `json:"mcc"`
+	Mcc string `json:"mcc"`
 
 	// mnc
 	// Required: true
 	// Pattern: ^(\d{2,3})$
-	Mnc *string `json:"mnc"`
+	Mnc string `json:"mnc"`
+
+	// mobility
+	Mobility *NetworkEpcConfigsMobility `json:"mobility,omitempty"`
 
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
@@ -61,7 +66,8 @@ type NetworkEpcConfigs struct {
 	// tac
 	// Required: true
 	// Maximum: 65535
-	Tac *uint32 `json:"tac"`
+	// Minimum: 1
+	Tac uint32 `json:"tac"`
 }
 
 // Validate validates this network epc configs
@@ -89,6 +95,10 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateMnc(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMobility(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -134,7 +144,7 @@ func (m *NetworkEpcConfigs) validateDefaultRuleID(formats strfmt.Registry) error
 
 func (m *NetworkEpcConfigs) validateLteAuthAmf(formats strfmt.Registry) error {
 
-	if err := validate.Required("lte_auth_amf", "body", m.LteAuthAmf); err != nil {
+	if err := validate.Required("lte_auth_amf", "body", strfmt.Base64(m.LteAuthAmf)); err != nil {
 		return err
 	}
 
@@ -145,7 +155,15 @@ func (m *NetworkEpcConfigs) validateLteAuthAmf(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateLteAuthOp(formats strfmt.Registry) error {
 
-	if err := validate.Required("lte_auth_op", "body", m.LteAuthOp); err != nil {
+	if err := validate.Required("lte_auth_op", "body", strfmt.Base64(m.LteAuthOp)); err != nil {
+		return err
+	}
+
+	if err := validate.MinLength("lte_auth_op", "body", string(m.LteAuthOp), 15); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("lte_auth_op", "body", string(m.LteAuthOp), 16); err != nil {
 		return err
 	}
 
@@ -156,11 +174,11 @@ func (m *NetworkEpcConfigs) validateLteAuthOp(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateMcc(formats strfmt.Registry) error {
 
-	if err := validate.Required("mcc", "body", m.Mcc); err != nil {
+	if err := validate.RequiredString("mcc", "body", string(m.Mcc)); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("mcc", "body", string(*m.Mcc), `^(\d{3})$`); err != nil {
+	if err := validate.Pattern("mcc", "body", string(m.Mcc), `^(\d{3})$`); err != nil {
 		return err
 	}
 
@@ -169,12 +187,30 @@ func (m *NetworkEpcConfigs) validateMcc(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateMnc(formats strfmt.Registry) error {
 
-	if err := validate.Required("mnc", "body", m.Mnc); err != nil {
+	if err := validate.RequiredString("mnc", "body", string(m.Mnc)); err != nil {
 		return err
 	}
 
-	if err := validate.Pattern("mnc", "body", string(*m.Mnc), `^(\d{2,3})$`); err != nil {
+	if err := validate.Pattern("mnc", "body", string(m.Mnc), `^(\d{2,3})$`); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateMobility(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Mobility) { // not required
+		return nil
+	}
+
+	if m.Mobility != nil {
+		if err := m.Mobility.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mobility")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -250,11 +286,15 @@ func (m *NetworkEpcConfigs) validateSubProfiles(formats strfmt.Registry) error {
 
 func (m *NetworkEpcConfigs) validateTac(formats strfmt.Registry) error {
 
-	if err := validate.Required("tac", "body", m.Tac); err != nil {
+	if err := validate.Required("tac", "body", uint32(m.Tac)); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("tac", "body", int64(*m.Tac), 65535, false); err != nil {
+	if err := validate.MinimumInt("tac", "body", int64(m.Tac), 1, false); err != nil {
+		return err
+	}
+
+	if err := validate.MaximumInt("tac", "body", int64(m.Tac), 65535, false); err != nil {
 		return err
 	}
 
@@ -279,19 +319,353 @@ func (m *NetworkEpcConfigs) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
+// NetworkEpcConfigsMobility Configuration for IP Allocation (Mobility).
+// swagger:model NetworkEpcConfigsMobility
+type NetworkEpcConfigsMobility struct {
+
+	// ip allocation mode
+	// Required: true
+	// Enum: [NAT STATIC DHCP_PASSTHROUGH DHCP_BROADCAST]
+	IPAllocationMode string `json:"ip_allocation_mode"`
+
+	// nat
+	Nat *NetworkEpcConfigsMobilityNat `json:"nat,omitempty"`
+
+	// reserved addresses
+	ReservedAddresses []strfmt.IPv4 `json:"reserved_addresses"`
+
+	// static
+	Static *NetworkEpcConfigsMobilityStatic `json:"static,omitempty"`
+}
+
+// Validate validates this network epc configs mobility
+func (m *NetworkEpcConfigsMobility) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateIPAllocationMode(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNat(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateReservedAddresses(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStatic(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+var networkEpcConfigsMobilityTypeIPAllocationModePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["NAT","STATIC","DHCP_PASSTHROUGH","DHCP_BROADCAST"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		networkEpcConfigsMobilityTypeIPAllocationModePropEnum = append(networkEpcConfigsMobilityTypeIPAllocationModePropEnum, v)
+	}
+}
+
+const (
+
+	// NetworkEpcConfigsMobilityIPAllocationModeNAT captures enum value "NAT"
+	NetworkEpcConfigsMobilityIPAllocationModeNAT string = "NAT"
+
+	// NetworkEpcConfigsMobilityIPAllocationModeSTATIC captures enum value "STATIC"
+	NetworkEpcConfigsMobilityIPAllocationModeSTATIC string = "STATIC"
+
+	// NetworkEpcConfigsMobilityIPAllocationModeDHCPPASSTHROUGH captures enum value "DHCP_PASSTHROUGH"
+	NetworkEpcConfigsMobilityIPAllocationModeDHCPPASSTHROUGH string = "DHCP_PASSTHROUGH"
+
+	// NetworkEpcConfigsMobilityIPAllocationModeDHCPBROADCAST captures enum value "DHCP_BROADCAST"
+	NetworkEpcConfigsMobilityIPAllocationModeDHCPBROADCAST string = "DHCP_BROADCAST"
+)
+
+// prop value enum
+func (m *NetworkEpcConfigsMobility) validateIPAllocationModeEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, networkEpcConfigsMobilityTypeIPAllocationModePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateIPAllocationMode(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("mobility"+"."+"ip_allocation_mode", "body", string(m.IPAllocationMode)); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateIPAllocationModeEnum("mobility"+"."+"ip_allocation_mode", "body", m.IPAllocationMode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateNat(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Nat) { // not required
+		return nil
+	}
+
+	if m.Nat != nil {
+		if err := m.Nat.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mobility" + "." + "nat")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateReservedAddresses(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ReservedAddresses) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.ReservedAddresses); i++ {
+
+		if err := validate.FormatOf("mobility"+"."+"reserved_addresses"+"."+strconv.Itoa(i), "body", "ipv4", m.ReservedAddresses[i].String(), formats); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateStatic(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Static) { // not required
+		return nil
+	}
+
+	if m.Static != nil {
+		if err := m.Static.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mobility" + "." + "static")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobility) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobility) UnmarshalBinary(b []byte) error {
+	var res NetworkEpcConfigsMobility
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkEpcConfigsMobilityNat network epc configs mobility nat
+// swagger:model NetworkEpcConfigsMobilityNat
+type NetworkEpcConfigsMobilityNat struct {
+
+	// ip blocks
+	IPBlocks []string `json:"ip_blocks"`
+}
+
+// Validate validates this network epc configs mobility nat
+func (m *NetworkEpcConfigsMobilityNat) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateIPBlocks(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobilityNat) validateIPBlocks(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPBlocks) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.IPBlocks); i++ {
+
+		if err := validate.MinLength("mobility"+"."+"nat"+"."+"ip_blocks"+"."+strconv.Itoa(i), "body", string(m.IPBlocks[i]), 5); err != nil {
+			return err
+		}
+
+		if err := validate.MaxLength("mobility"+"."+"nat"+"."+"ip_blocks"+"."+strconv.Itoa(i), "body", string(m.IPBlocks[i]), 49); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityNat) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityNat) UnmarshalBinary(b []byte) error {
+	var res NetworkEpcConfigsMobilityNat
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkEpcConfigsMobilityStatic network epc configs mobility static
+// swagger:model NetworkEpcConfigsMobilityStatic
+type NetworkEpcConfigsMobilityStatic struct {
+
+	// ip blocks by tac
+	IPBlocksByTac map[string][]string `json:"ip_blocks_by_tac,omitempty"`
+}
+
+// Validate validates this network epc configs mobility static
+func (m *NetworkEpcConfigsMobilityStatic) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateIPBlocksByTac(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobilityStatic) validateIPBlocksByTac(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPBlocksByTac) { // not required
+		return nil
+	}
+
+	for k := range m.IPBlocksByTac {
+
+		for i := 0; i < len(m.IPBlocksByTac[k]); i++ {
+
+			if err := validate.MinLength("mobility"+"."+"static"+"."+"ip_blocks_by_tac"+"."+k+"."+strconv.Itoa(i), "body", string(m.IPBlocksByTac[k][i]), 5); err != nil {
+				return err
+			}
+
+			if err := validate.MaxLength("mobility"+"."+"static"+"."+"ip_blocks_by_tac"+"."+k+"."+strconv.Itoa(i), "body", string(m.IPBlocksByTac[k][i]), 49); err != nil {
+				return err
+			}
+
+		}
+
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityStatic) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityStatic) UnmarshalBinary(b []byte) error {
+	var res NetworkEpcConfigsMobilityStatic
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
 // NetworkEpcConfigsSubProfilesAnon network epc configs sub profiles anon
 // swagger:model NetworkEpcConfigsSubProfilesAnon
 type NetworkEpcConfigsSubProfilesAnon struct {
 
 	// max dl bit rate
-	MaxDlBitRate uint64 `json:"max_dl_bit_rate,omitempty"`
+	// Required: true
+	// Minimum: > 0
+	MaxDlBitRate uint64 `json:"max_dl_bit_rate"`
 
 	// max ul bit rate
-	MaxUlBitRate uint64 `json:"max_ul_bit_rate,omitempty"`
+	// Required: true
+	// Minimum: > 0
+	MaxUlBitRate uint64 `json:"max_ul_bit_rate"`
 }
 
 // Validate validates this network epc configs sub profiles anon
 func (m *NetworkEpcConfigsSubProfilesAnon) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateMaxDlBitRate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMaxUlBitRate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsSubProfilesAnon) validateMaxDlBitRate(formats strfmt.Registry) error {
+
+	if err := validate.Required("max_dl_bit_rate", "body", uint64(m.MaxDlBitRate)); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("max_dl_bit_rate", "body", int64(m.MaxDlBitRate), 0, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsSubProfilesAnon) validateMaxUlBitRate(formats strfmt.Registry) error {
+
+	if err := validate.Required("max_ul_bit_rate", "body", uint64(m.MaxUlBitRate)); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("max_ul_bit_rate", "body", int64(m.MaxUlBitRate), 0, true); err != nil {
+		return err
+	}
+
 	return nil
 }
 

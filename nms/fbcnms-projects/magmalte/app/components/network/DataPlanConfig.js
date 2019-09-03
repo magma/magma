@@ -64,7 +64,7 @@ type State = {
   loading: boolean,
 };
 
-type Props = WithStyles & ContextRouter & WithAlert & {};
+type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
 
 class DataPlanConfig extends React.Component<Props, State> {
   state = {

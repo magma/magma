@@ -9,13 +9,15 @@ LICENSE file in the root directory of this source tree.
 package utils_test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"magma/lte/cloud/go/services/cellular/utils"
 	"testing"
+
+	"magma/lte/cloud/go/services/cellular/utils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetBand(t *testing.T) {
-	expected := map[int32]int32{
+	expected := map[uint32]uint32{
 		0:     1,
 		599:   1,
 		600:   2,
@@ -33,7 +35,7 @@ func TestGetBand(t *testing.T) {
 }
 
 func TestGetBandError(t *testing.T) {
-	expectedErr := [...]int32{-1, 45590, 45591}
+	expectedErr := [...]uint32{45590, 45591}
 
 	for _, earfcndl := range expectedErr {
 		_, err := utils.GetBand(earfcndl)

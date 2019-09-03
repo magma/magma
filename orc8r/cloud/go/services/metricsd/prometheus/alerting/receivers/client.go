@@ -10,10 +10,10 @@ package receivers
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"sync"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/prometheus/alertmanager/config"
@@ -25,21 +25,38 @@ const (
 	networkBaseRoutePostfix = "network_base_route"
 )
 
+type AlertmanagerClient interface {
+	CreateReceiver(networkID string, rec Receiver) error
+	GetReceivers(networkID string) ([]Receiver, error)
+	UpdateReceiver(networkID string, newRec *Receiver) error
+	DeleteReceiver(networkID, receiverName string) error
+
+	// ModifyNetworkRoute updates an existing routing tree for the given
+	// network, or creates one if it already exists. Ensures that the base
+	// route matches all alerts with label "networkID" = <networkID>.
+	ModifyNetworkRoute(networkID string, route *config.Route) error
+
+	// GetRoute returns the routing tree for the given networkID
+	GetRoute(networkID string) (*config.Route, error)
+}
+
 // Client provides methods to create and read receiver configurations
-type Client struct {
+type client struct {
 	configPath string
+	fsClient   files.FSClient
 	sync.RWMutex
 }
 
-func NewClient(configPath string) *Client {
-	return &Client{
+func NewClient(configPath string, fsClient files.FSClient) AlertmanagerClient {
+	return &client{
 		configPath: configPath,
+		fsClient:   fsClient,
 	}
 }
 
 // CreateReceiver writes a new receiver to the config file with the networkID
 // prepended to the name so multiple networks can be supported
-func (c *Client) CreateReceiver(rec *Receiver, networkID string) error {
+func (c *client) CreateReceiver(networkID string, rec Receiver) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -48,7 +65,7 @@ func (c *Client) CreateReceiver(rec *Receiver, networkID string) error {
 	}
 
 	rec.Secure(networkID)
-	conf.Receivers = append(conf.Receivers, rec)
+	conf.Receivers = append(conf.Receivers, &rec)
 	err = conf.Validate()
 	if err != nil {
 		return err
@@ -57,7 +74,7 @@ func (c *Client) CreateReceiver(rec *Receiver, networkID string) error {
 }
 
 // GetReceivers returns the receiver configs for the given networkID
-func (c *Client) GetReceivers(networkID string) ([]Receiver, error) {
+func (c *client) GetReceivers(networkID string) ([]Receiver, error) {
 	c.RLock()
 	defer c.RUnlock()
 	conf, err := c.readConfigFile()
@@ -75,10 +92,58 @@ func (c *Client) GetReceivers(networkID string) ([]Receiver, error) {
 	return recs, nil
 }
 
+// UpdateReceiver modifies an existing receiver
+func (c *client) UpdateReceiver(networkID string, newRec *Receiver) error {
+	c.Lock()
+	defer c.Unlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return err
+	}
+
+	newRec.Secure(networkID)
+	receiverIdx := -1
+	for idx, rec := range conf.Receivers {
+		if rec.Name == newRec.Name {
+			receiverIdx = idx
+		}
+	}
+	if receiverIdx < 0 {
+		return fmt.Errorf("Receiver '%s' not found", newRec.Name)
+	}
+
+	conf.Receivers[receiverIdx] = newRec
+	err = conf.Validate()
+	if err != nil {
+		return fmt.Errorf("Error updating receiver: %v", err)
+	}
+	return c.writeConfigFile(conf)
+}
+
+// DeleteReceiver removes a receiver from the configuration
+func (c *client) DeleteReceiver(networkID, receiverName string) error {
+	c.Lock()
+	defer c.Unlock()
+	conf, err := c.readConfigFile()
+	if err != nil {
+		return err
+	}
+
+	receiverToDelete := secureReceiverName(receiverName, networkID)
+	for idx, rec := range conf.Receivers {
+		if rec.Name == receiverToDelete {
+			conf.Receivers = append(conf.Receivers[:idx], conf.Receivers[idx+1:]...)
+			return c.writeConfigFile(conf)
+		}
+	}
+
+	return fmt.Errorf("Receiver '%s' does not exist", receiverName)
+}
+
 // ModifyNetworkRoute takes a new route for a network and replaces the old one,
 // ensuring that receivers are properly named and the resulting config is valid.
 // Creates a new one if it doesn't already exist
-func (c *Client) ModifyNetworkRoute(route *config.Route, networkID string) error {
+func (c *client) ModifyNetworkRoute(networkID string, route *config.Route) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -86,17 +151,19 @@ func (c *Client) ModifyNetworkRoute(route *config.Route, networkID string) error
 		return err
 	}
 	// ensure base route is valid base route for this network
-	route.Receiver = makeBaseRouteName(networkID)
+	baseRoute := c.getBaseRouteForNetwork(networkID, conf)
+	route.Receiver = baseRoute.Receiver
 	if route.Match == nil {
 		route.Match = map[string]string{}
 	}
+
 	route.Match[exporters.NetworkLabelNetwork] = networkID
 
 	for _, childRoute := range route.Routes {
 		if childRoute == nil {
 			continue
 		}
-		secureRoute(childRoute, networkID)
+		secureRoute(networkID, childRoute)
 	}
 
 	networkRouteIdx := conf.GetRouteIdx(makeBaseRouteName(networkID))
@@ -117,7 +184,7 @@ func (c *Client) ModifyNetworkRoute(route *config.Route, networkID string) error
 }
 
 // GetRoute returns the base route for the given networkID
-func (c *Client) GetRoute(networkID string) (*config.Route, error) {
+func (c *client) GetRoute(networkID string) (*config.Route, error) {
 	c.RLock()
 	defer c.RUnlock()
 	conf, err := c.readConfigFile()
@@ -128,15 +195,15 @@ func (c *Client) GetRoute(networkID string) (*config.Route, error) {
 	routeIdx := conf.GetRouteIdx(makeBaseRouteName(networkID))
 	if routeIdx >= 0 {
 		route := conf.Route.Routes[routeIdx]
-		unsecureRoute(route, networkID)
+		unsecureRoute(networkID, route)
 		return route, nil
 	}
 	return nil, fmt.Errorf("Route for network %s does not exist", networkID)
 }
 
-func (c *Client) readConfigFile() (*Config, error) {
+func (c *client) readConfigFile() (*Config, error) {
 	configFile := Config{}
-	file, err := ioutil.ReadFile(c.configPath)
+	file, err := c.fsClient.ReadFile(c.configPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config files: %v", err)
 	}
@@ -144,12 +211,12 @@ func (c *Client) readConfigFile() (*Config, error) {
 	return &configFile, err
 }
 
-func (c *Client) writeConfigFile(conf *Config) error {
+func (c *client) writeConfigFile(conf *Config) error {
 	yamlFile, err := yaml.Marshal(conf)
 	if err != nil {
 		return fmt.Errorf("error marshaling config file: %v", err)
 	}
-	err = ioutil.WriteFile(c.configPath, yamlFile, 0660)
+	err = c.fsClient.WriteFile(c.configPath, yamlFile, 0660)
 	if err != nil {
 		return fmt.Errorf("error writing config file: %v", err)
 	}
@@ -158,19 +225,19 @@ func (c *Client) writeConfigFile(conf *Config) error {
 
 // secureRoute ensure that all receivers in the route have the
 // proper networkID-prefixed receiver name
-func secureRoute(route *config.Route, networkID string) {
+func secureRoute(networkID string, route *config.Route) {
 	route.Receiver = secureReceiverName(route.Receiver, networkID)
 	for _, childRoute := range route.Routes {
-		secureRoute(childRoute, networkID)
+		secureRoute(networkID, childRoute)
 	}
 }
 
 // unsecureRoute traverses a routing tree and reverts receiver
 // names to their non-prefixed original names
-func unsecureRoute(route *config.Route, networkID string) {
+func unsecureRoute(networkID string, route *config.Route) {
 	route.Receiver = unsecureReceiverName(route.Receiver, networkID)
 	for _, childRoute := range route.Routes {
-		unsecureRoute(childRoute, networkID)
+		unsecureRoute(networkID, childRoute)
 	}
 }
 
@@ -178,14 +245,15 @@ func receiverNetworkPrefix(networkID string) string {
 	return strings.Replace(networkID, "_", "", -1) + "_"
 }
 
-func (c *Client) getBaseRouteForNetwork(networkID string, conf *Config) (*config.Route, error) {
+func (c *client) getBaseRouteForNetwork(networkID string, conf *Config) *config.Route {
 	baseRouteName := makeBaseRouteName(networkID)
 	for _, route := range conf.Route.Routes {
 		if route.Receiver == baseRouteName {
-			return route, nil
+			return route
 		}
 	}
-	return nil, fmt.Errorf("base route for %s not found", networkID)
+	newBaseRoute := &config.Route{Receiver: makeBaseRouteName(networkID)}
+	return newBaseRoute
 }
 
 func makeBaseRouteName(networkID string) string {

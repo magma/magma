@@ -23,9 +23,6 @@ export default function(
   const variablesJSON = JSON.stringify(variables);
   useEffect(() => {
     const variables = JSON.parse(variablesJSON);
-    if (!Object.keys(variables).length) {
-      return;
-    }
 
     setError(null);
     setIsLoading(true);

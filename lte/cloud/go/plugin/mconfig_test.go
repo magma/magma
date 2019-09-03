@@ -13,14 +13,15 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin"
+	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
-	"magma/lte/cloud/go/services/cellular/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
-	models2 "magma/orc8r/cloud/go/services/dnsd/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,9 +32,9 @@ func TestBuilder_Build(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: newDefaultTDDNetworkConfig(),
-			orc8r.DnsdNetworkType: &models2.NetworkDNSConfig{
-				EnableCaching: true,
+			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
+			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
+				EnableCaching: swag.Bool(true),
 			},
 		},
 	}
@@ -67,11 +68,8 @@ func TestBuilder_Build(t *testing.T) {
 	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
-			Earfcndl:               44590,
-			SubframeAssignment:     2,
-			SpecialSubframePattern: 7,
-			Pci:                    260,
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
 			TddConfig: &mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
@@ -109,8 +107,8 @@ func TestBuilder_Build(t *testing.T) {
 			MmeCode:                  1,
 			MmeGid:                   1,
 			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
-			CsfbMcc:                  "",
-			CsfbMnc:                  "",
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
@@ -155,7 +153,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: newDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
@@ -179,11 +177,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
-			LogLevel:               protos.LogLevel_INFO,
-			Earfcndl:               44590,
-			SubframeAssignment:     2,
-			SpecialSubframePattern: 7,
-			Pci:                    260,
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
 			TddConfig: &mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
@@ -209,8 +204,8 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			MmeCode:                  1,
 			MmeGid:                   1,
 			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
-			CsfbMcc:                  "",
-			CsfbMnc:                  "",
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
@@ -247,62 +242,162 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func newDefaultTDDNetworkConfig() *models.NetworkCellularConfigs {
-	return &models.NetworkCellularConfigs{
-		Ran: &models.NetworkRanConfigs{
-			BandwidthMhz:           20,
-			Earfcndl:               44590,
-			SubframeAssignment:     2,
-			SpecialSubframePattern: 7,
-			TddConfig: &models.NetworkRanConfigsTddConfig{
+// minimal configuration of enodeB, inherit rest of props from nw/gw configs
+func TestBuilder_BuildInheritedProperties(t *testing.T) {
+	builder := &plugin.Builder{}
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
+			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
+				EnableCaching: swag.Bool(true),
+			},
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayType, Key: "gw1"},
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayType, Key: "gw1",
+		Config: newDefaultGatewayConfig(),
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+		},
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	enb := configurator.NetworkEntity{
+		Type: lte.CellularEnodebType, Key: "enb1",
+		Config: &models2.EnodebConfiguration{
+			CellID:          swag.Uint32(42),
+			DeviceClass:     "Baicells ID TDD/FDD",
+			TransmitEnabled: swag.Bool(true),
+		},
+		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+		},
+	}
+
+	actual := map[string]proto.Message{}
+	expected := map[string]proto.Message{
+		"enodebd": &mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
 				SpecialSubframePattern: 7,
 			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            []int32{},
+			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
+				"enb1": {
+					Earfcndl:               44590,
+					SubframeAssignment:     2,
+					SpecialSubframePattern: 7,
+					Pci:                    260,
+					TransmitEnabled:        true,
+					DeviceClass:            "Baicells ID TDD/FDD",
+					BandwidthMhz:           20,
+					Tac:                    1,
+					CellId:                 42,
+				},
+			},
 		},
-		Epc: &models.NetworkEpcConfigs{
-			Mcc: "001",
-			Mnc: "01",
-			Tac: 1,
-			// 16 bytes of \x11
-			LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf: []byte("\x80\x00"),
+		"mobilityd": &mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &mconfig.MME{
+			LogLevel:                 protos.LogLevel_INFO,
+			Mcc:                      "001",
+			Mnc:                      "01",
+			Tac:                      1,
+			MmeCode:                  1,
+			MmeGid:                   1,
+			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
+			Lac:                      1,
+			RelayEnabled:             false,
+			CloudSubscriberdbEnabled: false,
+			EnableDnsCaching:         true,
+			AttachedEnodebTacs:       []int32{1},
+		},
+		"pipelined": &mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    true,
+			DefaultRuleId: "",
+			Services: []mconfig.PipelineD_NetworkServices{
+				mconfig.PipelineD_METERING,
+				mconfig.PipelineD_DPI,
+				mconfig.PipelineD_ENFORCEMENT,
+			},
+		},
+		"subscriberdb": &mconfig.SubscriberDB{
+			LogLevel:     protos.LogLevel_INFO,
+			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:   []byte("\x80\x00"),
+			SubProfiles:  map[string]*mconfig.SubscriberDB_SubscriptionProfile{},
+			RelayEnabled: false,
+		},
+		"policydb": &mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &mconfig.SessionD{
+			LogLevel:     protos.LogLevel_INFO,
+			RelayEnabled: false,
 		},
 	}
+	err := builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
 
-func newDefaultGatewayConfig() *models.GatewayCellularConfigs {
-	return &models.GatewayCellularConfigs{
-		AttachedEnodebSerials: []string{"enb1"},
-		Ran: &models.GatewayRanConfigs{
+func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
+	return &models2.GatewayCellularConfigs{
+		Ran: &models2.GatewayRanConfigs{
 			Pci:             260,
-			TransmitEnabled: true,
+			TransmitEnabled: swag.Bool(true),
 		},
-		Epc: &models.GatewayEpcConfigs{
-			NatEnabled: true,
+		Epc: &models2.GatewayEpcConfigs{
+			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models.GatewayNonEpsServiceConfigs{
-			CsfbMcc:              "",
-			CsfbMnc:              "",
-			Lac:                  1,
-			CsfbRat:              0,
+		NonEpsService: &models2.GatewayNonEpsConfigs{
+			CsfbMcc:              "001",
+			CsfbMnc:              "01",
+			Lac:                  swag.Uint32(1),
+			CsfbRat:              swag.Uint32(0),
 			Arfcn2g:              []uint32{},
-			NonEpsServiceControl: 0,
+			NonEpsServiceControl: swag.Uint32(0),
 		},
 	}
 }
 
-func newDefaultEnodebConfig() *models.NetworkEnodebConfigs {
-	return &models.NetworkEnodebConfigs{
+func newDefaultEnodebConfig() *models2.EnodebConfiguration {
+	return &models2.EnodebConfiguration{
 		Earfcndl:               39150,
 		SubframeAssignment:     2,
 		SpecialSubframePattern: 7,
 		Pci:                    260,
-		CellID:                 138777000,
+		CellID:                 swag.Uint32(138777000),
 		Tac:                    15000,
 		BandwidthMhz:           20,
-		TransmitEnabled:        true,
+		TransmitEnabled:        swag.Bool(true),
 		DeviceClass:            "Baicells ID TDD/FDD",
 	}
 }

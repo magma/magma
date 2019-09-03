@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"strconv"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -17,38 +19,106 @@ import (
 // swagger:model slack_receiver
 type SLACKReceiver struct {
 
+	// actions
+	Actions []*SLACKAction `json:"actions"`
+
 	// api url
 	// Required: true
 	APIURL *string `json:"api_url"`
 
+	// callback id
+	CallbackID string `json:"callback_id,omitempty"`
+
 	// channel
-	// Required: true
-	Channel *string `json:"channel"`
+	Channel string `json:"channel,omitempty"`
+
+	// color
+	Color string `json:"color,omitempty"`
+
+	// fallback
+	Fallback string `json:"fallback,omitempty"`
+
+	// fields
+	Fields []*SLACKField `json:"fields"`
+
+	// footer
+	Footer string `json:"footer,omitempty"`
+
+	// icon emoji
+	IconEmoji string `json:"icon_emoji,omitempty"`
+
+	// icon url
+	IconURL string `json:"icon_url,omitempty"`
+
+	// image url
+	ImageURL string `json:"image_url,omitempty"`
+
+	// link names
+	LinkNames bool `json:"link_names,omitempty"`
+
+	// pretext
+	Pretext string `json:"pretext,omitempty"`
+
+	// short fields
+	ShortFields bool `json:"short_fields,omitempty"`
+
+	// text
+	Text string `json:"text,omitempty"`
+
+	// thumb url
+	ThumbURL string `json:"thumb_url,omitempty"`
+
+	// title
+	Title string `json:"title,omitempty"`
 
 	// username
-	// Required: true
-	Username *string `json:"username"`
+	Username string `json:"username,omitempty"`
 }
 
 // Validate validates this slack receiver
 func (m *SLACKReceiver) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateActions(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateAPIURL(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := m.validateChannel(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateUsername(formats); err != nil {
+	if err := m.validateFields(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *SLACKReceiver) validateActions(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Actions) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.Actions); i++ {
+		if swag.IsZero(m.Actions[i]) { // not required
+			continue
+		}
+
+		if m.Actions[i] != nil {
+			if err := m.Actions[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("actions" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -61,19 +131,26 @@ func (m *SLACKReceiver) validateAPIURL(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKReceiver) validateChannel(formats strfmt.Registry) error {
+func (m *SLACKReceiver) validateFields(formats strfmt.Registry) error {
 
-	if err := validate.Required("channel", "body", m.Channel); err != nil {
-		return err
+	if swag.IsZero(m.Fields) { // not required
+		return nil
 	}
 
-	return nil
-}
+	for i := 0; i < len(m.Fields); i++ {
+		if swag.IsZero(m.Fields[i]) { // not required
+			continue
+		}
 
-func (m *SLACKReceiver) validateUsername(formats strfmt.Registry) error {
+		if m.Fields[i] != nil {
+			if err := m.Fields[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("fields" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
 
-	if err := validate.Required("username", "body", m.Username); err != nil {
-		return err
 	}
 
 	return nil

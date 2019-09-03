@@ -12,7 +12,6 @@ Before=magma@mme.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStartPre=/bin/sleep 60
 ExecStart=/usr/local/bin/sctpd
 MemoryAccounting=yes
 MemoryLimit=512M

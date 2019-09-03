@@ -792,7 +792,7 @@ int emm_recv_service_request(
     service_type = PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
                    ->sgs_context->csfb_service_type;
     /*
-     * if service request is received for either MO SMS or PS data,
+     * if service request is recieved for either MO SMS or PS data,
      * and if neaf flag is true then send the itti message to SGS
      * For triggering SGS ue activity indication message towards MSC.
      */
@@ -804,6 +804,16 @@ int emm_recv_service_request(
       }
       mme_ue_context_update_ue_sgs_neaf(ue_id, false);
     }
+  }
+  // If PCRF has initiated default bearer deact, send detach
+  if (emm_ctx->nw_init_bearer_deactv) {
+    emm_sap_t emm_sap = {0};
+    emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
+    emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = ue_id;
+    emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
+      NW_DETACH_TYPE_RE_ATTACH_NOT_REQUIRED;
+    rc = emm_sap_send(&emm_sap);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
   /*
    * Do following:

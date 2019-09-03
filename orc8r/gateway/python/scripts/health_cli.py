@@ -11,8 +11,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 import subprocess
 
 import os
-import sys
 import fire as fire
+from termcolor import colored
 
 from magma.common.health.docker_health_service import DockerHealthChecker
 from magma.common.health.health_service import GenericHealthChecker
@@ -36,11 +36,16 @@ class HealthCLI:
             if is_docker() \
             else GenericHealthChecker()
 
+    def __call__(self, *args, **kwargs):
+        self.status()
+
     def status(self):
         """
-        Global health status
-
-        example: `health_cli.py status` or just `health_cli.py`
+        Global health status \n
+        Example:
+            `health_cli.py status`
+            `health_cli.py`
+            `venvsudo health_cli.py` (if running without sufficient permissions)
         """
         print('Health Summary')
         # Check connection to the orchestrator
@@ -49,35 +54,34 @@ class HealthCLI:
         checkin, error = subprocess.Popen(['checkin_cli.py'],
                                           stdout=subprocess.PIPE).communicate()
         print(str(checkin, 'utf-8'))
-        return str(self._health_checker.get_health_summary())
+        print(str(self._health_checker.get_health_summary()))
 
     def magma_version(self):
         """
         Get the installed magma version
         """
-        return str(self._health_checker.get_magma_version())
+        print(str(self._health_checker.get_magma_version()))
 
     def kernel_version(self):
         """
         Get kernel version of the VM
         """
-        return str(self._health_checker.get_kernel_version())
+        print(str(self._health_checker.get_kernel_version()))
 
     def internet_status(self, host):
         """
-        Checks if it's possible to connect to the specified host
-
-        examples:
+        Checks if it's possible to connect to the specified host \n
+        Examples:
             `health_cli.py internet_status --host 8.8.8.8`
             `health_cli.py internet_status --host google.com`
         """
-        return str(self._health_checker.ping_status(host))
+        print(str(self._health_checker.ping_status(host)))
 
     def services_status(self):
         """
         Get status summary for all the magma services
         """
-        return str(self._health_checker.get_magma_services_summary())
+        print(str(self._health_checker.get_magma_services_summary()))
 
     def restarts_status(self):
         """
@@ -87,22 +91,21 @@ class HealthCLI:
 
     def error_status(self, service_names):
         """
-        How many errors have each service had since the last restart
-
-        examples:
+        How many errors have each service had since the last restart \n
+        Examples:
             `health_cli.py error_status --service_names mme,dnsd`
             `health_cli.py error_status --service_names '[pipelined,mme]'`
+        :param service_names: list or tuple of service names
         """
-        return '\n'.join(['{}:\t{}'.format(name, errors) for name, errors in
-                          self._health_checker
-                              .get_error_summary(service_names)
-                              .items()
-                          ])
+        print('\n'.join(['{}:\t{}'.format(name, errors) for name, errors in
+                         self._health_checker
+                        .get_error_summary(service_names)
+                        .items()]))
+
 
 if __name__ == '__main__':
     health_cli = HealthCLI()
-
-    if len(sys.argv) == 1:
-        fire.Fire(health_cli.status)
-    else:
+    try:
         fire.Fire(health_cli)
+    except Exception as e:
+        print(colored('Error:', 'red'), e)

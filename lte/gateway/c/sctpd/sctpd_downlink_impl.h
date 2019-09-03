@@ -41,6 +41,9 @@ class SctpdDownlinkImpl final : public SctpdDownlink::Service {
     const SendDlReq *request,
     SendDlRes *response) override;
 
+  // Close SCTP connection for this SctpdDownlink.
+  void stop();
+
  private:
   SctpEventHandler &_uplink_handler;
   std::unique_ptr<SctpConnection> _sctp_connection;

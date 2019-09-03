@@ -9,14 +9,11 @@ LICENSE file in the root directory of this source tree.
 package view_factory_test
 
 import (
-	"encoding/json"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
-	checkintu "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorti "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratortu "magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -24,7 +21,7 @@ import (
 	deviceti "magma/orc8r/cloud/go/services/device/test_init"
 	storagetu "magma/orc8r/cloud/go/services/magmad/obsidian/handlers/test_utils"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
-	"magma/orc8r/cloud/go/services/magmad/obsidian/models"
+	"magma/orc8r/cloud/go/services/state"
 	stateti "magma/orc8r/cloud/go/services/state/test_init"
 	statetu "magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
@@ -36,18 +33,16 @@ var cfg1 = &storagetu.Conf1{Value1: 1, Value2: "foo", Value3: []byte("bar")}
 var cfg2 = &storagetu.Conf2{Value1: []string{"foo", "bar"}, Value2: 1}
 
 func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	// Test setup
 	configuratorti.StartTestService(t)
 	deviceti.StartTestService(t)
 	stateti.StartTestService(t)
 
-	serde.UnregisterAllSerdes(t)
 	err := serde.RegisterSerdes(
 		storagetu.NewConfig1ConfiguratorManager(),
 		storagetu.NewConfig2ConfiguratorManager(),
-		&pluginimpl.GatewayStatusSerde{},
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.AccessGatewayRecord{}),
+		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
+		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
 	)
 	assert.NoError(t, err)
 
@@ -57,11 +52,11 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 	gatewayID2 := "gw2"
 	hwID1 := "hw1"
 	hwID2 := "hw2"
-	record1 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID1}}
-	record2 := &models.AccessGatewayRecord{HwID: &models.HwGatewayID{ID: hwID2}}
+	record1 := &models.GatewayDevice{HardwareID: hwID1}
+	record2 := &models.GatewayDevice{HardwareID: hwID2}
 	configuratortu.RegisterNetwork(t, networkID, "xservice1")
-	configuratortu.RegisterGateway(t, networkID, gatewayID1, record1)
-	configuratortu.RegisterGateway(t, networkID, gatewayID2, record2)
+	configuratortu.RegisterGatewayWithName(t, networkID, gatewayID1, "111", record1)
+	configuratortu.RegisterGatewayWithName(t, networkID, gatewayID2, "222", record2)
 
 	// configs for gw1
 	gw1config1 := configurator.NetworkEntity{
@@ -105,7 +100,7 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 
 	// put status into gw1
 	ctx := statetu.GetContextWithCertificate(t, hwID1)
-	gwStatus := checkintu.GetGatewayStatusSwaggerFixture(hwID1)
+	gwStatus := models.NewDefaultGatewayStatus(hwID1)
 	statetu.ReportGatewayStatus(t, ctx, gwStatus)
 
 	fact := &view_factory.FullGatewayViewFactoryImpl{}
@@ -127,7 +122,8 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 				storagetu.NewConfig2ConfiguratorManager().GetType(): cfg2,
 				orc8r.MagmadGatewayType:                             nil,
 			},
-			Status: checkintu.GetGatewayStatusSwaggerFixture(hwID1),
+			Name:   "111",
+			Status: models.NewDefaultGatewayStatus(hwID1),
 			Record: record1,
 		},
 		gatewayID2: {
@@ -136,15 +132,12 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 				storagetu.NewConfig1ConfiguratorManager().GetType(): cfg1,
 				orc8r.MagmadGatewayType:                             nil,
 			},
+			Name:   "222",
 			Record: record2,
 		},
 	}
 
-	marshaledExpected, err := json.Marshal(expected)
-	assert.NoError(t, err)
-	marshaledActual, err := json.Marshal(actual)
-	assert.NoError(t, err)
-	assert.Equal(t, marshaledExpected, marshaledActual)
+	assert.Equal(t, expected, actual)
 
 	// add an unrelated entity to gw1 and make sure only the config entities are loaded
 	nonConfigEntity, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
@@ -170,9 +163,5 @@ func TestFullGatewayViewFactoryImpl_GetGatewayViewsForNetwork(t *testing.T) {
 		}
 	}
 	// result should be the same as before, ignoring the non config ents
-	marshaledExpected, err = json.Marshal(expected)
-	assert.NoError(t, err)
-	marshaledActual, err = json.Marshal(actual)
-	assert.NoError(t, err)
-	assert.Equal(t, marshaledExpected, marshaledActual)
+	assert.Equal(t, expected, actual)
 }

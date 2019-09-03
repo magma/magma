@@ -21,18 +21,20 @@ from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     AllTableAssignments,
     TableAssignment,
-)
+    PacketDropTableId)
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     RelayDisabledException
+from magma.pipelined.app.packet_tracer import PacketTracingController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
 )
+from ryu.base.app_manager import AppManager
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -41,13 +43,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     """
 
     def __init__(self, loop, metering_stats, enforcer_app, enforcement_stats,
-                 dpi_app, ue_mac_app, service_manager):
+                 dpi_app, ue_mac_app, packet_tracer_app, service_manager):
         self._loop = loop
         self._metering_stats = metering_stats
         self._enforcer_app = enforcer_app
         self._enforcement_stats = enforcement_stats
         self._dpi_app = dpi_app
         self._ue_mac_app = ue_mac_app
+        self._packet_tracer_app = packet_tracer_app
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -255,6 +258,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._ue_mac_app.add_ue_mac_flow,
             request.sid.id, request.mac_addr)
         return resp
+
+    # --------------------------
+    # Packet tracer App
+    # --------------------------
+    def TracePacket(self, request, context):
+        if not self._service_manager.is_app_enabled(
+                PacketTracingController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return PacketDropTableId(table_id=-1)
+
+        manager = AppManager.get_instance()
+        drop_table_id = manager.applications[PacketTracingController.__name__] \
+            .trace_packet(request.pkt, request.imsi)
+
+        return PacketDropTableId(table_id=drop_table_id)
 
     # --------------------------
     # Debugging

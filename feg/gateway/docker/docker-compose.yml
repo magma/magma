@@ -104,6 +104,11 @@ services:
       S6A_LOCAL_ADDR: :${S6A_LOCAL_PORT}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
 
+  radiusd:
+    <<: *goservice
+    container_name: radiusd
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+
   control_proxy:
     <<: *pyservice
     container_name: control_proxy
@@ -124,7 +129,12 @@ services:
       - ${CONFIGS_VOLUME}:/var/opt/magma/configs
       - ${SNOWFLAKE_PATH}:/etc/snowflake 
       - /var/run/docker.sock:/var/run/docker.sock
-    command: python3 -m magma.magmad.main
+      - ./:/var/opt/magma/docker
+    environment:
+      DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: python3.5 -m magma.magmad.main
 
   redis:
     <<: *pyservice
@@ -151,6 +161,8 @@ services:
       - RADIUS_SECRET=123456
       - COA_FIXED_ENDPOINT=127.0.0.1:4799
       - AAA_ENDPOINT=aaa_server:9109
+      - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
+      - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
     restart: always
 
 networks:
