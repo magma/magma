@@ -44,6 +44,11 @@ const PROXY_OPTIONS = {
 };
 
 export async function networkIdFilter(req: FBCNMSRequest): Promise<boolean> {
+  // If not using organizations, always allow
+  if (!req.organization) {
+    return true;
+  }
+
   const organization = await req.organization();
 
   // If the request isn't an organization network, block
@@ -84,20 +89,22 @@ export async function networksResponseDecorator(
     networkIds = JSON.parse(proxyResData.toString('utf8'));
   }
 
-  const organization = await userReq.organization();
-  let result;
-  if (userReq.user.isSuperUser) {
-    // if this is a Super User, they have access to all networks in the org
-    // that are also available in the Magma controller
-    result = intersection(organization.networkIDs, networkIds);
-  } else {
-    // otherwise, the list of networks is further restricted to what the user
-    // is allowed to see
-    result = intersection(
-      organization.networkIDs,
-      networkIds,
-      userReq.user.networkIDs,
-    );
+  let result = networkIds;
+  if (userReq.organization) {
+    const organization = await userReq.organization();
+    if (userReq.user.isSuperUser) {
+      // if this is a Super User, they have access to all networks in the org
+      // that are also available in the Magma controller
+      result = intersection(organization.networkIDs, networkIds);
+    } else {
+      // otherwise, the list of networks is further restricted to what the user
+      // is allowed to see
+      result = intersection(
+        organization.networkIDs,
+        networkIds,
+        userReq.user.networkIDs,
+      );
+    }
   }
 
   return JSON.stringify(result);
