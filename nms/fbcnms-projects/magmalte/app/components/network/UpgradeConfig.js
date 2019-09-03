@@ -53,7 +53,7 @@ type State = {
   supportedVersions: ?(string[]),
 };
 
-type Props = WithAlert & WithStyles & ContextRouter & {};
+type Props = WithAlert & WithStyles<typeof styles> & ContextRouter & {};
 
 const styles = _theme => ({
   header: {

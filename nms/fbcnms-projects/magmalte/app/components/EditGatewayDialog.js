@@ -34,7 +34,7 @@ const styles = {
 };
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gateway: {[string]: any}) => void,
     gateway: ?Gateway,

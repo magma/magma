@@ -20,7 +20,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import React from 'react';
 import {withStyles} from '@material-ui/core/styles';
 
-type Props = WithStyles & {|
+type Props = WithStyles<typeof styles> & {|
   cancelLabel?: Node,
   confirmLabel?: Node,
   message: Node,

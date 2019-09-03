@@ -11,19 +11,20 @@ package device
 import (
 	"context"
 
-	"magma/orc8r/cloud/go/errors"
-	magma_errors "magma/orc8r/cloud/go/errors"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/device/protos"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 func getDeviceClient() (protos.DeviceClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
@@ -104,9 +105,39 @@ func GetDevice(networkID, deviceType, deviceKey string) (interface{}, error) {
 	}
 	device, ok := res.DeviceMap[deviceKey]
 	if !ok {
-		return nil, magma_errors.ErrNotFound
+		return nil, merrors.ErrNotFound
 	}
 	return serde.Deserialize(SerdeDomain, deviceType, device.Info)
+}
+
+func GetDevices(networkID string, deviceType string, deviceIDs []string) (map[string]interface{}, error) {
+	if len(deviceIDs) == 0 {
+		return map[string]interface{}{}, nil
+	}
+	client, err := getDeviceClient()
+	if err != nil {
+		return nil, err
+	}
+
+	requestIDs := funk.Map(
+		deviceIDs,
+		func(id string) *protos.DeviceID { return &protos.DeviceID{Type: deviceType, DeviceID: id} },
+	).([]*protos.DeviceID)
+	req := &protos.GetDeviceInfoRequest{NetworkID: networkID, DeviceIDs: requestIDs}
+	res, err := client.GetDeviceInfo(context.Background(), req)
+	if err != nil {
+		return map[string]interface{}{}, err
+	}
+
+	ret := make(map[string]interface{}, len(res.DeviceMap))
+	for k, val := range res.DeviceMap {
+		iVal, err := serde.Deserialize(SerdeDomain, deviceType, val.Info)
+		if err != nil {
+			return map[string]interface{}{}, errors.Wrapf(err, "failed to deserialize device %s", k)
+		}
+		ret[k] = iVal
+	}
+	return ret, nil
 }
 
 func DoesDeviceExist(networkID, deviceType, deviceID string) bool {

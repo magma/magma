@@ -16,7 +16,9 @@ using namespace lte;
 enum ServiceActionType {
   CONTINUE_SERVICE = 0,
   TERMINATE_SERVICE = 1,
-  ACTIVATE_SERVICE = 2
+  ACTIVATE_SERVICE = 2,
+  REDIRECT = 3,
+  RESTRICT_ACCESS = 4,
 };
 
 /**

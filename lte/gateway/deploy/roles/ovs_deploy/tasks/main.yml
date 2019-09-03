@@ -1,0 +1,100 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+
+- fail: msg="PACKAGE_LOCATION is required"
+  when:
+    - PACKAGE_LOCATION is not defined
+
+- name: Include vars of all.yaml.
+  include_vars:
+    file: all.yaml
+    name: all_vars
+
+- name: Converting PACKAGE_LOCATION to absolute path
+  shell: realpath {{ PACKAGE_LOCATION }}
+  register: PACKAGE_LOCATION_ABSOLUTE
+
+- name: Update and upgrade apt packages
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: Install dependencies.
+  become: yes
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - graphviz
+      - debhelper
+      - dh-autoreconf
+      - python-all
+      - python-twisted-conch
+      - module-assistant
+      - openssl
+      - pkg-config
+      - libssl-dev
+      - build-essential
+      - dkms
+      - uuid-runtime
+
+- name: Load built packages.
+  shell: dpkg -i {{PACKAGE_LOCATION_ABSOLUTE.stdout}}/{{ item }}
+  become: yes
+  with_items:
+    - "{{ all_vars.packages }}"
+
+- name: Configuring private package manager.
+  shell: echo "{{ all_vars.private_package }}" | tee /etc/apt/sources.list.d/{{ all_vars.source_name }}.list
+  become: yes
+
+- name: Add Apt signing key.
+  shell: apt-key adv --fetch-keys "{{ all_vars.apt_key }}"
+  become: yes
+
+- name: Update and upgrade apt packages.
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: Installing magma.
+  become: yes
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - magma
+
+- name: Configuring magma apt preferences.
+  shell: "{{ item }}"
+  become: yes
+  with_items:
+    - 'echo "Package: *" > /etc/apt/preferences.d/magma-preferences'
+    - 'echo "Pin: origin packages.magma.etagecom.io" >> /etc/apt/preferences.d/magma-preferences'
+    - 'echo "Pin-Priority: 900" >> /etc/apt/preferences.d/magma-preferences'
+
+- name: Start service openvswitch-switch.
+  become: yes
+  service:
+    name: openvswitch-switch
+    state: started
+
+- name: Stop all magma services.
+  become: yes
+  shell: service magmad@* stop
+
+- name: Bring up gtp_br0
+  shell: ifup gtp_br0
+  become: yes
+
+- name: Start service magma@magmad.
+  become: yes
+  service:
+    name: magma@magmad
+    state: started

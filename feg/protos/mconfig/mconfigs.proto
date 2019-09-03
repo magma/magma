@@ -78,6 +78,10 @@ message SwxConfig {
     // Flag to ensure that a user is authorized for Non-3GPP IP Access
     bool verify_authorization = 3;
     uint32 CacheTTLSeconds = 4;
+     // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 5;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 6;
 }
 
 message EapAkaConfig {
@@ -142,4 +146,6 @@ message RadiusdConfig {
     string radius_metrics_path = 2;
     // Interval in seconds between fetching and updating metrics
     uint32 update_interval_secs = 3;
+    // Hostname for prometheus metrics
+    string radius_metrics_host = 4;
 }

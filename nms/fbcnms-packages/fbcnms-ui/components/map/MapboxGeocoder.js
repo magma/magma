@@ -5,6 +5,7 @@
  * LICENSE file in the root directory of this source tree.
  *
  * @format
+ * @flow
  */
 
 'use strict';
@@ -13,11 +14,14 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import Paper from '@material-ui/core/Paper';
-import PropTypes from 'prop-types';
 import React from 'react';
 import SearchBar from './SearchBar';
 import axios from 'axios';
+import mapboxgl from 'mapbox-gl';
 import {withStyles} from '@material-ui/core/styles';
+
+import type {Node} from 'react';
+import type {WithStyles} from '@material-ui/core/styles';
 
 const styles = {
   root: {
@@ -32,7 +36,39 @@ const styles = {
   },
 };
 
-class MapboxGeocoder extends React.Component {
+// Pulled this out so that it can be refined later.
+type Feature = Object; // it should be a subtype of GeoJSONFeature
+type Result = {feature: Feature};
+
+type Props = {
+  accessToken: string,
+  mapRef: ?mapboxgl.Map,
+  onSelectFeature: Feature => void, // should be GeoJSONFeature
+  // Mapbox geocoding API: https://www.mapbox.com/api-documentation/#geocoding
+  apiEndpoint: string,
+  // Debounce searches at this interval
+  searchDebounceMs: number,
+  // (query : str) => results : arr of obj
+  getCustomResults?: ?(query: string) => Array<Result>,
+  // If getCustomResults is defined, should we search for default places?
+  // (customResults : arr of obj) => bool
+  shouldSearchPlaces?: ?(customResults: Array<Result>) => boolean,
+  // (result : obj, handleClearInput : func) => <ListItem> or null
+  onRenderResult?: ?(result: Result, handleClearInput: () => void) => Node,
+} & WithStyles<typeof styles>;
+
+type State = {
+  value: string,
+  isLoading: boolean,
+  results: Array<Result>,
+};
+
+class MapboxGeocoder extends React.Component<Props, State> {
+  static defaultProps = {
+    apiEndpoint: 'https://api.mapbox.com/geocoding/v5/mapbox.places/',
+    searchDebounceMs: 200,
+  };
+
   state = {
     value: '',
     isLoading: false,
@@ -66,13 +102,14 @@ class MapboxGeocoder extends React.Component {
 
     // Construct GET request
     // See: https://www.mapbox.com/api-documentation/#search-for-places
-    const params = {
+    const params: {[string]: string} = {
       access_token: accessToken,
       ...this.getProximity(),
     };
-    const encodedParams = Object.entries(params)
-      .map(kv => kv.map(encodeURIComponent).join('='))
+    const encodedParams = Object.keys(params)
+      .map(k => k + '=' + params[k])
       .join('&');
+
     const uri =
       apiEndpoint + encodeURIComponent(query) + '.json?' + encodedParams;
 
@@ -98,7 +135,7 @@ class MapboxGeocoder extends React.Component {
       });
   };
 
-  getProximity() {
+  getProximity(): {[string]: string} {
     // Return proximity arguments based on the current map center and zoom level
     // (or none if not applicable)
     const {mapRef} = this.props;
@@ -119,7 +156,7 @@ class MapboxGeocoder extends React.Component {
     this.setState({value: '', results: [], isLoading: false});
   };
 
-  renderResult = result => {
+  renderResult = (result: Result): Node => {
     // Render a single result
     const {onSelectFeature, onRenderResult} = this.props;
 
@@ -186,33 +223,5 @@ class MapboxGeocoder extends React.Component {
     );
   }
 }
-
-MapboxGeocoder.propTypes = {
-  classes: PropTypes.object.isRequired,
-  accessToken: PropTypes.string.isRequired,
-  mapRef: PropTypes.object,
-  onSelectFeature: PropTypes.func.isRequired,
-
-  // Mapbox geocoding API: https://www.mapbox.com/api-documentation/#geocoding
-  apiEndpoint: PropTypes.string,
-
-  // Debounce searches at this interval
-  searchDebounceMs: PropTypes.number,
-
-  // (query : str) => results : arr of obj
-  getCustomResults: PropTypes.func,
-
-  // If getCustomResults is defined, should we search for default places?
-  // (customResults : arr of obj) => bool
-  shouldSearchPlaces: PropTypes.func,
-
-  // (result : obj, handleClearInput : func) => <ListItem> or null
-  onRenderResult: PropTypes.func,
-};
-
-MapboxGeocoder.defaultProps = {
-  apiEndpoint: 'https://api.mapbox.com/geocoding/v5/mapbox.places/',
-  searchDebounceMs: 200,
-};
 
 export default withStyles(styles)(MapboxGeocoder);

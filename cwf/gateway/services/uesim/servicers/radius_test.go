@@ -15,7 +15,6 @@ import (
 
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2869"
-	"magma/cwf/gateway/services/uesim/servicers"
 	"magma/feg/gateway/services/eap"
 
 	"github.com/stretchr/testify/assert"
@@ -84,9 +83,11 @@ func TestMissingEapPacket(t *testing.T) {
 }
 
 func TestEapToRadius(t *testing.T) {
+	server, _, err := setupTest()
+	assert.NoError(t, err)
 	eapMessage := []byte(EapIdentityResponsePacket)
 	expectedIdentifier := uint8(1)
-	radiusP, err := servicers.EapToRadius(eap.Packet(eapMessage), expectedIdentifier)
+	radiusP, err := server.EapToRadius(eap.Packet(eapMessage), expectedIdentifier)
 	assert.NoError(t, err)
 	assert.True(t, reflect.DeepEqual(radius.CodeAccessRequest, radiusP.Code))
 	assert.True(t, reflect.DeepEqual(expectedIdentifier, radiusP.Identifier))

@@ -9,63 +9,51 @@ LICENSE file in the root directory of this source tree.
 package streamer
 
 import (
-	"os"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
 	protos2 "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/magmad"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 )
 
+const (
+	policyStreamName   = "policydb"
+	baseNameStreamName = "base_names"
+)
+
 type PoliciesProvider struct{}
 
 func (provider *PoliciesProvider) GetStreamName() string {
-	return "policydb"
+	return policyStreamName
 }
 
 func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	migrated := os.Getenv(orc8r.UseConfiguratorEnv)
-	if migrated == "1" {
-		gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
-		if err != nil {
-			return nil, err
-		}
-
-		ruleEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.PolicyRuleEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
-		if err != nil {
-			return nil, err
-		}
-
-		ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts))
-		for _, rule := range ruleEnts {
-			ruleConfig := rule.Config.(*models.PolicyRule)
-			ruleProto := &protos2.PolicyRule{}
-			err = ruleConfig.ToProto(ruleProto)
-			if err != nil {
-				return nil, err
-			}
-			ruleProtos = append(ruleProtos, ruleProto)
-		}
-		return rulesToUpdates(ruleProtos)
-	} else {
-		networkId, err := magmad.FindGatewayNetworkId(gatewayId)
-		if err != nil {
-			return nil, err
-		}
-		policies, err := policydb.GetAllRules(networkId)
-		if err != nil {
-			return nil, err
-		}
-		return rulesToUpdates(policies)
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return nil, err
 	}
+
+	ruleEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.PolicyRuleEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return nil, err
+	}
+
+	ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts))
+	for _, rule := range ruleEnts {
+		ruleConfig := rule.Config.(*models.PolicyRule)
+		ruleProto := &protos2.PolicyRule{}
+		err = ruleConfig.ToProto(ruleProto)
+		if err != nil {
+			return nil, err
+		}
+		ruleProtos = append(ruleProtos, ruleProto)
+	}
+	return rulesToUpdates(ruleProtos)
 }
 
 func rulesToUpdates(rules []*protos2.PolicyRule) ([]*protos.DataUpdate, error) {
@@ -84,51 +72,38 @@ func rulesToUpdates(rules []*protos2.PolicyRule) ([]*protos.DataUpdate, error) {
 type BaseNamesProvider struct{}
 
 func (provider *BaseNamesProvider) GetStreamName() string {
-	return "base_names"
+	return baseNameStreamName
 }
 
 func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	migrated := os.Getenv(orc8r.UseConfiguratorEnv)
-	if migrated == "1" {
-		gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
-		if err != nil {
-			return nil, err
-		}
-
-		bnEnts, err := configurator.LoadAllEntitiesInNetwork(
-			gwEnt.NetworkID,
-			lte.BaseNameEntityType,
-			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts))
-		for _, bn := range bnEnts {
-			bnConfig := bn.Config.(*models.BaseNameRecord)
-			ruleNames := make([]string, 0, len(bn.Associations))
-			for _, assoc := range bn.Associations {
-				ruleNames = append(ruleNames, assoc.Key)
-			}
-			bnProto := &protos2.ChargingRuleBaseNameRecord{
-				Name:         string(bnConfig.Name),
-				RuleNamesSet: &protos2.ChargingRuleNameSet{RuleNames: ruleNames},
-			}
-			bnProtos = append(bnProtos, bnProto)
-		}
-		return bnsToUpdates(bnProtos)
-	} else {
-		networkId, err := magmad.FindGatewayNetworkId(gatewayId)
-		if err != nil {
-			return nil, err
-		}
-		baseNameRecords, err := policydb.GetAllBaseNames(networkId)
-		if err != nil {
-			return nil, err
-		}
-		return bnsToUpdates(baseNameRecords)
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return nil, err
 	}
+
+	bnEnts, err := configurator.LoadAllEntitiesInNetwork(
+		gwEnt.NetworkID,
+		lte.BaseNameEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts))
+	for _, bn := range bnEnts {
+		bnConfig := bn.Config.(*models.BaseNameRecord)
+		ruleNames := make([]string, 0, len(bn.Associations))
+		for _, assoc := range bn.Associations {
+			ruleNames = append(ruleNames, assoc.Key)
+		}
+		bnProto := &protos2.ChargingRuleBaseNameRecord{
+			Name:         string(bnConfig.Name),
+			RuleNamesSet: &protos2.ChargingRuleNameSet{RuleNames: ruleNames},
+		}
+		bnProtos = append(bnProtos, bnProto)
+	}
+	return bnsToUpdates(bnProtos)
 }
 
 func bnsToUpdates(bns []*protos2.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {

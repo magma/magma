@@ -34,6 +34,10 @@
 #include "esm_ebr.h"
 #include "esm_ebr_context.h"
 #include "nas_timer.h"
+#include "esm_cause.h"
+#include "esm_proc.h"
+#include "dynamic_memory_check.h"
+#include "mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -83,7 +87,8 @@ ebi_t esm_ebr_context_create(
   const bitrate_t mbr_dl,
   const bitrate_t mbr_ul,
   traffic_flow_template_t *tft,
-  protocol_configuration_options_t *pco)
+  protocol_configuration_options_t *pco,
+  teid_t gtp_teid)
 {
   int bidx = 0;
   esm_context_t *esm_ctx = NULL;
@@ -188,6 +193,7 @@ ebi_t esm_ebr_context_create(
           &bearer_context->esm_ebr_context.pco);
       }
       bearer_context->esm_ebr_context.pco = pco;
+      bearer_context->s_gw_fteid_s1u.teid = gtp_teid;
 
       if (is_default) {
         /*
@@ -270,6 +276,7 @@ ebi_t esm_ebr_context_release(
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int found = false;
   esm_pdn_t *pdn = NULL;
+  //esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
 
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
@@ -357,21 +364,26 @@ ebi_t esm_ebr_context_release(
     /*
      * Release the specified EPS bearer data
      */
-    // TODO Look at "free pdn->bearer"
-    //free_wrapper ((void**)&pdn->bearer[*bid]);
-    /*
+    //  "free pdn->bearer"
+   /*
      * Decrement the number of EPS bearer context allocated
      * * * * to the PDN connection
      */
     pdn->n_bearers -= 1;
 
-    if (*bid == 0) {
+    if (ue_mm_context->pdn_contexts[*pid]->default_ebi == ebi) {
       /*
        * 3GPP TS 24.301, section 6.4.4.3, 6.4.4.6
        * * * * If the EPS bearer identity is that of the default bearer to a
        * * * * PDN, the UE shall delete all EPS bearer contexts associated to
        * * * * that PDN connection.
        */
+      OAILOG_INFO(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Release default EPS bearer context "
+        "(ebi=%d)\n",
+        ebi);
+
       for (i = 1; pdn->n_bearers > 0; i++) {
         int idx = ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i];
         if ((idx >= 0) && (idx < BEARERS_PER_UE)) {
@@ -404,9 +416,10 @@ ebi_t esm_ebr_context_release(
           /*
            * Release dedicated EPS bearer data
            */
-          // TODO Look at "free pdn->bearer"
-          //free_wrapper ((void**)&pdn->bearer[i]);
-          //pdn->bearer[i] = NULL;
+          if (mme_config.eps_network_feature_support.
+            ims_voice_over_ps_session_in_s1) {
+            free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
+          }
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection
@@ -427,11 +440,22 @@ ebi_t esm_ebr_context_release(
       if (pdn->is_emergency) {
         pdn->is_emergency = false;
       }
+
+      if (mme_config.eps_network_feature_support.
+        ims_voice_over_ps_session_in_s1) {
+        ue_mm_context->pdn_contexts[*pid]->is_active = false;
+      }
+    } else {
+      OAILOG_INFO(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Release dedicated EPS bearer context "
+        "(ebi=%d)\n",
+        ebi);
     }
 
-    //if (esm_ctx->n_active_ebrs == 0) {
+    //if (pdn->n_bearers == 0) {
     /*
-       * TODO: Release the PDN connection and marked the UE as inactive
+       * : Release the PDN connection and marked the UE as inactive
        * * * * in the network for EPS services (is_attached = false)
        */
     //}

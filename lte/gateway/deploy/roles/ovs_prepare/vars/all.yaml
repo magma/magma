@@ -1,0 +1,14 @@
+# ovs version on github default v2.8.1
+ovs_version: "v2.8.1"
+# ovs version short in order to retreive patches if any
+ovs_version_short: "2.8.1"
+# patches relative location
+gtp_patch_path: "third_party/gtp_ovs"
+# Working directory where ovs will be clone and patch applied
+WORK_DIR: "~/build-ovs"
+# Patches you want to apply
+patches:
+  - "0001-datapath-add-vport-gtp-for-GPRS-Tunneling-Protocol.patch"
+  - "0002-userspace-Add-L3-tunnel-type-GTP.patch"
+  - "0003-Build-symbols-for-gtp-vport-linux-4.9-module-require.patch"
+  - "0004-Linux-compat-fixes.patch"

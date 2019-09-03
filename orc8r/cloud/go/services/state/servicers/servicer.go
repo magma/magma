@@ -14,8 +14,9 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/protos"
-	state_service "magma/orc8r/cloud/go/services/state"
+	stateService "magma/orc8r/cloud/go/services/state"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -74,7 +75,7 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 	hwID := gw.HardwareId
 	networkID := gw.NetworkId
 	certExpiry := protos.GetClientCertExpiration(context)
-	time := uint64(time.Now().UnixNano()) / uint64(time.Millisecond)
+	time := uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
 
 	states, err := addWrapperAndMakeBlobs(validatedStates, hwID, time, certExpiry)
 	if err != nil {
@@ -115,7 +116,7 @@ func (srv *stateServicer) DeleteStates(context context.Context, req *protos.Dele
 }
 
 func wrapStateWithAdditionalInfo(state *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
-	wrap := state_service.SerializedStateWithMeta{
+	wrap := stateService.SerializedStateWithMeta{
 		ReporterID:              hwID,
 		Time:                    time,
 		CertExpirationTime:      certExpiry,

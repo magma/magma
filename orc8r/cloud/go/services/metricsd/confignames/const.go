@@ -14,11 +14,6 @@ const (
 	PrometheusPushAddresses = "prometheusPushAddresses"
 	PrometheusQueryAddress  = "prometheusQueryAddress"
 
-	GraphiteExportAddresses = "graphiteExportAddresses"
-
-	GraphiteQueryAddress = "graphiteQueryAddress"
-	GraphiteQueryPort    = "graphiteQueryPort"
-
 	PrometheusConfigServiceURL   = "prometheusConfigServiceURL"
 	AlertmanagerConfigServiceURL = "alertmanagerConfigServiceURL"
 	AlertmanagerApiURL           = "alertmanagerApiURL"

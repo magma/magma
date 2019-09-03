@@ -115,13 +115,14 @@ static void receive_credit_with_default(
   const GrantedUnits &gsu,
   uint64_t default_volume,
   uint32_t validity_time,
-  bool is_final)
+  bool is_final,
+  ChargingCredit_FinalAction final_action)
 {
   uint64_t total = get_granted_units(gsu.total(), default_volume);
   uint64_t tx = get_granted_units(gsu.tx(), default_volume);
   uint64_t rx = get_granted_units(gsu.rx(), default_volume);
 
-  credit.receive_credit(total, tx, rx, validity_time, is_final);
+  credit.receive_credit(total, tx, rx, validity_time, is_final, final_action);
 }
 
 bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
@@ -145,7 +146,8 @@ bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
     update.credit().granted_units(),
     default_volume,
     update.credit().validity_time(),
-    update.credit().is_final());
+    update.credit().is_final(),
+    update.credit().final_action());
   credit_map_[update.charging_key()] = std::move(credit);
   return true;
 }
@@ -175,7 +177,8 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
     gsu,
     default_volume,
     update.credit().validity_time(),
-    update.credit().is_final());
+    update.credit().is_final(),
+    update.credit().final_action());
   return true;
 }
 
@@ -337,7 +340,8 @@ bool UsageMonitoringCreditPool::init_new_credit(
   // unless defined, volume is defined as the maximum possible value
   uint64_t default_volume = std::numeric_limits<uint64_t>::max();
   receive_credit_with_default(
-    monitor->credit, update.credit().granted_units(), default_volume, 0, false);
+    monitor->credit, update.credit().granted_units(), default_volume, 0, false,
+    ChargingCredit_FinalAction_TERMINATE);
   monitor_map_[update.credit().monitoring_key()] = std::move(monitor);
   return true;
 }
@@ -369,7 +373,8 @@ bool UsageMonitoringCreditPool::receive_credit(
     update.credit().granted_units(),
     default_volume,
     0,
-    false);
+    false,
+    ChargingCredit_FinalAction_TERMINATE);
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
     monitor_map_.erase(update.credit().monitoring_key());
   }

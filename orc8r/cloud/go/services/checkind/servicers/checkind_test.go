@@ -15,12 +15,12 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/services/checkind"
-	checkind_test_init "magma/orc8r/cloud/go/services/checkind/test_init"
+	"magma/orc8r/cloud/go/services/checkind/test_init"
 	"magma/orc8r/cloud/go/services/checkind/test_utils"
-	logger_test_init "magma/orc8r/cloud/go/services/logger/test_init"
+	loggerTestInit "magma/orc8r/cloud/go/services/logger/test_init"
 	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	magmadProtos "magma/orc8r/cloud/go/services/magmad/protos"
+	magmadTestInit "magma/orc8r/cloud/go/services/magmad/test_init"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -58,12 +58,12 @@ func checkinRound(t *testing.T,
 }
 
 func TestCheckind(t *testing.T) {
-	magmad_test_init.StartTestService(t)
-	checkind_test_init.StartTestService(t)
-	logger_test_init.StartTestService(t)
+	magmadTestInit.StartTestService(t)
+	test_init.StartTestService(t)
+	loggerTestInit.StartTestService(t)
 
 	testNetworkId, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: "Test Network Name"},
+		&magmadProtos.MagmadNetworkRecord{Name: "Test Network Name"},
 		"checkind_servicers_test_network")
 	assert.NoError(t, err)
 
@@ -71,14 +71,14 @@ func TestCheckind(t *testing.T) {
 
 	hwId := protos.AccessGatewayID{Id: testAgHwId}
 	logicalId, err := magmad.RegisterGateway(testNetworkId,
-		&magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "Test GW Name"})
+		&magmadProtos.AccessGatewayRecord{HwId: &hwId, Name: "Test GW Name"})
 	assert.NoError(t, err)
 	assert.NotEqual(t, logicalId, "")
 
 	testAgHwId2 := testAgHwId + "second"
 	hwId = protos.AccessGatewayID{Id: testAgHwId2}
 	logicalId2, err := magmad.RegisterGateway(
-		testNetworkId, &magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "bla2"})
+		testNetworkId, &magmadProtos.AccessGatewayRecord{HwId: &hwId, Name: "bla2"})
 	assert.NoError(t, err)
 	assert.NotEqual(t, logicalId2, "")
 

@@ -1,0 +1,10 @@
+{
+    "name": "@fbcnms/relay",
+    "private": true,
+    "version": "0.1.0",
+    "devDependencies": {
+        "relay-compiler": "^5.0.0",
+        "core-js": "^2.6.9"
+    }
+  }
+  

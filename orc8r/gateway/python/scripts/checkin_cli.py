@@ -102,14 +102,12 @@ def main():
         test_send_checkin(proxy_cloud_connections=True)
 
         print('Success!')
+        sys.exit(0)
 
     except Exception as e:
         print('> Error: %s' % e,)
         print("Suggestions:", err_suggestions[stage])
         sys.exit(1)
-
-    finally:
-        loop.close()
 
 
 def test_check_cert(certfile):

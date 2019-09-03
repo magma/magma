@@ -8,3 +8,8 @@ for each project individually for setup
   yarn run eslint ./
   flow
   yarn run test
+
+
+# Testing Coverage
+
+Run `yarn test --coverage`

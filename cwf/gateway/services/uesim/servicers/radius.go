@@ -24,7 +24,6 @@ import (
 
 // todo Replace constants with configurable fields
 const (
-	Secret     = "123456"
 	Auth       = "\x73\xea\x5e\xdf\x10\x25\x45\x3b\x21\x15\xdb\xc2\xa9\x8a\x7c\x99"
 	Attributes = "\x01\x35\x30\x30\x30\x31\x30\x31\x30\x30\x30\x30\x30\x30\x30\x30" +
 		"\x39\x31\x40\x77\x6c\x61\x6e\x2e\x6d\x6e\x63\x30\x30\x31\x2e\x6d" +
@@ -67,7 +66,7 @@ func (srv *UESimServer) HandleRadius(imsi string, p radius.Packet) (radius.Packe
 	}
 
 	// Wrap EAP response in Radius packet.
-	res, err := EapToRadius(eapRes, p.Identifier+1)
+	res, err := srv.EapToRadius(eapRes, p.Identifier+1)
 	if err != nil {
 		return radius.Packet{}, err
 	}
@@ -76,8 +75,8 @@ func (srv *UESimServer) HandleRadius(imsi string, p radius.Packet) (radius.Packe
 }
 
 // EapToRadius puts an Eap packet payload in a Radius packet.
-func EapToRadius(eapP eap.Packet, identifier uint8) (radius.Packet, error) {
-	radiusP := radius.New(radius.CodeAccessRequest, []byte(Secret))
+func (srv *UESimServer) EapToRadius(eapP eap.Packet, identifier uint8) (radius.Packet, error) {
+	radiusP := radius.New(radius.CodeAccessRequest, []byte(srv.cfg.radiusSecret))
 	radiusP.Identifier = identifier
 
 	// Hardcode in the auth.
@@ -97,10 +96,10 @@ func EapToRadius(eapP eap.Packet, identifier uint8) (radius.Packet, error) {
 	encoded = append(encoded, eapP...)
 
 	// Add Message-Authenticator Attribute.
-	encoded = addMessageAuthenticator(encoded)
+	encoded = srv.addMessageAuthenticator(encoded)
 
 	// Parse to Radius packet.
-	res, err := radius.Parse(encoded, []byte(Secret))
+	res, err := radius.Parse(encoded, []byte(srv.cfg.radiusSecret))
 	if err != nil {
 		fmt.Printf("%s\n", err)
 	}
@@ -110,7 +109,7 @@ func EapToRadius(eapP eap.Packet, identifier uint8) (radius.Packet, error) {
 
 // addMessageAuthenticator calculates and adds the Message-Authenticator
 // Attribute to a RADIUS packet.
-func addMessageAuthenticator(encoded []byte) []byte {
+func (srv *UESimServer) addMessageAuthenticator(encoded []byte) []byte {
 	// Calculate new size
 	size := uint16(len(encoded)) + radius.MessageAuthenticatorAttrLength
 	binary.BigEndian.PutUint16(encoded[2:4], uint16(size))
@@ -124,7 +123,7 @@ func addMessageAuthenticator(encoded []byte) []byte {
 	encoded = append(encoded, make([]byte, 16)...)
 
 	// Calculate Message-Authenticator and overwrite.
-	hash := hmac.New(md5.New, []byte(Secret))
+	hash := hmac.New(md5.New, []byte(srv.cfg.radiusSecret))
 	hash.Write(encoded)
 	encoded = hash.Sum(encoded[:len(encoded)-16])
 

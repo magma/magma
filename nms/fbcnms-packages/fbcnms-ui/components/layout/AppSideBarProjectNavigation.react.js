@@ -61,18 +61,17 @@ const useClasses = makeStyles(theme => ({
     padding: '10px 5px',
   },
   appsButton: {
-    backgroundColor: theme.palette.blue05,
+    backgroundColor: theme.palette.common.white,
     borderRadius: '100%',
-    color: theme.palette.blue60,
+    color: theme.palette.blueDarkGray,
     cursor: 'pointer',
-    display: 'inline-flex',
-    padding: '11px',
+    display: 'flex',
+    width: '36px',
+    height: '36px',
+    alignItems: 'center',
+    justifyContent: 'center',
     '&:hover': {
-      padding: '10px',
-      border: `1px solid ${theme.palette.primary.light}`,
-    },
-    '&openMenu': {
-      border: `1px solid ${theme.palette.primary.light}`,
+      color: theme.palette.primary.main,
     },
   },
   popover: {

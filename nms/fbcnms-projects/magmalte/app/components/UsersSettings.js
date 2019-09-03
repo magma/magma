@@ -42,7 +42,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles &
+type Props = WithStyles<typeof styles> &
   WithAlert & {
     allNetworkIDs: Array<string>,
   };

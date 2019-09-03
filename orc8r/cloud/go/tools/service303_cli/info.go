@@ -71,7 +71,7 @@ func getInfo(service string) error {
 
 func getInfoOrGwInfo(service string) (*protos.ServiceInfo, error) {
 	if isGatewayServiceQuery {
-		return service303.GWService303GetServiceInfo(gateway_registry.GwServiceType(service), hwId)
+		return service303.GWService303GetServiceInfo(gateway_registry.GwServiceType(service), hardwareID)
 	} else {
 		return client.Service303GetServiceInfo(service)
 	}

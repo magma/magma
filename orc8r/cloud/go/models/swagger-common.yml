@@ -13,6 +13,8 @@ magma-gen-meta:
       filename: network_name_swaggergen.go
     - go-struct-name: NetworkDescription
       filename: network_description_swaggergen.go
+    - go-struct-name: NetworkType
+      filename: network_type_swaggergen.go
     - go-struct-name: GatewayID
       filename: gateway_id_swaggergen.go
     - go-struct-name: GatewayName
@@ -102,6 +104,10 @@ definitions:
     minLength: 1
     x-nullable: false
     example: Foobar network
+  network_type:
+    description: The type of the network
+    type: string
+    example: LTE
 
   gateway_id:
     type: string

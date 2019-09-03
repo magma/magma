@@ -44,7 +44,7 @@ const styles = _theme => ({
 
 type Props = ContextRouter &
   WithAlert &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gatewayID: string) => void,
     gateway: Gateway,

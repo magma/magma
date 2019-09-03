@@ -131,30 +131,44 @@ void LocalEnforcer::execute_actions(
 {
   for (auto &action_p : actions) {
     if (action_p->get_type() == TERMINATE_SERVICE) {
-      pipelined_client_->deactivate_flows_for_rules(
+      terminate_service(
         action_p->get_imsi(),
         action_p->get_rule_ids(),
         action_p->get_rule_definitions());
-
-      // tell AAA service to terminate radius session if necessary
-      auto it = session_map_.find(action_p->get_imsi());
-      if (it == session_map_.end()) {
-        MLOG(MWARNING) << "Could not find session with IMSI "
-                       << action_p->get_imsi();
-      } else if (it->second->is_radius_cwf_session()) {
-        MLOG(MDEBUG) << "Asking AAA service to terminate session with "
-                     << "Radius ID: " << it->second->get_radius_session_id()
-                     << ", IMSI: " << action_p->get_imsi();
-        aaa_client_->terminate_session(
-          it->second->get_radius_session_id(), action_p->get_imsi());
-      }
     } else if (action_p->get_type() == ACTIVATE_SERVICE) {
       pipelined_client_->activate_flows_for_rules(
         action_p->get_imsi(),
         action_p->get_ip_addr(),
         action_p->get_rule_ids(),
         action_p->get_rule_definitions());
+    } else if (action_p->get_type() == REDIRECT ||
+      action_p->get_type() == RESTRICT_ACCESS) {
+      MLOG(MDEBUG) << "Unsupported action type: " << action_p->get_type()
+                   << ", will just terminate the service.";
+      terminate_service(
+        action_p->get_imsi(),
+        action_p->get_rule_ids(),
+        action_p->get_rule_definitions());
     }
+  }
+}
+
+void LocalEnforcer::terminate_service(
+  const std::string &imsi,
+  const std::vector<std::string> &rule_ids,
+  const std::vector<PolicyRule> &dynamic_rules)
+{
+  pipelined_client_->deactivate_flows_for_rules(imsi, rule_ids, dynamic_rules);
+
+  // tell AAA service to terminate radius session if necessary
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    MLOG(MWARNING) << "Could not find session with IMSI " << imsi;
+  } else if (it->second->is_radius_cwf_session()) {
+    MLOG(MDEBUG) << "Asking AAA service to terminate session with "
+                 << "Radius ID: " << it->second->get_radius_session_id()
+                 << ", IMSI: " << imsi;
+    aaa_client_->terminate_session(it->second->get_radius_session_id(), imsi);
   }
 }
 
@@ -757,6 +771,25 @@ void LocalEnforcer::check_usage_for_reporting()
         check_usage_for_reporting();
       }
     });
+}
+
+bool LocalEnforcer::is_imsi_duplicate(const std::string &imsi)
+{
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    return false;
+  }
+  return true;
+}
+
+bool LocalEnforcer::is_session_duplicate(
+  const std::string &imsi, const magma::SessionState::Config &config)
+{
+  auto it = session_map_.find(imsi);
+  if (it == session_map_.end()) {
+    return false;
+  }
+  return it->second->is_same_config(config);
 }
 
 static void mark_rule_failures(

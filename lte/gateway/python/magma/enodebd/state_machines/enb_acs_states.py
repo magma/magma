@@ -216,10 +216,16 @@ class BaicellsRemWaitState(EnodebAcsState):
 
 
 class WaitEmptyMessageState(EnodebAcsState):
-    def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
+    def __init__(
+        self,
+        acs: EnodebAcsStateMachine,
+        when_done: str,
+        when_missing: Optional[str] = None,
+    ):
         super().__init__()
         self.acs = acs
         self.done_transition = when_done
+        self.unknown_param_transition = when_missing
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         """
@@ -230,7 +236,9 @@ class WaitEmptyMessageState(EnodebAcsState):
         """
         if not isinstance(message, models.DummyInput):
             return AcsReadMsgResult(False, None)
-        return AcsReadMsgResult(True, self.done_transition)
+        if get_optional_param_to_check(self.acs.data_model) is None:
+            return AcsReadMsgResult(True, self.done_transition)
+        return AcsReadMsgResult(True, self.unknown_param_transition)
 
     @classmethod
     def state_description(cls) -> str:
@@ -1098,4 +1106,4 @@ class ErrorState(EnodebAcsState):
 
     @classmethod
     def state_description(cls) -> str:
-        return 'Error state - awaiting manual reboot'
+        return 'Error state - awaiting manual restart of enodebd service'

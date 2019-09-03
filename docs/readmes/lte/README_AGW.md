@@ -40,6 +40,22 @@ S-PGW Control Plane functions include:
 3. Interface with Sessiond/PCEF to trigger Gx and Gy session establishment for the subscriber during PDN connection establishment 
 4. Establish and release GTP tunnel during bearer setup and release
 
+## Health Checker
+Health checker reports 2 kinds of health status:
+1. Access Gateway specific health which includes:
+    * Number of allocated_ips
+    * Number of core_dumps
+    * Registration_success_rate
+    * Subscriber table
+2. Generic Health status which includes:
+    * Gateway - Controller connectivity
+    * Status for all the running services
+    * Number of restarts per each service
+    * Number of errors per each service
+    * Internet and DNS status
+    * Kernel version
+    * Magma version
+
 ## Mobilityd
 Mobilityd functions include:
 
@@ -89,19 +105,19 @@ Control proxy manages the network transport between the gateways and the control
 Several services listed above can be configured using CLIs, located under
 magma/lte/gateway/python/scripts. These are:
 
-1. Mobilityd: mobility_cli.py
-2. Sessiond: session_manager_cli.py
-3. Pipelined: pipelined_cli.py
-4. PolicyDB: policydb_cli.py
-5. Subscriberdb: subscriber_cli.py
-6. Enodebd: enodebd_cli.py
+1. Health Checker: agw_health_cli.py
+2. Mobilityd: mobility_cli.py
+3. Sessiond: session_manager_cli.py
+4. Pipelined: pipelined_cli.py
+5. PolicyDB: policydb_cli.py
+6. Subscriberdb: subscriber_cli.py
+7. Enodebd: enodebd_cli.py
 
 Each of these CLIs can be used in the gateway VM:
 
-```
-vagrant@magma-dev:~$ cd magma/lte/gateway/python/scripts/
-vagrant@magma-dev:~/magma/lte/gateway/python/scripts$ magtivate
-(python) vagrant@magma-dev:~/magma/lte/gateway/python/scripts$ ./enodebd_cli.py -h
+```bash
+vagrant@magma-dev:~$ magtivate
+(python) vagrant@magma-dev:~$ enodebd_cli.py -h
 
 usage: enodebd_cli.py [-h]
                       {get_parameter,set_parameter,config_enodeb,reboot_enodeb,get_status}

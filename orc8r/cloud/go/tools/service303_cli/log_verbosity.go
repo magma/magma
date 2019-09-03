@@ -80,7 +80,7 @@ func setLogVerbosity(service string, verbosity int) error {
 
 func setLogVerbosityOrGwLogVerbosity(service string, verbosity int) error {
 	if isGatewayServiceQuery {
-		return service303.GWService303SetLogVerbosity(gateway_registry.GwServiceType(service), hwId, &protos.LogVerbosity{Verbosity: int32(verbosity)})
+		return service303.GWService303SetLogVerbosity(gateway_registry.GwServiceType(service), hardwareID, &protos.LogVerbosity{Verbosity: int32(verbosity)})
 	} else {
 		return client.Service303SetLogVerbosity(service, &protos.LogVerbosity{Verbosity: int32(verbosity)})
 	}

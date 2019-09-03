@@ -49,7 +49,7 @@ class BaicellsHandler(BasicEnodebAcsStateMachine):
         self._state_map = {
             'wait_inform': WaitInformState(self, when_done='wait_empty', when_boot='wait_rem'),
             'wait_rem': BaicellsRemWaitState(self, when_done='wait_inform'),
-            'wait_empty': WaitEmptyMessageState(self, when_done='check_optional_params'),
+            'wait_empty': WaitEmptyMessageState(self, when_done='get_transient_params', when_missing='check_optional_params'),
             'check_optional_params': CheckOptionalParamsState(self, when_done='get_transient_params'),
             'get_transient_params': SendGetTransientParametersState(self, when_done='wait_get_transient_params'),
             'wait_get_transient_params': WaitGetTransientParametersState(self, when_get='get_params', when_get_obj_params='get_obj_params', when_delete='delete_objs', when_add='add_objs', when_set='set_params', when_skip='end_session'),
@@ -70,7 +70,7 @@ class BaicellsHandler(BasicEnodebAcsStateMachine):
             # After rebooting, we don't need to query optional params again.
             'wait_inform_post_reboot': WaitInformState(self, when_done='wait_empty_post_reboot', when_boot='wait_rem_post_reboot'),
             'wait_rem_post_reboot': BaicellsRemWaitState(self, when_done='wait_inform_post_reboot'),
-            'wait_empty_post_reboot': WaitEmptyMessageState(self, when_done='get_transient_params'),
+            'wait_empty_post_reboot': WaitEmptyMessageState(self, when_done='get_transient_params', when_missing='check_optional_params'),
             # The states below are entered when an unexpected message type is
             # received
             'unexpected_fault': ErrorState(self),

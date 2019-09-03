@@ -118,3 +118,29 @@ type SubscriptionId struct {
 	SubscriptionIdType datatype.Enumerated `avp:"Subscription-Id-Type"`
 	SubscriptionIdData datatype.UTF8String `avp:"Subscription-Id-Data"`
 }
+
+// 3GPP 29.273 8.2.2.4 - Registration Termination Request
+type RTR struct {
+	SessionID            datatype.UTF8String         `avp:"Session-Id"`
+	VendorSpecificAppId  VendorSpecificApplicationId `avp:"Vendor-Specific-Application-Id"`
+	OriginHost           datatype.DiameterIdentity   `avp:"Origin-Host"`
+	OriginRealm          datatype.DiameterIdentity   `avp:"Origin-Realm"`
+	AuthSessionState     datatype.Unsigned32         `avp:"Auth-Session-State"`
+	UserName             datatype.UTF8String         `avp:"User-Name"`
+	DeregistrationReason DeregistrationReason        `avp:"Deregistration-Reason"`
+}
+
+// 3GPP 29.273 8.2.2.4 - Registration Termination Answer
+type RTA struct {
+	SessionID          string                    `avp:"Session-Id"`
+	AuthSessionState   int32                     `avp:"Auth-Session-State"`
+	ResultCode         uint32                    `avp:"Result-Code"`
+	OriginHost         datatype.DiameterIdentity `avp:"Origin-Host"`
+	OriginRealm        datatype.DiameterIdentity `avp:"Origin-Realm"`
+	ExperimentalResult ExperimentalResult        `avp:"Experimental-Result"`
+}
+
+type DeregistrationReason struct {
+	ReasonCode datatype.Enumerated `avp:"Reason-Code"`
+	ReasonInfo datatype.UTF8String `avp:"Reason-Info"`
+}

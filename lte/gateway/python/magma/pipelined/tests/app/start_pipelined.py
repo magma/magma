@@ -80,6 +80,9 @@ class PipelinedController(Enum):
     UEMac = Controller(
         'magma.pipelined.app.ue_mac', 'ue_mac'
     )
+    PacketTracer = Controller(
+        'magma.pipelined.app.packet_tracer', 'packet_tracer'
+    )
 
 
 def assert_pipelined_not_running():

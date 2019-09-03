@@ -16,6 +16,7 @@ import (
 // Client APIs should raise ErrNotFound to indicate that a resource requested
 // in a get/read does not exist.
 var ErrNotFound = errors.New("Not found")
+var ErrAlreadyExists = errors.New("Already exists")
 
 func NewInitError(err error, service string) error {
 	return ClientInitError{Err: err, Service: service}

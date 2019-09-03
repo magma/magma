@@ -22,7 +22,7 @@ func TestMAR_Successful(t *testing.T) {
 
 func testMARSuccessful(t *testing.T, verifyAuthorization bool) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, verifyAuthorization, false)
+	swxProxy := getTestSwxProxy(t, hss, verifyAuthorization, false, true)
 	mar := &fegprotos.AuthenticationRequest{
 		UserName:             "sub1",
 		SipNumAuthVectors:    5,
@@ -50,7 +50,7 @@ func TestMAR_AuthRejected(t *testing.T) {
 	_, err = hss.UpdateSubscriber(context.Background(), subscriber)
 	assert.NoError(t, err)
 
-	swxProxy := getTestSwxProxy(t, hss, true, true)
+	swxProxy := getTestSwxProxy(t, hss, true, true, true)
 	mar := &fegprotos.AuthenticationRequest{
 		UserName:             "sub1",
 		SipNumAuthVectors:    5,
@@ -64,7 +64,7 @@ func TestMAR_AuthRejected(t *testing.T) {
 
 func TestMAR_UnknownIMSI(t *testing.T) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, false, true)
+	swxProxy := getTestSwxProxy(t, hss, false, true, true)
 	mar := &fegprotos.AuthenticationRequest{
 		UserName:             "sub_unknown",
 		SipNumAuthVectors:    1,
@@ -78,7 +78,7 @@ func TestMAR_UnknownIMSI(t *testing.T) {
 
 func TestSAR_SuccessfulRegistration(t *testing.T) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, false, true)
+	swxProxy := getTestSwxProxy(t, hss, false, true, true)
 	sar := &fegprotos.RegistrationRequest{UserName: "sub1"}
 	_, err := swxProxy.Register(context.Background(), sar)
 	assert.NoError(t, err)
@@ -86,15 +86,57 @@ func TestSAR_SuccessfulRegistration(t *testing.T) {
 
 func TestSAR_UnknownIMSI(t *testing.T) {
 	hss := getTestHSSDiameterServer(t)
-	swxProxy := getTestSwxProxy(t, hss, false, true)
+	swxProxy := getTestSwxProxy(t, hss, false, true, true)
 	sar := &fegprotos.RegistrationRequest{UserName: "sub_unknown"}
 	_, err := swxProxy.Register(context.Background(), sar)
 	assert.EqualError(t, err, "rpc error: code = Code(5001) desc = Diameter Error: 5001 (USER_UNKNOWN)")
 }
 
+func TestRTR_SuccessfulDeregistration(t *testing.T) {
+	hss := getTestHSSDiameterServer(t)
+	swxProxy := getTestSwxProxy(t, hss, false, false, true)
+	sar := &fegprotos.RegistrationRequest{
+		UserName: "sub1",
+	}
+	_, err := swxProxy.Register(context.Background(), sar)
+	assert.NoError(t, err)
+
+	sub := &lteprotos.SubscriberID{Id: "sub1"}
+	_, err = hss.DeregisterSubscriber(context.Background(), sub)
+	assert.NoError(t, err)
+
+	subData, err := hss.GetSubscriberData(context.Background(), sub)
+	assert.NoError(t, err)
+	assert.False(t, subData.GetState().GetTgppAaaServerRegistered())
+}
+
+func TestRTR_UnsuccessfulDeregistration(t *testing.T) {
+	hss := getTestHSSDiameterServer(t)
+	swxProxy := getTestSwxProxy(t, hss, false, false, false)
+	sar := &fegprotos.RegistrationRequest{
+		UserName: "sub1",
+	}
+	_, err := swxProxy.Register(context.Background(), sar)
+	assert.NoError(t, err)
+
+	sub := &lteprotos.SubscriberID{Id: "sub1"}
+	_, err = hss.DeregisterSubscriber(context.Background(), sub)
+	assert.Error(t, err)
+
+	subData, err := hss.GetSubscriberData(context.Background(), sub)
+	assert.NoError(t, err)
+	assert.True(t, subData.GetState().GetTgppAaaServerRegistered())
+}
+
+func TestRTR_UnknownIMSI(t *testing.T) {
+	hss := getTestHSSDiameterServer(t)
+	_, err := hss.DeregisterSubscriber(context.Background(), &lteprotos.SubscriberID{Id: "sub_unknown"})
+	assert.Error(t, err)
+}
+
 // getTestSwxProxy creates a SWx Proxy server and test HSS Diameter
 // server which are configured to communicate with each other.
-func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthr, wCache bool) fegprotos.SwxProxyServer {
+func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthr, wCache bool, successfulRelay bool) fegprotos.SwxProxyServer {
 	serverCfg := hss.Config.Server
 
 	// Create an swx proxy server.
@@ -126,6 +168,23 @@ func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthr, w
 		vc = cache.New()
 	}
 	swxProxy, err := swx.NewSwxProxyWithCache(swxProxyConfig, vc)
+	if successfulRelay {
+		swxProxy.Relay = &successfulMockRelay{}
+	} else {
+		swxProxy.Relay = &unsuccessfulMockRelay{}
+	}
 	assert.NoError(t, err)
 	return swxProxy
+}
+
+type successfulMockRelay struct{}
+
+func (s *successfulMockRelay) RelayFromFeg() (fegprotos.ErrorCode, error) {
+	return fegprotos.ErrorCode_SUCCESS, nil
+}
+
+type unsuccessfulMockRelay struct{}
+
+func (s *unsuccessfulMockRelay) RelayFromFeg() (fegprotos.ErrorCode, error) {
+	return fegprotos.ErrorCode_UNABLE_TO_DELIVER, nil
 }

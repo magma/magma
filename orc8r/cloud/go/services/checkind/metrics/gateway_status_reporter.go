@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package metrics
 
 import (
-	"fmt"
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -54,7 +53,8 @@ func (reporter *GatewayStatusReporter) reportCheckinStatus() error {
 			gatewayID := gatewayEntity.Key
 			status, err := state.GetGatewayStatus(networkID, gatewayEntity.PhysicalID)
 			if err != nil {
-				return fmt.Errorf("Failed to get state for nwID:%s gwID:%s deviceID:%s", networkID, gatewayID, gatewayEntity.PhysicalID)
+				glog.Errorf("Failed to get state for nwID:%s gwID:%s deviceID:%s", networkID, gatewayID, gatewayEntity.PhysicalID)
+				continue
 			}
 			// last check in more than 5 minutes ago
 			if (time.Now().Unix() - int64(status.CheckinTime)/1000) > 60*5 {

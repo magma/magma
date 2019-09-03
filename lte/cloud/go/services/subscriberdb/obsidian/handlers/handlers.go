@@ -9,14 +9,17 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/thoas/go-funk"
 )
@@ -29,23 +32,23 @@ const (
 // GetObsidianHandlers returns all obsidian handlers for subscriberdb
 func GetObsidianHandlers() []obsidian.Handler {
 	return []obsidian.Handler{
-		{Path: SubscriberdRootPath, Methods: obsidian.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberManagePath, Methods: obsidian.POST, HandlerFunc: addSubscriberHandler, MigratedHandlerFunc: createSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberdRootPath, Methods: obsidian.GET, HandlerFunc: listSubscribersHandler, MigratedHandlerFunc: listSubscribers},
-		{Path: SubscriberManagePath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler, MigratedHandlerFunc: getSubscriber},
-		{Path: SubscriberdRootPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberManagePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler, MigratedHandlerFunc: updateSubscriber, MultiplexAfterMigration: true},
-		{Path: SubscriberManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriberHandler, MigratedHandlerFunc: deleteSubscriber, MultiplexAfterMigration: true},
+		{Path: SubscriberdRootPath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
+		{Path: SubscriberManagePath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
+		{Path: SubscriberdRootPath, Methods: obsidian.GET, HandlerFunc: listSubscribers},
+		{Path: SubscriberManagePath, Methods: obsidian.GET, HandlerFunc: getSubscriber},
+		{Path: SubscriberdRootPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
+		{Path: SubscriberManagePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
+		{Path: SubscriberManagePath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriber},
 	}
 }
 
 func createSubscriber(c echo.Context) error {
 	// Get swagger model
-	sub := new(models.Subscriber)
+	sub := new(models2.Subscriber)
 	if err := c.Bind(sub); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := sub.Verify(); err != nil {
+	if err := sub.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -56,15 +59,15 @@ func createSubscriber(c echo.Context) error {
 	}
 	subscriberID := getSubscriberId(c)
 	if len(subscriberID) != 0 {
-		sub.ID = models.SubscriberID(subscriberID)
+		sub.ID = subscriberID
 	} else {
-		subscriberID = string(sub.ID)
+		subscriberID = sub.ID
 	}
 
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
 		Type:   lte.SubscriberEntityType,
 		Key:    subscriberID,
-		Config: sub,
+		Config: sub.Lte,
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -85,11 +88,14 @@ func listSubscribers(c echo.Context) error {
 
 	// if configs were loaded we'll return those, otherwise just the sids
 	sids := make([]string, 0, len(ents))
-	entConfs := make(map[string]*models.Subscriber, len(ents))
+	entConfs := make(map[string]*models2.Subscriber, len(ents))
 	for _, ent := range ents {
 		sids = append(sids, ent.Key)
 		if ent.Config != nil {
-			entConfs[ent.Key] = ent.Config.(*models.Subscriber)
+			entConfs[ent.Key] = &models2.Subscriber{
+				ID:  ent.Key,
+				Lte: ent.Config.(*models2.LteSubscription),
+			}
 		}
 	}
 
@@ -114,15 +120,16 @@ func getSubscriber(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, ent.Config.(*models.Subscriber))
+	ret := &models2.Subscriber{ID: ent.Key, Lte: ent.Config.(*models2.LteSubscription)}
+	return c.JSON(http.StatusOK, ret)
 }
 
 func updateSubscriber(c echo.Context) error {
-	sub := new(models.Subscriber)
+	sub := new(models2.Subscriber)
 	if err := c.Bind(sub); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := sub.Verify(); err != nil {
+	if err := sub.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
@@ -132,12 +139,12 @@ func updateSubscriber(c echo.Context) error {
 	}
 	subscriberID := getSubscriberId(c)
 	if len(subscriberID) != 0 { // SID is in URL
-		sub.ID = models.SubscriberID(subscriberID)
+		sub.ID = subscriberID
 	} else {
-		subscriberID = string(sub.ID)
+		subscriberID = sub.ID
 	}
 
-	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, sub)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, sub.Lte)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -167,4 +174,22 @@ func getListSubscribersLoadCriteria(c echo.Context) configurator.EntityLoadCrite
 		return configurator.EntityLoadCriteria{LoadConfig: true}
 	}
 	return configurator.EntityLoadCriteria{}
+}
+
+func getSubscriberId(c echo.Context) string {
+	sidstr := c.Param("subscriber_id")
+	if len(sidstr) > 0 {
+		err := (*models.SubscriberID)(&sidstr).Verify()
+		if err != nil {
+			glog.Errorf("Invalid subscriber ID parameter: %s", sidstr)
+			sidstr = ""
+		}
+	}
+	return sidstr
+}
+
+func subscriberIdHttpErr() *echo.HTTPError {
+	return obsidian.HttpError(
+		fmt.Errorf("Invalid/Missing Subscriber ID"),
+		http.StatusBadRequest)
 }

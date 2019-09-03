@@ -271,6 +271,7 @@ func GetNetworkId(c echo.Context) (string, *echo.HTTPError) {
 	return nid, CheckNetworkAccess(c, nid)
 }
 
+// DEPRECATED - use GetGatewayID, and use :gateway_id as path param
 func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
 	logicalGwId := c.Param("logical_ag_id")
 	if logicalGwId == "" {
@@ -281,6 +282,7 @@ func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
 	return logicalGwId, nil
 }
 
+// DEPRECATED - use GetNetworkAndGatewayIDs, and use :gateway_id as path param
 func GetNetworkAndGWID(c echo.Context) (string, string, error) {
 	networkID, err := GetNetworkId(c)
 	if err != nil {
@@ -291,6 +293,29 @@ func GetNetworkAndGWID(c echo.Context) (string, string, error) {
 		return "", "", err
 	}
 	return networkID, gatewayID, nil
+}
+
+func GetNetworkAndGatewayIDs(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := GetParamValues(c, "network_id", "gateway_id")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
+}
+
+// GetParamValues returns a list of the value for each param provided in
+// `paramNames`. Returns a status bad request HTTP error if any param value
+// is blank.
+func GetParamValues(c echo.Context, paramNames ...string) ([]string, *echo.HTTPError) {
+	ret := make([]string, 0, len(paramNames))
+	for _, paramName := range paramNames {
+		val := c.Param(paramName)
+		if val == "" {
+			return []string{}, echo.NewHTTPError(http.StatusBadRequest, fmt.Errorf("invalid/missing param %s", paramName))
+		}
+		ret = append(ret, val)
+	}
+	return ret, nil
 }
 
 func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {

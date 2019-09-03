@@ -362,6 +362,9 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 		if mscc.FinalUnitIndication != nil {
 			receivedCredits.IsFinal = true
 			receivedCredits.FinalAction = mscc.FinalUnitIndication.Action
+			if mscc.FinalUnitIndication.Action == Redirect {
+				receivedCredits.RedirectServer = mscc.FinalUnitIndication.RedirectServer
+			}
 		}
 		creditList = append(creditList, receivedCredits)
 	}

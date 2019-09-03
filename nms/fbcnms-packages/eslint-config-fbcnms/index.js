@@ -161,6 +161,9 @@ module.exports = Object.assign({}, fbStrict, {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
 
+    // Relay Plugin
+    'relay/unused-fields': 'off',
+
     // sort-imports autofix plugin (sort-imports doesnt autofix)
     'sort-imports-es6-autofix/sort-imports-es6': [2, {
       'ignoreCase': false,

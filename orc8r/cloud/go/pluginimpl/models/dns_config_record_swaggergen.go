@@ -20,10 +20,10 @@ import (
 type DNSConfigRecord struct {
 
 	// a record
-	ARecord []string `json:"a_record"`
+	ARecord []strfmt.IPv4 `json:"a_record"`
 
 	// aaaa record
-	AaaaRecord []string `json:"aaaa_record"`
+	AaaaRecord []strfmt.IPv6 `json:"aaaa_record"`
 
 	// cname record
 	CnameRecord []string `json:"cname_record"`
@@ -72,6 +72,10 @@ func (m *DNSConfigRecord) validateARecord(formats strfmt.Registry) error {
 			return err
 		}
 
+		if err := validate.FormatOf("a_record"+"."+strconv.Itoa(i), "body", "ipv4", m.ARecord[i].String(), formats); err != nil {
+			return err
+		}
+
 	}
 
 	return nil
@@ -86,6 +90,10 @@ func (m *DNSConfigRecord) validateAaaaRecord(formats strfmt.Registry) error {
 	for i := 0; i < len(m.AaaaRecord); i++ {
 
 		if err := validate.MinLength("aaaa_record"+"."+strconv.Itoa(i), "body", string(m.AaaaRecord[i]), 1); err != nil {
+			return err
+		}
+
+		if err := validate.FormatOf("aaaa_record"+"."+strconv.Itoa(i), "body", "ipv6", m.AaaaRecord[i].String(), formats); err != nil {
 			return err
 		}
 
