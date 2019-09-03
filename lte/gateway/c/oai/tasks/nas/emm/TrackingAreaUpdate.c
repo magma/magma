@@ -582,24 +582,32 @@ void static _validate_and_fill_eps_bearer_cntxt_status(
   uint32_t itrn = 0;
   int bidx = 0;
   uint8_t pos = 0;
+  uint8_t shift_bits = 8;
   pdn_cid_t pid = 0;
   int rc = RETURNok;
+  bool is_ebi_active = false;
 
   for (itrn = 0 ; itrn < BEARERS_PER_UE; itrn++ ) {
     bearer_context_t *bearer_context =
       mme_app_get_bearer_context(ue_mm_context, itrn);
-    pos = itrn + 1;
+
     if ((bearer_context) &&
-      bearer_context->bearer_state == BEARER_STATE_ACTIVE) {
+      bearer_context->esm_ebr_context.status == ESM_EBR_ACTIVE) {
+      ebi = bearer_context->ebi;
+      /* Check if the ebi bit is in octet3 or octet4 of the rcvd TAU req
+      */
+      if ((ebi >= ESM_EBI_MIN) && (ebi <= (ESM_EBI_MAX/2))) {
+        pos = ebi + shift_bits; //Octet 3
+        is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
+      } else {
+        pos = ebi - shift_bits; //Octet 4
+        is_ebi_active = (*rcvd_tau_req_eps_eps_ber_cntx_status) & (1 << pos);
+      }
       /* Delete the bearer context if the bearer context rcvd in TAU req
        * is inactive
        */
-      ebi = bearer_context->ebi;
-      /*In the rcdv TAU Req message status of EBIs starts from bit 1
-      */
-      pos = ebi + 1;
-      if (!(((*rcvd_tau_req_eps_eps_ber_cntx_status) & pos) >> pos)) {
-        pid = ue_mm_context->bearer_contexts[ebi]->pdn_cx_id;
+      if (!is_ebi_active) {
+        pid = ue_mm_context->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
         ebi_relsd = esm_ebr_context_release(
           &ue_mm_context->emm_context, ebi, &pid, &bidx);
 
@@ -680,14 +688,14 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
       emm_sap.u.emm_as.u.establish.tai_list.numberoflists = 0;
       emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_TAU;
 
+      emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
+        calloc(1, sizeof(eps_bearer_context_status_t));
       /*Send eps_bearer_context_status in TAU Accept if received in TAU Req*/
       if (tau_proc->ies->eps_bearer_context_status) {
         _validate_and_fill_eps_bearer_cntxt_status(
           emm_sap.u.emm_as.u.establish.eps_bearer_context_status,
           tau_proc->ies->eps_bearer_context_status,
           ue_mm_context);
-        emm_sap.u.emm_as.u.establish.eps_bearer_context_status =
-          tau_proc->ies->eps_bearer_context_status;
       }
       // TODO Reminder
       emm_sap.u.emm_as.u.establish.location_area_identification = NULL;
