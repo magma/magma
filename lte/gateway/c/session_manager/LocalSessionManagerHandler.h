@@ -96,9 +96,12 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   LocalEnforcer *enforcer_;
   SessionCloudReporter *reporter_;
   SessionIDGenerator id_gen_;
+  uint64_t current_epoch_;
+  uint64_t reported_epoch_;
 
  private:
   void check_usage_for_reporting();
+  bool is_pipelined_restarted();
 
   void send_create_session(
     const CreateSessionRequest &request,
