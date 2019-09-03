@@ -25,7 +25,7 @@ import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
-import {MagmaAPIUrls} from '../common/MagmaAPI';
+import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';

@@ -14,7 +14,6 @@ import type {MagmaFeatureCollection} from '../../common/GeoJSON';
 import Alert from '@fbcnms/ui/components/Alert/Alert';
 import GatewayMapMarker from './GatewayMapMarker';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaTopBar from '../MagmaTopBar';
 import MapView from '../MapView';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -64,7 +63,7 @@ function buildGeoJson(gateways): MagmaFeatureCollection {
   };
 }
 
-function Insights() {
+export default function Insights() {
   const {match} = useRouter();
   const networkId = match.params.networkId || '';
 
@@ -96,10 +95,3 @@ function Insights() {
     <MapView geojson={buildGeoJson(gateways)} MapMarker={GatewayMapMarker} />
   );
 }
-
-export default () => (
-  <>
-    <MagmaTopBar />
-    <Insights />
-  </>
-);

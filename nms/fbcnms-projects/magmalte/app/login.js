@@ -31,7 +31,7 @@ function LoginWrapper() {
 
 ReactDOM.render(
   <AppContext.Provider value={window.CONFIG.appData}>
-    <BrowserRouter basename="/nms">
+    <BrowserRouter>
       <LoginWrapper />
     </BrowserRouter>
   </AppContext.Provider>,

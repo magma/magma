@@ -19,7 +19,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaTopBar from './MagmaTopBar';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -88,19 +87,24 @@ class Gateways extends React.Component<Props, State> {
     const rows = (gateways || []).map(gateway => (
       <TableRow key={gateway.logicalID}>
         <TableCell>
-          {status}
           <GatewayStatus
             isGrey={!gateway.enodebRFTXOn}
             isActive={gateway.enodebRFTXOn === gateway.enodebRFTXEnabled}
           />
           {gateway.name}
         </TableCell>
-        <TableCell>{gateway.hwid}</TableCell>
+        <TableCell>{gateway.hardware_id}</TableCell>
         <TableCell>
-          <IconButton onClick={this.editGateway.bind(this, gateway)}>
+          <IconButton
+            data-testid="edit-gateway-icon"
+            color="primary"
+            onClick={this.editGateway.bind(this, gateway)}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={this.deleteGateway.bind(this, gateway)}>
+          <IconButton
+            data-testid="delete-gateway-icon"
+            color="primary"
+            onClick={this.deleteGateway.bind(this, gateway)}>
             <DeleteIcon />
           </IconButton>
         </TableCell>
@@ -108,49 +112,41 @@ class Gateways extends React.Component<Props, State> {
     ));
 
     return (
-      <>
-        <MagmaTopBar title="Gateways" />
-        <div className={this.props.classes.paper}>
-          <div className={this.props.classes.header}>
-            <Typography variant="h5">Configure Gateways</Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={this.showDialog}>
-              Add Gateway
-            </Button>
-          </div>
-          <Paper elevation={2}>
-            {gateways ? (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Hardware UUID</TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableHead>
-                <TableBody>{rows}</TableBody>
-              </Table>
-            ) : (
-              <LoadingFiller />
-            )}
-          </Paper>
-          <AddGatewayDialog
-            open={this.state.showDialog}
-            onClose={this.hideDialog}
-            onSave={this.onSave}
-          />
-          <EditGatewayDialog
-            key={
-              this.state.editingGateway && this.state.editingGateway.logicalID
-            }
-            gateway={this.state.editingGateway}
-            onClose={() => this.setState({editingGateway: null})}
-            onSave={this.onSave}
-          />
+      <div className={this.props.classes.paper}>
+        <div className={this.props.classes.header}>
+          <Typography variant="h5">Configure Gateways</Typography>
+          <Button variant="contained" color="primary" onClick={this.showDialog}>
+            Add Gateway
+          </Button>
         </div>
-      </>
+        <Paper elevation={2}>
+          {gateways ? (
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Hardware UUID</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableHead>
+              <TableBody>{rows}</TableBody>
+            </Table>
+          ) : (
+            <LoadingFiller />
+          )}
+        </Paper>
+        <AddGatewayDialog
+          open={this.state.showDialog}
+          onClose={this.hideDialog}
+          onSave={this.onSave}
+        />
+        <EditGatewayDialog
+          key={this.state.editingGateway && this.state.editingGateway.logicalID}
+          gateway={this.state.editingGateway}
+          onClose={() => this.setState({editingGateway: null})}
+          onSave={this.onSave}
+        />
+      </div>
     );
   }
 
@@ -271,8 +267,8 @@ class Gateways extends React.Component<Props, State> {
     }
 
     return {
-      hwid: gateway.record.hw_id.id,
-      name: gateway.record.name || 'N/A',
+      hardware_id: gateway.record.hardware_id,
+      name: gateway.name || 'N/A',
       logicalID: gateway.gateway_id,
       challengeType: gateway.record.key.key_type,
       enodebRFTXEnabled: !!transmitEnabled,

@@ -14,11 +14,11 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 
-import {EnodebBandwidthOption} from './EnodebUtils';
-
 type Props = {
-  value: $Values<typeof EnodebBandwidthOption>,
-  onChange: (SyntheticEvent<>) => void,
+  titleLabel: string,
+  value: number | string,
+  valueOptionsByKey: {[string]: number | string},
+  onChange: (SyntheticInputEvent<>) => void,
   className: string,
 };
 
@@ -26,17 +26,13 @@ type State = {
   open: boolean,
 };
 
-class EnodebBandwidthSelector extends React.Component<Props, State> {
+class EnodebPropertySelector extends React.Component<Props, State> {
   state = {
     open: false,
   };
 
-  handleChange = (event: SyntheticEvent<>) => {
+  handleChange = (event: SyntheticInputEvent<>) => {
     this.props.onChange(event);
-    this.setState({
-      // $FlowFixMe: event target will have name and value
-      [event.target.name]: event.target.value,
-    });
   };
 
   handleClose = () => {
@@ -48,18 +44,18 @@ class EnodebBandwidthSelector extends React.Component<Props, State> {
   };
 
   render() {
-    const {className} = this.props;
-    const deviceBandwidthArr = [];
-    for (const property in EnodebBandwidthOption) {
-      if (EnodebBandwidthOption.hasOwnProperty(property)) {
-        deviceBandwidthArr.push(EnodebBandwidthOption[property]);
+    const {className, valueOptionsByKey} = this.props;
+    const valueOptionsArr = [];
+    for (const property in valueOptionsByKey) {
+      if (valueOptionsByKey.hasOwnProperty(property)) {
+        valueOptionsArr.push(valueOptionsByKey[property]);
       }
     }
 
-    const menuItems = deviceBandwidthArr.map(bandwidthMhz => {
+    const menuItems = valueOptionsArr.map(valueOption => {
       return (
-        <MenuItem key={bandwidthMhz} value={bandwidthMhz}>
-          {bandwidthMhz}
+        <MenuItem key={valueOption} value={valueOption}>
+          {valueOption}
         </MenuItem>
       );
     });
@@ -77,7 +73,7 @@ class EnodebBandwidthSelector extends React.Component<Props, State> {
             value={this.props.value}
             onChange={this.handleChange}
             inputProps={{
-              name: 'Bandwidth (MHz)',
+              name: this.props.titleLabel,
               id: 'demo-controlled-open-select',
             }}>
             {menuItems}
@@ -88,4 +84,4 @@ class EnodebBandwidthSelector extends React.Component<Props, State> {
   }
 }
 
-export default EnodebBandwidthSelector;
+export default EnodebPropertySelector;

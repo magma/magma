@@ -28,7 +28,7 @@ const handleReact = _tab =>
       configJson: JSON.stringify({
         appData: {
           csrfToken: req.csrfToken(),
-          tabs: [],
+          tabs: ['nms'],
           user: req.user
             ? {
                 email: req.user.email,
@@ -61,10 +61,10 @@ router.use(
 router.use('/logger', require('@fbcnms/platform-server/logger/routes'));
 router.use('/test', require('@fbcnms/platform-server/test/routes'));
 router.use(
-  '/nms/user',
+  '/user',
   userMiddleware({
     loginSuccessUrl: '/nms',
-    loginFailureUrl: '/nms/user/login?invalid=true',
+    loginFailureUrl: '/login?invalid=true',
   }),
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));

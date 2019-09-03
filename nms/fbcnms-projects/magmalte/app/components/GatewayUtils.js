@@ -23,12 +23,14 @@ export const toString = (input: ?number | ?string): string => {
   return input !== null && input !== undefined ? input + '' : '';
 };
 
+// TODO: strip out devmand related fields and put them into a separate file
 export type GatewayPayload = {
   gateway_id: string,
   config: ?{
     cellular_gateway: ?CellularConfig,
     magmad_gateway: ?MagmadConfig,
   },
+  name: string,
   record: ?(Record & {
     key: {key_type: string},
   }),
@@ -43,12 +45,14 @@ export type GatewayPayload = {
       enodeb_connected: number,
       gps_connected: number,
       mme_connected: number,
+      devmand: ?string,
+      status: ?string,
     },
   },
 };
 
 export type Gateway = {
-  hwid: string,
+  hardware_id: string,
   name: string,
   logicalID: string,
   challengeType: string,

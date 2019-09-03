@@ -80,9 +80,9 @@ app.use(
     distPath: paths.distPath,
   }),
 );
-app.use('/nms/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
+app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
 
-app.use(configureAccess({loginUrl: '/nms/user/login'}));
+app.use(configureAccess({loginUrl: '/user/login'}));
 
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 

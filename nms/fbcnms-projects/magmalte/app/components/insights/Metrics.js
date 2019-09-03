@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {CheckindGateway} from '../../common/MagmaAPIType';
 import type {TimeRange} from './AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -19,18 +20,24 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaTopBar from '../MagmaTopBar';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import TimeRangeSelector from './TimeRangeSelector';
 import Typography from '@material-ui/core/Typography';
-import {Route, Switch} from 'react-router-dom';
+import {Route} from 'react-router-dom';
 
+import AppContext from '@fbcnms/ui/context/AppContext';
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
-import {useCallback, useState} from 'react';
+import {
+  useAxios,
+  useFeatureFlag,
+  useRouter,
+  useSnackbar,
+} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   appBar: {
@@ -45,96 +52,99 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Config = {
-  id: string,
-  filters: string[],
+export type MetricGraphConfig = {
+  basicQueryConfigs: BasicQueryConfig[],
+  customQueryConfigs?: CustomQuery[],
   label: string,
-  metric: string,
   unit?: string,
+  legendLabels?: string[],
 };
 
-const CHART_CONFIGS: Config[] = [
-  {
-    id: 'enodeb_rf_tx_enabled',
-    filters: ['service="enodebd"'],
-    label: 'E-Node B Status',
-    metric: 'enodeb_rf_tx_enabled',
-  },
-  {
-    id: 'connected_subscribers',
-    filters: ['service="mme"'],
-    label: 'Connected Subscribers',
-    metric: 'ue_connected',
-  },
-  {
-    id: 'download_throughput',
-    filters: ['service="enodebd"'],
-    label: 'Download Throughput',
-    metric: 'pdcp_user_plane_bytes_dl',
-    // 'transform' => 'formula(* $1 26.667)',
-    unit: ' Kbps',
-  },
-  {
-    id: 'upload_throughput',
-    filters: ['service="enodebd"'],
-    label: 'Upload Throughput',
-    metric: 'pdcp_user_plane_bytes_ul',
-    // 'transform' => 'formula(* $1 26.667)',
-    unit: ' Kbps',
-  },
-  {
-    id: 'latency',
-    filters: ['service="magmad"', 'metric="rtt_ms"'],
-    label: 'Latency',
-    metric: 'magmad_ping_rtt_ms',
-    unit: ' ms',
-  },
-  {
-    id: 'gateway_cpu',
-    filters: ['service="magmad"'],
-    label: 'Gateway CPU (%)',
-    metric: 'cpu_percent',
-    unit: '%',
-  },
-  {
-    id: 'temperature_coretemp_0',
-    filters: ['service="magmad"'],
-    label: 'Temperature (℃)',
-    metric: 'temperature',
-    unit: '℃',
-  },
-  {
-    id: 'disk',
-    filters: ['service="magmad"'],
-    label: 'Disk (%)',
-    metric: 'disk_percent',
-    unit: '%',
-  },
-  {
-    id: 's6a_auth_success',
-    filters: ['service="subscriberdb"'],
-    label: 's6a Auth Success',
-    metric: 's6a_auth_success',
-    // 'transform' => 'rate(1m, duration=900)',
-    unit: '',
-  },
-  {
-    id: 's6a_auth_failure',
-    filters: ['service="subscriberdb"'],
-    label: 's6a Auth Failure',
-    metric: 's6a_auth_failure',
-    // 'transform' => 'rate(1m, duration=900)',
-    unit: '',
-  },
-];
+export type CustomQuery = {
+  resolvePrometheusQuery: string => string,
+  resolveGraphiteQuery: string => string,
+};
 
-function resolveQuery(config: Config, gatewayId: string) {
-  const filters = [...config.filters, `gatewayID="${gatewayId}"`].join(',');
-  return `${config.metric}{${filters}}`;
+export type BasicQueryConfig = {
+  filters: MetricLabel[],
+  metric: string,
+};
+
+export type MetricLabel = {
+  name: string,
+  value: string,
+};
+
+export function resolveQuery(
+  config: MetricGraphConfig,
+  gatewayId: string,
+  usePrometheusDB: boolean,
+): string[] {
+  if (config.customQueryConfigs) {
+    return resolveCustomQuery(
+      config.customQueryConfigs,
+      gatewayId,
+      usePrometheusDB,
+    );
+  }
+  return resolveBasicQuery(
+    config.basicQueryConfigs,
+    gatewayId,
+    usePrometheusDB,
+  );
 }
 
-function Metrics() {
-  const {history, match} = useRouter();
+function resolveBasicQuery(
+  configs: BasicQueryConfig[],
+  gatewayId: string,
+  usePrometheusDB: boolean,
+): string[] {
+  return configs.map(config => {
+    const filterString = resolveFilters(
+      config.filters,
+      gatewayId,
+      usePrometheusDB,
+    );
+    if (usePrometheusDB) {
+      return `${config.metric}{${filterString}}`;
+    }
+    return `${config.metric},${filterString}`;
+  });
+}
+
+function resolveFilters(
+  filters: MetricLabel[],
+  gatewayId: string,
+  usePrometheusDB: boolean,
+): string {
+  const dbFilters: string[] = filters.map(filter =>
+    usePrometheusDB
+      ? filter.name + '="' + filter.value + '"'
+      : filter.name + '=' + filter.value,
+  );
+  usePrometheusDB
+    ? dbFilters.push(`gatewayID="${gatewayId}"`)
+    : dbFilters.push(`gatewayID=${gatewayId}`);
+  return dbFilters.join(',');
+}
+
+function resolveCustomQuery(
+  configs: CustomQuery[],
+  gatewayId: string,
+  usePrometheusDB: boolean,
+): string[] {
+  return configs.map(config =>
+    usePrometheusDB
+      ? config.resolvePrometheusQuery(gatewayId)
+      : config.resolveGraphiteQuery(gatewayId),
+  );
+}
+
+function Metrics(props: {
+  onGatewaySelectorChange: (SyntheticInputEvent<EventTarget>) => void,
+  configs: MetricGraphConfig[],
+}) {
+  const {match} = useRouter();
   const classes = useStyles();
   const selectedGateway = match.params.selectedGatewayId;
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
@@ -144,24 +154,20 @@ function Metrics() {
     url: MagmaAPIUrls.gateways(match, true),
   });
 
-  const onGatewayChanged = useCallback(
-    event => {
-      const gatewayId = event.target.value;
-      history.push(`/nms/${match.params.networkId}/metrics/${gatewayId}`);
-    },
-    [history, match.params.networkId],
+  const usePrometheusDatabase = useFeatureFlag(
+    AppContext,
+    'prometheus_metrics_database',
   );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);
 
-  if (error) {
-    return <LoadingFiller />;
-  }
   if (error || isLoading || !response || !response.data) {
     return <LoadingFiller />;
   }
 
-  const gateways = response.data.filter(state => state.record);
+  const data: Array<CheckindGateway> = response.data;
+
+  const gateways = data.filter(state => state.record);
   const defaultGateway = find(
     gateways,
     gateway => gateway.status?.hardware_id !== null,
@@ -177,30 +183,23 @@ function Metrics() {
           <Select
             inputProps={{id: 'devices'}}
             value={selectedGatewayOrDefault}
-            onChange={onGatewayChanged}>
+            onChange={props.onGatewaySelectorChange}>
             {gateways.map(device => (
               <MenuItem value={device.gateway_id} key={device.gateway_id}>
-                {device.record.name}
+                {device.name}
               </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <FormControl variant="filled" className={classes.formControl}>
-          <InputLabel htmlFor="time_range">Period</InputLabel>
-          <Select
-            inputProps={{id: 'time_range'}}
-            value={timeRange}
-            onChange={event => setTimeRange((event.target.value: any))}>
-            <MenuItem value="24_hours">Last 24 hours</MenuItem>
-            <MenuItem value="7_days">Last 7 days</MenuItem>
-            <MenuItem value="14_days">Last 14 days</MenuItem>
-            <MenuItem value="30_days">Last 30 days</MenuItem>
-          </Select>
-        </FormControl>
+        <TimeRangeSelector
+          className={classes.formControl}
+          value={timeRange}
+          onChange={setTimeRange}
+        />
       </AppBar>
       <GridList cols={2} cellHeight={300}>
-        {CHART_CONFIGS.map(config => (
-          <GridListTile key={config.id} cols={1}>
+        {props.configs.map((config, i) => (
+          <GridListTile key={i} cols={1}>
             <Card>
               <CardContent>
                 <Typography component="h6" variant="h6">
@@ -210,8 +209,13 @@ function Metrics() {
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
-                    query={resolveQuery(config, selectedGatewayOrDefault)}
+                    queries={resolveQuery(
+                      config,
+                      selectedGatewayOrDefault,
+                      usePrometheusDatabase,
+                    )}
                     timeRange={timeRange}
+                    usePrometheusDB={usePrometheusDatabase}
                   />
                 </div>
               </CardContent>
@@ -223,15 +227,19 @@ function Metrics() {
   );
 }
 
-export default function() {
-  const {match} = useRouter();
+export default function(props: {configs: MetricGraphConfig[]}) {
+  const {history, relativePath, relativeUrl} = useRouter();
   return (
-    <>
-      <MagmaTopBar />
-      <Switch>
-        <Route path={`${match.path}/:selectedGatewayId`} component={Metrics} />
-        <Route path={`${match.path}/`} component={Metrics} />
-      </Switch>
-    </>
+    <Route
+      path={relativePath('/:selectedGatewayId?')}
+      render={() => (
+        <Metrics
+          configs={props.configs}
+          onGatewaySelectorChange={({target}) =>
+            history.push(relativeUrl(`/${target.value}`))
+          }
+        />
+      )}
+    />
   );
 }
