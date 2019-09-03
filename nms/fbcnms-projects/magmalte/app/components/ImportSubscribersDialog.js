@@ -96,11 +96,14 @@ export type Subscriber = {
   sub_profile: string,
 };
 
-async function parseFileAndSave(
+export async function parseFileAndSave(
   csvText: null | string | ArrayBuffer,
   setErrorMsg: string => void,
   match: Match,
-  props: Props,
+  props: {
+    onSave: (successIDs: Array<string>) => void | Promise<void>,
+    onSaveError: (failureIDs: Array<string>) => void,
+  },
 ) {
   if (csvText == null) {
     setErrorMsg('Failed to get CSV, is it empty? Please see template.');
