@@ -34,6 +34,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from './GatewayUtils';
 import {MagmaAPIUrls} from '../common/MagmaAPI';
+import {find} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -202,20 +203,24 @@ class Gateways extends React.Component<Props, State> {
     let version = 'Not Reported';
     let vpnIP = 'Not Reported';
     let lastCheckin = 'Not Reported';
+    let hardwareID = 'Not reported';
     let isBackhaulDown = true;
     const latLon = {lat: 0, lon: 0};
     const {status} = gateway;
     if (status) {
-      version = status.version || version;
-      vpnIP = status.vpn_ip || vpnIP;
-      lastCheckin = status.checkin_time
-        ? status.checkin_time.toString()
-        : lastCheckin;
-
+      vpnIP = status.platform_info?.vpn_ip || vpnIP;
+      const packages = find(status.platform_info?.packages || [], {
+        name: 'magma',
+      });
+      version = packages?.version || '';
       // if the last check-in time is more than 5 minutes
       // we treat it as backhaul is down
-      const dutation = Math.max(0, Date.now() - status.checkin_time);
-      isBackhaulDown = dutation > 1000 * 5 * 60;
+      const checkin = status.checkin_time;
+      if (checkin != null) {
+        const duration = Math.max(0, Date.now() - checkin);
+        isBackhaulDown = duration > 1000 * 5 * 60;
+        lastCheckin = checkin.toString();
+      }
 
       if (status.meta) {
         if (!isBackhaulDown) {
@@ -227,6 +232,10 @@ class Gateways extends React.Component<Props, State> {
         gpsConnected = status.meta.gps_connected == 1;
         enodebConnected = status.meta.enodeb_connected == 1;
         mmeConnected = status.meta.mme_connected == 1;
+      }
+
+      if (status.hardware_id) {
+        hardwareID = status.hardware_id;
       }
     }
 
@@ -267,10 +276,10 @@ class Gateways extends React.Component<Props, State> {
     }
 
     return {
-      hardware_id: gateway.record.hardware_id,
+      hardware_id: hardwareID,
       name: gateway.name || 'N/A',
       logicalID: gateway.gateway_id,
-      challengeType: gateway.record.key.key_type,
+      challengeType: gateway.record.key.key_type || '',
       enodebRFTXEnabled: !!transmitEnabled,
       enodebRFTXOn: !!enodebRFTXOn,
       enodebConnected,
