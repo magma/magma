@@ -18,19 +18,7 @@ const DEV_MODE = process.env.NODE_ENV !== 'production';
 const LOG_LEVEL = getValidLogLevel(process.env.LOG_LEVEL);
 const LOG_FORMAT = DEV_MODE ? 'shell' : 'json';
 
-const apiHostArg = process.env.API_HOST || 'staging';
-let API_HOST;
-switch (apiHostArg) {
-  // shortcuts to make management a little easier
-  case 'staging':
-    API_HOST = 'api-staging.magma.test';
-    break;
-  case 'prod':
-    API_HOST = 'api.magma.test';
-    break;
-  default:
-    API_HOST = nullthrows(process.env.API_HOST);
-}
+const API_HOST = nullthrows(process.env.API_HOST);
 
 const MAPBOX_ACCESS_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '';
 
