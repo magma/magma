@@ -19,7 +19,6 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsResult,
     FlowResponse,
     RuleModResult,
-    SetupFlowsRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
     TableAssignment,
