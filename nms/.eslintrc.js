@@ -14,6 +14,12 @@ const openSourcePattern = /\*\n \* Copyright 20\d{2}-present Facebook\. All Righ
 module.exports.extends = ['eslint-config-fbcnms'];
 module.exports.overrides = [
   {
+    files: ['*'],
+    rules: {
+      'prettier/prettier': [2, 'fb', '@format'],
+    },
+  },
+  {
     files: ['.eslintrc.js'],
     rules: {
       quotes: ['warn', 'single'],
