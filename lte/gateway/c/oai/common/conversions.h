@@ -314,10 +314,10 @@
 
 #define PLMN_T_TO_MCC_MNC(pLMN, mCC, mNC, mNCdIGITlENGTH)                      \
   do {                                                                         \
-    mCC = pLMN.mcc_digit3 * 100 + pLMN.mcc_digit2 * 10 + pLMN.mcc_digit1;      \
+    mCC = pLMN.mcc_digit1 * 100 + pLMN.mcc_digit2 * 10 + pLMN.mcc_digit3;      \
     mNCdIGITlENGTH = (pLMN.mnc_digit3 == 0xF ? 2 : 3);                         \
-    mNC = (mNCdIGITlENGTH == 2 ? 0 : pLMN.mnc_digit3 * 100) +                  \
-          pLMN.mnc_digit2 * 10 + pLMN.mnc_digit1;                              \
+    mNC = (mNCdIGITlENGTH == 2 ? (pLMN.mnc_digit1 * 10 + pLMN.mnc_digit2)      \
+    : (pLMN.mnc_digit1 * 100) + pLMN.mnc_digit2 * 10 + pLMN.mnc_digit3);       \
   } while (0)
 
 /*

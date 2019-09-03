@@ -1896,6 +1896,8 @@ int mme_app_paging_request_helper(
 {
   MessageDef *message_p = NULL;
   int rc = RETURNok;
+  uint8_t num_of_tai_lists = ue_context_p->emm_context._tai_list.numberoflists;
+  uint8_t num_of_tac = 0;
   OAILOG_FUNC_IN(LOG_MME_APP);
   // First, check if the UE is already connected. If so, stop
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
@@ -1903,6 +1905,7 @@ int mme_app_paging_request_helper(
       LOG_MME_APP,
       "Paging process attempted for connected UE with id %d\n",
       ue_context_p->mme_ue_s1ap_id);
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_PAGING_REQUEST);
@@ -1925,6 +1928,106 @@ int mme_app_paging_request_helper(
   }
   paging_request->domain_indicator = domain_indicator;
 
+  // Send TAI List
+  paging_request->tai_list_count = num_of_tai_lists ;
+  tai_list_t *tai_list = &ue_context_p->emm_context._tai_list;
+  paging_tai_list_t *p_tai_list = NULL;
+  for (int tai_list_idx = 0; tai_list_idx < num_of_tai_lists; tai_list_idx++) {
+    p_tai_list = &paging_request->paging_tai_list[tai_list_idx];
+    num_of_tac = tai_list->partial_tai_list[tai_list_idx].numberofelements;
+    switch (tai_list->partial_tai_list[tai_list_idx].typeoflist) {
+      case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
+        p_tai_list->numoftac = num_of_tac;
+        for (int idx = 0; idx < (num_of_tac + 1); idx++) {
+          p_tai_list->tai_list[idx].mcc_digit1 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1;
+          p_tai_list->tai_list[idx].mcc_digit2 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2;
+          p_tai_list->tai_list[idx].mcc_digit3 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3;
+          p_tai_list->tai_list[idx].mnc_digit1 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1;
+          p_tai_list->tai_list[idx].mnc_digit2 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2;
+          p_tai_list->tai_list[idx].mnc_digit3 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3;
+
+          p_tai_list->tai_list[idx].tac =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_non_consecutive_tacs.tac[idx];
+        }
+        break;
+
+      case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
+        p_tai_list->numoftac = num_of_tac;
+        for (int idx = 0; idx < (num_of_tac + 1); idx++) {
+          p_tai_list->tai_list[idx].mcc_digit1 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_consecutive_tacs.mcc_digit1;
+          p_tai_list->tai_list[idx].mcc_digit2 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_consecutive_tacs.mcc_digit2;
+          p_tai_list->tai_list[idx].mcc_digit3 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_consecutive_tacs.mcc_digit3;
+          p_tai_list->tai_list[idx].mnc_digit1 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_consecutive_tacs.mnc_digit1;
+          p_tai_list->tai_list[idx].mnc_digit2 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_consecutive_tacs.mnc_digit2;
+          p_tai_list->tai_list[idx].mnc_digit3 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_one_plmn_consecutive_tacs.mnc_digit3;
+
+          p_tai_list->tai_list[idx].tac =
+              tai_list->partial_tai_list[tai_list_idx]
+              .u.tai_one_plmn_consecutive_tacs.tac + idx;
+        }
+        break;
+
+      case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
+        p_tai_list->numoftac = num_of_tac;
+        for (int idx = 0; idx < (num_of_tac + 1); idx++) {
+          p_tai_list->tai_list[idx].mcc_digit1 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_many_plmn[idx].mcc_digit1;
+          p_tai_list->tai_list[idx].mcc_digit2 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_many_plmn[idx].mcc_digit2;
+          p_tai_list->tai_list[idx].mcc_digit3 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_many_plmn[idx].mcc_digit3;
+          p_tai_list->tai_list[idx].mnc_digit1 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_many_plmn[idx].mnc_digit1;
+          p_tai_list->tai_list[idx].mnc_digit2 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_many_plmn[idx].mnc_digit2;
+          p_tai_list->tai_list[tai_list_idx].mnc_digit3 =
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_many_plmn[idx].mnc_digit3;
+
+          p_tai_list->tai_list[idx].tac=
+            tai_list->partial_tai_list[tai_list_idx]
+            .u.tai_many_plmn[idx].tac;
+        }
+        break;
+
+      default:
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "BAD TAI list configuration, unknown TAI list type %u",
+          tai_list->partial_tai_list[tai_list_idx].typeoflist);
+      break;
+    }
+  }
   rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   if (!set_timer) {
@@ -1945,6 +2048,7 @@ int mme_app_paging_request_helper(
       "Failed to start paging timer for ue %d\n",
       ue_context_p->mme_ue_s1ap_id);
   }
+  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, timer_rc);
 }
 

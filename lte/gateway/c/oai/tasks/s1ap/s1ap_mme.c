@@ -244,7 +244,7 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
       case S1AP_PAGING_REQUEST: {
         if (
           s1ap_handle_paging_request(
-            &S1AP_PAGING_REQUEST(received_message_p)) != RETURNok) {
+            state, &S1AP_PAGING_REQUEST(received_message_p)) != RETURNok) {
           OAILOG_ERROR(LOG_S1AP, "Failed to send paging message\n");
         }
       } break;
