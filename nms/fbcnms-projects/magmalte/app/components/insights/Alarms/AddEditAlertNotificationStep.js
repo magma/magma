@@ -12,8 +12,8 @@ import type {AlertConfig} from './AlarmAPIType';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
-import IconButton from '@material-ui/core/IconButton';
-import React from 'react';
+import MenuItem from '@material-ui/core/MenuItem';
+import React, {useEffect, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
@@ -23,7 +23,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   alertConfig: AlertConfig,
-  setAlertConfig: AlertConfig => void,
+  setAlertConfig: ((AlertConfig => AlertConfig) | AlertConfig) => void,
   onSave: () => void,
   onPrevious: () => void,
 };
@@ -33,8 +33,46 @@ const useStyles = makeStyles(() => ({
   buttonGroup: alertsTheme.buttonGroup,
 }));
 
+const timeUnits = [
+  {
+    value: 's',
+    label: 'seconds',
+  },
+  {
+    value: 'm',
+    label: 'minutes',
+  },
+  {
+    value: 'h',
+    label: 'hours',
+  },
+  {
+    value: 'd',
+    label: 'days',
+  },
+  {
+    value: 'w',
+    label: 'weeks',
+  },
+];
+
 export default function AddEditAlertNotificationStep(props: Props) {
   const classes = useStyles();
+  const {alertConfig, setAlertConfig} = props;
+  const duration = alertConfig.for ?? '5m';
+  const [timeNumber, setTimeNumber] = useState<string>(duration.slice(0, -1));
+  const [timeUnit, setTimeUnit] = useState<string>(
+    duration[duration.length - 1],
+  );
+
+  useEffect(() => {
+    setAlertConfig(prevConfig => {
+      return {
+        ...prevConfig,
+        for: timeNumber + timeUnit,
+      };
+    });
+  }, [setAlertConfig, timeNumber, timeUnit]);
 
   return (
     <>
@@ -46,31 +84,32 @@ export default function AddEditAlertNotificationStep(props: Props) {
             <Grid item>
               <TextField
                 required
-                placeholder="Ex: 5m"
+                type="number"
                 label="Required"
-                value={props.alertConfig.for}
-                onChange={event =>
-                  props.setAlertConfig({
-                    ...props.alertConfig,
-                    for: event.target.value,
-                  })
-                }
+                value={timeNumber}
+                onChange={event => setTimeNumber(event.target.value)}
               />
+            </Grid>
+            <Grid item>
+              <TextField
+                select
+                value={timeUnit}
+                onChange={event => setTimeUnit(event.target.value)}>
+                {timeUnits.map(option => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item>
               <Tooltip
                 title={
                   'Enter the amount of time the alert expression needs to be ' +
-                  'true for before the alert fires. Click on the help icon to ' +
-                  'open the prometheus time duration string formatting guide.'
+                  'true for before the alert fires.'
                 }
                 placement="right">
-                <IconButton
-                  className={classes.iconButton}
-                  href="https://prometheus.io/docs/prometheus/latest/querying/basics/#range-vector-selectors"
-                  target="_blank">
-                  <HelpIcon />
-                </IconButton>
+                <HelpIcon />
               </Tooltip>
             </Grid>
           </Grid>
