@@ -50,6 +50,9 @@ type NetworkEpcConfigs struct {
 	// Pattern: ^(\d{2,3})$
 	Mnc string `json:"mnc"`
 
+	// mobility
+	Mobility *NetworkEpcConfigsMobility `json:"mobility,omitempty"`
+
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
 
@@ -92,6 +95,10 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateMnc(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMobility(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -186,6 +193,24 @@ func (m *NetworkEpcConfigs) validateMnc(formats strfmt.Registry) error {
 
 	if err := validate.Pattern("mnc", "body", string(m.Mnc), `^(\d{2,3})$`); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateMobility(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Mobility) { // not required
+		return nil
+	}
+
+	if m.Mobility != nil {
+		if err := m.Mobility.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mobility")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -287,6 +312,297 @@ func (m *NetworkEpcConfigs) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *NetworkEpcConfigs) UnmarshalBinary(b []byte) error {
 	var res NetworkEpcConfigs
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkEpcConfigsMobility Configuration for IP Allocation (Mobility).
+// swagger:model NetworkEpcConfigsMobility
+type NetworkEpcConfigsMobility struct {
+
+	// ip allocation mode
+	// Required: true
+	// Enum: [NAT STATIC DHCP_PASSTHROUGH DHCP_BROADCAST]
+	IPAllocationMode string `json:"ip_allocation_mode"`
+
+	// nat
+	Nat *NetworkEpcConfigsMobilityNat `json:"nat,omitempty"`
+
+	// reserved addresses
+	ReservedAddresses []strfmt.IPv4 `json:"reserved_addresses"`
+
+	// static
+	Static *NetworkEpcConfigsMobilityStatic `json:"static,omitempty"`
+}
+
+// Validate validates this network epc configs mobility
+func (m *NetworkEpcConfigsMobility) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateIPAllocationMode(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateNat(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateReservedAddresses(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStatic(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+var networkEpcConfigsMobilityTypeIPAllocationModePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["NAT","STATIC","DHCP_PASSTHROUGH","DHCP_BROADCAST"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		networkEpcConfigsMobilityTypeIPAllocationModePropEnum = append(networkEpcConfigsMobilityTypeIPAllocationModePropEnum, v)
+	}
+}
+
+const (
+
+	// NetworkEpcConfigsMobilityIPAllocationModeNAT captures enum value "NAT"
+	NetworkEpcConfigsMobilityIPAllocationModeNAT string = "NAT"
+
+	// NetworkEpcConfigsMobilityIPAllocationModeSTATIC captures enum value "STATIC"
+	NetworkEpcConfigsMobilityIPAllocationModeSTATIC string = "STATIC"
+
+	// NetworkEpcConfigsMobilityIPAllocationModeDHCPPASSTHROUGH captures enum value "DHCP_PASSTHROUGH"
+	NetworkEpcConfigsMobilityIPAllocationModeDHCPPASSTHROUGH string = "DHCP_PASSTHROUGH"
+
+	// NetworkEpcConfigsMobilityIPAllocationModeDHCPBROADCAST captures enum value "DHCP_BROADCAST"
+	NetworkEpcConfigsMobilityIPAllocationModeDHCPBROADCAST string = "DHCP_BROADCAST"
+)
+
+// prop value enum
+func (m *NetworkEpcConfigsMobility) validateIPAllocationModeEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, networkEpcConfigsMobilityTypeIPAllocationModePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateIPAllocationMode(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("mobility"+"."+"ip_allocation_mode", "body", string(m.IPAllocationMode)); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateIPAllocationModeEnum("mobility"+"."+"ip_allocation_mode", "body", m.IPAllocationMode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateNat(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Nat) { // not required
+		return nil
+	}
+
+	if m.Nat != nil {
+		if err := m.Nat.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mobility" + "." + "nat")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateReservedAddresses(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ReservedAddresses) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.ReservedAddresses); i++ {
+
+		if err := validate.FormatOf("mobility"+"."+"reserved_addresses"+"."+strconv.Itoa(i), "body", "ipv4", m.ReservedAddresses[i].String(), formats); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobility) validateStatic(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Static) { // not required
+		return nil
+	}
+
+	if m.Static != nil {
+		if err := m.Static.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("mobility" + "." + "static")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobility) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobility) UnmarshalBinary(b []byte) error {
+	var res NetworkEpcConfigsMobility
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkEpcConfigsMobilityNat network epc configs mobility nat
+// swagger:model NetworkEpcConfigsMobilityNat
+type NetworkEpcConfigsMobilityNat struct {
+
+	// ip blocks
+	IPBlocks []string `json:"ip_blocks"`
+}
+
+// Validate validates this network epc configs mobility nat
+func (m *NetworkEpcConfigsMobilityNat) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateIPBlocks(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobilityNat) validateIPBlocks(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPBlocks) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.IPBlocks); i++ {
+
+		if err := validate.MinLength("mobility"+"."+"nat"+"."+"ip_blocks"+"."+strconv.Itoa(i), "body", string(m.IPBlocks[i]), 5); err != nil {
+			return err
+		}
+
+		if err := validate.MaxLength("mobility"+"."+"nat"+"."+"ip_blocks"+"."+strconv.Itoa(i), "body", string(m.IPBlocks[i]), 49); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityNat) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityNat) UnmarshalBinary(b []byte) error {
+	var res NetworkEpcConfigsMobilityNat
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// NetworkEpcConfigsMobilityStatic network epc configs mobility static
+// swagger:model NetworkEpcConfigsMobilityStatic
+type NetworkEpcConfigsMobilityStatic struct {
+
+	// ip blocks by tac
+	IPBlocksByTac map[string][]string `json:"ip_blocks_by_tac,omitempty"`
+}
+
+// Validate validates this network epc configs mobility static
+func (m *NetworkEpcConfigsMobilityStatic) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateIPBlocksByTac(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkEpcConfigsMobilityStatic) validateIPBlocksByTac(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPBlocksByTac) { // not required
+		return nil
+	}
+
+	for k := range m.IPBlocksByTac {
+
+		for i := 0; i < len(m.IPBlocksByTac[k]); i++ {
+
+			if err := validate.MinLength("mobility"+"."+"static"+"."+"ip_blocks_by_tac"+"."+k+"."+strconv.Itoa(i), "body", string(m.IPBlocksByTac[k][i]), 5); err != nil {
+				return err
+			}
+
+			if err := validate.MaxLength("mobility"+"."+"static"+"."+"ip_blocks_by_tac"+"."+k+"."+strconv.Itoa(i), "body", string(m.IPBlocksByTac[k][i]), 49); err != nil {
+				return err
+			}
+
+		}
+
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityStatic) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *NetworkEpcConfigsMobilityStatic) UnmarshalBinary(b []byte) error {
+	var res NetworkEpcConfigsMobilityStatic
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

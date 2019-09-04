@@ -46,16 +46,6 @@ services:
       - ALERTMANAGER_URL=alertmanager:9093
     restart: always
 
-  graphite:
-    environment:
-      - REDIS_TAGDB=1
-    ports:
-      - 8001:80/tcp
-    volumes:
-      - $PWD/graphite/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf
-      - $PWD/graphite/carbon.conf:/opt/graphite/conf/carbon.conf
-    image: graphiteapp/graphite-statsd
-
   grafana:
     build:
       context: $PWD/../../../orc8r/cloud

@@ -13,18 +13,12 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
 import AppBar from '@material-ui/core/AppBar';
-import DataPlanConfig from './DataPlanConfig';
-import MagmaTopBar from '../MagmaTopBar';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import NetworkConfig from './NetworkConfig';
 import Paper from '@material-ui/core/Paper';
-import PoliciesConfig from './PoliciesConfig';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import UpgradeConfig from './UpgradeConfig';
 
-import nullthrows from '@fbcnms/util/nullthrows';
 import {Route, Switch, withRouter} from 'react-router-dom';
 import {findIndex} from 'lodash';
 
@@ -39,47 +33,25 @@ const styles = theme => ({
   },
 });
 
-type Props = WithStyles & ContextRouter & {};
+type Props = WithStyles<typeof styles> &
+  ContextRouter & {
+    tabRoutes: TabRoute[],
+  };
 
 type State = {
   currentTab: number,
 };
 
-type TabRoutes = {
+type TabRoute = {
   component: ComponentType<any>,
   label: string,
   path: string,
-}[];
-
-const getTabRoutes = (_networkID): TabRoutes => [
-  {
-    component: DataPlanConfig,
-    label: 'Data Plans',
-    path: 'dataplans',
-  },
-  {
-    component: NetworkConfig,
-    label: 'Network Configuration',
-    path: 'network',
-  },
-  {
-    component: UpgradeConfig,
-    label: 'Upgrades',
-    path: 'upgrades',
-  },
-  {
-    component: PoliciesConfig,
-    label: 'Policies',
-    path: 'policies',
-  },
-];
+};
 
 class Configure extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-
-    const networkID = nullthrows(props.match.params.networkId);
-    const tabRoutes = getTabRoutes(networkID);
+    const {tabRoutes} = props;
 
     // Default to first page
     if (props.location.pathname.endsWith('/configure')) {
@@ -101,41 +73,37 @@ class Configure extends React.Component<Props, State> {
   };
 
   render() {
-    const {classes, match} = this.props;
+    const {classes, match, tabRoutes} = this.props;
     const {currentTab} = this.state;
-    const tabRoutes = getTabRoutes(nullthrows(match.params.networkId));
     return (
-      <>
-        <MagmaTopBar title="Configure" />
-        <Paper className={this.props.classes.paper} elevation={2}>
-          <AppBar position="static" color="default">
-            <Tabs
-              value={currentTab}
-              indicatorColor="primary"
-              textColor="primary"
-              onChange={this.onTabChange}
-              className={classes.tabs}>
-              {tabRoutes.map((route, i) => (
-                <Tab
-                  key={i}
-                  component={NestedRouteLink}
-                  label={route.label}
-                  to={route.path}
-                />
-              ))}
-            </Tabs>
-          </AppBar>
-          <Switch>
+      <Paper className={this.props.classes.paper} elevation={2}>
+        <AppBar position="static" color="default">
+          <Tabs
+            value={currentTab}
+            indicatorColor="primary"
+            textColor="primary"
+            onChange={this.onTabChange}
+            className={classes.tabs}>
             {tabRoutes.map((route, i) => (
-              <Route
+              <Tab
                 key={i}
-                path={`${match.path}/${route.path}`}
-                component={route.component}
+                component={NestedRouteLink}
+                label={route.label}
+                to={route.path}
               />
             ))}
-          </Switch>
-        </Paper>
-      </>
+          </Tabs>
+        </AppBar>
+        <Switch>
+          {tabRoutes.map((route, i) => (
+            <Route
+              key={i}
+              path={`${match.path}/${route.path}`}
+              component={route.component}
+            />
+          ))}
+        </Switch>
+      </Paper>
     );
   }
 }

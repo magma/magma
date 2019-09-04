@@ -64,7 +64,7 @@ type State = {
   loading: boolean,
 };
 
-type Props = WithStyles & ContextRouter & WithAlert & {};
+type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
 
 class DataPlanConfig extends React.Component<Props, State> {
   state = {
@@ -121,14 +121,16 @@ class DataPlanConfig extends React.Component<Props, State> {
           <TableCell>
             <div className={classes.rowIcon}>
               <NestedRouteLink to={`/edit/${encodeURIComponent(id)}/`}>
-                <IconButton>
+                <IconButton color="primary">
                   <EditIcon />
                 </IconButton>
               </NestedRouteLink>
             </div>
             <div className={classes.rowIcon}>
               {id !== DEFAULT_DATA_PLAN_ID && (
-                <IconButton onClick={() => this.handleDataPlanDelete(id)}>
+                <IconButton
+                  color="primary"
+                  onClick={() => this.handleDataPlanDelete(id)}>
                   <DeleteIcon />
                 </IconButton>
               )}

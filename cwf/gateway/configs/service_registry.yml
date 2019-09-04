@@ -34,4 +34,7 @@ services:
   redis:
     ip_address: 127.0.0.1
     port: 6380
+  radiusd:
+    ip_address: 127.0.0.1
+    port: 9115
 

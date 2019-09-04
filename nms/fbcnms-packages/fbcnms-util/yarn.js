@@ -17,12 +17,17 @@ type Dependencies = {
   [key: string]: string,
 };
 
+type WorkspaceConfig = {
+  packages: Array<string>,
+  nohoist: Array<string>,
+};
+
 type Manifest = {
   dependencies?: Dependencies,
   devDependencies?: Dependencies,
   peerDependencies?: Dependencies,
   optionalDependencies?: Dependencies,
-  workspaces?: Array<string>,
+  workspaces?: WorkspaceConfig,
 };
 
 export function resolveWorkspaces(
@@ -33,7 +38,7 @@ export function resolveWorkspaces(
     return [];
   }
 
-  const files = rootManifest.workspaces.map(pattern =>
+  const files = rootManifest.workspaces.packages.map(pattern =>
     glob.sync(pattern.replace(/\/?$/, '/+(package.json)'), {
       cwd: root,
       ignore: pattern.replace(/\/?$/, '/node_modules/**/+(package.json)'),

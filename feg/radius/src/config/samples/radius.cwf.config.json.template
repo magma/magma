@@ -51,6 +51,14 @@
                         }
                     },
                     {
+                      "name": "analytics",
+                      "config": {
+                        "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",
+                        "GraphQLURL": "$ANALYTICS_GRAPHQL_ENDPOINT",
+                        "DryRunGraphQL": false
+                      }
+                    },
+                    {
                       "name": "magmaacct",
                       "config": {
                         "FegEndpoint": "$AAA_ENDPOINT"

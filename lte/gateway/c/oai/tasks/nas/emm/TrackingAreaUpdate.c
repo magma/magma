@@ -674,8 +674,8 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
 
     if ((tau_proc->ies->eps_update_type.active_flag) &&
         (ue_mm_context->ecm_state != ECM_CONNECTED)) {
-      /* If active flag is set to true in TAU request then re-establish bearer also for the UE while sending TAU
-       * Accept message
+      /* If active flag is set to true in TAU request then re-establish
+       * bearer also for the UE while sending TAU Accept message
        */
       emm_sap.primitive = EMMAS_ESTABLISH_CNF;
       emm_sap.u.emm_as.u.establish.ue_id = tau_proc->ue_id;

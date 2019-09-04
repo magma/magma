@@ -8,109 +8,66 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
-
 import AppBar from '@material-ui/core/AppBar';
-import AppContext from './context/AppContext';
-import MagmaTopBar from './MagmaTopBar';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
-import React from 'react';
+import React, {useContext} from 'react';
 import SecuritySettings from './SecuritySettings';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import UsersSettings from './UsersSettings';
 
-import {Route, Switch, withRouter} from 'react-router-dom';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {findIndex} from 'lodash';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
 
-const styles = theme => ({
+const useStyles = makeStyles(theme => ({
   tabs: {
     flex: 1,
   },
   paper: {
     margin: theme.spacing(3),
   },
-});
+}));
 
-type Props = ContextRouter & WithStyles;
-
-type State = {
-  currentTab: number,
-};
-
-class Settings extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-
-    // Default to Security sub-section
-    if (props.location.pathname.endsWith('/settings/')) {
-      props.history.push(`${props.match.url}security/`);
-    }
-
-    const {pathname: currentPath} = props.location;
-    const currentTab = findIndex(['security', 'users'], route =>
-      currentPath.startsWith(props.match.url + '/' + route),
-    );
-
-    this.state = {
-      currentTab: currentTab !== -1 ? currentTab : 0,
-    };
+export default function Settings(props: {isSuperUser?: boolean}) {
+  const classes = useStyles();
+  const {match, relativePath, relativeUrl, location} = useRouter();
+  const {user} = useContext(AppContext);
+  let {isSuperUser} = props;
+  if (isSuperUser === undefined) {
+    isSuperUser = user.isSuperUser;
   }
 
-  render() {
-    const {match, classes} = this.props;
-    return (
-      <AppContext.Consumer>
-        {({user, networkIds}) => (
-          <>
-            <MagmaTopBar title="Settings" />
-            <Paper className={this.props.classes.paper} elevation={2}>
-              <AppBar position="static" color="default">
-                <Tabs
-                  value={this.state.currentTab}
-                  indicatorColor="primary"
-                  textColor="primary"
-                  onChange={this.onTabChange}
-                  className={classes.tabs}>
-                  <Tab
-                    component={NestedRouteLink}
-                    label="Security"
-                    to="/security/"
-                  />
-                  {user.isSuperUser && (
-                    <Tab
-                      component={NestedRouteLink}
-                      label="Users"
-                      to="/users/"
-                    />
-                  )}
-                </Tabs>
-              </AppBar>
-              <Switch>
-                <Route
-                  path={`${match.path}/security`}
-                  component={SecuritySettings}
-                />
-                {user.isSuperUser && (
-                  <Route
-                    path={`${match.path}/users`}
-                    component={() => (
-                      <UsersSettings allNetworkIDs={networkIds} />
-                    )}
-                  />
-                )}
-              </Switch>
-            </Paper>
-          </>
+  const currentTab = findIndex(['security', 'users'], route =>
+    location.pathname.startsWith(match.url + '/' + route),
+  );
+
+  return (
+    <Paper className={classes.paper} elevation={2}>
+      <AppBar position="static" color="default">
+        <Tabs
+          value={currentTab !== -1 ? currentTab : 0}
+          indicatorColor="primary"
+          textColor="primary"
+          className={classes.tabs}>
+          <Tab component={NestedRouteLink} label="Security" to="/security/" />
+          {isSuperUser && (
+            <Tab component={NestedRouteLink} label="Users" to="/users/" />
+          )}
+        </Tabs>
+      </AppBar>
+      <Switch>
+        <Route path={relativePath('/security')} component={SecuritySettings} />
+        {isSuperUser && (
+          <Route
+            path={relativePath('/users')}
+            render={() => <Redirect to="/admin/users" />}
+          />
         )}
-      </AppContext.Consumer>
-    );
-  }
-
-  onTabChange = (_, currentTab: number) => this.setState({currentTab});
+        <Redirect to={relativeUrl('/security')} />
+      </Switch>
+    </Paper>
+  );
 }
-
-export default withStyles(styles)(withRouter(Settings));

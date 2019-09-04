@@ -10,13 +10,15 @@
 
 import type {EditUser} from '@fbcnms/ui/components/auth/EditUserDialog';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import EditUserDialog from '@fbcnms/ui/components/auth/EditUserDialog';
 import IconButton from '@material-ui/core/IconButton';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -29,100 +31,46 @@ import {UserRoles} from '@fbcnms/auth/types';
 
 import renderList from '@fbcnms/util/renderList';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useAxios} from '@fbcnms/ui/hooks';
+import {useCallback, useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
-const styles = {
+const useStyles = makeStyles(theme => ({
   header: {
     margin: '10px',
     display: 'flex',
     justifyContent: 'space-between',
   },
   paper: {
-    margin: '10px',
+    margin: theme.spacing(3),
   },
-};
+}));
 
-type Props = WithStyles &
-  WithAlert & {
-    allNetworkIDs: Array<string>,
-  };
+type Props = {...WithAlert};
 
-type State = {
-  editingUser: ?EditUser,
-  users: Array<EditUser>,
-  showDialog: boolean,
-};
+function UsersSettings(props: Props) {
+  const classes = useStyles();
+  const [editingUser, setEditingUser] = useState<?EditUser>(null);
+  const [users, setUsers] = useState<Array<EditUser>>([]);
+  const [showDialog, setShowDialog] = useState<boolean>(false);
+  const {networkIds} = useContext(AppContext);
+  const enqueueSnackbar = useEnqueueSnackbar();
 
-class UsersSettings extends React.Component<Props, State> {
-  state = {
-    editingUser: null,
-    showDialog: false,
-    users: [],
-  };
+  const {isLoading, error} = useAxios({
+    url: '/user/async/',
+    onResponse: useCallback(res => setUsers(res.data.users), []),
+  });
 
-  componentDidMount() {
-    axios
-      .get('/nms/user/async/')
-      .then(response => this.setState({users: response.data.users}));
+  if (isLoading || error) {
+    return <LoadingFiller />;
   }
 
-  render() {
-    const rows = this.state.users.map(row => (
-      <TableRow key={row.id}>
-        <TableCell>{row.email}</TableCell>
-        <TableCell>
-          {row.role == UserRoles.USER ? 'User' : 'Super User'}
-        </TableCell>
-        <TableCell>{renderList(row.networkIDs || [])}</TableCell>
-        <TableCell>
-          <IconButton onClick={this.deleteUser.bind(this, row)}>
-            <DeleteIcon />
-          </IconButton>
-          <IconButton onClick={this.showEditDialog.bind(this, row)}>
-            <EditIcon />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    ));
+  const handleError = error =>
+    enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
 
-    return (
-      <div className={this.props.classes.paper}>
-        <div className={this.props.classes.header}>
-          <Typography variant="h5">Users</Typography>
-          <Button variant="contained" color="primary" onClick={this.showDialog}>
-            Add User
-          </Button>
-        </div>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Email</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Accessible Networks</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>{rows}</TableBody>
-        </Table>
-        <EditUserDialog
-          key={this.state.editingUser ? this.state.editingUser.id : 'new_user'}
-          editingUser={this.state.editingUser}
-          open={this.state.showDialog}
-          onClose={this.hideDialog}
-          onEditUser={this.editUser}
-          onCreateUser={this.createUser}
-          allNetworkIDs={this.props.allNetworkIDs}
-        />
-      </div>
-    );
-  }
-
-  showDialog = () => this.setState({showDialog: true});
-  hideDialog = () => this.setState({editingUser: null, showDialog: false});
-  showEditDialog = user => this.setState({editingUser: user, showDialog: true});
-
-  deleteUser = user => {
-    this.props
+  const deleteUser = user => {
+    props
       .confirm({
         message: (
           <span>
@@ -134,40 +82,99 @@ class UsersSettings extends React.Component<Props, State> {
       })
       .then(confirmed => {
         if (confirmed) {
-          axios.delete('/nms/user/async/' + user.id).then(_resp =>
-            this.setState({
-              users: this.state.users.filter(u => u.id != user.id),
-            }),
-          );
+          axios
+            .delete('/user/async/' + user.id)
+            .then(_resp => setUsers(users.filter(u => u.id != user.id)))
+            .catch(handleError);
         }
       });
   };
 
-  createUser = payload => {
-    axios
-      .post('/nms/user/async/', payload)
-      .then(response => this.updateUserState(response.data.user))
-      .catch(error => this.props.alert(error.response?.data?.error || error));
+  const updateUserState = user => {
+    const newUsers = users.slice(0);
+    if (editingUser) {
+      const index = users.indexOf(editingUser);
+      newUsers[index] = user;
+    } else {
+      newUsers.push(user);
+    }
+
+    setShowDialog(false);
+    setEditingUser(null);
+    setUsers(newUsers);
   };
 
-  editUser = (userId, payload) => {
-    axios
-      .put('/nms/user/async/' + userId, payload)
-      .then(response => this.updateUserState(response.data.user))
-      .catch(error => this.props.alert(error.response?.data?.error || error));
-  };
+  const rows = users.map(row => (
+    <TableRow key={row.id}>
+      <TableCell>{row.email}</TableCell>
+      <TableCell>
+        {row.role == UserRoles.USER ? 'User' : 'Super User'}
+      </TableCell>
+      <TableCell>{renderList(row.networkIDs || [])}</TableCell>
+      <TableCell>
+        <IconButton onClick={() => deleteUser(row)}>
+          <DeleteIcon />
+        </IconButton>
+        <IconButton
+          onClick={() => {
+            setShowDialog(true);
+            setEditingUser(row);
+          }}>
+          <EditIcon />
+        </IconButton>
+      </TableCell>
+    </TableRow>
+  ));
 
-  updateUserState = user =>
-    this.setState(state => {
-      const users = state.users.slice(0);
-      if (this.state.editingUser) {
-        const index = users.indexOf(state.editingUser);
-        users[index] = user;
-      } else {
-        users.push(user);
-      }
-      return {editingUser: null, showDialog: false, users};
-    });
+  return (
+    <div className={classes.paper}>
+      <div className={classes.header}>
+        <Typography variant="h5">Users</Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setShowDialog(true)}>
+          Add User
+        </Button>
+      </div>
+      <Paper elevation={2}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Email</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Accessible Networks</TableCell>
+              <TableCell />
+            </TableRow>
+          </TableHead>
+          <TableBody>{rows}</TableBody>
+        </Table>
+      </Paper>
+      {showDialog && (
+        <EditUserDialog
+          editingUser={editingUser}
+          open={true}
+          onClose={() => {
+            setShowDialog(false);
+            setEditingUser(null);
+          }}
+          allNetworkIDs={networkIds}
+          onEditUser={(userId, payload) => {
+            axios
+              .put('/user/async/' + userId, payload)
+              .then(response => updateUserState(response.data.user))
+              .catch(handleError);
+          }}
+          onCreateUser={payload => {
+            axios
+              .post('/user/async/', payload)
+              .then(response => updateUserState(response.data.user))
+              .catch(handleError);
+          }}
+        />
+      )}
+    </div>
+  );
 }
 
-export default withStyles(styles)(withAlert(UsersSettings));
+export default withAlert(UsersSettings);

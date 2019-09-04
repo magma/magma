@@ -75,6 +75,7 @@ enum MetricName {
   enodeb_mgmt_configured         = 227;
   enodeb_reboot_timer_active     = 228;
   enodeb_reboots                 = 229;
+  enodeb_rf_tx_desired           = 230;
 
   // Magmad metrics
   magmad_ping_rtt_ms             = 300;

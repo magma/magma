@@ -30,7 +30,7 @@ func Test_Conversions(t *testing.T) {
 			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 		},
 	}
-	generatedSNetwork := models.FromConfiguratorNetwork(cNetwork)
+	generatedSNetwork := (&models.Network{}).FromConfiguratorNetwork(cNetwork)
 	sNetwork := models.Network{
 		ID:          models1.NetworkID("test"),
 		Name:        models1.NetworkName("name"),

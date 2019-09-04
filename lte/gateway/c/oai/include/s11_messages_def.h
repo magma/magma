@@ -103,3 +103,23 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_s11_modify_ue_ambr_request_t,
   s11_modify_ue_ambr_request)
+MESSAGE_DEF(
+  S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_nw_init_actv_bearer_request_t,
+  s11_nw_init_actv_bearer_request)
+MESSAGE_DEF(
+  S11_NW_INITIATED_ACTIVATE_BEARER_RESP,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_nw_init_actv_bearer_rsp_t,
+  s11_nw_init_actv_bearer_rsp)
+MESSAGE_DEF(
+  S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_nw_init_deactv_bearer_request_t,
+  s11_nw_init_deactv_bearer_request)
+MESSAGE_DEF(
+  S11_NW_INITIATED_DEACTIVATE_BEARER_RESP,
+  MESSAGE_PRIORITY_MED,
+  itti_s11_nw_init_deactv_bearer_rsp_t,
+  s11_nw_init_deactv_bearer_rsp)

@@ -17,6 +17,7 @@ import {
   fadedBlue,
   gray0,
   gray00,
+  gray1,
   gray50,
   primaryText,
   red,
@@ -63,6 +64,7 @@ export default createMuiTheme({
     blue30: blue30,
     blue60: blue60,
     gray00: gray00,
+    gray1: gray1,
     gray50: gray50,
     primaryText: primaryText,
   },
@@ -77,8 +79,20 @@ export default createMuiTheme({
       root: {
         borderRadius: 4,
         cursor: 'pointer',
-        fontSize: 14,
-        padding: '6px 30px',
+        fontSize: '14px',
+        textTransform: 'capitalize',
+        padding: '8px 12px',
+        fontWeight: 500,
+        lineHeight: '16px',
+      },
+      contained: {
+        boxShadow: 'none',
+      },
+    },
+    MuiFormControl: {
+      marginDense: {
+        marginTop: '0px',
+        marginBottom: '0px',
       },
     },
     MuiToggleButtonGroup: {
@@ -97,6 +111,22 @@ export default createMuiTheme({
           color: white,
           backgroundColor: blue60,
         },
+      },
+    },
+    MuiListItemText: {
+      root: {
+        marginBottom: '0px',
+        marginTop: '0px',
+      },
+    },
+    MuiSelect: {
+      selectMenu: {
+        height: '24px',
+      },
+    },
+    MuiTableRow: {
+      root: {
+        backgroundColor: 'white',
       },
     },
     MuiIconButton: {
@@ -131,8 +161,9 @@ export default createMuiTheme({
       input: {
         fontSize: '14px',
         lineHeight: '14px',
-        paddingBottom: '15px',
-        paddingTop: '15px',
+        paddingBottom: '12px',
+        paddingTop: '12px',
+        height: '24px',
       },
       inputMarginDense: {
         paddingTop: '9px',

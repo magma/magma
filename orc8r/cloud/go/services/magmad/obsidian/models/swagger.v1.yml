@@ -1,0 +1,206 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/pluginimpl/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: orc8r-magmad-swagger.yml
+  output-dir: orc8r/cloud/go/services/magmad/obsidian
+  types:
+    - go-struct-name: GenericCommandParams
+      filename: generic_command_params_swaggergen.go
+    - go-struct-name: GenericCommandResponse
+      filename: generic_command_response_swaggergen.go
+    - go-struct-name: PingRequest
+      filename: ping_request_swaggergen.go
+    - go-struct-name: PingResponse
+      filename: ping_response_swaggergen.go
+    - go-struct-name: PingResult
+      filename: ping_result_swaggergen.go
+    - go-struct-name: TailLogsRequest
+      filename: tail_logs_request_swaggergen.go
+
+info:
+  title: Magmad Commands
+  description: Orchestrator REST APIs
+  version: 1.0.0
+
+tags:
+  - name: Commands
+    description: Execute remote commands on gateways
+
+basePath: /magma/v1
+
+paths:
+  /networks/{network_id}/gateways/{gateway_id}/command/reboot:
+    post:
+      summary: Reboot gateway device
+      tags:
+        - Commands
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/gateways/{gateway_id}/command/restart_services:
+    post:
+      summary: Restart gateway services
+      tags:
+        - Commands
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - in: body
+          name: Services
+          description: Services
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            example: []
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/gateways/{gateway_id}/command/ping:
+    post:
+      summary: Ping host(s) from gateway
+      tags:
+        - Commands
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - in: body
+          name: Ping request
+          description: Ping request
+          required: true
+          schema:
+            $ref: '#/definitions/ping_request'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ping_response'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
+  /networks/{network_id}/gateways/{gateway_id}/command/generic:
+    post:
+      summary: Execute generic command on gateway
+      tags:
+        - Commands
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - in: body
+          name: Parameters
+          description: Parameters
+          required: true
+          schema:
+            $ref: '#/definitions/generic_command_params'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/generic_command_response'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+definitions:
+  ping_request:
+    type: object
+    required:
+    - hosts
+    properties:
+      packets:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 4
+        example: 4
+      hosts:
+        type: array
+        items:
+          type: string
+        example: ["example.com"]
+
+  ping_result:
+    type: object
+    required:
+    - host_or_ip
+    - num_packets
+    properties:
+      host_or_ip:
+        type: string
+        minLength: 1
+        example: example.com
+      num_packets:
+        type: integer
+        format: int32
+        example: 4
+      packets_transmitted:
+        type: integer
+        format: int32
+        example: 4
+      packets_received:
+        type: integer
+        format: int32
+        example: 4
+      avg_response_ms:
+        type: number
+        format: float
+        example: 35.69900131225586
+      error:
+        type: string
+        example: 'error'
+
+  ping_response:
+    type: object
+    required:
+    - pings
+    properties:
+      pings:
+        type: array
+        items:
+          $ref: '#/definitions/ping_result'
+
+  generic_command_params:
+    type: object
+    required:
+      - command
+    properties:
+      command:
+        type: string
+        minLength: 1
+        example: command_name
+      params:
+        type: object
+        additionalProperties:
+          type: object
+        example: {}
+
+  generic_command_response:
+    type: object
+    properties:
+      response:
+        type: object
+        additionalProperties:
+          type: object
+        example: {}
+
+  tail_logs_request:
+    type: object
+    properties:
+      service:
+        type: string
+        minLength: 1
+        example: magmad

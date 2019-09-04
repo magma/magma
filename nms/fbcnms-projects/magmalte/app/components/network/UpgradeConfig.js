@@ -53,7 +53,7 @@ type State = {
   supportedVersions: ?(string[]),
 };
 
-type Props = WithAlert & WithStyles & ContextRouter & {};
+type Props = WithAlert & WithStyles<typeof styles> & ContextRouter & {};
 
 const styles = _theme => ({
   header: {
@@ -123,9 +123,7 @@ const GatewayUpgradeStatusTable = (props: {
   onUpgradeTierChange: (gatewayID: string, tierID: string) => void,
 }) => {
   const {networkUpgradeTiers, onUpgradeTierChange, tableData} = props;
-  const sortedTableData = sortBy(tableData, row =>
-    row.record.name.toLowerCase(),
-  );
+  const sortedTableData = sortBy(tableData, row => row.name.toLowerCase());
 
   const getGatewayVersionString = (state): string => {
     return (state.status && state.status.version) || 'Not Reported';
@@ -143,8 +141,8 @@ const GatewayUpgradeStatusTable = (props: {
       <TableBody>
         {map(sortedTableData, row => (
           <TableRow key={row.gateway_id}>
-            <TableCell>{row.record.name}</TableCell>
-            <TableCell>{get(row, 'record.hw_id.id')}</TableCell>
+            <TableCell>{row.name}</TableCell>
+            <TableCell>{get(row, 'record.hardware_id')}</TableCell>
             <TableCell>
               <UpgradeStatusTierID
                 onChange={onUpgradeTierChange}

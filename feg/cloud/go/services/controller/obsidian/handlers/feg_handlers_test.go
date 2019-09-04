@@ -20,11 +20,11 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -239,11 +239,7 @@ func registerNetworkWithDefaultConfig(t *testing.T, networkName string, networkI
 }
 
 func registerGatewayWithDefaultConfig(t *testing.T, networkID string, gatewayID string, port int) {
-	gatewayRecord := &magmad_models.AccessGatewayRecord{
-		HwID: &magmad_models.HwGatewayID{
-			ID: gatewayID,
-		},
-	}
+	gatewayRecord := &models.GatewayDevice{HardwareID: gatewayID}
 	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, gatewayRecord)
 
 	config := test_utils.NewDefaultGatewayConfig()

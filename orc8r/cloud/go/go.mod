@@ -10,9 +10,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/aws/aws-sdk-go v1.16.19
-	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
-	github.com/go-graphite/carbonapi v0.0.0-20190205122054-b49de85f729f
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.18.0
@@ -39,7 +37,6 @@ require (
 	github.com/labstack/gommon v0.2.8 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.0.0
-	github.com/marpaia/graphite-golang v0.0.0-20171231172105-134b9af18cf3
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/opentracing/opentracing-go v1.0.2 // indirect
 	github.com/pkg/errors v0.8.1
@@ -47,7 +44,7 @@ require (
 	github.com/prometheus/client_golang v0.9.2
 	github.com/prometheus/client_model v0.0.0-20190109181635-f287a105a20e
 	github.com/prometheus/common v0.2.0
-	github.com/prometheus/procfs v0.0.0-20190104112138-b1a0a9a36d74 // indirect
+	github.com/prometheus/procfs v0.0.0-20190104112138-b1a0a9a36d74
 	github.com/prometheus/prometheus v0.0.0-20190115164134-b639fe140c1f
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1 // indirect

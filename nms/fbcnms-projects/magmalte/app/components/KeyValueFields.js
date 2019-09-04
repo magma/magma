@@ -39,7 +39,7 @@ const styles = {
   },
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   keyValuePairs: Array<[string, string]>,
   onChange: (Array<[string, string]>) => void,
 };

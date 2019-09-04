@@ -32,7 +32,7 @@ mapboxgl.accessToken = window.CONFIG.MAPBOX_ACCESS_TOKEN;
 
 const styles = {
   mapContainer: {
-    height: 'calc(100% - 64px)',
+    height: '100%',
     width: '100%',
   },
 };
@@ -65,7 +65,7 @@ type State = {
   map: ?mapboxgl.Map,
 };
 
-type Props = WithStyles & {
+type Props = WithStyles<typeof styles> & {
   geojson: MagmaFeatureCollection,
   mapLayers?: Array<LayerSpecification>,
   MapMarker: ComponentType<MapMarkerProps>,

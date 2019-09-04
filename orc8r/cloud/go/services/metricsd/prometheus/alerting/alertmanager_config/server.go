@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
 
@@ -36,7 +37,7 @@ func main() {
 
 	e.GET("/", statusHandler)
 
-	receiverClient := receivers.NewClient(*alertmanagerConfPath)
+	receiverClient := receivers.NewClient(*alertmanagerConfPath, files.NewFSClient())
 	e.POST(handlers.ReceiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
 	e.GET(handlers.ReceiverPath, handlers.GetGetReceiversHandler(receiverClient))
 	e.DELETE(handlers.ReceiverPath, handlers.GetDeleteReceiverHandler(receiverClient, *alertmanagerURL))

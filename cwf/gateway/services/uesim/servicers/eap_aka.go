@@ -9,6 +9,8 @@
 package servicers
 
 import (
+	"context"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"reflect"
@@ -25,25 +27,34 @@ import (
 
 // todo Replace constants with configurable fields
 const (
-	IND            = 0
+	defaultInd     = 0
 	CheckcodeValue = "\x00\x00\x86\xe8\x20\x4d\xc6\xe1\xe3\xd8\x94\x44\x3c\x26" +
 		"\xa7\xc6\x5d\xee\x3c\x42\xab\xf8"
+
+	SqnLen    = 6
+	MacAStart = 8
+
+	// maxSeqDelta is the maximum allowed increase to SEQ.
+	// eg. if x was the last accepted SEQ, then the next SEQ must
+	// be greater than x and less than (x + maxSeqDelta) to be accepted.
+	// See 3GPP TS 33.102 Appendix C.2.1.
+	maxSeqDelta = 1 << 28
 )
 
 // handleEapAka routes the EAP-AKA request to the UE with the specified imsi.
 func (srv *UESimServer) handleEapAka(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	switch aka.Subtype(req[eap.EapSubtype]) {
 	case aka.SubtypeIdentity:
-		return eapAkaIdentityRequest(ue, req)
+		return srv.eapAkaIdentityRequest(ue, req)
 	case aka.SubtypeChallenge:
-		return eapAkaChallengeRequest(ue, srv.op, srv.amf, req)
+		return srv.eapAkaChallengeRequest(ue, req)
 	default:
 		return nil, errors.Errorf("Unsupported Subtype: %d", req[eap.EapSubtype])
 	}
 }
 
 // Given a UE and the EAP-AKA identity request, generates the EAP response.
-func eapAkaIdentityRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
+func (srv *UESimServer) eapAkaIdentityRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error creating new attribute scanner")
@@ -90,35 +101,8 @@ type challengeAttributes struct {
 	mac  eap.Attribute
 }
 
-// Given an EAP packet, parses out the RAND, AUTN, and MAC.
-func parseChallengeAttributes(req eap.Packet) (challengeAttributes, error) {
-	attrs := challengeAttributes{}
-
-	scanner, err := eap.NewAttributeScanner(req)
-	if err != nil {
-		return attrs, errors.Wrap(err, "Error creating new attribute scanner")
-	}
-	var a eap.Attribute
-	for a, err = scanner.Next(); err == nil; a, err = scanner.Next() {
-		switch a.Type() {
-		case aka.AT_RAND:
-			attrs.rand = a
-		case aka.AT_AUTN:
-			attrs.autn = a
-		case aka.AT_MAC:
-			if len(a.Marshaled()) < aka.ATT_HDR_LEN+aka.MAC_LEN {
-				return attrs, fmt.Errorf("Malformed AT_MAC")
-			}
-			attrs.mac = a
-		default:
-			glog.Info(fmt.Sprintf("Unexpected EAP-AKA Challenge Request Attribute type %d", a.Type()))
-		}
-	}
-	return attrs, err
-}
-
 // Given a UE, the Op, the Amf, and the EAP challenge, generates the EAP response.
-func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.Packet) (eap.Packet, error) {
+func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Packet) (eap.Packet, error) {
 	attrs, err := parseChallengeAttributes(req)
 	if err != io.EOF {
 		return nil, errors.Wrap(err, "Error while parsing attributes of request packet")
@@ -135,11 +119,11 @@ func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.
 	id := []byte("\x30" + ue.GetImsi() + IdentityPostfix)
 	key := []byte(ue.AuthKey)
 
-	// Calculate SQN using SEQ and IND
-	sqn := servicers.SeqToSqn(ue.Seq, IND) // todo decide how to increment SEQ
+	// Calculate SQN using SEQ and arbitrary IND
+	sqn := servicers.SeqToSqn(ue.Seq, defaultInd)
 
 	// Calculate Opc using key and Op, and verify that it matches the UE's Opc
-	opc, err := crypto.GenerateOpc(key, op)
+	opc, err := crypto.GenerateOpc(key, srv.cfg.op)
 	if err != nil {
 		return nil, fmt.Errorf("Error while calculating Opc")
 	}
@@ -148,15 +132,14 @@ func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.
 	}
 
 	// Calculate RES and other keys.
-	milenage, err := crypto.NewMilenageCipher(amf)
+	milenage, err := crypto.NewMilenageCipher(srv.cfg.amf)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error creating milenage cipher")
 	}
-	vector, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc[:], sqn)
+	intermediateVec, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc[:], sqn)
 	if err != nil {
 		return nil, errors.Wrap(err, "Error calculating authentication vector")
 	}
-
 	// Make copy of packet and zero out MAC value.
 	copyReq := make([]byte, len(req))
 	copy(copyReq, req)
@@ -170,15 +153,37 @@ func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.
 	}
 
 	// Calculate and verify MAC.
-	_, kAut, _, _ := aka.MakeAKAKeys(id, vector.IntegrityKey[:], vector.ConfidentialityKey[:])
+	_, kAut, _, _ := aka.MakeAKAKeys(id, intermediateVec.IntegrityKey[:], intermediateVec.ConfidentialityKey[:])
 	mac := aka.GenMac(copyReq, kAut)
 	if !reflect.DeepEqual(expectedMac, mac) {
 		return nil, fmt.Errorf("Invalid MAC: Expected MAC: %x; Actual MAC: %x", expectedMac, mac)
 	}
 
-	// Calculate and verify AUTN.
-	if !reflect.DeepEqual(expectedAutn, vector.Autn[:]) {
-		return nil, fmt.Errorf("Invalid AUTN: Expected AUTN: %x; Actual AUTN: %x", expectedAutn, vector.Autn[:])
+	// Verify AUTN (MacA must be equal and SEQ in correct range)
+	receivedSqn := extractSqnFromAutn(expectedAutn, intermediateVec.AnonymityKey[:])
+	resultVec, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc[:], receivedSqn)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error calculating authentication vector")
+	}
+	if !reflect.DeepEqual(expectedAutn[MacAStart:], resultVec.Autn[MacAStart:]) {
+		return nil, fmt.Errorf("Invalid MacA in AUTN: Received MacA %x; Calculated MacA: %x",
+			expectedAutn[MacAStart:],
+			resultVec.Autn[MacAStart:],
+		)
+	}
+	seq, _ := servicers.SplitSqn(receivedSqn)
+	isSeqValid := seq > ue.Seq && (seq-ue.GetSeq()) < maxSeqDelta
+	if !isSeqValid {
+		// TODO: Implement re-sync procedure
+		// For now just return the error
+		return nil, fmt.Errorf("Invalid SEQ received. HSS SEQ: %d, UE SEQ: %d", seq, ue.GetSeq())
+	}
+
+	// Update UE SEQ number
+	ue.Seq = seq
+	_, err = srv.AddUE(context.Background(), ue)
+	if err != nil {
+		return nil, fmt.Errorf("An unexpected error occurred while updating SEQ: %s", err)
 	}
 
 	// Create the response EAP packet.
@@ -189,8 +194,8 @@ func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.
 		eap.NewAttribute(
 			aka.AT_RES,
 			append(
-				[]byte{uint8(len(vector.Xres[:]) * 8 >> 8), uint8(len(vector.Xres[:]) * 8)},
-				[]byte(vector.Xres[:])...,
+				[]byte{uint8(len(resultVec.Xres[:]) * 8 >> 8), uint8(len(resultVec.Xres[:]) * 8)},
+				[]byte(resultVec.Xres[:])...,
 			),
 		),
 	)
@@ -224,4 +229,48 @@ func eapAkaChallengeRequest(ue *protos.UEConfig, op []byte, amf []byte, req eap.
 	copy(p[atMacOffset:], mac)
 
 	return p, nil
+}
+
+// Given an EAP packet, parses out the RAND, AUTN, and MAC.
+func parseChallengeAttributes(req eap.Packet) (challengeAttributes, error) {
+	attrs := challengeAttributes{}
+
+	scanner, err := eap.NewAttributeScanner(req)
+	if err != nil {
+		return attrs, errors.Wrap(err, "Error creating new attribute scanner")
+	}
+	var a eap.Attribute
+	for a, err = scanner.Next(); err == nil; a, err = scanner.Next() {
+		switch a.Type() {
+		case aka.AT_RAND:
+			attrs.rand = a
+		case aka.AT_AUTN:
+			attrs.autn = a
+		case aka.AT_MAC:
+			if len(a.Marshaled()) < aka.ATT_HDR_LEN+aka.MAC_LEN {
+				return attrs, fmt.Errorf("Malformed AT_MAC")
+			}
+			attrs.mac = a
+		default:
+			glog.Info(fmt.Sprintf("Unexpected EAP-AKA Challenge Request Attribute type %d", a.Type()))
+		}
+	}
+	return attrs, err
+}
+
+func extractSqnFromAutn(autn []byte, ak []byte) uint64 {
+	sqn := xor(autn[:SqnLen], ak[:SqnLen])
+	sqn64bits := make([]byte, 0, 8)
+	sqn64bits = append(sqn64bits, []byte{0, 0}...)
+	sqn64bits = append(sqn64bits, sqn...)
+	return binary.BigEndian.Uint64(sqn64bits)
+}
+
+func xor(a, b []byte) []byte {
+	n := len(a)
+	dst := make([]byte, n)
+	for i := 0; i < n; i++ {
+		dst[i] = a[i] ^ b[i]
+	}
+	return dst
 }

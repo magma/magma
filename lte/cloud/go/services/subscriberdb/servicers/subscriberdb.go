@@ -29,6 +29,8 @@ type SubscriberDBServer struct {
 	store *storage.SubscriberDBStorage
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func NewSubscriberDBServer(store *storage.SubscriberDBStorage) (*SubscriberDBServer, error) {
 	if store == nil {
 		return nil, fmt.Errorf("Cannot initialize SubscriberDBServer with Nil store")
@@ -36,6 +38,8 @@ func NewSubscriberDBServer(store *storage.SubscriberDBStorage) (*SubscriberDBSer
 	return &SubscriberDBServer{store}, nil
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func (srv *SubscriberDBServer) AddSubscriber(
 	ctx context.Context,
 	subs *protos.SubscriberData,
@@ -46,6 +50,8 @@ func (srv *SubscriberDBServer) AddSubscriber(
 	return srv.store.AddSubscriber(subs)
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func (srv *SubscriberDBServer) DeleteSubscriber(
 	ctx context.Context,
 	lookup *protos.SubscriberLookup,
@@ -56,6 +62,8 @@ func (srv *SubscriberDBServer) DeleteSubscriber(
 	return srv.store.DeleteSubscriber(lookup)
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func (srv *SubscriberDBServer) UpdateSubscriber(
 	ctx context.Context,
 	subs *protos.SubscriberData,
@@ -66,6 +74,8 @@ func (srv *SubscriberDBServer) UpdateSubscriber(
 	return srv.store.UpdateSubscriber(subs)
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func (srv *SubscriberDBServer) GetSubscriberData(
 	ctx context.Context,
 	lookup *protos.SubscriberLookup,
@@ -76,6 +86,8 @@ func (srv *SubscriberDBServer) GetSubscriberData(
 	return srv.store.GetSubscriberData(lookup)
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func (srv *SubscriberDBServer) ListSubscribers(
 	ctx context.Context,
 	networkID *orcprotos.NetworkID,
@@ -86,6 +98,8 @@ func (srv *SubscriberDBServer) ListSubscribers(
 	return srv.store.ListSubscribers(networkID)
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func (srv *SubscriberDBServer) GetAllSubscriberData(
 	ctx context.Context,
 	networkID *orcprotos.NetworkID,
@@ -96,6 +110,8 @@ func (srv *SubscriberDBServer) GetAllSubscriberData(
 	return srv.store.GetAllSubscriberData(networkID)
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func validateSubscriberLookup(lookup *protos.SubscriberLookup) error {
 	if lookup == nil {
 		return fmt.Errorf("No subscriber data provided")
@@ -109,6 +125,8 @@ func validateSubscriberLookup(lookup *protos.SubscriberLookup) error {
 	return nil
 }
 
+// DEPRECATED
+// THIS ENTIRE SERVICER IS DEPRECATED
 func validateSubscriberData(subs *protos.SubscriberData) error {
 	if subs == nil {
 		return fmt.Errorf("No subscriber data provided")

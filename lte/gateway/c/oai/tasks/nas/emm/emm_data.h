@@ -221,7 +221,6 @@ typedef struct emm_context_s {
   imei_t _imei;          /* The IMEI provided by the UE                     */
   imeisv_t _imeisv;      /* The IMEISV provided by the UE                   */
   //bool                   _guti_is_new; /* The GUTI assigned to the UE is new              */
-  bool is_guti_set;     /* is GUTI has been set                            */
   guti_t _guti;         /* The GUTI assigned to the UE                     */
   guti_t _old_guti;     /* The old GUTI (GUTI REALLOCATION)                */
   tai_list_t _tai_list; /* TACs the the UE is registered to                */
@@ -348,6 +347,10 @@ typedef struct emm_context_s {
   //VOLTE parameters
   volte_params_t volte_params;
   bool is_imsi_only_detach;
+  /* Set the flag if pcrf initiated bearer deact and UE is in Idle state
+   *if this flag is set after receving service req, send detach
+   */
+  bool nw_init_bearer_deactv;
 } emm_context_t;
 
 /*

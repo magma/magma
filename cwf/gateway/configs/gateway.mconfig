@@ -28,6 +28,14 @@
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",
       "relayEnabled": true
+    },
+    "radiusd": {
+      "@type": "type.googleapis.com/magma.mconfig.RadiusdConfig",
+      "logLevel": "INFO",
+      "radiusMetricsHost": "127.0.0.1",
+      "radiusMetricsPort": 9100,
+      "radiusMetricsPath": "metrics",
+      "updateIntervalSecs": 60
     }
   }
 }

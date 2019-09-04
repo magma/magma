@@ -445,7 +445,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
     */
-    if ((ue_context_p->emm_context.is_guti_set == false)) {
+    if (!IS_EMM_CTXT_PRESENT_GUTI(&(ue_context_p->emm_context))) {
       /* On reception of SGS-Paging request in idle and not able retrieve S-TMSI from IMSI,
        * page with IMSI and PS domain
        */
@@ -521,7 +521,7 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
     */
-    if ((ue_context_p->emm_context.is_guti_set == false)) {
+    if (!IS_EMM_CTXT_PRESENT_GUTI(&(ue_context_p->emm_context))) {
       /* On reception of SGS-Paging request in idle and not able retrieve S-TMSI from IMSI,
        * page with IMSI and PS domain
        */

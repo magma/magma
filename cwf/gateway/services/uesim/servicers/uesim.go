@@ -25,27 +25,31 @@ import (
 const (
 	networkIDPlaceholder = "magma"
 	blobTypePlaceholder  = "uesim"
-	radiusAddress        = "192.168.70.101:1812"
 )
 
 // UESimServer tracks all the UEs being simulated.
 type UESimServer struct {
 	store blobstore.BlobStorageFactory
-	op    []byte
-	amf   []byte
+	cfg   *UESimConfig
+}
+
+type UESimConfig struct {
+	op            []byte
+	amf           []byte
+	radiusAddress string
+	radiusSecret  string
 }
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
 func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
-	// TODO use config to assign these values
-	Op := []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11")
-	Amf := []byte("\x67\x41")
-
+	config, err := GetUESimConfig()
+	if err != nil {
+		return nil, err
+	}
 	return &UESimServer{
 		store: factory,
-		op:    Op,
-		amf:   Amf,
+		cfg:   config,
 	}, nil
 }
 
@@ -94,7 +98,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaIDReq, err := radius.Exchange(context.Background(), &eapIDResp, radiusAddress)
+	akaIDReq, err := radius.Exchange(context.Background(), &eapIDResp, srv.cfg.radiusAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -104,7 +108,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaChalReq, err := radius.Exchange(context.Background(), &akaIDResp, radiusAddress)
+	akaChalReq, err := radius.Exchange(context.Background(), &akaIDResp, srv.cfg.radiusAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -114,7 +118,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	result, err := radius.Exchange(context.Background(), &akaChalResp, radiusAddress)
+	result, err := radius.Exchange(context.Background(), &akaChalResp, srv.cfg.radiusAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}

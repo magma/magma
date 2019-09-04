@@ -17,9 +17,8 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
-	magmad_models "magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	upgrade_models "magma/orc8r/cloud/go/services/upgrade/obsidian/models"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -30,8 +29,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
 		Key:  "gw1",
-		Config: &magmad_models.MagmadGatewayConfig{
-			AutoupgradeEnabled:      true,
+		Config: &models.MagmadGatewayConfigs{
+			AutoupgradeEnabled:      swag.Bool(true),
 			AutoupgradePollInterval: 300,
 			CheckinInterval:         60,
 			CheckinTimeout:          10,
@@ -69,12 +68,12 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	tier := configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType,
 		Key:  "default",
-		Config: &upgrade_models.Tier{
+		Config: &models.Tier{
 			Name:    "default",
 			Version: "1.0.0-0",
-			Images: []*upgrade_models.TierImagesItems0{
-				{Name: "Image1", Order: 42},
-				{Name: "Image2", Order: 1},
+			Images: []*models.TierImage{
+				{Name: swag.String("Image1"), Order: swag.Int64(42)},
+				{Name: swag.String("Image2"), Order: swag.Int64(1)},
 			},
 		},
 	}
@@ -113,8 +112,8 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,
 		Key:  "gw1",
-		Config: &magmad_models.MagmadGatewayConfig{
-			AutoupgradeEnabled:      true,
+		Config: &models.MagmadGatewayConfigs{
+			AutoupgradeEnabled:      swag.Bool(true),
 			AutoupgradePollInterval: 300,
 			CheckinInterval:         60,
 			CheckinTimeout:          10,
@@ -141,13 +140,13 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 			LocalTTL:      swag.Uint32(100),
 			Records: []*models.DNSConfigRecord{
 				{
-					ARecord:     []string{"hello", "world"},
-					AaaaRecord:  []string{"foo", "bar"},
+					ARecord:     []strfmt.IPv4{"127.0.0.1", "127.0.0.2"},
+					AaaaRecord:  []strfmt.IPv6{"2001:0db8:85a3:0000:0000:8a2e:0370:7334", "1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
 					CnameRecord: []string{"baz"},
 					Domain:      "facebook.com",
 				},
 				{
-					ARecord: []string{"quz"},
+					ARecord: []strfmt.IPv4{"quz"},
 				},
 			},
 		},
@@ -164,8 +163,8 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 			LocalTTL:      100,
 			Records: []*mconfig.NetworkDNSConfigRecordsItems{
 				{
-					ARecord:     []string{"hello", "world"},
-					AaaaRecord:  []string{"foo", "bar"},
+					ARecord:     []string{"127.0.0.1", "127.0.0.2"},
+					AaaaRecord:  []string{"2001:0db8:85a3:0000:0000:8a2e:0370:7334", "1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
 					CnameRecord: []string{"baz"},
 					Domain:      "facebook.com",
 				},
@@ -175,5 +174,5 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 			},
 		},
 	}
-	assert.Equal(t, expected, actual)
+	assert.Equal(t, expected["dnsd"].String(), actual["dnsd"].String())
 }

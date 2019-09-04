@@ -298,11 +298,12 @@ func getSingleChargingCreditFromCCA(
 	credits *gy.ReceivedCredits,
 ) *protos.ChargingCredit {
 	return &protos.ChargingCredit{
-		GrantedUnits: credits.GrantedUnits.ToProto(),
-		Type:         protos.ChargingCredit_BYTES,
-		ValidityTime: credits.ValidityTime,
-		IsFinal:      credits.IsFinal,
-		FinalAction:  protos.ChargingCredit_FinalAction(credits.FinalAction),
+		GrantedUnits:   credits.GrantedUnits.ToProto(),
+		Type:           protos.ChargingCredit_BYTES,
+		ValidityTime:   credits.ValidityTime,
+		IsFinal:        credits.IsFinal,
+		FinalAction:    protos.ChargingCredit_FinalAction(credits.FinalAction),
+		RedirectServer: credits.RedirectServer.ToProto(),
 	}
 }
 

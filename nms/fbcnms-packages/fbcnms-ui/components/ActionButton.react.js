@@ -20,14 +20,14 @@ import {withStyles} from '@material-ui/core/styles';
 type Props = {
   action: 'add' | 'remove',
   onClick: () => void,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 const styles = theme => ({
   actionButton: {
-    width: '22px',
-    height: '22px',
-    minWidth: '22px',
-    minHeight: '22px',
+    width: '20px',
+    height: '20px',
+    minWidth: '20px',
+    minHeight: '20px',
     boxShadow: 'none',
   },
   removeFab: {

@@ -12,9 +12,12 @@ import (
 	"bytes"
 	"encoding"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"magma/orc8r/cloud/go/obsidian"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -76,6 +79,19 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 			}
 		}
 	}
+}
+
+// GetHandlerByPathAndMethod fetches the first obsidian.Handler that matches the
+// given path and method from a list of handlers. If no such handler exists, it
+// will fail.
+func GetHandlerByPathAndMethod(t *testing.T, handlers []obsidian.Handler, path string, method obsidian.HttpMethod) obsidian.Handler {
+	for _, handler := range handlers {
+		if handler.Path == path && handler.Methods == method {
+			return handler
+		}
+	}
+	assert.Fail(t, fmt.Sprintf("No handler registered for path %s", path))
+	return obsidian.Handler{}
 }
 
 func JSONMarshaler(v interface{}) encoding.BinaryMarshaler {

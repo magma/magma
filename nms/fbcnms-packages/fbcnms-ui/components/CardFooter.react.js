@@ -30,7 +30,7 @@ export type FooterAlign = 'left' | 'right';
 type Props = {
   alignItems: FooterAlign,
   children: React.Node,
-} & WithStyles;
+} & WithStyles<typeof styles>;
 
 const CardFooter = (props: Props) => {
   const {alignItems, children, classes} = props;

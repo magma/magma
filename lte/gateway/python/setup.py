@@ -57,6 +57,7 @@ setup(
         'scripts/mobility_cli.py',
         'scripts/ocs_cli.py',
         'scripts/packet_ryu_cli.py',
+        'scripts/packet_tracer_cli.py',
         'scripts/pcrf_cli.py',
         'scripts/pipelined_cli.py',
         'scripts/policydb_cli.py',
@@ -70,9 +71,9 @@ setup(
     install_requires=[
         'Cython>=0.29.1',
         'pystemd==0.5.0',
-        # Waiting for a new fire release (v0.1.3 is too old)
-        'fire==0.2.0',
+        'fire>=0.2.0',
         'envoy>=0.0.3',
+        'glob2>=0.7',
         # lxml required by spyne.
         'lxml==4.2.1',
         'ryu>=4.30',

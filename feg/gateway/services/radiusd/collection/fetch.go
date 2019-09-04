@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	METRICS_HOST                 = "radius"
+	defaultMetricsServerHost     = "radius"
 	defaultMetricsServerHostPort = 9100
 	defaultMetricsPath           = "metrics"
 	defaultUpdateIntervalSecs    = 30
@@ -59,9 +59,10 @@ func (r *MetricsRequester) FetchMetrics() (string, error) {
 
 func getMetricsUrl() string {
 	radiusdCfg := GetRadiusdConfig()
+	host := radiusdCfg.GetRadiusMetricsHost()
 	port := radiusdCfg.GetRadiusMetricsPort()
 	path := radiusdCfg.GetRadiusMetricsPath()
-	return fmt.Sprintf("http://%s:%d/%s", METRICS_HOST, port, path)
+	return fmt.Sprintf("http://%s:%d/%s", host, port, path)
 }
 
 // GetRadiusdConfig attempts to retrieve a RadiusdConfig  from mconfig
@@ -76,6 +77,7 @@ func GetRadiusdConfig() *mconfig.RadiusdConfig {
 			RadiusMetricsPort:  defaultMetricsServerHostPort,
 			RadiusMetricsPath:  defaultMetricsPath,
 			UpdateIntervalSecs: defaultUpdateIntervalSecs,
+			RadiusMetricsHost:  defaultMetricsServerHost,
 		}
 	}
 	glog.Info("Using mconfig values for radiusd parameters")

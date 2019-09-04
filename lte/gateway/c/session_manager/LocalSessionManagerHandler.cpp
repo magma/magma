@@ -20,7 +20,9 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
   LocalEnforcer *enforcer,
   SessionCloudReporter *reporter):
   enforcer_(enforcer),
-  reporter_(reporter)
+  reporter_(reporter),
+  current_epoch_(0),
+  reported_epoch_(0)
 {
 }
 
@@ -35,6 +37,10 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     enforcer_->aggregate_records(request_cpy);
     check_usage_for_reporting();
   });
+  reported_epoch_ = request_cpy.epoch();
+  if (is_pipelined_restarted()) {
+    MLOG(MWARNING) << "pipelined has been reset.";
+  }
   response_callback(Status::OK, Void());
 }
 
@@ -62,6 +68,17 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
         check_usage_for_reporting();
       }
     });
+}
+
+bool LocalSessionManagerHandlerImpl::is_pipelined_restarted()
+{
+  if (current_epoch_ == 0) {
+    current_epoch_ = reported_epoch_;
+    return false;
+  } else if (current_epoch_ != reported_epoch_) {
+    return true;
+  }
+  return false;
 }
 
 static CreateSessionRequest copy_wifi_session_info2create_req(
@@ -119,6 +136,21 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .rat_type = request->rat_type(),
                               .mac_addr = request->hardware_addr(),
                               .radius_session_id = request->radius_session_id()};
+  if (enforcer_->is_imsi_duplicate(imsi)) {
+    if (enforcer_->is_session_duplicate(imsi, cfg)) {
+      MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
+                  << ", not creating session";
+      return;
+    }
+    MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                << ", terminating the old session";
+    EndSession(
+      context,
+      &request->sid(),
+      [&](grpc::Status status, LocalEndSessionResponse response) {
+        return;
+      });
+  }
   send_create_session(
     copy_session_info2create_req(request, sid),
     imsi, sid, cfg, response_callback);

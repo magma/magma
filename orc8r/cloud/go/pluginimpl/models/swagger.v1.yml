@@ -44,11 +44,29 @@ magma-gen-meta:
       filename: system_status_swaggergen.go
     - go-struct-name: TierID
       filename: tier_id_swaggergen.go
+    - go-struct-name: ReleaseChannel
+      filename: release_channel_swaggergen.go
+    - go-struct-name: Tier
+      filename: tier_swaggergen.go
+    - go-struct-name: TierImage
+      filename: tier_image_swaggergen.go
+    - go-struct-name: TierName
+      filename: tier_name_swaggergen.go
+    - go-struct-name: TierImages
+      filename: tier_images_swaggergen.go
+    - go-struct-name: TierVersion
+      filename: tier_version_swaggergen.go
+    - go-struct-name: TierGateways
+      filename: tier_gateways_swaggergen.go
 
 info:
   title: Orchestrator Network Management
   description: Orchestrator REST APIs
   version: 1.0.0
+
+tags:
+  - name: Upgrades
+    description: Configuration to manage upgrades
 
 basePath: /magma/v1
 
@@ -226,7 +244,168 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-          
+
+  /networks/{network_id}/features:
+    get:
+      summary: Get feature flags for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Feature flags of the network
+          schema:
+            $ref: '#/definitions/network_features'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update feature flags for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: network features
+          in: body
+          description: New network features for the network
+          required: true
+          schema:
+            $ref: '#/definitions/network_features'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/dns:
+    get:
+      summary: Get DNS of network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: DNS configuration of the network
+          schema:
+            $ref: '#/definitions/network_dns_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update DNS of network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: Network DNS
+          in: body
+          description: New DNS configuration for the network
+          required: true
+          schema:
+            $ref: '#/definitions/network_dns_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/dns/records:
+    get:
+      summary: Get the DNS config records for the network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Custom DNS records for the network
+          schema:
+            $ref: '#/definitions/network_dns_records'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+    put:
+      summary: Change all the DNS records for the network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: records
+          in: body
+          description: Custom DNS records for the network
+          required: true
+          schema:
+            $ref: '#/definitions/network_dns_records'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/dns/records/{domain}:
+    get:
+      summary: Get the DNS config record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+      responses:
+        '200':
+          description: DNS config record
+          schema:
+            $ref: '#/definitions/dns_config_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a DNS record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+        - name: record
+          in: body
+          description: Custom DNS record for the domain
+          required: true
+          schema:
+            $ref: '#/definitions/dns_config_record'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a DNS record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+        - name: record
+          in: body
+          description: Custom DNS record for the domain
+          required: true
+          schema:
+            $ref: '#/definitions/dns_config_record'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete the DNS record for a specific domain
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/dns_domain'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/gateways:
     get:
       summary: List all gateways for a network
@@ -441,6 +620,39 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/gateways/{gateway_id}/tier:
+    get:
+      summary: Get the ID of the upgrade tier a gateway belongs to
+      tags:
+        - Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The ID of the upgrade tier
+          schema:
+            $ref: '#/definitions/tier_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the ID of the upgrade tier a gateway belongs to
+      tags:
+        - Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: tier_id
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/tier_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/gateways/{gateway_id}/status:
     get:
       summary: Get the status of a gateway
@@ -456,6 +668,393 @@ paths:
             $ref: '#/definitions/gateway_status'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /channels:
+    get:
+      summary: List all release channels
+      tags:
+        - Upgrades
+      responses:
+        '200':
+          description: List of release channel IDs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/channel_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a new release channel
+      tags:
+        - Upgrades
+      parameters:
+        - in: body
+          name: channel
+          description: The release channel to create
+          required: true
+          schema:
+            $ref: '#/definitions/release_channel'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+  /channels/{channel_id}:
+    get:
+      summary: Get release channel by id
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: '#/parameters/channel_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/release_channel'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a release channel
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: '#/parameters/channel_id'
+        - name: release channel
+          in: body
+          description: New channel configuration
+          required: true
+          schema:
+            $ref: '#/definitions/release_channel'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a release channel
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: '#/parameters/channel_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers:
+    get:
+      summary: Get a list of upgrade tiers
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of tier IDs
+          schema:
+            type: array
+            items:
+             $ref: '#/definitions/tier_id'
+            example:
+              - tier1
+              - tier2
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Register a tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: tier
+          in: body
+          description: Configuration of the tier to create
+          required: true
+          schema:
+            $ref: '#/definitions/tier'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers/{tier_id}:
+    get:
+      summary: Get upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/tier'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: tier
+          in: body
+          description: Configuration of the tier to update
+          required: true
+          schema:
+            $ref: '#/definitions/tier'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers/{tier_id}/name:
+    get:
+      summary: Get name of upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/tier_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update upgrade tier name
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: Name
+          in: body
+          description: New name for the tier
+          required: true
+          schema:
+            $ref: '#/definitions/tier_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers/{tier_id}/version:
+    get:
+      summary: Get version of upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/tier_version'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update upgrade tier version
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: Version
+          in: body
+          description: New version for the tier
+          required: true
+          schema:
+            $ref: '#/definitions/tier_version'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers/{tier_id}/images:
+    post:
+      summary: Add an image to upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: image
+          in: body
+          description: New image for the tier
+          required: true
+          schema:
+            $ref: '#/definitions/tier_image'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    get:
+      summary: Get images of upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/tier_images'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update upgrade tier images
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: tier
+          in: body
+          description: New images for the tier
+          required: true
+          schema:
+            $ref: '#/definitions/tier_images'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers/{tier_id}/images/{image_name}:
+    delete:
+      summary: Remove an image from tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - $ref: '#/parameters/image_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers/{tier_id}/gateways:
+    post:
+      summary: Add a gateway to upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: Gateway
+          in: body
+          description: New gateway for the tier
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    get:
+      summary: Get gateways of upgrade tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/tier_gateways'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update upgrade tier gateways
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - name: tier
+          in: body
+          description: New images for the tier
+          required: true
+          schema:
+            $ref: '#/definitions/tier_gateways'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tiers/{tier_id}/gateways/{gateway_id}:
+    delete:
+      summary: Remove a gateway from tier
+      tags:
+        - Upgrades
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/tier_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  channel_id:
+    in: path
+    name: channel_id
+    description: Release Channel ID
+    required: true
+    minLength: 1
+    type: string
+  tier_id:
+    in: path
+    name: tier_id
+    description: Tier ID
+    required: true
+    minLength: 1
+    type: string
+  image_name:
+    in: path
+    name: image_name
+    type: string
+    description: Name of an image
+    minLength: 1
+    required: true
+  dns_domain:
+    in: path
+    name: domain
+    type: string
+    description: DNS record domain
+    required: true
 
 definitions:
   network:
@@ -474,9 +1073,7 @@ definitions:
       description:
         $ref: './orc8r-swagger-common.yml#/definitions/network_description'
       type:
-        description: The type of the network
-        type: string
-        example: LTE
+         $ref: './orc8r-swagger-common.yml#/definitions/network_type'
       dns:
         $ref: '#/definitions/network_dns_config'
       features:
@@ -497,9 +1094,12 @@ definitions:
         format: uint32
         example: 0
       records:
-        type: array
-        items:
-          $ref: '#/definitions/dns_config_record'
+        $ref: '#/definitions/network_dns_records'
+
+  network_dns_records:
+    type: array
+    items:
+      $ref: '#/definitions/dns_config_record'
 
   dns_config_record:
     description: Mapping used for DNS resolving from a domain
@@ -517,6 +1117,7 @@ definitions:
         items:
           type: string
           minLength: 1
+          format: ipv4
           x-nullable: false
           example: 192.88.99.142
       aaaa_record:
@@ -524,8 +1125,9 @@ definitions:
         items:
           type: string
           minLength: 1
+          format: ipv6
           x-nullable: false
-          example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334 # TODO: Regex?
+          example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
       cname_record:
         type: array
         items:
@@ -617,6 +1219,20 @@ definitions:
         x-nullable: false
         minimum: 5
         example: 10
+      dynamic_services:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          x-nullable: false
+        example: []
+      feature_flags:
+        type: object
+        additionalProperties:
+          type: boolean
+        example:
+          newfeature1: true
+          newfeature2: false
 
   tier_id:
     type: string
@@ -881,3 +1497,68 @@ definitions:
             x-omitempty: true
             items:
               $ref: '#/definitions/route'
+  channel_id:
+    type: string
+    minLength: 1
+    x-nullable: false
+    pattern: '^[a-z][\da-z_]+$'
+    example: stable
+  release_channel:
+    type: object
+    x-nullable: false
+    required:
+      - id
+      - supported_versions
+    properties:
+      id:
+        $ref: '#/definitions/channel_id'
+      name:
+        type: string
+      supported_versions:
+        type: array
+        items:
+          type: string
+  tier:
+    type: object
+    required:
+      - id
+      - version
+      - images
+      - gateways
+    properties:
+      id:
+        $ref: '#/definitions/tier_id'
+      name:
+        $ref: '#/definitions/tier_name'
+      version:
+        $ref: '#/definitions/tier_version'
+      images:
+        $ref: '#/definitions/tier_images'
+      gateways:
+        $ref: '#/definitions/tier_gateways'
+  tier_image:
+    type: object
+    required:
+      - name
+      - order
+    properties:
+      name:
+        type: string
+      order:
+        type: integer
+  tier_name:
+    type: string
+    example: "Default Tier"
+  tier_version:
+    type: string
+    minLength: 1
+    example: "0.3.14-123456789-deadbeef"
+  tier_images:
+    type: array
+    items:
+      $ref: '#/definitions/tier_image'
+  tier_gateways:
+    type: array
+    uniqueItems: true
+    items:
+      $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'

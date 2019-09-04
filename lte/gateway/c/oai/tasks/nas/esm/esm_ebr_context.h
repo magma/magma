@@ -75,7 +75,8 @@ ebi_t esm_ebr_context_create(
   const bitrate_t mbr_dl,
   const bitrate_t mbr_ul,
   traffic_flow_template_t *tft,
-  protocol_configuration_options_t *pco);
+  protocol_configuration_options_t *pco,
+  teid_t gtp_teid);
 
 void esm_ebr_context_init(esm_ebr_context_t *esm_ebr_context);
 

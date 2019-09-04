@@ -112,6 +112,15 @@ typedef struct e_rab_setup_list_s {
   e_rab_setup_item_t item[MAX_NO_OF_E_RABS];
 } e_rab_setup_list_t;
 
+typedef struct e_rab_rel_item_s {
+  e_rab_id_t e_rab_id;
+} e_rab_rel_item_t;
+
+typedef struct e_rab_rel_list_s {
+  uint16_t no_of_items;
+  e_rab_rel_item_t item[MAX_NO_OF_E_RABS];
+} e_rab_rel_list_t;
+
 typedef struct e_rab_switched_in_downlink_item_s {
   e_rab_id_t e_rab_id;
   bstring transport_layer_address;

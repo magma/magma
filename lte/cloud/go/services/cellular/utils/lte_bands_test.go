@@ -9,9 +9,11 @@ LICENSE file in the root directory of this source tree.
 package utils_test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"magma/lte/cloud/go/services/cellular/utils"
 	"testing"
+
+	"magma/lte/cloud/go/services/cellular/utils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetBand(t *testing.T) {

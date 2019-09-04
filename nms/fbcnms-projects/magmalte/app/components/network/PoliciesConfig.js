@@ -41,7 +41,7 @@ type State = {
   rules: ?Array<Rule>,
 };
 
-type Props = WithStyles & ContextRouter & WithAlert & {};
+type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
 
 class PoliciesConfig extends React.Component<Props, State> {
   state = {
@@ -121,7 +121,7 @@ class PoliciesConfig extends React.Component<Props, State> {
   }
 
   renderAddDialog = () => (
-    // $FlowFixMe: missing rule prop. Please fix.
+    // $FlowFixMe: missing prop. Please fix.
     <PolicyRuleEditDialog
       onCancel={this.handleCloseDialog}
       onSave={this.onAddRule}

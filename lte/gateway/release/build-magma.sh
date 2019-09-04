@@ -15,7 +15,7 @@ shopt -s extglob
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=0.3.77 # magma version number
+VERSION=0.3.78 # magma version number
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug

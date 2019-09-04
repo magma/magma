@@ -247,6 +247,7 @@ definitions:
               enum:
               - S6A_PROXY
               - SESSION_PROXY
+              - SWX_PROXY
             example:
             - S6A_PROXY
             - SESSION_PROXY

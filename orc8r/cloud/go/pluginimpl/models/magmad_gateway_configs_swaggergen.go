@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"strconv"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -35,6 +37,12 @@ type MagmadGatewayConfigs struct {
 	// Required: true
 	// Minimum: 5
 	CheckinTimeout uint32 `json:"checkin_timeout"`
+
+	// dynamic services
+	DynamicServices []string `json:"dynamic_services"`
+
+	// feature flags
+	FeatureFlags map[string]bool `json:"feature_flags,omitempty"`
 }
 
 // Validate validates this magmad gateway configs
@@ -54,6 +62,10 @@ func (m *MagmadGatewayConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateCheckinTimeout(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateDynamicServices(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -106,6 +118,23 @@ func (m *MagmadGatewayConfigs) validateCheckinTimeout(formats strfmt.Registry) e
 
 	if err := validate.MinimumInt("checkin_timeout", "body", int64(m.CheckinTimeout), 5, false); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *MagmadGatewayConfigs) validateDynamicServices(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DynamicServices) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.DynamicServices); i++ {
+
+		if err := validate.MinLength("dynamic_services"+"."+strconv.Itoa(i), "body", string(m.DynamicServices[i]), 1); err != nil {
+			return err
+		}
+
 	}
 
 	return nil

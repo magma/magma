@@ -22,7 +22,7 @@ type NetworkCellularConfigs struct {
 	Epc *NetworkEpcConfigs `json:"epc"`
 
 	// feg network id
-	FegNetworkID string `json:"feg_network_id,omitempty"`
+	FegNetworkID FegNetworkID `json:"feg_network_id,omitempty"`
 
 	// ran
 	// Required: true
@@ -34,6 +34,10 @@ func (m *NetworkCellularConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateEpc(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateFegNetworkID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -60,6 +64,22 @@ func (m *NetworkCellularConfigs) validateEpc(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCellularConfigs) validateFegNetworkID(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.FegNetworkID) { // not required
+		return nil
+	}
+
+	if err := m.FegNetworkID.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("feg_network_id")
+		}
+		return err
 	}
 
 	return nil

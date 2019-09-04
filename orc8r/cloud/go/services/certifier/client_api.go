@@ -11,8 +11,8 @@ package certifier
 import (
 	"errors"
 	"fmt"
-	"time"
 
+	"magma/orc8r/cloud/go/clock"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
@@ -210,7 +210,7 @@ type CertDateRange interface {
 
 // Check if certificate time is not expired/not active yet
 func VerifyDateRange(certInfo CertDateRange) error {
-	tm := time.Now()
+	tm := clock.Now()
 	notBefore, _ := ptypes.Timestamp(certInfo.GetNotBefore())
 	notAfter, _ := ptypes.Timestamp(certInfo.GetNotAfter())
 	if tm.After(notAfter) {

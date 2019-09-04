@@ -19,7 +19,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaTopBar from './MagmaTopBar';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -35,6 +34,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from './GatewayUtils';
 import {MagmaAPIUrls} from '../common/MagmaAPI';
+import {find} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -53,7 +53,7 @@ const styles = theme => ({
   },
 });
 
-type Props = ContextRouter & WithAlert & WithStyles & {};
+type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   showDialog: boolean,
@@ -88,19 +88,24 @@ class Gateways extends React.Component<Props, State> {
     const rows = (gateways || []).map(gateway => (
       <TableRow key={gateway.logicalID}>
         <TableCell>
-          {status}
           <GatewayStatus
             isGrey={!gateway.enodebRFTXOn}
             isActive={gateway.enodebRFTXOn === gateway.enodebRFTXEnabled}
           />
           {gateway.name}
         </TableCell>
-        <TableCell>{gateway.hwid}</TableCell>
+        <TableCell>{gateway.hardware_id}</TableCell>
         <TableCell>
-          <IconButton onClick={this.editGateway.bind(this, gateway)}>
+          <IconButton
+            data-testid="edit-gateway-icon"
+            color="primary"
+            onClick={this.editGateway.bind(this, gateway)}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={this.deleteGateway.bind(this, gateway)}>
+          <IconButton
+            data-testid="delete-gateway-icon"
+            color="primary"
+            onClick={this.deleteGateway.bind(this, gateway)}>
             <DeleteIcon />
           </IconButton>
         </TableCell>
@@ -108,49 +113,41 @@ class Gateways extends React.Component<Props, State> {
     ));
 
     return (
-      <>
-        <MagmaTopBar title="Gateways" />
-        <div className={this.props.classes.paper}>
-          <div className={this.props.classes.header}>
-            <Typography variant="h5">Configure Gateways</Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={this.showDialog}>
-              Add Gateway
-            </Button>
-          </div>
-          <Paper elevation={2}>
-            {gateways ? (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Hardware UUID</TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableHead>
-                <TableBody>{rows}</TableBody>
-              </Table>
-            ) : (
-              <LoadingFiller />
-            )}
-          </Paper>
-          <AddGatewayDialog
-            open={this.state.showDialog}
-            onClose={this.hideDialog}
-            onSave={this.onSave}
-          />
-          <EditGatewayDialog
-            key={
-              this.state.editingGateway && this.state.editingGateway.logicalID
-            }
-            gateway={this.state.editingGateway}
-            onClose={() => this.setState({editingGateway: null})}
-            onSave={this.onSave}
-          />
+      <div className={this.props.classes.paper}>
+        <div className={this.props.classes.header}>
+          <Typography variant="h5">Configure Gateways</Typography>
+          <Button variant="contained" color="primary" onClick={this.showDialog}>
+            Add Gateway
+          </Button>
         </div>
-      </>
+        <Paper elevation={2}>
+          {gateways ? (
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Hardware UUID</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableHead>
+              <TableBody>{rows}</TableBody>
+            </Table>
+          ) : (
+            <LoadingFiller />
+          )}
+        </Paper>
+        <AddGatewayDialog
+          open={this.state.showDialog}
+          onClose={this.hideDialog}
+          onSave={this.onSave}
+        />
+        <EditGatewayDialog
+          key={this.state.editingGateway && this.state.editingGateway.logicalID}
+          gateway={this.state.editingGateway}
+          onClose={() => this.setState({editingGateway: null})}
+          onSave={this.onSave}
+        />
+      </div>
     );
   }
 
@@ -206,20 +203,24 @@ class Gateways extends React.Component<Props, State> {
     let version = 'Not Reported';
     let vpnIP = 'Not Reported';
     let lastCheckin = 'Not Reported';
+    let hardwareID = 'Not reported';
     let isBackhaulDown = true;
     const latLon = {lat: 0, lon: 0};
     const {status} = gateway;
     if (status) {
-      version = status.version || version;
-      vpnIP = status.vpn_ip || vpnIP;
-      lastCheckin = status.checkin_time
-        ? status.checkin_time.toString()
-        : lastCheckin;
-
+      vpnIP = status.platform_info?.vpn_ip || vpnIP;
+      const packages = find(status.platform_info?.packages || [], {
+        name: 'magma',
+      });
+      version = packages?.version || '';
       // if the last check-in time is more than 5 minutes
       // we treat it as backhaul is down
-      const dutation = Math.max(0, Date.now() - status.checkin_time);
-      isBackhaulDown = dutation > 1000 * 5 * 60;
+      const checkin = status.checkin_time;
+      if (checkin != null) {
+        const duration = Math.max(0, Date.now() - checkin);
+        isBackhaulDown = duration > 1000 * 5 * 60;
+        lastCheckin = checkin.toString();
+      }
 
       if (status.meta) {
         if (!isBackhaulDown) {
@@ -231,6 +232,10 @@ class Gateways extends React.Component<Props, State> {
         gpsConnected = status.meta.gps_connected == 1;
         enodebConnected = status.meta.enodeb_connected == 1;
         mmeConnected = status.meta.mme_connected == 1;
+      }
+
+      if (status.hardware_id) {
+        hardwareID = status.hardware_id;
       }
     }
 
@@ -271,10 +276,10 @@ class Gateways extends React.Component<Props, State> {
     }
 
     return {
-      hwid: gateway.record.hw_id.id,
-      name: gateway.record.name || 'N/A',
+      hardware_id: hardwareID,
+      name: gateway.name || 'N/A',
       logicalID: gateway.gateway_id,
-      challengeType: gateway.record.key.key_type,
+      challengeType: gateway.record.key.key_type || '',
       enodebRFTXEnabled: !!transmitEnabled,
       enodebRFTXOn: !!enodebRFTXOn,
       enodebConnected,

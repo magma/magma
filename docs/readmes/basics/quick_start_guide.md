@@ -45,6 +45,16 @@ HOST [magma/orc8r/cloud/docker]$ ./build.py
 
 This will build the docker images for the orc8r.
 
+
+#### Terminal Tab 3:
+
+Now we'll set up the orchestrator metrics docker containers.
+
+```console
+HOST [magma]$ cd orc8r/cloud/docker
+HOST [magma/orc8r/cloud/docker]$ docker-compose -f docker-compose.metrics.yml up -d
+```
+
 #### Initial Run
 
 Once all those jobs finish (should only be 5 minutes or so), we can build the

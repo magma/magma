@@ -18,7 +18,6 @@ import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaTopBar from '../MagmaTopBar';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -48,7 +47,7 @@ const styles = theme => ({
   },
 });
 
-type Props = ContextRouter & WithAlert & WithStyles & {};
+type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   showDialog: boolean,
@@ -121,7 +120,6 @@ class Enodebs extends React.Component<Props, State> {
 
     return (
       <>
-        <MagmaTopBar title="eNodeB Devices" />
         <div className={this.props.classes.paper}>
           <div className={this.props.classes.header}>
             <Typography variant="h5">Configure eNodeB Devices</Typography>

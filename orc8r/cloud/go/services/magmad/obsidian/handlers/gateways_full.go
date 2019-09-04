@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
 
 	"github.com/labstack/echo"
+	"github.com/thoas/go-funk"
 )
 
 // ListFullGatewayViews returns the full views of specified gateways in a
@@ -32,19 +33,7 @@ func ListFullGatewayViews(c echo.Context, factory view_factory.FullGatewayViewFa
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	// todo can remove this after the legacy full gateway views is deprecated
-	//  and only uses GatewayStateType
-	gatewayStateTypes := []*view_factory.GatewayStateType{}
-	for _, state := range gatewayStates {
-		gatewayStateTypes = append(gatewayStateTypes,
-			&view_factory.GatewayStateType{
-				Config:    state.Config,
-				GatewayID: state.GatewayID,
-				Record:    state.Record,
-				Status:    state.Status,
-			})
-	}
-	return c.JSON(http.StatusOK, gatewayStateTypes)
+	return c.JSON(http.StatusOK, funk.Values(gatewayStates).([]*view_factory.GatewayState))
 }
 
 func getGatewayIDs(queryParams url.Values) []string {

@@ -34,7 +34,7 @@ const styles = {
 };
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gateway: {[string]: any}) => void,
     gateway: ?Gateway,
@@ -75,9 +75,12 @@ class EditGatewayDialog extends React.Component<Props, State> {
         break;
       case 3:
         content = (
+          // $FlowFixMe: extra props passed. Please fix.
           <GatewayCommandFields
             {...props}
+            gatewayID={this.props.gateway.logicalID}
             showRestartCommand={true}
+            showRebootEnodebCommand={true}
             showPingCommand={true}
             showGenericCommand={true}
           />

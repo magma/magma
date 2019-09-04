@@ -132,6 +132,7 @@ class EnodebdRpcServicer(EnodebdServicer):
                 configured=enb_status.configured,
                 opstate_enabled=enb_status.opstate_enabled,
                 rf_tx_on=enb_status.rf_tx_on,
+                rf_tx_desired=enb_status.rf_tx_desired,
                 gps_connected=enb_status.gps_connected,
                 ptp_connected=enb_status.ptp_connected,
                 mme_connected=enb_status.mme_connected,

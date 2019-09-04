@@ -9,17 +9,17 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Subscriber} from './AddEditSubscriberDialog';
+import type {Subscriber} from './lte/AddEditSubscriberDialog';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import AddEditSubscriberDialog from './AddEditSubscriberDialog';
+import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import ImportSubscribersDialog from './ImportSubscribersDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaTopBar from './MagmaTopBar';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -42,6 +42,11 @@ const styles = theme => ({
     display: 'flex',
     justifyContent: 'space-between',
   },
+  buttons: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    flexDirection: 'row',
+  },
   paper: {
     margin: theme.spacing(3),
   },
@@ -51,13 +56,14 @@ type SubProfiles = {
   [string]: {max_dl_bit_rate?: number, max_ul_bit_rate?: number},
 };
 
-type Props = ContextRouter & WithAlert & WithStyles & {};
+type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   subscribers: Array<Subscriber>,
   errorMessage: ?string,
   loading: boolean,
-  showDialog: boolean,
+  showAddEditDialog: boolean,
+  showImportDialog: boolean,
   editingSubscriber: ?Subscriber,
   subProfiles: SubProfiles,
 };
@@ -67,7 +73,8 @@ class Subscribers extends React.Component<Props, State> {
     subscribers: [],
     errorMessage: null,
     loading: true,
-    showDialog: false,
+    showAddEditDialog: false,
+    showImportDialog: false,
     editingSubscriber: null,
     subProfiles: {},
   };
@@ -119,72 +126,88 @@ class Subscribers extends React.Component<Props, State> {
     ));
 
     return (
-      <>
-        <MagmaTopBar />
-        <div className={this.props.classes.paper}>
-          <div className={this.props.classes.header}>
-            <Typography variant="h5">Subscribers</Typography>
+      <div className={this.props.classes.paper}>
+        <div className={this.props.classes.header}>
+          <Typography variant="h5">Subscribers</Typography>
+          <div className={this.props.classes.buttons}>
+            <Button
+              style={{marginRight: '10px'}}
+              variant="contained"
+              color="primary"
+              onClick={this.showImportDialog}>
+              Import
+            </Button>
             <Button
               variant="contained"
               color="primary"
-              onClick={this.showDialog}>
+              onClick={this.showAddEditDialog}>
               Add Subscriber
             </Button>
           </div>
-          <Paper elevation={2}>
-            {this.state.loading ? (
-              <LoadingFiller />
-            ) : (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>IMSI</TableCell>
-                    <TableCell>LTE Subscription State</TableCell>
-                    <TableCell>Data Plan</TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableHead>
-                <TableBody>{rows}</TableBody>
-                <TableFooter
-                  style={
-                    !this.state.loading &&
-                    this.state.subscribers.length === 0 &&
-                    this.state.errorMessage === null
-                      ? {}
-                      : {display: 'none'}
-                  }>
-                  <TableRow>
-                    <TableCell colSpan="3">No subscribers found</TableCell>
-                  </TableRow>
-                </TableFooter>
-              </Table>
-            )}
-          </Paper>
-          <div
-            style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
-            <Typography color="error" variant="body2">
-              {this.state.errorMessage}
-            </Typography>
-          </div>
-          <AddEditSubscriberDialog
-            key={(this.state.editingSubscriber || {}).id || 'new'}
-            editingSubscriber={this.state.editingSubscriber}
-            open={this.state.showDialog}
-            onClose={this.hideDialog}
-            onSave={this.onSave}
-            onSaveError={this.onSaveError}
-            subProfiles={Object.keys(this.state.subProfiles)}
-          />
         </div>
-      </>
+        <Paper elevation={2}>
+          {this.state.loading ? (
+            <LoadingFiller />
+          ) : (
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>IMSI</TableCell>
+                  <TableCell>LTE Subscription State</TableCell>
+                  <TableCell>Data Plan</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableHead>
+              <TableBody>{rows}</TableBody>
+              <TableFooter
+                style={
+                  !this.state.loading &&
+                  this.state.subscribers.length === 0 &&
+                  this.state.errorMessage === null
+                    ? {}
+                    : {display: 'none'}
+                }>
+                <TableRow>
+                  <TableCell colSpan="3">No subscribers found</TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          )}
+        </Paper>
+        <div style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
+          <Typography color="error" variant="body2">
+            {this.state.errorMessage}
+          </Typography>
+        </div>
+        <AddEditSubscriberDialog
+          key={(this.state.editingSubscriber || {}).id || 'new'}
+          editingSubscriber={this.state.editingSubscriber}
+          open={this.state.showAddEditDialog}
+          onClose={this.hideDialogs}
+          onSave={this.onSaveSubscriber}
+          onSaveError={this.onSaveSubscriberError}
+          subProfiles={Object.keys(this.state.subProfiles)}
+        />
+        <ImportSubscribersDialog
+          open={this.state.showImportDialog}
+          onClose={this.hideDialogs}
+          onSave={this.onBulkUpload}
+          onSaveError={this.onBulkUploadError}
+        />
+      </div>
     );
   }
 
-  showDialog = () => this.setState({showDialog: true});
-  hideDialog = () =>
-    this.setState({showDialog: false, editingSubscriber: null});
+  showAddEditDialog = () => this.setState({showAddEditDialog: true});
+  showImportDialog = () => this.setState({showImportDialog: true});
+  hideDialogs = () =>
+    this.setState({
+      showAddEditDialog: false,
+      showImportDialog: false,
+      editingSubscriber: null,
+    });
 
-  onSave = id => {
+  onSaveSubscriber = id => {
     axios
       .get(MagmaAPIUrls.subscriber(this.props.match, id))
       .then(response =>
@@ -196,18 +219,39 @@ class Subscribers extends React.Component<Props, State> {
           } else {
             subscribers.push(this._buildSubscriber(response.data));
           }
-          return {subscribers, showDialog: false};
+          return {subscribers, showAddEditDialog: false};
         }),
       )
       .catch(this.props.alert);
   };
 
-  onSaveError = (reason: any) => {
+  onSaveSubscriberError = (reason: any) => {
     this.props.alert(reason.response.data.message);
   };
 
+  onBulkUpload = async (subscriberIDs: Array<string>) => {
+    const responses = await Promise.all(
+      subscriberIDs.map(id =>
+        axios.get(MagmaAPIUrls.subscriber(this.props.match, id)),
+      ),
+    );
+    this.setState(state => {
+      const subscribers = [
+        ...state.subscribers,
+        ...responses.map(response => this._buildSubscriber(response.data)),
+      ];
+      return {subscribers, showImportDialog: false};
+    });
+  };
+
+  onBulkUploadError = (failureIDs: Array<string>) => {
+    this.props.alert(
+      'Error adding the following subscribers: ' + failureIDs.join(', '),
+    );
+  };
+
   editSubscriber = subscriber =>
-    this.setState({editingSubscriber: subscriber, showDialog: true});
+    this.setState({editingSubscriber: subscriber, showAddEditDialog: true});
 
   deleteSubscriber = sub =>
     this.props

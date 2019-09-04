@@ -152,6 +152,7 @@ reg1     | Global     | Direction bit        | Table 1 (inout application)
 reg2     | Local      | Policy number        | Enforcement app             
 reg3     | Local      | App ID               | DPI app
 reg4     | Local      | Policy version number| Enforcement app                     
+reg5     | Local      | Test Packet          | PacketTracer app                     
 
 ## Testing
 

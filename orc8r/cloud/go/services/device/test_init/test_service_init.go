@@ -17,6 +17,8 @@ import (
 	"magma/orc8r/cloud/go/services/device/protos"
 	"magma/orc8r/cloud/go/services/device/servicers"
 	"magma/orc8r/cloud/go/test_utils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // StartTestService instantiates a service backed by an in-memory storage
@@ -24,9 +26,7 @@ func StartTestService(t *testing.T) {
 	factory := blobstore.NewMemoryBlobStorageFactory()
 	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, device.ServiceName)
 	server, err := servicers.NewDeviceServicer(factory)
-	if err != nil {
-		t.Fatalf("Failure to start state test service: %v", err)
-	}
+	assert.NoError(t, err)
 	protos.RegisterDeviceServer(srv.GrpcServer, server)
 	go srv.RunTest(lis)
 }

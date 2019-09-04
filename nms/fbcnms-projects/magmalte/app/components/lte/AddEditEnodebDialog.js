@@ -17,8 +17,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import EnodebBandwidthSelector from './EnodebBandwidthSelector';
-import EnodebDeviceSelector from './EnodebDeviceSelector';
+import EnodebPropertySelector from './EnodebPropertySelector';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
@@ -41,7 +40,7 @@ const styles = {
 };
 
 type Props = ContextRouter &
-  WithStyles & {
+  WithStyles<typeof styles> & {
     // Only set if we are editing an eNodeB configuration
     editingEnodeb: ?Enodeb,
     onClose: () => void,
@@ -130,10 +129,12 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
             onChange={this.onSerialIdChange}
             placeholder="Unique Serial ID of eNodeB, eg. 120200002618AGP0003"
           />
-          <EnodebDeviceSelector
-            className={classes.input}
+          <EnodebPropertySelector
+            titleLabel="eNodeB Device Class"
             value={this.state.editingEnodeb.deviceClass}
+            valueOptionsByKey={EnodebDeviceClass}
             onChange={this.onDeviceClassChange}
+            className={classes.input}
           />
           <TextField
             label="EARFCNDL"
@@ -168,10 +169,12 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
             placeholder="0-504"
             error={!this.isPciValid()}
           />
-          <EnodebBandwidthSelector
-            className={classes.input}
+          <EnodebPropertySelector
+            titleLabel="eNodeB DL/UL Bandwidth (MHz)"
             value={this.state.editingEnodeb.bandwidthMhz}
+            valueOptionsByKey={EnodebBandwidthOption}
             onChange={this.onBandwidthMhzChange}
+            className={classes.input}
           />
           <TextField
             label="Tracking Area Code"
@@ -224,35 +227,68 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
   fieldChangedHandler = (
     field:
       | 'serialId'
-      | 'deviceClass'
       | 'earfcndl'
       | 'subframeAssignment'
       | 'specialSubframePattern'
       | 'pci'
-      | 'transmitEnabled'
-      | 'bandwidthMhz'
       | 'tac'
       | 'enodebId'
       | 'cellNumber',
-  ) => event =>
-    // $FlowFixMe: deviceClass won't be an arbitrary string
-    this.setState({
-      editingEnodeb: {
-        ...this.state.editingEnodeb,
-        // $FlowFixMe: property 'value' will be present.
-        [field]: event.target.value,
-      },
-    });
+  ) => (event: SyntheticEvent<HTMLInputElement>) => {
+    const {target} = event;
+    if (target instanceof HTMLInputElement) {
+      this.setState({
+        editingEnodeb: {
+          ...this.state.editingEnodeb,
+          [field]: target.value,
+        },
+      });
+    } else {
+      throw Error('Expected event to be a SyntheticEvent<HTMLInputElement>');
+    }
+  };
 
   onSerialIdChange = this.fieldChangedHandler('serialId');
-  onDeviceClassChange = this.fieldChangedHandler('deviceClass');
+  onDeviceClassChange = event => {
+    const optionKey = Object.values(EnodebDeviceClass).indexOf(
+      event.target.value,
+    );
+    if (optionKey > -1) {
+      const value =
+        EnodebDeviceClass[Object.keys(EnodebDeviceClass)[optionKey]];
+      this.setState({
+        editingEnodeb: {
+          ...this.state.editingEnodeb,
+          deviceClass: value,
+        },
+      });
+    } else {
+      throw Error('Expected a valid eNodeB device class selection.');
+    }
+  };
   onEarfcndlChange = this.fieldChangedHandler('earfcndl');
   onSubframeAssignmentChange = this.fieldChangedHandler('subframeAssignment');
   onSpecialSubframePatternChange = this.fieldChangedHandler(
     'specialSubframePattern',
   );
   onPciChange = this.fieldChangedHandler('pci');
-  onBandwidthMhzChange = this.fieldChangedHandler('bandwidthMhz');
+  onBandwidthMhzChange = event => {
+    const optionKey = Object.values(EnodebBandwidthOption).indexOf(
+      event.target.value,
+    );
+    if (optionKey > -1) {
+      const value =
+        EnodebBandwidthOption[Object.keys(EnodebBandwidthOption)[optionKey]];
+      this.setState({
+        editingEnodeb: {
+          ...this.state.editingEnodeb,
+          bandwidthMhz: value,
+        },
+      });
+    } else {
+      throw Error('Expected a valid bandwidth (MHz) selection.');
+    }
+  };
   onTacChange = this.fieldChangedHandler('tac');
   onEnodebIdChange = this.fieldChangedHandler('enodebId');
   onCellNumberChange = this.fieldChangedHandler('cellNumber');
@@ -357,7 +393,7 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
       !this.isCellIdValid() ||
       !this.isTransmitEnabledValid()
     ) {
-      this.setState({error: 'Please complete all fields'});
+      this.setState({error: 'Please complete all fields with valid values'});
       return;
     }
     const enb = {

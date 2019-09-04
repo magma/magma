@@ -125,6 +125,11 @@ class LocalEnforcer {
     PolicyReAuthRequest request,
     PolicyReAuthAnswer &answer_out);
 
+  bool is_imsi_duplicate(const std::string &imsi);
+
+  bool is_session_duplicate(
+    const std::string &imsi, const magma::SessionState::Config &config);
+
  private:
   struct RulesToProcess {
     std::vector<std::string> static_rules;
@@ -233,6 +238,15 @@ class LocalEnforcer {
 
   void execute_actions(
     const std::vector<std::unique_ptr<ServiceAction>> &actions);
+
+  /**
+    * Deactive rules for certain IMSI.
+    * Notify AAA service if the session is a CWF session.
+    */
+  void terminate_service(
+    const std::string &imsi,
+    const std::vector<std::string> &rule_ids,
+    const std::vector<PolicyRule> &dynamic_rules);
 };
 
 } // namespace magma

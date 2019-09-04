@@ -38,7 +38,7 @@ const styles = theme => ({
   },
 });
 
-type Props = WithAlert & ContextRouter & WithStyles & {};
+type Props = WithAlert & ContextRouter & WithStyles<typeof styles> & {};
 
 type State = {
   error: string,
@@ -126,7 +126,7 @@ class SecuritySettings extends React.Component<Props, State> {
     }
 
     try {
-      await axios.post('/nms/user/change_password', {
+      await axios.post('/user/change_password', {
         currentPassword: this.state.currentPassword,
         newPassword: this.state.newPassword,
       });
