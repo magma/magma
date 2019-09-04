@@ -11,7 +11,6 @@ declare module '@material-ui/icons/AccessAlarms' {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
-// $FlowFixMe: ListAlt exists
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
 import MapIcon from '@material-ui/icons/Map';
