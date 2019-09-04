@@ -37,7 +37,7 @@ const (
 func BenchmarkReceiveMetrics(b *testing.B) {
 	familiesMap := prepareNewFamiliesMap(powersOfTenToTest)
 
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 
 	req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(generateRandomMetricsString(0)))
 	rec := httptest.NewRecorder()
@@ -62,7 +62,7 @@ func BenchmarkReceiveMetrics(b *testing.B) {
 func BenchmarkScrapeMetrics(b *testing.B) {
 	familiesMap := prepareNewFamiliesMap(powersOfTenToTest)
 
-	cache := NewMetricCache(0)
+	cache := NewMetricCache(0, 10)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
@@ -105,7 +105,7 @@ func prepareNewFamiliesMap(powersOfTen []int) map[int]map[string]*familyAndMetri
 	familiesMap := make(map[int]map[string]*familyAndMetrics)
 
 	for _, n := range powersOfTen {
-		cache := NewMetricCache(0)
+		cache := NewMetricCache(0, 10)
 		total := int(math.Pow(10, float64(n)))
 		insertNRecordsIntoCacheBucketRange(cache, total, 0, numBucketsToTest[0])
 		familiesMap[int(n)] = cache.metricFamiliesByName

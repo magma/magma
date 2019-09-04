@@ -165,3 +165,8 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_nas_notify_service_reject_t,
   nas_notify_service_reject)
+MESSAGE_DEF(
+  NAS_ERAB_REL_CMD,
+  MESSAGE_PRIORITY_MED,
+  itti_erab_rel_cmd_t,
+  itti_erab_rel_cmd)

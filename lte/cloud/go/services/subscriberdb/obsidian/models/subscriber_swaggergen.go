@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // Subscriber subscriber
@@ -22,10 +21,6 @@ type Subscriber struct {
 
 	// lte
 	Lte *LteSubscription `json:"lte,omitempty"`
-
-	// Subscription profile name
-	// Min Length: 1
-	SubProfile string `json:"sub_profile,omitempty"`
 }
 
 // Validate validates this subscriber
@@ -37,10 +32,6 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateLte(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateSubProfile(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -79,19 +70,6 @@ func (m *Subscriber) validateLte(formats strfmt.Registry) error {
 			}
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (m *Subscriber) validateSubProfile(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.SubProfile) { // not required
-		return nil
-	}
-
-	if err := validate.MinLength("sub_profile", "body", string(m.SubProfile), 1); err != nil {
-		return err
 	}
 
 	return nil

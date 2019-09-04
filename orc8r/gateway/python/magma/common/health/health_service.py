@@ -62,7 +62,7 @@ class GenericHealthChecker:
         syslog_path = '/var/log/syslog'
         if not os.access(syslog_path, os.R_OK):
             raise PermissionError('syslog is not readable. '
-                                  'Try `sudo chmod a+r {}`.'
+                                  'Try `sudo chmod a+r {}`. '
                                   'Or execute the command with sudo '
                                   'permissions: `venvsudo`'.format(syslog_path))
         with open(syslog_path, 'r') as f:

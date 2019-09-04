@@ -22,7 +22,10 @@ const AddMapButtonGroup = () => {
   return (
     <MapButtonGroup
       onIconClicked={() => {}}
-      icons={[<ListAltIcon />, <MapIcon />]}
+      buttons={[
+        {item: <ListAltIcon />, id: 'list'},
+        {item: <MapIcon />, id: 'map'},
+      ]}
     />
   );
 };
@@ -30,7 +33,11 @@ const AddThreeMapButton = () => {
   return (
     <MapButtonGroup
       onIconClicked={() => {}}
-      icons={[<ListAltIcon />, <MapIcon />, <MapIcon />]}
+      buttons={[
+        {item: <ListAltIcon />, id: 'list'},
+        {item: <MapIcon />, id: 'map'},
+        {item: <MapIcon />, id: 'map2'},
+      ]}
     />
   );
 };

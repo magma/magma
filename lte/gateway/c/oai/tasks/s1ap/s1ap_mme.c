@@ -254,6 +254,11 @@ void *s1ap_mme_thread(__attribute__((unused)) void *args)
           state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request);
       } break;
 
+      case S1AP_E_RAB_REL_CMD: {
+        s1ap_generate_s1ap_e_rab_rel_cmd(
+          state, &S1AP_E_RAB_REL_CMD(received_message_p));
+      } break;
+
       case S1AP_PATH_SWITCH_REQUEST_ACK: {
         s1ap_handle_path_switch_req_ack(
           state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack);

@@ -113,6 +113,22 @@ export default createMuiTheme({
         },
       },
     },
+    MuiListItemText: {
+      root: {
+        marginBottom: '0px',
+        marginTop: '0px',
+      },
+    },
+    MuiSelect: {
+      selectMenu: {
+        height: '24px',
+      },
+    },
+    MuiTableRow: {
+      root: {
+        backgroundColor: 'white',
+      },
+    },
     MuiIconButton: {
       root: {
         color: blue60,
@@ -145,8 +161,9 @@ export default createMuiTheme({
       input: {
         fontSize: '14px',
         lineHeight: '14px',
-        paddingBottom: '15px',
-        paddingTop: '15px',
+        paddingBottom: '12px',
+        paddingTop: '12px',
+        height: '24px',
       },
       inputMarginDense: {
         paddingTop: '9px',

@@ -23,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 
 	"github.com/golang/glog"
@@ -50,11 +49,6 @@ type OrchestratorPlugin interface {
 	// global serde registry. These serdes are the primary integration surface
 	// for many core orchestrator services.
 	GetSerdes() []serde.Serde
-
-	// GetLegacyMconfigBuilders returns a list of MconfigBuilders to register
-	// with the config streamer application. These builders are responsible for
-	// constructing gateway mconfigs from cloud-stored configs.
-	GetLegacyMconfigBuilders() []factory.MconfigBuilder
 
 	// GetMconfigBuilders returns a list of MconfigBuilders to register with
 	// the configurator service. These builder are responsible for constructing
@@ -174,7 +168,6 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 	if err := serde.RegisterSerdes(orc8rPlugin.GetSerdes()...); err != nil {
 		return err
 	}
-	factory.RegisterMconfigBuilders(orc8rPlugin.GetLegacyMconfigBuilders()...)
 	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles(metricsConfig)...); err != nil {
 		return err
 	}

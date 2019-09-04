@@ -2,45 +2,9 @@
 imagePullSecrets: []
 
 metrics:
-  # Enable/Disable chart
-  create: true
-
-  # Set to 1 if using a minikube setup
-  useMinikube:
-
-  # Retention configurations for prometheus
-  retention:
-    time: 30d
-
-  # Service configuration.
-  service:
-    annotations: {}
-    labels: {}
-    type: ClusterIP
-    ports:
-      - name: prometheus
-        port: 9090
-        targetPort: 9090
-      - name: alertmanager
-        port: 9093
-        targetPort: 9093
-      - name: prom-configmanager
-        port: 9100
-        targetPort: 9100
-      - name: alertmanager-config
-        port: 9101
-        targetPort: 9101
-
-  environment:
-    promAlertconfigPort: "9100"
-    rulesDir: "/etc/configs/alert_rules"
-    prometheusURL: "localhost:9090"
-    alertmanagerConfigPort: "9101"
-    alertmanagerConfPath: "/etc/configs/alertmanager.yml"
-    alertmanagerURL: "localhost:9093"
-
+  # Default volume configurations for metrics data - shared across prometheus,
+  # alertmanager, and configmanager pods
   volumes:
-    # Default volume configurations for metrics data
     prometheusData:
       volumeSpec:
         hostPath:
@@ -52,96 +16,126 @@ metrics:
           path: /configs/prometheus
           type: DirectoryOrCreate
 
-  prometheusImage:
+prometheus:
+  # Enable/Disable chart
+  create: true
+
+  # Preconfigure alerts for orchestrator in prometheus
+  includeOrc8rAlerts: false
+
+  prometheusCacheHostname: "orc8r-prometheus-cache"
+  alertmanagerHostname: "orc8r-alertmanager"
+
+  replicas: 1
+
+  # Set to 1 if using a minikube setup
+  useMinikube:
+
+  # Retention configurations for prometheus
+  retention:
+    time: 30d
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prometheus
+        port: 9090
+        targetPort: 9090
+
+  image:
     repository: docker.io/prom/prometheus
-    tag: latest
+    tag: v2.12.0
     pullPolicy: IfNotPresent
 
-  alertmanagerImage:
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  customAlerts: []
+
+alertmanager:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: alertmanager
+        port: 9093
+        targetPort: 9093
+
+  image:
     repository: docker.io/prom/alertmanager
-    tag: latest
+    tag: v0.18.0
     pullPolicy: IfNotPresent
 
-  configImage:
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
+
+configmanager:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: prom-configmanager
+        port: 9100
+        targetPort: 9100
+      - name: alertmanager-config
+        port: 9101
+        targetPort: 9101
+
+  environment:
+    promAlertconfigPort: "9100"
+    rulesDir: "/etc/configs/alert_rules"
+    prometheusURL: "orc8r-prometheus:9090"
+    alertmanagerConfigPort: "9101"
+    alertmanagerConfPath: "/etc/configs/alertmanager.yml"
+    alertmanagerURL: "orc8r-alertmanager:9093"
+
+  image:
     repository:
     tag:
     pullPolicy: IfNotPresent
 
-  # Number of metrics replicas desired
-  replicas: 1
-
-  # Resource limits & requests
   resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-  # Define which Nodes the Pods are scheduled on.
-  # ref: https://kubernetes.io/docs/user-guide/node-selection/
   nodeSelector: {}
-
-  # Tolerations for use with node taints
-  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
-
-  # Assign metrics to run on specific nodes
-  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  affinity: {}
-
-graphite:
-  # Enable/Disable chart
-  create: true
-  # Service configuration.
-  service:
-    annotations: {}
-    type: ClusterIP
-    ports:
-      - name: graphite-web
-        port: 80
-        targetPort: 80
-      - name: carbon-cache
-        port: 2003
-        targetPort: 2003
-
-  volumes:
-    # Default volume configurations for graphite data
-    graphiteData:
-      volumeSpec:
-        hostPath:
-          path: /graphiteData
-          type: DirectoryOrCreate
-
-  image:
-    repository: docker.io/graphiteapp/graphite-statsd
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  # Number of metrics replicas desired
-  replicas: 1
-
-  # Resource limits & requests
-  resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-  # Define which Nodes the Pods are scheduled on.
-  # ref: https://kubernetes.io/docs/user-guide/node-selection/
-  nodeSelector: {}
-
-  # Tolerations for use with node taints
-  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-  tolerations: []
-
-  # Assign graphite to run on specific nodes
-  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  affinity: {}
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
 
 prometheusCache:
   # Enable/Disable chart
@@ -184,7 +178,7 @@ prometheusCache:
   # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
-  # Assign graphite to run on specific nodes
+  # Assign prometheusCache to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
@@ -202,7 +196,7 @@ grafana:
         targetPort: 3000
 
   environment:
-    prometheusHost: "orc8r-metrics"
+    prometheusHost: "orc8r-prometheus"
     prometheusPort: "9090"
 
   volumes:
@@ -236,6 +230,6 @@ grafana:
   # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
-  # Assign graphite to run on specific nodes
+  # Assign grafana to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}

@@ -54,7 +54,7 @@ type StateID struct {
 var connSingleton = (*grpc.ClientConn)(nil)
 var connGuard = sync.Mutex{}
 
-func getStateClient() (protos.StateServiceClient, error) {
+func GetStateClient() (protos.StateServiceClient, error) {
 	if connSingleton == nil {
 		// Reading the conn optimistically to avoid unnecessary overhead
 		connGuard.Lock()
@@ -75,7 +75,7 @@ func getStateClient() (protos.StateServiceClient, error) {
 
 // GetState returns the state specified by the networkID, typeVal, and hwID
 func GetState(networkID string, typeVal string, hwID string) (State, error) {
-	client, err := getStateClient()
+	client, err := GetStateClient()
 	if err != nil {
 		return State{}, err
 	}
@@ -103,7 +103,11 @@ func GetState(networkID string, typeVal string, hwID string) (State, error) {
 
 // GetStates returns a map of states specified by the networkID and a list of type and key
 func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) {
-	client, err := getStateClient()
+	if len(stateIDs) == 0 {
+		return map[StateID]State{}, nil
+	}
+
+	client, err := GetStateClient()
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +136,7 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) 
 
 // DeleteStates deletes states specified by the networkID and a list of type and key
 func DeleteStates(networkID string, stateIDs []StateID) error {
-	client, err := getStateClient()
+	client, err := GetStateClient()
 	if err != nil {
 		return err
 	}

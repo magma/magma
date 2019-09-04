@@ -21,6 +21,9 @@ const useStyles = makeStyles(theme => ({
     cursor: 'pointer',
     fill: theme.palette.primary.main,
   },
+  itemText: {
+    textTransform: 'capitalize',
+  },
 }));
 
 type Props = {
@@ -35,7 +38,6 @@ export default function MoreActionsButton(props: Props) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isMenuOpen, toggleMenuOpen] = useState(false);
   const classes = useStyles();
-
   return (
     <>
       <MoreHorizIcon
@@ -70,7 +72,7 @@ export default function MoreActionsButton(props: Props) {
                 toggleMenuOpen(false);
                 setAnchorEl(null);
               }}>
-              <Typography>{item.name}</Typography>
+              <Typography className={classes.itemText}>{item.name}</Typography>
             </ListItem>
           ))}
         </List>

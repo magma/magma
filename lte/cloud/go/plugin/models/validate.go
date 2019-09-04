@@ -13,6 +13,7 @@ import (
 	"net"
 
 	"magma/lte/cloud/go/services/cellular/utils"
+	"magma/orc8r/cloud/go/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/go-openapi/strfmt"
@@ -145,6 +146,68 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 				return errors.New("invalid IP block on config")
 			}
 		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayRanConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayEpcConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayNonEpsConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *EnodebSerials) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *Enodeb) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *EnodebConfiguration) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+const (
+	lteAuthKeyLength = 16
+	lteAuthOpcLength = 16
+)
+
+func (m *Subscriber) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	if err := m.Lte.ValidateModel(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *LteSubscription) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	authKeyLen := len([]byte(m.AuthKey))
+	if authKeyLen != lteAuthKeyLength {
+		return models.ValidateErrorf("expected lte auth key to be %d bytes but got %d bytes", lteAuthKeyLength, authKeyLen)
+	}
+
+	// OPc is optional, but if it's provided it should be 16 bytes
+	authOpcLen := len([]byte(m.AuthOpc))
+	if authOpcLen > 0 && authOpcLen != lteAuthOpcLength {
+		return models.ValidateErrorf("expected lte auth opc to be %d bytes but got %d bytes", lteAuthOpcLength, authOpcLen)
 	}
 
 	return nil

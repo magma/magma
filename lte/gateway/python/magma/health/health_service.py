@@ -8,8 +8,11 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
+import glob
 import ipaddress
+
+import math
+from os import path
 
 from lte.protos.enodebd_pb2_grpc import EnodebdStub
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
@@ -17,7 +20,8 @@ from lte.protos.mobilityd_pb2 import IPAddress
 from orc8r.protos.common_pb2 import Void
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
-from magma.health.entities import AGWHealthSummary, RegistrationSuccessRate
+from magma.health.entities import AGWHealthSummary, RegistrationSuccessRate, \
+    CoreDumps
 
 
 class AGWHealth:
@@ -58,6 +62,18 @@ class AGWHealth:
             attach_requests=log.count('Attach Request'),
             attach_accepts=log.count('Attach Accept'))
 
+    def get_core_dumps(self,
+                       directory='/tmp/',
+                       start_timestamp=0,
+                       end_timestamp=math.inf):
+        res = []
+        for filename in glob.glob(path.join(directory, 'core-*_bundle')):
+            # core-1565125801-python3-8042_bundle
+            ts = int(filename.split('-')[1])
+            if start_timestamp <= ts <= end_timestamp:
+                res.append(filename)
+        return CoreDumps(core_dump_files=res)
+
     def gateway_health_status(self):
         config = load_service_mconfig_as_json('mme')
 
@@ -72,6 +88,7 @@ class AGWHealth:
             nb_enbs_connected=status.meta['n_enodeb_connected'],
             allocated_ips=self.get_allocated_ips(),
             subscriber_table=self.get_subscriber_table(),
+            core_dumps=self.get_core_dumps(),
             registration_success_rate=self.get_registration_success_rate(
                 mme_log_path
             ),

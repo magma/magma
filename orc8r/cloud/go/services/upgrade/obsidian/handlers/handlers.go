@@ -182,7 +182,7 @@ func createrTier(c echo.Context) error {
 	entity := configurator.NetworkEntity{
 		Type:   orc8r.UpgradeTierEntityType,
 		Key:    string(tier.ID),
-		Name:   tier.Name,
+		Name:   string(tier.Name),
 		Config: tier,
 	}
 	_, err := configurator.CreateEntity(networkID, entity)
@@ -227,7 +227,7 @@ func updateTier(c echo.Context) error {
 	update := configurator.EntityUpdateCriteria{
 		Key:       string(tier.ID),
 		Type:      orc8r.UpgradeTierEntityType,
-		NewName:   swag.String(tier.Name),
+		NewName:   swag.String(string(tier.Name)),
 		NewConfig: tier,
 	}
 	_, err := configurator.UpdateEntity(networkID, update)

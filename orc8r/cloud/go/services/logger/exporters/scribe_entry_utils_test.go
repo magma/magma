@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package exporters_test
 
 import (
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -26,7 +25,6 @@ import (
 )
 
 func TestScribeEntryUtils(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	logEntries := []*protos.LogEntry{
 		{
 			Category:  "test",
@@ -44,7 +42,6 @@ func TestScribeEntryUtils(t *testing.T) {
 }
 
 func TestScribeEntryUtils_WithHWID(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	configuratorti.StartTestService(t)
 	deviceti.StartTestService(t)
 	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))

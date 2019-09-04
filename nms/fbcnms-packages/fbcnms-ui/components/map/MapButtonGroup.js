@@ -14,26 +14,32 @@ import MapToggleButtonGroup from '@fbcnms/ui/components/map/MapToggleButtonGroup
 import MapToggleContainer from '@fbcnms/ui/components/map/MapToggleContainer';
 import {useState} from 'react';
 
+type ButtonItem = {
+  item: React.Node,
+  id: string,
+};
+
 type Props = {
-  icons: Array<React.Node>,
-  onIconClicked: (id: number) => void,
+  buttons: Array<ButtonItem>,
+  onIconClicked: (id: string) => void,
 };
 
 const MapButtonGroup = (props: Props) => {
   const [selectedButtonId, setSelectedButtonId] = useState(0);
-  const {onIconClicked, icons} = props;
+  const {onIconClicked, buttons} = props;
   return (
     <MapToggleContainer>
       <MapToggleButtonGroup>
         <>
-          {icons.map((icon, i) => {
+          {buttons.map((button, i) => {
             return (
               <MapButton
+                key={button.id}
                 onClick={() => {
                   setSelectedButtonId(i);
-                  onIconClicked(i);
+                  onIconClicked(button.id);
                 }}
-                icon={icon}
+                icon={button.item}
                 isSelected={selectedButtonId === i}
               />
             );

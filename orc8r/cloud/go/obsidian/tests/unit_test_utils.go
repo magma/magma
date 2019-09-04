@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"encoding"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -89,7 +90,7 @@ func GetHandlerByPathAndMethod(t *testing.T, handlers []obsidian.Handler, path s
 			return handler
 		}
 	}
-	assert.Fail(t, "No handler registered for path %s", path)
+	assert.Fail(t, fmt.Sprintf("No handler registered for path %s", path))
 	return obsidian.Handler{}
 }
 

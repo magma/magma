@@ -46,7 +46,7 @@ enum ServiceState {
   SERVICE_ENABLED = 0,
   SERVICE_NEEDS_DEACTIVATION = 1,
   SERVICE_DISABLED = 2,
-  SERVICE_NEEDS_ACTIVATION = 3
+  SERVICE_NEEDS_ACTIVATION = 3,
 };
 
 enum CreditUpdateType {
@@ -100,7 +100,8 @@ class SessionCredit {
     uint64_t tx_volume,
     uint64_t rx_volume,
     uint32_t validity_time,
-    bool is_final);
+    bool is_final,
+    ChargingCredit_FinalAction final_action);
 
   /**
    * get_update_type returns the type of update required for the credit. If no
@@ -169,6 +170,7 @@ class SessionCredit {
  private:
   bool reporting_;
   bool is_final_;
+  ChargingCredit_FinalAction final_action_;
   ReAuthState reauth_state_;
   ServiceState service_state_;
   std::time_t expiry_time_;
@@ -190,6 +192,8 @@ class SessionCredit {
   void set_expiry_time(uint32_t validity_time);
 
   bool is_reauth_required();
+
+  ServiceActionType get_action_for_deactivating_service();
 };
 
 } // namespace magma

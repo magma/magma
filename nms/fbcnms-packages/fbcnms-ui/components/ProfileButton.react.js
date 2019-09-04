@@ -8,6 +8,7 @@
  * @format
  */
 
+import AppContext from '@fbcnms/ui/context/AppContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popout from '@fbcnms/ui/components/Popout.react';
@@ -16,6 +17,7 @@ import React, {useState} from 'react';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
+import {useFeatureFlag} from '@fbcnms/ui/hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -76,6 +78,7 @@ const ProfileButton = (props: Props) => {
   const {relativeUrl, history} = useRouter();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
+  const showDocs = useFeatureFlag(AppContext, 'documents_site');
 
   return (
     <Popout
@@ -97,6 +100,17 @@ const ProfileButton = (props: Props) => {
               Settings
             </Typography>
           </ListItem>
+          {showDocs && (
+            <ListItem
+              classes={{gutters: classes.itemGutters}}
+              button
+              href={'/docs/docs/csv-upload.html'}
+              component="a">
+              <Typography className={classes.profileItemText}>
+                Documentation
+              </Typography>
+            </ListItem>
+          )}
           <ListItem
             classes={{gutters: classes.itemGutters}}
             button

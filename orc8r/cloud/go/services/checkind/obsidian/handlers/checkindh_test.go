@@ -10,16 +10,14 @@ package handlers_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	checkindTestInit "magma/orc8r/cloud/go/services/checkind/test_init"
-	"magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -33,7 +31,6 @@ const testAgHwId = "Test-AGW-Hw-Id"
 // TestCheckind is Obsidian Gateway Status Integration Test intended to be run
 // on cloud VM
 func TestCheckind(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	checkindTestInit.StartTestService(t)
@@ -57,11 +54,9 @@ func TestCheckind(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	ctx := stateTestUtils.GetContextWithCertificate(t, testAgHwId)
-
 	// put one checkin state into state service
-	gwStatus := test_utils.GetGatewayStatusSwaggerFixture(testAgHwId)
-
+	ctx := stateTestUtils.GetContextWithCertificate(t, testAgHwId)
+	gwStatus := models.NewDefaultGatewayStatus(testAgHwId)
 	stateTestUtils.ReportGatewayStatus(t, ctx, gwStatus)
 
 	getGWStatusNoError(t, restPort, networkID, testAgHwId)

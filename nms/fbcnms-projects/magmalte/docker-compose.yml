@@ -10,7 +10,10 @@ services:
       MYSQL_DATABASE: nms
       MYSQL_USER: nms
       MYSQL_PASSWORD: password
-    restart: always
+    restart: on-failure
+    healthcheck:
+      test: mysqladmin ping -proot
+
   nginx-proxy:
     image: nginx
     ports:
@@ -19,6 +22,7 @@ services:
       - ./docker/docker_ssl_proxy:/etc/nginx/conf.d
     depends_on:
       - magmalte
+
   magmalte:
     build:
       context: ../..
@@ -45,7 +49,7 @@ services:
       MYSQL_PASS: password
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
     healthcheck:
-      test: curl -If localhost:8081/user/login
+      test: curl -If localhost:8081/healthz
     restart: on-failure
     secrets:
       - api_cert

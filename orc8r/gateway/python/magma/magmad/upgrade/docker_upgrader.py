@@ -8,13 +8,11 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import asyncio
-import json
 import logging
 import pathlib
-import subprocess
 
 from magma.common.service import MagmaService
-from magma.magmad.upgrade.magma_upgrader import compare_package_versions
+from magma.configuration.service_configs import load_service_config
 from magma.magmad.upgrade.upgrader import UpgraderFactory
 from magma.magmad.upgrade.upgrader2 import ImageNameT, run_command, \
     UpgradeIntent, Upgrader2, VersionInfo, VersionT
@@ -51,25 +49,31 @@ class DockerUpgrader(Upgrader2):
 
     async def get_upgrade_intent(self) -> UpgradeIntent:
         """
-        Returns the desired version for the gateway.
-        We don't support downgrading, and so checks are made to update
-        only if the target version is higher than the current version.
+        Returns the desired version tag for the gateway.
         """
+        version_info = await asyncio.gather(self.get_versions())
+        current_version = version_info[0].current_version
         tgt_version = self.service.mconfig.package_version
-        curr_version = self.service.version
-        if (tgt_version == "0.0.0-0"
-                or compare_package_versions(curr_version, tgt_version) <= 0):
-            tgt_version = curr_version
-        return UpgradeIntent(stable=VersionT(tgt_version), canary=VersionT(""))
+        if tgt_version is None or tgt_version == "":
+            logging.warning('magmad package_version not found, '
+                            'using current tag: %s as target tag.',
+                            current_version)
+            return UpgradeIntent(stable=VersionT(current_version),
+                                 canary=VersionT(""))
+
+        tgt_tag = self.version_to_image_name(tgt_version)
+        return UpgradeIntent(stable=VersionT(tgt_tag), canary=VersionT(""))
 
     async def get_versions(self) -> VersionInfo:
-        """ Returns the current version by parsing the currently running
-        docker image tag
+        """ Returns the current version by parsing the IMAGE_VERSION in the
+        .env file
         """
-        magmad_stdout = subprocess.check_output(["docker", "inspect", "magmad"])
-        magmad_stdoutstr = str(magmad_stdout, 'utf-8').strip()[1:-1]
-        magmad_inspect_json = json.loads(magmad_stdoutstr)
-        current_version = str.split(magmad_inspect_json["Config"]["Image"], ":")[-1]
+        with open('/var/opt/magma/docker/.env', 'r') as env:
+            for line in env:
+                if line.startswith("IMAGE_VERSION="):
+                    current_version = line.split("=")[1].strip()
+                    break
+
         return VersionInfo(
             current_version=current_version,
             available_versions=set(),
@@ -106,35 +110,33 @@ class DockerUpgrader(Upgrader2):
         upgrade_intent, version_info = await asyncio.gather(
             self.get_upgrade_intent(), self.get_versions()
         )
-
-        current_version = version_info.current_version or object()
-        to_upgrade_to = upgrade_intent.version_to_force_upgrade(version_info)
-
-        if to_upgrade_to:
+        current_version = version_info.current_version
+        upgrade_tag = upgrade_intent.stable
+        if upgrade_tag != current_version:
             logging.info(
                 "There is work to be done:\n"
-                "  stable: %s\n"
                 "  current: %s\n"
                 "  to_upgrade: %s",
-                upgrade_intent.stable,
                 current_version,
-                to_upgrade_to,
+                upgrade_tag,
             )
 
-            assert to_upgrade_to != version_info.current_version
-            logging.warning(
-                "Version %r is out of date! Upgrading to %r",
-                version_info.current_version,
-                to_upgrade_to,
-            )
-            image_name = self.version_to_image_name(to_upgrade_to)
-            await download_update(current_version, image_name)
+            await download_update(upgrade_tag)
             await self.prepare_upgrade(
                 current_version, pathlib.Path(MAGMA_GITHUB_PATH, "magma"))
-
+            # As a last step, update the IMAGE_VERISON in .env
+            sed_args = "sed -i s/IMAGE_VERSION={}/IMAGE_VERSION={}/g " \
+                       "var/opt/magma/docker/.env".format(current_version,
+                                                          upgrade_tag)
+            await run_command(sed_args, shell=True, check=True)
+        else:
+            logging.info(
+                'Service is currently on image tag %s, '
+                'ignoring upgrade to tag %s, since they\'re equal.',
+                current_version, upgrade_tag
+            )
 
 async def download_update(
-    old_version: ImageNameT,
     new_version: ImageNameT,
 ) -> None:
     """
@@ -145,8 +147,16 @@ async def download_update(
     await run_command("mkdir -p {}".format(MAGMA_GITHUB_PATH), shell=True,
                       check=True)
 
-    git_clone_cmd = "git -C {} clone {}".format(MAGMA_GITHUB_PATH,
-                                                MAGMA_GITHUB_URL)
+    control_proxy_config = load_service_config('control_proxy')
+    await run_command("cp {} /usr/local/share/ca-certificates/rootCA.crt".
+                      format(control_proxy_config['rootca_cert']), shell=True,
+                      check=True)
+    await run_command("update-ca-certificates", shell=True, check=True)
+
+    git_clone_cmd = "git -c http.proxy=https://{}:{} -C {} clone {}".format(
+        control_proxy_config['bootstrap_address'],
+        control_proxy_config['bootstrap_port'], MAGMA_GITHUB_PATH,
+        MAGMA_GITHUB_URL)
     await run_command(git_clone_cmd, shell=True, check=True)
     git_checkout_cmd = "git -C {}/magma checkout {}".format(MAGMA_GITHUB_PATH,
                                                       new_version)
@@ -159,11 +169,6 @@ async def download_update(
                       "/var/opt/magma/docker/docker-compose.yml pull -q".\
         format(new_version)
     await run_command(docker_pull_cmd, shell=True, check=True)
-
-    # Update the image tag in the .env
-    sed_args = "sed -i s/IMAGE_VERSION={}/IMAGE_VERSION={}/g " \
-               "var/opt/magma/docker/.env".format(old_version, new_version)
-    await run_command(sed_args, shell=True, check=True)
 
 
 class DockerUpgraderFactory(UpgraderFactory):

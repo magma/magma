@@ -97,6 +97,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
+  required: ?boolean,
   suggestions: Array<Suggestion>,
   onEntitySelected: Suggestion => void,
   onSuggestionsFetchRequested: (searchTerm: string) => void,
@@ -118,6 +119,7 @@ const Typeahead = (props: Props) => {
     onEntitySelected,
     suggestions,
     headline,
+    required,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSuggestion, setSelectedSuggestion] = useState(null);
@@ -128,6 +130,7 @@ const Typeahead = (props: Props) => {
       {selectedSuggestion && onSuggestionsClearRequested ? (
         <div>
           <TextField
+            required={!!required}
             variant="outlined"
             label={headline ?? ''}
             fullWidth={true}
@@ -176,6 +179,7 @@ const Typeahead = (props: Props) => {
           )}
           onSuggestionSelected={(e, data) => {
             const suggestion: Suggestion = data.suggestion;
+            setSearchTerm('');
             setSelectedSuggestion(suggestion);
             onEntitySelected(suggestion);
           }}
@@ -188,6 +192,7 @@ const Typeahead = (props: Props) => {
             />
           )}
           inputProps={{
+            required: !!required,
             placeholder: 'Search...',
             value: searchTerm,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
