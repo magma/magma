@@ -130,6 +130,8 @@ class LocalEnforcer {
   bool is_session_duplicate(
     const std::string &imsi, const magma::SessionState::Config &config);
 
+  static uint32_t REDIRECT_FLOW_PRIORITY;
+
  private:
   struct RulesToProcess {
     std::vector<std::string> static_rules;
@@ -247,6 +249,11 @@ class LocalEnforcer {
     const std::string &imsi,
     const std::vector<std::string> &rule_ids,
     const std::vector<PolicyRule> &dynamic_rules);
+
+  /**
+    * Install flow for redirection through pipelined
+    */
+  void install_redirect_flow(const std::unique_ptr<ServiceAction> &action);
 };
 
 } // namespace magma
