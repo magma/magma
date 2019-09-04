@@ -1,10 +1,8 @@
 syntax = "proto3";
 
-import "lte/protos/common_types.proto";
+import "lte/gateway/c/oai/protos/common_types.proto";
 
 package magma.lte;
-
-option go_package = "magma/lte/cloud/go/protos";
 
 // Timers for MME and Nas
 // mme_app_timer_t and nas_timer_t
