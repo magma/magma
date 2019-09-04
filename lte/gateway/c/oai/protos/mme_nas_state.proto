@@ -1,11 +1,9 @@
 syntax = "proto3";
 
-import "lte/protos/common_types.proto";
-import "lte/protos/nas_state.proto";
+import "lte/gateway/c/oai/protos/common_types.proto";
+import "lte/gateway/c/oai/protos/nas_state.proto";
 
 package magma.lte;
-
-option go_package = "magma/lte/cloud/go/protos";
 
 // sgs_context_t
 message SgsContext {
