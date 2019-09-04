@@ -16,7 +16,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import alertsTheme from '@fbcnms/ui/theme/alerts';
 
-import {SEVERITY_STYLE} from './Alarms';
+import {SEVERITY_STYLE} from './AlarmsTable';
 import {makeStyles} from '@material-ui/styles';
 import {withStyles} from '@material-ui/core/styles';
 
