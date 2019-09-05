@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	MetricsRoot = obsidian.NetworksRoot + "/:network_id" + obsidian.UrlSep + "metrics"
+	MetricsV1Root = obsidian.V1Root + obsidian.MagmaNetworksUrlPart + "/:network_id" + obsidian.UrlSep + "metrics"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for metricsd
@@ -91,7 +91,7 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertmanagerConfigServiceURL)},
 		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertmanagerConfigServiceURL)},
 
-		obsidian.Handler{Path: MetricsRoot + "/push", Methods: obsidian.POST, HandlerFunc: pushHandler},
+		obsidian.Handler{Path: MetricsV1Root + "/push", Methods: obsidian.POST, HandlerFunc: pushHandler},
 	)
 
 	return ret
