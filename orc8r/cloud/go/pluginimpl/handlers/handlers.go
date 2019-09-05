@@ -35,7 +35,7 @@ const (
 	ManageGatewayDescriptionPath = ManageGatewayPath + obsidian.UrlSep + "description"
 	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
 	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
-	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "state"
+	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "status"
 	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
 
 	Channels               = "channels"

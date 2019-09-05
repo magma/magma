@@ -39,6 +39,8 @@ import (
 func TestListGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -56,7 +58,7 @@ func TestListGateways(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]models.MagmadGateway{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -64,14 +66,36 @@ func TestListGateways(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: orc8r.MagmadGatewayType, Key: "gz"},
-			{Type: orc8r.MagmadGatewayType, Key: "g2"},
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: orc8r.MagmadGatewayType, Key: "g3"},
+			{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+			{Type: orc8r.MagmadGatewayType, Key: "g2", Config: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 		},
 	)
 	assert.NoError(t, err)
-	tc.ExpectedResult = tests.JSONMarshaler([]string{"g1", "g2", "g3", "gz"})
+	expectedResult := map[string]models.MagmadGateway{
+		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}},
+		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
+	}
+	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
+	tests.RunUnitTest(t, e, tc)
+
+	// add device and state to g1
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.GetUnfreezeClockDeferFunc(t)()
+	gatewayRecord := &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord)
+	assert.NoError(t, err)
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
+
+	expectedState := models.NewDefaultGatewayStatus("hw1")
+	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+	expectedState.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
+
+	expectedResult = map[string]models.MagmadGateway{
+		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}, Device: gatewayRecord, Status: expectedState},
+		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
+	}
+	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tests.RunUnitTest(t, e, tc)
 }
 
@@ -650,7 +674,7 @@ func TestGetPartialReadHandlers(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	getGatewayName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/name", obsidian.GET).HandlerFunc
 	getGatewayDescription := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/description", obsidian.GET).HandlerFunc
-	getGatewayState := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/state", obsidian.GET).HandlerFunc
+	getGatewayState := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/status", obsidian.GET).HandlerFunc
 	getGatewayDevice := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/device", obsidian.GET).HandlerFunc
 	getGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/magmad", obsidian.GET).HandlerFunc
 
