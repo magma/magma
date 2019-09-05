@@ -21,6 +21,8 @@ type Props = {
   children: (props: {copyString: (content: string) => void}) =>
     | React.Element<typeof Button>
     | React.Element<typeof IconButton>,
+  // We set the title appropriately later
+  title?: React.Node,
 };
 
 const COPIED_MESSAGE = 'Copied to clipboard!';
