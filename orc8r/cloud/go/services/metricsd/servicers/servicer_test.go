@@ -54,7 +54,7 @@ func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error 
 		for _, metric := range family.GetMetric() {
 			e.queue = append(
 				e.queue,
-				exporters.GetSamplesForMetrics(ctx.DecodedName, family.GetType(), metric, ctx.OriginatingEntity)...,
+				exporters.GetSamplesForMetrics(ctx.MetricName, family.GetType(), metric, ctx.OriginatingEntity)...,
 			)
 		}
 	}
@@ -201,4 +201,45 @@ func TestConsume(t *testing.T) {
 	}()
 	time.Sleep(time.Second)
 	assert.Equal(t, 2, len(e.queue))
+}
+
+func TestPush(t *testing.T) {
+	deviceTestInit.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
+	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+
+	e := &testMetricExporter{}
+	ctx := context.Background()
+	srv := servicers.NewMetricsControllerServer()
+	srv.RegisterExporter(e)
+
+	// Create test network
+	networkID := "metricsd_servicer_test_network"
+	test_utils.RegisterNetwork(t, networkID, "Test Network Name")
+
+	metricName := "test_metric"
+	value := 8.2
+	label := &protos.LabelPair{Name: "labelName", Value: "labelValue"}
+	timestamp := int64(123456)
+
+	protoMet := protos.PushedMetric{
+		MetricName:  metricName,
+		Value:       value,
+		TimestampMS: timestamp,
+		Labels:      []*protos.LabelPair{label},
+	}
+	metrics := protos.PushedMetricsContainer{
+		NetworkId: networkID,
+		Metrics:   []*protos.PushedMetric{&protoMet},
+	}
+
+	_, err := srv.Push(ctx, &metrics)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(e.queue))
+	assert.Equal(t, metricName, e.queue[0].Name())
+	assert.Equal(t, 1, len(e.queue[0].Labels()))
+	assert.Equal(t, "labelName", *e.queue[0].Labels()[0].Name)
+	assert.Equal(t, "labelValue", *e.queue[0].Labels()[0].Value)
+	assert.Equal(t, timestamp, e.queue[0].TimestampMs())
+	assert.Equal(t, strconv.FormatFloat(value, 'f', -1, 64), e.queue[0].Value())
 }

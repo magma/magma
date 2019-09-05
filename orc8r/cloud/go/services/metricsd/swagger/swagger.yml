@@ -73,6 +73,29 @@ paths:
               $ref: '#/definitions/promql_return_object'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/metrics/push:
+    post:
+      summary: Submit metrics to orchestrator databases
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: metrics
+          description: Metrics to be submitted
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/pushed_metric'
+
+      responses:
+        '200':
+          description: Submitted
+        default:
+          $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/alerts:
     get:
       summary: View currently firing alerts
@@ -296,6 +319,37 @@ paths:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
+  pushed_metric:
+    type: object
+    required:
+      - metricName
+      - value
+    properties:
+      metricName:
+        type: string
+        example: "cpu_percent"
+      value:
+        type: float
+        example: 8.2
+      timestamp:
+        type: string
+        example: 1561567965000
+      labels:
+        type: array
+        items:
+          $ref: '#/definitions/labelPair'
+
+  labelPair:
+    type: object
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+
   promql_return_object:
     type: object
     required:
