@@ -1211,6 +1211,10 @@ definitions:
     type: object
     minLength: 1
     required:
+      # fdd/tdd config is a one-of, not supported by swagger spec so leaving
+      # out of required fields
+      # Technically fdd/tdd operation is determined by earfcndl value
+      # See lte_bands.go for an incomplete mapping
       - bandwidth_mhz
     properties:
       bandwidth_mhz:
@@ -1274,8 +1278,6 @@ definitions:
     type: object
     minLength: 1
     required:
-      - cloud_subscriberdb_enabled
-      - default_rule_id
       - lte_auth_amf
       - lte_auth_op
       - mcc
