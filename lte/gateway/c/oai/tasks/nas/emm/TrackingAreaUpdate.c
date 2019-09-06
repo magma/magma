@@ -743,6 +743,9 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
           tau_proc->ies->eps_bearer_context_status;
       }
 
+      emm_as->eps_network_feature_support =
+        &_emm_data.conf.eps_network_feature_support;
+
       /*If CSFB is enabled,store LAI,Mobile Identity and
       * Additional Update type to be sent in TAU accept to S1AP
       */
