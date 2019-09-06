@@ -199,6 +199,7 @@ func (config *NetworkEnodebConfigs) ValidateEnodebConfig() error {
 	case
 		"Baicells Nova-233 G2 OD FDD",
 		"Baicells Nova-243 OD TDD",
+		"Baicells Neutrino 224 ID FDD",
 		"Baicells ID TDD/FDD",
 		"NuRAN Cavium OC-LTE":
 		break
