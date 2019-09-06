@@ -91,7 +91,9 @@
 #define TRACKING_AREA_UPDATE_REQUEST_SUPPORTED_CODECS_PRESENT (1 << 15)
 #define TRACKING_AREA_UPDATE_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT (1 << 16)
 #define TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_PRESENT (1 << 17)
-#define TRACKING_AREA_UPDATE_REQUEST_VOICE_DOMAIN_PREFERENCE (1 << 18)
+#define TRACKING_AREA_UPDATE_REQUEST_VOICE_DOMAIN_PREFERENCE_PRESENT (1 << 18)
+#define TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT  \
+  (1 << 19)
 
 typedef enum tracking_area_update_request_iei_tag {
   TRACKING_AREA_UPDATE_REQUEST_NONCURRENT_NATIVE_NAS_KEY_SET_IDENTIFIER_IEI =
@@ -125,6 +127,8 @@ typedef enum tracking_area_update_request_iei_tag {
   TRACKING_AREA_UPDATE_REQUEST_OLD_GUTI_TYPE_IEI = 0xE0, /* 0xE0 = 224 */
   TRACKING_AREA_UPDATE_REQUEST_VOICE_DOMAIN_PREFERENCE_IEI =
     0x5D, /* 0x5D = 93 */
+  TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI =
+          C_MS_NETWORK_FEATURE_SUPPORT_IEI,
 } tracking_area_update_request_iei;
 
 /*
@@ -162,7 +166,10 @@ typedef struct tracking_area_update_request_msg_tag {
   mobile_station_classmark3_t mobilestationclassmark3;
   supported_codec_list_t supportedcodecs;
   additional_update_type_t additionalupdatetype;
+  voice_domain_preference_and_ue_usage_setting_t
+    voicedomainpreferenceandueusagesetting;
   guti_type_t oldgutitype;
+  ms_network_feature_support_t msnetworkfeaturesupport;
 } tracking_area_update_request_msg;
 
 int decode_tracking_area_update_request(
