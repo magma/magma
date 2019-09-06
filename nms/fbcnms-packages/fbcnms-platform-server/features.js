@@ -67,7 +67,7 @@ const arrayConfigs = [
   {
     id: 'lte_network_metrics',
     title: 'LTE Network Metrics',
-    enabledByDefault: false,
+    enabledByDefault: true,
   },
   {
     id: 'prometheus_metrics_database',
@@ -82,7 +82,7 @@ const arrayConfigs = [
   {
     id: 'alerts',
     title: 'Alerts',
-    enabledByDefault: false,
+    enabledByDefault: true,
   },
   {
     id: 'equipment_export',
