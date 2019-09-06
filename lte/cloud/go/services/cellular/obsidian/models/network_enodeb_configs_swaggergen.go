@@ -28,7 +28,7 @@ type NetworkEnodebConfigs struct {
 	CellID uint32 `json:"cell_id,omitempty"`
 
 	// device class
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
 	DeviceClass string `json:"device_class,omitempty"`
 
 	// earfcndl
@@ -148,7 +148,7 @@ var networkEnodebConfigsTypeDeviceClassPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -163,6 +163,9 @@ const (
 
 	// NetworkEnodebConfigsDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
 	NetworkEnodebConfigsDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
+
+	// NetworkEnodebConfigsDeviceClassBaicellsNeutrino224IDFDD captures enum value "Baicells Neutrino 224 ID FDD"
+	NetworkEnodebConfigsDeviceClassBaicellsNeutrino224IDFDD string = "Baicells Neutrino 224 ID FDD"
 
 	// NetworkEnodebConfigsDeviceClassBaicellsIDTDDFDD captures enum value "Baicells ID TDD/FDD"
 	NetworkEnodebConfigsDeviceClassBaicellsIDTDDFDD string = "Baicells ID TDD/FDD"
