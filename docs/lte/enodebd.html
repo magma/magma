@@ -182,19 +182,20 @@ a subscriber to the subscriber database, we can use the swagger API again.
 Navigate to <code>/lte/{network_id}/subscribers</code> and use the provided sample
 json to add a subscriber to the network.</p>
 <pre><code class="hljs">{
-  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"IMSI001010000000083"</span>,
+  <span class="hljs-attr">"id"</span>: <span class="hljs-string">"IMSI123456789012345"</span>,
   <span class="hljs-attr">"lte"</span>: {
     <span class="hljs-attr">"auth_algo"</span>: <span class="hljs-string">"MILENAGE"</span>,
-    <span class="hljs-attr">"auth_key"</span>: <span class="hljs-string">"i69HPy+P0JSHzMvXCXxoYg=="</span>,
-    <span class="hljs-attr">"auth_opc"</span>: <span class="hljs-string">""</span>,
+    <span class="hljs-attr">"auth_key"</span>: <span class="hljs-string">""</span>
+    <span class="hljs-string">"auth_opc"</span>: <span class="hljs-string">""</span>,
     <span class="hljs-attr">"state"</span>: <span class="hljs-string">"ACTIVE"</span>
   }
 }
 </code></pre>
 <p>Note that the ID field is the letters “IMSI” followed by the 15 digit IMSI
-(e.g. “IMSI123456789012345”)
+(e.g. IMSI value 123456789012345 is stored as &quot;IMSI123456789012345&quot;)
 . <code>auth_key</code> and <code>auth_opc</code> are both base 64-encoded binaries. HEX to base64
-conversion can be done using this <a href="https://cryptii.com/pipes/hex-to-base64">online tool</a>.</p>
+conversion can be done using command line tools  (e.g. openssl, base64, etc.) or
+this <a href="https://cryptii.com/pipes/hex-to-base64">online tool</a>.</p>
 <p>Subscriber information will eventually propagate to the AGW. You can verify
 using the CLI command <code>&quot;subscriber_cli.py list&quot;</code></p>
 <h3><a class="anchor" aria-hidden="true" id="validating-ue-connectivity"></a><a href="#validating-ue-connectivity" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Validating UE connectivity</h3>
