@@ -1151,7 +1151,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 	getEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.GET).HandlerFunc
 	getRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.GET).HandlerFunc
 	getNonEps := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/non_eps", testURLRoot), obsidian.GET).HandlerFunc
-	getEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/connected_enodeb_serial", testURLRoot), obsidian.GET).HandlerFunc
+	getEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.GET).HandlerFunc
 
 	_, err = configurator.CreateEntities(
 		"n1",
@@ -1261,7 +1261,9 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	updateEpc := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/epc", testURLRoot), obsidian.PUT).HandlerFunc
 	updateRan := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/ran", testURLRoot), obsidian.PUT).HandlerFunc
 	updateNonEps := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/non_eps", testURLRoot), obsidian.PUT).HandlerFunc
-	updateEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/cellular/connected_enodeb_serial", testURLRoot), obsidian.PUT).HandlerFunc
+	updateEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.PUT).HandlerFunc
+	postEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.POST).HandlerFunc
+	deleteEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/connected_enodeb_serials", testURLRoot), obsidian.DELETE).HandlerFunc
 
 	_, err = configurator.CreateEntities(
 		"n1",
@@ -1424,7 +1426,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	// happy case
 	tc = tests.Test{
 		Method:         "PUT",
-		URL:            fmt.Sprintf("%s/cellular/connected_enodeb_serial", testURLRoot),
+		URL:            fmt.Sprintf("%s/connected_enodeb_serial", testURLRoot),
 		Handler:        updateEnodebs,
 		Payload:        tests.JSONMarshaler([]string{"enb1", "enb2"}),
 		ParamNames:     []string{"network_id", "gateway_id"},
@@ -1447,6 +1449,82 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Config:  modifiedCellularConfig,
 			GraphID: "2",
 			Version: 5,
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebType, Key: "enb1"},
+				{Type: lte.CellularEnodebType, Key: "enb2"},
+			},
+		},
+	}
+	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.ToEntitiesByID())
+
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularEnodebType, Key: "enb3"})
+	assert.NoError(t, err)
+
+	// happy case
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("%s/connected_enodeb_serial", testURLRoot),
+		Handler:        postEnodeb,
+		Payload:        tests.JSONMarshaler("enb3"),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			GraphID:      "10",
+			Version:      0,
+		},
+		storage.TypeAndKey{Type: lte.CellularGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayType, Key: "g1",
+			Config:  modifiedCellularConfig,
+			GraphID: "10",
+			Version: 6,
+			Associations: []storage.TypeAndKey{
+				{Type: lte.CellularEnodebType, Key: "enb1"},
+				{Type: lte.CellularEnodebType, Key: "enb2"},
+				{Type: lte.CellularEnodebType, Key: "enb3"},
+			},
+		},
+	}
+	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Equal(t, expected, entities.ToEntitiesByID())
+
+	// happy case
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            fmt.Sprintf("%s/connected_enodeb_serial", testURLRoot),
+		Handler:        deleteEnodeb,
+		Payload:        tests.JSONMarshaler("enb3"),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      orc8r.MagmadGatewayType, Key: "g1",
+			Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			GraphID:      "10",
+			Version:      0,
+		},
+		storage.TypeAndKey{Type: lte.CellularGatewayType, Key: "g1"}: {
+			NetworkID: "n1",
+			Type:      lte.CellularGatewayType, Key: "g1",
+			Config:  modifiedCellularConfig,
+			GraphID: "10",
+			Version: 7,
 			Associations: []storage.TypeAndKey{
 				{Type: lte.CellularEnodebType, Key: "enb1"},
 				{Type: lte.CellularEnodebType, Key: "enb2"},

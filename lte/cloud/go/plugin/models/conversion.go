@@ -308,6 +308,20 @@ func (m *EnodebSerials) ToUpdateCriteria(networkID string, gatewayID string) ([]
 	}, nil
 }
 
+func (m *EnodebSerials) ToDeleteUpdateCriteria(networkID, gatewayID, enodebID string) configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type: lte.CellularGatewayType, Key: gatewayID,
+		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: enodebID}},
+	}
+}
+
+func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID string) configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type: lte.CellularGatewayType, Key: gatewayID,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: enodebID}},
+	}
+}
+
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
 	m.Serial = ent.Key
