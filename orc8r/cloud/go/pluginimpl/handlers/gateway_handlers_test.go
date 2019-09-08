@@ -617,14 +617,13 @@ func TestDeleteGateway(t *testing.T) {
 		configurator.FullEntityLoadCriteria(),
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
-	assert.NoError(t, err)
+	_, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	assert.EqualError(t, err, "Not found")
 
 	expectedEnts := configurator.NetworkEntities{
 		{NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1", GraphID: "2"},
 	}
 	assert.Equal(t, expectedEnts, actualEnts)
-	assert.Equal(t, &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, actualDevice)
 }
 
 func TestGetPartialReadHandlers(t *testing.T) {

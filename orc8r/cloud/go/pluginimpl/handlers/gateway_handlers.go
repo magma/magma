@@ -225,13 +225,28 @@ func DeleteGatewayHandler(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(nid, orc8r.MagmadGatewayType, gid)
+	existingEnt, err := configurator.LoadEntity(
+		nid, orc8r.MagmadGatewayType, gid,
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadAssocsToThis: true},
+	)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load gateway"), http.StatusInternalServerError)
+	}
+
+	err = configurator.DeleteEntity(nid, orc8r.MagmadGatewayType, gid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	// Unclear if we should be deleting the device as well. Until we get some
-	// datapoints from real world usage, let's skip that for now
+	if existingEnt.PhysicalID != "" {
+		err = device.DeleteDevice(nid, orc8r.AccessGatewayRecordType, existingEnt.PhysicalID)
+		if err != nil {
+			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway"), http.StatusInternalServerError)
+		}
+	}
 
 	return c.NoContent(http.StatusNoContent)
 }
