@@ -15,7 +15,16 @@ import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
 import MapIcon from '@material-ui/icons/Map';
 import React from 'react';
+import Typography from '@material-ui/core/Typography';
+import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
+
+const useStyles = makeStyles({
+  text: {
+    fontSize: '12px',
+    LineHeight: '14px',
+  },
+});
 
 const AddMapButtonGroup = () => {
   return (
@@ -40,10 +49,31 @@ const AddThreeMapButton = () => {
     />
   );
 };
+const AddTextButton = () => {
+  const classes = useStyles();
+  return (
+    <MapButtonGroup
+      onIconClicked={() => {}}
+      buttons={[
+        {
+          item: <Typography className={classes.text}>Status</Typography>,
+          id: 'status',
+        },
+        {
+          item: <Typography className={classes.text}>Technician</Typography>,
+          id: 'Technician',
+        },
+      ]}
+    />
+  );
+};
 
 storiesOf('MapButtonGroup', module).add('two', () => {
   return <AddMapButtonGroup />;
 });
 storiesOf('MapButtonGroup', module).add('three', () => {
   return <AddThreeMapButton />;
+});
+storiesOf('MapButtonGroup', module).add('text', () => {
+  return <AddTextButton />;
 });
