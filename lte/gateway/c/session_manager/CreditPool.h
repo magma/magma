@@ -14,17 +14,6 @@
 
 namespace magma {
 
-template<typename KeyType>
-struct ActionPair {
-  KeyType key;
-  ServiceActionType action;
-  ActionPair(const KeyType &key_in, ServiceActionType action_in):
-    key(key_in),
-    action(action_in)
-  {
-  }
-};
-
 /**
  * CreditPool is an interface that defines a group of credits to track. It is
  * keyed by some type and requires some update response type to receive credit.
@@ -51,8 +40,11 @@ class CreditPool {
    * get_updates gets any usage updates required by the credits in the pool
    */
   virtual void get_updates(
+    std::string imsi,
+    std::string ip_addr,
+    SessionRules *session_rules,
     std::vector<UpdateRequestType> *updates_out,
-    std::vector<ActionPair<KeyType>> *actions_out) = 0;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) = 0;
 
   /**
    * get_termination_updates gets updates from all credits in the pool at the
@@ -88,8 +80,11 @@ class ChargingCreditPool :
   bool reset_reporting_credit(const uint32_t &key) override;
 
   void get_updates(
+    std::string imsi,
+    std::string ip_addr,
+    SessionRules *session_rules,
     std::vector<CreditUsage> *updates_out,
-    std::vector<ActionPair<uint32_t>> *actions_out) override;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) override;
@@ -131,8 +126,11 @@ class UsageMonitoringCreditPool :
   bool reset_reporting_credit(const std::string &key) override;
 
   void get_updates(
+    std::string imsi,
+    std::string ip_addr,
+    SessionRules *session_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
-    std::vector<ActionPair<std::string>> *actions_out) override;
+    std::vector<std::unique_ptr<ServiceAction>> *actions_out) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) override;

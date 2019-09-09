@@ -67,7 +67,7 @@ const arrayConfigs = [
   {
     id: 'lte_network_metrics',
     title: 'LTE Network Metrics',
-    enabledByDefault: false,
+    enabledByDefault: true,
   },
   {
     id: 'prometheus_metrics_database',
@@ -82,7 +82,7 @@ const arrayConfigs = [
   {
     id: 'alerts',
     title: 'Alerts',
-    enabledByDefault: false,
+    enabledByDefault: true,
   },
   {
     id: 'equipment_export',
@@ -137,12 +137,10 @@ export async function getEnabledFeatures(
   organization: ?string,
 ): Promise<FeatureID[]> {
   const results = await Promise.all(
-    arrayConfigs.map(
-      async (config): Promise<?FeatureID> => {
-        const enabled = await isFeatureEnabled(config.id, organization);
-        return enabled ? config.id : null;
-      },
-    ),
+    arrayConfigs.map(async (config): Promise<?FeatureID> => {
+      const enabled = await isFeatureEnabled(config.id, organization);
+      return enabled ? config.id : null;
+    }),
   );
 
   return results.filter(Boolean);

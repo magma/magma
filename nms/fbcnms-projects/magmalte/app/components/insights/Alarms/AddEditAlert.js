@@ -119,7 +119,7 @@ export default function AddEditAlert(props: Props) {
 
 type ConfigProps = {|
   alertConfig: AlertConfig,
-  setAlertConfig: (config: AlertConfig) => void,
+  setAlertConfig: ((AlertConfig => AlertConfig) | AlertConfig) => void,
   saveAlert: () => void,
 |};
 

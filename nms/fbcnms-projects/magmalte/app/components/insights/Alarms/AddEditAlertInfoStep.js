@@ -10,19 +10,22 @@
 import type {AlertConfig} from './AlarmAPIType';
 
 import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
+import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import alertsTheme from '@fbcnms/ui/theme/alerts';
 
-import {SEVERITY_STYLE} from './Alarms';
+import {SEVERITY_STYLE} from './AlarmsTable';
 import {makeStyles} from '@material-ui/styles';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
   alertConfig: AlertConfig,
-  setAlertConfig: AlertConfig => void,
+  setAlertConfig: ((AlertConfig => AlertConfig) | AlertConfig) => void,
   onNext: () => void,
   onPrevious: () => void,
 };
@@ -115,7 +118,23 @@ export default function AddEditAlertInfoStep(props: Props) {
           </div>
           <div className={classes.inputColumn}>
             <Typography variant="subtitle1">What team?</Typography>
-            <AlertInput disabled value="operations" />
+            <Grid container spacing={1} alignItems="flex-end">
+              <Grid item>
+                <TextField disabled value="operations" />
+              </Grid>
+              <Grid item>
+                <Tooltip
+                  title={
+                    'Teams are used for routing your alert to a receiver. ' +
+                    'Since setting routes and receivers is not available yet ' +
+                    "(we're working on it!), we've made this field default " +
+                    'to operations.'
+                  }
+                  placement="right">
+                  <HelpIcon />
+                </Tooltip>
+              </Grid>
+            </Grid>
           </div>
         </div>
         <div className={classes.buttonGroup}>

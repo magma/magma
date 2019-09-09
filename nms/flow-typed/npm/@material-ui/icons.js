@@ -1944,6 +1944,10 @@ declare module "@material-ui/icons/List" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/ListAlt" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/LiveHelp" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -4360,6 +4364,7 @@ declare module "@material-ui/icons" {
       Link: $Exports<"@material-ui/icons/Link">,
       LinkedCamera: $Exports<"@material-ui/icons/LinkedCamera">,
       List: $Exports<"@material-ui/icons/List">,
+      ListAlt: $Exports<"@material-ui/icons/ListAlt">,
       LiveHelp: $Exports<"@material-ui/icons/LiveHelp">,
       LiveTv: $Exports<"@material-ui/icons/LiveTv">,
       LocalActivity: $Exports<"@material-ui/icons/LocalActivity">,

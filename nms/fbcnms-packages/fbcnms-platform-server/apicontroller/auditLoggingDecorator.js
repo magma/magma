@@ -122,12 +122,17 @@ export default async function auditLoggingDecorator(
   if (!objectId || !objectType) {
     return proxyResData;
   }
-  const organization = await userReq.organization();
+
+  let organizationName = '';
+  if (userReq.organization) {
+    const organization = await userReq.organization();
+    organizationName = organization.name;
+  }
 
   const data = {
     actingUserId: userReq.user.id,
     actingUserEmail: userReq.user.email,
-    organization: organization.name,
+    organization: organizationName,
     mutationType: MUTATION_TYPE_MAP[userReq.method],
     objectId,
     objectType,

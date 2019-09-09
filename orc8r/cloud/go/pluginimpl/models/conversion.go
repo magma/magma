@@ -111,7 +111,9 @@ func (m *MagmadGateway) FromBackendModels(ent configurator.NetworkEntity, device
 	m.ID = models.GatewayID(ent.Key)
 	m.Name = models.GatewayName(ent.Name)
 	m.Description = models.GatewayDescription(ent.Description)
-	m.Magmad = ent.Config.(*MagmadGatewayConfigs)
+	if ent.Config != nil {
+		m.Magmad = ent.Config.(*MagmadGatewayConfigs)
+	}
 	m.Device = device
 	m.Status = status
 	tierTK, err := ent.GetFirstParentOfType(orc8r.UpgradeTierEntityType)
