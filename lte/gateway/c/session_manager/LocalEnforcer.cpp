@@ -36,6 +36,8 @@ std::chrono::milliseconds time_difference_from_now(
 
 namespace magma {
 
+uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY = 2000;
+
 using google::protobuf::RepeatedPtrField;
 using google::protobuf::util::TimeUtil;
 
@@ -141,9 +143,10 @@ void LocalEnforcer::execute_actions(
         action_p->get_ip_addr(),
         action_p->get_rule_ids(),
         action_p->get_rule_definitions());
-    } else if (action_p->get_type() == REDIRECT ||
-      action_p->get_type() == RESTRICT_ACCESS) {
-      MLOG(MDEBUG) << "Unsupported action type: " << action_p->get_type()
+    } else if (action_p->get_type() == REDIRECT) {
+      install_redirect_flow(action_p);
+    } else if (action_p->get_type() == RESTRICT_ACCESS) {
+      MLOG(MDEBUG) << "RESTRICT_ACCESS mode is unsupported"
                    << ", will just terminate the service.";
       terminate_service(
         action_p->get_imsi(),
@@ -170,6 +173,55 @@ void LocalEnforcer::terminate_service(
                  << ", IMSI: " << imsi;
     aaa_client_->terminate_session(it->second->get_radius_session_id(), imsi);
   }
+}
+
+// TODO: make session_manager.proto and policydb.proto to use common field
+static RedirectInformation_AddressType address_type_converter(
+  RedirectServer_RedirectAddressType address_type)
+{
+  switch(address_type) {
+    case RedirectServer_RedirectAddressType_IPV4:
+      return RedirectInformation_AddressType_IPv4;
+    case RedirectServer_RedirectAddressType_IPV6:
+      return RedirectInformation_AddressType_IPv6;
+    case RedirectServer_RedirectAddressType_URL:
+      return RedirectInformation_AddressType_URL;
+    case RedirectServer_RedirectAddressType_SIP_URI:
+      return RedirectInformation_AddressType_SIP_URI;
+  }
+}
+
+static PolicyRule create_redirect_rule(
+  const std::unique_ptr<ServiceAction> &action)
+{
+  PolicyRule redirect_rule;
+  redirect_rule.set_id("redirect");
+  redirect_rule.set_priority(LocalEnforcer::REDIRECT_FLOW_PRIORITY);
+  redirect_rule.set_rating_group(action->get_rating_group());
+
+  RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
+  redirect_info->set_support(RedirectInformation_Support_ENABLED);
+
+  auto redirect_server = action->get_redirect_server();
+  redirect_info->set_address_type(
+    address_type_converter(redirect_server.redirect_address_type()));
+  redirect_info->set_server_address(
+    redirect_server.redirect_server_address());
+
+  return redirect_rule;
+}
+
+void LocalEnforcer::install_redirect_flow(
+  const std::unique_ptr<ServiceAction> &action)
+{
+  std::vector<std::string> static_rules;
+  std::vector<PolicyRule> dynamic_rules {create_redirect_rule(action)};
+
+  pipelined_client_->activate_flows_for_rules(
+    action->get_imsi(),
+    action->get_ip_addr(),
+    static_rules,
+    dynamic_rules);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates()

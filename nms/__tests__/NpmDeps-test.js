@@ -35,7 +35,7 @@ it('ensures no mismatched versions in workspaces', () => {
   const o = packages => omit(packages, PACKAGE_BLACKLIST);
   const filteredDepsMap = o(allDepsMap);
 
-  for (const manifest of workspaces) {
+  for (const manifest of allManifests) {
     expect(filteredDepsMap).toMatchObject(o(manifest.dependencies) || {});
     expect(filteredDepsMap).toMatchObject(o(manifest.devDependencies) || {});
     expect(filteredDepsMap).toMatchObject(o(manifest.peerDependencies) || {});

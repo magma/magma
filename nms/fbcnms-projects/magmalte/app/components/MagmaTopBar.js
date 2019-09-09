@@ -9,7 +9,7 @@
  */
 
 import AccountCircle from '@material-ui/icons/AccountCircle';
-import AppContext from './context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Divider from '@material-ui/core/Divider';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -29,6 +29,9 @@ const useStyles = makeStyles({
   link: {
     textDecoration: 'none',
   },
+  linkButton: {
+    textTransform: 'none',
+  },
 });
 
 export default function MagmaTopBar(props: Props) {
@@ -42,13 +45,14 @@ export default function MagmaTopBar(props: Props) {
         <div>
           <TopBarAnchoredMenu
             id="networks-appbar"
+            className={classes.linkButton}
             buttonContent={
               <>
                 {networkId} <ArrowDropDownIcon />
               </>
             }>
             {appContext.networkIds.map(id => (
-              <Link className={classes.link} to={`/nms/${id}/map/`} key={id}>
+              <Link className={classes.link} to={`/nms/${id}/`} key={id}>
                 <MenuItem value={id} selected={id === networkId}>
                   {id}
                 </MenuItem>
@@ -68,7 +72,7 @@ export default function MagmaTopBar(props: Props) {
             buttonContent={<AccountCircle />}>
             <MenuItem disabled={true}>{appContext.user.email}</MenuItem>
             <Divider />
-            <MenuItem href="/nms/user/logout" component="a">
+            <MenuItem href="/user/logout" component="a">
               Logout
             </MenuItem>
           </TopBarAnchoredMenu>

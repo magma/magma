@@ -206,7 +206,27 @@ message MetricsContainer {
   repeated io.prometheus.client.MetricFamily family = 2;
 }
 
+message PushedMetric {
+  string   metricName        = 1;
+  double   value             = 2;
+  int64    timestampMS       = 3;
+  repeated LabelPair labels  = 4;
+}
+
+message LabelPair {
+  string name  = 1;
+  string value = 2;
+}
+
+message PushedMetricsContainer {
+  string   networkId = 1;
+  repeated PushedMetric metrics = 2;
+}
+
 service MetricsController {
   // Report a collection of metrics from a service
   rpc Collect(MetricsContainer) returns (Void) {}
+
+  // Push a collection of metrics to metricsd
+  rpc Push(PushedMetricsContainer) returns (Void) {}
 }

@@ -9,27 +9,17 @@
  */
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaTopBar from '../MagmaTopBar';
 import Network from '../network/Network';
 import React from 'react';
 import Settings from '../Settings';
 
 import useSections from './useSections';
-import {Route, Switch} from 'react-router-dom';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function SectionRoutes() {
-  const {match} = useRouter();
-  const sections = useSections();
-
-  if (!sections.length) {
-    return (
-      <>
-        <MagmaTopBar />
-        <LoadingFiller />
-      </>
-    );
-  }
+  const {relativePath, match} = useRouter();
+  const [landingPath, sections] = useSections();
 
   return (
     <Switch>
@@ -37,15 +27,24 @@ export default function SectionRoutes() {
       {sections.map(section => (
         <Route
           key={section.path}
-          path={`${match.path}/${section.path}`}
+          path={relativePath(`/${section.path}`)}
           component={section.component}
         />
       ))}
       <Route
         key="settings"
-        path={`${match.path}/settings`}
+        path={relativePath(`/settings`)}
         component={Settings}
       />
+      {landingPath && (
+        <Route
+          path={relativePath('')}
+          render={() => (
+            <Redirect to={`/nms/${match.params.networkId}/${landingPath}`} />
+          )}
+        />
+      )}
+      <LoadingFiller />
     </Switch>
   );
 }

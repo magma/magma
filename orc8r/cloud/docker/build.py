@@ -53,10 +53,13 @@ def main() -> None:
         _create_build_context()
         if args.all:
             # Build all containers
+            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', OVERRIDE_DOCKER_FILE,
+                         'build', 'controller'])
             _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', METRICS_DOCKER_FILE,
                          '-f', OVERRIDE_DOCKER_FILE, 'build'])
         else:
             # Build all non-metrics containers
+            _run_docker(['build', 'controller'])
             _run_docker(['build'])
     else:
         _create_build_context()
@@ -70,11 +73,16 @@ def main() -> None:
         # Build images using go-cache base image
         if args.all:
             # Build all containers
+            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', OVERRIDE_DOCKER_FILE,
+                         'build', '--build-arg', 'baseImage=orc8r_cache',
+                         'controller'])
             _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', METRICS_DOCKER_FILE,
                          '-f', OVERRIDE_DOCKER_FILE, 'build', '--build-arg',
                          'baseImage=orc8r_cache'])
         else:
             # Build all non-metrics containers
+            _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache',
+                         'controller'])
             _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache'])
 
 

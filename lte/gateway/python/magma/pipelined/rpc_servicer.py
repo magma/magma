@@ -14,6 +14,7 @@ from typing import List, Tuple
 import grpc
 from lte.protos import pipelined_pb2_grpc
 from lte.protos.pipelined_pb2 import (
+    SetupFlowsResult,
     ActivateFlowsResult,
     DeactivateFlowsResult,
     FlowResponse,
@@ -80,6 +81,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # --------------------------
     # Enforcement App
     # --------------------------
+
+    def SetupFlows(self, request, context):
+        """
+        Setup flows for all subscribers, used on pipelined restarts
+        """
+
+        # For now just return SUCCESS, to be implemeted later
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def ActivateFlows(self, request, context):
         """

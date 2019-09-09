@@ -34,18 +34,19 @@ const useStyles = makeStyles(theme => ({
     whiteSpace: 'nowrap',
     fontWeight: 500,
     color: theme.palette.blueGrayDark,
-    cursor: 'pointer',
   },
   parentBreadcrumb: {
     color: gray8,
-    '&:hover': {
-      color: theme.palette.primary.main,
-    },
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    maxWidth: '100px',
     display: 'inline-block',
+  },
+  hover: {
+    '&:hover': {
+      color: theme.palette.primary.main,
+    },
+    cursor: 'pointer',
   },
   largeText: {
     fontSize: '20px',
@@ -93,6 +94,7 @@ const Breadcrumb = (props: Props) => {
             className={classNames({
               [classes.breadcrumbName]: true,
               [classes.parentBreadcrumb]: !isLastBreadcrumb,
+              [classes.hover]: !!onClick,
               [textClass]: true,
             })}
             onClick={() => onClick && onClick(id)}>

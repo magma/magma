@@ -18,6 +18,7 @@ class EnodebDeviceName():
     """
     BAICELLS = 'Baicells'
     BAICELLS_OLD = 'Baicells Old'
+    BAICELLS_QAFA = 'Baicells QAFA'
     BAICELLS_QAFB = 'Baicells QAFB'
     CAVIUM = 'Cavium'
 
@@ -44,6 +45,8 @@ def get_device_name(
     if device_oui in {'34ED0B', '48BF74'}:
         if sw_version.startswith('BaiBS_QAFB'):
             return EnodebDeviceName.BAICELLS_QAFB
+        elif sw_version.startswith('BaiBS_QAFA'):
+            return EnodebDeviceName.BAICELLS_QAFA
         elif sw_version.startswith('BaiStation_'):
             # Note: to disable flag inversion completely (for all builds),
             # set to BaiStation_V000R000C00B000SPC000

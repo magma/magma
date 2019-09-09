@@ -8,24 +8,21 @@
  * @format
  */
 
+import Admin from './admin/Admin';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
-import AppContext from './context/AppContext';
-import AppDrawer from '@fbcnms/ui/components/layout/AppDrawer';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import AppContext from '@fbcnms/ui/context/AppContext';
+import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
+import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import NetworkContext from './context/NetworkContext';
-import React from 'react';
+import NetworkSelector from './NetworkSelector.react';
+import React, {useContext} from 'react';
 import SectionLinks from './layout/SectionLinks';
 import SectionRoutes from './layout/SectionRoutes';
 import VersionTooltip from './VersionTooltip';
-import defaultTheme from '@fbcnms/ui/theme/default';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {SnackbarProvider} from 'notistack';
-import {TopBarContextProvider} from '@fbcnms/ui/components/layout/TopBarContext';
 
 import {MagmaAPIUrls} from '../common/MagmaAPI';
-import {hot} from 'react-hot-loader';
+import {getProjectLinks} from '../common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
@@ -49,6 +46,7 @@ const ROOT_PATHS = new Set(['network']);
 function Index() {
   const classes = useStyles();
   const {match} = useRouter();
+  const {user, tabs} = useContext(AppContext);
   const networkId = ROOT_PATHS.has(match.params.networkId)
     ? null
     : match.params.networkId;
@@ -56,10 +54,12 @@ function Index() {
   return (
     <NetworkContext.Provider value={{networkId}}>
       <div className={classes.root}>
-        <AppDrawer>
-          <SectionLinks />
-          <VersionTooltip />
-        </AppDrawer>
+        <AppSideBar
+          mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
+          secondaryItems={[<NetworkSelector key={1} />]}
+          projects={getProjectLinks(tabs, user)}
+          user={user}
+        />
         <AppContent>
           <SectionRoutes />
         </AppContent>
@@ -75,7 +75,9 @@ function Main() {
     url: MagmaAPIUrls.networks(),
   });
 
-  const networkIds = sortBy(response?.data) || ['mpk_test'];
+  const networkIds = sortBy(response?.data, [n => n.toLowerCase()]) || [
+    'mpk_test',
+  ];
   const appContext = {
     ...window.CONFIG.appData,
     networkIds,
@@ -89,37 +91,23 @@ function Main() {
     response &&
     !error &&
     networkIds.length === 0 &&
+    window.CONFIG.appData.user.isSuperUser &&
     match.params.networkId !== 'network'
   ) {
     return <Redirect to="/nms/network/create" />;
   }
 
   return (
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={10000}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}>
-          <AppContext.Provider value={appContext}>
-            <TopBarContextProvider>
-              <CssBaseline />
-              <Index />
-            </TopBarContextProvider>
-          </AppContext.Provider>
-        </SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+    <ApplicationMain appContext={appContext}>
+      <Index />
+    </ApplicationMain>
   );
 }
 
-/* eslint-disable-next-line no-undef */
-export default hot(module)(() => (
+export default () => (
   <Switch>
     <Route path="/nms/:networkId" component={Main} />
     <Route path="/nms" component={Main} />
+    <Route path="/admin" component={Admin} />
   </Switch>
-));
+);

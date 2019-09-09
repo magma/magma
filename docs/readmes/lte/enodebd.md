@@ -155,10 +155,10 @@ json to add a subscriber to the network.
 
 ```
 {
-  "id": "IMSI001010000000083",
+  "id": "IMSI123456789012345",
   "lte": {
     "auth_algo": "MILENAGE",
-    "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+    "auth_key": ""
     "auth_opc": "",
     "state": "ACTIVE"
   }
@@ -166,10 +166,10 @@ json to add a subscriber to the network.
 ```
 
 Note that the ID field is the letters “IMSI” followed by the 15 digit IMSI
-(e.g. “IMSI123456789012345”)
+(e.g. IMSI value 123456789012345 is stored as "IMSI123456789012345")
 . `auth_key` and `auth_opc` are both base 64-encoded binaries. HEX to base64
-conversion can be done using this [online tool](
-https://cryptii.com/pipes/hex-to-base64).
+conversion can be done using command line tools  (e.g. openssl, base64, etc.) or
+this [online tool]( https://cryptii.com/pipes/hex-to-base64).
 
 Subscriber information will eventually propagate to the AGW. You can verify
 using the CLI command `"subscriber_cli.py list"`

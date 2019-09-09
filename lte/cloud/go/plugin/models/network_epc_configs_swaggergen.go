@@ -21,12 +21,10 @@ import (
 type NetworkEpcConfigs struct {
 
 	// cloud subscriberdb enabled
-	// Required: true
-	CloudSubscriberdbEnabled *bool `json:"cloud_subscriberdb_enabled"`
+	CloudSubscriberdbEnabled bool `json:"cloud_subscriberdb_enabled,omitempty"`
 
 	// default rule id
-	// Required: true
-	DefaultRuleID *string `json:"default_rule_id"`
+	DefaultRuleID string `json:"default_rule_id,omitempty"`
 
 	// lte auth amf
 	// Required: true
@@ -74,14 +72,6 @@ type NetworkEpcConfigs struct {
 func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateCloudSubscriberdbEnabled(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateDefaultRuleID(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateLteAuthAmf(formats); err != nil {
 		res = append(res, err)
 	}
@@ -121,24 +111,6 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *NetworkEpcConfigs) validateCloudSubscriberdbEnabled(formats strfmt.Registry) error {
-
-	if err := validate.Required("cloud_subscriberdb_enabled", "body", m.CloudSubscriberdbEnabled); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *NetworkEpcConfigs) validateDefaultRuleID(formats strfmt.Registry) error {
-
-	if err := validate.Required("default_rule_id", "body", m.DefaultRuleID); err != nil {
-		return err
-	}
-
 	return nil
 }
 

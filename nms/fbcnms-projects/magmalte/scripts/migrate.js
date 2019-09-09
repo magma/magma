@@ -8,7 +8,7 @@
  * @format
  */
 
-const {LOG_FORMAT, LOG_LEVEL} = require('../server/config');
+const {LOG_FORMAT, LOG_LEVEL} = require('@fbcnms/platform-server/config');
 
 // This must be done before any module imports to configure
 // logging correctly
