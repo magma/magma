@@ -94,6 +94,13 @@ const useStyles = makeStyles(theme => ({
       color: theme.palette.grey[600],
     },
   },
+  smallSuggest: {
+    paddingTop: '9px',
+    paddingBottom: '9px',
+    paddingLeft: '14px',
+    paddingRight: '14px',
+    height: '14px',
+  },
 }));
 
 type Props = {
@@ -103,6 +110,9 @@ type Props = {
   onSuggestionsFetchRequested: (searchTerm: string) => void,
   onSuggestionsClearRequested?: () => void,
   headline?: string,
+  value?: ?Suggestion,
+  variant?: 'default' | 'small',
+  displayText?: string,
 };
 
 export type Suggestion = {
@@ -120,9 +130,12 @@ const Typeahead = (props: Props) => {
     suggestions,
     headline,
     required,
+    value,
+    variant,
+    displayText,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSuggestion, setSelectedSuggestion] = useState(null);
+  const [selectedSuggestion, setSelectedSuggestion] = useState(value);
   const classes = useStyles();
   const theme = useTheme();
   return (
@@ -135,7 +148,7 @@ const Typeahead = (props: Props) => {
             label={headline ?? ''}
             fullWidth={true}
             disabled={selectedSuggestion != null}
-            value={selectedSuggestion.name}
+            value={selectedSuggestion ? selectedSuggestion.name : ''}
             onChange={emptyFunction}
             InputLabelProps={{
               classes: {
@@ -145,6 +158,7 @@ const Typeahead = (props: Props) => {
             InputProps={{
               classes: {
                 root: classes.outlinedInput,
+                input: variant === 'small' ? classes.smallSuggest : '',
               },
               endAdornment: (
                 <InputAdornment position="end">
@@ -189,11 +203,15 @@ const Typeahead = (props: Props) => {
               variant="outlined"
               label={headline ?? ''}
               {...inputProps}
+              InputProps={{
+                classes:
+                  variant === 'small' ? {input: classes.smallSuggest} : {},
+              }}
             />
           )}
           inputProps={{
             required: !!required,
-            placeholder: 'Search...',
+            placeholder: displayText ?? 'Search...',
             value: searchTerm,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
           }}
@@ -202,6 +220,10 @@ const Typeahead = (props: Props) => {
       )}
     </div>
   );
+};
+
+Typeahead.defaultProps = {
+  variant: 'default',
 };
 
 export default Typeahead;

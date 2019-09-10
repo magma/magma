@@ -10,6 +10,7 @@
 
 import * as React from 'react';
 import Card from '@material-ui/core/Card';
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(_theme => ({
@@ -21,12 +22,17 @@ const useStyles = makeStyles(_theme => ({
 }));
 
 type Props = {
+  className?: string,
   children: Array<React.Element<*>> | React.Element<*>,
 };
 
 const SectionedCard = (props: Props) => {
   const classes = useStyles();
-  return <Card className={classes.card}>{props.children}</Card>;
+  return (
+    <Card className={classNames(props.className, classes.card)}>
+      {props.children}
+    </Card>
+  );
 };
 
 export default SectionedCard;

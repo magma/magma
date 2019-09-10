@@ -9,16 +9,13 @@ RUN apt-get update && \
 RUN mkdir -p /etc/ansible && \
     mkdir -p $MAGMA_ROOT
 
-COPY lte/gateway/docker/deploy/ansible.cfg /etc/ansible/
-
 # Generating an ssh key
 RUN mkdir -p ~/.ssh &&  \
     cd ~/.ssh && \
     ssh-keygen -N "" -f ~/.ssh/id_rsa && \
     chmod 600 id_rsa
 
-# Copying lte/ inside the container
-COPY lte $MAGMA_ROOT/lte
-COPY third_party $MAGMA_ROOT/third_party
+ARG CACHE_DATE=2019-09-05
+RUN git clone https://github.com/facebookincubator/magma.git $MAGMA_ROOT
 
 WORKDIR $MAGMA_ROOT
