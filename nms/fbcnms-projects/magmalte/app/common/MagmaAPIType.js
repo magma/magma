@@ -16,6 +16,7 @@ export type CheckindGateway = {
     enodeb_connected: ?boolean,
     rf_tx_on: ?boolean,
   },
+  name: string,
   status: ?{
     checkin_time: number,
     hardware_id: string,
@@ -37,10 +38,7 @@ export type CheckindGateway = {
     kernel_version: string,
   },
   record: {
-    hw_id: {
-      id: string,
-    },
-    name: string,
+    hardware_id: string,
     key: {
       key_type: string,
       key: string,
@@ -87,8 +85,7 @@ export type MagmadConfig = {
 };
 
 export type Record = {
-  hw_id: {id: string},
-  name: string,
+  hardware_id: string,
 };
 
 export type CellularNetworkProfile = {
@@ -132,4 +129,8 @@ export type NetworkUpgradeTier = {
 export type UpgradeReleaseChannel = {
   name: string,
   supported_versions: Array<string>,
+};
+
+export type DevmandConfig = {
+  managed_devices: string[],
 };

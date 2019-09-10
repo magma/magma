@@ -17,8 +17,10 @@ import (
 
 	"magma/orc8r/cloud/go/datastore"
 	merrors "magma/orc8r/cloud/go/errors"
+	models2 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -42,6 +44,13 @@ const (
 	GatewayPing           = CommandRoot + "/ping"
 	GatewayGenericCommand = CommandRoot + "/generic"
 	TailGatewayLogs       = CommandRoot + "/tail_logs"
+
+	CommandRootV1           = handlers.ManageGatewayPath + "/command"
+	RebootGatewayV1         = CommandRootV1 + "/reboot"
+	RestartServicesV1       = CommandRootV1 + "/restart_services"
+	GatewayPingV1           = CommandRootV1 + "/ping"
+	GatewayGenericCommandV1 = CommandRootV1 + "/generic"
+	TailGatewayLogsV1       = CommandRootV1 + "/tail_logs"
 )
 
 func getListGateways(factory view_factory.FullGatewayViewFactory) func(echo.Context) error {
@@ -188,7 +197,7 @@ func updateGatewayNameHandler(c echo.Context) error {
 	if gerr != nil {
 		return gerr
 	}
-	payload := magmad_models.GatewayName("")
+	payload := models2.GatewayName("")
 	if err := c.Bind(&payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -343,7 +352,7 @@ func gatewayGenericCommand(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	params, err := view_factory.JSONMapToProtobufStruct(request.Params)
+	params, err := models2.JSONMapToProtobufStruct(request.Params)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -357,7 +366,7 @@ func gatewayGenericCommand(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	resp, err := view_factory.ProtobufStructToJSONMap(response.Response)
+	resp, err := models2.ProtobufStructToJSONMap(response.Response)
 	genericCommandResponse := magmad_models.GenericCommandResponse{
 		Response: resp,
 	}

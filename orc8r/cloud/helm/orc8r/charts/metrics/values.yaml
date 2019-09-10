@@ -20,6 +20,12 @@ prometheus:
   # Enable/Disable chart
   create: true
 
+  # Preconfigure alerts for orchestrator in prometheus
+  includeOrc8rAlerts: false
+
+  prometheusCacheHostname: "orc8r-prometheus-cache"
+  alertmanagerHostname: "orc8r-alertmanager"
+
   replicas: 1
 
   # Set to 1 if using a minikube setup
@@ -47,6 +53,8 @@ prometheus:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+  customAlerts: []
 
 alertmanager:
   # Enable/Disable chart
@@ -104,10 +112,10 @@ configmanager:
   environment:
     promAlertconfigPort: "9100"
     rulesDir: "/etc/configs/alert_rules"
-    prometheusURL: "localhost:9090"
+    prometheusURL: "orc8r-prometheus:9090"
     alertmanagerConfigPort: "9101"
     alertmanagerConfPath: "/etc/configs/alertmanager.yml"
-    alertmanagerURL: "localhost:9093"
+    alertmanagerURL: "orc8r-alertmanager:9093"
 
   image:
     repository:
@@ -128,58 +136,6 @@ configmanager:
                 values:
                   - prometheus
           topologyKey: "kubernetes.io/hostname"
-
-graphite:
-  # Enable/Disable chart
-  create: false
-  # Service configuration.
-  service:
-    annotations: {}
-    type: ClusterIP
-    ports:
-      - name: graphite-web
-        port: 80
-        targetPort: 80
-      - name: carbon-cache
-        port: 2003
-        targetPort: 2003
-
-  volumes:
-    # Default volume configurations for graphite data
-    graphiteData:
-      volumeSpec:
-        hostPath:
-          path: /graphiteData
-          type: DirectoryOrCreate
-
-  image:
-    repository: docker.io/graphiteapp/graphite-statsd
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  # Number of metrics replicas desired
-  replicas: 1
-
-  # Resource limits & requests
-  resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-  # Define which Nodes the Pods are scheduled on.
-  # ref: https://kubernetes.io/docs/user-guide/node-selection/
-  nodeSelector: {}
-
-  # Tolerations for use with node taints
-  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-  tolerations: []
-
-  # Assign graphite to run on specific nodes
-  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  affinity: {}
 
 prometheusCache:
   # Enable/Disable chart
@@ -222,7 +178,7 @@ prometheusCache:
   # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
-  # Assign graphite to run on specific nodes
+  # Assign prometheusCache to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
@@ -240,7 +196,7 @@ grafana:
         targetPort: 3000
 
   environment:
-    prometheusHost: "orc8r-metrics"
+    prometheusHost: "orc8r-prometheus"
     prometheusPort: "9090"
 
   volumes:
@@ -274,6 +230,6 @@ grafana:
   # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
-  # Assign graphite to run on specific nodes
+  # Assign grafana to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}

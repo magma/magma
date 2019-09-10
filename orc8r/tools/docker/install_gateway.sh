@@ -64,7 +64,9 @@ git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 
 source .env
-git -C $INSTALL_DIR/magma checkout "$IMAGE_VERSION"
+if [ "$IMAGE_VERSION" != "latest" ]; then
+    git -C $INSTALL_DIR/magma checkout "$IMAGE_VERSION"
+fi
 
 # Ensure this script hasn't changed
 if ! cmp "$INSTALL_DIR"/magma/orc8r/tools/docker/install_gateway.sh install_gateway.sh; then

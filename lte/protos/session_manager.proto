@@ -24,6 +24,7 @@ message RuleRecord {
 
 message RuleRecordTable {
   repeated RuleRecord records = 1;
+  uint64 epoch = 2;
 }
 
 ///////////////////

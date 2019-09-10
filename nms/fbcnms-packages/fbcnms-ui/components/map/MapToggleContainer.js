@@ -19,6 +19,7 @@ const useStyles = makeStyles(theme => ({
     margin: '10px',
     borderStyle: 'solid',
     borderRadius: '4px',
+    display: 'inline-block',
   },
 }));
 

@@ -13,11 +13,12 @@ import ErrorBoundary from './ErrorBoundary.react';
 
 export default function withErrorBoundary<TComponent: React.ComponentType<*>>(
   Component: TComponent,
+  onError: ?() => void = null,
 ): React.ComponentType<React.ElementConfig<TComponent>> {
   return class extends React.Component<React.ElementConfig<TComponent>> {
     render(): React.Node {
       return (
-        <ErrorBoundary>
+        <ErrorBoundary onError={onError}>
           <Component {...this.props} />
         </ErrorBoundary>
       );

@@ -89,6 +89,10 @@
   become: yes
   shell: service magmad@* stop
 
+- name: Bring up gtp_br0
+  shell: ifup gtp_br0
+  become: yes
+
 - name: Start service magma@magmad.
   become: yes
   service:

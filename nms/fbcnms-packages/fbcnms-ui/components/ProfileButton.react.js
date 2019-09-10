@@ -8,7 +8,7 @@
  * @format
  */
 
-import AppContext from 'inventory/app/components/context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popout from '@fbcnms/ui/components/Popout.react';

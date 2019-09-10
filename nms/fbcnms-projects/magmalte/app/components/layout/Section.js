@@ -10,9 +10,11 @@
 
 import type {ComponentType} from 'react';
 
-export type Section = {
+type Section = {
   path: string,
   label: string,
   icon: any,
   component: ComponentType<any>,
 };
+
+export type SectionsConfigs = [?string, Section[]];

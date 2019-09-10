@@ -9,18 +9,24 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
-	graphiteH "magma/orc8r/cloud/go/services/metricsd/graphite/handlers"
-	graphiteAPI "magma/orc8r/cloud/go/services/metricsd/graphite/third_party/api"
 	promH "magma/orc8r/cloud/go/services/metricsd/prometheus/handlers"
 
 	"github.com/labstack/echo"
 	promAPI "github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
+)
+
+const (
+	MetricsV1Root = obsidian.V1Root + obsidian.MagmaNetworksUrlPart + "/:network_id" + obsidian.UrlSep + "metrics"
 )
 
 // GetObsidianHandlers returns all obsidian handlers for metricsd
@@ -45,26 +51,6 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			// V1
 			obsidian.Handler{Path: promH.QueryV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryHandler(pAPI)},
 			obsidian.Handler{Path: promH.QueryRangeV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryRangeHandler(pAPI)},
-		)
-	}
-
-	graphiteQueryHost, _ := configMap.GetStringParam(confignames.GraphiteQueryAddress)
-	graphiteQueryPort, err := configMap.GetIntParam(confignames.GraphiteQueryPort)
-
-	var graphiteQueryAddress string
-	if graphiteQueryHost == "" || err != nil {
-		graphiteQueryAddress = ""
-	} else {
-		graphiteQueryAddress = fmt.Sprintf("%s://%s:%d", graphiteH.Protocol, graphiteQueryHost, graphiteQueryPort)
-	}
-	graphiteClient, err := graphiteAPI.NewFromString(graphiteQueryAddress)
-	if graphiteQueryAddress == "" || err != nil {
-		ret = append(ret,
-			obsidian.Handler{Path: graphiteH.QueryURL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(fmt.Errorf("graphite exporter not configured: %v", err))},
-		)
-	} else {
-		ret = append(ret,
-			obsidian.Handler{Path: graphiteH.QueryURL, Methods: obsidian.GET, HandlerFunc: graphiteH.GetQueryHandler(graphiteClient)},
 		)
 	}
 
@@ -104,6 +90,8 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 
 		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertmanagerConfigServiceURL)},
 		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertmanagerConfigServiceURL)},
+
+		obsidian.Handler{Path: MetricsV1Root + "/push", Methods: obsidian.POST, HandlerFunc: pushHandler},
 	)
 
 	return ret
@@ -113,4 +101,27 @@ func getInitErrorHandler(err error) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("initialization Error: %v", err), 500)
 	}
+}
+
+func pushHandler(c echo.Context) error {
+	nID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	pushedMetrics := make([]*protos.PushedMetric, 0, 0)
+	err := json.NewDecoder(c.Request().Body).Decode(&pushedMetrics)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	metrics := protos.PushedMetricsContainer{
+		NetworkId: nID,
+		Metrics:   pushedMetrics,
+	}
+	err = metricsd.PushMetrics(metrics)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusOK)
 }

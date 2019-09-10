@@ -43,26 +43,11 @@ class Footer extends React.Component {
             <a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">
               Magma Spec
             </a>
-            <a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Deployment_Guide_Installing_Magma_V2.pdf">
-              Magma Install Guide
-            </a>
-            <a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Network_Management_System.pdf">
-              Magma Network Management System
-            </a>
           </div>
           <div>
             <h5>Community</h5>
             <a href="https://discord.gg/4YxZbft">
               Discord
-            </a>
-            <a href="https://groups.google.com/forum/#!forum/magma-dev">
-              Forum
-            </a>
-            <a
-              href="http://stackoverflow.com/questions/tagged/"
-              target="_blank"
-              rel="noreferrer noopener">
-              Stack Overflow
             </a>
 
             <a

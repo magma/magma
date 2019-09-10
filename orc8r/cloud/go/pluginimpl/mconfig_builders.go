@@ -76,7 +76,7 @@ func getPackageVersionAndImages(magmadGateway configurator.NetworkEntity, graph 
 	for _, image := range tierConfig.Images {
 		retImages = append(retImages, &mconfig.ImageSpec{Name: swag.StringValue(image.Name), Order: swag.Int64Value(image.Order)})
 	}
-	return swag.StringValue(tierConfig.Version), retImages, nil
+	return tierConfig.Version.ToString(), retImages, nil
 }
 
 func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {

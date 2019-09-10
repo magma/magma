@@ -10,6 +10,7 @@ package plugin
 
 import (
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/plugin/handlers"
 	models4 "magma/lte/cloud/go/plugin/models"
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
 	cellularState "magma/lte/cloud/go/services/cellular/state"
@@ -81,7 +82,7 @@ func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.Confi
 		meteringdh.GetObsidianHandlers(),
 		policydbh.GetObsidianHandlers(),
 		subscriberdbh.GetObsidianHandlers(),
-		GetHandlers(),
+		handlers.GetHandlers(),
 	)
 }
 

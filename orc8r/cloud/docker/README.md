@@ -1,1 +1,0 @@
-../../../docs/readmes/orc8r/docker_setup.md

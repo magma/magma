@@ -29,8 +29,8 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 			LteAuthAmf: []byte("\x80\x00"),
 
 			RelayEnabled:             swag.Bool(false),
-			CloudSubscriberdbEnabled: swag.Bool(false),
-			DefaultRuleID:            swag.String(""),
+			CloudSubscriberdbEnabled: false,
+			DefaultRuleID:            "",
 		},
 	}
 }
@@ -52,8 +52,8 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 			LteAuthOp:                []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:               []byte("\x80\x00"),
 			RelayEnabled:             swag.Bool(false),
-			CloudSubscriberdbEnabled: swag.Bool(false),
-			DefaultRuleID:            swag.String(""),
+			CloudSubscriberdbEnabled: false,
+			DefaultRuleID:            "",
 		},
 	}
 }

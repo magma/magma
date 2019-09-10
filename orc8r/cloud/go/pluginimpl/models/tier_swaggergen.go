@@ -6,9 +6,6 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	models1 "magma/orc8r/cloud/go/models"
-	"strconv"
-
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -22,8 +19,7 @@ type Tier struct {
 
 	// gateways
 	// Required: true
-	// Unique: true
-	Gateways []models1.GatewayID `json:"gateways"`
+	Gateways TierGateways `json:"gateways"`
 
 	// id
 	// Required: true
@@ -31,14 +27,14 @@ type Tier struct {
 
 	// images
 	// Required: true
-	Images []*TierImage `json:"images"`
+	Images TierImages `json:"images"`
 
 	// name
-	Name string `json:"name,omitempty"`
+	Name TierName `json:"name,omitempty"`
 
 	// version
 	// Required: true
-	Version *string `json:"version"`
+	Version TierVersion `json:"version"`
 }
 
 // Validate validates this tier
@@ -54,6 +50,10 @@ func (m *Tier) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateImages(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -73,19 +73,11 @@ func (m *Tier) validateGateways(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.UniqueItems("gateways", "body", m.Gateways); err != nil {
-		return err
-	}
-
-	for i := 0; i < len(m.Gateways); i++ {
-
-		if err := m.Gateways[i].Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("gateways" + "." + strconv.Itoa(i))
-			}
-			return err
+	if err := m.Gateways.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("gateways")
 		}
-
+		return err
 	}
 
 	return nil
@@ -109,20 +101,27 @@ func (m *Tier) validateImages(formats strfmt.Registry) error {
 		return err
 	}
 
-	for i := 0; i < len(m.Images); i++ {
-		if swag.IsZero(m.Images[i]) { // not required
-			continue
+	if err := m.Images.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("images")
 		}
+		return err
+	}
 
-		if m.Images[i] != nil {
-			if err := m.Images[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("images" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
+	return nil
+}
+
+func (m *Tier) validateName(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Name) { // not required
+		return nil
+	}
+
+	if err := m.Name.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
 		}
-
+		return err
 	}
 
 	return nil
@@ -130,7 +129,10 @@ func (m *Tier) validateImages(formats strfmt.Registry) error {
 
 func (m *Tier) validateVersion(formats strfmt.Registry) error {
 
-	if err := validate.Required("version", "body", m.Version); err != nil {
+	if err := m.Version.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("version")
+		}
 		return err
 	}
 

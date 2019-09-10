@@ -1,0 +1,355 @@
+syntax = "proto3";
+
+import "lte/gateway/c/oai/protos/common_types.proto";
+
+package magma.lte;
+
+// Timers for MME and Nas
+// mme_app_timer_t and nas_timer_t
+message Timer {
+  uint64 id = 1;  // long
+  uint64 sec = 2; // long
+}
+
+// Messages for tracking area identity
+// partial_tai_list_t
+message PartialTaiList {
+  uint32 type_of_list = 1;
+  uint32 number_of_elements = 2;
+  string tai_plmn_tacs = 3;
+}
+
+// tai_list_t
+message TaiList {
+  uint32 numberoflists = 1;
+  repeated PartialTaiList partial_tai_lists = 2;
+}
+
+// tai_T
+message Tai {
+  bytes mcc_mnc = 1; // 6 digits representing mcc and mnc
+  uint32 tac = 2;
+}
+
+/*****************************************************************/
+/*                     messages for NAS                          */
+/*****************************************************************/
+
+// nas_base_proc_t
+message NasBaseProc {
+ uint64 nas_puid = 1;
+ uint32 type = 2;
+
+ // function pointers
+ uint64 success_notif = 100;
+ uint64 failure_notif = 101;
+ uint64 abort = 102;
+ uint64 fail_in = 103;
+ uint64 fail_out = 104;
+ uint64 time_out = 105;
+}
+
+// nas_emm_proc_t
+message NasEmmProc {
+  NasBaseProc base_proc = 1;
+  uint32 type = 2;
+  uint32 previous_emm_fsm_state = 3;
+
+  // function pointers
+  uint64 delivered = 100;
+  uint64 not_delivered = 101;
+  uint64 not_delivered_ho = 102;
+}
+
+// nas_auth_info_proc_t
+message AuthInfoProc {
+  bool request_sent = 1;
+  repeated AuthVector vector = 2;
+  uint32 nas_cause = 3;
+  uint32 ue_id = 4;
+  bool resync = 5;
+  
+  Timer timer_s6a = 200;
+}
+
+// nas_cn_proc_t
+message NasCnProc {
+  NasBaseProc base_proc = 1;
+  uint32 type = 2;
+}
+
+// MobileStationClassmark2
+message MobileStaClassmark2 {
+  //TODO
+}
+
+// voice_domain_preference_and_ue_usage_setting_t
+message VoicePreference {
+  // TODO
+}
+
+// nas_message_decode_status_t
+message NasMsgDecodeStatus {
+  uint32 integrity_protected_message = 1;
+  uint32 ciphered_message = 2;
+  uint32 mac_matched = 3;
+  uint32 security_context_available = 4;
+  uint32 emm_cause = 5;
+}
+
+// emm_attach_request_ies_t
+message AttachRequestIes {
+  bool is_initial = 1;
+  uint32 type = 2;
+  uint32 additional_update_type = 3;
+  bool is_native_sc = 4;
+  uint32 ksi = 5;
+  bool is_native_guti = 6;
+  Guti guti = 7;
+  bytes imsi = 8;
+  bytes imei = 9;
+  Tai last_visited_tai = 10;
+  Tai origin_tai = 11;
+  Ecgi origin_ecgi = 12;
+  UeNetworkCapability ue_nw_capability = 13;
+  NasMsgDecodeStatus decode_status = 14;
+  MobileStaClassmark2 classmark2 = 15;
+  VoicePreference voice_preference = 16;
+}
+
+// nas_emm_attach_proc_t
+message AttachProc {
+  uint32 attach_accept_sent = 1;
+  bool attach_reject_sent = 2;
+  bool attach_complete_received = 3;
+  Guti guti = 4;
+  string esm_msg_out = 5;
+  AttachRequestIes ies = 6;
+  uint32 ue_id = 7;
+  uint32 ksi = 8;
+  uint32 emm_cause = 9;
+
+  Timer T3450 = 200;
+}
+
+// emm_detach_request_ies_t
+message DetachRequestIes {
+  uint32 type = 1;
+  bool switch_off = 2;
+  bool is_native_sc = 3;
+  uint32 ksi = 4;
+  Guti guti = 5;
+  bytes imsi = 6;
+  bytes imei = 7;
+  NasMsgDecodeStatus decode_status = 8;
+}
+
+// emm_tau_request_ies_t
+message TauRequestIes {
+  // TODO
+}
+
+// nas_emm_tau_proc_t
+message NasTauProc {
+  // TODO
+}
+
+// nas_emm_auth_proc_t
+message AuthProc {
+  uint32 retransmission_count = 1;
+  uint32 sync_fail_count = 2;
+  uint32 mac_fail_count = 3;
+  uint32 ue_id = 4;
+  bool is_cause_is_attach = 5;
+  uint32 ksi = 6;
+  bytes rand = 7;
+  bytes autn = 8;
+  bytes unchecked_imsi = 9;
+  uint32 emm_cause = 10;
+
+  Timer T3460 = 200;
+}
+
+// nas_emm_smc_proc_t
+message SmcProc {
+  uint32 ue_id = 1;
+  uint32 retransmission_count = 2;
+  uint32 ksi = 3;
+  uint32 eea = 4;
+  uint32 eia = 5;
+  uint32 ucs2 = 6;
+  uint32 uea = 7;
+  uint32 uia = 8;
+  uint32 gea = 9;
+  bool umts_present = 10;
+  bool gprs_present = 11;
+  uint32 selected_eea = 12;
+  uint32 selected_eia = 13;
+  uint32 saved_selected_eea = 14;
+  uint32 saved_selected_eia = 15;
+  uint32 saved_eksi = 16;
+  uint32 saved_overflow = 17;
+  uint32 saved_seq_num = 18;
+  uint32 saved_sc_type = 19;
+  bool notify_failure = 20;
+  bool is_new = 21;
+  bool imeisv_request = 22;
+}
+
+// nas_emm_specific_proc_t, nas_emm_common_proc_t, nas_emm_con_mngt_proc_t
+message NasEmmProcWithType {
+  NasEmmProc emm_proc = 1;
+  oneof MessageTypes {
+    AttachProc attach_proc = 2;
+    DetachRequestIes detach_proc = 3;
+    SmcProc smc_proc = 4;
+    AuthProc auth_proc = 5;
+  }
+}
+
+// nas_proc_mess_sign_t
+message NasProcMessSign {
+  uint64 puid = 1;
+  bytes digest = 2;
+  uint64 digest_length = 3;
+  uint64 nas_msg_length = 4;
+}
+
+// emm_procedures_t
+message EmmProcedures {
+  NasEmmProcWithType emm_specific_proc = 1;
+  repeated NasEmmProcWithType emm_common_proc = 2;
+  repeated NasCnProc cn_proc = 3;
+  NasEmmProcWithType emm_con_mngt_proc = 4;
+  uint32 nas_proc_mess_sign_next_location = 5;
+  repeated NasProcMessSign nas_proc_mess_sign = 6;
+  uint64 pointer = 200;
+}
+
+// emm_common_data_t
+message EmmCommonData {
+  uint64 pointer = 200;
+}
+
+// emm_security_context_t
+message EmmSecurityContext {
+  uint32 sc_type = 1;
+  uint32 eksi = 2;
+  uint32 vector_index = 3;
+  bytes knas_enc = 4;
+  bytes knas_int = 5;
+
+  // count_s
+  message Count {
+    uint32 spare = 1;
+    uint32 overflow = 2;
+    uint32 seq_num = 3;
+  }
+  Count dl_count = 6;
+  Count ul_count = 7;
+  Count kenb_ul_count = 8;
+
+  // capability_s
+  message Capability {
+    uint32 eps_encryption = 1;
+    uint32 eps_integirty = 2;
+    uint32 umts_encryption = 3;
+    uint32 umts_integirty = 4;
+    uint32 gprs_encryption = 5;
+    bool umts_present = 6;
+    bool gprs_present = 7;
+  }
+  Capability capability = 9;
+
+  // selected_algorithms_s
+  message SelectedAlgorithms {
+    uint32 encryption = 1;
+    uint32 integrity = 2;
+  }
+  SelectedAlgorithms selected_algos = 10;
+
+  uint32 activated = 11;
+  uint32 direction_encode = 12; // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
+  uint32 direction_decode = 13;
+  bytes next_hop = 14;
+  uint32 next_hop_chaining_count = 15;
+}
+
+// auth_vector_t
+message AuthVector {
+  bytes kasme = 1;
+  bytes rand = 2;
+  bytes autn = 3;
+  bytes xres = 4;
+}
+
+// ue_network_capability_t
+message UeNetworkCapability {
+  uint32 eea = 1;
+  uint32 eia = 2;
+  uint32 uea = 3;
+  uint32 ucs2 = 4;
+  uint32 uia = 5;
+  uint32 spare = 6;
+  uint32 csfb = 7;
+  uint32 lpp = 8;
+  uint32 lcs = 9;
+  uint32 srvcc = 10;
+  uint32 nf = 11;
+
+  bool umts_present = 20;
+  bool misc_present = 21;
+}
+
+// esm_context_t
+message EsmContext {
+  uint64 pointer = 200;
+}
+
+// emm_context_t
+message EmmContext {
+  uint64 imsi64 = 1; //imsi64_t
+  bytes imsi = 2; // imsi_t
+  uint64 saved_imsi64 = 3;
+  bytes imei = 4; //imei_t
+  bytes imeisv = 5; // imeisv_t
+  Ecgi ecgi = 6;
+  uint32 emm_cause = 7;
+  uint32 emm_fsm_state = 8; // emm_fsm_state_t
+  uint32 attach_type = 9;
+
+  EmmProcedures emm_procedures = 11;
+  uint32 common_proc_mask = 12;
+  EsmContext esm_ctx = 13;
+
+  uint32 member_present_mask = 21;
+  uint32 member_valid_mask = 22;
+
+  repeated AuthVector vector = 23;
+  EmmSecurityContext security = 24;
+  EmmSecurityContext _non_current_security = 25;
+
+  bool is_dynamic = 31;
+  bool is_attached = 32;
+  bool is_has_been_attached = 33;
+  bool is_initial_identity_imsi = 34;
+  bool is_guti_based_attach = 35;
+  bool is_guti_set = 36;
+  bool is_imsi_only_detach = 37;
+  bool is_emergency = 38;
+
+  uint32 additional_update_type = 41;
+  uint32 tau_updt_type = 42;
+  uint32 num_attach_request = 43;
+
+  Guti guti = 51;
+  Guti old_guti = 52;
+
+  TaiList tai_list = 61;
+  Tai lvr_tai = 62;
+  Tai originating_tai = 63;
+  uint32 ksi = 64;
+
+  UeNetworkCapability ue_network_capability = 65;
+  // TODO: add remaining emm_context elements
+  }

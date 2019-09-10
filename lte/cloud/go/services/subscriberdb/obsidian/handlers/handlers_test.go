@@ -11,27 +11,20 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	lteplugin "magma/lte/cloud/go/plugin"
-	sdb_test_init "magma/lte/cloud/go/services/subscriberdb/test_init"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 )
 
 func TestHandlers(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	config_test_init.StartTestService(t)
-	sdb_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 
 	restPort := tests.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)

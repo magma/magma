@@ -14,6 +14,12 @@ const openSourcePattern = /\*\n \* Copyright 20\d{2}-present Facebook\. All Righ
 module.exports.extends = ['eslint-config-fbcnms'];
 module.exports.overrides = [
   {
+    files: ['*'],
+    rules: {
+      'prettier/prettier': [2, 'fb', '@format'],
+    },
+  },
+  {
     files: ['.eslintrc.js'],
     rules: {
       quotes: ['warn', 'single'],
@@ -46,6 +52,8 @@ module.exports.overrides = [
       'fbcnms-packages/fbcnms-babel-register/**/*.js',
       'fbcnms-packages/fbcnms-express-middleware/**/*.js',
       'fbcnms-packages/fbcnms-logging/**/*.js',
+      'fbcnms-packages/fbcnms-platform-server/**/*.js',
+      'fbcnms-packages/fbcnms-relay/**/*.js',
       'fbcnms-packages/fbcnms-sequelize-models/**/*.js',
       'fbcnms-packages/fbcnms-ui/stories/**/*.js',
       'fbcnms-packages/fbcnms-util/**/*.js',

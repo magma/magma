@@ -587,7 +587,7 @@ var networkFederationConfigsHealthHealthServicesItemsEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["S6A_PROXY","SESSION_PROXY"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["S6A_PROXY","SESSION_PROXY","SWX_PROXY"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
