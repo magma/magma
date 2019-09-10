@@ -61,9 +61,10 @@ const (
 	ManageGatewayCellularNonEpsPath   = ManageGatewayCellularPath + obsidian.UrlSep + "non_eps"
 	ManageGatewayConnectedEnodebsPath = ManageGatewayPath + obsidian.UrlSep + "connected_enodeb_serials"
 
-	Enodebs          = "enodebs"
-	ListEnodebsPath  = ManageNetworkPath + obsidian.UrlSep + Enodebs
-	ManageEnodebPath = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
+	Enodebs            = "enodebs"
+	ListEnodebsPath    = ManageNetworkPath + obsidian.UrlSep + Enodebs
+	ManageEnodebPath   = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
+	GetEnodebStatePath = ManageEnodebPath + obsidian.UrlSep + "state"
 
 	Subscribers              = "subscribers"
 	ListSubscribersPath      = ManageNetworkPath + obsidian.UrlSep + Subscribers
@@ -99,6 +100,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageEnodebPath, Methods: obsidian.DELETE, HandlerFunc: deleteEnodeb},
 		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.POST, HandlerFunc: addConnectedEnodeb},
 		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.DELETE, HandlerFunc: deleteConnectedEnodeb},
+		{Path: GetEnodebStatePath, Methods: obsidian.GET, HandlerFunc: getEnodebState},
 
 		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribers},
 		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
@@ -548,6 +550,26 @@ func deleteEnodeb(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func getEnodebState(c echo.Context) error {
+	nid, eid, nerr := getNetworkAndEnbIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	state, err := state.GetState(nid, lte.EnodebStateType, eid)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	enodebState := state.ReportedState.(*ltemodels.EnodebState)
+	enodebState.TimeReported = state.TimeMs
+	ent, err := configurator.LoadEntityForPhysicalID(state.ReporterID, configurator.EntityLoadCriteria{})
+	if err == nil {
+		enodebState.ReportingGatewayID = ent.Key
+	}
+	return c.JSON(http.StatusOK, enodebState)
 }
 
 func getNetworkAndEnbIDs(c echo.Context) (string, string, *echo.HTTPError) {

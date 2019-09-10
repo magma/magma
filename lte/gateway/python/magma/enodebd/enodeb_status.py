@@ -22,7 +22,7 @@ from magma.enodebd.state_machines.enb_acs_manager import \
     StateMachineManager
 from lte.protos.enodebd_pb2 import SingleEnodebStatus
 from orc8r.protos.service303_pb2 import State
-from google.protobuf.json_format import MessageToJson
+import json
 
 # There are 2 levels of caching for GPS coordinates from the enodeB: module
 # variables (in-memory) and on disk. In the event the enodeB stops reporting
@@ -134,7 +134,7 @@ def get_service_status_old(
                 gps_connected=_bool_to_str(enb_status.gps_connected),
                 ptp_connected=_bool_to_str(enb_status.ptp_connected),
                 mme_connected=_bool_to_str(enb_status.mme_connected),
-                enodeb_state=enb_status.enodeb_state)._asdict()
+                enodeb_state=enb_status.fsm_state)._asdict()
     return MagmaOldEnodebdStatus(
         enodeb_serial='N/A',
         enodeb_configured='0',
@@ -299,18 +299,19 @@ def get_single_enb_status(
 
 
 def get_operational_states(
-    state_machine_manager: StateMachineManager
+    enb_acs_manager: StateMachineManager,
 ) -> List[State]:
     """
-    Returns: A list of SingleEnodebStatus encoded as JSON into State
+    Returns: A list of State with EnodebStatus encoded as JSON
     """
     states = []
-    for serial_id in state_machine_manager.get_connected_serial_id_list():
-        enb_state = get_single_enb_status(serial_id, state_machine_manager)
+    enb_status_by_serial = get_all_enb_status(enb_acs_manager)
+    for serial_id in enb_status_by_serial:
+        serialized = json.dumps(enb_status_by_serial[serial_id]._asdict())
         state = State(
-            type="enodeb",
+            type="single_enodeb",
             deviceID=serial_id,
-            value=MessageToJson(enb_state).encode('utf-8')
+            value=serialized.encode('utf-8')
         )
         states.append(state)
     return states
