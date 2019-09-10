@@ -11,13 +11,37 @@ import json
 import os
 import requests
 import urllib3
-
+from typing import NamedTuple, Dict, Any
 from fabric.api import run, hide
 
 import fab.vagrant as vagrant
 
 
-PORTAL_URL = 'https://127.0.0.1:9443/magma'
+MagmadGatewayConfigs = NamedTuple(
+    'MagmadGatewayConfigs',
+    [
+        ('autoupgrade_enabled', bool), ('autoupgrade_poll_interval', int),
+        ('checkin_interval', int), ('checkin_timeout', int)
+    ]
+)
+
+ChallengeKey = NamedTuple('ChallengeKey', [('key_type', str)])
+
+GatewayDevice = NamedTuple(
+    'GatewayDevice',
+    [('hardware_id', str), ('key', Dict[str, Any])]
+)
+
+Gateway = NamedTuple(
+    'Gateway',
+    [
+        ('id', str), ('name', str), ('description', str), ('tier', str),
+        ('magmad', Dict[str, Any]), ('device', Dict[str, Any]),
+    ]
+)
+
+
+PORTAL_URL = 'https://127.0.0.1:9443/magma/v1/'
 
 def register_vm(vm_type="magma", admin_cert=(
               './../../.cache/test_certs/admin_operator.pem',
@@ -48,8 +72,7 @@ def register_vm(vm_type="magma", admin_cert=(
     gateways = _cloud_get('/networks/%s/gateways' % network_id, admin_cert)
     gateway_id = 'gw' + str(len(gateways) + 1)
     print('Provisioning gateway as %s...' % gateway_id)
-    data = {'hardware_id': hardware_id, 'name': 'TestGateway',
-            'key': {'key_type': 'ECHO'}}
+    data = _construct_gateway_object(gateway_id, hardware_id)
     _cloud_post('/networks/%s/gateways' % network_id,
                 data=data, params={'requested_id': gateway_id}, admin_cert=admin_cert)
     print('Gateway successfully provisioned as: %s' % gateway_id)
@@ -104,3 +127,26 @@ def _cloud_post(resource, data, admin_cert, params=None):
     if resp.status_code not in [200, 201]:
         raise Exception('Received a %d response: %s' %
                         (resp.status_code, resp.text))
+
+
+def _construct_gateway_object(gateway_id: str,
+                              hardware_id: str) -> Dict[str, Any]:
+    gateway = Gateway(
+        name='TestGateway',
+        description='Test Gateway',
+        tier='default',
+        id=gateway_id,
+        device=GatewayDevice(
+            hardware_id=hardware_id,
+            key=ChallengeKey(
+                key_type='ECHO',
+            )._asdict(),
+        )._asdict(),
+        magmad=MagmadGatewayConfigs(
+            autoupgrade_enabled=True,
+            autoupgrade_poll_interval=60,
+            checkin_interval=60,
+            checkin_timeout=30,
+        )._asdict(),
+    )
+    return gateway._asdict()
