@@ -9,6 +9,7 @@
 package handlers_test
 
 import (
+	"context"
 	"crypto/x509"
 	"fmt"
 	"testing"
@@ -25,11 +26,14 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/security/key"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
@@ -1923,6 +1927,71 @@ func TestDeleteEnodeb(t *testing.T) {
 	assert.EqualError(t, err, "Not found")
 }
 
+func TestGetEnodebState(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/enodebs/:enodeb_serial/state"
+
+	handlers := handlers.GetHandlers()
+	getEnodebState := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	_, err = configurator.CreateEntities("n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.CellularEnodebType, Key: "serial1",
+				PhysicalID: "serial1",
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "gw1",
+				PhysicalID:   "hwid1",
+				Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: "serial1"}},
+			},
+		})
+	assert.NoError(t, err)
+
+	// 404
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getEnodebState,
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "serial1"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// report state
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.GetUnfreezeClockDeferFunc(t)()
+
+	// encode the appropriate certificate into context
+	ctx := test_utils.GetContextWithCertificate(t, "hwid1")
+	reportEnodebState(t, ctx, "serial1", models2.NewDefaultEnodebStatus())
+	expected := models2.NewDefaultEnodebStatus()
+	expected.TimeReported = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+	expected.ReportingGatewayID = "gw1"
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getEnodebState,
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "serial1"},
+		ExpectedStatus: 200,
+		ExpectedResult: expected,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 func TestCreateSubscriber(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
@@ -2334,6 +2403,26 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	expected.Config.(*models2.LteSubscription).State = "ACTIVE"
 	expected.Version = 4
 	assert.Equal(t, expected, actual)
+}
+
+func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *models2.EnodebState) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serializedEnodebState, err := serde.Serialize(state.SerdeDomain, lte.EnodebStateType, req)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     lte.EnodebStateType,
+			DeviceID: enodebSerial,
+			Value:    serializedEnodebState,
+		},
+	}
+	_, err = client.ReportStates(
+		ctx,
+		&protos.ReportStatesRequest{States: states},
+	)
+	assert.NoError(t, err)
 }
 
 // n1, n3 are lte networks, n2 is not
