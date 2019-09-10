@@ -10,7 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 import os
 from collections import namedtuple
-from typing import Any, Dict, List, NamedTuple, Optional, Union
+from typing import Any, Dict, List, NamedTuple, Optional, Union, Tuple
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -42,17 +42,17 @@ _gps_lat_cached = None
 _gps_lon_cached = None
 
 EnodebStatus = NamedTuple('EnodebStatus',
-                          [('enodeb_configured', str),
+                          [('enodeb_configured', bool),
                            ('gps_latitude', str),
                            ('gps_longitude', str),
-                           ('enodeb_connected', str),
-                           ('opstate_enabled', str),
-                           ('rf_tx_on', str),
-                           ('rf_tx_desired', str),
-                           ('gps_connected', str),
-                           ('ptp_connected', str),
-                           ('mme_connected', str),
-                           ('enodeb_state', str)])
+                           ('enodeb_connected', bool),
+                           ('opstate_enabled', bool),
+                           ('rf_tx_on', bool),
+                           ('rf_tx_desired', bool),
+                           ('gps_connected', bool),
+                           ('ptp_connected', bool),
+                           ('mme_connected', bool),
+                           ('fsm_state', str)])
 
 # TODO: Remove after checkins support multiple eNB status
 MagmaOldEnodebdStatus = namedtuple('MagmaOldEnodebdStatus',
@@ -100,15 +100,13 @@ def update_status_metrics(status: EnodebStatus) -> None:
         # receive a status update from enodeb, set the metric to 0
         # to explicitly indicate that it was not received, otherwise the
         # metrics collector will continue to report the last value
-        if key not in enodeb_status:
+        val = enodeb_status.get(key, None)
+        if val is None:
             return 0
-
-        try:
-            return int(enodeb_status[key])
-        except ValueError:
-            logging.error('Could not cast metric value %s to int',
-                          enodeb_status[key])
+        if type(val) is not bool:
+            logging.error('Could not cast metric value %s to int', val)
             return 0
+        return int(val)  # val should be either True or False
 
     for stat_key, metric in metrics_by_stat_key.items():
         metric.set(get_metric_value(status._asdict(), stat_key))
@@ -123,19 +121,19 @@ def get_service_status_old(
     # Since we only expect users to plug in a single eNB, generate service
     # status with the first one we find that is connected
     for enb_serial, enb_status in enb_status_by_serial.items():
-        if enb_status.enodeb_connected == '1':
+        if enb_status.enodeb_connected:
             return MagmaOldEnodebdStatus(
                 enodeb_serial=enb_serial,
-                enodeb_configured=enb_status.enodeb_configured,
+                enodeb_configured=_bool_to_str(enb_status.enodeb_configured),
                 gps_latitude=enb_status.gps_latitude,
                 gps_longitude=enb_status.gps_longitude,
-                enodeb_connected=enb_status.enodeb_connected,
-                opstate_enabled=enb_status.opstate_enabled,
-                rf_tx_on=enb_status.rf_tx_on,
-                rf_tx_desired=enb_status.rf_tx_desired,
-                gps_connected=enb_status.gps_connected,
-                ptp_connected=enb_status.ptp_connected,
-                mme_connected=enb_status.mme_connected,
+                enodeb_connected=_bool_to_str(enb_status.enodeb_connected),
+                opstate_enabled=_bool_to_str(enb_status.opstate_enabled),
+                rf_tx_on=_bool_to_str(enb_status.rf_tx_on),
+                rf_tx_desired=_bool_to_str(enb_status.rf_tx_desired),
+                gps_connected=_bool_to_str(enb_status.gps_connected),
+                ptp_connected=_bool_to_str(enb_status.ptp_connected),
+                mme_connected=_bool_to_str(enb_status.mme_connected),
                 enodeb_state=enb_status.enodeb_state)._asdict()
     return MagmaOldEnodebdStatus(
         enodeb_serial='N/A',
@@ -172,9 +170,7 @@ def _get_enodebd_status(
     gateway_gps_latitude = '0.0'
 
     def _is_rf_tx_configured(enb_status: EnodebStatus) -> bool:
-        value = enb_status.rf_tx_on
-        desired = enb_status.rf_tx_desired
-        return value == desired
+        return enb_status.rf_tx_on == enb_status.rf_tx_desired
 
     for _enb_serial, enb_status in enb_status_by_serial.items():
         n_enodeb_connected += 1
@@ -241,52 +237,20 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
     Returns:
         Status dictionary for the enodeb state
     """
-    enodeb_configured = '1' if enodeb.is_enodeb_configured() else '0'
+    enodeb_configured = enodeb.is_enodeb_configured()
 
     # We cache GPS coordinates so try to read them before the early return
     # if the enB is not connected
     gps_lat, gps_lon = _get_and_cache_gps_coords(enodeb)
 
-    enodeb_connected = '1' if enodeb.is_enodeb_connected() else '0'
+    enodeb_connected = enodeb.is_enodeb_connected()
     opstate_enabled = _parse_param_as_bool(enodeb, ParameterName.OP_STATE)
     rf_tx_on = _parse_param_as_bool(enodeb, ParameterName.RF_TX_STATUS)
     enb_serial = enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
     rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
-    rf_tx_desired = _format_bool(rf_tx_desired, 'RF TX Status Desired')
     mme_connected = _parse_param_as_bool(enodeb, ParameterName.MME_STATUS)
-
-    try:
-        if not enodeb.has_parameter(ParameterName.GPS_STATUS):
-            gps_connected = '0'
-        else:
-            param = enodeb.get_parameter(ParameterName.GPS_STATUS)
-            pval = param.lower().strip()
-            if pval == '0' or pval == '1':
-                gps_connected = pval
-            elif pval == '2':
-                # 2 = GPS locking
-                gps_connected = '0'
-            else:
-                logging.warning(
-                    'GPS status parameter not understood (%s)', param)
-                gps_connected = '0'
-    except (KeyError, ConfigurationError):
-        gps_connected = '0'
-
-    try:
-        if not enodeb.has_parameter(ParameterName.PTP_STATUS):
-            ptp_connected = '0'
-        else:
-            param = enodeb.get_parameter(ParameterName.PTP_STATUS)
-            pval = param.lower().strip()
-            if pval == '0' or pval == '1':
-                ptp_connected = pval
-            else:
-                logging.warning(
-                    'PTP status parameter not understood (%s)', param)
-                ptp_connected = '0'
-    except (KeyError, ConfigurationError):
-        ptp_connected = '0'
+    gps_connected = _get_gps_status_as_bool(enodeb)
+    ptp_connected = _parse_param_as_bool(enodeb, ParameterName.PTP_STATUS)
 
     return EnodebStatus(enodeb_configured=enodeb_configured,
                         gps_latitude=gps_lat,
@@ -298,7 +262,7 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
                         gps_connected=gps_connected,
                         ptp_connected=ptp_connected,
                         mme_connected=mme_connected,
-                        enodeb_state=enodeb.get_state())
+                        fsm_state=enodeb.get_state())
 
 
 def get_single_enb_status(
@@ -330,7 +294,7 @@ def get_single_enb_status(
     enb_status.mme_connected = status.mme_connected
     enb_status.gps_longitude = status.gps_longitude
     enb_status.gps_latitude = status.gps_latitude
-    enb_status.fsm_state = status.enodeb_state
+    enb_status.fsm_state = status.fsm_state
     return enb_status
 
 
@@ -373,31 +337,50 @@ def _empty_enb_status() -> SingleEnodebStatus:
 def _parse_param_as_bool(
     enodeb: EnodebAcsStateMachine,
     param_name: ParameterName
-) -> str:
-    """ Returns '1' for true, and '0' for false """
+) -> bool:
     try:
-        return _format_bool(enodeb.get_parameter(param_name), param_name)
+        return _format_as_bool(enodeb.get_parameter(param_name), param_name)
     except (KeyError, ConfigurationError):
-        return '0'
+        return False
 
 
-def _format_bool(
+def _format_as_bool(
     param_value: Union[bool, str, int],
     param_name: Optional[Union[ParameterName, str]] = None,
-) -> str:
+) -> bool:
     """ Returns '1' for true, and '0' for false """
-    pval = str(param_value).lower().strip()
-    if pval in {'true', '1'}:
-        return '1'
-    elif pval in {'false', '0'}:
-        return '0'
+    stripped_value = str(param_value).lower().strip()
+    if stripped_value in {'true', '1'}:
+        return True
+    elif stripped_value in {'false', '0'}:
+        return False
     else:
         logging.warning(
             '%s parameter not understood (%s)', param_name, param_value)
-        return '0'
+        return False
 
 
-def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> tuple:
+def _get_gps_status_as_bool(enodeb: EnodebAcsStateMachine) -> bool:
+    try:
+        if not enodeb.has_parameter(ParameterName.GPS_STATUS):
+            return False
+        else:
+            param = enodeb.get_parameter(ParameterName.GPS_STATUS)
+            stripped_value = param.lower().strip()
+            if stripped_value == '0' or stripped_value == '2':
+                # 2 = GPS locking
+                return False
+            elif stripped_value == '1':
+                return True
+            else:
+                logging.warning(
+                    'GPS status parameter not understood (%s)', param)
+                return False
+    except (KeyError, ConfigurationError):
+        return False
+
+
+def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> Tuple[str, str]:
     """
     Read the GPS coordinates of the enB from its configuration or the
     cached coordinate file if the preceding read fails. If reading from
@@ -421,7 +404,7 @@ def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> tuple:
         return '0', '0'
 
 
-def _get_cached_gps_coords():
+def _get_cached_gps_coords() -> Tuple[str, str]:
     """
     Returns cached GPS coordinates if enB is disconnected or otherwise not
     reporting coordinates.
@@ -475,3 +458,8 @@ def _write_gps_coords_to_file(gps_lat, gps_lon):
         )
     except OSError:
         pass
+
+def _bool_to_str(b: bool) -> str:
+    if b is True:
+        return "1"
+    return "0"
