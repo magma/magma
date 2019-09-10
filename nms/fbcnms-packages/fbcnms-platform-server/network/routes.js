@@ -29,11 +29,14 @@ const router = express.Router();
 // const DEFAULT_CELLULAR_CONFIG: CellularNetworkConfig = {
 const DEFAULT_CELLULAR_CONFIG = {
   epc: {
+    cloud_subscriberdb_enabled: false,
+    default_rule_id: '',
     mcc: '001',
     mnc: '01',
     tac: 1,
     lte_auth_amf: 'gAA=',
     lte_auth_op: 'EREREREREREREREREREREQ==',
+    relay_enabled: false,
     sub_profiles: {},
   },
   ran: {
@@ -42,6 +45,11 @@ const DEFAULT_CELLULAR_CONFIG = {
     special_subframe_pattern: 7,
     subframe_assignment: 2,
     ul_dl_ratio: 1,
+    tdd_config: {
+      earfcndl: 44590,
+      special_subframe_pattern: 7,
+      subframe_assignment: 2,
+    },
   },
   non_eps_service: null,
 };

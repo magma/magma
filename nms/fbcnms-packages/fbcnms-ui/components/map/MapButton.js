@@ -17,7 +17,6 @@ const useStyles = makeStyles(theme => ({
     color: 'black',
     borderRight: '1px solid #ddd',
     borderRadius: '4px',
-    width: '30px',
     height: '30px',
     border: 0,
   },

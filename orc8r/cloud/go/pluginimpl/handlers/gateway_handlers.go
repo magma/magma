@@ -10,7 +10,6 @@ package handlers
 
 import (
 	"net/http"
-	"sort"
 
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
@@ -21,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -31,12 +31,30 @@ func ListGatewaysHandler(c echo.Context) error {
 		return nerr
 	}
 
-	ids, err := configurator.ListEntityKeys(nid, orc8r.MagmadGatewayType)
+	ents, _, err := configurator.LoadEntities(nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil, configurator.FullEntityLoadCriteria())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	sort.Strings(ids)
-	return c.JSON(http.StatusOK, ids)
+	entsByTK := ents.ToEntitiesByID()
+
+	// for each magmad gateway, we have to load its corresponding device and
+	// its reported status
+	deviceIDs := make([]string, 0, len(entsByTK))
+	for tk, ent := range entsByTK {
+		if tk.Type == orc8r.MagmadGatewayType && ent.PhysicalID != "" {
+			deviceIDs = append(deviceIDs, ent.PhysicalID)
+		}
+	}
+
+	devicesByID, err := device.GetDevices(nid, orc8r.AccessGatewayRecordType, deviceIDs)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
+	}
+	statusesByID, err := state.GetGatewayStatuses(nid, deviceIDs)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, makeGateways(entsByTK, devicesByID, statusesByID))
 }
 
 func CreateGatewayHandler(c echo.Context) error {
@@ -207,13 +225,28 @@ func DeleteGatewayHandler(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(nid, orc8r.MagmadGatewayType, gid)
+	existingEnt, err := configurator.LoadEntity(
+		nid, orc8r.MagmadGatewayType, gid,
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadAssocsToThis: true},
+	)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load gateway"), http.StatusInternalServerError)
+	}
+
+	err = configurator.DeleteEntity(nid, orc8r.MagmadGatewayType, gid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	// Unclear if we should be deleting the device as well. Until we get some
-	// datapoints from real world usage, let's skip that for now
+	if existingEnt.PhysicalID != "" {
+		err = device.DeleteDevice(nid, orc8r.AccessGatewayRecordType, existingEnt.PhysicalID)
+		if err != nil {
+			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway"), http.StatusInternalServerError)
+		}
+	}
 
 	return c.NoContent(http.StatusNoContent)
 }
@@ -239,4 +272,21 @@ func GetStateHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, state)
+}
+
+func makeGateways(
+	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	devicesByID map[string]interface{},
+	statusesByID map[string]*models.GatewayStatus,
+) map[string]*models.MagmadGateway {
+	gatewayEntsByKey := map[string]*models.MagmadGateway{}
+	for tk, ent := range entsByTK {
+		hwID := ent.PhysicalID
+		var devCasted *models.GatewayDevice
+		if devicesByID[hwID] != nil {
+			devCasted = devicesByID[hwID].(*models.GatewayDevice)
+		}
+		gatewayEntsByKey[tk.Key] = (&models.MagmadGateway{}).FromBackendModels(ent, devCasted, statusesByID[hwID])
+	}
+	return gatewayEntsByKey
 }

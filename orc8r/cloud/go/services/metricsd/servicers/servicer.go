@@ -13,6 +13,7 @@ package servicers
 
 import (
 	"strings"
+	"time"
 
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -29,6 +30,21 @@ type MetricsControllerServer struct {
 
 func NewMetricsControllerServer() *MetricsControllerServer {
 	return &MetricsControllerServer{}
+}
+
+func (srv *MetricsControllerServer) Push(ctx context.Context, in *protos.PushedMetricsContainer) (*protos.Void, error) {
+	if in.Metrics == nil || len(in.Metrics) == 0 {
+		return new(protos.Void), nil
+	}
+
+	for _, e := range srv.exporters {
+		metricsToSubmit := pushedMetricsToMetricsAndContext(in)
+		err := e.Submit(metricsToSubmit)
+		if err != nil {
+			glog.Error(err)
+		}
+	}
+	return new(protos.Void), nil
 }
 
 func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.MetricsContainer) (*protos.Void, error) {
@@ -107,6 +123,41 @@ func metricsContainerToMetricAndContexts(
 		}
 		for _, metric := range fam.Metric {
 			metric.Label = protos.GetDecodedLabel(metric)
+		}
+		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
+	}
+	return ret
+}
+
+func pushedMetricsToMetricsAndContext(in *protos.PushedMetricsContainer) []exporters.MetricAndContext {
+	ret := make([]exporters.MetricAndContext, 0, len(in.Metrics))
+	for _, metric := range in.Metrics {
+		ctx := exporters.MetricsContext{
+			MetricName:  metric.MetricName,
+			DecodedName: metric.MetricName,
+			NetworkID:   in.NetworkId,
+		}
+		gaugeType := prometheusProto.MetricType_GAUGE
+
+		prometheusLabels := make([]*prometheusProto.LabelPair, 0, len(metric.Labels))
+		for _, label := range metric.Labels {
+			prometheusLabels = append(prometheusLabels, &prometheusProto.LabelPair{Name: &label.Name, Value: &label.Value})
+		}
+		ts := metric.TimestampMS
+		if ts == 0 {
+			ts = time.Now().Unix() * 1000
+		}
+		fam := &prometheusProto.MetricFamily{
+			Name: &metric.MetricName,
+			Type: &gaugeType,
+			Metric: []*prometheusProto.Metric{{
+				Label: prometheusLabels,
+				Gauge: &prometheusProto.Gauge{
+					Value: &metric.Value,
+				},
+				TimestampMs: &ts,
+			},
+			},
 		}
 		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}

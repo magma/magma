@@ -16,6 +16,10 @@ import ProfileIcon from '../icons/ProfileIcon.react';
 import React, {useState} from 'react';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
+import {
+  LogEvents,
+  ServerLogger,
+} from '../../../fbcnms-projects/inventory/app/common/LoggingUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useFeatureFlag} from '@fbcnms/ui/hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -105,6 +109,9 @@ const ProfileButton = (props: Props) => {
               classes={{gutters: classes.itemGutters}}
               button
               href={'/docs/docs/csv-upload.html'}
+              onClick={() =>
+                ServerLogger.info(LogEvents.DOCUMENTATION_LINK_CLICKED)
+              }
               component="a">
               <Typography className={classes.profileItemText}>
                 Documentation

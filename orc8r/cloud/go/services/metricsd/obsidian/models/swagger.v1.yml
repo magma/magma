@@ -48,6 +48,10 @@ magma-gen-meta:
       filename: sla_c_k_field_swaggergen.go
     - go-struct-name: SLACKReceiver
       filename: sla_c_k_receiver_swaggergen.go
+    - go-struct-name: PushedMetric
+      filename: pushed_metric_swaggergen.go
+    - go-struct-name: LabelPair
+      filename: label_pair_swaggergen.go
 
 info:
   title:
@@ -123,6 +127,28 @@ paths:
             type: array
             items:
               $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/metrics/push:
+    post:
+      summary: Submit metrics to orchestrator databases
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: metrics
+          description: Metrics to be submitted
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/pushed_metric'
+
+      responses:
+        '200':
+          description: Submitted
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -347,6 +373,37 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
+  pushed_metric:
+    type: object
+    required:
+      - metricName
+      - value
+    properties:
+      metricName:
+        type: string
+        example: "cpu_percent"
+      value:
+        type: number
+        example: 8.2
+      timestamp:
+        type: string
+        example: 1561567965000
+      labels:
+        type: array
+        items:
+          $ref: '#/definitions/label_pair'
+
+  label_pair:
+    type: object
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+
   promql_return_object:
     type: object
     required:

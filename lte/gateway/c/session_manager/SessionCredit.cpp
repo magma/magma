@@ -71,7 +71,7 @@ void SessionCredit::receive_credit(
   uint64_t rx_volume,
   uint32_t validity_time,
   bool is_final,
-  ChargingCredit_FinalAction final_action)
+  FinalActionInfo final_action_info)
 {
   MLOG(MDEBUG) << "receive_credit:"
                << "total allowed octets:  " << buckets_[ALLOWED_TOTAL]
@@ -107,7 +107,7 @@ void SessionCredit::receive_credit(
                << buckets_[REPORTING_RX] << "reporting_tx "
                << buckets_[REPORTING_TX];
   is_final_ = is_final;
-  final_action_ = final_action;
+  final_action_info_ = final_action_info;
 
   if (reauth_state_ == REAUTH_PROCESSING) {
     reauth_state_ = REAUTH_NOT_NEEDED; // done
@@ -246,10 +246,11 @@ ServiceActionType SessionCredit::get_action()
 
 ServiceActionType SessionCredit::get_action_for_deactivating_service()
 {
-  if (no_more_grant() && final_action_ == ChargingCredit_FinalAction_REDIRECT) {
+  if (no_more_grant() &&
+    final_action_info_.final_action == ChargingCredit_FinalAction_REDIRECT) {
     return REDIRECT;
   } else if (no_more_grant() &&
-    final_action_ == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+    final_action_info_.final_action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
     return RESTRICT_ACCESS;
   } else {
     return TERMINATE_SERVICE;
@@ -279,6 +280,10 @@ void SessionCredit::reauth()
 bool SessionCredit::no_more_grant()
 {
   return is_final_;
+}
+
+RedirectServer SessionCredit::get_redirect_server() {
+  return final_action_info_.redirect_server;
 }
 
 } // namespace magma

@@ -68,6 +68,11 @@ class SessionCredit {
     uint64_t bytes_rx;
   };
 
+  struct FinalActionInfo {
+    ChargingCredit_FinalAction final_action;
+    RedirectServer redirect_server;
+  };
+
   SessionCredit();
 
   SessionCredit(ServiceState start_state);
@@ -101,7 +106,7 @@ class SessionCredit {
     uint64_t rx_volume,
     uint32_t validity_time,
     bool is_final,
-    ChargingCredit_FinalAction final_action);
+    FinalActionInfo final_action_info);
 
   /**
    * get_update_type returns the type of update required for the credit. If no
@@ -145,6 +150,11 @@ class SessionCredit {
   bool no_more_grant();
 
   /**
+   * Returns
+   */
+  RedirectServer get_redirect_server();
+
+  /**
    * A threshold represented as a ratio for triggering usage update before
    * an user completely used up the quota
    * Session manager will send usage update when
@@ -170,7 +180,7 @@ class SessionCredit {
  private:
   bool reporting_;
   bool is_final_;
-  ChargingCredit_FinalAction final_action_;
+  FinalActionInfo final_action_info_;
   ReAuthState reauth_state_;
   ServiceState service_state_;
   std::time_t expiry_time_;

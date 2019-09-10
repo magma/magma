@@ -73,6 +73,7 @@ paths:
               $ref: '#/definitions/promql_return_object'
         default:
           $ref: './swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/alerts:
     get:
       summary: View currently firing alerts

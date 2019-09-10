@@ -17,6 +17,7 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import TextField from '@material-ui/core/TextField';
+import {CELLULAR} from '@fbcnms/types/network';
 
 import axios from 'axios';
 import {makeStyles} from '@material-ui/styles';
@@ -40,7 +41,10 @@ export default function NetworkCreate() {
   const onCreate = async () => {
     let createResponse;
     try {
-      const payload = {networkID: name, data: {name}};
+      const payload = {
+        networkID: name,
+        data: {name, features: {networkType: CELLULAR}},
+      };
       createResponse = await axios.post('/nms/network/create', payload);
       if (!createResponse?.data.success) {
         enqueueSnackbar(

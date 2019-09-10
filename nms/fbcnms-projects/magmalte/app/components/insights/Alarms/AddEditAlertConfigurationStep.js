@@ -23,7 +23,7 @@ import {makeStyles} from '@material-ui/styles';
 
 type Props = {
   alertConfig: AlertConfig,
-  setAlertConfig: AlertConfig => void,
+  setAlertConfig: ((AlertConfig => AlertConfig) | AlertConfig) => void,
   onNext: () => void,
 };
 
@@ -63,7 +63,6 @@ export default function AddEditAlertConfigurationStep(props: Props) {
                 }
                 placement="right">
                 <IconButton
-                  className={classes.iconButton}
                   href="https://prometheus.io/docs/prometheus/latest/querying/basics/"
                   target="_blank">
                   <HelpIcon />
