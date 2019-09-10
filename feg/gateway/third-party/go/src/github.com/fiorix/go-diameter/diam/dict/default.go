@@ -2694,6 +2694,11 @@ var tgpprorfXML = `<?xml version="1.0" encoding="UTF-8"?>
 			<data type="OctetString"/>
 		</avp>
 
+		<avp name="Bearer-Identifier" code="1020" must="V,M" may="P" must-not="-" may-encrypt="Y" vendor-id="10415">
+			<!-- 3GPP TS 29.212 section 5.3.20 -->
+			<data type="OctetString"/>
+		</avp>
+
 		<avp name="Bearer-Service" code="854" must="V,M" may="P" must-not="-" may-encrypt="N" vendor-id="10415">
 			<data type="OctetString"/>
 		</avp>
