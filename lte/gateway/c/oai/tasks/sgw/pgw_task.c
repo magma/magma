@@ -40,6 +40,8 @@
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
 #include "spgw_config.h"
+#include "spgw_state.h"
+#include "assertions.h"
 
 pgw_app_t pgw_app;
 
@@ -52,15 +54,21 @@ static void *pgw_intertask_interface(void *args_p)
 {
   itti_mark_task_ready(TASK_PGW_APP);
 
+  spgw_state_t *spgw_state_p;
+
   while (1) {
     MessageDef *received_message_p = NULL;
 
     itti_receive_msg(TASK_PGW_APP, &received_message_p);
 
+    spgw_state_p = get_spgw_state();
+    AssertFatal(
+      spgw_state_p != NULL, "Failed to retrieve SPGW state on PGW task");
+
     switch (ITTI_MSG_ID(received_message_p)) {
       case S5_CREATE_BEARER_REQUEST: {
         pgw_handle_create_bearer_request(
-          &received_message_p->ittiMsg.s5_create_bearer_request);
+          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_request);
       } break;
 
       case S5_NW_INITIATED_ACTIVATE_BEARER_RESP: {
@@ -86,6 +94,7 @@ static void *pgw_intertask_interface(void *args_p)
           ITTI_MSG_NAME(received_message_p));
       } break;
     }
+
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
   }

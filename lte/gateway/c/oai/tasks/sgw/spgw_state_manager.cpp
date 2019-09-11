@@ -21,7 +21,7 @@
 
 #include "spgw_state_manager.h"
 
-spgw_state_t *SpgwStateManager::create_spgw_state()
+spgw_state_t *SpgwStateManager::create_spgw_state(spgw_config_t *config)
 {
   // Allocating spgw_state_p
   spgw_state_t *state_p;
@@ -36,9 +36,16 @@ spgw_state_t *SpgwStateManager::create_spgw_state()
   state_p->sgw_state.s11_bearer_context_information = hashtable_ts_create(
     SGW_STATE_CONTEXT_HT_MAX_SIZE,
     nullptr,
-    (void (*)(void **)) sgw_cm_free_s_plus_p_gw_eps_bearer_context_information,
+    (void (*)(void **)) sgw_free_s11_bearer_context_information,
     b);
   bdestroy_wrapper(&b);
+
+  state_p->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr =
+    config->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
+
+  // TODO: Refactor GTPv1u_data state
+  state_p->sgw_state.gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
+    state_p->sgw_state.sgw_ip_address_S1u_S12_S4_up;
 
   return state_p;
 }
@@ -73,4 +80,7 @@ int SpgwStateManager::read_state_from_db()
 void SpgwStateManager::write_state_to_db()
 {
   // TODO: Implement put to redis db
+  AssertFatal(
+    this->state_accessed, "Tried to put SPGW state while it was not in use");
+  this->state_accessed = false;
 }

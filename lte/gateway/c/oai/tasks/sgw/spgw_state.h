@@ -29,8 +29,9 @@ extern "C" {
 
 #include "hashtable.h"
 
-#include "gtpv1u_sgw_defs.h"
-#include "sgw_context_manager.h"
+#include "gtpv1u_types.h"
+#include "sgw_types.h"
+#include "spgw_config.h"
 
 typedef struct sgw_state_s {
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
@@ -49,11 +50,20 @@ typedef struct spgw_state_s {
 } spgw_state_t;
 
 // Initializes SGW state struct when task process starts.
-int spgw_state_init(bool use_stateless);
+int spgw_state_init(bool persist_state, spgw_config_t *spgw_config_p);
 // Function that frees spgw_state.
 void spgw_state_exit(void);
 // Function that returns a pointer to spgw_state.
 spgw_state_t *get_spgw_state(void);
+// Function that writes the spgw_state struct into db.
+void put_spgw_state(void);
+
+void sgw_free_s11_bearer_context_information(
+  s_plus_p_gw_eps_bearer_context_information_t **context_p);
+void sgw_free_pdn_connection(sgw_pdn_connection_t *pdn_connection_p);
+void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt);
+
+// TODO: Add conversion (state2proto, proto2state) helper functions.
 
 #ifdef __cplusplus
 }

@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(nas_init(&mme_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
-  CHECK_INIT_RETURN(sgw_init(&spgw_config));
+  CHECK_INIT_RETURN(sgw_init(&spgw_config, mme_config.use_stateless));
   CHECK_INIT_RETURN(pgw_init(&spgw_config));
 #else
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));

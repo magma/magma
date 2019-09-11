@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+#include <assertions.h>
 #include <dynamic_memory_check.h>
 #include <cstdlib>
 #include <common_defs.h>
@@ -49,20 +50,26 @@ class SpgwStateManager {
     this->state_accessed = false;
   }
 
-  explicit SpgwStateManager(bool persist_state)
+  SpgwStateManager(
+    bool persist_state,
+    spgw_config_t *config)
   {
     this->persist_state = persist_state;
     this->state_accessed = false;
-    spgw_state_cache_p = create_spgw_state();
+    spgw_state_cache_p = create_spgw_state(config);
   }
 
   spgw_state_t *get_spgw_state()
   {
     this->state_accessed = true;
+
+    AssertFatal(
+      spgw_state_cache_p != nullptr, "SPGW state cache is NULL");
+
     return spgw_state_cache_p;
   }
 
-  static spgw_state_t *create_spgw_state();
+  static spgw_state_t *create_spgw_state(spgw_config_t *config);
   void free_spgw_state();
 
   // TODO: Implement redis r/w functions
