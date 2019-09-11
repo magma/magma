@@ -61,10 +61,6 @@ int sgw_handle_suspend_notification(
 int sgw_no_pcef_create_dedicated_bearer(s11_teid_t teid);
 int sgw_handle_create_bearer_response(
   const itti_s11_create_bearer_response_t *const create_bearer_response_pP);
-int sgw_handle_modify_ue_ambr_request(
-  teid_t teid,
-  bitrate_t mbr_ul,
-  bitrate_t mbr_dl);
 int sgw_handle_nw_initiated_actv_bearer_req(
   const itti_s5_nw_init_actv_bearer_request_t
   *const itti_s5_actv_bearer_req);

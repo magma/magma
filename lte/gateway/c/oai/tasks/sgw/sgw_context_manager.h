@@ -50,13 +50,6 @@ typedef struct mme_sgw_tunnel_s {
   uint32_t remote_teid; ///< Tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
 
-// data entry for s1uteid2enb_hashtable
-typedef struct enb_sgw_s1u_tunnel_s {
-  uint32_t local_teid;                 ///< S-GW Tunnel endpoint Identifier
-  uint32_t remote_teid;                ///< eNB Tunnel endpoint Identifier
-  ip_address_t enb_ip_address_for_S11; ///< eNB IP address the S1U interface.
-} enb_sgw_s1u_tunnel_t;
-
 void sgw_display_s11teid2mme_mappings(void);
 void sgw_display_sgw_eps_bearer_context(
   const sgw_eps_bearer_ctxt_t *const eps_bearer_ctxt);

@@ -2114,67 +2114,6 @@ int sgw_handle_create_bearer_response(
 }
 
 /*
- * Handle UE AMBR modification request from PCEF
- */
-int sgw_handle_modify_ue_ambr_request(
-  teid_t teid,
-  bitrate_t mbr_ul,
-  bitrate_t mbr_dl)
-{
-  hashtable_rc_t hash_rc = HASH_TABLE_OK;
-  mme_sgw_tunnel_t *tun_pair_p = NULL;
-  s_plus_p_gw_eps_bearer_context_information_t *ctx_p = NULL;
-  itti_s11_modify_ue_ambr_request_t *modify_ue_ambr_request_p = NULL;
-  MessageDef *message_p = NULL;
-
-  OAILOG_FUNC_IN(LOG_SPGW_APP);
-  OAILOG_DEBUG(LOG_SPGW_APP, "Rx Modify UE AMBR Request, teid %u\n", teid);
-
-  message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_UE_AMBR_REQUEST);
-
-  if (!message_p) {
-    OAILOG_ERROR(
-      LOG_SPGW_APP,
-      "Unable to allocate itti message: \
-        S11_MODIFY_UE_AMBR_REQUEST \n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-  modify_ue_ambr_request_p = &message_p->ittiMsg.s11_modify_ue_ambr_request;
-  memset(
-    (void *) modify_ue_ambr_request_p,
-    0,
-    sizeof(itti_s11_modify_ue_ambr_request_t));
-  hash_rc = hashtable_ts_get(
-    sgw_app.s11_bearer_context_information_hashtable, teid, (void **) &ctx_p);
-  if (hash_rc != HASH_TABLE_OK) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Context not found for teid :%u\n", teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-  hash_rc = hashtable_ts_get(
-    sgw_app.s11teid2mme_hashtable, teid, (void **) &tun_pair_p);
-  if (hash_rc == HASH_TABLE_OK) {
-    modify_ue_ambr_request_p->teid = tun_pair_p->remote_teid;
-    modify_ue_ambr_request_p->ue_ambr.br_ul = mbr_ul;
-    modify_ue_ambr_request_p->ue_ambr.br_dl = mbr_dl;
-    OAILOG_DEBUG(
-      LOG_SPGW_APP,
-      "Sending Modify UE AMBR Request to MME_APP, \
-        teid %u\n",
-      teid);
-    itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
-  } else {
-    OAILOG_ERROR(
-      LOG_SPGW_APP,
-      "Dropping Modify UE AMBR Request because \
-        tunnel pair not found for sgw_s11_teid :%u\n",
-      teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-
-  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
-}
-
-/*
  * Handle NW initiated Dedicated Bearer Activation from PGW
  */
 int sgw_handle_nw_initiated_actv_bearer_req(

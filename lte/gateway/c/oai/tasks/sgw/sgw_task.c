@@ -211,14 +211,6 @@ int sgw_init(spgw_config_t *spgw_config_pP)
     return RETURNerror;
   }
 
-  /*sgw_app.s1uteid2enb_hashtable = hashtable_ts_create (512, NULL, NULL, "sgw_s1uteid2enb_hashtable");
-
-  if (sgw_app.s1uteid2enb_hashtable == NULL) {
-    perror ("hashtable_ts_create");
-    OAILOG_ALERT (LOG_SPGW_APP, "Initializing SPGW-APP task interface: ERROR\n");
-    return RETURNerror;
-  }*/
-
   bassigncstr(b, "sgw_s11_bearer_context_information_hashtable");
   sgw_app.s11_bearer_context_information_hashtable = hashtable_ts_create(
     512,
@@ -273,9 +265,7 @@ static void sgw_exit(void)
   if (sgw_app.s11teid2mme_hashtable) {
     hashtable_ts_destroy(sgw_app.s11teid2mme_hashtable);
   }
-  /*if (sgw_app.s1uteid2enb_hashtable) {
-    hashtable_destroy (sgw_app.s1uteid2enb_hashtable);
-  }*/
+
   if (sgw_app.s11_bearer_context_information_hashtable) {
     hashtable_ts_destroy(sgw_app.s11_bearer_context_information_hashtable);
   }
