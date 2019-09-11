@@ -1,4 +1,3 @@
-# TODO: ITTI_Messages shouldn't depend on S1_Types
 set(ASN1RELDIR r10.5)
 set(asn1_generated_dir ${PROJECT_BINARY_DIR}/s1ap)
 set(asn1c_call "${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1")
@@ -19,6 +18,8 @@ add_library(TASK_SGW
     sgw_paging.c
     pgw_pcef_emulation.c
     pgw_procedures.c
+    spgw_state.cpp
+    spgw_state_manager.cpp
     )
 target_compile_definitions(TASK_SGW PRIVATE
     PACKAGE_NAME=\"S/P-GW\"
@@ -30,6 +31,7 @@ target_link_libraries(TASK_SGW
     ${GTPNL_LIBRARIES}
     LIB_BSTR LIB_HASHTABLE LIB_RPC_CLIENT LIB_PCEF
     TASK_GTPV1U
+    cpp_redis tacopie
 )
 target_include_directories(TASK_SGW PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

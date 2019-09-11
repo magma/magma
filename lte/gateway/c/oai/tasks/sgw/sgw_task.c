@@ -144,8 +144,7 @@ static void *sgw_intertask_interface(void *args_p)
       case S5_NW_INITIATED_ACTIVATE_BEARER_REQ: {
         //Handle Dedicated bearer activation from PCRF
         sgw_handle_nw_initiated_actv_bearer_req(
-          &received_message_p->ittiMsg.
-          s5_nw_init_actv_bearer_request);
+          &received_message_p->ittiMsg.s5_nw_init_actv_bearer_request);
       } break;
 
       case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
@@ -198,8 +197,6 @@ int sgw_init(spgw_config_t *spgw_config_pP)
     return RETURNerror;
   }
 
-  pgw_ip_address_pool_init();
-
   bstring b = bfromcstr("sgw_s11teid2mme_hashtable");
   sgw_app.s11teid2mme_hashtable = hashtable_ts_create(512, NULL, NULL, b);
   btrunc(b, 0);
@@ -225,17 +222,8 @@ int sgw_init(spgw_config_t *spgw_config_pP)
     return RETURNerror;
   }
 
-  sgw_app.sgw_if_name_S1u_S12_S4_up =
-    bstrcpy(spgw_config_pP->sgw_config.ipv4.if_name_S1u_S12_S4_up);
   sgw_app.sgw_ip_address_S1u_S12_S4_up.s_addr =
     spgw_config_pP->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
-  sgw_app.sgw_if_name_S11_S4 =
-    bstrcpy(spgw_config_pP->sgw_config.ipv4.if_name_S11);
-  sgw_app.sgw_ip_address_S11_S4.s_addr =
-    spgw_config_pP->sgw_config.ipv4.S11.s_addr;
-
-  sgw_app.sgw_ip_address_S5_S8_up.s_addr =
-    spgw_config_pP->sgw_config.ipv4.S5_S8_up.s_addr;
 
   if (RETURNerror == pgw_pcef_emulation_init(&spgw_config_pP->pgw_config)) {
     return RETURNerror;

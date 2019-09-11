@@ -30,25 +30,9 @@
 
 #include <stdint.h>
 
-#include "3gpp_23.401.h"
 #include "3gpp_24.007.h"
-#include "common_types.h"
 
-/********************************
-*     Paired contexts           *
-*********************************/
-// data entry for s11_bearer_context_information_hashtable
-// like this if needed in future, the split of S and P GW should be easier.
-typedef struct s_plus_p_gw_eps_bearer_context_information_s {
-  sgw_eps_bearer_context_information_t sgw_eps_bearer_context_information;
-  pgw_eps_bearer_context_information_t pgw_eps_bearer_context_information;
-} s_plus_p_gw_eps_bearer_context_information_t;
-
-// data entry for s11teid2mme_hashtable
-typedef struct mme_sgw_tunnel_s {
-  uint32_t local_teid;  ///< Tunnel endpoint Identifier
-  uint32_t remote_teid; ///< Tunnel endpoint Identifier
-} mme_sgw_tunnel_t;
+#include "sgw_types.h"
 
 void sgw_display_s11teid2mme_mappings(void);
 void sgw_display_sgw_eps_bearer_context(

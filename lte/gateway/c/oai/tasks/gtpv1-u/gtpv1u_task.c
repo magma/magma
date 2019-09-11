@@ -93,8 +93,6 @@ int gtpv1u_init(spgw_config_t *spgw_config)
   sgw_app.gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
     sgw_app.sgw_ip_address_S1u_S12_S4_up;
 
-  // START-GTP quick integration only for evaluation purpose
-
   // Init gtp_tunnel_ops
 #if ENABLE_OPENFLOW
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_openflow\n");
@@ -147,23 +145,6 @@ int gtpv1u_init(spgw_config_t *spgw_config)
 //------------------------------------------------------------------------------
 void gtpv1u_exit(gtpv1u_data_t *const gtpv1u_data)
 {
-  // START-GTP quick integration only for evaluation purpose
-  //  void * res = 0;
-  //  int rv  = pthread_cancel(gtpv1u_data->reader_thread);
-  //  if (rv != 0) {
-  //    OAILOG_ERROR (LOG_GTPV1U , "gtp_decaps1u pthread_cancel");
-  //  }
-  //  rv = pthread_join(gtpv1u_data->reader_thread, &res);
-  //  if (rv != 0)
-  //    OAILOG_ERROR (LOG_GTPV1U , "gtp_decaps1u pthread_join");
-  //
-  //  if (res == PTHREAD_CANCELED) {
-  //    OAILOG_DEBUG (LOG_GTPV1U , "gtp_decaps1u thread was canceled\n");
-  //  } else {
-  //    OAILOG_ERROR (LOG_GTPV1U , "gtp_decaps1u thread wasn't canceled\n");
-  //  }
-
   gtp_tunnel_ops->uninit();
-  // END-GTP quick integration only for evaluation purpose
   itti_exit_task();
 }

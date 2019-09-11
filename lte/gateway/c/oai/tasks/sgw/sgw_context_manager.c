@@ -41,7 +41,6 @@
 #include "obj_hashtable.h"
 #include "common_defs.h"
 #include "log.h"
-#include "3gpp_23.401.h"
 #include "sgw_context_manager.h"
 #include "sgw.h"
 
