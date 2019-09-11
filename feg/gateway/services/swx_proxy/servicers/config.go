@@ -32,9 +32,11 @@ const (
 	HSSRealmEnv        = "HSS_REALM"
 	DisableDestHostEnv = "DISABLE_DEST_HOST"
 
-	DefaultSwxDiamRealm        = "epc.mnc070.mcc722.3gppnetwork.org"
-	DefaultSwxDiamHost         = "feg-swx.epc.mnc070.mcc722.3gppnetwork.org"
-	DefaultVerifyAuthorization = false
+	DefaultSwxDiamRealm          = "epc.mnc070.mcc722.3gppnetwork.org"
+	DefaultSwxDiamHost           = "feg-swx.epc.mnc070.mcc722.3gppnetwork.org"
+	DefaultVerifyAuthorization   = false
+	DefaultRegisterOnAuth        = false
+	DefaultDeriveUnregisterRealm = false
 )
 
 // GetSwxProxyConfig returns the service config based on the
@@ -58,8 +60,10 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 				DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
 				DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
 			},
-			VerifyAuthorization: DefaultVerifyAuthorization,
-			CacheTTLSeconds:     uint32(cache.DefaultTtl.Seconds()),
+			VerifyAuthorization:   DefaultVerifyAuthorization,
+			RegisterOnAuth:        DefaultRegisterOnAuth,
+			DeriveUnregisterRealm: DefaultDeriveUnregisterRealm,
+			CacheTTLSeconds:       uint32(cache.DefaultTtl.Seconds()),
 		}
 	}
 
@@ -86,8 +90,10 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 			DestRealm:       diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.GetServer().GetDestRealm()),
 			DisableDestHost: diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, configsPtr.GetServer().GetDisableDestHost()),
 		},
-		VerifyAuthorization: configsPtr.GetVerifyAuthorization(),
-		CacheTTLSeconds:     ttl,
+		VerifyAuthorization:   configsPtr.GetVerifyAuthorization(),
+		RegisterOnAuth:        configsPtr.GetRegisterOnAuth(),
+		DeriveUnregisterRealm: configsPtr.GetDeriveUnregisterRealm(),
+		CacheTTLSeconds:       ttl,
 	}
 }
 
