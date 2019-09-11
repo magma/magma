@@ -50,10 +50,12 @@ type swxProxy struct {
 }
 
 type SwxProxyConfig struct {
-	ClientCfg           *diameter.DiameterClientConfig
-	ServerCfg           *diameter.DiameterServerConfig
-	VerifyAuthorization bool // should we verify non-3gpp IP access is enabled for user
-	CacheTTLSeconds     uint32
+	ClientCfg             *diameter.DiameterClientConfig
+	ServerCfg             *diameter.DiameterServerConfig
+	VerifyAuthorization   bool // should we verify non-3gpp IP access is enabled for user
+	RegisterOnAuth        bool // should we send SAR REGISTER on every MAR/A
+	DeriveUnregisterRealm bool // use returned maa.AAAServerName to derive Origin Realm from
+	CacheTTLSeconds       uint32
 }
 
 // NewSwxProxy creates a new instance of the proxy with configured cache TTL
