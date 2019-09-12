@@ -39,7 +39,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   });
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
-    MLOG(MWARNING) << "pipelined has been reset.";
+    MLOG(MDEBUG) << "Pipelined has been restarted, attempting to sync flows";
+    restart_pipelined();
+    current_epoch_ = reported_epoch_;
   }
   response_callback(Status::OK, Void());
 }
@@ -79,6 +81,13 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted()
     return true;
   }
   return false;
+}
+
+bool LocalSessionManagerHandlerImpl::restart_pipelined(){
+  enforcer_->get_event_base().runInEventBaseThread([this]() {
+    enforcer_->setup();
+  });
+  return true;
 }
 
 static CreateSessionRequest copy_wifi_session_info2create_req(

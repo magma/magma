@@ -39,6 +39,9 @@ class SessionRules {
   void add_rules_to_action(ServiceAction &action, uint32_t charging_key);
   void add_rules_to_action(ServiceAction &action, std::string monitoring_key);
 
+  std::vector<std::string> &get_static_rule_ids();
+  DynamicRuleStore &get_dynamic_rules();
+
  private:
   StaticRuleStore &static_rules_;
   std::vector<std::string> active_static_rules_;

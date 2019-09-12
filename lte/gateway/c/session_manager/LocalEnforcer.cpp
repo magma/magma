@@ -107,6 +107,18 @@ folly::EventBase &LocalEnforcer::get_event_base()
   return *evb_;
 }
 
+bool LocalEnforcer::setup()
+{
+  std::vector<SessionState::SessionInfo> session_infos;
+  for(auto it = session_map_.begin(); it != session_map_.end(); it++)
+  {
+    SessionState::SessionInfo session_info;
+    it->second->get_session_info(session_info);
+    session_infos.push_back(session_info);
+  }
+  return pipelined_client_->setup(session_infos);
+}
+
 void LocalEnforcer::aggregate_records(const RuleRecordTable &records)
 {
   new_report(); // unmark all credits

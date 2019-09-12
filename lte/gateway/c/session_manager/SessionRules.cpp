@@ -94,4 +94,14 @@ void SessionRules::add_rules_to_action(
     monitoring_key, *action.get_mutable_rule_definitions());
 }
 
+std::vector<std::string> &SessionRules::get_static_rule_ids()
+{
+  return active_static_rules_;
+}
+
+DynamicRuleStore &SessionRules::get_dynamic_rules()
+{
+  return dynamic_rules_;
+}
+
 } // namespace magma

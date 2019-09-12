@@ -49,6 +49,12 @@ class LocalEnforcer {
   folly::EventBase &get_event_base();
 
   /**
+   * Setup rules for all sessions in pipelined, used whenever pipelined
+   * restarts and needs to recover state
+   */
+  bool setup();
+
+  /**
    * Insert a group of rule usage into the monitor and update credit manager
    * Assumes records are aggregates, as in the usages sent are cumulative and
    * not differences.

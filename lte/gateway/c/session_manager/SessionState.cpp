@@ -255,4 +255,12 @@ std::string SessionState::get_radius_session_id()
   return config_.radius_session_id;
 }
 
+void SessionState::get_session_info(SessionState::SessionInfo &info)
+{
+  info.imsi = imsi_;
+  info.ip_addr = config_.ue_ipv4;
+  session_rules_.get_dynamic_rules().get_rules(info.dynamic_rules);
+  info.static_rules = session_rules_.get_static_rule_ids();
+}
+
 } // namespace magma

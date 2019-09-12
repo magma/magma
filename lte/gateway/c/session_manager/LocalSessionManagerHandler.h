@@ -102,6 +102,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  private:
   void check_usage_for_reporting();
   bool is_pipelined_restarted();
+  bool restart_pipelined();
 
   void send_create_session(
     const CreateSessionRequest &request,

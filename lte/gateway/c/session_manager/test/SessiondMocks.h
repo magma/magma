@@ -21,6 +21,7 @@
 #include "CloudReporter.h"
 #include "LocalSessionManagerHandler.h"
 #include "PipelinedClient.h"
+#include "SessionState.h"
 #include "RuleStore.h"
 
 using grpc::Status;
@@ -61,6 +62,7 @@ class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient()
   {
+    ON_CALL(*this, setup(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _))
       .WillByDefault(Return(true));
@@ -69,6 +71,9 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, add_ue_mac_flow(_, _)).WillByDefault(Return(true));
   }
 
+  MOCK_METHOD1(setup,
+    bool(
+      const std::vector<SessionState::SessionInfo> &infos));
   MOCK_METHOD1(deactivate_all_flows, bool(const std::string &imsi));
   MOCK_METHOD3(
     deactivate_flows_for_rules,

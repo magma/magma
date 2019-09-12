@@ -37,6 +37,12 @@ class SessionState {
     std::string mac_addr; // MAC Address for WLAN
     std::string radius_session_id;
   };
+  struct SessionInfo {
+    std::string imsi;
+    std::string ip_addr;
+    std::vector<std::string> static_rules;
+    std::vector<PolicyRule> dynamic_rules;
+  };
 
  public:
   SessionState(
@@ -131,6 +137,8 @@ class SessionState {
 
   bool is_same_config(const Config &new_config);
 
+  void get_session_info(SessionState::SessionInfo &info);
+
  private:
   /**
    * State transitions of a session:
@@ -164,8 +172,8 @@ class SessionState {
   std::string session_id_;
   uint32_t request_number_;
   ChargingCreditPool charging_pool_;
-  UsageMonitoringCreditPool monitor_pool_;
   SessionRules session_rules_;
+  UsageMonitoringCreditPool monitor_pool_;
   SessionState::State curr_state_;
   SessionState::Config config_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;
