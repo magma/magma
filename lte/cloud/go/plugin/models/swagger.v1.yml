@@ -37,6 +37,8 @@ magma-gen-meta:
       filename: subscriber_swaggergen.go
     - go-struct-name: LteSubscription
       filename: lte_subscription_swaggergen.go
+    - go-struct-name: EnodebState
+      filename: enodeb_state_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -1040,6 +1042,22 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/enodebs/{enodeb_serial}/state:
+    get:
+      summary: Retrieve reported state from enodeb device
+      tags:
+        - EnodeBs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/enodeb_serial'
+      responses:
+        '200':
+          description: The requested enodeB's configuration
+          schema:
+            $ref: '#/definitions/enodeb_state'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/subscribers:
     get:
       summary: List subscribers in the network
@@ -1211,6 +1229,10 @@ definitions:
     type: object
     minLength: 1
     required:
+      # fdd/tdd config is a one-of, not supported by swagger spec so leaving
+      # out of required fields
+      # Technically fdd/tdd operation is determined by earfcndl value
+      # See lte_bands.go for an incomplete mapping
       - bandwidth_mhz
     properties:
       bandwidth_mhz:
@@ -1274,8 +1296,6 @@ definitions:
     type: object
     minLength: 1
     required:
-      - cloud_subscriberdb_enabled
-      - default_rule_id
       - lte_auth_amf
       - lte_auth_op
       - mcc
@@ -1657,6 +1677,7 @@ definitions:
         enum:
           - 'Baicells Nova-233 G2 OD FDD'
           - 'Baicells Nova-243 OD TDD'
+          - 'Baicells Neutrino 224 ID FDD'
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
@@ -1702,3 +1723,49 @@ definitions:
         type: string
         format: byte
         example: 'AAECAwQFBgcICQoLDA0ODw=='
+
+  enodeb_state:
+    description: Single Enodeb State
+    type: object
+    required:
+      - enodeb_configured
+      - gps_longitude
+      - gps_latitude
+      - enodeb_connected
+      - opstate_enabled
+      - rf_tx_on
+      - rf_tx_desired
+      - gps_connected
+      - ptp_connected
+      - mme_connected
+      - fsm_state
+    properties:
+      time_reported:
+        type: integer
+        format: uint64
+        description: Time at which the state was reported in ms
+      reporting_gateway_id:
+        type: string
+        description: Gateway ID from which the enodeb state was reported
+      enodeb_configured:
+        type: boolean
+      gps_longitude:
+        type: string
+      gps_latitude:
+        type: string
+      enodeb_connected:
+        type: boolean
+      opstate_enabled:
+        type: boolean
+      rf_tx_on:
+        type: boolean
+      rf_tx_desired:
+        type: boolean
+      gps_connected:
+        type: boolean
+      ptp_connected:
+        type: boolean
+      mme_connected:
+        type: boolean
+      fsm_state:
+        type: string

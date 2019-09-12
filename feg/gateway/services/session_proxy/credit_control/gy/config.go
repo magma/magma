@@ -58,7 +58,7 @@ const (
 // GetInitMethod returns the init method for this gy client based on the flags
 // or environment variables
 func GetInitMethod() InitMethod {
-	initMethod := PerSessionInit
+	initMethod := PerKeyInit
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil || configsPtr.Gy == nil {

@@ -47,7 +47,7 @@ attach_ebs() {
         if [[ -n "$ATTACHED_EBS_VOLUME" ]]; then
 
             # detach volume if it is attached
-            aws ec2 detach-volume --volume-id $ATTACHED_EBS_VOLUME
+            aws ec2 detach-volume --region $REGION --volume-id $ATTACHED_EBS_VOLUME
 
             sleep 10
 

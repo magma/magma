@@ -75,9 +75,9 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 	hwID := gw.HardwareId
 	networkID := gw.NetworkId
 	certExpiry := protos.GetClientCertExpiration(context)
-	time := uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
+	timeMs := uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
 
-	states, err := addWrapperAndMakeBlobs(validatedStates, hwID, time, certExpiry)
+	states, err := addWrapperAndMakeBlobs(validatedStates, hwID, timeMs, certExpiry)
 	if err != nil {
 		return response, err
 	}
@@ -118,17 +118,17 @@ func (srv *stateServicer) DeleteStates(context context.Context, req *protos.Dele
 func wrapStateWithAdditionalInfo(state *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
 	wrap := stateService.SerializedStateWithMeta{
 		ReporterID:              hwID,
-		Time:                    time,
+		TimeMs:                  time,
 		CertExpirationTime:      certExpiry,
 		SerializedReportedState: state.Value,
 	}
 	return json.Marshal(wrap)
 }
 
-func addWrapperAndMakeBlobs(states []*protos.State, hwID string, time uint64, certExpiry int64) ([]blobstore.Blob, error) {
+func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, certExpiry int64) ([]blobstore.Blob, error) {
 	blobs := []blobstore.Blob{}
 	for _, state := range states {
-		wrappedValue, err := wrapStateWithAdditionalInfo(state, hwID, time, certExpiry)
+		wrappedValue, err := wrapStateWithAdditionalInfo(state, hwID, timeMs, certExpiry)
 		if err != nil {
 			return nil, err
 		}

@@ -10,19 +10,24 @@
 
 import CircularProgress from '@material-ui/core/CircularProgress';
 import React from 'react';
+import axios from 'axios';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
-import {useMemo} from 'react';
+import {useEffect, useMemo, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 type Props = {
   label: string,
   unit: string,
-  query: string,
+  queries: Array<string>,
+  legendLabels?: Array<string>,
   timeRange: TimeRange,
+  networkId?: string,
+  usePrometheusDB: boolean,
 };
 
 const useStyles = makeStyles({
@@ -32,14 +37,50 @@ const useStyles = makeStyles({
   },
 });
 
-export type TimeRange = '24_hours' | '7_days' | '14_days' | '30_days';
+export type TimeRange =
+  | '3_hours'
+  | '6_hours'
+  | '12_hours'
+  | '24_hours'
+  | '7_days'
+  | '14_days'
+  | '30_days';
+
 type RangeValue = {
-  days: number,
+  days?: number,
+  hours?: number,
   step: string,
   unit: string,
 };
 
+type Dataset = {
+  label: string,
+  unit: string,
+  fill: boolean,
+  lineTension: number,
+  pointRadius: number,
+  borderWidth: number,
+  backgroundColor: string,
+  borderColor: string,
+  data: Array<{t: number, y: number | string}>,
+};
+
 const RANGE_VALUES: {[TimeRange]: RangeValue} = {
+  '3_hours': {
+    hours: 3,
+    step: '30s',
+    unit: 'minute',
+  },
+  '6_hours': {
+    hours: 6,
+    step: '1m',
+    unit: 'hour',
+  },
+  '12_hours': {
+    hours: 12,
+    step: '5m',
+    unit: 'hour',
+  },
   '24_hours': {
     days: 1,
     step: '15m',
@@ -56,13 +97,71 @@ const RANGE_VALUES: {[TimeRange]: RangeValue} = {
     unit: 'day',
   },
   '30_days': {
-    days: 30,
+    days: 14,
     step: '8h',
     unit: 'day',
   },
 };
 
 const COLORS = ['blue', 'red', 'green', 'yellow', 'purple', 'black'];
+
+interface DatabaseHelper<T> {
+  getLegendLabel(data: T): string;
+  queryFunction: (networkID: string) => string;
+  datapointFieldName: string;
+}
+
+class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
+  getLegendLabel(result: PrometheusResponse): string {
+    const {metric} = result;
+
+    const tags = [];
+    const droppedTags = ['gatewayID', 'networkID', 'service', '__name__'];
+    for (const key in metric) {
+      if (metric.hasOwnProperty(key) && !droppedTags.includes(key)) {
+        tags.push(key + '=' + metric[key]);
+      }
+    }
+    return tags.length === 0
+      ? metric['__name__']
+      : `${metric['__name__']} (${tags.join(', ')})`;
+  }
+
+  queryFunction = MagmaAPIUrls.prometheusQueryRange;
+  datapointFieldName = 'values';
+}
+
+class GraphiteHelper implements DatabaseHelper<GraphiteResponse> {
+  getLegendLabel(result: GraphiteResponse): string {
+    const {target} = result;
+    const label = JSON.stringify(target)
+      .slice(1, -1) // remove double quotes
+      .split(';'); // token separator for graphite
+    const metric = label.shift();
+
+    // remove gateway, network, and service tags, they're not interesting
+    const tags = label.filter(tag => {
+      const tagName = tag.split('=')[0];
+      return (
+        tagName !== 'gatewayID' &&
+        tagName !== 'networkID' &&
+        tagName !== 'service'
+      );
+    });
+    return tags.length === 0 ? metric : `${metric} (${tags.join(', ')})`;
+  }
+
+  queryFunction = MagmaAPIUrls.graphiteQuery;
+  datapointFieldName = 'datapoints';
+}
+
+type PrometheusResponse = {
+  metric: {[key: string]: string},
+};
+
+type GraphiteResponse = {
+  target: JSON,
+};
 
 function Progress() {
   const classes = useStyles();
@@ -74,12 +173,18 @@ function Progress() {
 }
 
 function getStartEnd(timeRange: TimeRange) {
-  const {days} = RANGE_VALUES[timeRange];
-  const end = moment().toISOString();
-  const start = moment()
-    .subtract({days})
-    .toISOString();
-  return {start, end};
+  const {days, hours, step} = RANGE_VALUES[timeRange];
+  const end = moment();
+  const endUnix = end.unix() * 1000;
+  const start = end.clone().subtract({days, hours});
+  const startUnix = start.unix() * 1000;
+  return {
+    start: start.toISOString(),
+    startUnix: startUnix,
+    end: end.toISOString(),
+    endUnix: endUnix,
+    step,
+  };
 }
 
 function getUnit(timeRange: TimeRange) {
@@ -90,52 +195,110 @@ function getColorForIndex(index: number) {
   return COLORS[index % COLORS.length];
 }
 
-export default function AsyncMetric(props: Props) {
+function useDatasetsFetcher(props: Props) {
   const {match} = useRouter();
   const startEnd = useMemo(() => getStartEnd(props.timeRange), [
     props.timeRange,
   ]);
+  const [allDatasets, setAllDatasets] = useState<?Array<Dataset>>(null);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const stringedQueries = JSON.stringify(props.queries);
 
-  const {error, isLoading, response} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.prometheusQueryRange(match),
-    params: {
-      query: props.query,
-      ...startEnd,
-    },
-  });
+  const dbHelper = useMemo(
+    () =>
+      props.usePrometheusDB ? new PrometheusHelper() : new GraphiteHelper(),
+    [props.usePrometheusDB],
+  );
 
-  useSnackbar('Error getting metric ' + props.label, {variant: 'error'}, error);
+  useEffect(() => {
+    const queries = JSON.parse(stringedQueries);
+    const requests = queries.map(async (query, index) => {
+      try {
+        const response = await axios.get(
+          dbHelper.queryFunction(props.networkId || match),
+          {
+            params: {
+              query,
+              ...{
+                start: startEnd.start,
+                end: startEnd.end,
+                step: startEnd.step,
+              },
+            },
+          },
+        );
 
-  const data = useMemo(() => {
-    const result = response?.data.data.result;
-    if (!result || result.length === 0) {
+        const label = props.legendLabels ? props.legendLabels[index] : null;
+        return {response, label};
+      } catch (error) {
+        enqueueSnackbar('Error getting metric ' + props.label, {
+          variant: 'error',
+        });
+      }
       return null;
-    }
+    });
 
-    return {
-      datasets: result.map((it, index) => ({
-        label: JSON.stringify(it.metric),
-        unit: props.unit || '',
-        fill: false,
-        lineTension: 0,
-        pointRadius: 0,
-        borderColor: getColorForIndex(index),
-        borderWidth: 2,
-        backgroundColor: 'transparent',
-        data: it.values.map(i => ({
-          t: i[0] * 1000,
-          y: parseInt(i[1], 10),
-        })),
-      })),
-    };
-  }, [response, props.unit]);
+    Promise.all(requests).then(allResponses => {
+      let index = 0;
+      const datasets = [];
+      allResponses.filter(Boolean).forEach(({response, label}) => {
+        const result = props.usePrometheusDB
+          ? response.data?.data?.result
+          : response.data?.result;
+        if (result) {
+          result.map(it =>
+            datasets.push({
+              label: label || dbHelper.getLegendLabel(it),
+              unit: props.unit || '',
+              fill: false,
+              lineTension: 0,
+              pointRadius: 0,
+              borderWidth: 2,
+              backgroundColor: getColorForIndex(index),
+              borderColor: getColorForIndex(index++),
+              data: it[dbHelper.datapointFieldName].map(i => ({
+                t: parseInt(i[0]) * 1000,
+                y: parseFloat(i[1]),
+              })),
+            }),
+          );
+        }
+      });
+      // Add "NaN" to the beginning/end of each dataset to force the chart to
+      // display the whole time frame requested
+      datasets.forEach(dataset => {
+        if (dataset.data[0].t > startEnd.startUnix) {
+          dataset.data.unshift({t: startEnd.startUnix, y: 'NaN'});
+        }
+        if (dataset.data[dataset.data.length - 1].t < startEnd.endUnix) {
+          dataset.data.push({t: startEnd.endUnix, y: 'NaN'});
+        }
+      });
+      setAllDatasets(datasets);
+    });
+  }, [
+    stringedQueries,
+    match,
+    props.networkId,
+    props.unit,
+    startEnd,
+    props.label,
+    props.legendLabels,
+    enqueueSnackbar,
+    dbHelper,
+    props.usePrometheusDB,
+  ]);
 
-  if (error || isLoading || !response) {
+  return allDatasets;
+}
+
+export default function AsyncMetric(props: Props) {
+  const allDatasets = useDatasetsFetcher(props);
+  if (allDatasets === null) {
     return <Progress />;
   }
 
-  if (data === null) {
+  if (allDatasets?.length === 0) {
     return 'No Data';
   }
 
@@ -178,8 +341,13 @@ export default function AsyncMetric(props: Props) {
           },
         },
       }}
-      legend={{display: false}}
-      data={data}
+      legend={{
+        position: 'bottom',
+        labels: {
+          boxWidth: 12,
+        },
+      }}
+      data={{datasets: allDatasets}}
     />
   );
 }

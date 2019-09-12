@@ -36,6 +36,8 @@ std::chrono::milliseconds time_difference_from_now(
 
 namespace magma {
 
+uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY = 2000;
+
 using google::protobuf::RepeatedPtrField;
 using google::protobuf::util::TimeUtil;
 
@@ -105,6 +107,20 @@ folly::EventBase &LocalEnforcer::get_event_base()
   return *evb_;
 }
 
+bool LocalEnforcer::setup(
+  const std::uint64_t &epoch,
+  std::function<void(Status status, SetupFlowsResult)> callback)
+{
+  std::vector<SessionState::SessionInfo> session_infos;
+  for(auto it = session_map_.begin(); it != session_map_.end(); it++)
+  {
+    SessionState::SessionInfo session_info;
+    it->second->get_session_info(session_info);
+    session_infos.push_back(session_info);
+  }
+  return pipelined_client_->setup(session_infos, epoch, callback);
+}
+
 void LocalEnforcer::aggregate_records(const RuleRecordTable &records)
 {
   new_report(); // unmark all credits
@@ -141,9 +157,10 @@ void LocalEnforcer::execute_actions(
         action_p->get_ip_addr(),
         action_p->get_rule_ids(),
         action_p->get_rule_definitions());
-    } else if (action_p->get_type() == REDIRECT ||
-      action_p->get_type() == RESTRICT_ACCESS) {
-      MLOG(MDEBUG) << "Unsupported action type: " << action_p->get_type()
+    } else if (action_p->get_type() == REDIRECT) {
+      install_redirect_flow(action_p);
+    } else if (action_p->get_type() == RESTRICT_ACCESS) {
+      MLOG(MDEBUG) << "RESTRICT_ACCESS mode is unsupported"
                    << ", will just terminate the service.";
       terminate_service(
         action_p->get_imsi(),
@@ -170,6 +187,55 @@ void LocalEnforcer::terminate_service(
                  << ", IMSI: " << imsi;
     aaa_client_->terminate_session(it->second->get_radius_session_id(), imsi);
   }
+}
+
+// TODO: make session_manager.proto and policydb.proto to use common field
+static RedirectInformation_AddressType address_type_converter(
+  RedirectServer_RedirectAddressType address_type)
+{
+  switch(address_type) {
+    case RedirectServer_RedirectAddressType_IPV4:
+      return RedirectInformation_AddressType_IPv4;
+    case RedirectServer_RedirectAddressType_IPV6:
+      return RedirectInformation_AddressType_IPv6;
+    case RedirectServer_RedirectAddressType_URL:
+      return RedirectInformation_AddressType_URL;
+    case RedirectServer_RedirectAddressType_SIP_URI:
+      return RedirectInformation_AddressType_SIP_URI;
+  }
+}
+
+static PolicyRule create_redirect_rule(
+  const std::unique_ptr<ServiceAction> &action)
+{
+  PolicyRule redirect_rule;
+  redirect_rule.set_id("redirect");
+  redirect_rule.set_priority(LocalEnforcer::REDIRECT_FLOW_PRIORITY);
+  redirect_rule.set_rating_group(action->get_rating_group());
+
+  RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
+  redirect_info->set_support(RedirectInformation_Support_ENABLED);
+
+  auto redirect_server = action->get_redirect_server();
+  redirect_info->set_address_type(
+    address_type_converter(redirect_server.redirect_address_type()));
+  redirect_info->set_server_address(
+    redirect_server.redirect_server_address());
+
+  return redirect_rule;
+}
+
+void LocalEnforcer::install_redirect_flow(
+  const std::unique_ptr<ServiceAction> &action)
+{
+  std::vector<std::string> static_rules;
+  std::vector<PolicyRule> dynamic_rules {create_redirect_rule(action)};
+
+  pipelined_client_->activate_flows_for_rules(
+    action->get_imsi(),
+    action->get_ip_addr(),
+    static_rules,
+    dynamic_rules);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates()
@@ -236,6 +302,7 @@ void LocalEnforcer::schedule_static_rule_activation(
   std::vector<std::string> static_rules {static_rule.rule_id()};
   std::vector<PolicyRule> dynamic_rules;
 
+  auto it = session_map_.find(imsi);
   auto delta = time_difference_from_now(static_rule.activation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " static rule "
                << static_rule.rule_id() << " activation in "
@@ -245,6 +312,13 @@ void LocalEnforcer::schedule_static_rule_activation(
       std::move([=] {
         pipelined_client_->activate_flows_for_rules(
           imsi, ip_addr, static_rules, dynamic_rules);
+        if (it == session_map_.end()) {
+          MLOG(MWARNING) << "Could not find session for IMSI " << imsi
+                         << "during installation of static rule "
+                         << static_rule.rule_id();
+        } else {
+          it->second->activate_static_rule(static_rule.rule_id());
+        }
       }),
       delta);
   });
@@ -287,6 +361,7 @@ void LocalEnforcer::schedule_static_rule_deactivation(
   std::vector<std::string> static_rules {static_rule.rule_id()};
   std::vector<PolicyRule> dynamic_rules;
 
+  auto it = session_map_.find(imsi);
   auto delta = time_difference_from_now(static_rule.deactivation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " static rule "
                << static_rule.rule_id() << " deactivation in "
@@ -296,6 +371,16 @@ void LocalEnforcer::schedule_static_rule_deactivation(
       std::move([=] {
         pipelined_client_->deactivate_flows_for_rules(
           imsi, static_rules, dynamic_rules);
+        if (it == session_map_.end()) {
+          MLOG(MWARNING) << "Could not find session for IMSI " << imsi
+                         << "during removal of static rule "
+                         << static_rule.rule_id();
+        } else {
+          if (!it->second->deactivate_static_rule(static_rule.rule_id()))
+            MLOG(MWARNING) << "Could not find rule " << static_rule.rule_id()
+                           << "for IMSI " << imsi
+                           << " during static rule removal";
+        }
       }),
       delta);
   });
@@ -450,6 +535,9 @@ bool LocalEnforcer::init_session_credit(
   // activate_flows_for_rules() should be called even if there is no rule to
   // activate, because pipelined activates a "drop all packet" rule
   // when no rule is provided as the parameter
+  for (const auto &static_rule : rules_to_activate.static_rules) {
+    session_state->activate_static_rule(static_rule);
+  }
   for (const auto &policy_rule : rules_to_activate.dynamic_rules) {
     session_state->insert_dynamic_rule(policy_rule);
   }
@@ -466,6 +554,12 @@ bool LocalEnforcer::init_session_credit(
   if (
     rules_to_deactivate.static_rules.size() > 0 ||
     rules_to_deactivate.dynamic_rules.size() > 0) {
+    for (const auto &static_rule : rules_to_deactivate.static_rules) {
+      if (!session_state->deactivate_static_rule(static_rule))
+        MLOG(MWARNING) << "Could not find rule " << static_rule  << "for IMSI "
+                       << imsi << " during static rule removal";
+
+    }
     for (const auto &policy_rule : rules_to_deactivate.dynamic_rules) {
       PolicyRule rule_dont_care;
       session_state->remove_dynamic_rule(policy_rule.id(), &rule_dont_care);
@@ -677,6 +771,9 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (is_dynamic) {
       rules_to_deactivate->dynamic_rules.push_back(dy_rule);
     } else {
+      if (!session->deactivate_static_rule(rule_id))
+        MLOG(MWARNING) << "Could not find rule " << rule_id << "for IMSI "
+                       << request.imsi() << " during static rule removal";
       rules_to_deactivate->static_rules.push_back(rule_id);
     }
   }
@@ -690,6 +787,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (activation_time > current_time) {
       schedule_static_rule_activation(imsi, ip_addr, static_rule);
     } else {
+      session->activate_static_rule(static_rule.rule_id());
       rules_to_activate->static_rules.push_back(static_rule.rule_id());
     }
 
@@ -698,6 +796,9 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (deactivation_time > current_time) {
       schedule_static_rule_deactivation(imsi, static_rule);
     } else if (deactivation_time > 0) {
+      if (!session->deactivate_static_rule(static_rule.rule_id()))
+        MLOG(MWARNING) << "Could not find rule " << static_rule.rule_id()
+                       << "for IMSI " << imsi << " during static rule removal";
       rules_to_deactivate->static_rules.push_back(static_rule.rule_id());
     }
   }

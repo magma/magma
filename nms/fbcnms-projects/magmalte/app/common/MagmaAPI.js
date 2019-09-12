@@ -53,11 +53,15 @@ export const MagmaAPIUrls = {
   gatewayConfigsForType: (
     networkIdOrMatch: string | Match,
     gatewayId: string,
-    type: 'wifi' | 'cellular',
+    type: 'wifi' | 'cellular' | 'tarazed' | 'devmand',
   ) =>
     `${MagmaAPIUrls.network(
       networkIdOrMatch,
     )}/gateways/${gatewayId}/configs/${type}`,
+  gatewayName: (networkIdOrMatch: string | Match, gatewayId: string) =>
+    `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways/${gatewayId}/name`,
+  gatewayStatus: (networkIdOrMatch: string | Match, gatewayId: string) =>
+    `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways/${gatewayId}/status`,
   prometheusQueryRange: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/prometheus/query_range`,
   graphiteQuery: (networkIdOrMatch: string | Match) =>
@@ -80,6 +84,22 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(
       networkIdOrMatch,
     )}/gateways/${gatewayId}/command/${commandName}`,
+  device: (networkIdOrMatch: string | Match, deviceId: string) =>
+    `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/devices/${deviceId}`,
+  devices: (networkIdOrMatch: string | Match, deviceId?: string) => {
+    return deviceId
+      ? `${MagmaAPIUrls.network(
+          networkIdOrMatch,
+        )}/configs/devices?requested_id=${deviceId}`
+      : `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/devices`;
+  },
+  devicesDevmandConfigs: (
+    networkIdOrMatch: string | Match,
+    gatewayId: string,
+  ) =>
+    `${MagmaAPIUrls.network(
+      networkIdOrMatch,
+    )}/gateways/${gatewayId}/configs/devmand`,
 };
 
 export async function fetchAllNetworkUpgradeTiers(
@@ -113,8 +133,13 @@ export async function fetchAllGateways(
   return gateways.filter(gateway => gateway.record !== null);
 }
 
-export async function fetchDevice(match: Match, id: string): {[string]: any} {
-  const response = await axios.get(MagmaAPIUrls.gatewaysSingle(match, id));
+export async function fetchDevice(
+  networkIdOrMatch: string | Match,
+  id: string,
+): {[string]: any} {
+  const response = await axios.get(
+    MagmaAPIUrls.gatewaysSingle(networkIdOrMatch, id),
+  );
   return response.data[0];
 }
 
@@ -124,13 +149,13 @@ export async function createDevice(
     ...Record,
     key: {key_type: string, key?: string},
   },
-  type: 'wifi' | 'cellular',
+  type: 'wifi' | 'cellular' | 'tarazed' | 'devmand',
   configs: MagmadConfig,
   extraConfigs: WifiConfig | {[string]: mixed},
-  match: Match,
+  networkIdOrMatch: string | Match,
 ): {[string]: any} {
   const uri = url.format({
-    pathname: MagmaAPIUrls.gateways(match),
+    pathname: MagmaAPIUrls.gateways(networkIdOrMatch),
     query: {new_workflow_flag: true, requested_id: id},
   });
 
@@ -140,12 +165,26 @@ export async function createDevice(
 
   // 2nd Step: creating the config objects
   await axios.all([
-    axios.post(MagmaAPIUrls.gatewayConfigs(match, id), configs),
+    axios.post(MagmaAPIUrls.gatewayConfigs(networkIdOrMatch, id), configs),
     axios.post(
-      MagmaAPIUrls.gatewayConfigsForType(match, id, type),
+      MagmaAPIUrls.gatewayConfigsForType(networkIdOrMatch, id, type),
       extraConfigs,
     ),
   ]);
 
-  return await fetchDevice(match, id);
+  return await fetchDevice(networkIdOrMatch, id);
+}
+
+export async function updateGatewayName(
+  gatewayId: string,
+  name: string,
+  networkIdOrMatch: string | Match,
+): Promise<void> {
+  await axios.put(
+    MagmaAPIUrls.gatewayName(networkIdOrMatch, gatewayId),
+    JSON.stringify(`"${name}"`),
+    {
+      headers: {'content-type': 'application/json'},
+    },
+  );
 }

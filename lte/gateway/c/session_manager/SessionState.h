@@ -37,6 +37,12 @@ class SessionState {
     std::string mac_addr; // MAC Address for WLAN
     std::string radius_session_id;
   };
+  struct SessionInfo {
+    std::string imsi;
+    std::string ip_addr;
+    std::vector<std::string> static_rules;
+    std::vector<PolicyRule> dynamic_rules;
+  };
 
  public:
   SessionState(
@@ -109,7 +115,11 @@ class SessionState {
 
   void insert_dynamic_rule(const PolicyRule &dynamic_rule);
 
+  void activate_static_rule(const std::string &rule_id);
+
   bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
+
+  bool deactivate_static_rule(const std::string &rule_id);
 
   ChargingCreditPool &get_charging_pool();
 
@@ -126,6 +136,8 @@ class SessionState {
   bool is_radius_cwf_session();
 
   bool is_same_config(const Config &new_config);
+
+  void get_session_info(SessionState::SessionInfo &info);
 
  private:
   /**

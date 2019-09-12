@@ -17,19 +17,4 @@ route:
   repeat_interval: 1h
 receivers:
 - name: null_receiver
-- name: test_string
-  slack_configs:
-  - api_url: http://slack.com/12345
-    channel: string
-    username: string
-- name: test_string2
-  slack_configs:
-  - api_url: http://slack.com/12345
-    channel: string
-    username: string
-- name: test_string3
-  slack_configs:
-  - api_url: http://slack.com/12345
-    channel: string
-    username: string
 templates: []

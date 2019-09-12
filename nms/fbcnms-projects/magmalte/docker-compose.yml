@@ -12,7 +12,7 @@ services:
       MYSQL_PASSWORD: password
     restart: on-failure
     healthcheck:
-      test: mysqladmin ping -proot
+      test: mysqladmin ping -p12345
 
   nginx-proxy:
     image: nginx
@@ -49,7 +49,7 @@ services:
       MYSQL_PASS: password
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
     healthcheck:
-      test: curl -If localhost:8081/user/login
+      test: curl -If localhost:8081/healthz
     restart: on-failure
     secrets:
       - api_cert

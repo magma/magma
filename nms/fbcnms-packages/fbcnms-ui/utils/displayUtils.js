@@ -30,3 +30,11 @@ export const formatFileSize = (sizeInBytes: number) => {
     return `${sizeInBytes}B`;
   }
 };
+
+// formats server side timestamps (seonds from epoch)
+// to text input required format dd-mm-yyyy
+export const formatDateForTextInput = (dateValue: ?number) => {
+  return !!dateValue
+    ? new Date(dateValue * 1000).toISOString().split('T')[0]
+    : '';
+};

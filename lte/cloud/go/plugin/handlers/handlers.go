@@ -46,24 +46,25 @@ const (
 	ManageNetworkCellularRanPath       = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
 	ManageNetworkCellularFegNetworkID  = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
 
-	Gateways                         = "gateways"
-	ListGatewaysPath                 = ManageNetworkPath + obsidian.UrlSep + Gateways
-	ManageGatewayPath                = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
-	ManageGatewayNamePath            = ManageGatewayPath + obsidian.UrlSep + "name"
-	ManageGatewayDescriptionPath     = ManageGatewayPath + obsidian.UrlSep + "description"
-	ManageGatewayConfigPath          = ManageGatewayPath + obsidian.UrlSep + "magmad"
-	ManageGatewayDevicePath          = ManageGatewayPath + obsidian.UrlSep + "device"
-	ManageGatewayStatePath           = ManageGatewayPath + obsidian.UrlSep + "state"
-	ManageGatewayTierPath            = ManageGatewayPath + obsidian.UrlSep + "tier"
-	ManageGatewayCellularPath        = ManageGatewayPath + obsidian.UrlSep + "cellular"
-	ManageGatewayCellularEpcPath     = ManageGatewayCellularPath + obsidian.UrlSep + "epc"
-	ManageGatewayCellularRanPath     = ManageGatewayCellularPath + obsidian.UrlSep + "ran"
-	ManageGatewayCellularNonEpsPath  = ManageGatewayCellularPath + obsidian.UrlSep + "non_eps"
-	ManageGatewayCellularEnodebsPath = ManageGatewayCellularPath + obsidian.UrlSep + "connected_enodeb_serial"
+	Gateways                          = "gateways"
+	ListGatewaysPath                  = ManageNetworkPath + obsidian.UrlSep + Gateways
+	ManageGatewayPath                 = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	ManageGatewayNamePath             = ManageGatewayPath + obsidian.UrlSep + "name"
+	ManageGatewayDescriptionPath      = ManageGatewayPath + obsidian.UrlSep + "description"
+	ManageGatewayConfigPath           = ManageGatewayPath + obsidian.UrlSep + "magmad"
+	ManageGatewayDevicePath           = ManageGatewayPath + obsidian.UrlSep + "device"
+	ManageGatewayStatePath            = ManageGatewayPath + obsidian.UrlSep + "status"
+	ManageGatewayTierPath             = ManageGatewayPath + obsidian.UrlSep + "tier"
+	ManageGatewayCellularPath         = ManageGatewayPath + obsidian.UrlSep + "cellular"
+	ManageGatewayCellularEpcPath      = ManageGatewayCellularPath + obsidian.UrlSep + "epc"
+	ManageGatewayCellularRanPath      = ManageGatewayCellularPath + obsidian.UrlSep + "ran"
+	ManageGatewayCellularNonEpsPath   = ManageGatewayCellularPath + obsidian.UrlSep + "non_eps"
+	ManageGatewayConnectedEnodebsPath = ManageGatewayPath + obsidian.UrlSep + "connected_enodeb_serials"
 
-	Enodebs          = "enodebs"
-	ListEnodebsPath  = ManageNetworkPath + obsidian.UrlSep + Enodebs
-	ManageEnodebPath = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
+	Enodebs            = "enodebs"
+	ListEnodebsPath    = ManageNetworkPath + obsidian.UrlSep + Enodebs
+	ManageEnodebPath   = ListEnodebsPath + obsidian.UrlSep + ":enodeb_serial"
+	GetEnodebStatePath = ManageEnodebPath + obsidian.UrlSep + "state"
 
 	Subscribers              = "subscribers"
 	ListSubscribersPath      = ManageNetworkPath + obsidian.UrlSep + Subscribers
@@ -97,6 +98,9 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageEnodebPath, Methods: obsidian.GET, HandlerFunc: getEnodeb},
 		{Path: ManageEnodebPath, Methods: obsidian.PUT, HandlerFunc: updateEnodeb},
 		{Path: ManageEnodebPath, Methods: obsidian.DELETE, HandlerFunc: deleteEnodeb},
+		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.POST, HandlerFunc: addConnectedEnodeb},
+		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.DELETE, HandlerFunc: deleteConnectedEnodeb},
+		{Path: GetEnodebStatePath, Methods: obsidian.GET, HandlerFunc: getEnodebState},
 
 		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribers},
 		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
@@ -125,7 +129,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEpcPath, &ltemodels.GatewayEpcConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &ltemodels.GatewayRanConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &ltemodels.GatewayNonEpsConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEnodebsPath, &ltemodels.EnodebSerials{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConnectedEnodebsPath, &ltemodels.EnodebSerials{})...)
 	return ret
 }
 
@@ -548,12 +552,68 @@ func deleteEnodeb(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func getEnodebState(c echo.Context) error {
+	nid, eid, nerr := getNetworkAndEnbIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	state, err := state.GetState(nid, lte.EnodebStateType, eid)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	enodebState := state.ReportedState.(*ltemodels.EnodebState)
+	enodebState.TimeReported = state.TimeMs
+	ent, err := configurator.LoadEntityForPhysicalID(state.ReporterID, configurator.EntityLoadCriteria{})
+	if err == nil {
+		enodebState.ReportingGatewayID = ent.Key
+	}
+	return c.JSON(http.StatusOK, enodebState)
+}
+
 func getNetworkAndEnbIDs(c echo.Context) (string, string, *echo.HTTPError) {
 	vals, err := obsidian.GetParamValues(c, "network_id", "enodeb_serial")
 	if err != nil {
 		return "", "", err
 	}
 	return vals[0], vals[1], nil
+}
+
+func deleteConnectedEnodeb(c echo.Context) error {
+	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	var enodebSerial string
+	if err := c.Bind(&enodebSerial); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.UpdateEntity(networkID, (&ltemodels.EnodebSerials{}).ToDeleteUpdateCriteria(networkID, gatewayID, enodebSerial))
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func addConnectedEnodeb(c echo.Context) error {
+	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	var enodebSerial string
+	if err := c.Bind(&enodebSerial); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.UpdateEntity(networkID, (&ltemodels.EnodebSerials{}).ToCreateUpdateCriteria(networkID, gatewayID, enodebSerial))
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 func listSubscribers(c echo.Context) error {

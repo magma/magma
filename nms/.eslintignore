@@ -1,7 +1,7 @@
 !.eslintrc.js
 **/*.min.js
 
-**/node_modules/**/*.js
+**/node_modules/**
 
 dist/**/*.js
 **/thrift/gen-nodejs/*.js

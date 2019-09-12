@@ -39,12 +39,6 @@ def deploy(vals_file: str,
     env.release_success = False
     try:
         with lcd(HELM_ROOT):
-            local(
-                'helm template charts/secrets '
-                '--name orc8r-secrets --namespace magma '
-                f'| kubectl apply -f -'
-            )
-
             if not install:
                 local(f'helm upgrade orc8r . --values={vals_file}')
             else:

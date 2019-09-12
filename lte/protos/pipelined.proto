@@ -17,6 +17,22 @@ import "lte/protos/subscriberdb.proto";
 
 option go_package = "magma/lte/cloud/go/protos";
 
+message SetupFlowsRequest {
+  // List of rules to activate
+  repeated ActivateFlowsRequest rules = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupFlowsResult {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
+}
+
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
 
@@ -109,6 +125,9 @@ service Pipelined {
   // ----------------
   // Enforcement App:
   // ----------------
+
+  // Setup flows for subscribers (used on restarts)
+  rpc SetupFlows (SetupFlowsRequest) returns (SetupFlowsResult) {}
 
   // Activate flows for a subscriber based on predefined flow templates
   rpc ActivateFlows (ActivateFlowsRequest) returns (ActivateFlowsResult) {}

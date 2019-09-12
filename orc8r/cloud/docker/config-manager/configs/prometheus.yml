@@ -1,17 +1,10 @@
 global:
   scrape_interval:     15s # By default, scrape targets every 15 seconds.
   evaluation_interval: 15s # By default, scrape targets every 15 seconds.
-  # scrape_timeout is set to the global default (10s).
-
-  # The labels to add to any time series or alerts when communicating with
-  # external systems (federation, remote storage, Alertmanager).
   external_labels:
     monitor: 'master'
 
-
-# A list of scrape configurations.
 scrape_configs:
-
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']

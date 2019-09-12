@@ -1,7 +1,19 @@
 {
   "docs": {
     "Basics": ["basics/introduction", "basics/prerequisites"],
-    "Orchestrator": ["orc8r/deploy_orc8r"],
-    "Access Gateway": ["lte/readme_agw", "lte/setup_deb", "lte/setup", "lte/config_agw", "lte/enodebd"]
+    "Orchestrator": [
+      {
+        "type": "subcategory",
+        "label": "Deploying Orchestrator",
+        "ids": [
+          "orc8r/deploy_intro",
+          "orc8r/deploy_build",
+          "orc8r/deploy_terraform",
+          "orc8r/deploy_install",
+          "orc8r/deploy_dns"
+        ]
+      }
+    ],
+    "Access Gateway": ["lte/setup_deb", "lte/config_agw", "lte/enodebd"]
   }
 }

@@ -20,6 +20,12 @@ prometheus:
   # Enable/Disable chart
   create: true
 
+  # Preconfigure alerts for orchestrator in prometheus
+  includeOrc8rAlerts: false
+
+  prometheusCacheHostname: "orc8r-prometheus-cache"
+  alertmanagerHostname: "orc8r-alertmanager"
+
   replicas: 1
 
   # Set to 1 if using a minikube setup
@@ -47,6 +53,8 @@ prometheus:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+  customAlerts: []
 
 alertmanager:
   # Enable/Disable chart
@@ -188,7 +196,7 @@ grafana:
         targetPort: 3000
 
   environment:
-    prometheusHost: "orc8r-metrics"
+    prometheusHost: "orc8r-prometheus"
     prometheusPort: "9090"
 
   volumes:

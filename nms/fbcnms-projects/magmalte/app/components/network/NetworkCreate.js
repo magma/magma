@@ -14,10 +14,10 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
-import MagmaTopBar from '../MagmaTopBar';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import TextField from '@material-ui/core/TextField';
+import {CELLULAR} from '@fbcnms/types/network';
 
 import axios from 'axios';
 import {makeStyles} from '@material-ui/styles';
@@ -41,14 +41,15 @@ export default function NetworkCreate() {
   const onCreate = async () => {
     let createResponse;
     try {
-      createResponse = await axios.post('/nms/network/create', {name});
+      const payload = {
+        networkID: name,
+        data: {name, features: {networkType: CELLULAR}},
+      };
+      createResponse = await axios.post('/nms/network/create', payload);
       if (!createResponse?.data.success) {
         enqueueSnackbar(
           `Unable to create network: ${createResponse?.data.message}`,
-          {
-            variant: 'error',
-            autoHideDuration: 10000,
-          },
+          {variant: 'error'},
         );
         return;
       }
@@ -56,20 +57,17 @@ export default function NetworkCreate() {
       const message = error.response?.data?.error || error;
       enqueueSnackbar(`Unable to create network: ${message}`, {
         variant: 'error',
-        autoHideDuration: 10000,
       });
       return;
     }
-    enqueueSnackbar('Created network ' + name, {
+    enqueueSnackbar(`Created network ${name}`, {
       variant: 'success',
-      autoHideDuration: 10000,
     });
     window.location.href = `/nms/${name}/map`;
   };
 
   return (
     <>
-      <MagmaTopBar />
       <div className={classes.container}>
         <Grid container spacing={3}>
           <Grid item xs />

@@ -17,9 +17,10 @@ const (
 	CellularGatewayType = "cellular_gateway"
 	CellularEnodebType  = "cellular_enodeb"
 
-	EnodebStateType      = "enodeb"
-	SubscriberStateType  = "subscriber"
-	SubscriberEntityType = "subscriber"
+	LegacyEnodebStateType = "enodeb"
+	EnodebStateType       = "single_enodeb"
+	SubscriberStateType   = "subscriber"
+	SubscriberEntityType  = "subscriber"
 
 	BaseNameEntityType   = "base_name"
 	PolicyRuleEntityType = "policy"

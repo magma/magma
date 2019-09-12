@@ -9,6 +9,8 @@
 #include <chrono>
 #include <thread>
 
+#include <google/protobuf/util/time_util.h>
+
 #include "LocalSessionManagerHandler.h"
 #include "magma_logging.h"
 
@@ -20,7 +22,10 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
   LocalEnforcer *enforcer,
   SessionCloudReporter *reporter):
   enforcer_(enforcer),
-  reporter_(reporter)
+  reporter_(reporter),
+  current_epoch_(0),
+  reported_epoch_(0),
+  retry_timeout_(1)
 {
 }
 
@@ -35,6 +40,13 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     enforcer_->aggregate_records(request_cpy);
     check_usage_for_reporting();
   });
+  reported_epoch_ = request_cpy.epoch();
+  if (is_pipelined_restarted()) {
+    MLOG(MDEBUG) << "Pipelined has been restarted, attempting to sync flows";
+    restart_pipelined(reported_epoch_);
+    // Set the current epoch right away to prevent double setup call requests
+    current_epoch_ = reported_epoch_;
+  }
   response_callback(Status::OK, Void());
 }
 
@@ -62,6 +74,67 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting()
         check_usage_for_reporting();
       }
     });
+}
+
+bool LocalSessionManagerHandlerImpl::is_pipelined_restarted()
+{
+  // If 0 also setup pipelined because it always waits for setup instructions
+  if (current_epoch_ == 0 || current_epoch_ != reported_epoch_) {
+    return true;
+  }
+  return false;
+}
+
+void LocalSessionManagerHandlerImpl::handle_setup_callback(
+  const std::uint64_t &epoch,
+  Status status,
+  SetupFlowsResult resp)
+{
+  using namespace std::placeholders;
+  if (!status.ok()) {
+    MLOG(MERROR) << "Could not setup pipelined, rpc failed with: "
+                 << status.error_message() << ", retrying pipelined setup.";
+
+    enforcer_->get_event_base().runInEventBaseThread([=] {
+      enforcer_->get_event_base().timer().scheduleTimeoutFn(
+        std::move([=] {
+          enforcer_->setup(epoch,
+            std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
+                      this, epoch, _1, _2));
+        }),
+        retry_timeout_);
+    });
+  }
+
+  if (resp.result() == resp.OUTDATED_EPOCH) {
+    MLOG(MWARNING) << "Pipelined setup call has outdated epoch, abandoning.";
+  } else if (resp.result() == resp.FAILURE) {
+    MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
+                      "for epoch " << epoch;
+    enforcer_->get_event_base().runInEventBaseThread([=] {
+      enforcer_->get_event_base().timer().scheduleTimeoutFn(
+        std::move([=] {
+          enforcer_->setup(epoch,
+            std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
+                      this, epoch, _1, _2));
+        }),
+        retry_timeout_);
+    });
+  } else {
+    MLOG(MDEBUG) << "Successfully setup pipelined.";
+  }
+}
+
+bool LocalSessionManagerHandlerImpl::restart_pipelined(
+  const std::uint64_t &epoch)
+{
+  using namespace std::placeholders;
+  enforcer_->get_event_base().runInEventBaseThread([this, epoch]() {
+    enforcer_->setup(epoch,
+      std::bind(&LocalSessionManagerHandlerImpl::handle_setup_callback,
+                this, epoch, _1, _2));
+  });
+  return true;
 }
 
 static CreateSessionRequest copy_wifi_session_info2create_req(

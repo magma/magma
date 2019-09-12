@@ -63,6 +63,26 @@ magma::UEMacFlowRequest create_add_ue_mac_flow_req(
   return req;
 }
 
+magma::SetupFlowsRequest create_setup_flows_req(
+  const std::vector<magma::SessionState::SessionInfo> &infos,
+  const std::uint64_t &epoch)
+{
+  magma::SetupFlowsRequest req;
+  std::vector<magma::ActivateFlowsRequest> activation_reqs;
+  for(auto it = infos.begin(); it != infos.end(); it++ )
+  {
+    auto activate_req = create_activate_req(it->imsi, it->ip_addr,
+      it->static_rules, it->dynamic_rules);
+    activation_reqs.push_back(activate_req);
+  }
+  auto mut_rules = req.mutable_rules();
+  for (const auto &rule : activation_reqs) {
+    mut_rules->Add()->CopyFrom(rule);
+  }
+  req.set_epoch(epoch);
+  return req;
+}
+
 } // namespace
 
 namespace magma {
@@ -78,6 +98,16 @@ AsyncPipelinedClient::AsyncPipelinedClient():
     "pipelined",
     ServiceRegistrySingleton::LOCAL))
 {
+}
+
+bool AsyncPipelinedClient::setup(
+   const std::vector<SessionState::SessionInfo> &infos,
+   const std::uint64_t &epoch,
+   std::function<void(Status status, SetupFlowsResult)> callback)
+{
+  SetupFlowsRequest setup_req = create_setup_flows_req(infos, epoch);
+  setup_flows_rpc(setup_req, callback);
+  return true;
 }
 
 bool AsyncPipelinedClient::deactivate_all_flows(const std::string &imsi)
@@ -143,6 +173,16 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
     }
   });
   return true;
+}
+
+void AsyncPipelinedClient::setup_flows_rpc(
+  const SetupFlowsRequest &request,
+  std::function<void(Status, SetupFlowsResult)> callback)
+{
+  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
+    std::move(callback), RESPONSE_TIMEOUT);
+  local_resp->set_response_reader(std::move(
+    stub_->AsyncSetupFlows(local_resp->get_context(), request, &queue_)));
 }
 
 void AsyncPipelinedClient::deactivate_flows_rpc(

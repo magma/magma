@@ -28,8 +28,10 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
 	monitoringKey := "monitor"
 	monitoringKey2 := "monitor2"
+	bearerID := "bearer1"
 	var ratingGroup uint32 = 42
 	var totalOctets uint64 = 2048
+	var qci uint32 = 1
 	var monitoringLevel gx.MonitoringLevel = gx.SessionLevel
 	currentTime := time.Now()
 	protoTimestamp, err := ptypes.TimestampProto(currentTime)
@@ -69,6 +71,10 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				GrantedServiceUnit: nil,
 				Level:              monitoringLevel,
 			},
+		},
+		Qos: &gx.QosInformation{
+			BearerIdentifier: bearerID,
+			Qci:              &qci,
 		},
 	}
 	policyClient := &mocks.PolicyDBClient{}
@@ -133,6 +139,10 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				MonitoringKey: monitoringKey2,
 				Level:         protos.MonitoringLevel(monitoringLevel),
 			},
+		},
+		QosInfo: &protos.QoSInformation{
+			BearerId: bearerID,
+			Qci:      protos.QCI_QCI_1,
 		},
 	}
 	assert.Equal(t, expected, actual)

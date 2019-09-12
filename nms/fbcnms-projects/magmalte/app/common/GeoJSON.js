@@ -26,6 +26,7 @@ export type MagmaGatewayFeature = {
     name?: string,
     iconSize: IconSize,
     gateway?: CheckindGateway,
+    [key: string]: any,
   },
 };
 
