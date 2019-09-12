@@ -31,6 +31,18 @@ export const formatFileSize = (sizeInBytes: number) => {
   }
 };
 
+export const isJSON = (text: ?string): boolean => {
+  if (!text) {
+    return false;
+  }
+  try {
+    JSON.parse(text);
+  } catch (e) {
+    return false;
+  }
+  return true;
+};
+
 // formats server side timestamps (seonds from epoch)
 // to text input required format dd-mm-yyyy
 export const formatDateForTextInput = (dateValue: ?number) => {
