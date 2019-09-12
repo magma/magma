@@ -78,8 +78,9 @@ export default function AddEditAlert(props: Props) {
       .then(() => props.onExit())
       .catch(error =>
         enqueueSnackbar(
-          `Unable to create alert: ${error}. \n` +
-            'Please make sure all required fields are filled out and try again.',
+          `Unable to create alert: ${
+            error.response ? error.response.data.message : error.message
+          }.`,
           {
             variant: 'error',
           },

@@ -12,7 +12,7 @@ services:
       MYSQL_PASSWORD: password
     restart: on-failure
     healthcheck:
-      test: mysqladmin ping -proot
+      test: mysqladmin ping -p12345
 
   nginx-proxy:
     image: nginx

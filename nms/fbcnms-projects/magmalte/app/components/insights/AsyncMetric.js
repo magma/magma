@@ -53,6 +53,18 @@ type RangeValue = {
   unit: string,
 };
 
+type Dataset = {
+  label: string,
+  unit: string,
+  fill: boolean,
+  lineTension: number,
+  pointRadius: number,
+  borderWidth: number,
+  backgroundColor: string,
+  borderColor: string,
+  data: Array<{t: number, y: number | string}>,
+};
+
 const RANGE_VALUES: {[TimeRange]: RangeValue} = {
   '3_hours': {
     hours: 3,
@@ -163,8 +175,16 @@ function Progress() {
 function getStartEnd(timeRange: TimeRange) {
   const {days, hours, step} = RANGE_VALUES[timeRange];
   const end = moment();
+  const endUnix = end.unix() * 1000;
   const start = end.clone().subtract({days, hours});
-  return {start: start.toISOString(), end: end.toISOString(), step};
+  const startUnix = start.unix() * 1000;
+  return {
+    start: start.toISOString(),
+    startUnix: startUnix,
+    end: end.toISOString(),
+    endUnix: endUnix,
+    step,
+  };
 }
 
 function getUnit(timeRange: TimeRange) {
@@ -180,9 +200,7 @@ function useDatasetsFetcher(props: Props) {
   const startEnd = useMemo(() => getStartEnd(props.timeRange), [
     props.timeRange,
   ]);
-  const [allDatasets, setAllDatasets] = useState<?Array<{[string]: mixed}>>(
-    null,
-  );
+  const [allDatasets, setAllDatasets] = useState<?Array<Dataset>>(null);
   const enqueueSnackbar = useEnqueueSnackbar();
   const stringedQueries = JSON.stringify(props.queries);
 
@@ -201,7 +219,11 @@ function useDatasetsFetcher(props: Props) {
           {
             params: {
               query,
-              ...startEnd,
+              ...{
+                start: startEnd.start,
+                end: startEnd.end,
+                step: startEnd.step,
+              },
             },
           },
         );
@@ -240,6 +262,16 @@ function useDatasetsFetcher(props: Props) {
               })),
             }),
           );
+        }
+      });
+      // Add "NaN" to the beginning/end of each dataset to force the chart to
+      // display the whole time frame requested
+      datasets.forEach(dataset => {
+        if (dataset.data[0].t > startEnd.startUnix) {
+          dataset.data.unshift({t: startEnd.startUnix, y: 'NaN'});
+        }
+        if (dataset.data[dataset.data.length - 1].t < startEnd.endUnix) {
+          dataset.data.push({t: startEnd.endUnix, y: 'NaN'});
         }
       });
       setAllDatasets(datasets);

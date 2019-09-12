@@ -19,6 +19,7 @@ from lte.protos.pipelined_pb2 import (
     DeactivateFlowsResult,
     FlowResponse,
     RuleModResult,
+    SetupFlowsRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
     TableAssignment,
@@ -87,8 +88,16 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Setup flows for all subscribers, used on pipelined restarts
         """
 
-        # For now just return SUCCESS, to be implemeted later
-        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._setup_flows,
+                                        request, fut)
+        return fut.result()
+
+    def _setup_flows(self, request: SetupFlowsRequest,
+                     fut: 'Future(SetupFlowsResult)'
+                     ) -> SetupFlowsResult:
+        enforcement_res = self._enforcer_app.setup(request)
+        fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):
         """

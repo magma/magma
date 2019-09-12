@@ -188,11 +188,21 @@ void SessionState::insert_dynamic_rule(const PolicyRule &dynamic_rule)
   session_rules_.insert_dynamic_rule(dynamic_rule);
 }
 
+void SessionState::activate_static_rule(const std::string &rule_id)
+{
+  session_rules_.activate_static_rule(rule_id);
+}
+
 bool SessionState::remove_dynamic_rule(
   const std::string &rule_id,
   PolicyRule *rule_out)
 {
   return session_rules_.remove_dynamic_rule(rule_id, rule_out);
+}
+
+bool SessionState::deactivate_static_rule(const std::string &rule_id)
+{
+  return session_rules_.deactivate_static_rule(rule_id);
 }
 
 ChargingCreditPool &SessionState::get_charging_pool()
@@ -243,6 +253,14 @@ bool SessionState::is_radius_cwf_session()
 std::string SessionState::get_radius_session_id()
 {
   return config_.radius_session_id;
+}
+
+void SessionState::get_session_info(SessionState::SessionInfo &info)
+{
+  info.imsi = imsi_;
+  info.ip_addr = config_.ue_ipv4;
+  session_rules_.get_dynamic_rules().get_rules(info.dynamic_rules);
+  info.static_rules = session_rules_.get_static_rule_ids();
 }
 
 } // namespace magma

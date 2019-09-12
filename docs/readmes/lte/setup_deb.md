@@ -43,7 +43,7 @@ satisfies the following requirements:
 ```bash
 git clone https://github.com/facebookincubator/magma.git ~/magma  
 cd ~/magma
-docker build -t agw_deploy -f lte/gateway/docker/deploy/Dockerfile .
+docker build --build-arg CACHE_DATE="$(date)" -t agw_deploy -f lte/gateway/docker/deploy/Dockerfile .
 docker run -it agw_deploy bash
 ```
 

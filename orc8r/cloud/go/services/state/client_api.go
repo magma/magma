@@ -29,9 +29,9 @@ import (
 type State struct {
 	// ID of the entity reporting the state (hwID, cert serial number, etc)
 	ReporterID string
-	// Checkin Time
-	Time uint64
-	// Cert expiration Time
+	// TimeMs received in millisecond
+	TimeMs uint64
+	// Cert expiration TimeMs
 	CertExpirationTime int64
 	ReportedState      interface{}
 }
@@ -39,7 +39,7 @@ type State struct {
 // SerializedStateWithMeta includes reported operational states and additional info
 type SerializedStateWithMeta struct {
 	ReporterID              string
-	Time                    uint64
+	TimeMs                  uint64
 	CertExpirationTime      int64
 	SerializedReportedState []byte
 }
@@ -181,7 +181,7 @@ func fillInGatewayStatusState(state State) *models.GatewayStatus {
 	}
 
 	gwStatus := state.ReportedState.(*models.GatewayStatus)
-	gwStatus.CheckinTime = state.Time
+	gwStatus.CheckinTime = state.TimeMs
 	gwStatus.CertExpirationTime = state.CertExpirationTime
 	gwStatus.HardwareID = state.ReporterID
 	return gwStatus
@@ -204,7 +204,7 @@ func toState(pState *protos.State) (State, error) {
 	iReportedState, err := serde.Deserialize(SerdeDomain, pState.Type, serialized.SerializedReportedState)
 	state := State{
 		ReporterID:         serialized.ReporterID,
-		Time:               serialized.Time,
+		TimeMs:             serialized.TimeMs,
 		CertExpirationTime: serialized.CertExpirationTime,
 		ReportedState:      iReportedState,
 	}

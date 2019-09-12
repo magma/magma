@@ -856,6 +856,12 @@ type NetworkFederationConfigsSwx struct {
 	// cache TTL seconds
 	CacheTTLSeconds uint32 `json:"cache_TTL_seconds,omitempty"`
 
+	// derive unregister realm
+	DeriveUnregisterRealm bool `json:"derive_unregister_realm,omitempty"`
+
+	// register on auth
+	RegisterOnAuth bool `json:"register_on_auth,omitempty"`
+
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`
 

@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import time
 import unittest
 
 import s1ap_types
@@ -74,6 +75,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
                                       "match": {"in_port": self.GTP_PORT}})
             if len(uplink_flows) > 0:
                 break
+            time.sleep(5)  # sleep for 5 seconds before retrying
 
         self.assertEqual(len(uplink_flows), 1, "Uplink flow missing for UE")
         self.assertIsNotNone(uplink_flows[0]["match"]["tunnel_id"],
@@ -94,6 +96,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
                                                   "eth_type": 2048}})
             if len(downlink_flows) > 0:
                 break
+            time.sleep(5)  # sleep for 5 seconds before retrying
 
         self.assertEqual(len(downlink_flows), 1,
                          "Downlink flow missing for UE")

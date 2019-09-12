@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -19,16 +19,22 @@
  *      contact@openairinterface.org
  */
 
-/*! \file sgw_defs.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+#pragma once
 
-#ifndef FILE_SGW_DEFS_SEEN
-#define FILE_SGW_DEFS_SEEN
-#include "spgw_config.h"
-int sgw_init(spgw_config_t *spgw_config_pP, bool persist_state);
+#include <stdint.h>
 
-#endif /* FILE_SGW_DEFS_SEEN */
+#include "3gpp_23.401.h"
+#include "common_types.h"
+
+// data entry for sgw_state.s11_bearer_context_information
+// like this if needed in future, the split of S and P GW should be easier.
+typedef struct s_plus_p_gw_eps_bearer_context_information_s {
+  sgw_eps_bearer_context_information_t sgw_eps_bearer_context_information;
+  pgw_eps_bearer_context_information_t pgw_eps_bearer_context_information;
+} s_plus_p_gw_eps_bearer_context_information_t;
+
+// data entry for s11teid2mme
+typedef struct mme_sgw_tunnel_s {
+  uint32_t local_teid;  ///< Tunnel endpoint Identifier
+  uint32_t remote_teid; ///< Tunnel endpoint Identifier
+} mme_sgw_tunnel_t;
