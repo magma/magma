@@ -35,7 +35,9 @@ class PipelinedClient {
    * @return true if the operation was successful
    */
   virtual bool setup(
-    const std::vector<SessionState::SessionInfo> &infos) = 0;
+    const std::vector<SessionState::SessionInfo> &infos,
+    const std::uint64_t &epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
   /**
    * Deactivate all flows for a subscriber's session
@@ -89,7 +91,9 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * @return true if the operation was successful
    */
   bool setup(
-    const std::vector<SessionState::SessionInfo> &infos);
+    const std::vector<SessionState::SessionInfo> &infos,
+    const std::uint64_t &epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
 
   /**
    * Deactivate all flows for a subscriber's session

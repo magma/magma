@@ -172,8 +172,8 @@ class SessionState {
   std::string session_id_;
   uint32_t request_number_;
   ChargingCreditPool charging_pool_;
-  SessionRules session_rules_;
   UsageMonitoringCreditPool monitor_pool_;
+  SessionRules session_rules_;
   SessionState::State curr_state_;
   SessionState::Config config_;
   std::function<void(SessionTerminateRequest)> on_termination_callback_;

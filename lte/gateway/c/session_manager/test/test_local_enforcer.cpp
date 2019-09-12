@@ -920,6 +920,7 @@ TEST_F(LocalEnforcerTest, test_pipelined_setup)
   CreateSessionResponse response;
   create_credit_update_response(
     "IMSI1", 1, 1024, response.mutable_credits()->Add());
+  auto epoch = 145;
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
   auto policy_rule = dynamic_rule->mutable_policy_rule();
   policy_rule->set_id("rule1");
@@ -948,11 +949,12 @@ TEST_F(LocalEnforcerTest, test_pipelined_setup)
   EXPECT_CALL(
     *pipelined_client,
     setup(CheckSessionInfos(imsi_list, ip_address_list, static_rule_list,
-                            dynamic_rule_list)))
+                            dynamic_rule_list), testing::_, testing::_))
     .Times(1)
     .WillOnce(testing::Return(true));
 
-    local_enforcer->setup();
+    local_enforcer->setup(epoch,
+      [](Status status, SetupFlowsResult resp) {});
 }
 
 int main(int argc, char **argv)

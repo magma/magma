@@ -76,7 +76,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         if req.epoch != global_epoch:
             self.logger.warning(
                 "Received SetupFlowsRequest has outdated epoch - %d, current "
-                "epoch is - %d", req.epoch, global_epoch)
+                "epoch is - %d.", req.epoch, global_epoch)
             return SetupFlowsResult(
                 result=SetupFlowsResult.OUTDATED_EPOCH)
 

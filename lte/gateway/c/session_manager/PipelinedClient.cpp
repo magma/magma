@@ -64,7 +64,8 @@ magma::UEMacFlowRequest create_add_ue_mac_flow_req(
 }
 
 magma::SetupFlowsRequest create_setup_flows_req(
-  const std::vector<magma::SessionState::SessionInfo> &infos)
+  const std::vector<magma::SessionState::SessionInfo> &infos,
+  const std::uint64_t &epoch)
 {
   magma::SetupFlowsRequest req;
   std::vector<magma::ActivateFlowsRequest> activation_reqs;
@@ -78,6 +79,7 @@ magma::SetupFlowsRequest create_setup_flows_req(
   for (const auto &rule : activation_reqs) {
     mut_rules->Add()->CopyFrom(rule);
   }
+  req.set_epoch(epoch);
   return req;
 }
 
@@ -99,14 +101,12 @@ AsyncPipelinedClient::AsyncPipelinedClient():
 }
 
 bool AsyncPipelinedClient::setup(
-   const std::vector<SessionState::SessionInfo> &infos)
+   const std::vector<SessionState::SessionInfo> &infos,
+   const std::uint64_t &epoch,
+   std::function<void(Status status, SetupFlowsResult)> callback)
 {
-  SetupFlowsRequest setup_req = create_setup_flows_req(infos);
-  setup_flows_rpc(setup_req, [](Status status, SetupFlowsResult resp) {
-    if (!status.ok()) {
-      MLOG(MERROR) << "Could not setup pipelined";
-    }
-  });
+  SetupFlowsRequest setup_req = create_setup_flows_req(infos, epoch);
+  setup_flows_rpc(setup_req, callback);
   return true;
 }
 

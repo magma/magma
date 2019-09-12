@@ -107,7 +107,9 @@ folly::EventBase &LocalEnforcer::get_event_base()
   return *evb_;
 }
 
-bool LocalEnforcer::setup()
+bool LocalEnforcer::setup(
+  const std::uint64_t &epoch,
+  std::function<void(Status status, SetupFlowsResult)> callback)
 {
   std::vector<SessionState::SessionInfo> session_infos;
   for(auto it = session_map_.begin(); it != session_map_.end(); it++)
@@ -116,7 +118,7 @@ bool LocalEnforcer::setup()
     it->second->get_session_info(session_info);
     session_infos.push_back(session_info);
   }
-  return pipelined_client_->setup(session_infos);
+  return pipelined_client_->setup(session_infos, epoch, callback);
 }
 
 void LocalEnforcer::aggregate_records(const RuleRecordTable &records)

@@ -52,7 +52,9 @@ class LocalEnforcer {
    * Setup rules for all sessions in pipelined, used whenever pipelined
    * restarts and needs to recover state
    */
-  bool setup();
+  bool setup(
+    const std::uint64_t &epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
 
   /**
    * Insert a group of rule usage into the monitor and update credit manager
