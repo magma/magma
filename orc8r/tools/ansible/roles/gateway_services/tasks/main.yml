@@ -11,14 +11,15 @@
 ########################################
 
 - name: Install basic tools
-  apt: pkg={{ item }} state=present
-  with_items:
-    - zip
-    - unzip
-    - curl
-    - daemontools
-    - git
-    - vim
+  apt:
+    state: present
+    pkg:
+      - zip
+      - unzip
+      - curl
+      - daemontools
+      - git
+      - vim
   when: preburn
 
 ########################################
@@ -26,11 +27,12 @@
 ########################################
 
 - name: Install python dependencies
-  apt: pkg={{ item }} state=present
-  with_items:
-    - python3-pip
-    - pkg-config
-    - libsystemd-dev
+  apt:
+    state: present
+    pkg:
+      - python3-pip
+      - pkg-config
+      - libsystemd-dev
   when: preburn
 
 ########################################
@@ -38,8 +40,9 @@
 ########################################
 
 - name: Install nghttpx and its deps for Ubuntu
-  apt: pkg={{ item }} state=present
-  with_items:
+  apt:
+    state: present
+    pkg:
       - gcc
       - libssl-dev
       - libev-dev
@@ -51,9 +54,7 @@
   when: preburn and ansible_distribution == 'Ubuntu'
 
 - name: Install nghttpx for Debian
-  apt: pkg={{ item }} state=present
-  with_items:
-      - nghttp2-proxy
+  apt: pkg=nghttp2-proxy state=present
   when: preburn and ansible_distribution == 'Debian'
 
 #################################
