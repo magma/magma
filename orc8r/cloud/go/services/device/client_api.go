@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/device/protos"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
@@ -77,19 +78,26 @@ func UpdateDevice(networkID, deviceType, deviceKey string, info interface{}) err
 	return err
 }
 
-func DeleteDevices(networkID string, deviceIDs []*protos.DeviceID) error {
+func DeleteDevices(networkID string, ids []storage.TypeAndKey) error {
 	client, err := getDeviceClient()
 	if err != nil {
 		return err
 	}
 
-	req := &protos.DeleteDevicesRequest{NetworkID: networkID, DeviceIDs: deviceIDs}
+	requestIDs := funk.Map(
+		ids,
+		func(id storage.TypeAndKey) *protos.DeviceID {
+			return &protos.DeviceID{Type: id.Type, DeviceID: id.Key}
+		},
+	).([]*protos.DeviceID)
+
+	req := &protos.DeleteDevicesRequest{NetworkID: networkID, DeviceIDs: requestIDs}
 	_, err = client.DeleteDevices(context.Background(), req)
 	return err
 }
 
 func DeleteDevice(networkID, deviceType, deviceKey string) error {
-	return DeleteDevices(networkID, []*protos.DeviceID{{DeviceID: deviceKey, Type: deviceType}})
+	return DeleteDevices(networkID, []storage.TypeAndKey{{Type: deviceType, Key: deviceKey}})
 }
 
 func GetDevice(networkID, deviceType, deviceKey string) (interface{}, error) {

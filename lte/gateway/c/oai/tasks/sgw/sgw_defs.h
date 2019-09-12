@@ -29,6 +29,6 @@
 #ifndef FILE_SGW_DEFS_SEEN
 #define FILE_SGW_DEFS_SEEN
 #include "spgw_config.h"
-int sgw_init(spgw_config_t *spgw_config_pP);
+int sgw_init(spgw_config_t *spgw_config_pP, bool persist_state);
 
 #endif /* FILE_SGW_DEFS_SEEN */

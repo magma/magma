@@ -29,8 +29,8 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 			LteAuthAmf: []byte("\x80\x00"),
 
 			RelayEnabled:             swag.Bool(false),
-			CloudSubscriberdbEnabled: swag.Bool(false),
-			DefaultRuleID:            swag.String(""),
+			CloudSubscriberdbEnabled: false,
+			DefaultRuleID:            "",
 		},
 	}
 }
@@ -52,8 +52,24 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 			LteAuthOp:                []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:               []byte("\x80\x00"),
 			RelayEnabled:             swag.Bool(false),
-			CloudSubscriberdbEnabled: swag.Bool(false),
-			DefaultRuleID:            swag.String(""),
+			CloudSubscriberdbEnabled: false,
+			DefaultRuleID:            "",
 		},
+	}
+}
+
+func NewDefaultEnodebStatus() *EnodebState {
+	return &EnodebState{
+		EnodebConfigured: swag.Bool(true),
+		EnodebConnected:  swag.Bool(true),
+		GpsConnected:     swag.Bool(true),
+		GpsLatitude:      swag.String("1.1"),
+		GpsLongitude:     swag.String("2.2"),
+		OpstateEnabled:   swag.Bool(true),
+		RfTxOn:           swag.Bool(true),
+		RfTxDesired:      swag.Bool(false),
+		PtpConnected:     swag.Bool(false),
+		MmeConnected:     swag.Bool(true),
+		FsmState:         swag.String("TEST"),
 	}
 }

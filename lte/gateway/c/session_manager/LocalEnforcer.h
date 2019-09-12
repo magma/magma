@@ -49,6 +49,14 @@ class LocalEnforcer {
   folly::EventBase &get_event_base();
 
   /**
+   * Setup rules for all sessions in pipelined, used whenever pipelined
+   * restarts and needs to recover state
+   */
+  bool setup(
+    const std::uint64_t &epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
+
+  /**
    * Insert a group of rule usage into the monitor and update credit manager
    * Assumes records are aggregates, as in the usages sent are cumulative and
    * not differences.
@@ -129,6 +137,8 @@ class LocalEnforcer {
 
   bool is_session_duplicate(
     const std::string &imsi, const magma::SessionState::Config &config);
+
+  static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:
   struct RulesToProcess {
@@ -247,6 +257,11 @@ class LocalEnforcer {
     const std::string &imsi,
     const std::vector<std::string> &rule_ids,
     const std::vector<PolicyRule> &dynamic_rules);
+
+  /**
+    * Install flow for redirection through pipelined
+    */
+  void install_redirect_flow(const std::unique_ptr<ServiceAction> &action);
 };
 
 } // namespace magma

@@ -20,7 +20,7 @@ import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-import {createDevice} from '../common/MagmaAPI';
+import {createDevice, fetchDevice, updateGatewayName} from '../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -42,7 +42,7 @@ type Props = ContextRouter &
 type State = {
   error: string,
   name: string,
-  hwid: string,
+  hardware_id: string,
   gatewayID: string,
   challengeKey: string,
 };
@@ -51,7 +51,7 @@ class AddGatewayDialog extends React.Component<Props, State> {
   state = {
     error: '',
     name: '',
-    hwid: '',
+    hardware_id: '',
     gatewayID: '',
     challengeKey: '',
   };
@@ -77,7 +77,7 @@ class AddGatewayDialog extends React.Component<Props, State> {
           <TextField
             label="Hardware UUID"
             className={classes.input}
-            value={this.state.hwid}
+            value={this.state.hardware_id}
             onChange={this.onHwidChange}
             placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
           />
@@ -109,24 +109,23 @@ class AddGatewayDialog extends React.Component<Props, State> {
   }
 
   onNameChange = ({target}) => this.setState({name: target.value});
-  onHwidChange = ({target}) => this.setState({hwid: target.value});
+  onHwidChange = ({target}) => this.setState({hardware_id: target.value});
   onGatewayIDChange = ({target}) => this.setState({gatewayID: target.value});
   onChallengeKeyChange = ({target}) =>
     this.setState({challengeKey: target.value});
 
   onSave = async () => {
-    const {name, hwid, gatewayID, challengeKey} = this.state;
-    if (!name || !hwid || !gatewayID || !challengeKey) {
+    const {name, hardware_id, gatewayID, challengeKey} = this.state;
+    if (!name || !hardware_id || !gatewayID || !challengeKey) {
       this.setState({error: 'Please complete all fields'});
       return;
     }
 
     try {
-      const gateway = await createDevice(
+      await createDevice(
         gatewayID,
         {
-          name,
-          hw_id: {id: hwid},
+          hardware_id,
           key: {
             key: challengeKey,
             key_type: 'SOFTWARE_ECDSA_SHA256', // default key/challenge type
@@ -147,7 +146,8 @@ class AddGatewayDialog extends React.Component<Props, State> {
         },
         this.props.match,
       );
-
+      await updateGatewayName(gatewayID, name, this.props.match);
+      const gateway = await fetchDevice(this.props.match, gatewayID);
       this.props.onSave(gateway);
     } catch (e) {
       this.setState({error: e?.response?.data?.message || e?.message || e});

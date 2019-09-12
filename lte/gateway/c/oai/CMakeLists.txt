@@ -57,6 +57,11 @@ if (NOT FUZZ)
 endif (NOT FUZZ)
 
 ################################################################
+# Set proto directory for state proto definitions
+################################################################
+set(STATE_PROTO_DIR ${PROJECT_SOURCE_DIR}/protos)
+
+################################################################
 # S1AP LAYER OPTIONS
 ################################################################
 add_boolean_option(S1AP_DEBUG_LIST                 False    "Traces, option to be removed soon")

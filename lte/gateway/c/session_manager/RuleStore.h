@@ -97,6 +97,14 @@ class PolicyRuleBiMap {
     const std::string &monitoring_key,
     std::vector<PolicyRule> &rules_out);
 
+  virtual bool get_rule_ids(
+    std::vector<std::string> &rules_ids_out
+  );
+
+  virtual bool get_rules(
+    std::vector<PolicyRule> &rules_out
+  );
+
  protected:
   std::mutex map_mutex_;
   // rule_id -> PolicyRule

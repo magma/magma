@@ -41,13 +41,19 @@ func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest, serverAssignmen
 }
 
 func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, error) {
+	return s.sendSARExt(userName, serverAssignmentType, s.config.ClientCfg.Host, s.config.ClientCfg.Realm)
+}
+
+func (s *swxProxy) sendSARExt(
+	userName string, serverAssignmentType uint32, originHost, originRealm string) (*SAA, error) {
+
 	sid := s.genSID()
 	ch := make(chan interface{})
 	s.requestTracker.RegisterRequest(sid, ch)
 	// if request hasn't been removed by end of transaction, remove it
 	defer s.requestTracker.DeregisterRequest(sid)
 
-	sarMsg := s.createSAR(sid, userName, serverAssignmentType)
+	sarMsg := s.createSAR(sid, userName, serverAssignmentType, originHost, originRealm)
 
 	sarStartTime := time.Now()
 	err := s.sendDiameterMsg(sarMsg, MAX_DIAM_RETRIES)
@@ -92,8 +98,8 @@ func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, 
 }
 
 // createSAR creates a Server Assignment Request with provided SessionID (sid),
-// UserName, and ServerAssignmentType (saType) to be sent over diameter to HSS
-func (s *swxProxy) createSAR(sid, userName string, saType uint32) *diam.Message {
+// UserName, ServerAssignmentType (saType), originHost and originRealm to be sent over diameter to HSS
+func (s *swxProxy) createSAR(sid, userName string, saType uint32, originHost, originRealm string) *diam.Message {
 	msg := diameter.NewProxiableRequest(diam.ServerAssignment, diam.TGPP_SWX_APP_ID, dict.Default)
 	msg.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(sid))
 	msg.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
@@ -102,8 +108,8 @@ func (s *swxProxy) createSAR(sid, userName string, saType uint32) *diam.Message 
 			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(diameter.Vendor3GPP)),
 		},
 	})
-	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Host))
-	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))
+	msg.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(originHost))
+	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(originRealm))
 
 	msg.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(userName))
 	msg.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))

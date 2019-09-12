@@ -229,4 +229,24 @@ bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
   return success;
 }
 
+bool PolicyRuleBiMap::get_rule_ids(
+  std::vector<std::string> &rules_ids_out)
+{
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  for(auto kv : rules_by_rule_id_) {
+    rules_ids_out.push_back(kv.first);
+  }
+  return true;
+}
+
+bool PolicyRuleBiMap::get_rules(
+  std::vector<PolicyRule> &rules_out)
+{
+  std::lock_guard<std::mutex> lock(map_mutex_);
+  for(auto kv : rules_by_rule_id_) {
+    rules_out.push_back(*kv.second);
+  }
+  return true;
+}
+
 } // namespace magma

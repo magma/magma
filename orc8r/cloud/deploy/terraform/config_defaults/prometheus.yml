@@ -14,7 +14,7 @@ scrape_configs:
 
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['orc8r-metrics:9090']
+      - targets: ['orc8r-prometheus:9090']
 
   - job_name: "magma_pushgateway"
     honor_labels: true
@@ -33,4 +33,4 @@ alerting:
   alertmanagers:
     - scheme: http
       static_configs:
-        - targets: ['orc8r-metrics:9093']
+        - targets: ['orc8r-alertmanager:9093']

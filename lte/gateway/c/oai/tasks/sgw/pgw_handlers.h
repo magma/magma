@@ -29,12 +29,15 @@
 #ifndef FILE_PGW_HANDLERS_SEEN
 #define FILE_PGW_HANDLERS_SEEN
 #include "s5_messages_types.h"
+#include "spgw_state.h"
 
 int pgw_handle_create_bearer_request(
+  spgw_state_t *spgw_state,
   const itti_s5_create_bearer_request_t *const bearer_req_p);
 uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
+  spgw_state_t *spgw_state,
   Imsi_t *imsi,
   ebi_t lbi,
   traffic_flow_template_t *ul_tft,
@@ -43,6 +46,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
   const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
 uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
+  spgw_state_t *spgw_state,
   Imsi_t *imsi,
   uint32_t no_of_bearers,
   ebi_t ebi[]);
