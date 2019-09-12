@@ -109,7 +109,11 @@ class SessionState {
 
   void insert_dynamic_rule(const PolicyRule &dynamic_rule);
 
+  void activate_static_rule(const std::string &rule_id);
+
   bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
+
+  bool deactivate_static_rule(const std::string &rule_id);
 
   ChargingCreditPool &get_charging_pool();
 
