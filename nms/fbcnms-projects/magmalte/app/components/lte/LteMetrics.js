@@ -16,13 +16,10 @@ import NetworkKPIs from './NetworkKPIs';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useFeatureFlag} from '@fbcnms/ui/hooks';
-import {useRouter} from '@fbcnms/ui/hooks';
-
+import {useFeatureFlag, useRouter} from '@fbcnms/ui/hooks';
 import type {MetricGraphConfig} from '../insights/Metrics';
 
 const useStyles = makeStyles(theme => ({
@@ -233,7 +230,7 @@ export default function() {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, location} = useRouter();
 
-  const currentTab = findIndex(['gateways', 'network'], route =>
+  const currentTab = findIndex(['gateways', 'network', 'internal'], route =>
     location.pathname.startsWith(match.url + '/' + route),
   );
 
