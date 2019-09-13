@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {MetricGraphConfig} from '../insights/Metrics';
+
 import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Metrics from '../insights/Metrics';
@@ -20,7 +22,6 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useFeatureFlag, useRouter} from '@fbcnms/ui/hooks';
-import type {MetricGraphConfig} from '../insights/Metrics';
 
 const useStyles = makeStyles(theme => ({
   bar: {
@@ -52,24 +53,28 @@ const CONFIGS: Array<MetricGraphConfig> = [
     label: 'Connected Subscribers',
   },
   {
-    basicQueryConfigs: [
+    customQueryConfigs: [
       {
-        metric: 'pdcp_user_plane_bytes_dl',
-        filters: [{name: 'service', value: 'enodebd'}],
+        resolvePrometheusQuery: gw =>
+          `pdcp_user_plane_bytes_dl{gatewayID="${gw}", service="enodebd"}/1000`,
+        resolveGraphiteQuery: _ => '',
       },
     ],
+    basicQueryConfigs: [],
     label: 'Download Throughput',
-    unit: ' Kbps',
+    unit: ' Mbps',
   },
   {
-    basicQueryConfigs: [
+    customQueryConfigs: [
       {
-        metric: 'pdcp_user_plane_bytes_ul',
-        filters: [{name: 'service', value: 'enodebd'}],
+        resolvePrometheusQuery: gw =>
+          `pdcp_user_plane_bytes_ul{gatewayID="${gw}", service="enodebd"}/1000`,
+        resolveGraphiteQuery: _ => '',
       },
     ],
+    basicQueryConfigs: [],
     label: 'Upload Throughput',
-    unit: ' Kbps',
+    unit: ' Mbps',
   },
   {
     basicQueryConfigs: [
