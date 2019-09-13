@@ -18,6 +18,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -47,6 +48,7 @@ type Config struct {
 	Token           string        `envconfig:"ODS_ACCESS_TOKEN" required:"true"`
 	Entity          string        `envconfig:"ODS_ENTITY" required:"true"`
 	ReportingPeriod time.Duration `envconfig:"ODS_REPORTING_PERIOD" default:"60s"`
+	UniqueEntity    bool          `envconfig:"ODS_UNIQUE_ENTITY" default:"true"`
 }
 
 // Datapoint is used to Marshal JSON encoding for ODS data submission
@@ -77,10 +79,18 @@ func (pscp *prodConfigProvider) getConfig() Config {
 // coverts the labels to keys/entities and posts to ODS via GraphAPI
 func PostToODS(metricsData map[string]string, cfg Config) error {
 	var datapoints []Datapoint
+	var entity string
 	ts := time.Now().Unix()
+	if cfg.UniqueEntity {
+		hostname, _ := os.Hostname()
+		entity = fmt.Sprintf("%s.%s.%s", cfg.Prefix, cfg.Entity, hostname)
+	} else {
+		// Mostly used for unitests but could also disable the feature.
+		entity = fmt.Sprintf("%s.%s", cfg.Prefix, cfg.Entity)
+	}
 	for k, v := range metricsData {
 		datapoints = append(datapoints, Datapoint{
-			Entity: fmt.Sprintf("%s.%s", cfg.Prefix, cfg.Entity),
+			Entity: entity,
 			Key:    k,
 			Value:  v,
 			Time:   ts,

@@ -10,6 +10,7 @@ package adaptruckus
 
 import (
 	"encoding/binary"
+
 	"fbc/cwf/radius/modules"
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2866"
@@ -19,12 +20,12 @@ import (
 )
 
 // Init module interface implementation
-func Init(loggert *zap.Logger, config modules.ModuleConfig) error {
-	return nil
+func Init(loggert *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
+	return nil, nil
 }
 
 // Handle module interface implementation
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	found := false
 	values, err := ruckus.RuckusTCAcctCtrs_Gets(r.Packet)
 	if err == nil && values != nil {

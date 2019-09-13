@@ -17,12 +17,12 @@ import (
 )
 
 // Init module interface implementation
-func Init(loggert *zap.Logger, config modules.ModuleConfig) error {
-	return nil
+func Init(loggert *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
+	return nil, nil
 }
 
 // Handle module interface implementation
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	if r.Code != radius.CodeAccessRequest {
 		return nil, errors.New("module cannot handle anything other than Access-Request messages")
 	}

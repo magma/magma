@@ -18,26 +18,29 @@ type Config struct {
 	Port string
 }
 
-var port string
+// ModuleCtx ...
+type ModuleCtx struct {
+	port string
+}
 
 // Init module interface implementation
-func Init(_ *zap.Logger, config modules.ModuleConfig) error {
+func Init(_ *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var coaConfig Config
 	err := mapstructure.Decode(config, &coaConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if coaConfig.Port == "" {
-		return errors.New("coa module cannot be initialized with empty Port value")
+		return nil, errors.New("coa module cannot be initialized with empty Port value")
 	}
 
-	port = coaConfig.Port
-	return nil
+	return ModuleCtx{port: coaConfig.Port}, nil
 }
 
 // Handle module interface implementation
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+	mCtx := m.(ModuleCtx)
 	requestCode := r.Code
 	// Checking that we have received a coa request
 	if requestCode != radius.CodeDisconnectRequest && requestCode != radius.CodeCoARequest {
@@ -52,13 +55,19 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 
 	// Sending the request to the ip specified in the nas attribute
 	host := coaNasAttribute.String()
-	res, err := radius.Exchange(context.Background(), r.Packet, fmt.Sprintf("%s:%s", host, port))
+	res, err := radius.Exchange(context.Background(), r.Packet, fmt.Sprintf("%s:%s", host, mCtx.port))
 	if err != nil {
 		return nil, err
+	}
+
+	b, err := res.Encode()
+	if err != nil {
+		c.Logger.Info("failed to serialize CoA response")
 	}
 
 	return &modules.Response{
 		Code:       res.Code,
 		Attributes: res.Attributes,
+		Raw:        b,
 	}, nil
 }

@@ -30,32 +30,36 @@ type Config struct {
 	FegEndpoint string
 }
 
-var client protos.AccountingClient
+// ModuleCtx ...
+type ModuleCtx struct {
+	client protos.AccountingClient
+}
 
 // Init module interface implementation
-func Init(logger *zap.Logger, config modules.ModuleConfig) error {
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var acctConfig Config
 	err := mapstructure.Decode(config, &acctConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if acctConfig.FegEndpoint == "" {
-		return errors.New("magma acct module cannot be initialize with empty FegEndpoint value")
+		return nil, errors.New("magma acct module cannot be initialize with empty FegEndpoint value")
 	}
 
 	// Initialize the client
 	conn, err := grpc.Dial(acctConfig.FegEndpoint, grpc.WithInsecure())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	client = protos.NewAccountingClient(conn)
-	return nil
+	return ModuleCtx{client: protos.NewAccountingClient(conn)}, nil
 }
 
 // Handle module interface implementation
-func Handle(ctx *modules.RequestContext, r *radius.Request, _ modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _ modules.Middleware) (*modules.Response, error) {
+	mCtx := m.(ModuleCtx)
+
 	// Load the state
 	state, err := ctx.SessionStorage.Get()
 	if err != nil {
@@ -92,7 +96,7 @@ func Handle(ctx *modules.RequestContext, r *radius.Request, _ modules.Middleware
 	switch acctType {
 	case rfc2866.AcctStatusType_Value_AccountingOn:
 	case rfc2866.AcctStatusType_Value_Start:
-		_, err = client.Start(context.Background(), c)
+		_, err = mCtx.client.Start(context.Background(), c)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +108,7 @@ func Handle(ctx *modules.RequestContext, r *radius.Request, _ modules.Middleware
 			Cause: protos.StopRequest_NAS_REQUEST,
 			Ctx:   c,
 		}
-		_, err = client.Stop(context.Background(), stopRequest)
+		_, err = mCtx.client.Stop(context.Background(), stopRequest)
 		if err != nil {
 			return nil, err
 		}
@@ -118,14 +122,14 @@ func Handle(ctx *modules.RequestContext, r *radius.Request, _ modules.Middleware
 			PacketsOut: getValue(r, rfc2866.AcctOutputPackets_Type),
 			Ctx:        c,
 		}
-		_, err = client.InterimUpdate(context.Background(), updateRequest)
+		_, err = mCtx.client.InterimUpdate(context.Background(), updateRequest)
 		if err != nil {
 			return nil, err
 		}
 		ctx.Logger.Debug("MagmaAccounting.InterimUpdate succeeded", zap.Any("context", c))
 		break
 	default:
-		return nil, fmt.Errorf("unknown Acct-Status-Type recieved: %d", acctType)
+		return nil, fmt.Errorf("unknown Acct-Status-Type received: %d", acctType)
 	}
 
 	// Build response

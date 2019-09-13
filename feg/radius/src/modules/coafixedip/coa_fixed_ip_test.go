@@ -24,7 +24,7 @@ func TestCoaFixed(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	logger, _ := zap.NewDevelopment()
-	err := Init(logger, modules.ModuleConfig{
+	mCtx, err := Init(logger, modules.ModuleConfig{
 		"target": fmt.Sprintf("127.0.0.1:%d", 4799),
 	})
 	require.Nil(t, err)
@@ -56,6 +56,7 @@ func TestCoaFixed(t *testing.T) {
 
 	// Act
 	res, err := Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,

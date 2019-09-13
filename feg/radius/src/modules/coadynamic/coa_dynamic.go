@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/modules/coa_dynamic/radiustracker"
+	"fbc/cwf/radius/modules/coadynamic/radiustracker"
 	"fbc/lib/go/radius"
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -17,34 +18,48 @@ var radiusTracker radiustracker.RadiusTracker
 
 // Config config has only one parameter which is the ip to forward the request
 type Config struct {
-	Port string
+	Port           int16
+	TimeoutSeconds uint
 }
 
-var port string
+// ModuleCtx Context for the Module
+type ModuleCtx struct {
+	port    int16
+	timeout uint
+}
+
+const DEFAULT_COA_TIMEOUT_SECONDS uint = 5
 
 // Init module interface implementation
-func Init(_ *zap.Logger, config modules.ModuleConfig) error {
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	radiusTracker = radiustracker.NewRadiusTracker()
 
 	var coaConfig Config
 	err := mapstructure.Decode(config, &coaConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if coaConfig.Port == "" {
-		return errors.New("coa module cannot be initialized with empty port value")
+	if coaConfig.Port == 0 {
+		return nil, errors.New("coa module cannot be initialized with empty port value")
 	}
 
-	port = coaConfig.Port
-	return nil
+	if coaConfig.TimeoutSeconds == 0 {
+		coaConfig.TimeoutSeconds = DEFAULT_COA_TIMEOUT_SECONDS
+	}
+	logger.Debug("setting timeout for CoA", zap.Uint("value", coaConfig.TimeoutSeconds))
+
+	return ModuleCtx{
+		port:    coaConfig.Port,
+		timeout: coaConfig.TimeoutSeconds,
+	}, nil
 }
 
 // Handle module interface implementation
 // For radius requests we try to match the called and calling fields to the latest tracked called,calling,ip
 // For non coa radius requests we store a mapping of called,calling and ip
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
-
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+	mod := m.(ModuleCtx)
 	// We received a coa request
 	if r.Code == radius.CodeCoARequest || r.Code == radius.CodeDisconnectRequest {
 		target, err := radiusTracker.Get(r)
@@ -52,8 +67,10 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			return nil, err
 		}
 
-		destination := fmt.Sprintf("%s:%s", target, port)
-		res, err := radius.Exchange(context.Background(), r.Packet, destination)
+		destination := fmt.Sprintf("%s:%d", target, mod.port)
+		ctx, dispose := context.WithTimeout(context.Background(), time.Second*time.Duration(mod.timeout))
+		defer dispose()
+		res, err := radius.Exchange(ctx, r.Packet, destination)
 		if err != nil {
 			c.Logger.Debug(
 				"failed sending CoA",
@@ -65,9 +82,14 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 		}
 
 		// Send response back
+		b, err := res.Encode()
+		if err != nil {
+			c.Logger.Info("failed to serialize CoA response")
+		}
 		response := &modules.Response{
 			Code:       res.Code,
 			Attributes: res.Attributes,
+			Raw:        b,
 		}
 		c.Logger.Debug(
 			"successfully sent CoA",

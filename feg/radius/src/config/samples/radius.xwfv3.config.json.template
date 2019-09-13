@@ -1,0 +1,65 @@
+{
+    "counters": {
+        "disable_stats": false,
+        "stat_views": ["proc"]
+    },
+    "server": {
+        "secret": "$RADIUS_SECRET",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "type": "udp",
+                "extra": {
+                    "port": 1812
+                },
+                "modules": [
+                    {
+                        "name": "xwfv3",
+                        "config": {
+                            "AccessToken": "$RADIUS_ACCESS_TOKEN",
+                            "URI": "https://graph.expresswifi.com/v3.0/radius/authorization",
+                            "Method": "POST"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "acct",
+                "type": "udp",
+                "extra": {
+                    "port": 1813
+                },
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": -1
+                        }
+                    },
+                    {
+                        "name": "xwfv3",
+                        "config": {
+                            "AccessToken": "$RADIUS_ACCESS_TOKEN",
+                            "URI": "https://graph.expresswifi.com/v3.0/radius/accounting",
+                            "Method": "POST"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "coa",
+                "url": "https://streaming-graph.facebook.com/xwf_coa_subscribe?access_token=$RADIUS_ACCESS_TOKEN",
+                "type": "sse",
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": 3799
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

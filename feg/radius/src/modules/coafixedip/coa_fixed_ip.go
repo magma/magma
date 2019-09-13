@@ -17,6 +17,7 @@ import (
 
 	"fbc/cwf/radius/modules"
 	"fbc/lib/go/radius"
+
 	"go.uber.org/zap"
 )
 
@@ -25,37 +26,40 @@ type Config struct {
 	Target string
 }
 
-var target string
+// ModuleCtx ...
+type ModuleCtx struct {
+	target string
+}
 
 // Init module interface implementation
-func Init(logger *zap.Logger, config modules.ModuleConfig) error {
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var coaConfig Config
 	err := mapstructure.Decode(config, &coaConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if coaConfig.Target == "" {
-		return errors.New("coa module cannot be initialized with empty target value")
+		return nil, errors.New("coa module cannot be initialized with empty target value")
 	}
 
 	// Validating the correctness of Target
 	var host string
 	host, _, err = net.SplitHostPort(coaConfig.Target)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if nil == net.ParseIP(host) {
-		return errors.Wrap(err, "Invalid ip address specified")
+		return nil, errors.Wrap(err, "Invalid ip address specified")
 	}
 
-	target = coaConfig.Target
-	return nil
+	return ModuleCtx{target: coaConfig.Target}, nil
 }
 
 // Handle module interface implementation
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+	mod := m.(ModuleCtx)
 	c.Logger.Debug("Starting to handle coa radius request")
 	requestCode := r.Code
 	// Checking that we have received a coa request
@@ -64,14 +68,19 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 	}
 
 	// Handling the coa request
-	res, err := radius.Exchange(context.Background(), r.Packet, target)
-
+	res, err := radius.Exchange(context.Background(), r.Packet, mod.target)
 	if err != nil {
 		return nil, err
+	}
+
+	b, err := res.Encode()
+	if err != nil {
+		c.Logger.Info("failed to serialize CoA response")
 	}
 
 	return &modules.Response{
 		Code:       res.Code,
 		Attributes: res.Attributes,
+		Raw:        b,
 	}, nil
 }

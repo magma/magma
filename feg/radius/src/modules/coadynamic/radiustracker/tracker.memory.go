@@ -37,7 +37,7 @@ func (m *memoryRadiusTracker) Get(r *radius.Request) (string, error) {
 
 	value, found := m.storage.Load(key)
 	if !found {
-		return "", errors.New("radius request wasn't tracked yet")
+		return "", fmt.Errorf("radius request wasn't tracked yet (key: %s)", key)
 	}
 
 	ip, ok := value.(string)

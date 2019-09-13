@@ -8,16 +8,6 @@ LICENSE file in the root directory of this source tree.
 
 package analytics
 
-type queueState int
-
-const (
-	//  execution termination state
-	stateActive         queueState = iota // queue is active, not terminating
-	stateCloseDrop                        // queue is closing, dropping tasks that didnt start yet
-	stateCloseDrain                       // queue is closing, executing any task that is queued
-	stateCloseCompleted                   // queue termination sequence has completed (signaling from worker to go-routine that requested to close & is waiting for ack)
-)
-
 const (
 	// MaxExecBatchSize the maximum batch execution size for which there's a bucket in stats
 	MaxExecBatchSize = 10
@@ -26,7 +16,6 @@ const (
 type (
 	// Queue A queue for Analytics Requests to run on
 	Queue struct {
-		state      queueState // state in lifetime of queue
 		items      chan Request
 		terminate  chan bool // signal termination to worker goroutine, with 'drain' param
 		done       chan bool // signal back to main context that drain completed
@@ -36,14 +25,13 @@ type (
 	// Request the interface to be implemented by a task that is pushed to the
 	// analytics.Queue, so it can be executed
 	Request interface {
-		Run()
+		Run(m ModuleCtx)
 	}
 )
 
 // NewAnalyticsQueue creates a new queue
-func NewAnalyticsQueue() *Queue {
+func NewAnalyticsQueue(mCtx ModuleCtx) *Queue {
 	result := &Queue{
-		state:      stateActive,
 		items:      make(chan Request, 9999),
 		terminate:  make(chan bool, 1),
 		done:       make(chan bool, 1),
@@ -55,13 +43,13 @@ func NewAnalyticsQueue() *Queue {
 		for {
 			select {
 			case request := <-q.items:
-				request.Run()
+				request.Run(mCtx)
 				break
 			case drain := <-q.terminate:
 				go func(queue *Queue, shouldDrain bool) {
 					if shouldDrain {
 						for len(queue.items) > 0 {
-							(<-queue.items).Run()
+							(<-queue.items).Run(mCtx)
 						}
 					}
 					q.done <- true

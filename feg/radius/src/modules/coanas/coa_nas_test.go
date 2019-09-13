@@ -21,7 +21,7 @@ func TestCoaNas(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
-	err = Init(logger, modules.ModuleConfig{
+	mCtx, err := Init(logger, modules.ModuleConfig{
 		"port": "4799",
 	})
 	require.Nil(t, err)
@@ -56,6 +56,7 @@ func TestCoaNas(t *testing.T) {
 	// Act
 	require.Nil(t, err)
 	res, err := Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -79,7 +80,7 @@ func TestCoaNasNoResponse(t *testing.T) {
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
-	err = Init(logger, modules.ModuleConfig{
+	mCtx, err := Init(logger, modules.ModuleConfig{
 		"port": "3799",
 	})
 	require.Nil(t, err)
@@ -113,6 +114,7 @@ func TestCoaNasNoResponse(t *testing.T) {
 
 	// Act
 	_, err = Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -133,7 +135,7 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	logger, err := zap.NewDevelopment()
 	require.Nil(t, err)
-	err = Init(logger, modules.ModuleConfig{
+	mCtx, err := Init(logger, modules.ModuleConfig{
 		"port": "4799",
 	})
 	require.Nil(t, err)
@@ -168,6 +170,7 @@ func TestCoaNasFieldInvalid(t *testing.T) {
 	// Act
 	var s int
 	_, err = Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,

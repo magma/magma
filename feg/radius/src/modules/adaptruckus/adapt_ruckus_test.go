@@ -22,7 +22,7 @@ import (
 
 func TestVerifyConversion(t *testing.T) {
 	// Arrange
-	logger, err := zap.NewDevelopment()
+	logger, _ := zap.NewDevelopment()
 	require.NotNil(t, logger)
 	packet := radius.Packet{
 		Attributes: radius.Attributes{},
@@ -46,9 +46,11 @@ func TestVerifyConversion(t *testing.T) {
 	ruckus.RuckusTCAcctCtrs_Set(&packet, acctCtrs)
 
 	// Act
-	_, err = Handle(&modules.RequestContext{
-		Logger: logger,
-	}, &radius.Request{Packet: &packet},
+	_, err := Handle(
+		nil,
+		&modules.RequestContext{
+			Logger: logger,
+		}, &radius.Request{Packet: &packet},
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 			r.Get(rfc2866.AcctOutputOctets_Type)
 			expect(t, r, rfc2866.AcctInputOctets_Type, 1234)

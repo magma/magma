@@ -19,8 +19,8 @@ func TestCoaDynamic(t *testing.T) {
 	// Arrange
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	logger, _ := zap.NewDevelopment()
-	err := Init(logger, modules.ModuleConfig{
-		"port": "4799",
+	ctx, err := Init(logger, modules.ModuleConfig{
+		"port": 4799,
 	})
 	require.Nil(t, err)
 
@@ -53,15 +53,15 @@ func TestCoaDynamic(t *testing.T) {
 	// Act
 
 	// Sending a coa request - expected to fail
-	generateRequest(radius.CodeDisconnectRequest, t, "session1", false)
+	generateRequest(ctx, radius.CodeDisconnectRequest, t, "session1", false)
 	require.Equal(t, uint32(1), atomic.LoadUint32(&radiusResponseCounter))
 
 	// Sending a non coa request
-	generateRequest(radius.CodeAccountingRequest, t, "session2")
+	generateRequest(ctx, radius.CodeAccountingRequest, t, "session2")
 	require.Equal(t, uint32(1), atomic.LoadUint32(&radiusResponseCounter))
 
 	// Sending a coa request
-	res, err := generateRequest(radius.CodeDisconnectRequest, t, "session3", false)
+	res, err := generateRequest(ctx, radius.CodeDisconnectRequest, t, "session3", false)
 	require.Equal(t, uint32(2), atomic.LoadUint32(&radiusResponseCounter))
 
 	// Assert
@@ -70,7 +70,7 @@ func TestCoaDynamic(t *testing.T) {
 	require.Equal(t, res.Code, radius.CodeDisconnectACK)
 }
 
-func generateRequest(code radius.Code, t *testing.T, sessionID string, next ...bool) (*modules.Response, error) {
+func generateRequest(ctx modules.Context, code radius.Code, t *testing.T, sessionID string, next ...bool) (*modules.Response, error) {
 	logger, _ := zap.NewDevelopment()
 	nextCalled := false
 
@@ -87,6 +87,7 @@ func generateRequest(code radius.Code, t *testing.T, sessionID string, next ...b
 
 	// Handle
 	res, err := Handle(
+		ctx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,

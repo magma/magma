@@ -20,6 +20,7 @@ import (
 	"golang.org/x/net/http2"
 )
 
+// DefaultTimeout the default timeout of a request
 const DefaultTimeout = 5 * time.Second
 
 //Client struct encapsulates an http2 connection to www
@@ -56,9 +57,8 @@ func isSuccessful(resp *http.Response) bool {
 	return false
 }
 
-//NewClient returns an initialized Client struct.
+// NewClient returns an initialized Client struct.
 func NewClient(accessToken string) *Client {
-
 	return &Client{
 		http2client: http.Client{
 			Transport: &http2.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}},
@@ -76,7 +76,6 @@ func (c *Client) addAccessToken(req *http.Request) {
 
 //Get method will perform an http get request for the specified url and will return the response bytes
 func (c *Client) Get(url string) ([]byte, error) {
-
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err

@@ -22,10 +22,12 @@ func TestAccessRequest(t *testing.T) {
 	// Arrange
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
-	Init(logger, modules.ModuleConfig{})
+	ctx, err := Init(logger, modules.ModuleConfig{})
+	require.NoError(t, err, "failed to init")
 
 	// Act
 	res, err := Handle(
+		ctx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -50,10 +52,12 @@ func TestNotAccessRequest(t *testing.T) {
 	// Arrange
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
-	Init(logger, modules.ModuleConfig{})
+	ctx, err := Init(logger, modules.ModuleConfig{})
+	require.NoError(t, err, "failed to init")
 
 	// Act
 	res, err := Handle(
+		ctx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
