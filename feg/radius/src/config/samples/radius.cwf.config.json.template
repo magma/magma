@@ -80,7 +80,7 @@
                     {
                         "name": "coadynamic",
                         "config": {
-                            "Port": "3799"
+                            "Port": 3799
                         }
                     }
                 ]
