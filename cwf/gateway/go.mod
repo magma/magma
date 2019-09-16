@@ -12,6 +12,7 @@ replace (
 	fbc/lib/go/http => ../../feg/radius/lib/go/http
 	fbc/lib/go/libgraphql => ../../feg/radius/lib/go/libgraphql
 	fbc/lib/go/log => ../../feg/radius/lib/go/log
+	fbc/lib/go/machine => ../../feg/radius/lib/go/machine
 	fbc/lib/go/oc => ../../feg/radius/lib/go/oc
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
