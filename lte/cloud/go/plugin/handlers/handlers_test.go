@@ -194,7 +194,7 @@ func TestGetNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        getNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not an LTE network",
+		ExpectedError:  "network n2 is not a <lte> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -335,7 +335,7 @@ func TestUpdateNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        updateNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not an LTE network",
+		ExpectedError:  "network n2 is not a <lte> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -379,7 +379,7 @@ func TestDeleteNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        deleteNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not an LTE network",
+		ExpectedError:  "network n2 is not a <lte> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 

@@ -15,6 +15,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
@@ -22,6 +23,14 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
+
+func (m *LteNetwork) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
+	return &LteNetwork{}
+}
 
 func (m *LteNetwork) ToConfiguratorNetwork() configurator.Network {
 	return configurator.Network{
@@ -50,7 +59,7 @@ func (m *LteNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 	}
 }
 
-func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) *LteNetwork {
+func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) interface{} {
 	m.ID = models.NetworkID(n.ID)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
