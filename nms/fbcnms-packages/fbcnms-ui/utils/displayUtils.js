@@ -48,3 +48,8 @@ export const isJSON = (text: ?string): boolean => {
 export const formatDateForTextInput = (dateValue: ?string) => {
   return !!dateValue ? dateValue.split('T')[0] : '';
 };
+
+export const formatMultiSelectValue = (
+  options: Array<{value: string, label: string}>,
+  value: string,
+) => options.find(option => option.value === value)?.label;
