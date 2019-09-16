@@ -19,5 +19,5 @@ Host *
     SendEnv LANG LC_*
     HashKnownHosts yes
     GSSAPIAuthentication yes
-    ServerAliveInterval 300
-    ServerAliveCountMax 5
+    ServerAliveInterval 60
+    ServerAliveCountMax 50
