@@ -105,19 +105,35 @@ const RANGE_VALUES: {[TimeRange]: RangeValue} = {
 const COLORS = ['blue', 'red', 'green', 'yellow', 'purple', 'black'];
 
 interface DatabaseHelper<T> {
-  getLegendLabel(data: T): string;
+  getLegendLabel(data: T, tagSets: Array<{[string]: string}>): string;
   queryFunction: (networkID: string) => string;
   datapointFieldName: string;
 }
 
 class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
-  getLegendLabel(result: PrometheusResponse): string {
+  getLegendLabel(
+    result: PrometheusResponse,
+    tagSets: Array<{[string]: string}>,
+  ): string {
     const {metric} = result;
 
     const tags = [];
-    const droppedTags = ['gatewayID', 'networkID', 'service', '__name__'];
+    const droppedTags = ['networkID', '__name__'];
+    const droppedIfSameTags = ['gatewayID', 'service'];
+
+    const uniqueTagValues = {};
+    droppedIfSameTags.forEach(tagName => {
+      uniqueTagValues[tagName] = Array.from(
+        new Set(tagSets.map(item => item[tagName])),
+      );
+    });
+
     for (const key in metric) {
-      if (metric.hasOwnProperty(key) && !droppedTags.includes(key)) {
+      if (
+        metric.hasOwnProperty(key) &&
+        !droppedTags.includes(key) &&
+        (!uniqueTagValues[key] || uniqueTagValues[key].length !== 1)
+      ) {
         tags.push(key + '=' + metric[key]);
       }
     }
@@ -175,7 +191,7 @@ function useDatasetsFetcher(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const stringedQueries = JSON.stringify(props.queries);
 
-  const dbHelper = new PrometheusHelper();
+  const dbHelper = useMemo(() => new PrometheusHelper(), []);
 
   useEffect(() => {
     const queries = JSON.parse(stringedQueries);
@@ -211,9 +227,10 @@ function useDatasetsFetcher(props: Props) {
       allResponses.filter(Boolean).forEach(({response, label}) => {
         const result = response.data?.data?.result;
         if (result) {
+          const tagSets = result.map(it => it.metric);
           result.map(it =>
             datasets.push({
-              label: label || dbHelper.getLegendLabel(it),
+              label: label || dbHelper.getLegendLabel(it, tagSets),
               unit: props.unit || '',
               fill: false,
               lineTension: 0,
@@ -250,6 +267,7 @@ function useDatasetsFetcher(props: Props) {
     props.label,
     props.legendLabels,
     enqueueSnackbar,
+    dbHelper,
   ]);
 
   return allDatasets;
