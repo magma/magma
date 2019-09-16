@@ -1,6 +1,6 @@
 resource "aws_db_instance" "default" {
   identifier        = "orc8rdb"
-  allocated_storage = 128
+  allocated_storage = 32
   engine            = "postgres"
   engine_version    = "9.6.11"
   instance_class    = "db.m4.large"
@@ -12,6 +12,11 @@ resource "aws_db_instance" "default" {
   vpc_security_group_ids = [aws_security_group.default.id]
 
   db_subnet_group_name = module.vpc.database_subnet_group
+
+  skip_final_snapshot = true
+  # we only need this as a placeholder value for `terraform destroy` to work,
+  # this won't actually create a final snapshot on destroy
+  final_snapshot_identifier = "foo"
 }
 
 resource "aws_db_instance" "nms" {
@@ -28,4 +33,9 @@ resource "aws_db_instance" "nms" {
   vpc_security_group_ids = [aws_security_group.default.id]
 
   db_subnet_group_name = module.vpc.database_subnet_group
+
+  skip_final_snapshot = true
+  # we only need this as a placeholder value for `terraform destroy` to work,
+  # this won't actually create a final snapshot on destroy
+  final_snapshot_identifier = "nms_foo"
 }
