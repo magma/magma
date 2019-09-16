@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"fbc/lib/go/machine"
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/expresswifi"
 	"fbc/lib/go/radius/rfc2865"
@@ -107,15 +108,12 @@ func (l *SSEListener) ListenAndServe() error {
 
 	// Get MAC Address to represent this machine
 	if l.Extra.SSEMacAddress == "" {
-		l.Extra.SSEMacAddress, err = getMachineMACAddress()
-		if err != nil {
-			return err
-		}
+		l.Extra.SSEMacAddress = machine.GetMachineMACAddressID()
 	}
 
 	l.Logger.Info(
-		"Using machine MAC address for SSE MAC identifier",
-		zap.String("mac_address", l.Extra.SSEMacAddress),
+		"Subscribing for CoA requests",
+		zap.String("sse_mac_address", l.Extra.SSEMacAddress),
 	)
 
 	req := http.Request{

@@ -1,9 +1,13 @@
 module fbc/cwf/radius
 
-replace fbc/lib/go/radius => ../lib/go/radius
+replace (
+	fbc/lib/go/machine => ../lib/go/machine
+	fbc/lib/go/radius => ../lib/go/radius
+)
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
+	fbc/lib/go/machine v0.0.0-00010101000000-000000000000
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
 	github.com/donovanhide/eventsource v0.0.0-20171031113327-3ed64d21fb0b
 	github.com/golang/protobuf v1.3.1

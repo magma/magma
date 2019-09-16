@@ -103,7 +103,7 @@ func (c *Client) Get(url string) ([]byte, error) {
 }
 
 //PostJSON method will perform an http post to the url specified with a json body
-func (c *Client) PostJSON(url string, bodyToSend map[string]string) ([]byte, error) {
+func (c *Client) PostJSON(url string, bodyToSend map[string]string, headers map[string]string) ([]byte, error) {
 
 	// Turning the map into a json
 	body, err := json.Marshal(bodyToSend)
@@ -117,6 +117,9 @@ func (c *Client) PostJSON(url string, bodyToSend map[string]string) ([]byte, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("radius-packet-encoding", "base64/binary")
+	for header, value := range headers {
+		req.Header.Set(header, value)
+	}
 
 	c.addAccessToken(req)
 

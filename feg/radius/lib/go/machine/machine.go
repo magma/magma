@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package server
+package machine
 
 import (
 	"net"
@@ -33,10 +33,13 @@ func (ifs Interfaces) Less(i, j int) bool {
 	return ifs[i].Name < ifs[j].Name
 }
 
-func getMachineMACAddress() (string, error) {
+// GetMachineMACAddressID gets a unique MAC address which identifies the machine.
+// This means that on the same machine, the same MAC will be returned on every call
+// to this function.
+func GetMachineMACAddressID() string {
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		return "", err
+		return DefaultMacAddress
 	}
 
 	sort.Sort(Interfaces(interfaces))
@@ -44,8 +47,8 @@ func getMachineMACAddress() (string, error) {
 	for _, intf := range interfaces {
 		mac := intf.HardwareAddr.String()
 		if mac != "" {
-			return mac, nil
+			return mac
 		}
 	}
-	return DefaultMacAddress, nil
+	return DefaultMacAddress
 }

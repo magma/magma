@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"fbc/cwf/radius/modules"
+	"fbc/lib/go/machine"
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2865"
 
@@ -23,9 +24,10 @@ const ExpressWiFiVendorSpecificServerRADIUSAttributeType uint32 = 99999
 
 // Config configuration structure for restproxy module
 type Config struct {
-	URI         string
-	AccessToken string
-	Method      string
+	URI           string
+	AccessToken   string
+	Method        string
+	SSEMacAddress string
 }
 
 // ModuleCtx ...
@@ -33,6 +35,7 @@ type ModuleCtx struct {
 	uri         string
 	http2client *xwfhttp2.Client
 	method      string
+	sseMACAddr  string
 }
 
 type wwwResp struct {
@@ -60,6 +63,14 @@ func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, err
 	if err != nil {
 		return nil, err
 	}
+	mCtx.sseMACAddr = cfg.SSEMacAddress
+	if mCtx.sseMACAddr == "" {
+		mCtx.sseMACAddr = machine.GetMachineMACAddressID()
+	}
+	logger.Info(
+		"Generating sessions with SSE MAC Address",
+		zap.String("sse_mac_address", mCtx.sseMACAddr),
+	)
 
 	mCtx.http2client = xwfhttp2.NewClient(cfg.AccessToken)
 	logger.Info("XWFv3 module initialized successfully")
@@ -93,6 +104,8 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 	respBody, err := mCtx.http2client.PostJSON(mCtx.uri, map[string]string{
 		// Transform the radius request to a json suitable body for www
 		"data": base64.StdEncoding.EncodeToString(data),
+	}, map[string]string{
+		"sse-client-mac-address": mCtx.sseMACAddr,
 	})
 
 	if err != nil {
