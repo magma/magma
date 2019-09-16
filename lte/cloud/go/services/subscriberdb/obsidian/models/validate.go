@@ -6,12 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package state
+package models
 
-import (
-	"magma/orc8r/cloud/go/serde"
-)
+import "github.com/go-openapi/strfmt"
 
-func NewStateSerde(stateType string, modelPtr serde.ValidateableBinaryConvertible) serde.Serde {
-	return serde.NewBinarySerde(SerdeDomain, stateType, modelPtr)
+func (m *SubscriberState) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }

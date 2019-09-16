@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 
@@ -24,7 +25,7 @@ import (
 // PartialGatewayModel describe models that represents a portion of network
 // entity that can be read and updated.
 type PartialGatewayModel interface {
-	ValidatableModel
+	serde.ValidatableModel
 	// FromBackendModels the same PartialGatewayModel from the configurator
 	// entities attached to the networkID and gatewayID.
 	FromBackendModels(networkID string, gatewayID string) error

@@ -35,6 +35,15 @@ type Serde interface {
 	Deserialize(in []byte) (interface{}, error)
 }
 
+type ValidatableModel interface {
+	ValidateModel() error
+}
+
+type ValidateableBinaryConvertible interface {
+	BinaryConvertible
+	ValidatableModel
+}
+
 // BinaryConvertible wraps encoding.BinaryMarshaler and
 // encoding.BinaryUnmarshaler for use in generic serde factory functions.
 type BinaryConvertible interface {
