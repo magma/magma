@@ -20,7 +20,6 @@ export type FeatureID =
   | 'upload_xwf'
   | 'upload_ftth'
   | 'python_api'
-  | 'prometheus_metrics_database'
   | 'site_survey'
   | 'alerts'
   | 'equipment_export'

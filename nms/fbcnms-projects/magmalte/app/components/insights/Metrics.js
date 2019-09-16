@@ -27,16 +27,10 @@ import TimeRangeSelector from './TimeRangeSelector';
 import Typography from '@material-ui/core/Typography';
 import {Route} from 'react-router-dom';
 
-import AppContext from '@fbcnms/ui/context/AppContext';
 import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {
-  useAxios,
-  useFeatureFlag,
-  useRouter,
-  useSnackbar,
-} from '@fbcnms/ui/hooks';
+import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -61,8 +55,7 @@ export type MetricGraphConfig = {
 };
 
 export type CustomQuery = {
-  resolvePrometheusQuery: string => string,
-  resolveGraphiteQuery: string => string,
+  resolveQuery: string => string,
 };
 
 export type BasicQueryConfig = {
@@ -78,66 +71,36 @@ export type MetricLabel = {
 export function resolveQuery(
   config: MetricGraphConfig,
   gatewayId: string,
-  usePrometheusDB: boolean,
 ): string[] {
   if (config.customQueryConfigs) {
-    return resolveCustomQuery(
-      config.customQueryConfigs,
-      gatewayId,
-      usePrometheusDB,
-    );
+    return resolveCustomQuery(config.customQueryConfigs, gatewayId);
   }
-  return resolveBasicQuery(
-    config.basicQueryConfigs,
-    gatewayId,
-    usePrometheusDB,
-  );
+  return resolveBasicQuery(config.basicQueryConfigs, gatewayId);
 }
 
 function resolveBasicQuery(
   configs: BasicQueryConfig[],
   gatewayId: string,
-  usePrometheusDB: boolean,
 ): string[] {
   return configs.map(config => {
-    const filterString = resolveFilters(
-      config.filters,
-      gatewayId,
-      usePrometheusDB,
-    );
-    if (usePrometheusDB) {
-      return `${config.metric}{${filterString}}`;
-    }
-    return `${config.metric},${filterString}`;
+    const filterString = resolveFilters(config.filters, gatewayId);
+    return `${config.metric}{${filterString}}`;
   });
 }
 
-function resolveFilters(
-  filters: MetricLabel[],
-  gatewayId: string,
-  usePrometheusDB: boolean,
-): string {
-  const dbFilters: string[] = filters.map(filter =>
-    usePrometheusDB
-      ? filter.name + '="' + filter.value + '"'
-      : filter.name + '=' + filter.value,
+function resolveFilters(filters: MetricLabel[], gatewayId: string): string {
+  const dbFilters: string[] = filters.map(
+    filter => filter.name + '="' + filter.value + '"',
   );
-  usePrometheusDB
-    ? dbFilters.push(`gatewayID="${gatewayId}"`)
-    : dbFilters.push(`gatewayID=${gatewayId}`);
+  dbFilters.push(`gatewayID="${gatewayId}"`);
   return dbFilters.join(',');
 }
 
 function resolveCustomQuery(
   configs: CustomQuery[],
   gatewayId: string,
-  usePrometheusDB: boolean,
 ): string[] {
-  return configs.map(config =>
-    usePrometheusDB
-      ? config.resolvePrometheusQuery(gatewayId)
-      : config.resolveGraphiteQuery(gatewayId),
-  );
+  return configs.map(config => config.resolveQuery(gatewayId));
 }
 
 function Metrics(props: {
@@ -153,11 +116,6 @@ function Metrics(props: {
     method: 'get',
     url: MagmaAPIUrls.gateways(match, true),
   });
-
-  const usePrometheusDatabase = useFeatureFlag(
-    AppContext,
-    'prometheus_metrics_database',
-  );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);
 
@@ -209,13 +167,8 @@ function Metrics(props: {
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
-                    queries={resolveQuery(
-                      config,
-                      selectedGatewayOrDefault,
-                      usePrometheusDatabase,
-                    )}
+                    queries={resolveQuery(config, selectedGatewayOrDefault)}
                     timeRange={timeRange}
-                    usePrometheusDB={usePrometheusDatabase}
                   />
                 </div>
               </CardContent>

@@ -27,7 +27,6 @@ type Props = {
   legendLabels?: Array<string>,
   timeRange: TimeRange,
   networkId?: string,
-  usePrometheusDB: boolean,
 };
 
 const useStyles = makeStyles({
@@ -131,36 +130,8 @@ class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
   datapointFieldName = 'values';
 }
 
-class GraphiteHelper implements DatabaseHelper<GraphiteResponse> {
-  getLegendLabel(result: GraphiteResponse): string {
-    const {target} = result;
-    const label = JSON.stringify(target)
-      .slice(1, -1) // remove double quotes
-      .split(';'); // token separator for graphite
-    const metric = label.shift();
-
-    // remove gateway, network, and service tags, they're not interesting
-    const tags = label.filter(tag => {
-      const tagName = tag.split('=')[0];
-      return (
-        tagName !== 'gatewayID' &&
-        tagName !== 'networkID' &&
-        tagName !== 'service'
-      );
-    });
-    return tags.length === 0 ? metric : `${metric} (${tags.join(', ')})`;
-  }
-
-  queryFunction = MagmaAPIUrls.graphiteQuery;
-  datapointFieldName = 'datapoints';
-}
-
 type PrometheusResponse = {
   metric: {[key: string]: string},
-};
-
-type GraphiteResponse = {
-  target: JSON,
 };
 
 function Progress() {
@@ -204,11 +175,7 @@ function useDatasetsFetcher(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const stringedQueries = JSON.stringify(props.queries);
 
-  const dbHelper = useMemo(
-    () =>
-      props.usePrometheusDB ? new PrometheusHelper() : new GraphiteHelper(),
-    [props.usePrometheusDB],
-  );
+  const dbHelper = new PrometheusHelper();
 
   useEffect(() => {
     const queries = JSON.parse(stringedQueries);
@@ -242,9 +209,7 @@ function useDatasetsFetcher(props: Props) {
       let index = 0;
       const datasets = [];
       allResponses.filter(Boolean).forEach(({response, label}) => {
-        const result = props.usePrometheusDB
-          ? response.data?.data?.result
-          : response.data?.result;
+        const result = response.data?.data?.result;
         if (result) {
           result.map(it =>
             datasets.push({
@@ -285,8 +250,6 @@ function useDatasetsFetcher(props: Props) {
     props.label,
     props.legendLabels,
     enqueueSnackbar,
-    dbHelper,
-    props.usePrometheusDB,
   ]);
 
   return allDatasets;

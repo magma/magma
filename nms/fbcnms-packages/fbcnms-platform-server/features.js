@@ -70,11 +70,6 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'prometheus_metrics_database',
-    title: 'Prometheus Metrics Database',
-    enabledByDefault: true,
-  },
-  {
     id: 'site_survey',
     title: 'Site Survey',
     enabledByDefault: false,

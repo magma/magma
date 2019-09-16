@@ -55,9 +55,8 @@ const CONFIGS: Array<MetricGraphConfig> = [
   {
     customQueryConfigs: [
       {
-        resolvePrometheusQuery: gw =>
+        resolveQuery: gw =>
           `pdcp_user_plane_bytes_dl{gatewayID="${gw}", service="enodebd"}/1000`,
-        resolveGraphiteQuery: _ => '',
       },
     ],
     basicQueryConfigs: [],
@@ -67,9 +66,8 @@ const CONFIGS: Array<MetricGraphConfig> = [
   {
     customQueryConfigs: [
       {
-        resolvePrometheusQuery: gw =>
+        resolveQuery: gw =>
           `pdcp_user_plane_bytes_ul{gatewayID="${gw}", service="enodebd"}/1000`,
-        resolveGraphiteQuery: _ => '',
       },
     ],
     basicQueryConfigs: [],
@@ -149,13 +147,8 @@ const INTERNAL_CONFIGS: Array<MetricGraphConfig> = [
     unit: '',
     customQueryConfigs: [
       {
-        resolvePrometheusQuery: gid =>
+        resolveQuery: gid =>
           `mem_free{gatewayID="${gid}"} / mem_total{gatewayID="${gid}"}`,
-        resolveGraphiteQuery: gid =>
-          `divideSeries(` +
-          `seriesByTag('name=mem_free', 'gatewayID=${gid}'),` +
-          `seriesByTag('name=mem_total', 'gatewayID=${gid}')` +
-          `)`,
       },
     ],
   },
