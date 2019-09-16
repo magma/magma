@@ -112,12 +112,10 @@ func (m EapAkaTataIpxMethod) Handle(
 	if akaPacket.Subtype == AkaChallenge {
 		// Log packet values
 		res := akaPacket.GetFirst(AT_RES)
-		checkcode := akaPacket.GetFirst(AT_CHECKCODE)
 		mac := akaPacket.GetFirst(AT_MAC)
 		c.Logger.Info(
 			"got aka client challenge",
 			zap.Any("AT_RES", res.Value),
-			zap.Any("AT_CHECKCODE", checkcode.Value),
 			zap.Any("AT_MAC", mac.Value),
 		)
 
