@@ -14,6 +14,7 @@ import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import Typography from '@material-ui/core/Typography';
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -47,7 +48,6 @@ const useStyles = makeStyles(theme => ({
   },
   panelDetails: {
     padding: 0,
-    marginTop: '16px',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -56,12 +56,15 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   title: string,
   children: React.Node,
+  className?: string,
 };
 
-const ExpandingPanel = ({children, title}: Props) => {
+const ExpandingPanel = ({className, children, title}: Props) => {
   const classes = useStyles();
   return (
-    <ExpansionPanel className={classes.expansionPanel} defaultExpanded={true}>
+    <ExpansionPanel
+      className={classNames(className, classes.expansionPanel)}
+      defaultExpanded={true}>
       <ExpansionPanelSummary
         className={classes.expansionPanelSummary}
         classes={{
