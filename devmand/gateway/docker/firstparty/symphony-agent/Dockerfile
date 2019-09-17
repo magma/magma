@@ -13,8 +13,6 @@ COPY --from=%%DOCKER_REGISTRY%%/firstparty /build/python/gen /usr/local/lib/pyth
 COPY symphony-agent/files/configs/ /etc/magma
 COPY symphony-agent/files/magma_system_prepare /bin/
 
-COPY --from=%%DOCKER_REGISTRY%%/firstparty /cache/magma/repo/fb/config/certs/rootCA.pem /var/opt/magma/certs/rootCA.pem
-
 RUN mkdir -p /var/opt/magma/configs/
 
 COPY install /

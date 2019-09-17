@@ -19,7 +19,9 @@ services:
     stdin_open: true
     tty: true
     privileged: true
+    volumes:
+      - $PWD/../../../fb/config/certs/rootCA.pem:/var/opt/magma/certs/rootCA.pem:ro
     environment:
       - SNOWFLAKE=${SNOWFLAKE}
       - CLOUD_ADDRESS=${CLOUD_ADDRESS}
-      - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESSS}
+      - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}

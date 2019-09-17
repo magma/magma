@@ -16,8 +16,6 @@ if [ -z "${BOOTSTRAP_CLOUD_ADDRESS}" ]; then
   BOOTSTRAP_CLOUD_ADDRESS="bootstrapper-controller.magma.etagecom.io"
 fi
 
-# TODO how to deploy pem
-
 echo ${SNOWFLAKE} > /etc/snowflake
 sed -i -E -e "s!%%bootstrap_cloud_address%%!${BOOTSTRAP_CLOUD_ADDRESS}!g" \
     -e "s!%%cloud_address%%!${CLOUD_ADDRESS}!g" \

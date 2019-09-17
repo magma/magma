@@ -8,8 +8,7 @@ ARG PKG_INSTALL_DIR=/cache/%%PKG%%/install
 RUN %%INSTALL%% git cmake ninja-build %%DEPS%%
 
 COPY --from=%%DOCKER_REGISTRY%%/thirdparty /cache/install /usr
-COPY --from=%%DOCKER_REGISTRY%%/magma-src /cache/magma-src/repo $PKG_REPO_DIR
-COPY protos $PKG_REPO_DIR/devmand/protos
+COPY . $PKG_REPO_DIR
 
 ENV MAGMA_ROOT $PKG_REPO_DIR
 

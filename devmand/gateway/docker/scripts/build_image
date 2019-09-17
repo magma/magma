@@ -4,6 +4,8 @@ set -e
 dir=$1
 pkg=$2
 
+bi_start=$(date +%s)
+
 (
   cd "$dir"
 
@@ -26,3 +28,7 @@ pkg=$2
          "${pkg}/Dockerfile" \
            | docker build -f - --tag "${tag}" "${context}"
 )
+
+bi_end=$(date +%s)
+runtime=$((bi_end-bi_start))
+echo "The image (${pkg}) script took ${runtime} seconds to run."

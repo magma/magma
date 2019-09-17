@@ -1,2 +1,1 @@
-snowflake
-control_proxy.yml
+docker-compose.override.yml
