@@ -1,9 +1,0 @@
-#!/bin/bash
-set -e
-
-cd ../..
-
-# shellcheck source=/dev/null
-. scripts/build_image firstparty dcsg-dhcpd
-# shellcheck source=/dev/null
-. scripts/build_image firstparty dcsg-httpd
