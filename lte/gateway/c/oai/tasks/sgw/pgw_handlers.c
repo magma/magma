@@ -37,7 +37,6 @@
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "log.h"
-#include "sgw.h"
 #include "spgw_config.h"
 #include "pgw_pco.h"
 #include "pgw_ue_ip_address_alloc.h"

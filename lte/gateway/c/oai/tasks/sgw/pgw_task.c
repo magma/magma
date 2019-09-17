@@ -35,15 +35,12 @@
 #include "intertask_interface.h"
 #include "pgw_defs.h"
 #include "pgw_handlers.h"
-#include "sgw.h"
 #include "common_defs.h"
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
 #include "spgw_config.h"
 #include "spgw_state.h"
 #include "assertions.h"
-
-pgw_app_t pgw_app;
 
 extern __pid_t g_pid;
 

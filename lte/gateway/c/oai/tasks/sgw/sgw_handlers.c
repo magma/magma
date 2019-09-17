@@ -1842,6 +1842,7 @@ int sgw_no_pcef_create_dedicated_bearer(spgw_state_t *state, s11_teid_t teid)
 
       uint8_t number_of_packet_filters = 0;
       rc = pgw_pcef_get_sdf_parameters(
+        state,
         spgw_config.pgw_config.pcef
           .automatic_push_dedicated_bearer_sdf_identifier,
         &eps_bearer_ctxt_p->eps_bearer_qos,

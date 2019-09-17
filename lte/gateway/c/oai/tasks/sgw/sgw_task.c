@@ -216,7 +216,9 @@ int sgw_init(spgw_config_t *spgw_config_pP, bool persist_state)
     return RETURNerror;
   }
 
-  if (RETURNerror == pgw_pcef_emulation_init(&spgw_config_pP->pgw_config)) {
+  if (
+    RETURNerror ==
+    pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {
     return RETURNerror;
   }
 
