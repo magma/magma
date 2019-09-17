@@ -142,7 +142,7 @@ func (m *LteGateway) FromBackendModels(
 	magmadGateway, cellularGateway configurator.NetworkEntity,
 	device *models2.GatewayDevice,
 	status *models2.GatewayStatus,
-) *LteGateway {
+) handlers.GatewayModel {
 	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
@@ -161,6 +161,10 @@ func (m *LteGateway) FromBackendModels(
 
 func (m *MutableLteGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableLteGateway) GetEmptyGateway() handlers.MutableGatewayModel {
+	return &MutableLteGateway{}
 }
 
 func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
