@@ -45,8 +45,16 @@ typedef struct sgw_state_s {
 
 } sgw_state_t;
 
+typedef struct pgw_state_s {
+    STAILQ_HEAD(ipv4_list_free_s, ipv4_list_elm_s) ipv4_list_free;
+    STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
+    hash_table_ts_t *deactivated_predefined_pcc_rules;
+    hash_table_ts_t *predefined_pcc_rules;
+} pgw_state_t;
+
 typedef struct spgw_state_s {
   sgw_state_t sgw_state;
+  pgw_state_t pgw_state;
 } spgw_state_t;
 
 // Initializes SGW state struct when task process starts.
@@ -62,6 +70,7 @@ void sgw_free_s11_bearer_context_information(
   s_plus_p_gw_eps_bearer_context_information_t **context_p);
 void sgw_free_pdn_connection(sgw_pdn_connection_t *pdn_connection_p);
 void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt);
+void pgw_free_pcc_rule(void **rule);
 
 // TODO: Add conversion (state2proto, proto2state) helper functions.
 

@@ -35,6 +35,7 @@ extern "C" {
 #define SGW_STATE_CONTEXT_HT_MAX_SIZE 512
 #define SGW_S11_TEID_MME_HT_NAME "sgw_s11_teid2mme_htbl"
 #define S11_BEARER_CONTEXT_INFO_HT_NAME "s11_bearer_context_information_htbl"
+#define MAX_PREDEFINED_PCC_RULES_HT_SIZE 32
 
 class SpgwStateManager {
  private:

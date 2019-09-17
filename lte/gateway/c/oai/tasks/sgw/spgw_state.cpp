@@ -92,3 +92,16 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt)
     free_wrapper((void **) sgw_eps_bearer_ctxt);
   }
 }
+
+void pgw_free_pcc_rule(void **rule)
+{
+  if (rule) {
+    pcc_rule_t *pcc_rule = (pcc_rule_t *) *rule;
+    if (pcc_rule) {
+      if (pcc_rule->name) {
+        bdestroy_wrapper(&pcc_rule->name);
+      }
+      free_wrapper(rule);
+    }
+  }
+}

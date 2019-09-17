@@ -47,6 +47,10 @@ spgw_state_t *SpgwStateManager::create_spgw_state(spgw_config_t *config)
   state_p->sgw_state.gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
     state_p->sgw_state.sgw_ip_address_S1u_S12_S4_up;
 
+  // Creating PGW related state structs
+  state_p->pgw_state.deactivated_predefined_pcc_rules = hashtable_ts_create(
+    MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
+
   return state_p;
 }
 
@@ -66,6 +70,11 @@ void SpgwStateManager::free_spgw_state()
     OAI_FPRINTF_ERR(
       "An error occurred while destroying SGW s11_bearer_context_information "
       "hashtable");
+  }
+
+  if (spgw_state_cache_p->pgw_state.deactivated_predefined_pcc_rules) {
+    hashtable_ts_destroy(
+      spgw_state_cache_p->pgw_state.deactivated_predefined_pcc_rules);
   }
 
   free(spgw_state_cache_p);
