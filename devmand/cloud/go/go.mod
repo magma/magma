@@ -1,6 +1,6 @@
 module orc8r/devmand/cloud/go
 
-replace magma/orc8r/cloud/go => ../../../../../magma/orc8r/cloud/go
+replace magma/orc8r/cloud/go => ../../../orc8r/cloud/go
 
 require (
 	github.com/go-openapi/errors v0.18.0
