@@ -59,8 +59,8 @@
 <p>To setup a Magma Access Gateway, you will need a machine that
 satisfies the following requirements:</p>
 <ul>
-<li>Docker host where the container AGW_DEPLOY will be built</li>
-<li>AGW_HOST, 64bit-X86 machine
+<li>Docker host where the container AGW_DEPLOY will be built. This container can be run directly on your machine or a remote host, as long as It can reach your Gateway.</li>
+<li>AGW_HOST, 64bit-X86 machine, we strongly recommend hardware.
 Two ethernet ports. We use enp1s0 and enp2s0 in this guide. They might have different names on your hardware so just replace enp1s0 and enp2s0 with your current interfaces name in this guideline.
 One port is for the SGi interface (default: enp1s0) and one for the S1 interface (default: enp2s0)</li>
 </ul>
@@ -87,7 +87,16 @@ One port is for the SGi interface (default: enp1s0) and one for the S1 interface
 </ul></li>
 <li>Connect your SGi interface to the internet and select this port during the installation process to get an IP using DHCP.</li>
 </ul>
-<h3><a class="anchor" aria-hidden="true" id="2-prepare-agw_deploy"></a><a href="#2-prepare-agw_deploy" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2. Prepare AGW_DEPLOY</h3>
+<h3><a class="anchor" aria-hidden="true" id="2-prepare-agw_host"></a><a href="#2-prepare-agw_host" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2. Prepare AGW_HOST</h3>
+<ul>
+<li>[AGW_HOST] Prepare AGW_HOST</li>
+</ul>
+<pre><code class="hljs css language-bash">su
+wget https://raw.githubusercontent.com/facebookincubator/magma/master/lte/gateway/deploy/agw_prepare.sh
+sh agw_prepare.sh
+</code></pre>
+<p>A prompt will pop up to as you if you want to stop removing linux-image-4.9.0-11-amd64 please hit: No</p>
+<h3><a class="anchor" aria-hidden="true" id="3-prepare-agw_deploy"></a><a href="#3-prepare-agw_deploy" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3. Prepare AGW_DEPLOY</h3>
 <ul>
 <li>[AGW_DEPLOY] Build and run AGW_DEPLOY container</li>
 </ul>
@@ -95,57 +104,7 @@ One port is for the SGi interface (default: enp1s0) and one for the S1 interface
 <span class="hljs-built_in">cd</span> ~/magma
 docker build --build-arg CACHE_DATE=<span class="hljs-string">"<span class="hljs-variable">$(date)</span>"</span> -t agw_deploy -f lte/gateway/docker/deploy/Dockerfile .
 docker run -it agw_deploy bash
-</code></pre>
-<h3><a class="anchor" aria-hidden="true" id="3-prepare-agw_host"></a><a href="#3-prepare-agw_host" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3. Prepare AGW_HOST</h3>
-<ul>
-<li>[AGW_HOST] Change interface names</li>
-</ul>
-<pre><code class="hljs css language-bash">su
-
-sed -i <span class="hljs-string">'s/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g'</span> /etc/default/grub
-
-grub-mkconfig -o /boot/grub/grub.cfg
-sed -i <span class="hljs-string">'s/enp1s0/eth0/g'</span> /etc/network/interfaces
-
-<span class="hljs-built_in">echo</span> <span class="hljs-string">"auto eth1
-iface eth1 inet static
-address 10.0.2.1
-netmask 255.255.255.0"</span> &gt; /etc/network/interfaces.d/eth1
-
-reboot
-</code></pre>
-<ul>
-<li>[AGW_HOST] Make magma user a sudoer on AGW host</li>
-</ul>
-<pre><code class="hljs css language-bash">su
-apt install -y sudo python-minimal aptitude
-adduser magma sudo
-<span class="hljs-built_in">echo</span> <span class="hljs-string">"magma ALL=(ALL) NOPASSWD:ALL"</span> &gt;&gt; /etc/sudoers
-</code></pre>
-<ul>
-<li>[AGW_DEPLOY] Copy the public key</li>
-</ul>
-<pre><code class="hljs css language-bash"><span class="hljs-comment"># copy output</span>
-cat ~/.ssh/id_rsa.pub
-</code></pre>
-<ul>
-<li>[AGW_HOST] paste the pub key to ~/.ssh/authorized_keys</li>
-</ul>
-<pre><code class="hljs css language-bash">su magma
-mkdir -p ~/.ssh
-<span class="hljs-comment"># paste pub key inside</span>
-vi ~/.ssh/authorized_keys     
-</code></pre>
-<ul>
-<li>[AGW_DEPLOY] Prepare Hostfile agw_hosts for deployment</li>
-</ul>
-<pre><code class="hljs css language-bash">AGW_IP=10.0.2.1
-USERNAME=magma
-<span class="hljs-built_in">echo</span> <span class="hljs-string">"[ovs_build]
-<span class="hljs-variable">$AGW_IP</span> ansible_ssh_port=22 ansible_ssh_user=<span class="hljs-variable">$USERNAME</span> ansible_ssh_private_key_file=~/.ssh/id_rsa
-[ovs_deploy]
-<span class="hljs-variable">$AGW_IP</span> ansible_ssh_port=22 ansible_ssh_user=<span class="hljs-variable">$USERNAME</span> ansible_ssh_private_key_file=~/.ssh/id_rsa
-"</span> &gt; ~/magma/lte/gateway/deploy/agw_hosts
+scp ~/.ssh/id_rsa.pub magma@10.0.2.1:/home/magma/.ssh/authorized_keys
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="4-build-openvswitch-on-access-gateway"></a><a href="#4-build-openvswitch-on-access-gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>4. Build openvswitch on Access Gateway</h3>
 <ul>
@@ -161,4 +120,4 @@ ansible-playbook -e <span class="hljs-string">"MAGMA_ROOT='~/magma' OUTPUT_DIR='
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/magma/lte/gateway/deploy
 ansible-playbook -i agw_hosts -e <span class="hljs-string">"PACKAGE_LOCATION='/tmp'"</span> ovs_deploy.yml
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/orc8r/deploy_dns"><span class="arrow-prev">← </span><span>DNS Resolution</span></a><a class="docs-next button" href="/magma/docs/lte/config_agw"><span>AGW Configuration</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#deployment">Deployment</a><ul class="toc-headings"><li><a href="#1-create-boot-usb-stick-and-install-debian-on-your-agw-host">1. Create boot USB stick and install Debian on your AGW host</a></li><li><a href="#2-prepare-agw_deploy">2. Prepare AGW_DEPLOY</a></li><li><a href="#3-prepare-agw_host">3. Prepare AGW_HOST</a></li><li><a href="#4-build-openvswitch-on-access-gateway">4. Build openvswitch on Access Gateway</a></li><li><a href="#5-deploy-access-gateway">5. Deploy Access Gateway</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2019 Facebook</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/orc8r/deploy_dns"><span class="arrow-prev">← </span><span>DNS Resolution</span></a><a class="docs-next button" href="/magma/docs/lte/config_agw"><span>AGW Configuration</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#deployment">Deployment</a><ul class="toc-headings"><li><a href="#1-create-boot-usb-stick-and-install-debian-on-your-agw-host">1. Create boot USB stick and install Debian on your AGW host</a></li><li><a href="#2-prepare-agw_host">2. Prepare AGW_HOST</a></li><li><a href="#3-prepare-agw_deploy">3. Prepare AGW_DEPLOY</a></li><li><a href="#4-build-openvswitch-on-access-gateway">4. Build openvswitch on Access Gateway</a></li><li><a href="#5-deploy-access-gateway">5. Deploy Access Gateway</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2019 Facebook</section></footer></div></body></html>
