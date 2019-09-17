@@ -18,6 +18,9 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	orc8rStorage "magma/orc8r/cloud/go/storage"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type nbConfiguratorServicer struct {
@@ -41,7 +44,7 @@ func (srv *nbConfiguratorServicer) LoadNetworks(context context.Context, req *pr
 
 	result, err := store.LoadNetworks(*req.Filter, *req.Criteria)
 	if err != nil {
-		store.Rollback()
+		storage.RollbackLogOnError(store)
 		return res, err
 	}
 	return &result, store.Commit()
@@ -56,7 +59,7 @@ func (srv *nbConfiguratorServicer) ListNetworkIDs(context context.Context, void 
 
 	networks, err := store.LoadAllNetworks(storage.FullNetworkLoadCriteria)
 	if err != nil {
-		store.Rollback()
+		storage.RollbackLogOnError(store)
 		return res, err
 	}
 	res.NetworkIDs = []string{}
@@ -81,7 +84,7 @@ func (srv *nbConfiguratorServicer) CreateNetworks(context context.Context, req *
 		}
 		createdNetwork, err := store.CreateNetwork(*network)
 		if err != nil {
-			store.Rollback()
+			storage.RollbackLogOnError(store)
 			return emptyRes, err
 		}
 		createdNetworks = append(createdNetworks, &createdNetwork)
@@ -106,7 +109,7 @@ func (srv *nbConfiguratorServicer) UpdateNetworks(context context.Context, req *
 	}
 	err = store.UpdateNetworks(updates)
 	if err != nil {
-		store.Rollback()
+		storage.RollbackLogOnError(store)
 		return void, err
 	}
 	return void, store.Commit()
@@ -125,7 +128,7 @@ func (srv *nbConfiguratorServicer) DeleteNetworks(context context.Context, req *
 	}
 	err = store.UpdateNetworks(deleteRequests)
 	if err != nil {
-		store.Rollback()
+		storage.RollbackLogOnError(store)
 		return void, err
 	}
 	return void, store.Commit()
@@ -140,10 +143,44 @@ func (srv *nbConfiguratorServicer) LoadEntities(context context.Context, req *pr
 
 	loadResult, err := store.LoadEntities(req.NetworkID, *req.Filter, *req.Criteria)
 	if err != nil {
-		store.Rollback()
+		storage.RollbackLogOnError(store)
 		return emptyRes, err
 	}
 	return &loadResult, store.Commit()
+}
+
+func (srv *nbConfiguratorServicer) WriteEntities(context context.Context, req *protos.WriteEntitiesRequest) (*protos.WriteEntitiesResponse, error) {
+	emptyRes := &protos.WriteEntitiesResponse{}
+	store, err := srv.factory.StartTransaction(context, &orc8rStorage.TxOptions{ReadOnly: false})
+	if err != nil {
+		return emptyRes, err
+	}
+
+	ret := &protos.WriteEntitiesResponse{
+		UpdatedEntities: map[string]*storage.NetworkEntity{},
+	}
+	for _, write := range req.Writes {
+		switch op := write.Request.(type) {
+		case *protos.WriteEntityRequest_Create:
+			createdEnt, err := createEntity(store, req.NetworkID, op.Create)
+			if err != nil {
+				storage.RollbackLogOnError(store)
+				return emptyRes, status.Error(codes.Internal, err.Error())
+			}
+			ret.CreatedEntities = append(ret.CreatedEntities, createdEnt)
+		case *protos.WriteEntityRequest_Update:
+			updatedEnt, err := updateEntity(store, req.NetworkID, op.Update)
+			if err != nil {
+				storage.RollbackLogOnError(store)
+				return emptyRes, status.Error(codes.Internal, err.Error())
+			}
+			ret.UpdatedEntities[updatedEnt.Key] = updatedEnt
+		default:
+			storage.RollbackLogOnError(store)
+			return emptyRes, status.Error(codes.InvalidArgument, fmt.Sprintf("write request %T not recognized", write))
+		}
+	}
+	return ret, store.Commit()
 }
 
 func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *protos.CreateEntitiesRequest) (*protos.CreateEntitiesResponse, error) {
@@ -155,15 +192,12 @@ func (srv *nbConfiguratorServicer) CreateEntities(context context.Context, req *
 
 	createdEntities := []*storage.NetworkEntity{}
 	for _, entity := range req.Entities {
-		if err := entityConfigIsValid(entity.Type, entity.Config); err != nil {
-			return emptyRes, err
-		}
-		createdEntity, err := store.CreateEntity(req.NetworkID, *entity)
+		createdEntity, err := createEntity(store, req.NetworkID, entity)
 		if err != nil {
-			store.Rollback()
+			storage.RollbackLogOnError(store)
 			return emptyRes, err
 		}
-		createdEntities = append(createdEntities, &createdEntity)
+		createdEntities = append(createdEntities, createdEntity)
 	}
 	return &protos.CreateEntitiesResponse{CreatedEntities: createdEntities}, store.Commit()
 }
@@ -177,18 +211,12 @@ func (srv *nbConfiguratorServicer) UpdateEntities(context context.Context, req *
 
 	updatedEntities := map[string]*storage.NetworkEntity{}
 	for _, update := range req.Updates {
-		if update.NewConfig != nil {
-			if err := entityConfigIsValid(update.Type, update.NewConfig.Value); err != nil {
-				return emptyRes, err
-			}
-		}
-
-		updatedEntity, err := store.UpdateEntity(req.NetworkID, *update)
+		updatedEntity, err := updateEntity(store, req.NetworkID, update)
 		if err != nil {
-			store.Rollback()
+			storage.RollbackLogOnError(store)
 			return emptyRes, err
 		}
-		updatedEntities[update.Key] = &updatedEntity
+		updatedEntities[update.Key] = updatedEntity
 	}
 	return &protos.UpdateEntitiesResponse{UpdatedEntities: updatedEntities}, store.Commit()
 }
@@ -208,7 +236,7 @@ func (srv *nbConfiguratorServicer) DeleteEntities(context context.Context, req *
 		}
 		_, err = store.UpdateEntity(req.NetworkID, request)
 		if err != nil {
-			store.Rollback()
+			storage.RollbackLogOnError(store)
 			return void, err
 		}
 	}
@@ -231,4 +259,26 @@ func entityConfigIsValid(typeVal string, config []byte) error {
 		return err
 	}
 	return nil
+}
+
+func createEntity(store storage.ConfiguratorStorage, networkID string, entity *storage.NetworkEntity) (*storage.NetworkEntity, error) {
+	if err := entityConfigIsValid(entity.Type, entity.Config); err != nil {
+		return nil, err
+	}
+	ent, err := store.CreateEntity(networkID, *entity)
+	return &ent, err
+}
+
+func updateEntity(store storage.ConfiguratorStorage, networkID string, update *storage.EntityUpdateCriteria) (*storage.NetworkEntity, error) {
+	if update.NewConfig != nil {
+		if err := entityConfigIsValid(update.Type, update.NewConfig.Value); err != nil {
+			return nil, err
+		}
+	}
+
+	updatedEntity, err := store.UpdateEntity(networkID, *update)
+	if err != nil {
+		return nil, err
+	}
+	return &updatedEntity, nil
 }

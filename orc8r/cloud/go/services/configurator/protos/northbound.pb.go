@@ -36,7 +36,7 @@ func (m *ListNetworkIDsResponse) Reset()         { *m = ListNetworkIDsResponse{}
 func (m *ListNetworkIDsResponse) String() string { return proto.CompactTextString(m) }
 func (*ListNetworkIDsResponse) ProtoMessage()    {}
 func (*ListNetworkIDsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{0}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{0}
 }
 func (m *ListNetworkIDsResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ListNetworkIDsResponse.Unmarshal(m, b)
@@ -75,7 +75,7 @@ func (m *LoadNetworksRequest) Reset()         { *m = LoadNetworksRequest{} }
 func (m *LoadNetworksRequest) String() string { return proto.CompactTextString(m) }
 func (*LoadNetworksRequest) ProtoMessage()    {}
 func (*LoadNetworksRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{1}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{1}
 }
 func (m *LoadNetworksRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LoadNetworksRequest.Unmarshal(m, b)
@@ -120,7 +120,7 @@ func (m *CreateNetworksRequest) Reset()         { *m = CreateNetworksRequest{} }
 func (m *CreateNetworksRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateNetworksRequest) ProtoMessage()    {}
 func (*CreateNetworksRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{2}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{2}
 }
 func (m *CreateNetworksRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateNetworksRequest.Unmarshal(m, b)
@@ -158,7 +158,7 @@ func (m *CreateNetworksResponse) Reset()         { *m = CreateNetworksResponse{}
 func (m *CreateNetworksResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateNetworksResponse) ProtoMessage()    {}
 func (*CreateNetworksResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{3}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{3}
 }
 func (m *CreateNetworksResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateNetworksResponse.Unmarshal(m, b)
@@ -196,7 +196,7 @@ func (m *UpdateNetworksRequest) Reset()         { *m = UpdateNetworksRequest{} }
 func (m *UpdateNetworksRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateNetworksRequest) ProtoMessage()    {}
 func (*UpdateNetworksRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{4}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{4}
 }
 func (m *UpdateNetworksRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateNetworksRequest.Unmarshal(m, b)
@@ -234,7 +234,7 @@ func (m *DeleteNetworksRequest) Reset()         { *m = DeleteNetworksRequest{} }
 func (m *DeleteNetworksRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteNetworksRequest) ProtoMessage()    {}
 func (*DeleteNetworksRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{5}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{5}
 }
 func (m *DeleteNetworksRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteNetworksRequest.Unmarshal(m, b)
@@ -274,7 +274,7 @@ func (m *LoadEntitiesRequest) Reset()         { *m = LoadEntitiesRequest{} }
 func (m *LoadEntitiesRequest) String() string { return proto.CompactTextString(m) }
 func (*LoadEntitiesRequest) ProtoMessage()    {}
 func (*LoadEntitiesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{6}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{6}
 }
 func (m *LoadEntitiesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_LoadEntitiesRequest.Unmarshal(m, b)
@@ -315,6 +315,243 @@ func (m *LoadEntitiesRequest) GetCriteria() *storage.EntityLoadCriteria {
 	return nil
 }
 
+type WriteEntitiesRequest struct {
+	NetworkID            string                `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
+	Writes               []*WriteEntityRequest `protobuf:"bytes,2,rep,name=writes,proto3" json:"writes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *WriteEntitiesRequest) Reset()         { *m = WriteEntitiesRequest{} }
+func (m *WriteEntitiesRequest) String() string { return proto.CompactTextString(m) }
+func (*WriteEntitiesRequest) ProtoMessage()    {}
+func (*WriteEntitiesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{7}
+}
+func (m *WriteEntitiesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_WriteEntitiesRequest.Unmarshal(m, b)
+}
+func (m *WriteEntitiesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_WriteEntitiesRequest.Marshal(b, m, deterministic)
+}
+func (dst *WriteEntitiesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WriteEntitiesRequest.Merge(dst, src)
+}
+func (m *WriteEntitiesRequest) XXX_Size() int {
+	return xxx_messageInfo_WriteEntitiesRequest.Size(m)
+}
+func (m *WriteEntitiesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_WriteEntitiesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WriteEntitiesRequest proto.InternalMessageInfo
+
+func (m *WriteEntitiesRequest) GetNetworkID() string {
+	if m != nil {
+		return m.NetworkID
+	}
+	return ""
+}
+
+func (m *WriteEntitiesRequest) GetWrites() []*WriteEntityRequest {
+	if m != nil {
+		return m.Writes
+	}
+	return nil
+}
+
+type WriteEntityRequest struct {
+	// Types that are valid to be assigned to Request:
+	//	*WriteEntityRequest_Create
+	//	*WriteEntityRequest_Update
+	Request              isWriteEntityRequest_Request `protobuf_oneof:"request"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
+}
+
+func (m *WriteEntityRequest) Reset()         { *m = WriteEntityRequest{} }
+func (m *WriteEntityRequest) String() string { return proto.CompactTextString(m) }
+func (*WriteEntityRequest) ProtoMessage()    {}
+func (*WriteEntityRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{8}
+}
+func (m *WriteEntityRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_WriteEntityRequest.Unmarshal(m, b)
+}
+func (m *WriteEntityRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_WriteEntityRequest.Marshal(b, m, deterministic)
+}
+func (dst *WriteEntityRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WriteEntityRequest.Merge(dst, src)
+}
+func (m *WriteEntityRequest) XXX_Size() int {
+	return xxx_messageInfo_WriteEntityRequest.Size(m)
+}
+func (m *WriteEntityRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_WriteEntityRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WriteEntityRequest proto.InternalMessageInfo
+
+type isWriteEntityRequest_Request interface {
+	isWriteEntityRequest_Request()
+}
+
+type WriteEntityRequest_Create struct {
+	Create *storage.NetworkEntity `protobuf:"bytes,1,opt,name=create,proto3,oneof"`
+}
+
+type WriteEntityRequest_Update struct {
+	Update *storage.EntityUpdateCriteria `protobuf:"bytes,2,opt,name=update,proto3,oneof"`
+}
+
+func (*WriteEntityRequest_Create) isWriteEntityRequest_Request() {}
+
+func (*WriteEntityRequest_Update) isWriteEntityRequest_Request() {}
+
+func (m *WriteEntityRequest) GetRequest() isWriteEntityRequest_Request {
+	if m != nil {
+		return m.Request
+	}
+	return nil
+}
+
+func (m *WriteEntityRequest) GetCreate() *storage.NetworkEntity {
+	if x, ok := m.GetRequest().(*WriteEntityRequest_Create); ok {
+		return x.Create
+	}
+	return nil
+}
+
+func (m *WriteEntityRequest) GetUpdate() *storage.EntityUpdateCriteria {
+	if x, ok := m.GetRequest().(*WriteEntityRequest_Update); ok {
+		return x.Update
+	}
+	return nil
+}
+
+// XXX_OneofFuncs is for the internal use of the proto package.
+func (*WriteEntityRequest) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
+	return _WriteEntityRequest_OneofMarshaler, _WriteEntityRequest_OneofUnmarshaler, _WriteEntityRequest_OneofSizer, []interface{}{
+		(*WriteEntityRequest_Create)(nil),
+		(*WriteEntityRequest_Update)(nil),
+	}
+}
+
+func _WriteEntityRequest_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
+	m := msg.(*WriteEntityRequest)
+	// request
+	switch x := m.Request.(type) {
+	case *WriteEntityRequest_Create:
+		b.EncodeVarint(1<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Create); err != nil {
+			return err
+		}
+	case *WriteEntityRequest_Update:
+		b.EncodeVarint(2<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.Update); err != nil {
+			return err
+		}
+	case nil:
+	default:
+		return fmt.Errorf("WriteEntityRequest.Request has unexpected type %T", x)
+	}
+	return nil
+}
+
+func _WriteEntityRequest_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
+	m := msg.(*WriteEntityRequest)
+	switch tag {
+	case 1: // request.create
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(storage.NetworkEntity)
+		err := b.DecodeMessage(msg)
+		m.Request = &WriteEntityRequest_Create{msg}
+		return true, err
+	case 2: // request.update
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(storage.EntityUpdateCriteria)
+		err := b.DecodeMessage(msg)
+		m.Request = &WriteEntityRequest_Update{msg}
+		return true, err
+	default:
+		return false, nil
+	}
+}
+
+func _WriteEntityRequest_OneofSizer(msg proto.Message) (n int) {
+	m := msg.(*WriteEntityRequest)
+	// request
+	switch x := m.Request.(type) {
+	case *WriteEntityRequest_Create:
+		s := proto.Size(x.Create)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *WriteEntityRequest_Update:
+		s := proto.Size(x.Update)
+		n += 1 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case nil:
+	default:
+		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
+	}
+	return n
+}
+
+type WriteEntitiesResponse struct {
+	CreatedEntities      []*storage.NetworkEntity          `protobuf:"bytes,1,rep,name=created_entities,json=createdEntities,proto3" json:"created_entities,omitempty"`
+	UpdatedEntities      map[string]*storage.NetworkEntity `protobuf:"bytes,2,rep,name=updated_entities,json=updatedEntities,proto3" json:"updated_entities,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	XXX_NoUnkeyedLiteral struct{}                          `json:"-"`
+	XXX_unrecognized     []byte                            `json:"-"`
+	XXX_sizecache        int32                             `json:"-"`
+}
+
+func (m *WriteEntitiesResponse) Reset()         { *m = WriteEntitiesResponse{} }
+func (m *WriteEntitiesResponse) String() string { return proto.CompactTextString(m) }
+func (*WriteEntitiesResponse) ProtoMessage()    {}
+func (*WriteEntitiesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{9}
+}
+func (m *WriteEntitiesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_WriteEntitiesResponse.Unmarshal(m, b)
+}
+func (m *WriteEntitiesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_WriteEntitiesResponse.Marshal(b, m, deterministic)
+}
+func (dst *WriteEntitiesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WriteEntitiesResponse.Merge(dst, src)
+}
+func (m *WriteEntitiesResponse) XXX_Size() int {
+	return xxx_messageInfo_WriteEntitiesResponse.Size(m)
+}
+func (m *WriteEntitiesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_WriteEntitiesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WriteEntitiesResponse proto.InternalMessageInfo
+
+func (m *WriteEntitiesResponse) GetCreatedEntities() []*storage.NetworkEntity {
+	if m != nil {
+		return m.CreatedEntities
+	}
+	return nil
+}
+
+func (m *WriteEntitiesResponse) GetUpdatedEntities() map[string]*storage.NetworkEntity {
+	if m != nil {
+		return m.UpdatedEntities
+	}
+	return nil
+}
+
 type CreateEntitiesRequest struct {
 	NetworkID            string                   `protobuf:"bytes,1,opt,name=networkID,proto3" json:"networkID,omitempty"`
 	Entities             []*storage.NetworkEntity `protobuf:"bytes,2,rep,name=entities,proto3" json:"entities,omitempty"`
@@ -327,7 +564,7 @@ func (m *CreateEntitiesRequest) Reset()         { *m = CreateEntitiesRequest{} }
 func (m *CreateEntitiesRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateEntitiesRequest) ProtoMessage()    {}
 func (*CreateEntitiesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{7}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{10}
 }
 func (m *CreateEntitiesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateEntitiesRequest.Unmarshal(m, b)
@@ -372,7 +609,7 @@ func (m *CreateEntitiesResponse) Reset()         { *m = CreateEntitiesResponse{}
 func (m *CreateEntitiesResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateEntitiesResponse) ProtoMessage()    {}
 func (*CreateEntitiesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{8}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{11}
 }
 func (m *CreateEntitiesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CreateEntitiesResponse.Unmarshal(m, b)
@@ -411,7 +648,7 @@ func (m *UpdateEntitiesRequest) Reset()         { *m = UpdateEntitiesRequest{} }
 func (m *UpdateEntitiesRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateEntitiesRequest) ProtoMessage()    {}
 func (*UpdateEntitiesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{9}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{12}
 }
 func (m *UpdateEntitiesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateEntitiesRequest.Unmarshal(m, b)
@@ -456,7 +693,7 @@ func (m *UpdateEntitiesResponse) Reset()         { *m = UpdateEntitiesResponse{}
 func (m *UpdateEntitiesResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateEntitiesResponse) ProtoMessage()    {}
 func (*UpdateEntitiesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{10}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{13}
 }
 func (m *UpdateEntitiesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UpdateEntitiesResponse.Unmarshal(m, b)
@@ -495,7 +732,7 @@ func (m *DeleteEntitiesRequest) Reset()         { *m = DeleteEntitiesRequest{} }
 func (m *DeleteEntitiesRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteEntitiesRequest) ProtoMessage()    {}
 func (*DeleteEntitiesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_northbound_803197548d9e3744, []int{11}
+	return fileDescriptor_northbound_7ff82ff007bee6b3, []int{14}
 }
 func (m *DeleteEntitiesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteEntitiesRequest.Unmarshal(m, b)
@@ -537,6 +774,10 @@ func init() {
 	proto.RegisterType((*UpdateNetworksRequest)(nil), "magma.orc8r.configurator.UpdateNetworksRequest")
 	proto.RegisterType((*DeleteNetworksRequest)(nil), "magma.orc8r.configurator.DeleteNetworksRequest")
 	proto.RegisterType((*LoadEntitiesRequest)(nil), "magma.orc8r.configurator.LoadEntitiesRequest")
+	proto.RegisterType((*WriteEntitiesRequest)(nil), "magma.orc8r.configurator.WriteEntitiesRequest")
+	proto.RegisterType((*WriteEntityRequest)(nil), "magma.orc8r.configurator.WriteEntityRequest")
+	proto.RegisterType((*WriteEntitiesResponse)(nil), "magma.orc8r.configurator.WriteEntitiesResponse")
+	proto.RegisterMapType((map[string]*storage.NetworkEntity)(nil), "magma.orc8r.configurator.WriteEntitiesResponse.UpdatedEntitiesEntry")
 	proto.RegisterType((*CreateEntitiesRequest)(nil), "magma.orc8r.configurator.CreateEntitiesRequest")
 	proto.RegisterType((*CreateEntitiesResponse)(nil), "magma.orc8r.configurator.CreateEntitiesResponse")
 	proto.RegisterType((*UpdateEntitiesRequest)(nil), "magma.orc8r.configurator.UpdateEntitiesRequest")
@@ -567,6 +808,9 @@ type NorthboundConfiguratorClient interface {
 	DeleteNetworks(ctx context.Context, in *DeleteNetworksRequest, opts ...grpc.CallOption) (*protos.Void, error)
 	// LoadNetworks fetches the set of Networks specified by the request
 	LoadNetworks(ctx context.Context, in *LoadNetworksRequest, opts ...grpc.CallOption) (*storage.NetworkLoadResult, error)
+	// Perform multiple operations (create/update/delete) in a single
+	// transaction
+	WriteEntities(ctx context.Context, in *WriteEntitiesRequest, opts ...grpc.CallOption) (*WriteEntitiesResponse, error)
 	// CreateEntities registers the given list of Entities and returns the created Entities
 	CreateEntities(ctx context.Context, in *CreateEntitiesRequest, opts ...grpc.CallOption) (*CreateEntitiesResponse, error)
 	// UpdateEntities updates the given list of registered Entities and returns the updated Entities
@@ -630,6 +874,15 @@ func (c *northboundConfiguratorClient) LoadNetworks(ctx context.Context, in *Loa
 	return out, nil
 }
 
+func (c *northboundConfiguratorClient) WriteEntities(ctx context.Context, in *WriteEntitiesRequest, opts ...grpc.CallOption) (*WriteEntitiesResponse, error) {
+	out := new(WriteEntitiesResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.configurator.NorthboundConfigurator/WriteEntities", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *northboundConfiguratorClient) CreateEntities(ctx context.Context, in *CreateEntitiesRequest, opts ...grpc.CallOption) (*CreateEntitiesResponse, error) {
 	out := new(CreateEntitiesResponse)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.configurator.NorthboundConfigurator/CreateEntities", in, out, opts...)
@@ -678,6 +931,9 @@ type NorthboundConfiguratorServer interface {
 	DeleteNetworks(context.Context, *DeleteNetworksRequest) (*protos.Void, error)
 	// LoadNetworks fetches the set of Networks specified by the request
 	LoadNetworks(context.Context, *LoadNetworksRequest) (*storage.NetworkLoadResult, error)
+	// Perform multiple operations (create/update/delete) in a single
+	// transaction
+	WriteEntities(context.Context, *WriteEntitiesRequest) (*WriteEntitiesResponse, error)
 	// CreateEntities registers the given list of Entities and returns the created Entities
 	CreateEntities(context.Context, *CreateEntitiesRequest) (*CreateEntitiesResponse, error)
 	// UpdateEntities updates the given list of registered Entities and returns the updated Entities
@@ -782,6 +1038,24 @@ func _NorthboundConfigurator_LoadNetworks_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NorthboundConfigurator_WriteEntities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WriteEntitiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NorthboundConfiguratorServer).WriteEntities(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.configurator.NorthboundConfigurator/WriteEntities",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NorthboundConfiguratorServer).WriteEntities(ctx, req.(*WriteEntitiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _NorthboundConfigurator_CreateEntities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateEntitiesRequest)
 	if err := dec(in); err != nil {
@@ -879,6 +1153,10 @@ var _NorthboundConfigurator_serviceDesc = grpc.ServiceDesc{
 			Handler:    _NorthboundConfigurator_LoadNetworks_Handler,
 		},
 		{
+			MethodName: "WriteEntities",
+			Handler:    _NorthboundConfigurator_WriteEntities_Handler,
+		},
+		{
 			MethodName: "CreateEntities",
 			Handler:    _NorthboundConfigurator_CreateEntities_Handler,
 		},
@@ -899,52 +1177,59 @@ var _NorthboundConfigurator_serviceDesc = grpc.ServiceDesc{
 	Metadata: "northbound.proto",
 }
 
-func init() { proto.RegisterFile("northbound.proto", fileDescriptor_northbound_803197548d9e3744) }
+func init() { proto.RegisterFile("northbound.proto", fileDescriptor_northbound_7ff82ff007bee6b3) }
 
-var fileDescriptor_northbound_803197548d9e3744 = []byte{
-	// 692 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x56, 0x5d, 0x4f, 0x13, 0x41,
-	0x14, 0x65, 0x4b, 0x84, 0x72, 0x31, 0x50, 0x47, 0x69, 0x9a, 0xc6, 0x28, 0x99, 0x27, 0x34, 0xb1,
-	0x6b, 0x8a, 0x0a, 0xe1, 0xc9, 0x48, 0x6b, 0x52, 0x21, 0x04, 0x36, 0x8a, 0x09, 0x0f, 0x9a, 0x65,
-	0x3b, 0xd4, 0x95, 0x76, 0xa7, 0xcc, 0xcc, 0x62, 0x78, 0xf5, 0xc5, 0x5f, 0xe4, 0x8f, 0xf0, 0xd1,
-	0x5f, 0xa4, 0x61, 0xe7, 0xa3, 0xbb, 0xed, 0xb4, 0xdd, 0xe5, 0x69, 0x9b, 0x99, 0xb9, 0xe7, 0xcc,
-	0xbd, 0xe7, 0xcc, 0xbd, 0x85, 0x4a, 0x44, 0x99, 0xf8, 0x76, 0x4e, 0xe3, 0xa8, 0xdb, 0x18, 0x32,
-	0x2a, 0x28, 0xaa, 0x0d, 0xfc, 0xde, 0xc0, 0x6f, 0x50, 0x16, 0xec, 0xb2, 0x46, 0x40, 0xa3, 0x8b,
-	0xb0, 0x17, 0x33, 0x5f, 0x50, 0x56, 0x7f, 0x9a, 0xec, 0xb8, 0xc9, 0x8e, 0x9b, 0x1c, 0xe6, 0x6e,
-	0x40, 0x07, 0x03, 0x1a, 0xc9, 0xd0, 0xfa, 0xdb, 0xf4, 0x81, 0xa0, 0x4f, 0xe3, 0xae, 0xdb, 0xa3,
-	0x2e, 0x27, 0xec, 0x3a, 0x0c, 0xc8, 0xed, 0xd9, 0x11, 0x98, 0xcb, 0x05, 0x65, 0x7e, 0x8f, 0xe8,
-	0xaf, 0x44, 0xc0, 0xbb, 0x50, 0x3d, 0x0c, 0xb9, 0x38, 0x22, 0xe2, 0x07, 0x65, 0x97, 0x9d, 0x16,
-	0xf7, 0x08, 0x1f, 0xd2, 0x88, 0x13, 0xf4, 0x04, 0x20, 0x32, 0xab, 0x35, 0x67, 0x73, 0x71, 0x6b,
-	0xc5, 0x4b, 0xad, 0xe0, 0xdf, 0x0e, 0x3c, 0x3c, 0xa4, 0x7e, 0x57, 0x85, 0x72, 0x8f, 0x5c, 0xc5,
-	0x84, 0x0b, 0x74, 0x02, 0xe5, 0x80, 0x85, 0x82, 0xb0, 0xd0, 0xaf, 0x95, 0x36, 0x9d, 0xad, 0xd5,
-	0xe6, 0xeb, 0xc6, 0xb4, 0x0c, 0x1b, 0xfa, 0x32, 0x0a, 0xe4, 0x16, 0x6f, 0x5f, 0x05, 0x7b, 0x06,
-	0x06, 0x1d, 0xc0, 0xd2, 0x45, 0xd8, 0x17, 0x84, 0xd5, 0x16, 0x13, 0xc0, 0xed, 0x42, 0x80, 0xef,
-	0x93, 0x50, 0x4f, 0x41, 0xe0, 0x2f, 0xb0, 0xb1, 0xcf, 0x88, 0x2f, 0xc8, 0xf8, 0xc5, 0xdb, 0x50,
-	0x56, 0xe9, 0xc9, 0x74, 0x57, 0x9b, 0xcf, 0x72, 0xf3, 0x78, 0x26, 0x14, 0x47, 0x50, 0x1d, 0xc7,
-	0x57, 0x15, 0xfd, 0x08, 0x95, 0x20, 0xd9, 0xe9, 0x7e, 0xbd, 0x3b, 0xd1, 0xba, 0x82, 0xd0, 0xe8,
-	0xf8, 0x3b, 0x6c, 0x7c, 0x1a, 0x76, 0x2d, 0xf9, 0x9c, 0xc0, 0x72, 0x9c, 0x6c, 0x68, 0x96, 0x9d,
-	0xdc, 0x2c, 0x12, 0xd0, 0x28, 0xa1, 0x71, 0xf0, 0x0e, 0x6c, 0xb4, 0x48, 0x9f, 0x4c, 0x72, 0xcd,
-	0x33, 0xcb, 0x5f, 0x65, 0x96, 0x76, 0x24, 0x42, 0x11, 0x12, 0x13, 0xf7, 0x18, 0x56, 0xcc, 0xa9,
-	0x9a, 0xb3, 0xe9, 0x6c, 0xad, 0x78, 0xa3, 0x05, 0xf4, 0xc1, 0xe8, 0x2e, 0x8d, 0xd4, 0x9c, 0x9f,
-	0x40, 0x42, 0x70, 0x33, 0x29, 0x3b, 0x3a, 0x4e, 0xd9, 0x52, 0xba, 0xe8, 0x55, 0x11, 0xb4, 0x49,
-	0x57, 0xe2, 0x9f, 0x8e, 0x76, 0x52, 0xb1, 0xac, 0x0e, 0xa0, 0x4c, 0x54, 0x40, 0xad, 0x94, 0x08,
-	0xe3, 0xe6, 0x16, 0x46, 0x5e, 0xc8, 0x33, 0x00, 0x58, 0x68, 0xb7, 0x8d, 0xee, 0xa0, 0xdc, 0x76,
-	0x36, 0x72, 0x9b, 0xa1, 0x73, 0xee, 0x46, 0xa7, 0x3d, 0xa7, 0x39, 0xf0, 0x2f, 0x47, 0x9b, 0xae,
-	0x58, 0xea, 0xc7, 0x23, 0x4b, 0xca, 0xcc, 0xdf, 0xe4, 0xd5, 0x60, 0x9a, 0x23, 0xff, 0x39, 0x50,
-	0x1d, 0xbf, 0x89, 0x2a, 0xc0, 0x10, 0x2a, 0xf2, 0xd4, 0x44, 0x01, 0xda, 0xd3, 0x59, 0xed, 0x58,
-	0x6a, 0xd9, 0x14, 0xa0, 0x1d, 0x09, 0x76, 0xe3, 0xad, 0xc7, 0xd9, 0xd5, 0x3a, 0x87, 0x47, 0xb6,
-	0x83, 0xa8, 0x02, 0x8b, 0x97, 0xe4, 0x46, 0x95, 0xe3, 0xf6, 0x27, 0x6a, 0xc3, 0xbd, 0x6b, 0xbf,
-	0x1f, 0x13, 0x65, 0xec, 0xc2, 0x8a, 0xc8, 0xe8, 0xbd, 0xd2, 0xae, 0x83, 0xaf, 0xf4, 0x9b, 0x2c,
-	0x26, 0xc5, 0x1e, 0x94, 0x3a, 0x2d, 0xa5, 0xc2, 0xf3, 0xbc, 0x2a, 0x74, 0x5a, 0x5e, 0xa9, 0xd3,
-	0x6a, 0xfe, 0x59, 0x86, 0xea, 0x91, 0x19, 0x63, 0xfb, 0xa9, 0xf3, 0xe8, 0x33, 0xac, 0x65, 0xe7,
-	0x09, 0x7a, 0x90, 0x01, 0x3f, 0xa5, 0x61, 0xb7, 0xfe, 0x72, 0x3a, 0x9f, 0x7d, 0x18, 0xe1, 0x05,
-	0x14, 0xc3, 0x5a, 0xb6, 0xad, 0xa2, 0x19, 0x45, 0xb3, 0x36, 0xf8, 0x59, 0xb4, 0xf6, 0x8e, 0x8d,
-	0x17, 0xd0, 0x29, 0xac, 0x65, 0xbb, 0xeb, 0x2c, 0x5a, 0x6b, 0x1f, 0xae, 0x4f, 0x16, 0x40, 0xe2,
-	0x66, 0x3b, 0xe9, 0x2c, 0x5c, 0x6b, 0xcf, 0xb5, 0xe3, 0x0a, 0xb8, 0x9f, 0x1e, 0xca, 0xe8, 0xc5,
-	0x8c, 0x52, 0x4f, 0x0e, 0xef, 0x7a, 0xb1, 0xc9, 0xea, 0x11, 0x1e, 0xf7, 0x45, 0x5a, 0x1c, 0xed,
-	0xc1, 0xf9, 0xe2, 0x8c, 0xb9, 0x75, 0xbe, 0x38, 0xe3, 0x6f, 0x52, 0xd2, 0x66, 0xdf, 0xeb, 0x7c,
-	0x71, 0x0a, 0xd0, 0xda, 0x5b, 0x41, 0x5a, 0xbb, 0x3c, 0xb4, 0xd6, 0xb7, 0x69, 0xd7, 0x8e, 0x4b,
-	0xed, 0x0c, 0xea, 0x1c, 0xed, 0xc6, 0x31, 0x0b, 0x4d, 0x47, 0x2d, 0xdd, 0xbb, 0xf2, 0xd9, 0x92,
-	0xfc, 0x67, 0x79, 0x2e, 0xbf, 0xdb, 0xff, 0x03, 0x00, 0x00, 0xff, 0xff, 0x5c, 0xe9, 0xdf, 0x3d,
-	0xa2, 0x0a, 0x00, 0x00,
+var fileDescriptor_northbound_7ff82ff007bee6b3 = []byte{
+	// 809 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0xcd, 0x6e, 0xd3, 0x4c,
+	0x14, 0x8d, 0x53, 0x7d, 0x69, 0x72, 0xfb, 0xd1, 0x86, 0xa1, 0x89, 0xa2, 0x08, 0x41, 0x35, 0xab,
+	0x82, 0x20, 0xae, 0x52, 0xa0, 0x55, 0x57, 0xa8, 0x75, 0x10, 0xa1, 0x55, 0xd5, 0x5a, 0xd0, 0x4a,
+	0x5d, 0x80, 0x5c, 0x67, 0x1a, 0x4c, 0x13, 0x4f, 0x3a, 0x1e, 0xb7, 0x0a, 0x4b, 0x36, 0x3c, 0x11,
+	0x3b, 0x78, 0x08, 0x96, 0x3c, 0x0d, 0x28, 0x9e, 0xb1, 0x63, 0x3b, 0x4e, 0x62, 0x77, 0x81, 0x58,
+	0xc5, 0x9a, 0x99, 0x7b, 0xce, 0xfd, 0x39, 0x73, 0xe7, 0x06, 0xca, 0x36, 0x65, 0xfc, 0xe3, 0x39,
+	0x75, 0xed, 0x4e, 0x63, 0xc0, 0x28, 0xa7, 0xa8, 0xd6, 0x37, 0xba, 0x7d, 0xa3, 0x41, 0x99, 0xb9,
+	0xcd, 0x1a, 0x26, 0xb5, 0x2f, 0xac, 0xae, 0xcb, 0x0c, 0x4e, 0x59, 0xfd, 0xa1, 0xb7, 0xa3, 0x7a,
+	0x3b, 0xaa, 0x77, 0xd8, 0x51, 0x4d, 0xda, 0xef, 0x53, 0x5b, 0x98, 0xd6, 0x5f, 0x86, 0x0f, 0x98,
+	0x3d, 0xea, 0x76, 0xd4, 0x2e, 0x55, 0x1d, 0xc2, 0xae, 0x2d, 0x93, 0x8c, 0xce, 0x8e, 0xc1, 0x54,
+	0x87, 0x53, 0x66, 0x74, 0x89, 0xff, 0x2b, 0x10, 0xf0, 0x36, 0x54, 0x0f, 0x2c, 0x87, 0x1f, 0x12,
+	0x7e, 0x43, 0xd9, 0x65, 0x5b, 0x73, 0x74, 0xe2, 0x0c, 0xa8, 0xed, 0x10, 0xf4, 0x00, 0xc0, 0x0e,
+	0x56, 0x6b, 0xca, 0xda, 0xc2, 0x7a, 0x49, 0x0f, 0xad, 0xe0, 0x6f, 0x0a, 0xdc, 0x3b, 0xa0, 0x46,
+	0x47, 0x9a, 0x3a, 0x3a, 0xb9, 0x72, 0x89, 0xc3, 0xd1, 0x31, 0x14, 0x4d, 0x66, 0x71, 0xc2, 0x2c,
+	0xa3, 0x96, 0x5f, 0x53, 0xd6, 0x97, 0x9a, 0xcf, 0x1b, 0xd3, 0x22, 0x6c, 0xf8, 0xce, 0x48, 0x90,
+	0x11, 0xde, 0x9e, 0x34, 0xd6, 0x03, 0x18, 0xb4, 0x0f, 0x85, 0x0b, 0xab, 0xc7, 0x09, 0xab, 0x2d,
+	0x78, 0x80, 0x9b, 0x99, 0x00, 0x5f, 0x79, 0xa6, 0xba, 0x84, 0xc0, 0xef, 0xa1, 0xb2, 0xc7, 0x88,
+	0xc1, 0x49, 0xdc, 0xf1, 0x16, 0x14, 0x65, 0x78, 0x22, 0xdc, 0xa5, 0xe6, 0xa3, 0xd4, 0x3c, 0x7a,
+	0x60, 0x8a, 0x6d, 0xa8, 0xc6, 0xf1, 0x65, 0x46, 0xdf, 0x42, 0xd9, 0xf4, 0x76, 0x3a, 0x1f, 0x6e,
+	0x4f, 0xb4, 0x22, 0x21, 0x7c, 0x74, 0xfc, 0x09, 0x2a, 0xef, 0x06, 0x9d, 0x84, 0x78, 0x8e, 0x61,
+	0xd1, 0xf5, 0x36, 0x7c, 0x96, 0xad, 0xd4, 0x2c, 0x02, 0x30, 0xa8, 0x84, 0x8f, 0x83, 0xb7, 0xa0,
+	0xa2, 0x91, 0x1e, 0x99, 0xe4, 0x9a, 0x27, 0x96, 0x9f, 0x52, 0x2c, 0x2d, 0x9b, 0x5b, 0xdc, 0x22,
+	0x81, 0xdd, 0x7d, 0x28, 0x05, 0xa7, 0x6a, 0xca, 0x9a, 0xb2, 0x5e, 0xd2, 0xc7, 0x0b, 0xe8, 0x4d,
+	0x50, 0x77, 0x21, 0xa4, 0xe6, 0xfc, 0x00, 0x3c, 0x82, 0xe1, 0x64, 0xd9, 0xd1, 0x51, 0x48, 0x96,
+	0x42, 0x45, 0xcf, 0xb2, 0xa0, 0x4d, 0xaa, 0x12, 0x7f, 0x86, 0xd5, 0xd3, 0xd1, 0x77, 0xb6, 0x98,
+	0x34, 0x28, 0xdc, 0x8c, 0xac, 0x9c, 0x5a, 0xde, 0x2b, 0xca, 0x93, 0xe9, 0x5e, 0x8c, 0xd1, 0x87,
+	0x12, 0x5b, 0x97, 0xb6, 0xf8, 0xbb, 0x02, 0x68, 0x72, 0x1b, 0xb5, 0xa1, 0x20, 0xe4, 0xe1, 0xf1,
+	0x2e, 0x35, 0xd5, 0xd4, 0x15, 0x17, 0x38, 0xaf, 0x73, 0xba, 0x04, 0x40, 0x47, 0x50, 0x10, 0x55,
+	0x97, 0xb9, 0x7f, 0x91, 0x36, 0x5b, 0x51, 0xed, 0x8c, 0x10, 0x05, 0xce, 0x6e, 0x09, 0x16, 0x99,
+	0xf0, 0x13, 0xff, 0xca, 0x43, 0x25, 0x96, 0x3b, 0x79, 0x47, 0xce, 0xc6, 0x77, 0x84, 0xc8, 0x3d,
+	0xa9, 0xde, 0xac, 0xb1, 0x04, 0x37, 0xc5, 0xe7, 0x40, 0x14, 0xca, 0xc2, 0x95, 0x10, 0xb6, 0x28,
+	0x82, 0x96, 0xa6, 0x08, 0x21, 0x37, 0x1b, 0x22, 0xc8, 0x00, 0xba, 0x65, 0x73, 0x36, 0xd4, 0x57,
+	0xdc, 0xe8, 0x6a, 0xdd, 0x81, 0xd5, 0xa4, 0x83, 0xa8, 0x0c, 0x0b, 0x97, 0x64, 0x28, 0xb5, 0x31,
+	0xfa, 0x44, 0x2d, 0xf8, 0xef, 0xda, 0xe8, 0xb9, 0x7e, 0xb2, 0x33, 0xc7, 0x2a, 0xac, 0x77, 0xf2,
+	0xdb, 0x0a, 0xfe, 0xa2, 0xf8, 0x0d, 0x2e, 0x9b, 0x30, 0xf7, 0xa1, 0x18, 0xcb, 0x4a, 0x66, 0x2f,
+	0x02, 0x00, 0xcc, 0xfd, 0x26, 0xf8, 0x37, 0x0b, 0x8c, 0xbf, 0x2a, 0x7e, 0x2f, 0xcc, 0x16, 0xfa,
+	0xd1, 0xb8, 0x53, 0x8a, 0xc8, 0x6f, 0x29, 0xf6, 0x71, 0xa3, 0xfc, 0xad, 0x40, 0x35, 0xee, 0x89,
+	0x4c, 0xc0, 0x20, 0x41, 0x85, 0x22, 0x01, 0xad, 0xe9, 0xac, 0xc9, 0x58, 0xff, 0xb2, 0x0c, 0xaf,
+	0xfc, 0xa7, 0x22, 0x5b, 0x29, 0x76, 0x20, 0xdf, 0xd6, 0x64, 0x15, 0x1e, 0xa7, 0xad, 0x42, 0x5b,
+	0xd3, 0xf3, 0x6d, 0xad, 0xf9, 0xa3, 0x08, 0xd5, 0xc3, 0x60, 0xba, 0xda, 0x0b, 0x9d, 0x47, 0xa7,
+	0xb0, 0x1c, 0x1d, 0x73, 0xd0, 0xdd, 0x08, 0xf8, 0x09, 0xb5, 0x3a, 0xf5, 0x8d, 0xe9, 0x7c, 0xc9,
+	0x33, 0x12, 0xce, 0x21, 0x17, 0x96, 0xa3, 0xaf, 0x3d, 0x9a, 0x91, 0xb4, 0xc4, 0xb9, 0x63, 0x16,
+	0x6d, 0xf2, 0x20, 0x81, 0x73, 0xe8, 0x04, 0x96, 0xa3, 0x8f, 0xfe, 0x2c, 0xda, 0xc4, 0xf1, 0xa0,
+	0x3e, 0x99, 0x00, 0x81, 0x1b, 0x7d, 0xe0, 0x67, 0xe1, 0x26, 0x8e, 0x02, 0xc9, 0xb8, 0x1c, 0xfe,
+	0x0f, 0xcf, 0x8a, 0xe8, 0xe9, 0x8c, 0x54, 0x4f, 0xce, 0x94, 0xf5, 0x6c, 0x03, 0x9f, 0x4e, 0x1c,
+	0xb7, 0xc7, 0x71, 0x0e, 0x31, 0xb8, 0x13, 0x69, 0xdf, 0xa8, 0x91, 0xba, 0xcf, 0x0b, 0x5e, 0x35,
+	0xe3, 0xbb, 0x10, 0x16, 0x44, 0x40, 0x3a, 0x57, 0x10, 0x71, 0xd6, 0x8d, 0xf4, 0x06, 0x61, 0xda,
+	0x68, 0x8f, 0x98, 0x2f, 0x88, 0x0c, 0xb4, 0xc9, 0xed, 0x27, 0xac, 0x97, 0x34, 0xb4, 0x89, 0xfd,
+	0x20, 0x59, 0x2f, 0x8e, 0xd0, 0x4b, 0x80, 0x3a, 0x47, 0x2f, 0x71, 0xcc, 0x4c, 0x83, 0xa2, 0x2f,
+	0x97, 0xdd, 0xe2, 0x59, 0x41, 0xfc, 0xc9, 0x3a, 0x17, 0xbf, 0x9b, 0x7f, 0x02, 0x00, 0x00, 0xff,
+	0xff, 0xda, 0x6f, 0xc2, 0x9d, 0xad, 0x0d, 0x00, 0x00,
 }
