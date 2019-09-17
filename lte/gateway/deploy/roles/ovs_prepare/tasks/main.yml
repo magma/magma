@@ -72,7 +72,6 @@
   copy: src={{ item.src }} dest={{ item.dest }}
   become: yes
   with_items:
-    - {src: 'ssh_config', dest: '/etc/ssh/ssh_config'}
     - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
 
 - name: Restart service ssh
