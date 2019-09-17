@@ -1,0 +1,9 @@
+#!/bin/bash
+set -e
+
+# shellcheck source=/dev/null
+. scripts/build_image firstparty magma-src
+# shellcheck source=/dev/null
+. scripts/build_image firstparty magma
+# shellcheck source=/dev/null
+. scripts/build_image firstparty firstparty

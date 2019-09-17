@@ -1,0 +1,12 @@
+[Unit]
+Description=Devmand
+
+[Service]
+WorkingDirectory=/usr/bin
+ExecStart=/bin/devmand --logtostderr=1 --device_configuration_file=/var/opt/magma/configs/gateway.mconfig
+KillMode=mixed
+Restart=always
+Delegate=yes
+
+[Install]
+WantedBy=multi-user.target

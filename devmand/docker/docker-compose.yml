@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  symphony-agent:
+    image: facebookconnectivity-southpoll-dev-docker.jfrog.io/symphony-agent
+    restart: always
+    ports:
+      - target: 161
+        published: 161
+        protocol: udp
+        mode: host
+      - target: 162
+        published: 162
+        protocol: udp
+        mode: host
+    tmpfs:
+      - /sys/fs/cgroup
+    cap_add:
+      - SYS_ADMIN
+    stdin_open: true
+    tty: true
+    privileged: true
+    environment:
+      - SNOWFLAKE=${SNOWFLAKE}
+      - CLOUD_ADDRESS=${CLOUD_ADDRESS}
+      - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESSS}

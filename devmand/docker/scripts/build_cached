@@ -1,0 +1,7 @@
+#!/bin/bash
+set -e
+
+# shellcheck source=/dev/null
+. scripts/build_cached_thirdparty
+# shellcheck source=/dev/null
+. scripts/build_cached_firstparty

@@ -1,0 +1,10 @@
+#!/bin/bash
+set -e
+
+for pkg in thirdparty/*; do
+  # shellcheck source=/dev/null
+  . scripts/build_image thirdparty "$(basename "${pkg}")"
+done
+
+# shellcheck source=/dev/null
+. scripts/build_thirdparty_image

@@ -1,0 +1,118 @@
+// Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+
+#include <devmand/devices/DemoDevice.h>
+#include <devmand/models/wifi/Model.h>
+
+namespace devmand {
+namespace devices {
+
+std::unique_ptr<devices::Device> DemoDevice::createDevice(
+    Application& app,
+    const cartography::DeviceConfig& deviceConfig) {
+  return std::make_unique<devices::DemoDevice>(app, deviceConfig.id);
+}
+
+DemoDevice::DemoDevice(Application& application, const Id& id_)
+    : Device(application, id_) {}
+
+std::shared_ptr<State> DemoDevice::getState() {
+  auto state = State::make(app, *this);
+  state->update() = std::move(DemoDevice::getDemoState());
+  return state;
+}
+
+folly::dynamic DemoDevice::getDemoState() {
+  folly::dynamic data = folly::dynamic::object;
+  devmand::models::wifi::Model::init(data);
+
+  // ##########################################################################
+  auto& papRoot = data["openconfig-ap-manager:provision-aps"];
+  auto& paps = papRoot["provision-ap"];
+  folly::dynamic& pap = paps[0];
+  pap["mac"] = "00:11:22:33:44:55";
+  auto& papc = pap["config"];
+  papc["mac"] = "00:11:22:33:44:55";
+  papc["hostname"] = "faceboook.com";
+  papc["country-code"] = "US";
+  auto& papt = pap["state"];
+  papt["mac"] = "00:11:22:33:44:55";
+  papt["hostname"] = "faceboook.com";
+  papt["country-code"] = "US";
+
+  auto& japRoot = data["openconfig-ap-manager:joined-aps"];
+  auto& japs = japRoot["joined-ap"];
+  folly::dynamic& jap = japs[0];
+  jap["hostname"] = "facebook.com";
+  auto& japt = jap["state"];
+  japt["mac"] = "00:11:22:33:44:55";
+  japt["hostname"] = "facebook.com";
+  japt["opstate"] = "openconfig-wifi-types:UP";
+  japt["uptime"] = "0";
+  japt["enabled"] = true;
+  japt["serial"] = "cherrios";
+  japt["model"] = "model";
+  japt["software-version"] = "idk";
+  japt["ipv4"] = "1.1.1.1";
+  japt["ipv6"] = "11::11";
+  japt["power-source"] = "PLUG";
+
+  // ##########################################################################
+  auto& system = data["ietf-system:system"] = folly::dynamic::object;
+  system["name"] = "demo";
+  system["contact"] = "fb@fb.com";
+  system["location"] = "Boston Mass.";
+
+  // ##########################################################################
+  auto& interfaces = data["openconfig-interfaces:interfaces"] =
+      folly::dynamic::object;
+  interfaces["interface"] = folly::dynamic::array;
+
+  folly::dynamic int0 = folly::dynamic::object;
+  auto& stateInt0 = int0["state"] = folly::dynamic::object;
+  stateInt0["ifindex"] = 0;
+  stateInt0["name"] = "eth0";
+  stateInt0["oper-status"] = "UP";
+  interfaces["interface"].push_back(int0);
+
+  folly::dynamic int1 = folly::dynamic::object;
+  auto& stateInt1 = int1["state"] = folly::dynamic::object;
+  stateInt1["ifindex"] = 1;
+  stateInt1["name"] = "eth0";
+  stateInt1["oper-status"] = "DOWN";
+  interfaces["interface"].push_back(int1);
+
+  return std::move(data);
+}
+
+/*
+module: openconfig-ap-manager
+  +--rw provision-aps
+  |  +--rw provision-ap* [mac]
+  |     +--rw mac       -> ../config/mac
+  |     +--rw config
+  |     |  +--rw mac?            oc-yang:mac-address
+  |     |  +--rw hostname?       oc-inet:domain-name
+  |     |  +--rw country-code?   string
+  |     +--ro state
+  |        +--ro mac?            oc-yang:mac-address
+  |        +--ro hostname?       oc-inet:domain-name
+  |        +--ro country-code?   string
+  +--rw joined-aps
+     +--ro joined-ap* [hostname]
+        +--ro hostname    -> ../state/hostname
+        +--ro state
+           +--ro mac?                oc-yang:mac-address
+           +--ro hostname?           oc-inet:domain-name
+           +--ro opstate?            identityref
+           +--ro uptime?             uint32
+           +--ro enabled?            boolean
+           +--ro serial?             string
+           +--ro model?              string
+           +--ro software-version?   string
+           +--ro ipv4?               oc-inet:ipv4-address
+           +--ro ipv6?               oc-inet:ipv6-address
+           +--ro power-source?       enumeration
+*/
+
+} // namespace devices
+} // namespace devmand

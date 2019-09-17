@@ -1,0 +1,13 @@
+[Unit]
+Description=Magmad
+
+[Service]
+WorkingDirectory=/usr/bin
+ExecStartPre=/bin/magma_system_prepare
+ExecStart=/usr/bin/python3 -m magma.magmad.main
+KillMode=mixed
+Restart=always
+Delegate=yes
+
+[Install]
+WantedBy=multi-user.target
