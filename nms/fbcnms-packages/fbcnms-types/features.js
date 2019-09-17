@@ -25,5 +25,6 @@ export type FeatureID =
   | 'equipment_export'
   | 'import_exported_equipemnt'
   | 'file_categories'
+  | 'floor_plans'
   | 'work_order_map'
   | 'documents_site';

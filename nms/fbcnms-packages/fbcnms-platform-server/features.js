@@ -95,6 +95,11 @@ const arrayConfigs = [
     enabledByDefault: false,
   },
   {
+    id: 'floor_plans',
+    title: 'Floor Plans',
+    enabledByDefault: false,
+  },
+  {
     id: 'import_exported_equipemnt',
     title: 'Imported Exported Equipment',
     enabledByDefault: false,

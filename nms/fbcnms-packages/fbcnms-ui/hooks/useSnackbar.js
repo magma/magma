@@ -11,7 +11,7 @@
 // https://github.com/iamhosseindhv/notistack/pull/17
 import * as React from 'react';
 import SnackbarItem from '../components/SnackbarItem.react';
-import {useCallback, useEffect} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useSnackbar as useNotistackSnackbar} from 'notistack';
 import type {EnqueueSnackbarOptions} from 'notistack';
 import type {Variants} from 'notistack';
@@ -21,13 +21,15 @@ export default function useSnackbar(
   message: string,
   config: AllowedConfig,
   show: boolean,
+  dismissPrevious?: boolean,
 ) {
-  const {enqueueSnackbar} = useNotistackSnackbar();
+  const {enqueueSnackbar, closeSnackbar} = useNotistackSnackbar();
   const stringConfig = JSON.stringify(config);
+  const [snackbarKey, setSnackbarKey] = useState(null);
   useEffect(() => {
     if (show) {
       const config: AllowedConfig = JSON.parse(stringConfig);
-      enqueueSnackbar(message, {
+      const k = enqueueSnackbar(message, {
         children: key => (
           <SnackbarItem
             id={key}
@@ -37,6 +39,10 @@ export default function useSnackbar(
         ),
         ...config,
       });
+      if (dismissPrevious) {
+        snackbarKey != null && closeSnackbar(snackbarKey);
+        setSnackbarKey(k);
+      }
     }
   }, [enqueueSnackbar, message, show, stringConfig]);
 }
