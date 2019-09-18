@@ -12,7 +12,10 @@ import warnings
 from concurrent.futures import Future
 
 from magma.pipelined.app.ue_mac import UEMacAddressController
-from magma.pipelined.tests.app.packet_builder import EtherPacketBuilder
+from magma.pipelined.app.inout import INGRESS, EGRESS
+from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.tests.app.packet_builder import EtherPacketBuilder, \
+    UDPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
     TestSetup,
@@ -54,12 +57,19 @@ class UEMacAddressTest(unittest.TestCase):
         cls.service_manager = create_service_manager([], include_ue_mac=True)
         cls._tbl_num = cls.service_manager.get_table_num(
             UEMacAddressController.APP_NAME)
+        cls._ingress_tbl_num = cls.service_manager.get_table_num(INGRESS)
+        cls._egress_tbl_num = cls.service_manager.get_table_num(EGRESS)
+
+        inout_controller_reference = Future()
         ue_mac_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.UEMac,
+            apps=[PipelinedController.InOut,
+                  PipelinedController.UEMac,
                   PipelinedController.Testing],
             references={
+                PipelinedController.InOut:
+                    inout_controller_reference,
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Testing:
@@ -87,17 +97,15 @@ class UEMacAddressTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def test_add_two_subscribers(self):
+    def test_passthrough_rules(self):
         """
            Add UE MAC flows for two subscribers
         """
         imsi_1 = 'IMSI010000000088888'
-        imsi_2 = 'IMSI010000000099999'
         other_mac = '5e:cc:cc:b1:aa:aa'
 
         # Add subscriber with UE MAC address """
         self.ue_mac_controller.add_ue_mac_flow(imsi_1, self.UE_MAC_1)
-        self.ue_mac_controller.add_ue_mac_flow(imsi_2, self.UE_MAC_2)
 
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
@@ -106,81 +114,45 @@ class UEMacAddressTest(unittest.TestCase):
         downlink_packet1 = EtherPacketBuilder() \
             .set_ether_layer(self.UE_MAC_1, other_mac) \
             .build()
-        downlink_packet2 = EtherPacketBuilder() \
-            .set_ether_layer(self.UE_MAC_2, other_mac) \
+        dhcp_packet = UDPPacketBuilder() \
+            .set_ether_layer(self.UE_MAC_1, other_mac) \
+            .set_ip_layer('151.42.41.122', '1.1.1.1') \
+            .set_udp_layer(67, 68) \
+            .build()
+        dns_packet = UDPPacketBuilder() \
+            .set_ether_layer(self.UE_MAC_1, other_mac) \
+            .set_ip_layer('151.42.41.122', '1.1.1.1') \
+            .set_udp_layer(53, 32795) \
             .build()
 
         # Check if these flows were added (queries should return flows)
         flow_queries = [
             FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_dst=self.UE_MAC_1)),
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_dst=self.UE_MAC_2))
+                      match=MagmaMatch(eth_dst=self.UE_MAC_1))
         ]
 
         # =========================== Verification ===========================
-        # Verify 16 flows installed and 2 total pkts matched (one for each UE)
-        flow_verifier = FlowVerifier(
-            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2, 16)]
-            + [FlowTest(query, 1, 4) for query in flow_queries],
-            lambda: wait_after_send(self.testing_controller))
-
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
-
-        with flow_verifier, snapshot_verifier:
-            pkt_sender.send(downlink_packet1)
-            pkt_sender.send(downlink_packet2)
-
-        flow_verifier.verify()
-
-    def test_delete_one_subscriber(self):
-        """
-            Delete one of the existing subscribers
-        """
-
-        imsi_1 = 'IMSI010000000088888'
-        other_mac = '5e:cc:cc:b1:aa:aa'
-
-        # Delete subscriber with UE MAC_1 address
-        self.ue_mac_controller.delete_ue_mac_flow(imsi_1, self.UE_MAC_1)
-
-        # Create a set of packets
-        pkt_sender = ScapyPacketInjector(self.BRIDGE)
-
-        # Only send downlink as the pkt_sender sends pkts from in_port=LOCAL
-        removed_ue_packet = EtherPacketBuilder() \
-            .set_ether_layer(self.UE_MAC_1, other_mac) \
-            .build()
-        remaining_ue_packet = EtherPacketBuilder() \
-            .set_ether_layer(self.UE_MAC_2, other_mac) \
-            .build()
-
-        # Ensure the first query doesn't match anything
-        # And the second query still does
-        flow_queries = [
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_dst=self.UE_MAC_1)),
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(eth_dst=self.UE_MAC_2))
-        ]
-
-        # =========================== Verification ===========================
-        # Verify 8 flows installed and 1 total pkt matched
+        # Verify 8 flows installed for ue_mac table (3 pkts matched)
+        #        4 flows installed for inout (3 pkts matched)
+        #        2 fliws installed (2 pkts matches)
         flow_verifier = FlowVerifier(
             [
-                FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 1,
-                         8),
-                FlowTest(flow_queries[0], 0, 0),
-                FlowTest(flow_queries[1], 1, 4),
+                FlowTest(FlowQuery(self._tbl_num,
+                                   self.testing_controller), 3, 8),
+                FlowTest(FlowQuery(self._ingress_tbl_num,
+                                   self.testing_controller), 3, 4),
+                FlowTest(FlowQuery(self._egress_tbl_num,
+                                   self.testing_controller), 2, 2),
+                FlowTest(flow_queries[0], 3, 4),
             ], lambda: wait_after_send(self.testing_controller))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
         with flow_verifier, snapshot_verifier:
-            pkt_sender.send(removed_ue_packet)
-            pkt_sender.send(remaining_ue_packet)
+            pkt_sender.send(downlink_packet1)
+            pkt_sender.send(dhcp_packet)
+            pkt_sender.send(dns_packet)
 
         flow_verifier.verify()
 
