@@ -50,6 +50,7 @@ const useStyles = makeStyles(theme => ({
     padding: 0,
     display: 'flex',
     flexDirection: 'column',
+    marginTop: '16px',
   },
 }));
 
