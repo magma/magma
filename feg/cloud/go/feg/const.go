@@ -11,6 +11,10 @@ package feg
 const ModuleName = "feg"
 
 const (
-	FegNetworkType = "federation_network"
-	FegGatewayType = "federation_gateway"
+	FederationNetworkType = "feg"
+	FegNetworkType        = "federation_network"
+	FegGatewayType        = "federation_gateway"
+
+	FederatedLteNetworkType = "feg_lte"
+	FederatedNetworkType    = "federated_network"
 )
