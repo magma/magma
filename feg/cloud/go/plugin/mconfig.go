@@ -10,8 +10,8 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/protos/mconfig"
-	"magma/feg/cloud/go/services/controller/obsidian/models"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -44,7 +44,7 @@ func (*Builder) Build(
 	swxc := gwConfig.Swx
 	eapAka := gwConfig.EapAka
 	aaa := gwConfig.AaaServer
-	healthc := protos.SafeInit(gwConfig.Health).(*models.NetworkFederationConfigsHealth)
+	healthc := protos.SafeInit(gwConfig.Health).(*models.Health)
 
 	if s6ac != nil {
 		mconfigOut["s6a_proxy"] = &mconfig.S6AConfig{
@@ -108,7 +108,7 @@ func (*Builder) Build(
 }
 
 func getFegConfig(
-	gatewayID string, network configurator.Network, graph configurator.EntityGraph) (*models.GatewayFegConfigs, error) {
+	gatewayID string, network configurator.Network, graph configurator.EntityGraph) (*models.GatewayFederationConfigs, error) {
 
 	fegGW, err := graph.GetEntity(feg.FegGatewayType, gatewayID)
 	if err != nil && err != merrors.ErrNotFound {
@@ -117,7 +117,7 @@ func getFegConfig(
 	// err can only be merrors.ErrNotFound at this point - if it's nil, we'll
 	// just return the feg gateway config if it exists
 	if err == nil && fegGW.Config != nil {
-		return fegGW.Config.(*models.GatewayFegConfigs), nil
+		return fegGW.Config.(*models.GatewayFederationConfigs), nil
 	}
 
 	inwConfig, found := network.Configs[feg.FegNetworkType]
@@ -125,7 +125,7 @@ func getFegConfig(
 		return nil, merrors.ErrNotFound
 	}
 	nwConfig := inwConfig.(*models.NetworkFederationConfigs)
-	return &models.GatewayFegConfigs{NetworkFederationConfigs: *nwConfig}, nil
+	return (*models.GatewayFederationConfigs)(nwConfig), nil
 }
 
 func getGyInitMethod(initMethod *uint32) mconfig.GyInitMethod {

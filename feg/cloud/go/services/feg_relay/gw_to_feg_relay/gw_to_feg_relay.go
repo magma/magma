@@ -19,7 +19,7 @@ import (
 	"strings"
 
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/services/controller/obsidian/models"
+	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/health"
 	"magma/lte/cloud/go/lte"
 	ltemodels "magma/lte/cloud/go/plugin/models"
