@@ -99,6 +99,7 @@ class InOutController(MagmaController):
         parser = dp.ofproto_parser
         tbl_num = self._service_manager.get_table_num(INGRESS)
         next_table = self._service_manager.get_next_table_num(INGRESS)
+        egress_table = self._service_manager.get_table_num(EGRESS)
 
         # set traffic direction bits
         # set a direction bit for outgoing (pn -> inet) traffic.
@@ -109,6 +110,14 @@ class InOutController(MagmaController):
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=next_table)
 
+        # Allow passthrough pkts(skip pipeline and send to egress table)
+        match = MagmaMatch(in_port=self.config.gtp_port,
+                           direction=Direction.PASSTHROUGH)
+        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
+                                             actions=actions,
+                                             priority=flows.PASSTHROUGH_PRIORITY,
+                                             resubmit_table=egress_table)
+
         # set a direction bit for incoming (inet -> pn) traffic.
         match = MagmaMatch(in_port=dp.ofproto.OFPP_LOCAL)
         actions = [load_direction(parser, Direction.IN)]
@@ -116,3 +125,11 @@ class InOutController(MagmaController):
                                              actions=actions,
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=next_table)
+
+        # Allow passthrough pkts(skip pipeline and send to egress table)
+        match = MagmaMatch(in_port=dp.ofproto.OFPP_LOCAL,
+                           direction=Direction.PASSTHROUGH)
+        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
+                                             actions=actions,
+                                             priority=flows.PASSTHROUGH_PRIORITY,
+                                             resubmit_table=egress_table)

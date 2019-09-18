@@ -17,6 +17,7 @@ from magma.pipelined.openflow.registers import TestPacket, TEST_PACKET_REG
 logger = logging.getLogger(__name__)
 
 DEFAULT_PRIORITY = 10
+PASSTHROUGH_PRIORITY = 15
 MINIMUM_PRIORITY = 0
 MAXIMUM_PRIORITY = 65535
 OVS_COOKIE_MATCH_ALL = 0xffffffff
