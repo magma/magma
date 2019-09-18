@@ -50,13 +50,6 @@ services:
       # - maria
     command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 && /usr/bin/supervisord"]
     # command: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh -s -t 30 maria:[port] && /usr/bin/supervisord"]
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: ':24224'
-        tag: orc8r.controller
-        fluentd-retry-wait: '1s'
-        fluentd-max-retries: '30'
     restart: always
 
   proxy:
@@ -77,13 +70,6 @@ services:
       - fluentd
     links:
       - fluentd
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: ':24224'
-        tag: orc8r.proxy
-        fluentd-retry-wait: '1s'
-        fluentd-max-retries: '30'
     restart: always
 
   elasticsearch:
