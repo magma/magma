@@ -59,24 +59,20 @@ class UEMacAddressController(MagmaController):
         self._add_dhcp_passthrough_flows(sid, mac_addr)
         self._add_dns_passthrough_flows(sid, mac_addr)
 
-        uplink_match = MagmaMatch(in_port=self.config.gre_tunnel_port,
-                                  eth_src=mac_addr)
+        uplink_match = MagmaMatch(eth_src=mac_addr)
         self._add_resubmit_flow(sid, uplink_match)
 
-        downlink_match = MagmaMatch(in_port=self._datapath.ofproto.OFPP_LOCAL,
-                                    eth_dst=mac_addr)
+        downlink_match = MagmaMatch(eth_dst=mac_addr)
         self._add_resubmit_flow(sid, downlink_match)
 
     def delete_ue_mac_flow(self, sid, mac_addr):
         self._delete_dhcp_passthrough_flows(sid, mac_addr)
         self._delete_dns_passthrough_flows(sid, mac_addr)
 
-        uplink_match = MagmaMatch(in_port=self.config.gre_tunnel_port,
-                                  eth_src=mac_addr)
+        uplink_match = MagmaMatch(eth_src=mac_addr)
         self._delete_resubmit_flow(sid, uplink_match)
 
-        downlink_match = MagmaMatch(in_port=self._datapath.ofproto.OFPP_LOCAL,
-                                    eth_dst=mac_addr)
+        downlink_match = MagmaMatch(eth_dst=mac_addr)
         self._delete_resubmit_flow(sid, downlink_match)
 
     def _add_resubmit_flow(self, sid, match, actions=None,
