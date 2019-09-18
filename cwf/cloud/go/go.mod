@@ -19,6 +19,7 @@ require (
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-openapi/validate v0.18.0
 	github.com/golang/protobuf v1.2.0
+	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
