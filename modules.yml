@@ -6,8 +6,6 @@
 native_modules:
   - orc8r
   - lte
-  - feg
-  - cwf
 
 # These are modules with code that lives outside the magma repo
 # Each entry under external_modules should specify a host_path key which points
