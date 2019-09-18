@@ -11,20 +11,13 @@
 export const CELLULAR = 'cellular';
 export const WIFI = 'wifi';
 export const THIRD_PARTY = 'third_party';
-export const TARAZED = 'tarazed';
 export const WAC = 'wac';
 
 export const AllNetworkTypes: NetworkType[] = [
   CELLULAR,
   WIFI,
   THIRD_PARTY,
-  TARAZED,
   WAC,
 ];
 
-export type NetworkType =
-  | 'cellular'
-  | 'wifi'
-  | 'third_party'
-  | 'tarazed'
-  | 'wac';
+export type NetworkType = 'cellular' | 'wifi' | 'third_party' | 'wac';

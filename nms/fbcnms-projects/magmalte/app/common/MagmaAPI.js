@@ -53,7 +53,7 @@ export const MagmaAPIUrls = {
   gatewayConfigsForType: (
     networkIdOrMatch: string | Match,
     gatewayId: string,
-    type: 'wifi' | 'cellular' | 'tarazed' | 'devmand',
+    type: 'wifi' | 'cellular' | 'devmand',
   ) =>
     `${MagmaAPIUrls.network(
       networkIdOrMatch,
@@ -149,7 +149,7 @@ export async function createDevice(
     ...Record,
     key: {key_type: string, key?: string},
   },
-  type: 'wifi' | 'cellular' | 'tarazed' | 'devmand',
+  type: 'wifi' | 'cellular' | 'devmand',
   configs: MagmadConfig,
   extraConfigs: WifiConfig | {[string]: mixed},
   networkIdOrMatch: string | Match,
