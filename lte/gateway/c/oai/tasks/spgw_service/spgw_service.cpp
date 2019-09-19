@@ -18,31 +18,41 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include "spgw_service.h"
 
-/*! \file pgw_handlers.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/security/server_credentials.h>
+#include <memory>
 
-#ifndef FILE_PGW_HANDLERS_SEEN
-#define FILE_PGW_HANDLERS_SEEN
-#include "s5_messages_types.h"
-#include "sgw_messages_types.h"
-#include "spgw_state.h"
+#include "SpgwServiceImpl.h"
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_activate_bearer_rsp(
-  const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
-  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p);
-#endif /* FILE_PGW_HANDLERS_SEEN */
+extern "C" {
+#include "log.h"
+}
+
+using grpc::InsecureServerCredentials;
+using grpc::Server;
+using grpc::ServerBuilder;
+using magma::SpgwServiceImpl;
+
+static SpgwServiceImpl spgw_service;
+static std::unique_ptr<Server> server;
+
+void start_spgw_service(bstring server_address)
+{
+  OAILOG_INFO(
+    LOG_SPGW_APP,
+    "Starting spgw grpc service at : %s\n ",
+    bdata(server_address));
+  ServerBuilder builder;
+  builder.AddListeningPort(
+    bdata(server_address), grpc::InsecureServerCredentials());
+  builder.RegisterService(&spgw_service);
+  server = builder.BuildAndStart();
+  server->Wait(); // Blocking call
+}
+
+void stop_spgw_service(void)
+{
+  server->Shutdown();
+}

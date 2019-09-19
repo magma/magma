@@ -84,7 +84,7 @@
 #define TASK_SPGW TASK_S11
 #endif
 
-void print_bearer_ids_helper(ebi_t ebi[], uint32_t no_of_bearers)
+void print_bearer_ids_helper(const ebi_t *ebi, uint32_t no_of_bearers)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
 

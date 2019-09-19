@@ -19,30 +19,36 @@
  *      contact@openairinterface.org
  */
 
-/*! \file pgw_handlers.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
+#pragma once
+
+#include "bstrlib.h"
+#include "mme_default_values.h"
+
+typedef struct spgw_service_data_s {
+  bstring server_address;
+} spgw_service_data_t;
+
+/*
+  Init a grpc spgw_service for receiving messages from session_manager
 */
+int spgw_service_init(void);
 
-#ifndef FILE_PGW_HANDLERS_SEEN
-#define FILE_PGW_HANDLERS_SEEN
-#include "s5_messages_types.h"
-#include "sgw_messages_types.h"
-#include "spgw_state.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+/**
+ * Start the spgw_service Server and blocks
+ *
+ * @param server_address: the address and port to bind to ex "0.0.0.0:50051"
+ */
+void start_spgw_service(bstring server_address);
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_activate_bearer_rsp(
-  const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
-  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p);
-#endif /* FILE_PGW_HANDLERS_SEEN */
+/**
+ * Stop the server and clean up
+ *
+ */
+void stop_spgw_service(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -20,6 +20,7 @@ add_library(TASK_SGW
     pgw_procedures.c
     spgw_state.cpp
     spgw_state_manager.cpp
+    spgw_service_handler.c
     )
 target_compile_definitions(TASK_SGW PRIVATE
     PACKAGE_NAME=\"S/P-GW\"

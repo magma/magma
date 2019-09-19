@@ -18,31 +18,40 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#define spgw_service
+#define spgw_service_TASK_C
 
-/*! \file pgw_handlers.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+#include <stddef.h>
 
-#ifndef FILE_PGW_HANDLERS_SEEN
-#define FILE_PGW_HANDLERS_SEEN
-#include "s5_messages_types.h"
-#include "sgw_messages_types.h"
-#include "spgw_state.h"
+#include "assertions.h"
+#include "bstrlib.h"
+#include "common_defs.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "log.h"
+#include "mme_default_values.h"
+#include "spgw_service.h"
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_activate_bearer_rsp(
-  const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
-  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p);
-#endif /* FILE_PGW_HANDLERS_SEEN */
+static void *spgw_service_task(void *args)
+{
+  itti_mark_task_ready(TASK_SPGW_SERVICE);
+  spgw_service_data_t *spgw_service_data = (spgw_service_data_t *) args;
+  start_spgw_service(spgw_service_data->server_address);
+  itti_exit_task();
+  return NULL;
+}
+
+int spgw_service_init(void)
+{
+  OAILOG_DEBUG(LOG_SPGW_APP, "Initializing spgw_service task interface\n");
+  spgw_service_data_t spgw_service_config;
+  spgw_service_config.server_address = bfromcstr(SPGWSERVICE_SERVER_ADDRESS);
+
+  if (
+    itti_create_task(
+      TASK_SPGW_SERVICE, &spgw_service_task, &spgw_service_config) < 0) {
+    OAILOG_ALERT(LOG_SPGW_APP, "Initializing spgw_service: ERROR\n");
+    return RETURNerror;
+  }
+  return RETURNok;
+}

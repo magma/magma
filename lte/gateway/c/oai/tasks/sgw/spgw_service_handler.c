@@ -18,31 +18,32 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include <string.h>
+#include <sys/types.h>
 
-/*! \file pgw_handlers.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
-
-#ifndef FILE_PGW_HANDLERS_SEEN
-#define FILE_PGW_HANDLERS_SEEN
-#include "s5_messages_types.h"
+#include "common_types.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "log.h"
 #include "sgw_messages_types.h"
-#include "spgw_state.h"
 
-int pgw_handle_create_bearer_request(
-  spgw_state_t *spgw_state,
-  const itti_s5_create_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_activate_bearer_rsp(
-  const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p);
-uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
-  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
-uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
-  spgw_state_t *spgw_state,
-  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p);
-#endif /* FILE_PGW_HANDLERS_SEEN */
+int send_activate_bearer_request_itti(
+  itti_pgw_nw_init_actv_bearer_request_t *itti_msg)
+{
+  OAILOG_DEBUG(LOG_SPGW_APP, "Sending pgw_nw_init_actv_bearer_request\n");
+  MessageDef *message_p = itti_alloc_new_message(
+    TASK_SPGW_SERVICE, PGW_NW_INITIATED_ACTIVATE_BEARER_REQ);
+  message_p->ittiMsg.pgw_nw_init_actv_bearer_request = *itti_msg;
+  return itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
+}
+
+int send_deactivate_bearer_request_itti(
+  itti_pgw_nw_init_deactv_bearer_request_t *itti_msg)
+{
+  OAILOG_DEBUG(LOG_SPGW_APP, "Sending pgw_nw_init_deactv_bearer_request\n");
+  MessageDef *message_p = itti_alloc_new_message(
+    TASK_SPGW_SERVICE, PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ);
+  message_p->ittiMsg.pgw_nw_init_deactv_bearer_request = *itti_msg;
+  return itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
+}

@@ -69,7 +69,7 @@
 
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops *gtp_tunnel_ops;
-extern void print_bearer_ids_helper(ebi_t[], uint32_t);
+extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
 static uint32_t g_gtpv1u_teid = 0;
 

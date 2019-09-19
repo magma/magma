@@ -11,7 +11,7 @@
 #include <mutex>
 
 #include <lte/protos/policydb.pb.h>
-#include <lte/protos/pgw.grpc.pb.h>
+#include <lte/protos/spgw_service.grpc.pb.h>
 
 #include "GRPCReceiver.h"
 
@@ -21,23 +21,24 @@ namespace magma {
 using namespace lte;
 
 /**
- * PgwClient is the base class for sending dedicated bearer create/delete to PGW
+ * SpgwServiceClient is the base class for sending dedicated bearer
+ * create/delete to PGW
  */
-class PgwClient {
+class SpgwServiceClient {
  public:
   /**
    * Delete a dedicated bearer
    * @param imsi - msi to identify a UE
    * @param apn_ip_addr - imsi and apn_ip_addrs identify a default bearer
    * @param link_bearer_id - id for identifying link bearer
-   * @param flows - flow information required for a dedicated bearer
+   * @param eps_bearer_ids - ids of bearers to delete
    * @return true if the operation was successful
    */
   virtual bool delete_dedicated_bearer(
     const std::string &imsi,
     const std::string &apn_ip_addr,
     const uint32_t link_bearer_id,
-    const std::vector<PolicyRule> &flows) = 0;
+    const std::vector<uint32_t> &eps_bearer_ids) = 0;
 
   /**
    * Create a dedicated bearer
@@ -55,14 +56,14 @@ class PgwClient {
 };
 
 /**
- * AsyncPgwClient implements PgwClient but sends calls
+ * AsyncSpgwServiceClient implements SpgwServiceClient but sends calls
  * asynchronously to PGW.
  */
-class AsyncPgwClient : public GRPCReceiver, public PgwClient {
+class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
  public:
-  AsyncPgwClient();
+  AsyncSpgwServiceClient();
 
-  AsyncPgwClient(std::shared_ptr<grpc::Channel> pgw_channel);
+  AsyncSpgwServiceClient(std::shared_ptr<grpc::Channel> pgw_channel);
 
   /**
    * Delete a dedicated bearer
@@ -76,7 +77,7 @@ class AsyncPgwClient : public GRPCReceiver, public PgwClient {
     const std::string &imsi,
     const std::string &apn_ip_addr,
     const uint32_t link_bearer_id,
-    const std::vector<PolicyRule> &flows);
+    const std::vector<uint32_t> &eps_bearer_ids);
 
   /**
    * Create a dedicated bearer
@@ -94,7 +95,7 @@ class AsyncPgwClient : public GRPCReceiver, public PgwClient {
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
-  std::unique_ptr<Pgw::Stub> stub_;
+  std::unique_ptr<SpgwService::Stub> stub_;
 
  private:
   void delete_dedicated_bearer_rpc(

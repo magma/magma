@@ -35,6 +35,8 @@
 #include "intertask_interface.h"
 #include "pgw_defs.h"
 #include "pgw_handlers.h"
+#include "spgw_service.h"
+#include "sgw.h"
 #include "common_defs.h"
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
@@ -63,6 +65,18 @@ static void *pgw_intertask_interface(void *args_p)
       spgw_state_p != NULL, "Failed to retrieve SPGW state on PGW task");
 
     switch (ITTI_MSG_ID(received_message_p)) {
+      case PGW_NW_INITIATED_ACTIVATE_BEARER_REQ: {
+        pgw_handle_nw_initiated_bearer_actv_req(
+          spgw_state_p,
+          &received_message_p->ittiMsg.pgw_nw_init_actv_bearer_request);
+      } break;
+
+      case PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
+        pgw_handle_nw_initiated_bearer_deactv_req(
+          spgw_state_p,
+          &received_message_p->ittiMsg.pgw_nw_init_deactv_bearer_request);
+      } break;
+
       case S5_CREATE_BEARER_REQUEST: {
         pgw_handle_create_bearer_request(
           spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_request);
@@ -107,6 +121,9 @@ int pgw_init(spgw_config_t *spgw_config_pP)
     return RETURNerror;
   }
 
+  // start spgw_service which hosts GRPC server
+  spgw_service_init();
+
   FILE *fp = NULL;
   bstring filename = bformat("/tmp/pgw_%d.status", g_pid);
   fp = fopen(bdata(filename), "w+");
@@ -121,5 +138,6 @@ int pgw_init(spgw_config_t *spgw_config_pP)
 
 static void pgw_exit(void)
 {
+  stop_spgw_service();
   return;
 }
