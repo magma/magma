@@ -9,6 +9,7 @@ version: "3.7"
 
 services:
   validator:
+    image: facebookconnectivity-southpoll-dev-docker.jfrog.io/validator
     build:
       context: ..
       dockerfile: ./validator/Dockerfile

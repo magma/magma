@@ -63,7 +63,7 @@ folly::dynamic DemoDevice::getDemoState() {
 
   // ##########################################################################
   auto& system = data["ietf-system:system"] = folly::dynamic::object;
-  system["name"] = "demo";
+  system["hostname"] = "demo";
   system["contact"] = "fb@fb.com";
   system["location"] = "Boston Mass.";
 

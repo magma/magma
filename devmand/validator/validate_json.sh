@@ -9,6 +9,7 @@
 #
 cd /usr/share/yang/models || exit
 
+# The order of models matters here for some strange reason so just be aware.
 yanglint --strict \
   fbc-symphony-device.yang \
   openconfig-access-points.yang \
@@ -19,5 +20,7 @@ yanglint --strict \
   openconfig-wifi-types.yang \
   openconfig-interfaces.yang \
   openconfig-if-ip.yang \
+  iana-if-type.yang \
+  ietf-interfaces.yang \
   ietf-system.yang \
   /validate.json

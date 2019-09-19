@@ -55,7 +55,7 @@ static std::string getTypeString(int ifMibType) {
       break;
   }
   // TODO confirm if this is the true valid yang extension
-  return folly::sformat("iana-if-type::{}", ts);
+  return folly::sformat("iana-if-type:{}", ts);
 }
 
 std::unique_ptr<devices::Device> Snmpv2Device::createDevice(
@@ -101,7 +101,7 @@ std::shared_ptr<State> Snmpv2Device::getState() {
   auto& system = state->update()["ietf-system:system"] = folly::dynamic::object;
 
   state->addRequest(IfMib::getSystemName(channel).thenValue(
-      [&system](auto v) { system["name"] = v; }));
+      [&system](auto v) { system["hostname"] = v; }));
   state->addRequest(IfMib::getSystemContact(channel).thenValue(
       [&system](auto v) { system["contact"] = v; }));
   state->addRequest(IfMib::getSystemLocation(channel).thenValue(

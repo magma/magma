@@ -79,14 +79,14 @@ std::shared_ptr<State> Device::getState() {
   // TODO check units and make conversions for all of these.
   state->addRequest(
       Mib::getLongtitude(channel)
-          .thenValue([&geol](auto v) { geol["longtitude"] = v; })
+          .thenValue([&geol](auto v) { geol["longitude"] = v; })
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
               [&geol, this](const channels::snmp::Exception&) {
                 auto v = lookup(
-                    "fbc-symphony-device:system/geo-location/longtitude");
+                    "fbc-symphony-device:system/geo-location/longitude");
                 if (not v.isNull()) {
-                  geol["longtitude"] = v.asString();
+                  geol["longitude"] = v.asString();
                 }
               }));
   state->addRequest(

@@ -25,7 +25,7 @@ void Model::init(folly::dynamic& state) {
   // gs["coord-accuracy"] = 0;
   // gs["height-accuracy"] = 0;
   geol["latitude"] = 0;
-  geol["longtitude"] = 0;
+  geol["longitude"] = 0;
   geol["height"] = 0;
   // auto& vel = geol["velocity"] = folly::dynamic::object;
   // vel["v-north"] = 0;

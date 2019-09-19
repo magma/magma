@@ -29,7 +29,7 @@ void Model::init(folly::dynamic& state) {
   japs.push_back(jap);
 
   // openconfig-access-points #################################################
-  auto& apRoot = state["openconfig-access-points:access-point"] =
+  auto& apRoot = state["openconfig-access-points:access-points"] =
       folly::dynamic::object;
   auto& aps = apRoot["access-point"] = folly::dynamic::array;
   folly::dynamic ap = folly::dynamic::object;
