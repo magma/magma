@@ -27,7 +27,7 @@ class ServiceLogErrorReporter(Job):
         service_config: Any,
         handler: MsgCounterHandler,
     ) -> None:
-        super().__init__(POLL_INTERVAL, loop)
+        super().__init__(interval=POLL_INTERVAL, loop=loop)
         self._service_config = service_config
         self._handler = handler
 

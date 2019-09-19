@@ -81,12 +81,13 @@ class MagmaService(Service303Servicer):
         # Load the service config if present
         self._config = None
         self.reload_config()
-
         # Count errors
-        log_counter = ServiceLogErrorReporter(self._loop,
-                                              self._config,
-                                              self._log_count_handler)
-        log_counter.start()
+        self.log_counter = ServiceLogErrorReporter(
+            loop=self._loop,
+            service_config=self._config,
+            handler=self._log_count_handler,
+        )
+        self.log_counter.start()
 
         # Operational States
         self._operational_states = []
