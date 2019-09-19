@@ -22,9 +22,4 @@ export const AllNetworkTypes: NetworkType[] = [
   RHINO,
 ];
 
-export type NetworkType =
-  | 'cellular'
-  | 'wifi'
-  | 'third_party'
-  | 'wac'
-  | 'rhino';
+export type NetworkType = 'cellular' | 'wifi' | 'third_party' | 'wac' | 'rhino';
