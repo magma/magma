@@ -44,9 +44,15 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
+		handlers.GetListGatewaysHandler(ListGatewaysPath, feg.FegGatewayType, makeFederationGateways),
+		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
+		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
+		handlers.GetDeleteGatewayHandler(ManageGatewayPath, feg.FegGatewayType),
+
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 	}
+
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederatedLteNetworkType, &fegmodels.FegLteNetwork{})...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkFederationPath, &fegmodels.NetworkFederationConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayFederationPath, &fegmodels.GatewayFederationConfigs{})...)
@@ -54,12 +60,27 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegLteNetworksPath, ManageFegLteNetworkPath, feg.FederatedLteNetworkType, &fegmodels.FegLteNetwork{})...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkFederationPath, &fegmodels.FederatedNetworkConfigs{}, "")...)
 
-	ret = append(ret, handlers.GetListGatewaysHandler(ListGatewaysPath, feg.FegGatewayType, makeFederationGateways))
-	ret = append(ret, handlers.GetCreateGatewayHandler(ListGatewaysPath, feg.FegGatewayType, &fegmodels.MutableFederationGateway{}))
-	ret = append(ret, handlers.GetUpdateGatewayHandler(ManageGatewayPath, feg.FegGatewayType, &fegmodels.MutableFederationGateway{}))
-	ret = append(ret, handlers.GetDeleteGatewayHandler(ManageGatewayPath, feg.FegGatewayType))
-
 	return ret
+}
+
+func createGateway(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &fegmodels.MutableFederationGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	if nerr := handlers.CreateMagmadGatewayFromModel(nid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusCreated)
 }
 
 func getGateway(c echo.Context) error {
@@ -94,6 +115,26 @@ func getGateway(c echo.Context) error {
 	return c.JSON(http.StatusOK, ret)
 }
 
+func updateGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &fegmodels.MutableFederationGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	if nerr := handlers.UpdateMagmadGatewayFromModel(nid, gid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 type federationAndMagmadGateway struct {
 	magmadGateway, federationGateway configurator.NetworkEntity
 }
@@ -102,7 +143,7 @@ func makeFederationGateways(
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
-) map[string]handlers.GatewayModel{
+) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*federationAndMagmadGateway{}
 	for tk, ent := range entsByTK {
 		existing, found := gatewayEntsByKey[tk.Key]

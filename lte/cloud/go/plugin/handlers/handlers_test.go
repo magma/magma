@@ -713,6 +713,150 @@ func TestCellularDelete(t *testing.T) {
 	assert.EqualError(t, err, "Not found")
 }
 
+func TestCreateGateway(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+
+	// setup fixtures in backend
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+		},
+	)
+	assert.NoError(t, err)
+	err = device.RegisterDevice(
+		"n1", orc8r.AccessGatewayRecordType, "hw2",
+		&models.GatewayDevice{
+			HardwareID: "hw2",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+	)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/gateways"
+	hands := handlers.GetHandlers()
+	createGateway := tests.GetHandlerByPathAndMethod(t, hands, testURLRoot, obsidian.POST).HandlerFunc
+
+	// happy path, no device
+	payload := &models2.MutableLteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "hw1",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          "g1",
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          10,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Cellular:               newDefaultGatewayConfig(),
+		ConnectedEnodebSerials: []string{"enb1"},
+		Tier:                   "t1",
+	}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Handler:        createGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualEnts, _, err := configurator.LoadEntities(
+		"n1", nil, nil, nil,
+		[]storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: lte.CellularGatewayType, Key: "g1"},
+		},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	assert.NoError(t, err)
+
+	expectedEnts := configurator.NetworkEntities{
+		{
+			NetworkID: "n1", Type: lte.CellularGatewayType, Key: "g1",
+			Name: string(payload.Name), Description: string(payload.Description),
+			Config:             payload.Cellular,
+			Associations:       []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: "enb1"}},
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			GraphID:            "2",
+		},
+		{
+			NetworkID: "n1", Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: string(payload.Name), Description: string(payload.Description),
+			PhysicalID:         "hw1",
+			Config:             payload.Magmad,
+			Associations:       []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			GraphID:            "2",
+			Version:            1,
+		},
+	}
+	assert.Equal(t, expectedEnts, actualEnts)
+	assert.Equal(t, payload.Device, actualDevice)
+
+	// valid magmad gateway, invalid cellular - nothing should change on backend
+	payload = &models2.MutableLteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "hw2",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          "g3",
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          10,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Cellular: newDefaultGatewayConfig(),
+		// Invalid due to nonexistent enb
+		ConnectedEnodebSerials: []string{"enb1", "dne"},
+		Tier:                   "t1",
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Handler:        createGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 500,
+		ExpectedError:  "failed to create gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\" key:\"dne\" ]",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualEnts, _, err = configurator.LoadEntities(
+		"n1", nil, nil, nil,
+		[]storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g3"},
+			{Type: lte.CellularGatewayType, Key: "g3"},
+		},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	// the device should get created regardless
+	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw2")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(actualEnts))
+	assert.Equal(t, payload.Device, actualDevice)
+}
+
 func TestListAndGetGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})

@@ -9,7 +9,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	merrors "magma/orc8r/cloud/go/errors"
@@ -32,23 +31,6 @@ type GatewayModel interface {
 	// FromBackendModels the same PartialGatewayModel from the configurator
 	// entities attached to the networkID and gatewayID.
 	FromBackendModels(magmadGateway, cellularGateway configurator.NetworkEntity, device *models.GatewayDevice, status *models.GatewayStatus) GatewayModel
-}
-
-type MutableGatewayModel interface {
-	ValidatableModel
-	// GetEmptyGateway creates a new instance of the typed GatewayModel.
-	// It should be empty
-	GetEmptyGateway() MutableGatewayModel
-	// GetMagmadGateway returns a MagmadGateway of the gateway.
-	GetMagmadGateway() *models.MagmadGateway
-	// ToConfiguratorEntity returns a NetworkEntity of the gateway.
-	ToConfiguratorEntity() configurator.NetworkEntity
-	// GetMagmadGatewayUpdateCriteria returns an EntityUpdateCriteria needed
-	// to apply the change to the model.
-	GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria
-	// ToEntityUpdateCriteria returns an EntityUpdateCriteria needed to apply
-	// the change in the model.
-	ToEntityUpdateCriteria() configurator.EntityUpdateCriteria
 }
 
 // PartialGatewayModel describe models that represents a portion of network
@@ -271,81 +253,6 @@ func GetListGatewaysHandler(path string, gatewayType string, makeTypedGateways M
 				return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 			}
 			return c.JSON(http.StatusOK, makeTypedGateways(entsByTK, devicesByID, statusesByID))
-		},
-	}
-}
-
-func GetCreateGatewayHandler(path string, gatewayType string, gatewayModel MutableGatewayModel) obsidian.Handler {
-	return obsidian.Handler{
-		Path:    path,
-		Methods: obsidian.POST,
-		HandlerFunc: func(c echo.Context) error {
-			nid, nerr := obsidian.GetNetworkId(c)
-			if nerr != nil {
-				return nerr
-			}
-
-			payload := gatewayModel.GetEmptyGateway()
-			if err := c.Bind(payload); err != nil {
-				return obsidian.HttpError(err, http.StatusBadRequest)
-			}
-			if err := payload.ValidateModel(); err != nil {
-				return obsidian.HttpError(err, http.StatusBadRequest)
-			}
-
-			if nerr := CreateMagmadGatewayFromModel(nid, payload.GetMagmadGateway()); nerr != nil {
-				return nerr
-			}
-
-			if _, err := configurator.CreateEntity(nid, payload.ToConfiguratorEntity()); err != nil {
-				return obsidian.HttpError(errors.Wrap(err, fmt.Sprintf("failed to create %s gateway", gatewayType)), http.StatusInternalServerError)
-			}
-			if _, err := configurator.UpdateEntity(nid, payload.GetMagmadGatewayUpdateCriteria()); err != nil {
-				return obsidian.HttpError(errors.Wrap(err, fmt.Sprintf("failed to associate %s and magmad gateways", gatewayType)), http.StatusInternalServerError)
-			}
-
-			return c.NoContent(http.StatusCreated)
-		},
-	}
-}
-
-func GetUpdateGatewayHandler(path string, gatewayType string, gatewayModel MutableGatewayModel) obsidian.Handler {
-	return obsidian.Handler{
-		Path:    path,
-		Methods: obsidian.PUT,
-		HandlerFunc: func(c echo.Context) error {
-			nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
-			if nerr != nil {
-				return nerr
-			}
-
-			payload := gatewayModel.GetEmptyGateway()
-			if err := c.Bind(payload); err != nil {
-				return obsidian.HttpError(err, http.StatusBadRequest)
-			}
-			if err := payload.ValidateModel(); err != nil {
-				return obsidian.HttpError(err, http.StatusBadRequest)
-			}
-
-			_, err := configurator.LoadEntity(
-				nid, gatewayType, gid,
-				configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-			)
-			switch {
-			case err == merrors.ErrNotFound:
-				return echo.ErrNotFound
-			case err != nil:
-				return obsidian.HttpError(errors.Wrap(err, fmt.Sprintf("failed to load %s gateway", gatewayType)), http.StatusInternalServerError)
-			}
-
-			if nerr := UpdateMagmadGatewayFromModel(nid, gid, payload.GetMagmadGateway()); nerr != nil {
-				return nerr
-			}
-			if _, err := configurator.UpdateEntity(nid, payload.ToEntityUpdateCriteria()); err != nil {
-				return obsidian.HttpError(errors.Wrap(err, fmt.Sprintf("failed to update %s gateway", gatewayType)), http.StatusInternalServerError)
-			}
-
-			return c.NoContent(http.StatusNoContent)
 		},
 	}
 }

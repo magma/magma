@@ -13,6 +13,7 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/lte"
 	ltemodels "magma/lte/cloud/go/plugin/models"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
@@ -161,10 +162,6 @@ func (m *MutableFederationGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MutableFederationGateway) GetEmptyGateway() handlers.MutableGatewayModel {
-	return &MutableFederationGateway{}
-}
-
 func (m *MutableFederationGateway) GetMagmadGateway() *models2.MagmadGateway {
 	return &models2.MagmadGateway{
 		Description: m.Description,
@@ -176,42 +173,59 @@ func (m *MutableFederationGateway) GetMagmadGateway() *models2.MagmadGateway {
 	}
 }
 
+func (m *MutableFederationGateway) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
+	return []configurator.EntityWriteOperation{
+		configurator.NetworkEntity{
+			Type:        feg.FegGatewayType,
+			Key:         string(m.ID),
+			Name:        string(m.Name),
+			Description: string(m.Description),
+			Config:      m.Federation,
+		},
+		configurator.EntityUpdateCriteria{
+			Type:              orc8r.MagmadGatewayType,
+			Key:               string(m.ID),
+			AssociationsToAdd: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}},
+		},
+	}
+}
+
+func (m *MutableFederationGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: gatewayID}}
+}
+
+func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(
+	gatewayID string,
+	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
+) ([]configurator.EntityWriteOperation, error) {
+	ret := []configurator.EntityWriteOperation{}
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: gatewayID}]
+	if !ok {
+		return ret, merrors.ErrNotFound
+	}
+
+	entUpdate := configurator.EntityUpdateCriteria{
+		Type:      feg.FegGatewayType,
+		Key:       string(m.ID),
+		NewConfig: m.Federation,
+	}
+	if string(m.Name) != existingEnt.Name {
+		entUpdate.NewName = swag.String(string(m.Name))
+	}
+	if string(m.Description) != existingEnt.Description {
+		entUpdate.NewDescription = swag.String(string(m.Description))
+	}
+
+	ret = append(ret, entUpdate)
+	return ret, nil
+}
+
 func (m *FederatedNetworkConfigs) GetFromNetwork(network configurator.Network) interface{} {
 	return models2.GetNetworkConfig(network, feg.FederatedNetworkType)
 }
 
 func (m *FederatedNetworkConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	return models2.GetNetworkConfigUpdateCriteria(network.ID, feg.FederatedNetworkType, m), nil
-}
-
-func (m *MutableFederationGateway) ToConfiguratorEntity() configurator.NetworkEntity {
-	ret := configurator.NetworkEntity{
-		Type:        feg.FegGatewayType,
-		Key:         string(m.ID),
-		Name:        string(m.Name),
-		Description: string(m.Description),
-		Config:      m.Federation,
-	}
-	return ret
-}
-
-func (m *MutableFederationGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
-		Type:              orc8r.MagmadGatewayType,
-		Key:               string(m.ID),
-		AssociationsToAdd: []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}},
-	}
-}
-
-func (m *MutableFederationGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	ret := configurator.EntityUpdateCriteria{
-		Type:           feg.FegGatewayType,
-		Key:            string(m.ID),
-		NewName:        swag.String(string(m.Name)),
-		NewDescription: swag.String(string(m.Description)),
-		NewConfig:      m.Federation,
-	}
-	return ret
 }
 
 func (m *GatewayFederationConfigs) FromBackendModels(networkID string, gatewayID string) error {
@@ -232,20 +246,20 @@ func (m *GatewayFederationConfigs) ToUpdateCriteria(networkID string, gatewayID 
 	}, nil
 }
 
-func (config *DiameterClientConfigs) ToMconfig() *mconfig.DiamClientConfig {
+func (m *DiameterClientConfigs) ToMconfig() *mconfig.DiamClientConfig {
 	res := &mconfig.DiamClientConfig{}
-	protos.FillIn(config, res)
+	protos.FillIn(m, res)
 	return res
 }
 
-func (config *DiameterServerConfigs) ToMconfig() *mconfig.DiamServerConfig {
+func (m *DiameterServerConfigs) ToMconfig() *mconfig.DiamServerConfig {
 	res := &mconfig.DiamServerConfig{}
-	protos.FillIn(config, res)
+	protos.FillIn(m, res)
 	return res
 }
 
-func (profile *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile {
+func (m *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile {
 	res := &mconfig.HSSConfig_SubscriptionProfile{}
-	protos.FillIn(profile, res)
+	protos.FillIn(m, res)
 	return res
 }

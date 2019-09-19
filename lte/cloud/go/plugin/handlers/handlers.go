@@ -76,8 +76,12 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.PUT, HandlerFunc: handlers.UpdateDNSRecord},
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: handlers.DeleteDNSRecord},
 
+		handlers.GetListGatewaysHandler(ListGatewaysPath, lte.CellularGatewayType, makeLTEGateways),
+		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
+		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
+		handlers.GetDeleteGatewayHandler(ManageGatewayPath, lte.CellularGatewayType),
 
 		{Path: ListEnodebsPath, Methods: obsidian.GET, HandlerFunc: listEnodebs},
 		{Path: ListEnodebsPath, Methods: obsidian.POST, HandlerFunc: createEnodeb},
@@ -108,11 +112,6 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &ltemodels.NetworkRanConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(ltemodels.FegNetworkID), "")...)
 
-	ret = append(ret, handlers.GetListGatewaysHandler(ListGatewaysPath, lte.CellularGatewayType, makeLTEGateways))
-	ret = append(ret, handlers.GetCreateGatewayHandler(ListGatewaysPath, lte.CellularGatewayType, &ltemodels.MutableLteGateway{}))
-	ret = append(ret, handlers.GetUpdateGatewayHandler(ManageGatewayPath, lte.CellularGatewayType, &ltemodels.MutableLteGateway{}))
-	ret = append(ret, handlers.GetDeleteGatewayHandler(ManageGatewayPath, lte.CellularGatewayType))
-
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{})...)
@@ -124,6 +123,26 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &ltemodels.GatewayNonEpsConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConnectedEnodebsPath, &ltemodels.EnodebSerials{})...)
 	return ret
+}
+
+func createGateway(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.MutableLteGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	if nerr := handlers.CreateMagmadGatewayFromModel(nid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusCreated)
 }
 
 func getGateway(c echo.Context) error {
@@ -153,14 +172,37 @@ func getGateway(c echo.Context) error {
 		Status:      magmadModel.Status,
 		Tier:        magmadModel.Tier,
 		Magmad:      magmadModel.Magmad,
-		Cellular:    ent.Config.(*ltemodels.GatewayCellularConfigs),
 	}
+	if ent.Config != nil {
+		ret.Cellular = ent.Config.(*ltemodels.GatewayCellularConfigs)
+	}
+
 	for _, tk := range ent.Associations {
 		if tk.Type == lte.CellularEnodebType {
 			ret.ConnectedEnodebSerials = append(ret.ConnectedEnodebSerials, tk.Key)
 		}
 	}
 	return c.JSON(http.StatusOK, ret)
+}
+
+func updateGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.MutableLteGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	if nerr := handlers.UpdateMagmadGatewayFromModel(nid, gid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 type cellularAndMagmadGateway struct {
@@ -318,15 +360,15 @@ func getEnodebState(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	state, err := state.GetState(nid, lte.EnodebStateType, eid)
+	st, err := state.GetState(nid, lte.EnodebStateType, eid)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	enodebState := state.ReportedState.(*ltemodels.EnodebState)
-	enodebState.TimeReported = state.TimeMs
-	ent, err := configurator.LoadEntityForPhysicalID(state.ReporterID, configurator.EntityLoadCriteria{})
+	enodebState := st.ReportedState.(*ltemodels.EnodebState)
+	enodebState.TimeReported = st.TimeMs
+	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{})
 	if err == nil {
 		enodebState.ReportingGatewayID = ent.Key
 	}
