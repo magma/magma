@@ -22,9 +22,9 @@
 !lte/gateway/deploy
 !lte/gateway/docker/deploy
 
-!devman/cloud/
-!devman/gateway/
-!devman/protos/
+!devmand/cloud/
+!devmand/gateway/
+!devmand/protos/
 
 !orc8r/cloud/configs/
 !orc8r/cloud/go/
