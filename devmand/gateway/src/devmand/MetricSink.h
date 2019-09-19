@@ -23,6 +23,11 @@ class MetricSink {
   MetricSink& operator=(MetricSink&&) = delete;
 
  public:
+  virtual void setGauge(
+      const std::string& key,
+      double value,
+      const std::string& label_name,
+      const std::string& label_value) = 0;
   virtual void setGauge(const std::string& key, double value) = 0;
 };
 

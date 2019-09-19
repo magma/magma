@@ -75,6 +75,11 @@ class Application final : public MetricSink {
       const std::chrono::seconds& seconds);
 
   void setGauge(const std::string& key, double value) override;
+  void setGauge(
+      const std::string& key,
+      double value,
+      const std::string& label_name,
+      const std::string& label_value) override;
 
   DhcpdConfig& getDhcpdConfig();
 

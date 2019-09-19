@@ -164,8 +164,16 @@ void Application::add(std::unique_ptr<devices::Device>&& device) {
 }
 
 void Application::setGauge(const std::string& key, double value) {
+  setGauge(key, value, "", "");
+}
+
+void Application::setGauge(
+    const std::string& key,
+    double value,
+    const std::string& label_name,
+    const std::string& label_value) {
   for (auto& service : services) {
-    service->setGauge(key, value);
+    service->setGauge(key, value, label_name, label_value);
   }
 }
 

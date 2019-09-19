@@ -28,9 +28,31 @@ Service::Service(Application& application)
 }
 
 void Service::setGauge(const std::string& key, double value) {
-  va_list ap;
+  setGaugeVA(key, value, 0);
+}
+
+void Service::setGauge(
+    const std::string& key,
+    double value,
+    const std::string& label_name,
+    const std::string& label_value) {
+  if (label_name.length() == 0 || label_value.length() == 0) {
+    setGaugeVA(key, value, 0);
+  } else {
+    setGaugeVA(key, value, 1, label_name.c_str(), label_value.c_str());
+  }
+}
+
+void Service::setGaugeVA(
+    const std::string& key,
+    double value,
+    size_t label_count,
+    ...) {
+  va_list labels;
+  va_start(labels, label_count);
   ::magma::service303::MetricsSingleton::Instance().SetGauge(
-      key.c_str(), value, 0, ap);
+      key.c_str(), value, label_count, labels);
+  va_end(labels);
 }
 
 void Service::start() {

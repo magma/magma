@@ -29,6 +29,15 @@ class Service : public ::devmand::Service {
   void wait() override;
   void stop() override;
   void setGauge(const std::string& key, double value) override;
+  void setGauge(
+      const std::string& key,
+      double value,
+      const std::string& label_name,
+      const std::string& label_value) override;
+
+ private:
+  void
+  setGaugeVA(const std::string& key, double value, size_t label_count, ...);
 
  private:
   ::magma::service303::MagmaService magmaService;
