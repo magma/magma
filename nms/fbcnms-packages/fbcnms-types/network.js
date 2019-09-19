@@ -12,12 +12,19 @@ export const CELLULAR = 'cellular';
 export const WIFI = 'wifi';
 export const THIRD_PARTY = 'third_party';
 export const WAC = 'wac';
+export const RHINO = 'rhino';
 
 export const AllNetworkTypes: NetworkType[] = [
   CELLULAR,
   WIFI,
   THIRD_PARTY,
   WAC,
+  RHINO,
 ];
 
-export type NetworkType = 'cellular' | 'wifi' | 'third_party' | 'wac';
+export type NetworkType =
+  | 'cellular'
+  | 'wifi'
+  | 'third_party'
+  | 'wac'
+  | 'rhino';
