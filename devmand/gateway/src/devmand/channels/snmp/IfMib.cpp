@@ -68,39 +68,61 @@ folly::Future<InterfaceIndicies> IfMib::getInterfaceIndicies(
       });
 }
 
-folly::Future<InterfaceStatuses> IfMib::getInterfaceStatuses(
-    channels::snmp::Channel& channel) {
-  return getInterfaceIndicies(channel).thenValue([&channel](auto indicies) {
-    std::vector<folly::Future<InterfaceStatus>> statuses;
-    for (auto index : indicies) {
-      std::string o{".1.3.6.1.2.1.2.2.1.8."};
-      o += folly::to<std::string>(index);
-      statuses.emplace_back(
-          channel.asyncGet(channels::snmp::Oid(o))
-              .thenValue([index](auto result) {
-                return InterfaceStatus{
-                    index, Channel::toStatus(result.value.asString())};
-              }));
-    }
-    return folly::collect(std::move(statuses));
-  });
+folly::Future<InterfacePairs> IfMib::getInterfaceField(
+    channels::snmp::Channel& channel,
+    const std::string& oid,
+    const std::function<std::string(std::string)>& formatter) {
+  return getInterfaceIndicies(channel).thenValue(
+      [&channel, oid, formatter](auto indicies) {
+        std::vector<folly::Future<InterfacePair>> pairs;
+        for (auto index : indicies) {
+          pairs.emplace_back(
+              channel
+                  .asyncGet(
+                      channels::snmp::Oid(oid + folly::to<std::string>(index)))
+                  .thenValue([index, formatter](auto result) {
+                    auto val = result.value.asString();
+                    return InterfacePair{
+                        index, formatter == nullptr ? val : formatter(val)};
+                  }));
+        }
+        return folly::collect(std::move(pairs));
+      });
 }
 
-folly::Future<InterfaceNames> IfMib::getInterfaceNames(
+folly::Future<InterfacePairs> IfMib::getInterfaceOperStatuses(
     channels::snmp::Channel& channel) {
-  return getInterfaceIndicies(channel).thenValue([&channel](auto indicies) {
-    std::vector<folly::Future<InterfaceName>> statuses;
-    for (auto index : indicies) {
-      std::string o{".1.3.6.1.2.1.2.2.1.2."};
-      o += folly::to<std::string>(index);
-      statuses.emplace_back(
-          channel.asyncGet(channels::snmp::Oid(o))
-              .thenValue([index](auto result) {
-                return InterfaceName{index, result.value.asString()};
-              }));
-    }
-    return folly::collect(std::move(statuses));
-  });
+  return getInterfaceField(channel, ".1.3.6.1.2.1.2.2.1.8.", Channel::toStatus);
+}
+
+folly::Future<InterfacePairs> IfMib::getInterfaceAdminStatuses(
+    channels::snmp::Channel& channel) {
+  return getInterfaceField(channel, ".1.3.6.1.2.1.2.2.1.7.", Channel::toStatus);
+}
+
+folly::Future<InterfacePairs> IfMib::getInterfaceNames(
+    channels::snmp::Channel& channel) {
+  return getInterfaceField(channel, ".1.3.6.1.2.1.2.2.1.2.");
+}
+
+folly::Future<InterfacePairs> IfMib::getInterfaceMtus(
+    channels::snmp::Channel& channel) {
+  return getInterfaceField(channel, ".1.3.6.1.2.1.2.2.1.4.");
+}
+
+folly::Future<InterfacePairs> IfMib::getInterfaceTypes(
+    channels::snmp::Channel& channel) {
+  return getInterfaceField(channel, ".1.3.6.1.2.1.2.2.1.3.");
+}
+
+folly::Future<InterfacePairs> IfMib::getInterfaceDescriptions(
+    channels::snmp::Channel& channel) {
+  return getInterfaceField(channel, ".1.3.6.1.2.1.2.2.1.2.");
+}
+
+folly::Future<InterfacePairs> IfMib::getInterfaceLastChange(
+    channels::snmp::Channel& channel) {
+  return getInterfaceField(channel, ".1.3.6.1.2.1.2.2.1.9.");
 }
 
 } // namespace snmp

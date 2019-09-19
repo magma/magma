@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include <folly/futures/Future.h>
 
 #include <devmand/channels/snmp/Channel.h>
@@ -18,18 +20,12 @@ namespace snmp {
 using Location = std::string;
 using Contact = std::string;
 
-struct InterfaceStatus {
+struct InterfacePair {
   int index;
-  std::string status;
+  std::string value;
 };
 
-struct InterfaceName {
-  int index;
-  std::string name;
-};
-
-using InterfaceStatuses = std::vector<InterfaceStatus>;
-using InterfaceNames = std::vector<InterfaceName>;
+using InterfacePairs = std::vector<InterfacePair>;
 using InterfaceIndicies = std::vector<int>;
 
 class IfMib {
@@ -52,11 +48,27 @@ class IfMib {
       channels::snmp::Channel& channel);
   static folly::Future<InterfaceIndicies> getInterfaceIndicies(
       channels::snmp::Channel& channel);
-  static folly::Future<InterfaceNames> getInterfaceNames(
+  static folly::Future<InterfacePairs> getInterfaceNames(
       channels::snmp::Channel& channel);
-  static folly::Future<InterfaceStatuses> getInterfaceStatuses(
+  static folly::Future<InterfacePairs> getInterfaceOperStatuses(
+      channels::snmp::Channel& channel);
+  static folly::Future<InterfacePairs> getInterfaceAdminStatuses(
+      channels::snmp::Channel& channel);
+  static folly::Future<InterfacePairs> getInterfaceMtus(
+      channels::snmp::Channel& channel);
+  static folly::Future<InterfacePairs> getInterfaceTypes(
+      channels::snmp::Channel& channel);
+  static folly::Future<InterfacePairs> getInterfaceDescriptions(
+      channels::snmp::Channel& channel);
+  static folly::Future<InterfacePairs> getInterfaceLastChange(
       channels::snmp::Channel& channel);
 
+  static folly::Future<InterfacePairs> getInterfaceField(
+      channels::snmp::Channel& channel,
+      const std::string& oid,
+      const std::function<std::string(std::string)>& formatter = nullptr);
+
+ private:
   static folly::Future<InterfaceIndicies> handleNextInterfaceIndex(
       channels::snmp::Channel& channel,
       int numInterfacesRemaining,

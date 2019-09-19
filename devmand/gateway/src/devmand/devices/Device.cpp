@@ -33,22 +33,7 @@ void Device::setNativeConfig(const std::string&) {
 }
 
 folly::dynamic Device::lookup(const YangPath& path) const {
-  // TODO handle arrays
-  const folly::dynamic* cur{&lastConfig};
-  for (auto& elem : path) {
-    if (not cur->isObject()) {
-      LOG(ERROR) << "yang path loookup failed on elem '" << elem
-                 << "' as its parent was not an object";
-      return nullptr;
-    }
-    cur = cur->get_ptr(std::string(elem));
-    if (cur == nullptr) {
-      LOG(ERROR) << "yang path loookup failed on elem '" << elem
-                 << "' as it did not exist";
-      break;
-    }
-  }
-  return cur == nullptr ? nullptr : *cur;
+  return YangUtils::lookup(lastConfig, path);
 }
 
 void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {

@@ -63,13 +63,6 @@ class Snmpv2Device : public Device {
     LOG(ERROR) << "set config on unconfigurable device";
   }
 
- private:
-  static void updateInterface(
-      folly::dynamic& interfaces,
-      int index,
-      const std::string& key,
-      const std::string& value);
-
  protected:
   channels::snmp::Channel channel;
 };

@@ -48,7 +48,9 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/FileUtils.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/FileWatcher.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/device/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/models/interface/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/wifi/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/YangUtils.cpp
 )
 
 target_link_libraries(devman

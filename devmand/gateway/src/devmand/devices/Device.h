@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <experimental/filesystem>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,6 +16,7 @@
 
 #include <devmand/ErrorQueue.h>
 #include <devmand/UnifiedView.h>
+#include <devmand/YangUtils.h>
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/devices/State.h>
 
@@ -29,10 +29,6 @@ namespace devices {
 using Id = std::string;
 
 enum class DeviceConfigType { YangJson, NativeConfigJson };
-
-// So this could potentially be much better by using ydk or some similar
-// construct. For the time being just use a using.
-using YangPath = std::experimental::filesystem::path;
 
 class Device {
  public:

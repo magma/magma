@@ -214,21 +214,30 @@ Response Channel::processVars(netsnmp_variable_list* vars) {
             oid,
             folly::dynamic(std::string(
                 reinterpret_cast<char*>(vars->val.string), vars->val_len)));
-      case 0x40: /* IPv4 Address, couldn't find define for this */
+      case ASN_IPADDRESS:
         return Response(
             oid,
             folly::IPAddress::fromBinary(
                 folly::ByteRange(vars->val.string, vars->val_len))
                 .str());
+      case ASN_COUNTER64: {
+        uint64_t val =
+            (static_cast<uint64_t>((*vars->val.counter64).high) << 32) |
+            vars->val.counter64->low;
+        return Response(oid, val);
+      }
       case ASN_INTEGER:
+      case ASN_UNSIGNED:
       case ASN_TIMETICKS: // TODO note loss of type
+      case ASN_COUNTER:
         return Response(oid, *vars->val.integer);
       case ASN_BOOLEAN:
         return Response(oid, static_cast<bool>(*vars->val.integer));
       case ASN_BIT_STR:
       case ASN_NULL:
       default:
-        return ErrorResponse("snmp code path undefined");
+        return ErrorResponse(
+            folly::sformat("snmp code path undefined of type {}", vars->type));
     }
   }
 

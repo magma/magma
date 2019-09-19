@@ -73,6 +73,8 @@ folly::Future<std::string> Mib::getIpv4Address(
 
 folly::Future<std::string> Mib::getIpv6Address(
     channels::snmp::Channel& channel) {
+  // TODO we need to confirm this device has an ipv6 address and error if not
+  // e.g. if getnext returns something other than the requested mib.
   return channels::snmp::Channel::asFutureString(
       channel.asyncGetNext(channels::snmp::Oid(".1.3.6.1.2.1.55.1.8.1.1")));
 }
