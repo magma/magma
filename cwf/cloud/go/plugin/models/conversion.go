@@ -10,6 +10,7 @@ package models
 
 import (
 	"magma/cwf/cloud/go/cwf"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
@@ -88,10 +89,6 @@ func (m *MutableCwfGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *MutableCwfGateway) GetEmptyGateway() handlers.MutableGatewayModel {
-	return &MutableCwfGateway{}
-}
-
 func (m *MutableCwfGateway) GetMagmadGateway() *models2.MagmadGateway {
 	return &models2.MagmadGateway{
 		Description: m.Description,
@@ -103,34 +100,50 @@ func (m *MutableCwfGateway) GetMagmadGateway() *models2.MagmadGateway {
 	}
 }
 
-func (m *MutableCwfGateway) ToConfiguratorEntity() configurator.NetworkEntity {
-	ret := configurator.NetworkEntity{
-		Type:        cwf.CwfGatewayType,
-		Key:         string(m.ID),
-		Name:        string(m.Name),
-		Description: string(m.Description),
-		Config:      nil,
-	}
-	return ret
-}
-
-func (m *MutableCwfGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
-		Type:              orc8r.MagmadGatewayType,
-		Key:               string(m.ID),
-		AssociationsToAdd: []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: string(m.ID)}},
+func (m *MutableCwfGateway) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
+	return []configurator.EntityWriteOperation{
+		configurator.NetworkEntity{
+			Type:        cwf.CwfGatewayType,
+			Key:         string(m.ID),
+			Name:        string(m.Name),
+			Description: string(m.Description),
+			Config:      nil,
+		},
+		configurator.EntityUpdateCriteria{
+			Type:              orc8r.MagmadGatewayType,
+			Key:               string(m.ID),
+			AssociationsToAdd: []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: string(m.ID)}},
+		},
 	}
 }
 
-func (m *MutableCwfGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	ret := configurator.EntityUpdateCriteria{
-		Type:           cwf.CwfGatewayType,
-		Key:            string(m.ID),
-		NewName:        swag.String(string(m.Name)),
-		NewDescription: swag.String(string(m.Description)),
-		NewConfig:      nil,
+func (m *MutableCwfGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: gatewayID}}
+}
+
+func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
+	gatewayID string,
+	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
+) ([]configurator.EntityWriteOperation, error) {
+	ret := []configurator.EntityWriteOperation{}
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: cwf.CwfGatewayType, Key: gatewayID}]
+	if !ok {
+		return ret, merrors.ErrNotFound
 	}
-	return ret
+
+	entUpdate := configurator.EntityUpdateCriteria{
+		Type: cwf.CwfGatewayType,
+		Key:  string(m.ID),
+	}
+	if string(m.Name) != existingEnt.Name {
+		entUpdate.NewName = swag.String(string(m.Name))
+	}
+	if string(m.Description) != existingEnt.Description {
+		entUpdate.NewDescription = swag.String(string(m.Description))
+	}
+
+	ret = append(ret, entUpdate)
+	return ret, nil
 }
 
 func (m *NetworkCarrierWifiConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {

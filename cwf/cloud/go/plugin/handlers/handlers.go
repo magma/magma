@@ -47,7 +47,12 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
+		handlers.GetListGatewaysHandler(ListGatewaysPath, cwf.CwfGatewayType, makeCwfGateways),
+		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
+		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
+		handlers.GetDeleteGatewayHandler(ManageGatewayPath, cwf.CwfGatewayType),
+
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 	}
 
@@ -59,11 +64,6 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8rmodels.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCarrierWifiPath, &cwfmodels.NetworkCarrierWifiConfigs{}, cwf.CwfNetworkType)...)
 
-	ret = append(ret, handlers.GetListGatewaysHandler(ListGatewaysPath, cwf.CwfGatewayType, makeCwfGateways))
-	ret = append(ret, handlers.GetCreateGatewayHandler(ListGatewaysPath, cwf.CwfGatewayType, &cwfmodels.MutableCwfGateway{}))
-	ret = append(ret, handlers.GetUpdateGatewayHandler(ManageGatewayPath, cwf.CwfGatewayType, &cwfmodels.MutableCwfGateway{}))
-	ret = append(ret, handlers.GetDeleteGatewayHandler(ManageGatewayPath, cwf.CwfGatewayType))
-
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{})...)
@@ -71,6 +71,26 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
 
 	return ret
+}
+
+func createGateway(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &cwfmodels.MutableCwfGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	if nerr := handlers.CreateMagmadGatewayFromModel(nid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusCreated)
 }
 
 func getGateway(c echo.Context) error {
@@ -94,6 +114,26 @@ func getGateway(c echo.Context) error {
 		Magmad:      magmadModel.Magmad,
 	}
 	return c.JSON(http.StatusOK, ret)
+}
+
+func updateGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &cwfmodels.MutableCwfGateway{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	if nerr := handlers.UpdateMagmadGatewayFromModel(nid, gid, payload); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 type cwfAndMagmadGateway struct {
