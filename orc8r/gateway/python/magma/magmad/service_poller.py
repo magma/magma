@@ -128,7 +128,8 @@ class ServicePoller(Job):
                                                    info.status)
             except grpc.RpcError as err:
                 logging.error(
-                    "GetServiceInfo Error for %s! [%s]",
+                    "GetServiceInfo Error for %s! [%s] %s",
                     service,
-                    err
+                    err.code(),
+                    err.details(),
                 )
