@@ -54,6 +54,23 @@ class BridgeTools:
         return output_hex
 
     @staticmethod
+    def get_ofport(interface_name):
+        """
+        Gets the ofport name ofport number of a interface
+        """
+        try:
+            port_num = subprocess.check_output(["ovs-vsctl", "get", "interface",
+                                                interface_name, "ofport"])
+        except subprocess.CalledProcessError as e:
+            raise DatapathLookupError(
+                'Error: ovs-vsctl interface({}) of port lookup: {}'.format(
+                    interface_name, e
+                )
+            )
+        return int(port_num)
+
+
+    @staticmethod
     def create_bridge(bridge_name, iface_name):
         """
         Creates a simple bridge, sets up an interface.
