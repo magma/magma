@@ -55,6 +55,11 @@ Status SpgwServiceImpl::CreateBearer(
   itti_msg.imsi_length = request->sid().id().size();
   strcpy(itti_msg.imsi, request->sid().id().c_str());
   itti_msg.lbi = request->link_bearer_id();
+
+  //TODO: figure tfts out
+  memset(&itti_msg.ul_tft,0,sizeof(traffic_flow_template_t));
+  memset(&itti_msg.dl_tft,0,sizeof(traffic_flow_template_t));
+
   bearer_qos_t *qos = &itti_msg.eps_bearer_qos;
   for (const auto &policy_rule : request->policy_rules()) {
     qos->pci = policy_rule.qos().arp().pre_capability();
