@@ -14,9 +14,6 @@ import time
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
-# TODO: Fix this test
-# THIS TEST IS NOT WORKING AT THE MOMENT
-
 
 class TestAttachDetachDedicated(unittest.TestCase):
 
@@ -54,11 +51,38 @@ class TestAttachDetachDedicated(unittest.TestCase):
             self._spgw_util.create_bearer(
                 'IMSI' + ''.join([str(i) for i in req.imsi]), 5)
 
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertTrue(
+                response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value)
+            act_ded_ber_ctxt_req = response.cast(
+                s1ap_types.UeActDedBearCtxtReq_t)
+            ded_bearer_acc = s1ap_types.UeActDedBearCtxtAcc_t()
+            ded_bearer_acc.ue_Id = 1
+            ded_bearer_acc.bearerId = act_ded_ber_ctxt_req.bearerId
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, ded_bearer_acc)
+
             time.sleep(5)
             print("********************** Deleting dedicated bearer for IMSI",
                   ''.join([str(i) for i in req.imsi]))
             self._spgw_util.delete_bearer(
                 'IMSI' + ''.join([str(i) for i in req.imsi]), 5, 6)
+
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertTrue(response,
+                            s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value)
+
+            print("******************* Received deactivate eps bearer context")
+
+            deactv_bearer_req = response.cast(
+                s1ap_types.UeDeActvBearCtxtReq_t)
+            print("********************** Sending Deactivate EPS bearer"
+                  " context accept")
+            deactv_bearer_acc = s1ap_types.UeDeActvBearCtxtAcc_t()
+            deactv_bearer_acc.ue_Id = req.ue_id
+            deactv_bearer_acc.bearerId = deactv_bearer_req.bearerId
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC, deactv_bearer_acc)
 
             time.sleep(5)
             print("********************** Running UE detach for UE id ",
