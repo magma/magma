@@ -8,7 +8,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-configmanager
+  name: configmanager
   labels:
     app.kubernetes.io/component: configmanager
 {{ include "metrics.labels" . | indent 4 }}
@@ -30,4 +30,15 @@ spec:
        port: {{ $port.port }}
        targetPort: {{ $port.targetPort }}
 {{- end }}
+{{- if eq .Values.configmanager.service.type "LoadBalancer" }}
+  {{- if .Values.configmanager.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.configmanager.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.configmanager.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.configmanager.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
 {{- end }}
