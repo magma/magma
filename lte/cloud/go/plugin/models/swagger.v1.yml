@@ -39,6 +39,8 @@ magma-gen-meta:
       filename: lte_subscription_swaggergen.go
     - go-struct-name: EnodebState
       filename: enodeb_state_swaggergen.go
+    - go-struct-name: SubProfile
+      filename: sub_profile_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -1138,6 +1140,26 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/subscribers/{subscriber_id}/lte/sub_profile:
+    put:
+      summary: Change a subscriber's data profile
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+        - in: body
+          name: profile_name
+          description: New profile name
+          required: true
+          schema:
+            $ref: '#/definitions/sub_profile'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/subscribers/{subscriber_id}/activate:
     post:
       summary: Activate a subscriber
@@ -1702,6 +1724,7 @@ definitions:
       - state
       - auth_algo
       - auth_key
+      - sub_profile
     properties:
       state:
         type: string
@@ -1723,6 +1746,13 @@ definitions:
         type: string
         format: byte
         example: 'AAECAwQFBgcICQoLDA0ODw=='
+      sub_profile:
+        $ref: '#/definitions/sub_profile'
+
+  sub_profile:
+    type: string
+    minLength: 1
+    example: 'default'
 
   enodeb_state:
     description: Single Enodeb State

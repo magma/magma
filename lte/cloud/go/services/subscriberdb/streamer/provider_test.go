@@ -38,6 +38,8 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
 
+	// 1 sub without a profile on the backend (should fill as "default"), the
+	// other inactive with a sub profile
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI12345",
@@ -47,7 +49,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models2.LteSubscription{State: "INACTIVE"}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models2.LteSubscription{State: "INACTIVE", SubProfile: "foo"}},
 	})
 	assert.NoError(t, err)
 
@@ -60,9 +62,15 @@ func TestSubscriberdbStreamer(t *testing.T) {
 				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			},
-			NetworkId: &orcprotos.NetworkID{Id: "n1"},
+			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
+			SubProfile: "default",
 		},
-		{Sid: &protos.SubscriberID{Id: "67890", Type: protos.SubscriberID_IMSI}, Lte: &protos.LTESubscription{State: protos.LTESubscription_INACTIVE}, NetworkId: &orcprotos.NetworkID{Id: "n1"}},
+		{
+			Sid:        &protos.SubscriberID{Id: "67890", Type: protos.SubscriberID_IMSI},
+			Lte:        &protos.LTESubscription{State: protos.LTESubscription_INACTIVE},
+			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
+			SubProfile: "foo",
+		},
 	}
 	expected := funk.Map(
 		expectedProtos,

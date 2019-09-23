@@ -378,5 +378,13 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
 	m.ID = ent.Key
 	m.Lte = ent.Config.(*LteSubscription)
+	// If no profile in backend, return "default"
+	if m.Lte.SubProfile == "" {
+		m.Lte.SubProfile = "default"
+	}
 	return m
+}
+
+func (m *SubProfile) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }

@@ -67,6 +67,7 @@ const (
 	ManageSubscriberPath     = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
 	ActivateSubscriberPath   = ManageSubscriberPath + obsidian.UrlSep + "activate"
 	DeactivateSubscriberPath = ManageSubscriberPath + obsidian.UrlSep + "deactivate"
+	SubscriberProfilePath    = ManageSubscriberPath + obsidian.UrlSep + "lte" + obsidian.UrlSep + "sub_profile"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -99,6 +100,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriber},
 		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateACTIVE)},
 		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateINACTIVE)},
+		{Path: SubscriberProfilePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberProfile},
 	}
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.LteNetworkType, &ltemodels.LteNetwork{})...)
 
@@ -451,6 +453,10 @@ func createSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
+	if nerr := validateSubscriberProfile(networkID, payload.Lte); nerr != nil {
+		return nerr
+	}
+
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
 		Type:   lte.SubscriberEntityType,
 		Key:    payload.ID,
@@ -503,6 +509,10 @@ func updateSubscriber(c echo.Context) error {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
 	}
 
+	if nerr := validateSubscriberProfile(networkID, payload.Lte); nerr != nil {
+		return nerr
+	}
+
 	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, payload.Lte)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -519,6 +529,41 @@ func deleteSubscriber(c echo.Context) error {
 	err := configurator.DeleteEntity(networkID, lte.SubscriberEntityType, subscriberID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func updateSubscriberProfile(c echo.Context) error {
+	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	var payload = new(ltemodels.SubProfile)
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	currentCfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID)
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "could not load subscriber"), http.StatusInternalServerError)
+	}
+
+	desiredCfg := currentCfg.(*ltemodels.LteSubscription)
+	desiredCfg.SubProfile = *payload
+	if nerr := validateSubscriberProfile(networkID, desiredCfg); nerr != nil {
+		return nerr
+	}
+
+	_, err = configurator.UpdateEntity(networkID, configurator.EntityUpdateCriteria{Type: lte.SubscriberEntityType, Key: subscriberID, NewConfig: desiredCfg})
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to update profile"), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -554,4 +599,25 @@ func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {
 		return "", "", err
 	}
 	return vals[0], vals[1], nil
+}
+
+func validateSubscriberProfile(networkID string, sub *ltemodels.LteSubscription) *echo.HTTPError {
+	// Check the sub profiles available on the network if sub profile is not
+	// default (which is always available)
+	if sub.SubProfile != "default" {
+		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkType)
+		switch {
+		case err == merrors.ErrNotFound:
+			return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusInternalServerError)
+		case err != nil:
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+
+		cellNetConf := netConf.(*ltemodels.NetworkCellularConfigs)
+		profName := string(sub.SubProfile)
+		if _, profileExists := cellNetConf.Epc.SubProfiles[profName]; !profileExists {
+			return obsidian.HttpError(errors.Errorf("subscriber profile %s does not exist for the network", profName), http.StatusBadRequest)
+		}
+	}
+	return nil
 }
