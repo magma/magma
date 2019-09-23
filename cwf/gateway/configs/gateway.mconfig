@@ -29,6 +29,10 @@
       "logLevel": "INFO",
       "relayEnabled": true
     },
+    "redirectd": {
+      "@type": "type.googleapis.com/magma.mconfig.RedirectD",
+      "logLevel": "INFO"
+    },
     "radiusd": {
       "@type": "type.googleapis.com/magma.mconfig.RadiusdConfig",
       "logLevel": "INFO",

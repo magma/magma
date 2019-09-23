@@ -93,6 +93,11 @@ services:
         /usr/bin/ovs-vsctl set-controller br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
+  redirectd:
+    <<: *ltepyservice
+    container_name: redirectd
+    command: python3 -m magma.redirectd.main
+
   radius:
     image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
     container_name: radius
