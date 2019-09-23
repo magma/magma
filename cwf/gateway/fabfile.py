@@ -10,10 +10,10 @@ of patent rights can be found in the PATENTS file in the same directory.
 import sys
 from distutils.util import strtobool
 
-from fabric.api import cd, env, execute, run, sudo, warn_only
+from fabric.api import cd, execute, run, sudo, warn_only
 
-sys.path.append('../../orc8r/tools')
-from fab.hosts import ansible_setup, vagrant_setup
+sys.path.append('../../orc8r')
+from tools.fab.hosts import ansible_setup, vagrant_setup
 
 AGW_ROOT = "$MAGMA_ROOT/cwf/gateway"
 AGW_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
