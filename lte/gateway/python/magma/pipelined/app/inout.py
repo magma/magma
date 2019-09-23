@@ -34,20 +34,24 @@ class InOutController(MagmaController):
 
     InOutConfig = namedtuple(
         'InOutConfig',
-        ['gtp_port', 'uplink_port'],
+        ['gtp_port', 'uplink_port_name'],
     )
 
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
         self.config = self._get_config(kwargs['config'])
         self._uplink_port = OFPP_LOCAL
-        if (self.config.uplink_port):
-            self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port)
+        if (self.config.uplink_port_name):
+            self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
 
     def _get_config(self, config_dict):
+        port_name = None
+        if 'ovs_uplink_port_name' in config_dict:
+            port_name = config_dict['ovs_uplink_port_name']
+
         return self.InOutConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
-            uplink_port=config_dict['ovs_uplink_port_name']
+            uplink_port_name=port_name
         )
 
     def initialize_on_connect(self, datapath):
