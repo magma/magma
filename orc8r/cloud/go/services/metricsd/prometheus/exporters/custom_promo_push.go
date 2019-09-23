@@ -26,7 +26,9 @@ import (
 )
 
 const (
-	pushInterval = time.Second * 30
+	pushInterval        = time.Second * 30
+	NetworkLabelNetwork = "networkID"
+	NetworkLabelGateway = "gatewayID"
 )
 
 var (
