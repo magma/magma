@@ -120,6 +120,9 @@ spec:
       labels:
 {{ tuple $envAll "feg" "gateway" | include "selector-labels" | indent 8 }}
       annotations:
+        {{ if .Values.pod.cni.interface }}
+        cni: {{ .Values.pod.cni.interface | quote }}
+        {{- end }}
         kubernetes.io/target-runtime: virtlet.cloud
         VirtletVCPUCount: {{ .Values.virtlet.vcpuCount | quote }}
         VirtletRootVolumeSize: {{ .Values.virtlet.rootVolumeSize }}
