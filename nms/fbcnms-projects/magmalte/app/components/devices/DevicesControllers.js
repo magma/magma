@@ -17,6 +17,7 @@ import DevicesEditControllerDialog from './DevicesEditControllerDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magmalte/app/common/MagmaV1API';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NewControllerDialog from './NewControllerDialog';
 import Paper from '@material-ui/core/Paper';
@@ -27,8 +28,8 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from '@fbcnms/magmalte/app/components/GatewayUtils';
 import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
@@ -92,9 +93,10 @@ function DevicesControllers(props: Props) {
         if (!confirmed) {
           return;
         }
-        axios
-          .delete(MagmaAPIUrls.gateway(match, gateway.id))
-          .then(() => setGateways(gateways.filter(gw => gw.id != gateway.id)));
+        MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
+          networkId: nullthrows(match.params.networkId),
+          gatewayId: gateway.id,
+        }).then(() => setGateways(gateways.filter(gw => gw.id != gateway.id)));
       });
   };
 

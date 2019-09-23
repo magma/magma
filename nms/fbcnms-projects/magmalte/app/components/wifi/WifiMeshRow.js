@@ -23,6 +23,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
 import LinkIcon from '@material-ui/icons/Link';
+import MagmaV1API from '@fbcnms/magmalte/app/common/MagmaV1API';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
@@ -33,6 +34,7 @@ import url from 'url';
 import {groupBy} from 'lodash';
 
 import WifiDeviceDetails, {InfoRow} from './WifiDeviceDetails';
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from '@fbcnms/magmalte/app/components/GatewayUtils';
 import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
@@ -368,7 +370,10 @@ class WifiMeshRow extends React.Component<Props, State> {
         }
 
         const requests = this.props.gateways.map(device =>
-          axios.delete(MagmaAPIUrls.gateway(this.props.match, device.id)),
+          MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
+            networkId: nullthrows(this.props.match.params.networkId),
+            gatewayId: device.id,
+          }),
         );
         const requestsc = this.props.gateways.map(device =>
           axios.delete(
@@ -402,7 +407,10 @@ class WifiMeshRow extends React.Component<Props, State> {
 
         // delete all parts
         await axios.all([
-          axios.delete(MagmaAPIUrls.gateway(this.props.match, device.id)),
+          MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
+            networkId: nullthrows(this.props.match.params.networkId),
+            gatewayId: device.id,
+          }),
           axios.delete(
             MagmaAPIUrls.gatewayConfigsForType(
               this.props.match,

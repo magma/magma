@@ -66,7 +66,6 @@ type Props = ContextRouter &
 
 type State = {
   record: ?Record,
-  recordChanged: boolean,
   macAddress: string,
   magmaConfigs: ?MagmadConfig,
   magmaConfigsChanged: boolean,
@@ -95,7 +94,6 @@ class WifiDeviceDialog extends React.Component<Props, State> {
 
     this.state = ({
       record: null,
-      recordChanged: false,
       macAddress: '',
       magmaConfigs: null,
       magmaConfigsChanged: false,
@@ -193,10 +191,7 @@ class WifiDeviceDialog extends React.Component<Props, State> {
         break;
       case 2:
         content = (
-          <WifiDeviceHardwareFields
-            record={nullthrows(this.state.record)}
-            recordChangeHandler={this.recordChangeHandler}
-          />
+          <WifiDeviceHardwareFields record={nullthrows(this.state.record)} />
         );
         break;
       case 3:
@@ -262,13 +257,6 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     });
   };
 
-  recordChangeHandler = (fieldName, value) => {
-    const record = {...this.state.record};
-    record[fieldName] = value;
-
-    this.setState({record, recordChanged: true});
-  };
-
   onEdit = async () => {
     const {match} = this.props;
     const deviceID = nullthrows(match.params.deviceID);
@@ -289,12 +277,6 @@ class WifiDeviceDialog extends React.Component<Props, State> {
           MagmaAPIUrls.gatewayConfigs(match, deviceID),
           this.getMagmaConfigs(),
         ),
-      );
-    }
-
-    if (this.state.recordChanged) {
-      requests.push(
-        axios.put(MagmaAPIUrls.gateway(match, deviceID), this.state.record),
       );
     }
 

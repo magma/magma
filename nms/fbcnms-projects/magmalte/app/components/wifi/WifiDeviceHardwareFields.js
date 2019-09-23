@@ -26,7 +26,6 @@ const styles = {
 
 type Props = WithStyles<typeof styles> & {
   record: Record,
-  recordChangeHandler: (string, any) => void,
 };
 
 class WifiDeviceHardwareFields extends React.Component<Props> {

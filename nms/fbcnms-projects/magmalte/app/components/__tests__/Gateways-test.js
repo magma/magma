@@ -15,6 +15,7 @@ import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 
 import 'jest-dom/extend-expect';
+import MagmaAPIBindings from '../../common/__generated__/MagmaAPIBindings';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
@@ -60,13 +61,14 @@ const OFFLINE_GATEWAY = {
 };
 
 jest.mock('axios');
+jest.mock('../../common/__generated__/MagmaAPIBindings');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
         <Switch>
-          <Route path="/nms/:networkID" component={Gateways} />
+          <Route path="/nms/:networkId" component={Gateways} />
         </Switch>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>
@@ -112,9 +114,9 @@ describe('<Gateways />', () => {
   });
 
   it('shows prompt when delete is clicked', async () => {
-    axiosMock.delete.mockResolvedValueOnce({
-      data: {success: true},
-    });
+    MagmaAPIBindings.deleteNetworksByNetworkIdGatewaysByGatewayId.mockResolvedValueOnce(
+      {},
+    );
 
     const {getByText, getByTestId} = render(<Wrapper />);
     await wait();
@@ -128,7 +130,9 @@ describe('<Gateways />', () => {
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
     await wait();
-    expect(axiosMock.delete).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPIBindings.deleteNetworksByNetworkIdGatewaysByGatewayId,
+    ).toHaveBeenCalledTimes(1);
 
     axiosMock.delete.mockClear();
   });

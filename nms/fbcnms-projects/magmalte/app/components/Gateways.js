@@ -19,6 +19,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import MagmaV1API from '../common/MagmaV1API';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -179,15 +180,14 @@ class Gateways extends React.Component<Props, State> {
         if (!confirmed) {
           return;
         }
-        axios
-          .delete(MagmaAPIUrls.gateway(match, gateway.logicalID))
-          .then(_resp =>
-            this.setState({
-              gateways: gateways.filter(
-                gw => gw.logicalID != gateway.logicalID,
-              ),
-            }),
-          );
+        MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
+          networkId: nullthrows(match.params.networkId),
+          gatewayId: gateway.logicalID,
+        }).then(() =>
+          this.setState({
+            gateways: gateways.filter(gw => gw.logicalID != gateway.logicalID),
+          }),
+        );
       });
   };
 
