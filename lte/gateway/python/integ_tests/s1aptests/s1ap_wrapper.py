@@ -213,6 +213,19 @@ class TestWrapper(object):
 
         self.check_gw_health_after_ue_load()
 
+    def configUEDevice_without_checking_gw_health(self, num_ues):
+        """ Configure the device on the UE side """
+        reqs = self._sub_util.add_sub(num_ues=num_ues)
+        for i in range(num_ues):
+            print("************************* UE device config for ue_id ",
+                  reqs[i].ue_id)
+            assert (self._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0)
+            response = self._s1_util.get_response()
+            assert (s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value ==
+                    response.msg_type)
+            self._configuredUes.append(reqs[i])
+
     def check_gw_health_after_ue_load(self):
         """ Wait for the MME only after adding entries to HSS """
         if self.wait_gateway_healthy:
