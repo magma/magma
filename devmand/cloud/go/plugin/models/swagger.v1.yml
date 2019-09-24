@@ -7,7 +7,7 @@ magma-gen-meta:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'orc8r/cloud/go/pluginimpl/models/swagger.v1.yml'
   temp-gen-filename: devmand-swagger.yml
-  output-dir: ../modules/orc8r/devmand/cloud/go/plugin
+  output-dir: devmand/cloud/go/plugin
   types:
     - go-struct-name: SymphonyNetwork
       filename: symphony_network_swaggergen.go
