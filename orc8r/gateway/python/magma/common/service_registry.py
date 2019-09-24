@@ -147,7 +147,7 @@ class ServiceRegistry:
             # Connect to the cloud via local control proxy
             try:
                 (ip, unused_port) = ServiceRegistry.get_service_address("control_proxy")
-                (ip, port) = (ip, proxy_config['local_port'])
+                port = proxy_config['local_port']
             except ValueError as err:
                 logging.error(err)
                 (ip, port) = ('127.0.0.1', proxy_config['local_port'])
