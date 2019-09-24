@@ -53,7 +53,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 	}
 
-	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederatedLteNetworkType, &fegmodels.FegLteNetwork{})...)
+	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegmodels.FegNetwork{})...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkFederationPath, &fegmodels.NetworkFederationConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayFederationPath, &fegmodels.GatewayFederationConfigs{})...)
 

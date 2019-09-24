@@ -134,11 +134,11 @@ func (m *FegLteNetwork) FromConfiguratorNetwork(n configurator.Network) interfac
 }
 
 func (m *NetworkFederationConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	return models2.GetNetworkConfig(network, feg.FederatedNetworkType)
+	return models2.GetNetworkConfig(network, feg.FegNetworkType)
 }
 
 func (m *NetworkFederationConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, feg.FederatedNetworkType, m), nil
+	return models2.GetNetworkConfigUpdateCriteria(network.ID, feg.FegNetworkType, m), nil
 }
 
 func (m *FederationGateway) ValidateModel() error {
