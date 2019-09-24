@@ -14,11 +14,9 @@ import (
 	"fbc/cwf/radius/modules"
 )
 
-// Listener encapsulates runtime for concreate listeners
-type Listener interface {
-	//
-	// Configuration methods
-	//
+// ListenerInterface encapsulates runtime for concreate listeners
+type ListenerInterface interface {
+	// Common methods
 	GetModules() []Module
 	SetModules(m []Module)
 	AppendModule(m *Module)
@@ -26,33 +24,77 @@ type Listener interface {
 	SetConfig(config config.ListenerConfig)
 	SetHandleRequest(hr modules.Middleware)
 	GetHandleRequest() modules.Middleware
+	Ready() chan bool
+	GetDupDropped() *uint32
 
 	//
-	// Server and listenning methods
+	// Listener-specific methods
 	//
+
+	// Initialize the listener
 	Init(
 		server *Server,
 		serverConfig config.ServerConfig,
 		listenerConfig config.ListenerConfig,
 	) error
 
-	// Blocking call to shutting down a listener
+	// Shutdown Blocking call to shutting down a listener
 	Shutdown(ctx context.Context) error
 
-	// A channel that indicates whether the listener is ready
-	// to server requests. The channel MUST be sent either `true` or `false`
-	// values, otherwise initialization may freeze indefineitly
-	Ready() chan bool
-
-	// Starts listenning and serving requests.
+	// ListenAndServe() Starts listenning and serving requests.
 	// The method MUST return (as opposed to serving in a loop). If a loop is
 	// needed, it should be spawned in a separate go routine from within this
 	// method. Notice that when listener is ready, the channel returned from
 	// Ready() must be sent a `true` value (or `false` upon failure)
 	ListenAndServe() error
+}
 
-	//
-	// Stats methods
-	//
-	GetDupDropped() *uint32
+// Listener base implementation of a listener
+type Listener struct {
+	ListenerInterface
+	Config        config.ListenerConfig
+	Modules       []Module
+	HandleRequest modules.Middleware
+	Server        *Server
+	dupDropped    uint32
+}
+
+// GetModules ...
+func (l *Listener) GetModules() []Module {
+	return l.Modules
+}
+
+// SetModules ...
+func (l *Listener) SetModules(m []Module) {
+	l.Modules = m
+}
+
+// AppendModule ...
+func (l *Listener) AppendModule(m *Module) {
+	l.Modules = append(l.Modules, *m)
+}
+
+// GetConfig ...
+func (l *Listener) GetConfig() config.ListenerConfig {
+	return l.Config
+}
+
+// SetConfig ...
+func (l *Listener) SetConfig(c config.ListenerConfig) {
+	l.Config = c
+}
+
+// GetHandleRequest ...
+func (l *Listener) GetHandleRequest() modules.Middleware {
+	return l.HandleRequest
+}
+
+// SetHandleRequest ...
+func (l *Listener) SetHandleRequest(hr modules.Middleware) {
+	l.HandleRequest = hr
+}
+
+// GetDupDropped override
+func (l *Listener) GetDupDropped() *uint32 {
+	return &l.dupDropped
 }

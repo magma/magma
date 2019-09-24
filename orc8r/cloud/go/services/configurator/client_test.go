@@ -16,6 +16,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -199,6 +200,54 @@ func TestConfiguratorService(t *testing.T) {
 	assert.Equal(t, entityID2.Key, entities[0].Associations[0].Key)
 	assert.Equal(t, entityID1.Key, entities[1].ParentAssociations[0].Key)
 
+	// Update foobar, create foobaz, add association fooboo -> foobaz  in 1
+	// client call
+	err = configurator.WriteEntities(
+		networkID1,
+		configurator.EntityUpdateCriteria{Type: entityID1.Type, Key: entityID1.Key, NewDescription: swag.String("newnewnew")},
+		configurator.NetworkEntity{Type: "foo", Key: "baz"},
+		configurator.EntityUpdateCriteria{
+			Type: entityID2.Type, Key: entityID2.Key,
+			AssociationsToAdd: []storage.TypeAndKey{{Type: "foo", Key: "baz"}},
+		},
+	)
+	assert.NoError(t, err)
+
+	entities, _, err = configurator.LoadEntities(
+		networkID1,
+		swag.String("foo"), nil,
+		nil, nil,
+		fullEntityLoad,
+	)
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntities{
+		{
+			NetworkID: networkID1, Type: entityID1.Type, Key: entityID1.Key,
+			Name: "foobar", Description: "newnewnew",
+			PhysicalID:   "4321",
+			Config:       "hello",
+			GraphID:      "2",
+			Associations: []storage.TypeAndKey{entityID2},
+			Version:      2,
+		},
+		{
+			NetworkID: networkID1, Type: "foo", Key: "baz",
+			GraphID:            "2",
+			ParentAssociations: []storage.TypeAndKey{entityID2},
+		},
+		{
+			NetworkID: networkID1, Type: entityID2.Type, Key: entityID2.Key,
+			Name: "fooboo", Description: "ent: fooboo",
+			PhysicalID:         "5678",
+			Config:             "bye",
+			GraphID:            "2",
+			Associations:       []storage.TypeAndKey{{Type: "foo", Key: "baz"}},
+			ParentAssociations: []storage.TypeAndKey{entityID1},
+			Version:            1,
+		},
+	}
+	assert.Equal(t, expected, entities)
+
 	// Delete, Load
 	err = configurator.DeleteEntities(networkID1, []storage.TypeAndKey{entityID2})
 	assert.NoError(t, err)
@@ -209,7 +258,7 @@ func TestConfiguratorService(t *testing.T) {
 		fullEntityLoad,
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(entities))
+	assert.Equal(t, 2, len(entities))
 	assert.Equal(t, 0, len(entitiesNotFound))
 	assert.Equal(t, "foobar", entities[0].Name)
 }

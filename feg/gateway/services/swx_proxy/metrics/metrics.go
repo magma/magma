@@ -177,11 +177,11 @@ func GetCurrentHealthMetrics() (*SwxHealthMetrics, error) {
 	if err != nil {
 		return nil, err
 	}
-	timeouts, err := service_health_metrics.GetInt64("sar_timeouts_total")
+	timeouts, err := service_health_metrics.GetInt64("swx_timeouts_total")
 	if err != nil {
 		return nil, err
 	}
-	unparseable, err := service_health_metrics.GetInt64("sar_unparseable_msg_total")
+	unparseable, err := service_health_metrics.GetInt64("swx_unparseable_msg_total")
 	if err != nil {
 		return nil, err
 	}

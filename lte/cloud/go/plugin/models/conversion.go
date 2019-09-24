@@ -13,8 +13,10 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
@@ -22,6 +24,14 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
+
+func (m *LteNetwork) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
+	return &LteNetwork{}
+}
 
 func (m *LteNetwork) ToConfiguratorNetwork() configurator.Network {
 	return configurator.Network{
@@ -50,7 +60,7 @@ func (m *LteNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 	}
 }
 
-func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) *LteNetwork {
+func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) interface{} {
 	m.ID = models.NetworkID(n.ID)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
@@ -133,13 +143,15 @@ func (m *LteGateway) FromBackendModels(
 	magmadGateway, cellularGateway configurator.NetworkEntity,
 	device *models2.GatewayDevice,
 	status *models2.GatewayStatus,
-) *LteGateway {
+) handlers.GatewayModel {
 	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 
-	m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
+	if cellularGateway.Config != nil {
+		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
+	}
 	for _, tk := range cellularGateway.Associations {
 		if tk.Type == lte.CellularEnodebType {
 			m.ConnectedEnodebSerials = append(m.ConnectedEnodebSerials, tk.Key)
@@ -165,8 +177,8 @@ func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
 	}
 }
 
-func (m *MutableLteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
-	ret := configurator.NetworkEntity{
+func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
+	ent := configurator.NetworkEntity{
 		Type:        lte.CellularGatewayType,
 		Key:         string(m.ID),
 		Name:        string(m.Name),
@@ -174,31 +186,51 @@ func (m *MutableLteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
 		Config:      m.Cellular,
 	}
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
 	}
-	return ret
+
+	return []configurator.EntityWriteOperation{
+		ent,
+		configurator.EntityUpdateCriteria{
+			Type:              orc8r.MagmadGatewayType,
+			Key:               string(m.ID),
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: string(m.ID)}},
+		},
+	}
 }
 
-func (m *MutableLteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
-		Type:              orc8r.MagmadGatewayType,
-		Key:               string(m.ID),
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: string(m.ID)}},
-	}
+func (m *MutableLteGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: gatewayID}}
 }
 
-func (m *MutableLteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	ret := configurator.EntityUpdateCriteria{
-		Type:           lte.CellularGatewayType,
-		Key:            string(m.ID),
-		NewName:        swag.String(string(m.Name)),
-		NewDescription: swag.String(string(m.Description)),
-		NewConfig:      m.Cellular,
+func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
+	gatewayID string,
+	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
+) ([]configurator.EntityWriteOperation, error) {
+	ret := []configurator.EntityWriteOperation{}
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayType, Key: gatewayID}]
+	if !ok {
+		return ret, merrors.ErrNotFound
 	}
+
+	entUpdate := configurator.EntityUpdateCriteria{
+		Type:      lte.CellularGatewayType,
+		Key:       string(m.ID),
+		NewConfig: m.Cellular,
+	}
+	if string(m.Name) != existingEnt.Name {
+		entUpdate.NewName = swag.String(string(m.Name))
+	}
+	if string(m.Description) != existingEnt.Description {
+		entUpdate.NewDescription = swag.String(string(m.Description))
+	}
+
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+		entUpdate.AssociationsToSet = append(entUpdate.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
 	}
-	return ret
+
+	ret = append(ret, entUpdate)
+	return ret, nil
 }
 
 func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
@@ -346,5 +378,13 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
 	m.ID = ent.Key
 	m.Lte = ent.Config.(*LteSubscription)
+	// If no profile in backend, return "default"
+	if m.Lte.SubProfile == "" {
+		m.Lte.SubProfile = "default"
+	}
 	return m
+}
+
+func (m *SubProfile) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }

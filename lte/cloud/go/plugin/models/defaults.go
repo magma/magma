@@ -57,3 +57,19 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 		},
 	}
 }
+
+func NewDefaultEnodebStatus() *EnodebState {
+	return &EnodebState{
+		EnodebConfigured: swag.Bool(true),
+		EnodebConnected:  swag.Bool(true),
+		GpsConnected:     swag.Bool(true),
+		GpsLatitude:      swag.String("1.1"),
+		GpsLongitude:     swag.String("2.2"),
+		OpstateEnabled:   swag.Bool(true),
+		RfTxOn:           swag.Bool(true),
+		RfTxDesired:      swag.Bool(false),
+		PtpConnected:     swag.Bool(false),
+		MmeConnected:     swag.Bool(true),
+		FsmState:         swag.String("TEST"),
+	}
+}

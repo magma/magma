@@ -74,6 +74,9 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: true,
 		},
+		"redirectd": &ltemconfig.RedirectD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 	err = builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)

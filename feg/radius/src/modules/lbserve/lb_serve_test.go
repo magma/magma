@@ -29,12 +29,13 @@ func TestLBServeFailsWithNoState(t *testing.T) {
 
 	nextInvoked := false
 	logger, _ := zap.NewDevelopment()
-	Init(logger, modules.ModuleConfig{})
+	mCtx, _ := Init(logger, modules.ModuleConfig{})
 
 	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
 
 	// Act
 	_, err := Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -58,13 +59,14 @@ func TestLBServeFailsWithNoUpstreamHost(t *testing.T) {
 
 	nextInvoked := false
 	logger, _ := zap.NewDevelopment()
-	Init(logger, modules.ModuleConfig{})
+	mCtx, _ := Init(logger, modules.ModuleConfig{})
 
 	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
 	sessionStorage.Set(session.State{})
 
 	// Act
 	_, err := Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -88,7 +90,7 @@ func TestLBServeProxiesRequestToRadiusAndReturnsResponse(t *testing.T) {
 
 	nextInvoked := false
 	logger, _ := zap.NewDevelopment()
-	Init(logger, modules.ModuleConfig{})
+	mCtx, _ := Init(logger, modules.ModuleConfig{})
 
 	// Spawn a radius server
 	server, port := spawnRadiusServer()
@@ -99,6 +101,7 @@ func TestLBServeProxiesRequestToRadiusAndReturnsResponse(t *testing.T) {
 
 	// Act
 	response, err := Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -151,7 +154,7 @@ func TestLBServeFailsWithRadiusError(t *testing.T) {
 
 	nextInvoked := false
 	logger, _ := zap.NewDevelopment()
-	Init(logger, modules.ModuleConfig{})
+	mCtx, _ := Init(logger, modules.ModuleConfig{})
 
 	// Spawn a radius server
 	server, port := spawnFailingRadiusServer()
@@ -162,6 +165,7 @@ func TestLBServeFailsWithRadiusError(t *testing.T) {
 
 	// Act
 	response, err := Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,

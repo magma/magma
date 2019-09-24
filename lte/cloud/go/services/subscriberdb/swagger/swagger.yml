@@ -128,6 +128,10 @@ definitions:
         format: byte # auth_opc is encoded in base64
         x-nullable: true
         example: 'AAECAwQFBgcICQoLDA0ODw=='
+      sub_profile:
+        type: string
+        minLength: 1
+        example: 'default'
   subscriber:
     type: object
     properties:

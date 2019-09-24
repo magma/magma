@@ -16,23 +16,24 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 )
 
-// EnodebStateSerde is used to serialize/deserialize enodeb operational states
-type EnodebStateSerde struct {
+// EnodebStateProtosSerde is used to serialize/deserialize enodeb operational states
+// todo deprecate after switching to swagger model serde below
+type EnodebStateProtosSerde struct {
 }
 
-func (*EnodebStateSerde) GetDomain() string {
+func (*EnodebStateProtosSerde) GetDomain() string {
 	return state.SerdeDomain
 }
 
-func (*EnodebStateSerde) GetType() string {
-	return lte.EnodebStateType
+func (*EnodebStateProtosSerde) GetType() string {
+	return lte.LegacyEnodebStateType
 }
 
-func (*EnodebStateSerde) Serialize(in interface{}) ([]byte, error) {
+func (*EnodebStateProtosSerde) Serialize(in interface{}) ([]byte, error) {
 	return json.Marshal(in)
 }
 
-func (*EnodebStateSerde) Deserialize(message []byte) (interface{}, error) {
+func (*EnodebStateProtosSerde) Deserialize(message []byte) (interface{}, error) {
 	res := protos.SingleEnodebStatus{}
 	err := json.Unmarshal(message, &res)
 	return res, err

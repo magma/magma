@@ -7,9 +7,10 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from lte.protos.pipelined_pb2 import RuleModResult
+from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult
 from magma.pipelined.app.base import MagmaController
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
+    global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -64,6 +65,22 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
 
         self._redirect_manager = None
+
+    def setup(self, req):
+        """
+        Setup flows for subscribers, used on restart.
+
+        Args:
+            req: SetupFlowsRequest
+        """
+        if req.epoch != global_epoch:
+            self.logger.warning(
+                "Received SetupFlowsRequest has outdated epoch - %d, current "
+                "epoch is - %d.", req.epoch, global_epoch)
+            return SetupFlowsResult(
+                result=SetupFlowsResult.OUTDATED_EPOCH)
+
+        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
     def initialize_on_connect(self, datapath):
         """

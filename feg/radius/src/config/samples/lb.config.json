@@ -68,7 +68,10 @@
         "listeners": [
             {
                 "name": "auth",
-                "port": 3700,
+                "type": "udp",
+                "extra": {
+                    "port": 3700
+                },
                 "modules": [
                     {
                         "name": "lbserve",

@@ -107,6 +107,20 @@ folly::EventBase &LocalEnforcer::get_event_base()
   return *evb_;
 }
 
+bool LocalEnforcer::setup(
+  const std::uint64_t &epoch,
+  std::function<void(Status status, SetupFlowsResult)> callback)
+{
+  std::vector<SessionState::SessionInfo> session_infos;
+  for(auto it = session_map_.begin(); it != session_map_.end(); it++)
+  {
+    SessionState::SessionInfo session_info;
+    it->second->get_session_info(session_info);
+    session_infos.push_back(session_info);
+  }
+  return pipelined_client_->setup(session_infos, epoch, callback);
+}
+
 void LocalEnforcer::aggregate_records(const RuleRecordTable &records)
 {
   new_report(); // unmark all credits
@@ -288,6 +302,7 @@ void LocalEnforcer::schedule_static_rule_activation(
   std::vector<std::string> static_rules {static_rule.rule_id()};
   std::vector<PolicyRule> dynamic_rules;
 
+  auto it = session_map_.find(imsi);
   auto delta = time_difference_from_now(static_rule.activation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " static rule "
                << static_rule.rule_id() << " activation in "
@@ -297,6 +312,13 @@ void LocalEnforcer::schedule_static_rule_activation(
       std::move([=] {
         pipelined_client_->activate_flows_for_rules(
           imsi, ip_addr, static_rules, dynamic_rules);
+        if (it == session_map_.end()) {
+          MLOG(MWARNING) << "Could not find session for IMSI " << imsi
+                         << "during installation of static rule "
+                         << static_rule.rule_id();
+        } else {
+          it->second->activate_static_rule(static_rule.rule_id());
+        }
       }),
       delta);
   });
@@ -339,6 +361,7 @@ void LocalEnforcer::schedule_static_rule_deactivation(
   std::vector<std::string> static_rules {static_rule.rule_id()};
   std::vector<PolicyRule> dynamic_rules;
 
+  auto it = session_map_.find(imsi);
   auto delta = time_difference_from_now(static_rule.deactivation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " static rule "
                << static_rule.rule_id() << " deactivation in "
@@ -348,6 +371,16 @@ void LocalEnforcer::schedule_static_rule_deactivation(
       std::move([=] {
         pipelined_client_->deactivate_flows_for_rules(
           imsi, static_rules, dynamic_rules);
+        if (it == session_map_.end()) {
+          MLOG(MWARNING) << "Could not find session for IMSI " << imsi
+                         << "during removal of static rule "
+                         << static_rule.rule_id();
+        } else {
+          if (!it->second->deactivate_static_rule(static_rule.rule_id()))
+            MLOG(MWARNING) << "Could not find rule " << static_rule.rule_id()
+                           << "for IMSI " << imsi
+                           << " during static rule removal";
+        }
       }),
       delta);
   });
@@ -502,6 +535,9 @@ bool LocalEnforcer::init_session_credit(
   // activate_flows_for_rules() should be called even if there is no rule to
   // activate, because pipelined activates a "drop all packet" rule
   // when no rule is provided as the parameter
+  for (const auto &static_rule : rules_to_activate.static_rules) {
+    session_state->activate_static_rule(static_rule);
+  }
   for (const auto &policy_rule : rules_to_activate.dynamic_rules) {
     session_state->insert_dynamic_rule(policy_rule);
   }
@@ -518,6 +554,12 @@ bool LocalEnforcer::init_session_credit(
   if (
     rules_to_deactivate.static_rules.size() > 0 ||
     rules_to_deactivate.dynamic_rules.size() > 0) {
+    for (const auto &static_rule : rules_to_deactivate.static_rules) {
+      if (!session_state->deactivate_static_rule(static_rule))
+        MLOG(MWARNING) << "Could not find rule " << static_rule  << "for IMSI "
+                       << imsi << " during static rule removal";
+
+    }
     for (const auto &policy_rule : rules_to_deactivate.dynamic_rules) {
       PolicyRule rule_dont_care;
       session_state->remove_dynamic_rule(policy_rule.id(), &rule_dont_care);
@@ -729,6 +771,9 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (is_dynamic) {
       rules_to_deactivate->dynamic_rules.push_back(dy_rule);
     } else {
+      if (!session->deactivate_static_rule(rule_id))
+        MLOG(MWARNING) << "Could not find rule " << rule_id << "for IMSI "
+                       << request.imsi() << " during static rule removal";
       rules_to_deactivate->static_rules.push_back(rule_id);
     }
   }
@@ -742,6 +787,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (activation_time > current_time) {
       schedule_static_rule_activation(imsi, ip_addr, static_rule);
     } else {
+      session->activate_static_rule(static_rule.rule_id());
       rules_to_activate->static_rules.push_back(static_rule.rule_id());
     }
 
@@ -750,6 +796,9 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (deactivation_time > current_time) {
       schedule_static_rule_deactivation(imsi, static_rule);
     } else if (deactivation_time > 0) {
+      if (!session->deactivate_static_rule(static_rule.rule_id()))
+        MLOG(MWARNING) << "Could not find rule " << static_rule.rule_id()
+                       << "for IMSI " << imsi << " during static rule removal";
       rules_to_deactivate->static_rules.push_back(static_rule.rule_id());
     }
   }

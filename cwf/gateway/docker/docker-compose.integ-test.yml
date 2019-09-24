@@ -35,6 +35,8 @@ services:
   swx_proxy:
     <<: *feggoservice
     container_name: swx_proxy
+    depends_on:
+      - hss
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
 
   hss:

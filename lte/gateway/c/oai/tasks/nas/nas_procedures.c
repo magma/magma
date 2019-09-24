@@ -860,7 +860,7 @@ void nas_digest_msg(
   unsigned char *result = NULL;
   if (RETURNok == digest_buffer(EVP_md4, msg, msg_len, &result, &result_len)) {
     //OAILOG_STREAM_HEX (OAILOG_LEVEL_TRACE, LOG_NAS_EMM, "NAS Msg :", msg, msg_len);
-    int min_length = min(result_len, (*digest_length));
+    int min_length = OAI_MIN(result_len, (*digest_length));
     memcpy(digest, result, min_length);
     *digest_length = min_length;
     //OAILOG_STREAM_HEX (OAILOG_LEVEL_TRACE, LOG_NAS_EMM, "Digest:", digest, (*digest_length));
@@ -965,7 +965,7 @@ nas_emm_proc_t *nas_emm_find_procedure_by_msg_digest(
         emm_context->emm_procedures->nas_proc_mess_sign[i].nas_msg_length ==
         msg_size) {
         if (1 <= digest_bytes) {
-          size_t min = min(digest_bytes, NAS_MSG_DIGEST_SIZE);
+          size_t min = OAI_MIN(digest_bytes, NAS_MSG_DIGEST_SIZE);
           if (!memcmp(
                 digest,
                 emm_context->emm_procedures->nas_proc_mess_sign[i].digest,

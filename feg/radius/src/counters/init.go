@@ -9,16 +9,16 @@ LICENSE file in the root directory of this source tree.
 package counters
 
 import (
-	"fbc/lib/go/oc"
+	"fbc/cwf/radius/counters/census"
 	"net/http"
 
 	"go.uber.org/zap"
 )
 
 // Init Initialize views and Prometheus exporter
-func Init(config oc.Config, logger *zap.Logger) {
+func Init(config census.Config, logger *zap.Logger) {
 	// Create metrics server
-	census, err := config.Build(oc.WithLogger(logger))
+	census, err := config.Build(logger)
 	if err != nil {
 		logger.Error("Failed building census", zap.Error(err))
 		return

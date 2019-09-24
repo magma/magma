@@ -13,7 +13,7 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/services/controller/obsidian/models"
+	"magma/feg/cloud/go/plugin/models"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
 	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
@@ -73,19 +73,20 @@ func GetAllGatewayIDs(ctx context.Context) ([]string, error) {
 	return res, err
 }
 
-func getFegCfg(networkID, gatewayID string) (*models.GatewayFegConfigs, error) {
+func getFegCfg(networkID, gatewayID string) (*models.GatewayFederationConfigs, error) {
 	fegGateway, err := configurator.LoadEntity(networkID, feg.FegGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadConfig: true})
 	if err != nil && err != merrors.ErrNotFound {
 		return nil, errors.WithStack(err)
 	}
 	if err == nil && fegGateway.Config != nil {
-		return fegGateway.Config.(*models.GatewayFegConfigs), nil
+		return fegGateway.Config.(*models.GatewayFederationConfigs), nil
 	}
 
 	iNetworkConfig, err := configurator.LoadNetworkConfig(networkID, feg.FegNetworkType)
 	if err != nil {
 		return nil, merrors.ErrNotFound
 	}
-	nwConfig := iNetworkConfig.(*models.NetworkFederationConfigs)
-	return &models.GatewayFegConfigs{NetworkFederationConfigs: *nwConfig}, nil
+
+	gwConfig := iNetworkConfig.(*models.GatewayFederationConfigs)
+	return gwConfig, nil
 }

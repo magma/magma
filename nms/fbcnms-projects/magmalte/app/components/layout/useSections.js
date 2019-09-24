@@ -17,9 +17,13 @@ import NetworkContext from '../context/NetworkContext';
 import axios from 'axios';
 import {useContext, useEffect, useState} from 'react';
 
-import {CELLULAR} from '@fbcnms/types/network';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {getLteSections} from '../lte/LteSections';
+import {CELLULAR, RHINO, THIRD_PARTY, WAC, WIFI} from '@fbcnms/types/network';
+import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
+import {getDevicesSections} from '@fbcnms/magmalte/app/components/devices/DevicesSections';
+import {getLteSections} from '@fbcnms/magmalte/app/components/lte/LteSections';
+import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
+import {getRhinoSections} from '@fbcnms/magmalte/app/components/rhino/RhinoSections';
+import {getWACSections} from '@fbcnms/magmalte/app/components/wac/WACSections';
 import {useFeatureFlag} from '@fbcnms/ui/hooks';
 
 export default function useSections(): SectionsConfigs {
@@ -40,6 +44,14 @@ export default function useSections(): SectionsConfigs {
   }
 
   switch (networkType) {
+    case WIFI:
+      return getMeshSections(alertsEnabled);
+    case THIRD_PARTY:
+      return getDevicesSections(alertsEnabled);
+    case WAC:
+      return getWACSections();
+    case RHINO:
+      return getRhinoSections();
     case CELLULAR:
     default:
       return getLteSections(alertsEnabled);

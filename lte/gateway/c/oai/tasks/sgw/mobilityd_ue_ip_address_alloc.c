@@ -72,11 +72,6 @@ int release_ue_ipv4_address(const char *imsi, struct in_addr *addr)
   return release_ipv4_address(imsi, addr);
 }
 
-void pgw_ip_address_pool_init(void)
-{
-  return;
-}
-
 int get_ip_block(struct in_addr *netaddr, uint32_t *netmask)
 {
   int rv;

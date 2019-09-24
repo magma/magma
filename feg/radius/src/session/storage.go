@@ -8,8 +8,6 @@ LICENSE file in the root directory of this source tree.
 
 package session
 
-import "bytes"
-
 type (
 	// State the data to store per session
 	State struct {
@@ -65,22 +63,4 @@ func NewSessionStorage(globalStorage GlobalStorage, sessionID string) Storage {
 		globalStorage: globalStorage,
 		sessionID:     sessionID,
 	}
-}
-
-// CreateSessionIDStrings format the session key from its 2 constituents
-func CreateSessionIDStrings(callingStationID string, calledStationID string) string {
-	return CreateSessionID([]byte(callingStationID), []byte(calledStationID))
-}
-
-// CreateSessionID format the session key from its 2 constituents
-func CreateSessionID(callingStationID []byte, calledStationID []byte) string {
-	var sessionID bytes.Buffer
-
-	if calledStationID != nil {
-		sessionID.Write(calledStationID)
-	}
-	if callingStationID != nil {
-		sessionID.Write(callingStationID)
-	}
-	return sessionID.String()
 }

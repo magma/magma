@@ -33,10 +33,16 @@ class Job(abc.ABC):
             self._loop = asyncio.get_event_loop()
         else:
             self._loop = loop
-        self._task = cast(Optional[asyncio.Task], None)
+        # Task in charge of periodically running the task
+        self._periodic_task = cast(Optional[asyncio.Task], None)
+        # Task in charge of deciding how long to wait until next run
+        self._interval_wait_task = cast(Optional[asyncio.Task], None)
         self._interval = interval  # in seconds
         self._last_run = cast(Optional[float], None)
         self._timeout = cast(Optional[float], None)
+        # Condition variable used to control how long the job waits until
+        # executing its task again.
+        self._cond = self._cond = asyncio.Condition(loop=self._loop)
 
     @abc.abstractmethod
     def _run(self):
@@ -47,21 +53,30 @@ class Job(abc.ABC):
         pass
 
     def start(self) -> None:
-        if self._task is None:
-            self._task = self._loop.create_task(self._periodic())
+        """
+        kicks off the _periodic while loop
+        """
+        if self._periodic_task is None:
+            self._periodic_task = self._loop.create_task(self._periodic())
 
     def stop(self) -> None:
-        if self._task is not None:
-            self._task.cancel()
+        """
+        cancels the _periodic while loop
+        """
+        if self._periodic_task is not None:
+            self._periodic_task.cancel()
             with suppress(asyncio.CancelledError):
                 # Await task to execute it's cancellation
-                self._loop.run_until_complete(self._task)
-            self._task = None
+                self._loop.run_until_complete(self._periodic_task)
+            self._periodic_task = None
 
     def set_timeout(self, timeout: float) -> None:
         self._timeout = timeout
 
     def set_interval(self, interval: int) -> None:
+        """
+        sets the interval used in _periodic to decide how long to sleep
+        """
         self._interval = interval
 
     def heartbeat(self) -> None:
@@ -77,11 +92,33 @@ class Job(abc.ABC):
             return True
         return False
 
+    async def _sleep_for_interval(self):
+        await asyncio.sleep(self._interval)
+        async with self._cond:
+            self._cond.notify()
+
+    async def wake_up(self):
+        """
+        Cancels the _sleep_for_interval task if it exists, and notifies the
+        cond var so that the _periodic loop can continue.
+        """
+        if self._interval_wait_task is not None:
+            self._interval_wait_task.cancel()
+
+        async with self._cond:
+            self._cond.notify()
+
     async def _periodic(self) -> None:
         while True:
             self.heartbeat()
+
             try:
                 await self._run()
             except Exception as exp:  # pylint: disable=broad-except
                 logging.error("Exception from _run: %s", exp)
-            await asyncio.sleep(self._interval)
+
+            # Wait for self._interval seconds or wake_up is explicitly called
+            self._interval_wait_task = \
+                self._loop.create_task(self._sleep_for_interval())
+            async with self._cond:
+                await self._cond.wait()

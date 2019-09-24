@@ -11,7 +11,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 import datetime
 import enum
 import logging
-
 import grpc
 import os
 import snowflake
@@ -28,7 +27,6 @@ from orc8r.protos.certifier_pb2 import CSR
 from orc8r.protos.identity_pb2 import AccessGatewayID, Identity
 
 import magma.common.cert_utils as cert_utils
-from magma.common.cert_validity import cert_is_invalid
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service_registry import ServiceRegistry
@@ -105,45 +103,16 @@ class BootstrapManager(SDWatchdogTask):
         elif self._state == BootstrapState.IDLE:
             pass
 
-
-    async def on_checkin_fail(self, err_code):
-        """Checks for invalid certificate as cause for checkin failures"""
-        if err_code == grpc.StatusCode.PERMISSION_DENIED:
-            # Immediately bootstrap if the error is PERMISSION_DENIED
-            return await self.bootstrap()
-        proxy_config = ServiceRegistry.get_proxy_config()
-        host = proxy_config['cloud_address']
-        port = proxy_config['cloud_port']
-        certfile = proxy_config['gateway_cert']
-        keyfile = proxy_config['gateway_key']
-
-        not_valid = await \
-            cert_is_invalid(host, port, certfile, keyfile, self._loop)
-        await self._cert_is_invalid_done(not_valid)
-        return not_valid  # for testing
-
-    async def bootstrap(self):
+    async def schedule_bootstrap_now(self):
         """Public Interface to start a bootstrap
 
-        1. If the device is bootstrapping, do nothing
-        2. If there is something scheduled, put it in idle so the run loop is
-           paused until this _bootstrap_now is complete
-        3. run _bootstrap_now
+        1. If the device is already bootstrapping, do nothing
+        2. If it is waiting for a next bootstrap check or bootstrap, wake up
+           and do it now.
         """
         if self._state is BootstrapState.BOOTSTRAPPING:
             return
-
-        if self._state in [BootstrapState.SCHEDULED_CHECK,
-                           BootstrapState.SCHEDULED_BOOTSTRAP]:
-            self._state = BootstrapState.IDLE
-        await self._bootstrap_now()
-
-    async def _cert_is_invalid_done(self, not_valid):
-        if not_valid:
-            logging.info('Bootstrapping due to invalid cert')
-            await self._bootstrap_now()
-        else:
-            logging.error('Checkin failure likely not due to invalid cert')
+        await self.wake_up()
 
     def _maybe_create_challenge_key(self):
         """Generate key the first time it runs if key does not exist"""
@@ -316,13 +285,13 @@ class BootstrapManager(SDWatchdogTask):
         else:
             interval = self.SHORT_BOOTSTRAP_RETRY_INTERVAL.total_seconds()
         logging.info('Retrying bootstrap in %d seconds', interval)
-        self.set_interval(interval)
+        self.set_interval(int(interval))
         self._state = BootstrapState.SCHEDULED_BOOTSTRAP
 
     def _schedule_next_bootstrap_check(self):
         """Schedule a bootstrap_check"""
         self.set_interval(
-            self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds()
+            int(self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds())
         )
         self._state = BootstrapState.SCHEDULED_CHECK
 

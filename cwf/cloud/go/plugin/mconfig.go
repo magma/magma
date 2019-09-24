@@ -93,6 +93,9 @@ func buildFromNetworkConfig(nwConfig *models.NetworkCarrierWifiConfigs) (map[str
 		LogLevel:     protos.LogLevel_INFO,
 		RelayEnabled: nwConfig.RelayEnabled,
 	}
+	ret["redirectd"] = &ltemconfig.RedirectD{
+		LogLevel: protos.LogLevel_INFO,
+	}
 	return ret, err
 }
 

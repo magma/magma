@@ -41,7 +41,7 @@ generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
 set(SMGR_LTE_CPP_PROTOS session_manager meteringd subscriberdb policydb
-  pipelined pgw mconfig/mconfigs)
+  pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
@@ -49,7 +49,7 @@ set(SMGR_CWF_CPP_PROTOS accounting context)
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
-set(SMGR_GRPC_PROTOS session_manager pipelined pgw)
+set(SMGR_GRPC_PROTOS session_manager pipelined spgw_service)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
@@ -87,8 +87,8 @@ add_library(SESSION_MANAGER
     SessionID.cpp
     SessionID.h
     ServiceAction.h
-    PgwClient.cpp
-    PgwClient.h
+    SpgwServiceClient.cpp
+    SpgwServiceClient.h
     PipelinedClient.cpp
     PipelinedClient.h
     SessionRules.cpp

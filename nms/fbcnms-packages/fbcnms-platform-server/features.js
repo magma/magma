@@ -70,11 +70,6 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'prometheus_metrics_database',
-    title: 'Prometheus Metrics Database',
-    enabledByDefault: true,
-  },
-  {
     id: 'site_survey',
     title: 'Site Survey',
     enabledByDefault: false,
@@ -97,6 +92,11 @@ const arrayConfigs = [
   {
     id: 'file_categories',
     title: 'File Categories (for IpT)',
+    enabledByDefault: false,
+  },
+  {
+    id: 'floor_plans',
+    title: 'Floor Plans',
     enabledByDefault: false,
   },
   {

@@ -13,8 +13,8 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin"
+	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/protos/mconfig"
-	"magma/feg/cloud/go/services/controller/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
@@ -161,7 +161,7 @@ func TestBuilder_Build(t *testing.T) {
 
 	// put a config on the gw, erase the network config
 	nw.Configs = map[string]interface{}{}
-	fegw.Config = &models.GatewayFegConfigs{NetworkFederationConfigs: *defaultConfig}
+	fegw.Config = (*models.GatewayFederationConfigs)(defaultConfig)
 	graph.Entities = []configurator.NetworkEntity{fegw, gw}
 
 	actual = map[string]proto.Message{}
@@ -171,7 +171,7 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 var defaultConfig = &models.NetworkFederationConfigs{
-	S6a: &models.NetworkFederationConfigsS6a{
+	S6a: &models.S6a{
 		Server: &models.DiameterClientConfigs{
 			Protocol:         "sctp",
 			Retransmits:      3,
@@ -182,7 +182,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Realm:            "magma.com",
 		},
 	},
-	Gx: &models.NetworkFederationConfigsGx{
+	Gx: &models.Gx{
 		Server: &models.DiameterClientConfigs{
 			Protocol:         "tcp",
 			Retransmits:      3,
@@ -193,7 +193,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Realm:            "magma.com",
 		},
 	},
-	Gy: &models.NetworkFederationConfigsGy{
+	Gy: &models.Gy{
 		Server: &models.DiameterClientConfigs{
 			Protocol:         "tcp",
 			Retransmits:      3,
@@ -205,7 +205,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		InitMethod: uint32Ptr(1),
 	},
-	Hss: &models.NetworkFederationConfigsHss{
+	Hss: &models.Hss{
 		Server: &models.DiameterServerConfigs{
 			Protocol:  "tcp",
 			DestHost:  "magma.com",
@@ -220,7 +220,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		SubProfiles:       make(map[string]models.SubscriptionProfile),
 		StreamSubscribers: false,
 	},
-	Swx: &models.NetworkFederationConfigsSwx{
+	Swx: &models.Swx{
 		Server: &models.DiameterClientConfigs{
 			Protocol:         "sctp",
 			Retransmits:      3,
@@ -233,7 +233,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		VerifyAuthorization: false,
 		CacheTTLSeconds:     10800,
 	},
-	EapAka: &models.NetworkFederationConfigsEapAka{
+	EapAka: &models.EapAka{
 		Timeout: &models.EapAkaTimeouts{
 			ChallengeMs:            20000,
 			ErrorNotificationMs:    10000,
@@ -242,13 +242,13 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		PlmnIds: []string{},
 	},
-	AaaServer: &models.NetworkFederationConfigsAaaServer{
+	AaaServer: &models.AaaServer{
 		IDLESessionTimeoutMs: 21600000,
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},
 	ServedNetworkIds: []string{},
-	Health: &models.NetworkFederationConfigsHealth{
+	Health: &models.Health{
 		HealthServices:           []string{"S6A_PROXY", "SESSION_PROXY"},
 		UpdateIntervalSecs:       10,
 		CloudDisablePeriodSecs:   10,

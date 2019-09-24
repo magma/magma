@@ -37,9 +37,6 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/enodeb/${enodebId}`,
   enodebs: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/enodeb`,
-  gateway: (networkIdOrMatch: string | Match, gatewayId: string) => {
-    return `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways/${gatewayId}`;
-  },
   gateways: (networkIdOrMatch: string | Match, viewFull: boolean = false) => {
     const params = viewFull ? '?view=full' : '';
     return `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways${params}`;
@@ -53,7 +50,7 @@ export const MagmaAPIUrls = {
   gatewayConfigsForType: (
     networkIdOrMatch: string | Match,
     gatewayId: string,
-    type: 'wifi' | 'cellular' | 'tarazed' | 'devmand',
+    type: 'wifi' | 'cellular' | 'devmand',
   ) =>
     `${MagmaAPIUrls.network(
       networkIdOrMatch,
@@ -149,7 +146,7 @@ export async function createDevice(
     ...Record,
     key: {key_type: string, key?: string},
   },
-  type: 'wifi' | 'cellular' | 'tarazed' | 'devmand',
+  type: 'wifi' | 'cellular' | 'devmand',
   configs: MagmadConfig,
   extraConfigs: WifiConfig | {[string]: mixed},
   networkIdOrMatch: string | Match,

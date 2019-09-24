@@ -41,6 +41,7 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			// V1
 			obsidian.Handler{Path: promH.QueryV1URL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 			obsidian.Handler{Path: promH.QueryRangeV1URL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
+			obsidian.Handler{Path: promH.SeriesV1URL, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)},
 		)
 	} else {
 		pAPI := v1.NewAPI(client)
@@ -51,6 +52,7 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			// V1
 			obsidian.Handler{Path: promH.QueryV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryHandler(pAPI)},
 			obsidian.Handler{Path: promH.QueryRangeV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusQueryRangeHandler(pAPI)},
+			obsidian.Handler{Path: promH.SeriesV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetPrometheusSeriesHandler(pAPI)},
 		)
 	}
 

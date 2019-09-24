@@ -24,9 +24,12 @@ const useStyles = makeStyles(theme => ({
     boxShadow: '0px 3px 6px rgba(0,0,0,0.16)',
     borderRadius: '20px 0px 0px 0px',
     padding: '23px 17px',
+    display: 'flex',
+    flexDirection: 'column',
   },
   closeButton: {
     '&&': {
+      width: 'fit-content',
       backgroundColor: theme.palette.grey[200],
       padding: '10px',
       marginBottom: '24px',
@@ -60,7 +63,7 @@ const SideBar = (props: Props) => {
         <IconButton className={classes.closeButton} onClick={onClose}>
           <KeyboardArrowRightIcon className={classes.icon} fontSize="small" />
         </IconButton>
-        <div>{children}</div>
+        {children}
       </div>
     </Slide>
   );

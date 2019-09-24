@@ -22,14 +22,14 @@ import (
 )
 
 const (
-	defaultPort          = "9093"
-	defaultPrometheusURL = "localhost:9090"
+	defaultPort          = "9100"
+	defaultPrometheusURL = "prometheus:9090"
 )
 
 func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
 	rulesDir := flag.String("rules-dir", ".", "Directory to write rules files. Default is '.'")
-	prometheusURL := flag.String("prometheusURL", "localhost:9090", fmt.Sprintf("URL of the prometheus instance that is reading these rules. Default is %s", defaultPrometheusURL))
+	prometheusURL := flag.String("prometheusURL", defaultPrometheusURL, fmt.Sprintf("URL of the prometheus instance that is reading these rules. Default is %s", defaultPrometheusURL))
 	flag.Parse()
 
 	e := echo.New()

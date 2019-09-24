@@ -2,7 +2,10 @@ module fbc/lib/go/http
 
 go 1.12
 
-replace fbc/lib/go/log => ../log
+replace (
+	fbc/lib/go/log => ../log
+	fbc/lib/go/oc/helpers => ../oc/helpers
+)
 
 require (
 	fbc/lib/go/log v0.0.0
@@ -14,5 +17,4 @@ require (
 	go.opencensus.io v0.21.0
 	go.uber.org/multierr v1.1.0
 	go.uber.org/zap v1.10.0
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
 )

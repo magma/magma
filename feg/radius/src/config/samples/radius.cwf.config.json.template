@@ -9,8 +9,10 @@
         "listeners": [
             {
                 "name": "auth",
-                "port": $RADIUS_AUTH_PORT,
                 "type": "udp",
+                "extra": {
+                    "port": $RADIUS_AUTH_PORT
+                },
                 "modules": [
                     {
                       "name": "analytics",
@@ -37,26 +39,28 @@
             },
             {
                 "name": "acct",
-                "port": $RADIUS_ACCT_PORT,
                 "type": "udp",
+                "extra": {
+                    "port": $RADIUS_ACCT_PORT
+                },
                 "modules": [
                     {
                         "name": "adaptruckus",
                         "config": {}
                     },
                     {
-                        "name": "coadynamic",
+                        "name": "analytics",
                         "config": {
-                            "Port": "3799"
+                            "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",
+                            "GraphQLURL": "$ANALYTICS_GRAPHQL_ENDPOINT",
+                            "DryRunGraphQL": false
                         }
                     },
                     {
-                      "name": "analytics",
-                      "config": {
-                        "AccessToken": "$ANALYTICS_GRAPHQL_TOKEN",
-                        "GraphQLURL": "$ANALYTICS_GRAPHQL_ENDPOINT",
-                        "DryRunGraphQL": false
-                      }
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": 3799
+                        }
                     },
                     {
                       "name": "magmaacct",
@@ -68,13 +72,15 @@
             },
             {
                 "name": "coa_grpc",
-                "port": $RADIUS_COA_GRPC_PORT,
                 "type": "grpc",
+                "extra": {
+                    "port": $RADIUS_COA_GRPC_PORT
+                },
                 "modules": [
                     {
                         "name": "coadynamic",
                         "config": {
-                            "Port": "3799"
+                            "Port": 3799
                         }
                     }
                 ]

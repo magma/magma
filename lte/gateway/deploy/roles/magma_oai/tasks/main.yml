@@ -27,15 +27,17 @@
     - { package: phpmyadmin, default: 'reconfigure-webserver multiselect apache2' }
     - { package: wireshark-common, default: 'install-setuid boolean false' }
 - name: Install OpenAirInterface (OAI) dependencies
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - subversion
-    - git
-    - libmysqlclient-dev
-    - mysql-client
-    - mysql-server
-    - libxml2
-    - magma-nghttpx
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - subversion
+      - git
+      - libmysqlclient-dev
+      - mysql-client
+      - mysql-server
+      - libxml2
+      - magma-nghttpx
 - name: Copy nghttpx config for control proxy
   copy: src={{ item.src }} dest={{ item.dest }}
   with_items:

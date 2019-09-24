@@ -186,7 +186,7 @@ data:
           magma_alert_type: cloud
           networkID: orc8r
         annotations:
-          description: "Cloud service { $labels.ServiceName } down."
+          description: "Cloud service {{`{{ $labels.ServiceName }}`}} down."
           recovery: "No recovery steps configured currently"
 
     # Alert for metrics down to inhibit other service alerts
@@ -198,7 +198,7 @@ data:
           magma_alert_type: cloud
           networkID: orc8r
         annotations:
-          description: "Cloud service { $labels.ServiceName } down."
+          description: "Cloud service {{`{{ $labels.ServiceName }}`}} down."
           recovery: "No recovery steps configured currently"
 
 
@@ -214,8 +214,9 @@ data:
             severity: major
             magma_alert_type: gateway
             networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
           annotations:
-            description: "Gateway { $labels.gatewayID } memory usage is too high at 90% for over 5 minutes on network { $labels.networkID }."
+            description: "Gateway {{`{{ $labels.gatewayID }}`}} memory usage is too high at 90% for over 5 minutes on network {{`{{ $labels.networkID }}`}}."
             recovery: "No recovery steps configured currently."
 
         - alert: Multiple gateways are failing to check in
@@ -225,6 +226,7 @@ data:
             severity: major
             magma_alert_type: gateway
             networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
           annotations:
             description: "At least 50% of gateways have not checked in the last 7 minutes!"
             recovery: >
@@ -233,8 +235,6 @@ data:
               you can ssh into any of the boxes and check syslog to see if it's
               able to contact the cloud.
 
-
-
         - alert: Metrics missing
           expr: sum(process_cpu_seconds_total{job!="prometheus"}) by (networkID, gatewayID) unless sum(gateway_checkin_status) by (networkID, gatewayID)
           for: 5m
@@ -242,8 +242,9 @@ data:
             severity: minor
             magma_alert_type: gateway
             networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
           annotations:
-            description: "Gateway { $labels.gatewayID } hasn't sent metrics for at least 5 minutes on network { $labels.networkID }."
+            description: "Gateway {{`{{ $labels.gatewayID }}`}} hasn't sent metrics for at least 5 minutes on network {{`{{ $labels.networkID }}`}}."
             recovery: "No recovery steps configured currently."
 
         - alert: Gateway service down
@@ -253,8 +254,9 @@ data:
             severity: major
             magma_alert_type: gateway
             networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
           annotations:
-            description: "{ $labels.service } has been down on gateway { $labels.gatewayID } for at least 7 minutes."
+            description: "{{`{{ $labels.service }}`}} has been down on gateway {{`{{ $labels.gatewayID }}`}} for at least 7 minutes."
             recovery: "SSH into gateway and inspect service. Manually restart if necessary."
 
         - alert: Unattended Upgrades active
@@ -264,8 +266,9 @@ data:
             severity: critical
             magma_alert_type: gateway
             networkID: orc8r
+            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
           annotations:
-            description: "Unattended upgrades can update kernel in gateway { $labels.gatewayID } on network { $labels.networkID }"
+            description: "Unattended upgrades can update kernel in gateway {{`{{ $labels.gatewayID }}`}} on network {{`{{ $labels.networkID }}`}}"
             recovery: >
               If Unattended Upgrades package is active this means the gateway might
               automatically upgrade the kernel to an unsupported version. The best
@@ -283,7 +286,7 @@ data:
             magma_alert_type: gateway
             networkID: orc8r
           annotations:
-            description: "Unexpected service restart in gateway { $labels.gatewayID } on network { $labels.networkID }"
+            description: "Unexpected service restart in gateway {{`{{ $labels.gatewayID }}`}} on network {{`{{ $labels.networkID }}`}}"
             recovery: "Check /var/log/syslog in the gateway for the root cause."
 
   metrics_alert_rules.yml: |
@@ -298,7 +301,7 @@ data:
             magma_alert_type: metrics
             networkID: orc8r
           annotations:
-            summary: "Instance { $labels.instance } - target is down"
+            summary: "Instance {{`{{ $labels.instance }}`}} - target is down"
 
         - alert: Prometheus Cache utilization high
           expr: cache_size / cache_limit > 0.7

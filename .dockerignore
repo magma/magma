@@ -22,6 +22,10 @@
 !lte/gateway/deploy
 !lte/gateway/docker/deploy
 
+!devmand/cloud/
+!devmand/gateway/
+!devmand/protos/
+
 !orc8r/cloud/configs/
 !orc8r/cloud/go/
 !orc8r/cloud/deploy/roles/proxy/files

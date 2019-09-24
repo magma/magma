@@ -36,12 +36,9 @@
 #include "gtpv1u.h"
 #include "gtpv1u_sgw_defs.h"
 #include "pgw_ue_ip_address_alloc.h"
-#include "sgw.h"
 #include "intertask_interface_types.h"
 #include "pgw_config.h"
 #include "spgw_config.h"
-
-extern sgw_app_t sgw_app;
 
 const struct gtp_tunnel_ops *gtp_tunnel_ops;
 
@@ -74,6 +71,8 @@ static void *gtpv1u_thread(void *args)
       } break;
     }
 
+    // TODO: Add state write in case of using libgptnl
+
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
   }
@@ -82,18 +81,13 @@ static void *gtpv1u_thread(void *args)
 }
 
 //------------------------------------------------------------------------------
-int gtpv1u_init(spgw_config_t *spgw_config)
+int gtpv1u_init(spgw_state_t *spgw_state_p, spgw_config_t *spgw_config)
 {
   int rv = 0;
   struct in_addr netaddr;
   uint32_t netmask = 0;
 
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface\n");
-  memset(&sgw_app.gtpv1u_data, 0, sizeof(sgw_app.gtpv1u_data));
-  sgw_app.gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
-    sgw_app.sgw_ip_address_S1u_S12_S4_up;
-
-  // START-GTP quick integration only for evaluation purpose
 
   // Init gtp_tunnel_ops
 #if ENABLE_OPENFLOW
@@ -128,13 +122,14 @@ int gtpv1u_init(spgw_config_t *spgw_config)
     &netaddr,
     netmask,
     spgw_config->pgw_config.ipv4.mtu_SGI,
-    &sgw_app.gtpv1u_data.fd0,
-    &sgw_app.gtpv1u_data.fd1u);
+    &spgw_state_p->sgw_state.gtpv1u_data.fd0,
+    &spgw_state_p->sgw_state.gtpv1u_data.fd1u);
 
   // END-GTP quick integration only for evaluation purpose
 
   if (
-    itti_create_task(TASK_GTPV1_U, &gtpv1u_thread, &sgw_app.gtpv1u_data) < 0) {
+    itti_create_task(
+      TASK_GTPV1_U, &gtpv1u_thread, &spgw_state_p->sgw_state.gtpv1u_data) < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "gtpv1u phtread_create: %s", strerror(errno));
     gtp_tunnel_ops->uninit();
     return -1;
@@ -147,23 +142,6 @@ int gtpv1u_init(spgw_config_t *spgw_config)
 //------------------------------------------------------------------------------
 void gtpv1u_exit(gtpv1u_data_t *const gtpv1u_data)
 {
-  // START-GTP quick integration only for evaluation purpose
-  //  void * res = 0;
-  //  int rv  = pthread_cancel(gtpv1u_data->reader_thread);
-  //  if (rv != 0) {
-  //    OAILOG_ERROR (LOG_GTPV1U , "gtp_decaps1u pthread_cancel");
-  //  }
-  //  rv = pthread_join(gtpv1u_data->reader_thread, &res);
-  //  if (rv != 0)
-  //    OAILOG_ERROR (LOG_GTPV1U , "gtp_decaps1u pthread_join");
-  //
-  //  if (res == PTHREAD_CANCELED) {
-  //    OAILOG_DEBUG (LOG_GTPV1U , "gtp_decaps1u thread was canceled\n");
-  //  } else {
-  //    OAILOG_ERROR (LOG_GTPV1U , "gtp_decaps1u thread wasn't canceled\n");
-  //  }
-
   gtp_tunnel_ops->uninit();
-  // END-GTP quick integration only for evaluation purpose
   itti_exit_task();
 }

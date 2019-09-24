@@ -10,8 +10,8 @@ package config
 
 import (
 	"encoding/json"
+	"fbc/cwf/radius/counters/census"
 	"fbc/cwf/radius/modules"
-	"fbc/lib/go/oc"
 	"io/ioutil"
 )
 
@@ -27,10 +27,10 @@ type (
 
 	// ListenerConfig for a single listener (server has a listerner per each port)
 	ListenerConfig struct {
-		Name    string             `json:"name"`
-		Port    int                `json:"port"`
-		Type    string             `json:"type"`
-		Modules []ModuleDescriptor `json:"modules"`
+		Name    string                 `json:"name"`
+		Type    string                 `json:"type"`
+		Modules []ModuleDescriptor     `json:"modules"`
+		Extra   map[string]interface{} `json:"extra"` // Extra config, per listener
 	}
 
 	// ServiceTier represents a uniquely identifiable named set of upstream hosts
@@ -76,8 +76,8 @@ type (
 
 	// RadiusConfig the configuration file format
 	RadiusConfig struct {
-		Counters oc.Config    `json:"counters"`
-		Server   ServerConfig `json:"server"`
+		Counters census.Config `json:"counters"`
+		Server   ServerConfig  `json:"server"`
 	}
 )
 

@@ -24,8 +24,10 @@
   \author Lionel Gauthier
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
-*/
+  */
 #define SGW
+
+#include "pgw_pcef_emulation.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -41,21 +43,20 @@
 #include "hashtable.h"
 #include "common_defs.h"
 #include "log.h"
-#include "3gpp_24.008.h"
 #include "spgw_config.h"
-#include "pgw_pcef_emulation.h"
-#include "sgw.h"
 #include "async_system.h"
 #include "common_types.h"
 #include "intertask_interface_types.h"
+#include "pgw_types.h"
 #include "pgw_config.h"
 
-extern pgw_app_t pgw_app;
-
-static void free_pcc_rule(void **rule);
-
-//------------------------------------------------------------------------------
-int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
+/*
+ * Function that adds predefined PCC rules to PGW struct,
+ * it returns an error or success code after adding rules.
+ */
+int pgw_pcef_emulation_init(
+  spgw_state_t *state_p,
+  const pgw_config_t *const pgw_config_p)
 {
   int rc = RETURNok;
   hashtable_rc_t hrc = HASH_TABLE_OK;
@@ -63,10 +64,7 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
   //--------------------------
   // Predefined PCC rules
   //--------------------------
-  pgw_app.deactivated_predefined_pcc_rules =
-    hashtable_ts_create(32, NULL, free_pcc_rule, NULL);
-
-  pcc_rule_t *pcc_rule = calloc(1, sizeof(pcc_rule_t));
+  pcc_rule_t *pcc_rule = (pcc_rule_t *) calloc(1, sizeof(pcc_rule_t));
   pcc_rule->name = bfromcstr("VOLTE_40K_PCC_RULE");
   pcc_rule->is_activated = false;
   pcc_rule->sdf_id = SDF_ID_GBR_VOLTE_40K;
@@ -116,12 +114,14 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
     .mask = 255;
   pcc_rule->sdf_template.number_of_packet_filters = 1;
   hrc = hashtable_ts_insert(
-    pgw_app.deactivated_predefined_pcc_rules, pcc_rule->sdf_id, pcc_rule);
+    state_p->pgw_state.deactivated_predefined_pcc_rules,
+    pcc_rule->sdf_id,
+    pcc_rule);
   if (HASH_TABLE_OK != hrc) {
     return RETURNerror;
   }
 
-  pcc_rule = calloc(1, sizeof(pcc_rule_t));
+  pcc_rule = (pcc_rule_t *) calloc(1, sizeof(pcc_rule_t));
   pcc_rule->name = bfromcstr("VOLTE_64K_PCC_RULE");
   pcc_rule->is_activated = false;
   pcc_rule->sdf_id = SDF_ID_GBR_VOLTE_64K;
@@ -171,12 +171,14 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
     .mask = 255;
   pcc_rule->sdf_template.number_of_packet_filters = 1;
   hrc = hashtable_ts_insert(
-    pgw_app.deactivated_predefined_pcc_rules, pcc_rule->sdf_id, pcc_rule);
+    state_p->pgw_state.deactivated_predefined_pcc_rules,
+    pcc_rule->sdf_id,
+    pcc_rule);
   if (HASH_TABLE_OK != hrc) {
     return RETURNerror;
   }
 
-  pcc_rule = calloc(1, sizeof(pcc_rule_t));
+  pcc_rule = (pcc_rule_t *) calloc(1, sizeof(pcc_rule_t));
   pcc_rule->name = bfromcstr("VILTE_192K_PCC_RULE");
   pcc_rule->is_activated = false;
   pcc_rule->sdf_id = SDF_ID_GBR_VILTE_192K;
@@ -226,12 +228,14 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
     .mask = 255;
   pcc_rule->sdf_template.number_of_packet_filters = 1;
   hrc = hashtable_ts_insert(
-    pgw_app.deactivated_predefined_pcc_rules, pcc_rule->sdf_id, pcc_rule);
+    state_p->pgw_state.deactivated_predefined_pcc_rules,
+    pcc_rule->sdf_id,
+    pcc_rule);
   if (HASH_TABLE_OK != hrc) {
     return RETURNerror;
   }
 
-  pcc_rule = calloc(1, sizeof(pcc_rule_t));
+  pcc_rule = (pcc_rule_t *) calloc(1, sizeof(pcc_rule_t));
   pcc_rule->name = bfromcstr("TEST_PING_PCC_RULE");
   pcc_rule->is_activated = false;
   pcc_rule->sdf_id = SDF_ID_TEST_PING;
@@ -255,13 +259,15 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
     .packetfiltercontents.protocolidentifier_nextheader = IPPROTO_ICMP;
   pcc_rule->sdf_template.number_of_packet_filters = 1;
   hrc = hashtable_ts_insert(
-    pgw_app.deactivated_predefined_pcc_rules, pcc_rule->sdf_id, pcc_rule);
+    state_p->pgw_state.deactivated_predefined_pcc_rules,
+    pcc_rule->sdf_id,
+    pcc_rule);
   if (HASH_TABLE_OK != hrc) {
     return RETURNerror;
   }
 
   // really necessary ?
-  pcc_rule = calloc(1, sizeof(pcc_rule_t));
+  pcc_rule = (pcc_rule_t *) calloc(1, sizeof(pcc_rule_t));
   pcc_rule->name = bfromcstr("DEFAULT_PCC_RULE");
   pcc_rule->is_activated = false;
   pcc_rule->sdf_id = SDF_ID_NGBR_DEFAULT;
@@ -313,7 +319,9 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
     .mask = (uint8_t)((addr_mask.s_addr >> 24) & 0x000000FF);
   pcc_rule->sdf_template.number_of_packet_filters = 1;
   hrc = hashtable_ts_insert(
-    pgw_app.deactivated_predefined_pcc_rules, pcc_rule->sdf_id, pcc_rule);
+    state_p->pgw_state.deactivated_predefined_pcc_rules,
+    pcc_rule->sdf_id,
+    pcc_rule);
   if (HASH_TABLE_OK != hrc) {
     return RETURNerror;
   }
@@ -321,13 +329,16 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
   for (int i = 0; i < (SDF_ID_MAX - 1); i++) {
     if (pgw_config_p->pcef.preload_static_sdf_identifiers[i]) {
       pgw_pcef_emulation_apply_rule(
-        pgw_config_p->pcef.preload_static_sdf_identifiers[i], pgw_config_p);
+        state_p,
+        pgw_config_p->pcef.preload_static_sdf_identifiers[i],
+        pgw_config_p);
     } else
       break;
   }
 
   if (pgw_config_p->pcef.automatic_push_dedicated_bearer_sdf_identifier) {
     pgw_pcef_emulation_apply_rule(
+      state_p,
       pgw_config_p->pcef.automatic_push_dedicated_bearer_sdf_identifier,
       pgw_config_p);
   }
@@ -336,22 +347,17 @@ int pgw_pcef_emulation_init(const pgw_config_t *const pgw_config_p)
 }
 
 //------------------------------------------------------------------------------
-void pgw_pcef_emulation_exit(void)
-{
-  if (pgw_app.deactivated_predefined_pcc_rules) {
-    hashtable_ts_destroy(pgw_app.deactivated_predefined_pcc_rules);
-  }
-}
-
-//------------------------------------------------------------------------------
 // may change sdf_id to PCC_rule name ?
 void pgw_pcef_emulation_apply_rule(
+  spgw_state_t *state_p,
   const sdf_id_t sdf_id,
   const pgw_config_t *const pgw_config_p)
 {
   pcc_rule_t *pcc_rule = NULL;
   hashtable_rc_t hrc = hashtable_ts_get(
-    pgw_app.deactivated_predefined_pcc_rules, sdf_id, (void **) &pcc_rule);
+    state_p->pgw_state.deactivated_predefined_pcc_rules,
+    sdf_id,
+    (void **) &pcc_rule);
 
   if (HASH_TABLE_OK == hrc) {
     if (!pcc_rule->is_activated) {
@@ -550,6 +556,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
 
 //------------------------------------------------------------------------------
 int pgw_pcef_get_sdf_parameters(
+  spgw_state_t *state_p,
   const sdf_id_t sdf_id,
   bearer_qos_t *const bearer_qos,
   packet_filter_t *const packet_filter,
@@ -557,7 +564,9 @@ int pgw_pcef_get_sdf_parameters(
 {
   pcc_rule_t *pcc_rule = NULL;
   hashtable_rc_t hrc = hashtable_ts_get(
-    pgw_app.deactivated_predefined_pcc_rules, sdf_id, (void **) &pcc_rule);
+    state_p->pgw_state.deactivated_predefined_pcc_rules,
+    sdf_id,
+    (void **) &pcc_rule);
 
   if (HASH_TABLE_OK == hrc) {
     if (pcc_rule->is_activated) {
@@ -577,16 +586,3 @@ int pgw_pcef_get_sdf_parameters(
   return RETURNerror;
 }
 
-//------------------------------------------------------------------------------
-static void free_pcc_rule(void **rule)
-{
-  if (rule) {
-    pcc_rule_t *pcc_rule = (pcc_rule_t *) *rule;
-    if (pcc_rule) {
-      if (pcc_rule->name) {
-        bdestroy_wrapper(&pcc_rule->name);
-      }
-      free_wrapper(rule);
-    }
-  }
-}

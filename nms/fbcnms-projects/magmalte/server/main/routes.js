@@ -64,7 +64,7 @@ router.use(
   '/user',
   userMiddleware({
     loginSuccessUrl: '/nms',
-    loginFailureUrl: '/login?invalid=true',
+    loginFailureUrl: '/user/login?invalid=true',
   }),
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));

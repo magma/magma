@@ -65,28 +65,29 @@
 ##############################
 
 - name: Setup build requirements for python packages
-  apt: pkg={{ item }} state=present
-  with_items:
-    # Build requirements
-    - virtualenv
-    - python-babel
-    - python-dev
-    - pkg-config
-    # Packaging dependencies
-    - build-essential
-    - python3-setuptools
-    - python-setuptools
-    # Building and shipping client release
-    - autogen
-    - autoconf
-    - libtool
-    - python3-apt
-    - python3-aioeventlet
-    - python3-setuptools
-    - python3-requests
-    - python3-pip
-    # Python dev dependencies
-    - protobuf-compiler
-    - python-protobuf
-    - libsystemd-dev
+  apt:
+    state: present
+    pkg:
+      # Build requirements
+      - virtualenv
+      - python-babel
+      - python-dev
+      - pkg-config
+      # Packaging dependencies
+      - build-essential
+      - python3-setuptools
+      - python-setuptools
+      # Building and shipping client release
+      - autogen
+      - autoconf
+      - libtool
+      - python3-apt
+      - python3-aioeventlet
+      - python3-setuptools
+      - python3-requests
+      - python3-pip
+      # Python dev dependencies
+      - protobuf-compiler
+      - python-protobuf
+      - libsystemd-dev
   when: preburn

@@ -80,5 +80,10 @@ func subscriberToMconfig(ent configurator.NetworkEntity) (*protos2.SubscriberDat
 		AuthKey:  cfg.AuthKey,
 		AuthOpc:  cfg.AuthOpc,
 	}
+	if cfg.SubProfile != "" {
+		sub.SubProfile = string(cfg.SubProfile)
+	} else {
+		sub.SubProfile = "default"
+	}
 	return sub, nil
 }

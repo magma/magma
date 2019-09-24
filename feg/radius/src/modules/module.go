@@ -39,21 +39,25 @@ type (
 	Response struct {
 		Code       radius.Code
 		Attributes radius.Attributes
+		Raw        []byte // Optional raw version of the packet
 	}
 
 	// Middleware a middleware method. A module may "decide" not to call the
 	// next middleware and just return
 	Middleware func(c *RequestContext, r *radius.Request) (*Response, error)
 
+	// Context is an instance that holds module-specific parameters
+	Context interface{}
+
 	// Module a pluggable RADIUS request handler
 	Module interface {
-		Init(loggert *zap.Logger, config ModuleConfig) error
-		Handle(c *RequestContext, r *radius.Request, next Middleware) (*Response, error)
+		Init(loggert *zap.Logger, config ModuleConfig) (Context, error)
+		Handle(m Context, c *RequestContext, r *radius.Request, next Middleware) (*Response, error)
 	}
 
 	// ModuleInitFunc type for module's Init function
-	ModuleInitFunc func(loggert *zap.Logger, config ModuleConfig) error
+	ModuleInitFunc func(loggert *zap.Logger, config ModuleConfig) (Context, error)
 
 	// ModuleHandleFunc type for module's Handle function
-	ModuleHandleFunc func(c *RequestContext, r *radius.Request, next Middleware) (*Response, error)
+	ModuleHandleFunc func(m Context, c *RequestContext, r *radius.Request, next Middleware) (*Response, error)
 )

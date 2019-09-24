@@ -22,13 +22,13 @@ type MockModule struct {
 }
 
 // Init ...
-func (m *MockModule) Init(loggert *zap.Logger, config modules.ModuleConfig) error {
+func (m *MockModule) Init(loggert *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	args := m.Called(config)
-	return args.Error(0)
+	return nil, args.Error(0)
 }
 
 // Handle ...
-func (m *MockModule) Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func (m *MockModule) Handle(mCtx modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	args := m.Called(c, r, next)
 	res, ok := args.Get(0).(*modules.Response)
 	if !ok {

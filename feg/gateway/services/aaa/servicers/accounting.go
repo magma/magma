@@ -33,6 +33,8 @@ type accountingService struct {
 	sessionTout time.Duration // Idle Session Timeout
 }
 
+const imsiPrefix = "IMSI"
+
 // NewEapAuthenticator returns a new instance of EAP Auth service
 func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (*accountingService, error) {
 	return &accountingService{sessions: sessions, config: cfg, sessionTout: GetIdleSessionTimeout(cfg)}, nil
@@ -126,6 +128,9 @@ func (srv *accountingService) TerminateSession(
 	s.Lock()
 	defer s.Unlock()
 	imsi := s.GetCtx().GetImsi()
+	if !strings.HasPrefix(imsi, imsiPrefix) {
+		imsi = imsiPrefix + imsi
+	}
 	if imsi != req.GetImsi() {
 		return &protos.AcctResp{}, status.Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
@@ -178,7 +183,6 @@ func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {
 }
 
 func makeSID(imsi string) *lte_protos.SubscriberID {
-	const imsiPrefix = "IMSI"
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
 	}

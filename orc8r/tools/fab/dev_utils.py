@@ -7,52 +7,207 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import json
-import os
+from typing import Any, Dict
+
+import jsonpickle
 import requests
-import urllib3
+from fabric.api import hide, run
 
-from fabric.api import run, hide
-
-import fab.vagrant as vagrant
+from tools.fab import types, vagrant
 
 
-PORTAL_URL = 'https://127.0.0.1:9443/magma'
-
-def register_vm(vm_type="magma", admin_cert=(
-              './../../.cache/test_certs/admin_operator.pem',
-              './../../.cache/test_certs/admin_operator.key.pem')):
+def register_generic_gateway(
+        network_id: str,
+        vm_name: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> None:
     """
-    Provisions the gateway vm with the cloud vm
+    Register a generic magmad gateway.
+
+    Args:
+        network_id: Network to register inside
+        vm_name: Vagrant VM name to pull HWID from
+        admin_cert: Cert for API access
     """
-    print('Please ensure that you did "make run" in both VMs! '
-          'Linking gateway and cloud VMs...')
+    if not does_network_exist(network_id, admin_cert=admin_cert):
+        network_payload = types.GenericNetwork(
+            id=network_id, name='Test Network', description='Test Network',
+            dns=types.NetworkDNSConfig(enable_caching=True, local_ttl=60)
+        )
+        cloud_post('networks', network_payload, admin_cert=admin_cert)
+
+    create_tier_if_not_exists(network_id, 'default')
+    hw_id = get_hardware_id_from_vagrant(vm_name=vm_name)
+    already_registered, registered_as = is_hw_id_registered(network_id, hw_id)
+    if already_registered:
+        print(f'VM is already registered as {registered_as}')
+        return
+
+    gw_id = get_next_available_gateway_id(network_id)
+    payload = construct_magmad_gateway_payload(gw_id, hw_id)
+    cloud_post(f'networks/{network_id}/gateways', payload)
+
+    print(f'Gateway {gw_id} successfully provisioned')
+
+
+def construct_magmad_gateway_payload(gateway_id: str,
+                                     hardware_id: str) -> types.Gateway:
+    """
+    Returns a default development magmad gateway entity given a desired gateway
+    ID and a hardware ID pulled from the hardware secrets.
+
+    Args:
+        gateway_id: Desired gateway ID
+        hardware_id: Hardware ID pulled from the VM
+
+    Returns:
+        Gateway object with fields filled in with reasonable default values
+    """
+    return types.Gateway(
+        name='TestGateway',
+        description='Test Gateway',
+        tier='default',
+        id=gateway_id,
+        device=types.GatewayDevice(
+            hardware_id=hardware_id,
+            key=types.ChallengeKey(
+                key_type='ECHO',
+            ),
+        ),
+        magmad=types.MagmadGatewayConfigs(
+            autoupgrade_enabled=True,
+            autoupgrade_poll_interval=60,
+            checkin_interval=60,
+            checkin_timeout=30,
+        ),
+    )
+
+
+PORTAL_URL = 'https://127.0.0.1:9443/magma/v1/'
+
+
+def get_next_available_gateway_id(
+        network_id: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> str:
+    """
+    Returns the next available gateway ID in the sequence gwN for the given
+    network.
+
+    Args:
+        network_id: Network to check for available gateways
+        admin_cert: Client cert to use with the API
+
+    Returns:
+        Next available gateway ID in the form gwN
+    """
+    # gateways is a dict mapping gw ID to full resource
+    gateways = cloud_get(f'networks/{network_id}/gateways',
+                         admin_cert=admin_cert)
+
+    n = len(gateways) + 1
+    candidate = f'gw{n}'
+    while candidate in gateways:
+        n += 1
+        candidate = f'gw{n}'
+    return candidate
+
+
+def does_network_exist(
+        network_id: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> bool:
+    """
+    Check for the existence of a network ID
+    Args:
+        network_id: Network to check
+        admin_cert: Cert for API access
+
+    Returns:
+        True if the network exists, False otherwise
+    """
+    networks = cloud_get('/networks', admin_cert)
+    return network_id in networks
+
+
+def create_tier_if_not_exists(
+        network_id: str, tier_id: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> None:
+    """
+    Create a placeholder tier on Orchestrator if the specified one doesn't
+    already exist.
+
+    Args:
+        network_id: Network the tier belongs to
+        tier_id: ID for the tier
+        admin_cert: Cert for API access
+    """
+    tiers = cloud_get(f'networks/{network_id}/tiers', admin_cert=admin_cert)
+    if tier_id in tiers:
+        return
+
+    tier_payload = types.Tier(id=tier_id, version='0.0.0-0', images=[],
+                              gateways=[])
+    cloud_post(f'networks/{network_id}/tiers', tier_payload,
+               admin_cert=admin_cert)
+
+
+def get_hardware_id_from_vagrant(vm_name: str) -> str:
+    """
+    Get the magmad hardware ID from vagrant
+
+    Args:
+        vm_name: Name of the vagrant machine to use
+
+    Returns:
+        Hardware snowflake from the VM
+    """
     with hide('output', 'running', 'warnings'):
-        vagrant.setup_env_vagrant(vm_type)
+        vagrant.setup_env_vagrant(vm_name)
         hardware_id = run('cat /etc/snowflake')
-    print('Found Hardware ID for gateway: %s' % hardware_id)
+    return str(hardware_id)
 
-    # Validate if we have the right admin certs
-    _validate_certs(admin_cert)
-    # Create the test network
-    network_id = 'test'
-    networks = _cloud_get('/networks', admin_cert)
-    if network_id in networks:
-        print('Test network already exists!')
-    else:
-        print('Creating a test network...')
-        _cloud_post('/networks', data={'name': 'TestNetwork'},
-                    params={'requested_id': network_id}, admin_cert=admin_cert)
 
-    # Provision the gateway
-    gateways = _cloud_get('/networks/%s/gateways' % network_id, admin_cert)
-    gateway_id = 'gw' + str(len(gateways) + 1)
-    print('Provisioning gateway as %s...' % gateway_id)
-    data = {'hardware_id': hardware_id, 'name': 'TestGateway',
-            'key': {'key_type': 'ECHO'}}
-    _cloud_post('/networks/%s/gateways' % network_id,
-                data=data, params={'requested_id': gateway_id}, admin_cert=admin_cert)
-    print('Gateway successfully provisioned as: %s' % gateway_id)
+def is_hw_id_registered(
+        network_id: str, hw_id: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> (bool, str):
+    """
+    Check if a hardware ID is already registered for a given network. Note that
+    this is not a true guarantee that a VM is not already registered, as the
+    HW ID could be taken on another network.
+
+    Args:
+        network_id: Network to check
+        hw_id: HW ID to check
+        admin_cert: Cert for API access
+
+    Returns:
+        (True, gw_id) if the HWID is already registered, (False, '') otherwise
+    """
+    # gateways is a dict mapping gw ID to full resource
+    gateways = cloud_get(f'networks/{network_id}/gateways',
+                         admin_cert=admin_cert)
+    for gw in gateways.values():
+        if gw['device']['hardware_id'] == hw_id:
+            return True, gw['id']
+    return False, ''
 
 
 def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
@@ -78,15 +233,22 @@ def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
     run("sudo systemctl restart magma@magmad")
 
 
-def _validate_certs(admin_cert):
-    if not os.path.isfile(admin_cert[0]) or not os.path.isfile(admin_cert[1]):
-        raise Exception('Admin cert or key missing %s. Please provision VMs!' %
-                        str(admin_cert))
-    # Disable warnings about SSL verification since its a local VM
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+def cloud_get(
+        resource: str,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+) -> Any:
+    """
+    Send a GET request to an API URI
+    Args:
+        resource: URI to request
+        admin_cert: API client certificate
 
-
-def _cloud_get(resource, admin_cert):
+    Returns:
+        JSON-encoded response content
+    """
     resp = requests.get(PORTAL_URL + resource, verify=False, cert=admin_cert)
     if resp.status_code != 200:
         raise Exception('Received a %d response: %s' %
@@ -94,13 +256,30 @@ def _cloud_get(resource, admin_cert):
     return resp.json()
 
 
-def _cloud_post(resource, data, admin_cert, params=None):
+def cloud_post(
+        resource: str,
+        data: Any,
+        params: Dict[str, str] = None,
+        admin_cert: types.ClientCert = types.ClientCert(
+            cert='./../../.cache/test_certs/admin_operator.pem',
+            key='./../../.cache/test_certs/admin_operator.key.pem',
+        ),
+):
+    """
+    Send a POST request to an API URI
+
+    Args:
+        resource: URI to request
+        data: JSON-serializable payload
+        params: Params to include with the request
+        admin_cert: API client certificate
+    """
     resp = requests.post(PORTAL_URL + resource,
-                         data=json.dumps(data),
+                         data=jsonpickle.pickler.encode(data),
                          params=params,
                          headers={'content-type': 'application/json'},
                          verify=False,
                          cert=admin_cert)
-    if resp.status_code not in [200, 201]:
+    if resp.status_code not in [200, 201, 204]:
         raise Exception('Received a %d response: %s' %
                         (resp.status_code, resp.text))

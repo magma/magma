@@ -10,20 +10,24 @@ import sys
 from fabric.api import cd, env, get, lcd, local, puts, run
 from fabric.utils import abort
 
-sys.path.append('../../orc8r/tools')
-import fab.dev_utils as dev_utils  # NOQA
-import fab.pkg as pkg  # NOQA
-from fab.hosts import split_hoststring # NOQA
-from fab.vagrant import setup_env_vagrant  # NOQA
+sys.path.append('../../orc8r')
+import tools.fab.dev_utils as dev_utils  # NOQA
+import tools.fab.pkg as pkg  # NOQA
+from tools.fab.hosts import split_hoststring # NOQA
+from tools.fab.vagrant import setup_env_vagrant  # NOQA
 
 AWS = 'aws --region eu-west-1'
 DEFAULT_CERT = "$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 
+
 def register_feg_vm():
     """ Provisions the feg vm with the cloud vm """
-    dev_utils.register_vm(vm_type="feg", admin_cert=(
-        "../../.cache/test_certs/admin_operator.pem",
-        "../../.cache/test_certs/admin_operator.key.pem"))
+    dev_utils.register_generic_gateway(
+        'test', 'feg',
+        admin_cert=(
+            "../../.cache/test_certs/admin_operator.pem",
+            "../../.cache/test_certs/admin_operator.key.pem"),
+    )
 
 
 def _package_python(target):

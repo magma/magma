@@ -16,6 +16,13 @@ from queue import Queue
 
 import s1ap_types
 
+from lte.protos.spgw_service_pb2 import CreateBearerRequest, \
+    DeleteBearerRequest
+from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
+from lte.protos.policydb_pb2 import PolicyRule, FlowQos, QosArp
+from magma.subscriberdb.sid import SIDUtils
+from integ_tests.gateway.rpc import get_rpc_channel
+
 
 class S1ApUtil(object):
     """
@@ -338,3 +345,53 @@ class MobilityUtil(object):
 
     def wait_for_changes(self):
         self._mobility_client.wait_for_changes()
+
+
+class SpgwUtil(object):
+    """
+    Helper class to communicate with spgw for the tests.
+    """
+    def __init__(self):
+        """
+        Initialize spgw util.
+        """
+        self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
+
+    def create_bearer(self, imsi, lbi):
+        """
+        Sends a CreateBearer Request to SPGW service
+        """
+        print('Sending CreateBearer request to spgw service')
+        req = CreateBearerRequest(
+            sid=SIDUtils.to_pb(imsi),
+            link_bearer_id=lbi,
+            policy_rules=[
+                PolicyRule(
+                    qos=FlowQos(
+                        qci=1,
+                        gbr_ul=10000000,
+                        gbr_dl=10000000,
+                        max_req_bw_ul=10000000,
+                        max_req_bw_dl=10000000,
+                        arp=QosArp(
+                            priority_level=1,
+                            pre_capability=1,
+                            pre_vulnerability=0,
+                        )
+                    )
+                )
+            ]
+        )
+        self._stub.CreateBearer(req)
+
+    def delete_bearer(self, imsi, lbi, ebi):
+        """
+        Sends a DeleteBearer Request to SPGW service
+        """
+        print('Sending DeleteBearer request to spgw service')
+        req = DeleteBearerRequest(
+            sid=SIDUtils.to_pb(imsi),
+            link_bearer_id=lbi,
+            eps_bearer_ids=[ebi]
+        )
+        self._stub.DeleteBearer(req)

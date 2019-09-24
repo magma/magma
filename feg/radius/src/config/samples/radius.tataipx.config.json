@@ -9,8 +9,10 @@
         "listeners": [
             {
                 "name": "auth",
-                "port": 1812,
                 "type": "udp",
+                "extra": {
+                    "port": 1812
+                },
                 "modules": [
                     {
                         "name": "eap",

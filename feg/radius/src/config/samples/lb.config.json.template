@@ -68,7 +68,10 @@
         "listeners": [
             {
                 "name": "auth",
-                "port": $RADIUS_AUTH_PORT,
+                "type": "udp",
+                "extra": {
+                    "port": $RADIUS_AUTH_PORT
+                },
                 "modules": [
                     {
                         "name": "lbserve",

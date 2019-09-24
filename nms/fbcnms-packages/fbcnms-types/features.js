@@ -20,11 +20,11 @@ export type FeatureID =
   | 'upload_xwf'
   | 'upload_ftth'
   | 'python_api'
-  | 'prometheus_metrics_database'
   | 'site_survey'
   | 'alerts'
   | 'equipment_export'
   | 'import_exported_equipemnt'
   | 'file_categories'
+  | 'floor_plans'
   | 'work_order_map'
   | 'documents_site';

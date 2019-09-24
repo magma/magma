@@ -97,7 +97,7 @@ func TestMeteringdRecords(t *testing.T) {
            "lte":{"state":"ACTIVE",
            "auth_algo":"MILENAGE",
            "auth_key":"AAAAAAAAAAAAAAAAAAAAAA==",
-           "auth_opc":"AAECAwQFBgcICQoLDA0ODw=="}}`,
+           "auth_opc":"AAECAwQFBgcICQoLDA0ODw==","sub_profile":"default"}}`,
 			sId),
 		Expected: fmt.Sprintf(`"%s"`, sId),
 	}
