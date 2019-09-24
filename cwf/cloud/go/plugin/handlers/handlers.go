@@ -13,6 +13,7 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	cwfmodels "magma/cwf/cloud/go/plugin/models"
+	fegmodels "magma/feg/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -33,6 +34,7 @@ const (
 	ManageNetworkFeaturesPath    = ManageNetworkPath + obsidian.UrlSep + "features"
 	ManageNetworkDNSPath         = ManageNetworkPath + obsidian.UrlSep + "dns"
 	ManageNetworkCarrierWifiPath = ManageNetworkPath + obsidian.UrlSep + "carrier_wifi"
+	ManageNetworkFederationPath  = ManageNetworkPath + obsidian.UrlSep + "federation"
 
 	Gateways                     = "gateways"
 	ListGatewaysPath             = ManageNetworkPath + obsidian.UrlSep + Gateways
@@ -63,6 +65,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8rmodels.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCarrierWifiPath, &cwfmodels.NetworkCarrierWifiConfigs{}, cwf.CwfNetworkType)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFederationPath, &fegmodels.FederatedNetworkConfigs{}, cwf.CwfNetworkType)...)
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)

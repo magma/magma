@@ -10,6 +10,8 @@ package models
 
 import (
 	"magma/cwf/cloud/go/cwf"
+	"magma/feg/cloud/go/feg"
+	models3 "magma/feg/cloud/go/plugin/models"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -34,6 +36,7 @@ func (m *CwfNetwork) ToConfiguratorNetwork() configurator.Network {
 		Description: string(m.Description),
 		Configs: map[string]interface{}{
 			cwf.CwfNetworkType:          m.CarrierWifi,
+			feg.FederatedNetworkType:    m.Federation,
 			orc8r.DnsdNetworkType:       m.DNS,
 			orc8r.NetworkFeaturesConfig: m.Features,
 		},
@@ -47,6 +50,7 @@ func (m *CwfNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 		NewDescription: swag.String(string(m.Description)),
 		ConfigsToAddOrUpdate: map[string]interface{}{
 			cwf.CwfNetworkType:          m.CarrierWifi,
+			feg.FederatedNetworkType:    m.Federation,
 			orc8r.DnsdNetworkType:       m.DNS,
 			orc8r.NetworkFeaturesConfig: m.Features,
 		},
@@ -59,6 +63,9 @@ func (m *CwfNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 	m.Description = models.NetworkDescription(n.Description)
 	if cfg := n.Configs[cwf.CwfNetworkType]; cfg != nil {
 		m.CarrierWifi = cfg.(*NetworkCarrierWifiConfigs)
+	}
+	if cfg := n.Configs[feg.FederatedNetworkType]; cfg != nil {
+		m.Federation = cfg.(*models3.FederatedNetworkConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
 		m.DNS = cfg.(*models2.NetworkDNSConfig)
