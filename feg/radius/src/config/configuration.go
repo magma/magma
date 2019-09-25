@@ -74,10 +74,15 @@ type (
 		Filters     []string          `json:"filters"`
 	}
 
+	// MonitoringConfig ...
+	MonitoringConfig struct {
+		Census *census.Config `json:"census"`
+	}
+
 	// RadiusConfig the configuration file format
 	RadiusConfig struct {
-		Counters census.Config `json:"counters"`
-		Server   ServerConfig  `json:"server"`
+		Monitoring *MonitoringConfig `json:"monitoring"`
+		Server     ServerConfig      `json:"server"`
 	}
 )
 

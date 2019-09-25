@@ -40,8 +40,10 @@ func main() {
 		return
 	}
 
-	// Initialize counters
-	counters.Init(config.Counters, logger)
+	// Initialize monitoring
+	if config.Monitoring.Census != nil {
+		counters.Init(*config.Monitoring.Census, logger)
+	}
 
 	// Prepare dependencies
 	loader := loader.NewStaticLoader(logger)

@@ -1,7 +1,9 @@
 {
-    "counters": {
-        "disable_stats": false,
-        "stat_views": ["proc"]
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
     },
     "server": {
         "secret": "123456",
@@ -47,7 +49,7 @@
                     {
                         "name": "coadynamic",
                         "config": {
-                            "Port": "3799"
+                            "Port": 3799
                         }
                     },
                     {
