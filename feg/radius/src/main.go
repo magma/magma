@@ -44,6 +44,9 @@ func main() {
 	if config.Monitoring.Census != nil {
 		counters.Init(*config.Monitoring.Census, logger)
 	}
+	if config.Monitoring.Ods != nil {
+		counters.InitODS(config.Monitoring.Ods, logger)
+	}
 
 	// Prepare dependencies
 	loader := loader.NewStaticLoader(logger)

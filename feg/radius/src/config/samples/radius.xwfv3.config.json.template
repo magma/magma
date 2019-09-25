@@ -3,6 +3,14 @@
         "census": {
             "disable_stats": false,
             "stat_views": ["proc"]
+        },
+        "ods": {
+            "category_id": "958",
+            "prefix": "goradius",
+            "access_token": "$MONITORING_ACCESS_TOKEN",
+            "entity": "goradius",
+            "graph_url": "https://graph.facebook.com/ods_metrics",
+            "unique_entity": true
         }
     },
     "server": {
