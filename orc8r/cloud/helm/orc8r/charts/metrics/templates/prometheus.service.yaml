@@ -8,7 +8,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus
+  name: {{ .Release.Name }}-prometheus
   labels:
     app.kubernetes.io/component: prometheus
 {{ include "metrics.labels" . | indent 4 }}

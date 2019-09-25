@@ -8,7 +8,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus-cache
+  name: {{ .Release.Name }}-prometheus-cache
   labels:
     app.kubernetes.io/component: prometheus-cache
 {{ include "metrics.labels" . | indent 4 }}
