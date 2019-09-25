@@ -19,31 +19,33 @@
  *      contact@openairinterface.org
  */
 
-#include "common_types_state_to_proto.h"
+#include "state_converter.h"
 
 namespace magma {
 namespace lte {
 
-#define PLMN_BYTES 6
+StateConverter::StateConverter() = default;
+StateConverter::~StateConverter() = default;
 
 /*************************************************/
 /*        Common Types -> Proto                 */
 /*************************************************/
 
-void plmn_to_chars(const plmn_t &state_plmn, char* plmn_array)
+void StateConverter::plmn_to_chars(const plmn_t &state_plmn, char *plmn_array)
 {
-  plmn_array[0] = (char)state_plmn.mcc_digit2;
-  plmn_array[1] = (char)state_plmn.mcc_digit1;
-  plmn_array[2] = (char)state_plmn.mnc_digit3;
-  plmn_array[3] = (char)state_plmn.mcc_digit3;
-  plmn_array[4] = (char)state_plmn.mnc_digit2;
-  plmn_array[5] = (char)state_plmn.mnc_digit1;
+  plmn_array[0] = (char) state_plmn.mcc_digit2;
+  plmn_array[1] = (char) state_plmn.mcc_digit1;
+  plmn_array[2] = (char) state_plmn.mnc_digit3;
+  plmn_array[3] = (char) state_plmn.mcc_digit3;
+  plmn_array[4] = (char) state_plmn.mnc_digit2;
+  plmn_array[5] = (char) state_plmn.mnc_digit1;
 }
 
-void guti_to_proto(const guti_t &state_guti, Guti* guti_proto)
+void StateConverter::guti_to_proto(const guti_t &state_guti, Guti *guti_proto)
 {
   guti_proto->Clear();
-  char* plmn_array = (char*)malloc(sizeof(plmn_t));
+
+  char *plmn_array = (char *) malloc(sizeof(plmn_t));
   memcpy(plmn_array, &state_guti.gummei.plmn, sizeof(plmn_t));
   guti_proto->set_plmn(plmn_array);
   guti_proto->set_mme_gid(state_guti.gummei.mme_gid);
@@ -51,10 +53,11 @@ void guti_to_proto(const guti_t &state_guti, Guti* guti_proto)
   guti_proto->set_m_tmsi(state_guti.m_tmsi);
 }
 
-void ecgi_to_proto(const ecgi_t &state_ecgi, Ecgi* ecgi_proto)
+void StateConverter::ecgi_to_proto(const ecgi_t &state_ecgi, Ecgi *ecgi_proto)
 {
-  char plmn_array[PLMN_BYTES];
   ecgi_proto->Clear();
+
+  char plmn_array[PLMN_BYTES];
   plmn_to_chars(state_ecgi.plmn, plmn_array);
   ecgi_proto->set_plmn(plmn_array);
   ecgi_proto->set_enb_id(state_ecgi.cell_identity.enb_id);
@@ -62,5 +65,5 @@ void ecgi_to_proto(const ecgi_t &state_ecgi, Ecgi* ecgi_proto)
   ecgi_proto->set_empty(state_ecgi.cell_identity.empty);
 }
 
-} // lte
-} // magma
+} // namespace lte
+} // namespace magma
