@@ -13,6 +13,7 @@ import (
 	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/counters/census"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/scuba"
 	"io/ioutil"
 )
 
@@ -79,6 +80,7 @@ type (
 	MonitoringConfig struct {
 		Census *census.Config      `json:"census"`
 		Ods    *counters.OdsConfig `json:"ods"`
+		Scuba  *scuba.Config       `json:"scuba"`
 	}
 
 	// RadiusConfig the configuration file format
