@@ -370,6 +370,8 @@ ebi_t esm_ebr_context_release(
      * * * * to the PDN connection
      */
     pdn->n_bearers -= 1;
+    //Decrement the number of active bearers in ESM context
+    emm_context->esm_ctx.n_active_ebrs -=1;
 
     if (ue_mm_context->pdn_contexts[*pid]->default_ebi == ebi) {
       /*
