@@ -106,7 +106,7 @@ const ProfileButton = (props: Props) => {
             <ListItem
               classes={{gutters: classes.itemGutters}}
               button
-              href={'/docs/docs/csv-upload.html'}
+              href={'/docs/docs/inventory-intro.html'}
               onClick={() =>
                 GeneralLogger.info(Events.DOCUMENTATION_LINK_CLICKED)
               }
