@@ -64,7 +64,7 @@ class FileWatcherTest : public EventBaseTest {
   unsigned int expectedNumEvents = 0;
 };
 
-TEST_F(FileWatcherTest, InitialEvent) {
+TEST_F(FileWatcherTest, DISABLED_InitialEvent) {
   FileWatcher watcher(eventBase);
   auto filepath = getFileToWatch();
   EXPECT_TRUE(FileUtils::touch(filepath));
@@ -78,7 +78,7 @@ TEST_F(FileWatcherTest, InitialEvent) {
   expectEvent({FileEvent::CloseWrite, ""});
 }
 
-TEST_F(FileWatcherTest, InitialNoEvent) {
+TEST_F(FileWatcherTest, DISABLED_InitialNoEvent) {
   FileWatcher watcher(eventBase);
   FileWatcher watcher2(eventBase);
   auto filepath = getFileToWatch();
