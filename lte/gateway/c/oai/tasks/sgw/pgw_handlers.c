@@ -582,7 +582,6 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
       spgw_ctxt_p = node->data;
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
       num_elements++;
       if (spgw_ctxt_p != NULL) {
         if (!strcmp(
@@ -604,6 +603,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
         }
       }
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
   OAILOG_INFO(
