@@ -19,6 +19,7 @@ import (
 	"unsafe"
 
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 )
 
@@ -127,9 +128,14 @@ func (st *memSessionTable) AddSession(
 
 	st.sm[sid] = s
 	st.sids[imsi] = sid
+	apn := s.GetApn()
 	st.rwl.Unlock()
 
 	setTimeoutUnsafe(st, sid, tout, s, notifier)
+
+	metrics.Sessions.WithLabelValues(apn).Inc()
+	metrics.SessionStart.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
+
 	return s, nil
 }
 
@@ -169,6 +175,9 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 		st.rwl.Unlock()
 		if found && s != nil {
 			s.StopTimeout()
+			apn := s.GetApn()
+			metrics.Sessions.WithLabelValues(apn).Dec()
+			metrics.SessionStop.WithLabelValues(apn, s.GetImsi(), sid).SetToCurrentTime()
 		}
 	}
 	return s
@@ -230,6 +239,8 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 			log.Printf(
 				"Timed out session '%s' for SessionId: %s; IMSI: %s; Identity: %s; MAC: %s; IP: %s; notify result: %v",
 				ctx.sidKey, s.GetSessionId(), s.GetImsi(), s.GetIdentity(), s.GetMacAddr(), s.GetIpAddr(), notifyResult)
+
+			metrics.SessionTimeouts.WithLabelValues(s.GetApn(), s.GetImsi()).Inc()
 		}
 	}
 }
