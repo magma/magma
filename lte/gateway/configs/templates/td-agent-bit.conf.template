@@ -59,6 +59,9 @@
     Name modify
     Match *
     Set hw_id {{ snowflake }}
+{% for k, v in extra_tags %}
+    Set {{k}} {{v}}
+{% endfor %}
 
 [OUTPUT]
     Name          forward
