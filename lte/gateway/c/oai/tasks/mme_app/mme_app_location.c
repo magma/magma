@@ -416,8 +416,8 @@ int mme_app_handle_s6a_cancel_location_req(
   if (clr_pP->cancellation_type != SUBSCRIPTION_WITHDRAWL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "S6a Cancel Location Request: Cancellation_type not supported %d for
-      imsi " IMSI_64_FMT "\n",
+      "S6a Cancel Location Request: Cancellation_type not supported %d for"
+      "imsi " IMSI_64_FMT "\n",
       clr_pP->cancellation_type,
       imsi);
     unlock_ue_contexts(ue_context_p);
