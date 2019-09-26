@@ -14,16 +14,16 @@ import (
 	"strings"
 	"time"
 
-	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/aaa/session_manager"
-
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/aaa/session_manager"
 	lte_protos "magma/lte/cloud/go/protos"
 )
 
@@ -72,6 +72,10 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 			codes.FailedPrecondition, "Accounting Update: Session %s was not authenticated", sid)
 	}
 	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
+
+	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsIn()))
+	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsOut()))
+
 	return &protos.AcctResp{}, nil
 }
 
@@ -90,11 +94,15 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(req.GetCtx().GetImsi()))
 	}
+	metrics.AcctStop.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi())
+
 	return &protos.AcctResp{}, err
 }
 
 // CreateSession is an "outbound" RPC for session manager which can be called from start()
 func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *protos.Context) (*protos.AcctResp, error) {
+
+	startime := time.Now()
 
 	mac, err := net.ParseMAC(aaaCtx.GetMacAddr())
 	if err != nil {
@@ -113,6 +121,9 @@ func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *pro
 	if err == nil {
 		srv.sessions.SetTimeout(req.GetRadiusSessionId(), srv.sessionTout, srv.timeoutSessionNotifier)
 	}
+
+	metrics.CreateSessionLatency.Observe(time.Since(startime).Seconds())
+
 	return &protos.AcctResp{}, err
 }
 
@@ -125,6 +136,8 @@ func (srv *accountingService) TerminateSession(
 	if s == nil {
 		return &protos.AcctResp{}, status.Errorf(codes.FailedPrecondition, "Session %s is not found", sid)
 	}
+	metrics.SessionTerminate.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi())
+
 	s.Lock()
 	defer s.Unlock()
 	imsi := s.GetCtx().GetImsi()
@@ -142,6 +155,7 @@ func (srv *accountingService) TerminateSession(
 	}
 	radcli := protos.NewAuthorizationClient(conn)
 	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: s.GetCtx()})
+
 	return &protos.AcctResp{}, err
 }
 

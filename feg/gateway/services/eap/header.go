@@ -33,8 +33,9 @@ const (
 	// EapMaxLen maximum possible length of EAP Packet
 	EapMaxLen uint = 1<<16 - 1
 
-	RequestCode  = 1
-	ResponseCode = 2
-	SuccessCode  = 3
-	FailureCode  = 4
+	UndefinedCode = 0
+	RequestCode   = 1
+	ResponseCode  = 2
+	SuccessCode   = 3
+	FailureCode   = 4
 )

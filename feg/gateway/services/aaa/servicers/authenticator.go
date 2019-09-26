@@ -19,6 +19,7 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/client"
@@ -60,14 +61,26 @@ func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) 
 
 // Handle handles passed EAP payload & returns corresponding EAP result
 func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
-	var notifier aaa.TimeoutNotifier
 	resp, err := client.Handle(in)
-	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
+	if resp == nil {
+		return resp, err
+	}
+	method := eap.Packet(resp.GetPayload()).Type()
+	if method == uint8(protos.EapType_Reserved) {
+		method = eap.Packet(in.GetPayload()).Type()
+	}
+
+	metrics.Auth.WithLabelValues(
+		protos.EapCode(eap.Packet(resp.GetPayload()).Code()).String(),
+		protos.EapType(method).String(),
+		in.GetCtx().GetApn()).Inc()
+
+	if err != nil && len(resp.GetPayload()) > 0 {
 		// log error, but do not return it to Radius. EAP will carry its own error
 		log.Printf("EAP Handle Error: %v", err)
 		return resp, nil
 	}
-	if srv.sessions != nil && resp != nil && eap.Packet(resp.Payload).IsSuccess() {
+	if srv.sessions != nil && eap.Packet(resp.Payload).IsSuccess() {
 		if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() {
 			if srv.accounting == nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
@@ -78,17 +91,15 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 			_, err = srv.accounting.CreateSession(ctx, resp.Ctx)
 			if err != nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
+				return resp, err
 			}
-			notifier = srv.accounting.timeoutSessionNotifier
 		}
-		if eap.Packet(resp.Payload).IsSuccess() {
-			// Add Session & overwrite an existing session with the same ID if present,
-			// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
-			_, err := srv.sessions.AddSession(resp.Ctx, srv.sessionTout, notifier, true)
-			if err != nil {
-				return resp, status.Errorf(
-					codes.Internal, "Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
-			}
+		// Add Session & overwrite an existing session with the same ID if present,
+		// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
+		_, err := srv.sessions.AddSession(resp.Ctx, srv.sessionTout, srv.accounting.timeoutSessionNotifier, true)
+		if err != nil {
+			return resp, status.Errorf(
+				codes.Internal, "Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
 		}
 	}
 	return resp, err

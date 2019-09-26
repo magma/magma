@@ -13,13 +13,14 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin"
-	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
+	"magma/cwf/cloud/go/plugin/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
@@ -63,7 +64,7 @@ func TestBuilder_Build(t *testing.T) {
 		"pipelined": &ltemconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24", // Unused by CWF
-			NatEnabled:    true,
+			NatEnabled:    false,
 			DefaultRuleId: "",
 			RelayEnabled:  true,
 			Services: []ltemconfig.PipelineD_NetworkServices{
@@ -84,8 +85,8 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 var defaultConfig = &models.NetworkCarrierWifiConfigs{
-	EapAka: &models.NetworkCarrierWifiConfigsEapAka{
-		Timeout: &models.EapAkaTimeouts{
+	EapAka: &models.EapAka{
+		Timeout: &models.EapAkaTimeout{
 			ChallengeMs:            20000,
 			ErrorNotificationMs:    10000,
 			SessionMs:              43200000,
@@ -93,14 +94,11 @@ var defaultConfig = &models.NetworkCarrierWifiConfigs{
 		},
 		PlmnIds: []string{},
 	},
-	AaaServer: &models.NetworkCarrierWifiConfigsAaaServer{
+	AaaServer: &models.AaaServer{
 		IDLESessionTimeoutMs: 21600000,
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},
-	FegNetworkID:    "test_feg_network",
 	NetworkServices: []string{"policy_enforcement"},
-	DefaultRuleID:   "",
-	NatEnabled:      true,
-	RelayEnabled:    true,
+	DefaultRuleID:   swag.String(""),
 }

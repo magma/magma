@@ -44,7 +44,7 @@ func TestHttp2PostJson(t *testing.T) {
 	client := NewClient(accessToken)
 	res, err := client.PostJSON(mockServer+"/test", map[string]string{
 		"raw_data": "test",
-	})
+	}, map[string]string{})
 
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -72,7 +72,7 @@ func TestHttp2PostJsonFailure(t *testing.T) {
 	client := NewClient("test")
 	res, err := client.PostJSON(mockServer+"/test", map[string]string{
 		"raw_data": "test",
-	})
+	}, map[string]string{})
 
 	require.Error(t, err)
 	require.Nil(t, res)
