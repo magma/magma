@@ -27,7 +27,7 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
     def test_attach_detach(self):
         """ attach/detach + dedicated bearer test in loop with a single UE """
         num_ues = 1
-        loop = 10
+        loop = 3
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         for i in range(num_ues):

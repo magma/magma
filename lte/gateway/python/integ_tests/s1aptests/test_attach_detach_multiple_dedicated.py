@@ -15,7 +15,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
+class TestAttachDetachMultipleDedicated(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -25,29 +25,25 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + dedicated bearer test with 4 UEs """
-        num_ues = 4
-        ue_ids = []
+        """ attach/detach + multiple dedicated bearer test with a single UE """
+        num_dedicated_bearers = 3
         bearer_ids = []
-        self._s1ap_wrapper.configUEDevice(num_ues)
+        self._s1ap_wrapper.configUEDevice(1)
 
-        for i in range(num_ues):
-            req = self._s1ap_wrapper.ue_req
-            print("********************** Running End to End attach for ",
-                  "UE id ", req.ue_id)
-            # Now actually complete the attach
-            self._s1ap_wrapper._s1_util.attach(
-                req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+        req = self._s1ap_wrapper.ue_req
+        print("********************** Running End to End attach for UE id",
+              req.ue_id)
+        # Now actually complete the attach
+        self._s1ap_wrapper._s1_util.attach(
+            req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+            s1ap_types.ueAttachAccept_t)
 
-            # Wait on EMM Information from MME
-            self._s1ap_wrapper._s1_util.receive_emm_info()
-            ue_ids.append(req.ue_id)
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        self._s1ap_wrapper._ue_idx = 0
-        for i in range(num_ues):
-            req = self._s1ap_wrapper.ue_req
+        time.sleep(2)
+        for i in range(num_dedicated_bearers):
             print("********************** Adding dedicated bearer to IMSI",
                   ''.join([str(i) for i in req.imsi]))
             self._spgw_util.create_bearer(
@@ -56,23 +52,19 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(
                 response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value)
-            print("********************** Received activate dedicated EPS"
-                  " bearer context request")
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t)
             ded_bearer_acc = s1ap_types.UeActDedBearCtxtAcc_t()
-            ded_bearer_acc.ue_Id = req.ue_id
+            ded_bearer_acc.ue_Id = 1
             ded_bearer_acc.bearerId = act_ded_ber_ctxt_req.bearerId
-            print("********************** Sending activate dedicated"
-                  " EPS bearer context accept")
             self._s1ap_wrapper._s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, ded_bearer_acc)
             bearer_ids.append(ded_bearer_acc.bearerId)
+            print("********************** Added dedicated bearer with",
+                  "with bearer id", ded_bearer_acc.bearerId)
 
-        time.sleep(1)
-        self._s1ap_wrapper._ue_idx = 0
-        for i in range(num_ues):
-            req = self._s1ap_wrapper.ue_req
+            time.sleep(2)
+        for i in range(num_dedicated_bearers):
             print("********************** Deleting dedicated bearer for IMSI",
                   ''.join([str(i) for i in req.imsi]))
             self._spgw_util.delete_bearer(
@@ -82,8 +74,7 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
             self.assertTrue(response,
                             s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value)
 
-            print("********************** Received deactivate EPS bearer"
-                  " context request")
+            print("******************* Received deactivate eps bearer context")
 
             print("********************** Sending Deactivate EPS bearer"
                   " context accept")
@@ -93,15 +84,13 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
             self._s1ap_wrapper._s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC, deactv_bearer_acc)
 
+            print("********************** Deleted dedicated bearer with"
+                  "with bearer id", bearer_ids[i])
         time.sleep(2)
-        for ue in ue_ids:
-            print("********************** Running UE detach for UE id ",
-                  ue)
-            # Now detach the UE
-            self._s1ap_wrapper.s1_util.detach(
-                ue,
-                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
-
+        print("********************** Running UE detach for UE id ", req.ue_id)
+        # Now detach the UE
+        self._s1ap_wrapper.s1_util.detach(
+                req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
 
 if __name__ == "__main__":
     unittest.main()
