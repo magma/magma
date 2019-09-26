@@ -8,13 +8,17 @@
  * @format
  */
 
-import PageFooter from '../components/PageFooter.react';
+import PageFooter from '../../components/PageFooter.react';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
-storiesOf('PageFooter', module).add('string', () => (
-  <PageFooter>
-    <Typography>Wow</Typography>
-  </PageFooter>
-));
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/PageFooter`, module).add(
+  'string',
+  () => (
+    <PageFooter>
+      <Typography>Wow</Typography>
+    </PageFooter>
+  ),
+);

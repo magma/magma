@@ -8,8 +8,9 @@
  * @format
  */
 
-import EditableField from '../components/EditableField.react';
+import EditableField from '../../components/EditableField.react';
 import React, {useState} from 'react';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
 function TestField(props: {type: 'string' | 'date'}) {
@@ -27,6 +28,6 @@ function TestField(props: {type: 'string' | 'date'}) {
   );
 }
 
-storiesOf('EditableField', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/EditableField`, module)
   .add('string', () => <TestField type="string" />)
   .add('date', () => <TestField type="date" />);

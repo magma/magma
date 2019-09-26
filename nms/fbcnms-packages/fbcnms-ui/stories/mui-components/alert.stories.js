@@ -13,9 +13,10 @@ import React from 'react';
 import {action} from '@storybook/addon-actions';
 import {storiesOf} from '@storybook/react';
 
-import Alert from '../components/Alert/Alert';
-import Button from '../components/Button';
-import withAlert from '../components/Alert/withAlert';
+import Alert from '../../components/Alert/Alert';
+import Button from '../../components/Button';
+import withAlert from '../../components/Alert/withAlert';
+import {STORY_CATEGORIES} from '../storybookUtils';
 
 const DemoButtonWithAlert = withAlert(({alert, label}) => {
   const handleClick = () => {
@@ -41,7 +42,7 @@ const DemoButtonWithConfirm = withAlert(({confirm, confirmProps}) => {
   );
 });
 
-storiesOf('Alert', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Alert`, module)
   .add('default', () => (
     <Alert
       open={true}
@@ -61,11 +62,11 @@ storiesOf('Alert', module)
     />
   ));
 
-storiesOf('Alert/withAlert/alert', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Alert/withAlert/alert`, module)
   .add('default', () => <DemoButtonWithAlert />)
   .add('custom label', () => <DemoButtonWithAlert label="Got it" />);
 
-storiesOf('Alert/withAlert/confirm', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Alert/withAlert/confirm`, module)
   .add('default', () => <DemoButtonWithConfirm confirmProps="Are you sure?" />)
   .add('custom confirm label', () => (
     <DemoButtonWithConfirm

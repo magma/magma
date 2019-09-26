@@ -16,6 +16,7 @@ import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
 import MapIcon from '@material-ui/icons/Map';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
@@ -68,12 +69,13 @@ const AddTextButton = () => {
   );
 };
 
-storiesOf('MapButtonGroup', module).add('two', () => {
-  return <AddMapButtonGroup />;
-});
-storiesOf('MapButtonGroup', module).add('three', () => {
-  return <AddThreeMapButton />;
-});
-storiesOf('MapButtonGroup', module).add('text', () => {
-  return <AddTextButton />;
-});
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/MapButtonGroup`, module)
+  .add('two', () => {
+    return <AddMapButtonGroup />;
+  })
+  .add('three', () => {
+    return <AddThreeMapButton />;
+  })
+  .add('text', () => {
+    return <AddTextButton />;
+  });

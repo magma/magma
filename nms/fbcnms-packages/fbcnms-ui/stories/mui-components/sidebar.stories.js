@@ -10,9 +10,10 @@
 
 import Button from '@material-ui/core/Button';
 import React, {useState} from 'react';
-import SideBar from '../components/layout/SideBar.react';
-import TopPageBar from '../components/layout/TopPageBar.react';
+import SideBar from '../../components/layout/SideBar.react';
+import TopPageBar from '../../components/layout/TopPageBar.react';
 import Typography from '@material-ui/core/Typography';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
@@ -38,4 +39,7 @@ const Container = () => {
   );
 };
 
-storiesOf('SideBar', module).add('default', () => <Container />);
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/SideBar`, module).add(
+  'default',
+  () => <Container />,
+);

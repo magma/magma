@@ -8,10 +8,11 @@
  * @format
  */
 import React, {useState} from 'react';
-import Tokenizer from '../components/Tokenizer.react';
+import Tokenizer from '../../components/Tokenizer.react';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
-import type {Entry} from '../components/Tokenizer.react';
+import type {Entry} from '../../components/Tokenizer.react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -47,17 +48,14 @@ function TestTokenizer(props: {
   );
 }
 
-storiesOf('Tokenizer', module).add('options', () => (
-  <TestTokenizer searchSource="Options" searchEntries={entries} />
-));
-
-storiesOf('Tokenizer', module).add('userInput', () => (
-  <TestTokenizer searchSource="UserInput" />
-));
-
-storiesOf('Tokenizer', module).add('userInputDefaultToken', () => (
-  <TestTokenizer
-    searchSource="UserInput"
-    defaultTokens={[{id: 'Default', label: 'Default'}]}
-  />
-));
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Tokenizer`, module)
+  .add('options', () => (
+    <TestTokenizer searchSource="Options" searchEntries={entries} />
+  ))
+  .add('userInput', () => <TestTokenizer searchSource="UserInput" />)
+  .add('userInputDefaultToken', () => (
+    <TestTokenizer
+      searchSource="UserInput"
+      defaultTokens={[{id: 'Default', label: 'Default'}]}
+    />
+  ));

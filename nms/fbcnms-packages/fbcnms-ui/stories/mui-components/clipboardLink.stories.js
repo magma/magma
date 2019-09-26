@@ -13,11 +13,12 @@ import React from 'react';
 import {storiesOf} from '@storybook/react';
 
 import Button from '@material-ui/core/Button';
-import ClipboardLink from '../components/ClipboardLink';
+import ClipboardLink from '../../components/ClipboardLink';
 import IconButton from '@material-ui/core/IconButton';
 import LinkIcon from '@material-ui/icons/Link';
+import {STORY_CATEGORIES} from '../storybookUtils';
 
-storiesOf('ClipboardLink', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/ClipboardLink`, module)
   .add('default', () => (
     <ClipboardLink>
       {({copyString}) => (

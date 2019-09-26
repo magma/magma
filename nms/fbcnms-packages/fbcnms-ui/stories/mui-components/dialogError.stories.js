@@ -8,10 +8,12 @@
  * @format
  */
 
-import DialogError from '../components/DialogError.react';
+import DialogError from '../../components/DialogError.react';
 import React from 'react';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
-storiesOf('DialogError', module).add('default', () => (
-  <DialogError message={'This is an error message!'} />
-));
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/DialogError`, module).add(
+  'default',
+  () => <DialogError message={'This is an error message!'} />,
+);

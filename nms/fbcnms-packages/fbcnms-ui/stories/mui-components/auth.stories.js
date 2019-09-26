@@ -13,10 +13,11 @@ import React from 'react';
 import {action} from '@storybook/addon-actions';
 import {storiesOf} from '@storybook/react';
 
-import EditUserDialog from '../components/auth/EditUserDialog';
-import LoginForm from '../components/auth/LoginForm';
+import EditUserDialog from '../../components/auth/EditUserDialog';
+import LoginForm from '../../components/auth/LoginForm';
+import {STORY_CATEGORIES} from '../storybookUtils';
 
-storiesOf('auth.EditUserDialog', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/auth.EditUserDialog`, module)
   .add('default', () => (
     <EditUserDialog
       editingUser={null}
@@ -37,6 +38,13 @@ storiesOf('auth.EditUserDialog', module)
     />
   ));
 
-storiesOf('auth.LoginForm', module).add('default', () => (
-  <LoginForm action="/test/user/login" title="My title" csrfToken="abcd1234" />
-));
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/auth.LoginForm`, module).add(
+  'default',
+  () => (
+    <LoginForm
+      action="/test/user/login"
+      title="My title"
+      csrfToken="abcd1234"
+    />
+  ),
+);

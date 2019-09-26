@@ -8,10 +8,11 @@
  * @format
  */
 
-import type {Suggestion} from '../components/Typeahead.react';
+import type {Suggestion} from '../../components/Typeahead.react';
 
 import React, {useState} from 'react';
-import Typeahead from '../components/Typeahead.react';
+import Typeahead from '../../components/Typeahead.react';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
 const MOCK_ENTRIES: Array<Suggestion> = [
@@ -77,18 +78,18 @@ const SearchBar = () => {
   );
 };
 
-storiesOf('Typehead', module).add('addLocation', () => {
-  return (
-    <div style={{width: '300px'}}>
-      <AddLocation />
-    </div>
-  );
-});
-
-storiesOf('Typehead', module).add('search', () => {
-  return (
-    <div style={{width: '300px'}}>
-      <SearchBar />
-    </div>
-  );
-});
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Typehead`, module)
+  .add('addLocation', () => {
+    return (
+      <div style={{width: '300px'}}>
+        <AddLocation />
+      </div>
+    );
+  })
+  .add('search', () => {
+    return (
+      <div style={{width: '300px'}}>
+        <SearchBar />
+      </div>
+    );
+  });

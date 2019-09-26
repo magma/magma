@@ -7,11 +7,12 @@
  * @flow
  * @format
  */
-import CardFooter from '../components/CardFooter.react';
+import CardFooter from '../../components/CardFooter.react';
 import React from 'react';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
-storiesOf('CardFooter', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/CardFooter`, module)
   .add('left', () => (
     <CardFooter alignItems="left">
       <div>Option 1</div>

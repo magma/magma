@@ -10,13 +10,13 @@
 
 import React from 'react';
 
+import Button from '../../components/Button';
+import FormField from '../../components/FormField';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {action} from '@storybook/addon-actions';
 import {storiesOf} from '@storybook/react';
 
-import Button from '../components/Button';
-import FormField from '../components/FormField';
-
-storiesOf('Button', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Button`, module)
   .add('with text', () => (
     <Button onClick={action('clicked')}>Hello Button</Button>
   ))
@@ -28,7 +28,7 @@ storiesOf('Button', module)
       </span>
     </Button>
   ));
-storiesOf('FormField', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/FormField`, module)
   .add('default', () => <FormField label="Hello Form" />)
   .add('with children', () => (
     <FormField label="Hello Form field with Button">

@@ -8,7 +8,8 @@
  * @format
  */
 import React from 'react';
-import TreeView from '../components/TreeView';
+import TreeView from '../../components/TreeView';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {action} from '@storybook/addon-actions';
 import {storiesOf} from '@storybook/react';
 
@@ -30,7 +31,7 @@ const treeLvls = levels.map(lvl => {
   };
 });
 
-storiesOf('TreeView', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/TreeView`, module)
   .add('default', () => (
     <TreeView onClick={() => {}} tree={treeLvls} selectedId={null} />
   ))

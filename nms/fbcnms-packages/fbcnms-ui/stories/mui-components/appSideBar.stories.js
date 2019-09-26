@@ -8,11 +8,12 @@
  * @format
  */
 
-import AppSideBar from '../components/layout/AppSideBar.react';
+import AppSideBar from '../../components/layout/AppSideBar.react';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import ListIcon from '@material-ui/icons/List';
 import React, {useState} from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
 const ExpandablePanel = () => {
@@ -47,7 +48,7 @@ const ExpandablePanel = () => {
   );
 };
 
-storiesOf('AppSideBar', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/AppSideBar`, module)
   .add('default', () => (
     <AppSideBar
       user={{email: 'user@fb.com', isSuperUser: true}}
