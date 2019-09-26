@@ -1047,6 +1047,7 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
                 <rule avp="Proxy-Info" required="false" max="1"/>
                 <rule avp="Route-Record" required="false" max="1"/>
                 <rule avp="Framed-IP-Address" required="false" max="1"/>
+                <rule avp="Framed-IPv6-Prefix" required="false"/>
                 <rule avp="IP-CAN-Type" required="false" max="1"/>
                 <rule avp="Called-Station-Id" required="false" max="1"/>
                 <rule avp="RAT-Type" required="false" max="1"/>

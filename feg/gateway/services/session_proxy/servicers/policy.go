@@ -50,6 +50,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		UserLocation:  pReq.UserLocation,
 		GcID:          pReq.GcId,
 		Qos:           qos,
+		HardwareAddr:  pReq.HardwareAddr,
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }

@@ -33,11 +33,17 @@ type accountingService struct {
 	sessionTout time.Duration // Idle Session Timeout
 }
 
-const imsiPrefix = "IMSI"
+const (
+	imsiPrefix = "IMSI"
+)
 
 // NewEapAuthenticator returns a new instance of EAP Auth service
 func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (*accountingService, error) {
-	return &accountingService{sessions: sessions, config: cfg, sessionTout: GetIdleSessionTimeout(cfg)}, nil
+	return &accountingService{
+		sessions:    sessions,
+		config:      cfg,
+		sessionTout: GetIdleSessionTimeout(cfg),
+	}, nil
 }
 
 // Start implements Radius Acct-Status-Type: Start endpoint
@@ -112,6 +118,7 @@ func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *pro
 	}
 	req := &lte_protos.LocalCreateSessionRequest{
 		Sid:             makeSID(aaaCtx.GetImsi()),
+		UeIpv4:          aaaCtx.GetIpAddr(),
 		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
 		RatType:         lte_protos.RATType_TGPP_WLAN,
 		HardwareAddr:    mac,
@@ -201,4 +208,16 @@ func makeSID(imsi string) *lte_protos.SubscriberID {
 		imsi = imsiPrefix + imsi
 	}
 	return &lte_protos.SubscriberID{Id: imsi, Type: lte_protos.SubscriberID_IMSI}
+}
+
+func isThruthy(value string) bool {
+	value = strings.TrimSpace(value)
+	if len(value) == 0 {
+		return false
+	}
+	value = strings.ToLower(value)
+	if value == "0" || strings.HasPrefix(value, "false") || strings.HasPrefix(value, "n") {
+		return false
+	}
+	return true
 }
