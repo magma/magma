@@ -60,12 +60,12 @@ rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 
 MAGMA_GITHUB_URL="{{ .Values.cwf.repo.url }}"
-git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL" -b {{ .Values.cwf.repo.branch }}
+git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 source /opt/magma/env/.env
-#if [ "$IMAGE_VERSION" != "latest" ]; then
-#    git -C $INSTALL_DIR/magma checkout "$IMAGE_VERSION"
-#fi
+if [ "$IMAGE_VERSION" != "latest" ]; then
+    git -C $INSTALL_DIR/magma checkout {{ .Values.cwf.repo.branch }}
+fi
 
 if [ "$GW_TYPE" == "$CWAG" ]; then
   MODULE_DIR="cwf"
