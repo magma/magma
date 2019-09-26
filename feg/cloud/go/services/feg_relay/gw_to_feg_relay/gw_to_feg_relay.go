@@ -15,14 +15,11 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
 	"strings"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/health"
-	"magma/lte/cloud/go/lte"
-	ltemodels "magma/lte/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/http2"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
@@ -53,9 +50,6 @@ type GatewayToFeGServer struct {
 
 // NewGatewayToFegServer creates a new GatewayToFegServer
 func NewGatewayToFegServer() *GatewayToFeGServer {
-	if hwId, err := getFeGHwIdEnvOverride(); err == nil {
-		glog.Infof("Using FEG_HWID env variable: %s for feg_relay", hwId)
-	}
 	return &GatewayToFeGServer{
 		H2CServer: http2.NewH2CServer(),
 		client:    http2.NewH2CClient(),
@@ -152,48 +146,33 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 	return newReq, nil
 }
 
-func getFeGHwIdEnvOverride() (string, error) {
-	hwId, ok := os.LookupEnv("FEG_HWID")
-	if ok && len(hwId) > 0 {
-		return hwId, nil
+func getFeGHwIdForNetwork(agNwID string) (string, error) {
+	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType)
+	if err != nil {
+		return "", fmt.Errorf("could not load federated network configs for access network %s: %s", agNwID, err)
 	}
-	return "", fmt.Errorf("Environment variable FEG_HWID is unset")
-}
-
-func getFeGHwIdForNetwork(agNwId string) (string, error) {
-	fegEnvHwID, err := getFeGHwIdEnvOverride()
-	if err == nil {
-		return fegEnvHwID, nil
+	federatedConfig, ok := cfg.(*models.FederatedNetworkConfigs)
+	if !ok || federatedConfig == nil {
+		return "", fmt.Errorf("invalid federated network config found for network: %s", agNwID)
 	}
-	cfg, err := configurator.GetNetworkConfigsByType(agNwId, lte.CellularNetworkType)
-	if err != nil || cfg == nil {
-		return "", fmt.Errorf("Unable to retrieve cellular config for AG network: %s", agNwId)
+	if federatedConfig.FegNetworkID == nil || *federatedConfig.FegNetworkID == "" {
+		return "", fmt.Errorf("FegNetworkID is empty in network config of network: %s", agNwID)
 	}
-	cellularConfig, ok := cfg.(*ltemodels.NetworkCellularConfigs)
-	if !ok {
-		return "", fmt.Errorf("Invalid cellular config found for AG network: %s", agNwId)
-	}
-	fegNetworkID := cellularConfig.FegNetworkID
-	if fegNetworkID == "" {
-		return "", fmt.Errorf("FegNetworkID is not set in cellular config for network: %s", agNwId)
-	}
-
-	fegCfg, err := configurator.GetNetworkConfigsByType(string(fegNetworkID), feg.FegNetworkType)
+	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType)
 	if err != nil || fegCfg == nil {
-		return "", fmt.Errorf("Unable to retrieve config for FeG network: %s", fegNetworkID)
+		return "", fmt.Errorf("unable to retrieve config for federation network: %s", *federatedConfig.FegNetworkID)
 	}
-	fegNetworkConfig, ok := fegCfg.(*models.NetworkFederationConfigs)
-	if !ok {
-		return "", fmt.Errorf("Invalid feg config found for FeG network: %s", fegNetworkID)
+	networkFegConfigs, ok := fegCfg.(*models.NetworkFederationConfigs)
+	if !ok || networkFegConfigs == nil {
+		return "", fmt.Errorf("invalid federation network config found for network: %s", *federatedConfig.FegNetworkID)
 	}
-
-	servedNetworkIDs := fegNetworkConfig.ServedNetworkIds
+	servedNetworkIDs := networkFegConfigs.ServedNetworkIds
 	for _, network := range servedNetworkIDs {
-		if agNwId == network {
-			return getActiveFeGForNetwork(string(fegNetworkID))
+		if agNwID == network {
+			return getActiveFeGForNetwork(*federatedConfig.FegNetworkID)
 		}
 	}
-	return "", fmt.Errorf("Federated Gateway Network: %s is not configured to serve network: %s", fegNetworkID, agNwId)
+	return "", fmt.Errorf("federation network %s is not configured to serve network: %s", *federatedConfig.FegNetworkID, agNwID)
 }
 
 func getActiveFeGForNetwork(fegNetworkID string) (string, error) {
