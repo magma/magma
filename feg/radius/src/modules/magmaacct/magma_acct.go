@@ -15,6 +15,7 @@ import (
 	"fbc/cwf/radius/modules/protos"
 	"fbc/cwf/radius/session"
 	"fmt"
+	"strings"
 
 	"fbc/cwf/radius/modules"
 	"fbc/lib/go/radius"
@@ -90,6 +91,7 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 		SessionId: ctx.SessionID,
 		Msisdn:    state.MSISDN,
 		MacAddr:   state.MACAddress,
+		IpAddr:    strings.Split(r.RemoteAddr.String(), ":")[0],
 	}
 
 	// Call magma client
