@@ -21,6 +21,7 @@ import (
 	"net"
 
 	"fbc/lib/go/radius"
+	"fbc/lib/go/radius/rfc2865"
 	"fbc/lib/go/radius/rfc2866"
 
 	"github.com/mitchellh/mapstructure"
@@ -176,6 +177,7 @@ func (s *authorizationServer) handleCoaRequest(ctx *protos.Context, request *rad
 	// Add Acct-Session-Id attribute
 	request.Attributes = radius.Attributes{}
 	request.Set(rfc2866.AcctSessionID_Type, radius.Attribute(state.AcctSessionID))
+	request.Set(rfc2865.CallingStationID_Type, radius.Attribute(ctx.MacAddr))
 
 	// Set Identifier
 	request.Identifier = state.NextCoAIdentifier
