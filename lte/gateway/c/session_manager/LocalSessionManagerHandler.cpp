@@ -18,6 +18,9 @@ using grpc::Status;
 
 namespace magma {
 
+const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
+        "0123456789abcdef";
+
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
   LocalEnforcer *enforcer,
   SessionCloudReporter *reporter):
@@ -181,6 +184,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 {
   auto imsi = request->sid().id();
   auto sid = id_gen_.gen_session_id(imsi);
+  auto mac_addr = convert_mac_addr_to_str(request->hardware_addr());
   SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
                               .spgw_ipv4 = request->spgw_ipv4(),
                               .msisdn = request->msisdn(),
@@ -190,7 +194,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .imsi_plmn_id = request->imsi_plmn_id(),
                               .user_location = request->user_location(),
                               .rat_type = request->rat_type(),
-                              .mac_addr = request->hardware_addr(),
+                              .mac_addr = mac_addr,
                               .radius_session_id = request->radius_session_id()};
   if (enforcer_->is_imsi_duplicate(imsi)) {
     if (enforcer_->is_session_duplicate(imsi, cfg)) {
@@ -241,6 +245,20 @@ void LocalSessionManagerHandlerImpl::send_create_session(
       }
       response_callback(status, LocalCreateSessionResponse());
     });
+}
+
+std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
+        const std::string& mac_addr)
+{
+  std::string res;
+  for(char const& c: mac_addr) {
+    if (c != mac_addr[0]) {
+        res += ":";
+    }
+    res.push_back(hex_digit_[c >> 4]);
+    res.push_back(hex_digit_[c & 15]);
+  }
+  return res;
 }
 
 static void report_termination(
