@@ -438,6 +438,8 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
   hash_node_t *node = NULL;
   itti_s5_nw_init_actv_bearer_request_t *itti_s5_actv_bearer_req = NULL;
+  bool is_imsi_found = false;
+  bool is_lbi_found = false;
 
   OAILOG_INFO(
     LOG_PGW_APP,
@@ -488,13 +490,15 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
         hashtblP, (const hash_key_t) node->key, (void **) &spgw_ctxt_p);
       if (spgw_ctxt_p != NULL) {
         if (!strncmp(
-              (const char *)
-                spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-              (const char *) bearer_req_p->imsi,
-              strlen((const char *) bearer_req_p->imsi))) {
+          (const char *)
+          spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+          (const char *) bearer_req_p->imsi,
+          strlen((const char *) bearer_req_p->imsi))) {
+          is_imsi_found = true;
           if (
             spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
               .default_bearer == bearer_req_p->lbi) {
+            is_lbi_found = true;
             itti_s5_actv_bearer_req->lbi = bearer_req_p->lbi;
             itti_s5_actv_bearer_req->mme_teid_S11 =
               spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
@@ -506,13 +510,36 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     }
     i++;
   }
-  if (i >= hashtblP->size) {
-    OAILOG_ERROR(LOG_PGW_APP, "Could not find LBI/IMSI in SPGW context\n");
-    //TODO-Send Rsp to PCRF with cause = REJECTED
-    /*rc = send_dedicated_bearer_actv_rsp(lbi,
-    REQUEST_REJECTED);*/
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, rc);
+  if (!is_imsi_found) {
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "Wrong IMSI received in pgw_nw_init_actv_bearer_request %s\n",
+      bearer_req_p->imsi);
+    OAILOG_INFO(
+      LOG_PGW_APP,
+      "Sending dedicated_bearer_actv_rsp with REQUEST_REJECTED "
+      "cause to NW\n");
+    //Send Reject to PCRF
+    //TODO-Uncomment once implemented at PCRF
+    /*rc = send_dedicated_bearer_actv_rsp(bearer_req_p->ebi,
+        REQUEST_REJECTED);*/
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
+  } else if (!is_lbi_found){
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "Wrong LBI received in pgw_nw_init_actv_bearer_request %d\n",
+      bearer_req_p->lbi);
+    OAILOG_INFO(
+      LOG_PGW_APP,
+      "Sending dedicated_bearer_actv_rsp with REQUEST_REJECTED "
+      "cause to NW\n");
+    //Send Reject to PCRF
+    //TODO-Uncomment once implemented at PCRF
+    /*rc = send_dedicated_bearer_actv_rsp(bearer_req_p->lbi,
+        REQUEST_REJECTED);*/
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
+
   //Send S5_ACTIVATE_DEDICATED_BEARER_REQ to SGW APP
   OAILOG_INFO(
     LOG_PGW_APP,
@@ -536,16 +563,117 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
   uint32_t i = 0;
-  uint32_t j = 0;
+  uint32_t itrn = 0;
   hash_table_ts_t *hashtblP = NULL;
   uint32_t num_elements = 0;
   s_plus_p_gw_eps_bearer_context_information_t *spgw_ctxt_p = NULL;
   hash_node_t *node = NULL;
   itti_s5_nw_init_deactv_bearer_request_t *itti_s5_deactv_ded_bearer_req = NULL;
-  bool found = false;
+  bool is_lbi_found = false;
+  bool send_reject = false;
+  bool is_imsi_found = false;
+  ebi_t ebi_to_be_established[BEARERS_PER_UE] = {0};
+  uint32_t no_of_bearers_to_be_est = 0;
+  ebi_t invalid_ebi[BEARERS_PER_UE] = {0};
+  teid_t s11_mme_teid = 0;
 
   OAILOG_INFO(LOG_PGW_APP, "Received nw_initiated_deactv_bearer_req from NW\n");
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
+
+
+  hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
+  if (hashtblP == NULL) {
+    OAILOG_ERROR(
+      LOG_PGW_APP, "hashtblP is NULL for nw_initiated_deactv_bearer_req\n");
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
+  }
+
+  //If LBI recvd is valid, default bearer has to be deactivated
+  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
+         (!is_lbi_found)) {
+    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
+    if (hashtblP->nodes[i] != NULL) {
+      node = hashtblP->nodes[i];
+      spgw_ctxt_p = node->data;
+      num_elements++;
+      if (spgw_ctxt_p != NULL) {
+        if (!strcmp(
+          (const char *)
+          spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
+          (const char *) bearer_req_p->imsi)) {
+          is_imsi_found = true;
+          s11_mme_teid =
+            spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
+          if ((bearer_req_p->lbi != 0) &&
+            (bearer_req_p->lbi ==
+            spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
+              .default_bearer)) {
+            is_lbi_found = true;
+          }
+        }
+      }
+    }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
+    i++;
+  }
+  //Check if the received EBI is valid
+  for (itrn = 0; itrn < bearer_req_p->no_of_bearers; itrn ++) {
+    if(sgw_cm_get_eps_bearer_entry(
+      &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
+      bearer_req_p->ebi[itrn]) == NULL) {
+      invalid_ebi[itrn] = bearer_req_p->ebi[itrn];
+      send_reject = true;
+      OAILOG_ERROR(
+        LOG_PGW_APP,
+        "Wrong EBI received in pgw_nw_init_deactv_bearer_request %d\n",
+        invalid_ebi[itrn]);
+    } else {
+      ebi_to_be_established[itrn] = bearer_req_p->ebi[itrn];
+      no_of_bearers_to_be_est ++;
+    }
+  }
+
+  if (send_reject) {
+    OAILOG_INFO(
+      LOG_PGW_APP,
+        "Sending dedicated bearer activation reject to NW\n");
+    //TODO-Uncomment once implemented at PCRF
+    /*rc = send_dedicated_bearer_deactv_rsp(invalid_ebi,
+        REQUEST_REJECTED);*/
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
+  }
+
+  if (!is_imsi_found) {
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "Wrong IMSI received in pgw_nw_init_deactv_bearer_request %s\n",
+      bearer_req_p->imsi);
+    OAILOG_INFO(
+      LOG_PGW_APP,
+      "Sending dedicated_bearer_deactv_rsp with REQUEST_REJECTED "
+      "cause to NW\n");
+    //Send Reject to PCRF
+    //TODO-Uncomment once implemented at PCRF
+    /*rc = send_dedicated_bearer_deactv_rsp(bearer_req_p->ebi,
+        REQUEST_REJECTED);*/
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
+  } else if ((bearer_req_p->lbi != 0) && (!is_lbi_found)){
+    OAILOG_ERROR(
+      LOG_PGW_APP,
+      "Wrong LBI received in pgw_nw_init_deactv_bearer_request %d\n",
+      bearer_req_p->lbi);
+    OAILOG_INFO(
+      LOG_PGW_APP,
+      "Sending dedicated_bearer_deactv_rsp with REQUEST_REJECTED "
+      "cause to NW\n");
+    //Send Reject to PCRF
+    //TODO-Uncomment once implemented at PCRF
+    /*rc = send_dedicated_bearer_deactv_rsp(bearer_req_p->lbi,
+        REQUEST_REJECTED);*/
+    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
+  }
+
+  //Send ITTI message to SGW
   message_p = itti_alloc_new_message(
     TASK_SPGW_APP, S5_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   if (message_p == NULL) {
@@ -554,58 +682,21 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
       "itti_alloc_new_message failed for nw_initiated_deactv_bearer_req\n");
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
-
   itti_s5_deactv_ded_bearer_req =
     &message_p->ittiMsg.s5_nw_init_deactv_bearer_request;
-  //Send ITTI message to SGW
   memset(
     itti_s5_deactv_ded_bearer_req,
     0,
     sizeof(itti_s5_nw_init_deactv_bearer_request_t));
-  itti_s5_deactv_ded_bearer_req->delete_default_bearer = false;
-  itti_s5_deactv_ded_bearer_req->no_of_bearers = bearer_req_p->no_of_bearers;
+
+  itti_s5_deactv_ded_bearer_req->s11_mme_teid = s11_mme_teid;
+  itti_s5_deactv_ded_bearer_req->delete_default_bearer = is_lbi_found;
+  itti_s5_deactv_ded_bearer_req->no_of_bearers = no_of_bearers_to_be_est;
   memcpy(
     &itti_s5_deactv_ded_bearer_req->ebi,
-    bearer_req_p->ebi,
-    (sizeof(ebi_t)) * bearer_req_p->no_of_bearers);
-  hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
-  if (hashtblP == NULL) {
-    OAILOG_ERROR(
-      LOG_PGW_APP, "hashtblP is NULL for nw_initiated_deactv_bearer_req\n");
-    OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
-  }
+    ebi_to_be_established,
+    (sizeof(ebi_t) * no_of_bearers_to_be_est));
 
-  //Check if EBI recvd == LBI to know if default bearer has to be deactivated
-  while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
-         (!found)) {
-    pthread_mutex_lock(&hashtblP->lock_nodes[i]);
-    if (hashtblP->nodes[i] != NULL) {
-      node = hashtblP->nodes[i];
-      spgw_ctxt_p = node->data;
-      num_elements++;
-      if (spgw_ctxt_p != NULL) {
-        if (!strcmp(
-              (const char *)
-                spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-              (const char *) bearer_req_p->imsi)) {
-          itti_s5_deactv_ded_bearer_req->s11_mme_teid =
-            spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-          for (j = 0; j < bearer_req_p->no_of_bearers; j++) {
-            if (
-              bearer_req_p->ebi[j] ==
-              spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
-                .default_bearer) {
-              itti_s5_deactv_ded_bearer_req->delete_default_bearer = true;
-              found = true;
-              break;
-            }
-          }
-        }
-      }
-    }
-    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-    i++;
-  }
   OAILOG_INFO(
     LOG_PGW_APP,
     "Sending nw_initiated_deactv_bearer_req to SGW"
