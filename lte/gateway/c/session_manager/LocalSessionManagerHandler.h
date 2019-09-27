@@ -99,11 +99,14 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
   std::chrono::seconds retry_timeout_;
+  static const std::string hex_digit_;
 
  private:
   void check_usage_for_reporting();
   bool is_pipelined_restarted();
   bool restart_pipelined(const std::uint64_t &epoch);
+
+  std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
   void send_create_session(
     const CreateSessionRequest &request,
