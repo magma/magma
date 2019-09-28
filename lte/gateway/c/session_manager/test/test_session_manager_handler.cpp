@@ -76,6 +76,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
             .user_location = "",
             .rat_type = RATType::TGPP_WLAN,
             .mac_addr = "0f:10:2e:12:3a:55",
+            .hardware_addr = hardware_addr_bytes,
             .radius_session_id = radius_session_id};
 
     local_enforcer->init_session_credit(imsi, sid, cfg, response);

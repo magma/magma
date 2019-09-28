@@ -40,6 +40,7 @@ class SessionState {
     std::string user_location;
     RATType rat_type;
     std::string mac_addr; // MAC Address for WLAN
+    std::string hardware_addr; // MAC Address for WLAN (binary)
     std::string radius_session_id;
     uint32_t bearer_id;
     QoSInfo qos_info;
@@ -137,6 +138,8 @@ class SessionState {
   std::string get_subscriber_ip_addr();
 
   std::string get_mac_addr();
+
+  std::string get_hardware_addr() { return config_.hardware_addr; }
 
   std::string get_radius_session_id();
 

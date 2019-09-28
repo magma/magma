@@ -133,6 +133,7 @@ func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest
 			Type:          credit_control.CRTUpdate,
 			IMSI:          removeSidPrefix(update.Sid),
 			IPAddr:        update.UeIpv4,
+			HardwareAddr:  update.HardwareAddr,
 			UsageReports:  []*gx.UsageReport{getGxUsageReportFromUsageUpdate(update.Update)},
 		})
 	}
