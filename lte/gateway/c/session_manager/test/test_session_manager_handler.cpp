@@ -33,9 +33,15 @@ class SessionManagerHandlerTest : public ::testing::Test {
         reporter = std::make_shared<MockSessionCloudReporter>();
         auto rule_store = std::make_shared<StaticRuleStore>();
         auto pipelined_client = std::make_shared<MockPipelinedClient>();
+        auto spgw_client = std::make_shared<MockSpgwServiceClient>();
         auto aaa_client = std::make_shared<MockAAAClient>();
         local_enforcer = std::make_shared<LocalEnforcer>(
-                reporter, rule_store, pipelined_client, aaa_client, 0);
+                reporter,
+                rule_store,
+                pipelined_client,
+                spgw_client,
+                aaa_client,
+                0);
         evb = folly::EventBaseManager::get()->getEventBase();
         local_enforcer->attachEventBase(evb);
         session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(

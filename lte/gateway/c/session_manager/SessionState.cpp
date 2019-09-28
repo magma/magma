@@ -246,6 +246,11 @@ std::string SessionState::get_mac_addr()
   return config_.mac_addr;
 }
 
+std::string SessionState::get_apn()
+{
+  return config_.apn;
+}
+
 bool SessionState::is_radius_cwf_session()
 {
   return (config_.rat_type == RATType::TGPP_WLAN);
@@ -262,6 +267,25 @@ void SessionState::get_session_info(SessionState::SessionInfo &info)
   info.ip_addr = config_.ue_ipv4;
   session_rules_.get_dynamic_rules().get_rules(info.dynamic_rules);
   info.static_rules = session_rules_.get_static_rule_ids();
+}
+
+uint32_t SessionState::get_qci()
+{
+  if (!config_.qos_info.enabled) {
+    MLOG(MWARNING) << "QoS is not enabled.";
+    return 0;
+  }
+  return config_.qos_info.qci;
+}
+
+uint32_t SessionState::get_bearer_id()
+{
+  return config_.bearer_id;
+}
+
+bool SessionState::qos_enabled()
+{
+  return config_.qos_info.enabled;
 }
 
 } // namespace magma

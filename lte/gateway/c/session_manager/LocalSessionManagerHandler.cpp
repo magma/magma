@@ -172,7 +172,9 @@ static CreateSessionRequest copy_session_info2create_req(
   create_request.set_plmn_id(request->plmn_id());
   create_request.set_imsi_plmn_id(request->imsi_plmn_id());
   create_request.set_user_location(request->user_location());
-  create_request.mutable_qos_info()->CopyFrom(request->qos_info());
+  if (request->has_qos_info()) {
+    create_request.mutable_qos_info()->CopyFrom(request->qos_info());
+  }
 
   return create_request;
 }
@@ -197,6 +199,13 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .mac_addr = mac_addr,
                               .radius_session_id = request->radius_session_id(),
                               .bearer_id = request->bearer_id()};
+
+  SessionState::QoSInfo qos_info = {.enabled = request->has_qos_info()};
+  if (request->has_qos_info()) {
+    qos_info.qci = request->qos_info().qos_class_id();
+  }
+  cfg.qos_info = qos_info;
+
   if (enforcer_->is_imsi_duplicate(imsi)) {
     if (enforcer_->is_session_duplicate(imsi, cfg)) {
       MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
