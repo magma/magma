@@ -227,7 +227,8 @@ bool SessionState::is_same_config(const Config &new_config)
     config_.user_location.compare(new_config.user_location) == 0 &&
     config_.rat_type == new_config.rat_type &&
     config_.mac_addr.compare(new_config.mac_addr) == 0 &&
-    config_.radius_session_id.compare(new_config.radius_session_id) == 0;
+    config_.radius_session_id.compare(new_config.radius_session_id) == 0 &&
+    config_.bearer_id == new_config.bearer_id;
 }
 
 std::string SessionState::get_session_id()

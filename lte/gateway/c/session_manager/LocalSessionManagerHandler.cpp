@@ -195,7 +195,8 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .user_location = request->user_location(),
                               .rat_type = request->rat_type(),
                               .mac_addr = mac_addr,
-                              .radius_session_id = request->radius_session_id()};
+                              .radius_session_id = request->radius_session_id(),
+                              .bearer_id = request->bearer_id()};
   if (enforcer_->is_imsi_duplicate(imsi)) {
     if (enforcer_->is_session_duplicate(imsi, cfg)) {
       MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi

@@ -36,6 +36,7 @@ class SessionState {
     RATType rat_type;
     std::string mac_addr; // MAC Address for WLAN
     std::string radius_session_id;
+    uint32_t bearer_id;
   };
   struct SessionInfo {
     std::string imsi;
