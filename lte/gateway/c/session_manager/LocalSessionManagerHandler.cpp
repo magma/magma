@@ -152,6 +152,7 @@ static CreateSessionRequest copy_wifi_session_info2create_req(
   create_request.set_apn(request->apn());
   create_request.set_imei(request->imei());
   create_request.set_msisdn(request->msisdn());
+  create_request.set_hardware_addr(request->hardware_addr());
 
   return create_request;
 }
@@ -173,6 +174,7 @@ static CreateSessionRequest copy_session_info2create_req(
   create_request.set_imsi_plmn_id(request->imsi_plmn_id());
   create_request.set_user_location(request->user_location());
   create_request.mutable_qos_info()->CopyFrom(request->qos_info());
+  create_request.set_hardware_addr(request->hardware_addr());
 
   return create_request;
 }
@@ -195,6 +197,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
                               .user_location = request->user_location(),
                               .rat_type = request->rat_type(),
                               .mac_addr = mac_addr,
+                              .hardware_addr = request->hardware_addr(),
                               .radius_session_id = request->radius_session_id()};
   if (enforcer_->is_imsi_duplicate(imsi)) {
     if (enforcer_->is_session_duplicate(imsi, cfg)) {
@@ -251,12 +254,18 @@ std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
         const std::string& mac_addr)
 {
   std::string res;
-  for(char const& c: mac_addr) {
-    if (c != mac_addr[0]) {
-        res += ":";
+  auto l = mac_addr.length();
+  if (l == 0) {
+      return res;
+  }
+  res.reserve(l*3-1);
+  for (int i = 0; i < l; i++) {
+    if (i > 0) {
+      res.push_back(':');
     }
+    unsigned char c = mac_addr[i];
     res.push_back(hex_digit_[c >> 4]);
-    res.push_back(hex_digit_[c & 15]);
+    res.push_back(hex_digit_[c & 0x0F]);
   }
   return res;
 }

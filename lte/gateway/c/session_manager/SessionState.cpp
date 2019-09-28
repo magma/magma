@@ -96,6 +96,7 @@ void SessionState::get_updates_from_charging_pool(
     new_req->set_plmn_id(config_.plmn_id);
     new_req->set_imsi_plmn_id(config_.imsi_plmn_id);
     new_req->set_user_location(config_.user_location);
+    new_req->set_hardware_addr(config_.hardware_addr);
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
   }
@@ -172,6 +173,7 @@ void SessionState::complete_termination()
   termination.set_plmn_id(config_.plmn_id);
   termination.set_imsi_plmn_id(config_.imsi_plmn_id);
   termination.set_user_location(config_.user_location);
+  termination.set_hardware_addr(config_.hardware_addr);
   monitor_pool_.get_termination_updates(&termination);
   charging_pool_.get_termination_updates(&termination);
   try {
@@ -226,7 +228,7 @@ bool SessionState::is_same_config(const Config &new_config)
     config_.imsi_plmn_id.compare(new_config.imsi_plmn_id) == 0 &&
     config_.user_location.compare(new_config.user_location) == 0 &&
     config_.rat_type == new_config.rat_type &&
-    config_.mac_addr.compare(new_config.mac_addr) == 0 &&
+    config_.hardware_addr.compare(new_config.hardware_addr) == 0 &&
     config_.radius_session_id.compare(new_config.radius_session_id) == 0;
 }
 
