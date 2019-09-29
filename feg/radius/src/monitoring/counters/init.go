@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package counters
 
 import (
-	"fbc/cwf/radius/counters/census"
+	"fbc/cwf/radius/monitoring/counters/census"
 	"net/http"
 
 	"go.uber.org/zap"

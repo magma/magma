@@ -10,7 +10,7 @@ package session
 
 import (
 	"errors"
-	"fbc/cwf/radius/counters"
+	"fbc/cwf/radius/monitoring/counters"
 	"fmt"
 	"sync"
 )

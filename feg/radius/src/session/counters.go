@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package session
 
 import (
-	"fbc/cwf/radius/counters"
+	"fbc/cwf/radius/monitoring/counters"
 )
 
 var (

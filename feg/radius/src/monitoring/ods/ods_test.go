@@ -6,13 +6,15 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package counters
+package ods
 
 import (
 	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
+
+	"fbc/cwf/radius/monitoring/counters"
 
 	"github.com/stretchr/testify/require"
 	"go.opencensus.io/tag"
@@ -23,7 +25,7 @@ import (
 func TestSendOdsCounters(t *testing.T) {
 	// Arrange
 	logger, _ := zap.NewDevelopment()
-	InitODS(&OdsConfig{
+	Init(&Config{
 		ReportingPeriod: time.Duration(time.Second),
 		GraphURL:        "http://127.0.0.1:1234/ods",
 		Entity:          "entity",
@@ -52,7 +54,7 @@ func TestSendOdsCounters(t *testing.T) {
 
 	// Act
 	tg, _ := tag.NewKey("test")
-	op := NewOperation("test", tg)
+	op := counters.NewOperation("test", tg)
 	op.Start()
 	op.Success()
 	time.Sleep(time.Duration(time.Second))

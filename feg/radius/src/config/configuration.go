@@ -10,10 +10,10 @@ package config
 
 import (
 	"encoding/json"
-	"fbc/cwf/radius/counters"
-	"fbc/cwf/radius/counters/census"
 	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/scuba"
+	"fbc/cwf/radius/monitoring/counters/census"
+	"fbc/cwf/radius/monitoring/ods"
+	"fbc/cwf/radius/monitoring/scuba"
 	"io/ioutil"
 )
 
@@ -78,9 +78,9 @@ type (
 
 	// MonitoringConfig ...
 	MonitoringConfig struct {
-		Census *census.Config      `json:"census"`
-		Ods    *counters.OdsConfig `json:"ods"`
-		Scuba  *scuba.Config       `json:"scuba"`
+		Census *census.Config `json:"census"`
+		Ods    *ods.Config    `json:"ods"`
+		Scuba  *scuba.Config  `json:"scuba"`
 	}
 
 	// RadiusConfig the configuration file format

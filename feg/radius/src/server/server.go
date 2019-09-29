@@ -11,10 +11,10 @@ package server
 import (
 	"context"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/filters"
 	"fbc/cwf/radius/loader"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring/counters"
 	"fbc/cwf/radius/session"
 	"fmt"
 	"sync/atomic"

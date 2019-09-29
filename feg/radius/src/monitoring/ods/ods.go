@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package counters
+package ods
 
 import (
 	"crypto/tls"
@@ -38,8 +38,8 @@ var (
 	}
 )
 
-// OdsConfig needed in order to report to ODS
-type OdsConfig struct {
+// Config needed in order to report to ODS
+type Config struct {
 	Category        string        `json:"category_id" required:"true"`
 	Prefix          string        `json:"prefix" required:"true"`
 	Token           string        `json:"access_token" required:"true"`
@@ -62,7 +62,7 @@ type Datapoint struct {
 
 // PostToODS goes through all the timeseries in from a request,
 // coverts the labels to keys/entities and posts to ODS via GraphAPI
-func PostToODS(metricsData map[string]string, cfg OdsConfig) error {
+func PostToODS(metricsData map[string]string, cfg Config) error {
 	var datapoints []Datapoint
 	var entity string
 	ts := time.Now().Unix()
@@ -113,7 +113,7 @@ func PostToODS(metricsData map[string]string, cfg OdsConfig) error {
 	return nil
 }
 
-func getURLValues(datapoints []Datapoint, cfg OdsConfig) (url.Values, error) {
+func getURLValues(datapoints []Datapoint, cfg Config) (url.Values, error) {
 	urlValues := url.Values{}
 	datapointsJSON, err := json.Marshal(datapoints)
 	if err != nil {
@@ -128,7 +128,7 @@ func getURLValues(datapoints []Datapoint, cfg OdsConfig) (url.Values, error) {
 
 type odsMetricsExporter struct {
 	metricsData map[string]string
-	config      OdsConfig
+	config      Config
 }
 
 // TODO: (@ayeletrd T44633984) Do not emit errors here, add callback.
@@ -174,8 +174,8 @@ func (ce *odsMetricsExporter) ExportView(vd *view.Data) {
 	}
 }
 
-// InitODS Should be called once if ODS counters are to be emmitted
-func InitODS(odsConfig *OdsConfig, logger *zap.Logger) {
+// Init Should be called once if ODS counters are to be emmitted
+func Init(odsConfig *Config, logger *zap.Logger) {
 	// If no ODS configuration is there - skip initialization
 	if odsConfig == nil {
 		logger.Info("no ODS configuration, skipping initialization")

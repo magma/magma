@@ -11,9 +11,10 @@ package main
 import (
 	"errors"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/loader"
-	"fbc/cwf/radius/scuba"
+	"fbc/cwf/radius/monitoring/counters"
+	"fbc/cwf/radius/monitoring/scuba"
+	"fbc/cwf/radius/monitoring/ods"
 	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
@@ -112,7 +113,7 @@ func initMonitoring(config *config.MonitoringConfig, logger *zap.Logger) (*zap.L
 	}
 
 	if config.Ods != nil {
-		counters.InitODS(config.Ods, logger)
+		ods.Init(config.Ods, logger)
 	}
 
 	if config.Scuba != nil {
