@@ -53,9 +53,6 @@ typedef struct sgw_app_s {
   // key is S11 S-GW local teid
   hash_table_ts_t *s11teid2mme_hashtable;
 
-  // key is S1-U S-GW local teid
-  //hash_table_t *s1uteid2enb_hashtable;
-
   // the key of this hashtable is the S11 s-gw local teid.
   hash_table_ts_t *s11_bearer_context_information_hashtable;
 

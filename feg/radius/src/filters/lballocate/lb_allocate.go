@@ -11,8 +11,8 @@ package lballocate
 import (
 	"errors"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring/counters"
 	"fbc/cwf/radius/session"
 	"fbc/lib/go/radius"
 	"math/rand"

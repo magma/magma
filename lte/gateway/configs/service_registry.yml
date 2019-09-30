@@ -62,3 +62,6 @@ services:
   captive_portal:
     ip_address: 127.0.0.1
     port: 50072
+  spgw_service:
+    ip_address: 127.0.0.1
+    port: 50073

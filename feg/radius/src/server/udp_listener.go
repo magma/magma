@@ -11,8 +11,8 @@ package server
 import (
 	"context"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring/counters"
 	"fbc/lib/go/radius"
 	"fmt"
 	"math/rand"
@@ -20,43 +20,28 @@ import (
 	"fbc/cwf/radius/session"
 	"sync/atomic"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/patrickmn/go-cache"
 	"go.uber.org/zap"
 )
 
 // UDPListener listens to Radius udp packets
 type UDPListener struct {
-	Server        *radius.PacketServer
-	Config        config.ListenerConfig
-	Modules       []Module
-	HandleRequest modules.Middleware
-	dupDropped    uint32
-	ready         chan bool
+	Listener
+	Server *radius.PacketServer
+	ready  chan bool
 }
 
-// GetModules override
-func (l *UDPListener) GetModules() []Module {
-	return l.Modules
+// UDPListenerExtraConfig extra config for UDP listener
+type UDPListenerExtraConfig struct {
+	Port int `json:"port"`
 }
 
-// SetModules override
-func (l *UDPListener) SetModules(m []Module) {
-	l.Modules = m
-}
-
-// AppendModule override
-func (l *UDPListener) AppendModule(m *Module) {
-	l.Modules = append(l.Modules, *m)
-}
-
-// GetConfig override
-func (l *UDPListener) GetConfig() config.ListenerConfig {
-	return l.Config
-}
-
-// SetHandleRequest override
-func (l *UDPListener) SetHandleRequest(hr modules.Middleware) {
-	l.HandleRequest = hr
+// NewUDPListener ...
+func NewUDPListener() *UDPListener {
+	return &UDPListener{
+		ready: make(chan bool),
+	}
 }
 
 // Init override
@@ -65,7 +50,12 @@ func (l *UDPListener) Init(
 	serverConfig config.ServerConfig,
 	listenerConfig config.ListenerConfig,
 ) error {
-	l.SetConfig(listenerConfig)
+	// Parse configuration
+	var cfg UDPListenerExtraConfig
+	err := mapstructure.Decode(listenerConfig.Extra, &cfg)
+	if err != nil {
+		return err
+	}
 
 	// Create packet server
 	l.Server = &radius.PacketServer{
@@ -73,11 +63,9 @@ func (l *UDPListener) Init(
 			generatePacketHandler(l, server),
 		),
 		SecretSource: radius.StaticSecretSource([]byte(serverConfig.Secret)),
-		Addr:         fmt.Sprintf(":%d", l.GetConfig().Port),
+		Addr:         fmt.Sprintf(":%d", cfg.Port),
 		Ready:        make(chan bool),
 	}
-
-	l.ready = make(chan bool, 1)
 	return nil
 }
 
@@ -110,11 +98,6 @@ func (l *UDPListener) Shutdown(ctx context.Context) error {
 	return l.Server.Shutdown(ctx)
 }
 
-// GetDupDropped override
-func (l *UDPListener) GetDupDropped() *uint32 {
-	return &l.dupDropped
-}
-
 // Ready override
 func (l *UDPListener) Ready() chan bool {
 	return l.ready
@@ -126,7 +109,7 @@ func (l *UDPListener) SetConfig(c config.ListenerConfig) {
 }
 
 // generatePacketHandler A generic handler method to incoming RADIUS packets
-func generatePacketHandler(l Listener, server *Server) func(radius.ResponseWriter, *radius.Request) {
+func generatePacketHandler(l ListenerInterface, server *Server) func(radius.ResponseWriter, *radius.Request) {
 	server.logger.Debug(
 		"Registering handler for listener",
 		zap.String("listener", l.GetConfig().Name),
@@ -151,12 +134,12 @@ func generatePacketHandler(l Listener, server *Server) func(radius.ResponseWrite
 
 		// Get session ID from the request, if exists, and setup correlation ID
 		var correlationField = zap.Uint32("correlation", rand.Uint32())
-		sessionID := getSessionID(r)
+		sessionID := server.GetSessionID(r)
 
 		// Create request context
 		requestContext := modules.RequestContext{
 			RequestID:      correlationField.Integer,
-			Logger:         server.loggerFactory.Bg().With(correlationField),
+			Logger:         server.logger.With(correlationField),
 			SessionID:      sessionID,
 			SessionStorage: session.NewSessionStorage(server.multiSessionStorage, sessionID),
 		}

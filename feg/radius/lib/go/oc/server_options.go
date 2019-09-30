@@ -11,17 +11,17 @@ package oc
 import (
 	"encoding/json"
 
-	"fbc/lib/go/http/server"
-
 	"contrib.go.opencensus.io/exporter/aws"
 	"contrib.go.opencensus.io/exporter/jaeger"
 	"contrib.go.opencensus.io/exporter/prometheus"
+	"fbc/lib/go/http/server"
+	"fbc/lib/go/oc/helpers"
 	"github.com/pkg/errors"
+	prom_client "github.com/prometheus/client_golang/prometheus"
 	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 	"go.opencensus.io/trace"
-	"go.opencensus.io/zpages"
 	"go.uber.org/zap"
 )
 
@@ -35,7 +35,6 @@ type (
 		XRay       *xrayOptions
 		Jaeger     *jaeger.Options
 		Prometheus *prometheus.Options
-		ZPages     bool
 	}
 )
 
@@ -81,9 +80,6 @@ func (cc *CensusConfig) ServerOptions() (opts []server.Option) {
 	}
 	if cc.Prometheus != nil {
 		opts = append(opts, prometheusOption(*cc.Prometheus))
-	}
-	if cc.ZPages {
-		opts = append(opts, zpagesOption())
 	}
 	if len(opts) > 0 {
 		opts = append(opts, server.OptionFunc(func(*server.Server) error {
@@ -148,9 +144,22 @@ func prometheusOption(options prometheus.Options) server.Option {
 		options.OnError = func(err error) {
 			srv.Logger.Bg().Warn("prometheus exporter failure", zap.Error(err))
 		}
+		options.Registry = prom_client.NewRegistry()
 		exporter, err := prometheus.NewExporter(options)
 		if err != nil {
 			return errors.Wrap(err, "creating prometheus exporter")
+		}
+
+		// Adding process collector
+		if err := options.Registry.Register(prom_client.NewProcessCollector(
+			prom_client.ProcessCollectorOpts{Namespace: options.Namespace},
+		)); err != nil {
+			return errors.Wrap(err, "registering process collector")
+		}
+
+		// Adding GO collector
+		if err := options.Registry.Register(prom_client.NewGoCollector()); err != nil {
+			return errors.Wrap(err, "registering go collector")
 		}
 		if err := view.Register(
 			ochttp.ServerRequestCountView,
@@ -172,15 +181,17 @@ func prometheusOption(options prometheus.Options) server.Option {
 		); err != nil {
 			return errors.Wrap(err, "registering http client views")
 		}
+		if err := view.Register(
+			helpers.LatencyView,
+			helpers.ErrorCountView,
+			helpers.SuccessCountView,
+			helpers.CountView,
+		); err != nil {
+			return errors.Wrap(err, "registering customized KPI views")
+		}
+
 		view.RegisterExporter(exporter)
 		srv.Mux.Handle("/metrics", exporter)
-		return nil
-	})
-}
-
-func zpagesOption() server.Option {
-	return server.OptionFunc(func(srv *server.Server) error {
-		zpages.Handle(srv.Mux, "/debug")
 		return nil
 	})
 }

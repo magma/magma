@@ -20,12 +20,15 @@ option go_package = "magma/lte/cloud/go/protos";
 message SetupFlowsRequest {
   // List of rules to activate
   repeated ActivateFlowsRequest rules = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
 }
 
 message SetupFlowsResult {
   enum Result {
     SUCCESS = 0;
     FAILURE = 1;
+    OUTDATED_EPOCH = 2;
   }
   Result result = 1;
 }

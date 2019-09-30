@@ -22,6 +22,8 @@
 #include "LocalSessionManagerHandler.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
+#include "SessionState.h"
+#include "SpgwServiceClient.h"
 
 using grpc::Status;
 using ::testing::_;
@@ -61,6 +63,7 @@ class MockPipelinedClient : public PipelinedClient {
  public:
   MockPipelinedClient()
   {
+    ON_CALL(*this, setup(_,_,_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _))
       .WillByDefault(Return(true));
@@ -69,6 +72,11 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, add_ue_mac_flow(_, _)).WillByDefault(Return(true));
   }
 
+  MOCK_METHOD3(setup,
+    bool(
+      const std::vector<SessionState::SessionInfo> &infos,
+      const std::uint64_t &epoch,
+      std::function<void(Status status, SetupFlowsResult)> callback));
   MOCK_METHOD1(deactivate_all_flows, bool(const std::string &imsi));
   MOCK_METHOD3(
     deactivate_flows_for_rules,
@@ -190,6 +198,32 @@ class MockAAAClient : public aaa::AAAClient {
     bool(
       const std::string &radius_session_id,
       const std::string &imsi));
+};
+
+class MockSpgwServiceClient : public SpgwServiceClient {
+  public:
+    MockSpgwServiceClient()
+    {
+      ON_CALL(*this, delete_dedicated_bearer(_, _, _, _))
+        .WillByDefault(Return(true));
+      ON_CALL(*this, create_dedicated_bearer(_, _, _, _))
+        .WillByDefault(Return(true));
+    }
+
+    MOCK_METHOD4(
+      delete_dedicated_bearer,
+      bool(
+        const std::string &,
+        const std::string &,
+        const uint32_t,
+        const std::vector<uint32_t> &));
+    MOCK_METHOD4(
+      create_dedicated_bearer,
+      bool(
+        const std::string &,
+        const std::string &,
+        const uint32_t,
+        const std::vector<PolicyRule> &));
 };
 
 } // namespace magma

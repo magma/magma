@@ -131,7 +131,7 @@ func configurePrometheusAlert(networkID, url string, c echo.Context) error {
 	}
 
 	sendErr := sendConfig(rule, url, http.MethodPost)
-	if err != nil {
+	if sendErr != nil {
 		return obsidian.HttpError(sendErr, sendErr.Code)
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)

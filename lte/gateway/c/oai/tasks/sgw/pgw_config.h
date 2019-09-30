@@ -28,6 +28,7 @@
 
 #ifndef FILE_PGW_CONFIG_SEEN
 #define FILE_PGW_CONFIG_SEEN
+
 #include <sys/socket.h> // inet_aton
 #include <netinet/in.h> // inet_aton
 #include <arpa/inet.h>  // inet_aton
@@ -37,6 +38,7 @@
 
 #include "queue.h"
 #include "bstrlib.h"
+#include "pgw_types.h"
 
 #define PGW_CONFIG_STRING_PGW_CONFIG "P-GW"
 #define PGW_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
@@ -81,13 +83,7 @@
 
 // may be more
 #define PGW_MAX_ALLOCATED_PDN_ADDRESSES 1024
-
-typedef struct conf_ipv4_list_elm_s {
-  STAILQ_ENTRY(conf_ipv4_list_elm_s) ipv4_entries;
-  struct in_addr addr;
-} conf_ipv4_list_elm_t;
-
-#include "pgw_pcef_emulation.h"
+#define PGW_NUM_UE_POOL_MAX 16
 
 typedef struct pgw_config_s {
   /* Reader/writer lock for this configuration */
@@ -115,7 +111,6 @@ typedef struct pgw_config_s {
   bool masquerade_SGI;
 
   int num_ue_pool;
-#define PGW_NUM_UE_POOL_MAX 16
   uint8_t ue_pool_mask[PGW_NUM_UE_POOL_MAX];
   struct in_addr ue_pool_addr[PGW_NUM_UE_POOL_MAX];
 

@@ -9,7 +9,7 @@
  */
 
 // TODO
-// import type {CellularNetworkConfig} from '@fbcnms/magmanms/app/common/MagmaAPIType';
+import type {CellularNetworkConfig} from '@fbcnms/magmalte/app/common/MagmaAPIType';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -25,9 +25,7 @@ const logger = require('@fbcnms/logging').getLogger(module);
 
 const router = express.Router();
 
-// TODO
-// const DEFAULT_CELLULAR_CONFIG: CellularNetworkConfig = {
-const DEFAULT_CELLULAR_CONFIG = {
+const DEFAULT_CELLULAR_CONFIG: CellularNetworkConfig = {
   epc: {
     cloud_subscriberdb_enabled: false,
     default_rule_id: '',

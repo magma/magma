@@ -13,4 +13,5 @@ const (
 
 	CwfNetworkPath = "carrier_wifi"
 	CwfNetworkType = "carrier_wifi_network"
+	CwfGatewayType = "carrier_wifi_gateway"
 )

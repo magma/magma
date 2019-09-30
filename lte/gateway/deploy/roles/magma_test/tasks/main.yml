@@ -69,9 +69,7 @@
 
 - name: Install MySQL client for OAI upstreaming
   become: yes
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - default-libmysqlclient-dev
+  apt: pkg=default-libmysqlclient-dev state=present update_cache=yes
   when: preburn
 
 ###############################################
@@ -100,11 +98,9 @@
 - name: Setup build requirements for python sdk
   become: yes
   apt:
-    pkg: "{{ item }}"
+    pkg: openjdk-8-jdk
     state: present
     update_cache: yes
-  with_items:
-    - openjdk-8-jdk
   when: preburn
 
 - name: Download maven

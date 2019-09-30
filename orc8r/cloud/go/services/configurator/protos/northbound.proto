@@ -24,6 +24,10 @@ service NorthboundConfigurator {
     rpc DeleteNetworks (DeleteNetworksRequest) returns (magma.orc8r.Void) {}
     // LoadNetworks fetches the set of Networks specified by the request
     rpc LoadNetworks (LoadNetworksRequest) returns (storage.NetworkLoadResult) {}
+
+    // Perform multiple operations (create/update/delete) in a single
+    // transaction
+    rpc WriteEntities (WriteEntitiesRequest) returns (WriteEntitiesResponse) {}
     // CreateEntities registers the given list of Entities and returns the created Entities
     rpc CreateEntities (CreateEntitiesRequest) returns (CreateEntitiesResponse) {}
     // UpdateEntities updates the given list of registered Entities and returns the updated Entities
@@ -63,6 +67,23 @@ message LoadEntitiesRequest {
     string networkID = 1;
     storage.EntityLoadFilter filter = 2;
     storage.EntityLoadCriteria criteria = 3;
+}
+
+message WriteEntitiesRequest {
+    string networkID = 1;
+    repeated WriteEntityRequest writes = 2;
+}
+
+message WriteEntityRequest {
+    oneof request {
+        storage.NetworkEntity create = 1;
+        storage.EntityUpdateCriteria update = 2;
+    }
+}
+
+message WriteEntitiesResponse {
+    repeated storage.NetworkEntity created_entities = 1;
+    map<string, storage.NetworkEntity> updated_entities = 2;
 }
 
 message CreateEntitiesRequest {

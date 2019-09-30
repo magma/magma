@@ -1,0 +1,79 @@
+{
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        },
+        "ods": {
+            "category_id": "958",
+            "prefix": "goradius",
+            "access_token": "$MONITORING_ACCESS_TOKEN",
+            "entity": "goradius",
+            "graph_url": "https://graph.facebook.com/ods_metrics",
+            "unique_entity": true
+        },
+        "scuba": {
+            "access_token": "$MONITORING_ACCESS_TOKEN",
+            
+        }
+    },
+    "server": {
+        "secret": "$RADIUS_SECRET",
+        "dedupWindow": "500ms",
+        "listeners": [
+            {
+                "name": "auth",
+                "type": "udp",
+                "extra": {
+                    "port": 1812
+                },
+                "modules": [
+                    {
+                        "name": "xwfv3",
+                        "config": {
+                            "AccessToken": "$RADIUS_ACCESS_TOKEN",
+                            "URI": "https://graph.expresswifi.com/v3.0/radius/authorization",
+                            "Method": "POST"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "acct",
+                "type": "udp",
+                "extra": {
+                    "port": 1813
+                },
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": -1
+                        }
+                    },
+                    {
+                        "name": "xwfv3",
+                        "config": {
+                            "AccessToken": "$RADIUS_ACCESS_TOKEN",
+                            "URI": "https://graph.expresswifi.com/v3.0/radius/accounting",
+                            "Method": "POST"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "coa",
+                "url": "https://streaming-graph.facebook.com/xwf_coa_subscribe?access_token=$RADIUS_ACCESS_TOKEN",
+                "type": "sse",
+                "modules": [
+                    {
+                        "name": "coadynamic",
+                        "config": {
+                            "Port": 3799
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

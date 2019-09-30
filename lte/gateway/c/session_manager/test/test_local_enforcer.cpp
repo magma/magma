@@ -12,8 +12,9 @@
 #include <time.h>
 #include <future>
 
-#include <gtest/gtest.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <gtest/gtest.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
 #include "MagmaService.h"
 #include "ProtobufCreators.h"
@@ -41,9 +42,10 @@ class LocalEnforcerTest : public ::testing::Test {
     reporter = std::make_shared<MockSessionCloudReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
+    spgw_client = std::make_shared<MockSpgwServiceClient>();
     aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_unique<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, aaa_client, 0);
+      reporter, rule_store, pipelined_client, spgw_client, aaa_client, 0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
   }
@@ -109,6 +111,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
+  std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   folly::EventBase *evb;
 };
@@ -122,6 +125,39 @@ MATCHER_P2(CheckActivateFlows, imsi, rule_count, "")
 {
   auto request = static_cast<const ActivateFlowsRequest *>(arg);
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
+}
+
+MATCHER_P4(CheckSessionInfos, imsi_list, ip_address_list, static_rule_lists,
+           dynamic_rule_ids_lists, "")
+{
+  auto infos = static_cast<const std::vector<SessionState::SessionInfo>>(arg);
+
+  if (infos.size() != imsi_list.size())
+    return false;
+
+  for (int i = 0; i < infos.size(); i++)
+  {
+    if (infos[i].imsi != imsi_list[i])
+      return false;
+    if (infos[i].ip_addr != ip_address_list[i])
+      return false;
+    if (infos[i].static_rules.size() != static_rule_lists[i].size())
+      return false;
+    if (infos[i].dynamic_rules.size() != dynamic_rule_ids_lists[i].size())
+      return false;
+    for (int r_index = 0; i < infos[i].static_rules.size(); i++)
+    {
+      if (infos[i].static_rules[r_index] != static_rule_lists[i][r_index])
+        return false;
+    }
+    for (int r_index = 0; i < infos[i].dynamic_rules.size(); i++)
+    {
+      if (infos[i].dynamic_rules[r_index].id() !=
+          dynamic_rule_ids_lists[i][r_index])
+        return false;
+    }
+  }
+  return true;
 }
 
 TEST_F(LocalEnforcerTest, test_init_cwf_session_credit)
@@ -813,6 +849,51 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"3", 4096}, {"4", 4176}});
 }
 
+TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer)
+{
+  SessionState::QoSInfo test_qos_info;
+  test_qos_info.enabled = true;
+  test_qos_info.qci = 0;
+
+  SessionState::Config test_volte_cfg;
+  test_volte_cfg.ue_ipv4 = "127.0.0.1";
+  test_volte_cfg.bearer_id = 1;
+  test_volte_cfg.qos_info = test_qos_info;
+
+  CreateSessionResponse response;
+  local_enforcer->init_session_credit(
+    "IMSI1", "1234", test_volte_cfg, response);
+
+  PolicyReAuthRequest rar;
+  std::vector<std::string> rules_to_remove;
+  std::vector<StaticRuleInstall> rules_to_install;
+  std::vector<DynamicRuleInstall> dynamic_rules_to_install;
+  std::vector<EventTrigger> event_triggers;
+  std::vector<UsageMonitoringCredit> usage_monitoring_credits;
+  create_policy_reauth_request(
+    "session1",
+    "IMSI1",
+    rules_to_remove,
+    rules_to_install,
+    dynamic_rules_to_install,
+    event_triggers,
+    time(NULL),
+    usage_monitoring_credits,
+    &rar);
+  auto rar_qos_info = rar.mutable_qos_info();
+  rar_qos_info->set_qci(QCI_1);
+
+  EXPECT_CALL(
+    *spgw_client,
+    create_dedicated_bearer(testing::_, testing::_, testing::_, testing::_))
+  .Times(1)
+  .WillOnce(testing::Return(true));
+
+  PolicyReAuthAnswer raa;
+  local_enforcer->init_policy_reauth(rar, raa);
+  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+}
+
 TEST_F(LocalEnforcerTest, test_rar_session_not_found)
 {
   PolicyReAuthRequest rar;
@@ -877,6 +958,51 @@ TEST_F(LocalEnforcerTest, test_rar_revalidation_timer)
   rar.add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
   local_enforcer->init_policy_reauth(rar, raa);
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+}
+
+TEST_F(LocalEnforcerTest, test_pipelined_setup)
+{
+  // insert into rule store first so init_session_credit can find the rule
+  insert_static_rule(1, "", "rule2");
+
+  CreateSessionResponse response;
+  create_credit_update_response(
+    "IMSI1", 1, 1024, response.mutable_credits()->Add());
+  auto epoch = 145;
+  auto dynamic_rule = response.mutable_dynamic_rules()->Add();
+  auto policy_rule = dynamic_rule->mutable_policy_rule();
+  policy_rule->set_id("rule1");
+  policy_rule->set_rating_group(1);
+  policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  auto static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("rule2");
+  local_enforcer->init_session_credit("IMSI1", "1234", test_cfg, response);
+
+  CreateSessionResponse response2;
+  create_credit_update_response(
+    "IMSI2", 1, 2048, response2.mutable_credits()->Add());
+  auto dynamic_rule2 = response2.mutable_dynamic_rules()->Add();
+  auto policy_rule2 = dynamic_rule2->mutable_policy_rule();
+  policy_rule2->set_id("rule22");
+  policy_rule2->set_rating_group(1);
+  policy_rule2->set_tracking_type(PolicyRule::ONLY_OCS);
+  local_enforcer->init_session_credit("IMSI2", "12345", test_cfg, response2);
+
+  std::vector<std::string> imsi_list = {"IMSI2", "IMSI1"};
+  std::vector<std::string> ip_address_list = {"127.0.0.1", "127.0.0.1"};
+  std::vector<std::vector<std::string>> static_rule_list = {{}, {"rule2"}};
+  std::vector<std::vector<std::string>> dynamic_rule_list = {{"rule22"},
+                                                             {"rule1"}};
+
+  EXPECT_CALL(
+    *pipelined_client,
+    setup(CheckSessionInfos(imsi_list, ip_address_list, static_rule_list,
+                            dynamic_rule_list), testing::_, testing::_))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+
+    local_enforcer->setup(epoch,
+      [](Status status, SetupFlowsResult resp) {});
 }
 
 int main(int argc, char **argv)

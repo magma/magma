@@ -13,6 +13,7 @@ package servicers
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"magma/feg/cloud/go/protos"
@@ -56,7 +57,61 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 			req.SipNumAuthVectors = MinRequestedVectors // Get Max allowed # of vectors for caching
 		}
 	}
+	maa, err := s.sendMAR(req)
+	if err != nil {
+		if protos.SwxErrorCode(status.Code(err)) != protos.SwxErrorCode_IDENTITY_ALREADY_REGISTERED {
+			return res, err
+		}
+		aaaHost := string(maa.AAAServerName)
+		if len(aaaHost) > 0 {
+			originRalm := s.config.ClientCfg.Realm
+			if s.config.DeriveUnregisterRealm {
+				ha := strings.SplitN(aaaHost, ".", 2)
+				if len(ha) == 2 && len(ha[1]) > 0 {
+					originRalm = ha[1]
+				} else {
+					glog.Errorf("Cannot derive Origin-Realm from AAA-Server-Name: %s", aaaHost)
+				}
+			}
+			// deregister
+			s.sendSARExt(
+				req.GetUserName(),
+				ServerAssignnmentType_USER_DEREGISTRATION,
+				aaaHost,
+				originRalm)
+			// repeat MAR after deregistration
+			maa, err = s.sendMAR(req)
+		}
+		if err != nil {
+			return res, err
+		}
+	}
 
+	if shouldSendSar {
+		profile, authorized, err := s.retrieveUserProfile(req.GetUserName())
+		if err != nil {
+			glog.Error(err)
+		}
+		// If user is unauthorized, don't send back auth vectors
+		if !authorized {
+			return res, err
+		}
+		res.UserProfile = profile
+	} else if s.config.RegisterOnAuth {
+		err := s.registerUser(req.GetUserName())
+		if err != nil {
+			glog.Error(err)
+		}
+	}
+	res.SipAuthVectors = getSIPAuthenticationVectors(maa.SIPAuthDataItems)
+	// The only point when we cache vectors
+	if s.cache != nil {
+		res = s.cache.Put(res)
+	}
+	return res, err
+}
+
+func (s *swxProxy) sendMAR(req *protos.AuthenticationRequest) (*MAA, error) {
 	sid := s.genSID()
 	ch := make(chan interface{})
 	s.requestTracker.RegisterRequest(sid, ch)
@@ -65,7 +120,7 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 
 	marMsg, err := s.createMAR(sid, req)
 	if err != nil {
-		return res, status.Errorf(codes.InvalidArgument, err.Error())
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 
 	marStartTime := time.Now()
@@ -74,7 +129,7 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 		metrics.MARSendFailures.Inc()
 		err = status.Errorf(codes.Internal, "Error while sending MAR with SID %s: %s", sid, err)
 		glog.Error(err)
-		return res, err
+		return nil, err
 	}
 	metrics.MARRequests.Inc()
 	select {
@@ -84,14 +139,14 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 			metrics.SwxInvalidSessions.Inc()
 			err = status.Errorf(codes.Aborted, "MAA for Session ID: %s is cancelled", sid)
 			glog.Error(err)
-			return res, err
+			return nil, err
 		}
 		maa, ok := resp.(*MAA)
 		if !ok {
 			metrics.SwxUnparseableMsg.Inc()
 			err = status.Errorf(codes.Internal, "Invalid Response Type: %T, MAA expected.", resp)
 			glog.Error(err)
-			return res, err
+			return nil, err
 		}
 		err = diameter.TranslateDiamResultCode(maa.ResultCode)
 		metrics.SwxResultCodes.WithLabelValues(strconv.FormatUint(uint64(maa.ResultCode), 10)).Inc()
@@ -101,40 +156,25 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 			metrics.SwxExperimentalResultCodes.WithLabelValues(strconv.FormatUint(uint64(maa.ExperimentalResult.ExperimentalResultCode), 10)).Inc()
 		}
 		// According to spec 29.273, SIP-Auth-Data-Item(s) only present on SUCCESS
-		if err != nil {
-			return res, err
-		}
-
-		if shouldSendSar {
-			profile, authorized, err := s.retrieveUserProfile(req.GetUserName())
-			if err != nil {
-				glog.Error(err)
-			}
-			// If user is unauthorized, don't send back auth vectors
-			if !authorized {
-				return res, err
-			}
-			res.UserProfile = profile
-		}
-		res.SipAuthVectors = getSIPAuthenticationVectors(maa.SIPAuthDataItems)
-		// The only point when we cache vectors
-		if s.cache != nil {
-			res = s.cache.Put(res)
-		}
+		return maa, err
 
 	case <-time.After(time.Second * TIMEOUT_SECONDS):
 		metrics.MARLatency.Observe(time.Since(marStartTime).Seconds())
 		metrics.SwxTimeouts.Inc()
 		err = status.Errorf(codes.DeadlineExceeded, "MAA Timed Out for Session ID: %s", sid)
 		glog.Error(err)
+		return nil, err
 	}
-	return res, err
 }
 
-// retrieveUserProfile sends SARs with ServerAssignmentType AAA_USER_DATA_REQUEST, receives back SAA
+// retrieveUserProfile sends SARs with ServerAssignmentType AAA_USER_DATA_REQUEST or REGISTRATION, receives back SAA
 // and returns the subscribers's Non-3GPP-User-Data profile
 func (s *swxProxy) retrieveUserProfile(userName string) (*protos.AuthenticationAnswer_UserProfile, bool, error) {
-	saa, err := s.sendSAR(userName, ServerAssignmentType_AAA_USER_DATA_REQUEST)
+	var sat uint32 = ServerAssignmentType_AAA_USER_DATA_REQUEST
+	if s.config.RegisterOnAuth {
+		sat = ServerAssignmentType_REGISTRATION
+	}
+	saa, err := s.sendSAR(userName, sat)
 	if err != nil {
 		return nil, true, err
 	}
@@ -152,6 +192,12 @@ func (s *swxProxy) retrieveUserProfile(userName string) (*protos.AuthenticationA
 		Msisdn: string(saa.UserData.SubscriptionId.SubscriptionIdData),
 	}
 	return userProfile, true, nil
+}
+
+// registerUser sends SARs with ServerAssignmentType REGISTRATION
+func (s *swxProxy) registerUser(userName string) error {
+	_, err := s.sendSAR(userName, ServerAssignmentType_REGISTRATION)
+	return err
 }
 
 // createMAR creates a Multimedia Authentication Request diameter msg with provided SessionID (sid)

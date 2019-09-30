@@ -45,6 +45,7 @@ type CreditControlRequest struct {
 	GcID          string
 	Qos           *QosRequestInfo
 	UsageReports  []*UsageReport
+	HardwareAddr  []byte
 }
 
 type QosRequestInfo struct {
@@ -109,11 +110,12 @@ type RuleDefinition struct {
 
 // QoS per service date flow message
 type QosInformation struct {
-	MaxReqBwUL *uint32 `avp:"Max-Requested-Bandwidth-UL"`
-	MaxReqBwDL *uint32 `avp:"Max-Requested-Bandwidth-DL"`
-	GbrDL      *uint32 `avp:"Guaranteed-Bitrate-DL"`
-	GbrUL      *uint32 `avp:"Guaranteed-Bitrate-UL"`
-	Qci        *int32  `avp:"QoS-Class-Identifier"`
+	BearerIdentifier string  `avp:"Bearer-Identifier"`
+	MaxReqBwUL       *uint32 `avp:"Max-Requested-Bandwidth-UL"`
+	MaxReqBwDL       *uint32 `avp:"Max-Requested-Bandwidth-DL"`
+	GbrDL            *uint32 `avp:"Guaranteed-Bitrate-DL"`
+	GbrUL            *uint32 `avp:"Guaranteed-Bitrate-UL"`
+	Qci              *uint32 `avp:"QoS-Class-Identifier"`
 }
 
 // RuleInstallAVP represents a policy rule to install. It can hold one of

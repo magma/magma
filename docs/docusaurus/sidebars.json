@@ -1,6 +1,6 @@
 {
   "docs": {
-    "Basics": ["basics/introduction", "basics/prerequisites"],
+    "Basics": ["basics/introduction", "basics/prerequisites", "basics/quick_start_guide"],
     "Orchestrator": [
       {
         "type": "subcategory",

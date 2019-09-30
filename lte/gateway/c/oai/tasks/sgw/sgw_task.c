@@ -37,22 +37,20 @@
 #include "hashtable.h"
 #include "log.h"
 #include "common_defs.h"
+#include "gtpv1_u_messages_types.h"
+#include "gtpv1u_sgw_defs.h"
 #include "intertask_interface.h"
+#include "intertask_interface_types.h"
 #include "itti_free_defined_msg.h"
 #include "sgw_defs.h"
 #include "sgw_handlers.h"
-#include "sgw.h"
-#include "spgw_config.h"
-#include "pgw_ue_ip_address_alloc.h"
-#include "gtpv1_u_messages_types.h"
-#include "gtpv1u_sgw_defs.h"
-#include "intertask_interface_types.h"
-#include "pgw_pcef_emulation.h"
 #include "sgw_config.h"
 #include "sgw_context_manager.h"
+#include "pgw_ue_ip_address_alloc.h"
+#include "pgw_pcef_emulation.h"
+#include "spgw_config.h"
 
 spgw_config_t spgw_config;
-sgw_app_t sgw_app;
 
 extern __pid_t g_pid;
 
@@ -62,11 +60,13 @@ static void sgw_exit(void);
 static void *sgw_intertask_interface(void *args_p)
 {
   itti_mark_task_ready(TASK_SPGW_APP);
+  spgw_state_t *spgw_state_p;
 
   while (1) {
     MessageDef *received_message_p = NULL;
-
     itti_receive_msg(TASK_SPGW_APP, &received_message_p);
+
+    spgw_state_p = get_spgw_state();
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case GTPV1U_CREATE_TUNNEL_RESP: {
@@ -78,7 +78,7 @@ static void *sgw_intertask_interface(void *args_p)
             "Success" :
             "Failure");
         sgw_handle_gtpv1uCreateTunnelResp(
-          &received_message_p->ittiMsg.gtpv1uCreateTunnelResp);
+          spgw_state_p, &received_message_p->ittiMsg.gtpv1uCreateTunnelResp);
       } break;
 
       case MESSAGE_TEST:
@@ -87,6 +87,7 @@ static void *sgw_intertask_interface(void *args_p)
 
       case S11_CREATE_BEARER_RESPONSE: {
         sgw_handle_create_bearer_response(
+          spgw_state_p,
           &received_message_p->ittiMsg.s11_create_bearer_response);
       } break;
 
@@ -98,59 +99,65 @@ static void *sgw_intertask_interface(void *args_p)
          * * * *      UE requests PDN connectivity
          */
         sgw_handle_create_session_request(
+          spgw_state_p,
           &received_message_p->ittiMsg.s11_create_session_request);
       } break;
 
       case S11_DELETE_SESSION_REQUEST: {
         sgw_handle_delete_session_request(
+          spgw_state_p,
           &received_message_p->ittiMsg.s11_delete_session_request);
       } break;
 
       case S11_MODIFY_BEARER_REQUEST: {
         sgw_handle_modify_bearer_request(
-          &received_message_p->ittiMsg.s11_modify_bearer_request);
+          spgw_state_p, &received_message_p->ittiMsg.s11_modify_bearer_request);
       } break;
 
       case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
         sgw_handle_release_access_bearers_request(
+          spgw_state_p,
           &received_message_p->ittiMsg.s11_release_access_bearers_request);
       } break;
 
       case S11_SUSPEND_NOTIFICATION: {
         sgw_handle_suspend_notification(
-          &received_message_p->ittiMsg.s11_suspend_notification);
+          spgw_state_p, &received_message_p->ittiMsg.s11_suspend_notification);
       } break;
 
       case GTPV1U_UPDATE_TUNNEL_RESP: {
         sgw_handle_gtpv1uUpdateTunnelResp(
-          &received_message_p->ittiMsg.gtpv1uUpdateTunnelResp);
+          spgw_state_p, &received_message_p->ittiMsg.gtpv1uUpdateTunnelResp);
       } break;
 
       case SGI_CREATE_ENDPOINT_RESPONSE: {
         sgw_handle_sgi_endpoint_created(
+          spgw_state_p,
           &received_message_p->ittiMsg.sgi_create_end_point_response);
       } break;
 
       case SGI_UPDATE_ENDPOINT_RESPONSE: {
         sgw_handle_sgi_endpoint_updated(
+          spgw_state_p,
           &received_message_p->ittiMsg.sgi_update_end_point_response);
       } break;
 
       case S5_CREATE_BEARER_RESPONSE: {
         sgw_handle_s5_create_bearer_response(
-          &received_message_p->ittiMsg.s5_create_bearer_response);
+          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_response);
       } break;
 
       case S5_NW_INITIATED_ACTIVATE_BEARER_REQ: {
         //Handle Dedicated bearer activation from PCRF
         sgw_handle_nw_initiated_actv_bearer_req(
-          &received_message_p->ittiMsg.
-          s5_nw_init_actv_bearer_request);
+          spgw_state_p,
+          &received_message_p->ittiMsg.s5_nw_init_actv_bearer_request);
       } break;
 
       case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer Activation Rsp from MME
         sgw_handle_nw_initiated_actv_bearer_rsp(
+          spgw_state_p,
           &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp);
       } break;
 
@@ -163,10 +170,12 @@ static void *sgw_intertask_interface(void *args_p)
       case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer deactivation Rsp from MME
         sgw_handle_nw_initiated_deactv_bearer_rsp(
+          spgw_state_p,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp);
       } break;
 
       case TERMINATE_MESSAGE: {
+        put_spgw_state();
         sgw_exit();
         itti_exit_task();
       } break;
@@ -180,6 +189,8 @@ static void *sgw_intertask_interface(void *args_p)
       } break;
     }
 
+    put_spgw_state();
+
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
@@ -189,63 +200,25 @@ static void *sgw_intertask_interface(void *args_p)
 }
 
 //------------------------------------------------------------------------------
-int sgw_init(spgw_config_t *spgw_config_pP)
+int sgw_init(spgw_config_t *spgw_config_pP, bool persist_state)
 {
   OAILOG_DEBUG(LOG_SPGW_APP, "Initializing SPGW-APP  task interface\n");
 
-  if (gtpv1u_init(spgw_config_pP) < 0) {
+  if (spgw_state_init(persist_state, spgw_config_pP) < 0) {
+    OAILOG_ALERT(LOG_SPGW_APP, "Error while initializing SGW state\n");
+    return RETURNerror;
+  }
+
+  spgw_state_t *spgw_state_p = get_spgw_state();
+
+  if (gtpv1u_init(spgw_state_p, spgw_config_pP) < 0) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
 
-  pgw_ip_address_pool_init();
-
-  bstring b = bfromcstr("sgw_s11teid2mme_hashtable");
-  sgw_app.s11teid2mme_hashtable = hashtable_ts_create(512, NULL, NULL, b);
-  btrunc(b, 0);
-
-  if (sgw_app.s11teid2mme_hashtable == NULL) {
-    perror("hashtable_ts_create");
-    bdestroy_wrapper(&b);
-    OAILOG_ALERT(LOG_SPGW_APP, "Initializing SPGW-APP task interface: ERROR\n");
-    return RETURNerror;
-  }
-
-  /*sgw_app.s1uteid2enb_hashtable = hashtable_ts_create (512, NULL, NULL, "sgw_s1uteid2enb_hashtable");
-
-  if (sgw_app.s1uteid2enb_hashtable == NULL) {
-    perror ("hashtable_ts_create");
-    OAILOG_ALERT (LOG_SPGW_APP, "Initializing SPGW-APP task interface: ERROR\n");
-    return RETURNerror;
-  }*/
-
-  bassigncstr(b, "sgw_s11_bearer_context_information_hashtable");
-  sgw_app.s11_bearer_context_information_hashtable = hashtable_ts_create(
-    512,
-    NULL,
-    (void (*)(void **)) sgw_cm_free_s_plus_p_gw_eps_bearer_context_information,
-    b);
-  bdestroy_wrapper(&b);
-
-  if (sgw_app.s11_bearer_context_information_hashtable == NULL) {
-    perror("hashtable_ts_create");
-    OAILOG_ALERT(LOG_SPGW_APP, "Initializing SPGW-APP task interface: ERROR\n");
-    return RETURNerror;
-  }
-
-  sgw_app.sgw_if_name_S1u_S12_S4_up =
-    bstrcpy(spgw_config_pP->sgw_config.ipv4.if_name_S1u_S12_S4_up);
-  sgw_app.sgw_ip_address_S1u_S12_S4_up.s_addr =
-    spgw_config_pP->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
-  sgw_app.sgw_if_name_S11_S4 =
-    bstrcpy(spgw_config_pP->sgw_config.ipv4.if_name_S11);
-  sgw_app.sgw_ip_address_S11_S4.s_addr =
-    spgw_config_pP->sgw_config.ipv4.S11.s_addr;
-
-  sgw_app.sgw_ip_address_S5_S8_up.s_addr =
-    spgw_config_pP->sgw_config.ipv4.S5_S8_up.s_addr;
-
-  if (RETURNerror == pgw_pcef_emulation_init(&spgw_config_pP->pgw_config)) {
+  if (
+    RETURNerror ==
+    pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {
     return RETURNerror;
   }
 
@@ -270,13 +243,9 @@ int sgw_init(spgw_config_t *spgw_config_pP)
 //------------------------------------------------------------------------------
 static void sgw_exit(void)
 {
-  if (sgw_app.s11teid2mme_hashtable) {
-    hashtable_ts_destroy(sgw_app.s11teid2mme_hashtable);
-  }
-  /*if (sgw_app.s1uteid2enb_hashtable) {
-    hashtable_destroy (sgw_app.s1uteid2enb_hashtable);
-  }*/
-  if (sgw_app.s11_bearer_context_information_hashtable) {
-    hashtable_ts_destroy(sgw_app.s11_bearer_context_information_hashtable);
-  }
+  OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
+
+  spgw_state_exit();
+
+  OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");
 }

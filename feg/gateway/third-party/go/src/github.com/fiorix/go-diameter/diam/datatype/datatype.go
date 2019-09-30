@@ -36,6 +36,7 @@ const (
 	UTF8StringType
 	Unsigned32Type
 	Unsigned64Type
+	IPv6Type
 )
 
 // Available is a map of data types available, indexed by name.
@@ -49,6 +50,7 @@ var Available = map[string]TypeID{
 	"Grouped":          GroupedType,
 	"IPFilterRule":     IPFilterRuleType,
 	"IPv4":             IPv4Type,
+	"IPv6":             IPv6Type,
 	"Integer32":        Integer32Type,
 	"Integer64":        Integer64Type,
 	"OctetString":      OctetStringType,

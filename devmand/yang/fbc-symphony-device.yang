@@ -1,0 +1,71 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+//
+module fbc-symphony-device {
+    yang-version 1.1;
+    namespace "http://facebook.com/yang/fbc-symphony/device";
+    prefix dev;
+
+    import ietf-yang-types {
+        prefix yang;
+    }
+
+    import ietf-geo-location {
+        prefix loc;
+    }
+
+    organization "Facebook, Inc.";
+
+    contact "David Bond <davidmokonbond@fb.com>";
+
+    description "This module defines basic information the Facebook
+        Connectivity Platform might need to communicate about devices.";
+
+    revision 2019-08-01 {
+        description "Initial revision";
+    }
+
+    typedef status {
+        type enumeration {
+            enum UP {
+                description "The controller is able to reach this device.";
+            }
+            enum DOWN {
+                description "The controller is unable to reach this device.";
+            }
+        }
+    }
+
+    container system {
+        leaf status {
+            type status;
+            description "A brief context about the state of the device as
+                ascertained by the controller.";
+        }
+
+        leaf last-activity {
+            type yang:timestamp;
+            description "A timestamp giving the last known time when some
+                action with this device was successful. This is given in seconds
+                since the start of the Unix Epoch.";
+        }
+
+        uses loc:geo-location {
+            refine geo-location/location {
+                mandatory false;
+            }
+        }
+    }
+
+    leaf-list errors {
+        type string;
+        description "A list of unstructured strings which contains errors
+            received on this device. The time frame of these errors is not
+            specified as neither is whether this is all the errors in a
+            given timeframe.";
+    }
+}

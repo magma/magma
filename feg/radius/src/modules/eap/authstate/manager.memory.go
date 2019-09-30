@@ -10,8 +10,8 @@ package authstate
 
 import (
 	"errors"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/modules/eap/packet"
+	"fbc/cwf/radius/monitoring/counters"
 	"fmt"
 	"sync"
 

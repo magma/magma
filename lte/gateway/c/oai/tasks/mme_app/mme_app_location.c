@@ -382,7 +382,6 @@ int mme_app_handle_s6a_cancel_location_req(
   int rc = RETURNok;
   uint64_t imsi = 0;
   struct ue_mm_context_s *ue_context_p = NULL;
-  MessageDef *message_p = NULL;
   int cla_result = DIAMETER_SUCCESS;
   itti_nas_sgs_detach_req_t sgs_detach_req = {0};
 
@@ -409,14 +408,16 @@ int mme_app_handle_s6a_cancel_location_req(
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
        &mme_app_desc.mme_ue_contexts, imsi)) == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
+    OAILOG_ERROR(LOG_MME_APP,
+      "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
       imsi);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (clr_pP->cancellation_type != SUBSCRIPTION_WITHDRAWL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "S6a Cancel Location Request: Cancellation_type not supported %d for imsi " IMSI_64_FMT "\n",
+      "S6a Cancel Location Request: Cancellation_type not supported %d for"
+      "imsi " IMSI_64_FMT "\n",
       clr_pP->cancellation_type,
       imsi);
     unlock_ue_contexts(ue_context_p);
@@ -429,54 +430,20 @@ int mme_app_handle_s6a_cancel_location_req(
   ue_context_p->hss_initiated_detach = true;
 
   /*
-   * Check UE's S1 connection status.If UE is in connected state, send Detach Request to UE.
-   * If UE is in idle state, do implicit detach. - TODO once we add support for Paging- Page UE to bring it back to
-   * connected mode and then send Detach Request
+   * Check UE's S1 connection status.If UE is in connected state,
+   * send Detach Request to UE. If UE is in idle state,
+   * Page UE to bring it back to connected mode and then send Detach Request
    */
   if (ue_context_p->ecm_state == ECM_IDLE) {
+    /* Page the UE to bring it back to connected mode
+     * and then send Detach Request
+    */
+    mme_app_paging_request_helper(
+      ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
+    // Set the flag and send detach to UE after receiving service req
+    ue_context_p->emm_context.nw_init_bearer_deactv = true;
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 
-    if (!mme_config.eps_network_feature_support.
-      ims_voice_over_ps_session_in_s1) {
-      // Initiate Implicit Detach for the UE
-      // Stop Mobile reachability timer,if running
-      if (
-        ue_context_p->mobile_reachability_timer.id !=
-          MME_APP_TIMER_INACTIVE_ID) {
-        if (timer_remove(ue_context_p->mobile_reachability_timer.id, NULL)) {
-          OAILOG_ERROR(
-            LOG_MME_APP,
-            "Failed to stop Mobile Reachability timer for UE id  %d \n",
-            ue_context_p->mme_ue_s1ap_id);
-        }
-        ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-      }
-      // Stop Implicit detach timer,if running
-      if (ue_context_p->implicit_detach_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-        if (timer_remove(ue_context_p->implicit_detach_timer.id, NULL)) {
-          OAILOG_ERROR(
-            LOG_MME_APP,
-            "Failed to stop Implicit Detach timer for UE id  %d \n",
-            ue_context_p->mme_ue_s1ap_id);
-        }
-        ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
-      }
-    } else {
-      /* Page the UE to bring it back to connected mode
-       * and then send Detach Request
-      */
-      mme_app_paging_request_helper(
-        ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
-      // Set the flag and send detach to UE after receiving service req
-      ue_context_p->emm_context.nw_init_bearer_deactv = true;
-
-    }
-    // Send Implicit Detach Ind to NAS
-    message_p =
-      itti_alloc_new_message(TASK_MME_APP, NAS_IMPLICIT_DETACH_UE_IND);
-    DevAssert(message_p);
-    message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
-      ue_context_p->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   } else {
     // Send N/W Initiated Detach Request to NAS
 

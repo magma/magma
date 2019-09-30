@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+tag="facebookconnectivity-southpoll-dev-docker.jfrog.io/thirdparty:latest"
+(
+  echo "FROM scratch AS thirdparty"
+  cd thirdparty
+  for pkg in *; do
+    echo "COPY --from=facebookconnectivity-southpoll-dev-docker.jfrog.io/${pkg} /cache/${pkg}/install /cache/install"
+  done
+  cd ..
+) | docker build - --tag ${tag}

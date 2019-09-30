@@ -203,6 +203,8 @@ func (ent NetworkEntity) GetTypeAndKey() storage2.TypeAndKey {
 	return storage2.TypeAndKey{Type: ent.Type, Key: ent.Key}
 }
 
+func (ent NetworkEntity) isEntityWriteOperation() {}
+
 type NetworkEntities []NetworkEntity
 
 func (ne NetworkEntities) ToEntitiesByID() map[storage2.TypeAndKey]NetworkEntity {
@@ -314,6 +316,12 @@ type EntityLoadResult struct {
 	EntitiesNotFound []storage2.TypeAndKey
 }
 
+// EntityWriteOperation is an interface around entity creation/update for the
+// generic multi-operation configurator endpoint.
+type EntityWriteOperation interface {
+	isEntityWriteOperation()
+}
+
 // EntityUpdateCriteria specifies a patch operation on a network entity.
 type EntityUpdateCriteria struct {
 	// (Type, Key) of the entity to update
@@ -369,6 +377,8 @@ func (euc EntityUpdateCriteria) toStorageProto() (*storage.EntityUpdateCriteria,
 func (euc EntityUpdateCriteria) GetTypeAndKey() storage2.TypeAndKey {
 	return storage2.TypeAndKey{Type: euc.Type, Key: euc.Key}
 }
+
+func (euc EntityUpdateCriteria) isEntityWriteOperation() {}
 
 func marshalConfigs(configs map[string]interface{}, domain string) (map[string][]byte, error) {
 	ret := map[string][]byte{}

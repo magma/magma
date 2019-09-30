@@ -49,6 +49,7 @@ message LocalCreateSessionRequest {
   RATType rat_type = 12;
   bytes hardware_addr = 13; // MAC Address for WLAN
   string radius_session_id = 14;
+  uint32 bearer_id = 15;
 }
 
 message LocalCreateSessionResponse {
@@ -138,6 +139,31 @@ message PolicyReAuthRequest {
   repeated EventTrigger event_triggers = 8;
   google.protobuf.Timestamp revalidation_time = 9;
   repeated UsageMonitoringCredit usage_monitoring_credits = 10;
+  QoSInformation qos_info = 11;
+}
+
+enum QCI {
+  QCI_0 = 0;
+  QCI_1 = 1;
+  QCI_2 = 2;
+  QCI_3 = 3;
+  QCI_4 = 4;
+  QCI_5 = 5;
+  QCI_6 = 6;
+  QCI_7 = 7;
+  QCI_8 = 8;
+  QCI_9 = 9;
+  QCI_65 = 65;
+  QCI_66 = 66;
+  QCI_67 = 67;
+  QCI_70 = 70;
+  QCI_75 = 75;
+  QCI_79 = 79;
+}
+
+message QoSInformation {
+  string bearer_id = 1;
+  QCI qci = 2;
 }
 
 enum ReAuthResult {
@@ -326,6 +352,7 @@ message UsageMonitoringUpdateRequest {
   uint32 request_number = 3; // unique among session
   string sid = 4;
   string ue_ipv4 = 5;
+  bytes hardware_addr = 6; // MAC Address for WLAN
 }
 
 // Response to a usage monitor update with the credit received and session info

@@ -66,7 +66,12 @@ function FiringAlerts() {
   });
 
   if (error) {
-    enqueueSnackbar('Unable to load firing alerts', {variant: 'error'});
+    enqueueSnackbar(
+      `Unable to load firing alerts: ${
+        error.response ? error.response.data.message : error.message
+      }`,
+      {variant: 'error'},
+    );
   }
 
   const alerts = response?.data || [];

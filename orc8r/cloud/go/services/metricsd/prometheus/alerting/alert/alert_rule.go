@@ -108,11 +108,6 @@ type RuleJSONWrapper struct {
 }
 
 func (r *RuleJSONWrapper) ToRuleFmt() (rulefmt.Rule, error) {
-	modelFor, err := model.ParseDuration(r.For)
-	if err != nil {
-		return rulefmt.Rule{}, err
-	}
-
 	if r.Labels == nil {
 		r.Labels = make(map[string]string)
 	}
@@ -124,9 +119,15 @@ func (r *RuleJSONWrapper) ToRuleFmt() (rulefmt.Rule, error) {
 		Record:      r.Record,
 		Alert:       r.Alert,
 		Expr:        r.Expr,
-		For:         modelFor,
 		Labels:      r.Labels,
 		Annotations: r.Annotations,
+	}
+	if r.For != "" {
+		modelFor, err := model.ParseDuration(r.For)
+		if err != nil {
+			return rulefmt.Rule{}, err
+		}
+		rule.For = modelFor
 	}
 	return rule, nil
 }

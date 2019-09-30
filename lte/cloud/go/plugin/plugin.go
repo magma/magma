@@ -11,7 +11,7 @@ package plugin
 import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin/handlers"
-	models4 "magma/lte/cloud/go/plugin/models"
+	lteModels "magma/lte/cloud/go/plugin/models"
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
 	cellularState "magma/lte/cloud/go/services/cellular/state"
 	meteringdh "magma/lte/cloud/go/services/meteringd_records/obsidian/handlers"
@@ -51,18 +51,19 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		// TODO: expose enodeb state via swagger model and change serde to swagger serde
-		&cellularState.EnodebStateSerde{},
+		// TODO: remove EnodebStateProtosSerde after gateway change for reporting enodeb state has landed and stabilized
+		&cellularState.EnodebStateProtosSerde{},
+		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
 		state.NewStateSerde(lte.SubscriberStateType, &models3.SubscriberState{}),
 
 		// Configurator serdes
-		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models4.NetworkCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &models4.GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &models4.EnodebConfiguration{}),
+		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
 
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &models2.PolicyRule{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &models2.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &models4.LteSubscription{}),
+		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &lteModels.LteSubscription{}),
 	}
 }
 

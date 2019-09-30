@@ -24,6 +24,8 @@
 #include "SessiondMocks.h"
 #include "LocalEnforcer.h"
 
+#define SESSION_TERMINATION_TIMEOUT_MS 100
+
 using grpc::Status;
 using ::testing::_;
 using ::testing::InSequence;
@@ -44,6 +46,7 @@ class SessiondTest : public ::testing::Test {
     pipelined_mock = std::make_shared<MockPipelined>();
 
     pipelined_client = std::make_shared<AsyncPipelinedClient>(test_channel);
+    spgw_client = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     auto rule_store = std::make_shared<StaticRuleStore>();
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
@@ -51,7 +54,12 @@ class SessiondTest : public ::testing::Test {
 
     reporter = std::make_shared<SessionCloudReporterImpl>(evb, test_channel);
     monitor = std::make_shared<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, nullptr, 0);
+      reporter,
+      rule_store,
+      pipelined_client,
+      spgw_client,
+      nullptr,
+      SESSION_TERMINATION_TIMEOUT_MS);
 
     local_service =
       std::make_shared<service303::MagmaService>("sessiond", "1.0");
@@ -80,6 +88,7 @@ class SessiondTest : public ::testing::Test {
       test_service->WaitForShutdown();
     }).detach();
     std::thread([&]() { pipelined_client->rpc_response_loop(); }).detach();
+    std::thread([&]() { spgw_client->rpc_response_loop(); }).detach();
     std::thread([&]() {
       std::cout << "Started monitor thread\n";
       monitor->attachEventBase(evb);
@@ -141,6 +150,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<service303::MagmaService> local_service;
   std::shared_ptr<service303::MagmaService> test_service;
   std::shared_ptr<AsyncPipelinedClient> pipelined_client;
+  std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
 };
 
 MATCHER_P(CheckCreateSession, imsi, "")
@@ -198,6 +208,15 @@ ACTION_P2(SetEndPromise, promise_p, status)
  * 3) End Session for IMSI1
  * 4) Report rule stats without stats for IMSI1 (terminated)
  *    Expect update with terminated charging keys 1 and 2
+ * One thing to note is that, even though the main thread is halted twice
+ * to enforce the order of function calls to demo a simple case
+ * creating session --> updating usage --> terminating session,
+ * in reality, the order of those functions is not guaranteed
+ * because of the following two reasons.
+ * 1) All function calls to either feg or pipelined are async calls.
+ * 2) ReportRuleStats() is an GRPC invoked by pipelined periodically no matter
+ *    if we have any alive session or not. The invoking of ReportRuleStats()
+ *    is completely independent of both CreateSession() and EndSession().
  */
 TEST_F(SessiondTest, end_to_end_success)
 {
@@ -274,6 +293,12 @@ TEST_F(SessiondTest, end_to_end_success)
   request.set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
+  // The thread needs to be halted before proceeding to call ReportRuleStats()
+  // because the call to pipelined within CreateSession() is an async call,
+  // and the call to pipelined, ActivateFlows(), is assumed in this test
+  // to happend before the ReportRuleStats().
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record("IMSI1", "rule1", 512, 512, record_list->Add());
@@ -282,6 +307,12 @@ TEST_F(SessiondTest, end_to_end_success)
   grpc::ClientContext update_context;
   Void void_resp;
   stub->ReportRuleStats(&update_context, table, &void_resp);
+
+  // The thread needs to be halted before proceeding to call EndSession()
+  // because the call to FeG within ReportRuleStats() is an async call,
+  // and the call to FeG, UpdateSession(), is assumed in this test
+  // to happend before the EndSession().
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
   LocalEndSessionResponse update_resp;
   grpc::ClientContext end_context;

@@ -30,4 +30,15 @@ spec:
        port: {{ $port.port }}
        targetPort: {{ $port.targetPort }}
 {{- end }}
+{{- if eq .Values.prometheusCache.service.type "LoadBalancer" }}
+  {{- if .Values.prometheusCache.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.prometheusCache.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.prometheusCache.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.prometheusCache.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
 {{- end }}

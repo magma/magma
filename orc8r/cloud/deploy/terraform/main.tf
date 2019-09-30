@@ -1,3 +1,11 @@
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
 terraform {
   required_version = ">= 0.12.0"
 }
@@ -72,8 +80,8 @@ module "eks" {
   worker_groups = [
     {
       name                 = "wg-1"
-      instance_type        = "m4.xlarge"
-      asg_desired_capacity = 3
+      instance_type        = "t3.small"
+      asg_desired_capacity = 2
       key_name             = var.key_name
       kubelet_extra_args   = "--node-labels=worker-type=controller"
 
@@ -87,7 +95,7 @@ module "eks" {
     },
     {
       name                 = "wg-metrics"
-      instance_type        = "t2.xlarge"
+      instance_type        = "t3.medium"
       asg_desired_capacity = 1
       key_name             = var.key_name
       kubelet_extra_args   = "--node-labels=worker-type=metrics"
@@ -144,7 +152,7 @@ resource "aws_security_group" "default" {
 # EBS volume for prometheus metrics.
 resource "aws_ebs_volume" "prometheus-ebs-eks" {
   availability_zone = data.aws_availability_zones.available.names[0]
-  size              = 400
+  size              = 64
 
   tags = {
     Name = "orc8r-prometheus-data"

@@ -10,3 +10,4 @@ add_subdirectory(service303) # TASK_SERVICE303
 add_subdirectory(sgs) # TASK_SGS
 add_subdirectory(sgs_service) # TASK_SGS_SERVICE
 add_subdirectory(sgw) # TASK_SGW
+add_subdirectory(spgw_service) # TASK_SPGW_SERVICE

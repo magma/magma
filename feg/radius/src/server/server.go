@@ -11,18 +11,16 @@ package server
 import (
 	"context"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/filters"
 	"fbc/cwf/radius/loader"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring/counters"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/log"
 	"fmt"
 	"sync/atomic"
 	"time"
 
 	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/patrickmn/go-cache"
 
@@ -52,19 +50,19 @@ type (
 
 	// Module represents a listener module
 	Module struct {
-		Name string
-		Code modules.Module
+		Name    string
+		Context modules.Context
+		Code    modules.Module
 	}
 
 	// Server encapsultes an instance of RADIUS server
 	Server struct {
 		ready               chan bool // wait on this to wait for the server to be ready for work
 		terminate           chan bool
-		listeners           map[string]Listener
+		listeners           map[string]ListenerInterface
 		filters             []*Filter
 		config              config.ServerConfig
 		logger              *zap.Logger
-		loggerFactory       log.Factory
 		multiSessionStorage session.GlobalStorage
 		dedupSet            *cache.Cache
 	}
@@ -76,13 +74,12 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 
 	// Init server object
 	server := Server{
-		listeners:           make(map[string]Listener), // Will be populated by "Start" method
+		listeners:           make(map[string]ListenerInterface), // Will be populated by "Start" method
 		ready:               make(chan bool, 1),
 		filters:             make([]*Filter, 0),
 		terminate:           make(chan bool, 1), // Internal channel used for termination of listeners
 		config:              config,             // The original config for later reference
 		logger:              logger,
-		loggerFactory:       log.NewFactory(logger),
 		multiSessionStorage: session.NewMultiSessionMemoryStorage(),
 		dedupSet:            cache.New(config.DedupWindow.Duration, time.Minute),
 	}
@@ -120,12 +117,14 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 			Start()
 
 		// Create the listener
-		var listener Listener
+		var listener ListenerInterface
 		switch lconfig.Type {
 		case "udp":
-			listener = &UDPListener{Config: lconfig}
+			listener = NewUDPListener()
 		case "grpc":
-			listener = &GRPCListener{Config: lconfig}
+			listener = NewGRPCListener()
+		case "sse":
+			listener = NewSSEListener()
 		default:
 			logger.Error(
 				fmt.Sprintf("failed to create listener, listener type '%s'", lconfig.Type),
@@ -133,6 +132,9 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 			)
 			break
 		}
+
+		// Set configuration for listener
+		listener.SetConfig(lconfig)
 
 		// Load modules
 		for _, modDesc := range lconfig.Modules {
@@ -157,7 +159,7 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 
 			// Init the module
 			logger.Debug("Initializing module", zap.String("module_name", modDesc.Name))
-			err = module.Init(logger, modDesc.Config)
+			moduleCtx, err := module.Init(logger, modDesc.Config)
 			if err != nil {
 				logger.Error("module failed to init", zap.String("module_name", modDesc.Name), zap.Error(err))
 				counters.ModuleInit.Failure("init_error")
@@ -165,8 +167,9 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 			}
 
 			listener.AppendModule(&Module{
-				Code: module,
-				Name: modDesc.Name,
+				Code:    module,
+				Context: moduleCtx,
+				Name:    modDesc.Name,
 			})
 			counters.ModuleInit.Success()
 		}
@@ -208,7 +211,7 @@ func wrapMiddleware(listenerName string, next modules.Middleware, module Module)
 			Start()
 
 		// Handle
-		res, err := module.Code.Handle(c, r, next)
+		res, err := module.Code.Handle(module.Context, c, r, next)
 
 		// Complete counter operation
 		if err != nil {
@@ -222,34 +225,33 @@ func wrapMiddleware(listenerName string, next modules.Middleware, module Module)
 
 // Start listening and parsing incoming requests
 func (s Server) Start() {
-	isFail := false
 	var err error
 	s.logger.Debug("starting server", zap.Int("num_listeners", len(s.listeners)), zap.Int("num_filters", len(s.filters)))
 	for _, listener := range s.listeners {
 		logger := s.logger.With(zap.String("listener", listener.GetConfig().Name))
-		logger.Debug("Starting listener", zap.Int("port", listener.GetConfig().Port))
-		go func(listener Listener) {
+		logger.Debug("Starting listener")
+		go func(listener ListenerInterface) {
 			logger.Debug("listener go-routine starts...")
 			err = listener.ListenAndServe()
 			if err != nil {
 				logger.Error("starting listener failed", zap.Error(err))
-				isFail = true
 			} else {
 				logger.Info("listener initialized successfully")
 			}
 		}(listener)
 	}
+
 	for _, listener := range s.listeners {
 		logger := s.logger.With(zap.String("listener", listener.GetConfig().Name))
 		// wait for listener to initialize
 		logger.Info("waiting for listener to be ready...")
-		<-listener.Ready()
+		listenerReady := <-listener.Ready()
+		if !listenerReady {
+			s.logger.Error("some listeners failed to initialize")
+			s.ready <- false
+			return
+		}
 		logger.Info("listener is ready")
-	}
-	if isFail {
-		s.logger.Error("some listeners failed to initialize")
-		s.ready <- false
-		return
 	}
 
 	// Server is ready!
@@ -295,22 +297,6 @@ func (s Server) Stop() {
 	// Signal termination
 	s.logger.Debug("All listeners are now down, terminating server")
 	s.terminate <- true
-}
-
-// getSessionID Extracts the radius session id from the given radius request
-func getSessionID(r *radius.Request) string {
-	result := ""
-	calledStationIDAttr, err := rfc2865.CalledStationID_Lookup(r.Packet)
-	if err == nil {
-		result += string(calledStationIDAttr)
-	}
-
-	callingStationIDAttr, err := rfc2865.CallingStationID_Lookup(r.Packet)
-	if err == nil {
-		result += string(callingStationIDAttr)
-	}
-
-	return result
 }
 
 // getSessionStateAPI returns a per-session accessor to session state
