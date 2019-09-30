@@ -322,6 +322,14 @@ int emm_proc_tracking_area_update_request(
     if (!tau_proc) {
       tau_proc = _emm_proc_create_procedure_tau(ue_mm_context, ies);
       if (tau_proc) {
+        // Store the received voice domain pref & UE usage setting IE
+        if (ies->voicedomainpreferenceandueusagesetting) {
+          memcpy(
+            &emm_context->volte_params.
+            voice_domain_preference_and_ue_usage_setting,
+            ies->voicedomainpreferenceandueusagesetting,
+            sizeof(voice_domain_preference_and_ue_usage_setting_t));
+        }
         rc = _emm_tracking_area_update_accept(tau_proc);
         if (rc != RETURNok) {
           OAILOG_ERROR(
@@ -628,7 +636,8 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
       emm_sap.u.emm_as.u.establish.equivalent_plmns = NULL;
       emm_sap.u.emm_as.u.establish.emergency_number_list = NULL;
 
-      emm_sap.u.emm_as.u.establish.eps_network_feature_support = NULL;
+      emm_sap.u.emm_as.u.establish.eps_network_feature_support =
+        &_emm_data.conf.eps_network_feature_support;
       emm_sap.u.emm_as.u.establish.additional_update_result = NULL;
       emm_sap.u.emm_as.u.establish.t3412_extended = NULL;
       emm_sap.u.emm_as.u.establish.nas_msg =
@@ -733,6 +742,9 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
         emm_as->eps_bearer_context_status =
           tau_proc->ies->eps_bearer_context_status;
       }
+
+      emm_as->eps_network_feature_support =
+        &_emm_data.conf.eps_network_feature_support;
 
       /*If CSFB is enabled,store LAI,Mobile Identity and
       * Additional Update type to be sent in TAU accept to S1AP
