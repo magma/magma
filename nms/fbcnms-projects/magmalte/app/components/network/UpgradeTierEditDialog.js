@@ -9,7 +9,7 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {NetworkUpgradeTier} from '../../common/MagmaAPIType';
+import type {tier} from '../../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -17,23 +17,22 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormGroup from '@material-ui/core/FormGroup';
+import MagmaV1API from '../../common/MagmaV1API';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {MagmaAPIUrls, fetchNetworkUpgradeTier} from '../../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 
 type Props = ContextRouter & {
-  onSave: (config: NetworkUpgradeTier) => void,
+  onSave: tier => void,
   onCancel: () => void,
   tierId: ?string,
 };
 
 type State = {
   isLoading: boolean,
-  tier: NetworkUpgradeTier,
+  tier: tier,
 };
 
 class UpgradeTierEditDialog extends React.Component<Props, State> {
@@ -44,18 +43,21 @@ class UpgradeTierEditDialog extends React.Component<Props, State> {
       name: '',
       version: '',
       images: [],
+      gateways: [],
     },
   };
 
   componentDidMount() {
     const {tierId, match} = this.props;
     if (tierId) {
-      fetchNetworkUpgradeTier(nullthrows(match.params.networkId), tierId).then(
-        tier =>
-          this.setState({
-            isLoading: false,
-            tier,
-          }),
+      MagmaV1API.getNetworksByNetworkIdTiersByTierId({
+        networkId: nullthrows(match.params.networkId),
+        tierId,
+      }).then(tier =>
+        this.setState({
+          isLoading: false,
+          tier,
+        }),
       );
     }
   }
@@ -133,19 +135,18 @@ class UpgradeTierEditDialog extends React.Component<Props, State> {
   onSave = () => {
     const {tier} = this.state;
     if (this.isNewTier()) {
-      axios
-        .post(MagmaAPIUrls.networkTiers(this.props.match), tier)
-        .then(resp => {
-          const newTier: NetworkUpgradeTier = {
-            ...tier,
-            id: resp.data,
-          };
-          this.props.onSave(newTier);
-        })
+      MagmaV1API.postNetworksByNetworkIdTiers({
+        networkId: nullthrows(this.props.match.params.networkId),
+        tier,
+      })
+        .then(() => this.props.onSave(tier))
         .catch(console.error);
     } else {
-      axios
-        .put(MagmaAPIUrls.networkTier(this.props.match, tier.id), tier)
+      MagmaV1API.putNetworksByNetworkIdTiersByTierId({
+        networkId: nullthrows(this.props.match.params.networkId),
+        tierId: tier.id,
+        tier,
+      })
         .then(_resp => this.props.onSave(tier))
         .catch(console.error);
     }

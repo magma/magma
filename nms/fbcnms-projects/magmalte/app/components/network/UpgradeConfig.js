@@ -8,19 +8,18 @@
  * @format
  */
 
-import type {
-  CheckindGateway,
-  NetworkUpgradeTier,
-} from '../../common/MagmaAPIType';
+import type {CheckindGateway} from '../../common/MagmaAPIType';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {tier} from '../../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../../common/MagmaV1API';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -35,13 +34,9 @@ import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 import axios from 'axios';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import nullthrows from '@fbcnms/util/nullthrows';
+import {MagmaAPIUrls, fetchAllGateways} from '../../common/MagmaAPI';
 import {Route, withRouter} from 'react-router-dom';
-
-import {
-  MagmaAPIUrls,
-  fetchAllGateways,
-  fetchAllNetworkUpgradeTiers,
-} from '../../common/MagmaAPI';
 import {get, map, merge, sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -49,7 +44,7 @@ type State = {
   gateways: ?(CheckindGateway[]),
   errorMessage: ?string,
   loading: boolean,
-  networkUpgradeTiers: ?(NetworkUpgradeTier[]),
+  networkUpgradeTiers: ?(tier[]),
   supportedVersions: ?(string[]),
 };
 
@@ -63,7 +58,7 @@ const styles = _theme => ({
 
 const UpgradeTiersTable = (props: {
   onTierDeleteClick: (tierId: string) => void,
-  tableData: Array<NetworkUpgradeTier>,
+  tableData: Array<tier>,
 }) => {
   return (
     <Table>
@@ -119,7 +114,7 @@ const SupportedVersionsTable = (props: {supportedVersions: string[]}) => {
 
 const GatewayUpgradeStatusTable = (props: {
   tableData: Array<CheckindGateway>,
-  networkUpgradeTiers: ?(NetworkUpgradeTier[]),
+  networkUpgradeTiers: ?(tier[]),
   onUpgradeTierChange: (gatewayID: string, tierID: string) => void,
 }) => {
   const {networkUpgradeTiers, onUpgradeTierChange, tableData} = props;
@@ -158,6 +153,16 @@ const GatewayUpgradeStatusTable = (props: {
     </Table>
   );
 };
+
+async function fetchAllNetworkUpgradeTiers(
+  networkId: string,
+): Promise<Array<tier>> {
+  const tiers = await MagmaV1API.getNetworksByNetworkIdTiers({networkId});
+  const requests = tiers.map(tierId =>
+    MagmaV1API.getNetworksByNetworkIdTiersByTierId({networkId, tierId}),
+  );
+  return await Promise.all(requests);
+}
 
 class UpgradeConfig extends React.Component<Props, State> {
   state = {
@@ -282,8 +287,10 @@ class UpgradeConfig extends React.Component<Props, State> {
         if (!confirmed) {
           return;
         }
-        axios
-          .delete(MagmaAPIUrls.networkTier(this.props.match, tierId))
+        MagmaV1API.deleteNetworksByNetworkIdTiersByTierId({
+          networkId: nullthrows(this.props.match.params.networkId),
+          tierId,
+        })
           .then(_resp => this.loadData())
           .catch(this.props.alert);
       });
