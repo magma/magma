@@ -14,6 +14,17 @@
         ]
       }
     ],
-    "Access Gateway": ["lte/setup_deb", "lte/config_agw", "lte/enodebd"]
+    "Access Gateway": ["lte/setup_deb", "lte/config_agw", "lte/enodebd"],
+    "Federation Gateway": [
+      {
+        "type": "subcategory",
+        "label": "Deploying FeG",
+        "ids": [
+          "feg/deploy_intro",
+          "feg/deploy_build",
+          "feg/deploy_install"
+        ]
+      }
+    ]
   }
 }
