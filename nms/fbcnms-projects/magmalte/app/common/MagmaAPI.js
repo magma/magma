@@ -67,10 +67,6 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(networkIdOrMatch)}/tiers`,
   networkTier: (networkIdOrMatch: string | Match, tierId: string) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/tiers/${tierId}`,
-  subscribers: (networkIdOrMatch: string | Match) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/subscribers`,
-  subscriber: (networkIdOrMatch: string | Match, subscriberId: string) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/subscribers/${subscriberId}`,
   upgradeChannel: (channel: string) =>
     `/nms/apicontroller/magma/channels/${channel}`,
   command: (

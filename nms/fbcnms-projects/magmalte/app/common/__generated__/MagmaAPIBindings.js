@@ -181,6 +181,7 @@ export type lte_subscription = {
     auth_key: string,
     auth_opc ? : string,
     state: "INACTIVE" | "ACTIVE",
+    sub_profile: string,
 };
 export type machine_info = {
     cpu_info ? : {
