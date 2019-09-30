@@ -835,7 +835,8 @@ static int _emm_cn_activate_dedicated_bearer_req(
   esm_sap.data.eps_dedicated_bearer_context_activate.pco = msg->pco;
   // stole ref if any
   msg->pco = NULL;
-  esm_sap.data.eps_dedicated_bearer_context_activate.gtp_teid = msg->gtp_teid;
+  memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.sgw_fteid,
+    &msg->sgw_fteid, sizeof(fteid_t));
 
   rc = esm_sap_send(&esm_sap);
 

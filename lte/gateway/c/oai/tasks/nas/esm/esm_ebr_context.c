@@ -88,7 +88,7 @@ ebi_t esm_ebr_context_create(
   const bitrate_t mbr_ul,
   traffic_flow_template_t *tft,
   protocol_configuration_options_t *pco,
-  teid_t gtp_teid)
+  fteid_t *sgw_fteid)
 {
   int bidx = 0;
   esm_context_t *esm_ctx = NULL;
@@ -193,8 +193,11 @@ ebi_t esm_ebr_context_create(
           &bearer_context->esm_ebr_context.pco);
       }
       bearer_context->esm_ebr_context.pco = pco;
-      bearer_context->s_gw_fteid_s1u.teid = gtp_teid;
-
+      if(sgw_fteid) {
+        memcpy(&bearer_context->s_gw_fteid_s1u, sgw_fteid, sizeof(fteid_t));
+      }
+      bearer_context->bearer_state |= BEARER_STATE_SGW_CREATED;
+      bearer_context->bearer_state |= BEARER_STATE_MME_CREATED;
       if (is_default) {
         /*
          * Set the PDN connection activation indicator
