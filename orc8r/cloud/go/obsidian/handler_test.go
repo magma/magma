@@ -48,18 +48,7 @@ func TestRegister(t *testing.T) {
 		expectedError:           "foo",
 	})
 
-	// Unmigrated, env var set to 0
-	err := os.Setenv(orc8r.UseConfiguratorEnv, "0")
-	assert.NoError(t, err)
-	runCase(t, testCase{expectHandlerFuncCalled: true})
-	runCase(t, testCase{
-		expectHandlerFuncCalled: true,
-		handlerFuncError:        "foo",
-		expectedError:           "foo",
-	})
-
-	// Migrated
-	err = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+	err := os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	assert.NoError(t, err)
 	runCase(t, testCase{expectMigratedHandlerFuncCalled: true})
 	runCase(t, testCase{
