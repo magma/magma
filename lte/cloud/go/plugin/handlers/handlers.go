@@ -128,20 +128,7 @@ func GetHandlers() []obsidian.Handler {
 }
 
 func createGateway(c echo.Context) error {
-	nid, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	payload := &ltemodels.MutableLteGateway{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := payload.ValidateModel(); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-
-	if nerr := handlers.CreateMagmadGatewayFromModel(nid, payload); nerr != nil {
+	if nerr := handlers.CreateMagmadGatewayFromModel(c, &ltemodels.MutableLteGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -188,20 +175,7 @@ func getGateway(c echo.Context) error {
 }
 
 func updateGateway(c echo.Context) error {
-	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	payload := &ltemodels.MutableLteGateway{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := payload.ValidateModel(); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-
-	if nerr := handlers.UpdateMagmadGatewayFromModel(nid, gid, payload); nerr != nil {
+	if nerr := handlers.UpdateMagmadGatewayFromModel(c, &ltemodels.MutableLteGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
