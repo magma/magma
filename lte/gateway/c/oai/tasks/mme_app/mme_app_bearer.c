@@ -451,7 +451,6 @@ void mme_app_handle_conn_est_cnf(
           bc->preemption_vulnerability;
         establishment_cnf_p->transport_layer_address[j] =
           fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
-
         establishment_cnf_p->gtp_teid[j] = bc->s_gw_fteid_s1u.teid;
         if (!j) {
           establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_pP->nas_msg;

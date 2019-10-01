@@ -2169,7 +2169,8 @@ int sgw_handle_nw_initiated_actv_bearer_req(
     //S1U SGW F-TEID
     s11_actv_bearer_request->s1_u_sgw_fteid.teid = sgw_get_new_s1u_teid();
     s11_actv_bearer_request->s1_u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
-    s11_actv_bearer_request->s1_u_sgw_fteid.ipv4 = 1;
+    //Set IPv4 address type bit
+    s11_actv_bearer_request->s1_u_sgw_fteid.ipv4 = true;
 
     //TODO - IPv6 address
     s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address.s_addr =
@@ -2270,6 +2271,21 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       &eps_bearer_ctxt_p->tft,
       &s11_actv_bearer_rsp->tft,
       sizeof(traffic_flow_template_t));
+
+    //PAA
+    /*Copy PAA from default bearer context as the ip address remains same for
+      dedicated bearer as well
+     */
+    sgw_eps_bearer_ctxt_t *default_eps_bearer_ctxt_p =
+      sgw_cm_get_eps_bearer_entry(
+      &spgw_context->sgw_eps_bearer_context_information.pdn_connection,
+      spgw_context->sgw_eps_bearer_context_information
+      .pdn_connection.default_bearer);
+    memcpy(
+      &eps_bearer_ctxt_p->paa,
+      &default_eps_bearer_ctxt_p->paa,
+      sizeof(paa_t));
+
   } else {
     OAILOG_INFO(
       LOG_SPGW_APP,
@@ -2402,11 +2418,6 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
-  sgw_eps_bearer_ctxt_t *default_eps_bearer_entry_p =
-    sgw_cm_get_eps_bearer_entry(
-    &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection,
-    spgw_ctxt->sgw_eps_bearer_context_information
-    .pdn_connection.default_bearer);
   sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
   //Remove the default bearer entry
   if (s11_pcrf_ded_bearer_deactv_rsp->delete_default_bearer) {
@@ -2423,7 +2434,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
     rc = gtp_tunnel_ops->del_tunnel(
-      default_eps_bearer_entry_p->paa.ipv4_address,
+      eps_bearer_ctxt_p->paa.ipv4_address,
       eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
       eps_bearer_ctxt_p->enb_teid_S1u,
       NULL);
@@ -2469,7 +2480,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         OAILOG_INFO(
           LOG_SPGW_APP, "Removed bearer context for (ebi = %d)\n", ebi);
         rc = gtp_tunnel_ops->del_tunnel(
-          default_eps_bearer_entry_p->paa.ipv4_address,
+          eps_bearer_ctxt_p->paa.ipv4_address,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u,
           NULL);
