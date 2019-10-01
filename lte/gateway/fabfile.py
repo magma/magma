@@ -13,11 +13,11 @@ from distutils.util import strtobool
 from fabric.api import cd, env, execute, local, run, settings
 from fabric.operations import get
 
-sys.path.append('../../orc8r/tools')
-import fab.dev_utils as dev_utils
-import fab.pkg as pkg
-from fab.hosts import ansible_setup, split_hoststring, vagrant_setup
-from fab.vagrant import setup_env_vagrant
+sys.path.append('../../orc8r')
+import tools.fab.dev_utils as dev_utils
+import tools.fab.pkg as pkg
+from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
+from tools.fab.vagrant import setup_env_vagrant
 
 """
 Magma Gateway packaging tool:
@@ -52,6 +52,7 @@ env.use_ssh_config = True
 # Disable ssh known hosts to resolve key errors
 # with multiple vagrant boxes in use.
 env.disable_known_hosts = True
+
 
 def dev():
     env.debug_mode = True
@@ -106,7 +107,8 @@ def upload_to_aws():
     pkg.upload_pkgs_to_aws()
 
 
-def connect_gateway_to_cloud(control_proxy_setting_path=None, cert_path=DEFAULT_CERT):
+def connect_gateway_to_cloud(control_proxy_setting_path=None,
+                             cert_path=DEFAULT_CERT):
     """
     Setup the gateway VM to connects to the cloud
     Path to control_proxy.yml and rootCA.pem could be specified to use
@@ -114,11 +116,6 @@ def connect_gateway_to_cloud(control_proxy_setting_path=None, cert_path=DEFAULT_
     """
     setup_env_vagrant()
     dev_utils.connect_gateway_to_cloud(control_proxy_setting_path, cert_path)
-
-def _set_service_config_var(service, var_name, value):
-    """ Sets variable in config file by value """
-    run("echo '%s: %s' | sudo tee -a /var/opt/magma/configs/%s.yml" % (
-        var_name, str(value), service))
 
 
 def s1ap_setup_cloud():
@@ -138,7 +135,8 @@ def s1ap_setup_cloud():
     run("sudo systemctl restart magma@magmad")
 
 
-def integ_test(gateway_host=None, test_host=None, trf_host=None, destroy_vm="True"):
+def integ_test(gateway_host=None, test_host=None, trf_host=None,
+               destroy_vm="True"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -186,7 +184,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None, destroy_vm="Tru
     else:
         ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
     execute(_start_trfserver)
-
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
@@ -281,11 +278,6 @@ def get_test_logs(gateway_host=None, test_host=None, trf_host=None):
     local('rm -rf /tmp/build_logs')
 
 
-def register_vm():
-    """ Provisions the gateway vm with the cloud vm """
-    dev_utils.register_vm()
-
-
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
@@ -329,6 +321,12 @@ def _run_local_integ_tests():
     """ Execute integ tests that run on magma access gateway """
     with cd(AGW_INTEG_ROOT):
         run('make local_integ_test')
+
+
+def _set_service_config_var(service, var_name, value):
+    """ Sets variable in config file by value """
+    run("echo '%s: %s' | sudo tee -a /var/opt/magma/configs/%s.yml" % (
+        var_name, str(value), service))
 
 
 def _start_trfserver():

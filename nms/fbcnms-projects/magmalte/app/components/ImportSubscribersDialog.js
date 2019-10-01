@@ -9,6 +9,7 @@
  */
 import type {Match} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {subscriber} from '../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
@@ -18,11 +19,10 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DownloadIcon from '@material-ui/icons/GetApp';
 import FormLabel from '@material-ui/core/FormLabel';
+import MagmaV1API from '../common/MagmaV1API';
 import React from 'react';
-import axios from 'axios';
 
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {last} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
@@ -85,17 +85,6 @@ type Props = WithAlert & {
   onSaveError: (failureIDs: Array<string>) => void,
 };
 
-export type Subscriber = {
-  id: string,
-  lte: {
-    state: string,
-    auth_algo: string,
-    auth_key: string,
-    auth_opc: string,
-  },
-  sub_profile: string,
-};
-
 export async function parseFileAndSave(
   csvText: null | string | ArrayBuffer,
   setErrorMsg: string => void,
@@ -144,7 +133,10 @@ export async function parseFileAndSave(
   const failureIDs = [];
   const results = await Promise.all(
     validSubs.map(subscriber =>
-      axios.post(MagmaAPIUrls.subscribers(match), subscriber).catch(e => {
+      MagmaV1API.postLteByNetworkIdSubscribers({
+        networkId: match.params.networkId || '',
+        subscriber,
+      }).catch(e => {
         failureIDs.push(subscriber.id);
         return e;
       }),
@@ -153,7 +145,7 @@ export async function parseFileAndSave(
   const successIDs = [];
   results.forEach(result => {
     if (!(result instanceof Error)) {
-      successIDs.push(result.data);
+      successIDs.push(result);
     }
   });
   props.onSave(successIDs);
@@ -162,17 +154,22 @@ export async function parseFileAndSave(
   }
 }
 
-function getSubscriberFromRow(row: Array<string>): ?Subscriber {
+function getSubscriberFromRow(row: Array<string>): ?subscriber {
   const data = CSV_TEMPLATE_DATA[0].reduce((accumulator, colName, idx) => {
     return {...accumulator, [colName]: row[idx]};
   }, {});
   if (!data[IMSI] || !data[LTE_AUTH_KEY]) {
     return null;
   }
+  const state = data[LTE_STATE];
+  if (state !== 'ACTIVE' && state !== 'INACTIVE') {
+    return;
+  }
+
   return {
     id: 'IMSI' + data[IMSI].replace(/"/g, ''), // strip surrounding quotes
     lte: {
-      state: data[LTE_STATE],
+      state,
       auth_algo: 'MILENAGE', // default auth algo,
       auth_key: isValidHex(data[LTE_AUTH_KEY])
         ? hexToBase64(data[LTE_AUTH_KEY])
@@ -181,8 +178,8 @@ function getSubscriberFromRow(row: Array<string>): ?Subscriber {
         data[LTE_AUTH_OPC] && isValidHex(data[LTE_AUTH_OPC])
           ? hexToBase64(data[LTE_AUTH_OPC])
           : data[LTE_AUTH_OPC],
+      sub_profile: data[SUB_PROFILE] || 'default',
     },
-    sub_profile: data[SUB_PROFILE] || 'default',
   };
 }
 

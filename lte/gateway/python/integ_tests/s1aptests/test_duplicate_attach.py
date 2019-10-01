@@ -21,7 +21,6 @@ class TestDuplicateAttach(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-
     def test_duplicate_attach(self):
         """ Start the attach procedure for an UE, proceed until attach accept is
         recvd. from the network. Without sending an attach accept, resend an
@@ -31,7 +30,6 @@ class TestDuplicateAttach(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         print("************************* Running duplicate attach test")
-
         self._s1ap_wrapper._s1_util.attach(req.ue_id,
                                            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
                                            s1ap_types.tfwCmd.UE_AUTH_REQ_IND,
@@ -43,7 +41,7 @@ class TestDuplicateAttach(unittest.TestCase):
         auth_res.sqnRcvd = sqnRecvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_AUTH_RESP,
-                                auth_res)
+                                              auth_res)
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertTrue(response,
                         s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value)
@@ -59,7 +57,7 @@ class TestDuplicateAttach(unittest.TestCase):
             response = self._s1ap_wrapper.s1_util.get_response()
             if (response.msg_type ==
                     s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value):
-                print ("Recvd an Attach accept message ignoring")
+                print("Recvd an Attach accept message ignoring")
                 continue
 
             self.assertEqual(response.msg_type,
@@ -72,10 +70,13 @@ class TestDuplicateAttach(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t)
 
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
         print("************************* Running UE detach")
         # Now detach the UE
         self._s1ap_wrapper._s1_util.detach(req.ue_id,
-                             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
+                                           s1ap_types.ueDetachType_t.
+                                           UE_NORMAL_DETACH.value)
 
 
 if __name__ == "__main__":

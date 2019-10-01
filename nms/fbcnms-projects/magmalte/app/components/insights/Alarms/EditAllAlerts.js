@@ -58,9 +58,14 @@ export default function EditAllAlerts(props: Props) {
         }),
       )
       .catch(error =>
-        enqueueSnackbar(`Unable to delete alert: ${error}. Please try again.`, {
-          variant: 'error',
-        }),
+        enqueueSnackbar(
+          `Unable to delete alert: ${
+            error.response ? error.response.data.message : error.message
+          }. Please try again.`,
+          {
+            variant: 'error',
+          },
+        ),
       )
       .finally(() => {
         onDialogClose();
@@ -75,7 +80,9 @@ export default function EditAllAlerts(props: Props) {
   });
 
   if (error) {
-    enqueueSnackbar('Unable to load alerts', {variant: 'error'});
+    enqueueSnackbar(`Unable to load alerts: ${error.response.data.message}`, {
+      variant: 'error',
+    });
   }
 
   const alerts = response?.data || [];

@@ -16,9 +16,9 @@ from fabric.api import cd, env, lcd, local, run
 from fabric.operations import get
 from fabric.utils import abort, puts
 
-sys.path.append('../../orc8r/tools')
-import fab.pkg as pkg  # NOQA
-from fab.hosts import vagrant_setup, ansible_setup, split_hoststring # NOQA
+sys.path.append('../../orc8r')
+import tools.fab.pkg as pkg  # NOQA
+from tools.fab.hosts import vagrant_setup, ansible_setup, split_hoststring  # NOQA
 
 
 # List of service tiers

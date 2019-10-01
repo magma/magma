@@ -26,3 +26,15 @@
  * of the authors and should not be interpreted as representing official policies,
  * either expressed or implied, of the FreeBSD Project.
  */
+
+MESSAGE_DEF(
+  PGW_NW_INITIATED_ACTIVATE_BEARER_REQ,
+  MESSAGE_PRIORITY_MED,
+  itti_pgw_nw_init_actv_bearer_request_t,
+  pgw_nw_init_actv_bearer_request)
+
+MESSAGE_DEF(
+  PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ,
+  MESSAGE_PRIORITY_MED,
+  itti_pgw_nw_init_deactv_bearer_request_t,
+  pgw_nw_init_deactv_bearer_request)

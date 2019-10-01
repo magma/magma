@@ -16,6 +16,7 @@
 #include <lte/protos/subscriberdb.pb.h>
 
 #include "GRPCReceiver.h"
+#include "SessionState.h"
 
 using grpc::Status;
 
@@ -28,6 +29,16 @@ using namespace lte;
  */
 class PipelinedClient {
  public:
+  /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  virtual bool setup(
+    const std::vector<SessionState::SessionInfo> &infos,
+    const std::uint64_t &epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback) = 0;
+
   /**
    * Deactivate all flows for a subscriber's session
    * @param imsi - UE to delete all policy flows for
@@ -75,6 +86,16 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   AsyncPipelinedClient(std::shared_ptr<grpc::Channel> pipelined_channel);
 
   /**
+   * Activates all rules for provided SessionInfos
+   * @param infos - list of SessionInfos to setup flows for
+   * @return true if the operation was successful
+   */
+  bool setup(
+    const std::vector<SessionState::SessionInfo> &infos,
+    const std::uint64_t &epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
+
+  /**
    * Deactivate all flows for a subscriber's session
    * @param imsi - UE to delete all policy flows for
    * @return true if the operation was successful
@@ -110,6 +131,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   std::unique_ptr<Pipelined::Stub> stub_;
 
  private:
+  void setup_flows_rpc(
+    const SetupFlowsRequest &request,
+    std::function<void(Status, SetupFlowsResult)> callback);
+
   void deactivate_flows_rpc(
     const DeactivateFlowsRequest &request,
     std::function<void(Status, DeactivateFlowsResult)> callback);

@@ -38,6 +38,8 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
                 req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t)
+            # Wait on EMM Information from MME
+            self._s1ap_wrapper._s1_util.receive_emm_info()
 
         dl_reqs = reqs[::2]
         ul_reqs = reqs[1::2]
@@ -57,7 +59,9 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
             # Send UE context release request to move UE to idle mode
             req = s1ap_types.ueCntxtRelReq_t()
             req.ue_Id = ue_id
-            req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
+            req.cause.causeVal = (gpp_types.
+                                  CauseRadioNetwork.
+                                  USER_INACTIVITY.value)
             self._s1ap_wrapper.s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req)
             response = self._s1ap_wrapper.s1_util.get_response()

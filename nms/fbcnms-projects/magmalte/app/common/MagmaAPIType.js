@@ -119,13 +119,6 @@ export type NetworkUpgradeImage = {
   order: number,
 };
 
-export type NetworkUpgradeTier = {
-  id: string,
-  name: string,
-  version: string,
-  images: Array<NetworkUpgradeImage>,
-};
-
 export type UpgradeReleaseChannel = {
   name: string,
   supported_versions: Array<string>,

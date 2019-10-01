@@ -13,12 +13,13 @@ import (
 	"strings"
 
 	"magma/cwf/cloud/go/cwf"
-	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
+	"magma/cwf/cloud/go/plugin/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -84,14 +85,17 @@ func buildFromNetworkConfig(nwConfig *models.NetworkCarrierWifiConfigs) (map[str
 	ret["pipelined"] = &ltemconfig.PipelineD{
 		LogLevel:      protos.LogLevel_INFO,
 		UeIpBlock:     DefaultUeIpBlock, // Unused by CWF
-		NatEnabled:    nwConfig.NatEnabled,
-		DefaultRuleId: nwConfig.DefaultRuleID,
-		RelayEnabled:  nwConfig.RelayEnabled,
+		NatEnabled:    false,
+		DefaultRuleId: swag.StringValue(nwConfig.DefaultRuleID),
+		RelayEnabled:  true,
 		Services:      pipelineDServices,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
 		LogLevel:     protos.LogLevel_INFO,
-		RelayEnabled: nwConfig.RelayEnabled,
+		RelayEnabled: true,
+	}
+	ret["redirectd"] = &ltemconfig.RedirectD{
+		LogLevel: protos.LogLevel_INFO,
 	}
 	return ret, err
 }

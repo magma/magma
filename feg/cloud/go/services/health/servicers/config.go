@@ -10,7 +10,7 @@ package servicers
 
 import (
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/services/controller/obsidian/models"
+	"magma/feg/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/glog"

@@ -1,0 +1,152 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/plugin/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'orc8r/cloud/go/pluginimpl/models/swagger.v1.yml'
+  temp-gen-filename: devmand-swagger.yml
+  output-dir: devmand/cloud/go/plugin
+  types:
+    - go-struct-name: SymphonyNetwork
+      filename: symphony_network_swaggergen.go
+
+
+info:
+  title: Symphony Model Definitions and Paths
+  description: Symphony REST APIs
+  version: 1.1.2
+
+basePath: /magma/v1
+
+tags:
+- name: Symphony Networks
+  description: Symphony networks
+
+paths:
+  /symphony:
+    get:
+      summary: List all Symphony network IDs
+      tags:
+        - Symphony Networks
+      responses:
+        '200':
+          description: List of Symphony network IDs
+          schema:
+            type: array
+            items:
+              type: string
+            example:
+              - symphony_network_1
+              - symphony_network_2
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create a new Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - name: symphony_network
+          in: body
+          description: Configuration of the Symphony network to create
+          required: true
+          schema:
+            $ref: '#/definitions/symphony_network'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+  /symphony/{network_id}:
+    get:
+      summary: Describe an Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Full description of a Symphony network
+          schema:
+            $ref: '#/definitions/symphony_network'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an entire Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: symphony_network
+          in: body
+          description: Full desired configuration of the network
+          required: true
+          schema:
+            $ref: '#/definitions/symphony_network'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+  /symphony/{network_id}/features:
+    get:
+      summary: Get feature flags for Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Feature flags of the network
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update feature flags for Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: config
+          in: body
+          description: New feature flags for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/network_features'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
+definitions:
+  symphony_network:
+    type: object
+    description: Symphony Network spec
+    required:
+      - id
+      - name
+      - description
+    properties:
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      features:
+        $ref: './orc8r-swagger.yml#/definitions/network_features'

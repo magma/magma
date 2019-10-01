@@ -31,6 +31,7 @@ const (
 	GwS6aService      GwServiceType = "s6a_service"
 	GwSgsService      GwServiceType = "sgs_service"
 	GwSessiondService GwServiceType = "sessiond"
+	GwSpgwService     GwServiceType = "spgw_service"
 
 	// SyncRPC gateway header key
 	GatewayIdHeaderKey = "Gatewayid"
@@ -54,6 +55,7 @@ var services = []GwServiceType{
 	GwS6aService,
 	GwSgsService,
 	GwSessiondService,
+	GwSpgwService,
 }
 
 var config = httpServerConfig{HttpServerAddressPort, &sync.RWMutex{}}

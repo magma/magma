@@ -8,6 +8,47 @@ hide_title: true
 These are the prerequisites to setting up a full private LTE Magma deployment.
 Additional prerequisites for developers can be found in the developer's guide.
 
+## Development Tools
+
+Install the following tools:
+
+1. [Docker](https://www.docker.com) and Docker Compose
+2. [Homebrew](https://brew.sh/) *only* for MacOS users
+3. [VirtualBox](https://www.virtualbox.org/)
+3. [Vagrant](https://vagrantup.com)
+
+If you are on MacOS, you should start Docker for Mac and increase the memory
+allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
+
+![Increasing docker engine resources](../assets/docker-config.png)
+
+```bash
+brew install python3
+pip3 install ansible fabric3 jsonpickle requests PyYAML
+vagrant plugin install vagrant-vbguest
+```
+
+## Build/Deploy Tooling
+
+We support building the AGW and Orchestrator on MacOS and Linux host operating
+systems. Doing so on a Windows environment should be possible but has not been
+tested. You may prefer to use a Linux virtual machine if you are on a Windows
+host.
+
+First, follow the previous section on developer tools. Then, install some
+additional prerequisite tools (replace `brew` with your OS-appropriate package
+manager as necessary):
+
+```console
+$ brew install aws-iam-authenticator kubernetes-cli kubernetes-helm python3 terraform
+$ pip3 install awscli
+$ aws configure
+```
+
+Provide the access key ID and secret key for an administrator user in AWS
+(don't use the root user) when prompted by `aws configure`. Skip this step if
+you will use something else for managing AWS credentials.
+
 ## Production Hardware
 
 ### Access Gateways
@@ -57,33 +98,3 @@ follow this guide before attempting to deploy it elsewhere.
 You will also need a Docker image repository available to publish the various
 Orchestrator NMS containers to. We recommend using a private repository for
 this.
-
-## Build Tooling
-
-We support building the AGW and Orchestrator on MacOS and Linux host operating
-systems. Doing so on a Windows environment should be possible but has not been
-tested. You may prefer to use a Linux virtual machine if you are on a Windows
-host.
-
-You should install the following tools:
-
-1. [Docker](https://www.docker.com) and Docker Compose
-2. [Homebrew](https://brew.sh/) *only* for MacOS users
-
-If you are on MacOS, you should start Docker for Mac and increase the memory
-allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
-
-![Increasing docker engine resources](../assets/docker-config.png)
-
-Then, install some additional prerequisite tools (replace `brew` with your
-OS-appropriate package manager as necessary):
-
-```console
-$ brew install aws-iam-authenticator kubernetes-cli kubernetes-helm python3 terraform
-$ pip3 install ansible awscli fabric3 requests PyYAML
-$ aws configure
-```
-
-Provide the access key ID and secret key for an administrator user in AWS
-(don't use the root user) when prompted by `aws configure`. Skip this step if
-you will use something else for managing AWS credentials.

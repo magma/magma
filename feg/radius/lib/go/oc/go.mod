@@ -5,6 +5,8 @@ go 1.12
 replace (
 	fbc/lib/go/http => ../http
 	fbc/lib/go/log => ../log
+	fbc/lib/go/oc/helpers => ../oc/helpers
+
 )
 
 require (
@@ -12,6 +14,7 @@ require (
 	contrib.go.opencensus.io/exporter/jaeger v0.1.0
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	fbc/lib/go/http v0.0.0
+	fbc/lib/go/oc/helpers v0.0.0
 	github.com/gogo/protobuf v1.2.0 // indirect
 	github.com/jessevdk/go-flags v1.4.1-0.20181221193153-c0795c8afcf4
 	github.com/kelseyhightower/envconfig v1.3.0

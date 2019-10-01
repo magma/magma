@@ -30,7 +30,7 @@ func TestProxy(t *testing.T) {
 	secret := []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
-	Init(logger, modules.ModuleConfig{
+	mCtx, _ := Init(logger, modules.ModuleConfig{
 		"target": fmt.Sprintf("localhost:%d", randomPort),
 	})
 
@@ -62,6 +62,7 @@ func TestProxy(t *testing.T) {
 	// Act
 	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
 	res, err := Handle(
+		mCtx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -88,7 +89,7 @@ func TestInvalidConfig(t *testing.T) {
 	// Arrange
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
-	err = Init(logger, modules.ModuleConfig{
+	_, err = Init(logger, modules.ModuleConfig{
 		"notneeded": "config",
 		// Missing "target" (on purpose, this is what we're testing!)
 	})

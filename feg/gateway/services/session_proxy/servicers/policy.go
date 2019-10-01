@@ -50,6 +50,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		UserLocation:  pReq.UserLocation,
 		GcID:          pReq.GcId,
 		Qos:           qos,
+		HardwareAddr:  pReq.HardwareAddr,
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
@@ -132,6 +133,7 @@ func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest
 			Type:          credit_control.CRTUpdate,
 			IMSI:          removeSidPrefix(update.Sid),
 			IPAddr:        update.UeIpv4,
+			HardwareAddr:  update.HardwareAddr,
 			UsageReports:  []*gx.UsageReport{getGxUsageReportFromUsageUpdate(update.Update)},
 		})
 	}

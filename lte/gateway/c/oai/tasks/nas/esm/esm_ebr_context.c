@@ -370,6 +370,8 @@ ebi_t esm_ebr_context_release(
      * * * * to the PDN connection
      */
     pdn->n_bearers -= 1;
+    //Decrement the number of active bearers in ESM context
+    emm_context->esm_ctx.n_active_ebrs -=1;
 
     if (ue_mm_context->pdn_contexts[*pid]->default_ebi == ebi) {
       /*
@@ -416,10 +418,7 @@ ebi_t esm_ebr_context_release(
           /*
            * Release dedicated EPS bearer data
            */
-          if (mme_config.eps_network_feature_support.
-            ims_voice_over_ps_session_in_s1) {
-            free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
-          }
+          free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection
@@ -441,10 +440,7 @@ ebi_t esm_ebr_context_release(
         pdn->is_emergency = false;
       }
 
-      if (mme_config.eps_network_feature_support.
-        ims_voice_over_ps_session_in_s1) {
-        ue_mm_context->pdn_contexts[*pid]->is_active = false;
-      }
+      ue_mm_context->pdn_contexts[*pid]->is_active = false;
     } else {
       OAILOG_INFO(
         LOG_NAS_ESM,

@@ -9,9 +9,9 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Subscriber} from './lte/AddEditSubscriberDialog';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {subscriber} from '../common/__generated__/MagmaAPIBindings';
 
 import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
 import Button from '@material-ui/core/Button';
@@ -20,6 +20,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import ImportSubscribersDialog from './ImportSubscribersDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../common/MagmaV1API';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -31,6 +32,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 import axios from 'axios';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
@@ -59,12 +61,12 @@ type SubProfiles = {
 type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
-  subscribers: Array<Subscriber>,
+  subscribers: Array<subscriber>,
   errorMessage: ?string,
   loading: boolean,
   showAddEditDialog: boolean,
   showImportDialog: boolean,
-  editingSubscriber: ?Subscriber,
+  editingSubscriber: ?subscriber,
   subProfiles: SubProfiles,
 };
 
@@ -80,33 +82,30 @@ class Subscribers extends React.Component<Props, State> {
   };
 
   componentDidMount() {
-    axios
-      .all([
-        axios.get(MagmaAPIUrls.subscribers(this.props.match), {
-          params: {fields: 'all'},
-        }),
-        axios.get(
-          MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'),
-        ),
-      ])
-      .then(
-        axios.spread((response1, response2) => {
-          let subProfiles = (response2.data.epc || {}).sub_profiles || {};
-          subProfiles = {...subProfiles};
-          if (!subProfiles.default) {
-            subProfiles.default = {};
-          }
+    Promise.all([
+      MagmaV1API.getLteByNetworkIdSubscribers({
+        networkId: nullthrows(this.props.match.params.networkId),
+      }),
+      axios.get(
+        MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'),
+      ),
+    ])
+      .then(([response1, response2]) => {
+        let subProfiles = (response2.data.epc || {}).sub_profiles || {};
+        subProfiles = {...subProfiles};
+        if (!subProfiles.default) {
+          subProfiles.default = {};
+        }
 
-          const subscribers = (Object.values(response1.data): Array<any>);
-          this.setState({
-            subscribers: (subscribers: Array<Subscriber>).map(s =>
-              this._buildSubscriber(s, subProfiles),
-            ),
-            loading: false,
-            subProfiles,
-          });
-        }),
-      )
+        const subscribers = Object.keys(response1).map(sid => response1[sid]);
+        this.setState({
+          subscribers: subscribers.map(s =>
+            this._buildSubscriber(s, subProfiles),
+          ),
+          loading: false,
+          subProfiles,
+        });
+      })
       .catch((error, _) =>
         this.setState({
           errorMessage: error.response.data.message.toString(),
@@ -208,16 +207,18 @@ class Subscribers extends React.Component<Props, State> {
     });
 
   onSaveSubscriber = id => {
-    axios
-      .get(MagmaAPIUrls.subscriber(this.props.match, id))
-      .then(response =>
+    MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
+      networkId: nullthrows(this.props.match.params.networkId),
+      subscriberId: id,
+    })
+      .then(newSubscriber =>
         this.setState(state => {
           const subscribers = state.subscribers.slice(0);
           if (state.editingSubscriber) {
             const index = subscribers.indexOf(state.editingSubscriber);
-            subscribers[index] = this._buildSubscriber(response.data);
+            subscribers[index] = this._buildSubscriber(newSubscriber);
           } else {
-            subscribers.push(this._buildSubscriber(response.data));
+            subscribers.push(this._buildSubscriber(newSubscriber));
           }
           return {subscribers, showAddEditDialog: false};
         }),
@@ -230,15 +231,18 @@ class Subscribers extends React.Component<Props, State> {
   };
 
   onBulkUpload = async (subscriberIDs: Array<string>) => {
-    const responses = await Promise.all(
+    const results = await Promise.all(
       subscriberIDs.map(id =>
-        axios.get(MagmaAPIUrls.subscriber(this.props.match, id)),
+        MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
+          networkId: nullthrows(this.props.match.params.networkId),
+          subscriberId: id,
+        }),
       ),
     );
     this.setState(state => {
       const subscribers = [
         ...state.subscribers,
-        ...responses.map(response => this._buildSubscriber(response.data)),
+        ...results.map(subscriber => this._buildSubscriber(subscriber)),
       ];
       return {subscribers, showImportDialog: false};
     });
@@ -253,13 +257,15 @@ class Subscribers extends React.Component<Props, State> {
   editSubscriber = subscriber =>
     this.setState({editingSubscriber: subscriber, showAddEditDialog: true});
 
-  deleteSubscriber = sub =>
+  deleteSubscriber = sub => {
     this.props
       .confirm(`Are you sure you want to delete subscriber ${sub.id}?`)
       .then(confirmed => {
         if (confirmed) {
-          axios
-            .delete(MagmaAPIUrls.subscriber(this.props.match, 'IMSI' + sub.id))
+          MagmaV1API.deleteLteByNetworkIdSubscribersBySubscriberId({
+            networkId: this.props.match.params.networkId || '',
+            subscriberId: `IMSI${sub.id}`,
+          })
             .then(_resp =>
               this.setState({
                 subscribers: this.state.subscribers.filter(
@@ -270,11 +276,12 @@ class Subscribers extends React.Component<Props, State> {
             .catch(this.props.alert);
         }
       });
+  };
 
-  _buildSubscriber(subscriber: Subscriber, subProfiles?: SubProfiles) {
+  _buildSubscriber(subscriber: subscriber, subProfiles?: SubProfiles) {
     subProfiles = subProfiles || this.state.subProfiles;
-    if (!(subscriber.sub_profile in subProfiles)) {
-      subscriber.sub_profile = 'default';
+    if (!(subscriber.lte.sub_profile in subProfiles)) {
+      subscriber.lte.sub_profile = 'default';
     }
 
     subscriber.id = subscriber.id.replace(/^IMSI/, '');
@@ -283,9 +290,9 @@ class Subscribers extends React.Component<Props, State> {
 }
 
 type Props2 = {
-  subscriber: Subscriber,
-  onEdit: Subscriber => void,
-  onDelete: Subscriber => any,
+  subscriber: subscriber,
+  onEdit: subscriber => void,
+  onDelete: subscriber => void,
 };
 class SubscriberTableRow extends React.Component<Props2> {
   render() {
@@ -293,7 +300,7 @@ class SubscriberTableRow extends React.Component<Props2> {
       <TableRow>
         <TableCell>{this.props.subscriber.id}</TableCell>
         <TableCell>{this.props.subscriber.lte.state}</TableCell>
-        <TableCell>{this.props.subscriber.sub_profile}</TableCell>
+        <TableCell>{this.props.subscriber.lte.sub_profile}</TableCell>
         <TableCell>
           <IconButton onClick={this.onEdit}>
             <EditIcon />

@@ -97,6 +97,5 @@ monitored_ifaces: ['br0',
 ###############
 ## IMPORTANT ##
 ###############
-# This is duplicated from spgw.yml - if you change the value here,
-# also change it there
 ovs_gtp_port_number: 32768
+ovs_uplink_port_name: eth2

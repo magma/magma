@@ -74,6 +74,11 @@ services:
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
       - /etc/snowflake:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/var/opt/magma/docker
+    environment:
+      DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
     command: python3.5 -m magma.magmad.main
 
   pipelined:
@@ -93,6 +98,11 @@ services:
         /usr/bin/ovs-vsctl set-controller br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
+  redirectd:
+    <<: *ltepyservice
+    container_name: redirectd
+    command: python3 -m magma.redirectd.main
+
   radius:
     image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
     container_name: radius
@@ -105,6 +115,8 @@ services:
       - RADIUS_SECRET=123456
       - COA_FIXED_ENDPOINT=127.0.0.1:4799
       - AAA_ENDPOINT=127.0.0.1:9109
+      - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
+      - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
     network_mode: host
     restart: always
 

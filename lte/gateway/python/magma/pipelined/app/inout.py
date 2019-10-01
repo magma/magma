@@ -7,9 +7,11 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 from collections import namedtuple
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 from .base import MagmaController
 from magma.pipelined.openflow import flows
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import load_direction, Direction
 
@@ -32,16 +34,24 @@ class InOutController(MagmaController):
 
     InOutConfig = namedtuple(
         'InOutConfig',
-        ['gtp_port'],
+        ['gtp_port', 'uplink_port_name'],
     )
 
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
         self.config = self._get_config(kwargs['config'])
+        self._uplink_port = OFPP_LOCAL
+        if (self.config.uplink_port_name):
+            self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
 
     def _get_config(self, config_dict):
+        port_name = None
+        if 'ovs_uplink_port_name' in config_dict:
+            port_name = config_dict['ovs_uplink_port_name']
+
         return self.InOutConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
+            uplink_port_name=port_name
         )
 
     def initialize_on_connect(self, datapath):
@@ -76,7 +86,7 @@ class InOutController(MagmaController):
         uplink_match = MagmaMatch(direction=Direction.OUT)
         flows.add_output_flow(dp, self._service_manager.get_table_num(EGRESS),
                               uplink_match, [],
-                              output_port=dp.ofproto.OFPP_LOCAL)
+                              output_port=self._uplink_port)
 
     def _install_default_ingress_flows(self, dp):
         """
@@ -99,6 +109,7 @@ class InOutController(MagmaController):
         parser = dp.ofproto_parser
         tbl_num = self._service_manager.get_table_num(INGRESS)
         next_table = self._service_manager.get_next_table_num(INGRESS)
+        egress_table = self._service_manager.get_table_num(EGRESS)
 
         # set traffic direction bits
         # set a direction bit for outgoing (pn -> inet) traffic.
@@ -109,10 +120,26 @@ class InOutController(MagmaController):
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=next_table)
 
-        # set a direction bit for incoming (inet -> pn) traffic.
-        match = MagmaMatch(in_port=dp.ofproto.OFPP_LOCAL)
+        # Allow passthrough pkts(skip pipeline and send to egress table)
+        match = MagmaMatch(in_port=self.config.gtp_port,
+                           direction=Direction.PASSTHROUGH)
+        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
+                                             actions=actions,
+                                             priority=flows.PASSTHROUGH_PRIORITY,
+                                             resubmit_table=egress_table)
+
+        # set a direction bit for incoming (internet -> UE) traffic.
+        match = MagmaMatch(in_port=self._uplink_port)
         actions = [load_direction(parser, Direction.IN)]
         flows.add_resubmit_next_service_flow(dp, tbl_num, match,
                                              actions=actions,
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=next_table)
+
+        # Allow passthrough pkts(skip pipeline and send to egress table)
+        match = MagmaMatch(in_port=self._uplink_port,
+                           direction=Direction.PASSTHROUGH)
+        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
+                                             actions=actions,
+                                             priority=flows.PASSTHROUGH_PRIORITY,
+                                             resubmit_table=egress_table)

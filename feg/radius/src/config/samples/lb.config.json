@@ -1,7 +1,9 @@
 {
-    "counters": {
-        "disable_stats": false,
-        "stat_views": ["proc"]
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
     },
     "server": {
         "secret": "123456",
@@ -68,7 +70,10 @@
         "listeners": [
             {
                 "name": "auth",
-                "port": 3700,
+                "type": "udp",
+                "extra": {
+                    "port": 3700
+                },
                 "modules": [
                     {
                         "name": "lbserve",

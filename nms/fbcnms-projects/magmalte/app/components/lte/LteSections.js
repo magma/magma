@@ -16,6 +16,8 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodebs from './Enodebs';
 import Gateways from '../Gateways';
 import Insights from '../insights/Insights';
+import ListIcon from '@material-ui/icons/List';
+import Logs from '../insights/Logs/Logs';
 import LteConfigure from '../LteConfigure';
 import LteMetrics from './LteMetrics';
 import PeopleIcon from '@material-ui/icons/People';
@@ -26,7 +28,10 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import Subscribers from '../Subscribers';
 
-export function getLteSections(alertsEnabled: boolean): SectionsConfigs {
+export function getLteSections(
+  alertsEnabled: boolean,
+  logsEnabled: boolean,
+): SectionsConfigs {
   const sections = [
     'map', // landing path
     [
@@ -68,6 +73,14 @@ export function getLteSections(alertsEnabled: boolean): SectionsConfigs {
       },
     ],
   ];
+  if (logsEnabled) {
+    sections[1].splice(2, 0, {
+      path: 'logs',
+      label: 'Logs',
+      icon: <ListIcon />,
+      component: Logs,
+    });
+  }
   if (alertsEnabled) {
     sections[1].splice(2, 0, {
       path: 'alerts',

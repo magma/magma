@@ -32,7 +32,8 @@ func TestMsisdnAdded(t *testing.T) {
 	var sessionID = "sessionID"
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
-	Init(logger, modules.ModuleConfig{})
+	ctx, err := Init(logger, modules.ModuleConfig{})
+	require.NoError(t, err, "failed to init")
 
 	var outputMsisdn string
 	var outputVendor uint32
@@ -43,6 +44,7 @@ func TestMsisdnAdded(t *testing.T) {
 
 	// Act
 	_, err = Handle(
+		ctx,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -85,6 +87,7 @@ func TestMissingSessionState(t *testing.T) {
 
 	// Act
 	_, err = Handle(
+		nil,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,
@@ -113,6 +116,7 @@ func TestInvalidVendorSpecificAttr(t *testing.T) {
 
 	// Act
 	_, err = Handle(
+		nil,
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,

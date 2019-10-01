@@ -23,3 +23,4 @@
         c_build: /home/{{ ansible_user }}/build/c/
         oai_build: "{{ c_build }}/oai"
         magma_repo: /home/{{ ansible_user }}/magma-packages
+    - role: fluent_bit

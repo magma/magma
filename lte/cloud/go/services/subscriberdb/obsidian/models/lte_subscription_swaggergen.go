@@ -35,6 +35,10 @@ type LteSubscription struct {
 	// state
 	// Enum: [INACTIVE ACTIVE]
 	State string `json:"state,omitempty"`
+
+	// sub profile
+	// Min Length: 1
+	SubProfile string `json:"sub_profile,omitempty"`
 }
 
 // Validate validates this lte subscription
@@ -54,6 +58,10 @@ func (m *LteSubscription) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateState(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubProfile(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -162,6 +170,19 @@ func (m *LteSubscription) validateState(formats strfmt.Registry) error {
 
 	// value enum
 	if err := m.validateStateEnum("state", "body", m.State); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *LteSubscription) validateSubProfile(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SubProfile) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("sub_profile", "body", string(m.SubProfile), 1); err != nil {
 		return err
 	}
 

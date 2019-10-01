@@ -168,3 +168,7 @@ controller:
   # Assign proxy to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
+
+# Set True to create a CloudWatch agent to monitor metrics 
+cloudwatch:
+  create: false

@@ -29,12 +29,14 @@ class Service303Tests(TestCase):
         ServiceRegistry.add_service('test', '0.0.0.0', 0)
         self._stub = None
 
+        self._loop = asyncio.new_event_loop()
         # Use a new event loop to ensure isolated tests
-        self._service = MagmaService('test', mconfigs_pb2.MagmaD(),
-                                     loop=asyncio.new_event_loop())
-        # Clear the global event loop so tests rely only on the event loop that
-        # was manually set
-        asyncio.set_event_loop(None)
+        self._service = MagmaService(
+            name='test',
+            empty_mconfig=mconfigs_pb2.MagmaD(),
+            loop=self._loop,
+        )
+        asyncio.set_event_loop(self._service.loop)
 
     @mock.patch(
         'magma.common.service_registry.ServiceRegistry.get_proxy_config')
@@ -42,6 +44,7 @@ class Service303Tests(TestCase):
         """
         Test if the service starts and stops gracefully.
         """
+
         self.assertEqual(self._service.state, ServiceInfo.STARTING)
 
         mock_get_proxy_config.return_value = {
@@ -52,6 +55,8 @@ class Service303Tests(TestCase):
         # Start the service and pause the loop
         self._service.loop.stop()
         self._service.run()
+        asyncio.set_event_loop(self._service.loop)
+        self._service.log_counter._periodic_task.cancel()
         self.assertEqual(self._service.state, ServiceInfo.ALIVE)
 
         # Create a rpc stub and query the Service303 interface

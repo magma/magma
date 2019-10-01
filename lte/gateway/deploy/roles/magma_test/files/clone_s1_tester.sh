@@ -31,7 +31,7 @@ else
 fi;
 
 # Clear out the libraries to force complete rebuild after cloning
-for TARGET_DIR in TestCntlrApp Trfgen TestCntlrStub; do
+for TARGET_DIR in TestCntlrApp Trfgen; do
    BUILD_DIR=$S1AP_SRC/$TARGET_DIR/build
    echo "cleaning up $BUILD_DIR"
    cd $BUILD_DIR

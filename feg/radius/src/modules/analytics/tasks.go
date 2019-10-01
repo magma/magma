@@ -1,3 +1,11 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
 package analytics
 
 import (
@@ -12,10 +20,11 @@ type (
 
 	// a task to wrap a GraphQL "CreateSession" operation to be serialized with all operations of this session
 	createSessionTask struct {
-		Logger       *zap.Logger
-		reqCtx       *modules.RequestContext
-		session      *RadiusSession
-		sessionState *session.State
+		Logger             *zap.Logger
+		reqCtx             *modules.RequestContext
+		session            *RadiusSession
+		untokenizedSession *RadiusSession
+		sessionState       *session.State
 	}
 
 	// a task to wrap a GraphQL "UpdateSession" operation to be serialized with all operations of this session
@@ -28,25 +37,25 @@ type (
 )
 
 // Run to be called by task execution engine
-func (op *createSessionTask) Run() {
-	createRadiusSession(op.Logger, op.reqCtx, op.session, op.sessionState)
+func (op *createSessionTask) Run(m ModuleCtx) {
+	createRadiusSession(m, op.Logger, op.reqCtx, op.session, op.sessionState)
 }
 
 // Run to be called by task execution engine
-func (op *updateSessionTask) Run() {
-	updateRadiusSession(op.Logger, op.reqCtx, op.session, op.sessionState)
+func (op *updateSessionTask) Run(m ModuleCtx) {
+	updateRadiusSession(m, op.Logger, op.reqCtx, op.session, op.sessionState)
 }
 
 // do the GraphQL call to create the RadiusSession
-func createRadiusSession(logger *zap.Logger, c *modules.RequestContext, session *RadiusSession, sessionState *session.State) {
+func createRadiusSession(m ModuleCtx, logger *zap.Logger, c *modules.RequestContext, session *RadiusSession, sessionState *session.State) {
 	logger.Debug("Creating a new RADIUS session", zap.Any("radius_session", session))
-	if cfg.DryRunGraphQL {
+	if m.cfg.DryRunGraphQL {
 		sessionState.RadiusSessionFBID = uint64(time.Now().UnixNano())
 		time.Sleep(time.Millisecond) // provide some delay for GraphQL calls
 		logger.Debug("GraphQL is in dry-run mode !!!", zap.Any("radius_session", session))
 	} else {
 		createOp := NewCreateSessionOp(session)
-		err := graphqlClient.Do(createOp)
+		err := m.graphqlClient.Do(createOp)
 		if err != nil {
 			logger.Error("failed creating session", zap.Any("radius_session", &session),
 				zap.Error(err))
@@ -64,13 +73,14 @@ func createRadiusSession(logger *zap.Logger, c *modules.RequestContext, session 
 }
 
 // do the GraphQL call to update the RadiusSession
-func updateRadiusSession(logger *zap.Logger, c *modules.RequestContext, session *RadiusSession, sessionState *session.State) {
-	if cfg.DryRunGraphQL {
+func updateRadiusSession(m ModuleCtx, logger *zap.Logger, c *modules.RequestContext, session *RadiusSession, sessionState *session.State) {
+	logger.Debug("Updating RADIUS session", zap.Any("radius_session", session))
+	if m.cfg.DryRunGraphQL {
 		time.Sleep(time.Millisecond) // provide some delay for GraphQL calls
 		logger.Debug("GraphQL is in dry-run mode !!!", zap.Any("radius_session", session))
 	} else {
 		updateOp := NewUpdateSessionOp(session)
-		err := graphqlClient.Do(updateOp)
+		err := m.graphqlClient.Do(updateOp)
 		if err != nil {
 			logger.Error("failed updating session", zap.Any("radius_session", &session),
 				zap.Error(err))
@@ -87,26 +97,26 @@ func updateRadiusSession(logger *zap.Logger, c *modules.RequestContext, session 
 
 // push a lazy task to the queue
 // create the queue if it doesnt exist yet
-func pushGraphQLTask(logger *zap.Logger, task Request, sessionState *session.State) {
+func pushGraphQLTask(m ModuleCtx, logger *zap.Logger, task Request, sessionState *session.State) {
 	// create a queue if not exist
-	q := graphQLOps[sessionState.AcctSessionID]
+	q := m.graphQLOps[sessionState.AcctSessionID]
 	if q == nil {
 		// no queue for the session - create one
-		q = NewAnalyticsQueue()
-		graphQLOps[sessionState.AcctSessionID] = q
+		q = NewAnalyticsQueue(m)
+		m.graphQLOps[sessionState.AcctSessionID] = q
 		logger.Debug("Creating graphql queue", zap.String("acct_session_id", sessionState.AcctSessionID))
 	}
 	q.Push(task)
 }
 
 // cleanSessionTasks drain tasks & delete the queue from the map
-func cleanSessionTasks(logger *zap.Logger, sessionState *session.State) {
-	q := graphQLOps[sessionState.AcctSessionID]
+func cleanSessionTasks(m ModuleCtx, logger *zap.Logger, sessionState *session.State) {
+	q := m.graphQLOps[sessionState.AcctSessionID]
 	if q == nil {
 		return
 	}
 	q.Close(true)
-	delete(graphQLOps, sessionState.AcctSessionID)
+	delete(m.graphQLOps, sessionState.AcctSessionID)
 	logger.Debug("drained graphql queue", zap.String("acct_session_id", sessionState.AcctSessionID),
 		zap.Bool("is_exist", q != nil))
 }

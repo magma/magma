@@ -75,7 +75,7 @@ int mme_app_edns_init(const mme_config_t *mme_config_p)
 {
   int rc = RETURNok;
   g_e_dns_entries = obj_hashtable_create(
-    min(32, MME_CONFIG_MAX_SGW), NULL, free_wrapper, free_wrapper, NULL);
+    OAI_MIN(32, MME_CONFIG_MAX_SGW), NULL, free_wrapper, free_wrapper, NULL);
   if (g_e_dns_entries) {
     for (int i = 0; i < mme_config_p->e_dns_emulation.nb_sgw_entries; i++) {
       rc |= mme_app_edns_add_sgw_entry(

@@ -13,8 +13,9 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/plugin/handlers"
+	fegmodels "magma/feg/cloud/go/plugin/models"
 	fegh "magma/feg/cloud/go/services/controller/obsidian/handlers"
-	"magma/feg/cloud/go/services/controller/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
@@ -45,8 +46,9 @@ func (*FegOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// configurator serdes
-		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &models.NetworkFederationConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &models.GatewayFegConfigs{}),
+		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &fegmodels.NetworkFederationConfigs{}),
+		configurator.NewNetworkConfigSerde(feg.FederatedNetworkType, &fegmodels.FederatedNetworkConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &fegmodels.GatewayFederationConfigs{}),
 	}
 }
 
@@ -63,6 +65,7 @@ func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.Config
 func (*FegOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		fegh.GetObsidianHandlers(),
+		handlers.GetHandlers(),
 	)
 }
 

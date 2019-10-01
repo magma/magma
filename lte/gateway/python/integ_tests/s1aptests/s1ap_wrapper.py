@@ -11,14 +11,14 @@ import os
 import s1ap_types
 import time
 
-#from integ_tests.cloud.cloud_manager import CloudManager
+# from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc, \
-    MobilityServiceOAI #, MobilityServiceRest
+     MobilityServiceOAI  # MobilityServiceRest
 from integ_tests.common.service303_utils import GatewayServicesUtil
 from integ_tests.common.subscriber_db_client import SubscriberDbGrpc, \
-    SubscriberDbMySQL #, SubscriberDbRest
+     SubscriberDbMySQL  # SubscriberDbRest
 from integ_tests.s1aptests.s1ap_utils import MobilityUtil, S1ApUtil, \
-    SubscriberUtil
+     SubscriberUtil
 from integ_tests.s1aptests.util.traffic_util import TrafficUtil
 
 
@@ -37,7 +37,7 @@ class TestWrapper(object):
         self._s1_util = S1ApUtil()
         self._enBConfig()
 
-        #if self._test_cloud:
+        # if self._test_cloud:
         #    self._cloud_manager = CloudManager()
         #    self._cloud_manager.clean_up()
         #    subscriber_client = SubscriberDbRest(self._cloud_manager)
@@ -213,6 +213,19 @@ class TestWrapper(object):
 
         self.check_gw_health_after_ue_load()
 
+    def configUEDevice_without_checking_gw_health(self, num_ues):
+        """ Configure the device on the UE side """
+        reqs = self._sub_util.add_sub(num_ues=num_ues)
+        for i in range(num_ues):
+            print("************************* UE device config for ue_id ",
+                  reqs[i].ue_id)
+            assert (self._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0)
+            response = self._s1_util.get_response()
+            assert (s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value ==
+                    response.msg_type)
+            self._configuredUes.append(reqs[i])
+
     def check_gw_health_after_ue_load(self):
         """ Wait for the MME only after adding entries to HSS """
         if self.wait_gateway_healthy:
@@ -286,5 +299,39 @@ class TestWrapper(object):
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util
-        #if self._test_cloud:
+        # if self._test_cloud:
         #    self._cloud_manager.clean_up()
+
+    def multiEnbConfig(self, num_of_enbs, enb_list=None):
+        if enb_list is None:
+            enb_list = []
+        req = s1ap_types.multiEnbConfigReq_t()
+        req.numOfEnbs = num_of_enbs
+        # ENB Parameter column index initialization
+        PLMN_LENGTH = 6
+        CELLID_COL_IDX = 0
+        TAC_COL_IDX = 1
+        ENBTYPE_COL_IDX = 2
+        PLMNID_COL_IDX = 3
+
+        for idx1 in range(num_of_enbs):
+            req.multiEnbCfgParam[idx1].cell_id = \
+                    (enb_list[idx1][CELLID_COL_IDX])
+
+        for idx1 in range(num_of_enbs):
+            req.multiEnbCfgParam[idx1].tac = \
+                    (enb_list[idx1][TAC_COL_IDX])
+
+        for idx1 in range(num_of_enbs):
+            req.multiEnbCfgParam[idx1].enbType = \
+                    (enb_list[idx1][ENBTYPE_COL_IDX])
+
+        for idx1 in range(num_of_enbs):
+            for idx3 in range(PLMN_LENGTH):
+                val = enb_list[idx1][PLMNID_COL_IDX][idx3]
+                req.multiEnbCfgParam[idx1].plmn_id[idx3] = int(val)
+
+        print("***************** Sending Multiple Enb Config Request\n")
+        assert (
+            self._s1_util.issue_cmd(
+                 s1ap_types.tfwCmd.MULTIPLE_ENB_CONFIG_REQ, req) == 0)

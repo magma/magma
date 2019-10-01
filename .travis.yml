@@ -124,6 +124,23 @@ matrix:
       script:
         - make -C $MAGMA_ROOT/lte/gateway/python test_all
 
+    - language: minimal
+      name: nms builds
+      os: linux
+      dist: xenial
+
+      env:
+        - NMS_ROOT=$TRAVIS_BUILD_DIR/nms
+
+      addons:
+        apt:
+          packages:
+            - docker-ce
+
+      script:
+        - cd ${NMS_ROOT}
+        - docker build -t magmalte -f fbcnms-projects/magmalte/Dockerfile .
+
 notifications:
   slack:
     rooms:

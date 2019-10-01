@@ -209,7 +209,7 @@ MME :
         THREAD_SAFE       = "no";
 
         # COLOR choice in { "yes", "no" } means use of ANSI styling codes or no
-        COLOR             = "yes";
+        COLOR             = "no";
 
         # Log level choice in { "EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "TRACE"}
         SCTP_LOG_LEVEL     = "ERROR";

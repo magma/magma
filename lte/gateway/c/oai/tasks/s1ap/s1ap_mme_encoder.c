@@ -481,7 +481,7 @@ static inline int s1ap_mme_encode_paging(
     buffer,
     length,
     S1ap_ProcedureCode_id_Paging,
-    message_p->criticality,
+    S1ap_Criticality_ignore,
     &asn_DEF_S1ap_Paging,
     paging_p);
 }

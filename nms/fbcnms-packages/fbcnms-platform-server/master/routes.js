@@ -20,6 +20,8 @@ import {User} from '@fbcnms/sequelize-models';
 import {apiUrl, httpsAgent} from '../magma';
 import {getPropsToUpdate} from '@fbcnms/auth/util';
 
+const logger = require('@fbcnms/logging').getLogger(module);
+
 const router = express.Router();
 
 router.get(
@@ -51,9 +53,15 @@ router.get(
     Object.keys(results).forEach(id => (results[id].config = {}));
     const featureFlags = await FeatureFlag.findAll();
     featureFlags.forEach(flag => {
-      results[flag.featureId].config[flag.organization] = configFromFeatureFlag(
-        flag,
-      );
+      if (!results[flag.featureId]) {
+        logger.error(
+          'feature config is missing for featureId: ' + flag.featureId,
+        );
+      } else {
+        results[flag.featureId].config[
+          flag.organization
+        ] = configFromFeatureFlag(flag);
+      }
     });
     res.status(200).send(Object.values(results));
   }),

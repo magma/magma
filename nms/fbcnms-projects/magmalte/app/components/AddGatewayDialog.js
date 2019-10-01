@@ -10,6 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
+import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -17,10 +18,11 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
+import MagmaV1API from '../common/MagmaV1API';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-import {createDevice, fetchDevice, updateGatewayName} from '../common/MagmaAPI';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -36,12 +38,13 @@ type Props = ContextRouter &
   WithStyles<typeof styles> & {
     open: boolean,
     onClose: () => void,
-    onSave: (gateway: {[string]: any}) => void,
+    onSave: lte_gateway => void,
   };
 
 type State = {
   error: string,
   name: string,
+  description: string,
   hardware_id: string,
   gatewayID: string,
   challengeKey: string,
@@ -51,6 +54,7 @@ class AddGatewayDialog extends React.Component<Props, State> {
   state = {
     error: '',
     name: '',
+    description: '',
     hardware_id: '',
     gatewayID: '',
     challengeKey: '',
@@ -73,6 +77,13 @@ class AddGatewayDialog extends React.Component<Props, State> {
             value={this.state.name}
             onChange={this.onNameChange}
             placeholder="Gateway 1"
+          />
+          <TextField
+            label="Gateway Description"
+            className={classes.input}
+            value={this.state.description}
+            onChange={this.onDescriptionChange}
+            placeholder="Sample Gateway description"
           />
           <TextField
             label="Hardware UUID"
@@ -109,45 +120,60 @@ class AddGatewayDialog extends React.Component<Props, State> {
   }
 
   onNameChange = ({target}) => this.setState({name: target.value});
+  onDescriptionChange = ({target}) =>
+    this.setState({description: target.value});
   onHwidChange = ({target}) => this.setState({hardware_id: target.value});
   onGatewayIDChange = ({target}) => this.setState({gatewayID: target.value});
   onChallengeKeyChange = ({target}) =>
     this.setState({challengeKey: target.value});
 
   onSave = async () => {
-    const {name, hardware_id, gatewayID, challengeKey} = this.state;
-    if (!name || !hardware_id || !gatewayID || !challengeKey) {
+    const {
+      name,
+      description,
+      hardware_id,
+      gatewayID,
+      challengeKey,
+    } = this.state;
+    if (!name || !description || !hardware_id || !gatewayID || !challengeKey) {
       this.setState({error: 'Please complete all fields'});
       return;
     }
 
     try {
-      await createDevice(
-        gatewayID,
-        {
-          hardware_id,
-          key: {
-            key: challengeKey,
-            key_type: 'SOFTWARE_ECDSA_SHA256', // default key/challenge type
+      const networkId = nullthrows(this.props.match.params.networkId);
+      await MagmaV1API.postLteByNetworkIdGateways({
+        networkId,
+        gateway: {
+          id: gatewayID,
+          name,
+          description,
+          cellular: {
+            epc: {nat_enabled: false, ip_block: '192.168.0.1/32'},
+            ran: {pci: 260, transmit_enabled: false},
+            non_eps_service: undefined,
           },
-        },
-        'cellular',
-        {
-          autoupgrade_enabled: true,
-          autoupgrade_poll_interval: 300,
-          checkin_interval: 60,
-          checkin_timeout: 10,
+          magmad: {
+            autoupgrade_enabled: true,
+            autoupgrade_poll_interval: 300,
+            checkin_interval: 60,
+            checkin_timeout: 10,
+          },
+          device: {
+            hardware_id,
+            key: {
+              key: challengeKey,
+              key_type: 'SOFTWARE_ECDSA_SHA256', // default key/challenge type
+            },
+          },
+          connected_enodeb_serials: [],
           tier: 'default',
         },
-        {
-          epc: {nat_enabled: null, ip_block: '192.168.0.1/32'},
-          ran: {pci: null, transmit_enabled: null},
-          non_eps_service: null,
-        },
-        this.props.match,
-      );
-      await updateGatewayName(gatewayID, name, this.props.match);
-      const gateway = await fetchDevice(this.props.match, gatewayID);
+      });
+      const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
+        networkId,
+        gatewayId: gatewayID,
+      });
       this.props.onSave(gateway);
     } catch (e) {
       this.setState({error: e?.response?.data?.message || e?.message || e});

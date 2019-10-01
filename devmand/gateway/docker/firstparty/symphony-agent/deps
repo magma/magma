@@ -1,0 +1,11 @@
+libffi-dev
+libsystemd-dev
+net-tools
+td-agent-bit
+pkg-config
+python-babel
+python-dev
+python-protobuf
+python3-cffi
+python3-pip
+systemd

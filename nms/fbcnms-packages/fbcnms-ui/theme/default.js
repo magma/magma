@@ -164,6 +164,15 @@ export default createMuiTheme({
         paddingBottom: '12px',
         paddingTop: '12px',
         height: '24px',
+        '&::-webkit-input-placeholder': {
+          opacity: 1,
+        },
+        '&::-moz-placeholder': {
+          opacity: 1,
+        },
+        '&::-ms-input-placeholder': {
+          opacity: 1,
+        },
       },
       inputMarginDense: {
         paddingTop: '9px',
@@ -172,7 +181,7 @@ export default createMuiTheme({
         lineHeight: '14px',
         height: '14px',
         '&::placeholder': {
-          color: 'rgba(0, 0, 0, 0.6)',
+          color: '#8895ad',
         },
         '&::-webkit-input-placeholder': {
           opacity: 1,

@@ -465,6 +465,8 @@ static void log_connect_to_server(void)
 static void log_sync(log_queue_item_t *new_item_p)
 {
   log_string(new_item_p->log_level, bdata(new_item_p->bstr));
+  flush_log(MIN_LOG_LEVEL);
+
   // Release the log_item
   free_log_queue_item_sync(&new_item_p);
 }

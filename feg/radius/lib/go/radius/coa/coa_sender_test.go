@@ -1,8 +1,17 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
 package coa
 
 import (
 	"context"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
@@ -167,9 +176,12 @@ func TestCoA(t *testing.T) {
 			serverHandler(w, r, t)
 		}),
 	}
-	defer server.Shutdown(context.Background())
+
+	var wg sync.WaitGroup
+	wg.Add(1)
 
 	go func() {
+		defer wg.Done()
 		defer server.Shutdown(context.Background())
 		sendPacket(ctx, t, firstCoAPacket, client, pc.LocalAddr().String())
 		sendPacket(ctx, t, secondCoAPacket, client, pc.LocalAddr().String())
@@ -179,6 +191,5 @@ func TestCoA(t *testing.T) {
 
 	err = server.Serve(pc)
 	require.NoError(t, err)
-
-	server.Shutdown(context.Background())
+	wg.Wait()
 }
