@@ -28,16 +28,21 @@ const useStyles = makeStyles(theme => ({
   },
   expansionPanelSummary: {
     '&&': {
+      display: 'flex',
+      flexDirection: 'row',
       padding: '0px',
       minHeight: 'auto',
     },
   },
   expandIcon: {
     padding: '0px',
+    marginRight: '0px',
   },
   summaryContent: {
     '&&': {
+      alignItems: 'center',
       margin: 0,
+      cursor: 'default',
     },
   },
   panelTitle: {
@@ -45,6 +50,7 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.blueGrayDark,
     lineHeight: '28px',
     fontWeight: 500,
+    flexGrow: 1,
   },
   panelDetails: {
     padding: 0,
@@ -58,22 +64,27 @@ type Props = {
   title: string,
   children: React.Node,
   className?: string,
+  rightContent?: React.Node,
 };
 
-const ExpandingPanel = ({className, children, title}: Props) => {
+const ExpandingPanel = ({className, children, title, rightContent}: Props) => {
   const classes = useStyles();
+  const [isExpanded, setIsExpanded] = React.useState(true);
   return (
     <ExpansionPanel
       className={classNames(className, classes.expansionPanel)}
-      defaultExpanded={true}>
+      defaultExpanded={true}
+      expanded={isExpanded}>
       <ExpansionPanelSummary
         className={classes.expansionPanelSummary}
         classes={{
           expandIcon: classes.expandIcon,
           content: classes.summaryContent,
         }}
-        expandIcon={<ExpandMoreIcon />}>
+        expandIcon={<ExpandMoreIcon className={classes.expandButton} />}
+        IconButtonProps={{onClick: () => setIsExpanded(!isExpanded)}}>
         <Typography className={classes.panelTitle}>{title}</Typography>
+        {rightContent}
       </ExpansionPanelSummary>
       <ExpansionPanelDetails className={classes.panelDetails}>
         {children}

@@ -1,0 +1,14 @@
+[Unit]
+Description=TD Agent Bit
+Requires=network.target
+After=network.target
+After=magmad.service
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStart=/opt/td-agent-bit/bin/td-agent-bit -c /etc/magma/td-agent-bit.conf
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

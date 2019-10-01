@@ -3,10 +3,12 @@
 magma_services:
   - control_proxy
   - devmand
+  - td-agent-bit
 
 # List of services that don't provide service303 interface
 non_service303_services:
   - control_proxy
+  - td-agent-bit
 
 # Init system to use to control services
 # Supported systems include: [systemd, runit]

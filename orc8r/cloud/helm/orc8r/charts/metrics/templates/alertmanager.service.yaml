@@ -30,4 +30,15 @@ spec:
        port: {{ $port.port }}
        targetPort: {{ $port.targetPort }}
 {{- end }}
+{{- if eq .Values.alertmanager.service.type "LoadBalancer" }}
+  {{- if .Values.alertmanager.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.alertmanager.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.alertmanager.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.alertmanager.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
 {{- end }}

@@ -119,9 +119,9 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 16 flows installed and 2 total pkts matched (one for each UE)
+        # Verify 17 flows installed and 2 total pkts matched (one for each UE)
         flow_verifier = FlowVerifier(
-            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2, 16)]
+            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2, 17)]
             + [FlowTest(query, 1, 4) for query in flow_queries],
             lambda: wait_after_send(self.testing_controller))
 
@@ -166,11 +166,11 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 8 flows installed and 1 total pkt matched
+        # Verify 9 flows installed and 1 total pkt matched
         flow_verifier = FlowVerifier(
             [
                 FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 1,
-                         8),
+                         9),
                 FlowTest(flow_queries[0], 0, 0),
                 FlowTest(flow_queries[1], 1, 4),
             ], lambda: wait_after_send(self.testing_controller))

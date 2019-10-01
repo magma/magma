@@ -13,9 +13,9 @@ import type {Match} from 'react-router-dom';
 
 import axios from 'axios';
 import url from 'url';
-import {get, map} from 'lodash';
+import {get} from 'lodash';
 
-import type {CheckindGateway, NetworkUpgradeTier} from './MagmaAPIType';
+import type {CheckindGateway} from './MagmaAPIType';
 
 function dedupeNetworkId(networkIdOrMatch: string | Match): string {
   return get(networkIdOrMatch, 'params.networkId', networkIdOrMatch);
@@ -33,10 +33,6 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(networkIdOrMatch)}/policies/rules`,
   networkPolicyRule: (networkIdOrMatch: string | Match, ruleId: string) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/policies/rules/${ruleId}`,
-  enodeb: (networkIdOrMatch: string | Match, enodebId: string) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/enodeb/${enodebId}`,
-  enodebs: (networkIdOrMatch: string | Match) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/enodeb`,
   gateways: (networkIdOrMatch: string | Match, viewFull: boolean = false) => {
     const params = viewFull ? '?view=full' : '';
     return `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways${params}`;
@@ -63,14 +59,6 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(networkIdOrMatch)}/prometheus/query_range`,
   graphiteQuery: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/graphite/query`,
-  networkTiers: (networkIdOrMatch: string | Match) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/tiers`,
-  networkTier: (networkIdOrMatch: string | Match, tierId: string) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/tiers/${tierId}`,
-  subscribers: (networkIdOrMatch: string | Match) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/subscribers`,
-  subscriber: (networkIdOrMatch: string | Match, subscriberId: string) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/subscribers/${subscriberId}`,
   upgradeChannel: (channel: string) =>
     `/nms/apicontroller/magma/channels/${channel}`,
   command: (
@@ -98,29 +86,6 @@ export const MagmaAPIUrls = {
       networkIdOrMatch,
     )}/gateways/${gatewayId}/configs/devmand`,
 };
-
-export async function fetchAllNetworkUpgradeTiers(
-  networkId: string,
-): Promise<Array<NetworkUpgradeTier>> {
-  const tierIdsResponse = await axios.get(MagmaAPIUrls.networkTiers(networkId));
-  const tierIds = tierIdsResponse.data;
-  const tierResponses = await axios.all(
-    map(tierIds, tierId =>
-      axios.get(MagmaAPIUrls.networkTier(networkId, tierId)),
-    ),
-  );
-  return map(tierResponses, tierResponse => tierResponse.data);
-}
-
-export async function fetchNetworkUpgradeTier(
-  networkId: string,
-  tierId: string,
-): Promise<NetworkUpgradeTier> {
-  const tierResponse = await axios.get(
-    MagmaAPIUrls.networkTier(networkId, tierId),
-  );
-  return tierResponse.data;
-}
 
 export async function fetchAllGateways(
   networkId: string,

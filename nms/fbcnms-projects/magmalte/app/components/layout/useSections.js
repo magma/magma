@@ -30,6 +30,7 @@ export default function useSections(): SectionsConfigs {
   const {networkId} = useContext<NetworkContextType>(NetworkContext);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const alertsEnabled = useFeatureFlag(AppContext, 'alerts');
+  const logsEnabled = useFeatureFlag(AppContext, 'logs');
 
   useEffect(() => {
     if (networkId) {
@@ -54,6 +55,6 @@ export default function useSections(): SectionsConfigs {
       return getRhinoSections();
     case CELLULAR:
     default:
-      return getLteSections(alertsEnabled);
+      return getLteSections(alertsEnabled, logsEnabled);
   }
 }

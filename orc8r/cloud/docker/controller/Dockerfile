@@ -8,10 +8,10 @@ FROM ${baseImage} as base
 RUN apt-get update && \
     apt-get install -y curl make git gcc bzr unzip vim
 
-# Install Golang 1.11
+# Install Golang 1.12
 WORKDIR /usr/local
-RUN curl https://dl.google.com/go/go1.11.linux-amd64.tar.gz -O && \
-    tar xvf go1.11.linux-amd64.tar.gz && \
+RUN curl https://dl.google.com/go/go1.12.linux-amd64.tar.gz -O && \
+    tar xvf go1.12.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 ENV GO111MODULE on
 

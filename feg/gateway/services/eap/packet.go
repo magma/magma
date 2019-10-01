@@ -71,6 +71,14 @@ func (p Packet) Identifier() uint8 {
 	return p[EapMsgIdentifier]
 }
 
+// Code returns EAP Packet Message Code
+func (p Packet) Code() uint8 {
+	if len(p) > EapMsgCode {
+		return p[EapMsgCode]
+	}
+	return UndefinedCode
+}
+
 // IsSuccess returns if the EAP Packet Code is Success (3)
 func (p Packet) IsSuccess() bool {
 	return len(p) > EapMsgCode && p[EapMsgCode] == SuccessCode

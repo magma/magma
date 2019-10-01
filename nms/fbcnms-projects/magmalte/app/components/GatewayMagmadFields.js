@@ -9,7 +9,7 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Gateway} from './GatewayUtils';
+import type {GatewayV1} from './GatewayUtils';
 import type {WithStyles} from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
@@ -17,13 +17,13 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
+import MagmaV1API from '../common/MagmaV1API';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import {toString} from './GatewayUtils';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -40,7 +40,7 @@ type Props = ContextRouter &
   WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gatewayID: string) => void,
-    gateway: Gateway,
+    gateway: GatewayV1,
   };
 
 type State = {
@@ -111,23 +111,19 @@ class GatewayMagmadFields extends React.Component<Props, State> {
   }
 
   onSave = () => {
-    axios
-      .put(
-        MagmaAPIUrls.gatewayConfigs(
-          this.props.match,
-          this.props.gateway.logicalID,
-        ),
-        {
-          autoupgrade_enabled: this.state.autoupgradeEnabled,
-          autoupgrade_poll_interval: parseInt(
-            this.state.autoupgradePollInterval,
-          ),
-          checkin_interval: parseInt(this.state.checkinInterval),
-          checkin_timeout: parseInt(this.state.checkinTimeout),
-          tier: this.props.gateway.tier,
-        },
-      )
-      .then(() => this.props.onSave(this.props.gateway.logicalID));
+    const magmad = {
+      autoupgrade_enabled: this.state.autoupgradeEnabled,
+      autoupgrade_poll_interval: parseInt(this.state.autoupgradePollInterval),
+      checkin_interval: parseInt(this.state.checkinInterval),
+      checkin_timeout: parseInt(this.state.checkinTimeout),
+      tier: this.props.gateway.tier,
+    };
+
+    MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdMagmad({
+      networkId: nullthrows(this.props.match.params.networkId),
+      gatewayId: this.props.gateway.logicalID,
+      magmad,
+    }).then(() => this.props.onSave(this.props.gateway.logicalID));
   };
 
   autoupgradeEnabledChanged = ({target}) =>

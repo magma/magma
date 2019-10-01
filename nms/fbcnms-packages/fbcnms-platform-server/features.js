@@ -80,6 +80,11 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
+    id: 'logs',
+    title: 'Logs',
+    enabledByDefault: false,
+  },
+  {
     id: 'equipment_export',
     title: 'Equipment Export',
     enabledByDefault: true,

@@ -49,6 +49,7 @@ class UEMacAddressController(MagmaController):
                                           self._service_manager.get_table_num(
                                               self.APP_NAME))
         self._datapath = datapath
+        self._add_arp_passthrough_flows()
 
     def cleanup_on_disconnect(self, datapath):
         flows.delete_all_flows_from_table(datapath,
@@ -217,3 +218,16 @@ class UEMacAddressController(MagmaController):
                                      tcp_src=53,
                                      eth_dst=mac_addr)
         self._delete_resubmit_flow(sid, dlink_match_tcp, action)
+
+    def _add_arp_passthrough_flows(self):
+        parser = self._datapath.ofproto_parser
+        tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+        next_table = self._service_manager.get_next_table_num(self.APP_NAME)
+
+        # Set so inout knows to skip tables and send to egress
+        actions = [load_direction(parser, Direction.PASSTHROUGH)]
+        arp_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP)
+        flows.add_resubmit_next_service_flow(self._datapath, tbl_num, arp_match,
+                                             actions=actions,
+                                             priority=flows.PASSTHROUGH_PRIORITY,
+                                             resubmit_table=next_table)

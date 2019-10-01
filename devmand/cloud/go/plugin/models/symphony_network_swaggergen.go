@@ -7,8 +7,8 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
-	models1 "magma/orc8r/cloud/go/models"
-	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	models2 "magma/orc8r/cloud/go/models"
+	models3 "magma/orc8r/cloud/go/pluginimpl/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -20,18 +20,18 @@ type SymphonyNetwork struct {
 
 	// description
 	// Required: true
-	Description models1.NetworkDescription `json:"description"`
+	Description models2.NetworkDescription `json:"description"`
 
 	// features
-	Features *models2.NetworkFeatures `json:"features,omitempty"`
+	Features *models3.NetworkFeatures `json:"features,omitempty"`
 
 	// id
 	// Required: true
-	ID models1.NetworkID `json:"id"`
+	ID models2.NetworkID `json:"id"`
 
 	// name
 	// Required: true
-	Name models1.NetworkName `json:"name"`
+	Name models2.NetworkName `json:"name"`
 }
 
 // Validate validates this symphony network

@@ -9,8 +9,9 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Gateway} from './GatewayUtils';
+import type {GatewayV1} from './GatewayUtils';
 import type {WithStyles} from '@material-ui/core';
+import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
 
 import AppBar from '@material-ui/core/AppBar';
 import Dialog from '@material-ui/core/Dialog';
@@ -18,11 +19,12 @@ import GatewayCellularFields from './GatewayCellularFields';
 import GatewayCommandFields from './GatewayCommandFields';
 import GatewayMagmadFields from './GatewayMagmadFields';
 import GatewaySummaryFields from './GatewaySummaryFields';
+import MagmaV1API from '../common/MagmaV1API';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {fetchDevice} from '../common/MagmaAPI';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -36,8 +38,8 @@ const styles = {
 type Props = ContextRouter &
   WithStyles<typeof styles> & {
     onClose: () => void,
-    onSave: (gateway: {[string]: any}) => void,
-    gateway: ?Gateway,
+    onSave: lte_gateway => void,
+    gateway: ?GatewayV1,
   };
 
 type State = {
@@ -112,7 +114,10 @@ class EditGatewayDialog extends React.Component<Props, State> {
 
   onTabChange = (event, tab) => this.setState({tab});
   onSave = gatewayID => {
-    fetchDevice(this.props.match, gatewayID).then(this.props.onSave);
+    MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
+      networkId: nullthrows(this.props.match.params.networkId),
+      gatewayId: gatewayID,
+    }).then(this.props.onSave);
   };
 }
 

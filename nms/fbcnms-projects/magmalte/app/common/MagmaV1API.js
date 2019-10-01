@@ -25,6 +25,7 @@ export default class MagmaV1API extends MagmaAPIBindings {
       method: (method: string),
       params: query,
       data: body,
+      headers: {'content-type': 'application/json'},
     });
 
     return response.data;

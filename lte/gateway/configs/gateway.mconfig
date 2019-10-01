@@ -94,6 +94,10 @@
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",
       "relayEnabled": false
+    },
+    "td-agent-bit": {
+      "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+      "extraTags": {}
     }
   }
 }

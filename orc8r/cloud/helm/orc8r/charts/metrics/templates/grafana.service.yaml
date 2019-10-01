@@ -30,4 +30,15 @@ spec:
        port: {{ $port.port }}
        targetPort: {{ $port.targetPort }}
 {{- end }}
+{{- if eq .Values.grafana.service.type "LoadBalancer" }}
+  {{- if .Values.grafana.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.grafana.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.grafana.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.grafana.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
 {{- end }}

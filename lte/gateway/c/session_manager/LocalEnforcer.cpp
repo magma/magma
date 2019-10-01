@@ -54,11 +54,13 @@ LocalEnforcer::LocalEnforcer(
   std::shared_ptr<SessionCloudReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
   std::shared_ptr<PipelinedClient> pipelined_client,
+  std::shared_ptr<SpgwServiceClient> spgw_client,
   std::shared_ptr<aaa::AAAClient> aaa_client,
   long session_force_termination_timeout_ms):
   reporter_(reporter),
   rule_store_(rule_store),
   pipelined_client_(pipelined_client),
+  spgw_client_(spgw_client),
   aaa_client_(aaa_client),
   session_force_termination_timeout_ms_(session_force_termination_timeout_ms)
 {
@@ -731,6 +733,9 @@ void LocalEnforcer::init_policy_reauth(
       rules_to_activate.dynamic_rules);
   }
 
+  create_bearer(
+    activate_success, it->second, request, rules_to_activate.dynamic_rules);
+
   // Treat activate/deactivate as all-or-nothing when reporting rule failures
   answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
   mark_rule_failures(activate_success, deactivate_success, request, answer_out);
@@ -846,6 +851,30 @@ void LocalEnforcer::schedule_revalidation(
       }),
       delta);
   });
+}
+
+void LocalEnforcer::create_bearer(
+  const bool &activate_success,
+  const std::unique_ptr<SessionState> &session,
+  const PolicyReAuthRequest &request,
+  const std::vector<PolicyRule> &dynamic_rules)
+{
+  if (!activate_success || session->is_radius_cwf_session() ||
+    !session->qos_enabled() || !request.has_qos_info()) {
+    MLOG(MDEBUG) << "Not creating bearer";
+    return;
+  }
+
+  auto default_qci = QCI(session->get_qci());
+  if (request.qos_info().qci() != default_qci) {
+    MLOG(MDEBUG) << "QCI sent in RAR is different from default QCI";
+    spgw_client_->create_dedicated_bearer(
+      request.imsi(),
+      session->get_subscriber_ip_addr(),
+      session->get_bearer_id(),
+      dynamic_rules);
+  }
+  return;
 }
 
 void LocalEnforcer::check_usage_for_reporting()

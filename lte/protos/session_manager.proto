@@ -49,6 +49,7 @@ message LocalCreateSessionRequest {
   RATType rat_type = 12;
   bytes hardware_addr = 13; // MAC Address for WLAN
   string radius_session_id = 14;
+  uint32 bearer_id = 15;
 }
 
 message LocalCreateSessionResponse {
@@ -351,6 +352,7 @@ message UsageMonitoringUpdateRequest {
   uint32 request_number = 3; // unique among session
   string sid = 4;
   string ue_ipv4 = 5;
+  bytes hardware_addr = 6; // MAC Address for WLAN
 }
 
 // Response to a usage monitor update with the credit received and session info

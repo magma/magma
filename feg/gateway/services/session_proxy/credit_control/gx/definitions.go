@@ -45,6 +45,7 @@ type CreditControlRequest struct {
 	GcID          string
 	Qos           *QosRequestInfo
 	UsageReports  []*UsageReport
+	HardwareAddr  []byte
 }
 
 type QosRequestInfo struct {

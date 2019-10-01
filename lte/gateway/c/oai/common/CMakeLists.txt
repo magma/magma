@@ -40,7 +40,7 @@ set(COMMON_SRC
   pid_file.c
   shared_ts_log.c
   log.c
-  common_types_state_to_proto.cpp
+  state_converter.cpp
   ${PROTO_SRCS}
   ${PROTO_HDRS}
 )

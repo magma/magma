@@ -12,6 +12,7 @@ require (
 	github.com/donovanhide/eventsource v0.0.0-20171031113327-3ed64d21fb0b
 	github.com/golang/protobuf v1.3.1
 	github.com/google/uuid v1.1.1
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.8.1

@@ -1162,6 +1162,21 @@ int emm_send_tracking_area_update_accept_dl_nas(
     emm_msg->epsbearercontextstatus = *msg->eps_bearer_context_status;
     size += EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH;
   }
+
+  // Optional - EPS network feature support
+  if (msg->eps_network_feature_support) {
+    size += EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH;
+    emm_msg->presencemask |=
+      TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
+    emm_msg->epsnetworkfeaturesupport = *msg->eps_network_feature_support;
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += "
+      "EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH(%d)  (%d)\n",
+      EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH,
+      size);
+  }
+
   /* If CSFB is enabled send LAI,Mobile Identity
   *  and Additional Update type
   */

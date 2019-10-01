@@ -21,8 +21,9 @@
 #include "CloudReporter.h"
 #include "LocalSessionManagerHandler.h"
 #include "PipelinedClient.h"
-#include "SessionState.h"
 #include "RuleStore.h"
+#include "SessionState.h"
+#include "SpgwServiceClient.h"
 
 using grpc::Status;
 using ::testing::_;
@@ -197,6 +198,32 @@ class MockAAAClient : public aaa::AAAClient {
     bool(
       const std::string &radius_session_id,
       const std::string &imsi));
+};
+
+class MockSpgwServiceClient : public SpgwServiceClient {
+  public:
+    MockSpgwServiceClient()
+    {
+      ON_CALL(*this, delete_dedicated_bearer(_, _, _, _))
+        .WillByDefault(Return(true));
+      ON_CALL(*this, create_dedicated_bearer(_, _, _, _))
+        .WillByDefault(Return(true));
+    }
+
+    MOCK_METHOD4(
+      delete_dedicated_bearer,
+      bool(
+        const std::string &,
+        const std::string &,
+        const uint32_t,
+        const std::vector<uint32_t> &));
+    MOCK_METHOD4(
+      create_dedicated_bearer,
+      bool(
+        const std::string &,
+        const std::string &,
+        const uint32_t,
+        const std::vector<PolicyRule> &));
 };
 
 } // namespace magma
