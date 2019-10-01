@@ -32,6 +32,14 @@ services:
     environment:
       USE_REMOTE_SWX_PROXY: 0
 
+  # TODO: Remove this override once GRE tun_dst logic is added to pipelined
+  pipelined:
+    command: >
+      sh -c "/usr/bin/ovs-vsctl --if-exists del-port br0 gre0 &&
+        /usr/bin/ovs-vsctl --may-exist add-port br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=192.168.70.102 options:key=5001 &&
+        /usr/bin/ovs-vsctl set-controller br0 tcp:127.0.0.1:6633 &&
+        python3 -m magma.pipelined.main"
+
   swx_proxy:
     <<: *feggoservice
     container_name: swx_proxy

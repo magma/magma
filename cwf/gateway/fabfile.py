@@ -10,16 +10,18 @@ of patent rights can be found in the PATENTS file in the same directory.
 import sys
 from distutils.util import strtobool
 
-from fabric.api import cd, execute, run, sudo, warn_only
+from fabric.api import cd, env, execute, lcd, local, run, sudo, warn_only
 
 sys.path.append('../../orc8r')
 from tools.fab.hosts import ansible_setup, vagrant_setup
 
-AGW_ROOT = "$MAGMA_ROOT/cwf/gateway"
-AGW_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
+CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
+CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
+LTE_AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 
 
-def integ_test(gateway_host=None, test_host=None, destroy_vm="True"):
+def integ_test(gateway_host=None, test_host=None, trf_host=None,
+               destroy_vm="False"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -32,6 +34,10 @@ def integ_test(gateway_host=None, test_host=None, destroy_vm="True"):
     test_host: The ssh address string of the machine to run the tests on
         on. Formatted as "host:port". If not specified, defaults to the
         `cwag_test` vagrant box.
+
+    trf_host: The ssh address string of the machine to run the tests on
+        on. Formatted as "host:port". If not specified, defaults to the
+        `magma_trfserver` vagrant box.
     """
 
     destroy_vm = bool(strtobool(destroy_vm))
@@ -43,8 +49,19 @@ def integ_test(gateway_host=None, test_host=None, destroy_vm="True"):
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
 
+    execute(_run_unit_tests)
     execute(_copy_config)
     execute(_start_gateway)
+
+    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+    with lcd(LTE_AGW_ROOT):
+        if not trf_host:
+            trf_host = vagrant_setup("magma_trfserver", destroy_vm)
+        else:
+            ansible_setup(trf_host, "trfserver", "../../lte/gateway/magma_trfserver.yml")
+
+    execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
@@ -53,25 +70,26 @@ def integ_test(gateway_host=None, test_host=None, destroy_vm="True"):
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
 
+    # Setup the trfserver: use the provided trfserver if given, else default to the
+    # vagrant machine
+
     execute(_start_ue_simulator)
-    execute(_run_unit_tests)
     execute(_run_integ_tests)
 
 
 def _copy_config():
-    """ Copy the gateway.mconfig to /var/opt/magma/configs """
+    """ Copy necessary config overrides to /var/opt/magma/configs """
 
-    with cd(AGW_INTEG_ROOT):
-        with warn_only():
-            sudo('mkdir /var/opt/magma')
-            sudo('mkdir /var/opt/magma/configs')
-            sudo('cp gateway.mconfig /var/opt/magma/configs')
+    with cd(CWAG_INTEG_ROOT):
+        sudo('mkdir -p /var/opt/magma')
+        sudo('mkdir -p /var/opt/magma/configs')
+        sudo('cp gateway.mconfig /var/opt/magma/configs')
+        sudo('cp sessiond.yml /var/opt/magma/configs')
 
 
 def _start_gateway():
     """ Starts the gateway """
-
-    with cd(AGW_ROOT + '/docker'):
+    with cd(CWAG_ROOT + '/docker'):
         run(' docker-compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
@@ -86,19 +104,24 @@ def _start_gateway():
 
 def _start_ue_simulator():
     """ Starts the UE Sim Service """
-    with cd(AGW_ROOT + '/services/uesim/uesim'):
+    with cd(CWAG_ROOT + '/services/uesim/uesim'):
         run('tmux new -d \'go run main.go\'')
+
+
+def _start_trfserver():
+    """ Starts the traffic gen server"""
+    run("nohup iperf3 -s > /dev/null &", pty=False)
 
 
 def _run_unit_tests():
     """ Run the cwag unit tests """
 
-    with cd(AGW_ROOT):
+    with cd(CWAG_ROOT):
         run('make test')
 
 
 def _run_integ_tests():
     """ Run the integration tests """
 
-    with cd(AGW_INTEG_ROOT):
+    with cd(CWAG_INTEG_ROOT):
         run('make integ_test')
