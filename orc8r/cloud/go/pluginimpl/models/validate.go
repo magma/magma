@@ -19,6 +19,10 @@ import (
 const echoKeyType = "ECHO"
 const ecdsaKeyType = "SOFTWARE_ECDSA_SHA256"
 
+func (m *Network) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *NetworkDNSConfig) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

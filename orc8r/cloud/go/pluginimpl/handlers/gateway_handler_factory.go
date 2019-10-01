@@ -26,12 +26,7 @@ import (
 
 // NetworkModel describes models that represent a certain type of gateway.
 // For example, an LTE gateway, that can be read/updated/deleted
-type GatewayModel interface {
-	ValidatableModel
-	// FromBackendModels the same PartialGatewayModel from the configurator
-	// entities attached to the networkID and gatewayID.
-	FromBackendModels(magmadGateway, cellularGateway configurator.NetworkEntity, device *models.GatewayDevice, status *models.GatewayStatus) GatewayModel
-}
+type GatewayModel interface{}
 
 // PartialGatewayModel describe models that represents a portion of network
 // entity that can be read and updated.
