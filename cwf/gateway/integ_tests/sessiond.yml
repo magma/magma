@@ -1,0 +1,35 @@
+---
+#
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+log_level: INFO
+rule_update_inteval_sec: 1
+use_proxied_controller: false
+local_controller_port: 9097
+
+# Session manager will report the usage when the usage is greater than
+# usage_reporting_threshold * available quota since last update
+# In this way, session manager will report the usage before the subscriber
+# completely uses up the quota. 
+usage_reporting_threshold: 0.8
+
+# Extra number of bytes an user could use after the quota is exhausted
+extra_quota_margin: 0
+
+# Set to true to terminate service when the quota of a session is exhausted.
+# An user can still use up to the extra margin.
+# Set to false to allow users to use without any constraint.
+terminate_service_when_quota_exhausted: true
+
+# Maximum time to wait for the flow to be deleted by pipelined before forcefully
+# terminating the session. This should be at least twice the poll interval of
+# pipelined
+session_force_termination_timeout_ms: 5000
+
+# Set to true to enable sessiond support of carrier wifi
+support_carrier_wifi: true
