@@ -92,8 +92,7 @@ class DockerUpgrader(Upgrader2):
                           shell=True, check=True)
         # Update any mounted template configs
         await run_command("cp -TR {}/magma/orc8r/gateway/configs/templates "
-                          "/etc/magma/templates".format(MAGMA_GITHUB_PATH,
-                                              gw_module),
+                          "/etc/magma/templates".format(MAGMA_GITHUB_PATH),
                           shell=True, check=True)
         # Copy updated docker-compose
         await run_command("cp {}/magma/{}/gateway/docker/docker-compose.yml "
