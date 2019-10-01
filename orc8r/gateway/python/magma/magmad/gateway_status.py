@@ -161,16 +161,18 @@ class GatewayStatusFactory:
             system_status=system_status,
             meta={},
         )
-        gw_status = self._fill_in_meta(gw_status)
+        gw_status, meta_services = self._fill_in_meta(gw_status)
 
-        has_required_service_meta = self._meta_has_required_fields(gw_status)
+        has_required_service_meta = self._meta_has_required_services(meta_services)
         return json.dumps(gw_status._asdict()), has_required_service_meta
 
-    def _fill_in_meta(self, gw_status: GatewayStatus) -> GatewayStatus:
+    def _fill_in_meta(
+        self, gw_status: GatewayStatus
+    ) -> Tuple[GatewayStatus, List[str]]:
         service_status_meta = self._gather_service_status_meta()
         for statusmeta in service_status_meta.values():
             gw_status.meta.update(statusmeta)
-        return gw_status
+        return gw_status, service_status_meta.keys()
 
     def _gather_service_status_meta(self):
         """
@@ -316,21 +318,21 @@ class GatewayStatusFactory:
         )
         return network_info
 
-    def _meta_has_required_fields(self, gw_state: GatewayStatus) -> bool:
+    def _meta_has_required_services(self, meta_services: List[str]) -> bool:
         """
         Verifies based on status meta pulled from service_poller.
         service_statusmeta contains map of service_name -> statusmeta
         returns True if gateway state reporting is allowed
         """
-        got_meta = set(gw_state.meta.keys())
+        got_meta_services = set(meta_services)
 
-        has_required_fields = \
-            got_meta.issuperset(self._required_service_metas)
+        has_required_services = \
+            got_meta_services.issuperset(self._required_service_metas)
 
-        if not has_required_fields:
+        if not has_required_services:
             logging.warning(
                 "Missing meta from services: %s "
                 "(specified in cfg skip_checkin_if_missing_meta_services)",
-                ", ".join(self._required_service_metas - got_meta))
+                ", ".join(self._required_service_metas - got_meta_services))
 
-        return has_required_fields
+        return has_required_services
