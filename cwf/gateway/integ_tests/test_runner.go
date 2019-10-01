@@ -39,6 +39,8 @@ const (
 	HSSPort        = 9204
 	OCSPort        = 9201
 	PCRFPort       = 9202
+
+	defaultMSISDN = "5100001234"
 )
 
 type TestRunner struct {
@@ -240,6 +242,17 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 	return radiusP, nil
 }
 
+// GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
+// by running an iperf3 client on the UE simulator and an iperf3 server on the
+// Magma traffic server.
+func (testRunner *TestRunner) GenULTraffic(imsi string) error {
+	fmt.Printf("************************* Generating Traffic for UE with IMSI: %s\n", imsi)
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi: imsi,
+	}
+	return uesim.GenTraffic(req)
+}
+
 // RandImsi makes a random 15-digit IMSI that is not added to the UESim or HSS.
 func RandImsi() string {
 	imsi := ""
@@ -292,6 +305,12 @@ func MakeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 		},
 		State: &lteprotos.SubscriberState{
 			LteAuthNextSeq: seq,
+		},
+		Non_3Gpp: &lteprotos.Non3GPPUserProfile{
+			Msisdn:              defaultMSISDN,
+			Non_3GppIpAccess:    lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
+			Non_3GppIpAccessApn: lteprotos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
+			ApnConfig:           &lteprotos.APNConfiguration{},
 		},
 	}
 }

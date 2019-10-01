@@ -9,6 +9,9 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fmt"
+	"os/exec"
+
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
@@ -25,6 +28,8 @@ import (
 const (
 	networkIDPlaceholder = "magma"
 	blobTypePlaceholder  = "uesim"
+	trafficMSS           = "1300"
+	trafficSrvIP         = "192.168.128.24"
 )
 
 // UESimServer tracks all the UEs being simulated.
@@ -38,6 +43,7 @@ type UESimConfig struct {
 	amf           []byte
 	radiusAddress string
 	radiusSecret  string
+	brMac         string
 }
 
 // NewUESimServer initializes a UESimServer with an empty store map.
@@ -130,6 +136,17 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 	radiusPacket := &cwfprotos.AuthenticateResponse{RadiusPacket: resultBytes}
 
 	return radiusPacket, nil
+}
+
+func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTrafficRequest) (*protos.Void, error) {
+	if req == nil {
+		return &protos.Void{}, fmt.Errorf("Nil GenTrafficRequest provided")
+	}
+	var cmd *exec.Cmd
+	cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS)
+	cmd.Dir = "/usr/bin"
+	_, err := cmd.Output()
+	return &protos.Void{}, err
 }
 
 // Converts UE data to a blob for storage.
