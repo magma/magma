@@ -13,6 +13,7 @@
     - full_provision: true
   roles:
     - role: golang
+    - role: ovs
   tasks:
     - name: Set build environment variables
       lineinfile:
