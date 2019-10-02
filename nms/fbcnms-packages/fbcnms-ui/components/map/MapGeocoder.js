@@ -25,12 +25,13 @@ import type {
 type Feature = {
   title: string,
   properties: {
-    title: string,
+    name: string,
     numberOfWorkOrders: number,
     location: ProjectLocation,
   },
   id: number | string,
   center?: LngLatLike,
+  bbox?: Array<LngLatLike>,
 };
 type Result = {feature: Feature};
 
@@ -38,7 +39,9 @@ type Props = {
   markers?: ?ProjectGeoJSONFeatureCollection,
   accessToken: string,
   mapRef: ?mapboxgl.Map,
-  onSelectFeature: Feature => void, // should be GeoJSONFeature
+  featuresType: 'Work Order' | 'Project' | '',
+  headLine: string,
+  onSelectFeature: Feature => void,
   // Mapbox geocoding API: https://www.mapbox.com/api-documentation/#geocoding
   apiEndpoint: string,
   // Debounce searches at this interval
@@ -46,10 +49,11 @@ type Props = {
   shouldSearchPlaces?: ?(customResults: Array<Result>) => boolean,
 };
 
-class ProjectsGeocoder extends React.Component<Props> {
+class MapGeocoder extends React.Component<Props> {
   static defaultProps = {
     apiEndpoint: 'https://api.mapbox.com/geocoding/v5/mapbox.places/',
     searchDebounceMs: 200,
+    headLine: '',
   };
 
   _getCustomResults = (originalQuery: string) => {
@@ -61,26 +65,25 @@ class ProjectsGeocoder extends React.Component<Props> {
     const matches = [];
     markers.features.forEach(feature => {
       if (
-        String(feature.properties?.title)
+        String(feature.properties?.name)
           .toLowerCase()
           .includes(query)
       ) {
         matches.push({feature});
       }
     });
-    return {resultsType: 'Projects', results: matches};
+    return {resultsType: this.props.headLine, results: matches};
   };
 
   _onRenderResult = (result: Result, handleClearInput: () => void) => {
-    // Filter out feature results (rendered in base class)
     if (!result.hasOwnProperty('feature')) {
       return null;
     }
-    const primaryText = <span>{result.feature.properties.title}</span>;
-    const secondaryText = <span>{'Project'}</span>;
+    const primaryText = <span>{result.feature.properties.name}</span>;
+    const secondaryText = <span>{this.props.featuresType}</span>;
     return (
       <ListItem
-        key={`project_${result.feature.id}`}
+        key={`${this.props.featuresType}-${result.feature.id}`}
         button
         dense
         onClick={() => {
@@ -116,4 +119,4 @@ class ProjectsGeocoder extends React.Component<Props> {
   }
 }
 
-export default ProjectsGeocoder;
+export default MapGeocoder;

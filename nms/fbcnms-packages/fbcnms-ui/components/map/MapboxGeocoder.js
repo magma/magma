@@ -33,6 +33,14 @@ const styles = {
   },
   resultsPaper: {
     marginTop: 4,
+    maxHeight: '400px',
+    overflow: 'auto',
+  },
+  headLine: {
+    paddingLeft: '16px',
+  },
+  featureList: {
+    paddingBottom: '0px',
   },
 };
 
@@ -78,10 +86,9 @@ class MapboxGeocoder extends React.Component<Props, State> {
     placesResults: [],
   };
 
-  customResultsType = null;
+  customResultsType = '';
 
   getResults = query => {
-    // Fetch results for the given query
     const {getCustomResults, shouldSearchPlaces} = this.props;
 
     // Fetch any custom results first
@@ -101,7 +108,6 @@ class MapboxGeocoder extends React.Component<Props, State> {
   };
 
   mapboxPlacesSearch = query => {
-    // Send an API request for the given query
     const {apiEndpoint, accessToken} = this.props;
 
     // Construct GET request
@@ -116,12 +122,9 @@ class MapboxGeocoder extends React.Component<Props, State> {
 
     const uri =
       apiEndpoint + encodeURIComponent(query) + '.json?' + encodedParams;
-
-    // Send request
     axios
       .get(uri)
       .then(response => {
-        // Store the results
         const {features} = response.data;
         if (features) {
           this.setState({
@@ -134,7 +137,6 @@ class MapboxGeocoder extends React.Component<Props, State> {
         }
       })
       .catch(_err => {
-        // TODO handle this better
         this.setState({placesResults: [], isLoading: false});
       });
   };
@@ -166,25 +168,23 @@ class MapboxGeocoder extends React.Component<Props, State> {
   };
 
   renderPlaces = (result: Result): Node => {
-    const {onSelectFeature} = this.props;
+    const {onSelectFeature, classes} = this.props;
     const {feature} = result;
     const primaryText = feature.text;
     let secondaryText =
       (feature.properties && feature.properties.address) || feature.place_name;
     if (secondaryText === primaryText) {
-      secondaryText = undefined; // don't show duplicate text
+      secondaryText = undefined;
     }
     return (
       <ListItem
         key={'feature-' + feature.id}
         button
         dense
+        className={classes.featureList}
         onClick={() => {
-          // Selected a map feature
           onSelectFeature(feature);
-
-          // Clear the search field
-          this.handleClearInput();
+          this.handleClearInput(); // Clear the search field
         }}>
         <ListItemText primary={primaryText} secondary={secondaryText} />
       </ListItem>
@@ -192,11 +192,8 @@ class MapboxGeocoder extends React.Component<Props, State> {
   };
 
   renderResult = (result: Result): Node => {
-    // Render a single result
     const {onRenderResult} = this.props;
     let listItem = null;
-
-    // Use custom renderer (if applicable)
     if (onRenderResult && result.hasOwnProperty('feature')) {
       listItem = onRenderResult(result, this.handleClearInput.bind(this));
     }
@@ -220,8 +217,9 @@ class MapboxGeocoder extends React.Component<Props, State> {
         {placesResults.length > 0 || customResults.length > 0 ? (
           <Paper className={classes.resultsPaper} elevation={2}>
             {customResults.length > 0 && (
-              <List component="nav">
+              <List component="nav" button dense>
                 <ListItemText
+                  className={classes.headLine}
                   primary={
                     <span>
                       <strong>{this.customResultsType}</strong>
@@ -231,8 +229,11 @@ class MapboxGeocoder extends React.Component<Props, State> {
                 {customResults.map(result => this.renderResult(result))}
               </List>
             )}
-            <List component="nav">
-              <ListItemText primary={<strong> Locations</strong>} />
+            <List component="nav" button dense>
+              <ListItemText
+                className={classes.headLine}
+                primary={<strong> Locations</strong>}
+              />
               {placesResults.map(result => this.renderPlaces(result))}
             </List>
           </Paper>
