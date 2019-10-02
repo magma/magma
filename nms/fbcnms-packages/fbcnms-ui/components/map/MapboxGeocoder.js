@@ -39,6 +39,7 @@ const styles = {
 // Pulled this out so that it can be refined later.
 type Feature = Object; // it should be a subtype of GeoJSONFeature
 type Result = {feature: Feature};
+type customResults = {resultsType: string, results: Array<Result>};
 
 type Props = {
   accessToken: string,
@@ -49,7 +50,7 @@ type Props = {
   // Debounce searches at this interval
   searchDebounceMs: number,
   // (query : str) => results : arr of obj
-  getCustomResults?: ?(query: string) => Array<Result>,
+  getCustomResults?: ?(query: string) => customResults,
   // If getCustomResults is defined, should we search for default places?
   // (customResults : arr of obj) => bool
   shouldSearchPlaces?: ?(customResults: Array<Result>) => boolean,
@@ -60,7 +61,8 @@ type Props = {
 type State = {
   value: string,
   isLoading: boolean,
-  results: Array<Result>,
+  customResults: Array<Result>,
+  placesResults: Array<Result>,
 };
 
 class MapboxGeocoder extends React.Component<Props, State> {
@@ -72,28 +74,30 @@ class MapboxGeocoder extends React.Component<Props, State> {
   state = {
     value: '',
     isLoading: false,
-    results: [], // {feature: obj}, or custom structures via getCustomResults()
+    customResults: [],
+    placesResults: [],
   };
+
+  customResultsType = null;
 
   getResults = query => {
     // Fetch results for the given query
     const {getCustomResults, shouldSearchPlaces} = this.props;
 
     // Fetch any custom results first
-    let results = [];
+    let customResults = {resultsType: '', results: []};
     if (getCustomResults) {
-      results = getCustomResults(query);
-      if (shouldSearchPlaces && !shouldSearchPlaces(results)) {
+      customResults = getCustomResults(query);
+      if (shouldSearchPlaces && !shouldSearchPlaces(customResults.results)) {
         // Don't search for default place results?
-        this.setState({results});
+        this.setState({customResults: customResults.results});
+        this.customResultsType = customResults.resultsType;
         return;
       }
     }
-
-    // Fetch default place results (if needed)
-    this.setState({results, isLoading: true}, () =>
-      this.mapboxPlacesSearch(query),
-    );
+    this.setState({customResults: customResults.results});
+    this.customResultsType = customResults.resultsType;
+    this.mapboxPlacesSearch(query);
   };
 
   mapboxPlacesSearch = query => {
@@ -121,8 +125,8 @@ class MapboxGeocoder extends React.Component<Props, State> {
         const {features} = response.data;
         if (features) {
           this.setState({
-            results: [
-              ...this.state.results,
+            placesResults: [
+              ...this.state.placesResults,
               ...features.map(feature => ({feature})),
             ],
             isLoading: false,
@@ -131,7 +135,7 @@ class MapboxGeocoder extends React.Component<Props, State> {
       })
       .catch(_err => {
         // TODO handle this better
-        this.setState({results: [], isLoading: false});
+        this.setState({placesResults: [], isLoading: false});
       });
   };
 
@@ -153,25 +157,16 @@ class MapboxGeocoder extends React.Component<Props, State> {
 
   handleClearInput = () => {
     // Clear the current input and results
-    this.setState({value: '', results: [], isLoading: false});
+    this.setState({
+      value: '',
+      placesResults: [],
+      customResults: [],
+      isLoading: false,
+    });
   };
 
-  renderResult = (result: Result): Node => {
-    // Render a single result
-    const {onSelectFeature, onRenderResult} = this.props;
-
-    // Use custom renderer (if applicable)
-    if (onRenderResult) {
-      const listItem = onRenderResult(result, this.handleClearInput.bind(this));
-      if (listItem !== null) {
-        return listItem;
-      }
-    }
-
-    // Render feature
-    if (!result.hasOwnProperty('feature')) {
-      return null; // shouldn't happen (unhandled result in getCustomResults)
-    }
+  renderPlaces = (result: Result): Node => {
+    const {onSelectFeature} = this.props;
     const {feature} = result;
     const primaryText = feature.text;
     let secondaryText =
@@ -179,7 +174,6 @@ class MapboxGeocoder extends React.Component<Props, State> {
     if (secondaryText === primaryText) {
       secondaryText = undefined; // don't show duplicate text
     }
-
     return (
       <ListItem
         key={'feature-' + feature.id}
@@ -187,7 +181,7 @@ class MapboxGeocoder extends React.Component<Props, State> {
         dense
         onClick={() => {
           // Selected a map feature
-          onSelectFeature(result.feature);
+          onSelectFeature(feature);
 
           // Clear the search field
           this.handleClearInput();
@@ -197,9 +191,21 @@ class MapboxGeocoder extends React.Component<Props, State> {
     );
   };
 
+  renderResult = (result: Result): Node => {
+    // Render a single result
+    const {onRenderResult} = this.props;
+    let listItem = null;
+
+    // Use custom renderer (if applicable)
+    if (onRenderResult && result.hasOwnProperty('feature')) {
+      listItem = onRenderResult(result, this.handleClearInput.bind(this));
+    }
+    return listItem;
+  };
+
   render() {
     const {classes, searchDebounceMs} = this.props;
-    const {value, isLoading, results} = this.state;
+    const {value, isLoading, customResults, placesResults} = this.state;
 
     return (
       <div className={classes.root}>
@@ -211,11 +217,23 @@ class MapboxGeocoder extends React.Component<Props, State> {
           isLoading={isLoading}
           debounceMs={searchDebounceMs}
         />
-
-        {results.length > 0 ? (
+        {placesResults.length > 0 || customResults.length > 0 ? (
           <Paper className={classes.resultsPaper} elevation={2}>
+            {customResults.length > 0 && (
+              <List component="nav">
+                <ListItemText
+                  primary={
+                    <span>
+                      <strong>{this.customResultsType}</strong>
+                    </span>
+                  }
+                />
+                {customResults.map(result => this.renderResult(result))}
+              </List>
+            )}
             <List component="nav">
-              {results.map(result => this.renderResult(result))}
+              <ListItemText primary={<strong> Locations</strong>} />
+              {placesResults.map(result => this.renderPlaces(result))}
             </List>
           </Paper>
         ) : null}
