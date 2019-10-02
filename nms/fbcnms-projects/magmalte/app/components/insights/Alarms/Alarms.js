@@ -90,7 +90,8 @@ function FiringAlerts() {
         title="Firing Alerts"
         isLoading={isLoading}
         lastRefreshTime={lastRefreshTime}
-        onRefreshClick={refreshTime => setLastRefreshTime(refreshTime)}>
+        onRefreshClick={refreshTime => setLastRefreshTime(refreshTime)}
+        data-testid="firing-alerts">
         <NestedRouteLink to={'/edit_alerts'}>
           <Button variant="contained" color="secondary">
             Edit Alerts

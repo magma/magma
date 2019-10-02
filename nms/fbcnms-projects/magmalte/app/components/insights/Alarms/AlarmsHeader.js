@@ -28,21 +28,29 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
+type Props = {|
   title: string,
   isLoading: boolean,
   lastRefreshTime: string,
   onRefreshClick: string => void,
   children?: React.Node,
-};
+  'data-testid'?: string,
+|};
 
 export default function AlarmsHeader(props: Props) {
   const classes = useStyles();
-  const {title, isLoading, lastRefreshTime, onRefreshClick, children} = props;
+  const {
+    title,
+    isLoading,
+    lastRefreshTime,
+    onRefreshClick,
+    children,
+    ...divProps
+  } = props;
 
   return (
     <>
-      <div className={classes.header}>
+      <div className={classes.header} {...divProps}>
         <Typography variant="h5">{title}</Typography>
         <div>
           <Grid container spacing={1} justify="flex-end" alignItems="center">
