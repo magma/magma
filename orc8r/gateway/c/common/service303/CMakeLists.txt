@@ -39,7 +39,7 @@ target_link_libraries(SERVICE303_LIB
 # session_manager, etc.
 add_custom_command(TARGET SERVICE303_LIB POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
-                   ${CMAKE_SOURCE_DIR}/service303/*.h
+                   ${PROJECT_SOURCE_DIR}/service303/*.h
                    $<TARGET_FILE_DIR:SERVICE303_LIB>)
 
 target_include_directories(SERVICE303_LIB PUBLIC

@@ -42,7 +42,8 @@ target_link_libraries(POLICYDB
 # session_manager, etc.
 add_custom_command(TARGET POLICYDB POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
-                   ${CMAKE_SOURCE_DIR}/policydb/*.h $<TARGET_FILE_DIR:POLICYDB>)
+                   ${PROJECT_SOURCE_DIR}/policydb/*.h
+                   $<TARGET_FILE_DIR:POLICYDB>)
 
 target_compile_definitions(POLICYDB PUBLIC LOG_WITH_GLOG)
 target_include_directories(POLICYDB PUBLIC
