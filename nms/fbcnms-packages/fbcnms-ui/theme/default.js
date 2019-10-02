@@ -56,6 +56,9 @@ export default createMuiTheme({
       A200: '#8d949e',
       A700: '#444950',
     },
+    typography: {
+      ...SymphonyTheme.typography,
+    },
     red: red,
     redwood: redwood,
     dark: '#1d2129',

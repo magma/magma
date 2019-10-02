@@ -37,6 +37,21 @@ export const BLUE = {
   B900: '#383DB7',
 };
 
+export type TextVariant =
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'subtitle1'
+  | 'subtitle2'
+  | 'subtitle3'
+  | 'body1'
+  | 'body2'
+  | 'caption'
+  | 'overline';
+
 export default {
   palette: {
     primary: BLUE.B600,
@@ -57,5 +72,100 @@ export default {
     DP3: '0px 3px 20px 0px rgba(0, 0, 0, 0.21)',
     DP4:
       '0px 5px 5px -3px rgba(0, 0, 0, 0.2),0px 3px 14px 2px rgba(0, 0, 0, 0.12),0px 8px 10px 1px rgba(0, 0, 0, 0.14)',
+  },
+  typography: {
+    h1: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 300,
+      fontSize: '96px',
+      lineHeight: 1.33,
+      letterSpacing: '-1.5px',
+    },
+    h2: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 300,
+      fontSize: '60px',
+      lineHeight: 1.33,
+      letterSpacing: '-0.5px',
+    },
+    h3: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 400,
+      fontSize: '48px',
+      lineHeight: 1.33,
+      letterSpacing: '0px',
+    },
+    h4: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 400,
+      fontSize: '32px',
+      lineHeight: 1.25,
+      letterSpacing: '0.25px',
+    },
+    h5: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 400,
+      fontSize: '24px',
+      lineHeight: 1.33,
+      letterSpacing: '0px',
+    },
+    h6: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 500,
+      fontSize: '20px',
+      lineHeight: 'normal',
+      letterSpacing: '0.25px',
+    },
+    body1: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 400,
+      fontSize: '16px',
+      lineHeight: 1.5,
+      letterSpacing: '0.15px',
+    },
+    body2: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 400,
+      fontSize: '14px',
+      lineHeight: 1.43,
+      letterSpacing: '0.25px',
+    },
+    subtitle1: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 500,
+      fontSize: '16px',
+      lineHeight: 1.5,
+      letterSpacing: '0.15px',
+    },
+    subtitle2: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 500,
+      fontSize: '14px',
+      lineHeight: 1.71,
+      letterSpacing: '0.1px',
+    },
+    subtitle3: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 500,
+      fontSize: '14px',
+      lineHeight: 1.14,
+      letterSpacing: '1.25px',
+      textTransform: 'uppercase',
+    },
+    caption: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 400,
+      fontSize: '12px',
+      lineHeight: 1.33,
+      letterSpacing: 'normal',
+    },
+    overline: {
+      fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+      fontWeight: 500,
+      fontSize: '12px',
+      lineHeight: 1.33,
+      letterSpacing: '1px',
+      textTransform: 'uppercase',
+    },
   },
 };

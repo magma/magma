@@ -9,8 +9,7 @@
  */
 
 import React from 'react';
-import Theme from '../../theme/symphony';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../components/Text.react';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -40,17 +39,7 @@ const useStyles = makeStyles(_theme => ({
     alignItems: 'center',
   },
   name: {
-    color: Theme.palette.D900,
-    fontSize: '16px',
-    lineHeight: '19px',
-    fontWeight: 'bold',
     flexGrow: 1,
-  },
-  hex: {
-    color: Theme.palette.D900,
-    fontSize: '16px',
-    lineHeight: '21px',
-    fontWeight: 500,
   },
 }));
 
@@ -61,8 +50,10 @@ const ColorBlock = (props: Props) => {
     <div className={classNames(classes.root, className)}>
       <div className={classes.block} style={{backgroundColor: color}} />
       <div className={classes.nameContainer}>
-        <Typography className={classes.name}>{name}</Typography>
-        <Typography className={classes.hex}>{code ?? color}</Typography>
+        <Text className={classes.name} weight="medium">
+          {name}
+        </Text>
+        <Text weight="medium">{code ?? color}</Text>
       </div>
     </div>
   );

@@ -11,7 +11,7 @@
 import ColorBlock from './ColorBlock.react';
 import React from 'react';
 import SymphonyTheme, {BLUE, DARK} from '../../theme/symphony';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../components/Text.react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
@@ -32,10 +32,6 @@ const useStyles = makeStyles(_theme => ({
   },
   title: {
     textTransform: 'uppercase',
-    fontSize: '16px',
-    lineHeight: '21px',
-    color: SymphonyTheme.palette.D900,
-    fontWeight: 500,
     marginBottom: '24px',
   },
   colors: {
@@ -57,7 +53,9 @@ const ColorBlocks = (props: {
   const classes = useStyles();
   return (
     <div className={classes.blocksRoot}>
-      <Typography className={classes.title}>{title}</Typography>
+      <Text className={classes.title} weight="medium">
+        {title}
+      </Text>
       <div className={classes.colors}>
         {colors.map(color => (
           <ColorBlock
