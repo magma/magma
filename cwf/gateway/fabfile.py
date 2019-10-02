@@ -59,7 +59,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         if not trf_host:
             trf_host = vagrant_setup("magma_trfserver", destroy_vm)
         else:
-            ansible_setup(trf_host, "trfserver", "../../lte/gateway/magma_trfserver.yml")
+            ansible_setup(trf_host, "trfserver", "cwag_trfserver.yml")
 
     execute(_start_trfserver)
 

@@ -12,8 +12,13 @@
     - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
-    - role: golang
+    - role: apt_cache
+    - role: pkgrepo
+      vars:
+        distribution: "bionic"
     - role: ovs
+    - role: golang
+    - role: cwag_test
   tasks:
     - name: Set build environment variables
       lineinfile:
