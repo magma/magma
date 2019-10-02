@@ -8,11 +8,11 @@
  * @format
  */
 
+import SymphonyTheme from './symphony';
 import {
   blue05,
   blue30,
   blue60,
-  blue80,
   blueGrayDark,
   fadedBlue,
   gray0,
@@ -27,14 +27,15 @@ import {
 import {createMuiTheme} from '@material-ui/core/styles';
 
 export default createMuiTheme({
+  symphony: SymphonyTheme,
   palette: {
     primary: {
-      light: blue30,
-      main: blue60,
-      dark: blue80,
+      light: SymphonyTheme.palette.B300,
+      main: SymphonyTheme.palette.B600,
+      dark: SymphonyTheme.palette.B900,
     },
     secondary: {
-      main: '#606770',
+      main: SymphonyTheme.palette.D900,
     },
     action: {
       hover: '#cfd8dc',
