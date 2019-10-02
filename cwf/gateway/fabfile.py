@@ -17,7 +17,7 @@ from tools.fab.hosts import ansible_setup, vagrant_setup
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
-LTE_AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
+LTE_AGW_ROOT = "../../lte/gateway"
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
@@ -57,9 +57,9 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # vagrant machine
     with lcd(LTE_AGW_ROOT):
         if not trf_host:
-            trf_host = vagrant_setup("magma_trfserver", destroy_vm)
+            vagrant_setup("magma_trfserver", destroy_vm)
         else:
-            ansible_setup(trf_host, "trfserver", "cwag_trfserver.yml")
+            ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
 
     execute(_start_trfserver)
 
@@ -69,9 +69,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         vagrant_setup("cwag_test", destroy_vm)
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
-
-    # Setup the trfserver: use the provided trfserver if given, else default to the
-    # vagrant machine
 
     execute(_start_ue_simulator)
     execute(_run_integ_tests)
