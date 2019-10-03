@@ -16,6 +16,7 @@ export const black = '#000';
 export const blue05 = '#ecf3ff';
 export const blue30 = '#aac9ff';
 export const blue60 = '#3578e5';
+export const blue70 = '#3984ff';
 export const blue80 = '#1d3c78';
 export const blueGrayDark = '#303846';
 export const brown = '#5d4037';
@@ -62,6 +63,7 @@ export default {
   blue05,
   blue30,
   blue60,
+  blue70,
   blue80,
   blueGrayDark,
   brown,
