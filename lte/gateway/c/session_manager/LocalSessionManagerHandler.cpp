@@ -213,6 +213,19 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     if (enforcer_->is_session_duplicate(imsi, cfg)) {
       MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
                   << ", not creating session";
+      enforcer_->get_event_base().runInEventBaseThread(
+          [response_callback]() {
+            try {
+              response_callback(
+                grpc::Status::OK, LocalCreateSessionResponse());
+            } catch (...) {
+                std::exception_ptr ep = std::current_exception();
+                MLOG(MERROR) << "CreateSession response_callback exception: "
+                             << (ep ? ep.__cxa_exception_type()->name()
+                                  : "<unknown");
+            }
+          }
+      );
       return;
     }
     MLOG(MINFO) << "Found session with the same IMSI " << imsi
