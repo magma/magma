@@ -19,6 +19,8 @@ set(SERVICE303_GRPC_PROTOS service303)
 generate_grpc_protos("${SERVICE303_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${CPP_OUT_DIR})
 
+generate_prometheus_proto("${PROTO_SRCS}" "${PROTO_HDRS}" ${CPP_OUT_DIR})
+
 message("Proto_srcs are ${PROTO_SRCS}")
 
 add_library(SERVICE303_LIB
