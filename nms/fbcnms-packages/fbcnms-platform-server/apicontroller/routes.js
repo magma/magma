@@ -30,6 +30,7 @@ if (process.env.HTTPS_PROXY) {
 const PROXY_OPTIONS = {
   https: true,
   memoizeHost: false,
+  timeout: 5000,
   proxyReqOptDecorator: (proxyReqOpts, _originalReq) => {
     return {
       ...proxyReqOpts,
