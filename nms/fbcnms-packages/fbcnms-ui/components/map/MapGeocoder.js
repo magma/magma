@@ -32,6 +32,7 @@ type Feature = {
   id: number | string,
   center?: LngLatLike,
   bbox?: Array<LngLatLike>,
+  geometry: {type: string, coordinates: LngLatLike},
 };
 type Result = {feature: Feature};
 
@@ -89,10 +90,7 @@ class MapGeocoder extends React.Component<Props> {
         onClick={() => {
           this.props.onSelectFeature({
             ...result.feature,
-            center: [
-              result.feature.properties.location.longitude,
-              result.feature.properties.location.latitude,
-            ],
+            center: result.feature.geometry.coordinates,
           });
           //  Clear the search field
           handleClearInput();
