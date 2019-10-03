@@ -1093,7 +1093,6 @@ static int encode_traffic_flow_template_packet_filter(
         }
 
         encoded += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
-        encoded += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
         break;
 
       case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG:
@@ -1110,7 +1109,6 @@ static int encode_traffic_flow_template_packet_filter(
           encoded++;
         }
 
-        encoded += TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE;
         encoded += TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE;
         break;
 
