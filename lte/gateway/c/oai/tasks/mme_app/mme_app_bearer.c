@@ -1500,10 +1500,6 @@ void mme_app_handle_e_rab_setup_rsp(
         bc->bearer_state & BEARER_STATE_MME_CREATED,
         "TO DO check bearer state");
       bc->bearer_state |= BEARER_STATE_ENB_CREATED;
-
-      if (ESM_EBR_ACTIVE == bc->esm_ebr_context.status) {
-        send_s11_response = true;
-      }
     }
   }
   for (int i = 0; i < e_rab_setup_rsp->e_rab_failed_to_setup_list.no_of_items;
@@ -1513,7 +1509,6 @@ void mme_app_handle_e_rab_setup_rsp(
     bearer_context_t *bc =
       mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
     if (bc->bearer_state & BEARER_STATE_SGW_CREATED) {
-      send_s11_response = true;
       //S1ap_Cause_t cause = e_rab_setup_rsp->e_rab_failed_to_setup_list.item[i].cause;
       AssertFatal(
         bc->bearer_state & BEARER_STATE_MME_CREATED,
@@ -2615,8 +2610,10 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
     ue_context_p->pdn_contexts[cid]->default_ebi;
   MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).bearer_qos =
     nw_init_bearer_actv_req_p->eps_bearer_qos;
-  MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).gtp_teid =
-    nw_init_bearer_actv_req_p->s1_u_sgw_fteid.teid;
+  /* Send sgw_fteid to NAS as dedicated bearer context is created in NAS.
+  This logic will be removed once NAS and MME tasks are merged*/
+  memcpy(&MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).sgw_fteid,
+    &nw_init_bearer_actv_req_p->s1_u_sgw_fteid, sizeof(fteid_t));
   if (nw_init_bearer_actv_req_p->tft.numberofpacketfilters) {
     MME_APP_CREATE_DEDICATED_BEARER_REQ(message_p).tft =
       calloc(1, sizeof(traffic_flow_template_t));

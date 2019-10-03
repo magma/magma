@@ -80,6 +80,25 @@ bstring fteid_ip_address_to_bstring(const struct fteid_s *const fteid)
   return bstr;
 }
 
+void get_fteid_ip_address(
+  const struct fteid_s *const fteid,
+  ip_address_t *const ip_address)
+{
+  if (fteid->ipv4) {
+    ip_address->pdn_type = IPv4;
+    memcpy(&ip_address->address.ipv4_address, &fteid->ipv4_address, 4);
+  }
+
+  if (fteid->ipv6) {
+    ip_address->pdn_type = IPv6;
+    memcpy(&ip_address->address.ipv6_address, &fteid->ipv6_address, 16);
+  }
+
+  if (fteid->ipv4 && fteid->ipv6) {
+    ip_address->pdn_type = IPv4_AND_v6;
+  }
+}
+
 //------------------------------------------------------------------------------
 bstring ip_address_to_bstring(ip_address_t *ip_address)
 {

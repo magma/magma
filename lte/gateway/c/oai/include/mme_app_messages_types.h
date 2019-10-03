@@ -143,7 +143,7 @@ typedef struct itti_mme_app_create_dedicated_bearer_req_s {
   bearer_qos_t bearer_qos;
   traffic_flow_template_t *tft;
   protocol_configuration_options_t *pco;
-  teid_t gtp_teid;
+  fteid_t sgw_fteid;
 } itti_mme_app_create_dedicated_bearer_req_t;
 
 typedef struct itti_mme_app_create_dedicated_bearer_rsp_s {
