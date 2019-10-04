@@ -15,8 +15,6 @@ import axios from 'axios';
 import url from 'url';
 import {get} from 'lodash';
 
-import type {CheckindGateway} from './MagmaAPIType';
-
 function dedupeNetworkId(networkIdOrMatch: string | Match): string {
   return get(networkIdOrMatch, 'params.networkId', networkIdOrMatch);
 }
@@ -49,16 +47,12 @@ export const MagmaAPIUrls = {
     `${MagmaAPIUrls.network(
       networkIdOrMatch,
     )}/gateways/${gatewayId}/configs/${type}`,
-  gatewayName: (networkIdOrMatch: string | Match, gatewayId: string) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways/${gatewayId}/name`,
   gatewayStatus: (networkIdOrMatch: string | Match, gatewayId: string) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways/${gatewayId}/status`,
   prometheusQueryRange: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/prometheus/query_range`,
   graphiteQuery: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/graphite/query`,
-  upgradeChannel: (channel: string) =>
-    `/nms/apicontroller/magma/channels/${channel}`,
   command: (
     networkIdOrMatch: string | Match,
     gatewayId: string,
@@ -84,14 +78,6 @@ export const MagmaAPIUrls = {
       networkIdOrMatch,
     )}/gateways/${gatewayId}/configs/devmand`,
 };
-
-export async function fetchAllGateways(
-  networkId: string,
-): Promise<Array<CheckindGateway>> {
-  const response = await axios.get(MagmaAPIUrls.gateways(networkId, true));
-  const gateways: Array<CheckindGateway> = response.data;
-  return gateways.filter(gateway => gateway.record !== null);
-}
 
 export async function fetchDevice(
   networkIdOrMatch: string | Match,
@@ -133,18 +119,4 @@ export async function createDevice(
   ]);
 
   return await fetchDevice(networkIdOrMatch, id);
-}
-
-export async function updateGatewayName(
-  gatewayId: string,
-  name: string,
-  networkIdOrMatch: string | Match,
-): Promise<void> {
-  await axios.put(
-    MagmaAPIUrls.gatewayName(networkIdOrMatch, gatewayId),
-    JSON.stringify(`"${name}"`),
-    {
-      headers: {'content-type': 'application/json'},
-    },
-  );
 }

@@ -168,6 +168,14 @@ router.use(
   }),
 );
 
+router.use(
+  '/magma/v1/channels/:channel',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: (req, _res) => req.method === 'GET',
+  }),
+);
+
 router.use('', (req: FBCNMSRequest, res: ExpressResponse) => {
   res.status(404).send('Not Found');
 });
