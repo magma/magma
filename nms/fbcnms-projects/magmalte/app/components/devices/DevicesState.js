@@ -11,7 +11,7 @@ import type {FullDevice} from './DevicesUtils';
 
 import React from 'react';
 
-import {GatewayStatus} from '@fbcnms/magmalte/app/components/GatewayUtils';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 
 type Props = {
   device: FullDevice,
@@ -39,7 +39,7 @@ export default function DevicesState(props: Props) {
               ?.addresses?.address?.[0]?.ip || '';
           return (
             <div key={i}>
-              <GatewayStatus
+              <DeviceStatusCircle
                 isGrey={false}
                 isActive={(iface.state || iface)['oper-status'] === 'UP'}
               />

@@ -13,6 +13,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import DevicesEditControllerDialog from './DevicesEditControllerDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
@@ -31,7 +32,6 @@ import Typography from '@material-ui/core/Typography';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {GatewayStatus} from '@fbcnms/magmalte/app/components/GatewayUtils';
 import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
 import {Route} from 'react-router-dom';
 import {buildDevicesGatewayFromPayload} from './DevicesUtils';
@@ -104,7 +104,7 @@ function DevicesControllers(props: Props) {
     <TableRow key={gateway.id}>
       <TableCell>
         {status}
-        <GatewayStatus
+        <DeviceStatusCircle
           isGrey={gateway.status == null}
           isActive={!!gateway.up}
         />
