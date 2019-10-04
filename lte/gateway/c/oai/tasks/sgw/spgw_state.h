@@ -45,6 +45,8 @@ typedef struct sgw_state_s {
 
   teid_t tunnel_id;
 
+  uint32_t gtpv1u_teid;
+
 } sgw_state_t;
 
 typedef struct pgw_state_s {
@@ -89,8 +91,6 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt);
  * @param rule pcc_rule entry on hashtable
  */
 void pgw_free_pcc_rule(void** rule);
-
-// TODO: Add conversion (state2proto, proto2state) helper functions.
 
 #ifdef __cplusplus
 }

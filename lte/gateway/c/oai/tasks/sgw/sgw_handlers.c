@@ -71,8 +71,6 @@ extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops *gtp_tunnel_ops;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
-static uint32_t g_gtpv1u_teid = 0;
-
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
 #else
@@ -80,10 +78,10 @@ static uint32_t g_gtpv1u_teid = 0;
 #endif
 
 //------------------------------------------------------------------------------
-uint32_t sgw_get_new_s1u_teid(void)
+uint32_t sgw_get_new_s1u_teid(spgw_state_t *state)
 {
-  __sync_fetch_and_add(&g_gtpv1u_teid, 1);
-  return g_gtpv1u_teid;
+  __sync_fetch_and_add(&state->sgw_state.gtpv1u_teid, 1);
+  return state->sgw_state.gtpv1u_teid;
 }
 
 //------------------------------------------------------------------------------
@@ -295,7 +293,7 @@ int sgw_handle_create_session_request(
       message_p->ittiMsg.s5_create_bearer_request.context_teid =
         new_endpoint_p->local_teid;
       message_p->ittiMsg.s5_create_bearer_request.S1u_teid =
-        sgw_get_new_s1u_teid();
+        sgw_get_new_s1u_teid(state);
       message_p->ittiMsg.s5_create_bearer_request.eps_bearer_id =
         session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id;
@@ -1861,7 +1859,7 @@ int sgw_no_pcef_create_dedicated_bearer(spgw_state_t *state, s11_teid_t teid)
         TRAFFIC_FLOW_TEMPLATE_PARAMETER_LIST_IS_NOT_INCLUDED;
       eps_bearer_ctxt_p->tft.numberofpacketfilters = number_of_packet_filters;
 
-      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = sgw_get_new_s1u_teid();
+      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = sgw_get_new_s1u_teid(state);
       eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
       eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address
         .s_addr = state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
@@ -2165,7 +2163,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
       sizeof(bearer_qos_t));
 
     //S1U SGW F-TEID
-    s11_actv_bearer_request->s1_u_sgw_fteid.teid = sgw_get_new_s1u_teid();
+    s11_actv_bearer_request->s1_u_sgw_fteid.teid = sgw_get_new_s1u_teid(state);
     s11_actv_bearer_request->s1_u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
     //Set IPv4 address type bit
     s11_actv_bearer_request->s1_u_sgw_fteid.ipv4 = true;

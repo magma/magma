@@ -83,8 +83,13 @@ spgw_state_t* SpgwStateManager::create_spgw_state(const spgw_config_t* config) {
   state_p->pgw_state.deactivated_predefined_pcc_rules = hashtable_ts_create(
       MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
+  state_p->pgw_state.predefined_pcc_rules = hashtable_ts_create(
+    MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
+
   // TO DO: RANDOM
   state_p->sgw_state.tunnel_id = 0;
+
+  state_p->sgw_state.gtpv1u_teid = 0;
 
   return state_p;
 }
