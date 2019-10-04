@@ -41,6 +41,12 @@ type stateBundle struct {
 	ID    state.StateID
 }
 
+func makeVersionedStateBundle(typeVal string, key string, value interface{}, version uint64) stateBundle {
+	stateBundle := makeStateBundle(typeVal, key, value)
+	stateBundle.state.Version = version
+	return stateBundle
+}
+
 func makeStateBundle(typeVal string, key string, value interface{}) stateBundle {
 	marshaledValue, _ := json.Marshal(value)
 	ID := state.StateID{Type: typeVal, DeviceID: key}
@@ -69,8 +75,8 @@ func TestStateService(t *testing.T) {
 	value1 := Name{Name: "name1"}
 	value2 := NameAndAge{Name: "name2", Age: 20}
 	bundle0 := makeStateBundle(typeName, "key0", value0)
-	bundle1 := makeStateBundle(typeName, "key1", value1)
-	bundle2 := makeStateBundle(typeName, "key2", value2)
+	bundle1 := makeVersionedStateBundle(typeName, "key1", value1, 10)
+	bundle2 := makeVersionedStateBundle(typeName, "key2", value2, 12)
 
 	// Check contract for empty network
 	states, err := state.GetStates(networkID, []state.StateID{bundle0.ID})
@@ -83,6 +89,18 @@ func TestStateService(t *testing.T) {
 	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
+	assert.Equal(t, uint64(0), states[bundle0.ID].Version)
+	assert.Equal(t, uint64(10), states[bundle1.ID].Version)
+
+	// Update states, ensuring version is set properly
+	bundle1.state.Version = 15
+	_, err = reportStates(ctx, bundle0, bundle1)
+	assert.NoError(t, err)
+	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
+	assert.NoError(t, err)
+	testGetStatesResponse(t, states, bundle0, bundle1)
+	assert.Equal(t, uint64(1), states[bundle0.ID].Version)
+	assert.Equal(t, uint64(15), states[bundle1.ID].Version)
 
 	// Report a state with fields the corresponding serde does not expect
 	_, err = reportStates(ctx, bundle2)
@@ -90,6 +108,7 @@ func TestStateService(t *testing.T) {
 	states, err = state.GetStates(networkID, []state.StateID{bundle2.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle2)
+	assert.Equal(t, uint64(12), states[bundle2.ID].Version)
 
 	// Delete and read back
 	err = state.DeleteStates(networkID, []state.StateID{bundle0.ID, bundle2.ID})

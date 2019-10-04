@@ -15,16 +15,18 @@ import (
 func BlobsToStates(blobs []blobstore.Blob) []*State {
 	states := make([]*State, 0, len(blobs))
 	for _, blob := range blobs {
-		states = append(states, &State{Type: blob.Type, DeviceID: blob.Key, Value: blob.Value})
+		states = append(states, &State{Type: blob.Type, DeviceID: blob.Key,
+			Value: blob.Value, Version: blob.Version})
 	}
 	return states
 }
 
 func (state *State) ToBlob() blobstore.Blob {
 	return blobstore.Blob{
-		Type:  state.GetType(),
-		Key:   state.GetDeviceID(),
-		Value: state.GetValue(),
+		Type:    state.GetType(),
+		Key:     state.GetDeviceID(),
+		Value:   state.GetValue(),
+		Version: state.GetVersion(),
 	}
 }
 
