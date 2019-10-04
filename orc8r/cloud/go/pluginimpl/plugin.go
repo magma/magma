@@ -60,6 +60,8 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
 		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
+		// For checkin_cli.py to test cloud < - > gateway connection
+		state.NewStateSerde(state.StringMapSerdeType, &state.StringToStringMap{}),
 
 		// Device service serdes
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
