@@ -26,20 +26,25 @@ extern "C" {
 #endif
 
 #include <assertions.h>
-#include <dynamic_memory_check.h>
 #include <cstdlib>
 #include <common_defs.h>
+#include <dynamic_memory_check.h>
 
 #ifdef __cplusplus
 }
 #endif
 
+#include <cpp_redis/cpp_redis>
+
 #include "spgw_state.h"
+#include "spgw_state_converter.h"
+#include "ServiceConfigLoader.h"
 
 #define SGW_STATE_CONTEXT_HT_MAX_SIZE 512
 #define SGW_S11_TEID_MME_HT_NAME "sgw_s11_teid2mme_htbl"
 #define S11_BEARER_CONTEXT_INFO_HT_NAME "s11_bearer_context_information_htbl"
 #define MAX_PREDEFINED_PCC_RULES_HT_SIZE 32
+#define SPGW_STATE_TABLE_NAME "spgw_state"
 
 namespace magma {
 namespace lte {
@@ -82,7 +87,13 @@ class SpgwStateManager {
    */
   void free_spgw_state();
 
-  // TODO: Implement redis r/w functions
+  /**
+   * Initializes a connection to redis datastore.
+   * @param addr IP address on which redis db is running
+   * @return response code of success / error with db connection
+   */
+  int init_db_connection(const std::string &addr);
+
   int read_state_from_db();
   void write_state_to_db();
 
@@ -107,6 +118,7 @@ class SpgwStateManager {
   bool persist_state_;
   // TODO: Make this a unique_ptr
   spgw_state_t* spgw_state_cache_p_;
+  std::unique_ptr<cpp_redis::client> db_client_;
 };
 
 } // namespace lte

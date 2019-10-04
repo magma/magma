@@ -24,10 +24,9 @@
 namespace magma {
 namespace lte {
 
-SpgwStateManager::SpgwStateManager() :
-    persist_state_(false),
-    is_initialized_(false),
-    spgw_state_cache_p_(nullptr), state_dirty_(false) {}
+SpgwStateManager::SpgwStateManager()
+    : persist_state_(false), is_initialized_(false),
+      spgw_state_cache_p_(nullptr), state_dirty_(false) {}
 
 SpgwStateManager& SpgwStateManager::getInstance() {
   static SpgwStateManager instance;
@@ -84,7 +83,7 @@ spgw_state_t* SpgwStateManager::create_spgw_state(const spgw_config_t* config) {
       MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
   state_p->pgw_state.predefined_pcc_rules = hashtable_ts_create(
-    MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
+      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
   // TO DO: RANDOM
   state_p->sgw_state.tunnel_id = 0;
@@ -139,13 +138,58 @@ void SpgwStateManager::write_state_to_db() {
       is_initialized_,
       "SpgwStateManager init() function should be called to initialize state.");
 
-  // TODO: Implement put to redis db
-  if(!state_dirty_) {
+  if (!state_dirty_) {
     OAILOG_ERROR(LOG_SPGW_APP,
                  "Tried to put SPGW state while it was not in use");
     return;
   }
+
+  if (persist_state_) {
+    std::string serialized_state_s;
+    gateway::spgw::SpgwState state_proto = gateway::spgw::SpgwState();
+    SpgwStateConverter::spgw_state_to_proto(spgw_state_cache_p_, &state_proto);
+
+    if (!state_proto.SerializeToString(&serialized_state_s)) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to serialize state protobuf");
+      return;
+    }
+
+    auto db_write_fut =
+        db_client_->set(SPGW_STATE_TABLE_NAME, serialized_state_s);
+    db_client_->sync_commit();
+    auto db_write_reply = db_write_fut.get();
+
+    if (db_write_reply.is_error()) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to write SPGW state to db");
+      return;
+    }
+
+    OAILOG_DEBUG(LOG_SPGW_APP, "Finished writing state");
+  }
+
   this->state_dirty_ = false;
+}
+
+int SpgwStateManager::init_db_connection(const std::string& addr) {
+  // Init db client service config
+  magma::ServiceConfigLoader loader;
+
+  auto config = loader.load_service_config("redis");
+  auto port = config["port"].as<uint32_t>();
+
+  db_client_ = std::make_unique<cpp_redis::client>();
+  // Make connection to db
+  db_client_->connect(addr, port, nullptr);
+
+  if (!db_client_->is_connected()) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to connect to redis");
+    return RETURNerror;
+  }
+
+  OAILOG_INFO(LOG_SPGW_APP, "Connected to redis datastore on %s:%u\n",
+              addr.c_str(), port);
+
+  return RETURNok;
 }
 
 } // namespace lte

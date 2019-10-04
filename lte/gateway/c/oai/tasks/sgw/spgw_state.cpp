@@ -33,8 +33,17 @@ extern "C" {
 
 using magma::lte::SpgwStateManager;
 
+namespace {
+const char* LOCALHOST = "127.0.0.1";
+}
+
 int spgw_state_init(bool persist_state, const spgw_config_t* config) {
   SpgwStateManager::getInstance().init(persist_state, config);
+  if (SpgwStateManager::getInstance().init_db_connection(LOCALHOST) !=
+      RETURNok) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to initiate db connection");
+    return RETURNerror;
+  }
   return SpgwStateManager::getInstance().read_state_from_db();
 }
 
@@ -85,7 +94,7 @@ void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
 
 void pgw_free_pcc_rule(void** rule) {
   if (rule) {
-    pcc_rule_t* pcc_rule = (pcc_rule_t*)*rule;
+    auto* pcc_rule = (pcc_rule_t*) *rule;
     if (pcc_rule) {
       if (pcc_rule->name) {
         bdestroy_wrapper(&pcc_rule->name);
