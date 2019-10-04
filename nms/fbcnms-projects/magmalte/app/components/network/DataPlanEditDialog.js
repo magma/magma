@@ -8,15 +8,12 @@
  * @format
  */
 
-import type {
-  CellularNetworkConfig,
-  CellularNetworkProfile,
-} from '../../common/MagmaAPIType';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {network_epc_configs} from '../../common/__generated__/MagmaAPIBindings';
 
+import MagmaV1API from '../../common/MagmaV1API';
 import React from 'react';
-import axios from 'axios';
 import {
   Button,
   Dialog,
@@ -28,12 +25,15 @@ import {
   TextField,
 } from '@material-ui/core';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {merge} from 'lodash';
 import {withRouter} from 'react-router-dom';
 
 import {BITRATE_MULTIPLIER, DATA_PLAN_UNLIMITED_RATES} from './DataPlanConst';
+
+type CellularNetworkProfile = $Values<
+  $NonMaybeType<$PropertyType<network_epc_configs, 'sub_profiles'>>,
+>;
 
 // Calculates the bitrate value in bps based on the default
 // value input in the form, and the previous (default) bitrate
@@ -92,12 +92,9 @@ const MegabyteTextField = (props: {
 
 type Props = ContextRouter &
   WithAlert & {
-    onSave: (
-      dataPlanId: string,
-      newNetworkConfig: CellularNetworkConfig,
-    ) => void,
+    onSave: (dataPlanId: string, newEPCConfig: network_epc_configs) => void,
     onCancel: () => void,
-    networkConfig: ?CellularNetworkConfig,
+    epcConfig: network_epc_configs,
     dataPlanId: ?string,
   };
 
@@ -169,10 +166,8 @@ class DataPlanEditDialog extends React.Component<Props, State> {
   }
 
   _getDataPlan(): ?CellularNetworkProfile {
-    const {dataPlanId, networkConfig} = this.props;
-    return dataPlanId && networkConfig && networkConfig.epc
-      ? networkConfig.epc.sub_profiles[dataPlanId]
-      : null;
+    const {dataPlanId, epcConfig} = this.props;
+    return (dataPlanId && epcConfig.sub_profiles?.[dataPlanId]) || null;
   }
 
   _getDataPlanIdField(): string {
@@ -184,29 +179,33 @@ class DataPlanEditDialog extends React.Component<Props, State> {
   }
 
   onSave = () => {
-    const {match, networkConfig} = this.props;
+    const {match} = this.props;
+    const epcConfig = this.props.epcConfig;
     const dataPlanId = this._getDataPlanIdField();
     const dataPlan = this._getDataPlan();
-    const newConfig = merge({}, networkConfig, {
-      epc: {
-        sub_profiles: {
-          [dataPlanId]: {
-            max_dl_bit_rate: _getBitRateValue({
-              dataPlan,
-              field: 'max_dl_bit_rate',
-              editedValue: this.state.editedMaxDlBitRate,
-            }),
-            max_ul_bit_rate: _getBitRateValue({
-              dataPlan,
-              field: 'max_ul_bit_rate',
-              editedValue: this.state.editedMaxUlBitRate,
-            }),
-          },
+    const newConfig = {
+      ...epcConfig,
+      sub_profiles: {
+        ...(epcConfig.sub_profiles || {}),
+        [dataPlanId]: {
+          max_dl_bit_rate: _getBitRateValue({
+            dataPlan,
+            field: 'max_dl_bit_rate',
+            editedValue: this.state.editedMaxDlBitRate,
+          }),
+          max_ul_bit_rate: _getBitRateValue({
+            dataPlan,
+            field: 'max_ul_bit_rate',
+            editedValue: this.state.editedMaxUlBitRate,
+          }),
         },
       },
-    });
-    axios
-      .put(MagmaAPIUrls.networkConfigsForType(match, 'cellular'), newConfig)
+    };
+
+    MagmaV1API.putLteByNetworkIdCellularEpc({
+      networkId: nullthrows(match.params.networkId),
+      config: newConfig,
+    })
       .then(_resp => this.props.onSave(dataPlanId, newConfig))
       .catch(error => this.props.alert(error.response?.data?.message || error));
   };

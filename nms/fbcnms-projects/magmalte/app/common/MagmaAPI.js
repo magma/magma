@@ -25,10 +25,8 @@ export const MagmaAPIUrls = {
   networks: () => '/nms/apicontroller/magma/networks',
   network: (networkIdOrMatch: string | Match) =>
     `/nms/apicontroller/magma/networks/${dedupeNetworkId(networkIdOrMatch)}`,
-  networkConfigsForType: (
-    networkIdOrMatch: string | Match,
-    type: 'wifi' | 'cellular',
-  ) => `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/${type}`,
+  networkConfigsForType: (networkIdOrMatch: string | Match, type: 'wifi') =>
+    `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/${type}`,
   networkPolicyRules: (networkIdOrMatch: string | Match) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/policies/rules`,
   networkPolicyRule: (networkIdOrMatch: string | Match, ruleId: string) =>
@@ -46,7 +44,7 @@ export const MagmaAPIUrls = {
   gatewayConfigsForType: (
     networkIdOrMatch: string | Match,
     gatewayId: string,
-    type: 'wifi' | 'cellular' | 'devmand',
+    type: 'wifi' | 'devmand',
   ) =>
     `${MagmaAPIUrls.network(
       networkIdOrMatch,
@@ -111,7 +109,7 @@ export async function createDevice(
     ...Record,
     key: {key_type: string, key?: string},
   },
-  type: 'wifi' | 'cellular' | 'devmand',
+  type: 'wifi' | 'devmand',
   configs: MagmadConfig,
   extraConfigs: WifiConfig | {[string]: mixed},
   networkIdOrMatch: string | Match,

@@ -88,32 +88,6 @@ export type Record = {
   hardware_id: string,
 };
 
-export type CellularNetworkProfile = {
-  max_dl_bit_rate: number,
-  max_ul_bit_rate: number,
-};
-
-export type CellularNetworkConfig = {
-  epc: {
-    lte_auth_amf: string,
-    lte_auth_op: string,
-    mcc: string,
-    mnc: string,
-    sub_profiles: {
-      [string]: CellularNetworkProfile,
-    },
-    tac: number,
-  },
-  ran: {
-    bandwidth_mhz: number,
-    earfcndl: number,
-    special_subframe_pattern: number,
-    subframe_assignment: number,
-    ul_dl_ratio: number,
-  },
-  default_rule_id?: string,
-};
-
 export type NetworkUpgradeImage = {
   name: string,
   order: number,
