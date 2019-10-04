@@ -38,6 +38,14 @@ func StateIDsToTKs(IDs []*StateID) []storage.TypeAndKey {
 	return ids
 }
 
+func StateIDAndVersionsToTKs(IDs []*IDAndVersion) []storage.TypeAndKey {
+	ids := []storage.TypeAndKey{}
+	for _, idAndVersion := range IDs {
+		ids = append(ids, toStorageTK(idAndVersion.Id))
+	}
+	return ids
+}
+
 func toStorageTK(id *StateID) storage.TypeAndKey {
 	return storage.TypeAndKey{Type: id.GetType(), Key: id.GetDeviceID()}
 }

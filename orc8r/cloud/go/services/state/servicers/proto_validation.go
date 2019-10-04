@@ -32,6 +32,14 @@ func ValidateDeleteStatesRequest(req *protos.DeleteStatesRequest) error {
 	return nil
 }
 
+// ValidateSyncStatesRequest checks that all required fields exist
+func ValidateSyncStatesRequest(req *protos.SyncStatesRequest) error {
+	if req.GetStates() == nil || len(req.GetStates()) == 0 {
+		return errors.New("States value must be specified and non-empty")
+	}
+	return nil
+}
+
 // PartitionStatesBySerializability checks that each state is deserializable.
 // If a state is not deserializable, we will send back the states type, key, and error.
 func PartitionStatesBySerializability(req *protos.ReportStatesRequest) ([]*protos.State, []*protos.IDAndError, error) {
