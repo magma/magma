@@ -129,7 +129,23 @@ int SpgwStateManager::read_state_from_db() {
       is_initialized_,
       "SpgwStateManager init() function should be called to initialize state.");
 
-  // TODO: Implement read from redis db
+  auto db_read_fut = db_client_->get(SPGW_STATE_TABLE_NAME);
+  db_client_->sync_commit();
+  auto db_read_reply = db_read_fut.get();
+
+  if (db_read_reply.is_null() || db_read_reply.is_error() ||
+      !db_read_reply.is_string()) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from db");
+    return RETURNerror;
+  } else {
+    gateway::spgw::SpgwState state_proto = gateway::spgw::SpgwState();
+    if (!state_proto.ParseFromString(db_read_reply.as_string())) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to parse state");
+      return RETURNerror;
+    }
+    // TODO: Add spgw_proto_to_state conversion
+    OAILOG_INFO(LOG_SPGW_APP, "Finished reading state");
+  }
   return RETURNok;
 }
 
