@@ -7,7 +7,7 @@
  * @flow
  * @format
  */
-import type {CheckindGateway} from '../../common/MagmaAPIType';
+import type {magmad_gateway} from '../../common/__generated__/MagmaAPIBindings';
 
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -24,7 +24,7 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  gateway: ?CheckindGateway,
+  gateway: ?magmad_gateway,
 };
 
 export default function GatewayMapMarkerPopup(props: Props) {
@@ -37,7 +37,7 @@ export default function GatewayMapMarkerPopup(props: Props) {
   return (
     <div className={classes.markerContainer}>
       <Typography variant="h6" id="tableTitle">
-        Gateway: {gateway?.gateway_id}
+        Gateway: {gateway?.id}
       </Typography>
       <Table>
         <TableBody>
