@@ -8,6 +8,11 @@
  * @generated
  */
 
+export type aaa_server = {
+    accounting_enabled ? : boolean,
+    create_session_on_auth ? : boolean,
+    idle_session_timeout_ms ? : number,
+};
 export type alert_bulk_upload_response = {
     errors: {
         [string]: string,
@@ -48,6 +53,45 @@ export type channel_id = string;
 export type config_info = {
     mconfig_created_at ? : number,
 };
+export type cwf_gateway = {
+    description: gateway_description,
+    device: gateway_device,
+    id: gateway_id,
+    magmad: magmad_gateway_configs,
+    name: gateway_name,
+    status ? : gateway_status,
+    tier: tier_id,
+};
+export type cwf_network = {
+    carrier_wifi: network_carrier_wifi_configs,
+    description: network_description,
+    dns: network_dns_config,
+    features ? : network_features,
+    federation: federated_network_configs,
+    id: network_id,
+    name: network_name,
+};
+export type diameter_client_configs = {
+    address ? : string,
+    dest_host ? : string,
+    dest_realm ? : string,
+    disable_dest_host ? : boolean,
+    host ? : string,
+    local_address ? : string,
+    product_name ? : string,
+    protocol ? : "tcp" | "tcp4" | "tcp6" | "sctp" | "sctp4" | "sctp6",
+    realm ? : string,
+    retransmits ? : number,
+    retry_count ? : number,
+    watchdog_interval ? : number,
+};
+export type diameter_server_configs = {
+    address ? : string,
+    dest_host ? : string,
+    dest_realm ? : string,
+    local_address ? : string,
+    protocol ? : "tcp" | "tcp4" | "tcp6" | "sctp" | "sctp4" | "sctp6",
+};
 export type disk_partition = {
     device ? : string,
     free ? : number,
@@ -63,6 +107,17 @@ export type dns_config_record = {
     cname_record ? : Array < string >
         ,
     domain: string,
+};
+export type eap_aka = {
+    plmn_ids ? : Array < string >
+        ,
+    timeout ? : eap_aka_timeouts,
+};
+export type eap_aka_timeouts = {
+    challenge_ms ? : number,
+    error_notification_ms ? : number,
+    session_authenticated_ms ? : number,
+    session_ms ? : number,
 };
 export type enodeb = {
     attached_gateway_id ? : string,
@@ -83,8 +138,53 @@ export type enodeb_configuration = {
 };
 export type enodeb_serials = Array < string >
 ;
+export type enodeb_state = {
+    enodeb_configured: boolean,
+    enodeb_connected: boolean,
+    fsm_state: string,
+    gps_connected: boolean,
+    gps_latitude: string,
+    gps_longitude: string,
+    mme_connected: boolean,
+    opstate_enabled: boolean,
+    ptp_connected: boolean,
+    reporting_gateway_id ? : string,
+    rf_tx_desired: boolean,
+    rf_tx_on: boolean,
+    time_reported ? : number,
+};
 export type error = {
     message: string,
+};
+export type federated_network_configs = {
+    feg_network_id: string,
+};
+export type federation_gateway = {
+    description: gateway_description,
+    device: gateway_device,
+    federation: gateway_federation_configs,
+    id: gateway_id,
+    magmad: magmad_gateway_configs,
+    name: gateway_name,
+    status ? : gateway_status,
+    tier: tier_id,
+};
+export type feg_lte_network = {
+    cellular: network_cellular_configs,
+    description: network_description,
+    dns: network_dns_config,
+    features ? : network_features,
+    federation: federated_network_configs,
+    id: network_id,
+    name: network_name,
+};
+export type feg_network = {
+    description: network_description,
+    dns: network_dns_config,
+    features ? : network_features,
+    federation: network_federation_configs,
+    id: network_id,
+    name: network_name,
 };
 export type feg_network_id = string;
 export type flow_record = {
@@ -107,6 +207,17 @@ export type gateway_device = {
 export type gateway_epc_configs = {
     ip_block: string,
     nat_enabled: boolean,
+};
+export type gateway_federation_configs = {
+    aaa_server: aaa_server,
+    eap_aka: eap_aka,
+    gx: gx,
+    gy: gy,
+    health: health,
+    hss: hss,
+    s6a: s6a,
+    served_network_ids: served_network_ids,
+    swx: swx,
 };
 export type gateway_id = string;
 export type gateway_name = string;
@@ -153,6 +264,35 @@ export type generic_command_response = {
 export type gettable_alert = {
     name: string,
 };
+export type gx = {
+    server ? : diameter_client_configs,
+};
+export type gy = {
+    init_method ? : 1 | 2,
+    server ? : diameter_client_configs,
+};
+export type health = {
+    cloud_disable_period_secs ? : number,
+    cpu_utilization_threshold ? : number,
+    health_services ? : Array < "S6A_PROXY" | "SESSION_PROXY" | "SWX_PROXY" >
+        ,
+    local_disable_period_secs ? : number,
+    memory_available_threshold ? : number,
+    minimum_request_threshold ? : number,
+    request_failure_threshold ? : number,
+    update_failure_threshold ? : number,
+    update_interval_secs ? : number,
+};
+export type hss = {
+    default_sub_profile ? : subscription_profile,
+    lte_auth_amf ? : string,
+    lte_auth_op ? : string,
+    server ? : diameter_server_configs,
+    stream_subscribers ? : boolean,
+    sub_profiles ? : {
+        [string]: subscription_profile,
+    },
+};
 export type label_pair = {
     name: string,
     value: string,
@@ -181,7 +321,7 @@ export type lte_subscription = {
     auth_key: string,
     auth_opc ? : string,
     state: "INACTIVE" | "ACTIVE",
-    sub_profile: string,
+    sub_profile: sub_profile,
 };
 export type machine_info = {
     cpu_info ? : {
@@ -221,6 +361,23 @@ export type metric_datapoint = Array < string >
 ;
 export type metric_datapoints = Array < metric_datapoint >
 ;
+export type mutable_cwf_gateway = {
+    description: gateway_description,
+    device: gateway_device,
+    id: gateway_id,
+    magmad: magmad_gateway_configs,
+    name: gateway_name,
+    tier: tier_id,
+};
+export type mutable_federation_gateway = {
+    description: gateway_description,
+    device: gateway_device,
+    federation: gateway_federation_configs,
+    id: gateway_id,
+    magmad: magmad_gateway_configs,
+    name: gateway_name,
+    tier: tier_id,
+};
 export type mutable_lte_gateway = {
     cellular: gateway_cellular_configs,
     connected_enodeb_serials: enodeb_serials,
@@ -238,6 +395,13 @@ export type network = {
     id: network_id,
     name: network_name,
     type ? : network_type,
+};
+export type network_carrier_wifi_configs = {
+    aaa_server: aaa_server,
+    default_rule_id: string,
+    eap_aka: eap_aka,
+    network_services: Array < "metering" | "dpi" | "policy_enforcement" >
+        ,
 };
 export type network_cellular_configs = {
     epc: network_epc_configs,
@@ -289,6 +453,17 @@ export type network_features = {
     features ? : {
         [string]: string,
     },
+};
+export type network_federation_configs = {
+    aaa_server: aaa_server,
+    eap_aka: eap_aka,
+    gx: gx,
+    gy: gy,
+    health: health,
+    hss: hss,
+    s6a: s6a,
+    served_network_ids: served_network_ids,
+    swx: swx,
 };
 export type network_id = string;
 export type network_interface = {
@@ -374,6 +549,9 @@ export type prom_firing_alert = {
     status: prom_alert_status,
     updatedAt: string,
 };
+export type prometheus_labelset = {
+    [string]: string,
+};
 export type promql_data = {
     result: promql_result,
     resultType: string,
@@ -415,6 +593,11 @@ export type route = {
     genmask ? : string,
     network_interface_id ? : string,
 };
+export type s6a = {
+    server ? : diameter_client_configs,
+};
+export type served_network_ids = Array < string >
+;
 export type slack_action = {
     confirm ? : slack_confirm_field,
     name ? : string,
@@ -457,9 +640,21 @@ export type slack_receiver = {
     title ? : string,
     username ? : string,
 };
+export type sub_profile = string;
 export type subscriber = {
     id: string,
     lte: lte_subscription,
+};
+export type subscription_profile = {
+    max_dl_bit_rate ? : number,
+    max_ul_bit_rate ? : number,
+};
+export type swx = {
+    cache_TTL_seconds ? : number,
+    derive_unregister_realm ? : boolean,
+    register_on_auth ? : boolean,
+    server ? : diameter_client_configs,
+    verify_authorization ? : boolean,
 };
 export type symphony_network = {
     description: network_description,
@@ -599,6 +794,1179 @@ export default class MagmaAPIBindings {
 
         if (parameters['releaseChannel'] !== undefined) {
             body = parameters['releaseChannel'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwf(): Promise < Array < string >
+        >
+        {
+            let path = '/cwf';
+            let body;
+            let query = {};
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postCwf(
+        parameters: {
+            'cwfNetwork': cwf_network,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf';
+        let body;
+        let query = {};
+        if (parameters['cwfNetwork'] === undefined) {
+            throw new Error('Missing required  parameter: cwfNetwork');
+        }
+
+        if (parameters['cwfNetwork'] !== undefined) {
+            body = parameters['cwfNetwork'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteCwfByNetworkId(
+        parameters: {
+            'networkId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getCwfByNetworkId(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < cwf_network >
+        {
+            let path = '/cwf/{network_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkId(
+        parameters: {
+            'networkId': string,
+            'cwfNetwork': cwf_network,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['cwfNetwork'] === undefined) {
+            throw new Error('Missing required  parameter: cwfNetwork');
+        }
+
+        if (parameters['cwfNetwork'] !== undefined) {
+            body = parameters['cwfNetwork'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async deleteCwfByNetworkIdCarrierWifi(
+        parameters: {
+            'networkId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/carrier_wifi';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getCwfByNetworkIdCarrierWifi(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_carrier_wifi_configs >
+        {
+            let path = '/cwf/{network_id}/carrier_wifi';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdCarrierWifi(
+        parameters: {
+            'networkId': string,
+            'config': network_carrier_wifi_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/carrier_wifi';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdDescription(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_description >
+        {
+            let path = '/cwf/{network_id}/description';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdDescription(
+        parameters: {
+            'networkId': string,
+            'description': network_description,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/description';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['description'] === undefined) {
+            throw new Error('Missing required  parameter: description');
+        }
+
+        if (parameters['description'] !== undefined) {
+            body = parameters['description'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGateways(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < {
+            [string]: cwf_gateway,
+        } >
+        {
+            let path = '/cwf/{network_id}/gateways';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postCwfByNetworkIdGateways(
+        parameters: {
+            'networkId': string,
+            'gateway': mutable_cwf_gateway,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gateway'] === undefined) {
+            throw new Error('Missing required  parameter: gateway');
+        }
+
+        if (parameters['gateway'] !== undefined) {
+            body = parameters['gateway'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteCwfByNetworkIdGatewaysByGatewayId(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayId(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < cwf_gateway >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayId(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'gateway': mutable_cwf_gateway,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['gateway'] === undefined) {
+            throw new Error('Missing required  parameter: gateway');
+        }
+
+        if (parameters['gateway'] !== undefined) {
+            body = parameters['gateway'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayIdDescription(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < gateway_description >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/description';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayIdDescription(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'description': gateway_description,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}/description';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['description'] === undefined) {
+            throw new Error('Missing required  parameter: description');
+        }
+
+        if (parameters['description'] !== undefined) {
+            body = parameters['description'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayIdDevice(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < gateway_device >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/device';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayIdDevice(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'device': gateway_device,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}/device';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['device'] === undefined) {
+            throw new Error('Missing required  parameter: device');
+        }
+
+        if (parameters['device'] !== undefined) {
+            body = parameters['device'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayIdMagmad(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < magmad_gateway_configs >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/magmad';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayIdMagmad(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'magmad': magmad_gateway_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}/magmad';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['magmad'] === undefined) {
+            throw new Error('Missing required  parameter: magmad');
+        }
+
+        if (parameters['magmad'] !== undefined) {
+            body = parameters['magmad'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayIdName(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < gateway_name >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/name';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayIdName(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'name': gateway_name,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}/name';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['name'] === undefined) {
+            throw new Error('Missing required  parameter: name');
+        }
+
+        if (parameters['name'] !== undefined) {
+            body = parameters['name'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayIdStatus(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < gateway_status >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/status';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async getCwfByNetworkIdGatewaysByGatewayIdTier(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < tier_id >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/tier';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayIdTier(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'tierId': tier_id,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}/tier';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['tierId'] === undefined) {
+            throw new Error('Missing required  parameter: tierId');
+        }
+
+        if (parameters['tierId'] !== undefined) {
+            body = parameters['tierId'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdName(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_name >
+        {
+            let path = '/cwf/{network_id}/name';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdName(
+        parameters: {
+            'networkId': string,
+            'name': network_name,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/name';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['name'] === undefined) {
+            throw new Error('Missing required  parameter: name');
+        }
+
+        if (parameters['name'] !== undefined) {
+            body = parameters['name'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getFeg(): Promise < Array < string >
+        >
+        {
+            let path = '/feg';
+            let body;
+            let query = {};
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postFeg(
+        parameters: {
+            'fegNetwork': feg_network,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg';
+        let body;
+        let query = {};
+        if (parameters['fegNetwork'] === undefined) {
+            throw new Error('Missing required  parameter: fegNetwork');
+        }
+
+        if (parameters['fegNetwork'] !== undefined) {
+            body = parameters['fegNetwork'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteFegByNetworkId(
+        parameters: {
+            'networkId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getFegByNetworkId(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < feg_network >
+        {
+            let path = '/feg/{network_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putFegByNetworkId(
+        parameters: {
+            'networkId': string,
+            'fegNetwork': feg_network,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['fegNetwork'] === undefined) {
+            throw new Error('Missing required  parameter: fegNetwork');
+        }
+
+        if (parameters['fegNetwork'] !== undefined) {
+            body = parameters['fegNetwork'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async deleteFegByNetworkIdFederation(
+        parameters: {
+            'networkId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/federation';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getFegByNetworkIdFederation(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_federation_configs >
+        {
+            let path = '/feg/{network_id}/federation';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putFegByNetworkIdFederation(
+        parameters: {
+            'networkId': string,
+            'config': network_federation_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/federation';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getFegByNetworkIdGateways(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < Array < federation_gateway >
+        >
+        {
+            let path = '/feg/{network_id}/gateways';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postFegByNetworkIdGateways(
+        parameters: {
+            'networkId': string,
+            'gateway': mutable_federation_gateway,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/gateways';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gateway'] === undefined) {
+            throw new Error('Missing required  parameter: gateway');
+        }
+
+        if (parameters['gateway'] !== undefined) {
+            body = parameters['gateway'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteFegByNetworkIdGatewaysByGatewayId(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/gateways/{gateway_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getFegByNetworkIdGatewaysByGatewayId(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < federation_gateway >
+        {
+            let path = '/feg/{network_id}/gateways/{gateway_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putFegByNetworkIdGatewaysByGatewayId(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'gateway': mutable_federation_gateway,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/gateways/{gateway_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['gateway'] === undefined) {
+            throw new Error('Missing required  parameter: gateway');
+        }
+
+        if (parameters['gateway'] !== undefined) {
+            body = parameters['gateway'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async deleteFegByNetworkIdGatewaysByGatewayIdFederation(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/gateways/{gateway_id}/federation';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getFegByNetworkIdGatewaysByGatewayIdFederation(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < gateway_federation_configs >
+        {
+            let path = '/feg/{network_id}/gateways/{gateway_id}/federation';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postFegByNetworkIdGatewaysByGatewayIdFederation(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'config': gateway_federation_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/gateways/{gateway_id}/federation';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async putFegByNetworkIdGatewaysByGatewayIdFederation(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'config': gateway_federation_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg/{network_id}/gateways/{gateway_id}/federation';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getFegLte(): Promise < Array < string >
+        >
+        {
+            let path = '/feg_lte';
+            let body;
+            let query = {};
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postFegLte(
+        parameters: {
+            'lteNetwork': feg_lte_network,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg_lte';
+        let body;
+        let query = {};
+        if (parameters['lteNetwork'] === undefined) {
+            throw new Error('Missing required  parameter: lteNetwork');
+        }
+
+        if (parameters['lteNetwork'] !== undefined) {
+            body = parameters['lteNetwork'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteFegLteByNetworkId(
+        parameters: {
+            'networkId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg_lte/{network_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getFegLteByNetworkId(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < feg_lte_network >
+        {
+            let path = '/feg_lte/{network_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putFegLteByNetworkId(
+        parameters: {
+            'networkId': string,
+            'lteNetwork': feg_lte_network,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg_lte/{network_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['lteNetwork'] === undefined) {
+            throw new Error('Missing required  parameter: lteNetwork');
+        }
+
+        if (parameters['lteNetwork'] !== undefined) {
+            body = parameters['lteNetwork'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async deleteFegLteByNetworkIdFederation(
+        parameters: {
+            'networkId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg_lte/{network_id}/federation';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getFegLteByNetworkIdFederation(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < federated_network_configs >
+        {
+            let path = '/feg_lte/{network_id}/federation';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putFegLteByNetworkIdFederation(
+        parameters: {
+            'networkId': string,
+            'config': network_federation_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/feg_lte/{network_id}/federation';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
         }
 
         return await this.request(path, 'PUT', query, body);
@@ -1226,6 +2594,30 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdEnodebsByEnodebSerialState(
+            parameters: {
+                'networkId': string,
+                'enodebSerial': string,
+            }
+        ): Promise < enodeb_state >
+        {
+            let path = '/lte/{network_id}/enodebs/{enodeb_serial}/state';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['enodebSerial'] === undefined) {
+                throw new Error('Missing required  parameter: enodebSerial');
+            }
+
+            path = path.replace('{enodeb_serial}', `${parameters['enodebSerial']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getLteByNetworkIdFeatures(
             parameters: {
                 'networkId': string,
@@ -2249,6 +3641,38 @@ export default class MagmaAPIBindings {
         path = path.replace('{subscriber_id}', `${parameters['subscriberId']}`);
 
         return await this.request(path, 'POST', query, body);
+    }
+    static async putLteByNetworkIdSubscribersBySubscriberIdLteSubProfile(
+        parameters: {
+            'networkId': string,
+            'subscriberId': string,
+            'profileName': sub_profile,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/subscribers/{subscriber_id}/lte/sub_profile';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['subscriberId'] === undefined) {
+            throw new Error('Missing required  parameter: subscriberId');
+        }
+
+        path = path.replace('{subscriber_id}', `${parameters['subscriberId']}`);
+
+        if (parameters['profileName'] === undefined) {
+            throw new Error('Missing required  parameter: profileName');
+        }
+
+        if (parameters['profileName'] !== undefined) {
+            body = parameters['profileName'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
     }
     static async getNetworks(): Promise < Array < string >
         >
@@ -3594,6 +5018,34 @@ export default class MagmaAPIBindings {
 
             if (parameters['step'] !== undefined) {
                 query['step'] = parameters['step'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async getNetworksByNetworkIdPrometheusSeries(
+            parameters: {
+                'networkId': string,
+                'start' ? : string,
+                'end' ? : string,
+            }
+        ): Promise < Array < prometheus_labelset >
+        >
+        {
+            let path = '/networks/{network_id}/prometheus/series';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['start'] !== undefined) {
+                query['start'] = parameters['start'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
             }
 
             return await this.request(path, 'GET', query, body);
