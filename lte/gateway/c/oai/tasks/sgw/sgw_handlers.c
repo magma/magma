@@ -141,7 +141,7 @@ int sgw_handle_create_session_request(
   new_endpoint_p = sgw_cm_create_s11_tunnel(
     state,
     session_req_pP->sender_fteid_for_cp.teid,
-    sgw_get_new_S11_tunnel_id());
+    sgw_get_new_S11_tunnel_id(state));
 
   if (new_endpoint_p == NULL) {
     OAILOG_ERROR(

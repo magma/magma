@@ -21,75 +21,127 @@
 
 #include "spgw_state_manager.h"
 
-spgw_state_t *SpgwStateManager::create_spgw_state(spgw_config_t *config)
-{
+namespace magma {
+namespace lte {
+
+SpgwStateManager::SpgwStateManager() :
+    persist_state_(false),
+    is_initialized_(false),
+    spgw_state_cache_p_(nullptr), state_dirty_(false) {}
+
+SpgwStateManager& SpgwStateManager::getInstance() {
+  static SpgwStateManager instance;
+  return instance;
+}
+
+void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
+  is_initialized_ = true;
+  persist_state_ = persist_state;
+  spgw_state_cache_p_ = create_spgw_state(config);
+}
+
+spgw_state_t* SpgwStateManager::get_spgw_state() {
+  AssertFatal(
+      is_initialized_,
+      "SpgwStateManager init() function should be called to initialize state.");
+
+  this->state_dirty_ = true;
+
+  AssertFatal(spgw_state_cache_p_ != nullptr, "SPGW state cache is NULL");
+
+  return spgw_state_cache_p_;
+}
+
+spgw_state_t* SpgwStateManager::create_spgw_state(const spgw_config_t* config) {
+  AssertFatal(
+      is_initialized_,
+      "SpgwStateManager init() function should be called to initialize state.");
+
   // Allocating spgw_state_p
-  spgw_state_t *state_p;
-  state_p = (spgw_state_t *) calloc(1, sizeof(spgw_state_t));
+  spgw_state_t* state_p;
+  state_p = (spgw_state_t*)calloc(1, sizeof(spgw_state_t));
 
   bstring b = bfromcstr(SGW_S11_TEID_MME_HT_NAME);
   state_p->sgw_state.s11teid2mme =
-    hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr, nullptr, b);
+      hashtable_ts_create(SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr, nullptr, b);
   btrunc(b, 0);
 
   bassigncstr(b, S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_p->sgw_state.s11_bearer_context_information = hashtable_ts_create(
-    SGW_STATE_CONTEXT_HT_MAX_SIZE,
-    nullptr,
-    (void (*)(void **)) sgw_free_s11_bearer_context_information,
-    b);
+      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
+      (void (*)(void**))sgw_free_s11_bearer_context_information, b);
   bdestroy_wrapper(&b);
 
   state_p->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr =
-    config->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
+      config->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
 
   // TODO: Refactor GTPv1u_data state
   state_p->sgw_state.gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
-    state_p->sgw_state.sgw_ip_address_S1u_S12_S4_up;
+      state_p->sgw_state.sgw_ip_address_S1u_S12_S4_up;
 
   // Creating PGW related state structs
   state_p->pgw_state.deactivated_predefined_pcc_rules = hashtable_ts_create(
-    MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
+      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
+
+  // TO DO: RANDOM
+  state_p->sgw_state.tunnel_id = 0;
 
   return state_p;
 }
 
-void SpgwStateManager::free_spgw_state()
-{
-  if (
-    hashtable_ts_destroy(spgw_state_cache_p->sgw_state.s11teid2mme) !=
-    HASH_TABLE_OK) {
+void SpgwStateManager::free_spgw_state() {
+  AssertFatal(
+      is_initialized_,
+      "SpgwStateManager init() function should be called to initialize state.");
+
+  if (spgw_state_cache_p_ == nullptr) {
+    return;
+  }
+
+  if (hashtable_ts_destroy(spgw_state_cache_p_->sgw_state.s11teid2mme) !=
+      HASH_TABLE_OK) {
     OAI_FPRINTF_ERR(
-      "An error occurred while destroying SGW s11teid2mme hashtable");
+        "An error occurred while destroying SGW s11teid2mme hashtable");
   }
 
-  if (
-    hashtable_ts_destroy(
-      spgw_state_cache_p->sgw_state.s11_bearer_context_information) !=
-    HASH_TABLE_OK) {
+  if (hashtable_ts_destroy(
+          spgw_state_cache_p_->sgw_state.s11_bearer_context_information) !=
+      HASH_TABLE_OK) {
     OAI_FPRINTF_ERR(
-      "An error occurred while destroying SGW s11_bearer_context_information "
-      "hashtable");
+        "An error occurred while destroying SGW s11_bearer_context_information "
+        "hashtable");
   }
 
-  if (spgw_state_cache_p->pgw_state.deactivated_predefined_pcc_rules) {
+  if (spgw_state_cache_p_->pgw_state.deactivated_predefined_pcc_rules) {
     hashtable_ts_destroy(
-      spgw_state_cache_p->pgw_state.deactivated_predefined_pcc_rules);
+        spgw_state_cache_p_->pgw_state.deactivated_predefined_pcc_rules);
   }
 
-  free(spgw_state_cache_p);
+  free(spgw_state_cache_p_);
 }
 
-int SpgwStateManager::read_state_from_db()
-{
+int SpgwStateManager::read_state_from_db() {
+  AssertFatal(
+      is_initialized_,
+      "SpgwStateManager init() function should be called to initialize state.");
+
   // TODO: Implement read from redis db
   return RETURNok;
 }
 
-void SpgwStateManager::write_state_to_db()
-{
-  // TODO: Implement put to redis db
+void SpgwStateManager::write_state_to_db() {
   AssertFatal(
-    this->state_accessed, "Tried to put SPGW state while it was not in use");
-  this->state_accessed = false;
+      is_initialized_,
+      "SpgwStateManager init() function should be called to initialize state.");
+
+  // TODO: Implement put to redis db
+  if(!state_dirty_) {
+    OAILOG_ERROR(LOG_SPGW_APP,
+                 "Tried to put SPGW state while it was not in use");
+    return;
+  }
+  this->state_dirty_ = false;
 }
+
+} // namespace lte
+} // namespace magma

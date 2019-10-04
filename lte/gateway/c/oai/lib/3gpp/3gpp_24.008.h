@@ -1151,6 +1151,15 @@ int decode_packet_flow_identifier_ie(
 #define TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL 0b10000000
 
 /*
+ * Port range
+ * -----------
+ */
+typedef struct port_range_s {
+  uint16_t lowlimit;
+  uint16_t highlimit;
+} port_range_t;
+
+/*
  * Packet filter content
  * ---------------------
  */
@@ -1178,15 +1187,9 @@ typedef struct packet_filter_contents_s {
   } ipv6remoteaddr[TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE];
   uint8_t protocolidentifier_nextheader;
   uint16_t singlelocalport;
-  struct {
-    uint16_t lowlimit;
-    uint16_t highlimit;
-  } localportrange;
+  port_range_t localportrange;
   uint16_t singleremoteport;
-  struct {
-    uint16_t lowlimit;
-    uint16_t highlimit;
-  } remoteportrange;
+  port_range_t remoteportrange;
   uint32_t securityparameterindex;
   struct {
     uint8_t value;

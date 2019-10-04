@@ -24,79 +24,68 @@
 #include <stdlib.h>
 
 extern "C" {
-#include "bstrlib.h"
 #include "assertions.h"
+#include "bstrlib.h"
 #include "dynamic_memory_check.h"
 }
 
-#include "common_defs.h"
 #include "spgw_state_manager.h"
 
-static SpgwStateManager spgw_state_mgr;
+using magma::lte::SpgwStateManager;
 
-int spgw_state_init(bool persist_state, spgw_config_t *config)
-{
-  spgw_state_mgr = SpgwStateManager(persist_state, config);
-  if (spgw_state_mgr.persist_state) {
-    return spgw_state_mgr.read_state_from_db();
-  }
-  return RETURNok;
+int spgw_state_init(bool persist_state, const spgw_config_t* config) {
+  SpgwStateManager::getInstance().init(persist_state, config);
+  return SpgwStateManager::getInstance().read_state_from_db();
 }
 
-spgw_state_t *get_spgw_state(void)
-{
-  return spgw_state_mgr.get_spgw_state();
+spgw_state_t* get_spgw_state() {
+  return SpgwStateManager::getInstance().get_spgw_state();
 }
 
-void spgw_state_exit()
-{
-  spgw_state_mgr.free_spgw_state();
+void spgw_state_exit() {
+  SpgwStateManager::getInstance().free_spgw_state();
 }
 
-void put_spgw_state()
-{
-  spgw_state_mgr.write_state_to_db();
+void put_spgw_state() {
+  SpgwStateManager::getInstance().write_state_to_db();
 }
 
 void sgw_free_s11_bearer_context_information(
-  s_plus_p_gw_eps_bearer_context_information_t **context_p)
-{
+    s_plus_p_gw_eps_bearer_context_information_t** context_p) {
   if (*context_p) {
     sgw_free_pdn_connection(
-      &(*context_p)->sgw_eps_bearer_context_information.pdn_connection);
+        &(*context_p)->sgw_eps_bearer_context_information.pdn_connection);
 
     if ((*context_p)->pgw_eps_bearer_context_information.apns) {
       obj_hashtable_ts_destroy(
-        (*context_p)->pgw_eps_bearer_context_information.apns);
+          (*context_p)->pgw_eps_bearer_context_information.apns);
     }
 
-    free_wrapper((void **) context_p);
+    free_wrapper((void**)context_p);
   }
 }
 
-void sgw_free_pdn_connection(sgw_pdn_connection_t *pdn_connection_p)
-{
+void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
   if (pdn_connection_p) {
     if (pdn_connection_p->apn_in_use) {
-      free_wrapper((void **) &pdn_connection_p->apn_in_use);
+      free_wrapper((void**)&pdn_connection_p->apn_in_use);
     }
-    for (auto &ebix : pdn_connection_p->sgw_eps_bearers_array) {
+
+    for (auto& ebix : pdn_connection_p->sgw_eps_bearers_array) {
       sgw_free_eps_bearer_context(&ebix);
     }
   }
 }
 
-void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt)
-{
+void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
   if (*sgw_eps_bearer_ctxt) {
-    free_wrapper((void **) sgw_eps_bearer_ctxt);
+    free_wrapper((void**)sgw_eps_bearer_ctxt);
   }
 }
 
-void pgw_free_pcc_rule(void **rule)
-{
+void pgw_free_pcc_rule(void** rule) {
   if (rule) {
-    pcc_rule_t *pcc_rule = (pcc_rule_t *) *rule;
+    pcc_rule_t* pcc_rule = (pcc_rule_t*)*rule;
     if (pcc_rule) {
       if (pcc_rule->name) {
         bdestroy_wrapper(&pcc_rule->name);

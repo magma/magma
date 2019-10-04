@@ -210,7 +210,7 @@ typedef struct paa_s {
 } paa_t;
 
 void copy_paa(paa_t *paa_dst, paa_t *paa_src);
-bstring paa_to_bstring(paa_t *paa);
+bstring paa_to_bstring(const paa_t *paa);
 
 //-----------------
 typedef struct {
@@ -226,7 +226,7 @@ bstring fteid_ip_address_to_bstring(const struct fteid_s *const fteid);
 void get_fteid_ip_address(
   const struct fteid_s *const fteid,
   ip_address_t *const ip_address);
-bstring ip_address_to_bstring(ip_address_t *ip_address);
+bstring ip_address_to_bstring(const ip_address_t *ip_address);
 void bstring_to_ip_address(bstring const bstr, ip_address_t *const ip_address);
 
 //-----------------

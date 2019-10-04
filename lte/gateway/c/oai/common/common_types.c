@@ -100,7 +100,7 @@ void get_fteid_ip_address(
 }
 
 //------------------------------------------------------------------------------
-bstring ip_address_to_bstring(ip_address_t *ip_address)
+bstring ip_address_to_bstring(const ip_address_t *ip_address)
 {
   bstring bstr = NULL;
   switch (ip_address->pdn_type) {
@@ -152,7 +152,7 @@ void copy_paa(paa_t *paa_dst, paa_t *paa_src)
 }
 
 //------------------------------------------------------------------------------
-bstring paa_to_bstring(paa_t *paa)
+bstring paa_to_bstring(const paa_t *paa)
 {
   bstring bstr = NULL;
   switch (paa->pdn_type) {

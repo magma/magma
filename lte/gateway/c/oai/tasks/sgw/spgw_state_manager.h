@@ -30,6 +30,10 @@ extern "C" {
 #include <cstdlib>
 #include <common_defs.h>
 
+#ifdef __cplusplus
+}
+#endif
+
 #include "spgw_state.h"
 
 #define SGW_STATE_CONTEXT_HT_MAX_SIZE 512
@@ -37,47 +41,73 @@ extern "C" {
 #define S11_BEARER_CONTEXT_INFO_HT_NAME "s11_bearer_context_information_htbl"
 #define MAX_PREDEFINED_PCC_RULES_HT_SIZE 32
 
+namespace magma {
+namespace lte {
+
+/**
+ * SpgwStateManager is a singleton (thread-safe, destruction guaranteed)
+ * that contains functions to maintain SGW and PGW state, allocating and
+ * freeing state structs, and writing / reading state to db.
+ */
 class SpgwStateManager {
- private:
-  spgw_state_t *spgw_state_cache_p {};
-  bool state_accessed;
-
  public:
-  bool persist_state;
+  /**
+   * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
+   * initialized only once.
+   * @return SpgwStateManager instance.
+   */
+  static SpgwStateManager& getInstance();
+  /**
+   * Initialization function to initialize member variables.
+   * @param persist_state should read and write state from db
+   * @param config SPGW config struct
+   */
+  void init(bool persist_state, const spgw_config_t* config);
 
-  SpgwStateManager()
-  {
-    this->persist_state = false;
-    this->state_accessed = false;
-  }
+  /**
+   * Singleton class, copy constructor and assignment operator are marked
+   * as deleted functions.
+   */
+  // Making them public for better debugging logging.
+  SpgwStateManager(SpgwStateManager const&) = delete;
+  SpgwStateManager& operator=(SpgwStateManager const&) = delete;
 
-  SpgwStateManager(
-    bool persist_state,
-    spgw_config_t *config)
-  {
-    this->persist_state = persist_state;
-    this->state_accessed = false;
-    spgw_state_cache_p = create_spgw_state(config);
-  }
+  /**
+   * @return A pointer to spgw_state_cache
+   */
+  spgw_state_t* get_spgw_state();
 
-  spgw_state_t *get_spgw_state()
-  {
-    this->state_accessed = true;
-
-    AssertFatal(
-      spgw_state_cache_p != nullptr, "SPGW state cache is NULL");
-
-    return spgw_state_cache_p;
-  }
-
-  static spgw_state_t *create_spgw_state(spgw_config_t *config);
+  /**
+   * Frees all memory allocated on spgw_state_t.
+   */
   void free_spgw_state();
 
   // TODO: Implement redis r/w functions
   int read_state_from_db();
   void write_state_to_db();
+
+ private:
+  SpgwStateManager();
+  ~SpgwStateManager() = default;
+
+  /**
+   * Allocates a new spgw_state_t struct, and inits hashtables and state
+   * structs to default values.
+   * @param config pointer to spgw_config
+   * @return spgw_state pointer
+   */
+  spgw_state_t* create_spgw_state(const spgw_config_t* config);
+
+  // Flag for check asserting if the state has been initialized.
+  bool is_initialized_;
+  // Flag for check asserting that write should be done after read.
+  // TODO: Convert this to state versioning variable
+  bool state_dirty_;
+  // Flag for enabling writing and reading to db.
+  bool persist_state_;
+  // TODO: Make this a unique_ptr
+  spgw_state_t* spgw_state_cache_p_;
 };
 
-#ifdef __cplusplus
-}
-#endif
+} // namespace lte
+} // namespace magma
