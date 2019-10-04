@@ -24,9 +24,12 @@
 namespace magma {
 namespace lte {
 
-SpgwStateManager::SpgwStateManager()
-    : persist_state_(false), is_initialized_(false),
-      spgw_state_cache_p_(nullptr), state_dirty_(false) {}
+SpgwStateManager::SpgwStateManager() :
+    persist_state_(false),
+    is_initialized_(false),
+    spgw_state_cache_p_(nullptr),
+    state_dirty_(false),
+    config_(nullptr) {}
 
 SpgwStateManager& SpgwStateManager::getInstance() {
   static SpgwStateManager instance;
@@ -36,10 +39,11 @@ SpgwStateManager& SpgwStateManager::getInstance() {
 void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
   is_initialized_ = true;
   persist_state_ = persist_state;
-  spgw_state_cache_p_ = create_spgw_state(config);
+  config_ = config;
+  spgw_state_cache_p_ = create_spgw_state();
 }
 
-spgw_state_t* SpgwStateManager::get_spgw_state() {
+spgw_state_t* SpgwStateManager::get_spgw_state(bool read_from_db) {
   AssertFatal(
       is_initialized_,
       "SpgwStateManager init() function should be called to initialize state.");
@@ -48,10 +52,16 @@ spgw_state_t* SpgwStateManager::get_spgw_state() {
 
   AssertFatal(spgw_state_cache_p_ != nullptr, "SPGW state cache is NULL");
 
+  if (persist_state_ && read_from_db) {
+    free_spgw_state();
+    spgw_state_cache_p_ = create_spgw_state();
+    read_state_from_db();
+  }
+
   return spgw_state_cache_p_;
 }
 
-spgw_state_t* SpgwStateManager::create_spgw_state(const spgw_config_t* config) {
+spgw_state_t* SpgwStateManager::create_spgw_state() {
   AssertFatal(
       is_initialized_,
       "SpgwStateManager init() function should be called to initialize state.");
@@ -72,7 +82,7 @@ spgw_state_t* SpgwStateManager::create_spgw_state(const spgw_config_t* config) {
   bdestroy_wrapper(&b);
 
   state_p->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr =
-      config->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
+      config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
 
   // TODO: Refactor GTPv1u_data state
   state_p->sgw_state.gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
@@ -121,6 +131,9 @@ void SpgwStateManager::free_spgw_state() {
         spgw_state_cache_p_->pgw_state.deactivated_predefined_pcc_rules);
   }
 
+  if (spgw_state_cache_p_->pgw_state.predefined_pcc_rules) {
+    hashtable_ts_destroy(spgw_state_cache_p_->pgw_state.predefined_pcc_rules);
+  }
   free(spgw_state_cache_p_);
 }
 
@@ -129,22 +142,25 @@ int SpgwStateManager::read_state_from_db() {
       is_initialized_,
       "SpgwStateManager init() function should be called to initialize state.");
 
-  auto db_read_fut = db_client_->get(SPGW_STATE_TABLE_NAME);
-  db_client_->sync_commit();
-  auto db_read_reply = db_read_fut.get();
+  if (persist_state_) {
+    auto db_read_fut = db_client_->get(SPGW_STATE_TABLE_NAME);
+    db_client_->sync_commit();
+    auto db_read_reply = db_read_fut.get();
 
-  if (db_read_reply.is_null() || db_read_reply.is_error() ||
-      !db_read_reply.is_string()) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from db");
-    return RETURNerror;
-  } else {
-    gateway::spgw::SpgwState state_proto = gateway::spgw::SpgwState();
-    if (!state_proto.ParseFromString(db_read_reply.as_string())) {
-      OAILOG_ERROR(LOG_SPGW_APP, "Failed to parse state");
+    if (db_read_reply.is_null() || db_read_reply.is_error() ||
+        !db_read_reply.is_string()) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from db");
       return RETURNerror;
+    } else {
+      gateway::spgw::SpgwState state_proto = gateway::spgw::SpgwState();
+      if (!state_proto.ParseFromString(db_read_reply.as_string())) {
+        OAILOG_ERROR(LOG_SPGW_APP, "Failed to parse state");
+        return RETURNerror;
+      }
+
+      SpgwStateConverter::spgw_proto_to_state(state_proto, spgw_state_cache_p_);
+      OAILOG_DEBUG(LOG_SPGW_APP, "Finished reading state");
     }
-    // TODO: Add spgw_proto_to_state conversion
-    OAILOG_INFO(LOG_SPGW_APP, "Finished reading state");
   }
   return RETURNok;
 }

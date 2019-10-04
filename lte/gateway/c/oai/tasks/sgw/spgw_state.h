@@ -66,7 +66,7 @@ int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);
 // Function that frees spgw_state.
 void spgw_state_exit(void);
 // Function that returns a pointer to spgw_state.
-spgw_state_t* get_spgw_state(void);
+spgw_state_t *get_spgw_state(bool read_from_db);
 // Function that writes the spgw_state struct into db.
 void put_spgw_state(void);
 

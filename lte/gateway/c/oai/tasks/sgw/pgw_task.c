@@ -60,7 +60,7 @@ static void *pgw_intertask_interface(void *args_p)
 
     itti_receive_msg(TASK_PGW_APP, &received_message_p);
 
-    spgw_state_p = get_spgw_state();
+    spgw_state_p = get_spgw_state(false);
     AssertFatal(
       spgw_state_p != NULL, "Failed to retrieve SPGW state on PGW task");
 

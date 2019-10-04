@@ -176,3 +176,25 @@ bstring paa_to_bstring(const paa_t *paa)
   }
   return bstr;
 }
+
+void bstring_to_paa(const bstring bstr, paa_t *paa)
+{
+  if (bstr) {
+    switch (blength(bstr)) {
+      case 4:
+        paa->pdn_type = IPv4;
+        memcpy(&paa->ipv4_address, bstr->data, blength(bstr));
+        break;
+      case 8:
+        paa->pdn_type = IPv6;
+        memcpy(&paa->ipv6_address, bstr->data, blength(bstr));
+        break;
+      case 12:
+        paa->pdn_type = IPv4_AND_v6;
+        memcpy(&paa->ipv4_address, bstr->data, 4);
+        memcpy(&paa->ipv6_address, &bstr->data[4], 8);
+        break;
+      default: break;
+    }
+  }
+}

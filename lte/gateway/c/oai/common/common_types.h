@@ -228,6 +228,7 @@ void get_fteid_ip_address(
   ip_address_t *const ip_address);
 bstring ip_address_to_bstring(const ip_address_t *ip_address);
 void bstring_to_ip_address(bstring const bstr, ip_address_t *const ip_address);
+void bstring_to_paa(bstring bstr, paa_t *paa);
 
 //-----------------
 typedef enum {

@@ -47,8 +47,8 @@ int spgw_state_init(bool persist_state, const spgw_config_t* config) {
   return SpgwStateManager::getInstance().read_state_from_db();
 }
 
-spgw_state_t* get_spgw_state() {
-  return SpgwStateManager::getInstance().get_spgw_state();
+spgw_state_t* get_spgw_state(bool read_from_db) {
+  return SpgwStateManager::getInstance().get_spgw_state(read_from_db);
 }
 
 void spgw_state_exit() {

@@ -26,8 +26,8 @@ extern "C" {
 #endif
 
 #include <assertions.h>
-#include <cstdlib>
 #include <common_defs.h>
+#include <cstdlib>
 #include <dynamic_memory_check.h>
 
 #ifdef __cplusplus
@@ -36,9 +36,9 @@ extern "C" {
 
 #include <cpp_redis/cpp_redis>
 
+#include "ServiceConfigLoader.h"
 #include "spgw_state.h"
 #include "spgw_state_converter.h"
-#include "ServiceConfigLoader.h"
 
 #define SGW_STATE_CONTEXT_HT_MAX_SIZE 512
 #define SGW_S11_TEID_MME_HT_NAME "sgw_s11_teid2mme_htbl"
@@ -55,7 +55,7 @@ namespace lte {
  * freeing state structs, and writing / reading state to db.
  */
 class SpgwStateManager {
- public:
+public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
    * initialized only once.
@@ -78,9 +78,11 @@ class SpgwStateManager {
   SpgwStateManager& operator=(SpgwStateManager const&) = delete;
 
   /**
+   * @param read_from_db used for debugging, to enable read from db on every message
+   * processing
    * @return A pointer to spgw_state_cache
    */
-  spgw_state_t* get_spgw_state();
+  spgw_state_t* get_spgw_state(bool read_from_db);
 
   /**
    * Frees all memory allocated on spgw_state_t.
@@ -92,7 +94,7 @@ class SpgwStateManager {
    * @param addr IP address on which redis db is running
    * @return response code of success / error with db connection
    */
-  int init_db_connection(const std::string &addr);
+  int init_db_connection(const std::string& addr);
 
   int read_state_from_db();
   void write_state_to_db();
@@ -107,7 +109,7 @@ class SpgwStateManager {
    * @param config pointer to spgw_config
    * @return spgw_state pointer
    */
-  spgw_state_t* create_spgw_state(const spgw_config_t* config);
+  spgw_state_t* create_spgw_state();
 
   // Flag for check asserting if the state has been initialized.
   bool is_initialized_;
@@ -118,6 +120,7 @@ class SpgwStateManager {
   bool persist_state_;
   // TODO: Make this a unique_ptr
   spgw_state_t* spgw_state_cache_p_;
+  const spgw_config_t* config_;
   std::unique_ptr<cpp_redis::client> db_client_;
 };
 
