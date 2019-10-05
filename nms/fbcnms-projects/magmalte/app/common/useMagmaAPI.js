@@ -15,6 +15,7 @@ import {useEffect, useState} from 'react';
 export default function<TParams: {...}, TResponse>(
   func: TParams => Promise<TResponse>,
   params: TParams,
+  cacheCounter?: string | number,
 ): {
   response: ?TResponse,
   // we can't really do better than this for now
@@ -40,7 +41,7 @@ export default function<TParams: {...}, TResponse>(
         setResponse(null);
         setIsLoading(false);
       });
-  }, [jsonParams, func]);
+  }, [jsonParams, func, cacheCounter]);
 
   return {error, response, isLoading};
 }

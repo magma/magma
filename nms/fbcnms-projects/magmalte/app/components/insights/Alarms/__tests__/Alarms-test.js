@@ -19,13 +19,20 @@ import {Route} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, render} from '@testing-library/react';
 
-jest.mock('@fbcnms/ui/hooks/useAxios');
+jest.mock('../../../../common/useMagmaAPI');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
-const useAxios = require('@fbcnms/ui/hooks/useAxios');
+const useMagmaAPI = require('../../../../common/useMagmaAPI');
 const useSnackbar = require('@fbcnms/ui/hooks/useSnackbar');
-const useAxiosMock = jest
-  .spyOn(useAxios, 'default')
-  .mockReturnValue({response: {data: []}});
+const useMagmaAPIMock = jest
+  .spyOn(useMagmaAPI, 'default')
+  .mockReturnValue({response: []});
+jest.mock('@fbcnms/ui/hooks/useRouter');
+const useRouter = require('@fbcnms/ui/hooks/useRouter');
+
+jest.spyOn(useRouter, 'default').mockReturnValue({
+  match: {params: {networkId: ''}, path: '/', url: '/'},
+  relativePath: p => p,
+});
 
 const Wrapper = (props: {route: string, children: React.Node}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>
@@ -39,7 +46,7 @@ const Wrapper = (props: {route: string, children: React.Node}) => (
 
 afterEach(() => {
   cleanup();
-  useAxiosMock.mockClear();
+  useMagmaAPIMock.mockClear();
 });
 
 describe('react router tests', () => {
@@ -74,15 +81,13 @@ describe('react router tests', () => {
 
 describe('Firing Alerts', () => {
   test('renders currently firing alerts if api returns alerts', () => {
-    useAxiosMock.mockReturnValue({
-      response: {
-        data: [
-          {
-            labels: {alertname: '<<TEST ALERT>>', team: '<<TEST TEAM>>'},
-            annotations: {description: '<<TEST DESCRIPTION>>'},
-          },
-        ],
-      },
+    useMagmaAPIMock.mockReturnValue({
+      response: [
+        {
+          labels: {alertname: '<<TEST ALERT>>', team: '<<TEST TEAM>>'},
+          annotations: {description: '<<TEST DESCRIPTION>>'},
+        },
+      ],
     });
 
     const {getByText} = render(
@@ -97,7 +102,7 @@ describe('Firing Alerts', () => {
   });
 
   test('if an error occurs while loading alerts, enqueues an error snackbar', () => {
-    useAxiosMock.mockReturnValue({
+    useMagmaAPIMock.mockReturnValue({
       error: {message: 'an error occurred'},
     });
     const enqueueSnackbarMock = jest.fn();

@@ -8,20 +8,19 @@
  * @format
  */
 
-import type {AlertConfig} from './AlarmAPIType';
-
 import AlarmsHeader from './AlarmsHeader';
 import AlarmsTable from './AlarmsTable';
 import Button from '@material-ui/core/Button';
+import MagmaV1API from '../../../common/MagmaV1API';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import ViewDeleteAlertDialog from './ViewDeleteAlertDialog';
 
-import axios from 'axios';
-import {MagmaAlarmAPIUrls} from './AlarmAPI';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
+import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../../common/useMagmaAPI';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 type Props = {
@@ -48,10 +47,10 @@ export default function EditAllAlerts(props: Props) {
   };
 
   const onDelete = () => {
-    axios
-      .delete(MagmaAlarmAPIUrls.alertConfig(match), {
-        params: {alert_name: currentAlert},
-      })
+    MagmaV1API.deleteNetworksByNetworkIdPrometheusAlertConfig({
+      networkId: nullthrows(match.params.networkId),
+      alertName: currentAlert,
+    })
       .then(() =>
         enqueueSnackbar(`Successfully deleted alert`, {
           variant: 'success',
@@ -73,11 +72,11 @@ export default function EditAllAlerts(props: Props) {
       });
   };
 
-  const {isLoading, error, response} = useAxios<null, Array<AlertConfig>>({
-    method: 'get',
-    url: MagmaAlarmAPIUrls.alertConfig(match),
-    cacheCounter: lastRefreshTime,
-  });
+  const {isLoading, error, response} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdPrometheusAlertConfig,
+    {networkId: nullthrows(match.params.networkId)},
+    lastRefreshTime,
+  );
 
   if (error) {
     enqueueSnackbar(`Unable to load alerts: ${error.response.data.message}`, {
@@ -85,8 +84,7 @@ export default function EditAllAlerts(props: Props) {
     });
   }
 
-  const alerts = response?.data || [];
-
+  const alerts = response || [];
   const alertData = alerts.map(alert => {
     return {
       name: alert.alert,
@@ -137,9 +135,10 @@ export default function EditAllAlerts(props: Props) {
         onClose={onDialogClose}
         onDelete={onDelete}
         alertConfig={
-          (response?.data || []).find(
-            alert => alert.alert === currentAlert,
-          ) ?? {alert: '', expr: ''}
+          alerts.find(alert => alert.alert === currentAlert) ?? {
+            alert: '',
+            expr: '',
+          }
         }
         deletingAlert={showViewDeleteDialog === 'delete'}
       />
