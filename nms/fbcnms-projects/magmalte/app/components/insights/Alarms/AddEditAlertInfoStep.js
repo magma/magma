@@ -98,7 +98,7 @@ export default function AddEditAlertInfoStep(props: Props) {
             <Typography variant="subtitle1">Describe your new alert</Typography>
             <AlertInput
               placeholder="Ex: The service is down at xyz."
-              value={annotations?.description}
+              value={annotations?.description || ''}
               onChange={fieldChangedHandler('description')}
             />
             <Typography variant="subtitle1">
@@ -107,7 +107,7 @@ export default function AddEditAlertInfoStep(props: Props) {
             <AlertInput
               select
               placeholder="Ex: Critical"
-              value={labels?.severity}
+              value={labels?.severity || Object.keys(SEVERITY_STYLE)[0]}
               onChange={fieldChangedHandler('severity')}>
               {Object.keys(SEVERITY_STYLE).map(severity => (
                 <MenuItem key={severity} value={severity}>

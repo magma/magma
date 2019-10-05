@@ -56,12 +56,14 @@ export default function AlarmsHeader(props: Props) {
           <Grid container spacing={1} justify="flex-end" alignItems="center">
             <Grid item>
               <Tooltip title={'Last refreshed: ' + lastRefreshTime}>
-                <IconButton
-                  color="inherit"
-                  onClick={() => onRefreshClick(new Date().toLocaleString())}
-                  disabled={isLoading}>
-                  <RefreshIcon />
-                </IconButton>
+                <div>
+                  <IconButton
+                    color="inherit"
+                    onClick={() => onRefreshClick(new Date().toLocaleString())}
+                    disabled={isLoading}>
+                    <RefreshIcon />
+                  </IconButton>
+                </div>
               </Tooltip>
             </Grid>
             {React.Children.map(children, child => (
