@@ -49,10 +49,6 @@ export const MagmaAPIUrls = {
     )}/gateways/${gatewayId}/configs/${type}`,
   gatewayStatus: (networkIdOrMatch: string | Match, gatewayId: string) =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways/${gatewayId}/status`,
-  prometheusQueryRange: (networkIdOrMatch: string | Match) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/prometheus/query_range`,
-  graphiteQuery: (networkIdOrMatch: string | Match) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/graphite/query`,
   command: (
     networkIdOrMatch: string | Match,
     gatewayId: string,

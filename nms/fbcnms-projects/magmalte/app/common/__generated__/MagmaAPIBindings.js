@@ -4984,8 +4984,7 @@ export default class MagmaAPIBindings {
                 'end' ? : string,
                 'step' ? : string,
             }
-        ): Promise < Array < promql_return_object >
-        >
+        ): Promise < promql_return_object >
         {
             let path = '/networks/{network_id}/prometheus/query_range';
             let body;
