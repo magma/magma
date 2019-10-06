@@ -28,4 +28,5 @@ export type FeatureID =
   | 'floor_plans'
   | 'work_order_map'
   | 'documents_site'
-  | 'logs';
+  | 'logs'
+  | 'services';

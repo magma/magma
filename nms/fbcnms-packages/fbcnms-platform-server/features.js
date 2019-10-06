@@ -119,6 +119,11 @@ const arrayConfigs = [
     title: 'Documents Site',
     enabledByDefault: true,
   },
+  {
+    id: 'services',
+    title: 'Services',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
