@@ -364,10 +364,11 @@ func (m *Tier) FromBackendModel(entity configurator.NetworkEntity) *Tier {
 	return tier
 }
 
-func (m *TierName) ToUpdateCriteria(networkID string, key string) (configurator.EntityUpdateCriteria, error) {
-	return configurator.EntityUpdateCriteria{
-		Type: orc8r.UpgradeTierEntityType, Key: key,
-		NewName: swag.String(string(*m)),
+func (m *TierName) ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
+	return []configurator.EntityUpdateCriteria{
+		configurator.EntityUpdateCriteria{
+			Type: orc8r.UpgradeTierEntityType, Key: key, NewName: swag.String(string(*m)),
+		},
 	}, nil
 }
 
@@ -389,14 +390,16 @@ func (m *TierVersion) FromBackendModels(networkID string, key string) error {
 	return nil
 }
 
-func (m *TierVersion) ToUpdateCriteria(networkID, key string) (configurator.EntityUpdateCriteria, error) {
+func (m *TierVersion) ToUpdateCriteria(networkID, key string) ([]configurator.EntityUpdateCriteria, error) {
 	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
 	if err != nil {
-		return configurator.EntityUpdateCriteria{}, err
+		return []configurator.EntityUpdateCriteria{}, err
 	}
 	tier := iConfig.(*Tier)
 	tier.Version = *m
-	return configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier}, nil
+	return []configurator.EntityUpdateCriteria{
+		configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier},
+	}, nil
 }
 
 func (m *TierVersion) ToString() string {
@@ -412,14 +415,18 @@ func (m *TierImages) FromBackendModels(networkID string, key string) error {
 	return nil
 }
 
-func (m *TierImages) ToUpdateCriteria(networkID, key string) (configurator.EntityUpdateCriteria, error) {
+func (m *TierImages) ToUpdateCriteria(networkID, key string) ([]configurator.EntityUpdateCriteria, error) {
 	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
 	if err != nil {
-		return configurator.EntityUpdateCriteria{}, err
+		return []configurator.EntityUpdateCriteria{}, err
 	}
 	tier := iConfig.(*Tier)
 	tier.Images = *m
-	return configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier}, nil
+	return []configurator.EntityUpdateCriteria{
+		configurator.EntityUpdateCriteria{
+			Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier,
+		},
+	}, nil
 }
 
 func (m *TierGateways) FromBackendModels(networkID string, key string) error {
@@ -431,10 +438,12 @@ func (m *TierGateways) FromBackendModels(networkID string, key string) error {
 	return nil
 }
 
-func (m *TierGateways) ToUpdateCriteria(networkID, key string) (configurator.EntityUpdateCriteria, error) {
-	return configurator.EntityUpdateCriteria{
-		Type: orc8r.UpgradeTierEntityType, Key: key,
-		AssociationsToSet: getGatewayTKs(*m),
+func (m *TierGateways) ToUpdateCriteria(networkID, key string) ([]configurator.EntityUpdateCriteria, error) {
+	return []configurator.EntityUpdateCriteria{
+		configurator.EntityUpdateCriteria{
+			Type: orc8r.UpgradeTierEntityType, Key: key,
+			AssociationsToSet: getGatewayTKs(*m),
+		},
 	}, nil
 }
 
@@ -452,14 +461,16 @@ func (m *TierGateways) ToDeleteGatewayUpdateCriteria(tierID, gatewayID string) c
 	}
 }
 
-func (m *TierImage) ToUpdateCriteria(networkID string, key string) (configurator.EntityUpdateCriteria, error) {
+func (m *TierImage) ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
 	iConfig, err := configurator.LoadEntityConfig(networkID, orc8r.UpgradeTierEntityType, key)
 	if err != nil {
-		return configurator.EntityUpdateCriteria{}, err
+		return []configurator.EntityUpdateCriteria{}, err
 	}
 	tier := iConfig.(*Tier)
 	tier.Images = append(tier.Images, m)
-	return configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier}, nil
+	return []configurator.EntityUpdateCriteria{
+		configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier},
+	}, nil
 }
 
 func (m *TierImage) ToDeleteImageUpdateCriteria(networkID, tierID, imageName string) (configurator.EntityUpdateCriteria, error) {

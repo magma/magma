@@ -27,7 +27,7 @@ type PartialEntityModel interface {
 	FromBackendModels(networkID string, key string) error
 	// ToUpdateCriteria returns a EntityUpdateCriteria needed to apply
 	// the change in the model.
-	ToUpdateCriteria(networkID string, key string) (configurator.EntityUpdateCriteria, error)
+	ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error)
 }
 
 // GetPartialEntityHandlers returns both GET and PUT handlers for modifying the portion of a
@@ -106,11 +106,11 @@ func GetPartialUpdateEntityHandler(path string, paramName string, model PartialE
 				return nerr
 			}
 
-			update, err := requestedUpdate.(PartialEntityModel).ToUpdateCriteria(networkID, key)
+			updates, err := requestedUpdate.(PartialEntityModel).ToUpdateCriteria(networkID, key)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntity(networkID, update)
+			_, err = configurator.UpdateEntities(networkID, updates)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

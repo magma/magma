@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"orc8r/devmand/cloud/go/devmand"
+	"orc8r/devmand/cloud/go/plugin/handlers"
 	dmh "orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
 	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 )
@@ -64,7 +65,7 @@ func (*DevmandOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.Confi
 func (*DevmandOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		dmh.GetObsidianHandlers(),
-		GetHandlers(),
+		handlers.GetHandlers(),
 	)
 }
 

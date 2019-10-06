@@ -228,18 +228,18 @@ func LoadMagmadGatewayModel(networkID string, gatewayID string) (*models.MagmadG
 }
 
 func UpdateGatewayHandler(c echo.Context) error {
-	if nerr := UpdateMagmadGatewayFromModel(c, &models.MagmadGateway{}); nerr != nil {
-		return nerr
-	}
-	return c.NoContent(http.StatusNoContent)
-}
-
-func UpdateMagmadGatewayFromModel(c echo.Context, model MagmadEncompassingGateway) *echo.HTTPError {
 	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
+	if nerr = UpdateMagmadGatewayFromModel(c, nid, gid, &models.MagmadGateway{}); nerr != nil {
+		return nerr
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func UpdateMagmadGatewayFromModel(c echo.Context, nid string, gid string, model MagmadEncompassingGateway) *echo.HTTPError {
 	payload, nerr := GetAndValidatePayload(c, model)
 	if nerr != nil {
 		return nerr

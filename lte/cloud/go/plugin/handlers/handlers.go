@@ -175,7 +175,11 @@ func getGateway(c echo.Context) error {
 }
 
 func updateGateway(c echo.Context) error {
-	if nerr := handlers.UpdateMagmadGatewayFromModel(c, &ltemodels.MutableLteGateway{}); nerr != nil {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &ltemodels.MutableLteGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
