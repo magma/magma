@@ -24,6 +24,7 @@ type ButtonItem = {
 type Props = {
   buttons: Array<ButtonItem>,
   onIconClicked: (id: string) => void,
+  initiallySelectedButton?: number,
 };
 
 const useStyles = makeStyles({
@@ -34,8 +35,10 @@ const useStyles = makeStyles({
 });
 
 const MapButtonGroup = (props: Props) => {
-  const [selectedButtonId, setSelectedButtonId] = useState(0);
   const {onIconClicked, buttons} = props;
+  const [selectedButtonId, setSelectedButtonId] = useState(
+    props.initiallySelectedButton,
+  );
   const classes = useStyles();
   return (
     <MapToggleContainer>
@@ -66,6 +69,10 @@ const MapButtonGroup = (props: Props) => {
       </MapToggleButtonGroup>
     </MapToggleContainer>
   );
+};
+
+MapButtonGroup.defaultProps = {
+  initiallySelectedButton: 0,
 };
 
 export default MapButtonGroup;
