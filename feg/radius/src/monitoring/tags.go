@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package counters
+package monitoring
 
 import "go.opencensus.io/tag"
 
@@ -31,4 +31,15 @@ var (
 
 	// StorageTag code describing the type of storage used for the operation
 	StorageTag, _ = tag.NewKey("storage")
+
+	// RequestCodeTag RADIUS response code
+	RequestCodeTag, _ = tag.NewKey("request_code")
+
+	// ResponseCodeTag RADIUS response code
+	ResponseCodeTag, _ = tag.NewKey("response_code")
 )
+
+// AllTagKeys ...
+func AllTagKeys() []tag.Key {
+	return []tag.Key{ListenerTag, ModuleTag, FilterTag, RadiusTypeTag, ErrorCodeTag, SessionIDTag, StorageTag, RequestCodeTag, ResponseCodeTag}
+}

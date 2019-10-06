@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-package counters
+package monitoring
 
 import (
 	"context"
@@ -23,6 +23,7 @@ type Operation struct {
 	name           string
 	startTime      int64
 	ctx            context.Context
+	tagMutators    []tag.Mutator
 	start          *stats.Int64Measure
 	success        *stats.Int64Measure
 	successLatency *stats.Int64Measure
@@ -31,11 +32,12 @@ type Operation struct {
 }
 
 // NewOperation creates a new operation counter set
-func NewOperation(name string, tagKeys ...tag.Key) Operation {
+func NewOperation(name string, tags ...tag.Mutator) Operation {
 	operation := Operation{
-		name:      name,
-		startTime: 0,
-		ctx:       context.Background(),
+		name:        name,
+		tagMutators: tags,
+		startTime:   0,
+		ctx:         context.Background(),
 		start: stats.Int64(
 			fmt.Sprintf("%s/start", name),
 			fmt.Sprintf("Operation '%s' started", name),
@@ -64,39 +66,39 @@ func NewOperation(name string, tagKeys ...tag.Key) Operation {
 	}
 	views := []*view.View{
 		{
-			Name:        fmt.Sprintf("%s/start/count", name),
+			Name:        fmt.Sprintf("%s/start", name),
 			Measure:     operation.start,
 			Description: fmt.Sprintf("The number of time '%s' was started", name),
 			Aggregation: view.Count(),
-			TagKeys:     tagKeys,
+			TagKeys:     AllTagKeys(),
 		},
 		{
-			Name:        fmt.Sprintf("%s/failure/count", name),
+			Name:        fmt.Sprintf("%s/failure", name),
 			Measure:     operation.failed,
 			Description: fmt.Sprintf("The number of time '%s' has failed", name),
 			Aggregation: view.Count(),
-			TagKeys:     tagKeys,
+			TagKeys:     AllTagKeys(),
 		},
 		{
 			Name:        fmt.Sprintf("%s/failure/latency", name),
 			Measure:     operation.failedLatency,
 			Description: fmt.Sprintf("The latency of failed '%s' operations", name),
-			Aggregation: view.LastValue(),
-			TagKeys:     tagKeys,
+			Aggregation: view.Distribution(),
+			TagKeys:     AllTagKeys(),
 		},
 		{
 			Name:        fmt.Sprintf("%s/success/latency", name),
 			Measure:     operation.successLatency,
 			Description: fmt.Sprintf("The latency of successful '%s' operations", name),
-			Aggregation: view.LastValue(),
-			TagKeys:     tagKeys,
+			Aggregation: view.Distribution(),
+			TagKeys:     AllTagKeys(),
 		},
 		{
-			Name:        fmt.Sprintf("%s/success/count", name),
+			Name:        fmt.Sprintf("%s/success", name),
 			Measure:     operation.success,
 			Description: fmt.Sprintf("The number of time '%s' has succeeded", name),
 			Aggregation: view.Count(),
-			TagKeys:     tagKeys,
+			TagKeys:     AllTagKeys(),
 		},
 	}
 
@@ -105,30 +107,28 @@ func NewOperation(name string, tagKeys ...tag.Key) Operation {
 	return operation
 }
 
-// SetTag sets a sticky tag which will be emitted with every counter log
-func (o Operation) SetTag(key tag.Key, value string) Operation {
-	o.ctx, _ = tag.New(o.ctx, tag.Upsert(key, value))
-	return o
-}
-
-// DeleteTag delets a sticky tag so it is no longer emitted with every counter log
-func (o Operation) DeleteTag(key tag.Key) Operation {
-	o.ctx, _ = tag.New(o.ctx, tag.Delete(key))
-	return o
-}
-
 // Start indicates the operation has started
-func (o Operation) Start() Operation {
-	o.startTime = time.Now().UTC().Unix()
-	stats.Record(o.ctx, o.start.M(1))
-	return o
+func (o Operation) Start(instanceTags ...tag.Mutator) Operation {
+	newOp := o
+	newOp.tagMutators = append(o.tagMutators, instanceTags...)
+	newOp.startTime = time.Now().UnixNano() / int64(time.Millisecond)
+	stats.RecordWithTags(
+		newOp.ctx,
+		newOp.tagMutators,
+		newOp.start.M(1),
+	)
+	return newOp
 }
 
 // Success indicates the operation has completed successfully
-func (o Operation) Success() {
-	n := time.Now().UTC().Unix()
-	stats.Record(
+func (o Operation) Success(tags ...tag.Mutator) {
+	n := time.Now().UnixNano() / int64(time.Millisecond)
+	stats.RecordWithTags(
 		o.ctx,
+		append(
+			o.tagMutators,
+			tags...,
+		),
 		o.success.M(1),
 		o.successLatency.M(n-o.startTime),
 	)
@@ -136,11 +136,17 @@ func (o Operation) Success() {
 }
 
 // Failure indicates the operation has completed successfully
-func (o Operation) Failure(errorCode string) {
-	n := time.Now().UTC().Unix()
+func (o Operation) Failure(errorCode string, tags ...tag.Mutator) {
+	n := time.Now().UnixNano() / int64(time.Millisecond)
 	stats.RecordWithTags(
 		o.ctx,
-		[]tag.Mutator{tag.Upsert(ErrorCodeTag, errorCode)},
+		append(
+			o.tagMutators,
+			append(
+				tags,
+				tag.Upsert(ErrorCodeTag, errorCode),
+			)...,
+		),
 		o.failed.M(1),
 		o.failedLatency.M(n-o.startTime),
 	)

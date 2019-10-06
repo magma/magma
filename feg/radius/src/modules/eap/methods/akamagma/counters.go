@@ -9,13 +9,13 @@ LICENSE file in the root directory of this source tree.
 package akamagma
 
 import (
-	"fbc/cwf/radius/monitoring/counters"
+	"fbc/cwf/radius/monitoring"
 )
 
 var (
 	// MarshalProtocolState marshal eap state
-	MarshalProtocolState = counters.NewOperation("eap_marshal_state")
+	MarshalProtocolState = monitoring.NewOperation("eap_marshal_state")
 
 	// UnmarshalProtocolState marshal eap state
-	UnmarshalProtocolState = counters.NewOperation("eap_marshal_state")
+	UnmarshalProtocolState = monitoring.NewOperation("eap_marshal_state")
 )
