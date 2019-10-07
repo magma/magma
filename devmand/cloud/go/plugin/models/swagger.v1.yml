@@ -459,11 +459,33 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /symphony/{network_id}/devices/{device_id}:
+    get:
+      summary: Get the management config for a single Symphony device
+      tags:
+        - Symphony Devices
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/device_id'
+      responses:
+        '200':
+          description: The management config for a single Symphony device
+          schema:
+            $ref: '#/definitions/symphony_device'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   agent_id:
     in: path
     name: agent_id
     description: Symphony Agent ID
+    required: true
+    type: string
+  device_id:
+    in: path
+    name: device_id
+    description: Symphony Device ID
     required: true
     type: string
 

@@ -1289,6 +1289,53 @@ func TestListDevices(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+func TestGetDevice(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	getDeviceUrl := "/magma/v1/symphony/:network_id/devices/:device_id"
+	obsidianHandlers := handlers.GetHandlers()
+	getDevice := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, getDeviceUrl, obsidian.GET).HandlerFunc
+
+	networkId := "n1"
+	deviceId := "d1"
+
+	seedNetworks(t)
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            getDeviceUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        getDevice,
+		ExpectedError:  "Not Found",
+		ExpectedStatus: 404,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	seedAgents(t)
+	expectedResponse := models2.SymphonyDevice{
+		Config: models2.NewDefaultSymphonyDeviceConfig(),
+		ID:     "d1",
+		Name:   "Device 1",
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            getDeviceUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        getDevice,
+		ExpectedResult: tests.JSONMarshaler(expectedResponse),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 // n1 is a symphony network, n2 is not
 func seedNetworks(t *testing.T) {
 

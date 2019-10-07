@@ -46,7 +46,8 @@ const (
 	ManageAgentTierPath           = ManageAgentPath + obsidian.UrlSep + "tier"
 	ManageAgentManagedDevicesPath = ManageAgentPath + obsidian.UrlSep + "managed_devices"
 
-	BaseDevicesPath = ManageNetworkPath + obsidian.UrlSep + "devices"
+	BaseDevicesPath  = ManageNetworkPath + obsidian.UrlSep + "devices"
+	ManageDevicePath = BaseDevicesPath + obsidian.UrlSep + ":device_id"
 )
 
 // GetHandlers returns all obsidian handlers for Symphony
@@ -66,6 +67,7 @@ func GetHandlers() []obsidian.Handler {
 
 		{Path: BaseDevicesPath, Methods: obsidian.GET, HandlerFunc: listDevices},
 		{Path: BaseDevicesPath, Methods: obsidian.POST, HandlerFunc: createDevice},
+		{Path: ManageDevicePath, Methods: obsidian.GET, HandlerFunc: getDevice},
 	}
 
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
@@ -357,4 +359,38 @@ func createDevice(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusCreated)
+}
+
+func getDevice(c echo.Context) error {
+	nid, did, nerr := GetNetworkAndDeviceIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ent, err := configurator.LoadEntity(nid, devmand.SymphonyDeviceType, did, configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true})
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := (&symphonymodels.SymphonyDevice{}).FromBackendModels(ent)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func GetNetworkAndAgentIDs(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "agent_id")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
+}
+
+func GetNetworkAndDeviceIDs(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "device_id")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
 }

@@ -91,11 +91,3 @@ func GetUpdateAgentDeviceHandler(path string) obsidian.Handler {
 		},
 	}
 }
-
-func GetNetworkAndAgentIDs(c echo.Context) (string, string, *echo.HTTPError) {
-	vals, err := obsidian.GetParamValues(c, "network_id", "agent_id")
-	if err != nil {
-		return "", "", err
-	}
-	return vals[0], vals[1], nil
-}
