@@ -8,11 +8,12 @@
  * @format
  */
 
-import NameDescriptionSection from '../components/NameDescriptionSection.react';
+import NameDescriptionSection from '../../components/NameDescriptionSection.react';
 import React from 'react';
+import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
-storiesOf('NameDescriptionSecrion', module)
+storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/NameDescriptionSection`, module)
   .add('default', () => (
     <div>
       <NameDescriptionSection />
