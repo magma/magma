@@ -45,6 +45,7 @@ class State final : public std::enable_shared_from_this<State> {
   void setStatus(bool systemIsUp);
   void setErrors();
   void addError(std::string&& error);
+  void setGauge(const std::string& key, double value);
 
   // Adds a callback to be executed on collect.
   void addFinally(std::function<void()>&& f);

@@ -75,7 +75,7 @@ folly::dynamic& State::getFbcPlatformDevice(const std::string& key) {
 void State::setStatus(bool systemIsUp) {
   folly::dynamic& system = getFbcPlatformDevice("system");
   system["status"] = systemIsUp ? "UP" : "DOWN";
-  app.setGauge(folly::sformat("{}.status", device.getId()), systemIsUp ? 1 : 0);
+  setGauge("device.status", systemIsUp ? 1 : 0);
 }
 
 void State::setErrors() {
@@ -83,6 +83,15 @@ void State::setErrors() {
   if (not errors.empty()) {
     state["fbc-symphony-device:errors"] = std::move(errors);
   }
+}
+
+void State::setGauge(const std::string& key, double value) {
+  app.setGauge(
+      key,
+      value,
+      // adds the label deviceID = {deviceID}
+      "deviceID",
+      device.getId());
 }
 
 } // namespace devices
