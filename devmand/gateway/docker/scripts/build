@@ -28,15 +28,18 @@ services:
 EOF
 
 echo "Creating image..."
+CACHE_DIR=${SYMPHONY_AGENT_CACHE_DIR:-$(realpath ~)/cache_devmand_build}
 
 # shellcheck source=/dev/null
 . scripts/build_image firstparty devmand | tee /tmp/devmand_build.log
 build_status=${PIPESTATUS[0]}
 if [ "$build_status" -eq 0 ]; then
+  [ ! -d "$CACHE_DIR" ] && mkdir "$CACHE_DIR"
+
   docker rm -f devmand &>/dev/null || true
   docker run --name devmand \
     -v "$(realpath ../):/cache/devmand/repo:ro" \
-    -v "$(realpath ~/cache_devmand_build):/cache/devmand/build:rw" \
+    -v "$CACHE_DIR:/cache/devmand/build:rw" \
     facebookconnectivity-southpoll-dev-docker.jfrog.io/devmand
   docker cp devmand:/cache/devmand/install firstparty
   # shellcheck source=/dev/null
@@ -46,6 +49,7 @@ if [ "$build_status" -eq 0 ]; then
 fi
 
 if [ "$build_status" -eq 0 ]; then
+  docker commit devmand devmand-built
   echo "Created image!"
 else
   echo "Creating image failed!"

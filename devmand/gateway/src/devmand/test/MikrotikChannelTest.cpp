@@ -129,7 +129,7 @@ TEST_F(MikrotikChannelTest, checkNotConnected) {
   stop();
 }
 
-TEST_F(MikrotikChannelTest, checkConnects) {
+TEST_F(MikrotikChannelTest, DISABLED_checkConnects) {
   checkReads = false;
   listen();
   folly::SocketAddress address("127.0.0.1", 1337);

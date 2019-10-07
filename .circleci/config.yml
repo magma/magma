@@ -1,6 +1,38 @@
-version: 2
-jobs:
+version: 2.1
+
+refs:
+  only_master: &only_master
+    filters:
+      branches:
+        only: master
+
+orbs:
+  artifactory: circleci/artifactory@0.0.7
+
   build:
+    commands:
+      determinator:
+        parameters:
+          paths:
+            description: Space seperated list of paths to tests against.
+            type: string
+        steps:
+          - run:
+              name: Checking for changes
+              command: |
+                paths=".circleci <<parameters.paths>>"
+                echo "Checking paths [$paths]"
+                for path in $paths; do
+                  if [[ $(git diff master^ --name-only $path) ]]; then
+                    echo "Found changes in $path"
+                    exit 0
+                  fi
+                done
+                echo "No changes in [$paths]"
+                circleci step halt
+
+jobs:
+  docusaurus_build_and_deploy:
     docker:
       - image: circleci/node:8.11.1
 
@@ -21,3 +53,81 @@ jobs:
             echo "machine github.com login docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=docusaurus-bot yarn run publish-gh-pages
+
+  southpoll_test:
+    machine:
+      image: circleci/classic:latest
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - build/determinator:
+          paths: "devmand"
+      - run:
+          name: Testing the Devmand Image
+          command: |
+            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            sudo apt-get update -y
+            sudo apt-get install -y realpath
+            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
+            cd ./devmand/gateway/docker
+            ./scripts/build
+            ./scripts/test
+
+  southpoll_publish_dev:
+    machine:
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - build/determinator:
+          paths: "devmand"
+      - run:
+          name: Publishing all southpoll images to southpoll-dev
+          command: |
+            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            sudo apt-get update -y
+            sudo apt-get install -y realpath
+            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
+            cd ./devmand/gateway/docker
+            ./scripts/build
+            ./scripts/push
+
+  southpoll_publish_prod:
+    machine:
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - build/determinator:
+          paths: "devmand"
+      - run:
+          name: Publishing all southpoll images to southpoll-prod
+          command: |
+            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            sudo apt-get update -y
+            sudo apt-get install -y realpath
+            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
+            cd ./devmand/gateway/docker
+            ./scripts/build
+            ./scripts/push_prod
+
+
+workflows:
+  version: 2.1
+
+  docusaurus_build_and_deploy:
+    jobs:
+      - docusaurus_build_and_deploy:
+          <<: *only_master
+
+  southpoll_test_and_publish:
+    jobs:
+      - southpoll_test
+      - southpoll_publish_dev:
+          requires:
+            - southpoll_test
+      - southpoll_publish_prod:
+          requires:
+            - southpoll_test
+          <<: *only_master
