@@ -19,3 +19,7 @@ func (m *SymphonyAgent) ValidateModel() error {
 func (m *ManagedDevices) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
+
+func (m *SymphonyDevice) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

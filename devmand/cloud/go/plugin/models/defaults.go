@@ -41,3 +41,26 @@ func NewDefaultSymphonyAgent() *SymphonyAgent {
 		ManagedDevices: []string{"device_1", "device_2"},
 	}
 }
+
+func NewDefaultSymphonyDevice() *SymphonyDevice {
+	return &SymphonyDevice{
+		Config: NewDefaultSymphonyDeviceConfig(),
+		ID:     "d1",
+		Name:   "Device 1",
+	}
+}
+
+func NewDefaultSymphonyDeviceConfig() *SymphonyDeviceConfig {
+	return &SymphonyDeviceConfig{
+		Channels: &SymphonyDeviceConfigChannels{
+			SnmpChannel: &SnmpChannel{
+				Community: "snmp community",
+				Version:   "1",
+			},
+		},
+		DeviceConfig: "{}",
+		DeviceType:   []string{"device_type 1", "device_type 2"},
+		Host:         "device_host",
+		Platform:     "device_platform",
+	}
+}

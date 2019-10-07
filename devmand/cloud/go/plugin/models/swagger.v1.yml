@@ -13,6 +13,18 @@ magma-gen-meta:
       filename: symphony_network_swaggergen.go
     - go-struct-name: SymphonyAgent
       filename: symphony_agent_swaggergen.go
+    - go-struct-name: SymphonyDevice
+      filename: symphony_device_swaggergen.go
+    - go-struct-name: SymphonyDeviceConfig
+      filename: symphony_device_config_swaggergen.go
+    - go-struct-name: SNMPChannel
+      filename: snmp_channel_swaggergen.go
+    - go-struct-name: FrinxChannel
+      filename: frinx_channel_swaggergen.go
+    - go-struct-name: CambiumChannel
+      filename: cambium_channel_swaggergen.go
+    - go-struct-name: OtherChannel
+      filename: other_channel_swaggergen.go
 
 info:
   title: Symphony Model Definitions and Paths
@@ -26,6 +38,8 @@ tags:
   description: Symphony networks
 - name: Symphony Agents
   description: Symphony agents
+- name: Symphony Devices
+  description: Symphony devices
 
 paths:
   /symphony:
@@ -413,6 +427,25 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /symphony/{network_id}/devices:
+    post:
+      summary: Create a device managed by a Symphony agent
+      tags:
+        - Symphony Devices
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: symphony_device
+          in: body
+          description: Configuration of the Symphony device create
+          required: true
+          schema:
+            $ref: '#/definitions/symphony_device'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   agent_id:
     in: path
@@ -482,7 +515,187 @@ definitions:
           checkin_timeout: 5
         tier: default
         managed_devices: ['device_1', 'device_2', 'device_3']
-
+  symphony_device:
+    description: Management properties for a Symphony device
+    type: object
+    required:
+      - id
+      - name
+      - config
+    properties:
+      id:
+        description: The id of a Symphony device
+        type: string
+        minLength: 1
+        x-nullable: false
+        pattern: '^[a-z][\da-z_]+$'
+        example: device_1
+      name:
+        description: The name of a Symphony device
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: Device 1
+      config:
+        $ref: '#/definitions/symphony_device_config'
+  symphony_device_config:
+    description: Management config for a Symphony device
+    type: object
+    properties:
+      device_config:
+        type: string
+        x-nullable: false
+        example:
+          '{
+            "interfaces": {
+              "interface": [
+                {
+                  "config": {
+                    "description": "ACCESS PORT",
+                    "name": "g0/0/0",
+                    "type": "ethernetCsmacd"
+                  },
+                  "name": "g0/0/0"
+                }
+              ]
+            }
+          }'
+      host:
+        type: string
+        x-nullable: false
+        example:
+          '1.2.3.4'
+      device_type:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          x-nullable: false
+        example: ['wifi', 'access_point']
+      platform:
+        type: string
+        x-nullable: false
+        example:
+          Ubiquiti
+      channels:
+        type: object
+        properties:
+          snmp_channel:
+            $ref: '#/definitions/snmp_channel'
+            x-nullable: true
+          frinx_channel:
+            $ref: '#/definitions/frinx_channel'
+            x-nullable: true
+          cambium_channel:
+            $ref: '#/definitions/cambium_channel'
+            x-nullable: true
+          other_channel:
+            $ref: '#/definitions/other_channel'
+            x-nullable: true
+  snmp_channel:
+    description: An SNMP channel definition
+    type: object
+    minLength: 1
+    properties:
+      version:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: v1
+      community:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: public
+  frinx_channel:
+    description: A frinx channel definition
+    type: object
+    minLength: 1
+    properties:
+      frinx_port:
+        type: integer
+        format: int32
+        minLength: 1
+        x-nullable: false
+        example: 8181
+      authorization:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: Basic
+      host:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: 10.0.0.1
+      port:
+        type: integer
+        format: int32
+        minLength: 1
+        x-nullable: false
+        example: 22
+      transport_type:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: ssh
+      device_type:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: ubnt es
+      device_version:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: 1.8.2
+      username:
+        type: string
+        minLength: 1
+        x-nullable: false
+      password:
+        type: string
+        minLength: 1
+        x-nullable: false
+  cambium_channel:
+    description: A cambium channel definition
+    type: object
+    minLength: 1
+    properties:
+      client_id:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: Ya4dNAAYSUoFMUSs
+      client_secret:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: 2kBgGnMr69NgNdeHB3s7x4GzUODLkc
+      client_mac:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: 58:C1:7A:90:36:50
+      client_ip:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: 10.0.0.1
+  other_channel:
+    description: A generic channel definition
+    type: object
+    minLength: 1
+    properties:
+      channel_props:
+        type: object
+        minLength: 1
+        x-nullable: false
+        additionalProperties:
+          type: string
+        example:
+          channel_prop: prop_value
+          another_channel_prop: another_prop_value
   managed_devices:
     type: array
     items:

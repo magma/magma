@@ -197,3 +197,19 @@ func (m *ManagedDevices) ToCreateUpdateCriteria(networkID, agentID, deviceID str
 		AssociationsToAdd: []storage.TypeAndKey{{Type: devmand.SymphonyDeviceType, Key: deviceID}},
 	}
 }
+
+func (m *SymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *SymphonyDevice {
+	m.Name = ent.Name
+	m.ID = ent.Key
+	m.Config = ent.Config.(*SymphonyDeviceConfig)
+	return m
+}
+
+func (m *SymphonyDevice) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:      devmand.SymphonyDeviceType,
+		Key:       m.ID,
+		NewName:   swag.String(m.Name),
+		NewConfig: m.Config,
+	}
+}

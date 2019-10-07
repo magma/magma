@@ -45,6 +45,8 @@ const (
 	ManageAgentStatePath          = ManageAgentPath + obsidian.UrlSep + "status"
 	ManageAgentTierPath           = ManageAgentPath + obsidian.UrlSep + "tier"
 	ManageAgentManagedDevicesPath = ManageAgentPath + obsidian.UrlSep + "managed_devices"
+
+	BaseDevicesPath = ManageNetworkPath + obsidian.UrlSep + "devices"
 )
 
 // GetHandlers returns all obsidian handlers for Symphony
@@ -61,6 +63,8 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageAgentPath, Methods: obsidian.GET, HandlerFunc: getAgent},
 		{Path: ManageAgentPath, Methods: obsidian.PUT, HandlerFunc: updateAgent},
 		{Path: ManageAgentPath, Methods: obsidian.DELETE, HandlerFunc: deleteAgent},
+
+		{Path: BaseDevicesPath, Methods: obsidian.POST, HandlerFunc: createDevice},
 	}
 
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
@@ -304,4 +308,31 @@ func deleteAgent(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func createDevice(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &symphonymodels.SymphonyDevice{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
+		Type:   devmand.SymphonyDeviceType,
+		Key:    payload.ID,
+		Name:   payload.Name,
+		Config: payload.Config,
+	})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusCreated)
 }

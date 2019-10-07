@@ -1178,6 +1178,55 @@ func TestDeleteAgent(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+func TestCreateDevice(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	deviceUrl := "/magma/v1/symphony/:network_id/devices"
+	obsidianHandlers := handlers.GetHandlers()
+	createDevice := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, deviceUrl, obsidian.POST).HandlerFunc
+
+	networkId := "n1"
+
+	seedNetworks(t)
+
+	payload := models2.NewDefaultSymphonyDevice()
+
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            deviceUrl,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkId},
+		Handler:        createDevice,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedEnts := configurator.NetworkEntities{
+		configurator.NetworkEntity{
+			NetworkID: networkId,
+			Type:      devmand.SymphonyDeviceType,
+			Key:       "d1",
+			GraphID:   "2",
+			Name:      "Device 1",
+			Config:    models2.NewDefaultSymphonyDeviceConfig(),
+		},
+	}
+
+	actualEnts, _, err := configurator.LoadEntities(
+		networkId, nil, nil, nil,
+		[]storage.TypeAndKey{},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedEnts, actualEnts)
+}
+
 // n1 is a symphony network, n2 is not
 func seedNetworks(t *testing.T) {
 

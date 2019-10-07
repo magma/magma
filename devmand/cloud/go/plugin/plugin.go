@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"orc8r/devmand/cloud/go/devmand"
 	"orc8r/devmand/cloud/go/plugin/handlers"
+	models2 "orc8r/devmand/cloud/go/plugin/models"
 	dmh "orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
 	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 )
@@ -47,6 +48,7 @@ func (*DevmandOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		configurator.NewNetworkEntityConfigSerde(devmand.DevmandGatewayType, &models.GatewayDevmandConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(devmand.DeviceType, &models.ManagedDevice{}),
+		configurator.NewNetworkEntityConfigSerde(devmand.SymphonyDeviceType, &models2.SymphonyDeviceConfig{}),
 	}
 }
 
