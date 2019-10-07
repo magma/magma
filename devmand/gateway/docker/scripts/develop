@@ -1,0 +1,22 @@
+#!/bin/bash
+# This is an optional script which can be used instead of build. it launches a
+# shell into the devmand builder where the user can run commands such as:
+#   make
+#   /cache/devmand/build/devmand
+#   gdb /cache/devmand/build/devmand
+#   /cache/devmand/build/devmantest
+# You can edit files in your favorite editor outside the container as they are
+# ro mounted into the container. Just build and running must be done inside the
+# shell. This does not launch devmand with the magma infrastructure and thus
+# this does not connect to the cloud.
+
+# shellcheck source=/dev/null
+. scripts/build_image firstparty devmand | tee /tmp/devmand_build.log
+build_status=${PIPESTATUS[0]}
+if [ "$build_status" -eq 0 ]; then
+  docker rm -f devmand
+  docker run -it --name devmand \
+      -v "$(realpath ../):/cache/devmand/repo:ro" \
+      -v "$(realpath ~/cache_devmand_build):/cache/devmand/build:rw" \
+      facebookconnectivity-southpoll-dev-docker.jfrog.io/devmand /bin/bash
+fi
