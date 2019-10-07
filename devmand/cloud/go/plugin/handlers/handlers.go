@@ -68,6 +68,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: BaseDevicesPath, Methods: obsidian.GET, HandlerFunc: listDevices},
 		{Path: BaseDevicesPath, Methods: obsidian.POST, HandlerFunc: createDevice},
 		{Path: ManageDevicePath, Methods: obsidian.GET, HandlerFunc: getDevice},
+		{Path: ManageDevicePath, Methods: obsidian.PUT, HandlerFunc: updateDevice},
 	}
 
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
@@ -179,7 +180,7 @@ func updateNetwork(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	// check that this is actually an Symphony network
+	// check that this is actually a Symphony network
 	network, err := configurator.LoadNetwork(nid, false, false)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
@@ -204,7 +205,7 @@ func deleteNetwork(c echo.Context) error {
 		return nerr
 	}
 
-	// check that this is actually an Symphony network
+	// check that this is actually a Symphony network
 	network, err := configurator.LoadNetwork(nid, false, false)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
@@ -259,8 +260,7 @@ func getAgent(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
-		nid, devmand.SymphonyAgentType, aid,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		nid, devmand.SymphonyAgentType, aid, configurator.FullEntityLoadCriteria(),
 	)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load symphony agent"), http.StatusInternalServerError)
@@ -320,8 +320,7 @@ func listDevices(c echo.Context) error {
 	}
 
 	ents, err := configurator.LoadAllEntitiesInNetwork(
-		nid, devmand.SymphonyDeviceType,
-		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+		nid, devmand.SymphonyDeviceType, configurator.FullEntityLoadCriteria(),
 	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -367,7 +366,7 @@ func getDevice(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(nid, devmand.SymphonyDeviceType, did, configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true})
+	ent, err := configurator.LoadEntity(nid, devmand.SymphonyDeviceType, did, configurator.FullEntityLoadCriteria())
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -377,6 +376,37 @@ func getDevice(c echo.Context) error {
 
 	ret := (&symphonymodels.SymphonyDevice{}).FromBackendModels(ent)
 	return c.JSON(http.StatusOK, ret)
+}
+
+func updateDevice(c echo.Context) error {
+	nid, did, nerr := GetNetworkAndDeviceIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &symphonymodels.SymphonyDevice{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if payload.ID != did {
+		return echo.NewHTTPError(http.StatusBadRequest, "device ID in body must match device_id in path")
+	}
+	_, err := configurator.LoadEntity(nid, devmand.SymphonyDeviceType, did, configurator.FullEntityLoadCriteria())
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	_, err = configurator.UpdateEntity(nid, payload.ToEntityUpdateCriteria())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
 }
 
 func GetNetworkAndAgentIDs(c echo.Context) (string, string, *echo.HTTPError) {

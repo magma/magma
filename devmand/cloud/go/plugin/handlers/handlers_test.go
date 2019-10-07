@@ -396,17 +396,6 @@ func TestListAgents(t *testing.T) {
 
 	expectedEnts = configurator.NetworkEntities{
 		{
-			NetworkID:          "n1",
-			Type:               devmand.SymphonyAgentType,
-			Key:                "a1",
-			GraphID:            "10",
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
-			Associations: []storage.TypeAndKey{
-				{Type: devmand.SymphonyDeviceType, Key: "d1"},
-				{Type: devmand.SymphonyDeviceType, Key: "d2"},
-			},
-		},
-		{
 			NetworkID:   "n1",
 			Type:        orc8r.MagmadGatewayType,
 			Key:         "a1",
@@ -422,6 +411,17 @@ func TestListAgents(t *testing.T) {
 			},
 			Associations:       []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: "a1"}},
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+		},
+		{
+			NetworkID:          "n1",
+			Type:               devmand.SymphonyAgentType,
+			Key:                "a1",
+			GraphID:            "10",
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
+			Associations: []storage.TypeAndKey{
+				{Type: devmand.SymphonyDeviceType, Key: "d1"},
+				{Type: devmand.SymphonyDeviceType, Key: "d2"},
+			},
 		},
 	}
 	actualEnts, _, err = configurator.LoadEntities(
@@ -504,13 +504,6 @@ func TestCreateAgent(t *testing.T) {
 
 	expectedEnts = configurator.NetworkEntities{
 		{
-			NetworkID:          "n1",
-			Type:               devmand.SymphonyAgentType,
-			Key:                "a1",
-			GraphID:            "2",
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
-		},
-		{
 			NetworkID:   "n1",
 			Type:        orc8r.MagmadGatewayType,
 			Key:         "a1",
@@ -527,6 +520,13 @@ func TestCreateAgent(t *testing.T) {
 			Associations:       []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: "a1"}},
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			Version:            1,
+		},
+		{
+			NetworkID:          "n1",
+			Type:               devmand.SymphonyAgentType,
+			Key:                "a1",
+			GraphID:            "2",
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
 		},
 		{
 			NetworkID: "n1",
@@ -680,15 +680,6 @@ func TestUpdateAgent(t *testing.T) {
 
 	expectedEnts := configurator.NetworkEntities{
 		{
-			NetworkID:          "n1",
-			Type:               devmand.SymphonyAgentType,
-			Key:                "a1",
-			GraphID:            "10",
-			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
-			Associations:       []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d1"}, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d2"}},
-			Version:            1,
-		},
-		{
 			NetworkID:   "n1",
 			Type:        orc8r.MagmadGatewayType,
 			Key:         "a1",
@@ -707,12 +698,21 @@ func TestUpdateAgent(t *testing.T) {
 			Version:            1,
 		},
 		{
+			NetworkID:          "n1",
+			Type:               devmand.SymphonyAgentType,
+			Key:                "a1",
+			GraphID:            "10",
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
+			Associations:       []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d1"}, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d2"}},
+			Version:            1,
+		},
+		{
 			NetworkID: "n1",
 			Type:      devmand.SymphonyDeviceType,
 			Key:       "d1", GraphID: "10",
 			Name:               "Device 1",
 			Config:             models2.NewDefaultSymphonyDeviceConfig(),
-			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
+			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: "a1"}},
 		},
 		{
 			NetworkID: "n1",
@@ -720,7 +720,7 @@ func TestUpdateAgent(t *testing.T) {
 			Key:       "d2", GraphID: "10",
 			Name:               "Device 2",
 			Config:             models2.NewDefaultSymphonyDeviceConfig(),
-			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
+			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: "a1"}},
 		},
 		{
 			NetworkID: "n1",
@@ -787,7 +787,7 @@ func TestPartialUpdateAndGetAgent(t *testing.T) {
 			Key:                agentId,
 			GraphID:            "10",
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
-			Associations:       []storage.TypeAndKey{storage.TypeAndKey{Type: "symphony_device", Key: "d1"}, storage.TypeAndKey{Type: "symphony_device", Key: "d2"}},
+			Associations:       []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d1"}, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d2"}},
 			Version:            0,
 		},
 		"gateway": &configurator.NetworkEntity{
@@ -815,7 +815,7 @@ func TestPartialUpdateAndGetAgent(t *testing.T) {
 			GraphID:            "10",
 			Name:               "Device 1",
 			Config:             models2.NewDefaultSymphonyDeviceConfig(),
-			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
+			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: "a1"}},
 		},
 		"device2": &configurator.NetworkEntity{
 			NetworkID:          networkId,
@@ -824,7 +824,7 @@ func TestPartialUpdateAndGetAgent(t *testing.T) {
 			GraphID:            "10",
 			Name:               "Device 2",
 			Config:             models2.NewDefaultSymphonyDeviceConfig(),
-			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
+			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: "a1"}},
 		},
 		"tier1": &configurator.NetworkEntity{
 			NetworkID: networkId,
@@ -850,7 +850,7 @@ func TestPartialUpdateAndGetAgent(t *testing.T) {
 	expectedEnts["gateway"].Version++
 	expectedEntsVals := make(configurator.NetworkEntities, 0, len(expectedEnts))
 	// Key order matters to compare later
-	key_order := []string{"agent", "gateway", "device1", "device2", "tier1", "tier2"}
+	key_order := []string{"gateway", "agent", "device1", "device2", "tier1", "tier2"}
 	for _, v := range key_order {
 		expectedEntsVals = append(expectedEntsVals, *expectedEnts[v])
 	}
@@ -1068,7 +1068,7 @@ func TestPartialUpdateAndGetAgent(t *testing.T) {
 
 	// Test updating agent managed devices
 	updatedManagedDevices := []string{"d1"}
-	expectedEnts["agent"].Associations = []storage.TypeAndKey{storage.TypeAndKey{Type: "symphony_device", Key: "d1"}}
+	expectedEnts["agent"].Associations = []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d1"}}
 	expectedEnts["agent"].Version++
 	expectedEnts["device2"].ParentAssociations = nil
 	expectedEnts["device2"].GraphID = "14"
@@ -1334,6 +1334,106 @@ func TestGetDevice(t *testing.T) {
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateDevice(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	updateDeviceUrl := "/magma/v1/symphony/:network_id/devices/:device_id"
+	obsidianHandlers := handlers.GetHandlers()
+	updateDevice := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, updateDeviceUrl, obsidian.PUT).HandlerFunc
+
+	networkId := "n1"
+	deviceId := "d1"
+
+	// Test missing device
+	seedNetworks(t)
+	updatedConfig := &models2.SymphonyDeviceConfig{
+		Channels: &models2.SymphonyDeviceConfigChannels{
+			SnmpChannel: &models2.SnmpChannel{
+				Community: "updated snmp community",
+				Version:   "2",
+			},
+		},
+		DeviceConfig: "{}",
+		DeviceType:   []string{"device_type 1"},
+		Host:         "device_host",
+		Platform:     "device_platform",
+	}
+	payload := &models2.SymphonyDevice{
+		Config: updatedConfig,
+		ID:     deviceId,
+		Name:   "Updated Device 1",
+	}
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            updateDeviceUrl,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        updateDevice,
+		ExpectedError:  "Not Found",
+		ExpectedStatus: 404,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test mismatched ID
+	seedAgents(t)
+	payload.ID = "wrong_id"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            updateDeviceUrl,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        updateDevice,
+		ExpectedError:  "device ID in body must match device_id in path",
+		ExpectedStatus: 400,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Now test correct update
+	payload.ID = deviceId
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            updateDeviceUrl,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        updateDevice,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// And check that the ents are right too
+	expectedEnts := configurator.NetworkEntities{
+		configurator.NetworkEntity{
+			NetworkID:          networkId,
+			Type:               devmand.SymphonyDeviceType,
+			Key:                deviceId,
+			GraphID:            "10",
+			Name:               "Updated Device 1",
+			Config:             updatedConfig,
+			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: "a1"}},
+			Version:            1,
+		},
+	}
+	actualEnts, _, err := configurator.LoadEntities(
+		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		[]storage.TypeAndKey{},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedEnts, actualEnts)
+}
+
+func strPtr(str string) *string {
+	return &str
 }
 
 // n1 is a symphony network, n2 is not
