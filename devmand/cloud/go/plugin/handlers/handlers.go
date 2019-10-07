@@ -64,6 +64,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageAgentPath, Methods: obsidian.PUT, HandlerFunc: updateAgent},
 		{Path: ManageAgentPath, Methods: obsidian.DELETE, HandlerFunc: deleteAgent},
 
+		{Path: BaseDevicesPath, Methods: obsidian.GET, HandlerFunc: listDevices},
 		{Path: BaseDevicesPath, Methods: obsidian.POST, HandlerFunc: createDevice},
 	}
 
@@ -308,6 +309,27 @@ func deleteAgent(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func listDevices(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ents, err := configurator.LoadAllEntitiesInNetwork(
+		nid, devmand.SymphonyDeviceType,
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+	)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := make(map[string]*symphonymodels.SymphonyDevice, len(ents))
+	for _, ent := range ents {
+		ret[ent.Key] = (&symphonymodels.SymphonyDevice{}).FromBackendModels(ent)
+	}
+	return c.JSON(http.StatusOK, ret)
 }
 
 func createDevice(c echo.Context) error {

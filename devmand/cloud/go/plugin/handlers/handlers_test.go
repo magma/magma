@@ -685,7 +685,7 @@ func TestUpdateAgent(t *testing.T) {
 			Key:                "a1",
 			GraphID:            "10",
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
-			Associations:       []storage.TypeAndKey{storage.TypeAndKey{Type: "symphony_device", Key: "d1"}, storage.TypeAndKey{Type: "symphony_device", Key: "d2"}},
+			Associations:       []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d1"}, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: "d2"}},
 			Version:            1,
 		},
 		{
@@ -710,12 +710,16 @@ func TestUpdateAgent(t *testing.T) {
 			NetworkID: "n1",
 			Type:      devmand.SymphonyDeviceType,
 			Key:       "d1", GraphID: "10",
+			Name:               "Device 1",
+			Config:             models2.NewDefaultSymphonyDeviceConfig(),
 			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
 		},
 		{
 			NetworkID: "n1",
 			Type:      devmand.SymphonyDeviceType,
 			Key:       "d2", GraphID: "10",
+			Name:               "Device 2",
+			Config:             models2.NewDefaultSymphonyDeviceConfig(),
 			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
 		},
 		{
@@ -809,6 +813,8 @@ func TestPartialUpdateAndGetAgent(t *testing.T) {
 			Type:               devmand.SymphonyDeviceType,
 			Key:                "d1",
 			GraphID:            "10",
+			Name:               "Device 1",
+			Config:             models2.NewDefaultSymphonyDeviceConfig(),
 			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
 		},
 		"device2": &configurator.NetworkEntity{
@@ -816,6 +822,8 @@ func TestPartialUpdateAndGetAgent(t *testing.T) {
 			Type:               devmand.SymphonyDeviceType,
 			Key:                "d2",
 			GraphID:            "10",
+			Name:               "Device 2",
+			Config:             models2.NewDefaultSymphonyDeviceConfig(),
 			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: "agent", Key: "a1"}},
 		},
 		"tier1": &configurator.NetworkEntity{
@@ -1227,6 +1235,60 @@ func TestCreateDevice(t *testing.T) {
 	assert.Equal(t, expectedEnts, actualEnts)
 }
 
+func TestListDevices(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	deviceUrl := "/magma/v1/symphony/:network_id/devices"
+	obsidianHandlers := handlers.GetHandlers()
+	listDevices := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, deviceUrl, obsidian.GET).HandlerFunc
+
+	networkId := "n1"
+
+	seedNetworks(t)
+	expectedResponse := map[string]models2.SymphonyDevice{}
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            deviceUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkId},
+		Handler:        listDevices,
+		ExpectedResult: tests.JSONMarshaler(expectedResponse),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	seedAgents(t)
+	expectedResponse = map[string]models2.SymphonyDevice{
+		"d1": models2.SymphonyDevice{
+			Config: models2.NewDefaultSymphonyDeviceConfig(),
+			ID:     "d1",
+			Name:   "Device 1",
+		},
+		"d2": models2.SymphonyDevice{
+			Config: models2.NewDefaultSymphonyDeviceConfig(),
+			ID:     "d2",
+			Name:   "Device 2",
+		},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            deviceUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkId},
+		Handler:        listDevices,
+		ExpectedResult: tests.JSONMarshaler(expectedResponse),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 // n1 is a symphony network, n2 is not
 func seedNetworks(t *testing.T) {
 
@@ -1269,9 +1331,13 @@ func seedAgents(t *testing.T) {
 		[]configurator.NetworkEntity{
 			{
 				Type: devmand.SymphonyDeviceType, Key: "d1",
+				Name:   "Device 1",
+				Config: models2.NewDefaultSymphonyDeviceConfig(),
 			},
 			{
 				Type: devmand.SymphonyDeviceType, Key: "d2",
+				Name:   "Device 2",
+				Config: models2.NewDefaultSymphonyDeviceConfig(),
 			},
 			{
 				Type: devmand.SymphonyAgentType, Key: "a1",
