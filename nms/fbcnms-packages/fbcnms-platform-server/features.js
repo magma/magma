@@ -124,6 +124,11 @@ const arrayConfigs = [
     title: 'Services',
     enabledByDefault: false,
   },
+  {
+    id: 'coverage_maps',
+    title: 'Coverage Maps',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
