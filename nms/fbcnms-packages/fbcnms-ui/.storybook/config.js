@@ -20,11 +20,24 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import {themes} from '@storybook/theming';
 import Theme from '../theme/symphony';
+import {compareStoriesName} from '../stories/storybookUtils';
 
 // automatically import all files ending in *.stories.js
 const req = require.context('../stories', true, /.stories.js$/);
 function loadStories() {
-  req.keys().forEach(filename => req(filename));
+  const designSystemStories = [
+    './foundation/colors.stories.js',
+    './foundation/shadows.stories.js',
+    './foundation/typography.stories.js',
+    './inputs/text-input.stories.js',
+    './inputs/form-field.stories.js',
+  ];
+
+  designSystemStories.map(story => req(story));
+  req
+    .keys()
+    .filter(story => !designSystemStories.includes(story))
+    .forEach(filename => req(filename));
 }
 
 addDecorator(story => (

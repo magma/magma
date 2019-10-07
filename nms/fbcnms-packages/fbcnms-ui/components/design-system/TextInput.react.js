@@ -8,9 +8,11 @@
  * @format
  */
 
+import type {FormFieldContextValue} from './FormField/FormFieldContext';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
+import FormFieldContext from './FormField/FormFieldContext';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -37,7 +39,13 @@ const styles = ({symphony}) => ({
     },
   },
   hasFocus: {},
-  disabled: {},
+  disabled: {
+    '& $input': {
+      '&::placeholder': {
+        color: symphony.palette.disabled,
+      },
+    },
+  },
   hasError: {},
   input: {
     margin: 0,
@@ -71,16 +79,20 @@ type State = {
 };
 
 class TextInput extends React.Component<Props, State> {
+  static contextType = FormFieldContext;
+
   static defaultProps = {
     autoFocus: false,
     disabled: false,
     hasError: false,
   };
 
-  constructor(props: Props) {
+  constructor(props: Props, context: FormFieldContextValue) {
     super(props);
+
+    const disabled = props.disabled ? props.disabled : context.disabled;
     this.state = {
-      hasFocus: props.autoFocus === true,
+      hasFocus: disabled ? false : props.autoFocus === true,
     };
   }
 
@@ -102,8 +114,16 @@ class TextInput extends React.Component<Props, State> {
   };
 
   render() {
-    const {classes, className, hasError, disabled, ...rest} = this.props;
+    const {
+      classes,
+      className,
+      hasError: hasErrorProp,
+      disabled: disabledProp,
+      ...rest
+    } = this.props;
     const {hasFocus} = this.state;
+    const disabled = disabledProp ? disabledProp : this.context.disabled;
+    const hasError = hasErrorProp ? hasErrorProp : this.context.hasError;
     return (
       <div
         className={classNames(

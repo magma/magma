@@ -22,7 +22,7 @@ const useStyles = makeStyles(_theme => ({
     padding: '16px',
   },
   input: {
-    marginTop: '8px',
+    marginBottom: '20px',
   },
 }));
 
@@ -33,6 +33,7 @@ const InputsRoot = () => {
   return (
     <div className={classes.root}>
       <TextInput
+        className={classes.input}
         type="string"
         placeholder="Placeholder"
         onChange={({target}) => setValue(target.value)}
@@ -42,8 +43,8 @@ const InputsRoot = () => {
         className={classes.input}
         type="string"
         placeholder="Placeholder"
-        disabled={true}
         value=""
+        disabled
       />
       <TextInput
         className={classes.input}
@@ -57,7 +58,7 @@ const InputsRoot = () => {
         type="string"
         placeholder="Placeholder"
         hasError={true}
-        value=""
+        value="Bad Value"
       />
       <TextInput
         className={classes.input}
