@@ -18,6 +18,7 @@ import {
   gray0,
   gray00,
   gray1,
+  gray13,
   gray50,
   primaryText,
   red,
@@ -70,6 +71,7 @@ export default createMuiTheme({
     gray00: gray00,
     gray1: gray1,
     gray50: gray50,
+    gray13,
     primaryText: primaryText,
   },
   overrides: {

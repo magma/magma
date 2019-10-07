@@ -17,6 +17,7 @@ import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import NetworkContext from './context/NetworkContext';
 import NetworkSelector from './NetworkSelector.react';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
 import React, {useContext} from 'react';
 import SectionLinks from './layout/SectionLinks';
 import SectionRoutes from './layout/SectionRoutes';
@@ -45,7 +46,7 @@ const useStyles = makeStyles(theme => ({
 // These won't be considered networkIds
 const ROOT_PATHS = new Set(['network']);
 
-function Index() {
+function Index(props: {noAccess: boolean}) {
   const classes = useStyles();
   const {match} = useRouter();
   const {user, tabs} = useContext(AppContext);
@@ -63,7 +64,7 @@ function Index() {
           user={user}
         />
         <AppContent>
-          <SectionRoutes />
+          {props.noAccess ? <NoNetworksMessage /> : <SectionRoutes />}
         </AppContent>
       </div>
     </NetworkContext.Provider>
@@ -99,7 +100,7 @@ function NetworkError({error}: {error: $AxiosError<string>}) {
 
 function Main() {
   const {match} = useRouter();
-  const {response, error} = useAxios({
+  const {response, error, isLoading} = useAxios({
     method: 'get',
     url: MagmaAPIUrls.networks(),
   });
@@ -135,7 +136,7 @@ function Main() {
 
   return (
     <ApplicationMain appContext={appContext}>
-      <Index />
+      <Index noAccess={!isLoading && networkIds.length === 0} />
     </ApplicationMain>
   );
 }
