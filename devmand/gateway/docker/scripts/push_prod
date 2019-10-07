@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+
+docker push facebookconnectivity-southpoll-prod-docker.jfrog.io/firstparty
+docker push facebookconnectivity-southpoll-prod-docker.jfrog.io/thirdparty
+docker push facebookconnectivity-southpoll-prod-docker.jfrog.io/symphony-agent

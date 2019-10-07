@@ -10,3 +10,4 @@ all:
 		cp @ ${PKG_INSTALL_DIR}@;'
 test:
 	cd ${PKG_BUILD_DIR}; ctest -T test -V
+.PHONY: test

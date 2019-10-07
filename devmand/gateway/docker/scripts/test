@@ -1,3 +1,8 @@
 #!/bin/bash
 
-docker exec -it devmand make test
+CACHE_DIR=${SYMPHONY_AGENT_CACHE_DIR:-$(realpath ~)/cache_devmand_build}
+docker run \
+  -v "$(realpath ../):/cache/devmand/repo:ro" \
+  -v "$CACHE_DIR:/cache/devmand/build:rw" \
+  devmand-built \
+  make test

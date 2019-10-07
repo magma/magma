@@ -15,6 +15,8 @@
 namespace devmand {
 namespace test {
 
+// TODO: make filewatcher tests compatible with the circleci
+// VMs and re-enable them.
 class FileWatcherTest : public EventBaseTest {
  public:
   FileWatcherTest() = default;
@@ -64,7 +66,7 @@ class FileWatcherTest : public EventBaseTest {
   unsigned int expectedNumEvents = 0;
 };
 
-TEST_F(FileWatcherTest, InitialEvent) {
+TEST_F(FileWatcherTest, DISABLED_InitialEvent) {
   FileWatcher watcher(eventBase);
   auto filepath = getFileToWatch();
   EXPECT_TRUE(FileUtils::touch(filepath));
@@ -78,7 +80,7 @@ TEST_F(FileWatcherTest, InitialEvent) {
   expectEvent({FileEvent::CloseWrite, ""});
 }
 
-TEST_F(FileWatcherTest, InitialNoEvent) {
+TEST_F(FileWatcherTest, DISABLED_InitialNoEvent) {
   FileWatcher watcher(eventBase);
   FileWatcher watcher2(eventBase);
   auto filepath = getFileToWatch();
@@ -96,7 +98,7 @@ TEST_F(FileWatcherTest, InitialNoEvent) {
   expectEvent({FileEvent::CloseWrite, ""});
 }
 
-TEST_F(FileWatcherTest, EventsAfterInitial) {
+TEST_F(FileWatcherTest, DISABLED_EventsAfterInitial) {
   FileWatcher watcher(eventBase);
   auto filepath = getFileToWatch();
   EXPECT_TRUE(FileUtils::touch(filepath));
@@ -118,7 +120,7 @@ TEST_F(FileWatcherTest, EventsAfterInitial) {
   expectEvent({FileEvent::CloseWrite, ""});
 }
 
-TEST_F(FileWatcherTest, InitialEventOnDir) {
+TEST_F(FileWatcherTest, DISABLED_InitialEventOnDir) {
   FileWatcher watcher(eventBase);
   auto filepath = getFileToWatch("fwtest");
   auto dirname = filepath.parent_path();
@@ -133,7 +135,7 @@ TEST_F(FileWatcherTest, InitialEventOnDir) {
   expectEvent({FileEvent::IsDir, ""});
 }
 
-TEST_F(FileWatcherTest, EventsAfterInitialOnDir) {
+TEST_F(FileWatcherTest, DISABLED_EventsAfterInitialOnDir) {
   FileWatcher watcher(eventBase);
   auto filepath = getFileToWatch("fwtest");
   auto dirname = filepath.parent_path();
