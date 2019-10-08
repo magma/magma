@@ -107,6 +107,7 @@ jobs:
             : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
             sudo apt-get update -y
             sudo apt-get install -y realpath
+            export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
             docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
             cd ./devmand/gateway/docker
             ./scripts/build
