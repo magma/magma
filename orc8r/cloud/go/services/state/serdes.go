@@ -15,7 +15,7 @@ import (
 
 const StringMapSerdeType = "string_map"
 
-func NewStateSerde(stateType string, modelPtr serde.BinaryConvertible) serde.Serde {
+func NewStateSerde(stateType string, modelPtr serde.ValidateableBinaryConvertible) serde.Serde {
 	return serde.NewBinarySerde(SerdeDomain, stateType, modelPtr)
 }
 
@@ -30,4 +30,8 @@ func (m *StringToStringMap) MarshalBinary() (data []byte, err error) {
 
 func (m *StringToStringMap) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, m)
+}
+
+func (m *StringToStringMap) ValidateModel() error {
+	return nil
 }

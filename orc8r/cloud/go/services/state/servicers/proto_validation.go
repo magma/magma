@@ -51,15 +51,25 @@ func PartitionStatesBySerializability(req *protos.ReportStatesRequest) ([]*proto
 		return nil, nil, errors.New("States value must be specified and non-empty")
 	}
 	for _, state := range states {
-		_, err := serde.Deserialize(stateservice.SerdeDomain, state.GetType(), state.GetValue())
+		model, err := serde.Deserialize(stateservice.SerdeDomain, state.GetType(), state.GetValue())
 		if err != nil {
 			stateAndError := &protos.IDAndError{
 				Type:     state.Type,
 				DeviceID: state.DeviceID,
-				Error:    err.Error(),
+				Error:    err.Error(), // deserialization error
 			}
 			invalidStates = append(invalidStates, stateAndError)
 		} else {
+			if err := model.(serde.ValidateableBinaryConvertible).ValidateModel(); err != nil {
+				stateAndError := &protos.IDAndError{
+					Type:     state.Type,
+					DeviceID: state.DeviceID,
+					Error:    err.Error(), // validation error
+				}
+				invalidStates = append(invalidStates, stateAndError)
+				continue
+			}
+
 			validatedStates = append(validatedStates, state)
 		}
 	}

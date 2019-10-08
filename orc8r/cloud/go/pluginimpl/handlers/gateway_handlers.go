@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/state"
@@ -32,7 +33,7 @@ import (
 type MagmadEncompassingGateway interface {
 	// ValidatableModel allows the model to be validated by calling
 	// ValidateModel()
-	ValidatableModel
+	serde.ValidatableModel
 
 	// GetMagmadGateway returns the *models.MagmadGateway which is wrapped by
 	// the model

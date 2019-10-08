@@ -109,3 +109,7 @@ func (m *TierImages) ValidateModel() error {
 func (m *TierImage) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
+
+func (m *GatewayStatus) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

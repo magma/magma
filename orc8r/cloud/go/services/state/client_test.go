@@ -11,6 +11,7 @@ package state_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"magma/orc8r/cloud/go/errors"
@@ -31,10 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	typeName   = "typeName"
-	testAgHwId = "Test-AGW-Hw-Id"
-)
+const testAgHwId = "Test-AGW-Hw-Id"
 
 type stateBundle struct {
 	state *protos.State
@@ -60,7 +58,7 @@ func TestStateService(t *testing.T) {
 	// Set up test networkID, hwID, and encode into context
 	stateTestInit.StartTestService(t)
 	err := serde.RegisterSerdes(
-		&Serde{},
+		state.NewStateSerde("test-serde", &Name{}),
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models2.GatewayDevice{}))
 	assert.NoError(t, err)
 
@@ -74,9 +72,9 @@ func TestStateService(t *testing.T) {
 	value0 := Name{Name: "name0"}
 	value1 := Name{Name: "name1"}
 	value2 := NameAndAge{Name: "name2", Age: 20}
-	bundle0 := makeStateBundle(typeName, "key0", value0)
-	bundle1 := makeVersionedStateBundle(typeName, "key1", value1, 10)
-	bundle2 := makeVersionedStateBundle(typeName, "key2", value2, 12)
+	bundle0 := makeStateBundle("test-serde", "key0", value0)
+	bundle1 := makeVersionedStateBundle("test-serde", "key1", value1, 10)
+	bundle2 := makeVersionedStateBundle("test-serde", "key2", value2, 12)
 
 	// Check contract for empty network
 	states, err := state.GetStates(networkID, []state.StateID{bundle0.ID})
@@ -130,10 +128,13 @@ func TestStateService(t *testing.T) {
 
 	// Send a valid state and a state with no corresponding serde
 	unserializableBundle := makeStateBundle("nonexistent-serde", "key3", value0)
-	resp, err := reportStates(ctx, bundle0, unserializableBundle)
+	invalidBundle := makeStateBundle("test-serde", "key1", Name{Name: "BADNAME"})
+	resp, err := reportStates(ctx, bundle0, unserializableBundle, invalidBundle)
 	assert.NoError(t, err)
 	assert.Equal(t, "nonexistent-serde", resp.UnreportedStates[0].Type)
 	assert.Equal(t, "No Serde found for type nonexistent-serde", resp.UnreportedStates[0].Error)
+	assert.Equal(t, "test-serde", resp.UnreportedStates[1].Type)
+	assert.Equal(t, "This name: BADNAME is not allowed!", resp.UnreportedStates[1].Error)
 	// Valid state should still be reported
 	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID, bundle2.ID})
 	assert.NoError(t, err)
@@ -153,26 +154,31 @@ type Name struct {
 	Name string `json:"name"`
 }
 
-type Serde struct {
-}
-
-func (*Serde) GetDomain() string {
+func (*Name) GetDomain() string {
 	return state.SerdeDomain
 }
 
-func (*Serde) GetType() string {
-	return typeName
+func (*Name) GetType() string {
+	return "test-serde"
 }
 
-func (*Serde) Serialize(in interface{}) ([]byte, error) {
-	return json.Marshal(in)
+func (m *Name) MarshalBinary() ([]byte, error) {
+	return json.Marshal(m)
 
 }
 
-func (*Serde) Deserialize(message []byte) (interface{}, error) {
+func (m *Name) UnmarshalBinary(message []byte) error {
 	res := Name{}
 	err := json.Unmarshal(message, &res)
-	return res, err
+	*m = res
+	return err
+}
+
+func (m *Name) ValidateModel() error {
+	if m.Name == "BADNAME" {
+		return fmt.Errorf("This name: %s is not allowed!", m.Name)
+	}
+	return nil
 }
 
 func getClient() (protos.StateServiceClient, error) {
