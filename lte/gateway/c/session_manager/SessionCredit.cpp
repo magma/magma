@@ -59,6 +59,9 @@ void SessionCredit::reset_reporting_credit()
 
 void SessionCredit::mark_failure()
 {
+  // the
+  buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
+  buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
   reset_reporting_credit();
   if (should_deactivate_service()) {
     service_state_ = SERVICE_NEEDS_DEACTIVATION;
