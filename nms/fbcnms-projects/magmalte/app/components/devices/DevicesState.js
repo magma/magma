@@ -78,6 +78,40 @@ function GenInterfaces(
   return info;
 }
 
+type latenciesStateModel = {
+  latency?: Array<{type: string, src: string, dst: string, rtt: number}>,
+};
+
+function GenLatencies(
+  state: ?latenciesStateModel,
+): Array<React$Element<'div'>> {
+  // if no state, then display nothing (different from empty list)
+  if (!state) {
+    return [];
+  }
+
+  const info = [];
+  if (!(state.latency?.length == 0)) {
+    info.push(
+      ...(state.latency || []).map((latency, i) => {
+        const key = `latencies_${i}`;
+        return (
+          <div key={key}>
+            {latency.src} -> {latency.dst} ({latency.type}):{' '}
+            {latency.rtt / 1000} ms
+          </div>
+        );
+      }),
+    );
+  }
+
+  if (info.length == 0) {
+    info.push(<div key="latencies_none">No latencies reported</div>);
+  }
+
+  return info;
+}
+
 export default function DevicesState(
   props: Props,
 ): Array<React$Element<'div'>> {
@@ -87,6 +121,9 @@ export default function DevicesState(
 
   info.push(
     ...GenInterfaces(device?.status?.['openconfig-interfaces:interfaces']),
+    ...GenLatencies(
+      device?.status?.['fbc-symphony-device:system']?.['latencies'],
+    ),
   );
 
   if (info.length == 0) {
