@@ -6,7 +6,7 @@ services:
     ports:
       - 5432:5432/tcp
     volumes:
-      - $PWD/../../../.cache/orc8r/pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: magma_dev
       POSTGRES_PASSWORD: magma_dev
@@ -16,7 +16,7 @@ services:
   maria:
     image: mariadb:10.2
     volumes:
-      - $PWD/../../../.cache/orc8r/mariadata:/var/lib/mysql
+      - mysql:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: magma
       MYSQL_DATABASE: magma_dev
@@ -95,7 +95,7 @@ services:
       - 9200:9200
       - 9300:9300
     volumes:
-      - $PWD/../../../.cache/orc8r/elasticdata:/usr/share/elasticsearch/data
+      - elasticsearch:/usr/share/elasticsearch/data
     restart: always
 
   kibana:
@@ -115,3 +115,8 @@ services:
       - 24224:24224/udp
     volumes:
       - ./fluentd/conf:/fluentd/etc
+
+volumes:
+  pgdata:
+  elasticsearch:
+  mysql:
