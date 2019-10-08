@@ -61,7 +61,7 @@
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_paging_request(
+int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_paging_request_t *const sgsap_paging_req_pP)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -80,7 +80,7 @@ int mme_app_handle_sgsap_paging_request(
     imsi64);
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
+       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "SGS-PAGING REQUEST: Failed to find UE context for IMSI " IMSI_64_FMT

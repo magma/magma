@@ -207,7 +207,7 @@ int _handle_ula_failure(struct ue_mm_context_s *ue_context_p)
 }
 
 //------------------------------------------------------------------------------
-int mme_app_handle_s6a_update_location_ans(
+int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
   const s6a_update_location_ans_t *const ula_pP)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -223,7 +223,7 @@ int mme_app_handle_s6a_update_location_ans(
 
   if (
     (ue_mm_context = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
+       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -376,7 +376,7 @@ int mme_app_handle_s6a_update_location_ans(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int mme_app_handle_s6a_cancel_location_req(
+int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
   const s6a_cancel_location_req_t *const clr_pP)
 {
   int rc = RETURNok;
@@ -407,9 +407,8 @@ int mme_app_handle_s6a_cancel_location_req(
 
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi)) == NULL) {
-    OAILOG_ERROR(LOG_MME_APP,
-      "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
+       &mme_app_desc_p->mme_ue_contexts, imsi)) == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
       imsi);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -456,7 +455,7 @@ int mme_app_handle_s6a_cancel_location_req(
     if (ue_context_p->sgs_context) {
       sgs_detach_req.ue_id = ue_context_p->mme_ue_s1ap_id;
       sgs_detach_req.detach_type = SGS_DETACH_TYPE_NW_INITIATED_EPS;
-      mme_app_handle_sgs_detach_req(&sgs_detach_req);
+      mme_app_handle_sgs_detach_req(mme_app_desc_p, &sgs_detach_req);
     }
   }
   unlock_ue_contexts(ue_context_p);

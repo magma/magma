@@ -635,7 +635,7 @@ void mme_ue_context_update_coll_keys(
 /** \brief dump MME associative collections
  **/
 
-void mme_ue_context_dump_coll_keys(void);
+void mme_ue_context_dump_coll_keys(const mme_ue_context_t *mme_ue_contexts_p);
 
 /** \brief Insert a new UE context in the tree of known UEs.
  * At least the IMSI should be known to insert the context in the tree.
@@ -710,9 +710,11 @@ void mme_app_send_delete_session_request(
   const pdn_cid_t cid);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
-  const itti_s1ap_ue_context_mod_resp_t *s1ap_ue_context_mod_resp);
+    mme_ue_context_t *mme_ue_contexts_p,
+    const itti_s1ap_ue_context_mod_resp_t *s1ap_ue_context_mod_resp);
 void mme_app_handle_s1ap_ue_context_modification_fail(
-  const itti_s1ap_ue_context_mod_resp_fail_t *s1ap_ue_context_mod_fail);
+    mme_ue_context_t *mme_ue_contexts_p,
+    const itti_s1ap_ue_context_mod_resp_fail_t *s1ap_ue_context_mod_fail);
 
 void mme_app_ue_sgs_context_free_content(
   sgs_context_t *const sgs_context_p,

@@ -71,7 +71,7 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "nas_timer.h"
 #include "obj_hashtable.h"
@@ -470,6 +470,7 @@ ue_mm_context_t *mme_ue_context_exists_mme_ue_s1ap_id(
   }
   return ue_context_p;
 }
+
 //------------------------------------------------------------------------------
 struct ue_mm_context_s *mme_ue_context_exists_imsi(
   mme_ue_context_t *const mme_ue_context_p,
@@ -479,7 +480,7 @@ struct ue_mm_context_s *mme_ue_context_exists_imsi(
   uint64_t mme_ue_s1ap_id64 = 0;
 
   h_rc = hashtable_uint64_ts_get(
-    mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl,
+    mme_ue_context_p->imsi_ue_context_htbl,
     (const hash_key_t) imsi,
     &mme_ue_s1ap_id64);
 
@@ -766,33 +767,33 @@ void mme_ue_context_update_coll_keys(
 }
 
 //------------------------------------------------------------------------------
-void mme_ue_context_dump_coll_keys(void)
+void mme_ue_context_dump_coll_keys(const mme_ue_context_t *mme_ue_contexts_p)
 {
   bstring tmp = bfromcstr(" ");
 
   btrunc(tmp, 0);
   hashtable_uint64_ts_dump_content(
-    mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl, tmp);
+    mme_ue_contexts_p->imsi_ue_context_htbl, tmp);
   OAILOG_INFO(LOG_MME_APP, "imsi_ue_context_htbl %s\n", bdata(tmp));
 
   btrunc(tmp, 0);
   hashtable_uint64_ts_dump_content(
-    mme_app_desc.mme_ue_contexts.tun11_ue_context_htbl, tmp);
+    mme_ue_contexts_p->tun11_ue_context_htbl, tmp);
   OAILOG_INFO(LOG_MME_APP, "tun11_ue_context_htbl %s\n", bdata(tmp));
 
   btrunc(tmp, 0);
   hashtable_ts_dump_content(
-    mme_app_desc.mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl, tmp);
+    mme_ue_contexts_p->mme_ue_s1ap_id_ue_context_htbl, tmp);
   OAILOG_INFO(LOG_MME_APP, "mme_ue_s1ap_id_ue_context_htbl %s\n", bdata(tmp));
 
   btrunc(tmp, 0);
   hashtable_uint64_ts_dump_content(
-    mme_app_desc.mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl, tmp);
+    mme_ue_contexts_p->enb_ue_s1ap_id_ue_context_htbl, tmp);
   OAILOG_INFO(LOG_MME_APP, "enb_ue_s1ap_id_ue_context_htbl %s\n", bdata(tmp));
 
   btrunc(tmp, 0);
   obj_hashtable_uint64_ts_dump_content(
-    mme_app_desc.mme_ue_contexts.guti_ue_context_htbl, tmp);
+    mme_ue_contexts_p->guti_ue_context_htbl, tmp);
   OAILOG_INFO(LOG_MME_APP, "guti_ue_context_htbl %s", bdata(tmp));
 
   bdestroy(tmp);
@@ -2000,7 +2001,7 @@ void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context_p)
 
 //------------------------------------------------------------------------------
 void mme_app_handle_s1ap_ue_context_release_req(
-  const itti_s1ap_ue_context_release_req_t* const s1ap_ue_context_release_req)
+    const itti_s1ap_ue_context_release_req_t* const s1ap_ue_context_release_req)
 
 {
   _mme_app_handle_s1ap_ue_context_release(
@@ -2011,7 +2012,8 @@ void mme_app_handle_s1ap_ue_context_release_req(
 }
 
 void mme_app_handle_s1ap_ue_context_modification_fail(
-  const itti_s1ap_ue_context_mod_resp_fail_t *const s1ap_ue_context_mod_fail)
+    mme_ue_context_t *mme_ue_contexts_p,
+    const itti_s1ap_ue_context_mod_resp_fail_t *const s1ap_ue_context_mod_fail)
 //------------------------------------------------------------------------------
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -2026,7 +2028,7 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
     s1ap_ue_context_mod_fail->cause);
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, s1ap_ue_context_mod_fail->mme_ue_s1ap_id);
+    mme_ue_contexts_p, s1ap_ue_context_mod_fail->mme_ue_s1ap_id);
   if (!ue_context_p) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -2057,7 +2059,8 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
 }
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
-  const itti_s1ap_ue_context_mod_resp_t *const s1ap_ue_context_mod_resp)
+    mme_ue_context_t *mme_ue_contexts_p,
+    const itti_s1ap_ue_context_mod_resp_t *const s1ap_ue_context_mod_resp)
 //------------------------------------------------------------------------------
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -2069,7 +2072,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
     s1ap_ue_context_mod_resp->mme_ue_s1ap_id);
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, s1ap_ue_context_mod_resp->mme_ue_s1ap_id);
+    mme_ue_contexts_p, s1ap_ue_context_mod_resp->mme_ue_s1ap_id);
   if (!ue_context_p) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -2167,7 +2170,8 @@ void mme_app_handle_enb_reset_req(
 */
 //------------------------------------------------------------------------------
 void mme_app_handle_s1ap_ue_context_release_complete(
-  const itti_s1ap_ue_context_release_complete_t const
+    mme_app_desc_t *mme_app_desc_p,
+    const itti_s1ap_ue_context_release_complete_t const
     *s1ap_ue_context_release_complete)
 //------------------------------------------------------------------------------
 {
@@ -2175,7 +2179,7 @@ void mme_app_handle_s1ap_ue_context_release_complete(
   struct ue_mm_context_s *ue_context_p = NULL;
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts,
+    &mme_app_desc_p->mme_ue_contexts,
     s1ap_ue_context_release_complete->mme_ue_s1ap_id);
 
   if (!ue_context_p) {
@@ -2188,7 +2192,8 @@ void mme_app_handle_s1ap_ue_context_release_complete(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  mme_notify_ue_context_released(&mme_app_desc.mme_ue_contexts, ue_context_p);
+  mme_notify_ue_context_released(&mme_app_desc_p->mme_ue_contexts,
+    ue_context_p);
   mme_app_delete_s11_procedure_create_bearer(ue_context_p);
 
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
@@ -2206,9 +2211,9 @@ void mme_app_handle_s1ap_ue_context_release_complete(
       if (
         (ue_context_p->send_ue_purge_request == true) &&
         (ue_context_p->hss_initiated_detach == false)) {
-        mme_app_send_s6a_purge_ue_req(ue_context_p);
+        mme_app_send_s6a_purge_ue_req(mme_app_desc_p,ue_context_p);
       }
-      mme_remove_ue_context(&mme_app_desc.mme_ue_contexts, ue_context_p);
+      mme_remove_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
       update_mme_app_stats_connected_ue_sub();
       // return here avoid unlock_ue_contexts()
       OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2223,12 +2228,12 @@ void mme_app_handle_s1ap_ue_context_release_complete(
       }
       // Move the UE to Idle state
       mme_ue_context_update_ue_sig_connection_state(
-        &mme_app_desc.mme_ue_contexts, ue_context_p, ECM_IDLE);
+        &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
     }
   } else {
     // Update keys and ECM state
     mme_ue_context_update_ue_sig_connection_state(
-      &mme_app_desc.mme_ue_contexts, ue_context_p, ECM_IDLE);
+      &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2236,16 +2241,17 @@ void mme_app_handle_s1ap_ue_context_release_complete(
 
 //-------------------------------------------------------------------------------------------------------
 void mme_ue_context_update_ue_emm_state(
-  mme_ue_s1ap_id_t mme_ue_s1ap_id,
-  mm_state_t new_mm_state)
+    mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    mm_state_t new_mm_state)
 {
   // Function is used to update UE's mobility management State- Registered/Un-Registered
 
   struct ue_mm_context_s *ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, mme_ue_s1ap_id);
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2279,10 +2285,10 @@ void mme_ue_context_update_ue_emm_state(
 
 //------------------------------------------------------------------------------
 static void _mme_app_handle_s1ap_ue_context_release(
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-  const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-  uint32_t enb_id,
-  enum s1cause cause)
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+    uint32_t enb_id,
+    enum s1cause cause)
 //------------------------------------------------------------------------------
 {
   struct ue_mm_context_s *ue_mm_context = NULL;
@@ -2290,8 +2296,9 @@ static void _mme_app_handle_s1ap_ue_context_release(
   MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, mme_ue_s1ap_id);
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
   if (!ue_mm_context) {
     /*
      * Use enb_ue_s1ap_id_key to get the UE context - In case MME APP could not update S1AP with valid mme_ue_s1ap_id
@@ -2299,7 +2306,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
      */
     MME_APP_ENB_S1AP_ID_KEY(enb_s1ap_id_key, enb_id, enb_ue_s1ap_id);
     ue_mm_context = mme_ue_context_exists_enb_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, enb_s1ap_id_key);
+      &mme_app_desc_p->mme_ue_contexts, enb_s1ap_id_key);
 
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -2326,7 +2333,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
     // calling below function to set the enb_s1ap_id_key to invalid
     if (ue_mm_context->ue_context_rel_cause == S1AP_SCTP_SHUTDOWN_OR_RESET) {
       mme_ue_context_update_ue_sig_connection_state(
-        &mme_app_desc.mme_ue_contexts, ue_mm_context, ECM_IDLE);
+        &mme_app_desc_p->mme_ue_contexts, ue_mm_context, ECM_IDLE);
       mme_app_itti_ue_context_release(
         ue_mm_context, ue_mm_context->ue_context_rel_cause);
       OAILOG_WARNING(
@@ -2352,7 +2359,7 @@ static void _mme_app_handle_s1ap_ue_context_release(
     if (ue_mm_context->ue_context_rel_cause == S1AP_SCTP_SHUTDOWN_OR_RESET) {
       // Update keys and ECM state
       mme_ue_context_update_ue_sig_connection_state(
-        &mme_app_desc.mme_ue_contexts, ue_mm_context, ECM_IDLE);
+        &mme_app_desc_p->mme_ue_contexts, ue_mm_context, ECM_IDLE);
       OAILOG_WARNING(
         LOG_MME_APP,
         "SCTP RESET/SHUTDOWN. UE state: CONNECTED. mme_ue_s1ap_id = %d, "
@@ -2445,16 +2452,17 @@ bool is_mme_ue_context_network_access_mode_packet_only (
 
 //-------------------------------------------------------------------------------------------------------
 void mme_ue_context_update_ue_sgs_vlr_reliable(
-  mme_ue_s1ap_id_t mme_ue_s1ap_id,
-  bool vlr_reliable)
+    mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    bool vlr_reliable)
 {
   // Function is used to update the UE's SGS vlr reliable flag - true/false
 
   struct ue_mm_context_s *ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, mme_ue_s1ap_id);
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2469,7 +2477,8 @@ void mme_ue_context_update_ue_sgs_vlr_reliable(
 }
 
 //-------------------------------------------------------------------------------------------------------
-bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id)
+bool mme_ue_context_get_ue_sgs_vlr_reliable(
+    mme_ue_s1ap_id_t mme_ue_s1ap_id)
 {
   // Function is used to get the UE's SGS vlr reliable flag - true/false
 
@@ -2477,8 +2486,9 @@ bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id)
   bool vlr_reliable = false;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, mme_ue_s1ap_id);
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -2499,11 +2509,12 @@ void mme_ue_context_update_ue_sgs_neaf(
 {
   // Function is used to update the UE's SGS neaf flag - true/false
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   struct ue_mm_context_s *ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, mme_ue_s1ap_id);
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2517,15 +2528,16 @@ void mme_ue_context_update_ue_sgs_neaf(
 }
 
 //-------------------------------------------------------------------------------------------------------
-bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id)
+bool mme_ue_context_get_ue_sgs_neaf(
+    mme_ue_s1ap_id_t mme_ue_s1ap_id)
 {
   // Function is used to get the UE's SGS neaf flag - true/false
-
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   struct ue_mm_context_s *ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, mme_ue_s1ap_id);
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
     OAILOG_CRITICAL(LOG_MME_APP, "**** Abnormal- UE context is null.****\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);

@@ -44,7 +44,8 @@
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 
-int mme_app_send_s6a_purge_ue_req(struct ue_mm_context_s *const ue_context_pP)
+int mme_app_send_s6a_purge_ue_req(mme_app_desc_t *mme_app_desc_p,
+    struct ue_mm_context_s *const ue_context_pP)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
   uint64_t imsi = 0;
@@ -58,7 +59,7 @@ int mme_app_send_s6a_purge_ue_req(struct ue_mm_context_s *const ue_context_pP)
 
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi)) == NULL) {
+       &mme_app_desc_p->mme_ue_contexts, imsi)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "That's embarrassing as we don't know this IMSI\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);

@@ -54,7 +54,7 @@
 #include "emm_data.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "mme_app_messages_types.h"
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
@@ -372,8 +372,10 @@ void nas_itti_establish_cnf(
 {
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef *message_p = NULL;
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_idP);
+    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts,
+        ue_idP);
   emm_context_t *emm_ctx = NULL;
 
   if (ue_mm_context) {
