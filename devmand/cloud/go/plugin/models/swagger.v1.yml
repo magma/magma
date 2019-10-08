@@ -284,7 +284,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/agent_id'
-        - name: name
+        - name: description
           in: body
           required: true
           schema:
@@ -317,7 +317,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/agent_id'
-        - name: name
+        - name: magmad
           in: body
           required: true
           schema:
@@ -350,7 +350,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/agent_id'
-        - name: name
+        - name: tier
           in: body
           required: true
           schema:
@@ -383,7 +383,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/agent_id'
-        - name: name
+        - name: device
           in: body
           required: true
           schema:
@@ -416,7 +416,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/agent_id'
-        - name: name
+        - name: managed_devices
           in: body
           required: true
           schema:
@@ -481,7 +481,7 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/device_id'
-        - name: name
+        - name: symphony_device
           in: body
           required: true
           schema:
@@ -498,6 +498,39 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/device_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /symphony/{network_id}/devices/{device_id}/name:
+    get:
+      summary: Get the name of a Symphony device
+      tags:
+        - Symphony Devices
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/device_id'
+      responses:
+        '200':
+          description: The description of the agent
+          schema:
+            $ref: '#/definitions/symphony_device_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a Symphony device
+      tags:
+        - Symphony Devices
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/device_id'
+        - name: name
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/symphony_device_name'
       responses:
         '204':
           description: Success
@@ -588,20 +621,24 @@ definitions:
       - config
     properties:
       id:
-        description: The id of a Symphony device
-        type: string
-        minLength: 1
-        x-nullable: false
-        pattern: '^[a-z][\da-z_]+$'
-        example: device_1
+        $ref: '#/definitions/symphony_device_id'
       name:
-        description: The name of a Symphony device
-        type: string
-        minLength: 1
-        x-nullable: false
-        example: Device 1
+        $ref: '#/definitions/symphony_device_name'
       config:
         $ref: '#/definitions/symphony_device_config'
+  symphony_device_id:
+    description: The id of a Symphony device
+    type: string
+    minLength: 1
+    x-nullable: false
+    pattern: '^[a-z][\da-z_]+$'
+    example: device_1
+  symphony_device_name:
+    description: The name of a Symphony device
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: Device 1
   symphony_device_config:
     description: Management config for a Symphony device
     type: object

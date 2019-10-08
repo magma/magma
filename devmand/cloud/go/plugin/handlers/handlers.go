@@ -46,8 +46,10 @@ const (
 	ManageAgentTierPath           = ManageAgentPath + obsidian.UrlSep + "tier"
 	ManageAgentManagedDevicesPath = ManageAgentPath + obsidian.UrlSep + "managed_devices"
 
-	BaseDevicesPath  = ManageNetworkPath + obsidian.UrlSep + "devices"
-	ManageDevicePath = BaseDevicesPath + obsidian.UrlSep + ":device_id"
+	BaseDevicesPath        = ManageNetworkPath + obsidian.UrlSep + "devices"
+	ManageDevicePath       = BaseDevicesPath + obsidian.UrlSep + ":device_id"
+	ManageDeviceNamePath   = ManageDevicePath + obsidian.UrlSep + "name"
+	ManageDeviceConfigPath = ManageDevicePath + obsidian.UrlSep + "config"
 )
 
 // GetHandlers returns all obsidian handlers for Symphony
@@ -81,6 +83,10 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentTierPath, aParam, new(orc8rmodels.TierID))...)
 	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentManagedDevicesPath, aParam, &symphonymodels.ManagedDevices{})...)
 	ret = append(ret, GetAgentDeviceHandlers(ManageAgentDevicePath)...)
+
+	dParam := "device_id"
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageDeviceNamePath, dParam, new(symphonymodels.SymphonyDeviceName))...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageDeviceConfigPath, dParam, &symphonymodels.SymphonyDeviceConfig{})...)
 
 	return ret
 }
@@ -350,8 +356,8 @@ func createDevice(c echo.Context) error {
 
 	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
 		Type:   devmand.SymphonyDeviceType,
-		Key:    payload.ID,
-		Name:   payload.Name,
+		Key:    string(payload.ID),
+		Name:   string(payload.Name),
 		Config: payload.Config,
 	})
 	if err != nil {
@@ -392,7 +398,7 @@ func updateDevice(c echo.Context) error {
 	if err := payload.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if payload.ID != did {
+	if string(payload.ID) != did {
 		return echo.NewHTTPError(http.StatusBadRequest, "device ID in body must match device_id in path")
 	}
 	exists, err := configurator.DoesEntityExist(nid, devmand.SymphonyDeviceType, did)

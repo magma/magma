@@ -21,16 +21,13 @@ type SymphonyDevice struct {
 	// Required: true
 	Config *SymphonyDeviceConfig `json:"config"`
 
-	// The id of a Symphony device
+	// id
 	// Required: true
-	// Min Length: 1
-	// Pattern: ^[a-z][\da-z_]+$
-	ID string `json:"id"`
+	ID SymphonyDeviceID `json:"id"`
 
-	// The name of a Symphony device
+	// name
 	// Required: true
-	// Min Length: 1
-	Name string `json:"name"`
+	Name SymphonyDeviceName `json:"name"`
 }
 
 // Validate validates this symphony device
@@ -75,15 +72,10 @@ func (m *SymphonyDevice) validateConfig(formats strfmt.Registry) error {
 
 func (m *SymphonyDevice) validateID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("id", "body", string(m.ID)); err != nil {
-		return err
-	}
-
-	if err := validate.MinLength("id", "body", string(m.ID), 1); err != nil {
-		return err
-	}
-
-	if err := validate.Pattern("id", "body", string(m.ID), `^[a-z][\da-z_]+$`); err != nil {
+	if err := m.ID.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		}
 		return err
 	}
 
@@ -92,11 +84,10 @@ func (m *SymphonyDevice) validateID(formats strfmt.Registry) error {
 
 func (m *SymphonyDevice) validateName(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("name", "body", string(m.Name)); err != nil {
-		return err
-	}
-
-	if err := validate.MinLength("name", "body", string(m.Name), 1); err != nil {
+	if err := m.Name.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("name")
+		}
 		return err
 	}
 

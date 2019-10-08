@@ -199,8 +199,8 @@ func (m *ManagedDevices) ToCreateUpdateCriteria(networkID, agentID, deviceID str
 }
 
 func (m *SymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *SymphonyDevice {
-	m.Name = ent.Name
-	m.ID = ent.Key
+	m.Name = SymphonyDeviceName(ent.Name)
+	m.ID = SymphonyDeviceID(ent.Key)
 	m.Config = ent.Config.(*SymphonyDeviceConfig)
 	return m
 }
@@ -208,8 +208,46 @@ func (m *SymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *Symp
 func (m *SymphonyDevice) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
 		Type:      devmand.SymphonyDeviceType,
-		Key:       m.ID,
-		NewName:   swag.String(m.Name),
+		Key:       string(m.ID),
+		NewName:   swag.String(string(m.Name)),
 		NewConfig: m.Config,
 	}
+}
+
+func (m *SymphonyDeviceName) FromBackendModels(networkID, deviceID string) error {
+	symphonyDeviceEntity, err := configurator.LoadEntity(networkID, devmand.SymphonyDeviceType, deviceID, configurator.EntityLoadCriteria{LoadMetadata: true})
+	if err != nil {
+		return err
+	}
+	*m = SymphonyDeviceName(symphonyDeviceEntity.Name)
+	return nil
+}
+
+func (m *SymphonyDeviceName) ToUpdateCriteria(networkID, deviceID string) ([]configurator.EntityUpdateCriteria, error) {
+	return []configurator.EntityUpdateCriteria{
+		{
+			Type:    devmand.SymphonyDeviceType,
+			Key:     deviceID,
+			NewName: swag.String(string(*m)),
+		},
+	}, nil
+}
+
+func (m *SymphonyDeviceConfig) FromBackendModels(networkID, deviceID string) error {
+	deviceEntityConfig, err := configurator.LoadEntityConfig(networkID, devmand.SymphonyDeviceType, deviceID)
+	if err != nil {
+		return err
+	}
+	*m = *deviceEntityConfig.(*SymphonyDeviceConfig)
+	return nil
+}
+
+func (m *SymphonyDeviceConfig) ToUpdateCriteria(networkID, deviceID string) ([]configurator.EntityUpdateCriteria, error) {
+	return []configurator.EntityUpdateCriteria{
+		{
+			Type:      devmand.SymphonyDeviceType,
+			Key:       deviceID,
+			NewConfig: m,
+		},
+	}, nil
 }

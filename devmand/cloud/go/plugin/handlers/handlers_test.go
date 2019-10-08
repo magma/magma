@@ -1367,7 +1367,7 @@ func TestUpdateDevice(t *testing.T) {
 	}
 	payload := &models2.SymphonyDevice{
 		Config: updatedConfig,
-		ID:     deviceId,
+		ID:     models2.SymphonyDeviceID(deviceId),
 		Name:   "Updated Device 1",
 	}
 	tc := tests.Test{
@@ -1398,7 +1398,7 @@ func TestUpdateDevice(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Now test correct update
-	payload.ID = deviceId
+	payload.ID = models2.SymphonyDeviceID(deviceId)
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            updateDeviceUrl,
@@ -1476,6 +1476,156 @@ func TestDeleteDevice(t *testing.T) {
 
 	// See that it's now gone
 	expectedEnts := configurator.NetworkEntities{}
+	actualEnts, _, err := configurator.LoadEntities(
+		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		[]storage.TypeAndKey{},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedEnts, actualEnts)
+}
+
+func TestPartialUpdateAndGetDevice(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	nameUrl := "/magma/v1/symphony/:network_id/devices/:device_id/name"
+	configUrl := "/magma/v1/symphony/:network_id/devices/:device_id/config"
+	obsidianHandlers := handlers.GetHandlers()
+	getName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, nameUrl, obsidian.GET).HandlerFunc
+	getConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, configUrl, obsidian.GET).HandlerFunc
+	updateName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, nameUrl, obsidian.PUT).HandlerFunc
+	updateConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, configUrl, obsidian.PUT).HandlerFunc
+
+	networkId := "n1"
+	deviceId := "d1"
+
+	namePayload := "Updated Device 1"
+	configPayload := &models2.SymphonyDeviceConfig{
+		Channels: &models2.SymphonyDeviceConfigChannels{
+			SnmpChannel: &models2.SnmpChannel{
+				Community: "updated snmp community",
+				Version:   "2",
+			},
+		},
+		DeviceConfig: "{}",
+		DeviceType:   []string{"device_type 1"},
+		Host:         "device_host",
+		Platform:     "device_platform",
+	}
+
+	// Can't get or update a device that doesn't exist
+	seedNetworks(t)
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            nameUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        getName,
+		ExpectedError:  "Not found",
+		ExpectedStatus: 404,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            configUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        getConfig,
+		ExpectedError:  "Not found",
+		ExpectedStatus: 404,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            nameUrl,
+		Payload:        tests.JSONMarshaler(namePayload),
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        updateName,
+		ExpectedError:  "failed to load entity being updated: expected to load 1 ent for update, got 0",
+		ExpectedStatus: 500,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            configUrl,
+		Payload:        configPayload,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        updateConfig,
+		ExpectedError:  "failed to load entity being updated: expected to load 1 ent for update, got 0",
+		ExpectedStatus: 500,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get a device property properly
+	seedAgents(t)
+	expectedName := "Device 1"
+	expectedConfig := models2.NewDefaultSymphonyDeviceConfig()
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            nameUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        getName,
+		ExpectedResult: tests.JSONMarshaler(expectedName),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            configUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        getConfig,
+		ExpectedResult: tests.JSONMarshaler(expectedConfig),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Update a device property properly
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            nameUrl,
+		Payload:        tests.JSONMarshaler(namePayload),
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        updateName,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            configUrl,
+		Payload:        configPayload,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        updateConfig,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedEnts := configurator.NetworkEntities{
+		configurator.NetworkEntity{
+			NetworkID:          networkId,
+			Type:               devmand.SymphonyDeviceType,
+			Key:                "d1",
+			GraphID:            "10",
+			Name:               namePayload,
+			Config:             configPayload,
+			ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: "a1"}},
+			Version:            2,
+		},
+	}
 	actualEnts, _, err := configurator.LoadEntities(
 		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
 		[]storage.TypeAndKey{},
