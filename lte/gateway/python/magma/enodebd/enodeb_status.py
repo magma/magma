@@ -246,8 +246,12 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
     enodeb_connected = enodeb.is_enodeb_connected()
     opstate_enabled = _parse_param_as_bool(enodeb, ParameterName.OP_STATE)
     rf_tx_on = _parse_param_as_bool(enodeb, ParameterName.RF_TX_STATUS)
-    enb_serial = enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
-    rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
+    try:
+        enb_serial =\
+            enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
+        rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
+    except (KeyError, ConfigurationError):
+        rf_tx_desired = False
     mme_connected = _parse_param_as_bool(enodeb, ParameterName.MME_STATUS)
     gps_connected = _get_gps_status_as_bool(enodeb)
     ptp_connected = _parse_param_as_bool(enodeb, ParameterName.PTP_STATUS)
