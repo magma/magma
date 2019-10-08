@@ -13,10 +13,11 @@
 # shellcheck source=/dev/null
 . scripts/build_image firstparty devmand | tee /tmp/devmand_build.log
 build_status=${PIPESTATUS[0]}
+docker_registry=${SYMPHONY_DOCKER_REGISTRY:="facebookconnectivity-southpoll-dev-docker.jfrog.io"}
 if [ "$build_status" -eq 0 ]; then
   docker rm -f devmand
   docker run -it --name devmand \
       -v "$(realpath ../):/cache/devmand/repo:ro" \
       -v "$(realpath ~/cache_devmand_build):/cache/devmand/build:rw" \
-      facebookconnectivity-southpoll-dev-docker.jfrog.io/devmand /bin/bash
+      ${docker_registry}/devmand /bin/bash
 fi
