@@ -674,6 +674,13 @@ void mme_app_free_pdn_connection(pdn_context_t **const pdn_connection);
 
 void mme_app_ue_context_free_content(ue_mm_context_t *const mme_ue_context_p);
 
+/**
+  * Release memory allocated by MmeNasStateManager through MmeNasStateConverter
+  * and NasStateConverter for each UE context, this is called by
+  * hashtable_ts_destroy
+  */
+void mme_app_state_free_ue_context(void **ue_context_node);
+
 /** \brief Dump the UE contexts present in the tree
  **/
 void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context);

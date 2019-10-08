@@ -57,6 +57,7 @@
 #include "itti_types.h"
 #include "mme_app_desc.h"
 #include "mme_app_messages_types.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "obj_hashtable.h"
 #include "s11_messages_types.h"
@@ -64,7 +65,7 @@
 #include "sctp_messages_types.h"
 #include "timer_messages_types.h"
 
-mme_app_desc_t mme_app_desc = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
+mme_app_desc_t mme_app_desc;
 
 bool mme_hss_associated = false;
 bool mme_sctp_bounded = false;
@@ -78,6 +79,7 @@ void *mme_app_thread(void *args)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
   itti_mark_task_ready(TASK_MME_APP);
+  mme_app_desc_t *mme_app_desc_p;
 
   while (1) {
     MessageDef *received_message_p = NULL;
@@ -89,6 +91,8 @@ void *mme_app_thread(void *args)
      */
     itti_receive_msg(TASK_MME_APP, &received_message_p);
     DevAssert(received_message_p);
+    mme_app_desc_p = get_mme_nas_state(false);
+    mme_app_desc = *mme_app_desc_p;
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -542,6 +546,7 @@ void *mme_app_thread(void *args)
         /*
        * Termination message received TODO -> release any data allocated
        */
+        put_mme_nas_state();
         mme_app_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -563,6 +568,7 @@ void *mme_app_thread(void *args)
       } break;
     }
 
+    put_mme_nas_state();
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
@@ -575,32 +581,9 @@ void *mme_app_thread(void *args)
 int mme_app_init(const mme_config_t *mme_config_p)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  memset(&mme_app_desc, 0, sizeof(mme_app_desc));
-  pthread_rwlock_init(&mme_app_desc.rw_lock, NULL);
-  bstring b = bfromcstr("mme_app_imsi_ue_context_htbl");
-  mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl =
-    hashtable_uint64_ts_create(mme_config.max_ues, NULL, b);
-  btrunc(b, 0);
-  bassigncstr(b, "mme_app_tun11_ue_context_htbl");
-  mme_app_desc.mme_ue_contexts.tun11_ue_context_htbl =
-    hashtable_uint64_ts_create(mme_config.max_ues, NULL, b);
-  AssertFatal(
-    sizeof(uintptr_t) >= sizeof(uint64_t),
-    "Problem with mme_ue_s1ap_id_ue_context_htbl in MME_APP");
-  btrunc(b, 0);
-  bassigncstr(b, "mme_app_mme_ue_s1ap_id_ue_context_htbl");
-  mme_app_desc.mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl =
-    hashtable_ts_create(mme_config.max_ues, NULL, NULL, b);
-  btrunc(b, 0);
-  bassigncstr(b, "mme_app_enb_ue_s1ap_id_ue_context_htbl");
-  mme_app_desc.mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl =
-    hashtable_uint64_ts_create(mme_config.max_ues, NULL, b);
-  btrunc(b, 0);
-  bassigncstr(b, "mme_app_guti_ue_context_htbl");
-  mme_app_desc.mme_ue_contexts.guti_ue_context_htbl =
-    obj_hashtable_uint64_ts_create(mme_config.max_ues, NULL, NULL, b);
-  bdestroy_wrapper(&b);
-
+  if (mme_nas_state_init(mme_config_p)) {
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   if (mme_app_edns_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -610,29 +593,6 @@ int mme_app_init(const mme_config_t *mme_config_p)
   if (itti_create_task(TASK_MME_APP, &mme_app_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_MME_APP, "MME APP create task failed\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
-
-  mme_app_desc.statistic_timer_period = mme_config_p->mme_statistic_timer;
-
-  /*
-   * Request for periodic timer
-   */
-  if (
-    timer_setup(
-      mme_config_p->mme_statistic_timer,
-      0,
-      TASK_MME_APP,
-      INSTANCE_DEFAULT,
-      TIMER_PERIODIC,
-      NULL,
-      0,
-      &mme_app_desc.statistic_timer_id) < 0) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Failed to request new timer for statistics with %ds "
-      "of periocidity\n",
-      mme_config_p->mme_statistic_timer);
-    mme_app_desc.statistic_timer_id = 0;
   }
 
   OAILOG_DEBUG(LOG_MME_APP, "Initializing MME applicative layer: DONE\n");
@@ -655,17 +615,7 @@ static bool _is_mme_app_healthy(void)
 //------------------------------------------------------------------------------
 void mme_app_exit(void)
 {
-  timer_remove(mme_app_desc.statistic_timer_id, NULL);
   mme_app_edns_exit();
-  hashtable_uint64_ts_destroy(
-    mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl);
-  hashtable_uint64_ts_destroy(
-    mme_app_desc.mme_ue_contexts.tun11_ue_context_htbl);
-  hashtable_ts_destroy(
-    mme_app_desc.mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl);
-  hashtable_uint64_ts_destroy(
-    mme_app_desc.mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
-  obj_hashtable_uint64_ts_destroy(
-    mme_app_desc.mme_ue_contexts.guti_ue_context_htbl);
+  clear_mme_nas_state();
   mme_config_exit();
 }

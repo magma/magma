@@ -66,6 +66,7 @@
 #include "bstrlib.h"
 #include "emm_data.h"
 #include "esm_data.h"
+#include "emm_proc.h"
 #include "hashtable.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
@@ -413,6 +414,14 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
   if (ue_context_p->s11_procedures) {
     mme_app_delete_s11_procedures(ue_context_p);
   }
+}
+
+void mme_app_state_free_ue_context(void **ue_context_node)
+{
+  ue_mm_context_t* ue_context_p = (ue_mm_context_t*)(*ue_context_node);
+  // clean up EMM context
+  _clear_emm_ctxt(&ue_context_p->emm_context);
+  mme_app_ue_context_free_content(ue_context_p);
 }
 
 //------------------------------------------------------------------------------

@@ -49,9 +49,12 @@ add_library(TASK_MME_APP
     mme_app_sgw_selection.c
     mme_app_sgs_status.c
     mme_app_state_converter.cpp
+    mme_app_state_manager.cpp
+    mme_app_state.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
+
 target_compile_definitions(TASK_MME_APP PRIVATE
   PACKAGE_NAME=\"MME\"
   PACKAGE_VERSION=\"0.1\"
