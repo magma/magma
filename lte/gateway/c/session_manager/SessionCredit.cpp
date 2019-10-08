@@ -9,6 +9,7 @@
 
 #include <limits>
 
+#include "DiameterCodes.h"
 #include "SessionCredit.h"
 #include "magma_logging.h"
 
@@ -18,7 +19,14 @@ float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 
-SessionCredit::SessionCredit(ServiceState start_state):
+const std::set<uint32_t> SessionCredit::transient_result_codes_ = {
+  DIAMETER_CREDIT_CONTROL_NOT_APPLICABLE,
+  DIAMETER_CREDIT_LIMIT_REACHED,
+  DIAMETER_NO_AVAILABLE_POLICY_COUNTERS,
+  DIAMETER_SERVICE_TEMPORARILY_NOT_AUTHORIZED,
+};
+
+  SessionCredit::SessionCredit(ServiceState start_state):
   reporting_(false),
   reauth_state_(REAUTH_NOT_NEEDED),
   service_state_(start_state),
@@ -57,11 +65,12 @@ void SessionCredit::reset_reporting_credit()
   reporting_ = false;
 }
 
-void SessionCredit::mark_failure()
+void SessionCredit::mark_failure(uint32_t code)
 {
-  // the
-  buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
-  buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
+  if (transient_result_codes_.find(code) != transient_result_codes_.end()) {
+    buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
+    buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
+  }
   reset_reporting_credit();
   if (should_deactivate_service()) {
     service_state_ = SERVICE_NEEDS_DEACTIVATION;
@@ -77,13 +86,16 @@ void SessionCredit::receive_credit(
   FinalActionInfo final_action_info)
 {
   MLOG(MDEBUG) << "receive_credit:"
-               << "total allowed octets:  " << buckets_[ALLOWED_TOTAL]
+               << "total allowed octets: " << buckets_[ALLOWED_TOTAL]
                << "total_tx allowed: " << buckets_[ALLOWED_TX]
-               << "total_rx allowed " << buckets_[ALLOWED_RX];
+               << "total_rx allowed: " << buckets_[ALLOWED_RX]
+               << "adding total: " << total_volume
+               << "adding tx: " << tx_volume
+               << "adding rx: " << rx_volume;
   buckets_[ALLOWED_TOTAL] += total_volume;
   buckets_[ALLOWED_TX] += tx_volume;
   buckets_[ALLOWED_RX] += rx_volume;
-  MLOG(MDEBUG) << "receive_credit:"
+  MLOG(MDEBUG) << "receive_credit result:"
                << "total allowed octets " << buckets_[ALLOWED_TOTAL]
                << "total_tx allowed " << buckets_[ALLOWED_TX]
                << "total_rx allowed " << buckets_[ALLOWED_RX];
@@ -95,8 +107,9 @@ void SessionCredit::receive_credit(
                << buckets_[REPORTING_TX];
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
-  usage_reporting_limit_ =
-    buckets_[ALLOWED_TOTAL] - buckets_[REPORTED_RX] - buckets_[REPORTED_TX];
+  auto reported_sum = buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
+  usage_reporting_limit_ = buckets_[ALLOWED_TOTAL] > reported_sum ?
+    buckets_[ALLOWED_TOTAL] - reported_sum : 0;
   MLOG(MDEBUG) << "receive_credit:"
                << "reported rx " << buckets_[REPORTED_RX] << "reported_tx "
                << buckets_[REPORTED_TX] << "reporting_rx "
@@ -115,9 +128,8 @@ void SessionCredit::receive_credit(
   if (reauth_state_ == REAUTH_PROCESSING) {
     reauth_state_ = REAUTH_NOT_NEEDED; // done
   }
-  if (
-    !quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
-                            service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
+  if (!quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
+                             service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
     MLOG(MDEBUG) << "Quota available. Activating service";
     service_state_ = SERVICE_NEEDS_ACTIVATION;
@@ -128,27 +140,36 @@ bool SessionCredit::quota_exhausted(
   float usage_reporting_threshold, uint64_t extra_quota_margin)
 {
   // used quota since last report
-  uint64_t total_reported_usage = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
-  uint64_t total_usage_since_report =
-    buckets_[USED_TX] + buckets_[USED_RX] - total_reported_usage;
-  uint64_t tx_usage_since_report =
-    buckets_[USED_TX] - buckets_[REPORTED_TX];
-  uint64_t rx_usage_since_report =
-    buckets_[USED_RX] - buckets_[REPORTED_RX];
+  uint64_t total_reported_usage =
+    buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
+  uint64_t total_usage_since_report = buckets_[USED_TX] + buckets_[USED_RX];
+  if (total_usage_since_report > total_reported_usage) {
+    total_usage_since_report -= total_reported_usage;
+  } else {
+    total_usage_since_report = 0;
+  }
+  uint64_t tx_usage_since_report = buckets_[USED_TX] > buckets_[REPORTED_TX] ?
+    buckets_[USED_TX] - buckets_[REPORTED_TX] : 0;
+  uint64_t rx_usage_since_report = buckets_[USED_RX] > buckets_[REPORTED_RX] ?
+    buckets_[USED_RX] - buckets_[REPORTED_RX] : 0;
 
   // available quota since last report
   auto total_usage_reporting_threshold = extra_quota_margin +
-    (buckets_[ALLOWED_TOTAL] - total_reported_usage) * usage_reporting_threshold;
+    (buckets_[ALLOWED_TOTAL] > total_reported_usage ?
+      (buckets_[ALLOWED_TOTAL] -
+       total_reported_usage) * usage_reporting_threshold : 0);
 
   // reported tx/rx could be greater than allowed tx/rx
   // because some OCS/PCRF might not track tx/rx,
   // and 0 is added to the allowed credit when an credit update is received
-  auto tx_usage_reporting_threshold = buckets_[ALLOWED_TX] > buckets_[REPORTED_TX] ?
-    (buckets_[ALLOWED_TX] - buckets_[REPORTED_TX]) * usage_reporting_threshold :
-    0;
-  auto rx_usage_reporting_threshold = buckets_[ALLOWED_RX] > buckets_[REPORTED_RX] ?
-    (buckets_[ALLOWED_RX] - buckets_[REPORTED_RX]) * usage_reporting_threshold :
-    0;
+  auto tx_usage_reporting_threshold =
+    buckets_[ALLOWED_TX] > buckets_[REPORTED_TX] ?
+      (buckets_[ALLOWED_TX] -
+       buckets_[REPORTED_TX]) * usage_reporting_threshold : 0;
+  auto rx_usage_reporting_threshold =
+    buckets_[ALLOWED_RX] > buckets_[REPORTED_RX] ?
+      (buckets_[ALLOWED_RX] -
+       buckets_[REPORTED_RX]) * usage_reporting_threshold : 0;
 
   tx_usage_reporting_threshold += extra_quota_margin;
   rx_usage_reporting_threshold += extra_quota_margin;
@@ -201,10 +222,10 @@ CreditUpdateType SessionCredit::get_update_type()
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(bool is_termination)
 {
   // Send delta. If bytes are reporting, don't resend them
-  uint64_t tx =
-    buckets_[USED_TX] - buckets_[REPORTED_TX] - buckets_[REPORTING_TX];
-  uint64_t rx =
-    buckets_[USED_RX] - buckets_[REPORTED_RX] - buckets_[REPORTING_RX];
+  auto report = buckets_[REPORTED_TX] + buckets_[REPORTING_TX];
+  uint64_t tx = buckets_[USED_TX] > report ? buckets_[USED_TX] - report : 0;
+  report = buckets_[REPORTED_RX] - buckets_[REPORTING_RX];
+  uint64_t rx = buckets_[USED_RX] > report ? buckets_[USED_RX] - report : 0;
 
   if (!is_termination && !is_final_) {
     // Apply reporting limits since the user is not getting terminated.
