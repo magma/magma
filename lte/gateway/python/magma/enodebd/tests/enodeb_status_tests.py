@@ -9,7 +9,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 # pylint: disable=protected-access
 from unittest import TestCase
-from magma.enodebd.enodeb_status import get_service_status_old, get_all_enb_status
+from magma.enodebd.devices.device_utils import EnodebDeviceName
+from magma.enodebd.enodeb_status import get_service_status_old, \
+    get_all_enb_status, get_enb_status
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from magma.enodebd.tests.test_utils.tr069_msg_builder import \
     Tr069MessageBuilder
@@ -38,6 +40,16 @@ class EnodebStatusTests(TestCase):
                         'Should report an eNB as conencted')
         self.assertTrue(status['enodeb_serial'] == '120200002618AGP0001',
                         'eNodeB serial should match the earlier Inform')
+
+    def test_get_enb_status(self):
+        acs_state_machine = \
+            EnodebAcsStateMachineBuilder\
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+        try:
+            get_enb_status(acs_state_machine)
+        except KeyError:
+            self.fail('Getting eNB status should succeed after constructor '
+                      'runs.')
 
     def test_get_enodeb_all_status(self):
         manager = self._get_manager()
