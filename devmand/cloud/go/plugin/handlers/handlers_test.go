@@ -1432,6 +1432,59 @@ func TestUpdateDevice(t *testing.T) {
 	assert.Equal(t, expectedEnts, actualEnts)
 }
 
+func TestDeleteDevice(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	deleteDeviceUrl := "/magma/v1/symphony/:network_id/devices/:device_id"
+	obsidianHandlers := handlers.GetHandlers()
+	deleteDevice := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, deleteDeviceUrl, obsidian.DELETE).HandlerFunc
+
+	networkId := "n1"
+	deviceId := "d1"
+
+	// Can't delete a nonexistent device
+	seedNetworks(t)
+	tc := tests.Test{
+		Method:         "DELETE",
+		URL:            deleteDeviceUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        deleteDevice,
+		ExpectedError:  "Not Found",
+		ExpectedStatus: 404,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete it properly
+	seedAgents(t)
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            deleteDeviceUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        deleteDevice,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// See that it's now gone
+	expectedEnts := configurator.NetworkEntities{}
+	actualEnts, _, err := configurator.LoadEntities(
+		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		[]storage.TypeAndKey{},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedEnts, actualEnts)
+}
+
 func strPtr(str string) *string {
 	return &str
 }

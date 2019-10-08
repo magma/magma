@@ -69,6 +69,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: BaseDevicesPath, Methods: obsidian.POST, HandlerFunc: createDevice},
 		{Path: ManageDevicePath, Methods: obsidian.GET, HandlerFunc: getDevice},
 		{Path: ManageDevicePath, Methods: obsidian.PUT, HandlerFunc: updateDevice},
+		{Path: ManageDevicePath, Methods: obsidian.DELETE, HandlerFunc: deleteDevice},
 	}
 
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
@@ -394,15 +395,36 @@ func updateDevice(c echo.Context) error {
 	if payload.ID != did {
 		return echo.NewHTTPError(http.StatusBadRequest, "device ID in body must match device_id in path")
 	}
-	_, err := configurator.LoadEntity(nid, devmand.SymphonyDeviceType, did, configurator.FullEntityLoadCriteria())
-	switch {
-	case err == merrors.ErrNotFound:
-		return echo.ErrNotFound
-	case err != nil:
+	exists, err := configurator.DoesEntityExist(nid, devmand.SymphonyDeviceType, did)
+	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	if !exists {
+		return echo.ErrNotFound
 	}
 
 	_, err = configurator.UpdateEntity(nid, payload.ToEntityUpdateCriteria())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteDevice(c echo.Context) error {
+	nid, did, nerr := GetNetworkAndDeviceIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	exists, err := configurator.DoesEntityExist(nid, devmand.SymphonyDeviceType, did)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	if !exists {
+		return echo.ErrNotFound
+	}
+
+	err = configurator.DeleteEntity(nid, devmand.SymphonyDeviceType, did)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
