@@ -69,19 +69,24 @@ message AllEnodebStatus {
 }
 
 message SingleEnodebStatus {
+  enum StatusProperty {
+    OFF = 0;
+    ON = 1;
+    UNKNOWN = 2;
+  }
   string device_serial = 1;
   string ip_address = 2;
-  string connected = 3;
-  string configured = 4;
-  string opstate_enabled = 5;
-  string rf_tx_on = 6;
-  string gps_connected = 7;
-  string ptp_connected = 8;
-  string mme_connected = 9;
+  StatusProperty connected = 3;
+  StatusProperty configured = 4;
+  StatusProperty opstate_enabled = 5;
+  StatusProperty rf_tx_on = 6;
+  StatusProperty gps_connected = 7;
+  StatusProperty ptp_connected = 8;
+  StatusProperty mme_connected = 9;
   string gps_longitude = 10;
   string gps_latitude = 11;
   string fsm_state = 12;
-  string rf_tx_desired = 13;
+  StatusProperty rf_tx_desired = 13;
 }
 
 // --------------------------------------------------------------------------
