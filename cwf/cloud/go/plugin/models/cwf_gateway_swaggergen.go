@@ -19,6 +19,10 @@ import (
 // swagger:model cwf_gateway
 type CwfGateway struct {
 
+	// carrier wifi
+	// Required: true
+	CarrierWifi *GatewayCwfConfigs `json:"carrier_wifi"`
+
 	// description
 	// Required: true
 	Description models4.GatewayDescription `json:"description"`
@@ -51,6 +55,10 @@ type CwfGateway struct {
 func (m *CwfGateway) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateCarrierWifi(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateDescription(formats); err != nil {
 		res = append(res, err)
 	}
@@ -82,6 +90,24 @@ func (m *CwfGateway) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *CwfGateway) validateCarrierWifi(formats strfmt.Registry) error {
+
+	if err := validate.Required("carrier_wifi", "body", m.CarrierWifi); err != nil {
+		return err
+	}
+
+	if m.CarrierWifi != nil {
+		if err := m.CarrierWifi.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("carrier_wifi")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
