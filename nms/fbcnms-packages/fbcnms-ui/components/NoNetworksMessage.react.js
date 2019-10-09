@@ -37,7 +37,7 @@ export default function() {
         <WifiTethering className={classes.icon} />
       </div>
       You currently do not have access to any networks. Please contact your
-      systen adminstrator to be added
+      system administrator to be added
     </Typography>
   );
 }
