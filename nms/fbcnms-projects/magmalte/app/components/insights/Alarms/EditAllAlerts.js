@@ -75,6 +75,7 @@ export default function EditAllAlerts(props: Props) {
   const {isLoading, error, response} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPrometheusAlertConfig,
     {networkId: nullthrows(match.params.networkId)},
+    undefined, // onResponse
     lastRefreshTime,
   );
 

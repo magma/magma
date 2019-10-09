@@ -15,6 +15,7 @@ import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import MagmaV1API from '../common/MagmaV1API';
 import NetworkContext from './context/NetworkContext';
 import NetworkSelector from './NetworkSelector.react';
 import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
@@ -24,11 +25,11 @@ import SectionRoutes from './layout/SectionRoutes';
 import VersionTooltip from './VersionTooltip';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
-import {MagmaAPIUrls} from '../common/MagmaAPI';
+import useMagmaAPI from '../common/useMagmaAPI';
 import {getProjectLinks} from '../common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -100,14 +101,9 @@ function NetworkError({error}: {error: $AxiosError<string>}) {
 
 function Main() {
   const {match} = useRouter();
-  const {response, error, isLoading} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.networks(),
-  });
+  const {response, error, isLoading} = useMagmaAPI(MagmaV1API.getNetworks, {});
 
-  const networkIds = sortBy(response?.data, [n => n.toLowerCase()]) || [
-    'mpk_test',
-  ];
+  const networkIds = sortBy(response, [n => n.toLowerCase()]) || ['mpk_test'];
   const appContext = {
     ...window.CONFIG.appData,
     networkIds,

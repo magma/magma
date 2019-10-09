@@ -12,6 +12,7 @@ import Button from '@material-ui/core/Button';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../../common/MagmaV1API';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkDialog from './NetworkDialog';
 import Paper from '@material-ui/core/Paper';
@@ -21,14 +22,14 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 
+import useMagmaAPI from '../../common/useMagmaAPI';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useCallback, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles({
   header: {
@@ -46,13 +47,12 @@ function Networks() {
   const enqueueSnackbar = useEnqueueSnackbar();
   const {relativePath, relativeUrl, history} = useRouter();
   const [networks, setNetworks] = useState(null);
-  const {error, isLoading} = useAxios({
-    url: MagmaAPIUrls.networks(),
-    onResponse: useCallback(
-      res => setNetworks(sortBy(res.data, [n => n.toLowerCase()])),
-      [],
-    ),
-  });
+
+  const {error, isLoading} = useMagmaAPI(
+    MagmaV1API.getNetworks,
+    {},
+    useCallback(res => setNetworks(sortBy(res, [n => n.toLowerCase()])), []),
+  );
 
   if (error || isLoading || !networks) {
     return <LoadingFiller />;

@@ -135,6 +135,14 @@ router.use(
 );
 
 router.use(
+  /^\/magma\/v1\/networks$/,
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    userResDecorator: networksResponseDecorator,
+  }),
+);
+
+router.use(
   '/magma/networks/:networkID',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,

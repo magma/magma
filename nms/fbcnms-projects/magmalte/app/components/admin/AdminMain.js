@@ -14,12 +14,12 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../../common/MagmaV1API';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import {getProjectLinks} from '../../common/projects';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '@fbcnms/ui/hooks';
 import {useContext} from 'react';
 
 const useStyles = makeStyles(_theme => ({
@@ -50,17 +50,13 @@ function AdminMain(props: Props) {
 }
 
 export default (props: Props) => {
-  const {error, isLoading, response} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.networks(),
-  });
+  const {error, isLoading, response} = useMagmaAPI(MagmaV1API.getNetworks, {});
 
   if (isLoading) {
     return <LoadingFiller />;
   }
 
-  const networkIds = error || !response ? ['mpk_test'] : response.data.sort();
-
+  const networkIds = error || !response ? ['mpk_test'] : response.sort();
   const appContext = {
     ...window.CONFIG.appData,
     networkIds,

@@ -15,6 +15,7 @@ import {useEffect, useState} from 'react';
 export default function<TParams: {...}, TResponse>(
   func: TParams => Promise<TResponse>,
   params: TParams,
+  onResponse?: TResponse => void,
   cacheCounter?: string | number,
 ): {
   response: ?TResponse,
@@ -35,13 +36,14 @@ export default function<TParams: {...}, TResponse>(
         setResponse(res);
         setError(null);
         setIsLoading(false);
+        onResponse && onResponse(res);
       })
       .catch(err => {
         setError(err);
         setResponse(null);
         setIsLoading(false);
       });
-  }, [jsonParams, func, cacheCounter]);
+  }, [jsonParams, func, cacheCounter, onResponse]);
 
   return {error, response, isLoading};
 }

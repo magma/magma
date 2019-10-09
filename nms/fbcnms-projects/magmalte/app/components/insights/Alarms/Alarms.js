@@ -61,6 +61,7 @@ function FiringAlerts() {
   const {isLoading, error, response} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdAlerts,
     {networkId: match.params.networkId},
+    undefined, // onResponse
     lastRefreshTime,
   );
 
