@@ -513,7 +513,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   if (!is_imsi_found) {
     OAILOG_ERROR(
       LOG_PGW_APP,
-      "Wrong IMSI received in pgw_nw_init_actv_bearer_request %s\n",
+      "Wrong IMSI (%s) received in pgw_nw_init_actv_bearer_request \n",
       bearer_req_p->imsi);
     OAILOG_INFO(
       LOG_PGW_APP,
@@ -527,7 +527,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   } else if (!is_lbi_found){
     OAILOG_ERROR(
       LOG_PGW_APP,
-      "Wrong LBI received in pgw_nw_init_actv_bearer_request %d\n",
+      "Wrong LBI (%d) received in pgw_nw_init_actv_bearer_request \n",
       bearer_req_p->lbi);
     OAILOG_INFO(
       LOG_PGW_APP,
@@ -625,7 +625,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
       send_reject = true;
       OAILOG_ERROR(
         LOG_PGW_APP,
-        "Wrong EBI received in pgw_nw_init_deactv_bearer_request %d\n",
+        "Wrong EBI (%d) received in pgw_nw_init_deactv_bearer_request \n",
         invalid_ebi[itrn]);
     } else {
       ebi_to_be_established[itrn] = bearer_req_p->ebi[itrn];
@@ -646,7 +646,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   if (!is_imsi_found) {
     OAILOG_ERROR(
       LOG_PGW_APP,
-      "Wrong IMSI received in pgw_nw_init_deactv_bearer_request %s\n",
+      "Wrong IMSI (%s) received in pgw_nw_init_deactv_bearer_request \n",
       bearer_req_p->imsi);
     OAILOG_INFO(
       LOG_PGW_APP,
@@ -660,7 +660,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   } else if ((bearer_req_p->lbi != 0) && (!is_lbi_found)){
     OAILOG_ERROR(
       LOG_PGW_APP,
-      "Wrong LBI received in pgw_nw_init_deactv_bearer_request %d\n",
+      "Wrong LBI (%d) received in pgw_nw_init_deactv_bearer_request \n",
       bearer_req_p->lbi);
     OAILOG_INFO(
       LOG_PGW_APP,
