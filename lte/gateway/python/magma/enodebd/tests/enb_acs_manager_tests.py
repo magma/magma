@@ -118,7 +118,7 @@ class StateMachineManagerTests(TestCase):
         ctx2 = get_spyne_context_with_ip(ip2)
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
                                                     'BaiBS_RTS_3.1.6',
-                                                    'unregistered_ip')
+                                                    'unregistered_serial')
 
         resp2 = manager.handle_tr069_message(ctx2, inform_msg)
         self.assertTrue(isinstance(resp2, models.DummyInput),
@@ -195,6 +195,21 @@ class StateMachineManagerTests(TestCase):
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
         self.assertTrue(isinstance(resp1, models.InformResponse),
                         'Should respond with an InformResponse')
+
+    def test_inform_from_unrecognized(self) -> None:
+        manager = self._get_manager()
+        ip = "192.168.60.145"
+
+        # Send an Inform
+        ctx1 = get_spyne_context_with_ip(ip)
+        inform_msg = Tr069MessageBuilder.get_qafb_inform('48BF74',
+                                                         'Unrecognized device',
+                                                         '120200002618AGP0001')
+        resp1 = manager.handle_tr069_message(ctx1, inform_msg)
+        self.assertTrue(isinstance(resp1, models.DummyInput),
+                        'Should end provisioninng session with empty response')
+
+
 
     def _get_manager(self) -> StateMachineManager:
         service = EnodebAcsStateMachineBuilder.build_magma_service()
