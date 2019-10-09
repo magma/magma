@@ -79,9 +79,11 @@ router.post(
       }
 
       // Add network to organization
-      const organization = await req.organization();
-      const networkIDs = [...organization.networkIDs, networkID];
-      await organization.update({networkIDs});
+      if (req.organization) {
+        const organization = await req.organization();
+        const networkIDs = [...organization.networkIDs, networkID];
+        await organization.update({networkIDs});
+      }
     } catch (e) {
       logger.error(e, {
         response: e.response?.data,
