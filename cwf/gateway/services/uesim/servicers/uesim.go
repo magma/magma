@@ -29,7 +29,7 @@ const (
 	networkIDPlaceholder = "magma"
 	blobTypePlaceholder  = "uesim"
 	trafficMSS           = "1300"
-	trafficSrvIP         = "192.168.128.24"
+	trafficSrvIP         = "192.168.129.42"
 )
 
 // UESimServer tracks all the UEs being simulated.

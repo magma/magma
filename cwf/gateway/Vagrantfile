@@ -21,7 +21,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     cwag.vm.box_version = "1.9.12"
     cwag.vm.hostname = "cwag-dev"
     cwag.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
-    cwag.vm.network "private_network", ip: "192.168.128.23", nic_type: "82540EM"
+    cwag.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM"
     cwag.ssh.password = "vagrant"
     cwag.ssh.insert_key = true
 
@@ -31,7 +31,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
-      vb.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
     end
     cwag.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false

@@ -8,6 +8,9 @@
   become: true
   script: create_gre_tunnel.sh
 
+- name: Enable IP forwarding
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+
 - name: Add static IP to cwag_br0
   become: true
   copy:

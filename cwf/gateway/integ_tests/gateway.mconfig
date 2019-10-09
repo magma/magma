@@ -112,11 +112,11 @@
    "gx": {
     "server": {
      "protocol": "tcp",
-     "address": "127.0.0.1:3870",
+     "address": "127.0.0.1:50003",
      "retransmits": 0,
      "watchdogInterval": 0,
      "retryCount": 0,
-     "localAddress": "127.0.0.1:3871",
+     "localAddress": "127.0.0.1:50004",
      "productName": "magma",
      "realm": "magma.svc.cluster.local",
      "host": "feg.magma.svc.cluster.local",
@@ -128,11 +128,11 @@
    "gy": {
     "server": {
      "protocol": "tcp",
-     "address": "127.0.0.1:3872",
+     "address": "127.0.0.1:50001",
      "retransmits": 0,
      "watchdogInterval": 0,
      "retryCount": 0,
-     "localAddress": "127.0.0.1:3873",
+     "localAddress": "127.0.0.1:50002",
      "productName": "magma",
      "realm": "magma.svc.cluster.local",
      "host": "feg.magma.svc.cluster.local",

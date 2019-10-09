@@ -10,7 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import sys
 from distutils.util import strtobool
 
-from fabric.api import cd, env, execute, lcd, local, run, sudo, warn_only
+from fabric.api import cd, env, execute, lcd, local, run, settings, sudo
 
 sys.path.append('../../orc8r')
 from tools.fab.hosts import ansible_setup, vagrant_setup
@@ -18,6 +18,11 @@ from tools.fab.hosts import ansible_setup, vagrant_setup
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
 LTE_AGW_ROOT = "../../lte/gateway"
+
+TRF_SERVER_IP = "192.168.129.42"
+TRF_SERVER_SUBNET = "192.168.129.0"
+CWAG_BR_NAME = "cwag_br0"
+CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
@@ -50,7 +55,9 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
 
     execute(_run_unit_tests)
-    execute(_copy_config)
+    execute(_set_cwag_configs)
+    cwag_host_to_mac = execute(_get_cwag_br_mac)
+    cwag_br_mac = cwag_host_to_mac[env.host_string]
     execute(_start_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
@@ -70,12 +77,14 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
 
+    execute(_set_cwag_test_configs)
+    execute(_set_cwag_test_networking, cwag_br_mac)
     execute(_start_ue_simulator)
     execute(_run_integ_tests)
 
 
-def _copy_config():
-    """ Copy necessary config overrides to /var/opt/magma/configs """
+def _set_cwag_configs():
+    """ Set the necessary config overrides """
 
     with cd(CWAG_INTEG_ROOT):
         sudo('mkdir -p /var/opt/magma')
@@ -84,15 +93,36 @@ def _copy_config():
         sudo('cp sessiond.yml /var/opt/magma/configs')
 
 
+def _get_cwag_br_mac():
+    mac = run("cat /sys/class/net/%s/address" % CWAG_BR_NAME)
+    return mac
+
+
+def _set_cwag_test_configs():
+    """ Set the necessary test configs """
+
+    sudo('mkdir -p /etc/magma')
+    # Create empty uesim config
+    sudo('touch /etc/magma/uesim.yml')
+
+
+def _set_cwag_test_networking(mac):
+    # Don't error if route already exists
+    with settings(warn_only=True):
+        sudo('ip route add %s/24 dev %s proto static scope link' %
+             (TRF_SERVER_SUBNET, CWAG_TEST_BR_NAME))
+    sudo('arp -s %s %s' % (TRF_SERVER_IP, mac))
+
+
 def _start_gateway():
     """ Starts the gateway """
     with cd(CWAG_ROOT + '/docker'):
-        run(' docker-compose'
+        sudo(' docker-compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'
             ' build --parallel')
-        run(' docker-compose'
+        sudo(' docker-compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'
@@ -107,7 +137,7 @@ def _start_ue_simulator():
 
 def _start_trfserver():
     """ Starts the traffic gen server"""
-    run("nohup iperf3 -s > /dev/null &", pty=False)
+    run('nohup iperf3 -s -B %s > /dev/null &' % TRF_SERVER_IP, pty=False)
 
 
 def _run_unit_tests():
