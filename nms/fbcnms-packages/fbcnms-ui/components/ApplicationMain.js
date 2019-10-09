@@ -18,11 +18,18 @@ import {SnackbarProvider} from 'notistack';
 import {TopBarContextProvider} from '@fbcnms/ui/components/layout/TopBarContext';
 
 type Props = {
-  appContext: any,
+  appContext?: any,
   children: React.Element<*>,
 };
 
 const ApplicationMain = (props: Props) => {
+  const content = (
+    <TopBarContextProvider>
+      <CssBaseline />
+      {props.children}
+    </TopBarContextProvider>
+  );
+
   return (
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
@@ -33,12 +40,13 @@ const ApplicationMain = (props: Props) => {
             vertical: 'bottom',
             horizontal: 'right',
           }}>
-          <AppContext.Provider value={props.appContext}>
-            <TopBarContextProvider>
-              <CssBaseline />
-              {props.children}
-            </TopBarContextProvider>
-          </AppContext.Provider>
+          {props.appContext ? (
+            <AppContext.Provider value={props.appContext}>
+              {content}
+            </AppContext.Provider>
+          ) : (
+            content
+          )}
         </SnackbarProvider>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>

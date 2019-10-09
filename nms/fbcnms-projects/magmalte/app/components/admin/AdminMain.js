@@ -12,7 +12,6 @@ import * as React from 'react';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
-import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '../../common/MagmaV1API';
 
@@ -62,8 +61,8 @@ export default (props: Props) => {
     networkIds,
   };
   return (
-    <ApplicationMain appContext={appContext}>
+    <AppContext.Provider value={appContext}>
       <AdminMain {...props} />
-    </ApplicationMain>
+    </AppContext.Provider>
   );
 };

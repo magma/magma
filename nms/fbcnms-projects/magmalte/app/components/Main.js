@@ -131,16 +131,18 @@ function Main() {
   }
 
   return (
-    <ApplicationMain appContext={appContext}>
+    <AppContext.Provider value={appContext}>
       <Index noAccess={!isLoading && networkIds.length === 0} />
-    </ApplicationMain>
+    </AppContext.Provider>
   );
 }
 
 export default () => (
-  <Switch>
-    <Route path="/nms/:networkId" component={Main} />
-    <Route path="/nms" component={Main} />
-    <Route path="/admin" component={Admin} />
-  </Switch>
+  <ApplicationMain>
+    <Switch>
+      <Route path="/nms/:networkId" component={Main} />
+      <Route path="/nms" component={Main} />
+      <Route path="/admin" component={Admin} />
+    </Switch>
+  </ApplicationMain>
 );

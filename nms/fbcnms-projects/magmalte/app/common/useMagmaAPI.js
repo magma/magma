@@ -11,6 +11,7 @@
 import MagmaV1API from './MagmaV1API';
 
 import {useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 export default function<TParams: {...}, TResponse>(
   func: TParams => Promise<TResponse>,
@@ -28,6 +29,7 @@ export default function<TParams: {...}, TResponse>(
   const [error, setError] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const jsonParams = JSON.stringify(params);
+  const enqueueSnackbar = useEnqueueSnackbar();
 
   useEffect(() => {
     func
@@ -42,8 +44,14 @@ export default function<TParams: {...}, TResponse>(
         setError(err);
         setResponse(null);
         setIsLoading(false);
+        if (err.response.status === 503) {
+          enqueueSnackbar(
+            'There was a problem connecting to the Orchestrator server',
+            {variant: 'error'},
+          );
+        }
       });
-  }, [jsonParams, func, cacheCounter, onResponse]);
+  }, [jsonParams, func, cacheCounter, onResponse, enqueueSnackbar]);
 
   return {error, response, isLoading};
 }

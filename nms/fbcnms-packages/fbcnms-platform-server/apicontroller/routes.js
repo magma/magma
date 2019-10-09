@@ -126,6 +126,14 @@ const containsNetworkID = function(
   );
 };
 
+const proxyErrorHandler = (err, res, next) => {
+  if (err.code === 'ENOTFOUND') {
+    res.status(503).send('Cannot reach Orchestrator server');
+  } else {
+    next();
+  }
+};
+
 router.use(
   /^\/magma\/networks$/,
   proxy(API_HOST, {
@@ -139,6 +147,7 @@ router.use(
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     userResDecorator: networksResponseDecorator,
+    proxyErrorHandler,
   }),
 );
 
@@ -148,6 +157,7 @@ router.use(
     ...PROXY_OPTIONS,
     filter: networkIdFilter,
     userResDecorator: auditLoggingDecorator,
+    proxyErrorHandler,
   }),
 );
 
@@ -157,6 +167,7 @@ router.use(
     ...PROXY_OPTIONS,
     filter: networkIdFilter,
     userResDecorator: auditLoggingDecorator,
+    proxyErrorHandler,
   }),
 );
 
@@ -166,6 +177,7 @@ router.use(
     ...PROXY_OPTIONS,
     filter: networkIdFilter,
     userResDecorator: auditLoggingDecorator,
+    proxyErrorHandler,
   }),
 );
 
