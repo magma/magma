@@ -8,8 +8,9 @@
  * @format
  */
 
-import type {MagmadConfig, Record, WifiConfig} from './MagmaAPIType';
 import type {Match} from 'react-router-dom';
+import type {Record, WifiConfig} from './MagmaAPIType';
+import type {magmad_gateway_configs} from './__generated__/MagmaAPIBindings';
 
 import axios from 'axios';
 import url from 'url';
@@ -92,7 +93,7 @@ export async function createDevice(
     key: {key_type: string, key?: string},
   },
   type: 'wifi' | 'devmand',
-  configs: MagmadConfig,
+  configs: magmad_gateway_configs,
   extraConfigs: WifiConfig | {[string]: mixed},
   networkIdOrMatch: string | Match,
 ): {[string]: any} {
