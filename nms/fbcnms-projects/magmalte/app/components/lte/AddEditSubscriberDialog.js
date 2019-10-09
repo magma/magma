@@ -203,7 +203,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
         networkId: this.props.match.params.networkId || '',
         subscriber: data,
       })
-        .then(this.props.onSave)
+        .then(() => this.props.onSave(data.id))
         .catch(this.props.onSaveError);
     }
   };

@@ -281,14 +281,10 @@ class UpgradeConfig extends React.Component<Props, State> {
 
   async handleGatewayUpgradeTierChangeAsync(gatewayID, newTierID) {
     const networkId = nullthrows(this.props.match.params.networkId);
-    const resp = await MagmaV1API.getNetworksByNetworkIdGatewaysByGatewayId({
+    await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdTier({
       networkId,
       gatewayId: gatewayID,
-    });
-    await MagmaV1API.putNetworksByNetworkIdGatewaysByGatewayId({
-      networkId,
-      gatewayId: gatewayID,
-      gateway: {...resp, tier: newTierID},
+      tierId: JSON.stringify(`"${newTierID}"`),
     });
     const gateways = await MagmaV1API.getNetworksByNetworkIdGateways({
       networkId,
