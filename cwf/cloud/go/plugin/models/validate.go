@@ -25,3 +25,10 @@ func (m *NetworkCarrierWifiConfigs) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *GatewayCwfConfigs) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}

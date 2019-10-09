@@ -134,4 +134,3 @@ definitions:
       message:
         type: string
         example: Error string
-
